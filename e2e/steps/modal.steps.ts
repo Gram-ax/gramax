@@ -2,15 +2,21 @@ import { Given, Then, When } from "@cucumber/cucumber";
 import E2EWorld from "e2e/models/World";
 import { expect } from "playwright/test";
 
-const MODAL_SELECTOR = '.outer-modal, .form-layout, [role="dialog"] form';
+const MODAL_SELECTOR = '.outer-modal, .form-layout, [data-qa="modal-content"], [role="alertdialog"]';
+const FORM_SELECTOR = `.outer-modal, .form-layout, [data-qa="modal-content"] form`;
+
 const MODAL_TITLE_SELECTOR = "legend, h2";
-const MODAL_CLOSE_SELECTOR = "[data-qa='modal-layout'] > div.x-mark, [role='dialog'] > button:has(> .lucide-x)";
+const MODAL_CLOSE_SELECTOR = "[data-qa='modal-layout'] > div.x-mark > i, [role='dialog'] > button:has(> .lucide-x)";
 
 const TAB_SELECTOR_ACTIVE = ".tab-wrapper.show";
 const TAB_TITLE_SELECTOR = ".tab-wrapper-title";
 
-Given("смотрим на активную форму", async function (this: E2EWorld) {
+Given("смотрим на активное модальное окно", async function (this: E2EWorld) {
 	await this.page().search().reset().scope(MODAL_SELECTOR, "find");
+});
+
+Given("смотрим на активную форму", async function (this: E2EWorld) {
+	await this.page().search().reset().scope(FORM_SELECTOR, "find");
 });
 
 Given("смотрим на выпадающий список", async function (this: E2EWorld) {
@@ -25,7 +31,7 @@ Given("смотрим на выпадающий список у Select", async f
 	await this.page().search().reset().scope('[role="listbox"]', "find");
 });
 
-When("закрываем активную форму", async function (this: E2EWorld) {
+When("закрываем активное модальное окно", async function (this: E2EWorld) {
 	const elem = await this.page().search().reset().find(MODAL_CLOSE_SELECTOR);
 	await elem.click();
 });

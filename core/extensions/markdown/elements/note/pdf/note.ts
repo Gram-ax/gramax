@@ -18,7 +18,7 @@ export async function noteHandler(
 	const noteType = attrs?.type || "note";
 	const borderColor = NOTE_COLOR_CONFIG.borderColors[noteType] || NOTE_COLOR_CONFIG.borderColors.quote;
 	const bgColor = NOTE_COLOR_CONFIG.bgColors[noteType] || "";
-	const svg = getSvgIconFromString(noteIcons[noteType], borderColor);
+	const svg = await getSvgIconFromString(noteIcons[noteType], borderColor);
 
 	const parsedContent = await parseNodeToPDFContent(node, context, options);
 

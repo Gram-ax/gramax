@@ -8,14 +8,21 @@ import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
-		const ctx = await this.app.contextFactory.from(req, res, req.query);
+		const ctx = await this.app.contextFactory.from({ req, res, query: req.query });
 		const filters = [new HiddenRules().getItemFilter(), new SecurityRules(ctx.user).getItemFilter()];
 		const basePath = this.app.conf.basePath ?? "";
 		const catalogName = req.query.catalogName as string;
 		const workspace = this.app.wm.current();
+
+		const catalog = await workspace.getContextlessCatalog(catalogName);
+		if (!catalog || typeof catalog.getItems !== "function") {
+			res.statusCode = 404;
+			return res.end();
+		}
+
 		const sitemap = await new SEOGenerator(workspace, filters).generateCatalogSitemap(
 			`${ctx.domain}${basePath}`,
-			catalogName,
+			catalog,
 		);
 		res.setHeader("Content-type", "application/xml; charset=utf-8");
 		res.setHeader("Access-Control-Allow-Origin", "*");

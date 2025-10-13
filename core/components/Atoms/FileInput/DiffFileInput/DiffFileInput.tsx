@@ -27,6 +27,7 @@ const DiffFileInput = (props: DiffFileInputProps) => {
 					modifiedLanguage={language ?? DEFAULT_LANGAUGE}
 					originalLanguage={language ?? DEFAULT_LANGAUGE}
 					options={{
+						unusualLineTerminators: "off",
 						readOnlyMessage: { value: t("cant-edit-this-line") },
 						unicodeHighlight: { ambiguousCharacters: false },
 						wordWrap: "on",

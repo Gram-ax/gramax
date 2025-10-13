@@ -256,6 +256,7 @@ export default class WorkspaceManager {
 			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
 			groups: config?.groups ?? null,
+			sections: config?.sections ?? null,
 			enterprise: {
 				gesUrl: config?.enterprise?.gesUrl ?? null,
 				lastUpdateDate: config?.enterprise?.lastUpdateDate ?? null,

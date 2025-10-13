@@ -6,10 +6,13 @@ import { NON_BREAKING_SPACE, WordFontStyles } from "./options/wordExportSettings
 
 export const errorWordLayout = async (objectType: string, language: UiLanguage) => {
 	return Promise.resolve([
-		createParagraph([
-			createContent(NON_BREAKING_SPACE + t("word.error-rendering", language) + objectType + NON_BREAKING_SPACE, {
-				style: WordFontStyles.error,
-			}),
+		await createParagraph([
+			await createContent(
+				NON_BREAKING_SPACE + t("word.error-rendering", language) + objectType + NON_BREAKING_SPACE,
+				{
+					style: WordFontStyles.error,
+				},
+			),
 		]),
 	]);
 };

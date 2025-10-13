@@ -8,7 +8,7 @@ import { GetImageByPathOptions } from "@ext/markdown/elements/image/export/NextI
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
 import { MAX_WIDTH } from "@ext/wordExport/options/wordExportSettings";
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
-import { ImageRun } from "docx";
+import docx from "@dynamicImports/docx";
 
 export class WordImageExporter {
 	static async getImageByPath(
@@ -62,7 +62,8 @@ export class WordImageExporter {
 		return this.getImageFromSvgString(svgCode, maxWidth);
 	}
 
-	private static _getImageRun(imageBuffer: string | Buffer | Uint8Array | ArrayBuffer, size: ImageDimensions) {
+	private static async _getImageRun(imageBuffer: string | Buffer | Uint8Array | ArrayBuffer, size: ImageDimensions) {
+		const { ImageRun } = await docx();
 		return new ImageRun({
 			data: imageBuffer,
 			transformation: {

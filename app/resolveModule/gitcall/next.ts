@@ -1,4 +1,4 @@
-import { cloneProgressCallbacks, type CredsArgs } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { progress, type CredsArgs } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import git from "../../../apps/next/crates/next-gramax-git";
 
@@ -13,8 +13,7 @@ const tryParse = (data: any) => {
 export const call = async <O>(command: string, args?: any): Promise<O> => {
 	let stringifiedArgs = null;
 
-	if (command == "clone")
-		args.callback = (_, val: string) => cloneProgressCallbacks[args.opts.cancelToken]?.(JSON.parse(val));
+	if (command == "clone") args.callback = (_, val: string) => progress[args.opts.cancelToken]?.(JSON.parse(val));
 	if (command == "diff") stringifiedArgs = JSON.stringify(args);
 
 	if (typeof args.scope !== "undefined") args.scope = intoTreeReadScope(args.scope);

@@ -1,4 +1,3 @@
-import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
@@ -6,15 +5,13 @@ import Tabs from "@ext/markdown/elements/tabs/render/component/Tabs";
 import { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { NodeViewContent, NodeViewProps } from "@tiptap/react";
-import { ReactElement, useCallback, useEffect, useRef, useState } from "react";
+import { ReactElement, useCallback, useEffect, useState } from "react";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement => {
-	const { node, editor, className, getPos, updateAttributes } = props;
+	const { node, editor, className, getPos, updateAttributes, deleteNode } = props;
 	const tabText = t("editor.tabs.name");
 	const [activeHoverStyle, setActiveHoverStyle] = useState(false);
-	const hoverElementRef = useRef<HTMLDivElement>(null);
-	const [isHovered, setIsHovered] = useState(false);
 
 	useEffect(() => {
 		editor.on("selectionUpdate", changeFocus);
@@ -33,6 +30,10 @@ const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement =
 		},
 		[getPos, node],
 	);
+
+	const onDeleteClick = useCallback(() => {
+		deleteNode();
+	}, [deleteNode]);
 
 	const onNameUpdate = useCallback(
 		(value: string, idx: number) => {
@@ -103,24 +104,19 @@ const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement =
 	);
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
-			<HoverableActions
-				hoverElementRef={hoverElementRef}
-				isHovered={isHovered}
-				setIsHovered={setIsHovered}
+		<NodeViewContextableWrapper props={props}>
+			<Tabs
+				isEdit
+				onTabEnter={onTabEnter}
+				onAddClick={onAddClick}
+				onNameUpdate={onNameUpdate}
+				onRemoveClick={onRemoveClick}
+				childAttrs={node.attrs.childAttrs}
+				onDeleteClick={onDeleteClick}
+				className={`${className} ${activeHoverStyle ? "hover" : ""}`}
 			>
-				<Tabs
-					isEdit
-					onTabEnter={onTabEnter}
-					onAddClick={onAddClick}
-					onNameUpdate={onNameUpdate}
-					onRemoveClick={onRemoveClick}
-					childAttrs={node.attrs.childAttrs}
-					className={`${className} ${activeHoverStyle ? "hover" : ""}`}
-				>
-					<NodeViewContent className="content" />
-				</Tabs>
-			</HoverableActions>
+				<NodeViewContent className="content" />
+			</Tabs>
 		</NodeViewContextableWrapper>
 	);
 };

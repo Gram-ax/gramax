@@ -1,6 +1,7 @@
 use std::ffi::CString;
 use std::path::Path;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 use gramaxgit::commands as git;
 use gramaxgit::commands::Result;
@@ -24,10 +25,10 @@ fn register_clone_cancel_token(token: usize) {
   }
 }
 
-fn on_clone_progress(progress: CloneProgress) {
+fn on_clone_progress(progress: RemoteProgress) {
   unsafe {
     let script = format!(
-      "self.postMessage({{ type: 'clone-progress', progress: {} }})",
+      "self.postMessage({{ type: 'remote-progress', progress: {} }})",
       serde_json::to_string(&progress).unwrap()
     );
     let script_cstr = CString::new(script).unwrap().into_raw() as *const u8;
@@ -135,19 +136,29 @@ pub fn checkout(repo_path: String, ref_name: String, force: bool) -> Result<()> 
 }
 
 #[em_bindgen]
-pub fn fetch(repo_path: String, creds: AccessTokenCreds, force: bool, lock: bool) -> Result<()> {
-  git::fetch(Path::new(&repo_path), creds, force, lock).or_http_error()
+pub fn fetch(
+  repo_path: String,
+  creds: AccessTokenCreds,
+  opts: RemoteOptions<'static>,
+  lock: bool,
+) -> Result<()> {
+  git::fetch(Path::new(&repo_path), creds, opts, lock).or_http_error()
 }
 
 #[em_bindgen]
 pub fn clone(creds: AccessTokenCreds, opts: CloneOptions) -> Result<()> {
   register_clone_cancel_token(opts.cancel_token);
-  git::clone(creds, opts, Box::new(on_clone_progress)).or_http_error()
+  git::clone(creds, opts, Rc::new(on_clone_progress)).or_http_error()
 }
 
 #[em_bindgen(json)]
-pub fn clone_cancel(id: usize) -> Result<bool> {
-  git::clone_cancel(id)
+pub fn cancel(id: usize) -> Result<bool> {
+  git::cancel(id)
+}
+
+#[em_bindgen]
+pub fn recover(repo_path: String, creds: AccessTokenCreds, cancel_token: usize) -> Result<()> {
+  git::recover(Path::new(&repo_path), creds, cancel_token.into(), Rc::new(on_clone_progress)).or_http_error()
 }
 
 #[em_bindgen(json)]
@@ -181,8 +192,8 @@ pub fn merge(repo_path: String, creds: AccessTokenCreds, opts: MergeOptions) -> 
 }
 
 #[em_bindgen(json)]
-pub fn graph_head_upstream_files(repo_path: String, search_in: String) -> Result<UpstreamCountChangedFiles> {
-  git::graph_head_upstream_files(Path::new(&repo_path), Path::new(&search_in))
+pub fn count_changed_files(repo_path: String, search_in: String) -> Result<UpstreamCountChangedFiles> {
+  git::count_changed_files(Path::new(&repo_path), Path::new(&search_in))
 }
 
 #[em_bindgen(json)]
@@ -275,6 +286,11 @@ pub fn get_all_commit_authors(repo_path: String) -> Result<Vec<CommitAuthorInfo>
 }
 
 #[em_bindgen]
+pub fn healthcheck(repo_path: String) -> Result<()> {
+  git::healthcheck(Path::new(&repo_path))
+}
+
+#[em_bindgen]
 pub fn gc(repo_path: String, opts: GcOptions) -> Result<()> {
   git::gc(Path::new(&repo_path), opts)
 }
@@ -283,5 +299,11 @@ pub fn gc(repo_path: String, opts: GcOptions) -> Result<()> {
 pub fn reset_repo(_unused: ()) -> Result<bool> {
   git_http_error::take_last_http_error();
   git::reset_repo();
+  Ok(true)
+}
+
+#[em_bindgen]
+pub fn reset_file_lock(repo_path: String) -> Result<bool> {
+  git::reset_file_lock(Path::new(&repo_path));
   Ok(true)
 }

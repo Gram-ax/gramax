@@ -38,7 +38,7 @@ const ColGroup = ({ content, parentElement, tableRef, isPrint }: ColGroupProps) 
 	};
 
 	const normalizeWidth = (width: string): string => {
-		if (!width) return width;
+		if (!width || !Number(width)) return null;
 		const hasUnits = /[a-zA-Z%]/.test(width);
 		return hasUnits ? width : `${width}px`;
 	};
@@ -52,14 +52,9 @@ const ColGroup = ({ content, parentElement, tableRef, isPrint }: ColGroupProps) 
 		const cells = Array.from(firstRow.children) as HTMLElement[];
 		return cells.map((cell) => {
 			const colwidth = cell.getAttribute("colwidth") || cell.getAttribute("data-colwidth");
-			if (!colwidth) return { colspan: 1, colwidth: null };
-
-			const colwidths = colwidth.split(",").map((w) => normalizeWidth(w.trim()));
-
-			return {
-				colspan: parseInt(cell.getAttribute("colspan") || "1"),
-				colwidth: colwidths,
-			};
+			const colwidths = colwidth?.split(",").map((w) => normalizeWidth(w.trim()));
+			const colspan = parseInt(cell.getAttribute("colspan") || "1");
+			return { colspan, colwidth: colwidths };
 		});
 	};
 

@@ -1,13 +1,13 @@
-import { TextSize } from "@components/Atoms/Button/Button";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import EditMarkdown from "@ext/artilce/actions/EditMarkdown";
+import EditMarkdownTrigger from "@ext/artilce/actions/EditMarkdownTrigger";
 import DeleteItem from "@ext/item/actions/DeleteItem";
 import t from "@ext/localization/locale/translate";
-import { MouseEvent, ReactNode, useCallback } from "react";
+import { IconButton } from "@ui-kit/Button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from "@ui-kit/Dropdown";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { ReactNode, useCallback } from "react";
 
 interface DeleteItemProps {
 	id: string;
@@ -33,12 +33,7 @@ const Delete = ({ id, onDelete, providerType, preDelete, confirmDeleteText }: De
 		onDelete(id);
 	};
 
-	const onClick = (event: MouseEvent<HTMLDivElement>) => {
-		event.stopPropagation();
-		event.preventDefault();
-	};
-
-	return <DeleteItem onConfirm={onConfirm} onClick={onClick} />;
+	return <DeleteItem onConfirm={onConfirm} />;
 };
 
 const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
@@ -60,25 +55,25 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 		[apiUrlCreator, id, onMarkdownChange],
 	);
 
-	const onClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
-		e.stopPropagation();
-		e.preventDefault();
-	}, []);
-
 	return (
-		<PopupMenuLayout
-			isInline
-			trigger={<ButtonLink textSize={TextSize.M} onClick={onClick} iconCode="ellipsis-vertical" />}
-			offset={[0, 10]}
-			tooltipText={t("actions")}
-			appendTo={() => document.body}
-		>
-			<>
-				<EditMarkdown
-					trigger={<ButtonLink iconCode="pencil" text={t("article.edit-markdown")} />}
-					loadContent={loadContent}
-					saveContent={saveContent}
-				/>
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<div style={{ marginLeft: "-3px" }}>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<IconButton
+								icon="ellipsis-vertical"
+								variant="text"
+								size="xs"
+								style={{ overflow: "visible" }}
+							/>
+						</TooltipTrigger>
+						<TooltipContent>{t("actions")}</TooltipContent>
+					</Tooltip>
+				</div>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start">
+				<EditMarkdownTrigger loadContent={loadContent} saveContent={saveContent} />
 				{items?.(id)}
 				<Delete
 					id={id}
@@ -87,8 +82,8 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 					preDelete={preDelete}
 					confirmDeleteText={confirmDeleteText}
 				/>
-			</>
-		</PopupMenuLayout>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 };
 

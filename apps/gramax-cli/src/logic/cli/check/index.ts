@@ -90,7 +90,9 @@ const getErrorContent = async (
 
 const checkCatalog = async (catalogName: string) => {
 	const app = await getApp();
-	const ctx = await app.contextFactory.fromBrowser("", null);
+	const ctx = await app.contextFactory.fromBrowser({
+		language: "",
+	});
 	const commands = getCommands(app);
 	const catalogErrors = await commands.healthcheck.do({ ctx, catalogName });
 	const result = transformCatalogErrorsToResourceErrors(catalogErrors);

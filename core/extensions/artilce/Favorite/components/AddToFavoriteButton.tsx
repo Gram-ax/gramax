@@ -1,5 +1,6 @@
 import t from "@ext/localization/locale/translate";
-import ButtonLink from "@components/Molecules/ButtonLink";
+import Icon from "@components/Atoms/Icon";
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
 
 interface AddToFavoriteButtonProps {
 	isFavorite: boolean;
@@ -8,11 +9,10 @@ interface AddToFavoriteButtonProps {
 
 const AddToFavoriteButton = ({ isFavorite, onClick }: AddToFavoriteButtonProps) => {
 	return (
-		<ButtonLink
-			iconCode={isFavorite ? "star-off" : "star"}
-			text={isFavorite ? t("remove-favorite") : t("add-favorite")}
-			onClick={onClick}
-		/>
+		<DropdownMenuItem onSelect={onClick}>
+			<Icon code={isFavorite ? "star-off" : "star"} />
+			{isFavorite ? t("remove-favorite") : t("add-favorite")}
+		</DropdownMenuItem>
 	);
 };
 

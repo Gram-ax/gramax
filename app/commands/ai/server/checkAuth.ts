@@ -28,9 +28,9 @@ const checkAuth: Command<{ ctx: Context; apiUrl: string; token: string }, boolea
 		}
 	},
 
-	params(ctx, q) {
+	params(ctx, q, body) {
 		const apiUrl = q.apiUrl;
-		const token = q.token;
+		const token = body.token;
 
 		return { ctx, apiUrl, token };
 	},

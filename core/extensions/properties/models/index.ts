@@ -1,6 +1,4 @@
-import Input from "@components/Atoms/Input";
 import Style from "@components/HomePage/Cards/model/Style";
-import { ComponentType } from "react";
 
 export type PropertyID = string;
 
@@ -48,25 +46,6 @@ export enum PropertyTypes {
 	// inlineMd = "InlineMd",
 }
 
-export const getInputComponent: Partial<{
-	[type in PropertyTypes]: ComponentType<any>;
-}> = {
-	[PropertyTypes.numeric]: Input,
-	[PropertyTypes.date]: Input,
-	[PropertyTypes.text]: Input,
-};
-
-export const getInputType: Partial<{ [type in PropertyTypes]: string }> = {
-	[PropertyTypes.numeric]: "number",
-	[PropertyTypes.date]: "date",
-	[PropertyTypes.text]: "text",
-};
-
-export const getPlaceholder = {
-	[PropertyTypes.numeric]: "enter-number",
-	[PropertyTypes.text]: "enter-text",
-};
-
 export const isManyProperty: Partial<{ [type in PropertyTypes]: boolean }> = {
 	[PropertyTypes.many]: true,
 };
@@ -77,7 +56,7 @@ export const isHasValue: Partial<{ [type in PropertyTypes]: boolean }> = {
 	[PropertyTypes.many]: true,
 	[PropertyTypes.date]: true,
 	[PropertyTypes.text]: true,
-	[PropertyTypes.blockMd]: true,
+	// [PropertyTypes.blockMd]: true,
 	// [PropertyTypes.inlineMd]: true,
 	// [PropertyTypes.array]: true,
 };

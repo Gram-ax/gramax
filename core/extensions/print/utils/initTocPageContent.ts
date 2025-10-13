@@ -1,0 +1,141 @@
+import { PAGE_CLASS } from "@ext/print/utils/paginateIntoPages";
+
+export interface PrintablePage {
+	title: string;
+	level: number;
+}
+
+export const TOC_PAGE_CLASS = "toc-page";
+export const TOC_PAGE_HEADER_CLASS = "toc-page-header";
+export const TOC_PAGE_ITEMS_CLASS = "toc-page-items";
+export const TOC_PAGE_ITEM_CLASS = "toc-item";
+export const TOC_PAGE_ITEM_LINK_CLASS = "toc-item-link";
+export const TOC_PAGE_ITEM_TITLE_CLASS = "toc-item-title";
+export const TOC_PAGE_ITEM_NUMBER_CLASS = "toc-item-number";
+
+export function insertAfterTitleOrFirst(pages: HTMLElement, element: HTMLElement): void {
+	const title = pages.querySelector(":scope > .title-page");
+	if (title) title.insertAdjacentElement("afterend", element);
+	else pages.prepend(element);
+}
+
+function ensurePageIds(pages: HTMLElement): HTMLElement[] {
+	const pageNodes = Array.from(pages.querySelectorAll<HTMLElement>(`:scope > .${PAGE_CLASS}`));
+	pageNodes.forEach((page, i) => {
+		const num = i + 1;
+		if (!page.id) page.id = `p-${num}`;
+		if (!page.dataset.pageNumber) page.dataset.pageNumber = String(num);
+	});
+	return pageNodes;
+}
+
+const norm = (s: string) => s.normalize("NFC").trim().replace(/\s+/g, " ").toLowerCase();
+
+function buildItemFirstPageByH1(pages: HTMLElement, items: PrintablePage[]): (number | undefined)[] {
+	const firstPage: (number | undefined)[] = new Array(items.length).fill(undefined);
+	const indexQueues = new Map<string, number[]>();
+	items.forEach((it, i) => {
+		const key = norm(it.title ?? "");
+		const arr = indexQueues.get(key);
+		if (arr) arr.push(i);
+		else indexQueues.set(key, [i]);
+	});
+
+	const pageNodes = ensurePageIds(pages);
+	for (const page of pageNodes) {
+		const h1 = page.querySelector<HTMLHeadingElement>("h1");
+		if (!h1) continue;
+		const key = norm(h1.textContent ?? "");
+		const queue = indexQueues.get(key);
+		if (!queue?.length) continue;
+
+		const itemIndex = queue.shift()!;
+		const num = Number(page.dataset.pageNumber) || 0;
+		if (num) firstPage[itemIndex] = num;
+	}
+	return firstPage;
+}
+
+function createTocPage(withHeader: boolean): { page: HTMLElement; ul: HTMLUListElement } {
+	const page = document.createElement("div");
+	page.classList.add(PAGE_CLASS, TOC_PAGE_CLASS);
+
+	if (withHeader) {
+		const h = document.createElement("h1");
+		h.className = TOC_PAGE_HEADER_CLASS;
+		h.textContent = "Оглавление";
+		page.appendChild(h);
+	}
+
+	const ul = document.createElement("ul");
+	ul.className = TOC_PAGE_ITEMS_CLASS;
+	page.appendChild(ul);
+
+	return { page, ul };
+}
+
+function isOverflow(page: HTMLElement, ul: HTMLElement): boolean {
+	const pageBottom = page.getBoundingClientRect().bottom;
+	const ulBottom = ul.getBoundingClientRect().bottom;
+	return ulBottom > pageBottom - 0.5;
+}
+
+export const initTocPageContent = (pages: HTMLElement, items: PrintablePage[], hasTitlePage: boolean) => {
+	ensurePageIds(pages);
+	const firstPageNumbers = buildItemFirstPageByH1(pages, items);
+
+	let { page: curPage, ul: curUl } = createTocPage(true);
+	insertAfterTitleOrFirst(pages, curPage);
+
+	const tocPages: HTMLElement[] = [curPage];
+	const numberSpans: HTMLSpanElement[] = [];
+
+	for (let i = 0; i < items.length; i++) {
+		const basePageNum = firstPageNumbers[i];
+		if (!basePageNum) continue;
+
+		const it = items[i];
+
+		const li = document.createElement("li");
+		li.className = `${TOC_PAGE_ITEM_CLASS} level-${it.level}`;
+		li.style.marginLeft = `${Math.max(0, it.level - 1) * 1.5}em`;
+
+		const a = document.createElement("a");
+		a.className = TOC_PAGE_ITEM_LINK_CLASS;
+		a.href = `#p-${basePageNum}`;
+
+		const titleSpan = document.createElement("span");
+		titleSpan.className = TOC_PAGE_ITEM_TITLE_CLASS;
+		titleSpan.textContent = it.title ?? "";
+
+		const numSpan = document.createElement("span");
+		numSpan.className = TOC_PAGE_ITEM_NUMBER_CLASS;
+		numSpan.dataset.base = String(basePageNum);
+		numberSpans.push(numSpan);
+
+		a.appendChild(titleSpan);
+		a.appendChild(numSpan);
+		li.appendChild(a);
+
+		curUl.appendChild(li);
+
+		if (isOverflow(curPage, curUl)) {
+			curUl.removeChild(li);
+
+			const created = createTocPage(false);
+			curPage.insertAdjacentElement("afterend", created.page);
+			tocPages.push(created.page);
+
+			curPage = created.page;
+			curUl = created.ul;
+
+			curUl.appendChild(li);
+		}
+	}
+
+	const offset = (hasTitlePage ? 1 : 0) + tocPages.length;
+	numberSpans.forEach((span) => {
+		const base = Number(span.dataset.base || "0");
+		span.textContent = String(base + offset);
+	});
+};

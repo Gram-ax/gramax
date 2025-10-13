@@ -5,18 +5,12 @@ use std::borrow::Cow;
 use std::path::Path;
 
 use crate::creds::*;
-use crate::prelude::Branch;
 use crate::prelude::BranchEntry;
-use crate::remote_callback::push_update_reference_callback;
-use crate::remote_callback::ssl_callback;
 
 use crate::error::OrUtf8Err;
 use crate::error::Result;
-use crate::remote_callback::make_credentials_callback;
-use crate::remote_callback::AddCredentialsHeaders;
 
 use crate::refmut::RefOrMut;
-use crate::ShortPathExt;
 
 pub use git2::BranchType;
 
@@ -25,7 +19,7 @@ const TAG: &str = "git";
 #[cfg(not(target_family = "wasm"))]
 #[inline(always)]
 fn set_mwindow_file_limit_once() {
-  const FILE_LIMIT: i32 = 4096;
+  const FILE_LIMIT: i32 = 8192;
 
   static SET_OPT: std::sync::Once = std::sync::Once::new();
 
@@ -63,6 +57,11 @@ impl<'r, C: Creds> Repo<'r, C> {
     Ok(Self(RefOrMut::Owned(repo), creds))
   }
 
+  pub fn reopen(&mut self) -> Result<()> {
+    *self = Self::open(self.0.path(), self.1.clone())?;
+    Ok(())
+  }
+
   pub fn init<P: AsRef<Path>>(path: P, creds: C) -> Result<Self> {
     let repo = git2::Repository::init(path)?;
 
@@ -80,68 +79,10 @@ impl<'r, C: Creds> Repo<'r, C> {
     }
 
     let repo = Self(RefOrMut::Owned(repo), creds);
+    repo.ensure_objects_dir_exists()?;
     repo.ensure_trash_ignored()?;
 
     Ok(repo)
-  }
-
-  pub fn fetch(&self, force: bool) -> Result<()> {
-    let mut cbs = RemoteCallbacks::new();
-    cbs.credentials(make_credentials_callback(&self.1));
-    cbs.certificate_check(ssl_callback);
-    cbs.push_update_reference(push_update_reference_callback);
-
-    let mut opts = FetchOptions::new();
-    opts.remote_callbacks(cbs);
-    opts.add_credentials_headers(&self.1);
-    opts.follow_redirects(RemoteRedirect::All);
-    opts.prune(FetchPrune::On);
-    opts.download_tags(AutotagOption::All);
-
-    let mut remote = self.0.find_remote("origin")?;
-    self.ensure_remote_has_postfix(&remote)?;
-
-    let refspec = match force {
-      true => ["+refs/*:refs/*"],
-      false => ["refs/heads/*:refs/remotes/origin/*"],
-    };
-
-    let repo_path = self.0.path().short();
-
-    info!(target: TAG, "fetching refspec: {refspec:?} ({repo_path})");
-
-    remote.fetch(&refspec, Some(&mut opts), None)?;
-    info!(target: TAG, "fetched successfully: {refspec:?}");
-    Ok(())
-  }
-
-  pub fn push(&self) -> Result<()> {
-    let mut cbs = RemoteCallbacks::new();
-    cbs.credentials(make_credentials_callback(&self.1));
-    cbs.certificate_check(ssl_callback);
-    cbs.push_update_reference(push_update_reference_callback);
-
-    let mut push_opts = PushOptions::new();
-    push_opts.remote_callbacks(cbs);
-    push_opts.follow_redirects(RemoteRedirect::All);
-    push_opts.add_credentials_headers(&self.1);
-    push_opts.follow_redirects(RemoteRedirect::All);
-
-    let head = self.0.head()?;
-    let mut remote = self.0.find_remote("origin")?;
-    self.ensure_remote_has_postfix(&remote)?;
-    let should_set_upstream = self.ensure_branch_has_upstream(head.shorthand().or_utf8_err()?)?;
-    let refspec = head.name().or_utf8_err()?;
-
-    info!(target: TAG, "pushing refspec: {refspec}");
-
-    remote.push(&[refspec], Some(&mut push_opts))?;
-
-    if should_set_upstream {
-      self.ensure_branch_has_upstream(head.shorthand().or_utf8_err()?)?;
-    }
-
-    Ok(())
   }
 
   pub fn set_head(&self, refname: &str) -> Result<()> {
@@ -285,6 +226,13 @@ impl<C: Creds> Repo<'_, C> {
     self.0.remote_set_pushurl(name, Some(url.as_str()))?;
     self.0.remote_set_url(name, url.as_str())?;
 
+    Ok(())
+  }
+
+  pub(crate) fn ensure_objects_dir_exists(&self) -> Result<()> {
+    let objects_dir = self.0.path().join("objects");
+    std::fs::create_dir_all(objects_dir.join("pack"))?;
+    std::fs::create_dir_all(objects_dir.join("info"))?;
     Ok(())
   }
 }

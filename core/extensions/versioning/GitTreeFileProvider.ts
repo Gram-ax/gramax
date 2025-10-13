@@ -11,7 +11,7 @@ import { addScopeToPath } from "@ext/versioning/utils";
 const decoder = new TextDecoder();
 
 export default class GitTreeFileProvider implements ReadOnlyFileProvider {
-	constructor(private readonly _git: GitCommands) {}
+	constructor(private readonly _git: GitCommands, private readonly _onlyReadHead = false) {}
 
 	get storageId(): string {
 		return `GitTree@${this._git.repoPath.value}`;
@@ -32,13 +32,13 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	withMountPath() {}
 
 	async read(path: Path): Promise<string> {
-		const content = await this._git.readFile(...GitTreeFileProvider._resolveScope(path));
+		const content = await this._git.readFile(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
 		return decoder.decode(content);
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
 		try {
-			const content = await this._git.readFile(...GitTreeFileProvider._resolveScope(path));
+			const content = await this._git.readFile(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
 			return Buffer.from(content);
 		} catch (e) {
 			if (e instanceof LibGit2Error && e.code === GitErrorCode.FileNotFoundError) return;
@@ -47,11 +47,13 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async readdir(path: Path): Promise<string[]> {
-		return (await this._git.readDir(...GitTreeFileProvider._resolveScope(path))).map((e) => e.name);
+		return (await this._git.readDir(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead))).map(
+			(e) => e.name,
+		);
 	}
 
 	async isFolder(path: Path): Promise<boolean> {
-		const stat = await this._git.fileStat(...GitTreeFileProvider._resolveScope(path));
+		const stat = await this._git.fileStat(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
 		return stat.isDir;
 	}
 
@@ -60,7 +62,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async getStat(path: Path): Promise<FileInfo> {
-		const stat = await this._git.fileStat(...GitTreeFileProvider._resolveScope(path));
+		const stat = await this._git.fileStat(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
 		return {
 			name: path.nameWithExtension,
 			path,
@@ -79,7 +81,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async exists(path: Path): Promise<boolean> {
-		return this._git.fileExists(...GitTreeFileProvider._resolveScope(path));
+		return this._git.fileExists(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
 	}
 
 	symlink(): Promise<void> {
@@ -87,7 +89,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {
-		const items = await this._git.readDirStats(...GitTreeFileProvider._resolveScope(path));
+		const items = await this._git.readDirStats(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
 		return items.map((stat) => ({
 			name: stat.name,
 			path: path.join(new Path(stat.name)),
@@ -154,7 +156,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		}
 	}
 
-	private static _resolveScope(path: Path): [Path, TreeReadScope] {
+	private static _resolveScope(path: Path, onlyReadHead = false): [Path, TreeReadScope] {
 		const root = path.rootDirectory;
 		const name = root?.nameWithExtension;
 		const data = name?.split(":")?.at(-1);
@@ -164,7 +166,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 
 		return [
 			scope && data && (!root.compare(path) || path.value.startsWith(":")) ? root.subDirectory(path) : path,
-			scope,
+			onlyReadHead ? "HEAD" : scope,
 		];
 	}
 }

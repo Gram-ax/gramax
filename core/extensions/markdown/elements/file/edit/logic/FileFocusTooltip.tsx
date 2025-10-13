@@ -11,6 +11,10 @@ import getFocusMark from "../../../../elementsUtils/getFocusMark";
 import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import FileMenu from "../components/FileMenu";
+import { Environment } from "@app/resolveModule/env";
+import PlatformService from "@core-ui/ContextServices/PlatformService";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import Workspace from "@core-ui/ContextServices/Workspace";
 
 class FileFocusTooltip extends BaseMark {
 	constructor(
@@ -18,6 +22,7 @@ class FileFocusTooltip extends BaseMark {
 		editor: Editor,
 		private _apiUrlCreator: ApiUrlCreator,
 		private _pageDataContext: PageDataContext,
+		private _platform: Environment,
 	) {
 		super(view, editor);
 		this.update(view);
@@ -42,13 +47,19 @@ class FileFocusTooltip extends BaseMark {
 		this._setTooltipPosition(element);
 		this._setComponent(
 			<PageDataContextService.Provider value={this._pageDataContext}>
-				<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
-					<FileMenu
-						resourcePath={mark.attrs.resourcePath}
-						onDelete={() => this._delete(markPosition)}
-						aiEnabled={aiEnabled}
-					/>
-				</ApiUrlCreatorService.Provider>
+				<Workspace.Init pageProps={{ context: this._pageDataContext, data: null }}>
+					<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
+						<PlatformService.Provider value={this._platform}>
+							<ResourceService.Provider>
+								<FileMenu
+									resourcePath={mark.attrs.resourcePath}
+									onDelete={() => this._delete(markPosition)}
+									aiEnabled={aiEnabled}
+								/>
+							</ResourceService.Provider>
+						</PlatformService.Provider>
+					</ApiUrlCreatorService.Provider>
+				</Workspace.Init>
 			</PageDataContextService.Provider>,
 		);
 	}

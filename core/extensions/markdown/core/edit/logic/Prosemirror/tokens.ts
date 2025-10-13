@@ -50,7 +50,7 @@ function listIsTight(tokens, i) {
 
 const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpec } => {
 	return {
-		comment: commentToken(),
+		comment: commentToken(context),
 		snippet: snippetToken(context),
 		icon: iconToken(context),
 	};

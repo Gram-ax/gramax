@@ -57,6 +57,11 @@ const locale = {
 					placeholder: "Group",
 					description: "Group on the main page where it will be displayed",
 				},
+				icons: {
+					name: "Icons",
+					description: "Icons that will be available in the article",
+					fileConditions: "SVG format ∙ No larger than 500KB",
+				},
 			},
 			section: {
 				display: "Display on the homepage",
@@ -141,7 +146,7 @@ const locale = {
 				token: {
 					name: "Token",
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
-					description: "Token for reading and modifying repositories in the storage",
+					description: "Token used for authorization on the git server",
 				},
 				password: {
 					name: "Password",
@@ -152,6 +157,10 @@ const locale = {
 					name: "Creation Time",
 					placeholder: "1707213960",
 					description: "Time the token was obtained",
+				},
+				useToken: {
+					name: "Use Token",
+					description: "Use token instead of password",
 				},
 				usePassword: {
 					name: "Use Password",
@@ -187,16 +196,49 @@ const locale = {
 				token: {
 					name: "GitLab Token",
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
-					description: `<a ${
-						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-					} href='{{create_token_url}}'>New token</a><br>Token for reading and modifying repositories in storage. Specify the token permissions: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>. <a ${
-						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-					} href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Learn more</a>`,
+					description: "Token used for authorization on the GitLab server",
 				},
 				url: {
 					name: "GitLab Server URL",
 					placeholder: "https://gitlab.com",
 					description: "Log in to GitLab and copy the URL from the main page",
+				},
+				createDate: {
+					name: "Creation Time",
+					placeholder: "1707213960",
+					description: "Token retrieval time",
+				},
+				refreshToken: {
+					name: "Refresh Token",
+					placeholder: "4740fbc6db719d42c158b88580be7633c1e386827ebe9134e9a5198c52cb2e4c",
+					description: "Token for refreshing the main token",
+				},
+				userName: {
+					name: "Author Name",
+					description: "Will be displayed in the change history",
+					placeholder: "John Doe",
+				},
+				userEmail: {
+					name: "Email",
+					description: "Will be displayed in the change history",
+					placeholder: "john.doe@mail.com",
+				},
+			},
+		},
+		"gitea-source-data": {
+			props: {
+				sourceType: {
+					name: "Type",
+				},
+				token: {
+					name: "Gitea Token",
+					placeholder: "31fa8d7b332125ed2d89b9b3d735e1292b499d82", // # gitleaks:allow
+					description: "Token used for authorization on the Gitea server",
+				},
+				url: {
+					name: "Gitea Server URL",
+					placeholder: "https://gitea.com",
+					description: "Log in to Gitea and copy the URL from the main page",
 				},
 				createDate: {
 					name: "Creation Time",
@@ -226,18 +268,12 @@ const locale = {
 					name: "Type",
 				},
 				token: {
-					name: "GitVerse Token",
+					name: "Token",
 					placeholder: "e5a43119d84f620fedfc0929e125ed4b10a6a5f4", // # gitleaks:allow
-					description:
-						`<a ${
-							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-						} href='https://gitverse.ru/settings/tokens'>Create token</a><br>Token for reading and modifying repositories in storage. Specify the token permissions: <code>Репозиторий</code>, <code>Публичный API</code>. ` +
-						`<a ${
-							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-						} href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Learn more</a>`,
+					description: "Token for authentication at GitVerse",
 				},
 				url: {
-					name: "GitVerse Server URL",
+					name: "Server URL",
 					placeholder: "https://gitverse.ru",
 					description: "Log in to GitVerse and copy the URL from the main page",
 				},
@@ -266,11 +302,11 @@ const locale = {
 		"confluence-server-source-data": {
 			props: {
 				sourceType: {
-					name: "Тип",
+					name: "Type",
 				},
 				domain: {
 					name: "Confluence server URL",
-					placeholder: "https://confluence.domain.com",
+					placeholder: "confluence.domain.com",
 					description: "Copy the URL of your Confluence server",
 				},
 				password: {
@@ -284,10 +320,8 @@ const locale = {
 					description: "Enter the Confluence account username",
 				},
 				token: {
-					name: "Токен",
-					description: `Enter the Confluence account token. <a ${
-						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-					} href='https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html'>Подробнее</a>`,
+					name: "Token",
+					description: "Enter the Confluence account token",
 					placeholder: "NzIzNTYyNTQ3NjQxOva29fNcHrLYMGH77/YuEAKpqy+Q",
 				},
 			},
@@ -303,6 +337,9 @@ const locale = {
 					name: "Password",
 					placeholder: "Enter password",
 				},
+			},
+			validationErrors: {
+				wrongLoginOrPassword: "Wrong login or password",
 			},
 		},
 		"snippet-editor": {
@@ -367,6 +404,46 @@ const locale = {
 					name: "Sign in to your Gramax Enterprise Server account",
 					description: "Use your work email to connect to your organization's workspace.",
 					placeholder: "Enter your email",
+				},
+			},
+		},
+		"clone-repo": {
+			name: "Clone Git Repository",
+			description: "Select a storage or add a new one",
+			props: {
+				storage: {
+					name: "Storage",
+					placeholder: "Select a storage",
+				},
+				repository: {
+					name: "Repository",
+				},
+			},
+			errors: {
+				sourceKey: "Source is required",
+				repository: "Repository is required",
+				user: "User is required",
+			},
+		},
+		"add-storage": {
+			name: "Add new storage",
+			name2: "Connect storage",
+			name3: "Edit storage",
+			description: "Specify the storage type and enter the necessary data",
+			props: {
+				storage: {
+					name: "Storage",
+					placeholder: "Select a storage",
+				},
+			},
+		},
+		"create-source": {
+			name: "Add new source",
+			description: "Specify the source type and enter the necessary data",
+			props: {
+				source: {
+					name: "Source type",
+					placeholder: "Select a source type",
 				},
 			},
 		},
@@ -659,13 +736,6 @@ title: Unable to display the article
 `,
 				body: `[alert:error:Gramax couldn’t read the Markdown structure in the article file].\n\nFix the error or remove the structure by "Edit Markdown".\n\n[/alert]`,
 			},
-			"init-source": `---
-title: Catalog already linked with repository
----
-
-We detected that the catalog is linked with a repository.
-But we don't know which storage this repository is located in.
-Add storage to confirm the link.`,
 		},
 	},
 	section: {
@@ -700,6 +770,11 @@ Add storage to confirm the link.`,
 			description:
 				"This catalog was not created in Gramax: it has no name, group, or logo. Specify them in the settings.",
 			"open-settings": "Open settings",
+		},
+		"catalog-already-linked": {
+			name: "Catalog already linked with repository",
+			description:
+				"We detected that the catalog is linked with a repository. But we don't know which storage this repository is located in. Add storage to confirm the link.",
 		},
 		style: {
 			red: "Red",
@@ -791,7 +866,7 @@ Add storage to confirm the link.`,
 		},
 	},
 	"enterprise-guest": {
-		welcomeTitle: "Welcome to Gramax Enterprise Server",
+		welcomeTitle: "Welcome to Gramax!",
 		descriptions: {
 			emailFieldDescription: "Enter your email to receive a one-time code",
 			otpFieldDescription: "Enter the code sent to your email",
@@ -906,6 +981,15 @@ Add storage to confirm the link.`,
 	},
 	git: {
 		source: {
+			gitlab: {
+				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>.<br><a style="color: hsl(201 96% 32%)" target="_blank" rel="noopener noreferrer" href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Learn more</a>`,
+			},
+			gitverse: {
+				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>Репозиторий</code>, <code>Публичный API</code>. <a style="color: hsl(201 96% 32%)" target="_blank" rel="noopener noreferrer" href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Learn more</a>`,
+			},
+			gitea: {
+				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>repository</code>, <code>user</code> (Read and Write).<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitea.com/development/oauth2-provider#scopes'>Learn more</a>`,
+			},
 			error: {
 				"cannot-create-repo": "Unable to create repository",
 				"storage-not-exist": 'Storage named "{{storage}}" does not exist. Add it.',
@@ -916,6 +1000,7 @@ Add storage to confirm the link.`,
 				"invalid-credentials": {
 					desc: "The current token for this storage is invalid. Update the storage data and try again.",
 				},
+				"invalid-credentials2": "Invalid storage data",
 			},
 			"remove-alert": "Are you sure you want to delete this source?",
 			"remove-alert-usage": "It is used in the following catalogs:\n\n",
@@ -988,9 +1073,6 @@ Add storage to confirm the link.`,
 				"local-changes-present": "Your local changes prevent branch switching",
 				// conflict: "There are unpublished changes",
 				conflict: "Unable to switch branch",
-			},
-			submodule: {
-				error: "<p>Failed to switch branch to <b>master</b> or <b>main</b> in the {{path}} submodule.<p>",
 			},
 		},
 		branch: {
@@ -1143,6 +1225,49 @@ Add storage to confirm the link.`,
 				},
 				generic: "Error code - NotFoundError. Error message - ",
 			},
+			broken: {
+				tooltip: "Repository may be damaged",
+				healthcheck: {
+					title: "Repository may be damaged",
+					body: "This catalog may be unstable",
+					body2: "We recommend saving your changes and recovering the repository",
+					"download-zip": "Save as ZIP",
+					recover: {
+						button: "Recover",
+						confirm: {
+							title: "Recovering",
+							description:
+								"Recovering will result in the loss of all local branches. Although your changes in working directory will be saved",
+						},
+					},
+					ignore: {
+						button: "Ignore",
+						confirm: {
+							title: "Ignoring error",
+							description: "Be sure you know what you are doing. This may lead to unexpected behavior",
+						},
+					},
+
+					"technical-details": "details",
+				},
+
+				"clone-failed": {
+					title: "Failed to clone catalog",
+					body: "An unexpected error occurred while loading the catalog. You can try to load it again or delete it",
+					"technical-details": "Technical details",
+					clone: {
+						button: "Clone",
+						title: "Clone catalog",
+						description: "Are you sure you want to clone the catalog?",
+					},
+					delete: {
+						button: "Delete",
+						title: "Delete catalog",
+						description:
+							"Are you sure you want to delete the catalog? You will be able to reload it from storage",
+					},
+				},
+			},
 			"content-too-large": {
 				title: "Too many changes",
 				message: `You are trying to push a large file or too many changes at once. Try publishing changes by parts`,
@@ -1232,9 +1357,22 @@ Add storage to confirm the link.`,
 		},
 	},
 	import: {
+		modal: {
+			title: "Import catalog",
+			description: "Select a source for import",
+			load: "Import",
+			"add-new-source": "Add new source",
+			props: {
+				source: {
+					name: "Source",
+					placeholder: "Select source",
+				},
+			},
+		},
 		error: {
 			"page-conversion": "Error converting page",
 			"ext-not-supported": "Extension not supported:",
+			"space-required": "Space is required",
 			"cannot-import": {
 				title: "Failed to import element from ",
 				desc: "You can manually transfer it from the page",
@@ -1451,7 +1589,7 @@ Add storage to confirm the link.`,
 	enterprise: {
 		"user-not-found":
 			"This email isn't set up for Gramax Enterprise Server. You can continue using the full features of the free version or contact your admin for further assistance.",
-		"workspace-exit-warning": "Exiting the workspace will delete all directories and local changes will be lost.",
+		"workspace-exit-warning": "Are you sure you want to exit?",
 		"workspace-exit": "Exit Workspace",
 		"check-if-user-editor-warning": "Make sure you have been issued an editor license.",
 		"access-restricted": "Access restricted",
@@ -1461,6 +1599,7 @@ Add storage to confirm the link.`,
 		"workspace-exists-title": "Already exists",
 		"check-article": "Checking article",
 		"ges-settings": "GES login settings",
+		"token-exchange-failed": "Failed to get a token using the one-time code.",
 		"init-repo": {
 			error: "Error creating repository",
 			forbidden: "Insufficient permissions to create repository",
@@ -1475,6 +1614,11 @@ Add storage to confirm the link.`,
 		"edit-workspace": {
 			"cant-edit": "Only the owner of the enterprise workspace can edit it",
 			"error-get-edit-info": "Failed to get information about the enterprise workspace",
+		},
+		logout: {
+			error: "Could not logout",
+			"error-message":
+				"Connection interrupted — server sessions may still be active. Check your internet and try again.",
 		},
 	},
 	network: {
@@ -1511,6 +1655,20 @@ Add storage to confirm the link.`,
 			article: "Article to PDF",
 			category: "Section to PDF",
 			process: "Preparing to export PDF document",
+			form: {
+				title: "Export to PDF",
+				description: "Generate PDF from the selected catalog element.",
+				titlePage: "Title page",
+				titlePageDescription: "Add a title page with the catalog/section name and basic information.",
+				tocPage: "Table of contents",
+				tocPageDescription:
+					"Add a section with a table of contents, where the catalog sections and page numbers will be listed.",
+				titleNumber: "Title numbers",
+				titleNumberDescription: "Add numbers for headings.",
+				template: "Custom template",
+				templateDescription:
+					"Use custom CSS styles to format the PDF. Learn more about creating templates in the project documentation.",
+			},
 		},
 	},
 	account: "Account",
@@ -1529,6 +1687,7 @@ Add storage to confirm the link.`,
 	collapse: "Collapse",
 	command: "Command",
 	comment: "Comment",
+	"no-selected": "No selected",
 	"comment-on": "Comment",
 	company: "Internal documentation",
 	configure: "Edit",
@@ -1719,6 +1878,7 @@ Add storage to confirm the link.`,
 	"delete-snippet-confirm": "Are you sure you want to delete the snippet?",
 	"delete-snippet-confirm-not-use": "This snippet is not used in any articles",
 	"delete-snippet-desc": "You are about to delete a snippet that is currently used in one or more articles",
+	"delete-snippet-list-desc": "This snippet is used in the following articles:",
 	"delete-snippet-warn":
 		"After deleting the snippet, articles where it was used will display errors instead of the removed snippet",
 	"deleting-snippet-in-use": "Deleting snippet in use",
@@ -1818,9 +1978,12 @@ Add storage to confirm the link.`,
 	"submit-login-link": "Send login link",
 	"switch-branch": "Switch branch",
 	"sync-catalog": "Synchronize changes?",
-	"sync-catalog-changed1": "file available for synchronization",
-	"sync-catalog-changed2": "files available for synchronization",
-	"sync-catalog-changed3": "files available for synchronization",
+	"sync-catalog-push1": "unpublished change",
+	"sync-catalog-push2": "unpublished changes",
+	"sync-catalog-push3": "unpublished changes",
+	"sync-catalog-changed1": "change available for synchronization",
+	"sync-catalog-changed2": "changes available for synchronization",
+	"sync-catalog-changed3": "changes available for synchronization",
 	"sync-catalog-desc": "The catalog version is outdated. Synchronize to get changes.",
 	"sync-logs": "Synchronize logs",
 	"sync-something-changed": "Something has changed in the repository, but the catalog is still up-to-date",
@@ -1856,6 +2019,7 @@ Add storage to confirm the link.`,
 		add: "Add property",
 		all: "All",
 		empty: "(empty)",
+		"already-exist": "This property already exists",
 		"delete-property-confirm":
 			"Are you sure you want to delete this property? It will be removed from all articles.",
 		"select-all": "(select all)",
@@ -1949,7 +2113,7 @@ Add storage to confirm the link.`,
 			content: "Template content",
 		},
 		"new-template": "New template",
-		"no-templates": "No templates in the current catalog",
+		"no-templates": "No templates",
 		warning: {
 			content: {
 				name: "Insert template {{template}} into article?",
@@ -1992,6 +2156,10 @@ Add storage to confirm the link.`,
 			modalAttention:
 				"<p><strong>Attention!</strong> The recognized text is not saved anywhere. If you want to save it, you can copy it to the clipboard.</p>",
 		},
+		responseError: {
+			title: "AI server response error",
+			body: `<p>Try again later or contact your administrator.<br/>If the error blocks work — write to us in <a href="https://t.me/gramax_assist_bot">Telegram</a></p>`,
+		},
 		transcribtion: "Transcribtion...",
 		placeholder: {
 			prettify: "What to do with the selected text ✨",
@@ -2025,10 +2193,41 @@ Add storage to confirm the link.`,
 	"confirm-prompts-delete": "Are you sure you want to delete this prompt?",
 	"confirm-templates-delete": "Are you sure you want to delete this template?",
 	download: "Download",
+	tools: "Tools",
 	"zoom-in": "Zoom in",
 	"zoom-out": "Zoom out",
 	write: "Enter",
 	select2: "Select",
+	"change-theme": "Change theme",
+	"change-language": "Change language",
+	"new-group": "New group",
+	authorization: "Authorization",
+	create: "Create",
+	"choose-space": "Choose space",
+	"try-again": "Try again",
+	upload: "Upload",
+	"fileupload-description": "Drag & drop or click to browse",
+	"file-not-found": "File not found",
+	"open-in-supported-app": "Open in supported app",
+	welcome: {
+		empty: {
+			title: "It's empty so far",
+			description: "The administrator has not added any catalogs yet.",
+		},
+		"empty-clone": {
+			title: "Welcome to Gramax!",
+			description: "Start by loading an existing catalog from storage",
+		},
+	},
+	"try-later": "Please try again later",
+	"file-upload": {
+		"file-too-large": "File ${fileName} exceeds the maximum size of ${maxSizeBytes}.",
+		"invalid-file-type": "File ${fileName} is not an accepted file type.",
+		"single-file-too-large": "File exceeds the maximum size of ${maxSizeBytes}.",
+		"some-files-too-large": "Some files exceed the maximum size of ${maxSizeBytes}",
+		"too-many-files": "You can only upload a maximum of ${maxFiles} files",
+	},
+	"available-changes-sync": "Available changes for synchronization",
 };
 
 export default locale;

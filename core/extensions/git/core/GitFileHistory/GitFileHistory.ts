@@ -46,7 +46,7 @@ export default class GitFileHistory {
 		const gvc = this._catalog.repo.gvc;
 		if (!gvc) return;
 		({ gitVersionControl: this._versionControl, relativePath: this._relativeFilePath } =
-			await gvc.getGitVersionControlContainsItem(this._filePath));
+			await gvc.getVersionControlByPath(this._filePath));
 
 		this._gitRepository = new GitCommands(this._fp, this._versionControl.getPath());
 		return this._gitRepository.getFileHistory(this._relativeFilePath);

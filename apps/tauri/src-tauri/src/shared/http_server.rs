@@ -79,10 +79,15 @@ fn serve_ping<F: Fn(&Request) + Send + Sync + 'static>(on_request: F) -> Result<
   while let Ok(req) = server.recv() {
     on_request(&req);
 
-    let res = Response::empty(StatusCode(200)).with_header(Header {
-      field: "access-control-allow-origin".parse().unwrap(),
-      value: "*".parse().unwrap(),
-    });
+    let res = Response::empty(StatusCode(200))
+      .with_header(Header {
+        field: "access-control-allow-origin".parse().unwrap(),
+        value: "*".parse().unwrap(),
+      })
+      .with_header(Header {
+        field: "access-control-allow-private-network".parse().unwrap(),
+        value: "true".parse().unwrap(),
+      });
 
     req.respond(res)?;
   }

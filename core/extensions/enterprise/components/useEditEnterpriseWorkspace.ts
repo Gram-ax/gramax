@@ -9,16 +9,18 @@ export type EnterpriseWorkspaceEditData = {
 	tooltip?: string;
 	href?: string;
 	target?: string;
+	loading?: boolean;
 };
 
 export function useEnterpriseWorkspaceEdit(opts: {
 	workspacePath: string;
 	apiUrlCreator: ApiUrlCreator;
 	gesUrl?: string;
-}): EnterpriseWorkspaceEditData {
+}): { editInfo: EnterpriseWorkspaceEditData; isLoading: boolean } {
 	const { workspacePath, apiUrlCreator, gesUrl } = opts;
 
 	const [response, setResponse] = useState<EnterpriseAuthResult>();
+	const [isLoading, setIsLoading] = useState(false);
 
 	useEffect(() => {
 		if (!gesUrl) {
@@ -28,13 +30,16 @@ export function useEnterpriseWorkspaceEdit(opts: {
 
 		void (async () => {
 			try {
+				setIsLoading(true);
 				const res = await fetchEnterpriseWorkspaceEdit(workspacePath, apiUrlCreator);
 				setResponse(res);
 			} catch (e) {
 				setResponse(EnterpriseAuthResult.Error);
+			} finally {
+				setIsLoading(false);
 			}
 		})();
 	}, [gesUrl, workspacePath, apiUrlCreator]);
 
-	return getEnterpriseWorkspaceEditData(response, gesUrl);
+	return { editInfo: getEnterpriseWorkspaceEditData(response, gesUrl), isLoading };
 }

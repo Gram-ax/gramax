@@ -13,6 +13,7 @@ import {
 } from "@ui-kit/AlertDialog";
 import { Button } from "@ui-kit/Button";
 import { cloneElement, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { CheckboxField } from "@ui-kit/Checkbox";
 
 const DO_NOT_SHOW_AGAIN = "languages.skip-warn";
@@ -22,7 +23,7 @@ export const shouldShowActionWarning = (catalogProps: ClientCatalogProps) =>
 
 export type ActionWarningProps = {
 	children?: JSX.Element;
-	action: (...args: any[]) => void;
+	action: (e?: ReactMouseEvent<HTMLButtonElement>) => void;
 	catalogProps: ClientCatalogProps;
 	isDelete?: boolean;
 	onClose?: () => void;
@@ -48,13 +49,13 @@ const OtherLanguagesPresentWarning = ({
 	const initialDoNotShow = !!localStorage?.getItem(DO_NOT_SHOW_AGAIN);
 	const [doNotShowAgain, setDoNotShowAgain] = useState(initialDoNotShow);
 
-	const onConfirm = () => {
-		action?.();
+	const onConfirm = (e: ReactMouseEvent<HTMLButtonElement>) => {
+		action?.(e);
 		if (doNotShowAgain) localStorage.setItem(DO_NOT_SHOW_AGAIN, "1");
 		onClose?.();
 	};
 
-	if (!isOpen && (initialDoNotShow || (shouldShowActionWarning && !shouldShowActionWarning(catalogProps)))) {
+	if (initialDoNotShow || (shouldShowActionWarning && !shouldShowActionWarning(catalogProps))) {
 		if (!children) {
 			action?.();
 			onClose?.();
@@ -92,8 +93,8 @@ const OtherLanguagesPresentWarning = ({
 						</AlertDialogCancel>
 						<Button
 							type="button"
-							onClick={() => {
-								onConfirm?.();
+							onClick={(e) => {
+								onConfirm?.(e);
 								onOpenChange(false);
 							}}
 							variant="outline"

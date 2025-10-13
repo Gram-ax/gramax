@@ -1,4 +1,5 @@
 import Header from "@components/Atoms/Image/modalImage/Header";
+import { MediaAnimation } from "@components/Atoms/Image/modalImage/MediaAnimation";
 import MediaRenderer from "@components/Atoms/Image/modalImage/MediaRenderer";
 import { getCanMoves, getClampedValues, getLimits } from "@components/Atoms/Image/modalImage/utils";
 import { classNames } from "@components/libs/classNames";
@@ -23,7 +24,7 @@ interface MediaPreviewProps {
 	id: string;
 	src?: string;
 	svg?: string;
-	openedElement: MutableRefObject<HTMLImageElement | HTMLDivElement>;
+	openedElement?: MutableRefObject<HTMLElement>;
 	onClose: () => void;
 	downloadSrc?: string;
 	title?: string;
@@ -38,16 +39,14 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 		props;
 	const containerRef = useRef<HTMLImageElement>();
 	const mainContainerRef = useRef<HTMLDivElement>();
-	const startRectRef = useRef<DOMRect>(openedElement.current?.getBoundingClientRect());
+	const startRectRef = useRef<DOMRect>(openedElement?.current?.getBoundingClientRect());
 	const [isClosing, setClosing] = useState<boolean>(false);
 
 	const closeModal = useCallback(
 		(immediately?: boolean) => {
 			if (immediately) return onClose();
 			setClosing(true);
-			setTimeout(() => {
-				onClose?.();
-			}, 200);
+			onClose?.();
 		},
 		[onClose],
 	);
@@ -121,12 +120,12 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 
 	useEffect(() => {
 		const onResize = () => {
-			startRectRef.current = openedElement.current?.getBoundingClientRect();
+			startRectRef.current = openedElement?.current?.getBoundingClientRect();
 		};
 
 		window.addEventListener("resize", onResize);
 		return () => window.removeEventListener("resize", onResize);
-	}, [openedElement.current]);
+	}, [openedElement?.current]);
 
 	return (
 		<div
@@ -154,24 +153,24 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 				downloadSrc={downloadSrc}
 				isClosing={isClosing}
 			/>
-			<MediaRenderer
-				zoomImage={zoomImage}
-				ref={containerRef}
-				id={id}
-				src={src}
-				svg={svg}
-				isClosing={isClosing}
-				objects={objects}
-				startPos={startRectRef}
-				modalStyle={modalStyle}
-			/>
+			<MediaAnimation isClosing={isClosing}>
+				<MediaRenderer
+					zoomImage={zoomImage}
+					ref={containerRef}
+					id={id}
+					src={src}
+					svg={svg}
+					objects={objects}
+					modalStyle={modalStyle}
+				/>
+			</MediaAnimation>
 			{title && <em>{title}</em>}
 		</div>
 	);
 };
 
 export default styled(memo(MediaPreview))`
-	z-index: var(--z-index-article-modal);
+	z-index: var(--z-index-overlay);
 	position: static;
 	display: flex;
 	justify-content: center;
@@ -183,7 +182,7 @@ export default styled(memo(MediaPreview))`
 	top: 0;
 
 	.modal-background {
-		z-index: var(--z-index-article-modal);
+		z-index: var(--z-index-overlay);
 	}
 
 	.data-open {

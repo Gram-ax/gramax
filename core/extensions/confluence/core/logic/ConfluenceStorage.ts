@@ -13,6 +13,7 @@ import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter"
 import ConfluenceImportData from "@ext/confluence/core/model/ConfluenceImportData";
 import type ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import { sortConfluenceArticles } from "./utils/sortConfluenceArticles";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import t from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
@@ -255,7 +256,9 @@ export default class ConfluenceStorage {
 			nodes.forEach((node) => {
 				node.children = buildNodes(node.id);
 			});
-			nodes.sort((a, b) => a.position - b.position);
+
+			sortConfluenceArticles(nodes);
+
 			return nodes;
 		}
 

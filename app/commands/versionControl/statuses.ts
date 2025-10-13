@@ -2,6 +2,7 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import type Context from "@core/Context/Context";
+import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { Command } from "../../types/Command";
 
@@ -20,7 +21,9 @@ const status: Command<{ ctx: Context; catalogName: string }, ClientGitStatus[]> 
 	async do({ catalogName }) {
 		const workspace = this._app.wm.current();
 		const catalog = await workspace.getContextlessCatalog(catalogName);
-		if (!catalog?.repo?.gvc) return [];
+
+		if (!catalog || !catalog.repo || catalog.repo instanceof BrokenRepository || catalog.repo.gvc === null)
+			return [];
 
 		const isBrowser = getExecutingEnvironment() === "browser";
 		if (!isBrowser) await catalog.repo.gvc.add();

@@ -1,32 +1,88 @@
 import t from "@ext/localization/locale/translate";
-import { useState, useCallback, useMemo, useEffect } from "react";
-import { useDrop } from "react-dnd";
-import { DragItems } from "@ext/properties/models/kanban";
-import DragValue from "./DragValue";
+import { useState, useCallback, useMemo, useEffect, CSSProperties } from "react";
+import { IconButton } from "@ui-kit/Button";
+import {
+	closestCenter,
+	DndContext,
+	DragEndEvent,
+	KeyboardSensor,
+	MouseSensor,
+	TouchSensor,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
 
 interface Value {
-	id: number;
+	id: string;
 	text: string;
 }
 
 interface ValueHandlerProps {
 	data?: string[];
 	onChange?: (values: string[]) => void;
-	isActions?: boolean;
-	isEditable?: boolean;
 }
 
-const ValueHandler = ({ data, onChange, isActions = true, isEditable = true }: ValueHandlerProps) => {
-	const [values, setValues] = useState<Value[]>(
-		() => data?.map((value, index) => ({ id: index, text: value })) || [],
+interface SortableValueProps {
+	value: Value;
+}
+
+const SortableValue = ({ value }: SortableValueProps) => {
+	const { transform, transition, setNodeRef, isDragging, attributes, listeners } = useSortable({
+		id: value.id,
+	});
+
+	const style: CSSProperties = useMemo(
+		() => ({
+			transform: CSS.Transform.toString(transform),
+			transition: transition,
+			opacity: isDragging ? 0.8 : 1,
+			zIndex: isDragging ? 1 : 0,
+			position: "relative",
+			display: "flex",
+			alignItems: "center",
+			gap: "8px",
+		}),
+		[transform, transition, isDragging],
 	);
 
-	const [, drop] = useDrop(() => ({ accept: DragItems.Value }));
+	const iconButtonStyle: CSSProperties = useMemo(
+		() => ({
+			padding: "0",
+			height: "auto",
+		}),
+		[],
+	);
+
+	const onClick = useCallback((e: Event) => {
+		e.preventDefault();
+		e.stopPropagation();
+	}, []);
+
+	return (
+		<DropdownMenuItem onSelect={onClick}>
+			<div ref={setNodeRef} style={style} className="sortable-value">
+				<div {...listeners} {...attributes} className="flex items-center justify-center">
+					<IconButton type="button" variant="text" size="sm" style={iconButtonStyle} icon="grip-vertical" />
+				</div>
+				<div className="flex-1">{value.text}</div>
+			</div>
+		</DropdownMenuItem>
+	);
+};
+
+const ValueHandler = ({ data, onChange }: ValueHandlerProps) => {
+	const [values, setValues] = useState<Value[]>(
+		() => data?.map((value, index) => ({ id: `value-${index}`, text: value })) || [],
+	);
 
 	const memoizedData = useMemo(() => data, [data]);
 	useEffect(() => {
 		if (memoizedData) {
-			setValues(memoizedData.map((value, index) => ({ id: index, text: value })));
+			setValues(memoizedData.map((value, index) => ({ id: `value-${index}`, text: value })));
 		}
 	}, [memoizedData]);
 
@@ -38,82 +94,59 @@ const ValueHandler = ({ data, onChange, isActions = true, isEditable = true }: V
 		[onChange],
 	);
 
-	const moveValue = useCallback((draggedId: number, hoveredId: number) => {
-		setValues((prevValues) => {
-			const draggedIndex = prevValues.findIndex((v) => v.id === draggedId);
-			const hoveredIndex = prevValues.findIndex((v) => v.id === hoveredId);
+	const sensors = useSensors(
+		useSensor(MouseSensor, {
+			activationConstraint: {
+				distance: 10,
+			},
+		}),
+		useSensor(TouchSensor, {
+			activationConstraint: {
+				delay: 300,
+				tolerance: 5,
+			},
+		}),
+		useSensor(KeyboardSensor, {}),
+	);
 
-			if (draggedIndex === -1 || hoveredIndex === -1) return prevValues;
+	const handleDragEnd = useCallback(
+		(event: DragEndEvent) => {
+			const { active, over } = event;
+			if (active && over && active.id !== over.id) {
+				setValues((prevValues) => {
+					const oldIndex = prevValues.findIndex((v) => v.id === active.id);
+					const newIndex = prevValues.findIndex((v) => v.id === over.id);
 
-			const newValues = [...prevValues];
-			const [draggedValue] = newValues.splice(draggedIndex, 1);
-			newValues.splice(hoveredIndex, 0, draggedValue);
+					if (oldIndex === -1 || newIndex === -1) return prevValues;
 
-			return newValues;
-		});
-	}, []);
-
-	const updateValue = useCallback((text: string, id: number) => {
-		setValues((prevValues) => {
-			const newValues = [...prevValues];
-			const index = newValues.findIndex((v) => v.id === id);
-
-			if (index !== -1) {
-				newValues[index] = { ...newValues[index], text };
+					const newValues = arrayMove(prevValues, oldIndex, newIndex);
+					submitChanges(newValues);
+					return newValues;
+				});
 			}
-
-			return newValues;
-		});
-	}, []);
-
-	const deleteValue = useCallback(
-		(id: number) => {
-			setValues((prevValues) => {
-				const newValues = prevValues.filter((v) => v.id !== id);
-				submitChanges(newValues);
-				return newValues;
-			});
 		},
 		[submitChanges],
 	);
 
-	const handleDragEnd = useCallback(() => {
-		submitChanges(values);
-	}, [values, submitChanges]);
-
-	const handleInputBlur = useCallback(
-		(text: string, id: number) => {
-			updateValue(text, id);
-			setValues((currentValues) => {
-				const updatedValues = currentValues.map((v) => (v.id === id ? { ...v, text } : v));
-				submitChanges(updatedValues);
-				return updatedValues;
-			});
-		},
-		[updateValue, submitChanges],
-	);
+	const valueIds = useMemo(() => values.map((v) => v.id), [values]);
 
 	return (
-		<div ref={(ref) => void drop(ref)} className="value-handler">
+		<DndContext
+			sensors={sensors}
+			collisionDetection={closestCenter}
+			modifiers={[restrictToVerticalAxis]}
+			onDragEnd={handleDragEnd}
+		>
 			{values?.length ? (
-				values.map((value) => (
-					<DragValue
-						key={value.id}
-						isActions={isActions}
-						isEditable={isEditable}
-						id={value.id}
-						text={value.text}
-						moveValue={moveValue}
-						updateValue={updateValue}
-						onDelete={deleteValue}
-						onDragEnd={handleDragEnd}
-						onInputBlur={handleInputBlur}
-					/>
-				))
+				<SortableContext items={valueIds} strategy={verticalListSortingStrategy}>
+					{values.map((value) => (
+						<SortableValue key={value.id} value={value} />
+					))}
+				</SortableContext>
 			) : (
 				<div className="empty-state">{t("properties.no-values")}</div>
 			)}
-		</div>
+		</DndContext>
 	);
 };
 

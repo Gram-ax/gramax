@@ -80,8 +80,19 @@ interface SmallEditorProps<T> {
 	className?: string;
 }
 
+const defaultContent = { type: "doc", content: [{ type: "paragraph" }, { type: "paragraph" }] };
+
 const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
-	const { id, props, content, articleType, extensions = [], updateCallback, options, className } = proprs;
+	const {
+		id,
+		props,
+		content = defaultContent,
+		articleType,
+		extensions = [],
+		updateCallback,
+		options,
+		className,
+	} = proprs;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const resourceService = ResourceService.value;
 
@@ -139,7 +150,7 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 	const editor = useEditor(
 		{
 			onUpdate: onUpdateContent,
-			content: content ?? { type: "doc", content: [{ type: "paragraph" }, { type: "paragraph" }] },
+			content: content,
 			injectCSS: false,
 			extensions: [
 				...editorExtensions,
@@ -151,7 +162,7 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 			editorProps: {
 				handlePaste,
 			},
-			autofocus: content.content.length === 2,
+			autofocus: content?.content?.length === 2,
 		},
 		[content],
 	);

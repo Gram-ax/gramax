@@ -40,14 +40,12 @@ export type PublishOptions = (
 } & Credentials;
 
 export type SyncOptions = Credentials & {
-	recursivePull: boolean;
 	onPull?: () => void;
 	onPush?: () => void;
 };
 
 export type CheckoutOptions = Credentials & {
 	branch: string;
-	recursivePull?: boolean;
 	onCheckout?: (branch: string) => void;
 	force?: boolean;
 	onPull?: () => void;
@@ -87,6 +85,14 @@ export default abstract class Repository {
 		if (!this._fp || !this._repoPath) return;
 		this._mergeRequests = new MergeRequestCommands(this._fp, this._repoPath, this, disableMergeRequests);
 		this._storage?.events.on("fetch", (e) => this._events.emit("fetch", { repo: this, force: e.force }));
+	}
+
+	get path() {
+		return this._repoPath;
+	}
+
+	get absolutePath() {
+		return this._fp.rootPath.join(this._repoPath);
 	}
 
 	get scopedCatalogs(): ScopedCatalogs {

@@ -1,4 +1,4 @@
-import { ParagraphChild, TextRun } from "docx";
+import type { ParagraphChild } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
 import { Tag } from "../markdown/core/render/logic/Markdoc";
@@ -11,6 +11,8 @@ import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import { JSONContent } from "@tiptap/core";
+import docx from "@dynamicImports/docx";
+import { normalizeInlineWhitespace } from "./utils/normalizeInlineWhitespace";
 
 export class WordSerializerState {
 	constructor(
@@ -32,10 +34,12 @@ export class WordSerializerState {
 				if (!child) return;
 
 				if (typeof child === "string") {
-					let text = addOptions?.removeWhiteSpace ? child.trim() : child;
+					if (addOptions?.removeWhiteSpace && !child.trim()) return;
+
+					let text = addOptions?.removeWhiteSpace ? normalizeInlineWhitespace(child) : child;
 
 					if (addOptions?.code) text = NON_BREAKING_SPACE + text + NON_BREAKING_SPACE;
-					return createContent(text, addOptions);
+					return await createContent(text, addOptions);
 				}
 
 				const name = "name" in child ? child.name : child.type;
@@ -60,6 +64,7 @@ export class WordSerializerState {
 	}
 
 	async renderBlockAsInline(tag: Tag | JSONContent) {
+		const { TextRun } = await docx();
 		const children = "children" in tag ? tag.children : tag.content;
 		return (
 			await Promise.all(
@@ -81,7 +86,7 @@ export class WordSerializerState {
 	async renderBlock(block: Tag | JSONContent, addOptions?: AddOptionsWord): Promise<FileChild[]> {
 		const name = "name" in block ? block.name : block.type;
 		if (!this._blockConfig[name] && this._inlineConfig[name])
-			return [createParagraph(await this.renderInline({ children: [block] } as Tag))];
+			return [await createParagraph(await this.renderInline({ children: [block] } as Tag))];
 
 		return this._blockConfig[name]?.({
 			state: this,

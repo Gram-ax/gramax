@@ -1,8 +1,9 @@
 import t from "@ext/localization/locale/translate";
-import { InternalHyperlink, Paragraph, TextRun } from "docx";
+import docx from "@dynamicImports/docx";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const seeWordLayout: WordBlockChild = async ({ tag, addOptions }) => {
+	const { InternalHyperlink, Paragraph, TextRun } = await docx();
 	const id = (tag.attributes.link as string).replace(/^#/, "");
 	return await Promise.resolve([
 		new Paragraph({

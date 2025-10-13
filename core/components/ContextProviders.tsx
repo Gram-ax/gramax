@@ -44,7 +44,6 @@ import InboxService from "@ext/inbox/components/InboxService";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
-import CurrentTabsTagService from "@ext/markdown/elements/tabs/components/CurrentTabsTagService";
 import PropertyService from "@ext/properties/components/PropertyService";
 import permissionService from "@ext/security/logic/Permission/components/PermissionService";
 import TemplateService from "@ext/templates/components/TemplateService";
@@ -54,6 +53,7 @@ import IsMobileService from "../ui-logic/ContextServices/isMobileService";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
 import UiLanguage from "@ext/localization/core/model/Language";
+import { TooltipProvider } from "@ui-kit/Tooltip";
 
 export interface PageProps {
 	data: HomePageData & ArticlePageData;
@@ -74,12 +74,12 @@ const appServices: ContextService[] = [
 	SearchQueryService,
 	FavoriteService,
 	SyncIconService,
+	SourceDataService,
 	IsOpenModalService,
 	PublishChangesProvider,
 	AudioRecorderService,
 	SyncableWorkspacesService,
 	GlobalSyncCountService,
-	SourceDataService,
 ];
 const Inits = appServices.map((service) => service.Init.bind(service) as typeof service.Init);
 const NavigationTabInit = NavigationTabsService.Init.bind(NavigationTabsService);
@@ -118,44 +118,45 @@ export default function ContextProviders({
 	return (
 		<PlatformService.Provider value={platform}>
 			<ThemeService.Provider value={pageProps.context.theme}>
-				{Inits.reduceRight(
-					(children, Provider) => {
-						return <Provider pageProps={pageProps}>{children}</Provider>;
-					},
-					<SidebarsIsPinService.Provider>
-						<>
-							{isArticlePage ? (
-								<NavigationTabInit>
-									<DiffViewModeService.Provider>
-										<GitIndexService.Provider>
-											<EditorExtensionsService.Provider>
-												<ResourceService.Provider>
-													<IsMenuBarOpenService.Provider>
-														<ArticleRefService.Provider>
-															<ArticleDataService.Provider value={pageProps.data}>
-																<ArticlePropsService.Provider
-																	value={pageProps.data.articleProps}
-																>
-																	<CatalogPropsService.Init
-																		value={pageProps.data.catalogProps}
+				<TooltipProvider>
+					{Inits.reduceRight(
+						(children, Provider) => {
+							return <Provider pageProps={pageProps}>{children}</Provider>;
+						},
+						<SidebarsIsPinService.Provider>
+							<>
+								{isArticlePage ? (
+									<NavigationTabInit>
+										<DiffViewModeService.Provider>
+											<GitIndexService.Provider>
+												<EditorExtensionsService.Provider>
+													<ResourceService.Provider>
+														<IsMenuBarOpenService.Provider>
+															<ArticleRefService.Provider>
+																<ArticleDataService.Provider value={pageProps.data}>
+																	<ArticlePropsService.Provider
+																		value={pageProps.data.articleProps}
 																	>
-																		<CloudStateService.Init
-																			value={{
-																				cloudServiceUrl:
-																					pageProps.context.conf
-																						.cloudServiceUrl,
-																				catalogName:
-																					pageProps.data.catalogProps.name,
-																			}}
+																		<CatalogPropsService.Init
+																			value={pageProps.data.catalogProps}
 																		>
-																			<CatalogLogoService.Init>
-																				<PromptService.Provider>
-																					<InboxService.Provider>
-																						<PropertyService.Provider>
-																							<TemplateService.Init>
-																								<SnippetService.Init>
-																									<ModalToOpenService.Provider>
-																										<CurrentTabsTagService.Provider>
+																			<CloudStateService.Init
+																				value={{
+																					cloudServiceUrl:
+																						pageProps.context.conf
+																							.cloudServiceUrl,
+																					catalogName:
+																						pageProps.data.catalogProps
+																							.name,
+																				}}
+																			>
+																				<CatalogLogoService.Init>
+																					<PromptService.Provider>
+																						<InboxService.Provider>
+																							<PropertyService.Provider>
+																								<TemplateService.Init>
+																									<SnippetService.Init>
+																										<ModalToOpenService.Provider>
 																											<ArticleTooltipService.Provider>
 																												<IsFirstLoadService.Provider
 																													resetIsFirstLoad={
@@ -188,38 +189,38 @@ export default function ContextProviders({
 																													</OnUpdateAppFuncs>
 																												</IsFirstLoadService.Provider>
 																											</ArticleTooltipService.Provider>
-																										</CurrentTabsTagService.Provider>
-																									</ModalToOpenService.Provider>
-																								</SnippetService.Init>
-																							</TemplateService.Init>
-																						</PropertyService.Provider>
-																					</InboxService.Provider>
-																				</PromptService.Provider>
-																			</CatalogLogoService.Init>
-																		</CloudStateService.Init>
-																	</CatalogPropsService.Init>
-																</ArticlePropsService.Provider>
-															</ArticleDataService.Provider>
-														</ArticleRefService.Provider>
-													</IsMenuBarOpenService.Provider>
-												</ResourceService.Provider>
-											</EditorExtensionsService.Provider>
-										</GitIndexService.Provider>
-									</DiffViewModeService.Provider>
-								</NavigationTabInit>
-							) : (
-								<ModalToOpenService.Provider>
-									<IsFirstLoadService.Provider
-										resetIsFirstLoad={resetIsFirstLoad}
-										value={isFirstLoad}
-									>
-										<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
-									</IsFirstLoadService.Provider>
-								</ModalToOpenService.Provider>
-							)}
-						</>
-					</SidebarsIsPinService.Provider>,
-				)}
+																										</ModalToOpenService.Provider>
+																									</SnippetService.Init>
+																								</TemplateService.Init>
+																							</PropertyService.Provider>
+																						</InboxService.Provider>
+																					</PromptService.Provider>
+																				</CatalogLogoService.Init>
+																			</CloudStateService.Init>
+																		</CatalogPropsService.Init>
+																	</ArticlePropsService.Provider>
+																</ArticleDataService.Provider>
+															</ArticleRefService.Provider>
+														</IsMenuBarOpenService.Provider>
+													</ResourceService.Provider>
+												</EditorExtensionsService.Provider>
+											</GitIndexService.Provider>
+										</DiffViewModeService.Provider>
+									</NavigationTabInit>
+								) : (
+									<ModalToOpenService.Provider>
+										<IsFirstLoadService.Provider
+											resetIsFirstLoad={resetIsFirstLoad}
+											value={isFirstLoad}
+										>
+											<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
+										</IsFirstLoadService.Provider>
+									</ModalToOpenService.Provider>
+								)}
+							</>
+						</SidebarsIsPinService.Provider>,
+					)}
+				</TooltipProvider>
 			</ThemeService.Provider>
 		</PlatformService.Provider>
 	);

@@ -1,15 +1,15 @@
 import Icon from "@components/Atoms/Icon";
-import Link from "@components/Atoms/Link";
 import { classNames } from "@components/libs/classNames";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
-import { isFromModal } from "@ui-kit/Modal";
 import { HTMLAttributes } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import Link from "@components/Atoms/Link";
+import { isInDropdown } from "@ui-kit/Dropdown";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
@@ -42,6 +42,7 @@ const Item = ({
 	isDragStarted,
 	isDropTarget,
 	isHover,
+	onClick,
 	...other
 }: LevNavItemProps & {
 	currentTitle: string;
@@ -53,8 +54,10 @@ const Item = ({
 			className={classNames(`${className} depth-${level}`, {
 				"a-drop-target": !isOpen && isCategory,
 				[status]: !!status,
+				"is-active": isActive,
 			})}
 			data-qa={`catalog-navigation-${isCategory ? "category" : "article"}-link-level-${level}`}
+			onClick={onClick}
 			{...other}
 		>
 			{isCategory && (
@@ -62,7 +65,7 @@ const Item = ({
 					code={isOpen ? "chevron-down" : "chevron-right"}
 					viewBox="3 3 18 18"
 					isAction
-					className="angle"
+					className="angle left-extensions"
 					onClick={(e) => {
 						e.stopPropagation();
 						onToggle();
@@ -77,9 +80,10 @@ const Item = ({
 			{rightExtensions && (
 				<div
 					className="right-extensions"
-					onClickCapture={(e) => {
-						if (isFromModal(e)) return;
+					onClick={(e) => {
+						if (!isInDropdown(e)) return;
 						e.preventDefault();
+						e.stopPropagation();
 					}}
 				>
 					{rightExtensions}
@@ -125,29 +129,27 @@ const StyledItem = styled(Item)`
 			: `
 	font-weight: 500;
 `}
-	${(p) =>
-		!(p.isHover ?? false)
-			? ``
-			: `
-	background: var(--color-lev-sidebar-hover);
 
-	.right-extensions {
-		display: inline-flex !important;
+	&:hover,
+	&:has([data-state="open"]) {
+		background: var(--color-lev-sidebar-hover);
+
+		.right-extensions {
+			opacity: 1;
+			pointer-events: auto !important;
+		}
 	}
-`}
 
-	${(p) =>
-		!(p.isActive ?? false)
-			? ""
-			: `
-	background: var(--color-article-bg);    
-    color: var(--color-nav-item-selected);
-	font-weight: var(--font-weight-right-nav-active-item);
+	&.is-active {
+		background: var(--color-article-bg) !important;
+		color: var(--color-nav-item-selected);
+		font-weight: var(--font-weight-right-nav-active-item);
 
-	.right-extensions {
-		display: inline-flex !important;
+		.right-extensions {
+			opacity: 1;
+			pointer-events: auto !important;
+		}
 	}
-    `}
 
 	> i,
 	> div,
@@ -175,7 +177,9 @@ const StyledItem = styled(Item)`
 	}
 
 	.right-extensions {
-		display: none;
+		display: inline-flex;
+		opacity: 0;
+		pointer-events: none;
 		margin-right: 0;
 		align-items: center;
 		justify-content: flex-end;
@@ -201,7 +205,8 @@ const StyledItem = styled(Item)`
 			background: var(--color-lev-sidebar-hover);
 
 			.right-extensions {
-				display: inline-flex;
+				opacity: 1;
+				pointer-events: auto;
 			}
 		}
 
@@ -227,6 +232,7 @@ const LevNavItem = (props: LevNavItemProps) => {
 	if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) {
 		return <StyledItem {...props} currentTitle={currentTitle} status={status} title={title} isActive={true} />;
 	}
+
 	return (
 		<Link href={Url.from(item)}>
 			<StyledItem {...props} currentTitle={currentTitle} status={status} title={title} />

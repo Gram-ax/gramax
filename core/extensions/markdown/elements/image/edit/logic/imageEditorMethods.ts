@@ -1,4 +1,4 @@
-import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { MouseEventHandler } from "react";
 
@@ -46,7 +46,7 @@ export const getCroppedCanvas = async (
 	if (context) {
 		const image = new Image();
 		const buffer = originalBuffer || null;
-		image.src = buffer ? "data:" + resolveImageKind(buffer) + ";base64," + buffer.toString("base64") : realSrc;
+		image.src = buffer ? "data:" + resolveFileKind(buffer) + ";base64," + buffer.toString("base64") : realSrc;
 
 		return new Promise((resolve) => {
 			image.onload = () => {

@@ -1,5 +1,6 @@
+import { Shortcut } from "@ui-kit/Shortcut";
 import React from "react";
 
 export default function Kbd({ text }: { text: string }) {
-	return <kbd>{text}</kbd>;
+	return <Shortcut>{text}</Shortcut>;
 }

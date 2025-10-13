@@ -6,6 +6,7 @@ import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "@core/FileStructue/Ca
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type LastVisited from "@core/SitePresenter/LastVisited";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
+import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import { Category } from "../../../../../logic/FileStructue/Category/Category";
 import { Item } from "../../../../../logic/FileStructue/Item/Item";
 import { ArticleLink, CatalogLink, CategoryLink, ItemLink, TitledLink } from "../../../NavigationLinks";
@@ -74,6 +75,12 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			style: catalog.props[navProps.style] ?? null,
 			description: catalog.props[navProps.description] ?? null,
 			order: catalog.props[navProps.order] ?? 999999,
+			broken:
+				catalog.repo instanceof BrokenRepository
+					? catalog.repo.error?.message?.includes(`"cmd": "clone"`)
+						? "clone-failed"
+						: "error"
+					: null,
 			isCloning: catalog.props?.isCloning ?? false,
 			cloneCancelDisabled: catalog.props?.cloneCancelDisabled ?? false,
 			redirectOnClone: catalog.props?.redirectOnClone ?? null,

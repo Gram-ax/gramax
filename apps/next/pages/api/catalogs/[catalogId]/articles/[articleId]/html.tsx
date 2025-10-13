@@ -12,7 +12,7 @@ import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationM
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
 		const { contextFactory, parser, sitePresenterFactory, parserContextFactory } = this.app;
-		const context = await contextFactory.from(req, res);
+		const context = await contextFactory.from({ req, res });
 		const catalogName = req.query.catalogId as string;
 		const articleId = req.query.articleId as string;
 		const dataProvider = sitePresenterFactory.fromContext(context);

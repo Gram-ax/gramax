@@ -1,11 +1,11 @@
-import chat from "@app/commands/search/chat";
 import resetSearchData from "./resetSearchData";
 import searchCommand from "./searchCommand";
+import chat from "./chat";
 
 const search = {
 	resetSearchData,
 	searchCommand,
-	chat
+	chat,
 };
 
 export default search;

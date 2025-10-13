@@ -46,7 +46,7 @@ const trySetLastHttpError = async (status: number, body: Uint8Array, url?: strin
 };
 
 broadcast.addEventListener("message", (ev) => {
-	if (ev.data.type === "cancel-clone") {
+	if (ev.data.type === "cancel") {
 		if (self.cancelToken === ev.data.id && Date.now() - ev.data.date < 1000) {
 			Object.values(self.emscriptenhttpconnections).forEach((connection) => {
 				connection?.abortController?.abort();
@@ -104,7 +104,7 @@ Object.assign(Module, {
 					lastProgressTime = now;
 
 					self.postMessage({
-						type: "clone-progress",
+						type: "remote-progress",
 						progress: {
 							type: "download",
 							data: {

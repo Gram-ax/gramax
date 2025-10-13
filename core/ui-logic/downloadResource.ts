@@ -3,6 +3,16 @@ import Path from "../logic/FileProvider/Path/Path";
 import ApiUrlCreator from "./ApiServices/ApiUrlCreator";
 import FetchService from "./ApiServices/FetchService";
 import MimeTypes from "./ApiServices/Types/MimeTypes";
+import { toast } from "@ui-kit/Toast";
+
+const sendError = () => {
+	toast(t("file-download-error-title"), {
+		status: "error",
+		description: t("file-download-error-message"),
+		icon: "triangle-alert",
+		size: "md",
+	});
+};
 
 const downloadResource = async (apiUrlCreator: ApiUrlCreator, path: Path) => {
 	const localizedErrorMessage = JSON.stringify({
@@ -10,10 +20,20 @@ const downloadResource = async (apiUrlCreator: ApiUrlCreator, path: Path) => {
 		message: t("file-download-error-message"),
 	});
 
-	const res = await FetchService.fetch(apiUrlCreator.getArticleResource(path.value, null), localizedErrorMessage);
-	if (!res.ok) return;
-	const extension = path.extension;
-	downloadFile(await res.blob(), MimeTypes[extension] ?? extension, decodeURIComponent(path.nameWithExtension));
+	try {
+		const res = await FetchService.fetch(
+			apiUrlCreator.getArticleResource(path.value, null),
+			localizedErrorMessage,
+			undefined,
+			undefined,
+			false,
+		);
+		if (!res.ok) return sendError();
+		const extension = path.extension;
+		downloadFile(await res.blob(), MimeTypes[extension] ?? extension, decodeURIComponent(path.nameWithExtension));
+	} catch (error) {
+		sendError();
+	}
 };
 
 export const downloadFile = (fileData: any, mimeType: MimeTypes, fileName: string) => {

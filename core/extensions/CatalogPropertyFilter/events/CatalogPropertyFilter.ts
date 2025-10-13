@@ -5,7 +5,9 @@ import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type { FSEvents } from "@core/FileStructue/FileStructure";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
+import { ContentLanguage } from "@ext/localization/core/model/Language";
 import { feature } from "@ext/toggleFeatures/features";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { addScopeToPath } from "@ext/versioning/utils";
@@ -44,6 +46,7 @@ export default class CatalogTagFilter implements EventHandlerCollection {
 
 				if (!mutableEntry.entry) {
 					mutableEntry.entry = await this._workspace.getContextlessCatalog(name);
+					if (!mutableEntry.entry) return;
 				}
 
 				if (!mutableEntry.entry.props.filterProperties?.includes(property)) return;
@@ -79,6 +82,10 @@ export default class CatalogTagFilter implements EventHandlerCollection {
 
 	private _categoryFilter({ item, catalogProps }: EventArgs<FSEvents, "category-filter">): boolean {
 		if (!catalogProps.resolvedFilterProperty) return true;
+		if (!item.parent.parent && item.type == ItemType.category) {
+			const maybeItemLanguage = ContentLanguage[item.getFileName()];
+			if (catalogProps.supportedLanguages.includes(maybeItemLanguage)) return true;
+		}
 		return !!item.props.properties?.some((p) => p.name == catalogProps.resolvedFilterProperty);
 	}
 
@@ -102,7 +109,7 @@ export default class CatalogTagFilter implements EventHandlerCollection {
 
 			if (parentFp instanceof GitTreeFileProvider) {
 				const gitfp = new GitCommands(fs.fp, realPath);
-				const fp = new GitTreeFileProvider(gitfp);
+				const fp = new GitTreeFileProvider(gitfp, true);
 				fs.fp.mount(virtualPath, fp);
 			} else {
 				const fp = new ReadOnlyDiskFileProvider(realPath);

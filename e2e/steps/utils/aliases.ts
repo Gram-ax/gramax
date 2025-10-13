@@ -33,6 +33,7 @@ const aliases = {
 	"смена ветки": '[data-qa="qa-branch"]',
 	"нет изменений": '[data-qa="qa-no-changes"]',
 	"действия блока": '[data-qa="qa-node-actions"]',
+	"действия опции": '[data-qa="option-menu"]',
 
 	"%token%": process.env.GX_E2E_GITLAB_TOKEN,
 	"%url%": process.env.GX_E2E_GITLAB_URL,
@@ -88,6 +89,7 @@ const icons = {
 	"Вставить строку сверху": `[data-qa="table-add-row-up"]`,
 	"удалить строку": `[data-qa="table-del-row"]`,
 	"удалить столбец": `[data-qa="table-del-col"]`,
+	"цитата": ".lucide-quote",
 };
 
 export type Aliases = { [key: string]: string };

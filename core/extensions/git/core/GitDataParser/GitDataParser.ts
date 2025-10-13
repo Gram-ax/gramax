@@ -43,6 +43,7 @@ export class GitDataParser {
 			GitHub: `https://${sourceName}/${group}/${repName}/edit/${branch}/${filePath.value}`,
 			GitLab: `https://${sourceName}/-/ide/project/${group}/${repName}/blob/${branch}/-/${filePath.value}`,
 			GitVerse: `https://${sourceName}/${group}/${repName}/content/${branch}/${filePath.value}`,
+			Gitea: `https://${sourceName}/${group}/${repName}/src/branch/${branch}/${filePath.value}`,
 
 			"Confluence Cloud": "",
 			"Confluence self-hosted server": "",

@@ -5,7 +5,7 @@ import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInpu
 import MergeConflictStyles from "@ext/git/actions/MergeConflictHandler/Monaco/components/MergeConflictStyles";
 import FileInputMergeConflict from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
 import t from "@ext/localization/locale/translate";
-import { useLayoutEffect, useRef, useState, CSSProperties } from "react";
+import { CSSProperties, useLayoutEffect, useRef } from "react";
 import Theme from "../../../extensions/Theme/Theme";
 import ThemeService from "../../../extensions/Theme/components/ThemeService";
 
@@ -28,12 +28,10 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 	const readOnly = options?.readOnly ?? false;
 	const theme = ThemeService.value;
 	const ref = useRef<HTMLDivElement>(null);
-	const [editorHeight, setEditorHeight] = useState(0);
 	const fileInputMergeConflict = useRef<FileInputMergeConflict>(null);
 	const FileInput = resolveModule("FileInput");
 
 	useLayoutEffect(() => {
-		setEditorHeight(ref.current.getBoundingClientRect().height);
 		return () => {
 			fileInputMergeConflict.current?.onUnmount();
 		};
@@ -46,7 +44,7 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 			<div ref={ref} style={{ height: "100%" }}>
 				<MergeConflictStyles style={{ height: "100%" }}>
 					<FileInput
-						height={editorHeight}
+						height="100%"
 						language={language}
 						defaultLanguage={DEFAULT_LANGAUGE}
 						defaultValue={value}
@@ -55,6 +53,7 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 							onChange?.(value, e, fileInputMergeConflict.current);
 						}}
 						options={{
+							unusualLineTerminators: "off",
 							readOnlyMessage: { value: t("cant-edit-this-line") },
 							unicodeHighlight: { ambiguousCharacters: false },
 							wordWrap: "on",

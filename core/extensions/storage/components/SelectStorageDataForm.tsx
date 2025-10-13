@@ -1,285 +1,246 @@
-import Icon from "@components/Atoms/Icon";
-import FormStyle from "@components/Form/FormStyle";
-import Sidebar from "@components/Layouts/Sidebar";
-import ActionListItem from "@components/List/ActionListItem";
-import { ButtonItem } from "@components/List/Item";
-import ListLayout from "@components/List/ListLayout";
-import LanguageService from "@core-ui/ContextServices/Language";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import useWatch from "@core-ui/hooks/useWatch";
-import { transliterate } from "@core-ui/languageConverter/transliterate";
-import SelectConfluenceStorageDataFields from "@ext/confluence/core/components/SelectConfluenceStorageDataFields";
-import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
-import PublicClone from "@ext/git/actions/Clone/components/PublicClone";
-import Mode from "@ext/git/actions/Clone/model/Mode";
+import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";
+import { getStorageDataByForm } from "@ext/git/actions/Clone/logic/getStorageDataByForm";
 import SelectGitStorageDataFields from "@ext/git/actions/Source/Git/components/SelectGitStorageDataFields";
+import SelectGiteaStorageDataFields from "@ext/git/actions/Source/Gitea/components/SelectGiteaStorageDataFields";
+import GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import SelectGitVerseStorageDataFields from "@ext/git/actions/Source/GitVerse/components/SelectGitVerseStorageDataFields";
-import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
+import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/model/GitVerseSourceData.schema";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
-import NotionStorageData from "@ext/notion/model/NotionStorageData";
-import importSourceTypes from "@ext/storage/logic/SourceDataProvider/logic/importSourceType";
-import removeSourceTokenIfInvalid from "@ext/storage/logic/utils/removeSourceTokenIfInvalid";
+import CreateStorage from "@ext/storage/components/CreateStorage";
+import SourceOption from "@ext/storage/components/SourceOption";
+import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
+import {
+	getSelectStorageFormSchema,
+	SelectFormSchemaType,
+} from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@ui-kit/Button";
+import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { MenuItem, MenuItemAction } from "@ui-kit/MenuItem";
+import { ModalBody } from "@ui-kit/Modal";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectOption,
+	SelectSeparator,
+	SelectTrigger,
+	SelectValue,
+} from "@ui-kit/Select";
 import { useCallback, useMemo, useState } from "react";
+import { useForm, UseFormReturn } from "react-hook-form";
 import SelectGitHubStorageDataFields from "../../git/actions/Source/GitHub/components/SelectGitHubStorageDataFields";
 import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/components/SelectGitLabStorageDataFields";
-import CreateSourceData from "../logic/SourceDataProvider/components/CreateSourceData";
 import SourceData from "../logic/SourceDataProvider/model/SourceData";
 import SourceType from "../logic/SourceDataProvider/model/SourceType";
 import getStorageNameByData from "../logic/utils/getStorageNameByData";
 import StorageData from "../models/StorageData";
-import SourceListItem from "./SourceListItem";
 
 interface SelectStorageDataFormProps {
-	title: string;
-	children?: JSX.Element;
-	mode?: Mode;
-	onChange?: (data: StorageData) => void;
+	mode?: "init" | "clone";
+	title?: string;
+	description?: string;
+	selectedStorage?: string;
+	onSubmit?: (storageData: StorageData) => Promise<boolean> | boolean | void;
 }
 
+type GitSourceDatas = GitSourceData | GitlabSourceData | GitHubSourceData;
+
 const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
-	const { title, children, mode, onChange } = props;
-	const sourceDatasService = SourceDataService.value;
-	const [childrenCloseHandler, setChildrenCloseHandler] = useState<(value: boolean) => void>(() => () => {});
-	const sharedConfig = {
-		placeholderSuffix: t("storage2"),
-		controlLabel: t("storage"),
-		sideBarTitle: t("add-new-storage"),
-		filter: (data: SourceData) =>
-			[SourceType.git, SourceType.gitHub, SourceType.gitLab, SourceType.gitVerse].includes(data.sourceType),
-	};
+	const { onSubmit, selectedStorage, mode = "clone", ...formProps } = props;
 
-	const { placeholderSuffix, controlLabel, sideBarTitle, filter } = useMemo(() => {
-		const modeConfigs = {
-			import: {
-				placeholderSuffix: t("source2").toLowerCase(),
-				controlLabel: t("source"),
-				sideBarTitle: t("add-new-source"),
-				filter: (data: SourceData) => importSourceTypes.includes(data.sourceType),
-			},
-			clone: {
-				...sharedConfig,
-			},
-			init: {
-				...sharedConfig,
-			},
-		};
+	const isEnterprise = useIsEnterpriseWorkspace();
+	const sourceDatas = SourceDataService.value;
+	const apiUrlCreator = ApiUrlCreator.value;
 
-		return modeConfigs[mode];
-	}, [LanguageService.currentUi()]);
+	const filteredSourceDatas = sourceDatas.filter((data) => isGitSourceType(data.sourceType)) as GitSourceDatas[];
 
-	const filteredSourceDatas = sourceDatasService.filter(filter);
-	const [sourceDatas, setStorageDatas] = useState<SourceData[]>(filteredSourceDatas);
-	const [selectSourceData, setSelectStorageData] = useState<SourceData>(null);
-	const selectStorageName = selectSourceData ? getStorageNameByData(selectSourceData) : "";
+	const [isCreateStorageOpen, setIsCreateStorageOpen] = useState(!filteredSourceDatas.length);
+	const [invalidSourceData, setInvalidSourceData] = useState<SourceData>(null);
+	const [isLoading, setIsLoading] = useState(false);
 
-	useWatch(() => {
-		setStorageDatas(filteredSourceDatas);
-	}, [sourceDatasService]);
-
-	const [externalIsOpen, setExternalIsOpen] = useState(false);
-	const [isPublicCloneOpen, setIsPublicCloneOpen] = useState(false);
-
-	const addNewStorageListItem: ButtonItem = {
-		element: (
-			<CreateSourceData
-				mode={mode}
-				externalIsOpen={externalIsOpen}
-				trigger={
-					<div style={{ width: "100%" }}>
-						<ActionListItem divider>
-							<div style={{ width: "100%", padding: "6px 11px" }}>
-								<Sidebar
-									title={sideBarTitle + "..."}
-									leftActions={[<Icon code="plus" viewBox="3 3 18 18" key={0} />]}
-								/>
-							</div>
-						</ActionListItem>
-					</div>
-				}
-				onOpen={() => childrenCloseHandler(false)}
-				onCreate={(data) => {
-					const newSourceDatas = (() => {
-						const existingIndex = sourceDatas.findIndex(
-							(item) =>
-								item.userName === data.userName &&
-								item.userEmail === data.userEmail &&
-								item.sourceType === data.sourceType,
-						);
-
-						if (existingIndex !== -1) {
-							const updated = [...sourceDatas];
-							updated[existingIndex] = data;
-							return updated;
-						} else {
-							return [...sourceDatas, data];
-						}
-					})();
-
-					setSelectStorageData(data);
-					setIsPublicCloneOpen(false);
-					setStorageDatas([...newSourceDatas]);
-				}}
-			/>
-		),
-		onClick: () => setExternalIsOpen(true),
-		labelField: "",
-	};
-
-	useWatch(() => {
-		if (!selectSourceData) onChange(null);
-		if (selectSourceData?.sourceType === SourceType.notion) {
-			const workspaceName = (selectSourceData as NotionSourceData).workspaceName;
-			if (!workspaceName) return;
-
-			onChange({
-				name: transliterate(workspaceName, {
-					kebab: true,
-					maxLength: 50,
-				}),
-				source: selectSourceData,
-			} as NotionStorageData);
-		}
-	}, [selectSourceData]);
-
-	const onSourceDataDelete = useCallback(
-		(name: string) => {
-			const sourceName = selectSourceData ? getStorageNameByData(selectSourceData) : null;
-			if (sourceName === name) setSelectStorageData(null);
-			setStorageDatas(sourceDatas.filter((d) => getStorageNameByData(d) !== name));
+	const form = useForm<SelectFormSchemaType>({
+		resolver: zodResolver(getSelectStorageFormSchema(mode)),
+		defaultValues: {
+			sourceKey: selectedStorage,
 		},
-		[sourceDatas, selectSourceData],
+		mode: "onChange",
+	});
+
+	const { watch } = form;
+	const sourceKey = watch("sourceKey");
+	const sourceData: GitSourceDatas = useMemo(
+		() =>
+			sourceKey && sourceKey !== "add-new-storage"
+				? (getSourceDataByStorageName(sourceKey, sourceDatas) as GitSourceDatas)
+				: null,
+		[sourceKey, sourceDatas],
 	);
 
-	const FormLowerPart = selectSourceData?.isInvalid ? (
-		<CreateSourceData
-			mode={mode}
-			externalIsOpen={true}
-			onCreate={(data) => {
-				setSelectStorageData(data);
-				setIsPublicCloneOpen(false);
-				const storageName = getStorageNameByData(selectSourceData);
-				const newSourceDatas = sourceDatasService.filter((d) => getStorageNameByData(d) !== storageName);
-				newSourceDatas.push(data);
-				setStorageDatas([...newSourceDatas]);
-			}}
-			onOpen={() => setSelectStorageData(null)}
-			onClose={() => setSelectStorageData(null)}
-			defaultSourceData={selectSourceData}
-			defaultSourceType={selectSourceData?.sourceType}
-		/>
-	) : (
-		<>
-			{isPublicCloneOpen && <PublicClone setStorageData={onChange} />}
-			{selectSourceData?.sourceType === SourceType.git && (
-				<SelectGitStorageDataFields
-					source={selectSourceData as GitSourceData}
-					onChange={onChange}
-					mode={mode}
-				/>
-			)}
-			{selectSourceData?.sourceType === SourceType.gitLab && (
-				<SelectGitLabStorageDataFields
-					source={selectSourceData as GitlabSourceData}
-					onChange={onChange}
-					mode={mode}
-				/>
-			)}
-			{selectSourceData?.sourceType === SourceType.gitVerse && (
-				<SelectGitVerseStorageDataFields
-					source={selectSourceData as GitVerseSourceData}
-					onChange={onChange}
-					mode={mode}
-				/>
-			)}
-			{selectSourceData?.sourceType === SourceType.gitHub && (
-				<SelectGitHubStorageDataFields
-					source={selectSourceData as GitHubSourceData}
-					onChange={onChange}
-					mode={mode}
-				/>
-			)}
-			{(selectSourceData?.sourceType === SourceType.confluenceCloud ||
-				selectSourceData?.sourceType === SourceType.confluenceServer) && (
-				<SelectConfluenceStorageDataFields
-					source={selectSourceData as ConfluenceSourceData}
-					onChange={onChange}
-				/>
-			)}
-			{children}
-		</>
+	const formSubmit = (e) => {
+		form.handleSubmit(async (data) => {
+			setIsLoading(true);
+			const storageData = getStorageDataByForm(sourceData, data);
+			await onSubmit?.(storageData);
+			setIsLoading(false);
+		})(e);
+	};
+
+	const onSourceDataCreate = useCallback(
+		async (data: SourceData) => {
+			const url = apiUrlCreator.setSourceData();
+			const res = await FetchService.fetch(url, JSON.stringify(data), MimeTypes.json);
+			if (!res.ok) return;
+
+			const storageKey = getStorageNameByData(data);
+			const newSourceDatas = [...sourceDatas.filter((d) => getStorageNameByData(d) !== storageKey), data];
+			SourceDataService.value = newSourceDatas;
+
+			if (!data.isInvalid) form.setValue("sourceKey", storageKey);
+		},
+		[sourceDatas, form, apiUrlCreator],
 	);
+
+	const onSourceClickEdit = (sourceData: GitSourceData | GitlabSourceData | GitHubSourceData) => {
+		setInvalidSourceData({
+			domain: sourceData.domain,
+			token: sourceData.token,
+			sourceType: sourceData.sourceType,
+			userName: sourceData.userName,
+			userEmail: sourceData.userEmail,
+			isInvalid: sourceData?.token && sourceData.isInvalid,
+		} as any);
+		setIsCreateStorageOpen(true);
+	};
+
+	const getFormLowerPart = (form: UseFormReturn<SelectFormSchemaType>, sourceData: SourceData) => {
+		return (
+			<>
+				{sourceData?.sourceType === SourceType.git && (
+					<SelectGitStorageDataFields mode={mode} form={form} source={sourceData as GitSourceData} />
+				)}
+				{sourceData?.sourceType === SourceType.gitLab && (
+					<SelectGitLabStorageDataFields mode={mode} form={form} source={sourceData as GitlabSourceData} />
+				)}
+				{sourceData?.sourceType === SourceType.gitHub && (
+					<SelectGitHubStorageDataFields mode={mode} form={form} source={sourceData as GitHubSourceData} />
+				)}
+				{sourceData?.sourceType === SourceType.gitVerse && (
+					<SelectGitVerseStorageDataFields
+						mode={mode}
+						form={form}
+						source={sourceData as GitVerseSourceData}
+					/>
+				)}
+				{sourceData?.sourceType === SourceType.gitea && (
+					<SelectGiteaStorageDataFields mode={mode} form={form} source={sourceData as GiteaSourceData} />
+				)}
+			</>
+		);
+	};
 
 	return (
-		<FormStyle>
-			<>
-				<legend>
-					<Icon code="cloud-download" />
-					<span>{title}</span>
-				</legend>
-				<fieldset>
-					<div className="form-group field field-string row">
-						<label className="control-label">{controlLabel}</label>
-						<div className="input-lable">
-							<ListLayout
-								placeholder={`${t("find")} ${placeholderSuffix}`}
-								item={
-									selectSourceData
-										? {
-												element: (
-													<SourceListItem
-														source={selectSourceData}
-														name={selectStorageName}
-													/>
-												),
-												labelField: selectStorageName,
-										  }
-										: isPublicCloneOpen
-										? {
-												element: <SourceListItem source="public" />,
-												labelField: t("git.clone.public-clone"),
-										  }
-										: ""
-								}
-								buttons={
-									// mode === Mode.clone ? [addNewStorageListItem, publicClone] : [addNewStorageListItem]
-									[addNewStorageListItem]
-								}
-								provideCloseHandler={setChildrenCloseHandler}
-								items={sourceDatas.map((d) => {
-									const disable = mode !== Mode.clone && d.sourceType === SourceType.git;
-									const name = getStorageNameByData(d);
-
-									return {
-										isTitle: disable,
-										disable: disable,
-										labelField: name,
-										tooltipDisabledContent: disable && t("git.source.error.cannot-bind-to-storage"),
-										element: (
-											<SourceListItem
-												source={d}
-												name={name}
-												deletable
-												onDelete={onSourceDataDelete}
+		<>
+			<Form asChild {...form}>
+				<form className="contents ui-kit" onSubmit={formSubmit}>
+					<FormHeader
+						title={formProps.title ?? t("forms.clone-repo.name")}
+						description={formProps.description ?? t("forms.clone-repo.description")}
+						icon="git-pull-request"
+					/>
+					<ModalBody>
+						<FormStack>
+							<FormField
+								title={t("forms.clone-repo.props.storage.name")}
+								name="sourceKey"
+								control={({ field }) => (
+									<Select {...field} onValueChange={(val) => val && field.onChange(val)}>
+										<SelectTrigger>
+											<SelectValue
+												placeholder={t("forms.clone-repo.props.storage.placeholder")}
 											/>
-										),
-									};
-								})}
-								onItemClick={(labelField, _, idx) => {
-									if (!labelField) return setIsPublicCloneOpen(false);
-									setSelectStorageData(removeSourceTokenIfInvalid(sourceDatas[idx]));
-								}}
-								openByDefault={true}
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												{filteredSourceDatas.map((d) => {
+													const storageKey = getStorageNameByData(d);
+													return (
+														<SourceOption
+															key={storageKey}
+															storageKey={storageKey}
+															source={d}
+															onEdit={
+																isEnterprise
+																	? undefined
+																	: () => {
+																			onSourceClickEdit(d);
+																	  }
+															}
+															onDelete={
+																isEnterprise
+																	? undefined
+																	: () => {
+																			if (sourceKey === storageKey) form.reset();
+																	  }
+															}
+															onInvalid={() => {
+																onSourceClickEdit(d);
+															}}
+														/>
+													);
+												})}
+											</SelectGroup>
+											{!isEnterprise && filteredSourceDatas.length > 0 && <SelectSeparator />}
+											{!isEnterprise && (
+												<SelectOption
+													value="add-new-storage"
+													asChild
+													role="button"
+													onPointerDown={() => setIsCreateStorageOpen(true)}
+												>
+													<MenuItem>
+														<MenuItemAction icon="plus" text={t("add-storage")} />
+													</MenuItem>
+												</SelectOption>
+											)}
+										</SelectContent>
+									</Select>
+								)}
 							/>
-						</div>
-					</div>
-					{FormLowerPart}
-				</fieldset>
-			</>
-		</FormStyle>
+							{sourceKey && getFormLowerPart(form, sourceData)}
+						</FormStack>
+					</ModalBody>
+					<FormFooter
+						primaryButton={
+							<Button disabled={isLoading}>
+								{isLoading && <SpinnerLoader width={16} height={16} />}
+								{(!isLoading && (mode === "init" ? t("add") : t("load"))) ||
+									(isLoading && t("loading"))}
+							</Button>
+						}
+					/>
+				</form>
+			</Form>
+			<CreateStorage
+				isOpen={isCreateStorageOpen}
+				setIsOpen={setIsCreateStorageOpen}
+				onSubmit={onSourceDataCreate}
+				onClose={() => setInvalidSourceData(null)}
+				title={invalidSourceData ? t("forms.add-storage.name3") : t("forms.add-storage.name2")}
+				data={invalidSourceData}
+				sourceType={invalidSourceData?.sourceType}
+				isReadonly={invalidSourceData?.isInvalid}
+			/>
+		</>
 	);
 };
 

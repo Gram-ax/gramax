@@ -33,8 +33,8 @@ export const viewWordLayout: WordBlockChild = async ({ tag, wordRenderContext })
 
 	if (display === Display.Table) {
 		return groupby
-			? [getTableWithGrouping(data, wordRenderContext.titlesMap, groupby)]
-			: [getTableWithoutGrouping(data, wordRenderContext.titlesMap)];
+			? [await getTableWithGrouping(data, wordRenderContext.titlesMap, groupby)]
+			: [await getTableWithoutGrouping(data, wordRenderContext.titlesMap)];
 	}
 
 	return viewList(data, wordRenderContext.titlesMap);

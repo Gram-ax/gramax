@@ -36,7 +36,7 @@ fn create_branch(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) ->
 #[rstest]
 fn create_branch_on_remote(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
   repos.local.new_branch("test")?;
-  repos.local.push()?;
+  repos.local.debug_push()?;
   assert!(repos.remote.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "test"));
   let local = repos.local.branch_by_name("test", Some(BranchType::Local))?.short_info()?;
   assert_eq!(local.remote_name, Some("test".into()));
@@ -56,7 +56,7 @@ fn delete_branch(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) ->
 #[rstest]
 fn delete_branch_remote(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
   repos.local.new_branch("test")?;
-  repos.local.push()?;
+  repos.local.debug_push()?;
   assert_eq!(repos.remote.branches(None)?.count(), 2);
   repos.local.delete_branch_remote("master")?;
   assert_eq!(repos.remote.branches(None)?.count(), 1);

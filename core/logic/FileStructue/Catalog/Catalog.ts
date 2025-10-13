@@ -16,7 +16,7 @@ import itemRefUtils from "@core/utils/itemRefUtils";
 import { uniqueName } from "@core/utils/uniqueName";
 import { ItemStatus, type ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import PromptProvider from "@ext/ai/logic/PromptProvider";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import type Repository from "@ext/git/core/Repository/Repository";
 import InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
@@ -147,15 +147,17 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	}
 
 	setRepository(repo: Repository, subscribeToEvents = true) {
-		this.repo = repo;
-		if (!this.repo.gvc) return;
+		const prev = this.repo;
 
-		this._unsubscirbeTokens.gvc.forEach((token) => this.repo.gvc.events.off(token));
-		this._unsubscirbeTokens.repo.forEach((token) => this.repo.events.off(token));
+		if (prev?.gvc) this._unsubscirbeTokens.gvc.forEach((token) => prev.gvc.events.off(token));
+		if (prev) this._unsubscirbeTokens.repo.forEach((token) => prev.events.off(token));
+		this._unsubscirbeTokens = { repo: [], gvc: [] };
+
+		this.repo = repo;
 
 		this._events.emitSync("repository-set", { catalog: this });
 
-		if (!subscribeToEvents) return;
+		if (!this.repo?.gvc || !subscribeToEvents) return;
 
 		const fileChangesToken = this.repo.gvc.events.on("files-changed", async ({ items }) => {
 			await this.update();

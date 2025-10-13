@@ -3,6 +3,7 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
+import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { Command } from "../../types/Command";
 
@@ -24,11 +25,13 @@ const getAllSyncableWorkspaces: Command<
 		const workspaces = await wm.getUnintializedWorkspaces();
 
 		await workspaces.forEachAsync(async (workspace) => {
+			const label = `sync workspace: ${workspace.path()}`;
+			console.group(label);
 			await workspace.getCatalogNames().forEachAsync(async (name) => {
 				const source = await workspace.getSourceByCatalogName(ctx, name);
 				const repo = workspace.getRepositoryByName(name);
 
-				if (!source || source.isInvalid) return;
+				if (!source || source.isInvalid || repo instanceof BrokenRepository) return;
 
 				if (
 					await repo.isShouldSync({
@@ -39,7 +42,8 @@ const getAllSyncableWorkspaces: Command<
 				)
 					res.set(workspace.path(), (res.get(workspace.path()) || 0) + 1);
 			}, 3);
-		}, 2);
+			console.groupEnd();
+		}, 1);
 
 		return { workspaces: Object.fromEntries(res.entries()) };
 	},

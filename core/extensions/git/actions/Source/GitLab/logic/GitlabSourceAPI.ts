@@ -5,7 +5,6 @@ import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRe
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import GitStorageData from "@ext/git/core/model/GitStorageData";
-import Branch from "@ext/VersionControl/model/branch/Branch";
 import assert from "assert";
 
 export default class GitlabSourceAPI extends GitSourceApi {
@@ -107,7 +106,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		return null;
 	}
 
-	async isBranchContainsFile(fileName: string, data: GitStorageData, branch: Branch): Promise<boolean> {
+	async isBranchContainsFile(fileName: string, data: GitStorageData, branch: string): Promise<boolean> {
 		const search = await this._searchFileInBranch(fileName, data, branch);
 		if (!search || !search.length) false;
 		return !!search[0]?.ref;
@@ -132,7 +131,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	private async _searchFileInBranch(
 		fileName: string,
 		data: GitStorageData,
-		branch: Branch,
+		branch: string,
 	): Promise<{ ref: string }[]> {
 		const id = encodeURIComponent(`${data.group}/${data.name}`);
 		const url = `projects/${id}/search?scope=blobs&search=${fileName}&ref=${branch.toString()}`;

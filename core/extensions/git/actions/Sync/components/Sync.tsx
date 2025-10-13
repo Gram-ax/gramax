@@ -30,6 +30,7 @@ const Sync = ({ style }: { style?: CSSProperties }) => {
 			updateSyncCount({
 				pull: 0,
 				push: 0,
+				changed: 0,
 				hasChanges: false,
 				errorMessage: null,
 			});

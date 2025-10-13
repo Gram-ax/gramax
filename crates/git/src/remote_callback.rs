@@ -2,7 +2,9 @@ use std::path::PathBuf;
 
 use git2::*;
 
+use crate::creds::ActualCreds;
 use crate::creds::Creds;
+use crate::repo::Repo;
 
 type CredentialsCallback<'c> = Box<dyn FnMut(&str, Option<&str>, CredentialType) -> Result<Cred, Error> + 'c>;
 
@@ -31,6 +33,26 @@ impl AddCredentialsHeaders for PushOptions<'_> {
     } else {
       self.custom_headers(&[&private_token]);
     }
+  }
+}
+
+pub trait CreateRemoteCallbacks<'c> {
+  fn create_remote_callbacks(&'c self) -> RemoteCallbacks<'c>;
+}
+
+impl<'c, C: ActualCreds> CreateRemoteCallbacks<'c> for C {
+  fn create_remote_callbacks(&'c self) -> RemoteCallbacks<'c> {
+    let mut cbs = RemoteCallbacks::new();
+    cbs.credentials(make_credentials_callback(self));
+    cbs.certificate_check(ssl_callback);
+    cbs.push_update_reference(push_update_reference_callback);
+    cbs
+  }
+}
+
+impl<'c, C: ActualCreds> CreateRemoteCallbacks<'c> for Repo<'c, C> {
+  fn create_remote_callbacks(&'c self) -> RemoteCallbacks<'c> {
+    self.1.create_remote_callbacks()
   }
 }
 

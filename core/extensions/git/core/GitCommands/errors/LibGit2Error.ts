@@ -18,14 +18,18 @@ export const fromRaw = (klass: number, code: number, message: string, command?: 
 	const eq = (targetKlass: number, targetCode: number) => targetKlass == klass && targetCode == code;
 
 	switch (true) {
+		case klass == 1001:
+			return GitErrorCode.HealthcheckFailed;
 		case eq(20, 11):
 		case eq(13, 20):
+		case eq(20, 13):
 			return GitErrorCode.CheckoutConflictError;
 
 		case eq(22, 22):
 		case eq(22, 11):
 		case eq(22, 0):
 		case eq(10, 8):
+		case eq(10, 10):
 		case eq(19, 20):
 			return GitErrorCode.MergeConflictError;
 
@@ -36,6 +40,7 @@ export const fromRaw = (klass: number, code: number, message: string, command?: 
 			return GitErrorCode.AlreadyExistsError;
 
 		case eq(4, 1):
+		case eq(4, 3):
 			return GitErrorCode.NotFoundError;
 
 		case message.includes("unexpected http status code: 404") || code === 404:
@@ -53,13 +58,17 @@ export const fromRaw = (klass: number, code: number, message: string, command?: 
 			return GitErrorCode.HttpError;
 
 		case eq(4, 9):
+		case eq(4, 11):
 			return GitErrorCode.PushRejectedError;
 
 		case eq(2, 0) && !message.includes("file"):
 			return GitErrorCode.NetworkConntectionError;
 
-		case eq(14, 1):
+		case klass == 14 && message.includes("does not exist in the given tree"):
 			return GitErrorCode.FileNotFoundError;
+
+		case klass == 1002:
+			return GitErrorCode.LockFileHealthcheckFailed;
 
 		case command === "clone" &&
 			(message.includes("indexer callback") ||

@@ -15,7 +15,7 @@ const source: Command<{ catalogName: string; articlePath: Path }, string> = Comm
 		const fp = workspace.getFileProvider();
 		const itemRef = fp.getItemRef(articlePath);
 		const path = catalog.getRepositoryRelativePath(itemRef);
-		const { gitVersionControl } = await catalog.repo.gvc.getGitVersionControlContainsItem(path);
+		const { gitVersionControl } = await catalog.repo.gvc.getVersionControlByPath(path);
 
 		return await catalog.repo.storage.getFileLink(path, await gitVersionControl.getCurrentBranch());
 	},

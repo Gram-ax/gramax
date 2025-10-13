@@ -4,7 +4,7 @@ import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import { readyToPlace, stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { callOrReturn, InputRule, mergeAttributes, Node } from "@tiptap/core";
+import { callOrReturn, findParentNode, InputRule, mergeAttributes, Node } from "@tiptap/core";
 import { findWrapping } from "@tiptap/pm/transform";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditNote from "../components/Note";
@@ -76,11 +76,28 @@ const Note = Node.create({
 				},
 			toggleNote:
 				(type?: NoteType) =>
-				({ commands, state }) => {
+				({ state, chain }) => {
 					if (stopExecution(state, this.type.name, [...BlockPlusAndSubNodes, ...ListGroupAndItem]))
 						return false;
 
-					return commands.toggleWrap(this.name, { type: type || NoteType.note });
+					const note = findParentNode((node) => node.type.name === this.name)(state.selection);
+					if (!state.selection.empty && note?.node && note.node.attrs.type === type) {
+						return chain().focus().toggleWrap(this.name);
+					}
+
+					if (!note?.node) {
+						return chain()
+							.focus()
+							.toggleWrap(this.name, { type: type || NoteType.note });
+					}
+
+					if (note?.node && note.node.attrs.type !== type) {
+						return chain().updateAttributes(this.name, { type: type || NoteType.note });
+					}
+
+					return chain()
+						.setTextSelection({ from: note.start, to: note.start + note.node.nodeSize })
+						.toggleWrap(this.name, { type: type || NoteType.note });
 				},
 			updateNote:
 				(props: NoteAttrs) =>

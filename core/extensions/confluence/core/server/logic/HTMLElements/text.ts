@@ -1,7 +1,10 @@
 import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import { collapseSpaces } from "@ext/confluence/core/server/logic/utils/collapseSpaces";
 
 const text: HTMLNodeConverter = (textNode) => {
 	if (!textNode?.textContent) return;
+
+	const sanitizedTextContent = collapseSpaces(textNode.textContent);
 
 	const tagMapping: Record<string, string> = {
 		strong: "strong",
@@ -30,7 +33,7 @@ const text: HTMLNodeConverter = (textNode) => {
 
 	return {
 		type: "text",
-		text: textNode.textContent,
+		text: sanitizedTextContent,
 		marks: getMarks(textNode),
 		content: [],
 	};

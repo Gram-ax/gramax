@@ -3,7 +3,7 @@ import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGr
 import TableHelper from "@ext/markdown/elements/table/edit/components/Helpers/TableHelper";
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
 import { NodeViewProps, useReactNodeView } from "@tiptap/react";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import styled from "@emotion/styled";
 import useWatch from "@core-ui/hooks/useWatch";
 import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
@@ -28,18 +28,20 @@ const TableComponent = (props: NodeViewProps) => {
 		tableRef.current = hoverElementRef.current?.querySelector(".tableComponent");
 	}, [hoverElementRef.current]);
 
+	const pos = getPos();
+	const $parentPos = useMemo(() => {
+		const $pos = editor.state.doc.resolve(pos);
+		return $pos.depth > 0 ? $pos.start($pos.depth) : null;
+	}, [pos]);
+	const parentDom = $parentPos ? editor.view.domAtPos($parentPos) : null;
+
 	useWatch(() => {
-		const $pos = editor.state.doc.resolve(getPos());
-
-		if ($pos.depth > 0) {
-			const $parent = $pos.start($pos.depth);
-
-			const dom = editor.view.domAtPos($parent);
-			return setParentElement(dom?.node as HTMLElement);
+		if (parentDom?.node && parentDom.node.nodeType !== parentDom.node.TEXT_NODE) {
+			return setParentElement(parentDom?.node as HTMLElement);
 		}
 
 		setParentElement(null);
-	}, [getPos()]);
+	}, [parentDom?.node]);
 
 	useAggregation(tableRef, node.content);
 

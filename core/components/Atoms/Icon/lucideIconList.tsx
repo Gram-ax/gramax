@@ -3,9 +3,9 @@ import { ListItem } from "@components/List/Item";
 import { filter } from "@components/List/ListLayout";
 import camelToKebabCase from "@core-ui/camelToKebabCase";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
-import { IconEditorProps } from "@ext/markdown/elements/icon/logic/IconProvider";
+import { useLucideModule } from "@dynamicImports/lucide-icons";
+import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import Icon from "@ext/markdown/elements/icon/render/components/Icon";
-import * as Lucide from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 interface IconListProps extends IconEditorProps {
@@ -109,18 +109,20 @@ export const iconFilter = (customIconsList?: IconEditorProps[], inverse?: boolea
 	return transliterationSearch;
 };
 
-export const lucideIconListForUikit = Object.keys(Lucide.icons).map((code) =>
-	toListItemByUikit({ code: camelToKebabCase(code) }),
-);
+const useLucideIconLists = () => {
+	const awaitedIcons = useLucideModule();
+	const iconKeys = awaitedIcons ? Object.keys(awaitedIcons.icons) : [];
 
-const lucideIconList = Object.keys(Lucide.icons).map((code) => toListItem({ code: camelToKebabCase(code) }));
+	const lucideIconListForUikit = iconKeys.map((code) => toListItemByUikit({ code: camelToKebabCase(code) }));
+	const lucideIconList = iconKeys.map((code) => toListItem({ code: camelToKebabCase(code) }));
+	const lucideIconListForUikitOptions = iconKeys.map((code) => {
+		const kebabCode = camelToKebabCase(code);
+		return {
+			label: kebabCode,
+			value: kebabCode,
+		};
+	});
+	return { lucideIconListForUikit, lucideIconList, lucideIconListForUikitOptions };
+};
 
-export const lucideIconListForUikitOptions = Object.keys(Lucide.icons).map((code) => {
-	const kebabCode = camelToKebabCase(code);
-	return {
-		label: kebabCode,
-		value: kebabCode,
-	};
-});
-
-export default lucideIconList;
+export default useLucideIconLists;

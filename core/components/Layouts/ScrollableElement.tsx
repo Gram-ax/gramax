@@ -3,7 +3,7 @@ import useDragScrolling from "@core-ui/hooks/useDragScrolling";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import scrollUtils from "@core-ui/utils/scrollUtils";
 import styled from "@emotion/styled";
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@react-hook/media-query";
 import {
 	CSSProperties,
 	forwardRef,

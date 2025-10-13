@@ -58,7 +58,7 @@ export class EnterpriseWorkspace extends Workspace {
 		baseHasher.hash(calcTemplatesHash(wordTemplates));
 		this._configHash = baseHasher.finalize().toString();
 
-		const config = await new EnterpriseApi(gesUrl).getWorkspaceConfig(this._configHash);
+		const config = await new EnterpriseApi(gesUrl).getClientWorkspace(this._configHash);
 
 		if (!config) return;
 		this._config.set("name", config.name);

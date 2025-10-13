@@ -12,7 +12,7 @@ import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
 import assert from "assert";
 import matter from "gray-matter";

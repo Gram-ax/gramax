@@ -7,7 +7,7 @@ import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import Snippet from "@ext/markdown/elements/snippet/render/components/Snippet";
 import { NodeViewProps } from "@tiptap/react";
-import { ReactElement, useEffect, useMemo, useRef, useState } from "react";
+import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 const SnippetComponent = (props: NodeViewProps): ReactElement => {
@@ -15,15 +15,16 @@ const SnippetComponent = (props: NodeViewProps): ReactElement => {
 	const [content, setContent] = useState(node.attrs.content);
 	const [isHovered, setIsHovered] = useState(false);
 	const hoverElementRef = useRef<HTMLDivElement>(null);
+	const isExist = useMemo(() => node.attrs.id && node.attrs.title, [node.attrs.id, node.attrs.title]);
 
 	useEffect(() => {
 		SnippetUpdateService.addUpdateContent(node.attrs.id, setContent);
 		return () => SnippetUpdateService.removeUpdateContent(node.attrs.id, setContent);
 	}, []);
 
-	const handleEdit = () => {
+	const handleEdit = useCallback(() => {
 		SnippetService.openItem({ id: node.attrs.id, title: node.attrs.title });
-	};
+	}, [node.attrs.id, node.attrs.title]);
 
 	const contents = useMemo(() => Renderer(content, { components: getComponents() }), [content]);
 
@@ -34,7 +35,7 @@ const SnippetComponent = (props: NodeViewProps): ReactElement => {
 				setIsHovered={setIsHovered}
 				isHovered={isHovered}
 				actionsOptions={{ comment: true }}
-				rightActions={<SnippetActions onClickEdit={handleEdit} />}
+				rightActions={isExist ? <SnippetActions onClickEdit={handleEdit} /> : null}
 			>
 				<BlockCommentView commentId={node.attrs.comment?.id}>
 					<Snippet id={node.attrs.id}>{contents}</Snippet>

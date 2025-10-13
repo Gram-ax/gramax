@@ -1,4 +1,4 @@
-import { ImageRun, Paragraph } from "docx";
+import docx from "@dynamicImports/docx";
 import { createRoot } from "react-dom/client";
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
@@ -27,6 +27,7 @@ export const openApiWordLayout: WordBlockChild = async ({ tag, addOptions, wordR
 	node.remove();
 
 	const size = ImageDimensionsFinder.getSvgDimensions(innerHTML, addOptions?.maxPictureWidth);
+	const { Paragraph, ImageRun } = await docx();
 	return [
 		new Paragraph({
 			children: [

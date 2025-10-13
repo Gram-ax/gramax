@@ -62,7 +62,7 @@ unsafe fn main() -> i32 {
   let create_status = wasmfs_create_directory(mountpoint, 0o777, backend);
 
   if let Err(err) = logging::init() {
-    error!("failed to initialize logging: {}", err);
+    println!("failed to initialize logging: {}", err);
     return 1;
   }
 

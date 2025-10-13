@@ -12,7 +12,7 @@ import PromptTab from "@ext/ai/components/Tab/PromptTab";
 import InboxTab from "@ext/inbox/components/InboxTab";
 import SnippetsTab from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetsTab";
 import TemplateTab from "@ext/templates/components/Tab/TemplateTab";
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@react-hook/media-query";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";

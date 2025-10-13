@@ -1,14 +1,7 @@
-import SelectSrc from "@components/Select/Select";
-import styled from "@emotion/styled";
+import ReformattedSelect from "@components/Select/ReformattedSelect";
 import useGitCommitAuthors from "@ext/git/actions/Branch/components/useGitCommitAuthors";
 import type { Signature } from "@ext/git/core/model/Signature";
 import t from "@ext/localization/locale/translate";
-
-const Select = styled(SelectSrc)`
-	.react-dropdown-select-content {
-		overflow: hidden;
-	}
-`;
 
 interface SelectGitCommitAuthorsProps {
 	approvers: Signature[];
@@ -26,12 +19,12 @@ interface SelectGitCommitAuthorsProps {
 const SelectGitCommitAuthors = ({ shouldFetch, approvers, onChange }: SelectGitCommitAuthorsProps) => {
 	const { authors } = useGitCommitAuthors(shouldFetch);
 	return (
-		<Select
+		<ReformattedSelect
 			create
 			backspaceDelete
 			createNewLabel={`${t("git.merge.add-user")} {search}`}
 			required
-			values={approvers.map((approver) => ({
+			values={approvers?.map((approver) => ({
 				value: `${approver.name} <${approver.email}>`,
 				label: `${approver.name} <${approver.email}>`,
 			}))}
@@ -43,7 +36,7 @@ const SelectGitCommitAuthors = ({ shouldFetch, approvers, onChange }: SelectGitC
 			}))}
 			placeholder=""
 			onChange={onChange}
-			loading={authors.length === 0}
+			loading={authors?.length === 0}
 			dropdownHeight="200px"
 		/>
 	);

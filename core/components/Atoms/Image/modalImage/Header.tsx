@@ -39,14 +39,7 @@ const Header = (props: HeaderProps): ReactElement => {
 			<TooltipProvider>
 				{modalEdit && (
 					<TooltipElement content={t("edit2")}>
-						<IconButton
-							variant="text"
-							icon="pen"
-							onClick={() => {
-								modalEdit();
-								onClose(true);
-							}}
-						/>
+						<IconButton variant="text" icon="pen" onClick={() => modalEdit()} />
 					</TooltipElement>
 				)}
 				<TooltipElement content={t("zoom-in")}>

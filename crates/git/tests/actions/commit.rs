@@ -41,7 +41,7 @@ fn commit_no_modified(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>)
 #[rstest]
 fn commit_with_parents_on_remote(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
   repos.local.new_branch("test")?;
-  repos.local.push()?;
+  repos.local.debug_push()?;
 
   repos.local.checkout("master", true)?;
   let parents = vec!["master".to_string(), "origin/test".to_string()];

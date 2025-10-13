@@ -16,7 +16,11 @@ export default class GitPaginatedProjectList {
 	private _state: GitRepsModelState = "notLoaded";
 	private _callback: CallbackType;
 
-	constructor(private _api: GitSourceApi, private _filter?: (modelItem: CloneListItem) => boolean) {}
+	constructor(
+		private _api: GitSourceApi,
+		private _filter?: (modelItem: CloneListItem) => boolean,
+		private _map?: (modelItem: CloneListItem[]) => CloneListItem[],
+	) {}
 
 	async startLoading(): Promise<void> {
 		this._state = "loading";
@@ -57,6 +61,7 @@ export default class GitPaginatedProjectList {
 
 	private _triggerOnChange(data: CallbackData) {
 		const filteredModel = this._filter ? this._model.filter(this._filter) : this._model;
-		this._callback(filteredModel, this._state, data);
+		const mappedModel = this._map ? this._map(filteredModel) : filteredModel;
+		this._callback(mappedModel, this._state, data);
 	}
 }

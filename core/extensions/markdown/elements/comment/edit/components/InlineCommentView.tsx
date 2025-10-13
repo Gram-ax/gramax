@@ -15,15 +15,15 @@ const InlineCommentView = ({ children, commentId, style, className, ...props }: 
 
 	const onMouseEnter = useCallback(() => {
 		if (!commentId) return;
-		editor.commands.hoverComment(commentId);
+		editor?.commands.hoverComment(commentId);
 	}, [commentId, editor]);
 
 	const onMouseLeave = useCallback(() => {
-		editor.commands.unhoverComment();
+		editor?.commands.unhoverComment();
 	}, [editor]);
 
 	const onClick = useCallback(() => {
-		if (!commentId) return;
+		if (!commentId || !editor) return;
 
 		const range = getNearestNodeWithSameCommentId(editor.state, editor.state.selection.from, commentId);
 		if (range) editor.commands.openComment(commentId, range);

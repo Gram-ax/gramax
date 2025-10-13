@@ -92,6 +92,23 @@ class EnterpriseApi {
 		return res.ok && res.status === 200;
 	}
 
+	async logout(token: string) {
+		try {
+			const res = await fetch(`${this._gesUrl}/enterprise/sso/logout`, {
+				headers: { Authorization: `Bearer ${token}` },
+			});
+			if (!res.ok) throw new Error();
+		} catch (e) {
+			throw new DefaultError(
+				t("enterprise.logout.error-message"),
+				null,
+				{ showCause: false },
+				false,
+				t("enterprise.logout.error"),
+			);
+		}
+	}
+
 	async checkStyleGuide(paragraphs: RequestChunkModel[]): Promise<Suggestion[]> {
 		try {
 			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/check`, {
@@ -136,6 +153,21 @@ class EnterpriseApi {
 		}
 	}
 
+	async getToken(oneTimeCode: string) {
+		if (!this._gesUrl || !oneTimeCode) return;
+
+		const res = await fetch(`${this._gesUrl}/enterprise/sso/token`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ oneTimeCode }),
+		});
+		if (!res.ok || res.status !== 200) return;
+
+		return await res.text();
+	}
+
 	async getUserSettings(token: string): Promise<UserSettings> {
 		if (!this._gesUrl || !token) return;
 
@@ -166,7 +198,7 @@ class EnterpriseApi {
 		return gitRes.ok && res.ok && res.status === 200;
 	}
 
-	async getWorkspaceConfig(configHash?: string): Promise<EnterpriseWorkspaceConfig> {
+	async getClientWorkspace(configHash?: string): Promise<EnterpriseWorkspaceConfig> {
 		if (!this._gesUrl) return;
 
 		try {

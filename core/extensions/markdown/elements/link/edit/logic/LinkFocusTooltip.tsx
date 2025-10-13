@@ -36,9 +36,7 @@ class LinkFocusTooltip extends BaseMark {
 		this.update(view);
 		this._initLastInputListener();
 		this._initEditorKeydownListener();
-		this._zIndex = parseInt(
-			window.getComputedStyle(this._view.dom.parentElement).getPropertyValue("--z-index-popover"),
-		);
+		this._zIndex = 49;
 	}
 
 	update(view: EditorView, lastState?: EditorState) {
@@ -181,9 +179,12 @@ class LinkFocusTooltip extends BaseMark {
 	private _update(href: string, newHref: string, { from, to, mark }: { from: number; to: number; mark: any }) {
 		let hash = "";
 		const transaction = this._editor.state.tr;
+		const text = this._editor.state.doc.textBetween(from, to, undefined, " ");
 		transaction.removeMark(from, to, mark);
 		const hashHatch = LinkFocusTooltip.getLinkToHeading(href);
 		const { isExternal } = isExternalLink(newHref);
+		const textIsLink = text === mark.attrs.href;
+		if (isExternal && textIsLink) transaction.deleteRange(from, to);
 
 		if (hashHatch) {
 			href = hashHatch[1];
@@ -192,9 +193,10 @@ class LinkFocusTooltip extends BaseMark {
 
 		const resourcePath = isExternal ? newHref : href;
 
-		mark.attrs = { ...mark.attrs, resourcePath, hash, newHref };
+		mark.attrs = { ...mark.attrs, resourcePath, hash, href: newHref };
 
-		transaction.addMark(from, to, mark);
+		if (isExternal && textIsLink) transaction.insertText(href, from);
+		transaction.addMark(from, isExternal && textIsLink ? from + href.length : to, mark);
 		this._clearLastMark = undefined;
 		this._editor.view.dispatch(transaction);
 	}

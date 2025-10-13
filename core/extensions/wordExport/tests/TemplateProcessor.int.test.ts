@@ -2,6 +2,7 @@ import TemplateProcessor from "../TemplateProcessor";
 import * as JSZip from "jszip";
 import { Paragraph } from "docx";
 import { DOMParser } from "@xmldom/xmldom";
+import { initModules } from "@app/resolveModule/backend";
 
 const createMockDocx = async (files: { [key: string]: string }): Promise<Uint8Array> => {
 	const zip = new JSZip.default();
@@ -14,6 +15,10 @@ const createMockDocx = async (files: { [key: string]: string }): Promise<Uint8Ar
 describe("TemplateProcessor", () => {
 	let consoleErrorSpy: jest.SpyInstance;
 	let consoleWarnSpy: jest.SpyInstance;
+
+	beforeAll(async () => {
+		await initModules();
+	});
 
 	beforeEach(() => {
 		consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
@@ -36,7 +41,8 @@ describe("TemplateProcessor", () => {
       `;
 			const mockTemplate = await createMockDocx({ "word/styles.xml": stylesXml });
 			const processor = new TemplateProcessor(Buffer.from(mockTemplate), []);
-			const styleMap = await (processor as any)._readTemplateStyles();
+			// @ts-expect-error access to private method for testing
+			const styleMap = await processor._readTemplateStyles();
 
 			expect(styleMap.size).toBe(3);
 			expect(styleMap.get("heading 1")).toBe("Heading1");
@@ -46,7 +52,8 @@ describe("TemplateProcessor", () => {
 		it("should throw an error if styles.xml is not found", async () => {
 			const mockTemplate = await createMockDocx({ "other/file.txt": "data" });
 			const processor = new TemplateProcessor(Buffer.from(mockTemplate), []);
-			await expect((processor as any)._readTemplateStyles()).rejects.toThrow("styles.xml not found in template.");
+			// @ts-expect-error access to private method for testing
+			await expect(processor._readTemplateStyles()).rejects.toThrow("styles.xml not found in template.");
 		});
 	});
 

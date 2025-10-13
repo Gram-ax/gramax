@@ -3,7 +3,7 @@ import { createEventEmitter } from "@core/Event/EventEmitter";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
-import type { CloneCancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { CancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import assert from "assert";
@@ -23,13 +23,10 @@ import GitShareData from "../model/GitShareData";
 import GitSourceData from "../model/GitSourceData.schema";
 import GitStorageData from "../model/GitStorageData";
 import GitStorageUrl from "../model/GitStorageUrl";
-import SubmoduleData from "../model/SubmoduleData";
 import GitCloneData from "./GitCloneData";
 
 export default class GitStorage implements Storage {
-	private _subGitStorages: GitStorage[];
 	private _url: GitStorageUrl;
-	private _submodulesData: SubmoduleData[];
 	private _gitRepository: GitCommands;
 	private _syncCount: { pull: number; push: number; hasChanges: boolean };
 	private _syncSearchInPath = "";
@@ -41,17 +38,18 @@ export default class GitStorage implements Storage {
 	constructor(private _path: Path, private _fp: FileProvider, private _authServiceUrl?: string) {
 		this._gitRepository = new GitCommands(this._fp, this._path);
 		this._gitRepository.events.on("fetch", ({ force }) => this._events.emit("fetch", { storage: this, force }));
-		void this._initSubGitStorages();
 	}
 
-	static async hasInit(fp: FileProvider, path: Path): Promise<boolean> {
+	static async isInit(fp: FileProvider, path: Path): Promise<boolean> {
 		const git = new GitCommands(fp, path);
-		return (await git.isInit()) && (await git.hasRemote());
+		const isInit = await git.isInit();
+		const hasRemote = await git.hasRemote();
+		return isInit && hasRemote;
 	}
 
-	static async cloneCancel(cancelToken: CloneCancelToken, fs: FileStructure, repoPath: Path) {
+	static async cancel(cancelToken: CancelToken, fs: FileStructure, repoPath: Path) {
 		const gitRepository = new GitCommands(fs.fp.default(), repoPath);
-		await gitRepository.cloneCancel(cancelToken);
+		await gitRepository.cancel(cancelToken);
 	}
 
 	static async getAllCancelTokens(fp: FileProvider, path: Path) {
@@ -65,7 +63,7 @@ export default class GitStorage implements Storage {
 		source,
 		branch,
 		cancelToken,
-		recursive = true,
+		allowNonEmptyDir = false,
 		isBare = false,
 		onProgress,
 		repositoryPath,
@@ -75,38 +73,17 @@ export default class GitStorage implements Storage {
 			const gitRepository = new GitCommands(fs.fp.default(), repositoryPath);
 			const currentUrl = getUrlFromGitStorageData(data);
 			try {
-				await gitRepository.clone(
-					getHttpsRepositoryUrl(currentUrl),
-					source,
-					cancelToken,
+				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, cancelToken, {
 					branch,
-					null,
 					isBare,
 					onProgress,
-				);
+					allowNonEmptyDir,
+				});
 			} catch (e) {
-				if ((e as GitError).props?.errorCode === GitErrorCode.AlreadyExistsError) return;
 				if (((e as GitError).cause as any)?.props?.errorCode === GitErrorCode.CancelledOperation) throw e;
 
 				await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
 				throw e;
-			}
-			if (recursive) {
-				// const submodulesData = await gitRepository.getSubmodulesData();
-				// await Promise.all(
-				// 	submodulesData.map(async (d) => {
-				// 		const submodulePath = repositoryPath.join(d.path);
-				// 		await GitStorage.clone({
-				// 			fp,
-				// 			source,
-				// 			url: d.url,
-				// 			branch: d.branch,
-				// 			repositoryPath: submodulePath,
-				// 			recursive: true,
-				// 			onProgress,
-				// 		});
-				// 	}),
-				// );
 			}
 		} finally {
 			fs.fp?.startWatch();
@@ -114,7 +91,11 @@ export default class GitStorage implements Storage {
 	}
 
 	static async init(repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
-		if (data.source.sourceType == SourceType.gitHub || data.source.sourceType == SourceType.gitVerse) {
+		if (
+			data.source.sourceType == SourceType.gitHub ||
+			data.source.sourceType == SourceType.gitVerse ||
+			data.source.sourceType === SourceType.gitea
+		) {
 			const sourceApi = makeSourceApi(data.source) as GitSourceApi;
 			assert(sourceApi, "sourceApi is missing");
 
@@ -212,7 +193,7 @@ export default class GitStorage implements Storage {
 
 	async updateSyncCount() {
 		try {
-			this._syncCount = await this._gitRepository.graphHeadUpstreamFilesCount(this._syncSearchInPath);
+			this._syncCount = await this._gitRepository.countChangedFiles(this._syncSearchInPath);
 		} catch (e) {
 			this._syncCount = { pull: 0, push: 0, hasChanges: false };
 			console.error(e);
@@ -223,7 +204,7 @@ export default class GitStorage implements Storage {
 		return this._gitRepository.getRemoteName();
 	}
 
-	async pull(source: GitSourceData, recursive = true) {
+	async pull(source: GitSourceData) {
 		this._fp.stopWatch();
 
 		try {
@@ -232,20 +213,8 @@ export default class GitStorage implements Storage {
 				try {
 					await this._gitRepository.pull(source);
 				} catch (e) {
-					await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+					await (source as ProxiedSourceDataCtx<GitSourceData>)?.assertValid?.(e);
 					throw e;
-				}
-			}
-
-			if (recursive) {
-				await this._initSubGitStorages();
-				for (const storage of await this.getSubGitStorages()) {
-					try {
-						await storage.pull(source);
-					} catch (e) {
-						await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
-						throw e;
-					}
 				}
 			}
 		} finally {
@@ -265,16 +234,7 @@ export default class GitStorage implements Storage {
 		);
 	}
 
-	async getStorageContainsItem(path: Path): Promise<{ storage: GitStorage; relativePath: Path }> {
-		const submodules = await this.getSubGitStorages();
-		for (const submodule of submodules) {
-			const relativeSubmodulePath = await this._getRelativeSubmodulePath(submodule.getPath());
-			if (path.startsWith(relativeSubmodulePath)) {
-				return await submodule.getStorageContainsItem(
-					relativeSubmodulePath.subDirectory(path).removeExtraSymbols,
-				);
-			}
-		}
+	async getStorageByPath(path: Path): Promise<{ storage: GitStorage; relativePath: Path }> {
 		return { storage: this, relativePath: path };
 	}
 
@@ -289,19 +249,12 @@ export default class GitStorage implements Storage {
 	}
 
 	async update() {
-		await this._initSubGitStorages();
 		await this._initRepositoryUrl();
-		await this._initSubmodulesData();
 		await this.updateSyncCount();
 	}
 
 	deleteRemoteBranch(branch: string, data: GitSourceData): Promise<void> {
 		return this._gitRepository.deleteBranch(branch, true, data);
-	}
-
-	async getSubGitStorages(): Promise<GitStorage[]> {
-		if (!this._subGitStorages) await this._initSubGitStorages();
-		return this._subGitStorages;
 	}
 
 	async validateStorageName(source: GitSourceData) {
@@ -313,33 +266,12 @@ export default class GitStorage implements Storage {
 	}
 
 	private async _initRepositoryUrl() {
-		if (!(await this._gitRepository.hasRemote())) return;
-		this._url = await this._gitRepository.getRemoteUrl();
-	}
-
-	private async _getRelativeSubmodulePath(submodulePath: Path): Promise<Path> {
-		for (const data of await this._getSubmodulesData()) {
-			if (submodulePath.endsWith(data.path)) return data.path;
+		try {
+			const hasRemote = await this._gitRepository.hasRemote();
+			if (!hasRemote) return;
+			this._url = await this._gitRepository.getRemoteUrl();
+		} catch (error) {
+			console.error("failed to get remote url", error);
 		}
-	}
-
-	private async _getSubmodulesData() {
-		if (!this._submodulesData) await this._initSubmodulesData();
-		return this._submodulesData;
-	}
-
-	private async _initSubGitStorages(): Promise<void> {
-		const getSubmodulesData = await this._getSubmodulesData();
-		this._subGitStorages = await Promise.all(
-			getSubmodulesData.map(async (data) => {
-				const fullSubmodulePath = this._path.join(data.path);
-				if (await this._gitRepository.isSubmoduleExist(data.path))
-					return new GitStorage(fullSubmodulePath, this._fp, this._authServiceUrl);
-			}),
-		).then((x) => x.filter((x) => x));
-	}
-
-	private async _initSubmodulesData() {
-		this._submodulesData = await this._gitRepository.getSubmodulesData();
 	}
 }

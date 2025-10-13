@@ -3,3 +3,10 @@ export { SelectItem } from "./SelectItem";
 export { SelectContent } from "./SelectContent";
 export { SelectTrigger } from "./SelectTrigger";
 export { SelectValue } from "./SelectValue";
+export {
+	SelectItemIndicator,
+	SelectOption,
+	SelectItemText,
+	SelectGroup,
+	SelectSeparator,
+} from "ics-ui-kit/components/select";

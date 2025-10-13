@@ -4,7 +4,7 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { Command } from "../../types/Command";
 
 const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEditProps }, ClientCatalogProps> =
@@ -24,7 +24,7 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEd
 			const isSyntaxChanged = props.syntax && catalog.props.syntax !== props.syntax;
 			const newCatalog = await catalog.updateProps(props, resourceUpdaterFactory);
 			if (isSyntaxChanged) await this._commands.catalog.setSyntax.do({ ctx, catalogName });
-			
+
 			return sitePresenterFactory.fromContext(ctx).serializeCatalogProps(newCatalog);
 		},
 

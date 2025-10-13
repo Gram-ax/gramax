@@ -28,6 +28,7 @@ export default {
 		},
 		catalogProps: {
 			notFound: false,
+			repositoryError: null,
 			link: {
 				name: "doc-reader",
 				pathname: "doc-reader",
@@ -768,6 +769,7 @@ export default {
 		currentWorkspace: "default-workspace",
 		domain: "http://localhost:3000",
 		isArticle: true,
+		isGesUnauthorized: false,
 		language: {
 			ui: UiLanguage.ru,
 			content: ContentLanguage.ru,
@@ -779,6 +781,7 @@ export default {
 			id: "30b4fbbd-8f92-4bd0-9dbb-ad895ac1ed91",
 			mail: "danil.kazanov@ics-it.ru",
 		},
+		pdfTemplates: [],
 		wordTemplates: [],
 		conf: {
 			basePath: "",

@@ -1,10 +1,38 @@
 import { HEIGHT_TOLERANCE_PX } from "@ext/print/const";
+import { ArticlePreview, PdfPrintParams } from "@ext/print/types";
+import { initTocPageContent } from "./initTocPageContent";
 
-const createPage = (pages: HTMLElement): HTMLElement => {
+export const TITLE_HEADER_CLASS = "title-page-header";
+export const TITLE_TOP_ELEMENT_CLASS = "title-page-top";
+export const TITLE_TOP_ELEMENT_LEFT_CLASS = "title-page-top-left";
+export const TITLE_TOP_ELEMENT_RIGHT_CLASS = "title-page-top-right";
+
+export const TITLE_PAGE_CLASS = "title-page";
+export const PAGE_CLASS = "page";
+
+export const createPage = (pages: HTMLElement, prepend = false): HTMLElement => {
 	const page = document.createElement("div");
-	page.className = "page";
-	pages.appendChild(page);
+	page.className = PAGE_CLASS;
+	if (prepend) pages.prepend(page);
+	else pages.appendChild(page);
 	return page;
+};
+
+const getTitlePageContent = (title: string): { titleElement: HTMLElement; topElement: HTMLElement } => {
+	const titleElement = document.createElement("h1");
+	titleElement.className = TITLE_HEADER_CLASS;
+	titleElement.textContent = (title ?? "").replace(/^\d+\.\s*/, "");
+
+	const topElement = document.createElement("div");
+	topElement.className = TITLE_TOP_ELEMENT_CLASS;
+	const topElementLeft = document.createElement("div");
+	topElementLeft.className = TITLE_TOP_ELEMENT_LEFT_CLASS;
+	const topElementRight = document.createElement("div");
+	topElementRight.className = TITLE_TOP_ELEMENT_RIGHT_CLASS;
+	topElement.appendChild(topElementLeft);
+	topElement.appendChild(topElementRight);
+
+	return { titleElement, topElement };
 };
 
 const getUsableHeight = (el: HTMLElement): number => {
@@ -156,9 +184,22 @@ const paginateTable = (pages: HTMLElement, srcTable: HTMLTableElement, currentPa
 	return page;
 };
 
-function paginateIntoPages(source: HTMLElement, pages: HTMLElement, onDone?: VoidFunction): void {
+function paginateIntoPages(
+	source: HTMLElement,
+	pages: HTMLElement,
+	params: PdfPrintParams,
+	items: ArticlePreview[],
+	onDone?: VoidFunction,
+): void {
 	pages.innerHTML = "";
+	const title = items?.[0]?.title ?? "None title";
 	let currentPage = createPage(pages);
+
+	if (params.template) {
+		const template = document.createElement("style");
+		template.textContent = params.template;
+		pages.appendChild(template);
+	}
 
 	while (source.firstElementChild) {
 		const node = source.firstElementChild as HTMLElement;
@@ -182,6 +223,17 @@ function paginateIntoPages(source: HTMLElement, pages: HTMLElement, onDone?: Voi
 			}
 		}
 	}
+
+	if (params.tocPage) initTocPageContent(pages, items, params.titlePage);
+
+	if (params.titlePage) {
+		const { titleElement, topElement } = getTitlePageContent(title);
+		currentPage = createPage(pages, true);
+		currentPage.classList.add(TITLE_PAGE_CLASS);
+		currentPage.appendChild(topElement);
+		currentPage.appendChild(titleElement);
+	}
+
 	onDone?.();
 }
 

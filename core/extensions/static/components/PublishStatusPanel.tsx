@@ -1,6 +1,6 @@
 import t from "@ext/localization/locale/translate";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@ui-kit/Dropdown";
-import { styled } from "@mui/material";
+import styled from "@emotion/styled";
 import Icon from "@components/Atoms/Icon";
 import Divider from "@components/Atoms/Divider";
 import Anchor from "@components/controls/Anchor";

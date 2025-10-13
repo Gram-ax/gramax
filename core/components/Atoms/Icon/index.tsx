@@ -10,6 +10,7 @@ export interface IconProps {
 	code?: string;
 	className?: string;
 	svgStyle?: CSSProperties;
+	size?: string;
 	isAction?: boolean;
 	isLoading?: boolean;
 	strokeWidth?: string | number;
@@ -42,6 +43,7 @@ const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
 		tooltipDelay,
 		tooltipAppendTo,
 		dataQa,
+		size,
 		...otherProps
 	} = props;
 
@@ -66,8 +68,8 @@ const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
 				{...otherProps}
 			>
 				<IconComponent
-					width="1em"
-					height="1em"
+					width={size || "1em"}
+					height={size || "1em"}
 					style={svgStyle}
 					strokeWidth={strokeWidth}
 					viewBox={viewBox ?? "0 0 24 24"}

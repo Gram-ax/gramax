@@ -9,16 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TagInput } from "ics-ui-kit/components/tag-input";
 import { FORM_DATA_QA } from "../../consts/form";
 import type { FormProps, SelectOption } from "../../logic/createFormSchema";
+import { UseFormReturn } from "react-hook-form";
+import { FormData } from "../../logic/createFormSchema";
 
 export type BasicProps = {
 	formProps: FormProps;
+	form: UseFormReturn<FormData>;
 	languages: SelectOption[];
-	originalProps: Record<string, any>;
 	sourceType: string | undefined;
 	inputRef?: React.RefObject<HTMLInputElement>;
 };
 
-export const EditBasicProps = ({ formProps, languages, originalProps, sourceType, inputRef }: BasicProps) => {
+export const EditBasicProps = ({ formProps, form, languages, sourceType, inputRef }: BasicProps) => {
 	const catalogProps = CatalogPropsService.value;
 
 	return (
@@ -75,7 +77,7 @@ export const EditBasicProps = ({ formProps, languages, originalProps, sourceType
 				control={({ field }) => (
 					<Select
 						onValueChange={field.onChange}
-						disabled={Boolean(originalProps.language)}
+						disabled={!!form.formState.defaultValues?.language}
 						defaultValue={field.value || undefined}
 					>
 						<SelectTrigger data-qa={FORM_DATA_QA.LANGUAGE}>

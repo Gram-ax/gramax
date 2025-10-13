@@ -3,7 +3,7 @@ import { forwardRef, MutableRefObject, ReactElement, useLayoutEffect, useRef, us
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import t from "@ext/localization/locale/translate";
 import Image from "@components/Atoms/Image/Image";
-import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
@@ -57,7 +57,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 	useGetResource((buffer) => {
 		if (!buffer || !buffer.byteLength) return setIsError(true);
 		setIsLoaded(false);
-		setSrc(new Blob([buffer], { type: resolveImageKind(buffer) }));
+		setSrc(new Blob([buffer], { type: resolveFileKind(buffer) }));
 	}, src);
 
 	if (!src || isError)

@@ -13,14 +13,10 @@ import { STORAGE_DIR_NAME } from "@app/config/const";
 import { dirname } from "path";
 import { joinTitles } from "@core-ui/getPageTitle";
 import CliUserError from "./CliUserError";
+import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
+import { InitialDataKeys } from "./initialDataUtils";
 
 export type StaticFileProvider = Pick<FileProvider, "write" | "copy" | "mkdir">;
-
-export enum InitialDataKeys {
-	DATA = "__INITIAL_DATA__",
-	CONFIG = "__INITIAL_CONFIG__",
-	DIRECTORY = "__DIRECTORY__",
-}
 
 const htmlTags = {
 	base: "<!--base-tag-->",
@@ -88,10 +84,10 @@ class StaticSiteBuilder {
 			currentDir.children.push({ type: "file", name: parts[parts.length - 1] });
 		};
 
-		const copyFile = async (from: Path, to: Path) => {
+		const copyFile = async (from: Path, to: Path, fp?: StaticFileProvider) => {
 			const absoluteFrom = new Path(wmPath).join(from);
-			const targetPath = targetDir.join(to);
-			await this._fp.copy(absoluteFrom, targetPath);
+			const targetPath = fp ? to : targetDir.join(to);
+			await (fp || this._fp).copy(absoluteFrom, targetPath);
 			addToDirectoryTree(to.value);
 		};
 
@@ -103,7 +99,9 @@ class StaticSiteBuilder {
 			);
 		};
 
-		const ctx = await this._app.contextFactory.fromBrowser("", null);
+		const ctx = await this._app.contextFactory.fromBrowser({
+			language: "",
+		});
 		const sp = this._app.sitePresenterFactory.fromContext(ctx);
 		await sp.parseAllItems(catalog);
 
@@ -124,45 +122,40 @@ class StaticSiteBuilder {
 			await copyLogoFile("logo_dark");
 		}
 
-		await Promise.all(
-			catalog.getItems().map(async (item) => {
-				const absoluteArticlePath = item.ref.path;
-				const targetArticlePath = new Path(catalog.name).join(
-					new Path(absoluteArticlePath.value.replace(folderPath, "")),
-				);
-				await copyFile(absoluteArticlePath, targetArticlePath);
-			}),
-		);
+		const zipFileProvider = await ZipFileProvider.create();
 
-		await Promise.all(
-			(
-				await catalog.customProviders.snippetProvider.getSnippetsPaths()
-			).map(async (path) => {
-				const targetPath = new Path(catalog.name).join(new Path(path.value.replace(folderPath, "")));
-				await copyFile(path, targetPath);
-			}),
-		);
+		await catalog.getItems().forEachAsync(async (item) => {
+			const itemPath = item.ref.path;
+			const targetArticlePath = new Path(catalog.name).join(new Path(itemPath.value.replace(folderPath, "")));
+			await copyFile(itemPath, targetArticlePath, zipFileProvider);
+		});
 
-		await Promise.all(
-			catalog.customProviders.iconProvider.getIconsPaths().map(async (path) => {
-				const targetPath = new Path(catalog.name).join(new Path(path.value.replace(folderPath, "")));
-				await copyFile(path, targetPath);
-			}),
-		);
+		const buffer = await zipFileProvider.zip.generateAsync({
+			type: "nodebuffer",
+			compression: "DEFLATE",
+			compressionOptions: { level: 9 },
+		});
+		await this._fp.write(targetDir.join(new Path([catalog.name, ".zip"])), buffer);
 
-		for (const item of items) {
+		const snippetsPaths = await catalog.customProviders.snippetProvider.getSnippetsPaths();
+		await snippetsPaths.forEachAsync(async (path) => {
+			const targetPath = new Path(catalog.name).join(new Path(path.value.replace(folderPath, "")));
+			await copyFile(path, targetPath);
+		});
+
+		await catalog.customProviders.iconProvider.getIconsPaths().forEachAsync(async (path) => {
+			const targetPath = new Path(catalog.name).join(new Path(path.value.replace(folderPath, "")));
+			await copyFile(path, targetPath);
+		});
+		await items.forEachAsync(async (item) => {
 			const resources = await item.parsedContent.read();
 			const rm = resources.resourceManager;
-			await Promise.all(
-				rm.resources.map(async (r) => {
-					const absolutePath = rm.getAbsolutePath(new Path(decodeURIComponent(r.value)));
-					const targetPath = new Path(catalog.name).join(
-						new Path(absolutePath.value.replace(folderPath, "")),
-					);
-					await copyFile(absolutePath, targetPath);
-				}),
-			);
-		}
+			await rm.resources.forEachAsync(async (r) => {
+				const absolutePath = rm.getAbsolutePath(new Path(decodeURIComponent(r.value)));
+				const targetPath = new Path(catalog.name).join(new Path(absolutePath.value.replace(folderPath, "")));
+				await copyFile(absolutePath, targetPath);
+			});
+		});
 		return directoryTree;
 	}
 

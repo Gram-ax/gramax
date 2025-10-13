@@ -1,4 +1,4 @@
-import { Content, TDocumentDefinitions } from "pdfmake/interfaces";
+import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
 import { FONT_FILES, FONTS, FOOTER_CONFIG, STYLES } from "./config";
 import { handleDocumentTree } from "@ext/pdfExport/parseNodesPDF";
 import resolveModule from "@app/resolveModule/backend";
@@ -7,6 +7,7 @@ import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import CatalogProps from "@core-ui/ContextServices/CatalogProps";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import pdfmake from "@dynamicImports/pdfmake";
 
 const HEADLINE_LEVELS = [1, 2, 3, 4] as const;
 const FOOTER_NODES_AMOUNT = 3;
@@ -20,7 +21,7 @@ class PDFExporter {
 	) {}
 
 	async create(): Promise<Buffer> {
-		const { default: pdfMake } = await import("pdfmake/build/pdfmake");
+		const pdfMake = await pdfmake();
 
 		pdfMake.vfs = {};
 		await this._loadFonts(pdfMake);
@@ -62,7 +63,9 @@ class PDFExporter {
 			footer: (currentPage: number, pageCount: number) => this._generateFooterContent(currentPage, pageCount),
 			styles: STYLES,
 			pageBreakBefore: (currentNode: any, followingNodesOnPage: any[]) => {
-				return currentNode.headlineLevel in HEADLINE_LEVELS && followingNodesOnPage.length === FOOTER_NODES_AMOUNT;
+				return (
+					currentNode.headlineLevel in HEADLINE_LEVELS && followingNodesOnPage.length === FOOTER_NODES_AMOUNT
+				);
 			},
 		};
 	}

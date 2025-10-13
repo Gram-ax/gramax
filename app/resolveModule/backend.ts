@@ -8,7 +8,7 @@ import type BrowserCookie from "apps/browser/src/logic/BrowserCookie";
 import type NextCookie from "apps/next/logic/NextCookie";
 import type TauriCookie from "apps/tauri/src/cookie/TauriCookie";
 
-interface DynamicModules {
+export interface DynamicModules {
 	Cookie: typeof BrowserCookie | typeof TauriCookie | typeof NextCookie;
 	initWasm: (corsProxy: string) => Promise<void>;
 	svgToPng: (svg: string, size: ImageDimensions, scale: number) => Promise<Buffer>;
@@ -16,6 +16,7 @@ interface DynamicModules {
 	getImageFromDom: (tag: string, fitContent: boolean) => Promise<Buffer>;
 	moveToTrash: (path: string) => Promise<void>;
 	getDOMParser: () => DOMParser;
+	getXMLSerializer: () => XMLSerializer;
 	setSessionData: (key: string, data: string) => Promise<void>;
 	pdfLoadFont: (fontPath: string) => Promise<ArrayBuffer>;
 	getImageByPath: (options: GetImageByPathOptions) => Promise<GetImageByPathResult>;

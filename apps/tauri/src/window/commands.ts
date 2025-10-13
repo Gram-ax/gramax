@@ -57,11 +57,17 @@ export const moveToTrash = (path: string) => invoke<void>("move_to_trash", { pat
 
 export const openInExplorer = (path: string) => invoke<void>("open_in_explorer", { path });
 
+export const openInWeb = (url: string) => invoke<void>("open_in_web", { url });
+
 export const setSessionData = (key: string, data: string) => invoke<void>("set_session_data", { key, data });
 
 export const openWindowWithUrl = (url: string) => invoke<void>("open_window_with_url", { url });
 
 export const setBadge = (count: number | null) => invoke<void>("set_badge", { count });
+
+export const historyBackForwardGo = (forward: boolean) => invoke<void>("history_back_forward_go", { forward });
+
+export const historyBackForwardCanGo = () => invoke<[boolean, boolean]>("history_back_forward_can_go");
 
 export const updateCheck = async (clearCache: boolean) => {
 	if (clearCache) await invoke<void>("update_cache_clear");

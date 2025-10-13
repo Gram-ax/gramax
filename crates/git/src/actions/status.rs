@@ -12,7 +12,7 @@ use crate::ShortInfo;
 const TAG: &str = "git:status";
 
 pub trait Status {
-  fn status(&self, index: bool) -> Result<Statuses>;
+  fn status(&self, index: bool) -> Result<Statuses<'_>>;
   fn status_file<P: AsRef<Path>>(&self, path: P) -> Result<StatusEntry>;
 }
 
@@ -111,7 +111,7 @@ impl<'s> ShortInfo<'s, StatusInfo> for Statuses<'s> {
 }
 
 impl<C: Creds> Status for Repo<'_, C> {
-  fn status(&self, index: bool) -> Result<Statuses> {
+  fn status(&self, index: bool) -> Result<Statuses<'_>> {
     self.ensure_trash_ignored()?;
 
     let mut opts = StatusOptions::default();

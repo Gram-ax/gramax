@@ -24,10 +24,11 @@ export default class PageContext {
 	}
 
 	async goto(path: string) {
+		await this.inner().evaluate(async () => await window.debug?.clearGxLock());
+    
 		const url = config.url + this._alias(path, () => replaceMultiple(path, this._alias.bind(this)));
 		if (this.inner().url() == url) return await this.waitForLoad();
 		await this.inner().goto(url, { waitUntil: "domcontentloaded" });
-
 		return this;
 	}
 
@@ -74,7 +75,8 @@ export default class PageContext {
 	async getCatalogProps() {
 		if (this.kind() == "home") throw new Error("Not an catalog");
 		return await this._page.evaluate(async () => {
-			const currentCatalog = await window.app.wm
+			const app = await window.app;
+			const currentCatalog = await app.wm
 				.current()
 				.getContextlessCatalog(
 					window.debug?.RouterPathProvider.parsePath(window.location.pathname).catalogName,

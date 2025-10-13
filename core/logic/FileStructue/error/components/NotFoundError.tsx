@@ -23,9 +23,7 @@ const ArticleNotFoundErrorComponent = (args: ComponentProps<typeof GetErrorCompo
 			actionButton={{
 				text: t("refresh"),
 				onClick: async () => {
-					const res = await FetchService.fetch<BranchData>(
-						apiUrlCreator.getVersionControlCurrentBranchUrl({ cached: false }),
-					);
+					const res = await FetchService.fetch<BranchData>(apiUrlCreator.getCurrentBranch({ cached: false }));
 					if (!res.ok) return;
 					const branch = (await res.json())?.name;
 					const path = RouterPathProvider.updatePathnameData(new Path(catalogProps.link.pathname), {

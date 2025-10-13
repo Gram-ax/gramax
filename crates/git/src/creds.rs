@@ -1,8 +1,8 @@
 use git2::*;
 use serde::Deserialize;
 
-pub trait Creds {
-  fn signature(&self) -> Result<Signature, Error>;
+pub trait Creds: Clone {
+  fn signature(&self) -> Result<Signature<'_>, Error>;
   fn access_token(&self) -> &str;
   fn username(&self) -> &str;
   fn protocol(&self) -> Option<&str>;
@@ -10,10 +10,11 @@ pub trait Creds {
 
 pub trait ActualCreds: Creds {}
 
+#[derive(Clone)]
 pub struct DummyCreds;
 
 impl Creds for DummyCreds {
-  fn signature(&self) -> Result<Signature, Error> {
+  fn signature(&self) -> Result<Signature<'_>, Error> {
     Signature::now("Test", "test@email.org")
   }
 
@@ -30,7 +31,7 @@ impl Creds for DummyCreds {
   }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessTokenCreds {
   author_name: Box<str>,
@@ -59,7 +60,7 @@ impl AccessTokenCreds {
 }
 
 impl Creds for AccessTokenCreds {
-  fn signature(&self) -> Result<Signature, Error> {
+  fn signature(&self) -> Result<Signature<'_>, Error> {
     Signature::now(&self.author_name, &self.author_email)
   }
 

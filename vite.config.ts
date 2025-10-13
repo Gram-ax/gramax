@@ -83,6 +83,7 @@ export default (): UserConfig => ({
 			"@ui-kit": path.resolve(__dirname, "core/ui-kit/components"),
 			"@core": path.resolve(__dirname, "core/logic"),
 			"@core-ui": path.resolve(__dirname, "core/ui-logic"),
+			"@dynamicImports": path.resolve(__dirname, "core/dynamicImports"),
 			"@ext": path.resolve(__dirname, "core/extensions"),
 			"@app": path.resolve(__dirname, "app"),
 			"@services": path.resolve(__dirname, "services/core"),

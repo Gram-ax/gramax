@@ -9,15 +9,15 @@ import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
-import { cloneProgressCallbacks } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
-import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { RemoteProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type GitStorageData from "@ext/git/core/model/GitStorageData";
+import type BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import t from "@ext/localization/locale/translate";
 import NotionStorage from "@ext/notion/logic/NotionStorage";
 import type NotionStorageData from "@ext/notion/model/NotionStorageData";
-import SharedCloneProgressManager, { type SharedCloneProgress } from "@ext/storage/logic/SharedCloneProgress";
+import SharedCloneProgressManager, { SharedCloneProgress } from "@ext/storage/logic/SharedCloneProgress";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import type StorageData from "@ext/storage/models/StorageData";
@@ -30,13 +30,13 @@ export type OnCloneFinish = (path: Path, isCancelled: boolean) => Promise<boolea
 export type CloneOptions = {
 	out: Path;
 	data: StorageData;
-	recursive: boolean;
 	branch: string;
-	isBare: boolean;
 	onFinish: OnCloneFinish;
+	isBare?: boolean;
+	allowNonEmptyDir?: boolean;
 };
 
-type GitStorageCloneResult = {
+export type GitStorageCloneResult = {
 	isCancelledByUser: boolean;
 };
 
@@ -45,15 +45,16 @@ type StorageCloneResult = {
 } | null;
 
 export default class StorageProvider {
-	private _sharedProgress = new SharedCloneProgressManager();
 	private _currentClonePromises = new Set<Promise<GitStorageCloneResult | null>>();
 	private _maxConcurrent = 3;
 
 	constructor() {}
 
 	async getStorageByPath(path: Path, fp: FileProvider, config: AppConfig): Promise<Storage> {
-		if (await GitStorage.hasInit(fp, path)) return new GitStorage(path, fp, config?.services.auth.url);
-		return null;
+		const isInit = await GitStorage.isInit(fp, path);
+		if (!isInit) return null;
+
+		return new GitStorage(path, fp, config?.services.auth.url);
 	}
 
 	async initStorage(fp: FileProvider, path: Path, data: StorageData, config: AppConfig) {
@@ -61,24 +62,51 @@ export default class StorageProvider {
 		return await this.getStorageByPath(path, fp, config);
 	}
 
-	async cloneFromStorage(fs: FileStructure, opts: CloneOptions) {
+	async clone(fs: FileStructure, opts: CloneOptions) {
 		assert(opts, "clone options are required but not provided");
 		assert(opts.out, "out path is required for clone");
 
 		const sharedProgressId = fs.fp.default().rootPath.join(opts.out).toString();
-		const progress = this._sharedProgress.createProgress(sharedProgressId, true);
+		const progress = SharedCloneProgressManager.instance.createProgress(sharedProgressId, true);
 		await this._waitUntilFreeSlot();
 		progress.setStarted();
 
 		try {
-			const result = await this._takeSlot(() => this._cloneStorageBasedOnType(fs, progress, opts));
+			const result = await this._takeSlot(async () => await this._cloneStorageBasedOnType(fs, progress, opts));
 			const isCancelled = result?.isCancelledByUser ?? false;
 			const isCancelledByCallback = await opts.onFinish?.(opts.out, isCancelled);
 			progress.setFinish(isCancelled || isCancelledByCallback);
 		} catch (e) {
 			await this._cleanupOnError(fs, progress, opts.out, e);
 		} finally {
-			this._sharedProgress.removeAsInProgress(sharedProgressId);
+			SharedCloneProgressManager.instance.removeAsInProgress(sharedProgressId);
+		}
+	}
+
+	async recover(repo: BrokenRepository, data: StorageData, onFinish?: OnCloneFinish) {
+		assert(repo, "repo is required");
+		assert(data?.source, `data.source is required for recover; got ${JSON.stringify(data)}`);
+
+		const sharedProgressId = repo.absolutePath.toString();
+		const progress = SharedCloneProgressManager.instance.createProgress(sharedProgressId, false);
+		await this._waitUntilFreeSlot();
+		progress.setStartedSilent();
+
+		try {
+			const result = await this._takeSlot(
+				async () =>
+					await repo.recover({
+						data: data.source as GitSourceData,
+						progress,
+					}),
+			);
+			const isCancelled = result?.isCancelledByUser ?? false;
+			const isCancelledByCallback = await onFinish?.(repo.absolutePath, isCancelled);
+			progress.setFinish(isCancelled || isCancelledByCallback);
+		} catch (e) {
+			progress.setError(e);
+		} finally {
+			SharedCloneProgressManager.instance.removeAsInProgress(sharedProgressId);
 		}
 	}
 
@@ -86,21 +114,20 @@ export default class StorageProvider {
 		assert(path);
 
 		const absolutePath = fs.fp.default().rootPath.join(path);
-		const progress = this._sharedProgress.getProgress(absolutePath.toString());
+		const progress = SharedCloneProgressManager.instance.getProgress(absolutePath.toString());
 		assert(progress);
 
-		await GitStorage.cloneCancel(progress.cancelToken, fs, path);
+		await GitStorage.cancel(progress.cancelToken, fs, path);
 	}
 
-	getCloneProgress(absolutePath: Path): CloneProgress {
+	getCloneProgress(absolutePath: Path): RemoteProgress {
 		assert(absolutePath);
 
 		const id = absolutePath.toString();
-		const progress = this._sharedProgress.getProgress(id);
+		const shared = SharedCloneProgressManager.instance.getProgress(id);
 
-		if (!progress) return null;
-
-		return { ...progress.progress, cancellable: progress.cancelToken > 0 };
+		if (!shared) return null;
+		return { ...shared.progress, cancellable: shared.cancelToken > 0 };
 	}
 
 	tryReviveCloneProgress(workspace: Workspace, path: Path, initProps: CatalogProps, cancelTokens: number[]) {
@@ -110,14 +137,16 @@ export default class StorageProvider {
 		if (initProps.isCloning) return;
 
 		const possibleId = workspace.getFileProvider().default().rootPath.join(path).toString();
-		if (!this._sharedProgress.hasSavedAsInProgress(possibleId)) return;
+		if (!SharedCloneProgressManager.instance.hasSavedAsInProgress(possibleId)) return;
 
 		const id = XxHash.hasher().hash(possibleId).finalize();
 
-		const progress = this._sharedProgress.createProgress(possibleId, false);
+		if (!cancelTokens.some((e) => e === id) || getExecutingEnvironment() === "browser") return;
+
+		const progress = SharedCloneProgressManager.instance.createProgress(possibleId, false);
 
 		progress.onDone((p) => {
-			this._sharedProgress.removeAsInProgress(possibleId);
+			SharedCloneProgressManager.instance.removeAsInProgress(possibleId);
 			if (p.type === "error") void workspace.removeCatalog(path.toString(), true);
 			if (p.type === "finish" && p.data.isCancelled) void workspace.removeCatalog(path.toString(), false);
 		});
@@ -126,7 +155,7 @@ export default class StorageProvider {
 			initProps.isCloning = true;
 			progress.disableTimer();
 			progress.withCancelToken(id);
-			cloneProgressCallbacks[id] = progress.setProgress.bind(progress);
+			progress[id] = progress.setProgress.bind(progress);
 
 			return;
 		}
@@ -139,15 +168,15 @@ export default class StorageProvider {
 			return;
 		}
 
-		this._sharedProgress.removeAsInProgress(possibleId);
+		SharedCloneProgressManager.instance.removeAsInProgress(possibleId);
 	}
 
 	cleanupProgressCache(fs: FileStructure, entries: Path[]) {
 		const root = fs.fp.default().rootPath.toString() + "/";
-		const all = this._sharedProgress.getAllSavedAsInProgress().filter((e) => e.startsWith(root));
+		const all = SharedCloneProgressManager.instance.getAllSavedAsInProgress().filter((e) => e.startsWith(root));
 		const ids = entries.map((e) => fs.fp.default().rootPath.join(e).toString());
 		for (const saved of all) {
-			if (!ids.some((e) => e === saved)) this._sharedProgress.removeAsInProgress(saved);
+			if (!ids.some((e) => e === saved)) SharedCloneProgressManager.instance.removeAsInProgress(saved);
 		}
 	}
 
@@ -174,7 +203,7 @@ export default class StorageProvider {
 		progress: SharedCloneProgress,
 		opts: CloneOptions,
 	): Promise<GitStorageCloneResult> {
-		const { data, out, branch, recursive, isBare } = opts;
+		const { data, out, branch, isBare } = opts;
 
 		const absoluteOut = fs.fp.default().rootPath.join(out);
 
@@ -188,7 +217,7 @@ export default class StorageProvider {
 			await GitStorage.clone({
 				fs,
 				branch,
-				recursive,
+				allowNonEmptyDir: opts.allowNonEmptyDir,
 				repositoryPath: out,
 				data: data as GitStorageData,
 				source: data.source as GitSourceData,

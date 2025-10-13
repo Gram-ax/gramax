@@ -9,6 +9,7 @@ export interface RawCloneOptions {
   url: string
   to: string
   isBare: boolean
+  allowNonEmptyDir: boolean
   cancelToken: number
 }
 export interface AccessTokenCreds {
@@ -43,7 +44,7 @@ export interface MergeMessageFormatOptions {
 }
 export declare function format_merge_message(repoPath: string, creds: AccessTokenCreds, opts: MergeMessageFormatOptions): Promise<unknown>
 export declare function clone(creds: AccessTokenCreds, opts: RawCloneOptions, callback: (...args: any[]) => any): Promise<unknown>
-export declare function clone_cancel(id: number): Output
+export declare function cancel(id: number): Output
 export declare function status(repoPath: string, index: boolean): Promise<unknown>
 export declare function status_file(repoPath: string, path: string): Promise<unknown>
 export declare function get_all_commit_authors(repoPath: string): Promise<unknown>
@@ -57,7 +58,11 @@ export declare function checkout(repoPath: string, branch: string, create: boole
 export declare function add_remote(repoPath: string, name: string, url: string): Promise<unknown>
 export declare function has_remotes(repoPath: string): Promise<unknown>
 export declare function get_remote(repoPath: string): Promise<unknown>
-export declare function fetch(repoPath: string, creds: AccessTokenCreds, force: boolean, lock: boolean): Promise<unknown>
+export interface RemoteOptions {
+  cancelToken: number
+  force: boolean
+}
+export declare function fetch(repoPath: string, creds: AccessTokenCreds, opts: RemoteOptions, lock: boolean): Promise<unknown>
 export declare function push(repoPath: string, creds: AccessTokenCreds): Promise<unknown>
 export declare function file_history(repoPath: string, filePath: string, count: number): Promise<unknown>
 export interface CommitInfoOpts {
@@ -89,7 +94,7 @@ export interface MergeOptions {
   isMergeRequest: boolean | null
 }
 export declare function merge(repoPath: string, creds: AccessTokenCreds, opts: MergeOptions): Promise<unknown>
-export declare function graph_head_upstream_files(repoPath: string, searchIn: string): Promise<unknown>
+export declare function count_changed_files(repoPath: string, searchIn: string): Promise<unknown>
 export declare function get_content(repoPath: string, path: string, oid?: string | undefined | null): Promise<unknown>
 export declare function get_parent(repoPath: string, oid: string): Promise<unknown>
 export declare function git_read_dir(repoPath: string, scope: TreeReadScope, path: string): Promise<unknown>
@@ -102,6 +107,7 @@ export declare function find_refs_by_globs(repoPath: string, pattern: Array<stri
 export declare function create_or_update_merge_request(repoPath: string, mergeRequest: string, creds: AccessTokenCreds): Promise<unknown>
 export declare function get_draft_merge_request(repoPath: string): Promise<unknown>
 export declare function reset_repo(): boolean
+export declare function reset_file_lock(repoPath: string): boolean
 export interface GcOptions {
   looseObjectsLimit: number | null
   packFilesLimit: number | null

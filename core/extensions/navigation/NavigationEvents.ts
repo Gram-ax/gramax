@@ -1,8 +1,8 @@
 import { createEventEmitter, UnsubscribeToken, type Event } from "@core/Event/EventEmitter";
 
-export type NavigationEvents = Event<"item-click", { path: string }> &
-	Event<"item-create", { path: string }> &
-	Event<"item-delete", { path: string }>;
+export type NavigationEvents = Event<"item-click", { path: string; mutable: { preventGoto?: boolean } }> &
+	Event<"item-create", { path: string; mutable: { preventGoto?: boolean } }> &
+	Event<"item-delete", { path: string; mutable: { preventGoto?: boolean } }>;
 
 abstract class NavigationEventsService {
 	private static _eventEmitter = createEventEmitter<NavigationEvents>();

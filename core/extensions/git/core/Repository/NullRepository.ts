@@ -6,7 +6,7 @@ import type RepositoryStateProvider from "@ext/git/core/Repository/state/Reposit
 export default class NullRepository extends Repository {
 	static instance = new NullRepository();
 
-	private constructor() {
+	protected constructor() {
 		super(null, null, null, null, true);
 	}
 

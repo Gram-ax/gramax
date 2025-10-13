@@ -1,11 +1,13 @@
-pub mod graph_head_upstream_files;
+pub mod count_changed_files;
+pub mod file_lock;
+pub mod gc;
+pub mod healthcheck;
 pub mod history;
 pub mod merge_requests;
 pub mod read_tree;
-pub mod gc;
 
-use test_utils::*;
 use test_utils::git::*;
+use test_utils::*;
 
 #[rstest]
 fn init_new(sandbox: TempDir) -> Result {

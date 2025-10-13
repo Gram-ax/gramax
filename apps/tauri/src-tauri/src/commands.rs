@@ -12,6 +12,7 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     quit,
     get_user_language,
     http_listen_once,
+    open_in_web,
     http_req::http_request,
     settings::get_settings,
     settings::set_settings,
@@ -38,6 +39,10 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     crate::updater::update_install_by_path,
     #[cfg(desktop)]
     crate::updater::restart_app,
+    #[cfg(target_os = "macos")]
+    history_back_forward_go,
+    #[cfg(target_os = "macos")]
+    history_back_forward_can_go,
     set_language,
     set_session_data,
     #[cfg(target_os = "macos")]

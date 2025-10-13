@@ -1,4 +1,6 @@
-export const getTauriModules = async () => {
+import { DynamicModules } from "@app/resolveModule/backend";
+
+export const getTauriModules = async (): Promise<DynamicModules> => {
 	const [
 		{ default: TauriCookie },
 		{ default: TauriSvgToPng },
@@ -25,6 +27,7 @@ export const getTauriModules = async () => {
 		getImageFromDom: TauriGetImageFromDom,
 		moveToTrash: tauriCommands.moveToTrash,
 		getDOMParser: () => new DOMParser(),
+		getXMLSerializer: () => new XMLSerializer(),
 		setSessionData: tauriCommands.setSessionData,
 		pdfLoadFont: tauriLoadFont,
 		getImageByPath: TauriGetImageByPath,

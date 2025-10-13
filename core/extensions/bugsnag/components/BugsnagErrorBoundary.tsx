@@ -1,5 +1,6 @@
 import { Environment } from "@app/resolveModule/env";
-import Bugsnag, { OnErrorCallback } from "@bugsnag/js";
+import type { OnErrorCallback } from "@bugsnag/js";
+import bugsnag from "@dynamicImports/bugsnag";
 import normalizeStack from "@ext/bugsnag/logic/normalizeStacktrace";
 import { ErrorBoundaryProps } from "@ext/errorHandlers/client/components/ErrorBoundary";
 import React from "react";
@@ -19,15 +20,17 @@ class BugsnagErrorBoundary extends React.Component<BugsnagErrorBoundaryProps> {
 			});
 			e.addMetadata("ui_props", { context: { ...props.context, sourceDatas: [], userInfo: null } });
 		};
-		if (Bugsnag.isStarted()) Bugsnag.addOnError(onError);
-		else {
-			Bugsnag.start({
-				releaseStage: "production",
-				apiKey: props.context.conf.bugsnagApiKey,
-				appVersion: props.context.conf.buildVersion,
-				onError,
-			});
-		}
+		void bugsnag().then(({ default: Bugsnag }) => {
+			if (Bugsnag.isStarted()) Bugsnag.addOnError(onError);
+			else {
+				Bugsnag.start({
+					releaseStage: "production",
+					apiKey: props.context.conf.bugsnagApiKey,
+					appVersion: props.context.conf.buildVersion,
+					onError,
+				});
+			}
+		});
 	}
 
 	static getDerivedStateFromError(error) {

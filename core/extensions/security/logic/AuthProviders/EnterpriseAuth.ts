@@ -27,7 +27,7 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 	}
 
 	logout(req: ApiRequest, res: ApiResponse): Promise<void> | void {
-		res.redirect(`${this._gesUrl}/sso/logout?from=${req.query.from}`);
+		res.redirect("/");
 	}
 
 	async assertEndpoint(
@@ -37,10 +37,11 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 		setUser: (cookie: Cookie, user: User) => Promise<void>,
 	): Promise<void> {
 		const from = req.query.from as string;
-		const token = decodeURIComponent(req.query.enterpriseToken as string);
+		const otc = req.query.oneTimeCode as string;
+		const ei = new EnterpriseApi(this._gesUrl);
+		const token = await ei.getToken(otc);
+		const userData = await ei.getUser(token);
 
-		
-		const userData = await new EnterpriseApi(this._gesUrl).getUser(token);
 		if (!userData) {
 			res.redirect(from || "/");
 			return;

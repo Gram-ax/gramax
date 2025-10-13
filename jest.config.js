@@ -30,6 +30,7 @@ module.exports = {
 		"^lodash-es(/(.*)|$)": "lodash$1",
 		"^nanoid(/(.*)|$)": "nanoid$1",
 		"^@components/(.*)$": "<rootDir>/core/components/$1",
+		"^@dynamicImports/(.*)$": "<rootDir>/core/dynamicImports/$1",
 		"^@ui-kit/(.*)$": "<rootDir>/core/ui-kit/components/$1",
 		"^@core/(.*)$": "<rootDir>/core/logic/$1",
 		"^@core-ui/(.*)$": "<rootDir>/core/ui-logic/$1",

@@ -2,27 +2,22 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 import { Router } from "@core/Api/Router";
 import UserSettings from "@ext/enterprise/types/UserSettings";
-import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 
-const initEnterprise = async (
-	token: string,
-	apiUrlCreator: ApiUrlCreator,
-	router: Router,
-	workspace: ClientWorkspaceConfig,
-) => {
-	if (!token) return;
+const initEnterprise = async (oneTimeCode: string, apiUrlCreator: ApiUrlCreator, router: Router) => {
+	if (!oneTimeCode) return;
 	router.pushPath("/");
-	if (workspace.enterprise?.gesUrl) return;
 	ModalToOpenService.setValue(ModalToOpen.Loading);
-	const res = await FetchService.fetch<UserSettings>(apiUrlCreator.getAddEnterpriseWorkspaceUrl(token));
+	const res = await FetchService.fetch<UserSettings>(apiUrlCreator.getAddEnterpriseWorkspaceUrl(oneTimeCode));
 	ModalToOpenService.resetValue();
 	if (!res.ok) return;
 	const userSettings = await res.json();
-	await FetchService.fetch(apiUrlCreator.getCloneEnterpriseCatalogsUrl(token), JSON.stringify(userSettings));
+	await FetchService.fetch(apiUrlCreator.getCloneEnterpriseCatalogsUrl(), JSON.stringify(userSettings));
 	await refreshPage();
+	SourceDataService.refresh();
 };
 
 export default initEnterprise;

@@ -1,10 +1,11 @@
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
-import BranchErrorElement from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/BranchErrorElements";
 import ShowPublishBar from "@components/Layouts/StatusBar/Extensions/ShowPublishBar";
+import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
@@ -13,6 +14,7 @@ import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchTab from "@ext/git/actions/Branch/components/BranchTab";
+import RepositoryBroken from "@ext/git/actions/RepositoryBroken";
 import RevisionsTab from "@ext/git/actions/Revisions/components/RevisionsTab/RevisionsTab";
 import ShowRevisionsTab from "@ext/git/actions/Revisions/components/RevisionsTab/ShowRevisionsTab";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
@@ -20,11 +22,12 @@ import MergeRequestTab from "@ext/git/core/GitMergeRequest/components/MergeReque
 import ShowMergeRequest from "@ext/git/core/GitMergeRequest/components/ShowMergeRequest";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import PublishTab from "@ext/git/core/GitPublish/PublishTab";
+import t from "@ext/localization/locale/translate";
+import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import { useEffect, useRef, useState } from "react";
 import ConnectStorage from "../../../../../extensions/catalog/actions/ConnectStorage";
 import Branch from "../../../../../extensions/git/actions/Branch/components/Branch";
 import Sync from "../../../../../extensions/git/actions/Sync/components/Sync";
-import IsReadOnlyHOC from "../../../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import StatusBar from "../../StatusBar";
 
 export enum LeftNavigationTab {
@@ -52,7 +55,7 @@ const Wrapper = styled.div`
 	scrollbar-width: none;
 `;
 
-const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitialized: boolean; padding?: string }) => {
+const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isNext } = usePlatform();
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
@@ -62,7 +65,11 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 	const [mergeRequestIsDraft, setMergeRequestIsDraft] = useState(false);
 	const [mergeRequest, setMergeRequest] = useState<MergeRequest>(null);
 	const mergeRequestRef = useRef<MergeRequest>(null);
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogProps = CatalogPropsService.value;
+	const catalogName = catalogProps.name;
+
+	const isStorageConnected = useIsStorageConnected();
+	const isRepoError = !!catalogProps.repositoryError;
 
 	const { bottomTab } = NavigationTabsService.value;
 
@@ -103,34 +110,51 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 		const onError = (error: DefaultError) => setBranchError(error);
 
 		BranchUpdaterService.addListener(onUpdateBranch);
-		BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Init);
-
+		if (!isRepoError) BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Init);
 		BranchUpdaterService.addOnErrorListener(onError);
 
 		return () => {
 			BranchUpdaterService.removeListener(onUpdateBranch);
 			BranchUpdaterService.removeOnErrorListener(onError);
 		};
-	}, [isStorageInitialized, catalogName]);
+	}, [isStorageConnected, isRepoError, catalogName]);
 
-	const storageConnection = !isStorageInitialized
-		? [<ConnectStorage key={0} />]
-		: [
-				<Sync key={0} style={{ height: "100%" }} />,
-				!isNext && isReadOnly && <ProtectedBranch key={1} />,
-				<IsReadOnlyHOC key={2}>
-					<ShowPublishBar
-						isShow={bottomTab === LeftNavigationTab.Publish}
-						onClick={() => {
-							NavigationTabsService.setBottom(
-								bottomTab === LeftNavigationTab.Publish
-									? LeftNavigationTab.None
-									: LeftNavigationTab.Publish,
-							);
-						}}
-					/>
-				</IsReadOnlyHOC>,
-		  ];
+	const bar = () => {
+		if (!isStorageConnected) return [<ConnectStorage key={0} />];
+
+		if (isRepoError || branchError) {
+			return [
+				<RepositoryBroken
+					key={0}
+					trigger={
+						<StatusBarElement
+							iconCode="cloud-alert"
+							iconStyle={{ fontSize: "15px", fill: "white" }}
+							tooltipText={t("git.error.broken.tooltip")}
+						/>
+					}
+					error={isRepoError ? catalogProps.repositoryError : branchError}
+				/>,
+			];
+		}
+
+		return [
+			<Sync key={0} style={{ height: "100%" }} />,
+			!isNext && isReadOnly && <ProtectedBranch key={1} />,
+			<IsReadOnlyHOC key={2}>
+				<ShowPublishBar
+					isShow={bottomTab === LeftNavigationTab.Publish}
+					onClick={() => {
+						NavigationTabsService.setBottom(
+							bottomTab === LeftNavigationTab.Publish
+								? LeftNavigationTab.None
+								: LeftNavigationTab.Publish,
+						);
+					}}
+				/>
+			</IsReadOnlyHOC>,
+		];
+	};
 
 	return (
 		<Wrapper>
@@ -166,49 +190,50 @@ const ArticleStatusBar = ({ isStorageInitialized, padding }: { isStorageInitiali
 			<StatusBar
 				padding={padding}
 				leftElements={
-					isStorageInitialized && !branchError
+					!isRepoError && isStorageConnected && !branchError && !catalogProps.resolvedFilterProperty
 						? [
 								<Branch
 									key={LeftNavigationTab.Branch}
 									show={bottomTab === LeftNavigationTab.Branch}
 									branch={branch}
-									onClick={() =>
-										NavigationTabsService.setBottom(
+									onClick={() => {
+										const tab =
 											bottomTab === LeftNavigationTab.Branch
 												? LeftNavigationTab.None
-												: LeftNavigationTab.Branch,
-										)
-									}
+												: LeftNavigationTab.Branch;
+
+										NavigationTabsService.setBottom(tab);
+									}}
 								/>,
 								<ShowMergeRequest
 									key={LeftNavigationTab.MergeRequest}
 									mergeRequest={mergeRequest}
 									isShow={bottomTab === LeftNavigationTab.MergeRequest}
-									setShow={() =>
-										NavigationTabsService.setBottom(
+									setShow={() => {
+										const tab =
 											bottomTab === LeftNavigationTab.MergeRequest
 												? LeftNavigationTab.None
-												: LeftNavigationTab.MergeRequest,
-										)
-									}
+												: LeftNavigationTab.MergeRequest;
+
+										NavigationTabsService.setBottom(tab);
+									}}
 								/>,
 								<ShowRevisionsTab
 									key={LeftNavigationTab.Revisions}
 									isShow={bottomTab === LeftNavigationTab.Revisions}
-									setShow={() =>
-										NavigationTabsService.setBottom(
+									setShow={() => {
+										const tab =
 											bottomTab === LeftNavigationTab.Revisions
 												? LeftNavigationTab.None
-												: LeftNavigationTab.Revisions,
-										)
-									}
+												: LeftNavigationTab.Revisions;
+
+										NavigationTabsService.setBottom(tab);
+									}}
 								/>,
 						  ]
 						: []
 				}
-				rightElements={
-					branchError ? [<BranchErrorElement key={0} errorText={branchError.message} />] : storageConnection
-				}
+				rightElements={bar()}
 			/>
 		</Wrapper>
 	);

@@ -6,7 +6,7 @@ import { showPopover } from "@core-ui/showPopover";
 import { Description } from "@ui-kit/Description";
 import Anchor from "@components/controls/Anchor";
 import Icon from "@components/Atoms/Icon";
-import { styled } from "@mui/material";
+import styled from "@emotion/styled";
 import CloudModalBody from "@ext/static/components/CloudModalBody";
 import getCatalogUrl from "@ext/static/utils/cloudUrl";
 

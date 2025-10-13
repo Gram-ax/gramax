@@ -2,7 +2,7 @@ import { classNames } from "@components/libs/classNames";
 import useElementExistence from "@core-ui/hooks/useElementExistence";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@react-hook/media-query";
 import Tippy, { TippyProps } from "@tippyjs/react";
 import { ReactNode, RefObject, forwardRef, useEffect, useRef, useState } from "react";
 import { Placement } from "tippy.js";

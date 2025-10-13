@@ -15,7 +15,7 @@ import { apiUtils } from "@core/Api/apiUtils";
 import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
 import Middleware from "@core/Api/middleware/Middleware";
 import buildMiddleware from "@core/Api/middleware/buildMiddleware";
-import type HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
+import HashItem from "@core/Hash/HashItems/HashItem";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import BrowserApiResponse from "./BrowserApiResponse";
@@ -27,7 +27,8 @@ const fetchSelf = async (
 	_mime?: MimeTypes,
 	_method?: Method,
 	_notifyError?: boolean,
-	onDidCommand?: (command: string, args: object, result: unknown) => void,
+	_onDidCommand?: (command: string, args: object, result: unknown) => void,
+	signal?: AbortSignal,
 ): Promise<FetchResponse> => {
 	const route = trimRoutePrefix(url);
 	const res: ApiResponse = new BrowserApiResponse();
@@ -51,14 +52,13 @@ const fetchSelf = async (
 	const req: ApiRequest = { headers: {}, query: url.query, body: parseBody(body) };
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
-		const ctx = await app.contextFactory.fromBrowser(
-			RouterPathProvider.parsePath(window.location.pathname)?.language,
-			{},
-		);
-		const params = command.params(ctx, req.query as Query, req.body);
+		const ctx = await app.contextFactory.fromBrowser({
+			language: RouterPathProvider.parsePath(window.location.pathname)?.language,
+		});
+		const params = command.params(ctx, req.query as Query, req.body, signal);
 		PersistentLogger.info(`executing command ${route}`, "cmd", { ...req.query });
 		const result = await command.do(params);
-		onDidCommand?.(route, req.query, result);
+		_onDidCommand?.(route, req.query, result);
 		await respond(app, req, res, command.kind, result);
 	});
 
@@ -85,14 +85,15 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 
 	if (kind == ResponseKind.plain) return apiUtils.sendPlainText(res, commandResult);
 
-	if (kind == ResponseKind.blob)
-		return res.send(await (commandResult?.hashItem as HashResourceManager)?.getContentAsBinary());
+	if (kind == ResponseKind.blob) return res.send(await (commandResult?.hashItem as HashItem)?.getContentAsBinary());
 
 	if (kind == ResponseKind.file) return res.send(commandResult);
 
 	if (kind == ResponseKind.redirect) return res.redirect(commandResult);
 
 	if (kind == ResponseKind.html) return res.send(commandResult);
+
+	if (kind == ResponseKind.stream) return res.send(commandResult);
 
 	throw new Error("Invalid ResponseKind");
 };

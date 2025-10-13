@@ -8,9 +8,11 @@ import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import { resetRepo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
+import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import BareRepository from "@ext/git/core/Repository/BareRepository";
+import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import NullRepository from "@ext/git/core/Repository/NullRepository";
 import type Repository from "@ext/git/core/Repository/Repository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
@@ -25,6 +27,7 @@ import StorageProvider, { type OnCloneFinish } from "@ext/storage/logic/StorageP
 import StorageData from "@ext/storage/models/StorageData";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import assert from "assert";
 
 export type RepositoryProviderEvents = Event<"connect-repository", { repo: Repository }>;
 
@@ -80,19 +83,29 @@ export default class RepositoryProvider {
 
 	async getRepositoryByPath(path: Path, fp: FileProvider): Promise<Repository> {
 		const gvc = new GitVersionControl(path, fp);
-		if (!(await gvc.isInit())) return this._makeRepository(path, fp, null, null);
-		const storage = await this._sp.getStorageByPath(path, fp, this._config);
-		return this._makeRepository(path, fp, gvc, storage);
+		let storage: Storage;
+
+		try {
+			const isInit = await gvc.isInit();
+			if (!isInit) return await this._makeRepository(path, fp, null, null);
+			storage = await this._sp.getStorageByPath(path, fp, this._config);
+			const repo = await this._makeRepository(path, fp, gvc, storage);
+			return repo;
+		} catch (error) {
+			if (error instanceof GitError || error instanceof LibGit2Error)
+				return new BrokenRepository(path, fp, gvc, storage).withError(error);
+			throw error;
+		}
 	}
 
 	static null() {
 		return NullRepository.instance;
 	}
 
-	async update(rep: Repository, fp: FileProvider, newPath: Path): Promise<void> {
+	async update(repo: Repository, fp: FileProvider, newPath: Path): Promise<void> {
 		const gvc = new GitVersionControl(newPath, fp);
 		const storage = await this._sp.getStorageByPath(newPath, fp, this._config);
-		rep.update(newPath, gvc, storage, fp);
+		repo.update(newPath, gvc, storage, fp);
 	}
 
 	async initNew(path: Path, fp: FileProvider, data: StorageData): Promise<Repository> {
@@ -109,6 +122,7 @@ export default class RepositoryProvider {
 
 	async validateEqualCatalogNames(ctx: Context, path: Path, data: StorageData, storage: Storage): Promise<void> {
 		if (!storage) return;
+
 		const isGit = isGitSourceType(await storage.getType()) && isGitSourceType(data.source.sourceType);
 		if (!isGit) return;
 
@@ -127,16 +141,25 @@ export default class RepositoryProvider {
 		return this._sp.tryReviveCloneProgress(workspace, path, initProps, cancelTokens);
 	}
 
-	async cloneNewRepository(
+	async clone(
 		fs: FileStructure,
 		path: Path,
 		data: StorageData,
-		recursive = true,
 		isBare = false,
 		branch?: string,
 		onCloneFinish?: OnCloneFinish,
 	) {
-		return this._sp.cloneFromStorage(fs, { out: path, data, recursive, isBare, branch, onFinish: onCloneFinish });
+		return await this._sp.clone(fs, { out: path, data, isBare, branch, onFinish: onCloneFinish });
+	}
+
+	async recover(repo: BrokenRepository, data: StorageData, onFinish?: OnCloneFinish) {
+		assert(data, "StorageData is required");
+		assert(
+			isGitSourceType(data?.source?.sourceType),
+			`data.source.sourceType must be SourceType.git; got ${data.source.sourceType}`,
+		);
+
+		return await this._sp.recover(repo, data, onFinish);
 	}
 
 	async cancelClone(fs: FileStructure, path: Path) {

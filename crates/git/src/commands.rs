@@ -1,4 +1,6 @@
 use crate::actions::prelude::*;
+use crate::cancel_token::CancelToken;
+use crate::cancel_token::CancelTokenExt;
 use crate::creds::*;
 use crate::error::OrUtf8Err;
 use crate::ext::prelude::*;
@@ -7,6 +9,7 @@ use crate::prelude::*;
 use crate::error::Error;
 use crate::error::HealthcheckIfOdbError;
 
+use crate::remote_progress::RemoteProgressCallback;
 use crate::repo::Repo;
 use crate::ShortInfo;
 
@@ -14,6 +17,7 @@ use crate::ShortPathExt;
 
 use std::path::Path;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -21,7 +25,7 @@ use serde::Serialize;
 #[derive(Serialize, Debug)]
 pub struct GitError {
   pub message: String,
-  pub class: Option<i32>,
+  pub class: Option<u32>,
   pub code: Option<i32>,
 }
 
@@ -29,7 +33,11 @@ impl std::fmt::Display for GitError {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "git error (")?;
     if let Some(class) = self.class {
-      write!(f, "class: {class}, ")?;
+      write!(f, "class: {class}")?;
+
+      if self.code.is_some() {
+        write!(f, ", ")?;
+      }
     }
 
     if let Some(code) = self.code {
@@ -43,22 +51,22 @@ impl std::fmt::Display for GitError {
 
 impl From<Error> for GitError {
   fn from(value: Error) -> Self {
+    let code = value.code();
+    let class = value.class();
+
     match value {
-      Error::Git(err) => GitError {
-        message: err.message().into(),
-        class: Some(err.class() as i32),
-        code: Some(err.code() as i32),
-      },
-      Error::Healthcheck(err) => GitError {
-        message: err.to_string(),
-        class: err.inner.as_ref().map(|e| e.class() as i32),
-        code: err.inner.as_ref().map(|e| e.code() as i32),
-      },
-      Error::Network { status, message } => {
-        GitError { message: message.unwrap_or_default(), class: None, code: Some(status as i32) }
-      }
-      value => GitError { message: value.to_string(), class: None, code: None },
+      Error::Git(err) => GitError { message: err.message().into(), class, code },
+      Error::Healthcheck(err) => GitError { message: err.to_string(), class, code },
+      Error::FileLockHealthcheckFailed(err) => GitError { message: err.to_string(), class, code },
+      Error::Network { message, .. } => GitError { message: message.unwrap_or_default(), class, code },
+      value => GitError { message: value.to_string(), class, code },
     }
+  }
+}
+
+impl From<crate::file_lock::FileLockError> for GitError {
+  fn from(value: crate::file_lock::FileLockError) -> Self {
+    GitError { message: value.to_string(), class: None, code: None }
   }
 }
 
@@ -110,15 +118,12 @@ pub fn file_history(repo: &Path, file_path: &Path, count: usize) -> Result<Histo
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn branch_info(repo: &Path, name: Option<&str>) -> Result<BranchInfo> {
-  Repo::run_rw_read(repo, DummyCreds, |repo| {
-    let info = if let Some(name) = name {
-      repo.branch_by_name(name, None)?.short_info()?
-    } else {
-      repo.branch_by_head()?.short_info()?
-    };
-
-    Ok(info)
-  })
+  match name {
+    Some(name) => {
+      Repo::run_rw_read(repo, DummyCreds, |repo| Ok(repo.branch_by_name(name, None)?.short_info()?))
+    }
+    None => Repo::run_rw_read_no_lock(repo, DummyCreds, |repo| Ok(repo.branch_by_head()?.short_info()?)),
+  }
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
@@ -152,22 +157,26 @@ pub fn branch_list(repo: &Path) -> Result<Vec<BranchInfo>> {
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
-pub fn fetch(repo: &Path, creds: AccessTokenCreds, force: bool, lock: bool) -> Result<()> {
+pub fn fetch(repo: &Path, creds: AccessTokenCreds, opts: RemoteOptions, lock: bool) -> Result<()> {
   if lock {
-    Repo::run_rw_write(repo, creds, |repo| Ok(repo.fetch(force).healthcheck_if_odb_error(&repo)?))
+    Repo::run_rw_write(repo, creds, "fetch", |repo| {
+      Ok(repo.fetch(opts, Rc::new(|_| {})).healthcheck_if_odb_error(&repo)?)
+    })
   } else {
-    Repo::run_rw_unlocked(repo, creds, |repo| Ok(repo.fetch(force).healthcheck_if_odb_error(&repo)?))
+    Repo::run_rw_read(repo, creds, |repo| {
+      Ok(repo.fetch(opts, Rc::new(|_| {})).healthcheck_if_odb_error(&repo)?)
+    })
   }
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn set_head(repo: &Path, refname: &str) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |repo| Ok(repo.set_head(refname)?))
+  Repo::run_rw_write(repo, DummyCreds, "set_head", |repo| Ok(repo.set_head(refname)?))
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn new_branch(repo: &Path, name: &str) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |repo| {
+  Repo::run_rw_write(repo, DummyCreds, "new_branch", |repo| {
     repo.new_branch(name)?;
     Ok(())
   })
@@ -176,20 +185,24 @@ pub fn new_branch(repo: &Path, name: &str) -> Result<()> {
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn delete_branch(repo: &Path, name: &str, remote: bool, creds: Option<AccessTokenCreds>) -> Result<()> {
   match creds {
-    Some(creds) if remote => Repo::run_rw_write(repo, creds, |repo| Ok(repo.delete_branch_remote(name)?))?,
-    _ => Repo::run_rw_write(repo, DummyCreds, |repo| Ok(repo.delete_branch_local(name)?))?,
+    Some(creds) if remote => {
+      Repo::run_rw_write(repo, creds, "delete_branch_remote", |repo| Ok(repo.delete_branch_remote(name)?))?
+    }
+    _ => {
+      Repo::run_rw_write(repo, DummyCreds, "delete_branch_local", |repo| Ok(repo.delete_branch_local(name)?))?
+    }
   };
   Ok(())
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn add_remote(repo: &Path, name: &str, url: &str) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |repo| Ok(repo.add_remote(name, url)?))
+  Repo::run_rw_write(repo, DummyCreds, "add_remote", |repo| Ok(repo.add_remote(name, url)?))
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn has_remotes(repo: &Path) -> Result<bool> {
-  Repo::run_rw_read(repo, DummyCreds, |repo| Ok(repo.has_remotes()?))
+  Repo::run_rw_read_no_lock(repo, DummyCreds, |repo| Ok(repo.has_remotes()?))
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
@@ -208,7 +221,9 @@ pub fn status_file(repo: &Path, file_path: &Path) -> Result<StatusEntry> {
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn push(repo: &Path, creds: AccessTokenCreds) -> Result<()> {
-  Repo::run_rw_write(repo, creds, |repo| Ok(repo.push().healthcheck_if_odb_error(&repo)?))
+  Repo::run_rw_write(repo, creds, "push", |repo| {
+    Ok(repo.push(RemoteOptions::default(), Rc::new(|_| {})).healthcheck_if_odb_error(&repo)?)
+  })
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
@@ -219,25 +234,37 @@ pub fn init_new(repo: &Path, creds: AccessTokenCreds) -> Result<()> {
 
 #[tracing::instrument(fields(repo = %repo.short()), ret)]
 pub fn checkout(repo: &Path, ref_name: &str, force: bool) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |repo| {
+  Repo::run_rw_write(repo, DummyCreds, "checkout", |repo| {
     Ok(repo.checkout(ref_name, force).healthcheck_if_odb_error(&repo)?)
   })
 }
 
 #[tracing::instrument(skip(callback), err)]
-pub fn clone(creds: AccessTokenCreds, opts: CloneOptions, callback: CloneProgressCallback) -> Result<()> {
+pub fn clone(creds: AccessTokenCreds, opts: CloneOptions, callback: RemoteProgressCallback) -> Result<()> {
   Repo::clone(creds, opts, callback)?;
   Ok(())
 }
 
+#[tracing::instrument(skip(callback), fields(repo = %repo.short()), err)]
+pub fn recover(
+  repo: &Path,
+  creds: AccessTokenCreds,
+  cancel_token: CancelToken<'_>,
+  callback: RemoteProgressCallback,
+) -> Result<()> {
+  let res = Repo::run_rw_write_no_lock(repo, creds, |mut repo| Ok(repo.recover(cancel_token, callback)?));
+  crate::cache::reset_repo();
+  res
+}
+
 #[tracing::instrument(ret)]
-pub fn clone_cancel(id: usize) -> Result<bool> {
-  Repo::<AccessTokenCreds>::clone_cancel(id).map_err(Into::into)
+pub fn cancel(id: usize) -> Result<bool> {
+  Repo::<AccessTokenCreds>::cancel(id).map_err(Into::into)
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn add(repo: &Path, patterns: Vec<PathBuf>, force: bool) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |repo| {
+  Repo::run_rw_write(repo, DummyCreds, "add", |repo| {
     let add_result = if force { repo.add_glob_force(patterns) } else { repo.add_glob(patterns) };
     let Err(err) = add_result else { return Ok(()) };
     error!(target: "git:add", "failed to add: {err:?}");
@@ -252,20 +279,20 @@ pub fn diff(repo: &Path, opts: DiffConfig) -> Result<DiffTree2TreeInfo> {
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn reset(repo: &Path, opts: ResetOptions) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |repo| Ok(repo.reset(opts).healthcheck_if_odb_error(&repo)?))
+  Repo::run_rw_write(repo, DummyCreds, "reset", |repo| Ok(repo.reset(opts).healthcheck_if_odb_error(&repo)?))
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn commit(repo: &Path, creds: AccessTokenCreds, opts: CommitOptions) -> Result<()> {
-  Repo::run_rw_write(repo, creds, |repo| {
+  Repo::run_rw_write(repo, creds, "commit", |repo| {
     repo.commit(opts).healthcheck_if_odb_error(&repo)?;
     Ok(())
   })
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
-pub fn graph_head_upstream_files(repo: &Path, search_in: &Path) -> Result<UpstreamCountChangedFiles> {
-  Repo::run_rw_read(repo, DummyCreds, |repo| Ok(repo.graph_head_upstream_files(search_in)?))
+pub fn count_changed_files(repo: &Path, search_in: &Path) -> Result<UpstreamCountChangedFiles> {
+  Repo::run_rw_read(repo, DummyCreds, |repo| Ok(repo.count_changed_files(search_in)?))
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), ret)]
@@ -276,7 +303,7 @@ pub fn get_commit_info(repo: &Path, oid: &str, opts: CommitInfoOpts) -> Result<V
 
 #[tracing::instrument(fields(repo = %repo.short()), ret)]
 pub fn merge(repo: &Path, creds: AccessTokenCreds, opts: MergeOptions) -> Result<MergeResult> {
-  Repo::run_rw_write(repo, creds, |repo| Ok(repo.merge(opts).healthcheck_if_odb_error(&repo)?))
+  Repo::run_rw_write(repo, creds, "merge", |repo| Ok(repo.merge(opts).healthcheck_if_odb_error(&repo)?))
 }
 
 pub fn format_merge_message(
@@ -306,17 +333,17 @@ pub fn get_parent(repo: &Path, oid: &str) -> Result<Option<String>> {
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn restore(repo: &Path, staged: bool, paths: Vec<PathBuf>) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |repo| Ok(repo.restore(paths.iter(), staged)?))
+  Repo::run_rw_write(repo, DummyCreds, "restore", |repo| Ok(repo.restore(paths.iter(), staged)?))
 }
 
 #[tracing::instrument(fields(repo = %repo.short()))]
 pub fn get_remote(repo: &Path) -> Result<Option<String>> {
-  Repo::run_rw_read(repo, DummyCreds, |repo| Ok(repo.get_remote()?))
+  Repo::run_rw_read_no_lock(repo, DummyCreds, |repo| Ok(repo.get_remote()?))
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), ret)]
 pub fn stash(repo: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Result<Option<String>> {
-  Repo::run_rw_write(repo, creds, |mut repo| {
+  Repo::run_rw_write(repo, creds, "stash", |mut repo| {
     let oid = repo.stash(message).healthcheck_if_odb_error(&repo)?;
     Ok(oid.map(|oid| oid.to_string()))
   })
@@ -324,7 +351,7 @@ pub fn stash(repo: &Path, message: Option<&str>, creds: AccessTokenCreds) -> Res
 
 #[tracing::instrument(fields(repo = %repo.short()), ret)]
 pub fn stash_apply(repo: &Path, oid: &str) -> Result<MergeResult> {
-  Repo::run_rw_write(repo, DummyCreds, |mut repo| {
+  Repo::run_rw_write(repo, DummyCreds, "stash_apply", |mut repo| {
     let oid = Oid::from_str(oid).map_err(Error::from)?;
     Ok(repo.stash_apply(oid).healthcheck_if_odb_error(&repo)?)
   })
@@ -332,7 +359,7 @@ pub fn stash_apply(repo: &Path, oid: &str) -> Result<MergeResult> {
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn stash_delete(repo: &Path, oid: &str) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |mut repo| {
+  Repo::run_rw_write(repo, DummyCreds, "stash_delete", |mut repo| {
     let oid = Oid::from_str(oid).map_err(Error::from)?;
     repo.stash_delete(oid).healthcheck_if_odb_error(&repo)?;
     Ok(())
@@ -379,7 +406,7 @@ pub fn is_bare(repo: &Path) -> Result<bool> {
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn list_merge_requests(repo: &Path) -> Result<Vec<MergeRequest>> {
-  Repo::run_rw_read(repo, DummyCreds, |repo| Ok(repo.list_merge_requests()?))
+  Repo::run_rw_read(repo, DummyCreds, |repo| Ok(repo.list_merge_requests().healthcheck_if_odb_error(&repo)?))
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
@@ -388,12 +415,16 @@ pub fn create_or_update_merge_request(
   merge_request: CreateMergeRequest,
   creds: AccessTokenCreds,
 ) -> Result<()> {
-  Repo::run_rw_write(repo, creds, |repo| Ok(repo.create_or_update_merge_request(merge_request)?))
+  Repo::run_rw_write(repo, creds, "create_or_update_merge_request", |repo| {
+    Ok(repo.create_or_update_merge_request(merge_request).healthcheck_if_odb_error(&repo)?)
+  })
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
 pub fn get_draft_merge_request(repo: &Path) -> Result<Option<MergeRequest>> {
-  Repo::run_rw_read(repo, DummyCreds, |repo| Ok(repo.get_draft_merge_request()?))
+  Repo::run_rw_read(repo, DummyCreds, |repo| {
+    Ok(repo.get_draft_merge_request().healthcheck_if_odb_error(&repo)?)
+  })
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), err)]
@@ -402,15 +433,35 @@ pub fn get_all_commit_authors(repo: &Path) -> Result<Vec<CommitAuthorInfo>> {
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), ret)]
+pub fn healthcheck(repo: &Path) -> Result<()> {
+  use crate::ext::walk::Walk;
+
+  Repo::run_rw_read_no_lock(repo, DummyCreds, |repo| {
+    let healthcheck = repo.healthcheck()?;
+
+    if !healthcheck.is_empty() {
+      let err = HealthcheckError { bad_objects: Some(healthcheck), inner: None, prev_log: None };
+      return Err(Error::Healthcheck(err).into());
+    }
+
+    Ok(())
+  })
+}
+
+#[tracing::instrument(fields(repo = %repo.short()), ret)]
 pub fn gc(repo: &Path, opts: GcOptions) -> Result<()> {
-  Repo::run_rw_write(repo, DummyCreds, |repo| Ok(repo.gc(opts)?))
+  Repo::run_rw_write(repo, DummyCreds, "gc", |repo| Ok(repo.gc(opts)?))
 }
 
 #[tracing::instrument]
 pub fn get_all_cancel_tokens() -> Result<Vec<usize>> {
-  Ok(Repo::<AccessTokenCreds>::get_all_cancel_tokens())
+  Ok(Repo::<AccessTokenCreds>::get_all_ids().into_iter().map(|id| id.get()).collect())
 }
 
 pub fn reset_repo() {
   crate::cache::reset_repo()
+}
+
+pub fn reset_file_lock(repo: &Path) {
+  crate::cache::reset_file_lock(repo)
 }

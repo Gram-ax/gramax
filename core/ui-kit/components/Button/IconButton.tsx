@@ -12,6 +12,6 @@ interface IconButtonProps extends Omit<UiKitIconButtonProps, "icon"> {
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>((props, ref) => {
 	const { icon, ...otherProps } = props;
 	const lucideIcon = LucideIcon(icon);
-
+	if (!lucideIcon) return null;
 	return <UiKitIconButton ref={ref} icon={lucideIcon as any} {...otherProps} />;
 });

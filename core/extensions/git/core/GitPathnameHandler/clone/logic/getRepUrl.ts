@@ -4,9 +4,9 @@ import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const getRepUrl = (shareData: ShareData): { href: string; value: string } => {
 	if (shareData.sourceType === SourceType.gitHub) {
-		const { domain, group, name, branch } = shareData as GitShareData;
+		const { domain, group, name, branch, protocol } = shareData as GitShareData;
 		const link = `${domain}/${group}/${name}${branch ? `/tree/${branch}` : ""}`;
-		return { href: `https://${link}`, value: link };
+		return { href: `${protocol ?? "https"}://${link}`, value: link };
 	}
 
 	if (shareData.sourceType === SourceType.gitLab) {
@@ -16,9 +16,15 @@ const getRepUrl = (shareData: ShareData): { href: string; value: string } => {
 	}
 
 	if (shareData.sourceType === SourceType.gitVerse) {
-		const { domain, group, name, branch } = shareData as GitShareData;
+		const { domain, group, name, branch, protocol } = shareData as GitShareData;
 		const link = `${domain}/${group}/${name}${branch ? `/content/${branch}` : ""}`;
-		return { href: `https://${link}`, value: link };
+		return { href: `${protocol ?? "https"}://${link}`, value: link };
+	}
+
+	if (shareData.sourceType === SourceType.gitea) {
+		const { domain, group, name, branch, protocol } = shareData as GitShareData;
+		const link = `${domain}/${group}/${name}${branch ? `/src/branch/${branch}` : ""}`;
+		return { href: `${protocol ?? "https"}://${link}`, value: link };
 	}
 
 	if (shareData.sourceType === SourceType.git) {

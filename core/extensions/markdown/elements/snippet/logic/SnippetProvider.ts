@@ -79,7 +79,6 @@ export default class SnippetProvider extends ArticleProvider {
 
 		if (this._isOldSnippet(article.ref.path)) {
 			await this._fp.delete(article.ref.path);
-			await this.remove(id, parser, parserContextFactory, ctx);
 
 			return;
 		}
@@ -95,7 +94,7 @@ export default class SnippetProvider extends ArticleProvider {
 	}
 
 	public async getSnippetsPaths() {
-		const items = (await this.getItems(true)) as Article<ArticleProps>[];
+		const items = await this.getItems<Article<ArticleProps>>(true);
 		return items.map((a) => a.ref.path);
 	}
 

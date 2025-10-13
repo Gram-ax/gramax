@@ -8,7 +8,7 @@ const DEFAULT_TOKEN_EXPIRES_IN = 30 * 24 * 60 * 60 * 1000; //30 days
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
-		const ctx = await this.app.contextFactory.from(req, res);
+		const ctx = await this.app.contextFactory.from({ req, res });
 		if (ctx.user.type !== "enterprise") {
 			res.statusCode = 404;
 			res.end();

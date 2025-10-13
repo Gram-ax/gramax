@@ -1,7 +1,7 @@
-import { Workspace } from "@ext/workspace/Workspace";
 import Path from "@core/FileProvider/Path/Path";
-import { Buffer } from "buffer";
+import { Workspace } from "@ext/workspace/Workspace";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import { Buffer } from "buffer";
 
 const WORD_TEMPLATES_DIR = "word";
 const WORD_TEMPLATE_FORMATS = ["doc", "dot"];
@@ -26,7 +26,7 @@ export class WordTemplateManager {
 	}
 
 	async from(workspace?: Workspace): Promise<WordTemplate | undefined> {
-		if (!workspace) return undefined;
+		if (!workspace) return;
 
 		return new WordTemplate(workspace, await this._getTemplates(workspace));
 	}

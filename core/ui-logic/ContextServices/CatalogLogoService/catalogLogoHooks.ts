@@ -1,5 +1,5 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type Url from "@core-ui/ApiServices/Types/Url";
@@ -11,6 +11,7 @@ import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
 import { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { useCallback, useRef, useState } from "react";
+import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 
 const useCatalogLogoManager = (catalogPath: string, theme: Theme) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -25,7 +26,7 @@ const useCatalogLogoManager = (catalogPath: string, theme: Theme) => {
 
 		setIsLoading(false);
 		if (!res?.body) return "";
-		const blob = new Blob([res.body as any], { type: resolveImageKind(res.body as any) });
+		const blob = new Blob([res.body as any], { type: resolveFileKind(res.body as any) });
 
 		return URL.createObjectURL(blob) || "";
 	}, [catalogPath, theme]);
@@ -145,7 +146,7 @@ export const useCatalogLogo = (catalogPath?: string, successUpdateCallback?: () 
 			const UrlToUpdate = apiUrlCreator.updateCatalogProps();
 			//FIXME, нужно убрать два вызова апдейта пропсов, например в форме catalogPropsEditor
 
-			const CatalogPropsWithLogo = Object.assign(catalogProps, props);
+			const CatalogPropsWithLogo = getCatalogEditProps(Object.assign(catalogProps, props));
 			await FetchService.fetch(UrlToUpdate, JSON.stringify(CatalogPropsWithLogo), MimeTypes.json);
 
 			successUpdateCallback?.();

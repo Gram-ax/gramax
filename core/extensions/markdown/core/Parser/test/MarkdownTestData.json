@@ -93,7 +93,7 @@
 				"attributes": { "text": "text", "icon": "icon" },
 				"children": []
 			},
-			"html": "<span class=\"cmd\" data-icon=\"icon\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></span>"
+			"html": "<button class=\"inline-flex cursor-pointer select-none items-center justify-center overflow-hidden rounded-lg font-medium text-primary-fg transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 border border-solid border-secondary-border bg-secondary-bg shadow-sm hover:border-primary-border hover:bg-secondary-bg-hover h-7 gap-2 px-2.5 py-1.5 text-xs\" data-qa=\"qa-clickable\"><div class=\"flex items-center justify-center gap-2 overflow-hidden\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></div></button>"
 		}
 	],
 	"Kbd": [
@@ -103,7 +103,7 @@
 				"xml": "<kbd text=\"text\"/>"
 			},
 			"renderTree": { "$$mdtype": "Tag", "name": "Kbd", "attributes": { "text": "text" }, "children": [] },
-			"html": "<kbd>text</kbd>"
+			"html": "<div class=\"inline-flex h-5 items-center justify-center rounded-sm px-1 py-0.5 text-xs text-muted border border-secondary-border bg-secondary-bg\">text</div>"
 		}
 	],
 	"Icon": [
@@ -160,21 +160,6 @@
 			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock\" aria-hidden=\"true\"><path d=\"M12 6v6l4 2\"></path><circle cx=\"12\" cy=\"12\" r=\"10\"></circle></svg></i><span>text</span></span>"
 		}
 	],
-	"Fn": [
-		{
-			"text": {
-				"legacy": "[fn:code:defaultValues]",
-				"xml": "<fn code=\"code\" defaultValues=\"defaultValues\"/>"
-			},
-			"renderTree": {
-				"$$mdtype": "Tag",
-				"name": "Fn",
-				"attributes": { "code": "code", "defaultValues": "defaultValues" },
-				"children": []
-			},
-			"html": "<span>Такой функции нет!</span>"
-		}
-	],
 	"Header": [
 		{
 			"text": {
@@ -191,7 +176,7 @@
 				"children": ["Header "],
 				"name": "Heading"
 			},
-			"html": "<h2 id=\"my-id\" class=\"css-1nkary5\">Header <a href=\"#my-id\" class=\"anchor\" data-mdignore=\"true\" contenteditable=\"false\"><i class=\"link-icon chain-icon\"></i></a></h2>"
+			"html": "<h2 id=\"my-id\" class=\"css-jc0o3i\">Header <a href=\"#my-id\" class=\"anchor\" data-mdignore=\"true\" contenteditable=\"false\"><i class=\"link-icon chain-icon\"></i></a></h2>"
 		}
 	],
 	"Image": [
@@ -640,7 +625,7 @@
 				],
 				"type": "Table"
 			},
-			"html": "<div class=\"css-1le9x7d width-wrapper\"><div class=\"scrollableContent\"><div class=\"css-jaerfr\"><table data-focusable=\"true\" style=\"padding: 1.5em 0px;\"><colgroup></colgroup><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div></div>"
+			"html": "<div data-wrapper=\"table\" class=\"css-1in1ksi\"><div class=\"css-cmk6bc\"><table data-focusable=\"true\" style=\"padding: 1.5em 0px;\"><colgroup></colgroup><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div>"
 		},
 		{
 			"text": {
@@ -871,7 +856,7 @@
 				],
 				"type": "Table"
 			},
-			"html": "<div class=\"css-1le9x7d width-wrapper\"><div class=\"scrollableContent\"><div class=\"css-jaerfr\"><table data-header=\"row\" data-focusable=\"true\" style=\"padding: 1.5em 0px;\"><colgroup></colgroup><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li><p>Объединённая</p></li><li><p>ячейка</p></li><li><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div></div>"
+			"html": "<div data-wrapper=\"table\" class=\"css-1in1ksi\"><div class=\"css-cmk6bc\"><table data-header=\"row\" data-focusable=\"true\" style=\"padding: 1.5em 0px;\"><colgroup></colgroup><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li><p>Объединённая</p></li><li><p>ячейка</p></li><li><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div>"
 		}
 	],
 	"Note": [
@@ -1017,6 +1002,31 @@
 				"name": "p"
 			},
 			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2F1718261246743-2.log\">Очень важный файл</a></p>"
+		},
+		{
+			"text": {
+				"legacy": "[Ссылка](./some-article#какой-то-там-заголовок)",
+				"xml": "[Ссылка](./some-article#какой-то-там-заголовок)"
+			},
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {
+							"hash": "#какой-то-там-заголовок",
+							"href": "MarkdownCatalog/category/emptyArticle",
+							"isFile": false,
+							"resourcePath": "./emptyArticle.md"
+						},
+						"children": ["Ссылка"],
+						"name": "Link"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/html#какой-то-там-заголовок\">Ссылка</a></p>"
 		}
 	]
 }

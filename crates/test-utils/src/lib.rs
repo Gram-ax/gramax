@@ -21,7 +21,7 @@ fn init_logger() {
   }
 
   tracing_subscriber::registry()
-    .with(EnvFilter::from_default_env())
+    .with(EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("info")))
     .with(tracing_subscriber::fmt::layer().with_ansi(true))
     .init();
 }

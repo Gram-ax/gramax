@@ -1,23 +1,31 @@
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import t from "@ext/localization/locale/translate";
+import { tString } from "@ext/localization/locale/translate";
 import { useMemo } from "react";
 import type { FormSelectValues } from "../logic/createFormSchema";
-import Schema from "../model/CatalogEditProps.schema.json";
+import { ContentLanguage } from "@ext/localization/core/model/Language";
+import Style from "@components/HomePage/Cards/model/Style";
+import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 
 export const useFormSelectValues = (): FormSelectValues => {
 	const workspace = WorkspaceService.current();
 
 	const languages = useMemo(
 		() =>
-			Schema.properties.language.enum.map((shortLang) => ({
+			Object.keys(ContentLanguage).map((shortLang) => ({
 				value: shortLang,
-				children: t(`${Schema.properties.language.see}.${shortLang}` as any),
+				children: tString(`language.${shortLang}`),
 			})),
 		[],
 	);
 
 	const cardColors = useMemo(
-		() => Schema.properties.style.enum.map((color) => t(`${Schema.properties.style.see}.${color}` as any)),
+		() =>
+			Object.values(Style).map((color) => {
+				return {
+					value: color,
+					children: tString(`catalog.style.${color}`),
+				};
+			}),
 		[],
 	);
 
@@ -32,7 +40,7 @@ export const useFormSelectValues = (): FormSelectValues => {
 
 	const syntaxes = useMemo(
 		() =>
-			Schema.properties.syntax.enum.map((syntax) => ({
+			Object.values(Syntax).map((syntax) => ({
 				value: syntax,
 				children: syntax,
 			})),

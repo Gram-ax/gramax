@@ -3,16 +3,18 @@ import { getExtractHeader } from "@core/FileStructue/Article/parseContent";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import Localizer from "@ext/localization/core/Localizer";
-import { ContentLanguage, resolveLanguage } from "@ext/localization/core/model/Language";
+import { resolveLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import { SearchArgs, SearchStreamArgs } from "@ext/serach/ChatBotSearcher";
 import { withRetries } from "@ext/serach/vector/utils/withRetries";
-import { ArticleLanguage, VectorArticle, VectorArticleMetadata } from "@ext/serach/vector/VectorArticle";
+import { VectorArticle, VectorArticleMetadata } from "@ext/serach/vector/VectorArticle";
 import VectorArticleContentParser from "@ext/serach/vector/VectorArticleContentParser";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import {
 	ChatResponse,
+	ChatStreamResponse,
 	CheckAuthResponse,
 	CheckResponse,
 	Filter,
@@ -60,12 +62,11 @@ export default class VectorDatabaseClient {
 		void this._readAllCatalogs(); // read all catalogs
 	}
 
-	async chat(
-		query: string,
-		responseLanguage: ContentLanguage,
-		articlesLanguage: ArticleLanguage,
-		catalogName?: string,
-	): Promise<ChatResponse> {
+	async chat(args: SearchArgs): Promise<ChatResponse>;
+	async chat(args: SearchStreamArgs): Promise<ChatStreamResponse>;
+	async chat(args: SearchArgs | SearchStreamArgs): Promise<ChatResponse | ChatStreamResponse>;
+	async chat(args: SearchArgs | SearchStreamArgs): Promise<ChatResponse | ChatStreamResponse> {
+		const { query, catalogName, articlesLanguage, responseLanguage, signal, stream } = args;
 		const filter: Filter = {
 			metadata: [],
 		};
@@ -85,7 +86,25 @@ export default class VectorDatabaseClient {
 			});
 
 		try {
-			return await this._vectorApiClient.chat(query, responseLanguage, filter);
+			const res = await this._vectorApiClient.chat({
+				query,
+				language: responseLanguage,
+				filter,
+				stream,
+				reqOptions: {
+					signal,
+				},
+			});
+			if (!res?.requestId) {
+				throw new DefaultError(
+					t("search.ai-search-error"),
+					new Error("No items found"),
+					{ showCause: true, logCause: true },
+					false,
+					t("search.ai-search-error-title"),
+				);
+			}
+			return res;
 		} catch (error) {
 			throw new DefaultError(
 				t("search.ai-search-error"),

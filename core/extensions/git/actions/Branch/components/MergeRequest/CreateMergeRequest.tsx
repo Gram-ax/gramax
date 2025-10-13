@@ -1,31 +1,27 @@
+import Icon from "@components/Atoms/Icon";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import useWatch from "@core-ui/hooks/useWatch";
+import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
+import validateEmail from "@core/utils/validateEmail";
+import styled from "@emotion/styled";
+import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
+import SelectGES from "@ext/git/actions/Branch/components/MergeRequest/SelectGES";
+import SelectGitCommitAuthors from "@ext/git/actions/Branch/components/MergeRequest/SelectGitCommitAuthors";
 import {
 	ApprovalSignature,
 	CreateMergeRequest,
 	MergeRequestOptions,
 } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@ui-kit/Button";
+import { CheckboxField } from "@ui-kit/Checkbox";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
+import { Textarea } from "@ui-kit/Textarea";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { LoadOptionsParams } from "@ui-kit/AsyncSearchSelect";
-import PageDataContext from "@core-ui/ContextServices/PageDataContext";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import { CommitAuthorInfo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
-import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
-import { Textarea } from "@ui-kit/Textarea";
-import { MultiSelect, useCache } from "@ui-kit/MultiSelect";
-import { CheckboxField } from "@ui-kit/Checkbox";
-import styled from "@emotion/styled";
-import { Button } from "@ui-kit/Button";
-import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
-import Icon from "@components/Atoms/Icon";
-import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 
 const OptionsContainer = styled.div`
 	display: flex;
@@ -44,8 +40,6 @@ interface MergeRequestModalProps {
 	isLoading?: boolean;
 }
 
-type LoadApprovers = (params: LoadOptionsParams) => Promise<Array<{ value: string; label: string }>>;
-
 const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 	const {
 		preventSearchAndStartLoading = false,
@@ -57,11 +51,8 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 		onClose,
 		useGesUsersSelect,
 	} = props;
-	const apiUrlCreator = ApiUrlCreator.value;
-	const gesUrl = PageDataContext.value.conf.enterprise.gesUrl;
 
 	const [isOpen, setIsOpen] = useState(true);
-	const [enterpriseApi] = useState(() => new EnterpriseApi(gesUrl));
 
 	const schema = z.object({
 		approvers: z.array(z.object({ label: z.string(), value: z.string() })),
@@ -73,27 +64,6 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 			})
 			.optional(),
 	});
-
-	const loadApprovers: LoadApprovers = async ({ searchQuery }) => {
-		const fetchAuthors = async (searchQuery: string) => {
-			const url = apiUrlCreator.getGitCommitAuthors(searchQuery);
-			const response = await FetchService.fetch<CommitAuthorInfo[]>(url);
-			const data = await response.json();
-
-			return data?.sort((a, b) => b.count - a.count) || [];
-		};
-
-		const users = useGesUsersSelect ? await enterpriseApi.getUsers(searchQuery) : await fetchAuthors(searchQuery);
-		return users.map((user) => {
-			const codec = AuthorInfoCodec.serialize({ name: user.name, email: user.email });
-			return {
-				value: codec,
-				label: codec,
-			};
-		});
-	};
-
-	const { loadOptions } = useCache(loadApprovers);
 
 	const form = useForm<z.infer<typeof schema>>({
 		resolver: zodResolver(schema),
@@ -118,7 +88,7 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 
 	return (
 		<Modal open={isOpen} onOpenChange={setIsOpen}>
-			<ModalContent data-modal-root>
+			<ModalContent data-modal-root size="M">
 				<Form asChild {...form}>
 					<form className="contents ui-kit" onSubmit={formSubmit}>
 						<FormHeader
@@ -142,14 +112,47 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 									required
 									title={t("git.merge-requests.approvers")}
 									control={({ field }) => (
-										<MultiSelect
-											{...field}
-											placeholder={`${t("select2")} ${t("git.merge-requests.approvers2")}`}
-											loadMode={preventSearchAndStartLoading ? "input" : "auto"}
-											minInputLength={preventSearchAndStartLoading ? 0 : 3}
-											loadOptions={loadOptions}
-											invalid={!!form.formState.errors?.approvers}
-										/>
+										<>
+											{useGesUsersSelect ? (
+												<SelectGES
+													preventSearchAndStartLoading={preventSearchAndStartLoading}
+													approvers={field.value}
+													onChange={(reviewers) => {
+														field.onChange(
+															reviewers.map((reviewer) => ({
+																label: reviewer.name,
+																value: AuthorInfoCodec.serialize(reviewer),
+															})),
+														);
+													}}
+												/>
+											) : (
+												<SelectGitCommitAuthors
+													approvers={field.value}
+													shouldFetch={isOpen}
+													onChange={(reviewers) => {
+														const additionalReviewers = reviewers.filter((reviewer) =>
+															validateEmail(reviewer.value),
+														);
+
+														const res = [
+															...reviewers
+																.filter((reviewer) => !!reviewer.name)
+																.map((reviewer) => ({
+																	label: reviewer.name,
+																	value: AuthorInfoCodec.serialize(reviewer),
+																})),
+															...additionalReviewers.map((reviewer) => ({
+																label: reviewer.value,
+																value: AuthorInfoCodec.serialize(reviewer),
+															})),
+														];
+
+														field.onChange(res);
+													}}
+												/>
+											)}
+										</>
 									)}
 									labelClassName={"w-44"}
 								/>
@@ -167,9 +170,11 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 								<FormField
 									name="options"
 									title={t("other")}
+									labelClassName="items-start"
 									control={({ field }) => (
 										<OptionsContainer>
 											<CheckboxField
+												className="gap-2"
 												checked={field.value?.deleteAfterMerge}
 												onCheckedChange={(value) =>
 													field.onChange({ ...field.value, deleteAfterMerge: value })
@@ -177,6 +182,7 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 												label={t("git.merge.delete-branch-after-merge")}
 											/>
 											<CheckboxField
+												className="gap-2"
 												checked={field.value?.squash}
 												description={t("git.merge.squash-tooltip")}
 												onCheckedChange={(value) =>

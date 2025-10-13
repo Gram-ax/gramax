@@ -37,8 +37,8 @@ pub fn open_directory() -> Option<PathBuf> {
 
 #[command]
 pub fn open_in_explorer(path: &Path) -> Result<()> {
-  _ = path.metadata()?;
-  _ = open::that_detached(path).or_show_with_message(&t!("etc.error.open-path", path = path.to_string_lossy()));
+  crate::open_path(path)?;
+
   Ok(())
 }
 
@@ -68,7 +68,6 @@ pub fn set_language<R: Runtime>(app: AppHandle<R>, language: &str) -> Result<()>
   }
 
   app.emit("on_language_changed", language)?;
-
   Ok(())
 }
 
@@ -90,6 +89,33 @@ pub fn set_badge<R: Runtime>(window: WebviewWindow<R>, count: Option<i64>) -> Re
 pub fn set_badge<R: Runtime>(window: WebviewWindow<R>, count: Option<usize>) -> Result<()> {
   super::init::Badges::set_badge(&window, count)?;
   Ok(())
+}
+
+#[cfg(target_os = "macos")]
+#[command]
+pub fn history_back_forward_go<R: Runtime>(window: WebviewWindow<R>, forward: bool) -> Result<()> {
+  window.with_webview(move |webview| unsafe {
+    let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
+    if forward {
+      webview.goForward();
+    } else {
+      webview.goBack();
+    }
+  })?;
+  Ok(())
+}
+
+#[cfg(target_os = "macos")]
+#[command]
+pub async fn history_back_forward_can_go<R: Runtime>(window: WebviewWindow<R>) -> Result<(bool, bool)> {
+  let (sender, receiver) = tokio::sync::oneshot::channel();
+
+  window.with_webview(move |webview| unsafe {
+    let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
+    let _ = sender.send((webview.canGoBack(), webview.canGoForward()));
+  })?;
+
+  Ok(receiver.await.unwrap())
 }
 
 #[command]

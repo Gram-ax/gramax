@@ -3,7 +3,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
-import { IconEditorProps } from "@ext/markdown/elements/icon/logic/IconProvider";
+import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 
 const create: Command<{ ctx: Context; catalogName: string; iconEditorProps: IconEditorProps }, string> = Command.create(
 	{

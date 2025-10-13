@@ -34,11 +34,10 @@ class SEOGenerator {
 		}`;
 	}
 
-	async generateCatalogSitemap(domain: string, catalogName: string): Promise<string> {
+	async generateCatalogSitemap(domain: string, catalog: ReadonlyCatalog): Promise<string> {
 		let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n
 		<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-		const catalog = await this._workspace.getContextlessCatalog(catalogName);
 		const items = catalog.getItems();
 		sitemap += await this._processItems(catalog, items, domain);
 

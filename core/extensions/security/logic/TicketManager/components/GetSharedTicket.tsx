@@ -13,22 +13,20 @@ import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import Form from "@rjsf/core";
 import { useEffect, useState } from "react";
 
-const jsonScheme = {
-	type: "object",
-	properties: {
-		date: {
-			format: "date",
-			type: "string",
-			default: "01.01.9999",
-		},
-	},
-};
+const StyledDiv = styled.div`
+	font-size: 0.875rem;
+	margin-bottom: 0.5rem;
+`;
 
-const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: string }) => {
-	const { trigger, className } = props;
+interface GetSharedTicketProps {
+	className?: string;
+	onClose?: () => void;
+}
+
+const GetSharedTicket = (props: GetSharedTicketProps) => {
+	const { className, onClose } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const [date, setDate] = useState<string>("01.01.9999");
@@ -57,20 +55,9 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 		loadGroups();
 	}, [apiUrlCreator]);
 
-	jsonScheme.properties.date.default = date;
-
 	if (!groups?.length || !isNext || !canEditCatalog) return null;
 	return (
-		<Modal
-			trigger={trigger}
-			onClose={() => {
-				setDate("01.01.9999");
-				setGroup(null);
-				setTicket(null);
-				setShowDate(false);
-			}}
-			onOpen={() => {}}
-		>
+		<Modal isOpen onClose={() => onClose?.()}>
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
@@ -85,20 +72,14 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 							<span>{t("link-end-date")}</span>
 						</Checkbox>
 						{!showData ? null : (
-							<Form
-								schema={jsonScheme as any}
-								validator={{
-									validateFormData: () => null,
-									toErrorList: () => null,
-									isValid: () => true,
-									rawValidation: () => null,
-								}}
-								onSubmit={() => {}}
-								onChange={(value: any) => {
-									setDate(value.formData.date);
-								}}
-								className={className}
-							/>
+							<StyledDiv>
+								<input
+									type="date"
+									value={date}
+									onChange={(e) => setDate(e.target.value)}
+									className={className}
+								/>
+							</StyledDiv>
 						)}
 
 						<label>{t("users-group")}</label>
@@ -138,11 +119,11 @@ const GetSharedTicket = styled((props: { trigger: JSX.Element; className?: strin
 			</ModalLayoutLight>
 		</Modal>
 	);
-})`
+};
+
+export default styled(GetSharedTicket)`
 	.btn,
 	.control-label {
 		display: none;
 	}
 `;
-
-export default GetSharedTicket;

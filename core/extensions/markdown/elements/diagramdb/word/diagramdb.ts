@@ -1,7 +1,7 @@
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 import { errorWordLayout } from "@ext/wordExport/error";
 import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
-import { Paragraph } from "docx";
+import docx from "@dynamicImports/docx";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import DbDiagram from "../../../../../ui-logic/DbDiagram";
 import { resolveLanguage } from "../../../../localization/core/model/Language";
@@ -9,6 +9,7 @@ import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const diagramdbWordLayout: WordBlockChild = async ({ tag, wordRenderContext }) => {
 	try {
+		const { Paragraph } = await docx();
 		const diagram = new DbDiagram(
 			wordRenderContext.parserContext.getTablesManager(),
 			wordRenderContext.parserContext.fp,

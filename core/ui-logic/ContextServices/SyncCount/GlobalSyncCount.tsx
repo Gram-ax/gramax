@@ -3,13 +3,16 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
 import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { feature } from "@ext/toggleFeatures/features";
 import assert from "assert";
 import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type CatalogSyncValue = {
 	pull: number;
 	push: number;
+	changed: number;
 	hasChanges: boolean;
 	errorMessage?: string;
 };
@@ -40,6 +43,7 @@ export default class GlobalSyncCountService {
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
 		const isOffline = isOfflineService.value;
+		const sourceDatas = SourceDataService.value;
 
 		const fetchAllowed = !pageDataContext.conf.isReadOnly && !isOffline;
 		const key = `${WorkspaceService.current()?.name}_all`;
@@ -90,9 +94,9 @@ export default class GlobalSyncCountService {
 		);
 
 		useEffect(() => {
-			if (!fetchAllowed || !hasWorkspace) return;
+			if (!fetchAllowed || !hasWorkspace || !sourceDatas || sourceDatas.length === 0) return;
 			fetchSyncCounts(false);
-		}, [fetchAllowed, hasWorkspace, fetchSyncCounts]);
+		}, [fetchAllowed, hasWorkspace, fetchSyncCounts, sourceDatas]);
 
 		useEffect(() => {
 			if (!fetchAllowed) return;

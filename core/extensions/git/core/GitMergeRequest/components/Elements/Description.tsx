@@ -9,6 +9,7 @@ const Wrapper = styled.div`
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
+	text-overflow: ellipsis;
 	line-height: 1.2;
 
 	span:nth-of-type(1) {

@@ -25,5 +25,6 @@ export const getStaticModules = async (): Promise<any> => {
 		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
+		openInWeb: (url: string) => (typeof window === "undefined" ? undefined : window.open(url)),
 	};
 };

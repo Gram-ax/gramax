@@ -27,15 +27,17 @@ const renderGroup = (
 							key={property.name}
 							property={property}
 							trigger={
-								<Property
-									key={property.name}
-									type={property.type}
-									icon={property.icon}
-									propertyStyle={property.style}
-									name={property.name}
-									value={property.type !== PropertyTypes.flag ? property.value : property.name}
-									shouldShowValue={property.type !== PropertyTypes.flag}
-								/>
+								<div>
+									<Property
+										key={property.name}
+										type={property.type}
+										icon={property.icon}
+										propertyStyle={property.style}
+										name={property.name}
+										value={property.type !== PropertyTypes.flag ? property.value : property.name}
+										shouldShowValue={property.type !== PropertyTypes.flag}
+									/>
+								</div>
 							}
 						/>
 					))}

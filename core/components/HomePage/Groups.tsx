@@ -4,6 +4,10 @@ import { HomePageBreadcrumb, Section, Sections } from "@core/SitePresenter/SiteP
 import styled from "@emotion/styled";
 import FavoriteCatalogLinkService from "@ext/artilce/Favorite/components/FavoriteCatalogLinkService";
 import t from "@ext/localization/locale/translate";
+
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import Group from "./Group";
+import { WorkspaceView } from "@ext/workspace/WorkspaceConfig";
 import {
 	Breadcrumb,
 	BreadcrumbItem,
@@ -11,10 +15,8 @@ import {
 	BreadcrumbList,
 	BreadcrumbPage,
 	BreadcrumbSeparator,
-} from "ics-ui-kit/components/breadcrumb";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import Group from "./Group";
-import { WorkspaceView } from "@ext/workspace/WorkspaceConfig";
+} from "@ui-kit/Breadcrumb";
+import { ContentDivider } from "@ui-kit/Divider";
 
 interface GroupsProps {
 	className?: string;
@@ -31,7 +33,7 @@ interface ViewGroupProps {
 }
 
 const SectionView = ({ section, setIsAnyCardLoading, group }: ViewGroupProps) => {
-	const { folderViews, sectionViews } = Object.entries(section.sections).reduce(
+	const { folderViews, sectionViews } = Object.entries(section.sections || {}).reduce(
 		(acc, [sectionKey, subSection]) => {
 			const targetArray = subSection.view === WorkspaceView.section ? acc.sectionViews : acc.folderViews;
 			targetArray[sectionKey] = subSection;
@@ -68,14 +70,17 @@ const SectionView = ({ section, setIsAnyCardLoading, group }: ViewGroupProps) =>
 					</div>
 				);
 			})}
+			{sectionKeys.length > 0 && section.catalogLinks && (
+				<ContentDivider>
+					<div className="text-medium text-center font-normal text-muted">{t("other")}</div>
+				</ContentDivider>
+			)}
 			{section.catalogLinks && (
-				<div className="pt-4">
-					<Group
-						sections={folderViews}
-						catalogLinks={section.catalogLinks}
-						setIsAnyCardLoading={setIsAnyCardLoading}
-					/>
-				</div>
+				<Group
+					sections={folderViews}
+					catalogLinks={section.catalogLinks}
+					setIsAnyCardLoading={setIsAnyCardLoading}
+				/>
 			)}
 		</>
 	);
@@ -105,12 +110,11 @@ const Groups = (props: GroupsProps) => {
 	const favoriteCatalogLinks = FavoriteCatalogLinkService.value;
 
 	const isMainPage = breadcrumb.length === 0;
-
 	const ViewGroup = !isMainPage ? FolderView : SectionView;
 
 	return (
-		<div className={`${className} w-full pt-4 px-4`} style={isAnyCardLoading ? { pointerEvents: "none" } : {}}>
-			<div className="mx-auto flex max-w-[1144px] flex-col gap-8 breadcrumb-container">
+		<div className={`${className}`} style={isAnyCardLoading ? { pointerEvents: "none" } : {}}>
+			<div className="flex flex-col gap-8 breadcrumb-container">
 				<Breadcrumb>
 					<BreadcrumbList>
 						{breadcrumb.map((b, index) => (
@@ -134,7 +138,7 @@ const Groups = (props: GroupsProps) => {
 					</BreadcrumbList>
 				</Breadcrumb>
 			</div>
-			<div className="mx-auto flex max-w-[1144px] flex-col gap-8">
+			<div className="mx-auto flex flex-col groups-container">
 				{!!favoriteCatalogLinks.length && isMainPage && (
 					<Group
 						title={t("favorites")}
@@ -151,6 +155,16 @@ const Groups = (props: GroupsProps) => {
 export default styled(Groups)`
 	flex: 1;
 
+	.groups-container {
+		gap: 3rem;
+	}
+
+	${cssMedia.narrow} {
+		.groups-container {
+			gap: 2rem;
+		}
+	}
+
 	.group-container {
 		gap: 2.5rem;
 		display: flex;
@@ -158,9 +172,7 @@ export default styled(Groups)`
 	}
 
 	.group-content {
-		gap: 1.5rem;
-		display: flex;
-		flex-wrap: wrap;
+		display: grid;
 	}
 
 	.scroll-conteiner {
@@ -178,7 +190,6 @@ export default styled(Groups)`
 	}
 
 	a {
-		width: fit-content;
 		font-weight: 300;
 		color: var(--color-home-card-link);
 		text-decoration: none;

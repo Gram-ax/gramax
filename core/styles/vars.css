@@ -101,15 +101,17 @@
 	--z-index-selected-cell: 2;
 	--z-index-card-overflow: 10;
 	--z-index-homepage-action: 20;
+	--z-index-nav-layout: 49;
+	--z-index-toolbar: 50;
+	--z-index-overlay: 50;
+	--z-index-top-menu: 50;
+	--z-index-top-menu-dragable-area: 51;
 	--z-index-base: 100;
 	--z-index-popover: 150;
 	--z-index-article-modal: 200;
 	--z-index-article-confirm-modal: 300;
-	--z-index-nav-layout: 102;
 	--z-index-header-navigation: 103;
 	--z-index-diff-bottom-bar: 104;
-	--z-index-top-menu: 100;
-	--z-index-top-menu-dragable-area: 101;
 	--z-index-article-search: 110;
 	--z-index-modal-overlay: 190;
 }
@@ -475,7 +477,7 @@ body {
 	--color-nav-menu-bg: var(--color-menu-bg);
 	--color-right-nav-bg: var(--color-contextmenu-bg);
 
-	--color-home-bg: var(--color-menu-bg);
+	--color-home-bg: hsl(var(--primary-bg));
 	--color-home-card-bg: var(--color-block);
 	--color-home-card-bg-hover: var(--color-block-hover);
 

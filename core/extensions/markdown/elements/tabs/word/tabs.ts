@@ -4,17 +4,19 @@ import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import {
 	STANDARD_PAGE_WIDTH,
 	WordBlockType,
-	wordBordersType,
+	getWordBordersType,
 	WordFontStyles,
 	wordMarginsType,
 } from "@ext/wordExport/options/wordExportSettings";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { createParagraph } from "@ext/wordExport/createParagraph";
-import { Table, TableCell, TableRow, WidthType } from "docx";
+import docx from "@dynamicImports/docx";
 
 const INNER_BLOCK_WIDTH_DIFFERENCE = 310;
 
 export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
+	const { Table, TableCell, TableRow, WidthType } = await docx();
+	const wordBordersType = await getWordBordersType();
 	const children = "children" in tag ? tag.children : tag.content;
 	const rows = await Promise.all(
 		children.map(async (tab: Tag | JSONContent) => {
@@ -22,7 +24,7 @@ export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions })
 			const attrs = "attributes" in tabTag ? tabTag.attributes : tabTag.attrs;
 			const children = "children" in tabTag ? tabTag.children : tabTag.content;
 			const paragraphs = [
-				createParagraph([createContent(attrs.name, addOptions)], WordFontStyles.tabsTitle),
+				await createParagraph([await createContent(attrs.name, addOptions)], WordFontStyles.tabsTitle),
 				...(
 					await Promise.all(
 						children.map((child) =>

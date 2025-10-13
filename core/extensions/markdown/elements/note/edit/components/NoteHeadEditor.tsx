@@ -15,7 +15,12 @@ const NoteHeadEditor = forwardRef((props: NoteHeadEditorProps, ref: RefObject<HT
 	const { editor, getPos, onChange, defaultValue, autoFocus = true } = props;
 
 	const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter") return editor.commands.focus(getPos(), { scrollIntoView: false });
+		if (e.key === "Enter") {
+			const pos = getPos();
+			const posInNote = pos + 1;
+			editor.chain().insertContentAt(posInNote, "<p></p>").focus(posInNote, { scrollIntoView: false }).run();
+			return;
+		}
 		if (e.key === "ArrowDown") return editor.commands.focus(getPos(), { scrollIntoView: false });
 	};
 

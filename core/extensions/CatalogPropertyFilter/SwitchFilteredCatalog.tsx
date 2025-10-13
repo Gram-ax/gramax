@@ -10,7 +10,7 @@ import t from "@ext/localization/locale/translate";
 import { feature } from "@ext/toggleFeatures/features";
 import { addScopeToPath } from "@ext/versioning/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from "ics-ui-kit/components/dropdown";
+import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
 import { useState } from "react";
 
 const SwitchFilteredCatalog = () => {

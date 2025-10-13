@@ -1,3 +1,4 @@
+import getApp from "@app/browser/app";
 import { isTauriMobile } from "@app/resolveModule/env";
 import LanguageService from "@core-ui/ContextServices/Language";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -11,12 +12,13 @@ import TauriCookie from "./cookie/TauriCookie";
 import { attachConsole } from "./logging";
 import { initZoom } from "./window/zoom";
 
-const subscribeEnterpriseEvents = (current: WebviewWindow) => {
-	return current.listen("enterprise-configure", () => {
-		if (!window?.app?.em) return;
+const subscribeEnterpriseEvents = async (current: WebviewWindow) => {
+	const app = await getApp();
+	await current.listen("enterprise-configure", () => {
+		if (!app?.em) return;
 		ModalToOpenService.setValue<ComponentProps<typeof EditEnterpriseConfig>>(ModalToOpen.EditEnterpriseConfig, {
-			config: window.app.em.getConfig(),
-			onSave: (config) => void window.app.em.setConfig(config).then(() => window.location.reload()),
+			config: app.em.getConfig(),
+			onSave: (config) => void app.em.setConfig(config).then(() => window.location.reload()),
 		});
 	});
 };

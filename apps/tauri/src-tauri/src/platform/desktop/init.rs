@@ -15,7 +15,13 @@ pub struct OpenUrl(pub Mutex<Option<String>>);
 
 type InitResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
-pub fn window_post_init<R: Runtime>(_: &WebviewWindow<R>) -> Result<()> {
+pub fn window_post_init<R: Runtime>(w: &WebviewWindow<R>) -> Result<()> {
+  #[cfg(target_os = "macos")]
+  w.with_webview(|webview| unsafe {
+    let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
+    // webview.setAllowsBackForwardNavigationGestures(true);
+    webview.setAllowsMagnification(true);
+  })?;
   Ok(())
 }
 

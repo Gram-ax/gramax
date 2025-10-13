@@ -85,15 +85,13 @@ const AnnotationMenu = (props: AnnotationMenuProps) => {
 					<Input
 						ref={textRef}
 						type="text"
+						style={{ width: "15rem" }}
 						value={text}
 						placeholder={annotationText}
 						onChange={(event) => {
-							setText(event.target.value);
-							debounceFunction(
-								ANNOTATION_MENU_SYMBOL,
-								() => setTooltipText(index, event.target.value),
-								200,
-							);
+							const text = event.target.value.replace(",", "");
+							setText(text);
+							debounceFunction(ANNOTATION_MENU_SYMBOL, () => setTooltipText(index, text), 200);
 						}}
 					/>
 

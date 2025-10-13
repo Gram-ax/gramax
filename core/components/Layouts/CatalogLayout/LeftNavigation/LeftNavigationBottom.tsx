@@ -5,8 +5,7 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { configureCatalogPermission, editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@react-hook/media-query";
 import CreateArticle from "../../../../extensions/artilce/actions/CreateArticle";
 import CatalogPropsService from "../../../../ui-logic/ContextServices/CatalogProps";
 import ExtensionBarLayout from "../../ExtensionBarLayout";
@@ -18,7 +17,6 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	const isCatalogExist = !!catalogProps.name;
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const mediumMedia = useMediaQuery(cssMedia.JSmedium);
-	const isStorageInitialized = useIsStorageInitialized();
 	const workspacePath = WorkspaceService.current().path;
 	const { isNext, isStatic, isStaticCli } = usePlatform();
 	const isStaticOrStaticCli = isStatic || isStaticCli;
@@ -52,9 +50,7 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 				}
 				rightExtensions={mediumMedia ? null : [<PinToggleArrowIcon key={1} />]}
 			/>
-			{canSeeStatusBar && isCatalogExist && (
-				<ArticleStatusBar isStorageInitialized={isStorageInitialized} padding={"0 6px"} />
-			)}
+			{canSeeStatusBar && isCatalogExist && <ArticleStatusBar padding={"0 6px"} />}
 		</div>
 	);
 };

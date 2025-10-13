@@ -1,11 +1,5 @@
-import Button from "@components/Atoms/Button/Button";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import FormStyle from "@components/Form/FormStyle";
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { useRouter } from "@core/Api/useRouter";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
-import Mode from "@ext/git/actions/Clone/model/Mode";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import FetchService from "../../../ui-logic/ApiServices/FetchService";
@@ -13,58 +7,37 @@ import MimeTypes from "../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../ui-logic/ContextServices/ApiUrlCreator";
 import CatalogPropsService from "../../../ui-logic/ContextServices/CatalogProps";
 import StorageData from "../models/StorageData";
-import SelectStorageDataForm from "./SelectStorageDataForm";
+import { Modal, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import SelectStorageDataForm from "@ext/storage/components/SelectStorageDataForm";
 
 const InitStorage = ({ trigger }: { trigger: JSX.Element }) => {
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const router = useRouter();
 
-	const [load, setLoad] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
-	const [storageData, setStorageData] = useState<StorageData>(null);
 
-	const onSelect = async (data: StorageData) => {
-		if (!data) return;
-		setLoad(true);
-		const res = await FetchService.fetch(apiUrlCreator.initStorage(), JSON.stringify(data), MimeTypes.json);
-		setLoad(false);
+	const onSubmit = async (data: StorageData) => {
+		const group = data.name;
+		const name = catalogProps.name;
+		const newData = { ...data, group, name };
+		if (!newData) return;
+
+		const res = await FetchService.fetch(apiUrlCreator.initStorage(), JSON.stringify(newData), MimeTypes.json);
 		if (res.ok) router.pushPath(await res.text());
 		setIsOpen(false);
+		return res.ok;
 	};
 
 	return (
-		<ModalLayout trigger={trigger} isOpen={isOpen} onOpen={() => setIsOpen(true)} onClose={() => setIsOpen(false)}>
-			<ModalLayoutLight>
-				{!load ? (
-					<OnNetworkApiErrorService.Provider
-						callback={() => {
-							setIsOpen(false);
-						}}
-					>
-						<SelectStorageDataForm title={t("connect-storage")} onChange={setStorageData} mode={Mode.init}>
-							<div className="buttons">
-								<Button
-									disabled={
-										!storageData ||
-										Object.keys(storageData)
-											.filter((n) => n != "name")
-											.some((n) => !storageData[n])
-									}
-									onClick={() => onSelect({ ...storageData, name: catalogProps.name })}
-								>
-									{t("select")}
-								</Button>
-							</div>
-						</SelectStorageDataForm>
-					</OnNetworkApiErrorService.Provider>
-				) : (
-					<FormStyle>
-						<SpinnerLoader fullScreen />
-					</FormStyle>
-				)}
-			</ModalLayoutLight>
-		</ModalLayout>
+		<Modal open={isOpen} onOpenChange={setIsOpen}>
+			<ModalTrigger asChild>{trigger}</ModalTrigger>
+			<ModalContent>
+				<OnNetworkApiErrorService.Provider callback={() => setIsOpen(false)}>
+					<SelectStorageDataForm mode="init" onSubmit={onSubmit} title={t("connect-storage")} />
+				</OnNetworkApiErrorService.Provider>
+			</ModalContent>
+		</Modal>
 	);
 };
 

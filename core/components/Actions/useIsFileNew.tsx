@@ -6,7 +6,7 @@ import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/l
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
+import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useEffect, useState } from "react";
 
@@ -15,7 +15,7 @@ const useIsFileNew = (item: ClientArticleProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const hasRemoteStorage = useHasRemoteStorage();
-	const isStorageInitialized = useIsStorageInitialized();
+	const isStorageConnected = useIsStorageConnected();
 
 	const [isFileNew, setIsFileNew] = useState(false);
 
@@ -26,9 +26,9 @@ const useIsFileNew = (item: ClientArticleProps) => {
 	};
 
 	useEffect(() => {
-		if (!hasRemoteStorage || !isStorageInitialized || isReadOnly || !item?.logicPath) return;
+		if (!hasRemoteStorage || !isStorageConnected || isReadOnly || !item?.logicPath) return;
 		void getIsFileNew();
-	}, [item?.logicPath, hasRemoteStorage, isStorageInitialized, isReadOnly]);
+	}, [item?.logicPath, hasRemoteStorage, isStorageConnected, isReadOnly]);
 
 	useEffect(() => {
 		const handler = async (_, caller: OnBranchUpdateCaller) => {

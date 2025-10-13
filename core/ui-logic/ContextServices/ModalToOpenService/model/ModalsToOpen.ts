@@ -10,6 +10,8 @@ enum ModalToOpen {
 	Clone = "Clone",
 	PullHandler = "PullHandler",
 
+	ImportModal = "ImportModal",
+
 	SnippetAlreadyUseWarn = "SnippetAlreadyUseWarn",
 
 	Loading = "Loading",
@@ -22,7 +24,7 @@ enum ModalToOpen {
 	Merge = "Merge",
 	CreateMergeRequest = "CreateMergeRequest",
 	MergeRequestConfirm = "MergeRequestConfirm",
-	CreateSourceData = "CreateSourceData",
+	CreateStorage = "CreateStorage",
 
 	EditEnterpriseConfig = "EditEnterpriseConfig",
 
@@ -37,6 +39,26 @@ enum ModalToOpen {
 	EditWorkspaceForm = "EditWorkspaceForm",
 
 	MediaPreview = "MediaPreview",
+	FilePreview = "FilePreview",
+
+	EnterpriseLogout = "EnterpriseLogout",
+
+	// Article dropdown modals
+	ItemPropsEditor = "ItemPropsEditor",
+	MarkdownEditor = "MarkdownEditor",
+	BugsnagModal = "BugsnagModal",
+	History = "History",
+	UnsupportedElements = "UnsupportedElements",
+	Share = "Share",
+
+	// Catalog dropdown modals
+	CatalogPropsEditor = "CatalogPropsEditor",
+	GetSharedTicket = "GetSharedTicket",
+	Healthcheck = "Healthcheck",
+
+	ActionConfirm = "ActionConfirm",
+
+	ExportPdf = "ExportPdf",
 }
 
 export default ModalToOpen;

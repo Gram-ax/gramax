@@ -1,5 +1,5 @@
-import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
-import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
+import GitSourceType from "@ext/git/core/model/GitSourceType";
+import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 /**
  * @see git-source-data
@@ -8,7 +8,7 @@ interface GitSourceData extends SourceData {
 	/**
 	 * @default ""
 	 */
-	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab | SourceType.gitVerse;
+	sourceType: GitSourceType;
 	domain: string;
 	/**
 	 * @private

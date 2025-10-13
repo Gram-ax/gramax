@@ -60,14 +60,6 @@ pub struct Hunk {
   pub status: StatusEntry,
 }
 
-#[derive(Serialize, Default, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct UpstreamCountChangedFiles {
-  pub pull: usize,
-  pub push: usize,
-  pub has_changes: bool,
-}
-
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DiffTree2TreeInfo {

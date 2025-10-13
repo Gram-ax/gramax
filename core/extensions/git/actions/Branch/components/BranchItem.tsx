@@ -8,6 +8,8 @@ import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequ
 import t from "@ext/localization/locale/translate";
 import InlineUser from "@ext/security/components/User/InlineUser";
 import Sidebar from "../../../../../components/Layouts/Sidebar";
+import { isInDropdown } from "@ui-kit/Dropdown";
+import { MouseEvent } from "react";
 
 interface BranchLayoutProps {
 	title: string;
@@ -125,7 +127,8 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 
 	const hasMergeRequest = !!mergeRequest;
 
-	const onBranchSwitch = () => {
+	const onBranchSwitch = (e: MouseEvent<HTMLElement>) => {
+		if (isInDropdown(e)) return;
 		if (!canSwitchBranch(title)) return;
 		switchBranch(title);
 	};

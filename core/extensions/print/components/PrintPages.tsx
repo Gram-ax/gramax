@@ -1,33 +1,40 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import { ArticlePrintPreview } from "@ext/print/components/ArticlePrintPreview";
 import { useGetItems } from "@ext/print/components/useGetItems";
+import { PdfPrintParams } from "@ext/print/types";
 import paginateIntoPages from "@ext/print/utils/paginateIntoPages";
 import { memo, useMemo, useRef } from "react";
-import { PrintMode } from "../types";
 
 type PrintPagesProps = {
 	itemPath?: string;
 	isCategory?: boolean;
-	printMode: PrintMode;
 	catalogProps: ClientCatalogProps;
 	apiUrlCreator: ApiUrlCreator;
+	params: PdfPrintParams;
 	onDone?: VoidFunction;
 };
 
 const PrintPages = memo(
-	({ itemPath, isCategory, catalogProps, apiUrlCreator, onDone }: PrintPagesProps) => {
-		const { items } = useGetItems(catalogProps.name, apiUrlCreator, isCategory, itemPath);
+	({ itemPath, isCategory, catalogProps, apiUrlCreator, params, onDone }: PrintPagesProps) => {
+		const { items } = useGetItems(catalogProps.name, apiUrlCreator, isCategory, itemPath, params.titleNumber);
 		const components = useMemo(getComponents, []);
 
 		const renderDivRef = useRef<HTMLDivElement>(null);
 		const printDivRef = useRef<HTMLDivElement>(null);
 
-		const startPaginateIntoPages = () => {
+		const startPaginateIntoPages = async () => {
+			const newParams = { ...params };
+			if (params.template) {
+				const res = await FetchService.fetch(apiUrlCreator.getPdfTemplateUrl(params.template));
+				if (res.ok) newParams.template = await res.text();
+			}
+
 			setTimeout(() => {
-				paginateIntoPages(renderDivRef.current, printDivRef.current, onDone);
+				paginateIntoPages(renderDivRef.current, printDivRef.current, newParams, items, onDone);
 			}, 200);
 		};
 

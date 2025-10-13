@@ -10,7 +10,7 @@ import DrawioActions from "@ext/markdown/elements/drawio/edit/components/DrawioA
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base64Converter";
@@ -83,7 +83,7 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 			const res = await FetchService.fetch(url);
 			if (res.ok) {
 				const buffer = await res.buffer();
-				const urlToImage = URL.createObjectURL(new Blob([buffer], { type: resolveImageKind(buffer) }));
+				const urlToImage = URL.createObjectURL(new Blob([buffer], { type: resolveFileKind(buffer) }));
 				const newSize = await getNaturalSize(urlToImage);
 				if (newSize) {
 					attributes.width = newSize.width + "px";

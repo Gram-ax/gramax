@@ -1,6 +1,7 @@
 import AnimatedExtension from "@components/Atoms/ItemWrapper";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
+import { isFromModal } from "@ui-kit/Modal";
 import { forwardRef, memo, MouseEvent, RefObject, useCallback, useRef } from "react";
 
 export interface ItemComponentProps {
@@ -13,6 +14,14 @@ export interface ItemComponentProps {
 	rightText?: JSX.Element;
 	className?: string;
 }
+
+const isDropdownElement = (e: MouseEvent<HTMLElement>): boolean => {
+	const target = e.target as HTMLElement;
+	const isInRightExtensions = Boolean(target.closest(".right-extensions"));
+	const isInRadixContent = Boolean(target.closest("[data-radix-popper-content-wrapper]"));
+
+	return isInRightExtensions || isFromModal(e) || isInRadixContent;
+};
 
 const Item = forwardRef((props: ItemComponentProps, ref: RefObject<HTMLDivElement>) => {
 	const {
@@ -30,6 +39,7 @@ const Item = forwardRef((props: ItemComponentProps, ref: RefObject<HTMLDivElemen
 
 	const handleClick = useCallback(
 		(event: MouseEvent<HTMLDivElement>) => {
+			if (isDropdownElement(event)) return;
 			event.stopPropagation();
 			event.preventDefault();
 			onItemClick(id, Ref.current);

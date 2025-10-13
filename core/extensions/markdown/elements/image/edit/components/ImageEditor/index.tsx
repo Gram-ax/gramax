@@ -392,9 +392,9 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 	};
 
 	const removeObject = (index: number, save: boolean) => {
-		setElements(() => {
+		setElements((prevElements) => {
 			selectElement(null);
-			const newElements = [...elements];
+			const newElements = [...prevElements];
 			if (save) changeData(index, "object", newElements[index]);
 			newElements.splice(index, 1);
 			return newElements;
@@ -441,6 +441,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 
 	const onKeyDown = (ev: KeyboardEvent) => {
 		const char = ev.key;
+		const target = ev.target as HTMLElement;
 
 		const isUndo = (ev.ctrlKey || ev.metaKey) && char === "z";
 		if (isUndo) {
@@ -448,9 +449,11 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 				revertAdditions(additions[additions.length - 1]);
 			}
 
-			ev.preventDefault();
-		} else if (char === "Escape") closeEditor();
-		else setLastKeypress(char);
+			return ev.preventDefault();
+		}
+		if (char === "Escape") return closeEditor();
+		if (char === "Backspace" && target.nodeName !== "INPUT") return removeObject(selectedIndex, true);
+		setLastKeypress(char);
 	};
 
 	const closeEditor = (force?: boolean) => {
@@ -467,7 +470,7 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 		return () => {
 			window.removeEventListener("keydown", onKeyDown);
 		};
-	}, [lastKeypress, additions]);
+	}, [lastKeypress, additions, selectedIndex]);
 
 	const handleOnLoad: ReactEventHandler<HTMLImageElement> = (e) => {
 		const target = e.target as HTMLImageElement;

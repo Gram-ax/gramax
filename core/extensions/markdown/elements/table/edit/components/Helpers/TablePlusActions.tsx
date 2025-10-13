@@ -172,7 +172,6 @@ export default styled(TablePlusActions)`
 		overflow-x: visible;
 		display: grid;
 		justify-content: center;
-		z-index: var(--z-index-base);
 		grid-template-columns: ${({ tableSizes }) => `${tableSizes?.cols?.join(" ")} 0px`};
 
 		.plus-actions-container {
@@ -187,7 +186,6 @@ export default styled(TablePlusActions)`
 		overflow-y: visible;
 		display: grid;
 		justify-content: center;
-		z-index: var(--z-index-base);
 		grid-template-rows: ${({ tableSizes }) => `${tableSizes?.rows?.join(" ")} 0px`};
 
 		.plus-actions-container {

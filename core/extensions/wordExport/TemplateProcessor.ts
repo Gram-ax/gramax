@@ -1,14 +1,16 @@
 import t from "@ext/localization/locale/translate";
-import { ISectionOptions, patchDocument, PatchType, Paragraph, PageBreak } from "docx";
-import JSZip from "jszip";
+import type { ISectionOptions } from "docx";
+import docx from "@dynamicImports/docx";
+import type JSZip from "jszip";
+import jszip from "@dynamicImports/jszip";
 import assert from "assert";
-import { DOMParser, XMLSerializer, Document, Element } from "@xmldom/xmldom";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import resolveModule from "@app/resolveModule/backend";
 
 const CONTENT_PLACEHOLDER = "gramax_content";
 
-const parseXml = (xml: string) => new DOMParser().parseFromString(xml, "application/xml");
-const printXml = (node) => new XMLSerializer().serializeToString(node);
+const parseXml = (xml: string) => resolveModule("getDOMParser")().parseFromString(xml, "application/xml");
+const printXml = (node) => resolveModule("getXMLSerializer")().serializeToString(node);
 
 function setNsAttr(node: Element, name: string, value: string): void {
 	node.setAttribute(name, value);
@@ -53,6 +55,7 @@ class TemplateProcessor {
 	}
 
 	private async _patchTemplate(templateBuffer: Buffer): Promise<Buffer> {
+		const { patchDocument, PatchType, Paragraph, PageBreak } = await docx();
 		const children = this._docxSections.flatMap((section, index) => {
 			const sectionChildren = [...(section.children || [])];
 			const isLastSection = index === this._docxSections.length - 1;
@@ -83,6 +86,7 @@ class TemplateProcessor {
 	private async _processDocumentInSingleZip(documentBuffer: Uint8Array): Promise<Uint8Array> {
 		const templateStyleMapping = await this._readTemplateStyles();
 
+		const JSZip = await jszip();
 		const zip = await JSZip.loadAsync(documentBuffer);
 
 		await this._fixNumIdInZip(zip);
@@ -96,6 +100,7 @@ class TemplateProcessor {
 	}
 
 	private async _readTemplateStyles(): Promise<Map<string, string>> {
+		const JSZip = await jszip();
 		const templateZip = new JSZip();
 		await templateZip.loadAsync(new Uint8Array(this._templateBuffer));
 
@@ -167,7 +172,6 @@ class TemplateProcessor {
 	private _collectTemplateAbstractNums(numXml: string): Map<string, string> {
 		const map = new Map<string, string>();
 		const doc = parseXml(numXml);
-		const serializer = new XMLSerializer();
 		const abstractNums = Array.from(doc.getElementsByTagName("w:abstractNum"));
 		for (const abs of abstractNums as any[]) {
 			const styleLink =
@@ -175,7 +179,7 @@ class TemplateProcessor {
 			if (styleLink) {
 				const val = styleLink.getAttribute("w:val");
 				if (val) {
-					map.set(val, serializer.serializeToString(abs));
+					map.set(val, printXml(abs));
 				}
 			}
 		}

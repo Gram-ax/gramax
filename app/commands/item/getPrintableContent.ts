@@ -8,13 +8,13 @@ import collectPrintablePages from "@ext/print/utils/collectPrintablePages";
 import RuleProvider from "@ext/rules/RuleProvider";
 
 const getPrintableContent: Command<
-	{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string },
+	{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string; titleNumber?: boolean },
 	PrintablePage[]
 > = Command.create({
 	path: "item/getPrintableContent",
 	kind: ResponseKind.json,
 
-	async do({ ctx, catalogName, isCategory, itemPath }) {
+	async do({ ctx, catalogName, isCategory, itemPath, titleNumber }) {
 		const { wm, parser, parserContextFactory } = this._app;
 		const workspace = wm.current();
 		const catalog = await workspace.getCatalog(catalogName, ctx);
@@ -36,6 +36,7 @@ const getPrintableContent: Command<
 			pages,
 			isCategory,
 			isCatalog,
+			titleNumber,
 		);
 
 		return pages;
@@ -43,9 +44,10 @@ const getPrintableContent: Command<
 
 	params(ctx, q) {
 		const catalogName = q.catalogName;
+		const titleNumber = q.titleNumber === "true";
 		const itemPath = new Path(q.itemPath);
 		const isCategory = q.isCategory === "true";
-		return { ctx, itemPath, catalogName, isCategory };
+		return { ctx, itemPath, catalogName, isCategory, titleNumber };
 	},
 });
 

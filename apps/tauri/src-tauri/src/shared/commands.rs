@@ -36,12 +36,18 @@ pub fn http_listen_once<R: Runtime>(
   }
 
   #[cfg(desktop)]
-  open::that_detached(url)?;
+  crate::open_url(url)?;
 
   super::http_server::oauth_listen_once(action, move |req| {
     window.emit(&callback_name, req.url().split('?').nth(1)).unwrap()
   });
 
+  Ok(())
+}
+
+#[command]
+pub fn open_in_web(url: &str) -> Result<()> {
+  crate::open_url(url)?;
   Ok(())
 }
 

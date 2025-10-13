@@ -1,6 +1,6 @@
 import { AppConfig } from "@app/config/AppConfig";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Bugsnag from "@bugsnag/js";
+import bugsnag from "@dynamicImports/bugsnag";
 import normalizeStacktrace from "@ext/bugsnag/logic/normalizeStacktrace";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import sendBug from "../bugsnag/logic/sendBug";
@@ -8,10 +8,21 @@ import BaseLogger from "./BaseLogger";
 import Logger from "./Logger";
 
 export default class BugsnagLogger extends BaseLogger implements Logger {
-	constructor(config: AppConfig) {
+	private constructor() {
 		super();
+	}
+
+	static async init(config: AppConfig): Promise<BugsnagLogger> {
+		const bugsnagStarted = await this.startBugsnag(config);
+		if (bugsnagStarted) console.log(`Bugsnag is started! [AppVersion:${config.buildVersion}]`);
+		return new BugsnagLogger();
+	}
+
+	private static async startBugsnag(config: AppConfig) {
+		if (!config.bugsnagApiKey) return;
+		const Bugsnag = (await bugsnag()).default;
+		if (Bugsnag.isStarted()) return;
 		const target = getExecutingEnvironment().toUpperCase();
-		if (Bugsnag.isStarted() || !config.bugsnagApiKey) return;
 		Bugsnag.start({
 			releaseStage: "production",
 			apiKey: config.bugsnagApiKey,
@@ -28,14 +39,13 @@ export default class BugsnagLogger extends BaseLogger implements Logger {
 				});
 			},
 		});
-		console.log(`Bugsnag is started! [AppVersion:${config.buildVersion}]`);
+		return true;
 	}
 
 	logError(e: Error, errorDisplayed?: boolean) {
 		if (!this._checkErrorLogLevel()) return;
-		if (errorDisplayed) {
-			Bugsnag.addMetadata("user", "errorDisplayed", true);
-		}
+		if (errorDisplayed)
+			void bugsnag().then(({ default: Bugsnag }) => Bugsnag.addMetadata("user", "errorDisplayed", true));
 		void sendBug(e);
 	}
 

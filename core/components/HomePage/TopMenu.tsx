@@ -15,11 +15,15 @@ import ThemeToggle from "@ext/Theme/components/ThemeToggle";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import useUrlImage from "../Atoms/Image/useUrlImage";
-import { styled } from "@mui/material";
+import styled from "@emotion/styled";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 
 export type HomePageActionsProps = { catalogLinks: CatalogLink[]; pin?: boolean };
 
 const Logo = ({ className }: { className?: string }) => {
+	const breakpoint = useBreakpoint();
+	const isMobile = breakpoint !== "xl" && breakpoint !== "lg" && breakpoint !== "2xl";
 	const theme = ThemeService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { homeLogo } = WorkspaceAssetsService.value();
@@ -29,7 +33,7 @@ const Logo = ({ className }: { className?: string }) => {
 	return (
 		<div className={classNames(className, { "logo-desktop-padding": isMacDesktop })}>
 			<img
-				src={homeLogo ? homeLogo : useUrlImage(apiUrlCreator.getLogo(theme))}
+				src={homeLogo ? homeLogo : useUrlImage(apiUrlCreator.getLogo(theme, isMobile))}
 				className={classNames("home-icon")}
 				alt={`logo-${theme}`}
 			/>
@@ -49,7 +53,7 @@ const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
 	const { isTauri } = usePlatform();
 	const isMacDesktop = IsMacService.value && isTauri;
 	const { isNext, isStatic } = usePlatform();
-	const hasWorkspace = WorkspaceService.hasActive();
+	const hasWorkspace = WorkspaceService.hasActive() && !PageDataContextService.value.isGesUnauthorized;
 	const workspacePath = WorkspaceService.current()?.path;
 
 	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath);
@@ -59,24 +63,26 @@ const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
 	return (
 		<div
 			data-qa="app-actions"
-			className={`w-full bg-alpha-40 top-0 px-4 ${isMacDesktop ? "pt-4" : ""}`}
-			style={{ backdropFilter: "blur(5px)", position: "sticky", zIndex: "var(--z-index-top-menu)" }}
+			className={`w-full bg-alpha-40 top-0 ${isMacDesktop ? "pt-4" : ""}`}
+			style={{ backdropFilter: "blur(24px)", position: "sticky", zIndex: "var(--z-index-top-menu)" }}
 		>
-			<div className="w-full mx-auto flex max-w-[1144px] flex-row items-center justify-between py-2 relative">
-				<div className="flex flex-row items-center gap-3 lg:gap-6">
-					<div>
-						<StyledLogo />
+			<div className="top-menu">
+				<div className={`flex flex-row items-center justify-between py-1.5 lg:py-2.5`}>
+					<div className="flex flex-row items-center gap-3 lg:gap-6">
+						<div>
+							<StyledLogo />
+						</div>
+						<div className="flex flex-row items-center lg:gap-2">
+							{!isNext && hasWorkspace && !isStatic && <SwitchWorkspace />}
+							{canAddCatalog && hasWorkspace && !isStatic && <AddCatalogMenu />}
+						</div>
 					</div>
-					<div className="flex flex-row items-center lg:gap-2">
-						{!isNext && hasWorkspace && !isStatic && <SwitchWorkspace />}
-						{canAddCatalog && hasWorkspace && !isStatic && <AddCatalogMenu />}
+					<div className="flex flex-row items-center gap-0.5 lg:gap-2">
+						{hasWorkspace && !isStatic && <Search isHomePage catalogLinks={catalogLinks} />}
+						<SwitchUiLanguage size="lg" />
+						<ThemeToggle isHomePage />
+						{hasWorkspace && !isStatic && <SingInOut />}
 					</div>
-				</div>
-				<div className="flex flex-row items-center gap-0.5 lg:gap-2">
-					{hasWorkspace && !isStatic && <Search isHomePage catalogLinks={catalogLinks} />}
-					<SwitchUiLanguage />
-					<ThemeToggle isHomePage />
-					{hasWorkspace && !isStatic && <SingInOut />}
 				</div>
 			</div>
 		</div>

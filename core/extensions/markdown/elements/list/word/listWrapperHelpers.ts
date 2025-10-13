@@ -1,28 +1,32 @@
-import {
-	Paragraph,
-	TextRun,
-	Table as DocxTable,
-	TableRow,
-	TableCell,
-	WidthType,
-	VerticalAlign,
-	TableBorders,
-	TableLayoutType,
-} from "docx";
+import type { Table as DocxTable } from "docx";
+import docx from "@dynamicImports/docx";
 import { WrapperMetrics } from "@ext/wordExport/lists/listMetrics";
 
-export function separatorParaAfterTable() {
+export async function separatorParaAfterTable() {
+	const { Paragraph, TextRun } = await docx();
 	return new Paragraph({
 		spacing: { before: 0, after: 0 },
 		children: [new TextRun({ text: "", size: 1 })],
 	});
 }
 
-export function buildListWrapperTable(
+export async function buildListWrapperTable(
 	inner: any,
 	numbering: { reference: string; level: number; instance?: number },
 	metrics: WrapperMetrics,
-): DocxTable {
+): Promise<DocxTable> {
+	const {
+		Paragraph,
+		TextRun,
+		Table: DocxTable,
+		TableRow,
+		TableCell,
+		WidthType,
+		VerticalAlign,
+		TableBorders,
+		TableLayoutType,
+	} = await docx();
+
 	const numberingConfig = numbering.reference
 		? {
 				numbering: {

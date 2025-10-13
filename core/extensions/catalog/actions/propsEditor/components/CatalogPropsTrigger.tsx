@@ -1,0 +1,26 @@
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import Icon from "@components/Atoms/Icon";
+import t from "@ext/localization/locale/translate";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { ComponentProps } from "react";
+import CatalogPropsEditor from "./CatalogPropsEditor";
+
+const CatalogPropsTrigger = () => {
+	const onSelect = () => {
+		ModalToOpenService.setValue<ComponentProps<typeof CatalogPropsEditor>>(ModalToOpen.CatalogPropsEditor, {
+			onClose: () => {
+				ModalToOpenService.resetValue();
+			},
+		});
+	};
+
+	return (
+		<DropdownMenuItem onSelect={onSelect}>
+			<Icon code="square-pen" />
+			{t("catalog.configure")}
+		</DropdownMenuItem>
+	);
+};
+
+export default CatalogPropsTrigger;

@@ -41,6 +41,7 @@ import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig"
 import Application from "../types/Application";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
+import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	await initModulesFrontend();
@@ -98,7 +99,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
-	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
+	const logger: Logger = config.isProduction ? await BugsnagLogger.init(config) : new ConsoleLogger();
 	const sitePresenterFactory = new SitePresenterFactory(
 		wm,
 		parser,
@@ -116,6 +117,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
 	const searcherManager = new SearcherManager(new FuseSearcher(indexDataProvider));
 	const wtm = new WordTemplateManager(wm);
+	const ptm = new PdfTemplateManager(wm);
 
 	templateEventHandlers.withParser(parser, formatter, parserContextFactory);
 
@@ -128,6 +130,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		vur,
 		adp,
 		wtm,
+		ptm,
 		logger,
 		parser,
 		hashes,
@@ -171,14 +174,14 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	};
 };
 
-const container = window as {
-	app?: Application;
+const container = window as unknown as {
+	app?: Promise<Application>;
 };
 
-const getApp = async (): Promise<Application> => {
-	if (container.app) return container.app;
+const getApp = (): Promise<Application> => {
+	if (container.app != null) return container.app;
 	const config = getConfig();
-	container.app = await _init(config);
+	container.app = _init(config);
 	return container.app;
 };
 

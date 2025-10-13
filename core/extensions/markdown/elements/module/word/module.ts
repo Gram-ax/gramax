@@ -6,6 +6,6 @@ import { createContent } from "@ext/wordExport/TextWordGenerator";
 export const moduleWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
 	return [
 		await getIconFromString("box"),
-		createContent(`${tag.attributes.id}`, { ...addOptions, style: WordFontStyles.module }),
+		await createContent(`${tag.attributes.id}`, { ...addOptions, style: WordFontStyles.module }),
 	];
 };

@@ -10,11 +10,14 @@ import getCloneProgress from "./getCloneProgress";
 import getSyncCount from "./getSyncCount";
 import getUrl from "./getUrl";
 import haveToPull from "./haveToPull";
+import markAsBroken from "./markAsBroken";
 import publish from "./publish";
 import removeCloneCatalog from "./removeCloneCatalog";
 import removeSourceData from "./removeSourceData";
+import resetFileLock from "./resetFileLock";
 import setSourceInvalidState from "./setSourceState";
 import startClone from "./startClone";
+import startRecover from "./startRecover";
 import sync from "./sync";
 
 const storage = {
@@ -36,6 +39,9 @@ const storage = {
 	removeSourceData,
 	removeCloneCatalog,
 	setSourceInvalidState,
+	startRecover,
+	resetFileLock,
+	markAsBroken,
 };
 
 export default storage;

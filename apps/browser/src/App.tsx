@@ -7,8 +7,7 @@ import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { Toaster } from "ics-ui-kit/components/toast";
-import { TooltipProvider } from "@ui-kit/Tooltip";
+import { Toaster } from "@ui-kit/Toast";
 import { useCallback, useEffect, useState } from "react";
 import { Router } from "wouter";
 import Gramax, { GramaxData } from "./Gramax";
@@ -19,8 +18,11 @@ import useLocation from "./logic/Api/useLocation";
 const getData = async (route: string, query: Query) => {
 	const app = await getApp();
 	const commands = getCommands(app);
-	const lang = RouterPathProvider.parsePath(route).language;
-	const ctx = await app.contextFactory.fromBrowser(lang, query);
+	const language = RouterPathProvider.parsePath(route).language;
+	const ctx = await app.contextFactory.fromBrowser({
+		language,
+		query,
+	});
 	return commands.page.getPageData.do({ ctx, path: route });
 };
 
@@ -40,6 +42,7 @@ const AppContext = () => {
 	const [error, setError] = useState<DefaultError>();
 
 	const refresh = useCallback(async () => {
+		window.onNavigate?.(path);
 		try {
 			const data = await getData(path, parserQuery(query));
 			if (filterOutPageData(data?.data as ArticlePageData, setLocation)) return;
@@ -83,12 +86,10 @@ const AppContext = () => {
 const App = () => {
 	return (
 		<>
-			<TooltipProvider>
-				<Toaster />
-				<LanguageService.Init>
-					<AppContext />
-				</LanguageService.Init>
-			</TooltipProvider>
+			<Toaster />
+			<LanguageService.Init>
+				<AppContext />
+			</LanguageService.Init>
 		</>
 	);
 };

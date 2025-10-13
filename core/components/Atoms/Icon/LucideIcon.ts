@@ -1,5 +1,7 @@
 import customIcons, { CustomIcon } from "@components/Atoms/Icon/customIcons";
-import * as Lucide from "lucide-react";
+import preloadedIcons from "@components/Atoms/Icon/preloadedIcons";
+import lucideIcons, { useLucideModule } from "@dynamicImports/lucide-icons";
+import type { LucideIcon as LucideIconType } from "lucide-react";
 
 const toCamelCase = (str: string) => {
 	const parts = str.split("-");
@@ -7,10 +9,29 @@ const toCamelCase = (str: string) => {
 	return camelCaseParts.join("");
 };
 
-const LucideIcon = <T = NonNullable<unknown>>(code: string): Lucide.LucideIcon | CustomIcon<T> => {
-	if (!code || code === "icon") return null;
-	if (customIcons[code]) return customIcons[code];
-	return Lucide[toCamelCase(code)];
+const isValidIconCode = (code: string): boolean => {
+	return !(!code || code === "icon");
 };
 
-export default LucideIcon;
+const getLoadedIcon = (code: string): LucideIconType | CustomIcon => {
+	if (customIcons[code]) return customIcons[code];
+	if (preloadedIcons[code]) return preloadedIcons[code];
+};
+
+const LucideIconComponent = <T = NonNullable<unknown>>(code: string): LucideIconType | CustomIcon<T> => {
+	if (!isValidIconCode(code)) return null;
+	const loadedIcon = getLoadedIcon(code);
+	if (loadedIcon) return loadedIcon;
+	const icons = useLucideModule();
+	return icons ? icons[toCamelCase(code)] : null;
+};
+
+export const LucideIcon = async (code: string) => {
+	if (!isValidIconCode(code)) return null;
+	const loadedIcon = getLoadedIcon(code);
+	if (loadedIcon) return loadedIcon;
+	const icons = await lucideIcons();
+	return icons[toCamelCase(code)];
+};
+
+export default LucideIconComponent;

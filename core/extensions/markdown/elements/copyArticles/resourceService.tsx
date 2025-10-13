@@ -13,7 +13,12 @@ import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider"
 import getArticleFileBrotherNames from "@ext/markdown/elementsUtils/AtricleResource/getAtricleResourceNames";
 import { ReactElement, createContext, useCallback, useContext, useEffect, useState } from "react";
 
-type UseGetResource = (callback: (buffer: Buffer) => void, src: string, content?: string) => void;
+type UseGetResource = (
+	callback: (buffer: Buffer) => void,
+	src: string,
+	content?: string,
+	haveParentPath?: boolean,
+) => void;
 
 type SetResource = (name: string, file: string | Buffer, path?: string, force?: boolean) => Promise<string>;
 
@@ -26,6 +31,7 @@ export type ResourceServiceType = {
 	id?: string;
 	provider?: ArticleProviderType;
 	useGetResource: UseGetResource;
+	getResource: (src: string) => Promise<Buffer>;
 	setResource: SetResource;
 	deleteResource: DeleteResource;
 	getBuffer: (src: string) => Buffer;
@@ -38,6 +44,7 @@ const ResourceServiceContext = createContext<ResourceServiceType>({
 	id: undefined,
 	provider: undefined,
 	useGetResource: () => {},
+	getResource: async () => Promise.resolve(Buffer.from("")),
 	deleteResource: async () => {},
 	setResource: async () => Promise.resolve(""),
 	getBuffer: () => Buffer.from(""),
@@ -74,7 +81,36 @@ abstract class ResourceService {
 			[data, setData],
 		);
 
-		const useGetResource = (callback: (buffer: Buffer) => void, src: string, content?: string) => {
+		const getResource = useCallback(
+			async (src: string) => {
+				if (data?.[src]) return data?.[src];
+				const url = apiUrlCreator.getArticleResource(src, undefined, catalogName, id, provider);
+
+				const res = await FetchService.fetch(url, undefined, MimeTypes.text, Method.POST, false);
+
+				if (!res.ok) return;
+				return await res.buffer();
+			},
+			[data, apiUrlCreator, catalogName, id, provider],
+		);
+
+		const getNoParentResource = useCallback(
+			async (fullResourcePath: Path) => {
+				const url = apiUrlCreator.getResourceByPath(fullResourcePath.value);
+				const res = await FetchService.fetch(url, undefined, MimeTypes.text, Method.POST, false);
+				if (!res.ok) return;
+
+				return await res.buffer();
+			},
+			[apiUrlCreator],
+		);
+
+		const useGetResource = (
+			callback: (buffer: Buffer) => void,
+			src: string,
+			content?: string,
+			haveParentPath = true,
+		) => {
 			const fetchImage = async (src: string) => {
 				const res = await fetch(src);
 				if (!res.ok) return;
@@ -90,8 +126,8 @@ abstract class ResourceService {
 			};
 
 			const loadExternalData = async (src: string) => {
-				const buffer = getExecutingEnvironment() === "tauri" ? fetchInTauri(src) : fetchImage(src);
-				return Buffer.from(await buffer);
+				const buffer = await (getExecutingEnvironment() === "tauri" ? fetchInTauri(src) : fetchImage(src));
+				if (buffer) return Buffer.from(buffer);
 			};
 
 			const loadInternalData = async (src: string) => {
@@ -104,9 +140,13 @@ abstract class ResourceService {
 			};
 
 			const loadData = async (src: string) => {
-				const buffer = isExternalLink(src).isExternal
-					? await loadExternalData(src)
-					: await loadInternalData(src);
+				let buffer: Buffer;
+
+				if (!haveParentPath) {
+					buffer = await getNoParentResource(new Path(src));
+				} else {
+					buffer = isExternalLink(src).isExternal ? await loadExternalData(src) : await loadInternalData(src);
+				}
 
 				if (!buffer || !buffer.length) return callback(undefined);
 				update(src, buffer);
@@ -159,7 +199,18 @@ abstract class ResourceService {
 
 		return (
 			<ResourceServiceContext.Provider
-				value={{ data, id, provider, useGetResource, setResource, deleteResource, getBuffer, clear, update }}
+				value={{
+					data,
+					id,
+					provider,
+					useGetResource,
+					getResource,
+					setResource,
+					deleteResource,
+					getBuffer,
+					clear,
+					update,
+				}}
 			>
 				{children}
 			</ResourceServiceContext.Provider>

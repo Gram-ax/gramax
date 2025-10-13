@@ -2,12 +2,12 @@ import MiniArticle from "@components/Article/MiniArticle";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import PageDataContext from "@core/Context/PageDataContext";
 import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
@@ -16,7 +16,7 @@ import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { Mark } from "@tiptap/pm/model";
-import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
 
 type dataType = {
@@ -67,7 +67,6 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	} = props;
 	const [isVisible, setIsVisible] = useState(false);
 	const [canClose, setCanClose] = useState(true);
-	const [data, setData] = useState<dataType>(null);
 	const [hash, setHash] = useState<string>(initialHash);
 	const [tooltipPlace, setTooltipPlace] = useState("top");
 
@@ -87,25 +86,17 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 
 	const openDebounce = useDebounce(() => setIsVisible(true), 500, true);
 
-	const fetchData = useCallback(async () => {
-		const mark = getMark();
-		const combinedResourcePath = mark?.attrs?.resourcePath || resourcePath;
-		if (!combinedResourcePath) return;
-
-		const url = apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
-
-		if (!url) return;
-		const res = await FetchService.fetch<dataType>(url, undefined, undefined, undefined, false);
-
-		if (!res || !res.ok) return;
-		try {
-			const data = await res.json();
+	const { call: fetchData, data } = useApi<dataType>({
+		url: useMemo(() => {
+			const mark = getMark();
+			const combinedResourcePath = mark?.attrs?.resourcePath || resourcePath;
+			return apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
+		}, [apiUrlCreator, getMark, resourcePath]),
+		onDone: () => {
+			const mark = getMark();
 			if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(decodeURIComponent(mark.attrs.hash));
-			setData(data);
-		} catch (error) {
-			console.warn("Error fetching article content", error);
-		}
-	}, [apiUrlCreator, getMark, resourcePath]);
+		},
+	});
 
 	const clearHandler = useCallback(() => {
 		debounceClose.cancel();

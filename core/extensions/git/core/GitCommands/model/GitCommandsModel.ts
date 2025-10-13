@@ -15,7 +15,7 @@ import { GitStatus } from "../../GitWatcher/model/GitStatus";
 import GitSourceData from "../../model/GitSourceData.schema";
 import { GitVersion } from "../../model/GitVersion";
 
-export type CloneCancelToken = number;
+export type CancelToken = number;
 
 export type DiffCompareOptions =
 	| {
@@ -67,21 +67,23 @@ export type TransferProgress =
 	| { type: "indexingDeltas"; data: { indexed: number; total: number } }
 	| { type: "receivingObjects"; data: { received: number; indexed: number; total: number } };
 
-type CloneProgressTypes =
+type RemoteProgressTypes =
 	| { type: "queue"; data: object }
 	| { type: "started"; data: object }
 	| { type: "finish"; data: { isCancelled: boolean } }
 	| { type: "error"; data: { error: DefaultError } }
-	| { type: "sideband"; data: { id: CloneCancelToken; remoteText: string } }
-	| { type: "checkout"; data: { id: CloneCancelToken; checkouted: number; total: number } }
-	| { type: "download"; data: { id: CloneCancelToken; bytes: number; downloadSpeedBytes: number } }
+	| { type: "sideband"; data: { id: CancelToken; remoteText: string } }
+	| { type: "checkout"; data: { id: CancelToken; checkouted: number; total: number } }
+	| { type: "download"; data: { id: CancelToken; bytes: number; downloadSpeedBytes: number } }
 	| { type: "download-no-progress"; data: object }
 	| {
 			type: "chunkedTransfer";
-			data: { id: CloneCancelToken; transfer: TransferProgress; bytes: number; downloadSpeedBytes: number };
+			data: { id: CancelToken; transfer: TransferProgress; bytes: number; downloadSpeedBytes: number };
 	  };
 
-export type CloneProgress = CloneProgressTypes & { cancellable?: boolean };
+export type RemoteProgress = RemoteProgressTypes & { cancellable?: boolean };
+
+export type RemoteProgressPercentage = RemoteProgress & { percentage: number };
 
 export type CommitScope = { commit: string };
 
@@ -133,9 +135,15 @@ interface GitCommandsModel {
 		branch?: string,
 		depth?: number,
 		isBare?: boolean,
-		onProgress?: (progress: CloneProgress) => void,
+		allowNonEmptyDir?: boolean,
+		onProgress?: (progress: RemoteProgress) => void,
 	): Promise<void>;
-	cloneCancel(id: number): Promise<boolean>;
+	recover(
+		data: GitSourceData,
+		cancelToken: CancelToken,
+		onProgress: (progress: RemoteProgress) => void,
+	): Promise<void>;
+	cancel(id: number): Promise<boolean>;
 	getAllCancelTokens(): Promise<number[]>;
 	setHead(refname: string): Promise<void>;
 	commit(message: string, data: SourceData, parents?: string[], files?: string[]): Promise<GitVersion>;
@@ -167,7 +175,7 @@ interface GitCommandsModel {
 
 	getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]>;
 	getCommitInfo(oid: string, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]>;
-	graphHeadUpstreamFilesCount(searchIn: string): Promise<UpstreamCountFileChanges>;
+	countChangedFiles(searchIn: string): Promise<UpstreamCountFileChanges>;
 
 	getHeadCommit(branch: string): Promise<GitVersion>;
 
@@ -190,6 +198,7 @@ interface GitCommandsModel {
 	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean>;
 
 	gc(opts: GcOptions): Promise<void>;
+	healthcheck(): Promise<void>;
 }
 
 export default GitCommandsModel;

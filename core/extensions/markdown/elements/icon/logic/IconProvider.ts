@@ -3,14 +3,10 @@ import FileProvider from "@core/FileProvider/model/FileProvider";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import { uniqueName } from "@core/utils/uniqueName";
+import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 
 const ICONS_FOLDER = ".icons";
 const ALLOWED_EXTENSIONS = ["svg"];
-
-export interface IconEditorProps {
-	code: string;
-	svg?: string;
-}
 
 export default class IconProvider {
 	private _iconsPath: Path;
@@ -48,9 +44,17 @@ export default class IconProvider {
 			const code = entry.name;
 			if (!ALLOWED_EXTENSIONS.includes(entry.extension)) continue;
 			const svg = await this.getIconByCode(code);
-			list.push({ code, svg });
+			const stat = await this._fp.getStat(new Path([this._iconsPath.value, entry.value]));
+			const size = stat.size;
+
+			list.push({ code, svg, size, type: "svg" });
 		}
 		return list;
+	}
+
+	async delete(code: string) {
+		await this._fp.delete(this._getIconPath(code));
+		this._cachedIcons.delete(code);
 	}
 
 	async create(iconEditorProps: IconEditorProps) {

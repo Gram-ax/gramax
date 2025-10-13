@@ -19,6 +19,7 @@ import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
+import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
@@ -40,20 +41,20 @@ import VectorChatBotSearcher from "@ext/serach/vector/VectorChatBotSearcher";
 import VectorDatabaseClient from "@ext/serach/vector/VectorDatabaseClient";
 import { VectorSearcher } from "@ext/serach/vector/VectorSearcher";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
+import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
+import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
 import FSTemplateEvents from "../../core/extensions/templates/logic/FSTemplateEvents";
 import { AppConfig, getConfig } from "../config/AppConfig";
 import Application from "../types/Application";
-import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
-import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	await initModulesFrontend();
 	await initModules();
 	if (!config.isReadOnly && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
 
-	const logger: Logger = config.isProduction ? new BugsnagLogger(config) : new ConsoleLogger();
+	const logger: Logger = config.isProduction ? await BugsnagLogger.init(config) : new ConsoleLogger();
 	logger.setLogLevel(LogLevel.trace);
 
 	await XxHash.init();
@@ -164,6 +165,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const workspaceConfig = await wm.maybeCurrent()?.config();
 
 	const wtm = new WordTemplateManager(wm);
+	const ptm = new PdfTemplateManager(wm);
 
 	return {
 		tm,
@@ -174,6 +176,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		vur,
 		adp,
 		wtm,
+		ptm,
 		parser,
 		logger,
 		hashes,

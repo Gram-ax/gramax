@@ -1,4 +1,5 @@
-import { ITableRowPropertiesOptions, Table, TableCell, TableRow, WidthType } from "docx";
+import docx from "@dynamicImports/docx";
+import type { ITableRowPropertiesOptions, TableRow, TableCell } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import { WordSerializerState } from "@ext/wordExport/WordExportState";
 import { TableAddOptionsWord, WordTableChildren } from "./WordTableExportTypes";
@@ -7,7 +8,7 @@ import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import {
 	STANDARD_PAGE_WIDTH,
 	WordBlockType,
-	wordBordersType,
+	getWordBordersType,
 	WordFontStyles,
 	wordMarginsType,
 } from "@ext/wordExport/options/wordExportSettings";
@@ -46,6 +47,7 @@ export class WordTableExport {
 	}
 
 	async renderCell(parent: Tag | JSONContent, isTableHeader = false): Promise<TableCell> {
+		const { TableCell, WidthType } = await docx();
 		const size = this._getCellWidth(
 			parent.attributes.colwidth
 				? parent.attributes.colwidth[0] * WordTableExport.defaultWidthCoefficient
@@ -94,6 +96,7 @@ export class WordTableExport {
 	}
 
 	async renderRow(block: Tag | JSONContent, addOptions?: TableAddOptionsWord): Promise<TableRow> {
+		const { TableRow } = await docx();
 		return new TableRow({
 			children: await this.renderRowContent(block),
 			cantSplit: false,
@@ -122,6 +125,8 @@ export class WordTableExport {
 	}
 
 	async renderTable(state: WordSerializerState, table: Tag | JSONContent, addOptions: AddOptionsWord) {
+		const { Table, WidthType } = await docx();
+		const wordBordersType = await getWordBordersType();
 		const parent = JSON.parse(JSON.stringify(table));
 		this._addOptions = addOptions;
 

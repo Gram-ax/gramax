@@ -4,23 +4,20 @@ import FileInput from "@components/Atoms/FileInput/FileInput";
 import t from "@ext/localization/locale/translate";
 import { FormHeader, FormFooter } from "@ui-kit/Form";
 import { Modal, ModalTrigger, ModalContent, ModalBody } from "@ui-kit/Modal";
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState, useRef, useEffect } from "react";
 
 interface FileEditorProps {
-	trigger: JSX.Element;
+	trigger?: JSX.Element;
 	loadContent: () => Promise<string>;
 	saveContent: (content: string) => Promise<unknown>;
+	onClose?: () => void;
 }
 
-const EditMarkdown = ({ trigger, loadContent, saveContent }: FileEditorProps) => {
-	const [isOpen, setIsOpen] = useState(false);
+const EditMarkdown = ({ trigger, loadContent, saveContent, onClose }: FileEditorProps) => {
+	const [isOpen, setIsOpen] = useState(!trigger);
 	const [value, setValue] = useState(null);
 	const isLoadingRef = useRef(false);
 	const [key, emit] = useTrigger();
-
-	const closeEditor = useCallback(() => {
-		setIsOpen(false);
-	}, []);
 
 	const loadArticleContent = useCallback(async () => {
 		if (isLoadingRef.current) return;
@@ -35,20 +32,24 @@ const EditMarkdown = ({ trigger, loadContent, saveContent }: FileEditorProps) =>
 		}
 	}, [loadContent]);
 
-	const save = useCallback(async () => {
-		await saveContent(value);
-		setIsOpen(false);
-	}, [value, saveContent]);
-
 	const onOpenChange = useCallback(
 		(value) => {
 			setIsOpen(value);
-			if (value && !isLoadingRef.current) {
-				void loadArticleContent();
-			}
+			if (value && !isLoadingRef.current) void loadArticleContent();
+			if (!value) onClose?.();
 		},
 		[loadArticleContent],
 	);
+
+	const save = useCallback(async () => {
+		await saveContent(value);
+		onOpenChange(false);
+	}, [value, saveContent, onOpenChange]);
+
+	useEffect(() => {
+		if (trigger) return;
+		void loadArticleContent();
+	}, []);
 
 	return (
 		<Modal open={isOpen} onOpenChange={onOpenChange}>
@@ -70,14 +71,11 @@ const EditMarkdown = ({ trigger, loadContent, saveContent }: FileEditorProps) =>
 						language={"markdown"}
 						value={value}
 						onChange={setValue}
-						height={"min(calc(650px - 2.5rem), calc(60vh - 2.5rem))"}
+						height={"100%"}
 						uiKitTheme
 					/>
 				</ModalBody>
-				<FormFooter
-					primaryButton={<Button variant="primary" onClick={save} children={t("save")} />}
-					secondaryButton={<Button onClick={closeEditor} variant="text" children={t("cancel")} />}
-				/>
+				<FormFooter primaryButton={<Button variant="primary" onClick={save} children={t("save")} />} />
 			</ModalContent>
 		</Modal>
 	);

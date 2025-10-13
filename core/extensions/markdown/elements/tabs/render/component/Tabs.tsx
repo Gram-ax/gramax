@@ -1,102 +1,135 @@
 import ContentEditable from "@components/Atoms/ContentEditable";
 import Icon from "@components/Atoms/Icon";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import CurrentTabsTagService from "@ext/markdown/elements/tabs/components/CurrentTabsTagService";
-import getVisibleChildAttrs from "@ext/markdown/elements/tabs/logic/getVisibleChildAttrs";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
+import { IconButton } from "@ui-kit/Button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { ReactElement, useState } from "react";
 
-const Tabs = ({
-	className,
-	childAttrs,
-	children,
-	onAddClick,
-	onTabEnter,
-	onRemoveClick,
-	onNameUpdate,
-	isEdit = false,
-	isPrint = false,
-}: {
+interface TabsProps {
 	isEdit?: boolean;
 	isPrint?: boolean;
 	childAttrs: TabAttrs[];
 	children?: ReactElement;
 	onAddClick?: () => void;
+	onDeleteClick?: () => void;
 	onTabEnter?: (idx: number) => void;
 	onRemoveClick?: (idx: number) => void;
 	onNameUpdate?: (value: string, idx: number) => void;
 	className?: string;
-}): ReactElement => {
-	const currentTag = CurrentTabsTagService.value;
-	const catalogProps = CatalogPropsService.value;
-	const tabsTags = catalogProps?.tabsTags;
-	const tags = tabsTags?.tags ?? [];
+}
 
-	const visibleChildAttrs = getVisibleChildAttrs(tags, currentTag, childAttrs);
+const Tabs = (props: TabsProps) => {
+	const {
+		className,
+		childAttrs,
+		children,
+		onAddClick,
+		onTabEnter,
+		onRemoveClick,
+		onDeleteClick,
+		onNameUpdate,
+		isEdit = false,
+		isPrint = false,
+	} = props;
 	const [activeIdx, setActiveIdx] = useState(0);
 
-	if (!visibleChildAttrs.length) return null;
+	if (!childAttrs.length) return null;
 	return (
 		<div className={className}>
-			{(visibleChildAttrs.length == 1 && !isEdit) || isPrint ? null : (
+			{(childAttrs.length == 1 && !isEdit) || isPrint ? null : (
 				<div className="switch" contentEditable="false" suppressContentEditableWarning>
-					{visibleChildAttrs.map(({ name, icon, idx }, key) => {
-						return (
-							<div
-								key={idx}
-								onClick={() => setActiveIdx(idx)}
-								className={`case ${activeIdx == idx ? "active" : ""} ${idx}`}
-							>
-								{icon && <Icon code={icon} style={{ marginRight: "0.2em" }} />}
-								{isEdit ? (
-									<ContentEditable
-										value={name}
-										className="text"
-										deps={[visibleChildAttrs.length]}
-										onEnter={() => onTabEnter(idx)}
-										onChange={(v) => onNameUpdate(v, idx)}
-									/>
-								) : (
-									<span title={name} className="read text">
-										{name}
-									</span>
-								)}
-								{isEdit && (
-									<Icon
-										key={key}
-										isAction
-										data-qa="qa-del-tab"
-										code="x"
-										className="xmark"
-										tooltipContent={
-											visibleChildAttrs.length == 1
-												? t("editor.tabs.delete-last")
-												: t("editor.tabs.delete")
-										}
+					<div className="cases flex flex-row gap-2 overflow-hidden min-w-0">
+						{childAttrs.map(({ name, icon, idx }, key) => {
+							return (
+								<div
+									key={idx}
+									onClick={() => setActiveIdx(idx)}
+									className={`case ${activeIdx == idx ? "active" : ""} ${idx}`}
+								>
+									{icon && <Icon code={icon} style={{ marginRight: "0.2em" }} />}
+									{isEdit ? (
+										<ContentEditable
+											value={name}
+											className="text"
+											deps={[childAttrs.length]}
+											onEnter={() => onTabEnter(idx)}
+											onChange={(v) => onNameUpdate(v, idx)}
+										/>
+									) : (
+										<span title={name} className="read text">
+											{name}
+										</span>
+									)}
+									{isEdit && (
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<IconButton
+													key={key}
+													size="lg"
+													variant="text"
+													data-qa="qa-del-tab"
+													icon="x"
+													style={{ padding: "0", height: "auto" }}
+													className="tabs-action w-4 h-4"
+													onClick={(e) => {
+														onRemoveClick(idx);
+														setActiveIdx(0);
+														e.stopPropagation();
+													}}
+												/>
+											</TooltipTrigger>
+											<TooltipContent>
+												{childAttrs.length == 1
+													? t("editor.tabs.delete-last")
+													: t("editor.tabs.delete")}
+											</TooltipContent>
+										</Tooltip>
+									)}
+								</div>
+							);
+						})}
+					</div>
+					{isEdit && (
+						<div className="flex flex-row gap-2">
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<IconButton
+										size="lg"
+										variant="text"
+										data-qa="qa-add-tab"
+										icon="plus"
+										disabled={childAttrs.length >= 5}
+										style={{ padding: "0", height: "auto" }}
+										className="tabs-action w-4 h-4"
 										onClick={(e) => {
-											onRemoveClick(idx);
-											setActiveIdx(0);
+											onAddClick();
+											setActiveIdx((prev) => prev + 1);
 											e.stopPropagation();
 										}}
 									/>
-								)}
-							</div>
-						);
-					})}
-					{isEdit && visibleChildAttrs.length < 5 && (
-						<Icon
-							code="plus"
-							viewBox="3 3 18 18"
-							isAction
-							data-qa="qa-add-tab"
-							tooltipContent={t("editor.tabs.add")}
-							onClick={() => {
-								onAddClick();
-								setActiveIdx(visibleChildAttrs.length);
-							}}
-						/>
+								</TooltipTrigger>
+								<TooltipContent>{t("editor.tabs.add")}</TooltipContent>
+							</Tooltip>
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<IconButton
+										size="lg"
+										variant="text"
+										data-qa="qa-delete-tabs"
+										icon="trash"
+										style={{ padding: "0", height: "auto" }}
+										className="tabs-action w-4 h-4"
+										onClick={(e) => {
+											onDeleteClick();
+											e.stopPropagation();
+										}}
+									/>
+								</TooltipTrigger>
+								<TooltipContent>{t("delete")}</TooltipContent>
+							</Tooltip>
+						</div>
 					)}
 				</div>
 			)}
@@ -115,6 +148,11 @@ export default styled(Tabs)`
 		gap: ${(p) => (p.isEdit ? "0.3rem" : "1rem")};
 		border-bottom: var(--color-article-text) solid 1px;
 
+		.cases {
+			padding-right: 1rem;
+			flex: 1;
+		}
+
 		.case {
 			gap: 0.1rem;
 			display: flex;
@@ -122,22 +160,21 @@ export default styled(Tabs)`
 			font-weight: 400;
 			align-items: center;
 			cursor: ${(p) => (p.isEdit ? "text" : "pointer")};
-			max-width: ${(p) =>
-				p.isEdit
-					? `calc(((100% - ${p.childAttrs.length != 5 ? "20px" : "0px"}) / ${p.childAttrs.length}) - 0.5rem)`
-					: `calc((100% / ${p.childAttrs.length}) - 1rem)`};
+			max-width: ${(p) => `${100 / p.childAttrs.length}%`};
 
 			.read {
 				overflow: hidden;
 				text-overflow: ellipsis;
 				white-space: nowrap !important;
+				flex: 1;
 			}
 
 			.text {
 				border-bottom: 2px #ffffff0f solid;
 			}
 
-			.xmark {
+			.tabs-action {
+				flex-shrink: 0;
 				visibility: hidden;
 			}
 		}
@@ -147,7 +184,7 @@ export default styled(Tabs)`
 				border-bottom: var(--color-text-secondary) solid 2px;
 			}
 
-			.xmark {
+			.tabs-action {
 				visibility: ${(p) => (p.isEdit ? "visible" : "hidden")};
 			}
 		}

@@ -4,8 +4,8 @@ import PropertyServiceProvider from "@ext/properties/components/PropertyService"
 import Icon from "@components/Atoms/Icon";
 import t from "@ext/localization/locale/translate";
 import Flag from "@ext/markdown/elements/inlineProperty/edit/components/inputs/Flag";
-import PropertyEditor from "@ext/markdown/elements/inlineProperty/edit/components/PropertyEditor";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
+import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 
 interface InlinePropertyProps {
 	bind: string;
@@ -44,7 +44,7 @@ interface EditablePropertyProps {
 	articleProp: Property;
 	catalogProp: Property;
 	isExists: boolean;
-	onChangeProperty: (name: string, value: string) => void;
+	onChangeProperty: (name: string, value: string | boolean) => void;
 }
 
 const EditableProperty = ({ bind, onChangeProperty, articleProp, catalogProp, isExists }: EditablePropertyProps) => {
@@ -63,19 +63,29 @@ const EditableProperty = ({ bind, onChangeProperty, articleProp, catalogProp, is
 
 	if (!articleProp) return trigger;
 
-	const resolvedCustomComponent = catalogProp.type === PropertyTypes.flag ? Flag : undefined;
+	const renderInput = () => {
+		const resolvedCustomComponent = catalogProp.type === PropertyTypes.flag ? Flag : undefined;
+		if (!resolvedCustomComponent) return undefined;
+		return () => (
+			<Flag
+				id={catalogProp.name}
+				preSubmit={onChangeProperty}
+				value={isExists}
+				onChange={(e) => onChangeProperty(catalogProp.name, e.target.checked)}
+			/>
+		);
+	};
 
 	return (
-		<PropertyEditor
-			customComponent={resolvedCustomComponent}
-			isInline
-			id={catalogProp.name}
-			type={catalogProp.type}
-			values={catalogProp.values}
-			value={isFlag ? isExists : articleProp.value}
-			onSubmit={onChangeProperty}
-			trigger={trigger}
-		/>
+		<span>
+			<PropertyArticle
+				renderInput={renderInput()}
+				property={articleProp}
+				onSubmit={onChangeProperty}
+				hideClear={catalogProp.type === PropertyTypes.flag}
+				trigger={trigger}
+			/>
+		</span>
 	);
 };
 

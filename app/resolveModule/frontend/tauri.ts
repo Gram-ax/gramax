@@ -33,5 +33,6 @@ export const getTauriModules = async (): Promise<any> => {
 		setBadge: tauriCommands.setBadge,
 		openInExplorer: tauriCommands.openInExplorer,
 		openWindowWithUrl: tauriCommands.openWindowWithUrl,
+		openInWeb: tauriCommands.openInWeb,
 	};
 };

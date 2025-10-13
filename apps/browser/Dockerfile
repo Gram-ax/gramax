@@ -19,11 +19,11 @@ RUN rm -r services
 
 RUN ["./install-deps.sh", "--ci"]
 
-ARG BUGSNAG_API_KEY \
-    COOKIE_SECRET \
-    PRODUCTION \
-    BRANCH \
-    GEPS_URL=https://gram.ax/enterprise-provider 
+ARG BUGSNAG_API_KEY
+ARG COOKIE_SECRET
+ARG PRODUCTION
+ARG BRANCH
+ARG GEPS_URL=https://gram.ax/enterprise-provider
 
 ENV NODE_OPTIONS=--max_old_space_size=8192 \
     BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \

@@ -1,11 +1,10 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import styled from "@emotion/styled";
-import Mode from "@ext/git/actions/Clone/model/Mode";
 import { useValidateSource } from "@ext/git/actions/Source/logic/useValidateSource";
 import t from "@ext/localization/locale/translate";
+import CreateStorage from "@ext/storage/components/CreateStorage";
 import useSourceData from "@ext/storage/components/useSourceData";
-import CreateSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateSourceData";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import removeSourceTokenIfInvalid from "@ext/storage/logic/utils/removeSourceTokenIfInvalid";
 
@@ -41,14 +40,13 @@ const InvalidSourceWarning = ({ small, source, modalTrigger = true }: InvalidSou
 	if (!modalTrigger) return trigger;
 
 	return (
-		<CreateSourceData
+		<CreateStorage
 			trigger={<div>{trigger}</div>}
-			onCreate={async (data: SourceData) => {
+			onSubmit={async (data: SourceData) => {
 				await validateSource(data, sourceDatas);
 			}}
-			defaultSourceData={data}
-			defaultSourceType={data?.sourceType}
-			mode={Mode.init}
+			data={data}
+			sourceType={data?.sourceType}
 		/>
 	);
 };

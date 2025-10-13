@@ -55,11 +55,35 @@ impl From<TagInfo> for RefInfo {
 }
 
 pub trait Refs {
+  fn find_local_refs(&self) -> Result<Vec<String>>;
   fn find_refs_by_globs<S: AsRef<str>>(&self, patterns: &[S]) -> Result<Vec<RefInfo>>;
   fn find_reference_pointee_info(&self, reference: &Reference) -> Result<Option<RefInfo>>;
 }
 
 impl<C: Creds> Refs for Repo<'_, C> {
+  fn find_local_refs(&self) -> Result<Vec<String>> {
+    let mut local_refs = vec![];
+    let mut remote_refs = vec![];
+
+    for reference in self.0.references()? {
+      let reference = reference?;
+      let refname = reference.name().or_utf8_err()?;
+      match refname {
+        refname if refname.starts_with("refs/heads/") => local_refs.push(refname.to_string()),
+        refname if refname.starts_with("refs/remotes/origin/") => remote_refs.push(refname.to_string()),
+        refname => {
+          warn!(target: TAG, "found reference {refname} but it is not a local or remote reference; skipping")
+        }
+      };
+    }
+
+    local_refs.retain(|refname| {
+      !remote_refs.contains(&format!("refs/remotes/origin/{}", refname.trim_start_matches("refs/heads/")))
+    });
+
+    Ok(local_refs)
+  }
+
   fn find_refs_by_globs<S: AsRef<str>>(&self, patterns: &[S]) -> Result<Vec<RefInfo>> {
     let mut refs = HashMap::new();
 

@@ -1,4 +1,6 @@
-export const getBrowserModules = async () => {
+import { DynamicModules } from "@app/resolveModule/backend";
+
+export const getBrowserModules = async (): Promise<DynamicModules> => {
 	const [
 		{ default: BrowserCookie },
 		{ initWasm },
@@ -27,6 +29,7 @@ export const getBrowserModules = async () => {
 		getImageFromDom: BrowserGetImageFromDom,
 		moveToTrash: () => Promise.resolve(),
 		getDOMParser: () => new DOMParser(),
+		getXMLSerializer: () => new XMLSerializer(),
 		setSessionData: () => Promise.resolve(),
 		pdfLoadFont: browserLoadFont,
 		getImageByPath: BrowserGetImageByPath,

@@ -1,47 +1,77 @@
-import { Command } from "../../types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import { ContentLanguage } from "@ext/localization/core/model/Language";
 import Context from "@core/Context/Context";
+import { ContentLanguage } from "@ext/localization/core/model/Language";
 import { ArticleLanguage } from "@ext/serach/vector/VectorArticle";
+import { Command } from "../../types/Command";
+
+export interface ResponseStreamItem {
+	type: "text";
+	text: string;
+}
 
 const chat: Command<
 	{
 		ctx: Context;
 		query: string;
+		signal: AbortSignal;
 		catalogName?: string;
 		articlesLanguage?: ArticleLanguage;
 		responseLanguage?: ContentLanguage;
 	},
-	RenderableTreeNodes | undefined
+	{ mime: string; iterator: AsyncGenerator<string, void, void> }
 > = Command.create({
 	path: "search/chat",
 
-	kind: ResponseKind.json,
+	kind: ResponseKind.stream,
 
-	async do({ ctx, query, catalogName, articlesLanguage, responseLanguage }) {
-		const items = await this._app.searcherManager.getChatBotSearcher().search({
+	async do({ ctx, query, catalogName, articlesLanguage, responseLanguage, signal }) {
+		const generator = await this._app.searcherManager.getChatBotSearcher().search({
 			query,
 			catalogName,
 			articlesLanguage,
-			responseLanguage
+			responseLanguage,
+			stream: true,
+			signal: signal,
 		});
-		
-		const md = items.map(x => {
-			switch (x.type) {
-				case "text":
-					return x.text;
-				case "articleRef":
-					return `[${x.article.getTitle()}](${ctx.domain}${this._app.conf.basePath}/${x.article.logicPath})`;
-			}
-		}).join("");
 
-		return await this._app.parser.parseRenderableTreeNode(md);
+		const app = this._app;
+
+		const generateNDJsonStream = async function* (): AsyncGenerator<string, void, void> {
+			for await (const x of generator) {
+				let data: ResponseStreamItem | null = null;
+				switch (x.type) {
+					case "text": {
+						data = {
+							type: "text",
+							text: x.text,
+						};
+						break;
+					}
+					case "articleRef": {
+						data = {
+							type: "text",
+							text: `[${x.article.getTitle()}](${ctx.domain}${app.conf.basePath}/${x.article.logicPath})`,
+						};
+						break;
+					}
+				}
+
+				if (data) {
+					yield JSON.stringify(data) + "\n";
+				}
+			}
+		};
+
+		return {
+			mime: "application/x-ndjson",
+			iterator: generateNDJsonStream(),
+		};
 	},
 
-	params(ctx, q) {
+	params(ctx, q, _, signal) {
 		return {
 			ctx,
+			signal,
 			query: q.query,
 			catalogName: q.catalogName,
 			articlesLanguage: q.articlesLanguage

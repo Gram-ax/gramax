@@ -3,12 +3,12 @@ import { createParagraphAfterTable } from "@ext/wordExport/createParagraph";
 import {
 	STANDARD_PAGE_WIDTH,
 	WordBlockType,
-	wordBordersType,
+	getWordBordersType,
 	wordMarginsType,
 } from "@ext/wordExport/options/wordExportSettings";
 import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 import { WordSerializerState } from "@ext/wordExport/WordExportState";
-import { Paragraph, Table, TableCell, TableRow, TextRun, WidthType } from "docx";
+import docx from "@dynamicImports/docx";
 import { FileChild } from "docx/build/file/file-child";
 import { JSONContent } from "@tiptap/core";
 
@@ -35,9 +35,9 @@ export const createBlock = async (
 		).flat(),
 	] as FileChild[];
 
-	if (addOptions?.insideTableWrapper) return [await createBlockChild(fileChildren, blockType, style, addOptions)];
-
-	return [await createBlockChild(fileChildren, blockType, style, addOptions), createParagraphAfterTable()];
+	const blockChild = await createBlockChild(fileChildren, blockType, style, addOptions);
+	if (addOptions?.insideTableWrapper) return [blockChild];
+	return [blockChild, await createParagraphAfterTable()];
 };
 
 export const createBlockChild = async (
@@ -46,6 +46,8 @@ export const createBlockChild = async (
 	style: string,
 	addOptions: AddOptionsWord,
 ) => {
+	const { Table, TableCell, TableRow, WidthType } = await docx();
+	const wordBordersType = await getWordBordersType();
 	const width = {
 		size: addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH,
 		type: WidthType.DXA,
@@ -67,6 +69,7 @@ export const createBlockChild = async (
 };
 
 export const createBlockTitle = async (tag: Tag | JSONContent, blockType: WordBlockType) => {
+	const { Paragraph, TextRun } = await docx();
 	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 	const title = (attrs?.title as string) ?? (attrs?.text as string);
 	if (!title) return Promise.resolve({});

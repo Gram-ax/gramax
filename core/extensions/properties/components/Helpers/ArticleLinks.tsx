@@ -1,7 +1,5 @@
-import GoToArticle from "@components/Actions/GoToArticle";
+import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { Router } from "@core/Api/Router";
@@ -9,134 +7,97 @@ import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { Link } from "@ext/properties/logic/CatalogLinksProvider";
-import DropdownButton from "@ext/wordExport/components/DropdownButton";
-import { useRef, useState } from "react";
-
-const Loader = styled.div`
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	width: 8em !important;
-`;
+import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
+import { useState } from "react";
 
 const LinkItem = styled.div`
 	width: 100%;
-	color: var(--color-link) !important;
-	font-size: 0.75rem !important;
+	max-width: 20rem;
+	color: var(--color-link);
 	overflow-x: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 `;
 
-const LinkItemWrapper = styled.div`
-	max-width: 20rem;
-
-	> span:first-of-type {
-		width: 100%;
-	}
-`;
-
-const Title = styled.span`
-	display: block;
-	width: 100%;
-	padding: 0.46rem 0.9rem 0 0.9rem;
-	text-transform: uppercase;
-	color: var(--color-loader);
-	font-weight: 450;
-	font-size: 0.75rem;
-	cursor: default;
-`;
-
-const LinksContainer = ({ title, links, router }: { title: string; links: Link[]; router: Router }) => {
+const LinksContainer = ({ links, router }: { links: Link[]; router: Router }) => {
 	const handleLinkClick = (pathname: string) => {
 		router.pushPath(pathname);
 	};
 
+	return links.map((link) => (
+		<DropdownMenuItem key={link.pathname} onSelect={() => handleLinkClick(link.pathname)}>
+			<LinkItem>{link.title}</LinkItem>
+		</DropdownMenuItem>
+	));
+};
+
+const DropdownLink = ({ fetch, title, router }: { fetch: () => Promise<Link[]>; title: string; router: Router }) => {
+	const [isApiRequest, setIsApiRequest] = useState(true);
+	const [links, setLinks] = useState<Link[]>([]);
+
+	const onOpenChange = (open: boolean) => {
+		if (open)
+			fetch().then((links) => {
+				setLinks(links);
+				setIsApiRequest(false);
+			});
+		else {
+			setLinks([]);
+			setIsApiRequest(true);
+		}
+	};
+
 	return (
-		<>
-			<Title>{title}</Title>
-			{links.map((link) => (
-				<LinkItemWrapper key={link.pathname} onClickCapture={() => handleLinkClick(link.pathname)}>
-					<GoToArticle href={link.pathname} trigger={<LinkItem>{link.title}</LinkItem>} />
-				</LinkItemWrapper>
-			))}
-		</>
+		<DropdownMenuSub onOpenChange={onOpenChange}>
+			<DropdownMenuSubTrigger>{title}</DropdownMenuSubTrigger>
+			<DropdownMenuSubContent>
+				{!isApiRequest && !links.length ? (
+					<DropdownMenuItem disabled>{t("article.links.no-links")}</DropdownMenuItem>
+				) : null}
+				{isApiRequest && (
+					<DropdownMenuItem>
+						<SpinnerLoader width={14} height={14} />
+						{t("loading")}
+					</DropdownMenuItem>
+				)}
+				{!isApiRequest && links?.length ? <LinksContainer links={links} router={router} /> : null}
+			</DropdownMenuSubContent>
+		</DropdownMenuSub>
 	);
 };
 
 const ArticleLinks = ({ itemRefPath }: { itemRefPath: string }) => {
-	const [backlinks, setBacklinks] = useState<Link[]>([]);
-	const [links, setLinks] = useState<Link[]>([]);
 	const router = useRouter();
-
-	const [isApiRequest, setIsApiRequest] = useState(true);
-	const ref = useRef<HTMLDivElement>(null);
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const getBacklinks = async () => {
-		setIsApiRequest(true);
 		const url = apiUrlCreator.getArticleBacklinks(itemRefPath);
 		const res = await FetchService.fetch<Link[]>(url);
 
-		if (!res.ok) return setIsApiRequest(false);
-		const backlinks = await res.json();
-
-		setBacklinks(backlinks);
-		setIsApiRequest(false);
+		if (!res.ok) return [];
+		return await res.json();
 	};
 
 	const getLinks = async () => {
-		setIsApiRequest(true);
 		const url = apiUrlCreator.getArticleLinks(itemRefPath);
 		const res = await FetchService.fetch<Link[]>(url);
 
-		if (!res.ok) return setIsApiRequest(false);
-		const links = await res.json();
-
-		setLinks(links);
-		setIsApiRequest(false);
+		if (!res.ok) return [];
+		return await res.json();
 	};
 
 	return (
-		<PopupMenuLayout
-			appendTo={() => ref.current}
-			offset={[10, -5]}
-			className="wrapper"
-			placement="right-start"
-			openTrigger="mouseenter focus"
-			hideOnClick={false}
-			onClose={() => {
-				setBacklinks([]);
-				setLinks([]);
-				setIsApiRequest(true);
-			}}
-			onOpen={() => {
-				getBacklinks();
-				getLinks();
-			}}
-			trigger={<DropdownButton ref={ref} iconCode="waypoints" text={t("article.links.name")} />}
-		>
-			{!isApiRequest && !backlinks.length && !links.length ? (
-				<ButtonLink text={t("article.links.no-links")} />
-			) : null}
-			{isApiRequest && (
-				<Loader>
-					<ButtonLink text={t("loading")} />
-					<SpinnerLoader width={14} height={14} />
-				</Loader>
-			)}
-			{!isApiRequest && (
-				<>
-					{backlinks?.length ? (
-						<LinksContainer title={t("article.links.backlinks")} links={backlinks} router={router} />
-					) : null}
-					{links?.length ? (
-						<LinksContainer title={t("article.links.links")} links={links} router={router} />
-					) : null}
-				</>
-			)}
-		</PopupMenuLayout>
+		<DropdownMenuSub>
+			<DropdownMenuSubTrigger>
+				<Icon code="waypoints" />
+				{t("article.links.name")}
+			</DropdownMenuSubTrigger>
+			<DropdownMenuSubContent>
+				<DropdownLink fetch={getBacklinks} title={t("article.links.backlinks")} router={router} />
+				<DropdownLink fetch={getLinks} title={t("article.links.links")} router={router} />
+			</DropdownMenuSubContent>
+		</DropdownMenuSub>
 	);
 };
 

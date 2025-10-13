@@ -8,8 +8,8 @@ const setAiData: Command<{ ctx: Context; workspacePath: string; token: string } 
 
 	kind: ResponseKind.plain,
 
-	do({ ctx, workspacePath, ...data }) {
-		this._app.adp.setEditorAiData(ctx, workspacePath, data);
+	async do({ ctx, workspacePath, ...data }) {
+		await this._app.adp.setEditorAiData(ctx, workspacePath, data);
 	},
 
 	params(ctx, q, body) {

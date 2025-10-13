@@ -1,6 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Icon from "@components/Atoms/Icon";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import LanguageService from "@core-ui/ContextServices/Language";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
@@ -10,12 +7,13 @@ import PermissionService from "@ext/security/logic/Permission/components/Permiss
 import { configureWorkspacePermission } from "@ext/security/logic/Permission/Permissions";
 import { getFeatureList, setFeature, type Feature } from "@ext/toggleFeatures/features";
 import { Divider } from "@ui-kit/Divider";
-import { Label } from "@ui-kit/Label";
-import { Badge } from "ics-ui-kit/components/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "ics-ui-kit/components/popover";
-import { Switch } from "ics-ui-kit/components/switch";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useRef, useState } from "react";
+import { Button } from "@ui-kit/Button";
+import isMobileService from "@core-ui/ContextServices/isMobileService";
+import { SwitchField } from "@ui-kit/Switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { Badge } from "@ui-kit/Badge";
 
 const StyledPopoverContent = styled(PopoverContent)`
 	width: 100%;
@@ -29,33 +27,7 @@ const FeatureWrapper = styled.div`
 	flex-direction: column;
 	justify-content: space-between;
 	gap: 0.2rem;
-	margin-top: 1.2rem;
-`;
-
-const FeatureContent = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0.25rem;
-	flex: 1;
-`;
-
-const SwitchWrapper = styled.div`
-	display: flex;
-	align-items: center;
-	height: 100%;
-`;
-
-const FeatureDescription = styled.div`
-	font-size: 0.75rem;
-	line-height: 1.2;
-	max-width: 15rem;
-`;
-
-const FeatureInfo = styled.div`
-	display: flex;
-	align-items: center;
-	gap: 0.4rem;
+	margin-top: 0.75rem;
 `;
 
 const Info = styled.a`
@@ -63,92 +35,88 @@ const Info = styled.a`
 	align-items: center;
 `;
 
-const FeatureTitle = ({ feature }: { feature: Feature }) => {
-	const language = LanguageService.currentUi();
+const StyledSwitchField = styled(SwitchField)`
+	> div {
+		width: 100%;
+		max-width: 15rem;
+	}
+`;
 
-	const title = language === "ru" ? feature.title.ru : feature.title.en;
-
-	return <Label>{title}</Label>;
-};
-
-const FeatureItem = ({ feature }: { feature: Feature }) => {
+const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolean }) => {
 	const [enabled, setEnabled] = useState(feature.isEnabled);
 	const language = LanguageService.currentUi();
+	const title = language === "ru" ? feature.title.ru : feature.title.en;
 	const desc = language === "ru" ? feature.desc?.ru : feature.desc?.en;
+
+	const onClick = useCallback(
+		(e) => {
+			setEnabled(e);
+			setFeature(feature.name, e);
+		},
+		[feature.name],
+	);
 
 	return (
 		<FeatureWrapper>
-			<FeatureContent>
-				<FeatureInfo>
-					<Icon code={feature.icon} />
+			<StyledSwitchField
+				alignment="right"
+				label={
+					<>
+						<span>{title}</span>
+						{feature.status && (
+							<Tooltip>
+								<TooltipTrigger tabIndex={-1}>
+									{feature.status === "in-dev" && (
+										<Badge status="error" size="sm" focus="low">
+											In Dev
+										</Badge>
+									)}
 
-					<FeatureTitle feature={feature} />
+									{feature.status === "experimental" && (
+										<Badge status="warning" size="sm" focus="low">
+											Experimental
+										</Badge>
+									)}
 
-					{feature.status && (
-						<Tooltip>
-							<TooltipTrigger tabIndex={-1}>
-								{feature.status === "in-dev" && (
-									<Badge status="error" size="sm" focus="low">
-										In Dev
-									</Badge>
-								)}
+									{feature.status === "unstable" && (
+										<Badge status="info" size="sm" focus="low">
+											Unstable
+										</Badge>
+									)}
 
-								{feature.status === "experimental" && (
-									<Badge status="warning" size="sm" focus="low">
-										Experimental
-									</Badge>
-								)}
-
-								{feature.status === "unstable" && (
-									<Badge status="info" size="sm" focus="low">
-										Unstable
-									</Badge>
-								)}
-
-								{feature.status === "beta" && (
-									<Badge size="sm" focus="low">
-										Beta
-									</Badge>
-								)}
-							</TooltipTrigger>
-							<TooltipContent>{t(`experimental-features.status.${feature.status}`)}</TooltipContent>
-						</Tooltip>
-					)}
-				</FeatureInfo>
-
-				<Switch
-					size="sm"
-					checked={enabled}
-					disabled={getExecutingEnvironment() === "next"}
-					onCheckedChange={(e) => {
-						if (getExecutingEnvironment() === "next") return;
-						setEnabled(e);
-						setFeature(feature.name, e);
-					}}
-				/>
-			</FeatureContent>
-
-			<SwitchWrapper>
-				{desc && (
-					<FeatureDescription className="text-muted">
+									{feature.status === "beta" && (
+										<Badge size="sm" focus="low">
+											Beta
+										</Badge>
+									)}
+								</TooltipTrigger>
+								<TooltipContent>{t(`experimental-features.status.${feature.status}`)}</TooltipContent>
+							</Tooltip>
+						)}
+					</>
+				}
+				size="sm"
+				className="w-full"
+				disabled={disabled}
+				description={
+					<div className="text-xs">
 						<span>{desc}. </span>
 						{feature.url && (
-							<Info
-								href={feature.url}
-								target={getExecutingEnvironment() === "tauri" ? "" : "_blank"}
-								rel="noreferrer"
-							>
+							<Info href={feature.url} target="_blank" rel="noreferrer">
 								{t("read-more")}
 							</Info>
 						)}
-					</FeatureDescription>
-				)}
-			</SwitchWrapper>
+					</div>
+				}
+				checked={enabled}
+				onCheckedChange={onClick}
+			/>
 		</FeatureWrapper>
 	);
 };
 
 const ToggleFeatures = () => {
+	const isMobile = isMobileService.value;
 	const initial = useRef<Record<string, boolean>>();
 
 	const onOpenChange = useCallback(
@@ -168,25 +136,27 @@ const ToggleFeatures = () => {
 	const featuresList = getFeatureList();
 
 	// temp, waiting for fix in mac desktop
-	const { isTauri, isNext } = usePlatform();
+	const { isTauri, isNext, isStatic } = usePlatform();
 	const isMac = IsMacService.value;
 	const features = isMac && isTauri ? featuresList.filter((f) => f.name !== "cloud") : featuresList;
 
-	if (isNext && !PermissionService.useCheckPermission(configureWorkspacePermission)) return null;
+	if (isNext && !PermissionService.useCheckPermission(configureWorkspacePermission)) return <div></div>;
 	if (features.length === 0) return <div></div>;
 
 	return (
 		<Popover onOpenChange={onOpenChange} modal>
 			<PopoverTrigger asChild>
-				<ButtonLink text={t("experimental-features.label")} />
+				<Button size="lg" variant="text" className="h-auto px-0" endIcon="chevron-down">
+					{t("experimental-features.label")}
+				</Button>
 			</PopoverTrigger>
-			<StyledPopoverContent align="center" avoidCollisions side="bottom">
-				<div className="flex items-center justify-between" style={{ paddingBottom: "0.66rem" }}>
+			<StyledPopoverContent align={isMobile ? "center" : "start"} avoidCollisions side="bottom">
+				<div className="flex items-center justify-between" style={{ paddingBottom: "0.75rem" }}>
 					<h4 className="font-medium leading-none">{t("experimental-features.label")}</h4>
 				</div>
 				<Divider />
 				{features.map((feature) => (
-					<FeatureItem key={feature.name} feature={feature} />
+					<FeatureItem key={feature.name} feature={feature} disabled={isNext || isStatic} />
 				))}
 			</StyledPopoverContent>
 		</Popover>

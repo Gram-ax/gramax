@@ -17,11 +17,14 @@ mod cache;
 pub mod creds;
 pub mod error;
 pub mod ext;
+pub mod file_lock;
 pub mod prelude;
 mod refmut;
 mod remote_callback;
+pub mod remote_progress;
 pub mod repo;
 pub mod repo_ext;
+mod cancel_token;
 
 pub mod git2 {
   pub use git2::*;

@@ -1,18 +1,23 @@
-import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import Modal from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import { useRef, useState } from "react";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "../../../ui-logic/ContextServices/ApiUrlCreator";
-import t from "@ext/localization/locale/translate";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import useWatch from "@core-ui/hooks/useWatch";
+import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
+import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import t from "@ext/localization/locale/translate";
+import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
+import { ComponentProps, useRef, useState } from "react";
+import ApiUrlCreatorService from "../../../ui-logic/ContextServices/ApiUrlCreator";
 
 const DocRootMissingModal = ({ onClose }: { onClose: () => void }) => {
 	const [isMainModalOpen, setIsMainModalOpen] = useState(true);
 	const [isEditorOpen, setIsEditorOpen] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const needSaveDefaultProps = useRef(true);
+
+	const isRepoOk = useIsRepoOk(null, false);
 
 	const setDefaultProps = async () => {
 		await FetchService.fetch(apiUrlCreator.updateCatalogProps(), JSON.stringify({}));
@@ -42,6 +47,8 @@ const DocRootMissingModal = ({ onClose }: { onClose: () => void }) => {
 		needSaveDefaultProps.current = false;
 	};
 
+	if (!isRepoOk) return null;
+
 	return (
 		<>
 			<Modal isOpen={isMainModalOpen} onClose={onMainModalClose}>
@@ -51,7 +58,18 @@ const DocRootMissingModal = ({ onClose }: { onClose: () => void }) => {
 						actionButton={{
 							text: t("catalog.missing-config.open-settings"),
 							onClick: () => {
-								setIsEditorOpen(true);
+								ModalToOpenService.setValue<ComponentProps<typeof CatalogPropsEditor>>(
+									ModalToOpen.CatalogPropsEditor,
+									{
+										onClose: () => {
+											onEditorClose();
+											ModalToOpenService.resetValue();
+										},
+										onSubmit: () => {
+											startUpdatingProps();
+										},
+									},
+								);
 							},
 						}}
 						secondButton={{ text: t("cancel"), onClick: () => setIsMainModalOpen(false) }}
@@ -60,13 +78,6 @@ const DocRootMissingModal = ({ onClose }: { onClose: () => void }) => {
 					</InfoModalForm>
 				</ModalLayoutLight>
 			</Modal>
-			{isEditorOpen && (
-				<CatalogPropsEditor
-					startUpdatingProps={startUpdatingProps}
-					onClose={onEditorClose}
-					isOpen={isEditorOpen}
-				/>
-			)}
 		</>
 	);
 };

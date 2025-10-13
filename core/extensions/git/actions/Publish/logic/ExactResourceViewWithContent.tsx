@@ -125,8 +125,20 @@ const ExactResourceViewWithContent = (props: UseResourceArticleViewType) => {
 	let oldElement: JSX.Element = null;
 
 	if (type === "image") {
-		element = <Image src={src} marginBottom={"0px"} />;
-		oldElement = isDeleteOrAdded ? null : <Image src={oldSrc} marginBottom={"0px"} />;
+		element = (
+			<Image
+				src={parentPath?.path ? src : filePath.path}
+				marginBottom={"0px"}
+				hasParentPath={!!parentPath?.path}
+			/>
+		);
+		oldElement = isDeleteOrAdded ? null : (
+			<Image
+				src={parentPath?.oldPath ? oldSrc : filePath.oldPath}
+				marginBottom={"0px"}
+				hasParentPath={!!parentPath?.oldPath}
+			/>
+		);
 	} else if (type === "diagram") {
 		element = <DiagramData src={src} diagramName={maybeDiagramType} />;
 		oldElement = isDeleteOrAdded ? null : <DiagramData src={oldSrc} diagramName={maybeDiagramType} />;
@@ -222,6 +234,7 @@ const ResourceDiffView = ({
 		const listener = () => {
 			restoreRightSidebar();
 			ArticleViewService.setDefaultView();
+			refreshPage();
 		};
 
 		const token = NavigationEvents.on("item-click", listener);

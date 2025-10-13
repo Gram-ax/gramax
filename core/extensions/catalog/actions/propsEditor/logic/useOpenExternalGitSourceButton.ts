@@ -1,10 +1,8 @@
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import openNewTab from "@core-ui/utils/openNewTab";
-import Path from "@core/FileProvider/Path/Path";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { makeGitShareData } from "@ext/git/actions/Clone/logic/makeGitShareData";
 import getRepUrl from "@ext/git/core/GitPathnameHandler/clone/logic/getRepUrl";
-import GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
@@ -18,31 +16,24 @@ export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
 	const githubIcon = SourceType.gitHub === sourceType ? "github" : undefined;
 	const gitlabIcon = SourceType.gitLab === sourceType ? "gitlab" : undefined;
 	const gitverseIcon = SourceType.gitVerse === sourceType ? "gitverse" : undefined;
+	const giteaIcon = SourceType.gitea === sourceType ? "gitea" : undefined;
 
 	const gitButtonProps = useMemo(
 		() => ({
 			shouldRender: !!sourceType && !gesUrl,
 			children: `${t("open-in.generic")} ${sourceType}`,
-			startIcon: gitlabIcon || githubIcon || gitverseIcon,
+			startIcon: gitlabIcon || githubIcon || gitverseIcon || giteaIcon,
+			
 			onClick: (e: MouseEvent<HTMLButtonElement>) => {
 				e.preventDefault();
 
-				const pathnameData = RouterPathProvider.parsePath(new Path(catalogProps.link.pathname));
-				const gitShareData: GitShareData = {
-					sourceType: getPartGitSourceDataByStorageName(pathnameData.sourceName).sourceType,
-					domain: pathnameData.sourceName,
-					group: pathnameData.group,
-					branch: pathnameData.refname,
-					name: pathnameData.repo,
-					isPublic: false,
-					filePath: [],
-				};
+				const gitShareData = makeGitShareData(catalogProps.link.pathname);
 
 				openNewTab(getRepUrl(gitShareData).href);
 				closeHandler();
 			},
 		}),
-		[sourceType, gesUrl, closeHandler],
+		[sourceType, gesUrl, closeHandler, catalogProps],
 	);
 
 	return { gitButtonProps };

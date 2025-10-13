@@ -9,5 +9,5 @@ export const tableWordLayout: WordBlockChild = async ({ state, tag, addOptions }
 		return [table];
 	}
 
-	return [createParagraphBeforeTable(), table, createParagraphAfterTable()];
+	return [await createParagraphBeforeTable(), table, await createParagraphAfterTable()];
 };

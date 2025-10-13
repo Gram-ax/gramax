@@ -6,50 +6,60 @@ import type Context from "@core/Context/Context";
 import t from "@ext/localization/locale/translate";
 import { Command } from "../../types/Command";
 
-const getAllSyncCount: Command<
-	{ ctx: Context; shouldFetch?: boolean; resetSyncCount?: boolean },
-	{ [catalogName: string]: { pull?: number; push?: number; hasChanges?: boolean; errorMessage?: string } }
-> = Command.create({
-	path: "storage/getAllSyncCount",
+type SyncCount = {
+	pull?: number;
+	push?: number;
+	changed?: number;
+	hasChanges?: boolean;
+	errorMessage?: string;
+};
 
-	kind: ResponseKind.json,
+type SyncCounts = {
+	[catalogName: string]: SyncCount;
+};
 
-	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
+const getAllSyncCount: Command<{ ctx: Context; shouldFetch?: boolean; resetSyncCount?: boolean }, SyncCounts> =
+	Command.create({
+		path: "storage/getAllSyncCount",
 
-	async do({ ctx, shouldFetch, resetSyncCount }) {
-		const { rp, wm } = this._app;
-		const workspace = wm.current();
+		kind: ResponseKind.json,
 
-		const res = {};
+		middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
 
-		const entries = Array.from(workspace.getAllCatalogs().entries());
+		async do({ ctx, shouldFetch, resetSyncCount }) {
+			const { rp, wm } = this._app;
+			const workspace = wm.current();
 
-		await entries.forEachAsync(async ([name, entry]) => {
-			if (!entry.repo?.storage) return;
+			const res = {};
 
-			try {
-				const data = rp.getSourceData(ctx, await entry.repo.storage.getSourceName());
-				const invalidData = !data || data.isInvalid;
+			const entries = Array.from(workspace.getAllCatalogs().entries());
 
-				if (invalidData) {
-					res[name] = { errorMessage: t("storage-not-connected") };
-					return;
+			await entries.forEachAsync(async ([name, entry]) => {
+				if (!entry.repo?.storage) return;
+
+				try {
+					const data = rp.getSourceData(ctx, await entry.repo.storage.getSourceName());
+					const invalidData = !data || data.isInvalid;
+
+					if (invalidData) {
+						res[name] = { errorMessage: t("storage-not-connected") };
+						return;
+					}
+
+					if (shouldFetch) await entry.repo.storage.fetch(data, false, false);
+					if (resetSyncCount) await entry.repo.storage.updateSyncCount();
+					res[name] = await entry.repo.storage.getSyncCount();
+				} catch (err) {
+					if (!res[name]) res[name] = { errorMessage: t("unable-to-get-sync-count") };
 				}
+			});
 
-				if (shouldFetch) await entry.repo.storage.fetch(data, false, false);
-				if (resetSyncCount) await entry.repo.storage.updateSyncCount();
-				res[name] = await entry.repo.storage.getSyncCount();
-			} catch (err) {
-				if (!res[name]) res[name] = { errorMessage: t("unable-to-get-sync-count") };
-			}
-		});
+			return res;
+		},
 
-		return res;
-	},
-
-	params(ctx, q) {
-		return { ctx, shouldFetch: q.fetch == "true" };
-	},
-});
+		params(ctx, q) {
+			return { ctx, shouldFetch: q.fetch == "true" };
+		},
+	});
 
 export default getAllSyncCount;

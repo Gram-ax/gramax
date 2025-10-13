@@ -188,19 +188,17 @@ export default class ConfluenceServerAPI implements ConfluenceAPI {
 				return { status: res.status, body: null };
 			}
 
-			const body = res.body.type === "text" 
-				? this._safeJsonParse(res.body.data) 
-				: new Uint8Array(res.body.data);
+			const body = res.body.type === "text" ? this._safeJsonParse(res.body.data) : new Uint8Array(res.body.data);
 
 			return {
 				status: res.status,
 				body: body,
 			};
 		} catch (e) {
-			console.error('API request failed:', url, e);
-			return { 
-				status: e.status || 500, 
-				body: e.message || "Internal Server Error" 
+			console.error("API request failed:", url, e);
+			return {
+				status: e.status || 500,
+				body: e.message || "Internal Server Error",
 			};
 		}
 	}
@@ -209,7 +207,7 @@ export default class ConfluenceServerAPI implements ConfluenceAPI {
 		try {
 			return JSON.parse(data);
 		} catch (e) {
-			console.error('Failed to parse JSON response:', e);
+			console.error("Failed to parse JSON response:", e);
 			return null;
 		}
 	}

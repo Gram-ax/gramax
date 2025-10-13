@@ -14,8 +14,7 @@ import TemplateProcessor from "@ext/wordExport/TemplateProcessor";
 import t from "@ext/localization/locale/translate";
 import { WORD_TEMPLATES_DIR } from "@ext/workspace/WorkspaceAssets";
 import assert from "assert";
-
-const docx = import("docx");
+import docx from "@dynamicImports/docx";
 
 const getAsWordDocument: Command<
 	{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string; wordTemplate?: string | Buffer },
@@ -71,7 +70,7 @@ const getAsWordDocument: Command<
 			return mergedDocument;
 		}
 
-		return await (await docx).Packer.toBuffer(await wordExport.getDocument(documentTree));
+		return await (await docx()).Packer.toBuffer(await wordExport.getDocument(documentTree));
 	},
 
 	params(ctx, q) {

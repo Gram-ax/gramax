@@ -19,10 +19,14 @@ import { Plugin, PluginKey } from "prosemirror-state";
 import { CellSelection, isInTable } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
 import PageDataContext from "../../../../../../logic/Context/PageDataContext";
+import { TooltipProvider } from "@ui-kit/Tooltip";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
+import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 interface SelectionMenuProps {
 	catalogProps: ClientCatalogProps;
 	articleProps: ClientArticleProps;
+	sourceData: SourceData[];
 	pageDataContext: PageDataContext;
 	apiUrlCreator: ApiUrlCreator;
 	editor: Editor;
@@ -45,6 +49,7 @@ const SelectionMenuComponent = (props: SelectionMenuProps) => {
 		isMac,
 		catalogProps,
 		articleProps,
+		sourceData,
 	} = props;
 
 	const isGramaxAiEnabled = pageDataContext.conf.ai.enabled;
@@ -56,22 +61,26 @@ const SelectionMenuComponent = (props: SelectionMenuProps) => {
 					<CatalogPropsService.Provider value={catalogProps}>
 						<ArticlePropsService.Provider value={articleProps}>
 							<ResourceService.Provider>
-								<ModalLayoutDark>
-									<ButtonsLayout>
-										<IsSelectedOneNodeService.Provider editor={editor}>
-											<ButtonStateService.Provider editor={editor}>
-												<InlineEditPanel
-													editor={editor}
-													closeHandler={closeHandler}
-													onMountCallback={onMountCallback}
-													isCellSelection={isCellSelection}
-													inTable={inTable}
-													isGramaxAiEnabled={isGramaxAiEnabled}
-												/>
-											</ButtonStateService.Provider>
-										</IsSelectedOneNodeService.Provider>
-									</ButtonsLayout>
-								</ModalLayoutDark>
+								<SourceDataService.Provider value={sourceData}>
+									<TooltipProvider>
+										<ModalLayoutDark>
+											<ButtonsLayout>
+												<IsSelectedOneNodeService.Provider editor={editor}>
+													<ButtonStateService.Provider editor={editor}>
+														<InlineEditPanel
+															editor={editor}
+															closeHandler={closeHandler}
+															onMountCallback={onMountCallback}
+															isCellSelection={isCellSelection}
+															inTable={inTable}
+															isGramaxAiEnabled={isGramaxAiEnabled}
+														/>
+													</ButtonStateService.Provider>
+												</IsSelectedOneNodeService.Provider>
+											</ButtonsLayout>
+										</ModalLayoutDark>
+									</TooltipProvider>
+								</SourceDataService.Provider>
 							</ResourceService.Provider>
 						</ArticlePropsService.Provider>
 					</CatalogPropsService.Provider>
@@ -96,11 +105,13 @@ class TextSelectionMenu extends TooltipBase {
 		private _articleProps: ClientArticleProps,
 		private _apiUrlCreator: ApiUrlCreator,
 		private _pageDataContext: PageDataContext,
+		private _sourceData: SourceData[],
 	) {
 		super(
 			SelectionMenuComponent,
 			{
 				isMac: isMac,
+				sourceData: _sourceData,
 				catalogProps: _catalogProps,
 				articleProps: _articleProps,
 				pageDataContext: _pageDataContext,
@@ -248,6 +259,7 @@ const SelectionMenu = Extension.create({
 						this.options.articleProps,
 						this.options.apiUrlCreator,
 						this.options.pageDataContext,
+						this.options.sourceData,
 					);
 
 					this.editor.on("update", ({ editor }) => {

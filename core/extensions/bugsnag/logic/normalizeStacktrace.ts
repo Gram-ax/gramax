@@ -1,4 +1,4 @@
-import { Stackframe } from "@bugsnag/js";
+import type { Stackframe } from "@bugsnag/js";
 
 const normalizeStacktrace = (stack: Stackframe[]): Stackframe[] => {
 	return stack.map((frame) => {

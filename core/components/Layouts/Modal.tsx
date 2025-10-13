@@ -138,7 +138,10 @@ const ModalLayout = (props: ModalLayoutProps) => {
 				disabled={disabled}
 				onClose={onCurrentClose}
 				trigger={trigger}
-				overlayStyle={{ backgroundColor: "var(--color-modal-overlay-style-bg)", zIndex: "var(--z-index-modal-overlay)" }}
+				overlayStyle={{
+					backgroundColor: "var(--color-modal-overlay-style-bg)",
+					zIndex: "var(--z-index-modal-overlay)",
+				}}
 				contentStyle={{
 					display: "flex",
 					height: "100%",

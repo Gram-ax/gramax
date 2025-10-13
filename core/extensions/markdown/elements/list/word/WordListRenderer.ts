@@ -1,4 +1,4 @@
-import { IParagraphOptions } from "docx";
+import type { IParagraphOptions } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import { WordSerializerState } from "../../../../wordExport/WordExportState";
 import { AddOptionsWord } from "../../../../wordExport/options/WordTypes";

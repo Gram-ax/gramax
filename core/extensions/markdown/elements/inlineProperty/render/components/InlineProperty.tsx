@@ -1,6 +1,7 @@
 import t from "@ext/localization/locale/translate";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { PropertyTypes } from "@ext/properties/models";
+import getDisplayValue from "@ext/properties/logic/getDisplayValue";
 
 const InlineProperty = ({ bind }: { bind: string }) => {
 	if (!PropertyServiceProvider?.value) return;
@@ -9,7 +10,11 @@ const InlineProperty = ({ bind }: { bind: string }) => {
 	const isFlag = property ? property?.type === PropertyTypes.flag : properties.get(bind)?.type === PropertyTypes.flag;
 
 	if (!property && !isFlag) return;
-	const displayValue = isFlag ? (property ? t("yes") : t("no")) : property.value?.join(", ") || bind || "???";
+	const displayValue = isFlag
+		? property
+			? t("yes")
+			: t("no")
+		: getDisplayValue(property?.type, property?.value) || bind || "???";
 	return displayValue;
 };
 

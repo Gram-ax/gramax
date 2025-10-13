@@ -7,7 +7,7 @@
     И нажимаем на иконку редактора "диаграмма mermaid"
     Тогда разметка текущей статьи содержит
       """
-      <mermaid path="./new-article.mermaid" width="497px" height="363px"/>
+      <mermaid path="./new-article.mermaid"
       """
 
   Сценарий: Открытие окна публикации

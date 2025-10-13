@@ -10,7 +10,7 @@ import styled from "@emotion/styled";
 import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import t from "@ext/localization/locale/translate";
 import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
 import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
@@ -26,157 +26,56 @@ export interface ResourceError {
 	isText?: boolean;
 }
 
-const Healthcheck = styled(
-	({ itemLinks, className, trigger }: { itemLinks: ItemLink[]; className?: string; trigger: JSX.Element }) => {
-		const { isNext } = usePlatform();
-		const apiUrlCreator = ApiUrlCreatorService.value;
-		const [isOpen, setIsOpen] = useState(false);
-		const [data, setData] = useState<CatalogErrors>(null);
+interface HealthcheckProps {
+	itemLinks: ItemLink[];
+	className?: string;
+	onClose?: () => void;
+}
 
-		const loadData = async () => {
-			const healthcheckUrl = apiUrlCreator.getHealthcheckUrl();
-			const res = await FetchService.fetch<CatalogErrors>(healthcheckUrl);
-			if (!res?.ok) return;
-			setData(await res?.json?.());
-		};
+const Healthcheck = ({ itemLinks, className, onClose }: HealthcheckProps) => {
+	const apiUrlCreator = ApiUrlCreatorService.value;
+	const [isOpen, setIsOpen] = useState(true);
+	const [data, setData] = useState<CatalogErrors>(null);
 
-		if (isNext) return null;
-		return (
-			<ModalLayout
-				contentWidth="M"
-				isOpen={isOpen}
-				trigger={trigger}
-				onClose={() => {
-					setIsOpen(false);
-				}}
-				onOpen={() => {
-					loadData();
-					setIsOpen(true);
-				}}
-				setGlobalsStyles={true}
-			>
-				<div className={`${className} modal article  block-elevation-2`} data-qa={`catalog-healthcheck-modal`}>
-					<h2>{t("healthcheck")}</h2>
-					{data ? (
-						Object.values(CatalogErrorGroups).map((errorGroups, key) => {
-							return (
-								<ResourceErrorComponent
-									key={key}
-									errorGroup={errorGroups}
-									data={data[errorGroups.type] ?? []}
-									itemLinks={itemLinks}
-									goToArticleOnClick={() => setIsOpen(false)}
-								/>
-							);
-						})
-					) : (
-						<SpinnerLoader fullScreen />
-					)}
-				</div>
-			</ModalLayout>
-		);
-	},
-)`
-	padding: 1em 0.1em 1em 1em;
-	overflow: auto;
-	max-height: 100%;
-	transition: all 0.3s;
+	const loadData = async () => {
+		const healthcheckUrl = apiUrlCreator.getHealthcheckUrl();
+		const res = await FetchService.fetch<CatalogErrors>(healthcheckUrl);
+		if (!res?.ok) return;
+		setData(await res?.json?.());
+	};
 
-	h2 {
-		width: 100%;
-	}
+	useEffect(() => {
+		loadData();
+	}, []);
 
-	.article-name {
-		height: 100%;
-		display: flex;
-		font-size: 14px;
-		flex-direction: column;
-		align-items: flex-start;
-		justify-content: center;
-		gap: var(--distance-i-span);
+	const onOpenChange = (open: boolean) => {
+		setIsOpen(open);
+		if (!open) onClose?.();
+	};
 
-		.breadcrumb {
-			max-width: 100%;
-			line-height: 100%;
-			margin-top: 0 !important;
-		}
-
-		> a {
-			line-height: 100%;
-			color: var(--color-primary-general);
-		}
-		> a:hover {
-			color: var(--color-primary);
-		}
-	}
-
-	td:last-child > a {
-		height: 100%;
-		display: flex;
-		align-items: center;
-	}
-
-	tbody,
-	thead {
-		display: flex;
-		flex-direction: column;
-
-		> tr {
-			display: flex;
-
-			> th {
-				font-weight: 400;
-			}
-
-			> th:first-of-type,
-			> td:first-of-type {
-				max-width: 37.5%;
-				min-width: 37.5%;
-			}
-
-			> th.flex,
-			> td.flex {
-				width: 62.5%;
-				display: flex;
-				align-items: center;
-				justify-content: space-between;
-			}
-
-			td:first-of-type,
-			th:first-of-type {
-				border-right: unset;
-			}
-		}
-	}
-
-	.errors {
-		width: 100%;
-
-		.values-container {
-			display: flex;
-			flex-direction: column;
-			gap: 0.5em;
-		}
-
-		.value-item {
-			line-height: 1.4;
-			font-size: 0.875em;
-		}
-
-		> pre {
-			margin: 0 !important;
-		}
-		h3 {
-			margin-bottom: 0px;
-			display: flex;
-			align-items: center;
-		}
-
-		table {
-			padding: 0 0 0.5em 1.8em;
-		}
-	}
-`;
+	return (
+		<ModalLayout contentWidth="M" isOpen={isOpen} onClose={() => onOpenChange(false)} setGlobalsStyles={true}>
+			<div className={`${className} modal article  block-elevation-2`} data-qa={`catalog-healthcheck-modal`}>
+				<h2>{t("healthcheck")}</h2>
+				{data ? (
+					Object.values(CatalogErrorGroups).map((errorGroups, key) => {
+						return (
+							<ResourceErrorComponent
+								key={key}
+								errorGroup={errorGroups}
+								data={data[errorGroups.type] ?? []}
+								itemLinks={itemLinks}
+								goToArticleOnClick={() => onOpenChange(false)}
+							/>
+						);
+					})
+				) : (
+					<SpinnerLoader fullScreen />
+				)}
+			</div>
+		</ModalLayout>
+	);
+};
 
 const getIcons = (isError) =>
 	isError ? (
@@ -313,4 +212,104 @@ const ResourceErrorComponent = ({ errorGroup, data, itemLinks, goToArticleOnClic
 	);
 };
 
-export default Healthcheck;
+export default styled(Healthcheck)`
+	padding: 1em 0.1em 1em 1em;
+	overflow: auto;
+	max-height: 100%;
+	transition: all 0.3s;
+
+	h2 {
+		width: 100%;
+	}
+
+	.article-name {
+		height: 100%;
+		display: flex;
+		font-size: 14px;
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+		gap: var(--distance-i-span);
+
+		.breadcrumb {
+			max-width: 100%;
+			line-height: 100%;
+			margin-top: 0 !important;
+		}
+
+		> a {
+			line-height: 100%;
+			color: var(--color-primary-general);
+		}
+		> a:hover {
+			color: var(--color-primary);
+		}
+	}
+
+	td:last-child > a {
+		height: 100%;
+		display: flex;
+		align-items: center;
+	}
+
+	tbody,
+	thead {
+		display: flex;
+		flex-direction: column;
+
+		> tr {
+			display: flex;
+
+			> th {
+				font-weight: 400;
+			}
+
+			> th:first-of-type,
+			> td:first-of-type {
+				max-width: 37.5%;
+				min-width: 37.5%;
+			}
+
+			> th.flex,
+			> td.flex {
+				width: 62.5%;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+
+			td:first-of-type,
+			th:first-of-type {
+				border-right: unset;
+			}
+		}
+	}
+
+	.errors {
+		width: 100%;
+
+		.values-container {
+			display: flex;
+			flex-direction: column;
+			gap: 0.5em;
+		}
+
+		.value-item {
+			line-height: 1.4;
+			font-size: 0.875em;
+		}
+
+		> pre {
+			margin: 0 !important;
+		}
+		h3 {
+			margin-bottom: 0px;
+			display: flex;
+			align-items: center;
+		}
+
+		table {
+			padding: 0 0 0.5em 1.8em;
+		}
+	}
+`;

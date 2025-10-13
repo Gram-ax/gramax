@@ -1,38 +1,32 @@
 import Checkbox from "@components/Atoms/Checkbox";
 import DiffContent from "@components/Atoms/DiffContent";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import Tooltip from "@components/Atoms/Tooltip";
 import LeftNavViewContent, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import User from "../../../../security/components/User/User";
 import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
 
 interface HistoryProps {
 	item: ClientArticleProps;
-	isFileNew: boolean;
 	className?: string;
+	onClose: () => void;
 }
 
-const History = styled((props: HistoryProps) => {
-	const { className, item, isFileNew } = props;
+const History = (props: HistoryProps) => {
+	const { className, item, onClose } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const [showDiff, setShowDiff] = useState(true);
-	const [isOpen, setIsOpen] = useState(false);
+	const [isOpen, setIsOpen] = useState(true);
 	const [data, setData] = useState<ArticleHistoryViewModel[]>(null);
 	const showDiffText = t("show-diffs");
-
-	const hasRemoteStorage = useHasRemoteStorage();
-	const disabled = !hasRemoteStorage || isFileNew;
 
 	const loadData = async () => {
 		const response = await FetchService.fetch<ArticleHistoryViewModel[]>(
@@ -51,31 +45,19 @@ const History = styled((props: HistoryProps) => {
 		</LogsLayout>
 	);
 
+	useEffect(() => {
+		loadData();
+	}, []);
+
+	const onCloseModal = () => {
+		setShowDiff(true);
+		setIsOpen(false);
+		setData(null);
+		onClose();
+	};
+
 	return (
-		<ModalLayout
-			isOpen={isOpen}
-			onOpen={() => {
-				setIsOpen(true);
-				loadData();
-			}}
-			onClose={() => {
-				setShowDiff(true);
-				setIsOpen(false);
-				setData(null);
-			}}
-			disabled={disabled}
-			contentWidth={data ? "L" : null}
-			trigger={
-				<Tooltip content={t(t("git.history.error.need-to-publish"))} disabled={!disabled}>
-					<ButtonLink
-						onClick={() => setIsOpen(true)} // Without this it doesn't work
-						disabled={disabled}
-						iconCode="history"
-						text={t("git.history.button")}
-					/>
-				</Tooltip>
-			}
-		>
+		<ModalLayout isOpen={isOpen} onClose={onCloseModal} contentWidth={data ? "L" : null}>
 			<div className={className}>
 				{data ? (
 					<LeftNavViewContent
@@ -120,7 +102,9 @@ const History = styled((props: HistoryProps) => {
 			</div>
 		</ModalLayout>
 	);
-})`
+};
+
+export default styled(History)`
 	.diff-content {
 		padding: 20px;
 	}
@@ -165,5 +149,3 @@ const History = styled((props: HistoryProps) => {
 		word-break: break-all;
 	}
 `;
-
-export default History;

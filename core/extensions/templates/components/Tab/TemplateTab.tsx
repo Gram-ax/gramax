@@ -42,7 +42,6 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 
 		const listener = () => {
 			TemplateService.closeItem();
-			refreshPage();
 		};
 
 		const clickToken = NavigationEvents.on("item-click", listener);

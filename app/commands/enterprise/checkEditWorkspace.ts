@@ -3,8 +3,8 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import { EnterpriseAuthResult } from "@ext/enterprise/types/EnterpriseAuthResult";
+import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 
 const editWorkspace: Command<{ ctx: Context; workspaceId: WorkspacePath }, { status: EnterpriseAuthResult }> =
 	Command.create({
@@ -17,9 +17,7 @@ const editWorkspace: Command<{ ctx: Context; workspaceId: WorkspacePath }, { sta
 			const workspaceConfig = wm.getWorkspaceConfig(workspaceId);
 			const gesUrl = workspaceConfig.config.inner().enterprise?.gesUrl;
 			const sourceDatas = this._app.rp.getSourceDatas(ctx, workspaceId);
-			const enterpriseSource = sourceDatas.find((data) => {
-				return gesUrl?.includes((data as GitSourceData)?.domain);
-			}) as GitSourceData;
+			const enterpriseSource = getEnterpriseSourceData(sourceDatas, gesUrl);
 
 			if (!gesUrl || !enterpriseSource) return { status: EnterpriseAuthResult.Error };
 

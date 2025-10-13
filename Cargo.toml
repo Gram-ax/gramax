@@ -51,7 +51,7 @@ itertools = "0.14.0"
 nanoid = "0.4.0"
 anyhow = "^1.0"
 thiserror = "2.0.12"
-chrono = "^0.4"
+chrono = { version = "^0.4", default-features = false, features = ["clock"] }
 os_info = "^3.12"
 
 tracing = "^0.1"
@@ -69,6 +69,7 @@ opt-level = 2
 [profile.development]
 inherits = "release"
 incremental = false
+strip = "none"
 lto = false
 codegen-units = 256
 opt-level = 1

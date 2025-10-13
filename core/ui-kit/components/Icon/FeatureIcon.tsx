@@ -29,6 +29,6 @@ export type FeatureIconProps = VariantProps<typeof featureIconVariants> & {
 export const FeatureIcon: FC<FeatureIconProps> = (props) => {
 	const { icon, size, type, className } = props;
 	const LucideIconComponent = LucideIcon(icon);
-
+	if (!LucideIconComponent) return null;
 	return <LucideIconComponent className={featureIconVariants({ size, type, className })} />;
 };

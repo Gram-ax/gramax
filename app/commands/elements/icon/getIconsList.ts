@@ -1,7 +1,7 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import type Context from "@core/Context/Context";
-import { IconEditorProps } from "@ext/markdown/elements/icon/logic/IconProvider";
+import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 
 const getListIcons: Command<{ ctx: Context; catalogName: string }, IconEditorProps[]> = Command.create({
 	path: "elements/icon/getIconsList",

@@ -12,10 +12,10 @@ const startClone: Command<
 		ctx: Context;
 		path: Path;
 		data: StorageData;
-		recursive?: boolean;
 		branch?: string;
 		isBare?: boolean;
 		redirectOnClone?: string;
+		deleteIfExists?: boolean;
 	},
 	{ alreadyExist: boolean }
 > = Command.create({
@@ -25,7 +25,7 @@ const startClone: Command<
 
 	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ ctx, path, data, recursive, branch, isBare, redirectOnClone }) {
+	async do({ ctx, path, data, branch, isBare, redirectOnClone, deleteIfExists }) {
 		const workspace = await this._app.wm.currentOrDefault();
 		const { rp } = this._app;
 
@@ -34,9 +34,9 @@ const startClone: Command<
 		workspace.getAllCatalogs().forEach((c) => delete c.props.redirectOnClone);
 
 		const entry = await fs.getCatalogEntryByPath(path, false, { isCloning: true, redirectOnClone });
-
 		const baseCatalog = await workspace.getBaseCatalog(entry.name);
-		if (baseCatalog) {
+
+		if (!deleteIfExists && baseCatalog) {
 			const storage = baseCatalog.repo.storage;
 			if (!storage) return { alreadyExist: false };
 
@@ -44,9 +44,13 @@ const startClone: Command<
 			return { alreadyExist: true };
 		}
 
+		if (deleteIfExists && baseCatalog) {
+			await workspace.removeCatalog(entry.name, true);
+		}
+
 		workspace.addCatalogEntry(entry);
 
-		void rp.cloneNewRepository(fs, path, data, recursive, isBare, branch, async (_, isCancelled) => {
+		void rp.clone(fs, path, data, isBare, branch, async (_, isCancelled) => {
 			const workspace = this._app.wm.current(); // at this point workspace can be changed
 
 			const exist = await fs.fp.exists(path);
@@ -67,10 +71,10 @@ const startClone: Command<
 			ctx,
 			path: new Path(q.path),
 			data: body,
-			recursive: q.recursive ? q.recursive === "true" : null,
 			branch: q.branch ? q.branch : null,
 			isBare: q.isBare ? q.isBare === "true" : false,
 			redirectOnClone: q.redirectOnClone,
+			deleteIfExists: q.deleteIfExists ? q.deleteIfExists === "true" : false,
 		};
 	},
 });

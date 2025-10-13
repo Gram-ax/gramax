@@ -6,6 +6,7 @@ import { CommentBlock } from "@core-ui/CommentBlock";
 import GlobalEditorIsEditable from "@ext/markdown/elements/comment/edit/logic/GlobalIsEditable";
 import Tooltip from "@components/Atoms/Tooltip";
 import { Instance, Props } from "tippy.js";
+import { isInDropdown } from "@ui-kit/Dropdown";
 
 export type CommentViewProps = {
 	commentId: string;
@@ -156,7 +157,7 @@ const CommentView = memo((props: CommentViewProps) => {
 	const onOutsideClick = useCallback(
 		(_, event) => {
 			const target = event.target as HTMLElement;
-			if (editor.view.dom.contains(target)) return;
+			if (editor.view.dom.contains(target) || isInDropdown(event)) return;
 			instanceRef.current?.hide();
 		},
 		[editor],
@@ -172,6 +173,7 @@ const CommentView = memo((props: CommentViewProps) => {
 				}}
 				arrow={false}
 				placement="bottom-start"
+				zIndex={50} // Because ui kit modal/dropdown has z-index 50
 				distance={4}
 				sticky={true}
 				visible={!!data}

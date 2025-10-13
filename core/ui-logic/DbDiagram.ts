@@ -1,7 +1,7 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import t from "@ext/localization/locale/translate";
-import dagre from "dagre";
+import dagre from "@dynamicImports/dagre";
 import { getLocalizedString } from "../components/libs/utils";
 import Path from "../logic/FileProvider/Path/Path";
 import ResourceManager from "../logic/Resource/ResourceManager";
@@ -428,7 +428,7 @@ export default class DbDiagram {
 		titleTables.forEach((table) => {
 			if (tableRefs.has(table.table.code)) tables.push(table);
 		});
-		this._addTables(tables, lang);
+		await this._addTables(tables, lang);
 	}
 
 	_getTableSizes(table: Table): { width: number; height: number; titleHeight: number; totalHeight: number } {
@@ -449,12 +449,13 @@ export default class DbDiagram {
 		return { width, height, titleHeight, totalHeight };
 	}
 
-	_addTables(tables: { x: number; y: number; table: Table; links: Link[]; fields: Field[] }[], lang: string) {
+	async _addTables(tables: { x: number; y: number; table: Table; links: Link[]; fields: Field[] }[], lang: string) {
 		const tablesSizes = tables.map((t) => {
 			return this._getTableSizes(t.table);
 		});
 
-		const g = new dagre.graphlib.Graph();
+		const dagreLib = await dagre();
+		const g = new dagreLib.graphlib.Graph();
 		g.setGraph({ rankdir: "LR", marginx: 50, marginy: 50 });
 		g.setDefaultEdgeLabel(function () {
 			return {};
@@ -469,7 +470,7 @@ export default class DbDiagram {
 					idx % 2 == 0 ? g.setEdge(t.table.code, f.refObject) : g.setEdge(f.refObject, t.table.code);
 			});
 		});
-		dagre.layout(g);
+		dagreLib.layout(g);
 		g.nodes().forEach((node, idx) => {
 			if (tables[idx]) {
 				if (tables[idx].x < 0) tables[idx].x = g.node(node).x - tablesSizes[idx].width / 2;

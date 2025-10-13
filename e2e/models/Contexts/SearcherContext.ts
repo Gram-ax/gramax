@@ -5,6 +5,9 @@ import { replaceMultiple } from "../../steps/utils/utils";
 import { PageInfo } from "../Pages/PageContext";
 import { ReplaceAlias } from "../World";
 
+const CLICKABLE_SELECTOR =
+	'[data-qa="qa-clickable"], label:has(> button[role="checkbox"]), button, [role="menuitemradio"], [role="menuitem"], [cmdk-item], [data-radix-collection-item]';
+
 export default class SearcherContext {
 	constructor(private _alias: ReplaceAlias, private _aliases: Aliases, private _info: PageInfo) {}
 
@@ -31,7 +34,7 @@ export default class SearcherContext {
 			return was.locator(`[data-qa]:has-text("${selector}"), [data-qa="${selector}"]`);
 		};
 		const locator = makeLocator().first();
-		if (config.highlight) await locator.highlight();
+		// if (config.highlight) await locator.highlight();
 		return locator;
 	}
 
@@ -47,12 +50,9 @@ export default class SearcherContext {
 	}
 
 	clickable(text: string, scope?: Locator, all?: boolean) {
-		const locator = (scope ?? this._info.scope ?? page).locator(
-			'[data-qa="qa-clickable"], label:has(> button[role="checkbox"]), button',
-			{
-				hasText: replaceMultiple(text, this._alias.bind(this)),
-			},
-		);
+		const locator = (scope ?? this._info.scope ?? page).locator(CLICKABLE_SELECTOR, {
+			hasText: replaceMultiple(text, this._alias.bind(this)),
+		});
 		return all ? locator : locator.first();
 	}
 

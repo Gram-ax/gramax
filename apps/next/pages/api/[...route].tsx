@@ -14,8 +14,12 @@ import Middleware from "@core/Api/middleware/Middleware";
 import buildMiddleware from "@core/Api/middleware/buildMiddleware";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import { withContext } from "apps/next/logic/Context/ContextHook";
+import { NextApiResponse } from "next";
 
 export default async (req: ApiRequest, res: ApiResponse) => {
+	const controller = new AbortController();
+	(res as unknown as NextApiResponse).on("close", () => controller.abort());
+
 	Object.entries(req.query)
 		.filter(([, v]) => !!v)
 		.forEach(([k, v]) => (req.query[k] = typeof v == "string" ? decodeURIComponent(v) : v.map(decodeURIComponent)));
@@ -34,8 +38,8 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 	}
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
-		const ctx = await app.contextFactory.from(req, res);
-		const params = command.params(ctx, req.query as Query, parseBody(req.body));
+		const ctx = await app.contextFactory.from({ req, res });
+		const params = command.params(ctx, req.query as Query, parseBody(req.body), controller.signal);
 		PersistentLogger.info(`executing command ${path}`, "cmd", { ...req.query });
 
 		const result = await withContext(ctx, async () => await command.do(params));
@@ -88,6 +92,17 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 	if (kind == ResponseKind.html) {
 		res.setHeader("Content-type", "text/html; charset=utf-8");
 		return res.send(commandResult);
+	}
+
+	if (kind == ResponseKind.stream) {
+		const { mime, iterator } = commandResult;
+		(res as unknown as NextApiResponse).writeHead(200, {
+			"Content-Type": mime ?? "application/octet-stream",
+			"Cache-Control": "no-store",
+		});
+
+		for await (const item of iterator) (res as unknown as NextApiResponse).write(item);
+		return res.end();
 	}
 
 	throw new Error("Invalid ResponseKind");

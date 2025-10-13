@@ -1,4 +1,5 @@
 import CloneErrorComponent from "@ext/git/actions/Clone/error/components/CloneError";
+import { RepositoryHealthcheckError } from "@ext/git/actions/RepositoryBroken/RepositoryHealthcheckFailed";
 import { ComponentProps, ReactNode } from "react";
 import GetErrorComponent from "../../errorHandlers/logic/GetErrorComponent";
 import CheckoutConflictErrorComponent from "../actions/Branch/error/components/CheckoutConflictError";
@@ -12,6 +13,7 @@ const getGitErrors = (): {
 	[GitErrorCode.CheckoutConflictError]: CheckoutConflictErrorComponent,
 	[GitErrorCode.CloneError]: CloneErrorComponent,
 	[GitErrorCode.RemoteRepositoryNotFoundError]: CloneErrorComponent,
+	[GitErrorCode.HealthcheckFailed]: RepositoryHealthcheckError,
 });
 
 export default getGitErrors;

@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 
 const Wrapper = styled.div<{ bottom?: string }>`
 	bottom: ${({ bottom }) => bottom || "4px"};
-	z-index: var(--z-index-base);
+	z-index: var(--z-index-toolbar);
 	position: sticky;
 
 	pointer-events: none;

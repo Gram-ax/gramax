@@ -28,7 +28,7 @@ use crate::metrics::layers::Metrics;
 
 use tracing::*;
 
-const UPDATE_FETCH_INTERVAL: Duration = Duration::from_secs(60 * 3);
+const UPDATE_FETCH_INTERVAL: Duration = Duration::from_secs(60);
 
 #[derive(thiserror::Error, Debug)]
 pub enum UpdaterError {

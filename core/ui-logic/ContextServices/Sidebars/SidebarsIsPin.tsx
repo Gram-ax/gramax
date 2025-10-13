@@ -1,4 +1,4 @@
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@react-hook/media-query";
 import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useMemo, useState } from "react";
 import { cssMedia } from "../../utils/cssUtils";
 import isMobileService from "@core-ui/ContextServices/isMobileService";

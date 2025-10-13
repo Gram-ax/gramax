@@ -2,7 +2,7 @@ import { WordInlineChild } from "@ext/wordExport/options/WordTypes";
 import { ICON_SIZE } from "@ext/wordExport/options/wordExportSettings";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import getLucideIcon from "../../../../../../components/Atoms/Icon/LucideIcon";
+import { LucideIcon } from "../../../../../../components/Atoms/Icon/LucideIcon";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 
 export const iconWordLayout: WordInlineChild = async ({ tag }) => {
@@ -11,8 +11,8 @@ export const iconWordLayout: WordInlineChild = async ({ tag }) => {
 };
 
 export const getIconFromString = async (icon: string) => {
-	let svgIcon = getLucideIcon(icon);
-	if (!svgIcon) svgIcon = getLucideIcon("circle-help");
+	let svgIcon = await LucideIcon(icon);
+	if (!svgIcon) svgIcon = await LucideIcon("circle-help");
 	return await getHtmlIcon(ReactDOMServer.renderToString(React.createElement(svgIcon)));
 };
 

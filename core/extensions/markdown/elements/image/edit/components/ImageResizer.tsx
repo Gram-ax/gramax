@@ -16,7 +16,9 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 	const { containerRef, className, imageRef, saveResize, scale, selected = false } = props;
 
 	const getContainer = useCallback(() => {
-		return containerRef.current.closest("[data-resize-container]").parentElement;
+		const container = containerRef.current.closest("[data-resize-container]");
+		if (!container) return containerRef.current;
+		return container.parentElement;
 	}, []);
 
 	const handleResizeStart = useCallback(() => {
@@ -90,7 +92,10 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 			const scale = newScale || 100;
 			if (!image || +image.style.width || !scale) return;
 
-			const width = getScale(scale, parseFloat(getComputedStyle(getContainer()).width));
+			const container = getContainer();
+			if (!container) return;
+
+			const width = getScale(scale, parseFloat(getComputedStyle(container).width));
 			image.style.width = `${width}px`;
 		};
 

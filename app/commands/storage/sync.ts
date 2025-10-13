@@ -40,7 +40,6 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Cl
 			before,
 			after,
 		} = await catalog.repo.sync({
-			recursivePull: this._app.conf.isReadOnly,
 			data: sourceData,
 			onPull: () => logger.logTrace(`Pulled in catalog "${catalogName}".`),
 			onPush: () => logger.logTrace(`Pushed in catalog "${catalogName}".`),

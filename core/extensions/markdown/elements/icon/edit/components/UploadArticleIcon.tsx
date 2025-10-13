@@ -1,186 +1,73 @@
 import { MAX_ICON_SIZE } from "@app/config/const";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ErrorModal from "@ext/errorHandlers/client/components/ErrorModal";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import { IconEditorProps } from "@ext/markdown/elements/icon/logic/IconProvider";
-import { Button } from "@ui-kit/Button";
-import { FormField } from "@ui-kit/Form";
-
-import {
-	memo,
-	useCallback,
-	ChangeEvent,
-	useState,
-	forwardRef,
-	Dispatch,
-	SetStateAction,
-	useEffect,
-	useRef,
-} from "react";
+import { useCallback, useMemo } from "react";
+import { type FileValue, type FileMetadata, FileUploadCompact } from "@ui-kit/FileUpload";
+import { UseFormReturn } from "react-hook-form";
+import { FormData } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import Path from "@core/FileProvider/Path/Path";
-import Tooltip from "@components/Atoms/Tooltip";
-import type { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
+import { formatBytes } from "@core-ui/utils/formatBytes";
 
-type IconResource = { content: string; type: "svg"; fileName: string };
-
-interface IconUploaderButtonProps {
-	className?: string;
-	handleUpload: (event: ChangeEvent<HTMLInputElement>) => void;
-	error: DefaultError | null;
-	setError: Dispatch<SetStateAction<DefaultError | null>>;
-}
-
-export const IconUploaderButton = memo(
-	forwardRef<HTMLDivElement, IconUploaderButtonProps>(({ className, handleUpload, error, setError }, ref) => {
-		const fileRef = useRef<HTMLInputElement>(null);
-
-		const onClickHandler = useCallback(() => {
-			fileRef.current?.click();
-		}, [fileRef.current]);
-
-		return (
-			<div ref={ref} className={className}>
-				<label style={{ width: "100%" }}>
-					<Button
-						startIcon={"upload"}
-						children={t("load")}
-						variant="outline"
-						style={{ width: "100%" }}
-						onClick={onClickHandler}
-						type="button"
-					/>
-					<input
-						ref={fileRef}
-						className="textInput"
-						type={"file"}
-						accept=".svg"
-						onChange={handleUpload}
-						multiple
-						hidden
-					/>
-				</label>
-				<ErrorModal error={error} setError={setError} />
-			</div>
-		);
-	}),
-);
-
-export const useUploadIcon = () => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
-
-	const [error, setError] = useState<DefaultError | null>(null);
-	const [uploadedCount, setUploadedCount] = useState(0);
-	const [showUploadInfoTooltip, setShowUploadInfoTooltip] = useState(false);
-
-	const tooltipTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-	const uploadCallback = useCallback(
-		(props: IconResource) => {
-			if (props.type !== "svg") return;
-
-			const iconCode = new Path(props.fileName).name;
-			const icon: IconEditorProps = { svg: props.content, code: iconCode };
-
-			void FetchService.fetch(apiUrlCreator.createCustomIcon(), JSON.stringify(icon));
-		},
-		[apiUrlCreator],
-	);
-
-	const handleUpload = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
-			setError(null);
-			setUploadedCount(0);
-			setShowUploadInfoTooltip(false);
-			if (tooltipTimerRef.current) {
-				clearTimeout(tooltipTimerRef.current);
-				tooltipTimerRef.current = null;
-			}
-
-			const files = event.target.files;
-			if (!files?.length) return;
-
-			const invalidFileNames: string[] = [];
-
-			Array.from(files).forEach((file) => {
-				const isSvg = file.type === "image/svg+xml";
-				const isSizeOk = file.size <= MAX_ICON_SIZE;
-
-				if (!isSvg || !isSizeOk) {
-					invalidFileNames.push(file.name);
-					return;
+export const useUploadIcon = (form: UseFormReturn<FormData>) => {
+	const onAddFile = useCallback(
+		async (files: FileValue[]) => {
+			await files.forEachAsync(async (file) => {
+				if (file instanceof File) {
+					if (file.type !== "image/svg+xml") return;
+					if (file.size > MAX_ICON_SIZE) return;
+					const svg = await file.text();
+					form.setValue("icons", [
+						...form.getValues("icons"),
+						{ name: new Path(file.name).name, content: svg, size: file.size, type: "image/svg+xml" },
+					]);
 				}
-
-				const reader = new FileReader();
-				reader.onload = (e) => {
-					const svgContent = e.target?.result as string;
-					if (svgContent) {
-						uploadCallback({
-							content: svgContent,
-							type: "svg",
-							fileName: file.name,
-						});
-						setUploadedCount((prev) => prev + 1);
-					}
-				};
-				reader.readAsText(file);
 			});
-
-			if (invalidFileNames.length) {
-				setError(
-					new DefaultError(
-						t("workspace.icon-invalid-files-body").replace("{{iconNames}}", invalidFileNames.join(", ")),
-						undefined,
-						undefined,
-						undefined,
-						t("workspace.upload-error-title"),
-					),
-				);
-			}
-
-			event.target.value = "";
 		},
-		[uploadCallback],
+		[form],
 	);
 
-	useEffect(() => {
-		if (error === null && uploadedCount > 0) {
-			setShowUploadInfoTooltip(true);
-			if (tooltipTimerRef.current) clearTimeout(tooltipTimerRef.current);
-			tooltipTimerRef.current = setTimeout(() => {
-				setShowUploadInfoTooltip(false);
-			}, 2000);
-		}
-	}, [error, uploadedCount]);
+	const onRemoveFile = useCallback(
+		(file: FileValue, index: number) => {
+			const icons = form.getValues("icons");
+			const newIcons = icons.slice(0, index).concat(icons.slice(index + 1));
+			form.setValue("icons", newIcons);
+		},
+		[form],
+	);
 
-	useEffect(() => {
-		return () => tooltipTimerRef.current && clearTimeout(tooltipTimerRef.current);
-	}, []);
+	const errorMessages = useMemo(
+		() => ({
+			fileTooLarge: (fileName: string, maxSizeBytes: number) =>
+				t("file-upload.file-too-large")
+					.replace("${fileName}", fileName)
+					.replace("${maxSizeBytes}", formatBytes(maxSizeBytes)),
+			invalidFileType: (fileName: string) => t("file-upload.invalid-file-type").replace("${fileName}", fileName),
+			tooManyFiles: (maxFiles: number) => t("file-upload.too-many-files").replace("${maxFiles}", maxFiles),
+			someFilesTooLarge: (maxSizeBytes: number) =>
+				t("file-upload.some-files-too-large").replace("${maxSizeBytes}", formatBytes(maxSizeBytes)),
+			singleFileTooLarge: (maxSizeBytes: number) =>
+				t("file-upload.single-file-too-large").replace("${maxSizeBytes}", formatBytes(maxSizeBytes)),
+		}),
+		[],
+	);
 
-	return {
-		handleUpload,
-		error,
-		setError,
-		uploadedCount,
-		showUploadInfoTooltip,
-	};
+	return { onAddFile, onRemoveFile, errorMessages };
 };
 
-const UploadArticleIcon = ({ formProps }: { formProps: FormProps }) => {
-	const { handleUpload, error, setError, uploadedCount, showUploadInfoTooltip } = useUploadIcon();
+const UploadArticleIcon = ({ form }: { form: UseFormReturn<FormData> }) => {
+	const { onAddFile, onRemoveFile, errorMessages } = useUploadIcon(form);
+	const files = form.watch("icons");
 
 	return (
-		<FormField
-			name={"iconUploader"}
-			title={t("check-icons")}
-			description={t("workspace.icons-available-in-article")}
-			control={() => (
-				<Tooltip content={`${t("workspace.icons-uploaded")}: ${uploadedCount}`} visible={showUploadInfoTooltip}>
-					<IconUploaderButton handleUpload={handleUpload} error={error} setError={setError} />
-				</Tooltip>
-			)}
-			{...formProps}
+		<FileUploadCompact
+			initialFiles={files as FileMetadata[]}
+			title={`${t("upload")} ${t("forms.catalog-edit-props.props.icons.name").toLowerCase()}`}
+			description={t("forms.catalog-edit-props.props.icons.fileConditions")}
+			errorMessages={errorMessages}
+			files={files as FileValue[]}
+			onAdd={onAddFile}
+			onRemove={onRemoveFile}
+			maxSize={MAX_ICON_SIZE}
+			accept=".svg"
 		/>
 	);
 };

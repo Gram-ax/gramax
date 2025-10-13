@@ -1,6 +1,5 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { MenuItemRichTemplate as UiKitMenuItemRichTemplate } from "ics-ui-kit/components/menu-item";
-import { forwardRef } from "react";
 import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitMenuItemRichTemplateProps = ExtractComponentGeneric<typeof UiKitMenuItemRichTemplate>;
@@ -9,9 +8,8 @@ export interface MenuItemRichTemplateProps extends Omit<UiKitMenuItemRichTemplat
 	icon?: string;
 }
 
-export const MenuItemRichTemplate = forwardRef<HTMLButtonElement, MenuItemRichTemplateProps>((props) => {
-	const { icon, ...otherProps } = props;
+export const MenuItemRichTemplate = ({ icon, ...otherProps }: MenuItemRichTemplateProps) => {
 	const Icon = icon && LucideIcon(icon);
 
 	return <UiKitMenuItemRichTemplate icon={Icon as any} {...otherProps} />;
-});
+};

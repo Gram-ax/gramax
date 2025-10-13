@@ -13,6 +13,8 @@ import attributeUpdaterExtension from "./attributeUpdaterExtension";
 import { ExtensionFilter } from "./rules/ExtensionFilter";
 import { getExtensionUpdaterRules } from "./rules/getExtensionUpdaterRules";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import PlatformService from "@core-ui/ContextServices/PlatformService";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 
 export default abstract class ExtensionContextUpdater {
 	static useExtendExtensionsWithContext(extensions: Extensions): Extensions {
@@ -24,6 +26,8 @@ export default abstract class ExtensionContextUpdater {
 		const pageDataContext = PageDataContextService.value;
 		const articleRef = ArticleRefService.value;
 		const resourceService = ResourceService.value;
+		const platform = PlatformService.value;
+		const sourceData = SourceDataService.value;
 
 		return useMemo(() => {
 			const extensionUpdatersRules = getExtensionUpdaterRules(
@@ -35,6 +39,8 @@ export default abstract class ExtensionContextUpdater {
 				pageDataContext,
 				articleRef,
 				resourceService,
+				platform,
+				sourceData,
 			);
 
 			const result = {};
@@ -94,6 +100,8 @@ export default abstract class ExtensionContextUpdater {
 		const pageDataContext = PageDataContextService.value;
 		const articleRef = ArticleRefService.value;
 		const resourceService = ResourceService.value;
+		const platform = PlatformService.value;
+		const sourceData = SourceDataService.value;
 
 		const extensionUpdatersRules = getExtensionUpdaterRules(
 			theme,
@@ -104,6 +112,8 @@ export default abstract class ExtensionContextUpdater {
 			pageDataContext,
 			articleRef,
 			resourceService,
+			platform,
+			sourceData,
 		);
 
 		this._useUpdateExtensionsWithService(editor, extensionUpdatersRules, "theme", theme);
@@ -114,6 +124,7 @@ export default abstract class ExtensionContextUpdater {
 		this._useUpdateExtensionsWithService(editor, extensionUpdatersRules, "pageDataContext", pageDataContext);
 		this._useUpdateExtensionsWithService(editor, extensionUpdatersRules, "articleRef", articleRef);
 		this._useUpdateExtensionsWithService(editor, extensionUpdatersRules, "resourceService", resourceService);
+		this._useUpdateExtensionsWithService(editor, extensionUpdatersRules, "sourceData", sourceData);
 	}
 
 	private static _useUpdateExtensionsWithService(

@@ -29,6 +29,7 @@ export type Feature = {
 	};
 	url?: string;
 	status?: "in-dev" | "experimental" | "unstable" | "beta";
+	default: boolean;
 	isEnabled: boolean;
 	targets: FeatureTarget;
 };
@@ -68,7 +69,7 @@ const loadFeatures = (list?: (keyof typeof features)[]) => {
 					...feature,
 					name: name as keyof typeof features,
 					icon: feature.icon || "zap",
-					isEnabled: enabledFeatures.includes(name),
+					isEnabled: feature.default !== enabledFeatures.includes(name),
 				},
 			]),
 	);
@@ -89,7 +90,7 @@ export const setFeature = (name: keyof typeof features, value: boolean) => {
 	cachedFeatures[name].isEnabled = value;
 
 	const enabledFeatureNames = Object.keys(cachedFeatures).filter(
-		(featureName) => cachedFeatures[featureName].isEnabled,
+		(featureName) => cachedFeatures[featureName].default !== cachedFeatures[featureName].isEnabled,
 	);
 	typeof window !== "undefined" && window.localStorage?.setItem(FEATURES_KEY, enabledFeatureNames.join(","));
 };
@@ -125,6 +126,7 @@ export const features = {
 		url: "https://gram.ax/resources/docs/doc-portal/cloud-gramax",
 		icon: "cloud",
 		targets: FeatureTarget.web | FeatureTarget.desktop,
+		default: false,
 	},
 	"filtered-catalog": {
 		title: {
@@ -138,6 +140,7 @@ export const features = {
 		url: "https://gram.ax/resources/docs/catalog/filter",
 		icon: "filter",
 		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
+		default: false,
 	},
 	"export-pdf": {
 		title: {
@@ -150,7 +153,8 @@ export const features = {
 		},
 		icon: "file-text",
 		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
-	},
+		default: false,
+	}
 } as const satisfies FeatureList;
 
 loadFeatures();

@@ -1,9 +1,5 @@
-import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import RemoveContentLanguage from "@ext/localization/actions/RemoveContentLanguage";
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
-import t from "@ext/localization/locale/translate";
 
 export type ContentLanguageActionsProps = {
 	targetCode: ContentLanguage;
@@ -13,22 +9,14 @@ export type ContentLanguageActionsProps = {
 
 const ContentLanguageActions = ({ canSwitch, setIsLoading, targetCode }: ContentLanguageActionsProps) => {
 	return (
-		<PopupMenuLayout
-			className="wrapper"
-			placement="right-start"
-			trigger={
-				<Tooltip hideInMobile content={t("actions")}>
-					<Icon code="ellipsis" onClick={(e) => e.stopPropagation()} />
-				</Tooltip>
-			}
-		>
+		<div>
 			<RemoveContentLanguage
 				key={`remove-content-language-${targetCode}`}
 				setIsLoading={setIsLoading}
 				disabled={!canSwitch}
 				targetCode={targetCode}
 			/>
-		</PopupMenuLayout>
+		</div>
 	);
 };
 

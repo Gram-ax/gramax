@@ -4,17 +4,18 @@ import { Input } from "@ui-kit/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import { FORM_DATA_QA } from "../../consts/form";
 import type { FormProps, SelectOption } from "../../logic/createFormSchema";
-import Schema from "../../model/CatalogEditProps.schema.json";
-import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import { UseFormReturn } from "react-hook-form";
+import { FormData } from "../../logic/createFormSchema";
 
 export type DisplayProps = {
-	originalProps: CatalogEditProps;
+	form: UseFormReturn<FormData>;
 	formProps: FormProps;
-	cardColors: string[];
+	cardColors: SelectOption[];
 	workspaceGroups: SelectOption[];
 };
 
-export const EditDisplayProps = ({ formProps, cardColors, workspaceGroups, originalProps }: DisplayProps) => {
+export const EditDisplayProps = ({ formProps, form, cardColors, workspaceGroups }: DisplayProps) => {
+	console.log(cardColors);
 	return (
 		<>
 			<FormField
@@ -34,13 +35,13 @@ export const EditDisplayProps = ({ formProps, cardColors, workspaceGroups, origi
 				name="style"
 				title={t("forms.catalog-edit-props.props.style.name")}
 				control={({ field }) => (
-					<Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
-						<SelectTrigger>
+					<Select onValueChange={field.onChange} value={field.value || undefined}>
+						<SelectTrigger onClear={field.value ? () => field.onChange(null) : undefined}>
 							<SelectValue placeholder={t("forms.catalog-edit-props.props.style.placeholder")} />
 						</SelectTrigger>
 						<SelectContent>
-							{cardColors.map((color, index) => (
-								<SelectItem children={color} key={color} value={Schema.properties.style.enum[index]} />
+							{cardColors.map((color) => (
+								<SelectItem children={color.children} key={color.value} value={color.value} />
 							))}
 						</SelectContent>
 					</Select>
@@ -48,20 +49,7 @@ export const EditDisplayProps = ({ formProps, cardColors, workspaceGroups, origi
 				{...formProps}
 			/>
 
-			<FormField
-				name="code"
-				title={t("forms.catalog-edit-props.props.code.name")}
-				control={({ field }) => (
-					<Input
-						data-qa={FORM_DATA_QA.CODE}
-						placeholder={t("forms.catalog-edit-props.props.code.placeholder")}
-						{...field}
-					/>
-				)}
-				{...formProps}
-			/>
-
-			{workspaceGroups.length >= 1 && originalProps.group && (
+			{workspaceGroups.length >= 1 && form.formState.defaultValues?.group && (
 				<FormField
 					name="group"
 					title={t("forms.catalog-edit-props.props.group.name")}

@@ -1,4 +1,4 @@
-import { Paragraph } from "docx";
+import docx from "@dynamicImports/docx";
 import Path from "@core/FileProvider/Path/Path";
 import { WordFontStyles, imageString } from "@ext/wordExport/options/wordExportSettings";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
@@ -20,6 +20,7 @@ export const imageWordLayout = async (
 	parserContext: ParserContext,
 ) => {
 	try {
+		const { Paragraph } = await docx();
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 
 		const imageRun = await WordImageExporter.getImageByPath(
@@ -41,7 +42,7 @@ export const imageWordLayout = async (
 			indent,
 		});
 
-		const annotations = AnnotationText.getText(attrs.title, attrs.objects, addOptions);
+		const annotations = await AnnotationText.getText(attrs.title, attrs.objects, addOptions);
 		return [imageParagraph, ...annotations];
 	} catch (error) {
 		return errorWordLayout(imageString(parserContext.getLanguage()), parserContext.getLanguage());

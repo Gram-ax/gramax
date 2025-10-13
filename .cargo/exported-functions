@@ -8,7 +8,8 @@ _branch_info
 _branch_list
 _checkout
 _clone
-_clone_cancel
+_recover
+_cancel
 _commit
 _delete_branch
 _diff
@@ -44,7 +45,7 @@ _rename
 _getstat
 _rmfile
 _write_file
-_graph_head_upstream_files
+_count_changed_files
 _store
 _get_store
 _git_read_dir
@@ -62,5 +63,7 @@ _get_draft_merge_request
 _get_all_commit_authors
 _gc
 _reset_repo
+_reset_file_lock
 _set_last_http_error
 _get_all_cancel_tokens
+_healthcheck

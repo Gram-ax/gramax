@@ -47,6 +47,10 @@ ol[data-sonner-toaster] {
 	}
 }
 
+[aria-haspopup="menu"] {
+	display: flex;
+}
+
 .ui-kit {
 	z-index: var(--z-index-article-modal);
 }
@@ -57,4 +61,14 @@ ol[data-sonner-toaster] {
 
 [data-upper-error] {
 	z-index: 1005;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+input[type="number"] {
+	-moz-appearance: textfield;
 }

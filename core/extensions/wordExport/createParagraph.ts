@@ -1,15 +1,19 @@
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { createEmptyTextRun } from "@ext/wordExport/TextWordGenerator";
-import { Paragraph, ParagraphChild } from "docx";
+import type { ParagraphChild } from "docx";
+import docx from "@dynamicImports/docx";
 
-export function createParagraph(children: ParagraphChild[], style?: string) {
+export async function createParagraph(children: ParagraphChild[], style?: string) {
+	const { Paragraph } = await docx();
 	return new Paragraph({ children, style });
 }
 
-export function createParagraphBeforeTable() {
-	return new Paragraph({ children: [createEmptyTextRun()], style: WordFontStyles.notExportBeforeTable });
+export async function createParagraphBeforeTable() {
+	const { Paragraph } = await docx();
+	return new Paragraph({ children: [await createEmptyTextRun()], style: WordFontStyles.notExportBeforeTable });
 }
 
-export function createParagraphAfterTable() {
-	return new Paragraph({ children: [createEmptyTextRun()], style: WordFontStyles.notExportAfterTable });
+export async function createParagraphAfterTable() {
+	const { Paragraph } = await docx();
+	return new Paragraph({ children: [await createEmptyTextRun()], style: WordFontStyles.notExportAfterTable });
 }

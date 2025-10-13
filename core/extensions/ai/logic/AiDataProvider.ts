@@ -18,7 +18,12 @@ export class AiDataProvider {
 
 		const name = this._getCompleteName(workspacePath);
 		if (!ctx.cookie.exist(name)) return { apiUrl: "", token: "", instanceName: "" };
-		return this._decode(ctx.cookie.get(name));
+		try {
+			return this._decode(ctx.cookie.get(name));
+		} catch (error) {
+			console.error(error);
+			return { apiUrl: "", token: "", instanceName: "" };
+		}
 	}
 
 	removeEditorAiData(ctx: Context, workspacePath: string) {

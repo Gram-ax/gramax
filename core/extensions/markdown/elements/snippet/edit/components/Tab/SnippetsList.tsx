@@ -1,3 +1,4 @@
+import Icon from "@components/Atoms/Icon";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -9,7 +10,6 @@ import { SnippetAlreadyUseWarnProps } from "@ext/markdown/elements/snippet/edit/
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import SnippetUsages from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetUsages";
-import DropdownButton from "@ext/wordExport/components/DropdownButton";
 import { RefObject, useCallback, useEffect } from "react";
 
 interface SnippetsListProps {
@@ -31,8 +31,8 @@ const SnippetsList = ({ show, snippets, selectedID, apiUrlCreator, tabWrapperRef
 	const onDelete = useCallback(
 		(id: string) => {
 			if (selectedID === id) {
-				SnippetService.closeItem();
 				void FetchService.fetch(apiUrlCreator.clearArticlesContentWithSnippet(id));
+				SnippetService.closeItem();
 			}
 
 			const newSnippets = Array.from(snippets.values()).filter((s) => s.id !== id);
@@ -70,9 +70,14 @@ const SnippetsList = ({ show, snippets, selectedID, apiUrlCreator, tabWrapperRef
 	const rightActions = useCallback((id: string) => {
 		return (
 			<SnippetUsages
+				isSubmenu
 				snippetId={id}
-				openTrigger="focus mouseenter"
-				trigger={<DropdownButton iconCode="file-symlink" text={t("view-usage")} />}
+				trigger={
+					<>
+						<Icon code="file-symlink" />
+						{t("view-usage")}
+					</>
+				}
 			/>
 		);
 	}, []);
@@ -85,7 +90,7 @@ const SnippetsList = ({ show, snippets, selectedID, apiUrlCreator, tabWrapperRef
 					resolve(false);
 					ModalToOpenService.resetValue();
 				},
-				onDelete: () => {
+				onSubmit: () => {
 					resolve(true);
 					ModalToOpenService.resetValue();
 				},

@@ -4,14 +4,17 @@ import { ViewRenderData, ViewRenderGroup } from "@ext/properties/models";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
 import {
 	WordBlockType,
-	wordBordersType,
+	getWordBordersType,
 	WordFontStyles,
 	wordMarginsType,
 } from "@ext/wordExport/options/wordExportSettings";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import { Table, TableRow, TableCell, Paragraph, TextRun, InternalHyperlink } from "docx";
+import docx from "@dynamicImports/docx";
+import type { TableRow, TableCell } from "docx";
 
-export const getTableWithoutGrouping = (data: ViewRenderGroup[], titlesMap: Map<string, TitleInfo>): Table => {
+export const getTableWithoutGrouping = async (data: ViewRenderGroup[], titlesMap: Map<string, TitleInfo>) => {
+	const { Table, TableRow, TableCell, Paragraph, TextRun } = await docx();
+	const wordBordersType = await getWordBordersType();
 	const rows: TableRow[] = [];
 
 	const headerCell = new TableCell({
@@ -33,18 +36,10 @@ export const getTableWithoutGrouping = (data: ViewRenderGroup[], titlesMap: Map<
 		}),
 	);
 
-	data[0].articles.forEach((article) => {
-		const articleContent = getViewArticleItem(article, titlesMap);
-
-		const articleCell = new TableCell({
-			children: [articleContent],
-		});
-
-		rows.push(
-			new TableRow({
-				children: [articleCell],
-			}),
-		);
+	await data[0].articles.forEachAsync(async (article) => {
+		const articleContent = await getViewArticleItem(article, titlesMap);
+		const articleCell = new TableCell({ children: [articleContent] });
+		rows.push(new TableRow({ children: [articleCell] }));
 	});
 
 	return new Table({
@@ -54,14 +49,16 @@ export const getTableWithoutGrouping = (data: ViewRenderGroup[], titlesMap: Map<
 	});
 };
 
-export const getTableWithGrouping = (
+export const getTableWithGrouping = async (
 	data: ViewRenderGroup[],
 	titlesMap: Map<string, TitleInfo>,
 	groupby: string[],
-): Table => {
-	const headers = createTableHeaders(groupby);
+) => {
+	const { Table } = await docx();
+	const wordBordersType = await getWordBordersType();
+	const headers = await createTableHeaders(groupby);
 
-	const body = createTableBody(data, titlesMap);
+	const body = await createTableBody(data, titlesMap);
 
 	body.unshift(headers);
 
@@ -72,20 +69,22 @@ export const getTableWithGrouping = (
 	});
 };
 
-const createTableBody = (data: ViewRenderGroup[], titlesMap: Map<string, TitleInfo>): TableRow[] => {
-	return data.flatMap((group) => processGroupForTable(group, titlesMap, group.group || []));
+const createTableBody = async (data: ViewRenderGroup[], titlesMap: Map<string, TitleInfo>) => {
+	const rows = await data.mapAsync((group) => processGroupForTable(group, titlesMap, group.group || []));
+	return rows.flat();
 };
 
-const processGroupForTable = (
+const processGroupForTable = async (
 	group: ViewRenderGroup,
 	titlesMap: Map<string, TitleInfo>,
 	currentGroupValues: (string | null)[] = [],
-): TableRow[] => {
+) => {
+	const { TableRow, TableCell, Paragraph, TextRun } = await docx();
 	const rows: TableRow[] = [];
 
 	if (group.articles?.length > 0) {
-		group.articles.forEach((article, articleIndex) => {
-			const articleItem = getViewArticleItem(article, titlesMap);
+		await group.articles.forEachAsync(async (article, articleIndex) => {
+			const articleItem = await getViewArticleItem(article, titlesMap);
 			const rowValues: (string | null)[] = [...currentGroupValues];
 
 			const newRowCells: TableCell[] = rowValues
@@ -103,33 +102,26 @@ const processGroupForTable = (
 						});
 					}
 				})
-				.filter((cell) => cell !== null) as TableCell[];
+				.filter((cell) => cell !== null);
 
-			newRowCells.push(
-				new TableCell({
-					children: [articleItem],
-				}),
-			);
+			newRowCells.push(new TableCell({ children: [articleItem] }));
 
-			rows.push(
-				new TableRow({
-					children: newRowCells,
-				}),
-			);
+			rows.push(new TableRow({ children: newRowCells }));
 		});
 	}
 
 	if (group.subgroups?.length > 0) {
-		group.subgroups.forEach((subgroup) => {
+		await group.subgroups.forEachAsync(async (subgroup) => {
 			const subgroupValues = [...currentGroupValues, ...(subgroup.group || [])];
-			rows.push(...processGroupForTable(subgroup, titlesMap, subgroupValues));
+			rows.push(...(await processGroupForTable(subgroup, titlesMap, subgroupValues)));
 		});
 	}
 
 	return rows;
 };
 
-const createTableHeaders = (groupby: string[]): TableRow => {
+const createTableHeaders = async (groupby: string[]) => {
+	const { TableRow, TableCell, Paragraph, TextRun } = await docx();
 	const headerCells = groupby.map((key) => {
 		return new TableCell({
 			children: [
@@ -165,11 +157,9 @@ const createTableHeaders = (groupby: string[]): TableRow => {
 	});
 };
 
-export const getViewArticleItem = (article: ViewRenderData, titlesMap: Map<string, TitleInfo>): Paragraph => {
-	const { title, order, anchor } = extractNameAndAnchor(
-		{ href: article.linkPath, hash: "" },
-		titlesMap,
-	);
+export const getViewArticleItem = async (article: ViewRenderData, titlesMap: Map<string, TitleInfo>) => {
+	const { Paragraph, TextRun, InternalHyperlink } = await docx();
+	const { title, order, anchor } = extractNameAndAnchor({ href: article.linkPath, hash: "" }, titlesMap);
 	const safeTitle = article.title ? article.title : t("article.no-name");
 	const linkToDestination = title ? generateBookmarkName(order, title, anchor) : undefined;
 

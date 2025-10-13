@@ -2,7 +2,7 @@ import RightNavigationComponent from "@components/Layouts/CatalogLayout/RightNav
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@react-hook/media-query";
 import ArticleComponent from "./ArticleLayout/ArticleComponent";
 import CatalogLayout from "./CatalogLayout";
 import LeftNavigationComponent from "./LeftNavigation/LeftNavigationComponent";

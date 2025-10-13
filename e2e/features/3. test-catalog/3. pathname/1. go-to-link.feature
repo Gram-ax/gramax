@@ -8,4 +8,5 @@
   Сценарий: Переход в каталог по новой ссылке
     Когда находимся на "/%domain%/%group%/%test-repo%/not-dev-branch/-/catalog/ThirdLevel/ThirdLevelArticle2"
     Тогда находимся по адресу "/%domain%/%group%/%test-repo%/master/-/catalog/ThirdLevel/ThirdLevelArticle2"
-    И закрываем активную форму
+    И ждём 2 секунды
+    И закрываем активное модальное окно

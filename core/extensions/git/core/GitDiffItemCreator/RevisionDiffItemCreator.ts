@@ -116,10 +116,7 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 			}
 
 			if (!isResourceAssigned) {
-				const unassigneedResource = this._getDiffResource(resource, {
-					path: parentPath,
-					oldPath: parentPath,
-				});
+				const unassigneedResource = this._getDiffResource(resource, { path: null, oldPath: null });
 				unassigneedResources.add(unassigneedResource);
 				allResources.add(unassigneedResource);
 			}

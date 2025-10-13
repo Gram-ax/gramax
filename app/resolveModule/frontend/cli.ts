@@ -22,5 +22,6 @@ export const getCliModules = async (): Promise<any> => {
 		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
+		openInWeb: () => undefined,
 	};
 };

@@ -1,3 +1,4 @@
+import Icon from "@components/Atoms/Icon";
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
 import { classNames } from "@components/libs/classNames";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
@@ -8,10 +9,12 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import getArticleItemLink from "@ext/artilce/LinkCreator/logic/getArticleItemLink";
-import EditMenu from "@ext/item/EditMenu";
+import ItemMenu from "@ext/item/EditMenu";
+import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import Properties from "@ext/properties/components/Properties";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import { Button } from "@ui-kit/Button";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface ArticleBreadcrumbProps {
@@ -75,12 +78,21 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 			{!isReadOnly && showArticleActions && (
 				<>
 					<div className="article-actions" data-qa="qa-article-actions">
-						<EditMenu
-							style={{ marginTop: "2px", marginRight: "-1px", fontSize: "22px" }}
-							itemLink={itemLink}
-							isCategory={itemLink?.type === ItemType.category}
-							setItemLink={setItemLink}
-						/>
+						<NavigationDropdown
+							className="article-actions"
+							style={{ marginRight: "-2px" }}
+							trigger={
+								<Button variant="text" size="xs" className="p-0 h-full">
+									<Icon code="ellipsis-vertical" style={{ fontSize: "1.7em" }} />
+								</Button>
+							}
+						>
+							<ItemMenu
+								itemLink={itemLink}
+								isCategory={itemLink?.type === ItemType.category}
+								setItemLink={setItemLink}
+							/>
+						</NavigationDropdown>
 					</div>
 					<Properties
 						properties={articleProperties}
@@ -113,11 +125,15 @@ export default styled(ArticleBreadcrumb)`
 		display: flex;
 		align-items: center;
 		justify-content: end;
-		right: -0.15em;
-		bottom: -2.1em;
+		right: 0;
+		bottom: -1em;
 		margin-right: 4px;
 		z-index: var(--z-index-foreground);
 		opacity: var(--opacity-darken-element);
+	}
+
+	.article-actions i {
+		font-size: 22px;
 	}
 
 	.article-actions:hover {

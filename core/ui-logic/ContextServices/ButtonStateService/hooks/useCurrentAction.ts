@@ -6,9 +6,10 @@ import { Selection } from "@tiptap/pm/state";
 import { CellSelection } from "prosemirror-tables";
 
 export const ListGroup = ["orderedList", "bulletList", "taskList"];
-export const BlockPlus = ["table", "cut", "note", "tab", "tabs", "blockquote"];
+export const BlockPlus = ["table", "cut", "tab", "tabs", "blockquote"];
 
-const BlockOutContent = ["drawio", "diagrams", "image", "video", "code_block", "snippet", OPEN_API_NAME];
+const BlockOutContent = ["drawio", "diagrams", "note", "image", "video", "code_block", "snippet", OPEN_API_NAME];
+const WrappableBlocks = ["note"];
 
 const disabledMarkRule: Record<Mark, Mark[]> = {
 	code: ["link", "file", "comment"],
@@ -48,17 +49,15 @@ function changeResultByAction(activeNode: NodeType, buttonNode: NodeType, result
 }
 
 function changeResultByAttrs(contextAttrs: Partial<Attrs>, buttonAttrs: Partial<Attrs>, result: ButtonState) {
-	if (Boolean(contextAttrs?.level) && Boolean(buttonAttrs?.level)) {
-		if (contextAttrs.level !== buttonAttrs.level) {
-			result.isActive = false;
-		}
-	}
+	if (!buttonAttrs) return;
+	const keys = Object.keys(buttonAttrs);
 
-	if (Boolean(contextAttrs?.type) && Boolean(buttonAttrs?.type)) {
-		if (contextAttrs.type !== buttonAttrs.type) {
+	keys.forEach((key) => {
+		const value = buttonAttrs[key];
+		if (Boolean(contextAttrs?.[key]) && Boolean(value) && contextAttrs?.[key] !== value) {
 			result.isActive = false;
 		}
-	}
+	});
 }
 
 function changeResultByMark(activeNode: NodeType, buttonMark, result: ButtonState) {
@@ -77,6 +76,12 @@ function changeResultBySelection(
 
 	if (disableBlockBySelection[activeNode]?.(selection, buttonNode)) {
 		result.disabled = true;
+	}
+}
+
+function changeResultByWrappableBlocks(activeNode: NodeType, buttonNode: NodeType, result: ButtonState) {
+	if (WrappableBlocks.includes(activeNode) && buttonNode === activeNode) {
+		result.disabled = activeNode !== buttonNode;
 	}
 }
 
@@ -111,6 +116,7 @@ export const getResultByActionData = (props: ResultByActionDataProps) => {
 		changeResultByAttrs(attrs, current.attrs, result);
 		changeResultBySelection(action, selection, current.action, result);
 		getButtonStateByMarks(marks, current.mark, result);
+		changeResultByWrappableBlocks(action, current.action, result);
 	});
 
 	return result;

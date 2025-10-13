@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use test_utils::git::*;
 use test_utils::*;
 
@@ -15,6 +17,18 @@ fn add_remote(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Re
 }
 
 #[rstest]
+fn add_remote_replace(_sandbox: TempDir, #[with(&_sandbox)] repo: Repo<TestCreds>) -> Result {
+  repo.add_remote("origin", "https://someurl.com/")?;
+  assert!(repo.has_remotes()?);
+
+  repo.add_remote("origin", "https://someurl2.com/")?;
+  assert!(repo.has_remotes()?);
+
+  assert_eq!(repo.get_remote()?, Some("https://someurl2.com/".to_string()));
+  Ok(())
+}
+
+#[rstest]
 #[case("https://github.com/pashokitsme/android-intent")]
 fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
   use std::cell::RefCell;
@@ -26,6 +40,11 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
   let sideband_calls_clone = Rc::clone(&sideband_calls);
   let transfer_calls_clone = Rc::clone(&transfer_calls);
   let checkout_calls_clone = Rc::clone(&checkout_calls);
+
+  assert!(!sandbox.path().join(".git").join(FILE_LOCK_PATH).exists());
+
+  let path = sandbox.path();
+
   Repo::clone(
     TestCreds,
     CloneOptions {
@@ -34,21 +53,29 @@ fn clone(sandbox: TempDir, #[case] url: &str) -> Result {
       branch: None,
       depth: None,
       is_bare: false,
+      allow_non_empty_dir: false,
       cancel_token: 0,
     },
-    Box::new(move |progress| match progress {
-      CloneProgress::Sideband { .. } => {
-        *sideband_calls_clone.borrow_mut() += 1;
+    Rc::new(move |progress| {
+      assert!(path.join(".git").join(FILE_LOCK_PATH).exists());
+
+      match progress {
+        RemoteProgress::Sideband { .. } => {
+          *sideband_calls_clone.borrow_mut() += 1;
+        }
+        RemoteProgress::ChunkedTransfer { .. } => {
+          *transfer_calls_clone.borrow_mut() += 1;
+        }
+        RemoteProgress::Checkout { .. } => {
+          *checkout_calls_clone.borrow_mut() += 1;
+        }
+        RemoteProgress::Finish { .. } => {}
       }
-      CloneProgress::ChunkedTransfer { .. } => {
-        *transfer_calls_clone.borrow_mut() += 1;
-      }
-      CloneProgress::Checkout { .. } => {
-        *checkout_calls_clone.borrow_mut() += 1;
-      }
-      CloneProgress::Finish { .. } => {}
     }),
   )?;
+
+  assert!(!sandbox.path().join(".git").join(FILE_LOCK_PATH).exists());
+
   assert!(sandbox.path().join(".git").exists());
   assert!(*sideband_calls.borrow() > 0);
   assert!(*transfer_calls.borrow() > 0);
@@ -72,13 +99,44 @@ fn clone_empty(sandbox: TempDir) -> Result {
       branch: None,
       depth: None,
       is_bare: false,
-      cancel_token: 9999,
+      allow_non_empty_dir: false,
+      cancel_token: 0,
     },
-    Box::new(|_| {}),
+    Rc::new(|_| {}),
   )?;
   let repo = Repo::open(path.join("clone"), TestCreds).unwrap();
   assert!(repo.repo().branches(Some(BranchType::Local))?.count() == 1);
   assert_eq!(repo.repo().head()?.name().unwrap(), "refs/heads/master");
+
+  drop(sandbox);
+  Ok(())
+}
+
+#[rstest]
+fn clone_again(sandbox: TempDir) -> Result {
+  let path = sandbox.path();
+
+  git2::Repository::init(path)?;
+
+  Repo::clone(
+    TestCreds,
+    CloneOptions {
+      url: "https://github.com/pashokitsme/android-intent".to_string(),
+      to: path.to_path_buf(),
+      branch: None,
+      depth: None,
+      is_bare: false,
+      allow_non_empty_dir: true,
+      cancel_token: 0,
+    },
+    Rc::new(|_| {}),
+  )?;
+
+  let repo = Repo::open(path, TestCreds).unwrap();
+
+  assert!(repo.repo().branches(Some(BranchType::Local))?.count() == 1);
+  assert_eq!(repo.repo().head()?.name().unwrap(), "refs/heads/master");
+
   Ok(())
 }
 
@@ -95,7 +153,7 @@ fn push(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
 
   repos.local.add_all()?;
   repos.local.commit_debug()?;
-  repos.local.push()?;
+  repos.local.debug_push()?;
 
   repos.remote.checkout("test", false)?;
   let commit = repos.remote.repo().head()?.peel_to_commit()?;
@@ -110,7 +168,7 @@ fn mismatch_history(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Resul
   repos.remote.add_all()?;
   repos.remote.commit_debug()?;
 
-  assert!(repos.local.push().is_err());
+  assert!(repos.local.debug_push().is_err());
   Ok(())
 }
 
@@ -122,7 +180,7 @@ fn fetch(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> Result {
   repos.remote.commit_debug()?;
 
   assert!(!repos.local.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "origin/test"));
-  repos.local.fetch(false)?;
+  repos.local.fetch(RemoteOptions::default(), Rc::new(|_| {}))?;
   repos.local.checkout("test", false)?;
   assert_eq!(repos.local.branch_by_head()?.name()?.unwrap(), "test");
   assert!(repos.local.branches(None)?.any(|b| b.unwrap().0.name().unwrap().unwrap() == "test"));
@@ -137,7 +195,7 @@ fn auto_add_remote_postfix(
   #[with(&_sandbox)] repo: Repo<TestCreds>,
 ) -> Result {
   repo.add_remote("origin", url)?;
-  repo.fetch(false)?;
+  repo.fetch(RemoteOptions::default(), Rc::new(|_| {}))?;
   assert!(repo.has_remotes()?);
   assert_eq!(repo.get_remote()?, Some(format!("{url}.git")));
 

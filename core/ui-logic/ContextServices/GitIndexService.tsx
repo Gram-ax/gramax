@@ -3,13 +3,13 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService, { type OnDidCommandEv } from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useApiEvent } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import useWatch from "@core-ui/hooks/useWatch";
 import type { UnsubscribeToken } from "@core/Event/EventEmitter";
 import type Path from "@core/FileProvider/Path/Path";
 import type { TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { createContext, ReactElement, useContext, useEffect, useState } from "react";
+import { createContext, ReactElement, useCallback, useContext, useLayoutEffect, useState } from "react";
 
 const GitIndexContext = createContext<{ index: Map<string, FileStatus>; overview: TotalOverview }>({
 	index: new Map(),
@@ -58,7 +58,7 @@ export default abstract class GitIndexService {
 		"article/provider/remove",
 	]);
 
-	private static _inited = false;
+	private static _enabled = false;
 	private static _setIndex: (index: Map<string, FileStatus>) => void;
 	private static _setOverview: (overview: TotalOverview) => void;
 
@@ -79,19 +79,16 @@ export default abstract class GitIndexService {
 		GitIndexService._setIndex = setIndex;
 		GitIndexService._setOverview = setOverview;
 
-		const isArticle = PageDataContextService.value.isArticle;
+		GitIndexService._enabled = PageDataContextService.value.isArticle;
 
-		useWatch(() => {
-			if (!isArticle) GitIndexService._inited = false;
-		}, [isArticle]);
+		if (!isNext && !isStatic && !isStaticCli) {
+			const callback = useCallback(GitIndexService._onDidCommand.bind(GitIndexService), []);
+			useApiEvent("on-did-command", callback);
 
-		useEffect(() => {
-			return () => {
-				GitIndexService._inited = false;
-			};
-		}, []);
-
-		if (isArticle && !GitIndexService._inited && !isNext && !isStatic && !isStaticCli) GitIndexService._init();
+			useLayoutEffect(() => {
+				void GitIndexService._onDidCommand({ command: "init", args: {}, result: {} });
+			}, []);
+		}
 
 		return <GitIndexContext.Provider value={{ index, overview }}>{children}</GitIndexContext.Provider>;
 	}
@@ -106,18 +103,6 @@ export default abstract class GitIndexService {
 
 	static getOverview(): TotalOverview {
 		return useContext(GitIndexContext).overview;
-	}
-
-	private static _init() {
-		if (!GitIndexService._unsubscribe) {
-			GitIndexService._unsubscribe = FetchService.events.on(
-				"on-did-command",
-				GitIndexService._onDidCommand.bind(GitIndexService),
-			);
-		}
-
-		GitIndexService._inited = true;
-		void GitIndexService._onDidCommand({ command: "init", args: {}, result: {} });
 	}
 
 	private static _onDidCommand({ command }: OnDidCommandEv) {

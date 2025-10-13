@@ -4,6 +4,7 @@ import removeProperty from "@app/commands/article/property/remove";
 import update from "@app/commands/article/property/update";
 import provider from "@app/commands/article/provider";
 import createFromPath from "@app/commands/article/resource/createFromPath";
+import getPath from "@app/commands/article/resource/getPath";
 import create from "./create";
 import app from "./editOn/app";
 import source from "./editOn/source";
@@ -21,6 +22,7 @@ import getProps from "./getProps";
 import markAsOpened from "./markAsOpened";
 import markAsRead from "./markAsRead";
 import get from "./resource/get";
+import getByPath from "./resource/getByPath";
 import removeResource from "./resource/remove";
 import set from "./resource/set";
 import updateContent from "./updateContent";
@@ -44,9 +46,11 @@ const article = {
 	resource: {
 		get,
 		set,
+		getByPath,
 		createFromPath,
 		removeResource,
 		getBrotherNames,
+		getPath,
 	},
 	property: {
 		getProperty,

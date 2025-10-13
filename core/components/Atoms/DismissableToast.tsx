@@ -1,5 +1,5 @@
-import { customToast, Toast, type CustomToastProps } from "ics-ui-kit/components/toast";
-import type { ToastProps } from "ics-ui-kit/components/toast/ToastView";
+import type { CustomToastProps, ToastProps } from "@ui-kit/Toast";
+import { customToast, Toast } from "@ui-kit/Toast";
 import { useCallback, useRef } from "react";
 
 export type DismissableToastProps = ToastProps & { dismiss: React.MutableRefObject<() => void> };

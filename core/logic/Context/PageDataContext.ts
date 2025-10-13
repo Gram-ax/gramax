@@ -16,6 +16,8 @@ interface PageDataContext {
 	userInfo: UserInfo;
 	domain: string;
 	isArticle: boolean;
+	isGesUnauthorized?: boolean;
+	pdfTemplates: string[];
 	wordTemplates: string[];
 	workspace: {
 		workspaces: ClientWorkspaceConfig[];

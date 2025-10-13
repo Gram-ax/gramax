@@ -1,7 +1,11 @@
 import { AiProvider, GramaxAiOptions } from "@ext/ai/models/types";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import t from "@ext/localization/locale/translate";
 import {
 	AudioProcessingApiClient,
 	CheckAuthResponse,
+	GenerateResponse,
+	PrettifyResponse,
 	RequestOptions,
 	TextGenerationApiClient,
 	TranscribeRequest,
@@ -29,21 +33,29 @@ class DefaultGramaxAi implements AiProvider {
 	}
 
 	async generateText(command: string): Promise<string> {
-		const res = await this._textGenApiClient.generate({ command: { text: command } }, {});
+		const res = await this.errorHandler<GenerateResponse>(
+			async () => await this._textGenApiClient.generate({ command: { text: command } }, {}),
+		);
+
 		return res?.text;
 	}
 
 	async prettifyText(command: string, text: string): Promise<string> {
-		const res = await this._textGenApiClient.prettify({
-			command: { text: command },
-			text,
-		});
+		const res = await this.errorHandler<PrettifyResponse>(
+			async () =>
+				await this._textGenApiClient.prettify({
+					command: { text: command },
+					text,
+				}),
+		);
 
 		return res?.text;
 	}
 
 	async transcribe(request: TranscribeRequest, options?: RequestOptions): Promise<TranscribeResponse> {
-		return await this._audioApiClient.transcribe(request, options);
+		return await this.errorHandler<TranscribeResponse>(
+			async () => await this._audioApiClient.transcribe(request, options),
+		);
 	}
 
 	async checkServer(): Promise<CheckResponse> {
@@ -52,6 +64,20 @@ class DefaultGramaxAi implements AiProvider {
 
 	async checkAuth(): Promise<CheckAuthResponse> {
 		return await this._textGenApiClient.checkAuth();
+	}
+
+	private async errorHandler<T>(callback: () => Promise<T>) {
+		try {
+			return await callback();
+		} catch (error) {
+			throw new DefaultError(
+				t("ai.responseError.body"),
+				null,
+				{ html: true },
+				false,
+				t("ai.responseError.title"),
+			);
+		}
 	}
 }
 

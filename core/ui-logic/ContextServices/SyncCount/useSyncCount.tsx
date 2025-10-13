@@ -1,3 +1,6 @@
+import t from "@ext/localization/locale/translate";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
+import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
 import { useCallback, useMemo } from "react";
 import GlobalSyncCountService, { CatalogSyncValue, CatalogSyncValues } from "./GlobalSyncCount";
 
@@ -17,10 +20,16 @@ export interface UseGlobalSyncCountResult {
 	fetchSyncCounts: (fetch: boolean) => Promise<void>;
 }
 
-export const useSyncCount = (catalogName: string): UseSyncCountReturn => {
+export const useSyncCount = (catalog: string | CatalogLink): UseSyncCountReturn => {
 	const context = GlobalSyncCountService.context();
 
+	const catalogName = typeof catalog === "string" ? catalog : catalog.name;
+	const isCloning = typeof catalog === "object" && catalog.isCloning;
+	const isBroken = (!useIsRepoOk(null, false) || (typeof catalog === "object" && catalog.broken)) && !isCloning;
+
 	const syncCount = context.syncCounts[catalogName];
+
+	if (isBroken && syncCount) syncCount.errorMessage = t("git.error.broken.tooltip");
 
 	const updateSyncCount = useCallback(
 		(value: CatalogSyncValue) => {

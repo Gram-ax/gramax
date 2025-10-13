@@ -1,10 +1,11 @@
-import { ExternalHyperlink, Paragraph, TextRun } from "docx";
+import docx from "@dynamicImports/docx";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import t from "@ext/localization/locale/translate";
 import { escapeLinkForPatcher } from "@ext/wordExport/utils/escapeLinkForPatcher";
 
 export const videoWordLayout: WordBlockChild = async ({ tag }) => {
+	const { ExternalHyperlink, Paragraph, TextRun } = await docx();
 	const videoString = t("word.video");
 
 	return await Promise.resolve([

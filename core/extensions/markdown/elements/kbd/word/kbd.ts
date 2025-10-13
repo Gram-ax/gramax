@@ -4,7 +4,7 @@ import { createContent } from "@ext/wordExport/TextWordGenerator";
 
 export const kbdWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
 	return await Promise.resolve([
-		createContent(NON_BREAKING_SPACE + tag.attributes.text + NON_BREAKING_SPACE, {
+		await createContent(NON_BREAKING_SPACE + tag.attributes.text + NON_BREAKING_SPACE, {
 			...addOptions,
 			style: WordFontStyles.kbd,
 		}),

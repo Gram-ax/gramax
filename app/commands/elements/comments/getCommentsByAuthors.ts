@@ -59,7 +59,7 @@ const getCommentsByAuthors: Command<{ ctx: Context; catalogName: string }, Autho
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { parserContextFactory } = this._app;
+		const { parserContextFactory, parser } = this._app;
 		const workspace = this._app.wm.current();
 		if (!catalogName) return;
 
@@ -70,14 +70,24 @@ const getCommentsByAuthors: Command<{ ctx: Context; catalogName: string }, Autho
 		const result: AuthoredCommentsByAuthor = {};
 
 		for (const article of articles) {
+			const parserContext = await parserContextFactory.fromArticle(
+				article,
+				catalog,
+				convertContentToUiLanguage(ctx.contentLanguage || catalog.props.language),
+				ctx.user.isLogged,
+			);
+
+			if (await article.parsedContent.isNull()) {
+				try {
+					const parsedContent = await parser.parse(article.content, parserContext);
+					await article.parsedContent.write(() => parsedContent);
+				} catch {
+					continue;
+				}
+			}
+
 			await article.parsedContent.read(async (p) => {
 				const commentProvider = catalog.customProviders.commentProvider;
-				const parserContext = await parserContextFactory.fromArticle(
-					article,
-					catalog,
-					convertContentToUiLanguage(ctx.contentLanguage || catalog.props.language),
-					ctx.user.isLogged,
-				);
 
 				await countCommentsRecursively(
 					await catalog.getPathname(article),

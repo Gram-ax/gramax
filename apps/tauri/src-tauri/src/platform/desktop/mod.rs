@@ -3,7 +3,6 @@ use tauri::*;
 
 use crate::error::ShowError;
 
-use crate::shared::handle_external_url;
 use crate::shared::should_allow_navigation;
 use crate::shared::AppHandleExt;
 use crate::shared::ALLOWED_DOMAINS;
@@ -23,12 +22,11 @@ pub use menu::MenuBuilder;
 
 use save_windows::SaveWindowsExt;
 
-pub fn on_navigation(url: &url::Url) -> bool {
-  if should_allow_navigation(url, &ALLOWED_DOMAINS) {
-    return true;
-  }
-
-  handle_external_url(url)
+pub fn make_on_navigate_callback<R: Runtime>(
+  _: String,
+  _: AppHandle<R>,
+) -> Box<dyn Fn(&url::Url) -> bool + Send + Sync> {
+  Box::new(move |url| should_allow_navigation(url, &ALLOWED_DOMAINS))
 }
 
 #[cfg(target_os = "macos")]

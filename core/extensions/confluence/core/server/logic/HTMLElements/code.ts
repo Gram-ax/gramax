@@ -1,5 +1,13 @@
 import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
+function extractCodeFromAc(el: Element): string {
+	if (!el) return "";
+	const raw = (el as HTMLElement).innerHTML.replace(/^<!--\[CDATA\[/, "").replace(/\]\](?:&gt;|>)\s*$/s, "");
+	const ta = document.createElement("textarea");
+	ta.innerHTML = raw;
+	return ta.value.replace(/-->/g, " > ").replace(/\r\n?/g, "\n");
+}
+
 const code: HTMLNodeConverter = (codeNode) => {
 	if (codeNode.nodeName.toLowerCase() === "ac:structured-macro") {
 		const parameters = Array.from(codeNode.querySelectorAll("ac\\:parameter"));
@@ -7,13 +15,12 @@ const code: HTMLNodeConverter = (codeNode) => {
 
 		const languageParam = parameters.find((param) => param.getAttribute("ac:name") === "language");
 		const language = languageParam ? languageParam.textContent : "";
+		const textContent = extractCodeFromAc(plainTextBody);
 
-		const textContent = plainTextBody.innerHTML.replace(/<!--|-->/g, "").replace(/\[CDATA\[|\]\]/g, "");
-		console.log(textContent);
 		return {
 			type: "code_block",
 			attrs: {
-				params: { language },
+				language,
 			},
 			content: [{ type: "text", text: textContent }],
 		};

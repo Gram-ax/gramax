@@ -20,7 +20,7 @@ createdAt: "1"
     )?;
     local.add(".gramax/mr/open.yaml")?;
     local.commit_debug()?;
-    local.push()?;
+    local.debug_push()?;
 
     Ok(())
   };
@@ -101,7 +101,7 @@ fn create_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
   assert!(local.list_merge_requests()?.is_empty());
 
   local.new_branch("dev")?;
-  local.push()?; // should exist at remote
+  local.debug_push()?; // should exist at remote
   local.checkout("master", true)?;
 
   local.create_or_update_merge_request(CreateMergeRequest {
@@ -112,7 +112,7 @@ fn create_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
 
   local.add(".gramax/mr/open.yaml")?;
   local.commit_debug()?;
-  local.push()?;
+  local.debug_push()?;
 
   assert!(std::fs::exists(local_path.join(".gramax/mr/open.yaml"))?);
   assert_eq!(local.list_merge_requests()?.len(), 1);
@@ -128,7 +128,7 @@ fn update_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
   assert!(local.list_merge_requests()?.is_empty());
 
   local.new_branch("dev")?;
-  local.push()?;
+  local.debug_push()?;
   local.checkout("master", true)?;
 
   local.create_or_update_merge_request(CreateMergeRequest {
@@ -139,7 +139,7 @@ fn update_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
 
   local.add(".gramax/mr/open.yaml")?;
   local.commit_debug()?;
-  local.push()?;
+  local.debug_push()?;
 
   assert!(std::fs::exists(local_path.join(".gramax/mr/open.yaml"))?);
   assert_eq!(local.list_merge_requests()?.len(), 1);
@@ -159,7 +159,7 @@ fn update_merge_request(_sandbox: TempDir, #[with(&_sandbox)] repos: Repos) -> R
 
   local.add(".gramax/mr/open.yaml")?;
   local.commit_debug()?;
-  local.push()?;
+  local.debug_push()?;
 
   let mrs = local.list_merge_requests()?;
   assert_eq!(mrs.len(), 1);
@@ -216,7 +216,7 @@ createdAt: "1"
 
   local.add(".gramax/mr/open.yaml")?;
   local.commit_debug()?;
-  local.push()?;
+  local.debug_push()?;
 
   local.repo().branch("dev", &local.repo().head()?.peel_to_commit()?, false)?;
 
@@ -295,7 +295,7 @@ createdAt: "1"
 
   local.add(".gramax/mr/open.yaml")?;
   local.commit_debug()?;
-  local.push()?;
+  local.debug_push()?;
 
   let mr = local.get_draft_merge_request()?;
   assert!(mr.is_none(), "expected None when source and target branches are the same");

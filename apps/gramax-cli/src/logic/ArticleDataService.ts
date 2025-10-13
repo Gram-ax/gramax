@@ -12,6 +12,7 @@ import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import assert from "assert";
 import { ExtendedArticlePageData, InitialArticleData } from "./ArticleTypes";
 import { getItemLinks, replacePathIfNeeded } from "./NavigationUtils";
+import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 
 export type StaticArticlePageData = {
 	articleContentRender: string;
@@ -81,8 +82,10 @@ export class ArticleDataService {
 
 	async getMultiLangArticlesPageData(catalog: Catalog, logicPath: string): Promise<InitialArticleData[]> {
 		return await Promise.all(
-			catalog.props.supportedLanguages.map(async (lang) => {
-				const ctx = await this._app.contextFactory.fromBrowser(lang, null);
+			catalog.props.supportedLanguages.map(async (language) => {
+				const ctx = await this._app.contextFactory.fromBrowser({
+					language,
+				});
 				const sp = this._app.sitePresenterFactory.fromContext(ctx);
 				const { catalog, article: initialArticle } = await sp.getArticleByPathOfCatalog([logicPath]);
 				let article = initialArticle;
@@ -169,8 +172,14 @@ export class ArticleDataService {
 		const articleProps = await sp.serializeArticleProps(article, await catalog.getPathname(article));
 		articleProps.ref.path = replacePathIfNeeded(articleProps.ref.path, catalog);
 		return {
-			articleContentRender: JSON.stringify(await article.parsedContent.read((p) => p.renderTree)),
+			articleContentRender: this._stringifyRenderableTreeNodeSafely(
+				await article.parsedContent.read((p) => p.renderTree),
+			),
 			articleProps,
 		};
+	}
+
+	private _stringifyRenderableTreeNodeSafely(value: RenderableTreeNode): string {
+		return JSON.stringify(value).replaceAll("<", "\\u003C");
 	}
 }

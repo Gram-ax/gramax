@@ -1,6 +1,7 @@
 export const ZOOM_COUNT = 10;
 
 export const calculateTransform = (startPos: DOMRect): string => {
+	if (!startPos) return "translate(0px, 0px) scale(1)";
 	const centerX = window.innerWidth / 2;
 	const centerY = window.innerHeight / 2;
 
@@ -16,6 +17,7 @@ export const calculateTransform = (startPos: DOMRect): string => {
 };
 
 export const getClampedValues = (realSize: { width: number; height: number }): { [key: string]: number } => {
+	if (!realSize) return { minWidth: 0, maxWidth: 0, maxHeight: 0, minHeight: 0 };
 	const maxWidth = (realSize.width - window.innerWidth) / 2;
 	const maxHeight = (realSize.height - window.innerHeight) / 2;
 
@@ -23,6 +25,7 @@ export const getClampedValues = (realSize: { width: number; height: number }): {
 };
 
 export const getCanMoves = (targetRect: DOMRect): { left: boolean; right: boolean; top: boolean; bottom: boolean } => {
+	if (!targetRect) return { left: false, right: false, top: false, bottom: false };
 	const viewportWidth = window.innerWidth;
 	const viewportHeight = window.innerHeight;
 

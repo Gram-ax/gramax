@@ -1,6 +1,6 @@
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import HistorySrc from "@ext/git/actions/History/component/History";
+import HistorySrc from "@ext/git/actions/History/component/HistoryTrigger";
 import { Meta } from "@storybook/react";
 import mock from "storybook/data/mock";
 import BlockDecorator from "storybook/styles/decorators/BlockDecorator";

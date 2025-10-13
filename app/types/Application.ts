@@ -22,6 +22,7 @@ import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import SearcherManager from "@ext/serach/SearcherManager";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
+import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 
 interface Application {
 	wm: WorkspaceManager;
@@ -37,6 +38,7 @@ interface Application {
 	rp: GitRepositoryProvider;
 	adp: AiDataProvider;
 	wtm: WordTemplateManager;
+	ptm: PdfTemplateManager;
 	formatter: MarkdownFormatter;
 	ticketManager: TicketManager;
 	contextFactory: ContextFactory;

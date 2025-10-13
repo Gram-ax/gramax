@@ -22,11 +22,11 @@ const whoWhenWordLayout = async (
 	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 
 	return [
-		createContent(signBeforeText + NON_BREAKING_SPACE + NON_BREAKING_SPACE, {
+		await createContent(signBeforeText + NON_BREAKING_SPACE + NON_BREAKING_SPACE, {
 			...addOptions,
 			color: WordFontColors.whoWhen,
 		}),
 		await getIconFromString(iconName),
-		createContent(NON_BREAKING_SPACE + attrs.text),
+		await createContent(NON_BREAKING_SPACE + attrs.text),
 	];
 };

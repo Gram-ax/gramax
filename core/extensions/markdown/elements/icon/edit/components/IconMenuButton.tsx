@@ -1,11 +1,11 @@
-import lucideIconList, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
+import useLucideIconLists, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
 import { ItemContent, ListItem } from "@components/List/Item";
 import TooltipListLayout from "@components/List/TooltipListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { IconEditorProps } from "@ext/markdown/elements/icon/logic/IconProvider";
+import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import { Editor } from "@tiptap/core";
 import { useState } from "react";
 
@@ -20,7 +20,7 @@ const IconMenuButton = ({ editor, onClose, className }: IconMenuButtonProps) => 
 
 	const [customIconsList, setCustomIconsList] = useState<IconEditorProps[]>([]);
 
-	const lucideIconListFiltered = lucideIconList.filter(
+	const lucideIconListFiltered = useLucideIconLists().lucideIconList.filter(
 		(listItem) => !customIconsList.some((icon) => icon.code === listItem.labelField),
 	);
 

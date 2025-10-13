@@ -6,6 +6,7 @@ import useEnterpriseTokenHandler from "@ext/enterprise/utils/useEnterpriseTokenH
 import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";
 import usePathnameHandler from "@ext/git/core/GitPathnameHandler/usePathnameHandler";
+import useSwitchToEnterpriseWorkspace from "@ext/enterprise/utils/useSwitchToEnterpriseWorkspace";
 
 const closeIfChild = () => {
 	if (typeof window === "undefined") return;
@@ -16,7 +17,7 @@ const closeIfChild = () => {
 
 	if (
 		getExecutingEnvironment() !== "tauri" &&
-		(saveTempTokenIfPresent(/\?access_token=/) || (saveTempTokenIfPresent(/\?enterpriseToken=/) && window.opener))
+		(saveTempTokenIfPresent(/\?access_token=/) || (saveTempTokenIfPresent(/\?oneTimeCode=/) && window.opener))
 	) {
 		window.close();
 	}
@@ -31,6 +32,7 @@ const useOnFirstLoadFuncs = () => {
 	useEnterpriseTokenHandler(isFirstLoad);
 	usePathnameCloneHandler();
 	usePathnameHandler(isFirstLoad);
+	useSwitchToEnterpriseWorkspace(isFirstLoad);
 	// useReviewHandler(isFirstLoad);
 };
 

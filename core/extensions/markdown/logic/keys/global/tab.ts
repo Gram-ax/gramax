@@ -1,7 +1,7 @@
+import { listTypes } from "@ext/markdown/elements/joinLists/joinLists";
 import KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
 import KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
 
-const listTypes = ["bulletList", "orderedList", "taskList"];
 const blockToListItem: KeyboardRule = ({ editor, node, parentNode, nodePosition }) => {
 	if (!parentNode || parentNode.type.name === "listItem") return false;
 	if (node.isTextblock || !node.isBlock || node.type.name === "code_block") return false;

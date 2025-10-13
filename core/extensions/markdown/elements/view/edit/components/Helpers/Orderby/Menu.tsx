@@ -1,54 +1,38 @@
-import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
-import { DndProvider } from "react-dnd";
 import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
-import styled from "@emotion/styled";
 import { memo, useCallback } from "react";
 import t from "@ext/localization/locale/translate";
-import ButtonLink from "@components/Molecules/ButtonLink";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
+import Icon from "@components/Atoms/Icon";
 
 interface MenuProps {
 	name: string;
 	data: string[];
 	defaultData: string[];
 	updateData: (name: string, value?: string | string[]) => void;
-	className?: string;
 }
 
-const Menu = memo(({ name, data, defaultData, updateData, className }: MenuProps) => {
-	const { backend, options } = useDragDrop();
+const Menu = memo(({ name, data, defaultData, updateData }: MenuProps) => {
+	const onChange = useCallback((values: string[]) => updateData(name, values), [updateData, name]);
 
-	const onChange = useCallback(
-		(values: string[]) => {
-			updateData(name, values);
+	const deleteHandler = useCallback(
+		(e: Event) => {
+			e.preventDefault();
+			if (defaultData === data) return;
+			updateData(name);
 		},
-		[updateData, name],
+		[updateData, name, defaultData, data],
 	);
 
-	const deleteHandler = useCallback(() => {
-		if (defaultData === data) return;
-		updateData(name);
-	}, [updateData, name, defaultData, data]);
-
 	return (
-		<DndProvider backend={(manager) => ModifiedBackend(backend(manager))} options={options}>
-			<ButtonLink text={t("reset")} iconCode="rotate-ccw" onClick={deleteHandler} />
-			<span className={`${className} tree-root`}>
-				<ValueHandler data={data} isActions={true} onChange={onChange} isEditable={false} />
-			</span>
-		</DndProvider>
+		<>
+			<DropdownMenuItem onSelect={deleteHandler}>
+				<Icon code="rotate-ccw" />
+				{t("reset")}
+			</DropdownMenuItem>
+			<DropdownMenuSeparator />
+			<ValueHandler data={data} onChange={onChange} />
+		</>
 	);
 });
 
-export default styled(Menu)`
-	display: block;
-	padding: 0.5em;
-	cursor: default !important;
-
-	i {
-		font-size: 14px !important;
-	}
-
-	.value-handler > div {
-		cursor: default;
-	}
-`;
+export default Menu;

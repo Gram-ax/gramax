@@ -8,3 +8,4 @@ declare function refreshPage(): Promise<void>;
 declare function clearData(): void;
 declare function forceSave(): Promise<void> | void;
 declare function reloadAll(): Promise<void>;
+declare function onNavigate(path: string): void;

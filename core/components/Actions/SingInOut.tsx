@@ -2,7 +2,7 @@ import Icon from "@components/Atoms/Icon";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useRouter } from "@core/Api/useRouter";
-import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
+import SignInEnterpriseModal from "@ext/enterprise/components/SignInEnterpriseModal";
 import SignInOutEnterprise from "@ext/enterprise/components/SignInOutEnterprise";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenu, DropdownMenuContent } from "@ui-kit/Dropdown";
@@ -13,13 +13,17 @@ import {
 	AvatarLabelAvatar,
 	AvatarLabelDescription,
 	AvatarLabelTitle,
-} from "ics-ui-kit/components/avatar";
+} from "@ui-kit/Avatar";
 import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTriggerButton,
-} from "ics-ui-kit/components/dropdown";
+} from "@ui-kit/Dropdown";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { ComponentProps } from "react";
+import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
 
 interface UserAvatarProps {
 	logOutComponent: React.ReactNode;
@@ -60,7 +64,7 @@ export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) 
 						</AvatarLabel>
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={onLogOutClick}>{logOutComponent}</DropdownMenuItem>
+					<DropdownMenuItem onSelect={onLogOutClick}>{logOutComponent}</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>
@@ -74,9 +78,23 @@ const SingInOut = () => {
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const authUrl = apiUrlCreator.getAuthUrl(router, isLogged).toString();
 	const enterprise = PageDataContextService.value.conf.enterprise;
+	const workspaceContext = PageDataContextService.value.workspace;
+	const currentWorkspaceName = PageDataContextService.value.workspace.current;
+	const workspaceConfig = workspaceContext.workspaces.find(
+		(workspaceConfig) => workspaceConfig.path === currentWorkspaceName,
+	);
 	const showEnterpriseSignIn = enterprise.gesUrl && !isReadOnly;
 
-	if (showEnterpriseSignIn) return <SignInOutEnterprise />;
+	const onLogoutClick = () => {
+		ModalToOpenService.setValue<ComponentProps<typeof SignOutEnterprise>>(ModalToOpen.EnterpriseLogout, {
+			workspaceConfig,
+			onClose: () => ModalToOpenService.resetValue(),
+		});
+	};
+
+	if (showEnterpriseSignIn) {
+		return <SignInOutEnterprise onLogoutClick={onLogoutClick} workspaceConfig={workspaceConfig} />;
+	}
 
 	if (isReadOnly && isLogged) {
 		return (
@@ -92,7 +110,7 @@ const SingInOut = () => {
 	}
 
 	if (isReadOnly && enterprise.gesUrl) {
-		return <SignInEnterpriseForm authUrl={authUrl} />;
+		return <SignInEnterpriseModal authUrl={authUrl} />;
 	}
 };
 

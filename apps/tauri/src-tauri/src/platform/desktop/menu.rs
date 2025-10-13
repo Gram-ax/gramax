@@ -51,7 +51,7 @@ pub enum MenuItemId {
 }
 
 impl MenuItemId {
-  fn translated(&self) -> Cow<str> {
+  fn translated(&self) -> Cow<'_, str> {
     match self {
       MenuItemId::EnterpriseConfigure => t!("menu.file.configure"),
       MenuItemId::NewWindow => t!("menu.file.new-window"),
@@ -120,22 +120,10 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
     Id::CloseWindow => {
       std::thread::spawn(move || app.get_focused_webview().map(|w| w.close()));
     }
-    Id::JoinTelegramNews => {
-      _ = open::that_detached("https://t.me/gramax_community")
-        .or_show_with_message(&t!("etc.error.open-url", url = "https://t.me/gramax_community"));
-    }
-    Id::JoinTelegramChat => {
-      _ = open::that_detached("https://t.me/gramax_chat")
-        .or_show_with_message(&t!("etc.error.open-url", url = "https://t.me/gramax_chat"));
-    }
-    Id::VisitGitHub => {
-      _ = open::that_detached("https://github.com/gram-ax/gramax")
-        .or_show_with_message(&t!("etc.error.open-url", url = "https://github.com/gram-ax/gramax"));
-    }
-    Id::VisitDocs => {
-      _ = open::that_detached("https://gram.ax/resources/docs")
-        .or_show_with_message(&t!("etc.error.open-url", url = "https://gram.ax/resources/docs"));
-    }
+    Id::JoinTelegramNews => _ = crate::open_url("https://t.me/gramax_community"),
+    Id::JoinTelegramChat => _ = crate::open_url("https://t.me/gramax_chat"),
+    Id::VisitGitHub => _ = crate::open_url("https://github.com/gram-ax/gramax"),
+    Id::VisitDocs => _ = crate::open_url("https://gram.ax/resources/docs"),
     #[cfg(target_family = "unix")]
     Id::ZoomIn => {
       if let Some(focused) = app.get_focused_webview() {
@@ -158,7 +146,7 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
   }
 }
 
-fn about_metadata<R: Runtime, M: Manager<R>>(app: &M) -> AboutMetadata {
+fn about_metadata<R: Runtime, M: Manager<R>>(app: &M) -> AboutMetadata<'_> {
   let package = app.package_info();
   let builder =
     AboutMetadataBuilder::new().name(Some(&package.name)).version(Some(package.version.to_string()));
@@ -189,7 +177,7 @@ fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Result<Menu<R>> {
   use MenuItemId as Id;
 
   main_sub.append_items(&[
-    &build_item(Id::NewWindow, Some("CmdOrControl+T"))?,
+    &build_item(Id::NewWindow, Some("CmdOrControl+N"))?,
     &build_item(Id::CheckUpdate, None)?,
     &build_item(Id::EnterpriseConfigure, None)?,
     &PredefinedMenuItem::about(app, Some(&t!("menu.file.about")), Some(about_metadata(app)))?,

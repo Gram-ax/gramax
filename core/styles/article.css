@@ -1,4 +1,4 @@
-@import "vars.css";
+﻿@import "vars.css";
 @import "code-block.css";
 
 .article {
@@ -82,19 +82,26 @@
 }
 
 .article h1.article-title {
-	margin-bottom: 1rem;
+	margin-bottom: 0.5em;
 	margin-top: 0;
 	width: 100%;
+}
+
+.article .article-body > h1 + article > :is(h2, h3, h4):first-child {
+	margin-top: 0.5em;
 }
 
 .article .h2 + ul,
 .article .h3 + ul,
 .article .h2 + ul + .admonition + ul,
+.article ul {
+	padding-left: 20px !important;
+}
+
 .article .h2 + ol,
 .article .h3 + ol,
-.article ul,
 .article ol {
-	padding-left: 20px !important;
+	padding-left: 2em !important;
 }
 
 .article .code-copped {
@@ -184,7 +191,8 @@ article a span.external-link-wrapper {
 	padding: 0 !important;
 }
 
-.article ul[data-type="taskList"] > li::before {
+.article ul[data-type="taskList"] > li::before,
+.article ul > .task-item::before {
 	display: none !important;
 }
 
@@ -279,11 +287,12 @@ article a span.external-link-wrapper {
 }
 
 .article .article-body ol > li::before {
-	display: inline-flex;
-	margin-left: -2.75em;
+	display: flex;
 	justify-content: center;
 	align-items: center;
-	margin-top: 0.5em;
+	text-align: center;
+	margin-left: -2.75em;
+	margin-top: 0.4em;
 	width: 2em;
 	height: 2em;
 	font-weight: 600;
@@ -299,9 +308,9 @@ article a span.external-link-wrapper {
 }
 
 .article .article-body ul > li::before {
+	display: block;
 	position: absolute;
 	margin-top: 0.65em;
-	display: inline-flex;
 	padding: 0.18em 0.18em;
 	margin-left: -1em;
 	font-weight: 600;
@@ -878,47 +887,4 @@ article a span.external-link-wrapper {
 	margin-left: 1.35em;
 	margin-top: 0.5em;
 	z-index: 1;
-}
-
-@media print {
-	.article {
-		margin-right: 0;
-	}
-
-	.article .cmd {
-		border: solid 1px rgba(0, 0, 0, 0.93) !important;
-		overflow: auto !important;
-		break-inside: avoid !important;
-	}
-
-	.article table {
-		page-break-inside: auto;
-	}
-
-	.article tr {
-		page-break-inside: avoid;
-		page-break-after: auto;
-	}
-
-	.article thead {
-		display: table-header-group;
-	}
-
-	.article tfoot {
-		display: table-footer-group;
-	}
-
-	.article a {
-		text-decoration: underline;
-	}
-
-	.article .prism-code {
-		border: solid 1px rgba(0, 0, 0, 0.93);
-		overflow: auto;
-		break-inside: avoid;
-	}
-
-	.article .prism-code > div {
-		text-wrap: wrap;
-	}
 }

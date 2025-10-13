@@ -1,4 +1,4 @@
-import { Paragraph, TextRun } from "docx";
+import docx from "@dynamicImports/docx";
 import { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import { createParagraphAfterTable, createParagraphBeforeTable } from "@ext/wordExport/createParagraph";
 import { WordBlockType } from "@ext/wordExport/options/wordExportSettings";
@@ -9,6 +9,7 @@ const fenceWordLayout: WordBlockChild = async ({ tag, addOptions }) => {
 };
 
 export const getCodeBlock = async (lines: string[], addOptions: AddOptionsWord) => {
+	const { Paragraph, TextRun } = await docx();
 	const paragraph = new Paragraph({
 		children: lines.map(
 			(text, index) =>
@@ -22,7 +23,7 @@ export const getCodeBlock = async (lines: string[], addOptions: AddOptionsWord) 
 
 	const fence = await createBlockChild([paragraph], WordBlockType.fence, WordBlockType.fenceTable, addOptions);
 
-	return [createParagraphBeforeTable(), fence, createParagraphAfterTable()];
+	return [await createParagraphBeforeTable(), fence, await createParagraphAfterTable()];
 };
 
 export { fenceWordLayout };

@@ -1,3 +1,4 @@
+import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { LibGit2BaseCommands } from "@ext/git/core/GitCommands/LibGit2BaseCommands";
 import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
@@ -10,18 +11,34 @@ export default class LibGit2MergeRequestCommands extends LibGit2BaseCommands imp
 		super(repoPath);
 	}
 
-	list(): Promise<MergeRequest[]> {
-		return git.listMergeRequests({ repoPath: this._repoPath });
+	async list(): Promise<MergeRequest[]> {
+		try {
+			return await git.listMergeRequests({ repoPath: this._repoPath });
+		} catch (error) {
+			throw getGitError(error, { repoPath: this._repoPath });
+		}
 	}
 
-	createOrUpdate(data: GitSourceData, mergeRequest: CreateMergeRequest): Promise<void> {
+	async createOrUpdate(data: GitSourceData, mergeRequest: CreateMergeRequest): Promise<void> {
 		assert(mergeRequest, "merge request is required to create or update");
 		assert(data, "source data is required to create or update merge request");
 
-		return git.createOrUpdateMergeRequest({ repoPath: this._repoPath, mergeRequest, creds: this._intoCreds(data) });
+		try {
+			return await git.createOrUpdateMergeRequest({
+				repoPath: this._repoPath,
+				mergeRequest,
+				creds: this._intoCreds(data),
+			});
+		} catch (error) {
+			throw getGitError(error, { repoPath: this._repoPath });
+		}
 	}
 
-	tryGetDraft(): Promise<MergeRequest | undefined> {
-		return git.getDraftMergeRequest({ repoPath: this._repoPath });
+	async tryGetDraft(): Promise<MergeRequest | undefined> {
+		try {
+			return await git.getDraftMergeRequest({ repoPath: this._repoPath });
+		} catch (error) {
+			throw getGitError(error, { repoPath: this._repoPath });
+		}
 	}
 }

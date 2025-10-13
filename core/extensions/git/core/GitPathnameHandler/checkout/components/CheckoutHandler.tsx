@@ -6,6 +6,7 @@ import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import t from "@ext/localization/locale/translate";
@@ -29,6 +30,7 @@ const CheckoutHandler = ({
 	const [checkoutProcess, setCheckoutProcess] = useState(false);
 
 	const onCancel = () => {
+		ModalToOpenService.resetValue();
 		setIsOpen(false);
 	};
 

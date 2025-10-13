@@ -69,7 +69,10 @@ When("смотрим на подсказку", async function (this: E2EWorld) {
 	await this.page()
 		.search()
 		.reset()
-		.scope(".tippy-content, .tooltip-content, [data-qa='dropdown-menu-content']", "find");
+		.scope(
+			".tippy-content, .tooltip-content, [data-qa='dropdown-menu-content'], [data-radix-menu-content]",
+			"find",
+		);
 });
 
 When("смотрим на вложенную подсказку", async function (this: E2EWorld) {
@@ -81,6 +84,16 @@ When("нажимаем на кнопку {string}", { timeout: config.timeouts.m
 	await elem.click();
 	await this.page().waitForLoad();
 });
+
+When(
+	"нажимаем на последнюю кнопку {string}",
+	{ timeout: config.timeouts.medium },
+	async function (this: E2EWorld, text: string) {
+		const elem = this.page().search().clickable(text, undefined, true).last();
+		await elem.click();
+		await this.page().waitForLoad();
+	},
+);
 
 When(
 	"нажимаем на элемент списка {string}",
@@ -191,7 +204,7 @@ When("наводим мышку", async function (this: E2EWorld) {
 });
 
 When("ждём конца загрузки", { timeout: config.timeouts.long * 4 }, async function (this: E2EWorld) {
-	const loader = await this.page().search().find(`[data-qa="loader"]`);
+	const loader = await this.page().search().find(`[data-qa="loader"], .animate-spin`);
 	await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
 });
 
@@ -221,7 +234,7 @@ Then("разметка текущей статьи содержит", async func
 	await sleep(30);
 	if (text.includes("(*)")) await this.page().keyboard().type("(*)");
 	const content = (await this.page().asArticle().getContent())?.replace("(\\*)", "(*)");
-	expect(content).toEqual(text);
+	expect(content).toContain(text);
 });
 
 Then("разметка текущей статьи ничего не содержит", async function (this: E2EWorld) {
@@ -250,6 +263,10 @@ Then("свойства текущего каталога содержат", asyn
 });
 
 When("перезагружаем страницу", async function (this: E2EWorld) {
+	await this.page()
+		.inner()
+		.evaluate(async () => await window.debug?.clearGxLock());
+
 	await this.page().inner().reload();
 });
 

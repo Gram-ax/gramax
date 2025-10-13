@@ -26,7 +26,6 @@ import RepositoryStateProvider, {
 	type RepositoryStashConflictState,
 } from "@ext/git/core/Repository/state/RepositoryState";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import { GitVersion } from "@ext/git/core/model/GitVersion";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import Storage from "@ext/storage/logic/Storage";
@@ -95,8 +94,8 @@ export default class WorkdirRepository extends Repository {
 			onFetch?.();
 		}
 
-		toPull = (await this.storage.getSyncCount()).pull;
-		return toPull > 0;
+		const syncCount = await this.storage.getSyncCount();
+		return syncCount.pull > 0;
 	}
 
 	async status(cached = true): Promise<GitStatus[]> {
@@ -104,33 +103,7 @@ export default class WorkdirRepository extends Repository {
 		return this._cachedStatus;
 	}
 
-	async sync({ data, recursivePull, onPull, onPush }: SyncOptions): Promise<SyncResult> {
-		if (recursivePull) {
-			await this.gvc.checkoutSubGitVersionControls();
-			const beforePullVersion = await this.gvc.getCurrentVersion();
-			const subRepoBeforePullVerisons = await this._getSubmoduleCheckChangesData();
-
-			await this._pull({ recursive: recursivePull, data, onPull });
-
-			this.gvc.update();
-
-			const afterPullVersion = await this.gvc.getCurrentVersion();
-			const subRepoAfterPullVersions = await this._getSubmoduleCheckChangesData();
-			const isVersionChanged = !beforePullVersion.compare(afterPullVersion);
-
-			await this._events.emit("sync", {
-				repo: this,
-				isVersionChanged,
-			});
-			await this.gvc.recursiveCheckChanges(
-				beforePullVersion,
-				afterPullVersion,
-				subRepoBeforePullVerisons,
-				subRepoAfterPullVersions,
-			);
-			return { mergeData: [], isVersionChanged, before: beforePullVersion, after: afterPullVersion };
-		}
-
+	async sync({ data, onPull, onPush }: SyncOptions): Promise<SyncResult> {
 		let toPush = (await this.storage.getSyncCount()).push;
 		if (toPush > 0) {
 			// TODO:
@@ -138,7 +111,7 @@ export default class WorkdirRepository extends Repository {
 		}
 
 		const beforePullVersion = await this.gvc.getCurrentVersion();
-		const stashMergeResult = await this._pull({ recursive: recursivePull, data, onPull });
+		const stashMergeResult = await this._pull({ data, onPull });
 
 		this.gvc.update();
 		const afterPullVersion = await this.gvc.getCurrentVersion();
@@ -159,14 +132,7 @@ export default class WorkdirRepository extends Repository {
 		return { mergeData: stashMergeResult, isVersionChanged, before: beforePullVersion, after: afterPushVersion };
 	}
 
-	async checkout({
-		data,
-		branch,
-		onCheckout,
-		onPull,
-		force,
-		recursivePull,
-	}: CheckoutOptions): Promise<GitMergeResultContent[]> {
+	async checkout({ data, branch, onCheckout, onPull, force }: CheckoutOptions): Promise<GitMergeResultContent[]> {
 		const oldVersion = await this.gvc.getCurrentVersion();
 		const oldBranch = await this.gvc.getCurrentBranch();
 		const allBranches = (await this.gvc.getAllBranches()).map((b) => b.getData().remoteName ?? b.getData().name);
@@ -187,7 +153,7 @@ export default class WorkdirRepository extends Repository {
 
 		if (haveInternet && !data.isInvalid && !changes.length) {
 			try {
-				mergeFiles = await this._pull({ data, onPull, recursive: recursivePull });
+				mergeFiles = await this._pull({ data, onPull });
 			} catch (e) {
 				await this.gvc.checkoutToBranch(oldBranch.toString());
 				await this._state.resetState();
@@ -283,7 +249,7 @@ export default class WorkdirRepository extends Repository {
 			(x) =>
 				x &&
 				x.value.length &&
-				x.startsWith(this._repoPath) &&
+				x.rootDirectory.value == this._repoPath.rootDirectory.value &&
 				x.value !== this._repoPath.value &&
 				x.value !== this._repoPath.join(new Path(".git")).value,
 		);
@@ -291,17 +257,6 @@ export default class WorkdirRepository extends Repository {
 		if (paths.length === 0) return;
 		const gitPaths = paths.map((x) => this._repoPath.rootDirectory.subDirectory(x));
 		await this.gvc.add(gitPaths);
-	}
-
-	private async _getSubmoduleCheckChangesData(): Promise<{
-		[path: string]: { version: GitVersion; subGvc: GitVersionControl };
-	}> {
-		const subGvcs = await this.gvc.getSubGitVersionControls();
-		const versions: { [path: string]: { version: GitVersion; subGvc: GitVersionControl } } = {};
-		for (const gvc of subGvcs) {
-			versions[gvc.getPath().value] = { subGvc: gvc, version: await gvc.getHeadCommit() };
-		}
-		return versions;
 	}
 
 	private async _push({
@@ -323,28 +278,14 @@ export default class WorkdirRepository extends Repository {
 		await onPush?.();
 	}
 
-	private async _pull({
-		data,
-		recursive = true,
-		onPull,
-	}: {
-		data: SourceData;
-		recursive?: boolean;
-		onPull?: () => void;
-	}): Promise<GitMergeResultContent[]> {
-		if (recursive) {
-			await this.storage.pull(data, recursive);
-			onPull?.();
-			return [];
-		}
-
+	private async _pull({ data, onPull }: { data: SourceData; onPull?: () => void }): Promise<GitMergeResultContent[]> {
 		let stashResult: GitMergeResult[] = [];
 		const commitHeadBefore = await this.gvc.getCurrentVersion();
 
 		const stashOid = await this.stash(data);
 
 		try {
-			await this.storage.pull(data, recursive);
+			await this.storage.pull(data);
 		} catch (e) {
 			await this.gvc.reset({ mode: "hard", head: commitHeadBefore });
 			if (stashOid) await this.gvc.applyStash(stashOid);

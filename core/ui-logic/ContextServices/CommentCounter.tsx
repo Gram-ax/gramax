@@ -1,18 +1,19 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import { useApi } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import {
 	DependencyList,
 	Dispatch,
 	SetStateAction,
 	createContext,
+	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
 	useState,
 } from "react";
+import FetchService from "@core-ui/ApiServices/FetchService";
 
 export type AuthoredComments = { total: number; pathnames: CommentsByArticle };
 
@@ -27,13 +28,21 @@ let _setComments: Dispatch<SetStateAction<AuthoredCommentsByAuthor>>;
 abstract class CommentCounterService {
 	public static Provider({ children, deps }: { children: JSX.Element; deps?: DependencyList }): JSX.Element {
 		const { isNext, isStatic, isStaticCli } = usePlatform();
-		const apiUrlCreator = ApiUrlCreatorService.value;
 		const [comments, setComments] = useState<AuthoredCommentsByAuthor>({});
 		_setComments = setComments;
+		const { call: getCommentsByAuthorsApi } = useApi<AuthoredCommentsByAuthor>({
+			url: (api) => api.getCommentsByAuthors(),
+			parse: "json",
+		});
+
+		const load = useCallback(async () => {
+			const comments = (await getCommentsByAuthorsApi()) || {};
+			_setComments(comments);
+		}, [getCommentsByAuthorsApi]);
 
 		useEffect(() => {
 			if (isNext || isStatic || isStaticCli) return;
-			CommentCounterService.load(apiUrlCreator);
+			load();
 		}, deps ?? []);
 
 		return <CommentContext.Provider value={comments}>{children}</CommentContext.Provider>;
@@ -41,14 +50,6 @@ abstract class CommentCounterService {
 
 	static get value() {
 		return useContext(CommentContext);
-	}
-
-	public static async load(apiUrlCreator: ApiUrlCreator) {
-		const url = apiUrlCreator.getCommentsByAuthors();
-		const res = await FetchService.fetch<AuthoredCommentsByAuthor>(url);
-		if (!res.ok) return;
-		const comments = await res.json();
-		_setComments(comments);
 	}
 
 	public static delete(comments: AuthoredCommentsByAuthor, pathname: string, author: UserInfo, deleteId: string) {

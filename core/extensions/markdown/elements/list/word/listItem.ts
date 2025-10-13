@@ -1,16 +1,16 @@
 import { imageWordLayout } from "@ext/markdown/elements/image/word/image";
 import { STANDARD_PAGE_WIDTH, WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
-import { Paragraph, TextRun } from "docx";
+import docx from "@dynamicImports/docx";
 import { getBlockChildren } from "../../../../wordExport/getBlockChildren";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { Tag } from "../../../core/render/logic/Markdoc";
 import { JSONContent } from "@tiptap/core";
 import { buildListWrapperTable, separatorParaAfterTable } from "./listWrapperHelpers";
-import { LIST_LEFT_INDENT_MM, mmToTw, IMG_WIDTH_COEFF } from "@ext/wordExport/lists/consts";
+import { LIST_LEFT_INDENT_MM, getMmToTw, IMG_WIDTH_COEFF } from "@ext/wordExport/lists/consts";
 import { calcWrapperMetrics } from "@ext/wordExport/lists/listMetrics";
 
-const calcMaxPictureWidth = (availableTw: number, leftIndentTw: number): number =>
-	Math.floor(Math.max(availableTw - leftIndentTw, mmToTw(10)) / IMG_WIDTH_COEFF);
+const calcMaxPictureWidth = async (availableTw: number, leftIndentTw: number) =>
+	Math.floor(Math.max(availableTw - leftIndentTw, (await getMmToTw())(10)) / IMG_WIDTH_COEFF);
 
 const isOfType = (childName: string, types: string[]): boolean => {
 	if (!childName) return false;
@@ -18,6 +18,7 @@ const isOfType = (childName: string, types: string[]): boolean => {
 };
 
 export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
+	const { Paragraph, TextRun } = await docx();
 	const blockLayouts = getBlockChildren();
 	const listElements = [];
 	let paragraph = [];
@@ -27,14 +28,14 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 
 	const { numbering, ...restAddOptions } = addOptions;
 	const level = numbering?.level ?? 0;
-	const metrics = calcWrapperMetrics({
+	const metrics = await calcWrapperMetrics({
 		level,
 		availableTw: restAddOptions?.maxTableWidth,
 	});
 
-	const contentIndentTw = mmToTw(LIST_LEFT_INDENT_MM(level));
+	const contentIndentTw = (await getMmToTw())(LIST_LEFT_INDENT_MM(level));
 	const availableTw = restAddOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH;
-	const maxPictureWidth = calcMaxPictureWidth(availableTw, contentIndentTw);
+	const maxPictureWidth = await calcMaxPictureWidth(availableTw, contentIndentTw);
 
 	const flushParagraph = () => {
 		if (paragraph.length === 0) return;
@@ -134,7 +135,7 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 					indent: 0, //only wrapper needs indent
 				});
 
-				const wrapper = buildListWrapperTable(
+				const wrapper = await buildListWrapperTable(
 					inner,
 					{
 						reference: numbering?.reference || "",
@@ -143,7 +144,7 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 					},
 					metrics,
 				);
-				listElements.push(wrapper, separatorParaAfterTable());
+				listElements.push(wrapper, await separatorParaAfterTable());
 				numberConsumed = true;
 			} else {
 				const inner = await state.renderBlock(child, {

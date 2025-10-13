@@ -2,7 +2,7 @@ import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsO
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@react-hook/media-query";
 import { useRef } from "react";
 import ArticleLayout from "./ArticleLayout";
 

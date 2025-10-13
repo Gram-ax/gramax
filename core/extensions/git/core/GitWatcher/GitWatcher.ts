@@ -16,6 +16,7 @@ export default class GitWatcher {
 
 	async checkChanges(oldVersion: GitVersion, newVersion: GitVersion): Promise<void> {
 		if (!oldVersion || newVersion.compare(oldVersion)) return;
+
 		const diff = await this._gitVersionControl.diff({
 			compare: {
 				type: "tree",
@@ -24,57 +25,7 @@ export default class GitWatcher {
 			},
 			renames: true,
 		});
+    
 		await this._events.emit("update", diff);
-	}
-
-	async recursiveCheckChanges(
-		oldVersion: GitVersion,
-		newVersion: GitVersion,
-		subOldVersions: { [path: string]: { version: GitVersion; subGvc: GitVersionControl } },
-		subNewVersions: { [path: string]: { version: GitVersion; subGvc: GitVersionControl } },
-	) {
-		const finalDiff: DiffTree2TreeInfo = {
-			hasChanges: false,
-			added: 0,
-			deleted: 0,
-			files: [],
-		};
-
-		if (oldVersion && !newVersion.compare(oldVersion)) {
-			const diff = await this._gitVersionControl.diff({
-				compare: {
-					type: "tree",
-					old: oldVersion,
-					new: newVersion,
-				},
-				renames: true,
-			});
-			finalDiff.hasChanges = diff.hasChanges;
-			finalDiff.added = diff.added;
-			finalDiff.deleted = diff.deleted;
-			finalDiff.files = diff.files;
-		}
-
-		for (const [path, data] of Object.entries(subNewVersions)) {
-			const oldVersion = subOldVersions[path]?.version;
-			if (!oldVersion || oldVersion.compare(data.version)) continue;
-
-			const diff = await data.subGvc.diff({
-				compare: {
-					type: "tree",
-					old: oldVersion,
-					new: data.version,
-				},
-				renames: true,
-			});
-			const fixedDiff = diff.files.map((d) => ({ ...d, path: data.subGvc.relativeToParentPath.join(d.path) }));
-
-			finalDiff.hasChanges = finalDiff.hasChanges || diff.hasChanges;
-			finalDiff.added += diff.added;
-			finalDiff.deleted += diff.deleted;
-			finalDiff.files.push(...fixedDiff);
-		}
-
-		await this._events.emit("update", finalDiff);
 	}
 }

@@ -3,6 +3,7 @@ import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/Arti
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import generateUniqueID from "@core/utils/generateUniqueID";
 import { ProviderContextService, ProviderItemProps } from "@ext/articleProvider/models/types";
 import ArticleSnippet from "@ext/markdown/elements/snippet/edit/components/Article/ArticleSnippet";
@@ -21,11 +22,14 @@ export const SnippetContext = createContext<SnippetContextType>({
 class SnippetService implements ProviderContextService {
 	private _setSnippets: (snippets: Map<string, ProviderItemProps>) => void = () => {};
 	private _setSelectedID: (selectedID: string) => void = () => {};
+	private _isNext: boolean;
 
 	Init = ({ children }: { children: JSX.Element }): JSX.Element => {
 		const [snippets, setSnippets] = useState<Map<string, ProviderItemProps>>(new Map());
 		const [selectedID, setSelectedID] = useState<string>(null);
+		const { isNext } = usePlatform();
 
+		this._isNext = isNext;
 		this._setSnippets = setSnippets;
 		this._setSelectedID = setSelectedID;
 
@@ -52,6 +56,7 @@ class SnippetService implements ProviderContextService {
 
 	closeItem() {
 		ArticleViewService.setDefaultView();
+		if (!this._isNext) refreshPage();
 		this._setSelectedID(null);
 	}
 

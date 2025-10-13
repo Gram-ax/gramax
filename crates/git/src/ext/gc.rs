@@ -183,6 +183,16 @@ impl<C: Creds> Repo<'_, C> {
     Ok(count)
   }
 
+  pub fn debug_remove_object(&mut self, objects: &[Oid]) -> Result<()> {
+    let mut set = IndexSet::new();
+    for oid in objects {
+      set.insert(*oid);
+    }
+    self.remove_objects(&set)?;
+    self.reopen()?;
+    Ok(())
+  }
+
   pub fn remove_objects(&self, objects: &IndexSet<Oid>) -> Result<()> {
     info!(target: TAG, "removing {} objects", objects.len());
 
@@ -262,6 +272,7 @@ impl<C: Creds> Repo<'_, C> {
 
   fn repack(&self, objects: &IndexSet<Oid>) -> Result<()> {
     let start = time_now();
+    self.ensure_objects_dir_exists()?;
     let mut packbuilder = self.0.packbuilder()?;
     packbuilder.set_threads(6);
 

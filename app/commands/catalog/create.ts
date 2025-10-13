@@ -4,7 +4,7 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { Command } from "../../types/Command";
 
 const create: Command<{ props: CatalogEditProps; ctx: Context }, ClientCatalogProps> = Command.create({

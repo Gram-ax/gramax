@@ -31,10 +31,13 @@ impl MainWindowBuilder {
 
     let builder = WebviewWindowBuilder::new(manager, label.clone(), WebviewUrl::App(self.get_url()))
       .auto_resize()
-      .zoom_hotkeys_enabled(true)
+      .zoom_hotkeys_enabled(false)
       .disable_drag_drop_handler()
       .initialization_script(crate::include_script!("add-window-close.js"))
-      .on_navigation(crate::platform::on_navigation);
+      .on_navigation(crate::platform::make_on_navigate_callback(label.clone(), manager.app_handle().clone()));
+
+    #[cfg(not(target_os = "macos"))]
+    let builder = builder.zoom_hotkeys_enabled(true);
 
     let builder = self.apply_platform_settings(builder, manager);
 
@@ -90,7 +93,21 @@ impl MainWindowBuilder {
       .title_bar_style(TitleBarStyle::Overlay);
 
     #[cfg(target_os = "windows")]
-    let builder = builder.initialization_script(crate::include_script!("windows-fixes.js"));
+    let builder = {
+      let mut flags = vec!["--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection"]; // default flags
+
+      if std::env::var("DISABLE_SSL_CERT_CHECK").is_ok() {
+        warn!("ssl certificate check disabled");
+        flags.push("--ignore-certificate-errors");
+      }
+
+      builder
+        .initialization_script(crate::include_script!("windows-fixes.js"))
+        .additional_browser_args(&flags.join(" "))
+    };
+
+    #[cfg(not(target_os = "macos"))]
+    let builder = builder.zoom_hotkeys_enabled(true);
 
     builder
   }

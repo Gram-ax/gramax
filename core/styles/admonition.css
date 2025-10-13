@@ -213,9 +213,3 @@
 .admonition-content .resource-caption {
 	margin-bottom: 0.5em !important;
 }
-
-@media print {
-	.admonition {
-		break-inside: avoid;
-	}
-}

@@ -2,7 +2,7 @@ import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { Loader } from "ics-ui-kit/components/loader";
-import { Toast, ToastAction } from "ics-ui-kit/components/toast";
+import { Toast, ToastAction } from "@ui-kit/Toast";
 import { useCallback, useMemo } from "react";
 import { updateCheck } from "../window/commands";
 import { ErrorIcon } from "./UpdateIcons";

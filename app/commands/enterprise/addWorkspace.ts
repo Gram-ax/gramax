@@ -15,17 +15,20 @@ import Theme from "@ext/Theme/Theme";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { Command } from "../../types/Command";
 
-const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Command.create({
+const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings> = Command.create({
 	path: "enterprise/addWorkspace",
 
 	kind: ResponseKind.json,
 
-	async do({ ctx, token }) {
+	async do({ ctx, oneTimeCode }) {
 		const { wm, em, am } = this._app;
 		const gesUrl = em.getConfig().gesUrl;
 		if (!gesUrl) throw new DefaultError(t("enterprise.config-error"));
 
-		const userSettings = await new EnterpriseApi(gesUrl).getUserSettings(token);
+		const gesApi = new EnterpriseApi(gesUrl);
+		const token = await gesApi.getToken(oneTimeCode);
+		if (!token) throw new DefaultError(t("enterprise.token-exchange-failed"));
+		const userSettings = await gesApi.getUserSettings(token);
 
 		if (!userSettings) throw new DefaultError(t("enterprise.user-not-found"));
 		if (userSettings.isNotEditor) {
@@ -41,7 +44,8 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 		if (!userSettings.workspace) throw new DefaultError(t("enterprise.config-error"));
 
 		const existWorkspace = wm.workspaces().find((workspace) => workspace.name === userSettings.workspace.name);
-		if (existWorkspace)
+		
+		if (existWorkspace && !existWorkspace.enterprise?.gesUrl) {
 			throw new DefaultError(
 				t("enterprise.workspace-exists"),
 				null,
@@ -49,29 +53,31 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 				true,
 				t("enterprise.workspace-exists-title"),
 			);
-
-		const workspace: ClientWorkspaceConfig = {
-			...userSettings.workspace,
-			path: wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.name)).toString(),
-			enterprise: {
-				gesUrl,
-				lastUpdateDate: Date.now(),
-			},
-			services: {
-				gitProxy: { url: null },
-				auth: { url: null },
-				review: { url: null },
-				diagramRenderer: { url: `${gesUrl}/diagram-renderer` },
-			},
-		};
-		delete (workspace as any).style;
-
-		await this._commands.workspace.create.do({ config: workspace });
-		if (userSettings.ai) {
-			await this._commands.ai.server.setAiData.do({ ctx, workspacePath: workspace.path, ...userSettings.ai });
 		}
 
-		const workspacePermission = new RelaxPermissionMap({ [workspace.path]: new Permission([]) });
+		const path = wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.name)).toString();
+
+		if (!existWorkspace) {
+			const workspace: ClientWorkspaceConfig = {
+				...userSettings.workspace,
+				path,
+				enterprise: {
+					gesUrl,
+					lastUpdateDate: Date.now(),
+				},
+				services: {
+					gitProxy: { url: null },
+					auth: { url: null },
+					review: { url: null },
+					diagramRenderer: { url: `${gesUrl}/diagram-renderer` },
+				},
+			};
+			delete (workspace as any).style;
+
+			await this._commands.workspace.create.do({ config: workspace });
+		}
+
+		const workspacePermission = new RelaxPermissionMap({ [path]: new Permission([]) });
 		const catalogPermission = new RelaxPermissionMap({});
 		const sourceData = userSettings.source;
 		const userInfo: UserInfo = { mail: sourceData.userEmail, name: sourceData.userName, id: sourceData.userEmail };
@@ -86,22 +92,26 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 		);
 		am.setUser(ctx.cookie, user);
 
+		if (userSettings.ai) {
+			await this._commands.ai.server.setAiData.do({ ctx, workspacePath: path, ...userSettings.ai });
+		}
+
 		if (userSettings.workspace.style?.css) {
 			await this._commands.workspace.assets.setCustomStyle.do({
-				workspacePath: workspace.path,
+				workspacePath: path,
 				style: userSettings.workspace.style.css,
 			});
 		}
 		if (userSettings.workspace.style?.logo) {
 			await this._commands.workspace.assets.homeIconActions.updateLogo.do({
-				workspacePath: workspace.path,
+				workspacePath: path,
 				theme: Theme.light,
 				icon: CustomLogoDriver.logoToBase64(userSettings.workspace.style.logo),
 			});
 		}
 		if (userSettings.workspace.style?.logoDark) {
 			await this._commands.workspace.assets.homeIconActions.updateLogo.do({
-				workspacePath: workspace.path,
+				workspacePath: path,
 				theme: Theme.dark,
 				icon: CustomLogoDriver.logoToBase64(userSettings.workspace.style.logoDark),
 			});
@@ -124,7 +134,7 @@ const addWorkspace: Command<{ ctx: Context; token: string }, UserSettings> = Com
 	},
 
 	params(ctx, q) {
-		return { ctx, token: decodeURIComponent(q.token) };
+		return { ctx, oneTimeCode: decodeURIComponent(q.oneTimeCode) };
 	},
 });
 

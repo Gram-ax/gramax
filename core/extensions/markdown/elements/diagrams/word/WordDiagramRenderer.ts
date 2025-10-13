@@ -1,6 +1,6 @@
 import UiLanguage from "@ext/localization/core/model/Language";
 import { errorWordLayout } from "@ext/wordExport/error";
-import { ImageRun, Paragraph, TextRun } from "docx";
+import docx from "@dynamicImports/docx";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
@@ -26,11 +26,12 @@ export class WordDiagramRenderer {
 		if (attrs.src && attrs.content) return;
 
 		try {
+			const { Paragraph, TextRun } = await docx();
 			const diagramContent = await this.getDiagramContent(tag, resourceManager);
 			const diagram = await new Diagrams(diagramRendererServerUrl).getDiagram(diagramType, diagramContent);
 			const size = ImageDimensionsFinder.getSvgDimensions(diagram, addOptions?.maxPictureWidth);
 			const paragraphs = [
-				WordDiagramRenderer._getParagraphWithImage(await BaseImageProcessor.svgToPng(diagram, size), size),
+				await WordDiagramRenderer._getParagraphWithImage(await BaseImageProcessor.svgToPng(diagram, size), size),
 			];
 
 			if (attrs.title)
@@ -49,10 +50,7 @@ export class WordDiagramRenderer {
 
 	static async getDiagramContent(tag: Tag | JSONContent, resourceManager: ResourceManager) {
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
-		return (
-			(attrs.content as string) ??
-			(await resourceManager.getContent(new Path(attrs.src))).toString()
-		);
+		return (attrs.content as string) ?? (await resourceManager.getContent(new Path(attrs.src))).toString();
 	}
 
 	static async renderC4Diagram(
@@ -88,17 +86,19 @@ export class WordDiagramRenderer {
 		}
 	}
 
-	private static _getParagraphWithImage(
+	private static async _getParagraphWithImage(
 		diagramImage: string | Buffer | Uint8Array | ArrayBuffer,
 		size: ImageDimensions,
 	) {
+		const { Paragraph } = await docx();
 		return new Paragraph({
-			children: [this._getImageRun(diagramImage, size)],
+			children: [await this._getImageRun(diagramImage, size)],
 			style: WordFontStyles.picture,
 		});
 	}
 
-	private static _getImageRun(diagramImage: string | Buffer | Uint8Array | ArrayBuffer, size: ImageDimensions) {
+	private static async _getImageRun(diagramImage: string | Buffer | Uint8Array | ArrayBuffer, size: ImageDimensions) {
+		const { ImageRun } = await docx();
 		return new ImageRun({
 			data: diagramImage,
 			transformation: {

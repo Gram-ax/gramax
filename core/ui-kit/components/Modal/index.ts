@@ -1,12 +1,14 @@
-export { ModalTitle } from "./ModalTitle";
-export { ModalDescription } from "./ModalDescription";
-export { isFromModal } from "./utils";
-export { ModalContent } from "./ModalContent";
 export {
 	Modal,
-	ModalTrigger,
 	ModalBody,
+	ModalClose,
+	ModalDescription,
 	ModalFooter,
 	ModalHeader,
-	ModalClose,
+	ModalTitle,
+	ModalTrigger,
 } from "ics-ui-kit/components/modal";
+
+export { ModalContent } from "./ModalContent";
+
+export { isFromModal } from "./utils";

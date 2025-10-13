@@ -18,7 +18,7 @@ use super::remote::RemoteConnect;
 const TAG: &str = "git:branch";
 
 pub trait Branch {
-  fn branches(&self, branch_type: Option<BranchType>) -> Result<Branches>;
+  fn branches(&self, branch_type: Option<BranchType>) -> Result<Branches<'_>>;
   fn branch_by_name<S: AsRef<str>>(
     &self,
     shorthand: S,
@@ -106,7 +106,7 @@ impl ShortInfo<'_, BranchInfo> for BranchEntry<'_> {
 }
 
 impl<C: Creds> Branch for Repo<'_, C> {
-  fn branches(&self, branch_type: Option<BranchType>) -> Result<Branches> {
+  fn branches(&self, branch_type: Option<BranchType>) -> Result<Branches<'_>> {
     Ok(self.0.branches(branch_type)?)
   }
 

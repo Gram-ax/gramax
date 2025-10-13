@@ -6,7 +6,7 @@ import Gramax, { GramaxData } from "../../../browser/src/Gramax";
 import AppError from "../../../browser/src/components/Atoms/AppError";
 import useLocation from "../../../browser/src/logic/Api/useLocation";
 import { InitialData } from "../logic/ArticleTypes";
-import { InitialDataKeys } from "../logic/StaticSiteBuilder";
+import { ExtendedWindow, getCatalogNameFromInitialData, InitialDataKeys } from "../logic/initialDataUtils";
 
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
@@ -39,7 +39,7 @@ if (window.location.hash && window.location.pathname.length > 1 && window.locati
 	window.history.replaceState(null, "", newUrl);
 }
 
-const initialData: InitialData = (window as any)[InitialDataKeys.DATA];
+const initialData: InitialData = (window as ExtendedWindow)[InitialDataKeys.DATA];
 
 if (initialData.context.isArticle && initialData.data?.articlePageData?.articleProps?.errorCode === 404) {
 	const article404 = new CustomArticlePresenter().getArticle("Article404", {
@@ -50,23 +50,38 @@ if (initialData.context.isArticle && initialData.data?.articlePageData?.articleP
 	);
 	initialData.data.articlePageData.articleProps.title = article404.getTitle();
 }
-global.config = (window as any)[InitialDataKeys.CONFIG] as AppConfig;
+const getBasePath = () => {
+	const basePath = new URL(document.baseURI).pathname;
+	return basePath === "/" ? Path.empty : new Path(basePath);
+};
+global.config = (window as ExtendedWindow)[InitialDataKeys.CONFIG];
 (global.config as AppConfig).paths = {
-	base: new Path(new URL(document.baseURI).pathname),
+	base: getBasePath(),
 	data: new Path("/"),
 	default: new Path("/"),
 	root: new Path("/"),
 };
 
+const onAppInit = (app: Application) => {
+	const catalogName = getCatalogNameFromInitialData();
+	const workspace = app.wm.current();
+	workspace.getContextlessCatalog(catalogName);
+};
+
 const promisedApp: Promise<Application> = (async () => {
-	return await getApp();
+	const app = await getApp();
+	onAppInit(app);
+	return app;
 })();
 
 const getData = async (route: string, query: Query) => {
 	const app = await promisedApp;
 	const commands = getCommands(app);
-	const lang = RouterPathProvider.parsePath(route).language;
-	const ctx = await app.contextFactory.fromBrowser(lang, query);
+	const language = RouterPathProvider.parsePath(route).language;
+	const ctx = await app.contextFactory.fromBrowser({
+		language,
+		query,
+	});
 	return commands.page.getPageData.do({ ctx, path: route });
 };
 
@@ -98,7 +113,7 @@ const Component = () => {
 				return;
 			}
 			const cleanPath = removeBasePath(path);
-			if (!cleanPath || !initialData.context.isArticle) return window.location.reload();
+			if (!cleanPath || cleanPath === "/" || !initialData.context.isArticle) return window.location.reload();
 
 			const data = await getData(cleanPath, parserQuery(query));
 			setData({ path, ...data });

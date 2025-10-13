@@ -20,6 +20,10 @@ async function collectPrintablePages(
 	pages: PrintablePage[],
 	isCategory: boolean,
 	isCatalog: boolean,
+	setTitleNumber?: boolean,
+	isFirstLevel = true,
+	titleNumber = "1",
+	itemLevel = 1,
 ) {
 	if (isCatalog) isCategory = true;
 	const itemVisible = filters.every((filter) => filter(item, catalog));
@@ -33,8 +37,10 @@ async function collectPrintablePages(
 			itemRefPath: item.ref.path.value,
 		}));
 
+		const title = item.getTitle() || item.getFileName();
 		pages.push({
-			title: item.getTitle() || item.getFileName(),
+			level: itemLevel,
+			title: setTitleNumber ? `${titleNumber}. ${title}` : title,
 			content: parsedData.content,
 			resources: parsedData.resourceManager,
 			itemRefPath: parsedData.itemRefPath,
@@ -45,7 +51,11 @@ async function collectPrintablePages(
 
 	if (item.type === ItemType.category && isCategory) {
 		const children = (item as Category).getFilteredItems(filters, catalog) || [];
+
+		let idx = 1;
 		for (const child of children) {
+			const childNumber = isFirstLevel ? `${idx + 1}` : `${titleNumber}.${idx}`;
+			const childLevel = isFirstLevel ? 1 : itemLevel + 1;
 			await collectPrintablePages(
 				child,
 				catalog,
@@ -56,7 +66,12 @@ async function collectPrintablePages(
 				pages,
 				isCategory,
 				isCatalog,
+				setTitleNumber,
+				false,
+				childNumber,
+				childLevel,
 			);
+			idx++;
 		}
 	}
 }

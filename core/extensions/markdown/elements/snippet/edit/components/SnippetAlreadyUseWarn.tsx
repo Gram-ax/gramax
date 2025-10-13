@@ -1,62 +1,86 @@
-import Icon from "@components/Atoms/Icon";
-import Modal from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import GoToArticle from "@components/Actions/GoToArticle";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
-import SnippetUsages from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetUsages";
-import { useState } from "react";
+import { SnippetUsagesItemProps } from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetUsages";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+} from "@ui-kit/AlertDialog";
+import { useEffect, useState } from "react";
 
 export interface SnippetAlreadyUseWarnProps {
 	snippetId: string;
-	onDelete: () => Promise<void> | void;
-	onClose?: () => Promise<void> | void;
-	onOpen?: () => Promise<void> | void;
+	onSubmit: () => void;
+	onClose?: () => void;
 }
 
-const SnippetAlreadyUseWarn = ({ snippetId, onDelete, onClose, onOpen }: SnippetAlreadyUseWarnProps) => {
+const SnippetAlreadyUseWarn = ({ snippetId, onSubmit, onClose }: SnippetAlreadyUseWarnProps) => {
+	const [list, setList] = useState<SnippetUsagesItemProps[]>([]);
 	const [isOpen, setIsOpen] = useState(true);
+	const apiUrlCreator = ApiUrlCreatorService.value;
+
+	const fetchSnippetUsages = async () => {
+		const url = apiUrlCreator.getArticlesWithSnippet(snippetId);
+		const res = await FetchService.fetch(url);
+
+		if (!res.ok) return;
+		const snippets = await res.json();
+
+		setList(snippets);
+	};
+
+	useEffect(() => {
+		void fetchSnippetUsages();
+	}, []);
+
+	const onOpenChange = (value: boolean) => {
+		setIsOpen(value);
+		if (!value) onClose?.();
+	};
+
 	return (
-		<Modal
-			isOpen={isOpen}
-			onClose={() => {
-				setIsOpen(false);
-				onClose?.();
-			}}
-			onOpen={() => {
-				setIsOpen(true);
-				onOpen?.();
-			}}
-		>
-			<ModalLayoutLight>
-				<InfoModalForm
-					title={t("deleting-snippet-in-use")}
-					onCancelClick={onClose}
-					icon={{ code: "circle-exclamation", color: "var(--color-admonition-note-br-h)" }}
-					actionButton={{
-						onClick: onDelete,
-						text: `${t("delete")} ${t("snippet").toLowerCase()}`,
-					}}
-					isWarning={true}
-				>
-					<div className="article">
-						<p>{t("delete-snippet-desc")}.</p>
-						<SnippetUsages
-							offset={[10, 0]}
-							placement="bottom"
-							snippetId={snippetId}
-							trigger={
-								<a style={{ display: "flex", alignItems: "center" }}>
-									<span>{t("view-usage")}</span>
-									<Icon code="chevron-down" />
-								</a>
-							}
-						/>
-						<p>{t("delete-snippet-warn")}.</p>
-						<p>{t("continue-confirm")}</p>
-					</div>
-				</InfoModalForm>
-			</ModalLayoutLight>
-		</Modal>
+		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+			<AlertDialogContent status="warning">
+				<AlertDialogHeader>
+					<AlertDialogIcon icon="alert-circle" />
+					<AlertDialogTitle>{t("deleting-snippet-in-use")}</AlertDialogTitle>
+					<AlertDialogDescription>
+						{t("delete-snippet-desc")}.<br />
+						{list.length > 0 && (
+							<>
+								{t("delete-snippet-list-desc")}
+								<div className="article" style={{ background: "transparent" }}>
+									<ul>
+										{list.map((item) => (
+											<li key={item.pathname}>
+												<GoToArticle
+													href={item.pathname}
+													trigger={item.title}
+													style={{ color: "var(--color-link)" }}
+												/>
+											</li>
+										))}
+									</ul>
+								</div>
+							</>
+						)}
+						{t("delete-snippet-warn")}
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+					<AlertDialogAction onClick={onSubmit}>{t("continue")}</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 };
 

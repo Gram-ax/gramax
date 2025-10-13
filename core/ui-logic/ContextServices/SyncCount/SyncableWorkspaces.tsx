@@ -4,6 +4,7 @@ import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTime
 import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { feature } from "@ext/toggleFeatures/features";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import assert from "assert";
 import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useState } from "react";

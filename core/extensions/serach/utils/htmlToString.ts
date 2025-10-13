@@ -1,8 +1,9 @@
-import { htmlToText } from "html-to-text";
+import htmlToText from "@dynamicImports/htmlToText";
 
-const htmlToString = (content: string): string => {
+const htmlToString = async (content: string): Promise<string> => {
 	try {
-		return htmlToText(content, {
+		const { htmlToText: htmlToTextFn } = await htmlToText();
+		return htmlToTextFn(content, {
 			tables: ["*"],
 			selectors: [{ selector: "span.vc-comment-vars", format: "skip" }],
 		});

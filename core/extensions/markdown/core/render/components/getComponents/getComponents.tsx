@@ -19,7 +19,6 @@ import Code from "../../../../elements/code/render/component/Code";
 import Cut from "../../../../elements/cut/render/component/Cut";
 import DbDiagram from "../../../../elements/diagramdb/render/DbDiagram";
 import Drawio from "../../../../elements/drawio/render/component/Drawio";
-import Fn from "../../../../elements/fn/render/Fn";
 import Formula from "../../../../elements/formula/render/Formula";
 import Header from "../../../../elements/heading/render/component/Header";
 import Icon from "../../../../elements/icon/render/components/Icon";
@@ -91,7 +90,6 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		taskList: BulletList,
 		orderedList: OrderList,
 		OpenApi,
-		Fn,
 		note: Note,
 		Alert,
 		Unsupported,

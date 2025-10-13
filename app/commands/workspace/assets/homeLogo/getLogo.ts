@@ -13,7 +13,7 @@ const getLogo: Command<{ workspacePath: WorkspacePath; theme: string }, any> = C
 		if (!assets) return "";
 		const homeIconPath = theme === Theme.light ? PredefinedAssets.lightHomeIcon : PredefinedAssets.darkHomeIcon;
 
-		return assets.get(homeIconPath);
+		return (await assets.get(homeIconPath)) || "";
 	},
 
 	params(ctx, q) {

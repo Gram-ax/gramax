@@ -1,7 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
-import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { RemoteProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import assert from "assert";
 
 const BROADCAST_CHANNEL_NAME = "storage-provider";
@@ -15,20 +15,20 @@ const BROADCAST_CHANNEL =
 type SharedCloneProgressEvent = {
 	type: "progress-update";
 	id: string;
-	progress: CloneProgress;
+	progress: RemoteProgress;
 };
 
-type OnProgressDone = (progress: CloneProgress) => void;
+type OnProgressDone = (progress: RemoteProgress) => void;
 
 export class SharedCloneProgress {
 	private _id: string;
-	private _progress: CloneProgress;
+	private _progress: RemoteProgress;
 	private _cancelToken: number;
 	private _timeout: ReturnType<typeof setTimeout>;
 	private _timerDisabled = false;
 	private _onDone: OnProgressDone = null;
 
-	constructor(id: string, cancelToken = 0, progress?: CloneProgress) {
+	constructor(id: string, cancelToken = 0, progress?: RemoteProgress) {
 		this._id = id;
 		this._cancelToken = cancelToken;
 		this._progress = progress ?? {
@@ -108,7 +108,7 @@ export class SharedCloneProgress {
 		return this;
 	}
 
-	setProgress(p: CloneProgress, emit = true) {
+	setProgress(p: RemoteProgress, emit = true) {
 		this._progress = p;
 		if (p.type === "finish" || p.type === "error") this._onDone?.(p);
 		if (emit) this._emit();
@@ -143,10 +143,15 @@ export class SharedCloneProgress {
 }
 
 export default class SharedCloneProgressManager {
+	private static _instance = new SharedCloneProgressManager();
 	private _progress = new Map<string, SharedCloneProgress>();
 
-	constructor() {
+	private constructor() {
 		this._subscribeBroadcastEvents();
+	}
+
+	static get instance() {
+		return this._instance;
 	}
 
 	createProgress(id: string, save: boolean): SharedCloneProgress {

@@ -42,7 +42,7 @@ export default class BranchUpdaterService {
 
 	private static async _getBranch(apiUrlCreator: ApiUrlCreator): Promise<GitBranchData> {
 		const res = await FetchService.fetch<GitBranchData>(
-			apiUrlCreator.getVersionControlCurrentBranchUrl({ onlyName: false, cachedMergeRequests: false }),
+			apiUrlCreator.getCurrentBranch({ onlyName: false, cachedMergeRequests: false }),
 		);
 		if (!res.ok) {
 			const error = (await res.json()) as any;

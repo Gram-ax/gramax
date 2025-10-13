@@ -9,6 +9,7 @@ import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/S
 import SnippetsList from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetsList";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "@core/Api/useRouter";
 
 const ExtensionWrapper = styled.div`
 	margin-left: -0.5em;
@@ -23,6 +24,7 @@ const SnippetsTab = ({ show }: SnippetsTabProps) => {
 	const [height, setHeight] = useState(0);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { selectedID, snippets } = SnippetService.value;
+	const router = useRouter();
 
 	const addNewSnippet = useCallback(async () => {
 		await SnippetService.addNewSnippet(apiUrlCreator);
@@ -31,9 +33,11 @@ const SnippetsTab = ({ show }: SnippetsTabProps) => {
 	useEffect(() => {
 		if (!selectedID) return;
 
-		const listener = () => {
+		const listener = async ({ path, mutable }: { path: string; mutable: { preventGoto?: boolean } }) => {
+			mutable.preventGoto = true;
+			await SnippetUpdateService.updateContent(selectedID, apiUrlCreator);
 			SnippetService.closeItem();
-			SnippetUpdateService.updateContent(selectedID, apiUrlCreator);
+			router.pushPath(path);
 		};
 
 		const clickToken = NavigationEvents.on("item-click", listener);

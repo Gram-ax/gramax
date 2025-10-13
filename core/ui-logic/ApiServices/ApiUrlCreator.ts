@@ -15,6 +15,9 @@ import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
 
+/**
+ * @deprecated Consider using `useApi(..)` hook instead
+ */
 export default class ApiUrlCreator {
 	constructor(private _basePath: string, private _catalogName?: string, private _articlePath?: string) {}
 
@@ -26,9 +29,16 @@ export default class ApiUrlCreator {
 		return new ApiUrlCreator(this._basePath, this._catalogName, articlePath);
 	}
 
-	public getLogo(theme: Theme) {
+	public getLogo(theme: Theme, isMobile: boolean = true) {
+		if (isMobile) {
+			return Url.fromBasePath(
+				theme == Theme.dark ? `/images/gramax-logo-hp-dark.svg` : `/images/gramax-logo-hp-light.svg`,
+				getExecutingEnvironment() == "next" ? this._basePath : "",
+			);
+		}
+
 		return Url.fromBasePath(
-			theme == Theme.dark ? `/images/gramax-logo-hp-dark.svg` : `/images/gramax-logo-hp-light.svg`,
+			theme == Theme.dark ? `/images/gramax-logo-desktop-dark.svg` : `/images/gramax-logo-desktop-light.svg`,
 			getExecutingEnvironment() == "next" ? this._basePath : "",
 		);
 	}
@@ -91,6 +101,13 @@ export default class ApiUrlCreator {
 			mimeType,
 			src,
 			providerType,
+		});
+	}
+
+	public getResourceByPath(fullResourcePath: string) {
+		return Url.fromBasePath(`/api/article/resource/getByPath`, this._basePath, {
+			fullResourcePath,
+			catalogName: this._catalogName,
 		});
 	}
 
@@ -276,16 +293,16 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getAddEnterpriseWorkspaceUrl(token: string) {
-		return Url.fromBasePath(`api/enterprise/addWorkspace`, this._basePath, { token });
+	public getAddEnterpriseWorkspaceUrl(oneTimeCode: string) {
+		return Url.fromBasePath(`api/enterprise/addWorkspace`, this._basePath, { oneTimeCode });
 	}
 
 	public getLogoutEnterpriseUrl(id: WorkspacePath) {
 		return Url.fromBasePath(`api/enterprise/logout`, this._basePath, { id });
 	}
 
-	public getCloneEnterpriseCatalogsUrl(token: string) {
-		return Url.fromBasePath(`api/enterprise/cloneCatalogs`, this._basePath, { token });
+	public getCloneEnterpriseCatalogsUrl() {
+		return Url.fromBasePath(`api/enterprise/cloneCatalogs`, this._basePath);
 	}
 
 	public getCheckEditEnterpriseWorkspaceUrl(workspaceId: WorkspacePath) {
@@ -296,11 +313,12 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`api/auth/sso`, this._basePath, { data, sign, from });
 	}
 
-	public getPrintableContentUrl(catalogName: string, isCategory?: boolean, itemPath?: string) {
+	public getPrintableContentUrl(catalogName: string, isCategory?: boolean, itemPath?: string, titleNumber?: boolean) {
 		return Url.fromBasePath(`/api/item/getPrintableContent`, this._basePath, {
 			catalogName,
 			isCategory: isCategory?.toString?.(),
 			itemPath,
+			titleNumber: titleNumber?.toString(),
 		});
 	}
 
@@ -309,6 +327,12 @@ export default class ApiUrlCreator {
 			itemPath,
 			catalogName: this._catalogName,
 			isCategory: isCategory?.toString(),
+		});
+	}
+
+	public getPdfTemplateUrl(name: string) {
+		return Url.fromBasePath(`/api/pdf/template`, this._basePath, {
+			name,
 		});
 	}
 
@@ -339,6 +363,12 @@ export default class ApiUrlCreator {
 
 	public getVersionControlResetBranchesUrl() {
 		return Url.fromBasePath("/api/versionControl/branch/reset", this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public resetFileLock() {
+		return Url.fromBasePath(`/api/storage/resetFileLock`, this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
@@ -439,21 +469,34 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getStorageStartCloneUrl(
+	public markRepositoryAsBroken(message?: string) {
+		return Url.fromBasePath(`/api/storage/markAsBroken`, this._basePath, {
+			catalogName: this._catalogName,
+			message,
+		});
+	}
+
+	public startRecover() {
+		return Url.fromBasePath(`/api/storage/startRecover`, this._basePath, {
+			catalogName: this._catalogName,
+		});
+	}
+
+	public startClone(
 		path: string,
-		recursive = true,
 		isBare = false,
 		redirectOnClone = null,
 		skipCheck?: boolean,
 		branch?: string,
+		deleteIfExists?: boolean,
 	) {
 		return Url.fromBasePath(`/api/storage/startClone`, this._basePath, {
-			recursive: recursive.toString(),
 			branch,
-			skipCheck: skipCheck.toString(),
+			skipCheck: skipCheck?.toString(),
 			path,
-			isBare: isBare.toString(),
+			isBare: isBare?.toString(),
 			redirectOnClone,
+			deleteIfExists: deleteIfExists?.toString(),
 		});
 	}
 
@@ -463,13 +506,13 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getStorageCloneProgressUrl(path: string) {
+	public getCloneProgress(path: string) {
 		return Url.fromBasePath(`/api/storage/getCloneProgress`, this._basePath, {
 			path,
 		});
 	}
 
-	public getStorageCloneCancelUrl(path: string) {
+	public cancelClone(path: string) {
 		return Url.fromBasePath(`/api/storage/cancelClone`, this._basePath, {
 			path,
 		});
@@ -486,7 +529,7 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVersionControlCurrentBranchUrl(
+	public getCurrentBranch(
 		{
 			onlyName = true,
 			cached = true,
@@ -679,9 +722,9 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/catalog/create`, this._basePath);
 	}
 
-	public removeCatalog() {
+	public removeCatalog(name?: string) {
 		return Url.fromBasePath(`/api/catalog/remove`, this._basePath, {
-			catalogName: this._catalogName,
+			catalogName: name || this._catalogName,
 		});
 	}
 
@@ -839,6 +882,13 @@ export default class ApiUrlCreator {
 	public createCustomIcon() {
 		return Url.fromBasePath(`/api/elements/icon/create`, this._basePath, {
 			catalogName: this._catalogName,
+		});
+	}
+
+	public deleteCustomIcon(code: string) {
+		return Url.fromBasePath(`/api/elements/icon/delete`, this._basePath, {
+			catalogName: this._catalogName,
+			code,
 		});
 	}
 
@@ -1073,10 +1123,9 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public checkAiAuth(apiUrl: string, token: string) {
+	public checkAiAuth(apiUrl: string) {
 		return Url.fromBasePath(`/api/ai/server/checkAuth`, this._basePath, {
 			apiUrl,
-			token,
 		});
 	}
 
@@ -1143,6 +1192,14 @@ export default class ApiUrlCreator {
 	public transcribeAudio() {
 		return Url.fromBasePath(`/api/ai/audio/transcribe`, this._basePath, {
 			catalogName: this._catalogName,
+		});
+	}
+
+	public getResourcePath(url: string) {
+		return Url.fromBasePath(`/api/article/resource/getPath`, this._basePath, {
+			articlePath: this._articlePath,
+			catalogName: this._catalogName,
+			path: url,
 		});
 	}
 }

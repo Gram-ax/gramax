@@ -2,10 +2,9 @@ import { env } from "@app/resolveModule/env";
 import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { toast } from "ics-ui-kit/components/toast";
+import { toast } from "@ui-kit/Toast";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { updateCheck, updateInstall } from "../window/commands";
-import { SuccessIcon } from "./UpdateIcons";
 
 const LAST_UPDATE_CHECK_KEY = "last-update-check";
 const SHORT_UPDATE_CHECK_INTERVAL = 1000 * 60 * 15; // 15 minutes, useful when user opens a new window
@@ -111,7 +110,7 @@ const useUpdateChecker = () => {
 				toast(t("app.update.installed"), {
 					focus: "medium",
 					status: "success",
-					icon: <SuccessIcon code="circle-check" />,
+					icon: "check-circle",
 					closeAction: false,
 					size: "sm",
 					duration: 2500,

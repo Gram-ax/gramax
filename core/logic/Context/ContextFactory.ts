@@ -2,7 +2,11 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import ThemeManager from "../../extensions/Theme/ThemeManager";
 import Cookie from "../../extensions/cookie/Cookie";
 import CookieFactory from "../../extensions/cookie/CookieFactory";
-import UiLanguage, { ContentLanguage, overriddenLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
+import UiLanguage, {
+	ContentLanguage,
+	overriddenLanguage,
+	resolveLanguage,
+} from "../../extensions/localization/core/model/Language";
 import AuthManager from "../../extensions/security/logic/AuthManager";
 import User from "../../extensions/security/logic/User/User";
 import localUser from "../../extensions/security/logic/User/localUser";
@@ -13,6 +17,17 @@ import { apiUtils } from "../Api/apiUtils";
 import { getClientDomain } from "../utils/getClientDomain";
 import Context from "./Context";
 
+export interface FromArgs {
+	req: ApiRequest;
+	res: ApiResponse;
+	query?: { [key: string]: string | string[] };
+}
+
+export interface FromBrowserArgs {
+	language: string;
+	query?: Query;
+}
+
 export class ContextFactory {
 	private _cookieFactory = new CookieFactory();
 	constructor(
@@ -22,11 +37,12 @@ export class ContextFactory {
 		private _am?: AuthManager,
 	) {}
 
-	async from(req: ApiRequest, res: ApiResponse, query?: { [key: string]: string | string[] }): Promise<Context> {
+	async from({ req, res, query }: FromArgs): Promise<Context> {
 		const cookie = this._cookieFactory.from(this._cookieSecret, req, res);
 		if (!query) query = {};
 
-		query.ui = cookie.get("ui") || overriddenLanguage || UiLanguage[req.headers["accept-language"]?.split(",")?.[0]];
+		query.ui =
+			cookie.get("ui") || overriddenLanguage || UiLanguage[req.headers["accept-language"]?.split(",")?.[0]];
 		if (!query.l) query.l = ContentLanguage[req.headers["x-gramax-language"]];
 
 		const user = this._isReadOnly ? await this._am?.getUser(cookie, query, req.headers) : localUser;
@@ -34,7 +50,7 @@ export class ContextFactory {
 		return this._getContext({ cookie, user, query, domain: apiUtils.getDomain(req) });
 	}
 
-	async fromBrowser(language: string, query: Query): Promise<Context> {
+	async fromBrowser({ language, query }: FromBrowserArgs): Promise<Context> {
 		const cookie = this._cookieFactory.from(this._cookieSecret);
 		if (!query) query = {};
 		query.l = language;
@@ -44,17 +60,13 @@ export class ContextFactory {
 		return this._getContext({ cookie, user, query, domain: getClientDomain() });
 	}
 
-	private _getContext({
-		user,
-		cookie,
-		domain,
-		query,
-	}: {
+	private _getContext(props: {
 		user: User;
 		cookie: Cookie;
 		domain: string;
 		query: { [key: string]: string | string[] };
 	}) {
+		const { user, cookie, domain, query } = props;
 		return {
 			user,
 			domain,

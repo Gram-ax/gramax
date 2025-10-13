@@ -29,5 +29,6 @@ export const getBrowserModules = async (): Promise<any> => {
 		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
+		openInWeb: (url) => window.open(url),
 	};
 };

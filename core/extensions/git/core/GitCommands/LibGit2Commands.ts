@@ -11,8 +11,7 @@ import GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 import * as git from "./LibGit2IntermediateCommands";
 import GitCommandsModel, {
-	type CloneCancelToken,
-	type CloneProgress,
+	type CancelToken,
 	type DiffConfig,
 	type DiffTree2TreeInfo,
 	type DirEntry,
@@ -21,6 +20,7 @@ import GitCommandsModel, {
 	type GcOptions,
 	type MergeOptions,
 	type RefInfo,
+	type RemoteProgress,
 	type ResetOptions,
 	type TreeReadScope,
 } from "./model/GitCommandsModel";
@@ -28,10 +28,6 @@ import GitCommandsModel, {
 class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	constructor(repoPath: Path) {
 		super(repoPath.value);
-	}
-
-	format_merge_message(data: SourceData, opts: MergeOptions): Promise<string> {
-		throw new Error("Method not implemented.");
 	}
 
 	isInit(): Promise<boolean> {
@@ -49,17 +45,26 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	async clone(
 		url: string,
 		source: GitSourceData,
-		cancelToken: CloneCancelToken,
+		cancelToken: CancelToken,
 		branch?: string,
 		depth?: number,
 		isBare?: boolean,
-		onProgress?: (progress: CloneProgress) => void,
+		allowNonEmptyDir?: boolean,
+		onProgress?: (progress: RemoteProgress) => void,
 	) {
 		try {
 			await git.clone(
 				{
 					creds: this._intoCreds(source),
-					opts: { to: this._repoPath, url, cancelToken, branch, depth, isBare },
+					opts: {
+						to: this._repoPath,
+						url,
+						cancelToken: cancelToken,
+						branch,
+						depth: depth || 0,
+						allowNonEmptyDir,
+						isBare,
+					},
 				},
 				onProgress,
 			);
@@ -68,8 +73,16 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		}
 	}
 
-	cloneCancel(id: number): Promise<boolean> {
-		return git.cloneCancel(id);
+	async recover(
+		data: GitSourceData,
+		cancelToken: CancelToken,
+		onProgress: (progress: RemoteProgress) => void,
+	): Promise<void> {
+		await git.recover({ repoPath: this._repoPath, creds: this._intoCreds(data), cancelToken }, onProgress);
+	}
+
+	cancel(id: number): Promise<boolean> {
+		return git.cancel(id);
 	}
 
 	getAllCancelTokens(): Promise<number[]> {
@@ -111,7 +124,12 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	}
 
 	async fetch(data: GitSourceData, force = false, lock = true): Promise<void> {
-		await git.fetch({ repoPath: this._repoPath, creds: this._intoCreds(data), force, lock });
+		await git.fetch({
+			repoPath: this._repoPath,
+			creds: this._intoCreds(data),
+			opts: { cancelToken: 0, force },
+			lock,
+		});
 	}
 
 	async checkout(ref: string, force?: boolean): Promise<void> {
@@ -252,7 +270,7 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		}
 	}
 
-	graphHeadUpstreamFilesCount(searchIn: string): Promise<git.UpstreamCountFileChanges> {
+	countChangedFiles(searchIn: string): Promise<git.UpstreamCountFileChanges> {
 		return git.graphHeadUpstreamFiles({ repoPath: this._repoPath, searchIn });
 	}
 
@@ -342,8 +360,12 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		});
 	}
 
-	gc(opts: GcOptions): Promise<void> {
-		return git.gc({ repoPath: this._repoPath, opts });
+	async gc(opts: GcOptions): Promise<void> {
+		return await git.gc({ repoPath: this._repoPath, opts });
+	}
+
+	async healthcheck(): Promise<void> {
+		return await git.healthcheck({ repoPath: this._repoPath });
 	}
 }
 

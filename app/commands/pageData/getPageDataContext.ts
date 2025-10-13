@@ -5,6 +5,7 @@ import getClientPermissions from "@ext/enterprise/utils/getClientPermissions";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import { getEnabledFeatures } from "@ext/toggleFeatures/features";
 import Application from "../../types/Application";
+import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 
 type GetPageDataContext = (args: {
 	ctx: Context;
@@ -19,11 +20,20 @@ const getPageDataContext: GetPageDataContext = async ({ ctx, app, isArticle, use
 	const workspace = app.wm.maybeCurrent();
 	const workspaceConfig = await workspace?.config();
 	const isStatic = getExecutingEnvironment() === "static";
+	const isBrowser = getExecutingEnvironment() === "browser";
 
 	const enterpriseConfig = app.em.getConfig();
 	const isGramaxAiEnabled = Boolean(
 		conf.portalAi.enabled || app.adp.getEditorAiData(ctx, workspace?.path() ?? "").apiUrl,
 	);
+
+	const isEnterprise = !!enterpriseConfig.gesUrl;
+	const isUnauthorized =
+		isEnterprise &&
+		!getEnterpriseSourceData(app.rp.getSourceDatas(ctx, workspace?.path()), enterpriseConfig.gesUrl);
+
+	const isGesUnauthorized = isEnterprise && isUnauthorized && isBrowser;
+	if (isGesUnauthorized) isArticle = false;
 
 	return {
 		language: {
@@ -31,10 +41,12 @@ const getPageDataContext: GetPageDataContext = async ({ ctx, app, isArticle, use
 			ui: ctx.ui || null,
 		},
 		theme: ctx.theme,
+		pdfTemplates: (await app.ptm.from(workspace))?.getTemplates() ?? [],
 		wordTemplates: (await app.wtm.from(workspace))?.getTemplates() ?? [],
 		domain: ctx.domain,
 		isLogged: !isStatic && ctx.user.isLogged,
 		isArticle,
+		isGesUnauthorized,
 		workspace: {
 			workspaces: app.wm.workspaces(),
 			current: workspace?.path(),

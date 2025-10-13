@@ -104,7 +104,7 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 
 		let branch: string;
 		try {
-			branch = await this.repo.gvc.getCurrentBranchName();
+			branch = await this.repo.gvc?.getCurrentBranchName();
 		} catch (e) {
 			console.error(e);
 		}

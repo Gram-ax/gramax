@@ -14,8 +14,11 @@ export class AuthorizeMiddleware extends Middleware {
 	async Process(req: ApiRequest, res: ApiResponse): Promise<void> {
 		const isNext = getExecutingEnvironment() === "next";
 		const ctx = isNext
-			? await this._app.contextFactory.from(req, res, req.query)
-			: await this._app.contextFactory.fromBrowser(resolveLanguage(), req.query as Query);
+			? await this._app.contextFactory.from({ req, res, query: req.query })
+			: await this._app.contextFactory.fromBrowser({
+					language: resolveLanguage(),
+					query: req.query as Query,
+			  });
 		if (!ctx.user.isLogged) {
 			setUnauthorized(res);
 			return;

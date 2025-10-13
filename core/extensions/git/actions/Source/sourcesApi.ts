@@ -9,6 +9,8 @@ import GitlabSourceAPI from "@ext/git/actions/Source/GitLab/logic/GitlabSourceAP
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import GitVerseSourceAPI from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceAPI";
 import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
+import GiteaSourceAPI from "@ext/git/actions/Source/Gitea/logic/GiteaSourceAPI";
+import GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
 import type { SourceAPI } from "@ext/git/actions/Source/SourceAPI";
 import NotionAPI from "@ext/notion/api/NotionAPI";
 import NotionSourceData from "@ext/notion/model/NotionSourceData";
@@ -24,6 +26,7 @@ const sourcesAPI: Record<
 	GitLab: (data, authServiceUrl, onError) => new GitlabSourceAPI(data as GitlabSourceData, authServiceUrl, onError),
 	GitVerse: (data, authServiceUrl, onError) =>
 		new GitVerseSourceAPI(data as GitVerseSourceData, authServiceUrl, onError),
+	Gitea: (data, authServiceUrl, onError) => new GiteaSourceAPI(data as GiteaSourceData, authServiceUrl, onError),
 
 	"Confluence self-hosted server": (data) => new ConfluenceServerAPI(data as ConfluenceServerSourceData),
 	"Confluence Cloud": (data, authServiceUrl) =>

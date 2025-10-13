@@ -12,11 +12,11 @@ export default class ArticlePageContext extends PageContext {
 		const path = this._parsePath(this.url());
 		await this.forceSave();
 		return await this._page.evaluate(async ([path1, path2]) => {
-			const ctx = await window.app.contextFactory.fromBrowser(
-				window.debug?.RouterPathProvider?.parsePath(window.location.pathname)?.language || "ru",
-				{},
-			);
-			const presenter = window.app.sitePresenterFactory.fromContext(ctx);
+			const app = await window.app;
+			const ctx = await app.contextFactory.fromBrowser({
+				language: window.debug?.RouterPathProvider?.parsePath(window.location.pathname)?.language || "ru",
+			});
+			const presenter = app.sitePresenterFactory.fromContext(ctx);
 			return (
 				(await presenter.getArticleByPathOfCatalog(path1)).article?.content ??
 				(await presenter.getArticleByPathOfCatalog(path2)).article?.content
@@ -34,8 +34,9 @@ export default class ArticlePageContext extends PageContext {
 		await this._page.press(".ProseMirror", ".");
 		await this._page.evaluate(
 			async ({ path, content }) => {
-				const ctx = await window.app.contextFactory.fromBrowser("ru" as any, {});
-				const presenter = window.app.sitePresenterFactory.fromContext(ctx);
+				const app = await window.app;
+				const ctx = await app.contextFactory.fromBrowser({ language: "ru" as any });
+				const presenter = app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??
 					(await presenter.getArticleByPathOfCatalog(path[1], [])).article;
@@ -60,8 +61,9 @@ export default class ArticlePageContext extends PageContext {
 		const path = this._parsePath(this.url());
 		return await this._page.evaluate(
 			async ({ path }) => {
-				const ctx = await window.app.contextFactory.fromBrowser("ru" as any, {});
-				const presenter = window.app.sitePresenterFactory.fromContext(ctx);
+				const app = await window.app;
+				const ctx = await app.contextFactory.fromBrowser({ language: "ru" as any });
+				const presenter = app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??
 					(await presenter.getArticleByPathOfCatalog(path[1], [])).article;

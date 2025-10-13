@@ -12,7 +12,7 @@ import {
 } from "react";
 import SidebarsIsPinService from "./SidebarsIsPin";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
-import { useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@react-hook/media-query";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 
 const SidebarsIsOpenContext = createContext<{ left: boolean; right: boolean }>(undefined);

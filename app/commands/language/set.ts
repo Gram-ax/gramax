@@ -1,6 +1,6 @@
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
 import UiLanguage, { resolveLanguage } from "@ext/localization/core/model/Language";
-import type { Context } from "vm";
+import Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
 
 const setLanguage: Command<{ ctx: Context; language: ContentLanguage }, void> = Command.create({

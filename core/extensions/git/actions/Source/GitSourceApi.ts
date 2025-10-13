@@ -1,7 +1,6 @@
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import type Branch from "@ext/VersionControl/model/branch/Branch";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
@@ -12,9 +11,18 @@ import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData"
 import CatalogExistsError from "@ext/storage/models/CatalogExistsError";
 import type StorageData from "@ext/storage/models/StorageData";
 
+const DEFAULT_PER_PAGE = 100;
+
 abstract class GitSourceApi implements SourceAPI {
-	protected readonly _defaultPerPage = 100;
-	constructor(protected _data: GitSourceData, protected _onError?: (error: NetworkApiError) => void) {}
+	constructor(
+		protected _data: GitSourceData,
+		protected _onError?: (error: NetworkApiError) => void,
+		defaultPerPage?: number,
+	) {
+		this._defaultPerPage = defaultPerPage ?? DEFAULT_PER_PAGE;
+	}
+
+	protected readonly _defaultPerPage: number;
 
 	get defaultPerPage() {
 		return this._defaultPerPage;
@@ -62,7 +70,7 @@ abstract class GitSourceApi implements SourceAPI {
 	abstract getPageProjects(fromPage: number, toPage: number, perPage?: number): Promise<GitRepsPageData[]>;
 
 	abstract getBranchWithFile(filename: string, data: StorageData): Promise<string>;
-	abstract isBranchContainsFile(filename: string, data: StorageData, branch: Branch): Promise<boolean>;
+	abstract isBranchContainsFile(filename: string, data: StorageData, branch: string): Promise<boolean>;
 	abstract getDefaultBranch(data: StorageData): Promise<string>;
 	abstract getAllBranches(data: StorageData, field?: string): Promise<string[]>;
 	abstract createRepository(data: StorageData): Promise<void>;

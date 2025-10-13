@@ -19,6 +19,8 @@ import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/S
 import PromptService from "@ext/ai/components/Tab/PromptService";
 import t from "@ext/localization/locale/translate";
 import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
+import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 
 interface TopBarContentProps {
 	data: ArticlePageData;
@@ -38,9 +40,10 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 
 	const { items: notes } = InboxService.value;
 	const { templates } = TemplateService.value;
-	const { snippets } = SnippetService.value;
+	const { snippets, selectedID } = SnippetService.value;
 	const { items: promptNotes } = PromptService.value;
 	const { articles } = FavoriteService.value;
+	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const onCloseInbox = () => {
 		InboxService.removeAllItems();
@@ -49,13 +52,12 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 	const onCloseTemplate = () => {
 		TemplateService.closeItem();
 		TemplateService.setItems([]);
-		refreshPage();
 	};
 
-	const onCloseSnippet = () => {
+	const onCloseSnippet = async () => {
+		await SnippetUpdateService.updateContent(selectedID, apiUrlCreator);
 		SnippetService.closeItem();
 		SnippetService.setItems([]);
-		refreshPage();
 	};
 
 	const onClosePrompt = () => {

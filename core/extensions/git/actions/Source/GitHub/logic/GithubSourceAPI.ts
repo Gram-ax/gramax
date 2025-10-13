@@ -9,7 +9,6 @@ import parseGithubLink from "@ext/git/actions/Storage/GitHub/logic/utils/getTota
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
-import Branch from "@ext/VersionControl/model/branch/Branch";
 import assert from "assert";
 
 export default class GithubSourceAPI extends GitSourceApi {
@@ -85,7 +84,7 @@ export default class GithubSourceAPI extends GitSourceApi {
 		return null;
 	}
 
-	async isBranchContainsFile(fileName: string, data: GitStorageData, branch: Branch): Promise<boolean> {
+	async isBranchContainsFile(fileName: string, data: GitStorageData, branch: string): Promise<boolean> {
 		const paths: string[] = await this.getFileTree(data, branch);
 		return !!paths.find((path) => path.includes(fileName));
 	}
@@ -100,8 +99,8 @@ export default class GithubSourceAPI extends GitSourceApi {
 		return (await res.json()).map((branch) => branch?.[field] ?? branch?.name);
 	}
 
-	async getFileTree(data: GitStorageData, branch: Branch, field?: string): Promise<any[]> {
-		const res = await this._api(`repos/${data.group}/${data.name}/git/trees/${branch.toString()}?recursive=1`);
+	async getFileTree(data: GitStorageData, branch: string, field?: string): Promise<any[]> {
+		const res = await this._api(`repos/${data.group}/${data.name}/git/trees/${branch}?recursive=1`);
 		return (await res.json()).tree.map((file) => file?.[field] ?? file?.path);
 	}
 

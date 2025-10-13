@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use gramaxgit::commands as git;
 use gramaxgit::prelude::CloneOptions;
 
@@ -19,12 +21,14 @@ pub struct RawCloneOptions {
   pub url: String,
   pub to: String,
   pub is_bare: bool,
-  pub cancel_token: i32,
+  pub allow_non_empty_dir: bool,
+  pub cancel_token: u32,
 }
 
 impl From<RawCloneOptions> for CloneOptions {
   fn from(val: RawCloneOptions) -> Self {
     gramaxgit::actions::clone::CloneOptions {
+      allow_non_empty_dir: val.allow_non_empty_dir,
       branch: val.branch,
       depth: val.depth,
       url: val.url,
@@ -52,7 +56,6 @@ impl CloneTask {
         Ok(vec![ctx.env.create_string(ctx.value.as_str())?])
       })?;
 
-
     Ok(AsyncTask::new(CloneTask { creds, opts, callback: tsfn_callback }))
   }
 }
@@ -65,7 +68,7 @@ impl Task for CloneTask {
     git::clone(
       self.creds.clone().into(),
       self.opts.clone().into(),
-      Box::new(|val| {
+      Rc::new(|val| {
         if let Ok(val) = serde_json::to_string(&val) {
           self.callback.call(Ok(val), ThreadsafeFunctionCallMode::Blocking);
         }

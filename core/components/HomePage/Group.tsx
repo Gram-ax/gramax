@@ -15,13 +15,19 @@ interface GroupProps {
 const Group = ({ title, catalogLinks, setIsAnyCardLoading, sections }: GroupProps) => {
 	const sectionKeys = Object.keys(sections || {});
 	return (
-		<div className="flex flex-col gap-6 pt-4">
-			{title && <h3 className="text-center text-2xl font-semibold text-primary-fg">{title}</h3>}
+		<div className="flex flex-col gap-6">
+			{title && <h3 className="text-2xl text-center font-semibold text-primary-fg">{title}</h3>}
 			<div className="group-container">
 				{sectionKeys.length !== 0 && (
 					<div className="group-content">
 						{sectionKeys.map((sectionKey, index) => {
-							return <Folder key={sectionKey + index} section={sections[sectionKey]} />;
+							return (
+								<Folder
+									key={sectionKey + index}
+									section={sections[sectionKey]}
+									sectionKey={sectionKey}
+								/>
+							);
 						})}
 					</div>
 				)}

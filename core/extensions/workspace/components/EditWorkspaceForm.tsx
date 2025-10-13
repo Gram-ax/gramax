@@ -1,5 +1,5 @@
 import Icon from "@components/Atoms/Icon";
-import { iconFilter, lucideIconListForUikit, toListItem } from "@components/Atoms/Icon/lucideIconList";
+import useLucideIconLists, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
 import ListLayoutByUikit from "@components/List/ListLayoutByUikit";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
@@ -16,7 +16,7 @@ import { Divider } from "@ui-kit/Divider";
 import { Form, FormField, FormFooter, FormHeader, FormSectionTitle, FormStack } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
-import { TextInput } from "ics-ui-kit/components/input";
+import { TextInput } from "@ui-kit/Input";
 import { Loader } from "ics-ui-kit/components/loader";
 import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -67,6 +67,12 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 			.min(2, { message: t("space-name-min-length") })
 			.refine(isNameUnique, { message: t("cant-be-same-name") }),
 		icon: z.optional(z.string()),
+		logo: z
+			.object({
+				light: z.null().optional(),
+				dark: z.null().optional(),
+			})
+			.optional(),
 		path: z.optional(
 			z
 				.string()
@@ -101,7 +107,16 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
-		defaultValues: async () => ({ ...originalProps, ...(await getAiData()) }),
+		defaultValues: async () => {
+			const ai = await getAiData();
+			return {
+				...originalProps,
+				ai: {
+					apiUrl: ai?.aiApiUrl,
+					token: ai?.aiToken,
+				},
+			};
+		},
 		mode: "onChange",
 	});
 
@@ -169,7 +184,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 											<ListLayoutByUikit
 												placeholder={t("icon")}
 												openByDefault={false}
-												items={lucideIconListForUikit}
+												items={useLucideIconLists().lucideIconListForUikit}
 												filterItems={iconFilter([], true)}
 												item={toListItem({ code: field.value ?? "" })}
 												onItemClick={(value) => {
@@ -204,6 +219,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 											<EditCustomTheme
 												{...workspaceStyleProps}
 												{...workspaceLogoProps}
+												form={form}
 												formProps={formProps}
 											/>
 										</>

@@ -1,8 +1,6 @@
 use tauri::*;
 
 use std::collections::HashMap;
-use std::io::Read;
-use std::ops::Deref;
 use std::path::Path;
 use std::sync::Mutex;
 use std::time::Duration;

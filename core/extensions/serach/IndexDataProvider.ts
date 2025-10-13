@@ -113,7 +113,7 @@ export class IndexDataProvider {
 				path: article.ref.path.value,
 				pathname: await catalog.getPathname(article),
 				title: article.props.title ?? "",
-				content: htmlToString(html) ?? "",
+				content: (await htmlToString(html)) ?? "",
 			};
 		} catch {
 			return null;

@@ -44,7 +44,7 @@ class PropertyServiceProvider {
 
 		useWatch(() => {
 			updateProperties();
-		}, [catalogProps.properties, articleProps.template]);
+		}, [catalogProps.properties]);
 
 		return (
 			<PropertyContext.Provider value={{ properties, articleProperties, setArticleProperties }}>

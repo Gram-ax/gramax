@@ -45,7 +45,9 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 	setRootPath(fullPath);
 
 	const app = await getApp();
-	const ctx = await app.contextFactory.fromBrowser("", null);
+	const ctx = await app.contextFactory.fromBrowser({
+		language: "",
+	});
 	const commands = getCommands(app);
 	const workspace = app.wm.current();
 	const catalog = await workspace.getContextlessCatalog(catalogName);

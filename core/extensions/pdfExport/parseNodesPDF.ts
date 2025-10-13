@@ -97,7 +97,7 @@ export async function parseNodeToPDFContent(
 			results.push(...content);
 			prevNode = currentNode;
 		} catch (error) {
-			results.push(errorCase());
+			results.push(await errorCase());
 		}
 	}
 

@@ -123,6 +123,7 @@ interface ImageProps {
 	rightActions?: ReactElement;
 	commentId?: string;
 	float?: string;
+	hasParentPath?: boolean;
 }
 
 const ImageRenderer = memo((props: ImageProps): ReactElement => {
@@ -147,6 +148,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		rightActions,
 		commentId,
 		float,
+		hasParentPath = true,
 	} = props;
 
 	const [error, setError] = useState<boolean>(false);
@@ -216,7 +218,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		if (!isLoaded) return;
 		const buffer = getBuffer(realSrc);
 
-		if (!buffer) return setError(true);
+		if (!buffer) return;
 		setIsLoaded(false);
 		void cropImg(buffer, crop);
 	}, [crop]);
@@ -228,12 +230,17 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		void cropImg(buffer, crop);
 	}, []);
 
-	useGetResource((buffer: Buffer) => {
-		if (!buffer || !buffer.byteLength) return setError(true);
-		if (isLoaded) setIsLoaded(false);
+	useGetResource(
+		(buffer: Buffer) => {
+			if (!buffer || !buffer.byteLength) return setError(true);
+			if (isLoaded) setIsLoaded(false);
 
-		void cropImg(buffer, crop);
-	}, realSrc);
+			void cropImg(buffer, crop);
+		},
+		realSrc,
+		undefined,
+		hasParentPath,
+	);
 
 	if (error)
 		return (

@@ -4,24 +4,25 @@ import { Property, PropertyTypes, PropertyValue, SystemProperties } from "@ext/p
 import { ReactNode, useCallback, useMemo } from "react";
 import FilterMenu from "@ext/markdown/elements/view/edit/components/Helpers/FilterMenu";
 
+export type Mode = "single" | "multiple";
+
 interface AddFilterProps {
 	icon: string;
+	ignoreEmpty?: boolean;
 	attributeName: string;
 	catalogProps: ClientCatalogProps;
 	properties: PropertyValue[] | string[];
-	updateAttributes: (attributes: Record<string, any>) => void;
 	tooltipText?: string;
 	availableValues?: boolean;
+	mode?: Mode;
+	allowSystemProperties?: boolean;
+	closeOnSelection?: boolean;
+	updateAttributes: (attributes: Record<string, any>) => void;
 	filter?: (property: Property) => boolean;
 	customPropertyMenu?: (
 		property: Property,
 		updateData: (name: string, value: string | string[]) => void,
 	) => ReactNode;
-	oneValue?: boolean;
-	allowAddAll?: boolean;
-	specialValues?: boolean;
-	allowSystemProperties?: boolean;
-	closeOnSelection?: boolean;
 }
 
 export interface PropertyFilter extends Property {
@@ -31,20 +32,20 @@ export interface PropertyFilter extends Property {
 const AddFilter = (props: AddFilterProps) => {
 	const {
 		icon,
+		ignoreEmpty,
 		attributeName,
 		catalogProps,
 		properties,
 		updateAttributes,
 		customPropertyMenu,
 		availableValues = true,
-		oneValue = false,
+		mode = "multiple",
 		tooltipText,
 		allowSystemProperties = true,
 		closeOnSelection = true,
-		specialValues = false,
-		allowAddAll = false,
 		filter,
 	} = props;
+	const oneValue = mode === "single";
 	const noAssignedProperties: PropertyFilter[] = useMemo(() => {
 		return catalogProps.properties
 			.filter((prop) => filter?.(prop) ?? true)
@@ -103,7 +104,7 @@ const AddFilter = (props: AddFilterProps) => {
 				[attributeName]: properties.filter((prop) => prop !== deleteProp),
 			});
 		},
-		[properties],
+		[properties, updateAttributes, attributeName],
 	);
 
 	const updateProperty = useCallback(
@@ -114,7 +115,7 @@ const AddFilter = (props: AddFilterProps) => {
 				),
 			});
 		},
-		[properties],
+		[properties, updateAttributes, attributeName],
 	);
 
 	const filterProps = useCallback(
@@ -130,7 +131,7 @@ const AddFilter = (props: AddFilterProps) => {
 			} else newValues.push(val);
 			return newValues;
 		},
-		[properties],
+		[properties, removeProperty],
 	);
 
 	const updateFilter = useCallback(
@@ -176,15 +177,15 @@ const AddFilter = (props: AddFilterProps) => {
 
 	return (
 		<div className="view-filter-row">
-			<ViewButton icon={icon} tooltipText={tooltipText} closeOnSelection={closeOnSelection}>
+			<ViewButton icon={icon} tooltipText={tooltipText} empty={!noAssignedProperties.length}>
 				<FilterMenu
-					allowAddAll={allowAddAll}
 					noAssignedProperties={noAssignedProperties}
 					updateFilter={updateFilter}
 					customPropertyMenu={customPropertyMenu}
 					closeOnSelection={closeOnSelection}
-					specialValues={specialValues}
+					ignoreEmpty={ignoreEmpty}
 					availableValues={availableValues}
+					mode={mode}
 				/>
 			</ViewButton>
 		</div>

@@ -1,4 +1,4 @@
-import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import createPlainText from "@ext/markdown/elements/copyArticles/createPlainText";
@@ -370,7 +370,7 @@ const getImageFromFragment = (fragment: Fragment, resourceService: ResourceServi
 	const buffer = resourceService.getBuffer(firstImage.attrs.src);
 	if (!buffer) return false;
 
-	const mimeType = resolveImageKind(firstImage.attrs.src);
+	const mimeType = resolveFileKind(firstImage.attrs.src);
 	if (!mimeType || !IMAGE_MIME_TYPES.includes(mimeType)) return false;
 
 	void navigator.clipboard.write([

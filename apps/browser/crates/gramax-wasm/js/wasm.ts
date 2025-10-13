@@ -1,7 +1,7 @@
 import { onFSWasmCallback } from "@app/resolveModule/fscall/wasm";
 import { onGitWasmCallback } from "@app/resolveModule/gitcall/wasm";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { cloneProgressCallbacks } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { progress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import setWorkerProxy from "../../../src/logic/setWorkerProxy";
 
 const notSupported = () => new DefaultError(undefined, undefined, { errorCode: "wasmInitTimeout" });
@@ -38,10 +38,10 @@ export const initWasm = async (corsProxy: string) => {
 		w.wasm.addEventListener("message", (ev) => {
 			if (ev.data.type == "fs-call") onFSWasmCallback(ev);
 			if (ev.data.type == "git-call") onGitWasmCallback(ev);
-			if (ev.data.type == "clone-progress") {
+			if (ev.data.type == "remote-progress") {
 				const payload = ev.data?.data;
 				if (!payload?.data) return;
-				cloneProgressCallbacks[payload.data.id]?.(payload);
+				progress[payload.data.id]?.(payload);
 			}
 
 			if (ev.data.type == "ready") resolve(w.wasm);

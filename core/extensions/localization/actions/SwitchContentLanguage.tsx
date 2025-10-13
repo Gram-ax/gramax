@@ -1,21 +1,25 @@
-import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
-import styled from "@emotion/styled";
 import AddContentLanguage from "@ext/localization/actions/AddContentLanguage";
 import ContentLanguageActions from "@ext/localization/actions/ContentLanguageActions";
 import Localizer from "@ext/localization/core/Localizer";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuTrigger,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
+} from "@ui-kit/Dropdown";
 import { useEffect, useState } from "react";
 
-const SwitchContentLanguage = ({ className }: { className?: string }) => {
+const SwitchContentLanguage = () => {
 	const router = useRouter();
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
@@ -39,6 +43,8 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 	if (isNext && props.supportedLanguages?.length < 2) return null;
 
 	const switchLanguage = (code: ContentLanguage) => {
+		if (code == currentLanguage) return;
+
 		if (isReadOnly) {
 			router.pushPath(
 				Localizer.addPath({
@@ -63,72 +69,45 @@ const SwitchContentLanguage = ({ className }: { className?: string }) => {
 	};
 
 	return (
-		<PopupMenuLayout
-			appendTo={() => document.body}
-			isInline
-			hideOnClick={false}
-			openTrigger="click"
-			trigger={
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
 				<ButtonLink
-					dataQa="switch-content-language"
 					iconCode="languages"
 					text={t(`language.${ContentLanguage[currentLanguage]}`)}
+					dataQa="switch-content-language"
 					iconIsLoading={isLoading}
-					rightActions={[<Icon key={"language-chevron-down"} code="chevron-down" />]}
 				/>
-			}
-		>
-			<>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start">
 				{!isReadOnly && (
 					<>
 						<AddContentLanguage setIsLoading={setIsLoading} onChange={switchLanguage} />
-						<div className="divider" />
+						<DropdownMenuSeparator />
 					</>
 				)}
+				<DropdownMenuRadioGroup value={currentLanguage} onValueChange={switchLanguage}>
+					{Object.values(props.supportedLanguages).map((code) => {
+						const showActions = !isReadOnly && props.language != code;
 
-				{Object.values(props.supportedLanguages).map((code) => {
-					const canSwitch = code != currentLanguage;
-					const showActions = !isReadOnly && props.language != code;
-
-					const button = (
-						<ButtonLink
-							key={`button-${code}`}
-							className={className}
-							onClick={canSwitch ? () => switchLanguage(code) : undefined}
-							text={t(`language.${ContentLanguage[code]}`)}
-							fullWidth={props.language != code || !canSwitch}
-							iconIsLoading={isLoading}
-							rightActions={[
-								!canSwitch ? <Icon key={`check-${code}`} code="check" /> : null,
-								showActions ? (
-									<ContentLanguageActions
-										key={`content-language-actions-${code}`}
-										canSwitch={canSwitch}
-										setIsLoading={setIsLoading}
-										targetCode={code}
-									/>
-								) : null,
-							]}
-						/>
-					);
-
-					return canSwitch ? (
-						button
-					) : (
-						<Tooltip key={`tooltip-${code}`} hideInMobile hideOnClick content={t("multilang.current")}>
-							{button}
-						</Tooltip>
-					);
-				})}
-			</>
-		</PopupMenuLayout>
+						return (
+							<DropdownMenuRadioItem key={code} value={code}>
+								<div className="flex items-center justify-between w-full">
+									{t(`language.${ContentLanguage[code]}`)}
+									{showActions && (
+										<ContentLanguageActions
+											canSwitch={code != currentLanguage}
+											setIsLoading={setIsLoading}
+											targetCode={code}
+										/>
+									)}
+								</div>
+							</DropdownMenuRadioItem>
+						);
+					})}
+				</DropdownMenuRadioGroup>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 };
 
-export default styled(SwitchContentLanguage)`
-	.right-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.2rem;
-	}
-`;
+export default SwitchContentLanguage;

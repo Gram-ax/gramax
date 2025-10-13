@@ -1,16 +1,9 @@
-import SelectSrc from "@components/Select/Select";
+import ReformattedSelect from "@components/Select/ReformattedSelect";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import styled from "@emotion/styled";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import type { Signature } from "@ext/git/core/model/Signature";
 import { useRef, useState } from "react";
-
-const Select = styled(SelectSrc)`
-	.react-dropdown-select-content {
-		overflow: hidden;
-	}
-`;
 
 interface SelectGESProps {
 	approvers: Signature[];
@@ -41,7 +34,7 @@ const SelectGES = ({ approvers, onChange, preventSearchAndStartLoading }: Select
 	}, 200);
 
 	return (
-		<Select
+		<ReformattedSelect
 			handleKeyDownFn={({ event }) => {
 				inputRef.current = event.target as HTMLInputElement;
 				if (
@@ -55,7 +48,7 @@ const SelectGES = ({ approvers, onChange, preventSearchAndStartLoading }: Select
 			}}
 			backspaceDelete
 			required
-			values={approvers.map((approver) => ({
+			values={approvers?.map((approver) => ({
 				value: `${approver.name} <${approver.email}>`,
 				label: `${approver.name} <${approver.email}>`,
 			}))}

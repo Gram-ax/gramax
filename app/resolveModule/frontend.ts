@@ -4,7 +4,6 @@ import type FileInput from "@components/Atoms/FileInput/FileInputProps";
 import type useUrlImage from "@components/Atoms/Image/useUrlImage";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import type { Router } from "@core/Api/Router";
-import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import type useUrlObjectImage from "apps/browser/src/hooks/useUrlObjectImage";
 import type BrowserRouter from "../../apps/browser/src/logic/Api/BrowserRouter";
 import type NextRouter from "../../apps/next/logic/Api/NextRouter";
@@ -21,12 +20,8 @@ interface DynamicModules {
 	DiffFileInput: DiffFileInput;
 	openDirectory: () => string | Promise<string>;
 	openInExplorer: (path: string) => void | Promise<void>;
-	enterpriseLogin: (
-		url: string,
-		apiUrlCreator: ApiUrlCreator,
-		router: Router,
-		workspace: ClientWorkspaceConfig,
-	) => Promise<void>;
+	openInWeb: (url: string) => void | Promise<void>;
+	enterpriseLogin: (url: string, apiUrlCreator: ApiUrlCreator, router: Router) => Promise<void>;
 	openWindowWithUrl: (url: string) => void | Promise<void>;
 	openChildWindow: ({
 		url,

@@ -2,10 +2,12 @@ import Button, { TextSize } from "@components/Atoms/Button/Button";
 import Icon from "@components/Atoms/Icon";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
+import Method from "@core-ui/ApiServices/Types/Method";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { showPopover } from "@core-ui/showPopover";
 import t from "@ext/localization/locale/translate";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
+import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
 import { useEffect, useState } from "react";
 
 interface MarkAsReadProps {
@@ -16,17 +18,17 @@ interface MarkAsReadProps {
 const MarkAsRead = ({ logicPath, apiUrlCreator }: MarkAsReadProps) => {
 	const [isChecked, setIsChecked] = useState(false);
 	const pageData = PageDataContext.value;
-	const isStorageInitialized = useIsStorageInitialized();
+	const isRepoOk = useIsRepoOk();
 
-	const enabled = isStorageInitialized && pageData.conf.search.elastic.enabled && pageData.userInfo?.mail;
+	const enabled = isRepoOk && pageData.conf.search.elastic.enabled && pageData.userInfo?.mail;
 
 	useEffect(() => {
 		if (!enabled) return;
 
 		setIsChecked(false);
 		const url = apiUrlCreator.markArticleAsOpened(logicPath);
-		void FetchService.fetch(url);
-	}, [logicPath, apiUrlCreator]);
+		void FetchService.fetch(url, null, MimeTypes.text, Method.POST, false);
+	}, [enabled, logicPath, apiUrlCreator]);
 
 	const updateMarkAsRead = async (): Promise<boolean> => {
 		const url = apiUrlCreator.markArticleAsRead(logicPath);

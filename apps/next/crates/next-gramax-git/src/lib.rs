@@ -112,7 +112,8 @@ fn init() {
   use tracing_subscriber::layer::SubscriberExt;
   use tracing_subscriber::util::SubscriberInitExt;
 
-  let env = tracing_subscriber::EnvFilter::from_default_env();
+  let env = tracing_subscriber::EnvFilter::try_from_default_env()
+    .unwrap_or(tracing_subscriber::EnvFilter::new("info"));
   tracing_subscriber::registry().with(tracing_subscriber::fmt::layer()).with(env).init();
 }
 
@@ -170,9 +171,9 @@ pub fn clone(
   CloneTask::create_task(creds, opts, callback)
 }
 
-#[napi(js_name = "clone_cancel")]
-pub fn clone_cancel(id: i32) -> Output {
-  git::clone_cancel(id as usize).json()
+#[napi(js_name = "cancel")]
+pub fn cancel(id: i32) -> Output {
+  git::cancel(id as usize).json()
 }
 
 #[napi_async]
@@ -246,9 +247,25 @@ pub fn get_remote(repo_path: String) -> Output {
   git::get_remote(Path::new(&repo_path))
 }
 
+#[napi(object, use_nullable = true)]
+#[derive(Clone)]
+pub struct RemoteOptions {
+  pub cancel_token: u32,
+  pub force: bool,
+}
+
+impl From<RemoteOptions> for gramaxgit::actions::remote::RemoteOptions<'_> {
+  fn from(val: RemoteOptions) -> Self {
+    gramaxgit::actions::remote::RemoteOptions {
+      cancel_token: (val.cancel_token as usize).into(),
+      force: val.force,
+    }
+  }
+}
+
 #[napi_async]
-pub fn fetch(repo_path: String, creds: AccessTokenCreds, force: bool, lock: bool) -> Output {
-  git::fetch(Path::new(&repo_path), creds.into(), force, lock)
+pub fn fetch(repo_path: String, creds: AccessTokenCreds, opts: RemoteOptions, lock: bool) -> Output {
+  git::fetch(Path::new(&repo_path), creds.into(), opts.into(), lock)
 }
 
 #[napi_async]
@@ -385,8 +402,8 @@ pub fn merge(repo_path: String, creds: AccessTokenCreds, opts: MergeOptions) -> 
 }
 
 #[napi_async]
-pub fn graph_head_upstream_files(repo_path: String, search_in: String) -> Output {
-  git::graph_head_upstream_files(Path::new(&repo_path), Path::new(&search_in))
+pub fn count_changed_files(repo_path: String, search_in: String) -> Output {
+  git::count_changed_files(Path::new(&repo_path), Path::new(&search_in))
 }
 
 #[napi_async]
@@ -488,6 +505,12 @@ pub fn reset_repo() -> Result<bool, Error> {
   Ok(true)
 }
 
+#[napi(js_name = "reset_file_lock")]
+pub fn reset_file_lock(repo_path: String) -> Result<bool, Error> {
+  git::reset_file_lock(Path::new(&repo_path));
+  Ok(true)
+}
+
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct GcOptions {
@@ -507,6 +530,11 @@ impl From<GcOptions> for gramaxgit::ext::gc::GcOptions {
 #[napi_async]
 pub fn gc(repo_path: String, opts: GcOptions) -> Output {
   git::gc(Path::new(&repo_path), opts.into())
+}
+
+#[napi_async]
+pub fn healthcheck(repo_path: String) -> Output {
+  git::healthcheck(Path::new(&repo_path))
 }
 
 #[napi(js_name = "get_all_cancel_tokens")]

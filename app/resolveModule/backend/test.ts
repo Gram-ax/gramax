@@ -1,4 +1,6 @@
-export const getTestModules = async () => {
+import { DynamicModules } from "@app/resolveModule/backend";
+
+export const getTestModules = async (): Promise<DynamicModules> => {
 	const [
 		{ default: NextCookie },
 		{ default: NextSvgToPng },
@@ -25,6 +27,7 @@ export const getTestModules = async () => {
 		getImageFromDom: NextGetImageFromDom,
 		moveToTrash: () => Promise.resolve(),
 		getDOMParser: () => new xmldom.DOMParser() as any,
+		getXMLSerializer: () => new xmldom.XMLSerializer() as any,
 		setSessionData: () => Promise.resolve(),
 		pdfLoadFont: nextLoadFont(),
 		getImageByPath: NextGetImageByPath,

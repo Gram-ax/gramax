@@ -13,6 +13,7 @@ const STORAGE_GET_NAME: { [type in SourceType]: (data: SourceData | ShareData) =
 	GitLab: (data) => `${(data as GitSourceData | GitShareData).domain}`,
 	GitHub: (data) => `${(data as GitSourceData | GitShareData).domain}`,
 	GitVerse: (data) => `${(data as GitSourceData | GitShareData).domain}`,
+	Gitea: (data) => `${(data as GitSourceData | GitShareData).domain}`,
 
 	"Confluence self-hosted server": (data) => parseStorageUrl(`${(data as ConfluenceSourceData).domain}`).domain,
 	"Confluence Cloud": (data) => parseStorageUrl(`${(data as ConfluenceSourceData).domain}`).domain,

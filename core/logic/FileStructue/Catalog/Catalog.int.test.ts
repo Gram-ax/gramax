@@ -15,7 +15,9 @@ let workspace: Workspace;
 const p = (s: string) => new Path(s);
 
 const getMakeResourceUpdater = async () => {
-	const ctx = await app.contextFactory.fromBrowser("ru", {});
+	const ctx = await app.contextFactory.fromBrowser({
+		language: "ru",
+	});
 	return (catalog: Catalog) => new ResourceUpdater(ctx, catalog, app.parser, app.parserContextFactory, app.formatter);
 };
 

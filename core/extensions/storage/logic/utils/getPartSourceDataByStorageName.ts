@@ -1,10 +1,11 @@
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import SourceType from "../SourceDataProvider/model/SourceType";
+import GitSourceType from "@ext/git/core/model/GitSourceType";
 
 const getPartGitSourceDataByStorageName = (
 	name: string,
 ): {
-	sourceType: SourceType.git | SourceType.gitHub | SourceType.gitLab | SourceType.gitVerse;
+	sourceType: GitSourceType;
 	data: Partial<GitSourceData>;
 } => {
 	if (!name) return { sourceType: null, data: {} };
@@ -14,6 +15,9 @@ const getPartGitSourceDataByStorageName = (
 	}
 	if (lcName.includes("gitlab")) {
 		return { sourceType: SourceType.gitLab, data: { domain: name } };
+	}
+	if(lcName.includes("gitea")) {
+		return { sourceType: SourceType.gitea, data: { domain: name } };
 	}
 	// temp, wait GitVerse CORS
 	// if (lcName.includes("gitverse")) {

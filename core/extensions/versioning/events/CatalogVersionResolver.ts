@@ -73,11 +73,6 @@ export default class CatalogVersionResolver implements EventHandlerCollection {
 			return;
 		}
 
-		if ((await catalog.repo.gvc.getSubGitVersionControls()).length > 0) {
-			const msg = `skipping version resolving for catalog ${catalog.basePath.value}; submodules aren't currently supported for bare repositories`;
-			console.warn(msg);
-		}
-
 		let gitfp = this._workspace.getFileProvider().at(catalog.basePath);
 		if (!(gitfp instanceof GitTreeFileProvider)) {
 			const git = new GitCommands(this._workspace.getFileProvider().default(), catalog.basePath);
@@ -90,7 +85,7 @@ export default class CatalogVersionResolver implements EventHandlerCollection {
 		const fs = this._workspace.getFileStructure();
 
 		for (const resolvedVersion of catalog.props.resolvedVersions) {
-			const path = addScopeToPath(catalog.basePath, resolvedVersion.encodedName);
+			const path = addScopeToPath(catalog.basePath, resolvedVersion.name);
 			fs.fp.mount(new Path(path), gitfp);
 
 			const entry = await fs.getCatalogEntryByPath(new Path(path), false, {

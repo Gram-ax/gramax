@@ -12,7 +12,7 @@ export async function getServerSideProps({ req, res }) {
 	const filePath = path.join(process.cwd(), "../../public", "robots.txt");
 	await ApplyApiMiddleware(
 		async function (req, res: any) {
-			const ctx = await this.app.contextFactory.from(req, res, req.query);
+			const ctx = await this.app.contextFactory.from({ req, res, query: req.query });
 			const basePath = this.app.conf.basePath ?? "";
 			const workspace = this.app.wm.current();
 			const sg = new SEOGenerator(workspace);

@@ -6,6 +6,9 @@ import ApiUrlCreator from "../ApiServices/ApiUrlCreator";
 
 const ApiUrlCreatorContext = createContext<ApiUrlCreator>(undefined);
 
+/**
+ * @deprecated Consider using `useApi(..)` hook instead
+ */
 class ApiUrlCreatorService implements ContextService {
 	Init({ children, pageProps }: { children: ReactElement; pageProps: PageProps }): ReactElement {
 		const basePath = useRouter().basePath;
@@ -26,6 +29,9 @@ class ApiUrlCreatorService implements ContextService {
 		return <ApiUrlCreatorContext.Provider value={value}>{children}</ApiUrlCreatorContext.Provider>;
 	}
 
+	/**
+	 * @deprecated Consider using `useApi(..)` hook instead
+	 */
 	get value(): ApiUrlCreator {
 		return useContext(ApiUrlCreatorContext);
 	}

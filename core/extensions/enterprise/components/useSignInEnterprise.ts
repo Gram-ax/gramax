@@ -3,8 +3,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import validateEmail from "@core/utils/validateEmail";
-
 import { useState, useCallback, useMemo, useEffect } from "react";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { AuthMethod } from "@ext/enterprise/types/UserSettings";
 
 const OTP_LENGTH = 6;
 const MAIL_SEND_ENDPOINT = "/api/auth/mailSendOTP";
@@ -13,10 +14,13 @@ const SENT_OTP_REQUEST_DELAY = 60;
 const MINUTE = 60;
 const SECOND = 1000;
 
-export const useSignInEnterprise = () => {
+export const useSignInEnterprise = ({ authUrl }: { authUrl: string }) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [isPasswordSent, setIsPasswordSent] = useState(false);
 	const [sendButtonCooldown, setSendButtonCooldown] = useState(0);
+
+	const workspace = WorkspaceService.current();
+	const onlySSO = !workspace?.enterprise?.authMethods?.includes(AuthMethod.GUEST_MAIL);
 
 	const formSchema = z.object({
 		email: z
@@ -177,6 +181,10 @@ export const useSignInEnterprise = () => {
 		[form, handleLogin],
 	);
 
+	const relocateToAuthUrl = useCallback(() => {
+		window.location.href = authUrl;
+	}, [authUrl]);
+
 	const isResendButtonDisabled = useMemo(() => {
 		return isLoading || sendButtonCooldown > 0;
 	}, [isLoading, sendButtonCooldown]);
@@ -197,5 +205,7 @@ export const useSignInEnterprise = () => {
 		isResendButtonDisabled,
 		handleSendPassword,
 		resetForm,
+		relocateToAuthUrl,
+		onlySSO,
 	};
 };

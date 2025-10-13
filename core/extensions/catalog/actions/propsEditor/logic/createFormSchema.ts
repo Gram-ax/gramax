@@ -2,11 +2,9 @@ import t from "@ext/localization/locale/translate";
 import { z } from "zod";
 
 export type CatalogSettingsModalProps = {
-	isOpen?: boolean;
 	modalContentProps?: Record<string, unknown>;
 	onSubmit?: (editProps: FormData) => void;
 	onClose?: () => void;
-	trigger?: JSX.Element;
 	startUpdatingProps?: () => void;
 };
 
@@ -26,7 +24,7 @@ export type MultiSelectOption = {
 
 export type FormSelectValues = {
 	workspaceGroups: SelectOption[];
-	cardColors: string[];
+	cardColors: SelectOption[];
 	languages: SelectOption[];
 	syntaxes: SelectOption[];
 };
@@ -65,8 +63,26 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 				.max(4, { message: t("max-length") + "4" })
 				.nullable(),
 		),
+		logo: z
+			.object({
+				light: z.null().optional(),
+				dark: z.null().optional(),
+			})
+			.optional(),
 		group: z.optional(z.string().nullable()),
 		syntax: z.optional(z.string().nullable()),
+		icons: z.optional(
+			z
+				.array(
+					z.object({
+						name: z.string(),
+						content: z.string(),
+						type: z.string().default("svg"),
+						size: z.number(),
+					}),
+				)
+				.nullable(),
+		),
 	});
 
 export type FormData = z.infer<ReturnType<typeof createFormSchema>>;

@@ -21,9 +21,6 @@ const meta: Meta<Props> = {
 		},
 		CenterDecorator,
 	],
-	args: {
-		isStorageInitialized: true,
-	},
 	parameters: {
 		msw: mock([
 			...checkoutApi,

@@ -3,7 +3,7 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useRouter } from "@core/Api/useRouter";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import useCloneHandler from "@ext/git/actions/Clone/logic/useCloneHandler";
+import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
 import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
 import getUrlFromShareData from "@ext/git/core/GitPathnameHandler/clone/logic/getUrlFromShareData";
 import type GitShareData from "@ext/git/core/model/GitShareData";
@@ -16,62 +16,63 @@ const useClonePublic = () => {
 	const pageDataContext = PageDataContextService.value;
 	const { isReadOnly } = pageDataContext.conf;
 
-	const clone = useCloneHandler();
+	const { startClone } = useCloneRepo({
+		skipCheck: true,
+		onStart: () => {
+			router.pushPath("/");
+		},
+	});
 
-	return useCallback(async () => {
-		const shareData = pageDataContext.shareData as GitShareData;
-		pageDataContext.shareData = null;
-		if (!router || !shareData || isReadOnly) return;
-		if (!shareData.domain || !shareData.group || !shareData.name) return;
+	return useCallback(
+		async (shareData: GitShareData) => {
+			if (!shareData || isReadOnly || !shareData.domain || !shareData.group || !shareData.name) return;
 
-		const url = getUrlFromShareData(shareData);
-		const redirect = RouterPathProvider.getPathname({
-			catalogName: shareData.name,
-			filePath: shareData.filePath,
-		}).toString();
+			const url = getUrlFromShareData(shareData);
 
-		const storageData: PublicGitStorageData = {
-			name: shareData.name,
-			url,
-			source: {
-				sourceType: SourceType.git,
-				userName: "git",
-				userEmail: "",
-			},
-		};
+			const redirect = RouterPathProvider.getPathname({
+				catalogName: shareData.name,
+				filePath: shareData.filePath,
+			}).toString();
 
-		await clone({
-			storageData,
-			redirectOnClone: redirect,
-			branch: shareData.branch,
-			skipCheck: true,
-			onStart: () => {
-				router.pushPath("/");
-			},
-		});
-	}, [pageDataContext?.shareData]);
+			const storageData: PublicGitStorageData = {
+				name: shareData.name,
+				url,
+				source: {
+					sourceType: SourceType.git,
+					userName: "git",
+					userEmail: "",
+				},
+			};
+
+			return await startClone({ storageData, branch: shareData.branch, redirectOnClone: redirect });
+		},
+		[startClone, pageDataContext?.shareData, isReadOnly, router],
+	);
 };
 
 const usePathnameCloneHandler = () => {
 	const router = useRouter();
 	const pageDataContext = PageDataContextService.value;
-	const publicClone = useClonePublic();
+	const startClonePublic = useClonePublic();
 	const { isReadOnly } = pageDataContext.conf;
 
 	useEffect(() => {
-		if (!router || !pageDataContext?.shareData || isReadOnly) return;
 		const shareData = pageDataContext.shareData;
+		if (!router || !shareData || isReadOnly) return;
+
 		const isPublic = shareData.isPublic;
 
 		if (isPublic) {
-			if (typeof window !== "undefined" && !window.desktopOpened) publicClone();
+			if (typeof window !== "undefined" && !window.desktopOpened) {
+				startClonePublic(shareData as GitShareData);
+			}
 		} else {
-			pageDataContext.shareData = null;
 			ModalToOpenService.setValue<ComponentProps<typeof CloneHandler>>(ModalToOpen.CloneHandler, {
 				shareData,
 			});
+			pageDataContext.shareData = null;
 		}
-	}, [pageDataContext?.shareData]);
+	}, [pageDataContext.shareData, router, isReadOnly]);
 };
 
 export default usePathnameCloneHandler;

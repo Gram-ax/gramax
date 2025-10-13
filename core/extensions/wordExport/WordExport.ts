@@ -10,12 +10,13 @@ import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import { BookmarkEnd, BookmarkStart, Document, ISectionOptions, Paragraph, TableOfContents } from "docx";
+import type { ISectionOptions, Paragraph } from "docx";
+import docx from "@dynamicImports/docx";
 import { WordSerializerState } from "./WordExportState";
 import { getBlockChildren } from "./getBlockChildren";
 import { getInlineChildren } from "./getInlineChildren";
-import { wordDocumentStyles } from "./options/wordDocumentStyles";
-import { HeadingStyles, WordFontStyles } from "./options/wordExportSettings";
+import { getWordDocumentStyles } from "./options/wordDocumentStyles";
+import { getHeadingStyles, WordFontStyles } from "./options/wordExportSettings";
 import { styles } from "@ext/wordExport/options/mainStyles";
 
 const MAX_HEADING_LEVEL = 9;
@@ -29,9 +30,11 @@ abstract class WordExport {
 	) {}
 
 	async getDocument(documentTree: DocumentTree) {
+		const { Document } = await docx();
+
 		return new Document({
 			sections: await this.getSections(documentTree),
-			...wordDocumentStyles,
+			...(await getWordDocumentStyles()),
 			externalStyles: styles,
 		});
 	}
@@ -44,7 +47,7 @@ abstract class WordExport {
 		const sections: ISectionOptions[] = [];
 
 		if (this._exportType == ExportType.withTableOfContents)
-			sections.push({ children: this._createTableOfContents(rootNode) });
+			sections.push({ children: await this._createTableOfContents(rootNode) });
 
 		const processNode = async (currentNode: DocumentTree, content = [], skipFirstNode = false) => {
 			if (!skipFirstNode) content.push(...(await this._parseArticle(currentNode)));
@@ -70,11 +73,12 @@ abstract class WordExport {
 		return sections;
 	}
 
-	protected _createTableOfContents(article: DocumentTree) {
+	protected async _createTableOfContents(article: DocumentTree) {
+		const { TableOfContents } = await docx();
 		return [
-			createParagraph(
+			await createParagraph(
 				[
-					createContent(
+					await createContent(
 						t("word.table-of-contents", article?.parserContext?.getLanguage() ?? resolveLanguage()),
 					),
 				],
@@ -88,7 +92,7 @@ abstract class WordExport {
 	}
 
 	private async _parseArticle(article: DocumentTree) {
-		if (!article.content || typeof article.content === "string") return [this._createTitle(article)];
+		if (!article.content || typeof article.content === "string") return [await this._createTitle(article)];
 		const state = new WordSerializerState(
 			getInlineChildren(),
 			getBlockChildren(),
@@ -111,20 +115,26 @@ abstract class WordExport {
 
 		const content = (await Promise.all(contentPromises)).flat();
 
-		return [this._createTitle(article), ...content];
+		return [await this._createTitle(article), ...content];
 	}
 
-	protected abstract _createTitle(article: DocumentTree): Paragraph;
+	protected abstract _createTitle(article: DocumentTree): Promise<Paragraph>;
 }
 
 export class MainWordExport extends WordExport {
-	protected _createTitle = (article: DocumentTree) => {
+	protected _createTitle = async (article: DocumentTree) => {
+		const { BookmarkStart, BookmarkEnd } = await docx();
+		const headingStyles = await getHeadingStyles();
 		const bookmarkId = 1;
 		const bookmarkName = generateBookmarkName(article.number, article.name);
 
-		return createParagraph(
-			[new BookmarkStart(bookmarkName, bookmarkId), createContent(article.name), new BookmarkEnd(bookmarkId)],
-			HeadingStyles[article.level <= MAX_HEADING_LEVEL ? article.level : MAX_HEADING_LEVEL + 1],
+		return await createParagraph(
+			[
+				new BookmarkStart(bookmarkName, bookmarkId),
+				await createContent(article.name),
+				new BookmarkEnd(bookmarkId),
+			],
+			headingStyles[article.level <= MAX_HEADING_LEVEL ? article.level : MAX_HEADING_LEVEL + 1],
 		);
 	};
 }

@@ -22,7 +22,7 @@ import Head from "next/head";
 import { initModules } from "@app/resolveModule/frontend";
 
 import { setFeatureList } from "@ext/toggleFeatures/features";
-import { Toaster } from "ics-ui-kit/components/toast";
+import { Toaster } from "@ui-kit/Toast";
 import { TooltipProvider } from "@ui-kit/Tooltip";
 import { useEffect, useLayoutEffect, useState } from "react";
 

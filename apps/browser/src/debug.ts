@@ -89,6 +89,7 @@ export const clearLockFiles = async (catalogName: string) => {
 	const app = await getApp();
 	const fp = app.wm.current().getFileProvider();
 	const remotesPath = new Path([catalogName, ".git/refs/remotes/origin"]);
+	const gxLock = new Path([catalogName, ".git/.gx-lock"]);
 
 	const deleteLocks = async (path: Path) => {
 		const items = await fp.readdir(path);
@@ -104,7 +105,23 @@ export const clearLockFiles = async (catalogName: string) => {
 		}
 	};
 
+	if (await fp.exists(gxLock)) await fp.delete(gxLock);
 	await deleteLocks(remotesPath);
+};
+
+export const clearGxLock = async () => {
+	const app = await getApp();
+	const fp = app.wm.current().getFileProvider();
+	let i = 0;
+
+	for (const [name] of app.wm.current().getAllCatalogs()) {
+		const gxLock = new Path([name, ".git/.gx-lock"]);
+		if (await fp.exists(gxLock)) {
+			await fp.delete(gxLock);
+			i++;
+		}
+	}
+	console.log(`deleted ${i} gx-lock files`);
 };
 
 export const gitAddAll = async (catalogName: string) => {

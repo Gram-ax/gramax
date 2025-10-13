@@ -23,7 +23,7 @@ export default interface Storage {
 	getName(): Promise<string>;
 	getRemoteName(): Promise<string>;
 	getFileLink(path: Path, branch?: Branch): Promise<string>;
-	getStorageContainsItem(path: Path): Promise<{ storage: Storage; relativePath: Path }>;
+	getStorageByPath(path: Path): Promise<{ storage: Storage; relativePath: Path }>;
 	getSyncCount(): Promise<{ pull: number; push: number; hasChanges: boolean }>;
 	updateSyncCount(): Promise<void>;
 	setSyncSearchInPath(path: string): void;

@@ -21,13 +21,13 @@ import PullHandler from "@ext/git/core/GitPathnameHandler/pull/components/PullHa
 import getPathnamePullData from "@ext/git/core/GitPathnameHandler/pull/logic/getPathnamePullData";
 import t from "@ext/localization/locale/translate";
 import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
+import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
 import { ComponentProps, useEffect, useRef } from "react";
 
 const usePathnameHandler = (isFirstLoad: boolean) => {
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const isStorageInitialized = useIsStorageInitialized();
+	const isRepoOk = useIsRepoOk();
 	const isSourceValid = useIsSourceDataValid();
 	const pageDataContext = PageDataContextService.value;
 	const { isArticle } = pageDataContext;
@@ -41,7 +41,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 	}, [isFirstLoad]);
 
 	useEffect(() => {
-		if (!isArticle || !isEditorPathname || !isStorageInitialized || !haveBeenFirstLoad.current) return;
+		if (!isArticle || !isEditorPathname || !isRepoOk || !haveBeenFirstLoad.current) return;
 		haveBeenFirstLoad.current = false;
 
 		const handler = async () => {
@@ -100,7 +100,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 			ModalToOpenService.setValue<ComponentProps<typeof PullHandler>>(ModalToOpen.PullHandler);
 		};
 		void handler();
-	}, [router.path, isFirstLoad, isArticle, isEditorPathname, isStorageInitialized, isSourceValid, apiUrlCreator]);
+	}, [router.path, isFirstLoad, isArticle, isEditorPathname, isRepoOk, isSourceValid, apiUrlCreator]);
 };
 
 export default usePathnameHandler;

@@ -1,19 +1,23 @@
-import { Paragraph, TextRun } from "docx";
+import docx from "@dynamicImports/docx";
+import type { Paragraph } from "docx";
 import { getBulletSymbol } from "@ext/wordExport/options/wordDocumentStyles";
-import { InternalHyperlink } from "docx";
 import { extractNameAndAnchor } from "@ext/markdown/elements/link/word/link";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
-import { convertMillimetersToTwip } from "docx";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import { ViewRenderGroup } from "@ext/properties/models";
 import t from "@ext/localization/locale/translate";
+import { getMmToTw } from "@ext/wordExport/lists/consts";
 
-export const viewList = (data: ViewRenderGroup[], titlesMap: Map<string, TitleInfo>) => {
-	return data.flatMap((group) => processGroup(group, titlesMap));
+export const viewList = async (data: ViewRenderGroup[], titlesMap: Map<string, TitleInfo>) => {
+	const results = await Promise.all(data.map((group) => processGroup(group, titlesMap)));
+	return results.flat();
 };
 
-const processGroup = (group: ViewRenderGroup, titlesMap: Map<string, TitleInfo>, level: number = 0) => {
+const processGroup = async (group: ViewRenderGroup, titlesMap: Map<string, TitleInfo>, level: number = 0) => {
+	const { Paragraph, TextRun, InternalHyperlink } = await docx();
+	const mmToTw = await getMmToTw();
+
 	const items: Paragraph[] = [];
 
 	if (group.group && group.group.length > 0) {
@@ -33,7 +37,7 @@ const processGroup = (group: ViewRenderGroup, titlesMap: Map<string, TitleInfo>,
 						}),
 					],
 					indent: {
-						left: convertMillimetersToTwip(5 * level),
+						left: mmToTw(5 * level),
 					},
 					style: "ListParagraph",
 				}),
@@ -42,12 +46,9 @@ const processGroup = (group: ViewRenderGroup, titlesMap: Map<string, TitleInfo>,
 	}
 
 	if (group.articles?.length > 0) {
-		group.articles.forEach((article) => {
+		for (const article of group.articles) {
 			const { text, font } = getBulletSymbol(level);
-			const { title, order, anchor } = extractNameAndAnchor(
-				{ href: article.linkPath, hash: "" },
-				titlesMap,
-			);
+			const { title, order, anchor } = extractNameAndAnchor({ href: article.linkPath, hash: "" }, titlesMap);
 			const safeTitle = article.title || t("article.no-name");
 
 			items.push(
@@ -75,19 +76,19 @@ const processGroup = (group: ViewRenderGroup, titlesMap: Map<string, TitleInfo>,
 							: new TextRun({ text: safeTitle, size: 24 }),
 					],
 					indent: {
-						left: convertMillimetersToTwip(5 + 5 * level),
-						hanging: convertMillimetersToTwip(5),
+						left: mmToTw(5 + 5 * level),
+						hanging: mmToTw(5),
 					},
 					style: "ListParagraph",
 				}),
 			);
-		});
+		}
 	}
 
 	if (group.subgroups?.length > 0) {
-		group.subgroups.forEach((subgroup) => {
-			items.push(...processGroup(subgroup, titlesMap, level + 1));
-		});
+		for (const subgroup of group.subgroups) {
+			items.push(...(await processGroup(subgroup, titlesMap, level + 1)));
+		}
 	}
 
 	return items;

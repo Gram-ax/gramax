@@ -8,6 +8,7 @@ use std::io;
 use std::path::Path;
 
 use crate::ext::walk::Walk;
+use crate::file_lock::FileLockError;
 use crate::prelude::*;
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -22,6 +23,8 @@ pub enum Error {
   NoModifiedFiles,
   AlreadyCloningWithSameId(String),
   Yaml(serde_yml::Error),
+  FileLock(FileLockError),
+  FileLockHealthcheckFailed(HealthcheckError),
   Utf8,
 }
 
@@ -43,6 +46,12 @@ impl From<serde_yml::Error> for Error {
   }
 }
 
+impl From<FileLockError> for Error {
+  fn from(value: FileLockError) -> Self {
+    Error::FileLock(value)
+  }
+}
+
 impl Display for Error {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     match self {
@@ -59,6 +68,36 @@ impl Display for Error {
       Error::AlreadyCloningWithSameId(id) => writeln!(f, "Already cloning with same id: {id}"),
       Error::Yaml(err) => writeln!(f, "YAML serialize/deserialize: {err}"),
       Error::Healthcheck(err) => writeln!(f, "{err}"),
+      Error::FileLock(err) => writeln!(f, "{err:?}"),
+      Error::FileLockHealthcheckFailed(err) => writeln!(f, "{err:?}"),
+    }
+  }
+}
+
+impl Error {
+  pub fn code(&self) -> Option<i32> {
+    match self {
+      Error::Git(err) => Some(err.raw_code().abs()),
+      Error::Healthcheck(err) => err.inner.as_ref().map(|e| e.raw_code().abs()),
+      Error::FileLockHealthcheckFailed(err) => err.inner.as_ref().map(|e| e.raw_code().abs()),
+      Error::Network { status, .. } => Some(*status as i32),
+      _ => None,
+    }
+  }
+
+  pub fn class(&self) -> Option<u32> {
+    match self {
+      Error::Io(_) => Some(1000),
+      Error::Healthcheck(_) => Some(1001),
+      Error::FileLockHealthcheckFailed(_) => Some(1002),
+      Error::FileLock(_) => Some(1003),
+      Error::NoWorkdir => Some(1004),
+      Error::NoModifiedFiles => Some(1005),
+      Error::AlreadyCloningWithSameId(_) => Some(1006),
+      Error::Yaml(_) => Some(1007),
+      Error::Utf8 => Some(1008),
+      Error::Network { status, .. } => Some(*status as u32),
+      Error::Git(err) => Some(err.class() as u32),
     }
   }
 }
@@ -92,7 +131,8 @@ impl<T, C: Creds> HealthcheckIfOdbError<T, C> for Result<T> {
           || err.class() == ErrorClass::Reference
           || err.class() == ErrorClass::Tree
           || err.class() == ErrorClass::Index
-          || err.class() == ErrorClass::Object =>
+          || err.class() == ErrorClass::Object
+          || err.class() == ErrorClass::Invalid =>
       {
         let bad_objects = repo.healthcheck()?;
         let last_gc = repo.last_gc()?;
@@ -103,7 +143,7 @@ impl<T, C: Creds> HealthcheckIfOdbError<T, C> for Result<T> {
           prev_log: last_gc,
         };
 
-        Err(Error::Healthcheck(err))
+        Err(crate::error::Error::Healthcheck(err))
       }
       _ => self,
     }

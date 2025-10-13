@@ -14,7 +14,7 @@ export function getServerSideProps({ req, res, query }) {
 	return ApplyPageMiddleware(async function ({ req, res, query }) {
 		const articlePath = query?.path ? "/" + query.path.map((p) => p.replaceAll("/", "%2F")).join("/") : "";
 		query.l = Localizer.extract(articlePath);
-		const ctx = await this.app.contextFactory.from(req, res, query);
+		const ctx = await this.app.contextFactory.from({ req, res, query });
 
 		const props = await withContext(
 			ctx,

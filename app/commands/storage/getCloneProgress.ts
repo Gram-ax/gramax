@@ -1,10 +1,10 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import type { CloneProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { RemoteProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { Command } from "../../types/Command";
 
-const getCloneProgress: Command<{ path: Path }, CloneProgress> = Command.create({
+const getCloneProgress: Command<{ path: Path }, RemoteProgress> = Command.create({
 	path: "storage/getCloneProgress",
 
 	kind: ResponseKind.json,

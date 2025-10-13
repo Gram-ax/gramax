@@ -18,7 +18,7 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { rp, wm, conf } = this._app;
+		const { rp, wm } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);

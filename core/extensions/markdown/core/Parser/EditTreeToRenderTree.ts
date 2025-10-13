@@ -56,6 +56,8 @@ const getComponentNames = (): ComponentsNames => {
 	};
 };
 
+const forceChildren = ["inline-property"];
+
 const diagramsTransformer = (node: JSONContent, componentsNames: ComponentsNames): JSONContent => {
 	const diagramName = node.attrs?.diagramName?.toLowerCase();
 	if (!diagramName) return node;
@@ -276,6 +278,7 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 
 		const tagName = componentsNames[node.type];
 		const isInline = editSchema.nodes[node.content?.[0]?.type]?.isInline;
+		const isForceChildren = forceChildren.includes(node.content?.[0]?.type);
 		const tag: Child = tagName
 			? createTag(tagName, node.attrs || {}, [])
 			: createNodeOrMark(node.type, node.attrs || {}, []);
@@ -283,8 +286,9 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 		// Content
 		if (node.content) {
 			// If the node has only one child and it's an inline node, convert it to a render node
-			if (node.content.length === 1 && isInline && node.content[0].type !== "text") {
-				return convertNode(node.content[0]);
+			if (node.content.length === 1 && isInline && !isForceChildren && node.content[0].type !== "text") {
+				const convertedNode = convertNode(node.content[0]);
+				return convertedNode;
 			}
 
 			node.content.forEach((child) => {

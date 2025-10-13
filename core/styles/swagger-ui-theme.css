@@ -827,13 +827,13 @@
 }
 
 .swagger-ui .btn.execute {
-	-webkit-animation: pulse 2s infinite;
-	animation: pulse 2s infinite;
+	-webkit-animation: swagger-ui-pulse 2s infinite;
+	animation: swagger-ui-pulse 2s infinite;
 	color: #fff;
 	border-color: #4990e2;
 }
 
-@-webkit-keyframes pulse {
+@-webkit-keyframes swagger-ui-pulse {
 	0% {
 		color: #fff;
 		background: #4990e2;
@@ -849,7 +849,7 @@
 	}
 }
 
-@keyframes pulse {
+@keyframes swagger-ui-pulse {
 	0% {
 		color: #fff;
 		background: #4990e2;

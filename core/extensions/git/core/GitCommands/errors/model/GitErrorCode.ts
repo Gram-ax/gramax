@@ -1,4 +1,5 @@
 enum GitErrorCode {
+	HealthcheckFailed = "HealthcheckFailed",
 	RemoteRepositoryNotFoundError = "RemoteRepositoryNotFoundError",
 	ContentTooLargeError = "ContentTooLargeError",
 	NotAuthorizedError = "NotAuthorizedError",
@@ -6,7 +7,6 @@ enum GitErrorCode {
 	NetworkConntectionError = "NetworkConntectionError",
 	MergeNotSupportedError = "MergeNotSupportedError",
 	CantGetConflictedFiles = "CantGetConflictedFiles",
-	CheckoutSubmoduleError = "CheckoutSubmoduleError",
 	CheckoutConflictError = "CheckoutConflictError",
 	DeleteCurrentBranch = "DeleteCurrentBranch",
 	MergeConflictError = "MergeConflictError",
@@ -19,6 +19,7 @@ enum GitErrorCode {
 	MergeError = "MergeError",
 	HttpError = "HttpError",
 	FileNotFoundError = "FileNotFoundError",
+	LockFileHealthcheckFailed = "LockFileHealthcheckFailed",
 	CancelledOperation = "CancelledOperation",
 }
 

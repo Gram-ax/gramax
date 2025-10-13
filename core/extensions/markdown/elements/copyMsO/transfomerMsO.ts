@@ -1,5 +1,6 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
+import Path from "@core/FileProvider/Path/Path";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import isVideoSupported from "@ext/markdown/elements/video/logic/isVideoSupported";
@@ -225,13 +226,15 @@ class TransformerMsO {
 		}
 
 		const match = fileNameRegex.exec(image.getAttribute("src"));
-
 		if (match?.[0]) return match[0];
 
 		if (image.parentElement.childNodes?.[0]) {
 			const match = fileNameRegex.exec(image.parentElement.childNodes?.[0].textContent);
-			return match?.[0];
+			if (match?.[0]) return match[0];
 		}
+
+		const attributeSrc = image.getAttribute("src");
+		if (attributeSrc.startsWith("file")) return new Path(attributeSrc).nameWithExtension;
 	};
 
 	private _insertContent(doc: Document) {

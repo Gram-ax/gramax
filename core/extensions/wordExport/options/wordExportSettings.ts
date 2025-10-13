@@ -1,6 +1,6 @@
 import UiLanguage from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
-import { BorderStyle, HeadingLevel } from "docx";
+import docx from "@dynamicImports/docx";
 
 export const NON_BREAKING_SPACE = "\u00A0";
 export const ICON_SIZE = 11;
@@ -19,18 +19,26 @@ export const wordFontSizes = {
 	tableDBHeading: { 3: 32 },
 } as const;
 
-export const HeadingStyles = {
-	0: HeadingLevel.TITLE,
-	1: HeadingLevel.HEADING_1,
-	2: HeadingLevel.HEADING_2,
-	3: HeadingLevel.HEADING_3,
-	4: HeadingLevel.HEADING_4,
-	5: HeadingLevel.HEADING_5,
-	6: HeadingLevel.HEADING_6,
-	7: "Heading7",
-	8: "Heading8",
-	9: "Heading9",
-	10: "Heading10",
+let headingStyles: Record<number, any>;
+
+export const getHeadingStyles = async (): Promise<Record<number, any>> => {
+	if (!headingStyles) {
+		const { HeadingLevel } = await docx();
+		headingStyles = {
+			0: HeadingLevel.TITLE,
+			1: HeadingLevel.HEADING_1,
+			2: HeadingLevel.HEADING_2,
+			3: HeadingLevel.HEADING_3,
+			4: HeadingLevel.HEADING_4,
+			5: HeadingLevel.HEADING_5,
+			6: HeadingLevel.HEADING_6,
+			7: "Heading7",
+			8: "Heading8",
+			9: "Heading9",
+			10: "Heading10",
+		};
+	}
+	return headingStyles;
 };
 
 export const wordFontTypes = {
@@ -133,43 +141,50 @@ export const wordBordersColors = {
 	kbd: "f8f8f8",
 } as const;
 
-const wordNoteBorderType = (color: string) => ({
-	top: { style: BorderStyle.NIL },
-	bottom: { style: BorderStyle.NIL },
-	left: { style: BorderStyle.SINGLE, size: 20, color },
-	right: { style: BorderStyle.NIL },
-});
+let wordBordersType: Record<string, any>;
 
-export const wordBordersType = {
-	[WordBlockType.table]: {
-		top: { style: BorderStyle.SINGLE },
-		bottom: { style: BorderStyle.SINGLE },
-		left: { style: BorderStyle.SINGLE },
-		right: { style: BorderStyle.SINGLE },
-	},
-	[WordBlockType.fence]: {},
-	[WordBlockType.note]: wordNoteBorderType(wordBordersColors.orange),
-	[WordBlockType.lab]: wordNoteBorderType(wordBordersColors.purple),
-	[WordBlockType.tip]: wordNoteBorderType(wordBordersColors.blue),
-	[WordBlockType.info]: wordNoteBorderType(wordBordersColors.darkBlue),
-	[WordBlockType.danger]: wordNoteBorderType(wordBordersColors.red),
-	[WordBlockType.hotfixes]: wordNoteBorderType(wordBordersColors.darkGrey),
-	[WordBlockType.quote]: wordNoteBorderType(wordBordersColors.darkGrey),
-	[WordBlockType.cut]: wordNoteBorderType(wordBordersColors.grey),
-	[WordBlockType.blockquote]: {
-		top: { style: BorderStyle.NIL },
-		bottom: { style: BorderStyle.NIL },
-		left: { style: BorderStyle.SINGLE, size: 35, color: wordBordersColors.lightGrey },
-		right: { style: BorderStyle.NIL },
-	},
-	[WordBlockType.tabs]: {
-		top: { style: BorderStyle.NIL },
-		bottom: { style: BorderStyle.NIL },
-		left: { style: BorderStyle.NIL },
-		right: { style: BorderStyle.NIL },
-		insideHorizontal: { style: BorderStyle.NIL },
-		insideVertical: { style: BorderStyle.NIL },
-	},
-} as const;
+export const getWordBordersType = async (): Promise<Record<string, any>> => {
+	if (!wordBordersType) {
+		const { BorderStyle } = await docx();
+		const wordNoteBorderType = (color: string) => ({
+			top: { style: BorderStyle.NIL },
+			bottom: { style: BorderStyle.NIL },
+			left: { style: BorderStyle.SINGLE, size: 20, color },
+			right: { style: BorderStyle.NIL },
+		});
+		wordBordersType = {
+			[WordBlockType.table]: {
+				top: { style: BorderStyle.SINGLE },
+				bottom: { style: BorderStyle.SINGLE },
+				left: { style: BorderStyle.SINGLE },
+				right: { style: BorderStyle.SINGLE },
+			},
+			[WordBlockType.fence]: {},
+			[WordBlockType.note]: wordNoteBorderType(wordBordersColors.orange),
+			[WordBlockType.lab]: wordNoteBorderType(wordBordersColors.purple),
+			[WordBlockType.tip]: wordNoteBorderType(wordBordersColors.blue),
+			[WordBlockType.info]: wordNoteBorderType(wordBordersColors.darkBlue),
+			[WordBlockType.danger]: wordNoteBorderType(wordBordersColors.red),
+			[WordBlockType.hotfixes]: wordNoteBorderType(wordBordersColors.darkGrey),
+			[WordBlockType.quote]: wordNoteBorderType(wordBordersColors.darkGrey),
+			[WordBlockType.cut]: wordNoteBorderType(wordBordersColors.grey),
+			[WordBlockType.blockquote]: {
+				top: { style: BorderStyle.NIL },
+				bottom: { style: BorderStyle.NIL },
+				left: { style: BorderStyle.SINGLE, size: 35, color: wordBordersColors.lightGrey },
+				right: { style: BorderStyle.NIL },
+			},
+			[WordBlockType.tabs]: {
+				top: { style: BorderStyle.NIL },
+				bottom: { style: BorderStyle.NIL },
+				left: { style: BorderStyle.NIL },
+				right: { style: BorderStyle.NIL },
+				insideHorizontal: { style: BorderStyle.NIL },
+				insideVertical: { style: BorderStyle.NIL },
+			},
+		};
+	}
+	return wordBordersType;
+};
 
 export const STANDARD_PAGE_WIDTH = 9353;

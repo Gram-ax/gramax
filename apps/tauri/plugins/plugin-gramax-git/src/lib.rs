@@ -80,7 +80,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
     .invoke_handler(tauri::generate_handler![
       init_new,
       clone,
-      clone_cancel,
+      cancel,
+      recover,
       file_history,
       checkout,
       fetch,
@@ -106,7 +107,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       restore,
       get_parent,
       get_content,
-      graph_head_upstream_files,
+      count_changed_files,
       get_commit_info,
       git_read_dir,
       git_file_stat,
@@ -122,8 +123,10 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
       get_all_commit_authors,
       format_merge_message,
       gc,
+      healthcheck,
       get_all_cancel_tokens,
       reset_repo,
+      reset_file_lock,
     ])
     .setup(|app, api| {
       #[cfg(mobile)]

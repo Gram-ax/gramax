@@ -13,7 +13,7 @@ declare global {
 
 	interface Window {
 		debug: Debug;
-		app: App;
+		app: Promise<App>;
 		commands: CommandTree;
 		refreshPage: () => Promise<void>;
 		forceSave: () => Promise<void> | void;

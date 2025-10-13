@@ -1,8 +1,7 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import resolveModule from "@app/resolveModule/frontend";
 
 const openNewTab = (url: string) => {
-	if (getExecutingEnvironment() == "tauri") window.location.replace(url);
-	else window.open(url);
+	return resolveModule("openInWeb")(url);
 };
 
 export default openNewTab;

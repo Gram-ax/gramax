@@ -19,18 +19,18 @@ import { MouseEvent, useMemo, useRef, useState } from "react";
 interface ShareProps {
 	path: string;
 	shareUrl: string;
-	onCopy: (e: MouseEvent) => void;
-	setShouldSkipModal: (shouldShowModal: boolean) => void;
-	isOpen: boolean;
-	setIsOpen: (isOpen: boolean) => void;
 	isArticle?: boolean;
+	setShouldSkipModal: (shouldShowModal: boolean) => void;
+	onCopy?: (e: MouseEvent) => void;
+	onClose?: () => void;
 }
 
 const CheckboxWrapper = styled.div`
 	padding-top: 0.5rem;
 `;
 
-const ShareModal = ({ path, shareUrl, setShouldSkipModal, isOpen, setIsOpen, isArticle, onCopy }: ShareProps) => {
+const ShareModal = (props: ShareProps) => {
+	const { path, shareUrl, setShouldSkipModal, isArticle, onCopy, onClose } = props;
 	const [skipModal, setSkipModal] = useState(null);
 
 	const copyBlockRef = useRef<HTMLDivElement>(null);
@@ -47,8 +47,12 @@ const ShareModal = ({ path, shareUrl, setShouldSkipModal, isOpen, setIsOpen, isA
 	const domain = CatalogPropsService.value;
 	const legend: string = isArticle ? t("share.name.article") : t("share.name.catalog");
 
+	const onOpenChange = (open: boolean) => {
+		if (!open) onClose?.();
+	};
+
 	return (
-		<ModalLayout isOpen={isOpen} onOpen={() => setIsOpen(true)} onClose={() => setIsOpen(false)}>
+		<ModalLayout isOpen onClose={() => onOpenChange(false)}>
 			<ModalLayoutLight>
 				<FormStyle>
 					<fieldset>
@@ -82,16 +86,16 @@ const ShareModal = ({ path, shareUrl, setShouldSkipModal, isOpen, setIsOpen, isA
 							<Checkbox onChange={setSkipModal}>{t("do-not-show-again")}</Checkbox>
 						</CheckboxWrapper>
 						<div className="buttons">
-							<Button buttonStyle={ButtonStyle.underline} onClick={() => setIsOpen(false)}>
+							<Button buttonStyle={ButtonStyle.underline} onClick={() => onOpenChange(false)}>
 								{t("close")}
 							</Button>
 							<ButtonLink
 								buttonStyle={ButtonStyle.default}
 								textSize={TextSize.M}
 								onClick={(e: MouseEvent) => {
-									onCopy(e);
+									onCopy?.(e);
 									setShouldSkipModal(skipModal);
-									setIsOpen(false);
+									onOpenChange(false);
 								}}
 								iconCode="copy"
 								text={`${t("copy")} ${t("link2").toLowerCase()}`}

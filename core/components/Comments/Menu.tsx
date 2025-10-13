@@ -1,9 +1,9 @@
-import { TextSize } from "@components/Atoms/Button/Button";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import ArticleUpdaterService from "../Article/ArticleUpdater/ArticleUpdaterService";
-import PopupMenuLayout from "../Layouts/PopupMenuLayout";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { IconButton } from "@ui-kit/Button";
+import Icon from "@components/Atoms/Icon";
 
 export interface MenuProps {
 	deleteOnClick: () => void;
@@ -18,26 +18,34 @@ const Menu = styled((props: MenuProps) => {
 
 	return (
 		<div className={className}>
-			<PopupMenuLayout>
-				{showEditButton && (
-					<ButtonLink
-						onClick={() => editOnClick()}
-						textSize={TextSize.S}
-						iconCode="pencil"
-						text={t("edit") + "..."}
+			<DropdownMenu>
+				<DropdownMenuTrigger asChild>
+					<IconButton
+						icon="ellipsis-vertical"
+						variant="text"
+						size="xs"
+						style={{ height: "auto", padding: "0" }}
 					/>
-				)}
-
-				<ButtonLink
-					onClick={() => {
-						ArticleUpdaterService.stopLoadingAfterFocus();
-						deleteOnClick();
-					}}
-					textSize={TextSize.S}
-					iconCode="trash"
-					text={deleteText}
-				/>
-			</PopupMenuLayout>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="start">
+					{showEditButton && (
+						<DropdownMenuItem onSelect={editOnClick}>
+							<Icon code="pencil" />
+							{t("edit2")}
+						</DropdownMenuItem>
+					)}
+					<DropdownMenuItem
+						type="danger"
+						onSelect={() => {
+							ArticleUpdaterService.stopLoadingAfterFocus();
+							deleteOnClick();
+						}}
+					>
+						<Icon code="trash" />
+						{deleteText}
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
 		</div>
 	);
 })`

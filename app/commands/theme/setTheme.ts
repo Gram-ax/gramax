@@ -10,8 +10,8 @@ const setTheme: Command<{ ctx: Context; theme: Theme }, void> = Command.create({
 
 	middlewares: [],
 
-	do({ ctx, theme }) {
-		this._app.tm.setTheme(ctx.cookie, theme);
+	async do({ ctx, theme }) {
+		await this._app.tm.setTheme(ctx.cookie, theme);
 	},
 
 	params(ctx, q) {

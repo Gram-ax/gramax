@@ -1,5 +1,5 @@
 import { EditorView } from "prosemirror-view";
-import { Node } from "prosemirror-model";
+import { Mark, Node } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import buildSearchRegex from "./buildSearchRegex";
 
@@ -39,7 +39,7 @@ const replaceHighlightedText: ReplaceProps = (view, searchTerm, newText, caseSen
 				const end = start + match[0].length;
 
 				if (!newText) tr.delete(start, end);
-				else tr.replaceWith(start, end, state.schema.text(newText));
+				else tr.replaceWith(start, end, state.schema.text(newText, node.marks));
 
 				lastPos = start + newText.length;
 				shift += newText.length - match[0].length;
@@ -63,7 +63,7 @@ const replaceSpecificHighlightedText: ReplaceOneProps = (view, searchTerm, newTe
 
 	const regex = buildSearchRegex(searchTerm, caseType, wholeWord);
 
-	const matchesStack: { start: number; end: number }[] = [];
+	const matchesStack: { start: number; end: number; marks: readonly Mark[] }[] = [];
 
 	doc.descendants((node: Node, pos: number) => {
 		if (node.isText) {
@@ -72,16 +72,16 @@ const replaceSpecificHighlightedText: ReplaceOneProps = (view, searchTerm, newTe
 				const start = pos + match.index;
 				const end = start + match[0].length;
 
-				matchesStack.push({ start, end });
+				matchesStack.push({ start, end, marks: node.marks });
 			}
 		}
 	});
 
 	if (matchesStack.length > index) {
-		const { start, end } = matchesStack[index];
+		const { start, end, marks } = matchesStack[index];
 
 		if (!newText) tr.delete(start, end);
-		else tr.replaceWith(start, end, state.schema.text(newText));
+		else tr.replaceWith(start, end, state.schema.text(newText, marks));
 
 		const newPos = start + newText.length;
 		tr.setSelection(TextSelection.near(tr.doc.resolve(newPos)));

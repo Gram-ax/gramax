@@ -8,7 +8,7 @@ import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
-		const context = await this.app.contextFactory.from(req, res);
+		const context = await this.app.contextFactory.from({ req, res });
 		const dataProvider = this.app.sitePresenterFactory.fromContext(context);
 		const homePageData = await dataProvider.getHomePageData(await this.app.wm.current().config());
 		res.setHeader("Content-type", "application/json; charset=utf-8");

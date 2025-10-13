@@ -14,6 +14,7 @@ interface ImageDataProps {
 	height?: string;
 	marginBottom?: string;
 	float?: string;
+	hasParentPath?: boolean;
 }
 
 const Image = (props: ImageDataProps): ReactElement => {

@@ -12,7 +12,7 @@ const getPathnameCheckoutData = async (
 	const { refname: branchToCheckout } = RouterPathProvider.parsePath(routerPath);
 	if (!branchToCheckout) return { haveToCheckout: false };
 
-	const res = await FetchService.fetch<BranchData>(apiUrlCreator.getVersionControlCurrentBranchUrl());
+	const res = await FetchService.fetch<BranchData>(apiUrlCreator.getCurrentBranch());
 	if (!res.ok) return { haveToCheckout: false };
 
 	const currentBranchName = (await res.json())?.name;

@@ -34,13 +34,7 @@ const StatusBarElement = styled(
 			ref: React.LegacyRef<HTMLDivElement>,
 		) => {
 			return (
-				<div
-					ref={ref}
-					className={className}
-					onClick={() => {
-						if (!disable) onClick?.();
-					}}
-				>
+				<div ref={ref} className={className} onClick={disable ? undefined : onClick}>
 					<Tooltip content={tooltipText} arrow={tooltipArrow}>
 						<div style={{ height: "100%" }}>
 							<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
@@ -69,6 +63,7 @@ const StatusBarElement = styled(
 	.status-bar-text,
 	.status-bar-text .content {
 		overflow: hidden;
+		max-width: 100%;
 	}
 
 	.status-bar-text .content {

@@ -15,7 +15,6 @@ import GitVersionData from "@ext/git/core/model/GitVersionData";
 import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import assert from "assert";
-import { parse } from "ini";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
@@ -26,11 +25,9 @@ import GitSourceData from "../model/GitSourceData.schema";
 import GitStash from "../model/GitStash";
 import GitStorageData from "../model/GitStorageData";
 import { GitVersion } from "../model/GitVersion";
-import SubmoduleData from "../model/SubmoduleData";
 import GitError from "./errors/GitError";
 import GitCommandsModel, {
-	type CloneCancelToken,
-	type CloneProgress,
+	type CancelToken,
 	type DiffConfig,
 	type DiffTree2TreeInfo,
 	type DirEntry,
@@ -39,11 +36,20 @@ import GitCommandsModel, {
 	type GcOptions,
 	type MergeOptions,
 	type RefInfo,
+	type RemoteProgress,
 	type ResetOptions,
 	type TreeReadScope,
 } from "./model/GitCommandsModel";
 
 export type GitCommandsEvents = Event<"fetch", { commands: GitCommands; force: boolean }>;
+
+export type CloneOptions = {
+	branch?: string;
+	depth?: number;
+	isBare?: boolean;
+	onProgress?: (progress: RemoteProgress) => void;
+	allowNonEmptyDir?: boolean;
+};
 
 export class GitCommands {
 	private _impl: GitCommandsModel;
@@ -66,25 +72,47 @@ export class GitCommands {
 	}
 
 	isInit(): Promise<boolean> {
-		return this._impl.isInit();
+		try {
+			return this._impl.isInit();
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	async isBare(): Promise<boolean> {
-		return await this._impl.isBare();
+		try {
+			return await this._impl.isBare();
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	hasRemote(): Promise<boolean> {
-		return this._impl.hasRemote();
+		try {
+			return this._impl.hasRemote();
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	async init(data: SourceData) {
-		await this._logWrapper("init", "Initing repo", () => this._impl.init(data));
+		await this._logWrapper("init", "Initing repo", async () => {
+			try {
+				await this._impl.init(data);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
 	async addRemote(data: GitStorageData) {
 		const url = getUrlFromGitStorageData(data, true);
 		await this._logWrapper("addRemote", `Adding remote url: '${url}'`, async () => {
-			await this._impl.addRemote(url);
+			try {
+				await this._impl.addRemote(url);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value, remoteUrl: url });
+			}
 			await this.push(data.source);
 		});
 	}
@@ -121,7 +149,12 @@ export class GitCommands {
 
 	async getAllBranches(): Promise<GitBranch[]> {
 		return await this._logWrapper("getAllBranches", "Getting all branches", async () => {
-			const branches = await this._impl.getAllBranches();
+			let branches: GitBranch[];
+			try {
+				branches = await this._impl.getAllBranches();
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
 			return branches
 				.filter((b) => !b.getData().name.includes("HEAD"))
 				.sort(
@@ -134,7 +167,11 @@ export class GitCommands {
 
 	async getDefaultBranch(source: SourceData): Promise<GitBranch | null> {
 		return await this._logWrapper("getDefaultBranch", "Getting default branch", async () => {
-			return await this._impl.getDefaultBranch(source);
+			try {
+				return await this._impl.getDefaultBranch(source);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
 		});
 	}
 
@@ -153,15 +190,23 @@ export class GitCommands {
 	}
 
 	async getRemoteBranchName(name: string, data?: GitSourceData): Promise<string> {
-		return await this._logWrapper("getRemoteBranchName", `Getting remote branch name for ${name}`, () =>
-			this._impl.getRemoteBranchName(name, data),
-		);
+		return await this._logWrapper("getRemoteBranchName", `Getting remote branch name for ${name}`, async () => {
+			try {
+				return await this._impl.getRemoteBranchName(name, data);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value, branchName: name });
+			}
+		});
 	}
 
 	async getCommitHash(ref = "HEAD"): Promise<GitVersion> {
-		return await this._logWrapper("getCommitHash", `Getting commit hash for ${ref}`, () =>
-			this._impl.getCommitHash(ref),
-		);
+		return await this._logWrapper("getCommitHash", `Getting commit hash for ${ref}`, async () => {
+			try {
+				return await this._impl.getCommitHash(ref);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
 	async getHeadCommit(ref: GitBranch | string = "HEAD"): Promise<GitVersion> {
@@ -169,11 +214,7 @@ export class GitCommands {
 			try {
 				return this._impl.getHeadCommit(ref.toString());
 			} catch (e) {
-				throw getGitError(
-					e,
-					{ repositoryPath: this._repoPath.value, branchName: ref.toString() },
-					"resolveRef",
-				);
+				throw getGitError(e, { repositoryPath: this._repoPath.value, branchName: ref.toString() });
 			}
 		});
 	}
@@ -222,7 +263,13 @@ export class GitCommands {
 	}
 
 	async setHead(refname: string) {
-		return await this._logWrapper("setHead", `Setting head to ${refname}`, () => this._impl.setHead(refname));
+		return await this._logWrapper("setHead", `Setting head to ${refname}`, async () => {
+			try {
+				return await this._impl.setHead(refname);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
 	async checkout(
@@ -249,18 +296,15 @@ export class GitCommands {
 		});
 	}
 
-	async clone(
-		url: string,
-		source: GitSourceData,
-		cancelToken: CloneCancelToken,
-		branch?: string,
-		depth?: number,
-		isBare?: boolean,
-		onProgress?: (progress: CloneProgress) => void,
-	): Promise<void> {
+	async clone(url: string, source: GitSourceData, cancelToken: CancelToken, opts: CloneOptions = {}): Promise<void> {
 		url = url.endsWith(".git") ? url : url + ".git";
-		return this._logWrapper("clone", `Cloning url: '${url}', path: '${this._repoPath}'`, async () => {
-			if ((await this._fp.exists(this._repoPath)) && (await this._fp.readdir(this._repoPath)).length > 0) {
+
+		return await this._logWrapper("clone", `Cloning url: '${url}', path: '${this._repoPath}'`, async () => {
+			if (
+				!opts.allowNonEmptyDir &&
+				(await this._fp.exists(this._repoPath)) &&
+				(await this._fp.readdir(this._repoPath)).length > 0
+			) {
 				throw new GitError(
 					GitErrorCode.AlreadyExistsError,
 					null,
@@ -268,13 +312,23 @@ export class GitCommands {
 					"clone",
 				);
 			}
+
 			try {
-				await this._impl.clone(url, source, cancelToken, branch, depth, isBare, onProgress);
+				await this._impl.clone(
+					url,
+					source,
+					cancelToken,
+					opts.branch,
+					opts.depth,
+					opts.isBare,
+					opts.allowNonEmptyDir,
+					opts.onProgress,
+				);
 			} catch (e) {
 				throw new GitError(
 					e instanceof GitError ? e.props.errorCode : GitErrorCode.CloneError,
 					e instanceof GitError ? e.cause || e : e,
-					{ repositoryPath: this._repoPath.value, remoteUrl: url, branchName: branch },
+					{ repositoryPath: this._repoPath.value, remoteUrl: url, branchName: opts.branch },
 					"clone",
 					null,
 					t("git.clone.error.cannot-clone"),
@@ -283,24 +337,46 @@ export class GitCommands {
 		});
 	}
 
-	async cloneCancel(cancelToken: CloneCancelToken): Promise<boolean> {
-		return this._impl.cloneCancel(cancelToken);
+	async recover(
+		data: GitSourceData,
+		cancelToken: CancelToken,
+		onProgress: (progress: RemoteProgress) => void,
+	): Promise<void> {
+		return await this._impl.recover(data, cancelToken, onProgress);
+	}
+
+	async cancel(cancelToken: CancelToken): Promise<boolean> {
+		return await this._impl.cancel(cancelToken);
 	}
 
 	async getAllCancelTokens(): Promise<number[]> {
-		return this._impl.getAllCancelTokens();
+		try {
+			return this._impl.getAllCancelTokens();
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	async add(filePaths?: Path[], force = false): Promise<void> {
 		return this._logWrapper(
 			"add",
 			`Adding ${filePaths ? `filePaths: '${filePaths.map((p) => p.value)}'` : "*"}`,
-			() => this._impl.add(filePaths, force),
+			async () => {
+				try {
+					return await this._impl.add(filePaths, force);
+				} catch (e) {
+					throw getGitError(e, { repositoryPath: this._repoPath.value });
+				}
+			},
 		);
 	}
 
 	async reset(opts: ResetOptions): Promise<void> {
-		return await this._impl.reset(opts);
+		try {
+			return await this._impl.reset(opts);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	async stash(data: SourceData): Promise<GitStash> {
@@ -320,14 +396,26 @@ export class GitCommands {
 	}
 
 	async deleteStash(stashHash: GitStash): Promise<void> {
-		return await this._logWrapper("deleteStash", `Deleting stash stashOid: '${stashHash.toString()}'`, () =>
-			this._impl.deleteStash(stashHash.toString()),
-		);
+		return await this._logWrapper("deleteStash", `Deleting stash stashOid: '${stashHash.toString()}'`, async () => {
+			try {
+				return await this._impl.deleteStash(stashHash.toString());
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
 	async stashParent(stashOid: GitStash): Promise<GitVersion> {
-		return await this._logWrapper("stashParent", `Getting stash parent stashOid: ${stashOid.toString()}`, () =>
-			this._impl.stashParent(stashOid.toString()),
+		return await this._logWrapper(
+			"stashParent",
+			`Getting stash parent stashOid: ${stashOid.toString()}`,
+			async () => {
+				try {
+					return await this._impl.stashParent(stashOid.toString());
+				} catch (e) {
+					throw getGitError(e, { repositoryPath: this._repoPath.value });
+				}
+			},
 		);
 	}
 
@@ -422,15 +510,28 @@ export class GitCommands {
 	}
 
 	async status(type: "index" | "workdir" = "workdir"): Promise<GitStatus[]> {
-		return await this._logWrapper("status", `Getting status, type: ${type}`, () => this._impl.status(type));
+		return await this._logWrapper("status", `Getting status, type: ${type}`, async () => {
+			try {
+				return await this._impl.status(type);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
 	async fileStatus(filePath: Path): Promise<GitStatus> {
-		return this._logWrapper("status file", `Getting file status ${filePath.value}`, () =>
-			this._impl.fileStatus(filePath),
-		);
+		return this._logWrapper("status file", `Getting file status ${filePath.value}`, async () => {
+			try {
+				return await this._impl.fileStatus(filePath);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
+	/**
+	 * @deprecated use GitTreeFileProvider instead
+	 */
 	async showFileContent(filePath: Path, ref?: GitVersion | GitStash): Promise<string> {
 		return await this._logWrapper(
 			"showFileContent",
@@ -446,13 +547,27 @@ export class GitCommands {
 	}
 
 	async getFileHistory(filePath: Path, count = 15): Promise<VersionControlInfo[]> {
-		return await this._logWrapper("getFileHistory", `Getting file history for file: '${filePath.value}'`, () =>
-			this._impl.getFileHistory(filePath, count),
+		return await this._logWrapper(
+			"getFileHistory",
+			`Getting file history for file: '${filePath.value}'`,
+			async () => {
+				try {
+					return await this._impl.getFileHistory(filePath, count);
+				} catch (e) {
+					throw getGitError(e, { repositoryPath: this._repoPath.value });
+				}
+			},
 		);
 	}
 
 	async getRemoteUrl(): Promise<string> {
-		return await this._logWrapper("getRemoteUrl", "Getting remote url", () => this._impl.getRemoteUrl());
+		return await this._logWrapper("getRemoteUrl", "Getting remote url", async () => {
+			try {
+				return await this._impl.getRemoteUrl();
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
 	async getParentCommit(commitOid: GitVersion): Promise<GitVersion> {
@@ -460,60 +575,46 @@ export class GitCommands {
 			"getParentCommit",
 			`Getting parent commit for commitOid: '${commitOid.toString()}'`,
 			async () => {
-				const oid = await this._impl.getParentCommit(commitOid.toString());
-				return new GitVersion(oid);
+				try {
+					const oid = await this._impl.getParentCommit(commitOid.toString());
+					return new GitVersion(oid);
+				} catch (e) {
+					throw getGitError(e, { repositoryPath: this._repoPath.value });
+				}
 			},
 		);
 	}
 
-	graphHeadUpstreamFilesCount(searchIn: string): Promise<UpstreamCountFileChanges> {
+	countChangedFiles(searchIn: string): Promise<UpstreamCountFileChanges> {
 		try {
-			return this._impl.graphHeadUpstreamFilesCount(searchIn);
+			return this._impl.countChangedFiles(searchIn);
 		} catch (e) {
-			return Promise.resolve({ pull: 0, push: 0, hasChanges: false });
+			return Promise.resolve({ pull: 0, push: 0, changed: 0, hasChanges: false });
 		}
-	}
-
-	async getSubmodulesData(): Promise<SubmoduleData[]> {
-		const gitModulesPath = this._repoPath.join(new Path(".gitmodules"));
-		if (!(await this._fp.exists(gitModulesPath))) return [];
-		try {
-			// temp? Need to extract from config
-			const submodules = parse(await this._fp.read(gitModulesPath));
-			return Object.values(submodules)
-				.map((submodule) => ({
-					path: new Path(submodule.path),
-					url: submodule.url,
-					branch: submodule.branch,
-				}))
-				.filter((submoduleData) => submoduleData.path?.value && submoduleData.url);
-		} catch {
-			return [];
-		}
-	}
-
-	async isSubmoduleExist(relativeSubmodulePath: Path): Promise<boolean> {
-		const fullSubmodulePath = this._repoPath.join(relativeSubmodulePath);
-		return (
-			relativeSubmodulePath?.value &&
-			(await this._fp.exists(fullSubmodulePath)) &&
-			(await this._fp.isFolder(fullSubmodulePath)) &&
-			(await this._fp.exists(fullSubmodulePath.join(new Path(".git"))))
-		);
 	}
 
 	async restore(staged: boolean, filePaths: Path[]): Promise<void> {
 		return await this._logWrapper(
 			"restore",
 			`Restore filePaths: '${filePaths.map((p) => p.value)}' staged:${staged}`,
-			() => this._impl.restore(staged, filePaths),
+			async () => {
+				try {
+					return await this._impl.restore(staged, filePaths);
+				} catch (e) {
+					throw getGitError(e, { repositoryPath: this._repoPath.value });
+				}
+			},
 		);
 	}
 
 	async diff(opts: DiffConfig): Promise<DiffTree2TreeInfo> {
-		return await this._logWrapper("diff", `Finding diffs for opts: '${JSON.stringify(opts)}'`, () =>
-			this._impl.diff(opts),
-		);
+		return await this._logWrapper("diff", `Finding diffs for opts: '${JSON.stringify(opts)}'`, async () => {
+			try {
+				return await this._impl.diff(opts);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
 	async haveConflictsWithBranch(branch: GitBranch | string, data: SourceData): Promise<boolean> {
@@ -539,7 +640,13 @@ export class GitCommands {
 		return await this._logWrapper(
 			"getCommitInfo",
 			`Getting commit info for oid: '${oid.toString()}', depth: ${opts.depth}, simplify: ${opts.simplify}`,
-			() => this._impl.getCommitInfo(oid.toString(), opts),
+			async () => {
+				try {
+					return await this._impl.getCommitInfo(oid.toString(), opts);
+				} catch (e) {
+					throw getGitError(e, { repositoryPath: this._repoPath.value });
+				}
+			},
 		);
 	}
 
@@ -549,31 +656,67 @@ export class GitCommands {
 	}
 
 	readFile(filePath: Path, scope: TreeReadScope): Promise<ArrayBuffer> {
-		return this._impl.readFile(this._truncatePath(filePath), scope);
+		try {
+			return this._impl.readFile(this._truncatePath(filePath), scope);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	readDir(dirPath: Path, scope: TreeReadScope): Promise<DirEntry[]> {
-		return this._impl.readDir(this._truncatePath(dirPath), scope);
+		try {
+			return this._impl.readDir(this._truncatePath(dirPath), scope);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	fileStat(filePath: Path, scope: TreeReadScope): Promise<FileStat> {
-		return this._impl.fileStat(this._truncatePath(filePath), scope);
+		try {
+			return this._impl.fileStat(this._truncatePath(filePath), scope);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	readDirStats(dirPath: Path, scope: TreeReadScope): Promise<DirStat[]> {
-		return this._impl.readDirStats(this._truncatePath(dirPath), scope);
+		try {
+			return this._impl.readDirStats(this._truncatePath(dirPath), scope);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean> {
-		return this._impl.fileExists(this._truncatePath(filePath), scope);
+		try {
+			return this._impl.fileExists(this._truncatePath(filePath), scope);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	getReferencesByGlob(patterns: string[]): Promise<RefInfo[]> {
-		return this._impl.getReferencesByGlob(patterns);
+		try {
+			return this._impl.getReferencesByGlob(patterns);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
-	gc(opts: GcOptions): Promise<void> {
-		return this._logWrapper("gc", "Running garbage collection", () => this._impl.gc(opts));
+	async gc(opts: GcOptions): Promise<void> {
+		try {
+			return await this._impl.gc(opts);
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
+	}
+
+	async healthcheck(): Promise<void> {
+		try {
+			return await this._impl.healthcheck();
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
 	}
 
 	// todo: optimize

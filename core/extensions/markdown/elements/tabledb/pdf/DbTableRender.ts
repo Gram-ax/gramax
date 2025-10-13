@@ -8,7 +8,7 @@ import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
 export class DbTableRenderer {
 	private readonly _defaultWidths = ["auto", "auto", "auto"];
 
-	renderDbTable(table: TableDB) {
+	async renderDbTable(table: TableDB) {
 		const content = [
 			{
 				table: {
@@ -19,7 +19,7 @@ export class DbTableRenderer {
 									body: [
 										[
 											{
-												svg: getSvgIconFromString("table", COLOR_CONFIG.black, "1.3"),
+												svg: await getSvgIconFromString("table", COLOR_CONFIG.black, "1.3"),
 												width: 14,
 												height: 14,
 												margin: [3, 1, 0, 0],
@@ -56,7 +56,7 @@ export class DbTableRenderer {
 			{
 				table: {
 					widths: this._defaultWidths,
-					body: [this._createFirstRow(), ...this._createOtherRows(table)],
+					body: [this._createFirstRow(), ...(await this._createOtherRows(table))],
 				},
 				layout: {
 					hLineWidth: (rowIndex, _node) =>
@@ -77,12 +77,14 @@ export class DbTableRenderer {
 		return content;
 	}
 
-	private _createOtherRows(table: TableDB) {
-		return table.fields.map((field) => [
-			this._createFirstCell(field),
-			this._createSecondCell(field),
-			this._createThirdCell(field),
-		]);
+	private async _createOtherRows(table: TableDB) {
+		return Promise.all(
+			table.fields.map(async (field) => [
+				await this._createFirstCell(field),
+				this._createSecondCell(field),
+				this._createThirdCell(field),
+			]),
+		);
 	}
 
 	private _createFirstRow() {
@@ -93,7 +95,7 @@ export class DbTableRenderer {
 		];
 	}
 
-	private _createFirstCell(field: Field) {
+	private async _createFirstCell(field: Field) {
 		const stack: Content[] = [];
 
 		stack.push({
@@ -112,7 +114,11 @@ export class DbTableRenderer {
 										body: [
 											[
 												{
-													svg: getSvgIconFromString("key-round", COLOR_CONFIG.black, "1.3"),
+													svg: await getSvgIconFromString(
+														"key-round",
+														COLOR_CONFIG.black,
+														"1.3",
+													),
 													width: ICON_SIZE,
 													height: ICON_SIZE,
 													margin: [0, 2, 0, 0],
@@ -146,7 +152,7 @@ export class DbTableRenderer {
 					body: [
 						[
 							{
-								svg: getSvgIconFromString("arrow-right-to-line", COLOR_CONFIG.black, "1.3"),
+								svg: await getSvgIconFromString("arrow-right-to-line", COLOR_CONFIG.black, "1.3"),
 								width: ICON_SIZE,
 								height: ICON_SIZE,
 								margin: [0, 2, 0, 3],
@@ -156,7 +162,7 @@ export class DbTableRenderer {
 									body: [
 										[
 											{
-												svg: getSvgIconFromString("table", COLOR_CONFIG.black, "1.3"),
+												svg: await getSvgIconFromString("table", COLOR_CONFIG.black, "1.3"),
 												width: 10,
 												height: 10,
 												margin: [0, 2, 0, 0],

@@ -5,7 +5,6 @@ import Path from "@core/FileProvider/Path/Path";
 import { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import type {
-	CloneProgress,
 	DiffConfig,
 	DiffTree2TreeInfo,
 	DirEntry,
@@ -14,12 +13,13 @@ import type {
 	GcOptions,
 	MergeMessageFormatOptions,
 	MergeOptions,
+	RemoteProgress,
 	TreeReadScope,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import type { Signature } from "@ext/git/core/model/Signature";
 
-export const cloneProgressCallbacks = {};
+export const progress = {};
 
 type Oid = string;
 
@@ -63,6 +63,7 @@ export type CredsArgs = Args & { creds: Creds };
 export type UpstreamCountFileChanges = {
 	pull: number;
 	push: number;
+	changed: number;
 	hasChanges: boolean;
 };
 
@@ -83,22 +84,48 @@ export type ResetOptions = {
 	head?: string;
 };
 
+export type RemoteOptions = {
+	cancelToken: number;
+	force: boolean;
+};
+
 export const clone = async (
 	args: {
 		creds: Creds;
-		opts: { url: string; to: string; cancelToken: number; branch?: string; depth?: number; isBare?: boolean };
+		opts: {
+			url: string;
+			to: string;
+			cancelToken: number;
+			branch?: string;
+			depth?: number;
+			allowNonEmptyDir?: boolean;
+			isBare?: boolean;
+		};
 	},
-	onProgress?: (progress: CloneProgress) => void,
+	onProgress?: (progress: RemoteProgress) => void,
 ) => {
-	cloneProgressCallbacks[args.opts.cancelToken] = onProgress;
+	progress[args.opts.cancelToken] = onProgress;
 	try {
 		await call<any>("clone", args);
 	} finally {
-		delete cloneProgressCallbacks[args.opts.cancelToken];
+		delete progress[args.opts.cancelToken];
 	}
 };
 
-export const cloneCancel = (id: number) => call<boolean>("clone_cancel", { id });
+export const recover = async (
+	args: Args & { creds: Creds; cancelToken: number },
+	onProgress: (progress: RemoteProgress) => void,
+) => {
+	progress[args.cancelToken] = onProgress;
+
+	try {
+		await call<void>("recover", args);
+	} finally {
+		delete progress[args.cancelToken];
+	}
+};
+
+export const cancel = (id: number) => call<boolean>("cancel", { id });
 
 export const getAllCancelTokens = () => call<number[]>("get_all_cancel_tokens", {});
 
@@ -148,7 +175,8 @@ export const status = (args: Args & { index: boolean }) => call<[{ path: string;
 
 export const statusFile = (args: Args & { filePath: string }) => call<string>("status_file", args);
 
-export const fetch = (args: CredsArgs & { force: boolean; lock: boolean }) => call<void>("fetch", args);
+export const fetch = (args: CredsArgs & { opts: RemoteOptions; lock: boolean }) => call<void>("fetch", args);
+
 export const merge = (args: CredsArgs & { opts: MergeOptions }) => {
 	args.opts = intoMergeOptions(args.opts);
 	return call<MergeResult>("merge", args);
@@ -193,7 +221,7 @@ export const commit = (args: Args & CredsArgs & { opts: CommitOptions }) => call
 export const checkout = (args: Args & { refName: string; force: boolean }) => call<void>("checkout", args);
 
 export const graphHeadUpstreamFiles = (args: Args & { searchIn: string }) =>
-	call<UpstreamCountFileChanges>("graph_head_upstream_files", args);
+	call<UpstreamCountFileChanges>("count_changed_files", args);
 
 export const getContent = (args: Args & { path: string; oid?: string }) => call<string>("get_content", args);
 
@@ -234,7 +262,11 @@ export const getCommitAuthors = (args: Args) => call<CommitAuthorInfo[]>("get_al
 
 export const gc = (args: Args & { opts: GcOptions }) => call<void>("gc", args);
 
+export const healthcheck = (args: Args) => call<void>("healthcheck", args);
+
 export const resetRepo = () => call<void>("reset_repo", { unused: null });
+
+export const resetFileLock = (args: Args) => call<void>("reset_file_lock", args);
 
 export const formatMergeMessage = (args: Args & CredsArgs & { opts: MergeMessageFormatOptions }) => {
 	args.opts = intoMergeMessageFormatOptions(args.opts);

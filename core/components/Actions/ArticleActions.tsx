@@ -2,7 +2,6 @@ import EditInGramax from "@components/Actions/EditInGramax";
 import ShowInExplorer from "@components/Actions/ShowInExplorer";
 import useIsFileNew from "@components/Actions/useIsFileNew";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import Method from "@core-ui/ApiServices/Types/Method";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
@@ -12,16 +11,15 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
 import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseCheckStyleGuide";
-import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import { FC, useCallback } from "react";
-import EditMarkdown from "@ext/artilce/actions/EditMarkdown";
-import History from "../../extensions/git/actions/History/component/History";
+import History from "../../extensions/git/actions/History/component/HistoryTrigger";
 import ArticleLinks from "@ext/properties/components/Helpers/ArticleLinks";
+import BugsnagTrigger from "@ext/bugsnag/components/BugsnagTrigger";
+import EditMarkdownTrigger from "@ext/artilce/actions/EditMarkdownTrigger";
 
 interface ArticleActionsProps {
 	item: ClientArticleProps;
@@ -71,24 +69,21 @@ const ArticleActions: FC<ArticleActionsProps> = ({ isCatalogExist, item, isCurre
 
 	if (!item) return null;
 
-	if (!isCatalogExist) return <BugsnagModal itemLogicPath={item.logicPath} />;
+	if (!isCatalogExist) return <BugsnagTrigger itemLogicPath={item.logicPath} />;
 
 	return (
 		<>
-			{!isNext && catalogProps.sourceName && <ShareAction path={editLink} isArticle />}
-			<ArticleLinks itemRefPath={item.ref.path} />
 			<IsReadOnlyHOC>
+				<EditMarkdownTrigger
+					loadContent={loadContent}
+					saveContent={saveContent}
+					disabled={isTemplate || !isCurrentItem}
+				/>
+				<ShareAction path={editLink} isArticle />
 				<History key="history" item={item} isFileNew={isFileNew} />
-				<BugsnagModal key="bugsnag" itemLogicPath={item.logicPath} />
-				{!isTemplate && isCurrentItem && (
-					<EditMarkdown
-						key="edit-markdown"
-						trigger={<ButtonLink iconCode="file-pen" text={t("article.edit-markdown")} />}
-						loadContent={loadContent}
-						saveContent={saveContent}
-					/>
-				)}
+				<BugsnagTrigger key="bugsnag" itemLogicPath={item.logicPath} />
 			</IsReadOnlyHOC>
+			<ArticleLinks itemRefPath={item.ref.path} />
 			{shouldShowEditInGramax && (
 				<EditInGramax pathname={editLink} articlePath={item.ref.path} key="edit-gramax" />
 			)}

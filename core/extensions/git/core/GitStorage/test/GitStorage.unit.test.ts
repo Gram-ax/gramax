@@ -16,11 +16,7 @@ const gitCommandsFetchMock = jest.spyOn(GitCommands.prototype, "fetch").mockImpl
 
 const dfp = new DiskFileProvider(TEST_GIT_FIXTURES_PATH);
 
-const repNameWithSubmodules = "remoteRep_local_for_test";
 const repNameWithoutSubmodules = "remoteRep_local_no_submodules_for_test";
-
-const submodule1Path = repNameWithSubmodules + "/docs/submodule1";
-const submodule2Path = repNameWithSubmodules + "/docs/submodule2";
 
 let storage: GitStorage;
 let git: GitCommands;
@@ -37,38 +33,6 @@ const mockUserData: GitSourceData = {
 describe("GitStorage", () => {
 	beforeEach(() => {
 		gitCommandsFetchMock.mockClear();
-	});
-	describe("Репозиторий с сабмодулями", () => {
-		beforeEach(async () => {
-			await dfp.copy(new Path("remoteRep_local"), new Path(repNameWithSubmodules));
-			git = new GitCommands(dfp, new Path(repNameWithSubmodules));
-			subGits.push(new GitCommands(dfp, new Path(submodule1Path)));
-			subGits.push(new GitCommands(dfp, new Path(submodule2Path)));
-			storage = new GitStorage(new Path(repNameWithSubmodules), dfp);
-
-			await subGits[0].checkout("master");
-			await subGits[0].reset({ mode: "hard", head: await subGits[0].getParentCommit(await subGits[0].getHeadCommit()) });
-
-			await subGits[1].checkout("master");
-			await subGits[1].reset({ mode: "hard", head: await subGits[1].getParentCommit(await subGits[1].getHeadCommit()) });
-
-			await git.reset({ mode: "hard", head: await git.getParentCommit(await git.getHeadCommit()) });
-		});
-		afterEach(async () => {
-			await dfp.delete(new Path(repNameWithSubmodules));
-		});
-
-		test("рекурсивный pull", async () => {
-			const hashBefore = (await git.getHeadCommit()).toString();
-			const submodule1HashBefore = (await subGits[0].getHeadCommit()).toString();
-			const submodule2HashBefore = (await subGits[1].getHeadCommit()).toString();
-
-			await storage.pull(mockUserData);
-
-			expect((await git.getHeadCommit()).toString()).not.toBe(hashBefore);
-			expect((await subGits[0].getHeadCommit()).toString()).not.toBe(submodule1HashBefore);
-			expect((await subGits[1].getHeadCommit()).toString()).not.toBe(submodule2HashBefore);
-		});
 	});
 
 	describe("Репозиторий без сабмодулей", () => {

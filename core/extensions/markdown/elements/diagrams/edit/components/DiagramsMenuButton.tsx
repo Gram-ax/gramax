@@ -50,7 +50,7 @@ const DiagramsMenuButton = ({ editor, diagramName, fileName }: DiagramsMenuButto
 		<Button
 			dataQa={`qa-edit-menu-${diagramName}`}
 			tooltipText={diagramTooltipText}
-			nodeValues={{ action: "diagrams" }}
+			nodeValues={{ action: "diagrams", attrs: { diagramName } }}
 			onClick={() =>
 				void createDiagrams(
 					editor,

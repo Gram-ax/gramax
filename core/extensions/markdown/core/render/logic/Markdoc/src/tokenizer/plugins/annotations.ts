@@ -7,9 +7,9 @@ import {
 	selfClosingTags,
 } from "@ext/markdown/elements/htmlTag/logic/utils";
 import type MarkdownIt from "markdown-it/lib";
-import { PluginWithOptions } from "markdown-it/lib";
-import { RuleBlock } from "markdown-it/lib/parser_block";
-import { RuleInline } from "markdown-it/lib/parser_inline";
+import type { PluginWithOptions } from "markdown-it/lib";
+import type { RuleBlock } from "markdown-it/lib/parser_block";
+import type { RuleInline } from "markdown-it/lib/parser_inline";
 import type StateInline from "markdown-it/lib/rules_inline/state_inline";
 import Function from "../../ast/function";
 import Variable from "../../ast/variable";

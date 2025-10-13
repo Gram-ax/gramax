@@ -1,5 +1,5 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { iconFilter, lucideIconListForUikit, toListItem } from "@components/Atoms/Icon/lucideIconList";
+import useLucideIconLists, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
 import ListLayoutByUikit from "@components/List/ListLayoutByUikit";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
@@ -110,7 +110,7 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 											<ListLayoutByUikit
 												placeholder={t("icon")}
 												openByDefault={false}
-												items={lucideIconListForUikit}
+												items={useLucideIconLists().lucideIconListForUikit}
 												filterItems={iconFilter([], true)}
 												item={toListItem({ code: field.value ?? "" })}
 												onItemClick={(value) => {
@@ -137,6 +137,7 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 													/>
 													<Button
 														type="button"
+														style={{ height: "auto", minWidth: "max-content" }}
 														onClick={async () => {
 															const module = await resolveModule(
 																"openDirectory" as any,

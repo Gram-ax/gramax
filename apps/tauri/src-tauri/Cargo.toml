@@ -63,11 +63,18 @@ trash = "5.1.0"
 tokio = { version = "1.32.0", features = ["time"] }
 open = "5.0.0"
 
+[target.'cfg(target_family = "unix")'.dependencies]
+rlimit = "0.10.2"
+
 [target.'cfg(target_os = "android")'.dependencies]
 android-intent = { git = "https://github.com/pashokitsme/android-intent.git" }
 
 [target.'cfg(target_os = "ios")'.dependencies]
 cacao = { version = "0.3.2", default-features = false, features = ["uikit"] }
+
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2-web-kit = "0.3.1"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

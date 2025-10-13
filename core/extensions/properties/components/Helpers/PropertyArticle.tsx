@@ -1,124 +1,98 @@
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import {
-	getInputComponent,
-	getInputType,
-	getPlaceholder,
-	isManyProperty,
-	Property as PropertyType,
-} from "@ext/properties/models";
-import PropertyButton from "@ext/properties/components/PropertyButton";
-import PropertyItem from "@ext/properties/components/PropertyItem";
+import { isManyProperty, Property as PropertyType } from "@ext/properties/models";
 import t from "@ext/localization/locale/translate";
-import { KeyboardEvent, memo, MouseEvent, useCallback, useMemo, useRef, useState } from "react";
-import { Instance, Props } from "tippy.js";
+import { memo, useMemo, useState } from "react";
 import useWatch from "@core-ui/hooks/useWatch";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuLabel,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@ui-kit/Dropdown";
+import Icon from "@components/Atoms/Icon";
+import PropertyButtons from "@ext/properties/components/Helpers/PropertyButtons";
+import {
+	CustomInputRenderer,
+	getInputComponent,
+	InputValue,
+} from "@ext/properties/components/Helpers/CustomInputRenderer";
+import getFormatValue from "@ext/properties/logic/getFormatValue";
 
 interface PropertyArticleProps {
 	trigger: JSX.Element;
 	property: PropertyType;
-	onSubmit: (propertyName: string, value: string, isDelete?: boolean) => void;
 	disabled?: boolean;
 	canDelete?: boolean;
-	isInline?: boolean;
+	hideClear?: boolean;
+	renderInput?: ({ value, onChange }: { value: string; onChange: (value: InputValue) => void }) => JSX.Element;
+	onSubmit: (propertyName: string, value: string, isDelete?: boolean) => void;
 }
 
 const PropertyArticle = memo((props: PropertyArticleProps) => {
-	const { disabled, trigger, property, onSubmit, isInline = false, canDelete = true } = props;
-
-	const instanceRef = useRef<Instance<Props>>(null);
+	const { disabled, trigger, property, onSubmit, canDelete = true, renderInput, hideClear } = props;
 	const [value, setValue] = useState<string[] | string>(property.value);
 
-	const InputComponent = getInputComponent[property.type];
+	const InputComponent = renderInput || getInputComponent(property.type);
 
 	useWatch(() => {
 		if (InputComponent) setValue(property.value?.[0] ?? "");
 	}, [property.value]);
 
-	const preSubmit = useCallback(
-		(id: string, value: string, isDelete?: boolean) => {
-			onSubmit(id, value, isDelete);
-		},
-		[onSubmit],
-	);
+	const onChange = (incomingValue: InputValue) => {
+		if (!InputComponent) return onSubmit(property.name, getFormatValue(incomingValue), false);
+		setValue((prevValue) => {
+			const isArray = typeof incomingValue !== "string" && Array.isArray(incomingValue);
+			const formattedValue = isArray
+				? [...prevValue, getFormatValue(incomingValue)]
+				: getFormatValue(incomingValue);
+			return formattedValue;
+		});
+	};
 
-	const handleClick = useCallback(
-		(e: MouseEvent | KeyboardEvent, id: string, value: string) => {
-			instanceRef.current?.hide();
-			preSubmit(id, value);
-		},
-		[preSubmit],
-	);
+	const onOpenChange = (open: boolean) => {
+		if (open || renderInput || !InputComponent) return;
+		onSubmit(property.name, getFormatValue(value), false);
+	};
 
-	const onKeyDown = useCallback(
-		(e: KeyboardEvent, id: string) => {
-			const target = e.target as HTMLInputElement;
-			if (e.code === "Enter" && target.value.length) handleClick(e, id ?? property.name, target.value);
-		},
-		[handleClick, property.name],
-	);
-
-	const updateInput = useCallback(
-		(id: string) => {
-			const instance = instanceRef.current;
-			const currentValue = instance.popper.getElementsByTagName("input")[0].value;
-
-			if (currentValue && currentValue !== value?.[0]) {
-				setValue(currentValue);
-				preSubmit(id, currentValue);
-				instance.popper.getElementsByTagName("input")[0].value = "";
-			}
-		},
-		[preSubmit, value, instanceRef.current],
-	);
-
-	const deleteProperty = useCallback(() => preSubmit(property.name, undefined, true), [preSubmit, property.name]);
-
-	const onTippyMount = useCallback((instance: Instance<Props>) => {
-		instanceRef.current = instance;
-	}, []);
+	const deleteProperty = () => onSubmit(property.name, undefined, true);
 
 	const buttons = useMemo(() => {
-		return property?.values?.map((val) => {
-			const checked = property.value?.includes(val);
-			return (
-				<PropertyButton
-					canMany
-					key={val}
-					inputType={isManyProperty[property.type] ? "checkbox" : "radio"}
-					name={val}
-					checked={checked}
-					onClick={(e) => handleClick(e, property.name, val)}
-				/>
-			);
-		});
-	}, [property.values, property.value]);
+		return (
+			<PropertyButtons
+				name={property.name}
+				type={isManyProperty[property.type] ? "checkbox" : "radio"}
+				values={property.values}
+				value={property.value}
+				onChange={onChange}
+			/>
+		);
+	}, [property.values, property.value, property.name]);
+
+	const getInputRenderer = () => {
+		if (renderInput) return renderInput({ value: typeof value === "string" ? value : value?.[0], onChange });
+		return <CustomInputRenderer type={property.type} value={value} onChange={onChange} />;
+	};
 
 	return (
-		<PopupMenuLayout
-			isInline={isInline}
-			offset={[0, 10]}
-			onTippyMount={onTippyMount}
-			appendTo={() => document.body}
-			disabled={disabled}
-			key={property.name}
-			hideOnClick={false}
-			trigger={trigger}
-		>
-			<>
-				{InputComponent && (
-					<InputComponent
-						type={getInputType[property.type]}
-						placeholder={t(getPlaceholder[property.type])}
-						onKeyDown={onKeyDown}
-						value={value}
-						onChange={() => updateInput(property.name)}
-					/>
-				)}
+		<DropdownMenu onOpenChange={onOpenChange}>
+			<DropdownMenuTrigger disabled={disabled} asChild>
+				{trigger}
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start">
+				<DropdownMenuLabel>{property.name}</DropdownMenuLabel>
+				<DropdownMenuSeparator />
 				{buttons}
-				{(property?.values?.length > 0 || InputComponent) && <div className="divider" />}
-				{canDelete && <PropertyItem name={t("clear")} startIcon="eraser" onClick={deleteProperty} />}
-			</>
-		</PopupMenuLayout>
+				{InputComponent && getInputRenderer()}
+				{!hideClear && (property?.values?.length > 0 || InputComponent) && <DropdownMenuSeparator />}
+				{canDelete && !hideClear && (
+					<DropdownMenuItem onSelect={deleteProperty}>
+						<Icon code="eraser" />
+						{t("clear")}
+					</DropdownMenuItem>
+				)}
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 });
 

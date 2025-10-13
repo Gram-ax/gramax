@@ -114,9 +114,9 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 
 			if (index === -1) newProps.properties = [...newProps.properties, property];
 			else {
-				if (isDelete && !isArchive) {
+				if (isDelete) {
 					newProps.properties = newProps.properties.filter((_, propIndex) => propIndex !== index);
-					await FetchService.fetch(apiUrlCreator.removePropertyFromArticles(property.name));
+					if (!isArchive) await FetchService.fetch(apiUrlCreator.removePropertyFromArticles(property.name));
 				} else {
 					const deletedValues = isArchive
 						? ""
@@ -129,7 +129,7 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 						...property,
 					};
 
-					if (deletedValues) {
+					if (deletedValues && !isArchive) {
 						await FetchService.fetch(
 							apiUrlCreator.removePropertyFromArticles(property.name, deletedValues),
 						);

@@ -44,7 +44,7 @@ const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalPro
 					<div />
 					<div className="flex flex-row gap-6 space-y-2" style={{ marginTop: "-1.5rem" }}>
 						<div />
-						<div className="article">
+						<div className="article" style={{ background: "transparent" }}>
 							{description && <p style={{ margin: "0" }}>{description}</p>}
 							<StyledTable>
 								<colgroup>

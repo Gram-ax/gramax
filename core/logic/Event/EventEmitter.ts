@@ -1,6 +1,4 @@
-type FilterNever<T> = {
-	[K in keyof T as T[K] extends never ? never : K]: T[K];
-};
+import type { FilterNever } from "@core-ui/utils/utilTypes";
 
 type EventFnRet = Promise<void | boolean> | boolean | void;
 

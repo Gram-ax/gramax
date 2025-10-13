@@ -50,12 +50,21 @@ const getFontSize = (level: number) => {
 	}[level];
 };
 
+const getLineHeight = (level: number) => {
+	return {
+		1: "1.3",
+		2: "1.5",
+		3: "1.6",
+		4: "1.6",
+	}[level];
+};
+
 export default styled(Header)`
 	${({ level }) => {
 		return `
 		font-size: ${getFontSize(level) ?? "1em"};
 		font-weight: ${level === 1 ? "700" : "400"};
-		line-height: 1.6;
+		line-height: ${getLineHeight(level) ?? "1.6"};
 		`;
 	}}
 

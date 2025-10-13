@@ -3,7 +3,8 @@ import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGr
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
 import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
-import { ReactElement, useRef } from "react";
+import { ReactElement, useLayoutEffect, useRef, useState } from "react";
+import { Wrapper } from "@ext/markdown/elements/table/edit/components/TableComponent";
 
 interface TableProps {
 	children?: any;
@@ -14,6 +15,7 @@ interface TableProps {
 const Table = (props: TableProps): ReactElement => {
 	const { children, header, isPrint } = props;
 	const ref = useRef<HTMLTableElement>(null);
+	const [isEnabledWrapper, setIsEnabledWrapper] = useState(false);
 
 	useAggregation(ref);
 
@@ -35,10 +37,20 @@ const Table = (props: TableProps): ReactElement => {
 
 	if (isPrint) return table;
 
+	useLayoutEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+
+		const wrapper = el.closest('[data-wrapper="table"]');
+		setIsEnabledWrapper(wrapper?.parentElement?.nodeName === "ARTICLE");
+	});
+
+	const WrapperComponent = isEnabledWrapper ? WidthWrapper : Wrapper;
+
 	return (
-		<WidthWrapper>
+		<WrapperComponent data-wrapper="table">
 			<TableWrapper>{table}</TableWrapper>
-		</WidthWrapper>
+		</WrapperComponent>
 	);
 };
 

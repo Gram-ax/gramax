@@ -1,6 +1,7 @@
 import resolveModule from "@app/resolveModule/frontend";
 import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
-import { EventEmitter, type Event, type EventListener } from "@core/Event/EventEmitter";
+import { events } from "@core-ui/hooks/useApi";
+import { type Event } from "@core/Event/EventEmitter";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import FetchResponse from "./Types/FetchResponse";
@@ -14,9 +15,10 @@ export type FetchServiceEvents = Event<"on-did-command", OnDidCommandEv>;
 
 const ErrorConfirmService = import("../../extensions/errorHandlers/client/ErrorConfirmService");
 
+/**
+ * @deprecated Consider using `useApi(..)` hook instead
+ */
 export default class FetchService {
-	private static _events = new EventEmitter<FetchServiceEvents>();
-
 	static async fetch<T = any>(
 		url: Url,
 		body?: BodyInit,
@@ -25,11 +27,12 @@ export default class FetchService {
 		notifyError = true,
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		_onDidCommand?: (command: string, args: object, result: unknown) => void,
+		signal?: AbortSignal,
 	): Promise<FetchResponse<T>> {
 		const command = trimRoutePrefix(url);
 
 		const res = await resolveModule("Fetcher")(url, body, mime, method, false, (command, args, result) => {
-			void FetchService._events.emit("on-did-command", { command, args, result });
+			void events.emit("on-did-command", { command, args, result });
 		});
 
 		if (res.ok) return res;
@@ -46,9 +49,5 @@ export default class FetchService {
 		}
 		if (notifyError) (await ErrorConfirmService).default.notify(error);
 		return res;
-	}
-
-	static get events(): EventListener<FetchServiceEvents> {
-		return this._events;
 	}
 }

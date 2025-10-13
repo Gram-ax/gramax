@@ -1,4 +1,4 @@
-import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import { getCroppedCanvas } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
 import { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
@@ -16,5 +16,5 @@ export const cropImage = async (
 };
 
 export const getBlobFromBuffer = (buffer: Buffer) => {
-	return new Blob([buffer], { type: resolveImageKind(buffer) });
+	return new Blob([buffer], { type: resolveFileKind(buffer) });
 };

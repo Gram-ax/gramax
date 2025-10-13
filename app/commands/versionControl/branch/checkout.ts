@@ -23,7 +23,6 @@ const checkout: Command<{ ctx: Context; catalogName: string; branch: string }, s
 			branch,
 			onCheckout: (branch) => logger.logInfo(`Checkout to "${branch}".`),
 			onPull: () => logger.logInfo(`Pulled in "${catalogName}", branch: ${branch}.`),
-			recursivePull: this._app.conf.isReadOnly,
 		});
 
 		return await catalog.getPathname();

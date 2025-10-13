@@ -1,3 +1,4 @@
+import { ResponseStreamItem } from "@app/commands/search/chat";
 import { TextSize } from "@components/Atoms/Button/Button";
 import Input from "@components/Atoms/Input";
 import ButtonLink from "@components/Molecules/ButtonLink";
@@ -14,13 +15,15 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { readNDJson } from "@core/utils/readNDJson";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import SimpleMarkdownParser from "@ext/markdown/core/Parser/SimpleMarkdownParser";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import { CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import useMediaQuery from "@mui/material/useMediaQuery";
+import { useMediaQuery } from "@react-hook/media-query";
 import { IconButton } from "@ui-kit/Button";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { SearchItem } from "../../../extensions/serach/Searcher";
@@ -31,11 +34,13 @@ import Link from "../../Atoms/Link";
 import Breadcrumb from "../../Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 // import Path from "../../../logic/FileProvider/Path/Path";
 // import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 const DEBOUNCE_DELAY = 400;
 const SEARCH_SYMBOL = Symbol();
+const parser = new SimpleMarkdownParser();
 
 export interface SearchProps {
 	isHomePage: boolean;
@@ -159,8 +164,12 @@ const Search = (props: SearchProps) => {
 		const abortController = new AbortController();
 		abortControllerRef.current = abortController;
 
-		const data = chatSearch ? await getChatData(query) : await getSearchData(query);
+		if (chatSearch) {
+			await chatStream(query);
+			return;
+		}
 
+		const data = await getSearchData(query);
 		if (!data || abortController.signal.aborted) return;
 		setData(data);
 	};
@@ -177,19 +186,33 @@ const Search = (props: SearchProps) => {
 		};
 	};
 
-	const getChatData = async (query: string) => {
+	const chatStream = async (query: string) => {
 		if (!query) return;
 		const articlesLanguage =
 			isCatalogExist && !searchAll ? currentArticleLanguage ?? catalogDefaultLanguage ?? "none" : null;
 		const responseLanguage = isCatalogExist ? currentArticleLanguage ?? catalogDefaultLanguage : null;
-		const res = await FetchService.fetch<RenderableTreeNodes>(
+		const res = await FetchService.fetch<unknown>(
 			apiUrlCreator.getSearchChatUrl(query, searchAll ? null : catalogName, articlesLanguage, responseLanguage),
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			abortControllerRef.current.signal,
 		);
 		if (!res.ok) return;
-		return {
-			type: "chat" as const,
-			chatData: await res.json(),
-		};
+
+		let chatResponse = "";
+		const itemGenerator = readNDJson<ResponseStreamItem>(res.body.getReader());
+
+		for await (const item of itemGenerator) {
+			chatResponse += item.text;
+			const chatData = await parser.parse(chatResponse);
+			setData({
+				type: "chat",
+				chatData,
+			});
+		}
 	};
 
 	useEffect(() => {
@@ -211,6 +234,7 @@ const Search = (props: SearchProps) => {
 	}, [blockRef.current, isOpen, isHomePage]);
 
 	useEffect(() => {
+		abortControllerRef.current?.abort();
 		setData(null);
 		loadData(query);
 	}, [searchAll, chatSearch]);
@@ -233,7 +257,22 @@ const Search = (props: SearchProps) => {
 			contentWidth={"minM"}
 			trigger={
 				isHomePage ? (
-					<IconButton variant="ghost" icon={"search"} />
+					<div>
+						<Tooltip>
+							<TooltipContent>
+								<p>{t("search.name")}</p>
+							</TooltipContent>
+							<TooltipTrigger asChild>
+								<IconButton
+									iconClassName="w-5 h-5 stroke-[1.6]"
+									className="p-2"
+									size="lg"
+									variant="ghost"
+									icon={"search"}
+								/>
+							</TooltipTrigger>
+						</Tooltip>
+					</div>
 				) : (
 					<ButtonLink iconCode="search" textSize={TextSize.L} />
 				)
@@ -270,6 +309,7 @@ const Search = (props: SearchProps) => {
 									<a
 										className="search-icon"
 										onClick={() => {
+											abortControllerRef.current?.abort();
 											SearchQueryService.value = "";
 											setFocusId(0);
 											inputRef.current.value = "";

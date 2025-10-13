@@ -2,8 +2,6 @@ import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import type { CommitAuthorInfo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
-import GitError from "@ext/git/core/GitCommands/errors/GitError";
-import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import type {
 	DiffConfig,
 	DiffTree2TreeInfo,
@@ -24,7 +22,6 @@ import { GitCommands } from "../GitCommands/GitCommands";
 import GitWatcher from "../GitWatcher/GitWatcher";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
 import { GitVersion } from "../model/GitVersion";
-import SubmoduleData from "../model/SubmoduleData";
 
 export type GitVersionControlEvents = Event<"files-changed", { items: GitStatus[] }>;
 export type GitVersionDataSet = {
@@ -37,8 +34,6 @@ export default class GitVersionControl {
 	private _currentBranch: Promise<GitBranch>;
 	private _currentBranchName: Promise<string>;
 	private _allBranches: Promise<GitBranch[]>;
-	private _subGitVersionControls: Promise<GitVersionControl[]>;
-	private _submodulesData: Promise<SubmoduleData[]>;
 	private _gitWatcher: GitWatcher;
 	private _gitRepository: GitCommands;
 	private _events = createEventEmitter<GitVersionControlEvents>();
@@ -53,7 +48,6 @@ export default class GitVersionControl {
 				items: items.files.map((f) => ({ path: f.path, status: f.status })),
 			});
 		});
-		void this._initSubGitVersionControls();
 	}
 	isInit(): Promise<boolean> {
 		return this._gitRepository.isInit();
@@ -113,7 +107,7 @@ export default class GitVersionControl {
 	}
 
 	async showLastCommitContent(filePath: Path): Promise<string> {
-		const { gitVersionControl, relativePath } = await this.getGitVersionControlContainsItem(filePath);
+		const { gitVersionControl, relativePath } = await this.getVersionControlByPath(filePath);
 		const gitRepository = new GitCommands(this._fp, gitVersionControl.getPath());
 		return gitRepository.showFileContent(relativePath);
 	}
@@ -203,15 +197,6 @@ export default class GitVersionControl {
 		await this._gitWatcher.checkChanges(oldVersion, newVersion);
 	}
 
-	async recursiveCheckChanges(
-		oldVersion: GitVersion,
-		newVersion: GitVersion,
-		subOldVersions: { [path: string]: { version: GitVersion; subGvc: GitVersionControl } },
-		subNewVersions: { [path: string]: { version: GitVersion; subGvc: GitVersionControl } },
-	) {
-		return this._gitWatcher.recursiveCheckChanges(oldVersion, newVersion, subOldVersions, subNewVersions);
-	}
-
 	async diff(opts: DiffConfig): Promise<DiffTree2TreeInfo> {
 		return this._gitRepository.diff(opts);
 	}
@@ -265,8 +250,6 @@ export default class GitVersionControl {
 		this._initCurrentBranchName();
 		this._initAllBranches();
 		this._initCurrentVersion();
-		this._initSubmodulesData();
-		this._initSubGitVersionControls();
 	}
 
 	async restoreRepositoryState(): Promise<void> {
@@ -274,18 +257,7 @@ export default class GitVersionControl {
 		await this.reset({ mode: "soft", head: parent });
 	}
 
-	async getGitVersionControlContainsItem(
-		path: Path,
-	): Promise<{ gitVersionControl: GitVersionControl; relativePath: Path }> {
-		const submodules = await this.getSubGitVersionControls();
-		for (const submodule of submodules) {
-			const relativeSubmodulePath = await this._getRelativeSubmodulePath(submodule.getPath());
-			if (path.startsWith(relativeSubmodulePath)) {
-				return await submodule.getGitVersionControlContainsItem(
-					relativeSubmodulePath.subDirectory(path).removeExtraSymbols,
-				);
-			}
-		}
+	async getVersionControlByPath(path: Path): Promise<{ gitVersionControl: GitVersionControl; relativePath: Path }> {
 		return { gitVersionControl: this, relativePath: path };
 	}
 
@@ -297,32 +269,12 @@ export default class GitVersionControl {
 		return this._gitRepository.restore(staged, filePaths);
 	}
 
-	async checkoutSubGitVersionControls(): Promise<void> {
-		const subGitVersionControls = await this.getSubGitVersionControls();
-		const submodulesData = await this._getSubmodulesData();
-		for (let i = 0; i < subGitVersionControls.length; i++) {
-			const gvc = subGitVersionControls[i];
-			const submoduleData = submodulesData[i];
-			if (submoduleData.branch) {
-				await gvc.checkoutToBranch(submoduleData.branch);
-				continue;
-			}
-			try {
-				await gvc.checkoutToBranch("master");
-			} catch {
-				try {
-					await gvc.checkoutToBranch("main");
-				} catch {
-					throw new GitError(GitErrorCode.CheckoutSubmoduleError, null, {
-						submodulePath: submoduleData.path,
-					});
-				}
-			}
-		}
+	async gc(opts: GcOptions): Promise<void> {
+		return await this._gitRepository.gc(opts);
 	}
 
-	gc(opts: GcOptions) {
-		return this._gitRepository.gc(opts);
+	async healthcheck(): Promise<void> {
+		return await this._gitRepository.healthcheck();
 	}
 
 	getCommitAuthors(): Promise<CommitAuthorInfo[]> {
@@ -360,23 +312,11 @@ export default class GitVersionControl {
 		};
 	}
 
-	async getSubGitVersionControls(): Promise<GitVersionControl[]> {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		if (!this._subGitVersionControls) this._initSubGitVersionControls();
-		return this._subGitVersionControls;
-	}
-
-	private async _getRelativeSubmodulePath(submodulePath: Path): Promise<Path> {
-		for (const data of await this._getSubmodulesData()) {
-			if (submodulePath.endsWith(data.path)) return data.path;
-		}
-	}
-
 	private async _getVersionControlsAndItsFiles(filePaths: Path[]): Promise<Map<GitVersionControl, Path[]>> {
 		const versionControlsAndFiles = new Map<GitVersionControl, Path[]>();
 
 		for (const filePath of filePaths) {
-			const items = await this.getGitVersionControlContainsItem(filePath);
+			const items = await this.getVersionControlByPath(filePath);
 			if (!items) return;
 			const { gitVersionControl, relativePath } = items;
 
@@ -388,12 +328,6 @@ export default class GitVersionControl {
 		}
 
 		return versionControlsAndFiles;
-	}
-
-	private async _getSubmodulesData(): Promise<SubmoduleData[]> {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		if (!this._submodulesData) this._initSubmodulesData();
-		return this._submodulesData;
 	}
 
 	private _initCurrentVersion(): void {
@@ -410,22 +344,5 @@ export default class GitVersionControl {
 
 	private _initAllBranches(): void {
 		this._allBranches = this._gitRepository.getAllBranches();
-	}
-
-	private _initSubGitVersionControls(): void {
-		this._subGitVersionControls = this._getSubmodulesData().then(async (submodulesData) => {
-			const controls = await Promise.all(
-				submodulesData.map(async (data) => {
-					const fullSubmodulePath = this._path.join(data.path);
-					if (await this._gitRepository.isSubmoduleExist(data.path))
-						return new GitVersionControl(fullSubmodulePath, this._fp, data.path);
-				}),
-			);
-			return controls.filter((x) => x);
-		});
-	}
-
-	private _initSubmodulesData(): void {
-		this._submodulesData = this._gitRepository.getSubmodulesData();
 	}
 }

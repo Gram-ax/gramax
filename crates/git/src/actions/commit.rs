@@ -64,7 +64,7 @@ impl<C: ActualCreds> Commits<C> for Repo<'_, C> {
 }
 
 impl<C: Creds> Repo<'_, C> {
-  fn index_create_tree(&self, files: Option<Vec<PathBuf>>) -> Result<Tree> {
+  fn index_create_tree(&self, files: Option<Vec<PathBuf>>) -> Result<Tree<'_> > {
     let mut index = self.0.index()?;
 
     let Some(files) = files else {
@@ -101,7 +101,7 @@ impl<C: Creds> Repo<'_, C> {
     }
   }
 
-  fn parent_branches_to_commits(&self, shortnames: Option<Vec<String>>) -> Result<Vec<git2::Commit>> {
+  fn parent_branches_to_commits(&self, shortnames: Option<Vec<String>>) -> Result<Vec<git2::Commit<'_>>> {
     let mut commits = Vec::with_capacity(shortnames.as_ref().map_or(1, |shortnames| shortnames.len()));
 
     let Some(shortnames) = shortnames else {

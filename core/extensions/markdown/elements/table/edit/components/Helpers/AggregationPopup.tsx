@@ -1,11 +1,7 @@
 import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import { SheetColumn } from "@core-ui/utils/Sheet";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { PopoverItem, TriggerParent } from "@ext/markdown/elements/table/edit/components/Helpers/PlusMenu";
 import {
 	getAggregatedValue,
 	getFormattedValue,
@@ -21,7 +17,15 @@ import {
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
-import { useRef, useState } from "react";
+import {
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+} from "@ui-kit/Dropdown";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { useState } from "react";
 
 interface AggregationPopupProps {
 	editor: Editor;
@@ -43,7 +47,6 @@ type AggregationData = string[];
 
 const AggregationPopup = ({ editor, tableSheet, node, cell, index, getPos }: AggregationPopupProps) => {
 	const [aggregationData, setAggregationData] = useState<AggregationData>([]);
-	const submenuRef = useRef<HTMLDivElement>(null);
 
 	const setAggregation = (method: AggregationMethod) => {
 		const position = getFirstTdPosition(node, index + 1, getPos());
@@ -89,53 +92,44 @@ const AggregationPopup = ({ editor, tableSheet, node, cell, index, getPos }: Agg
 		setAggregationData(methodsData);
 	};
 
+	const onOpenChange = (open: boolean) => {
+		if (open) calcAggregation();
+	};
+
 	return (
-		<PopupMenuLayout
-			openTrigger="focus mouseenter"
-			placement="right-start"
-			onOpen={calcAggregation}
-			appendTo={() => submenuRef.current}
-			offset={[10, -5]}
-			trigger={
-				<TriggerParent ref={submenuRef}>
-					<ButtonLink text={t("editor.table.aggregation.name")} iconCode="sigma" />
-					<Icon code="chevron-right" />
-				</TriggerParent>
-			}
-		>
-			<>
-				{Object.values(AggregationMethod).map((method, index) => (
-					<Tooltip
-						key={method}
-						delay={[1000, 0]}
-						content={methodsWithTooltip[method] && t(`editor.table.aggregation.methods.${method}.tooltip`)}
-					>
-						<AggregationItem onClick={() => setAggregation(method)}>
-							<ButtonLink
-								text={t(`editor.table.aggregation.methods.${method}.name`)}
-								iconCode={aggregationMethodIcons[method]}
-							/>
-							<span>
-								{aggregationData[index]}
-								{cell?.attrs?.aggregation === method ? (
-									<Icon code="check" style={{ marginLeft: "8px" }} />
-								) : (
-									<span style={{ marginLeft: "23px" }}></span>
+		<DropdownMenuSub onOpenChange={onOpenChange}>
+			<DropdownMenuSubTrigger>
+				<Icon code="sigma" />
+				{t("editor.table.aggregation.name")}
+			</DropdownMenuSubTrigger>
+			<DropdownMenuSubContent>
+				<DropdownMenuRadioGroup
+					value={cell?.attrs?.aggregation}
+					onValueChange={(value) => setAggregation(value as AggregationMethod)}
+				>
+					{Object.values(AggregationMethod).map((method, index) => (
+						<DropdownMenuRadioItem key={method} value={method}>
+							<Tooltip>
+								{methodsWithTooltip[method] && (
+									<TooltipContent>
+										{t(`editor.table.aggregation.methods.${method}.tooltip`)}
+									</TooltipContent>
 								)}
-							</span>
-						</AggregationItem>
-					</Tooltip>
-				))}
-				{cell?.attrs?.aggregation && (
-					<>
-						<div className="divider" />
-						<PopoverItem onClick={() => setAggregation(null)}>
-							<ButtonLink text={t("delete")} iconCode="trash" />
-						</PopoverItem>
-					</>
-				)}
-			</>
-		</PopupMenuLayout>
+								<TooltipTrigger asChild>
+									<div className="flex items-center gap-2 w-full justify-between">
+										<div className="flex items-center gap-2">
+											<Icon code={aggregationMethodIcons[method]} />
+											{t(`editor.table.aggregation.methods.${method}.name`)}
+										</div>
+										<span>{aggregationData[index]}</span>
+									</div>
+								</TooltipTrigger>
+							</Tooltip>
+						</DropdownMenuRadioItem>
+					))}
+				</DropdownMenuRadioGroup>
+			</DropdownMenuSubContent>
+		</DropdownMenuSub>
 	);
 };
 

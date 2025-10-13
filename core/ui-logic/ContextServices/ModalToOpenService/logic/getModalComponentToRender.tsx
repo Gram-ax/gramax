@@ -1,22 +1,37 @@
+import ExportPdf from "@components/Actions/Modal/ExportPdf";
+import ActionConfirm from "@components/Atoms/ActionConfirm";
+import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
 import ModalLoading from "@components/ModalLoading";
+import EditMarkdown from "@ext/artilce/actions/EditMarkdown";
+import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
+import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
+import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import EditEnterpriseConfig from "@ext/enterprise/components/EditEnterpriseConfig";
+import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
 import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
 import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
-import Clone from "@ext/git/actions/Clone/components/Clone";
+import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
+import HistoryModal from "@ext/git/actions/History/component/History";
 import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import MergeResolver from "@ext/git/actions/MergeConflictHandler/components/MergeResolver";
 import MergeRequestConfirm from "@ext/git/core/GitMergeRequest/components/MergeRequestConfirm";
 import CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
 import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
 import PullHandler from "@ext/git/core/GitPathnameHandler/pull/components/PullHandler";
+import Healthcheck from "@ext/healthcheck/components/Healthcheck";
+import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsupportedElementsModal";
+import ImportModal from "@ext/import/components/ImportModal";
+import PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import DiagramsEditor from "@ext/markdown/elements/diagrams/edit/components/DiagramsEditor";
+import FilePreviewModal from "@ext/markdown/elements/file/edit/components/Preview/FilePreviewModal";
 import HTMLEditor from "@ext/markdown/elements/html/edit/components/HTMLEditButton";
 import SnippetAlreadyUseWarn from "@ext/markdown/elements/snippet/edit/components/SnippetAlreadyUseWarn";
 import PropertyEditor from "@ext/properties/components/Modals/PropertyEditor";
+import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
 import CloudModal from "@ext/static/components/CloudModal";
-import CreateSourceData from "@ext/storage/logic/SourceDataProvider/components/CreateSourceData";
+import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
 import TemplateContentWarning from "@ext/templates/components/TemplateContentWarning";
 import CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
 import EditWorkspaceForm from "@ext/workspace/components/EditWorkspaceForm";
@@ -24,7 +39,6 @@ import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
-import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
@@ -38,7 +52,9 @@ const getModalComponentToRender: {
 	[ModalToOpen.CheckoutHandler]: CheckoutHandler,
 	[ModalToOpen.PullHandler]: PullHandler,
 	[ModalToOpen.CloneHandler]: CloneHandler,
-	[ModalToOpen.Clone]: Clone,
+	[ModalToOpen.Clone]: CloneModal,
+
+	[ModalToOpen.ImportModal]: ImportModal,
 
 	[ModalToOpen.SnippetAlreadyUseWarn]: SnippetAlreadyUseWarn,
 
@@ -53,7 +69,7 @@ const getModalComponentToRender: {
 	[ModalToOpen.CreateMergeRequest]: CreateMergeRequestModal,
 	[ModalToOpen.MergeRequestConfirm]: MergeRequestConfirm,
 
-	[ModalToOpen.CreateSourceData]: CreateSourceData,
+	[ModalToOpen.CreateStorage]: CreateStorageModal,
 
 	[ModalToOpen.EditEnterpriseConfig]: EditEnterpriseConfig,
 
@@ -64,10 +80,28 @@ const getModalComponentToRender: {
 
 	[ModalToOpen.CloudModal]: CloudModal,
 
+	[ModalToOpen.ItemPropsEditor]: PropsEditor,
+
 	[ModalToOpen.CreateWorkspaceForm]: CreateWorkspaceForm,
 	[ModalToOpen.EditWorkspaceForm]: EditWorkspaceForm,
 
 	[ModalToOpen.MediaPreview]: MediaPreview,
+	[ModalToOpen.FilePreview]: FilePreviewModal,
+
+	[ModalToOpen.EnterpriseLogout]: SignOutEnterprise,
+	[ModalToOpen.MarkdownEditor]: EditMarkdown,
+	[ModalToOpen.BugsnagModal]: BugsnagModal,
+	[ModalToOpen.History]: HistoryModal,
+	[ModalToOpen.UnsupportedElements]: CommonUnsupportedElementsModal,
+	[ModalToOpen.Share]: ShareModal,
+
+	[ModalToOpen.CatalogPropsEditor]: CatalogPropsEditor,
+	[ModalToOpen.GetSharedTicket]: GetSharedTicket,
+	[ModalToOpen.Healthcheck]: Healthcheck,
+
+	[ModalToOpen.ActionConfirm]: ActionConfirm,
+
+	[ModalToOpen.ExportPdf]: ExportPdf,
 };
 
 export default getModalComponentToRender;

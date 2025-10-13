@@ -20,6 +20,7 @@ const Branch = ({ branch, show, onClick }: BranchProps) => {
 			iconStyle={{ color: show ? "var(--color-primary)" : "white" }}
 			onClick={onClick}
 			isShow={show}
+			additionalStyles={{ overflow: "hidden" }}
 		>
 			<span>{branchName ? branchName : <SpinnerLoader width={12} height={12} />}</span>
 		</StatusBarWrapper>

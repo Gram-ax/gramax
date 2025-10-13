@@ -8,6 +8,7 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 import AddProperty from "@ext/properties/components/Helpers/AddProperty";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 
 interface CardProps {
 	otherProps: PropertyType[];
@@ -48,15 +49,17 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 						property={property}
 						onSubmit={onSubmit}
 						trigger={
-							<Property
-								key={property.name}
-								type={property.type}
-								icon={property.icon}
-								propertyStyle={property.style}
-								name={property.name}
-								value={!isFlag ? property.value : property.name}
-								shouldShowValue={!isFlag}
-							/>
+							<div>
+								<Property
+									key={property.name}
+									type={property.type}
+									icon={property.icon}
+									propertyStyle={property.style}
+									name={property.name}
+									value={!isFlag ? property.value : property.name}
+									shouldShowValue={!isFlag}
+								/>
+							</div>
 						}
 					/>
 				);
@@ -84,13 +87,19 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 					<div className="chips">
 						{properties}
 						{!dragging && !isReadOnly && (
-							<AddProperty
-								properties={otherProps}
-								disabled={dragging || isReadOnly}
-								catalogProperties={catalogProperties}
-								onSubmit={onSubmit}
-								trigger={<ButtonLink iconCode="plus" dataQa="kanban-add-property" />}
-							/>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<ButtonLink iconCode="plus" dataQa="kanban-add-property" />
+								</DropdownMenuTrigger>
+								<DropdownMenuContent>
+									<AddProperty
+										properties={otherProps}
+										disabled={dragging || isReadOnly}
+										catalogProperties={catalogProperties}
+										onSubmit={onSubmit}
+									/>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						)}
 					</div>
 				</div>

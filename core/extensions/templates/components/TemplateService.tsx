@@ -1,8 +1,9 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
-import ArticleTemplate from "@ext/templates/components/ArticleTemplate";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { ProviderContextService, ProviderItemProps } from "@ext/articleProvider/models/types";
+import ArticleTemplate from "@ext/templates/components/ArticleTemplate";
 import { createContext, useContext, useState } from "react";
 
 export type TemplateContextType = {
@@ -18,11 +19,14 @@ export const TemplateContext = createContext<TemplateContextType>({
 class TemplateService implements ProviderContextService {
 	private _setTemplates: (templates: Map<string, ProviderItemProps>) => void = () => {};
 	private _setSelectedID: (selectedID: string) => void = () => {};
+	private _isNext: boolean;
 
 	Init = ({ children }: { children: JSX.Element }): JSX.Element => {
 		const [templates, setTemplates] = useState<Map<string, ProviderItemProps>>(new Map());
 		const [selectedID, setSelectedID] = useState<string>(null);
+		const { isNext } = usePlatform();
 
+		this._isNext = isNext;
 		this._setTemplates = setTemplates;
 		this._setSelectedID = setSelectedID;
 		return <TemplateContext.Provider value={{ templates, selectedID }}>{children}</TemplateContext.Provider>;
@@ -48,6 +52,7 @@ class TemplateService implements ProviderContextService {
 
 	closeItem() {
 		ArticleViewService.setDefaultView();
+		if (!this._isNext) refreshPage();
 		this._setSelectedID(null);
 	}
 

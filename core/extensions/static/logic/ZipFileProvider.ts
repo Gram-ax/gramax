@@ -1,6 +1,7 @@
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import Path from "@core/FileProvider/Path/Path";
+import jszip from "@dynamicImports/jszip";
 import { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import type { default as JSZipType } from "jszip";
 
@@ -10,8 +11,7 @@ class ZipFileProvider extends DiskFileProvider {
 	}
 
 	static async create(): Promise<ZipFileProvider> {
-		const JSZip = await import("jszip");
-		return new ZipFileProvider(new JSZip.default());
+		return new ZipFileProvider(new (await jszip())());
 	}
 
 	async copy(from: Path, to: Path): Promise<void> {
@@ -42,8 +42,8 @@ class ZipFileProvider extends DiskFileProvider {
 		throw new Error("Not Supported");
 	}
 
-	async exists(uri: Path): Promise<boolean> {
-		throw new Error("Not Supported");
+	async exists(path: Path): Promise<boolean> {
+		return !!this._zip.file(path.value);
 	}
 
 	async getStat(path: Path, lstat = false): Promise<FileInfo> {
@@ -59,7 +59,7 @@ class ZipFileProvider extends DiskFileProvider {
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
-		throw new Error("Not Supported");
+		return this._zip.file(path.value).async("nodebuffer");
 	}
 
 	async readdir(path: Path): Promise<string[]> {

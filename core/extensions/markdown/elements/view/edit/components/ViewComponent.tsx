@@ -5,7 +5,7 @@ import { Display } from "@ext/properties/models/display";
 import { NodeViewProps } from "@tiptap/react";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { MouseEvent, useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import ViewActions from "@ext/markdown/elements/view/edit/components/Helpers/ViewActions";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
@@ -23,7 +23,7 @@ const ViewComponent = (props: ViewComponentProps) => {
 	const isEditable = editor.isEditable;
 
 	const updateDisplay = useCallback(
-		(e: MouseEvent, display: Display) => {
+		(display: Display) => {
 			if (node.attrs.groupby.length > 1 && display === Display.Kanban)
 				updateAttributes({ display, groupby: [node.attrs.groupby[0]] });
 			else updateAttributes({ display });
@@ -39,7 +39,7 @@ const ViewComponent = (props: ViewComponentProps) => {
 	);
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
+		<NodeViewContextableWrapper ref={hoverElementRef} props={props} data-drag-handle>
 			<div className={className}>
 				<HoverableActions
 					hideOnClick={false}

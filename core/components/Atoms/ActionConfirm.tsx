@@ -1,11 +1,19 @@
-import Checkbox from "@components/Atoms/Checkbox";
-import Modal from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import styled from "@emotion/styled";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
 import { cloneElement, useCallback, useState } from "react";
+import {
+	AlertDialog,
+	AlertDialogContent,
+	AlertDialogCancel,
+	AlertDialogDescription,
+	AlertDialogTitle,
+	AlertDialogHeader,
+	AlertDialogTrigger,
+	AlertDialogIcon,
+	AlertDialogFooter,
+} from "@ui-kit/AlertDialog";
+import { CheckboxField } from "@ui-kit/Checkbox";
+import { Button } from "@ui-kit/Button";
 
 const localStorage = typeof window !== "undefined" ? window.localStorage : null;
 
@@ -38,33 +46,6 @@ export type ActionWarningProps = {
 	className?: string;
 };
 
-const WarningUnstyled = ({
-	body,
-	className,
-	setDoNotShowAgain,
-}: {
-	body: React.ReactNode | string;
-	className?: string;
-	setDoNotShowAgain?: (flag: boolean) => void;
-}) => {
-	return (
-		<div className={className}>
-			<p>{body}</p>
-			{setDoNotShowAgain && (
-				<p>
-					<Checkbox onChange={setDoNotShowAgain}>{t("do-not-show-again")}</Checkbox>
-				</p>
-			)}
-		</div>
-	);
-};
-
-const Warning = styled(WarningUnstyled)`
-	> p {
-		margin: 0.5em 0px;
-	}
-`;
-
 const ActionConfirm = (props: ActionConfirmProps) => {
 	const {
 		children,
@@ -77,7 +58,6 @@ const ActionConfirm = (props: ActionConfirmProps) => {
 		cancelText = t("cancel"),
 		shouldShow,
 		doNotShowAgainKey,
-		className,
 	} = props;
 
 	const initialDoNotShow = !!localStorage?.getItem(doNotShowAgainKey);
@@ -105,34 +85,48 @@ const ActionConfirm = (props: ActionConfirmProps) => {
 		return cloneElement(children, { onClick: onConfirm });
 	}
 
+	const onOpenChange = (open: boolean) => {
+		setIsOpen(open);
+		if (!open) onClose?.();
+	};
+
 	return (
-		<Modal
-			closeOnEscape
-			contentWidth="XS"
-			isOpen={isOpen}
-			onOpen={() => setIsOpen(true)}
-			onClose={() => {
-				setIsOpen(false);
-				onClose?.();
-			}}
-			trigger={children}
-		>
-			<ModalLayoutLight className={className}>
-				<InfoModalForm
-					isWarning
-					onCancelClick={() => setIsOpen(false)}
-					title={title}
-					actionButton={{
-						text: confirmText,
-						onClick: onConfirmClick,
-					}}
-					closeButton={{ text: cancelText }}
-					icon={{ code: "alert-circle", color: "var(--color-warning)" }}
-				>
-					<Warning body={body} setDoNotShowAgain={doNotShowAgainKey ? setDoNotShowAgain : null} />
-				</InfoModalForm>
-			</ModalLayoutLight>
-		</Modal>
+		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+			{children && <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>}
+			<AlertDialogContent status="warning">
+				<AlertDialogHeader>
+					<AlertDialogIcon icon="alert-circle" />
+					<AlertDialogTitle>{title}</AlertDialogTitle>
+					<AlertDialogDescription>{body}</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<div className="flex items-center justify-between w-full">
+						{doNotShowAgainKey ? (
+							<CheckboxField
+								label={t("do-not-show-again")}
+								checked={doNotShowAgain}
+								onCheckedChange={(checked: boolean) => setDoNotShowAgain(checked)}
+							/>
+						) : (
+							<div />
+						)}
+						<div className="flex items-center gap-2">
+							<AlertDialogCancel>{cancelText}</AlertDialogCancel>
+							<Button
+								type="button"
+								onClick={() => {
+									onConfirmClick();
+									onOpenChange(false);
+								}}
+								variant="outline"
+							>
+								{confirmText}
+							</Button>
+						</div>
+					</div>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 };
 

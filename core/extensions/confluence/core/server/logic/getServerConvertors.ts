@@ -13,7 +13,6 @@ import smallHeading from "@ext/confluence/core/server/logic/HTMLElements/smallHe
 import text from "@ext/confluence/core/server/logic/HTMLElements/text";
 import ul from "@ext/confluence/core/server/logic/HTMLElements/ul";
 import tr from "@ext/confluence/core/server/logic/HTMLElements/tr";
-import th from "@ext/confluence/core/server/logic/HTMLElements/th";
 import td from "@ext/confluence/core/server/logic/HTMLElements/td";
 import blockquote from "@ext/confluence/core/server/logic/HTMLElements/blockquote";
 import time from "@ext/confluence/core/server/logic/HTMLElements/time";
@@ -58,8 +57,10 @@ const getServerConvertors = (): Record<string, HTMLNodeConverter> => {
 		br: p,
 		table: p,
 		tbody,
+		colgroup: stub,
+		col: stub,
 		tr,
-		th,
+		th: td,
 		td,
 		blockquote,
 		time,

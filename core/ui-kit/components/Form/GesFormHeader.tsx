@@ -23,6 +23,9 @@ const GesFormHeader = <T = NonNullable<unknown>,>({ icon, title, className, icon
 };
 
 export default styled(GesFormHeader)`
+	border-width: 0;
+	border-color: transparent;
+
 	.position-container {
 		align-items: center;
 		padding-top: 1.5rem;

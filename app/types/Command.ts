@@ -11,7 +11,7 @@ export interface CommandConfig<P, O> {
 	kind?: ResponseKind;
 	middlewares?: Middleware[];
 	do: (this: { _app: Application; _commands: CommandTree }, args: P) => O | Promise<O>;
-	params?: (ctx: Context, query: Query, body?: any) => P;
+	params?: (ctx: Context, query: Query, body?: any, signal?: AbortSignal) => P;
 }
 
 export class Command<P, O> {
@@ -39,8 +39,8 @@ export class Command<P, O> {
 		return this._c.do.bind(this)(args);
 	}
 
-	params(ctx: Context, query: Query, body: any): P {
-		return this._c.params?.(ctx, query, body);
+	params(ctx: Context, query: Query, body: any, signal?: AbortSignal): P {
+		return this._c.params?.(ctx, query, body, signal);
 	}
 
 	static create<P, O>(config: CommandConfig<P, O>): Command<P, O> {

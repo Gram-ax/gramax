@@ -5,6 +5,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { ArticleLink, CategoryLink, ItemLink, LinkFilter } from "../../NavigationLinks";
 import IconExtension from "../main/render/IconExtension";
 import LevNavItem from "../main/render/Item";
+import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
+import { Button } from "@ui-kit/Button";
 
 const LevNavWatchTree = React.memo(
 	({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
@@ -91,13 +93,22 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 				isCategory={isCategory}
 				leftExtensions={<IconExtension item={item} />}
 				rightExtensions={
-					<EditMenu
-						itemLink={item}
-						isCategory={isCategory}
-						setItemLink={() => {}}
-						onOpen={() => setIsHover(true)}
-						onClose={() => setIsHover(false)}
-					/>
+					<NavigationDropdown
+						style={{ marginRight: "-3px" }}
+						trigger={
+							<Button variant="text" size="xs" className="p-0 h-full">
+								<Icon code="ellipsis-vertical" />
+							</Button>
+						}
+					>
+						<EditMenu
+							itemLink={item}
+							isCategory={isCategory}
+							setItemLink={() => {}}
+							onOpen={() => setIsHover(true)}
+							onClose={() => setIsHover(false)}
+						/>
+					</NavigationDropdown>
 				}
 				onClick={onClick}
 				onToggle={onToggle}

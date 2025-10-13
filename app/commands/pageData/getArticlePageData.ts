@@ -6,6 +6,7 @@ import { ArticlePageData, OpenGraphData, type GetArticlePageDataOptions } from "
 import isReadOnlyBranch from "@ext/enterprise/utils/isReadOnlyBranch";
 import { Command } from "../../types/Command";
 import getPageDataContext from "./getPageDataContext";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 const getArticlePageData: Command<
 	{ path: string[]; pathname: string; ctx: Context },
@@ -21,7 +22,8 @@ const getArticlePageData: Command<
 
 		const catalogName = path[0];
 		const catalog = await wm.getCatalogOrFindAtAnyWorkspace(catalogName);
-		if (catalog) await catalog.parseEveryArticle(ctx, this._app.parser, this._app.parserContextFactory);
+		if (getExecutingEnvironment() !== "static" && getExecutingEnvironment() !== "next" && catalog)
+			await catalog.parseEveryArticle(ctx, this._app.parser, this._app.parserContextFactory);
 
 		const workspace = wm.current(); // `wm.getCatalogAtAnyWorkspace` can change workspace
 

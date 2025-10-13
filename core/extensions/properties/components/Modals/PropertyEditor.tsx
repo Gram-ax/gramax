@@ -9,18 +9,17 @@ import { z } from "zod";
 import t from "@ext/localization/locale/translate";
 import Style from "@components/HomePage/Cards/model/Style";
 import { Select, SelectItem, SelectContent, SelectTrigger, SelectValue } from "@ui-kit/Select";
-import { Input } from "ics-ui-kit/components/input";
-import { lucideIconListForUikitOptions } from "@components/Atoms/Icon/lucideIconList";
+import { Input } from "@ui-kit/Input";
+import useLucideIconLists from "@components/Atoms/Icon/lucideIconList";
 import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
-import Icon from "@components/Atoms/Icon";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
-import { DndProvider } from "react-dnd";
-import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
-import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
-import { Button, IconButton } from "@ui-kit/Button";
+import { Button } from "@ui-kit/Button";
 import styled from "@emotion/styled";
 import { ErrorState } from "@ui-kit/ErrorState";
 import ActionWarning from "@ext/properties/components/Modals/ActionWarning";
+import PropertyService from "@ext/properties/components/PropertyService";
+import { Values } from "@ext/properties/components/Helpers/Values";
+import { Icon } from "@ui-kit/Icon";
 
 export interface PropertyEditorProps<T = Property> {
 	data: Property;
@@ -43,7 +42,11 @@ const BetweenContainer = styled.div`
 `;
 
 const CustomFormField = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
 	width: 100%;
+	margin-top: 1.5rem !important;
 `;
 
 const CustomFormFieldLabel = styled(FieldLabel)`
@@ -58,8 +61,6 @@ const TreeRoot = styled.div`
 `;
 
 const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps) => {
-	const { backend } = useDragDrop();
-
 	const addValue = () => {
 		onChange([...values, ""]);
 	};
@@ -69,22 +70,22 @@ const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps)
 			<CustomFormFieldLabel>
 				<BetweenContainer>
 					<span>{t("forms.catalog-create-props.props.values.name")}</span>
-					<IconButton
-						variant="text"
+					<Button
+						startIcon="plus"
+						variant="outline"
 						type="button"
-						icon="plus"
 						onClick={addValue}
-						size="xs"
+						size="sm"
 						data-qa="qa-add-value"
-					/>
+					>
+						{t("add")}
+					</Button>
 				</BetweenContainer>
 			</CustomFormFieldLabel>
 			<ErrorState>{error}</ErrorState>
-			<DndProvider backend={(manager) => ModifiedBackend(backend(manager))}>
-				<TreeRoot className="tree-root">
-					<ValueHandler data={values} onChange={onChange} />
-				</TreeRoot>
-			</DndProvider>
+			<TreeRoot className="tree-root">
+				<Values data={values} onChange={onChange} />
+			</TreeRoot>
 		</CustomFormField>
 	);
 };
@@ -92,11 +93,20 @@ const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps)
 const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorProps) => {
 	const [open, setOpen] = useState(true);
 	const isNew = !data?.name;
+	const lucideIconListForUikitOptions = useLucideIconLists().lucideIconListForUikitOptions;
+	const { properties } = PropertyService.value;
 
 	const schema = z.object({
 		name: z
-			.string()
-			.min(1, { message: t("must-be-not-empty") })
+			.string({ message: t("must-be-not-empty") })
+			.refine(
+				(val) => {
+					const newValue = val.trim();
+					return newValue.length > 0;
+				},
+				{ message: t("must-be-not-empty") },
+			)
+			.refine((val) => !isNew || !properties.has(val), { message: t("properties.already-exist") })
 			.transform((val) => val.trim()),
 		type: z.enum(Object.values(PropertyTypes) as [string, ...string[]], {
 			message: t("must-be-not-empty"),
@@ -209,14 +219,10 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 											placeholder={t("forms.catalog-create-props.props.icon.placeholder")}
 											options={lucideIconListForUikitOptions}
 											renderOption={({ option }) => (
-												<span>
-													<Icon
-														code={option.value as string}
-														style={{ fontSize: "1.25rem" }}
-														strokeWidth={1}
-													/>
-													<span>{option.value}</span>
-												</span>
+												<div className="flex items-center gap-2">
+													<Icon icon={option.value as string} />
+													{option.value}
+												</div>
 											)}
 										/>
 									)}

@@ -1,44 +1,42 @@
 import Icon from "@components/Atoms/Icon";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import t from "@ext/localization/locale/translate";
 import { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
-import PropertyItem from "@ext/properties/components/PropertyItem";
-import { getInputComponent, getInputType, getPlaceholder, Property, PropertyValue } from "@ext/properties/models";
-import { MouseEvent, useCallback, useRef, Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Property, PropertyValue } from "@ext/properties/models";
+import { useCallback, useRef, Dispatch, SetStateAction, useEffect, useMemo } from "react";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import { Instance, Props } from "tippy.js";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
+import PropertyItem from "@ext/properties/components/Helpers/PropertyItem";
 
 interface AddPropertyProps {
-	trigger: JSX.Element;
 	properties: Property[] | PropertyValue[];
 	catalogProperties: Map<string, Property>;
-	onSubmit: (propertyName: string, value: string) => void;
 	setProperties?: Dispatch<SetStateAction<Property[]>>;
 	canAdd?: boolean;
 	disabled?: boolean;
+	onSubmit: (propertyName: string, value: string) => void;
 }
 
 const AddProperty = (props: AddPropertyProps) => {
-	const { trigger, canAdd = false, properties, catalogProperties, onSubmit, setProperties, disabled } = props;
+	const { canAdd = false, properties, catalogProperties, onSubmit, setProperties, disabled } = props;
 	const articleProps = ArticlePropsService.value;
+	const setArticleProps = ArticlePropsService.setArticleProps;
 	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const [isOpen, setIsOpen] = useState(false);
-	const instanceRef = useRef<Instance<Props>>(null);
+	const isOpenRef = useRef(false);
 
 	useEffect(() => {
-		if (!isOpen) return;
+		if (!isOpenRef.current) return;
 		ModalToOpenService.resetValue();
-		setIsOpen(false);
+		isOpenRef.current = false;
 	}, [articleProps.logicPath]);
 
 	const saveCatalogProperties = useCallback(
@@ -50,11 +48,13 @@ const AddProperty = (props: AddPropertyProps) => {
 
 			if (index === -1) newProps.properties = [...newProps.properties, property];
 			else {
-				if (isDelete && !saveValue) {
+				if (isDelete) {
 					newProps.properties = newProps.properties.filter((_, propIndex) => propIndex !== index);
-					const res = await FetchService.fetch(apiUrlCreator.removePropertyFromArticles(property.name));
+					const res = saveValue
+						? null
+						: await FetchService.fetch(apiUrlCreator.removePropertyFromArticles(property.name));
 
-					if (res.ok && canAdd) {
+					if (res?.ok && canAdd) {
 						const props = await res.json();
 						setProperties(combineProperties(props, catalogProperties));
 					}
@@ -71,11 +71,13 @@ const AddProperty = (props: AddPropertyProps) => {
 					};
 
 					if (deletedValues) {
-						const res = await FetchService.fetch(
-							apiUrlCreator.removePropertyFromArticles(property.name, deletedValues),
-						);
+						const res = saveValue
+							? null
+							: await FetchService.fetch(
+									apiUrlCreator.removePropertyFromArticles(property.name, deletedValues),
+							  );
 
-						if (res.ok && canAdd) {
+						if (res?.ok && canAdd) {
 							const props = await res.json();
 							setProperties(combineProperties(props, catalogProperties));
 						}
@@ -86,19 +88,20 @@ const AddProperty = (props: AddPropertyProps) => {
 			ModalToOpenService.resetValue();
 			FetchService.fetch(apiUrlCreator.updateCatalogProps(), JSON.stringify(newProps), MimeTypes.json);
 			CatalogPropsService.value = { ...catalogProps, properties: newProps.properties };
+			setArticleProps({ ...articleProps, properties: combineProperties(properties, catalogProperties) });
 		},
-		[catalogProps, properties],
+		[catalogProps, properties, setArticleProps, articleProps],
 	);
 
-	const toggleModal = useCallback(
+	const editProperty = useCallback(
 		(id?: string) => {
 			if (typeof id === "undefined") {
-				setIsOpen(false);
+				isOpenRef.current = false;
 				ModalToOpenService.resetValue();
 				return;
 			}
 
-			setIsOpen(true);
+			isOpenRef.current = true;
 			ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
 				properties,
 				data: catalogProperties.get(id),
@@ -107,11 +110,12 @@ const AddProperty = (props: AddPropertyProps) => {
 					ModalToOpenService.resetValue();
 				},
 				onDelete: (isArchive: boolean) => {
+					console.log(isArchive);
 					saveCatalogProperties(catalogProperties.get(id), true, isArchive);
 					ModalToOpenService.resetValue();
 				},
 				onClose: () => {
-					setIsOpen(false);
+					isOpenRef.current = false;
 					ModalToOpenService.resetValue();
 				},
 			});
@@ -119,88 +123,37 @@ const AddProperty = (props: AddPropertyProps) => {
 		[catalogProperties, saveCatalogProperties],
 	);
 
-	const hideTippy = useCallback(
-		(e: MouseEvent, id?: string) => {
-			toggleModal(id);
-			instanceRef.current?.hide();
-			e.stopPropagation();
-			e.preventDefault();
-		},
-		[toggleModal, instanceRef.current],
-	);
-
-	const handleClick = useCallback(
-		(e: MouseEvent | KeyboardEvent, id: string, value: string) => {
-			instanceRef.current?.hide();
+	const addProperty = useCallback(
+		(id: string, value?: string) => {
 			onSubmit(id, value);
 		},
 		[onSubmit],
 	);
 
-	const updateInput = useCallback(
-		(id: string, instance: Instance<Props>) => {
-			const value = instance.popper.getElementsByTagName("input")[0].value;
-
-			if (value) {
-				onSubmit(id, value);
-				instance.popper.getElementsByTagName("input")[0].value = "";
-			}
-		},
-		[onSubmit],
-	);
-
-	const onTippyMount = useCallback((instance: Instance<Props>) => {
-		instanceRef.current = instance;
-	}, []);
+	const items = useMemo(() => {
+		return Array.from(catalogProperties.values()).map((property) => {
+			return (
+				<PropertyItem
+					key={property.name}
+					property={property}
+					disabled={disabled}
+					onClick={addProperty}
+					onEditClick={editProperty}
+				/>
+			);
+		});
+	}, [catalogProperties, disabled]);
 
 	return (
 		<>
-			<PopupMenuLayout
-				isInline
-				onTippyMount={onTippyMount}
-				offset={[0, 10]}
-				disabled={disabled}
-				tooltipText={t("properties.name")}
-				hideOnClick={false}
-				trigger={trigger}
-				appendTo={() => document.body}
-			>
-				<>
-					{Array.from(catalogProperties.values()).map((property) => {
-						const InputComponent = getInputComponent[property.type];
-						return (
-							<PropertyItem
-								id={property.name}
-								key={property.name}
-								name={property.name}
-								startIcon={property.icon}
-								values={property.values}
-								onClick={(e: MouseEvent, id, value) => handleClick(e, id, value)}
-								closeOnSelection={false}
-								rightActions={
-									canAdd && <Icon isAction code="pen" onClick={(e) => hideTippy(e, property.name)} />
-								}
-								onHide={(instance) =>
-									getInputType[property.type] && updateInput(property.name, instance)
-								}
-							>
-								{InputComponent && (
-									<InputComponent
-										type={getInputType[property.type]}
-										placeholder={t(getPlaceholder[property.type])}
-										onKeyDown={(e) =>
-											e.code === "Enter" &&
-											handleClick(e, property.name, (e.target as HTMLInputElement).value)
-										}
-									/>
-								)}
-							</PropertyItem>
-						);
-					})}
-				</>
-				{catalogProperties.size > 0 && canAdd && <div className="divider" />}
-				{canAdd && <PropertyItem id={null} name={t("properties.add")} startIcon="plus" onClick={hideTippy} />}
-			</PopupMenuLayout>
+			{items}
+			{items.length > 0 && canAdd && <DropdownMenuSeparator />}
+			{canAdd && (
+				<DropdownMenuItem onSelect={() => editProperty(null)}>
+					<Icon code="plus" />
+					{t("properties.add")}
+				</DropdownMenuItem>
+			)}
 		</>
 	);
 };

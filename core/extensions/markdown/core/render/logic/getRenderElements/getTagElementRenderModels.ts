@@ -13,7 +13,6 @@ import { plantUml } from "@ext/markdown/elements/diagrams/diagrams/plantUml/plan
 import { tsDiagram } from "@ext/markdown/elements/diagrams/diagrams/tsDiagram/tsDiagram";
 import { drawio } from "@ext/markdown/elements/drawio/render/model/drawio";
 import { error } from "@ext/markdown/elements/error/error";
-import { fn } from "@ext/markdown/elements/fn/model/fn";
 import { formula } from "@ext/markdown/elements/formula/model/formula";
 import { html } from "@ext/markdown/elements/html/render/models/html";
 import { icon } from "@ext/markdown/elements/icon/render/model/icon";
@@ -110,7 +109,6 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		kbd,
 		see,
 		br,
-		fn,
 		"inline-property": inlineProperty,
 		"block-field": blockField,
 		"block-property": blockProperty,

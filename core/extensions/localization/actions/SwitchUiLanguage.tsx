@@ -1,4 +1,3 @@
-import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
@@ -10,12 +9,14 @@ import {
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
-	DropdownMenuTriggerButton,
+	DropdownMenuTrigger,
 } from "ics-ui-kit/components/dropdown";
-import { MenuItemInfoTemplate } from "ics-ui-kit/components/menu-item";
+import { MenuItemInfoTemplate } from "@ui-kit/MenuItem";
 import { useCallback } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { IconButton } from "@ui-kit/Button";
 
-const SwitchUiLanguage = () => {
+const SwitchUiLanguage = ({ size = "md" }: { size?: "md" | "lg" }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isNext } = usePlatform();
 
@@ -33,9 +34,20 @@ const SwitchUiLanguage = () => {
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTriggerButton variant="ghost" className="aspect-square p-2" data-qa={`qa-language-${current}`}>
-				<Icon code={"globe"} />
-			</DropdownMenuTriggerButton>
+			<Tooltip>
+				<TooltipContent>{t("change-language")}</TooltipContent>
+				<TooltipTrigger asChild>
+					<DropdownMenuTrigger data-qa={`qa-language-${current}`} asChild>
+						<IconButton
+							icon="globe"
+							size={size}
+							iconClassName="h-5 w-5 stroke-[1.6]"
+							variant="ghost"
+							className="aspect-square p-2"
+						/>
+					</DropdownMenuTrigger>
+				</TooltipTrigger>
+			</Tooltip>
 			<DropdownMenuContent>
 				<DropdownMenuGroup>
 					{Object.values(UiLanguage).map((l, idx) => (

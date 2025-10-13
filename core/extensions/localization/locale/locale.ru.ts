@@ -58,6 +58,11 @@ const locale: DefaultLocale = {
 					placeholder: "Группа",
 					description: "Группа на главной странице, в которой будет отображаться",
 				},
+				icons: {
+					name: "Иконки",
+					description: "Иконки, которые будут доступны в статье",
+					fileConditions: "SVG формат ∙ Не более 500KB",
+				},
 			},
 			section: {
 				display: "Отображение на главной",
@@ -142,12 +147,16 @@ const locale: DefaultLocale = {
 				token: {
 					name: "Токен",
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
-					description: "Токен для чтения и изменения репозиториев в хранилище",
+					description: "Токен для авторизации на Git-сервере",
 				},
 				password: {
 					name: "Пароль",
 					placeholder: "password",
-					description: "Пароль для авторизации на git-сервере",
+					description: "Пароль для авторизации на Git-сервере",
+				},
+				useToken: {
+					name: "Использовать токен",
+					description: "Использовать токен вместо пароля",
 				},
 				usePassword: {
 					name: "Использовать пароль",
@@ -188,13 +197,7 @@ const locale: DefaultLocale = {
 				token: {
 					name: "GitLab-токен",
 					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
-					description:
-						`<a ${
-							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-						} href='{{create_token_url}}'>Создать токен</a><br>Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>. ` +
-						`<a ${
-							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-						} href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Подробнее</a>`,
+					description: "Токен для авторизации в GitLab",
 				},
 				url: {
 					name: "URL сервера GitLab",
@@ -229,20 +232,51 @@ const locale: DefaultLocale = {
 					name: "Тип",
 				},
 				token: {
-					name: "GitVerse-токен",
+					name: "Токен",
 					placeholder: "e5a43119d84f620fedfc0929e125ed4b10a6a5f4", // # gitleaks:allow
-					description:
-						`<a ${
-							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-						} href='https://gitverse.ru/settings/tokens'>Создать токен</a><br>Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>Репозиторий</code>, <code>Публичный API</code>. ` +
-						`<a ${
-							getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-						} href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Подробнее</a>`,
+					description: "Токен для авторизации в GitVerse",
 				},
 				url: {
-					name: "URL сервера GitVerse",
+					name: "URL сервера",
 					placeholder: "https://gitverse.ru",
 					description: "Войдите в GitVerse и скопируйте URL с главной страницы",
+				},
+				createDate: {
+					name: "Время создания",
+					placeholder: "1707213960",
+					description: "Время получения токена",
+				},
+				refreshToken: {
+					name: "Refresh-токен",
+					placeholder: "4740fbc6db719d42c158b88580be7633c1e386827ebe9134e9a5198c52cb2e4c",
+					description: "Токен для обновления основного токена",
+				},
+				userName: {
+					name: "Имя пользователя",
+					description: "Будет отображаться в истории изменений",
+					placeholder: "Ivan Ivanov",
+				},
+				userEmail: {
+					name: "Почта",
+					description: "Будет отображаться в истории изменений",
+					placeholder: "ivan.ivanov@mail.ru",
+				},
+			},
+		},
+		"gitea-source-data": {
+			props: {
+				sourceType: {
+					name: "Тип",
+				},
+				token: {
+					name: "Gitea-токен",
+					placeholder: "31fa8d7b332125ed2d89b9b3d735e1292b499d82", // # gitleaks:allow
+					description: "Токен для авторизации в Gitea",
+				},
+				url: {
+					name: "URL сервера Gitea",
+					placeholder: "https://gitea.com",
+					description: "Войдите в Gitea и скопируйте URL с главной страницы",
 				},
 				createDate: {
 					name: "Время создания",
@@ -273,7 +307,7 @@ const locale: DefaultLocale = {
 				},
 				domain: {
 					name: "URL сервера Confluence",
-					placeholder: "https://confluence.domain.com",
+					placeholder: "confluence.domain.com",
 					description: "Скопируйте URL вашего Confluence сервера",
 				},
 				password: {
@@ -289,9 +323,7 @@ const locale: DefaultLocale = {
 				token: {
 					name: "Токен",
 					placeholder: "NzIzNTYyNTQ3NjQxOva29fNcHrLYMGH77/YuEAKpqy+Q",
-					description: `Введите токен аккаунта Confluence. <a ${
-						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-					} href='https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html'>Подробнее</a>`,
+					description: "Введите токен аккаунта Confluence",
 				},
 			},
 		},
@@ -306,6 +338,9 @@ const locale: DefaultLocale = {
 					name: "Пароль",
 					placeholder: "Введите пароль",
 				},
+			},
+			validationErrors: {
+				wrongLoginOrPassword: "Неверный логин или пароль",
 			},
 		},
 		"snippet-editor": {
@@ -371,6 +406,46 @@ const locale: DefaultLocale = {
 					description:
 						"Используйте корпоративный email, чтобы подключиться к пространству вашей организации.",
 					placeholder: "Введите свою почту",
+				},
+			},
+		},
+		"clone-repo": {
+			name: "Загрузка Git-репозитория",
+			description: "Выберите хранилище или добавьте новое",
+			props: {
+				storage: {
+					name: "Хранилище",
+					placeholder: "Выберите хранилище",
+				},
+				repository: {
+					name: "Репозиторий",
+				},
+			},
+			errors: {
+				sourceKey: "Хранилище не выбрано",
+				repository: "Репозиторий не выбран",
+				user: "Пользователь не выбран",
+			},
+		},
+		"add-storage": {
+			name: "Добавить новое хранилище",
+			name2: "Подключить хранилище",
+			name3: "Редактировать хранилище",
+			description: "Укажите тип хранилища и введите необходимые данные",
+			props: {
+				storage: {
+					name: "Хранилище",
+					placeholder: "Выберите хранилище",
+				},
+			},
+		},
+		"create-source": {
+			name: "Добавить новый источник",
+			description: "Укажите тип источника и введите необходимые данные",
+			props: {
+				source: {
+					name: "Тип источника",
+					placeholder: "Выберите тип источника",
 				},
 			},
 		},
@@ -661,13 +736,6 @@ title: Не удалось отобразить статью
 `,
 				body: `[alert:error:Gramax не смог обработать Markdown-конструкцию в файле статьи]\n\nИсправьте ошибку или удалите эту конструкцию в «Редактировать Markdown».\n\n[/alert]`,
 			},
-			"init-source": `---
-title: Каталог уже связан с репозиторием
----
-
-Мы определили, что каталог связан с репозиторием.
-Но мы не знаем, в каком хранилище этот репозиторий находится.
-Добавьте хранилище, чтобы подтвердить привязку.`,
 		},
 	},
 	section: {
@@ -702,6 +770,11 @@ title: Каталог уже связан с репозиторием
 			description:
 				"Этот каталог создан не в Gramax: у него нет названия, группы и логотипа. Укажите их в настройках.",
 			"open-settings": "Открыть настройки",
+		},
+		"catalog-already-linked": {
+			name: "Каталог уже связан с хранилищем",
+			description:
+				"Мы определили, что каталог связан с репозиторием. Но мы не знаем, в каком хранилище этот репозиторий находится. Добавьте хранилище, чтобы подтвердить привязку.",
 		},
 		style: {
 			red: "Красный",
@@ -794,7 +867,7 @@ title: Каталог уже связан с репозиторием
 		},
 	},
 	"enterprise-guest": {
-		welcomeTitle: "Добро пожаловать в Gramax Enterprise Server",
+		welcomeTitle: "Добро пожаловать в Gramax!",
 
 		descriptions: {
 			emailFieldDescription: "Введите почту, на нее будет отправлен одноразовый код",
@@ -910,6 +983,15 @@ title: Каталог уже связан с репозиторием
 	},
 	git: {
 		source: {
+			gitlab: {
+				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>.<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Подробнее</a>`,
+			},
+			gitverse: {
+				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>Репозиторий</code>, <code>Публичный API</code>.<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Подробнее</a>`,
+			},
+			gitea: {
+				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>repository</code>, <code>user</code> (Read and Write).<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitea.com/development/oauth2-provider#scopes'>Подробнее</a>`,
+			},
 			error: {
 				"cannot-create-repo": "Не удалось создать репозиторий",
 				"storage-not-exist": `Хранилище с именем "{{storage}}" не существует. Добавьте его.`,
@@ -919,6 +1001,7 @@ title: Каталог уже связан с репозиторием
 				"invalid-credentials": {
 					desc: "Текущий токен для этого хранилища недействителен. Обновите данные хранилища и попробуйте снова.",
 				},
+				"invalid-credentials2": "Недействительны данные хранилища",
 			},
 			"remove-alert": "Вы уверены, что хотите удалить это хранилище?",
 			"remove-alert-usage": "Оно используется в следующих каталогах:\n\n",
@@ -992,9 +1075,6 @@ title: Каталог уже связан с репозиторием
 				"local-changes-present": "Ваши локальные изменения не позволяют поменять ветку",
 				// conflict: "There are unpublished changes",
 				conflict: "Не удалось сменить ветку",
-			},
-			submodule: {
-				error: "<p>Не удалось сменить ветку на <b>master</b> или <b>main</b> в подмодуле {{path}}</p>",
 			},
 		},
 		branch: {
@@ -1144,6 +1224,47 @@ title: Каталог уже связан с репозиторием
 				},
 				generic: "Код ошибки - NotFoundError. Сообщение ошибки - ",
 			},
+			broken: {
+				tooltip: "Репозиторий возможно повреждён",
+				healthcheck: {
+					title: "Репозиторий возможно повреждён",
+					body: "Работа с каталогом может быть нестабильной",
+					body2: "Рекомендуем сохранить изменения и восстановить репозиторий",
+					"download-zip": "Сохранить ZIP",
+					recover: {
+						button: "Восстановить",
+						confirm: {
+							title: "Восстановление",
+							description:
+								"Восстановление приведёт к потере всех локальных веток, однако ваши изменения в рабочей директории будут сохранены",
+						},
+					},
+					ignore: {
+						button: "Игнорировать",
+						confirm: {
+							title: "Игнорирование ошибки",
+							description: "Игнорирование ошибки может привести к неопределённому поведению",
+						},
+					},
+					"technical-details": "подробнее",
+				},
+				"clone-failed": {
+					title: "Не удалось загрузить каталог",
+					body: "При загрузке каталога возникла непредвиденная ошибка. Вы можете попробовать загрузить его повторно или удалить",
+					"technical-details": "Подробнее",
+					clone: {
+						button: "Загрузить",
+						title: "Загрузить каталог",
+						description: "Вы уверены, что хотите загрузить каталог?",
+					},
+					delete: {
+						button: "Удалить",
+						title: "Удаление каталог",
+						description:
+							"Вы уверены, что хотите удалить каталог? Вы сможете заново загрузить его из хранилища",
+					},
+				},
+			},
 			"content-too-large": {
 				title: "Слишком много изменений",
 				message: `Вы пытаетесь опубликовать файл большого размера или слишком много изменений за раз. Попробуйте опубликовать изменения по частям`,
@@ -1233,9 +1354,22 @@ title: Каталог уже связан с репозиторием
 		},
 	},
 	import: {
+		modal: {
+			title: "Импортировать каталог",
+			description: "Выберите источник для импорта",
+			load: "Импорт",
+			"add-new-source": "Добавить новый источник",
+			props: {
+				source: {
+					name: "Источник",
+					placeholder: "Выберите источник",
+				},
+			},
+		},
 		error: {
 			"page-conversion": "Ошибка конвертации страницы",
 			"ext-not-supported": "Расширение не поддерживается:",
+			"space-required": "Пространство является обязательным",
 			"cannot-import": {
 				title: "Не удалось импортировать элемент из ",
 				desc: "Вы можете перенести его вручную со страницы",
@@ -1455,8 +1589,7 @@ title: Каталог уже связан с репозиторием
 	enterprise: {
 		"user-not-found":
 			"Эта почта не подключена к Gramax Enterprise Server. Вы можете продолжить работу в бесплатной версии приложения или обратиться к вашему администратору за помощью.",
-		"workspace-exit-warning":
-			"При выходе из рабочего пространства будут удалены все каталоги и будут потеряны локальные изменения.",
+		"workspace-exit-warning": "Вы уверены, что хотите выйти?",
 		"workspace-exit": "Выход из рабочего пространства",
 		"check-if-user-editor-warning": "Убедитесь, что вам выдана лицензия редактора.",
 		"access-restricted": "Доступ ограничен",
@@ -1466,6 +1599,7 @@ title: Каталог уже связан с репозиторием
 		"workspace-exists-title": "Уже существует",
 		"check-article": "Проверка статьи",
 		"ges-settings": "Настройки входа в GES",
+		"token-exchange-failed": "Не удалось получить токен по одноразовому коду.",
 		"init-repo": {
 			error: "Ошибка при создании репозитория",
 			forbidden: "Недостаточно прав для создания репозитория",
@@ -1480,6 +1614,11 @@ title: Каталог уже связан с репозиторием
 		"edit-workspace": {
 			"cant-edit": "Изменить корпоративное пространство может только владелец пространства",
 			"error-get-edit-info": "Не удалось получить информацию о корпоративном пространстве",
+		},
+		logout: {
+			error: "Не удалось выйти",
+			"error-message":
+				"Соединение прервано — серверные сессии могли остаться активными. Проверьте интернет и повторите выход.",
 		},
 	},
 	network: {
@@ -1501,21 +1640,36 @@ title: Каталог уже связан с репозиторием
 		name: "Экспортировать",
 		zip: {
 			catalog: "Каталог в ZIP",
-			article: "Статья в ZIP",
+			article: "Статью в ZIP",
 			category: "Раздел в ZIP",
 			process: "Подготовка к выгрузке ZIP-архива",
 		},
 		docx: {
 			catalog: "Каталог в DOCX",
-			article: "Статья в DOCX",
+			article: "Статью в DOCX",
 			category: "Раздел в DOCX",
 			process: "Подготовка к выгрузке DOCX-документа",
 		},
 		pdf: {
 			catalog: "Каталог в PDF",
-			article: "Статья в PDF",
+			article: "Статью в PDF",
 			category: "Раздел в PDF",
 			process: "Подготовка к выгрузке PDF-документа",
+
+			form: {
+				title: "Экспорт в PDF",
+				description: "Сформируйте PDF-документ по выбранному элементу каталога.",
+				titlePage: "Титульная страница",
+				titlePageDescription:
+					"Добавить титульную страницу с названием каталога/раздела и основной информацией.",
+				tocPage: "Оглавление",
+				tocPageDescription:
+					"Добавить раздел с оглавлением, где будут перечислены все разделы каталога и номера страниц.",
+				titleNumber: "Номера заголовков",
+				titleNumberDescription: "Добавить номера для заголовков.",
+				template: "Кастомный шаблон",
+				templateDescription: "Используйте собственные CSS-стили для оформления PDF. Подробнее.",
+			},
 		},
 	},
 	account: "Аккаунт",
@@ -1534,6 +1688,7 @@ title: Каталог уже связан с репозиторием
 	collapse: "Сворачивать",
 	command: "Команда",
 	comment: "Комментарий",
+	"no-selected": "Не выбран",
 	"comment-on": "Комментировать",
 	company: "Внутренняя документация",
 	configure: "Настроить",
@@ -1724,6 +1879,7 @@ title: Каталог уже связан с репозиторием
 	"delete-file": "Удалить файл",
 	"delete-snippet-confirm": "Вы уверены, что хотите удалить сниппет?",
 	"delete-snippet-confirm-not-use": "Этот сниппет не используется ни в одной из статей",
+	"delete-snippet-list-desc": "Этот сниппет используется в следующих статьях:",
 	"delete-snippet-desc":
 		"Вы собираетесь удалить сниппет, который в настоящее время используется в одной или более статьях",
 	"delete-snippet-warn":
@@ -1826,9 +1982,12 @@ title: Каталог уже связан с репозиторием
 	"submit-login-link": "Отправить ссылку для входа",
 	"switch-branch": "Переключить ветку",
 	"sync-catalog": "Синхронизировать каталог?",
-	"sync-catalog-changed1": "файл доступен для синхронизации",
-	"sync-catalog-changed2": "файла доступно для синхронизации",
-	"sync-catalog-changed3": "файлов доступно для синхронизации",
+	"sync-catalog-push1": "неопубликованное изменение",
+	"sync-catalog-push2": "неопубликованных изменения",
+	"sync-catalog-push3": "неопубликованных изменений",
+	"sync-catalog-changed1": "изменение доступно для синхронизации",
+	"sync-catalog-changed2": "изменения доступно для синхронизации",
+	"sync-catalog-changed3": "изменений доступно для синхронизации",
 	"sync-catalog-desc": "Версия каталога устарела. Чтобы получить изменения, синхронизируйте каталог.",
 	"sync-logs": "Логи синхронизации",
 	"sync-something-changed": "В репозитории что-то изменилось, но каталог все еще актуален",
@@ -1864,6 +2023,7 @@ title: Каталог уже связан с репозиторием
 		all: "Все",
 		add: "Добавить свойство",
 		empty: "(пусто)",
+		"already-exist": "Такое свойство уже существует",
 		"select-all": "(выбрать все)",
 		"delete-property-confirm": "Вы уверены, что хотите удалить это свойство? Оно будет удалено со всех статей.",
 		"validation-errors": {
@@ -1956,7 +2116,7 @@ title: Каталог уже связан с репозиторием
 			content: "Текст шаблона",
 		},
 		"new-template": "Новый шаблон",
-		"no-templates": "В текущем каталоге нет шаблонов",
+		"no-templates": "Нет шаблонов",
 		warning: {
 			content: {
 				name: "Вставить шаблон {{template}} в статью?",
@@ -1998,6 +2158,10 @@ title: Каталог уже связан с репозиторием
 			modalAttention:
 				"<p><strong>Внимание!</strong> Распознанный текст никуда не сохраняется. Если вы хотите сохранить текст, вы можете скопировать его в буфер обмена.</p>",
 		},
+		responseError: {
+			title: "Ошибка ответа от ИИ сервера",
+			body: `<p>Попробуйте позже или свяжитесь со своим администратором.<br/>Если ошибка блокирует работу — напишите нам в <a href="https://t.me/gramax_assist_bot">Telegram</a></p>`,
+		},
 		transcribtion: "Транскрипция...",
 		placeholder: {
 			prettify: "Что сделать с выделенным текстом ✨",
@@ -2031,11 +2195,42 @@ title: Каталог уже связан с репозиторием
 	"confirm-inbox-note-delete": "Вы уверены, что хотите удалить эту заметку?",
 	"confirm-prompts-delete": "Вы уверены, что хотите удалить этот промпт?",
 	"confirm-templates-delete": "Вы уверены, что хотите удалить этот шаблон?",
+	tools: "Инструменты",
 	download: "Скачать",
 	"zoom-in": "Увеличить",
 	"zoom-out": "Уменьшить",
 	write: "Введите",
 	select2: "Выберите",
+	"change-theme": "Сменить тему",
+	"change-language": "Сменить язык",
+	"new-group": "Новая группа",
+	authorization: "Авторизация",
+	create: "Создать",
+	"choose-space": "Выбрать пространство",
+	"try-again": "Попробовать снова",
+	upload: "Загрузить",
+	"fileupload-description": "Перетащите файлы или нажмите для выбора",
+	"file-not-found": "Файл не найден",
+	"open-in-supported-app": "Открыть в поддерживаемом приложении",
+	welcome: {
+		empty: {
+			title: "Пока что тут пусто",
+			description: "Администратор ещё не добавил ни одного каталога.",
+		},
+		"empty-clone": {
+			title: "Добро пожаловать в Gramax!",
+			description: "Начните с загрузки существующего каталога из хранилища",
+		},
+	},
+	"try-later": "Попробуйте позже",
+	"file-upload": {
+		"file-too-large": "Файл ${fileName} превышает максимальный размер ${maxSizeBytes}.",
+		"invalid-file-type": "Файл ${fileName} не является допустимым типом файла.",
+		"single-file-too-large": "Файл превышает максимальный размер ${maxSizeBytes}.",
+		"some-files-too-large": "Некоторые файлы превышают максимальный размер ${maxSizeBytes}",
+		"too-many-files": "Вы можете загрузить максимум ${maxFiles} файлов",
+	},
+	"available-changes-sync": "Доступны изменения для синхронизации",
 };
 
 export default locale;

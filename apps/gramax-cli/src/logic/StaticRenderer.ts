@@ -64,8 +64,10 @@ class StaticRenderer {
 	}
 
 	private async _getData(logicPath: string): Promise<InitialArticleData[]> {
-		const lang = RouterPathProvider.parsePath(logicPath).language;
-		const ctx = await this._app.contextFactory.fromBrowser(lang, null);
+		const language = RouterPathProvider.parsePath(logicPath).language;
+		const ctx = await this._app.contextFactory.fromBrowser({
+			language,
+		});
 		const sp = this._app.sitePresenterFactory.fromContext(ctx);
 		const { catalog: contextualCatalog, article: defaultArticle } = await sp.getArticleByPathOfCatalog([logicPath]);
 		const catalog = contextualCatalog.deref;

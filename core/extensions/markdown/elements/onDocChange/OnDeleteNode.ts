@@ -49,10 +49,10 @@ const OnDeleteNode = Extension.create({
 
 										if (postDoc && postDoc.content) {
 											const docSize = postDoc.content.size;
-											const oldFrom = Math.max(Math.min(gapFrom ?? from, docSize), 0);
-											const oldTo = Math.max(Math.min(gapTo ?? to, docSize), 0);
+											const newFrom = Math.max(Math.min(gapFrom ?? from, docSize), 0);
+											const newTo = Math.max(Math.min(newFrom + step.slice.size, docSize), 0);
 
-											postDoc.content.nodesBetween(oldFrom, oldTo, (node) => {
+											postDoc.content.nodesBetween(newFrom, newTo, (node) => {
 												addedNodes.push(node);
 											});
 										}

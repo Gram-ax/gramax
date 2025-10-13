@@ -55,8 +55,7 @@ describe("FileRepository", () => {
 				filesToPublish: [new Path("test.txt")],
 			});
 
-			await secondInstance.sync({ data: FileRepository.sourceData, recursivePull: false });
-
+			await secondInstance.sync({ data: FileRepository.sourceData });
 			expect(fs.readFileSync(fr.secondPath + "/test.txt", "utf-8")).toBe("test");
 		});
 	});

@@ -20,7 +20,9 @@ const makeApp = async () => {
 	const app = await getApp();
 	const fp = app.wm.current().getFileProvider();
 	const wm = app.wm.current();
-	const ctx = await app.contextFactory.fromBrowser("ru" as any, {});
+	const ctx = await app.contextFactory.fromBrowser({
+		language: "ru" as any,
+	});
 
 	const makeResourceUpdater = (catalog: Catalog) =>
 		new ResourceUpdater(ctx, catalog, app.parser, app.parserContextFactory, app.formatter);
@@ -176,7 +178,9 @@ supportedLanguages:
 
 			const catalog = await wm.getContextlessCatalog("catalog");
 			const articleParser = new ArticleParser(
-				await app.contextFactory.fromBrowser(null, null),
+				await app.contextFactory.fromBrowser({
+					language: null,
+				}),
 				app.parser,
 				app.parserContextFactory,
 			);

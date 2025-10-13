@@ -3,7 +3,7 @@ import { classNames } from "@components/libs/classNames";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import styled from "@emotion/styled";
-import { ReactNode, useEffect, RefObject, useCallback, memo, useRef, CSSProperties, useState } from "react";
+import { CSSProperties, memo, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { Instance } from "tippy.js";
 import useDefaultActions, { UseDefaultActionsOptions } from "./hooks/useDefaultActions";
 
@@ -75,15 +75,18 @@ const HoverableActions = (props: HoverProps) => {
 
 	useEffect(() => {
 		const hoverElement = hoverElementRef.current;
-		let hoverable: Window | Element = hoverElement?.querySelector("[data-hover-target='true']");
-		if ((hoverable as HTMLIFrameElement)?.contentWindow) hoverable = (hoverable as HTMLIFrameElement).contentWindow;
+		const hoverable: Window | Element = hoverElement?.querySelector("[data-hover-target='true']");
 		if (!hoverElement) return;
 
 		const onMouseLeave = (event?: MouseEvent) => {
 			if (selected) return;
 			const relatedTarget = event?.relatedTarget as HTMLElement;
 			const isTippyRelated = shouldTippyHide(relatedTarget, hoverElement);
-			if (relatedTarget && (hoverElement.contains(relatedTarget) || isTippyRelated)) return;
+			if (
+				(relatedTarget && (hoverElement.contains(relatedTarget) || isTippyRelated)) ||
+				actionsRef.current?.querySelector("[data-state='open']")
+			)
+				return;
 
 			handleHide();
 		};

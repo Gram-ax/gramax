@@ -44,6 +44,7 @@ const get: Command<
 			(await article.parsedContent.read((p) => p?.resourceManager.assertExists(src, ifNotExistsErrorText)));
 
 		const hashItem = await article.parsedContent.read((p) => {
+			if (!p.resourceManager) return null;
 			return new HashResourceManager(src, p.resourceManager);
 		});
 

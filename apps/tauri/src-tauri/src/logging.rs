@@ -4,6 +4,7 @@ use tracing_subscriber::filter::FilterFn;
 use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::EnvFilter;
 use tracing_subscriber::Layer;
 
 use tauri::*;
@@ -11,7 +12,8 @@ use tauri::*;
 const MAX_FILE_COUNT: usize = 10;
 
 pub fn init<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
-  let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_default();
+  let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("info"));
+
   tracing_subscriber::registry()
     .with(filter)
     .with(stderr())

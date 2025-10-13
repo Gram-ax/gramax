@@ -46,7 +46,7 @@
 				"files": {}
 			}
 		},
-		"macOS": {	
+		"macOS": {
 			"entitlements": "./Entitlements.plist",
 			"dmg": {
 				"appPosition": {

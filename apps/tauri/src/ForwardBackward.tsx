@@ -6,6 +6,7 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useCallback, useEffect, useState } from "react";
+import { historyBackForwardCanGo, historyBackForwardGo } from "./window/commands";
 
 const isMacOsDesktop = getExecutingEnvironment() === "tauri" && navigator.userAgent.includes("Mac");
 
@@ -53,28 +54,36 @@ const ForwardBackward = () => {
 	if (!isMacOsDesktop) return null;
 
 	const [isFullscreen, setIsFullscreen] = useState(false);
+	const [canGoBack, setCanGoBack] = useState(true);
+	const [canGoForward, setCanGoForward] = useState(true);
 
 	useEffect(() => {
-		const wv = getCurrentWindow();
-		void wv.isFullscreen().then(setIsFullscreen);
-		const unlisten = wv.onResized(async () => setIsFullscreen(await wv.isFullscreen()));
+		const w = getCurrentWindow();
+		void w.isFullscreen().then(setIsFullscreen);
+		const unlisten = w.onResized(async () => setIsFullscreen(await w.isFullscreen()));
 		return () => {
 			void unlisten.then((unlisten) => unlisten());
 		};
 	}, []);
 
-	const navigate = useCallback((direction: "forward" | "backward") => {
-		if (direction === "backward") return window.history.back();
-		if (direction === "forward") return window.history.forward();
+	window.onNavigate = useCallback(async (path: string) => {
+		const [canGoBack, canGoForward] = await historyBackForwardCanGo();
+		setCanGoBack(canGoBack);
+		setCanGoForward(canGoForward);
+	}, []);
+
+	const navigate = useCallback(async (direction: "forward" | "backward") => {
+		if (direction === "backward") await historyBackForwardGo(false);
+		if (direction === "forward") await historyBackForwardGo(true);
 	}, []);
 
 	return (
 		<Wrapper leftPad={isFullscreen ? 0.7 : 5.3} fixedPad>
 			<Tooltip content={t("backward")}>
-				<OpacityIcon onClick={() => navigate("backward")} code="arrow-left" />
+				<OpacityIcon onClick={() => navigate("backward")} code="arrow-left" disabled={!canGoBack} />
 			</Tooltip>
 			<Tooltip content={t("forward")}>
-				<OpacityIcon onClick={() => navigate("forward")} code="arrow-right" />
+				<OpacityIcon onClick={() => navigate("forward")} code="arrow-right" disabled={!canGoForward} />
 			</Tooltip>
 		</Wrapper>
 	);

@@ -1,10 +1,12 @@
-import { Paragraph, BookmarkStart, BookmarkEnd } from "docx";
+import docx from "@dynamicImports/docx";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
-import { HStyles, HeadingStyles } from "@ext/wordExport/options/wordExportSettings";
+import { HStyles, getHeadingStyles } from "@ext/wordExport/options/wordExportSettings";
 import { ExportType } from "@ext/wordExport/ExportType";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
 
 export const headingWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
+	const { Paragraph, BookmarkStart, BookmarkEnd } = await docx();
+	const headingStyles = await getHeadingStyles();
 	const bookmarkId = 1;
 	const bookmarkName = generateBookmarkName(
 		wordRenderContext.order,
@@ -23,7 +25,7 @@ export const headingWordLayout: WordBlockChild = async ({ state, tag, addOptions
 		],
 		style:
 			wordRenderContext.exportType === ExportType.withTableOfContents
-				? HeadingStyles[tag.attributes.level]
+				? headingStyles[tag.attributes.level]
 				: HStyles[tag.attributes.level],
 	});
 

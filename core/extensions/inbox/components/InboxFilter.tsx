@@ -1,5 +1,4 @@
 import { TextSize } from "@components/Atoms/Button/Button";
-import Dropdown from "@components/Atoms/Dropdown";
 import Icon from "@components/Atoms/Icon";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
@@ -8,7 +7,9 @@ import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";
 import InboxService from "@ext/inbox/components/InboxService";
 import t from "@ext/localization/locale/translate";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
+import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
+import { Command, CommandItem, CommandEmpty, CommandList, CommandInput } from "@ui-kit/Command";
+import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 interface InboxFilterProps {
@@ -59,7 +60,8 @@ const useInboxUsers = (apiUrlCreator: ApiUrlCreator, curUserEmail: string, deps?
 };
 
 const InboxFilter = ({ show, apiUrlCreator, selectedAuthor, setSelectedAuthor }: InboxFilterProps) => {
-	const isStorageInitialized = useIsStorageInitialized();
+	const [isOpen, setIsOpen] = useState(false);
+	const isRepoOk = useIsRepoOk();
 	const pageData = PageDataContext.value;
 	const authors = useInboxUsers(apiUrlCreator, pageData.userInfo?.mail, [pageData.userInfo?.mail, show]);
 
@@ -85,27 +87,41 @@ const InboxFilter = ({ show, apiUrlCreator, selectedAuthor, setSelectedAuthor }:
 		return newAuthors;
 	}, [authors, pageData.userInfo]);
 
-	if (!show || !isStorageInitialized) return null;
-
-	const onItemClick = (item: string) => {
+	const onItemClick = useCallback((item: string) => {
 		setSelectedAuthor(item);
-	};
+		setIsOpen(false);
+	}, []);
+
+	if (!show || !isRepoOk) return null;
 
 	return (
-		<Dropdown
-			searchable
-			placeholder={t("inbox.search-placeholder")}
-			items={items}
-			item={selectedAuthor}
-			onItemClick={onItemClick}
-			noResults={t("inbox.no-user-with-this-name")}
-			trigger={
+		<Popover open={isOpen} onOpenChange={setIsOpen}>
+			<PopoverTrigger>
 				<Wrapper>
 					<ButtonLink textSize={TextSize.S} text={selectedAuthor} style={{ marginLeft: "-8px" }} />
 					<Icon code="chevron-down" />
 				</Wrapper>
-			}
-		/>
+			</PopoverTrigger>
+			<PopoverContent className="p-0">
+				<Command>
+					<CommandInput placeholder={t("inbox.search-placeholder")} />
+					<CommandList>
+						<CommandEmpty>{t("inbox.no-user-with-this-name")}</CommandEmpty>
+						{items.map((item) => (
+							<CommandItem
+								key={item}
+								value={item}
+								onSelect={() => onItemClick(item)}
+								className="justify-between"
+							>
+								{item}
+								{selectedAuthor === item && <Icon code="check" />}
+							</CommandItem>
+						))}
+					</CommandList>
+				</Command>
+			</PopoverContent>
+		</Popover>
 	);
 };
 

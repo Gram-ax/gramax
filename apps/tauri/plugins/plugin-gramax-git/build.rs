@@ -1,7 +1,8 @@
 const COMMANDS: &[&str] = &[
   "init_new",
   "clone",
-  "clone_cancel",
+  "cancel",
+  "recover",
   "file_history",
   "checkout",
   "fetch",
@@ -26,7 +27,7 @@ const COMMANDS: &[&str] = &[
   "restore",
   "get_parent",
   "get_content",
-  "graph_head_upstream_files",
+  "count_changed_files",
   "get_commit_info",
   "find_refs_by_globs",
   "is_init",
@@ -45,6 +46,7 @@ const COMMANDS: &[&str] = &[
   "gc",
   "get_all_cancel_tokens",
   "reset_repo",
+  "reset_file_lock",
   "format_merge_message",
 ];
 

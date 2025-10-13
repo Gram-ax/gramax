@@ -1,10 +1,11 @@
-import { ExternalHyperlink, InternalHyperlink } from "docx";
+import docx from "@dynamicImports/docx";
 import { TitleInfo, WordInlineChild } from "../../../../wordExport/options/WordTypes";
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
 import { escapeLinkForPatcher } from "@ext/wordExport/utils/escapeLinkForPatcher";
 
 export const linkWordLayout: WordInlineChild = async ({ state, tag, addOptions, wordRenderContext }) => {
+	const { ExternalHyperlink, InternalHyperlink } = await docx();
 	if (tag.attributes.resourcePath !== "") {
 		const { title, order, anchor } = extractNameAndAnchor(tag.attributes, wordRenderContext.titlesMap);
 		return title

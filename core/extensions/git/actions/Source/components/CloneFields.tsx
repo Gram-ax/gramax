@@ -1,100 +1,99 @@
-import { ItemContent, ListItem } from "@components/List/Item";
-import ListLayout, { ListLayoutElement } from "@components/List/ListLayout";
-import { getHttpsRepositoryUrl } from "@components/libs/utils";
-import GitDateSideBar from "@ext/git/actions/Branch/components/GitDateSideBar";
 import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
-import GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useRef, useState } from "react";
-import parseStorageUrl from "../../../../../logic/utils/parseStorageUrl";
 import GitSourceData from "../../../core/model/GitSourceData.schema";
-import GitStorageData from "../../../core/model/GitStorageData";
+import { LazySearchSelect, RenderOptionProps } from "@ui-kit/LazySearchSelect";
+import useWatch from "@core-ui/hooks/useWatch";
+import { ControllerRenderProps, FieldValues, UseFormReturn } from "react-hook-form";
+import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import Date from "@components/Atoms/Date";
+import { useEffect, useRef, useState } from "react";
+import GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
 
-interface CloneFieldsProps {
+interface CloneFieldsProps extends ControllerRenderProps<FieldValues, string> {
 	source: GitSourceData;
-	onChange: (data: GitStorageData) => void;
+	deps?: any[];
+	form: UseFormReturn<SelectFormSchemaType>;
+	repositoryFilter?: (repository: CloneListItem) => boolean;
 	gitPaginatedProjectList: GitPaginatedProjectList;
 }
 
-export interface CloneListItem {
+export type CloneListItem = {
 	path: string;
 	date: number;
-}
+};
+
+type Option = CloneListItem & {
+	label: string;
+	value: string;
+};
 
 const CloneFields = (props: CloneFieldsProps) => {
-	const { source, onChange, gitPaginatedProjectList } = props;
+	const { gitPaginatedProjectList, deps, repositoryFilter, form, ...rest } = props;
+	const value = form.watch("repository") as Option;
 
-	const [searchValue, setSearchValue] = useState("");
-	const [modelState, setModelState] = useState<GitRepsModelState>("notLoaded");
-	const [listItems, setListItems] = useState<ItemContent[]>([]);
+	const [options, setOptions] = useState<Option[]>([]);
+	const stateRef = useRef<GitRepsModelState>("notLoaded");
+	const modelRef = useRef<CloneListItem[]>([]);
 
-	const ref = useRef<ListLayoutElement>(null);
-
-	const showLoading = ((): boolean => {
-		switch (modelState) {
-			case "notLoaded":
-				return false;
-			case "loading": {
-				if (!listItems.length) return true;
-				return !!searchValue;
-			}
-			case "done":
-				return false;
-		}
-	})();
-
-	const setProjectWrapper = (value: string) => {
-		const urlWithDomain = source.domain + "/" + value;
-		const { group, name } = parseStorageUrl(urlWithDomain);
-		if (onChange) onChange({ source, group, name });
-	};
+	useWatch(() => {
+		form.resetField("repository");
+	}, [deps]);
 
 	useEffect(() => {
 		if (!gitPaginatedProjectList) return;
-		ref.current?.searchRef.inputRef.focus();
 		gitPaginatedProjectList.onPagesFetched((model, state) => {
-			setModelState(state);
-			const newListItems = model.map((m): ListItem => {
-				if (!m) return { element: null, loading: true };
-				return {
-					element: (
-						<GitDateSideBar
-							title={m.path}
-							data={{ lastCommitModify: m.date.toString() }}
-							dateWidth="wide"
-						/>
-					),
-					labelField: m.path,
-				};
-			});
-			setListItems(newListItems);
+			stateRef.current = state;
+			modelRef.current = model;
+
+			setOptions(
+				model
+					.filter(Boolean)
+					.filter((repository) => (repositoryFilter ? repositoryFilter(repository) : true))
+					.map((repository) => ({
+						value: repository.path,
+						label: repository.path,
+						...repository,
+					})),
+			);
 		});
-		void gitPaginatedProjectList.startLoading();
+		gitPaginatedProjectList.startLoading();
 	}, [gitPaginatedProjectList]);
 
 	return (
-		<div className="form-group field field-string row">
-			<label className="control-label">{t("repository")}</label>
-			<div className="input-lable">
-				<ListLayout
-					isLoadingData={showLoading}
-					ref={ref}
-					openByDefault={true}
-					placeholder={`${t("find")} ${t("repository2")}`}
-					item={""}
-					items={showLoading ? [] : listItems}
-					onItemClick={setProjectWrapper}
-					onSearchChange={(v) => {
-						setSearchValue(v);
-						const url = getHttpsRepositoryUrl(v);
-						const parsedStorageUrl = parseStorageUrl(url);
-						if (parsedStorageUrl.domain !== source.domain) return;
-						if (!parsedStorageUrl.group || !parsedStorageUrl.name) return setProjectWrapper(null);
-						setProjectWrapper(`${parsedStorageUrl.group}/${parsedStorageUrl.name} `);
-					}}
-				/>
-			</div>
-		</div>
+		<LazySearchSelect
+			{...rest}
+			options={options}
+			onChange={(value) => rest.onChange?.({ path: value, lastActivity: undefined })}
+			value={value?.value || null}
+			emptyMessage={
+				stateRef.current === "loading" ? (
+					<div className="flex items-center justify-center gap-2">
+						<SpinnerLoader width={15} height={15} />
+						{t("loading")}
+					</div>
+				) : undefined
+			}
+			placeholder={`${t("find")} ${t("repository2")}`}
+			renderOption={(data: RenderOptionProps<Option>) => {
+				const { option, type } = data;
+
+				if (type === "trigger") {
+					return <TextOverflowTooltip data-qa="qa-clickable">{option.label}</TextOverflowTooltip>;
+				}
+
+				return (
+					<div
+						className="flex items-center gap-2 justify-between w-full"
+						style={{ maxWidth: "288px", width: "288px" }}
+					>
+						<TextOverflowTooltip className="flex-1">{option.label}</TextOverflowTooltip>
+						<Date date={option.date} className="text-muted" />
+					</div>
+				);
+			}}
+		/>
 	);
 };
 

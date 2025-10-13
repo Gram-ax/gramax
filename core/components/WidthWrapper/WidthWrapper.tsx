@@ -19,7 +19,13 @@ const calculateContentWidth = (element: Element | null): number => {
 	return element.firstElementChild.clientWidth;
 };
 
-const WidthWrapper = ({ children, className }: { children: JSX.Element; className?: string }) => {
+interface WidthWrapperProps {
+	children: JSX.Element;
+	className?: string;
+	"data-wrapper"?: string;
+}
+
+const WidthWrapper = ({ children, className, "data-wrapper": dataWrapper }: WidthWrapperProps) => {
 	const [rightWidth, setRightWidth] = useState(0);
 	const [leftWidth, setLeftWidth] = useState(0);
 	const [height, setHeight] = useState(0);
@@ -112,8 +118,18 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 
 	return (
 		<div
-			className={classNames(className, { center: wrapperSize > 0 }, ["width-wrapper"])}
+			className={classNames(
+				className,
+				{
+					center: isShowMainLangContentPreview
+						? scrollContainerRef.current?.parentElement.clientWidth <
+						  scrollContainerRef.current?.firstElementChild?.firstElementChild?.clientWidth
+						: wrapperSize > 0,
+				},
+				["width-wrapper"],
+			)}
 			style={{ ...getWidth() }}
+			data-wrapper={dataWrapper}
 		>
 			<div ref={scrollContainerRef} className={"scrollableContent"} onScroll={setWidth}>
 				{children}
@@ -126,6 +142,7 @@ const WidthWrapper = ({ children, className }: { children: JSX.Element; classNam
 
 export default styled(WidthWrapper)`
 	position: relative;
+	z-index: 1;
 
 	${cssMedia.medium} {
 		&.center {

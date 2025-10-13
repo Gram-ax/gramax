@@ -105,6 +105,7 @@ const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 
 const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 	// const [isExpanded, setExpanded] = useState(true);
+	const href = useGetHref(item.url);
 
 	if (!item.title) return null;
 
@@ -122,11 +123,7 @@ const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 							style={{ fontWeight: 300, verticalAlign: "baseline" }}
 						/>
 					</div> */}
-				<a
-					className={`lvl-${level}`}
-					href={useGetHref(item.url)}
-					data-qa={`article-navigation-level-${level}-link`}
-				>
+				<a className={`lvl-${level}`} href={href} data-qa={`article-navigation-level-${level}-link`}>
 					{item.title}
 				</a>
 			</li>

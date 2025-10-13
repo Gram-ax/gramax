@@ -3,7 +3,11 @@ import EditStyles from "@ext/workspace/components/EditStyles";
 import LogoUploader, { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { Button } from "@ui-kit/Button";
 import { FormField } from "@ui-kit/Form";
-import { memo, useMemo } from "react";
+import { UseFormReturn } from "react-hook-form";
+import { memo, useCallback, useMemo } from "react";
+import { z } from "zod";
+import { createFormSchema } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 
 interface EditWorkspaceAssetsProps {
 	lightLogo?: string;
@@ -18,6 +22,7 @@ interface EditWorkspaceAssetsProps {
 	isLoadingDark?: boolean;
 	isLoadingLight?: boolean;
 	formProps: Record<string, string>;
+	form: UseFormReturn<z.infer<ReturnType<typeof createFormSchema>>>;
 }
 
 const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
@@ -34,6 +39,7 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 		isLoadingDark,
 		isLoadingLight,
 		formProps,
+		form,
 	} = props;
 
 	const defaultLightFileInfo = useMemo(() => {
@@ -48,31 +54,51 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 		return { name: "logo_for_dark.svg", url: darkLogo };
 	}, [isLoadingDark, darkLogo]);
 
+	const onChange = useCallback(
+		(name: "logo.light" | "logo.dark") => {
+			form.setError(name, { message: null });
+		},
+		[form],
+	);
+
+	const onError = useCallback(
+		(name: "logo.light" | "logo.dark", error: DefaultError) => {
+			form.setError(name, { message: error.message });
+		},
+		[form],
+	);
+
 	return (
 		<>
 			<FormField
-				name="lightLogo"
+				name="logo.light"
 				title={t("file-input.logo-light")}
 				description={t("file-input.both-themes-if-no-dark")}
-				control={() => (
+				control={({ fieldState }) => (
 					<LogoUploader
 						deleteResource={deleteLightLogo}
 						updateResource={updateLightLogo}
 						defaultFileInfo={defaultLightFileInfo}
+						onChange={() => onChange("logo.light")}
+						error={fieldState.error?.message}
+						onError={(error) => onError("logo.light", error)}
 					/>
 				)}
 				{...formProps}
 			/>
 
 			<FormField
-				name="darkLogo"
+				name="logo.dark"
 				title={t("file-input.logo-dark")}
 				description={t("file-input.dark-theme-only")}
-				control={() => (
+				control={({ fieldState }) => (
 					<LogoUploader
 						deleteResource={deleteDarkLogo}
 						updateResource={updateDarkLogo}
 						defaultFileInfo={defaultDarkFileInfo}
+						onChange={() => onChange("logo.dark")}
+						error={fieldState.error?.message}
+						onError={(error) => onError("logo.dark", error)}
 					/>
 				)}
 				{...formProps}

@@ -1,18 +1,21 @@
 import CardActions from "@components/HomePage/CardParts/CardActions";
-import CardCloneProgress from "@components/HomePage/CardParts/CardCloneProgress";
+import CardBroken from "@components/HomePage/CardParts/CardBroken";
 import CardError, { useCardError } from "@components/HomePage/CardParts/CardError";
+import CardCloneProgress from "@components/HomePage/CardParts/CloneProgress";
 import useGetCatalogTitleLogo from "@components/HomePage/Cards/useGetCatalogTitleLogo";
 import Url from "@core-ui/ApiServices/Types/Url";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import useCloneProgress from "@ext/git/actions/Clone/logic/useCloneProgress";
+import useRemoteProgress from "@ext/git/actions/Clone/logic/useRemoteProgress";
 import CatalogFetchNotification from "@ext/git/actions/Fetch/CatalogFetchNotification";
 import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "ics-ui-kit/components/card";
 import { ProgressBlockTemplate } from "ics-ui-kit/components/progress";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "../Atoms/Link";
+import { OverflowTooltip } from "@ui-kit/Tooltip";
+import { classNames } from "@components/libs/classNames";
 
 interface CardProps {
 	link: CatalogLink;
@@ -27,14 +30,18 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 
 	const { isNext, isStatic } = usePlatform();
 	const logo = useGetCatalogTitleLogo(link.name);
-	const { isCloning, percentage, progress, error } = useCloneProgress(
-		link.isCloning,
+	const { isCloning, progress, error, start } = useRemoteProgress(
 		link.name,
 		link.redirectOnClone,
 		link.cloneCancelDisabled,
 		setIsCancel,
 	);
+	const brokenCloneFailed = link.broken === "clone-failed";
 	const { onClick: onClickError } = useCardError(link, error);
+
+	useEffect(() => {
+		if (link.isCloning && !isCloning && !(progress?.type == "finish" || progress?.type == "error")) start();
+	}, [link, start, progress, isCloning]);
 
 	const renderLogo = !isCloning && !error && logo;
 	const pathname = link.lastVisited || link.pathname;
@@ -42,16 +49,15 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 		"border-status-error-secondary-border bg-secondary-bg hover:border-status-error-secondary-border hover:bg-status-error-bg";
 
 	if (isCancel && !isCloning && !error) return null;
+	const resolvedStyle = link.style ? { background: `var(--color-card-bg-${link.style})` } : undefined;
+	const isError = !!error || !!brokenCloneFailed;
 
 	const card = (
 		<ActionCard
 			onKeyDown={null}
-			className={`h-[154px] w-[268px] relative ${className} ${error ? errorCardClassName : ""}`}
-			style={
-				error
-					? { overflow: "visible" }
-					: { background: `var(--color-card-bg-${link.style})`, overflow: "visible" }
-			}
+			data-card="true"
+			className={classNames("h-[132px] relative", { [errorCardClassName]: isError }, [className])}
+			style={error ? undefined : resolvedStyle}
 			onClick={() => {
 				if (error) return onClickError();
 				if (isNext || isStatic || isCloning) return;
@@ -59,25 +65,31 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 				setIsLoading(true);
 			}}
 		>
-			<CardTitle>{link.title}</CardTitle>
-			<CardSubTitle>{link.description}</CardSubTitle>
-			{!isLoading && !isCloning && !error && <CardActions catalogLink={link} />}
-			<CardFooter className={renderLogo ? "mr-14" : ""}>
-				{isLoading && !isCancel && <ProgressBlockTemplate indeterminate size="sm" data-qa="loader" />}
-				{isCloning && (
-					<CardCloneProgress
-						name={name}
-						percentage={percentage}
-						progress={progress}
-						isCancel={isCancel}
-						setIsCancel={setIsCancel}
-					/>
+			<CardTitle>
+				<OverflowTooltip className="line-clamp-2">{link.title}</OverflowTooltip>
+			</CardTitle>
+			<CardSubTitle>
+				<OverflowTooltip className={classNames("line-clamp-2", { "pr-14": renderLogo }, [])}>
+					{link.description}
+				</OverflowTooltip>
+			</CardSubTitle>
+			{!isLoading && !isCloning && !isError && <CardActions catalogLink={link} />}
+			<CardFooter className={`flex ${renderLogo ? "mr-14" : ""}`}>
+				{!isLoading && !isError && <CatalogFetchNotification catalogLink={link} />}
+				{isLoading && !isCancel && (
+					<div className="w-full" style={{ marginBottom: "-4px" }}>
+						<ProgressBlockTemplate indeterminate size="sm" data-qa="loader" />
+					</div>
 				)}
+				{isCloning && (
+					<CardCloneProgress name={name} progress={progress} isCancel={isCancel} setIsCancel={setIsCancel} />
+				)}
+				{!isCloning && !error && brokenCloneFailed && <CardBroken link={link} />}
 				{error && <CardError link={link} error={error} />}
 			</CardFooter>
 
 			{renderLogo && (
-				<CardVisualBadge>
+				<CardVisualBadge style={{ bottom: "-2px", right: "-2px" }}>
 					<div
 						style={{
 							backgroundImage: `url(${logo})`,
@@ -86,11 +98,12 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 							backgroundSize: "contain",
 							backgroundPosition: "center center",
 							backgroundRepeat: "no-repeat",
+							marginLeft: "2px",
+							marginTop: "2px",
 						}}
 					/>
 				</CardVisualBadge>
 			)}
-			<CatalogFetchNotification catalogLink={link} />
 		</ActionCard>
 	);
 

@@ -9,7 +9,7 @@ const CORS_PROXY_KEY = 1;
 
 const self = global.self as typeof global.self & {
 	on_done: (callbackId: number, ptr: number) => void;
-	onCloneProgress: (data: any) => void;
+	onRemoteProgress: (data: any) => void;
 	wasm: any;
 	store: (key: number, value: string) => Promise<void>;
 	getStore: (key: number) => string;
@@ -56,8 +56,8 @@ self.on_done = (innerCallbackId: number, ptr: number) => {
 	});
 };
 
-self.onCloneProgress = (data) => {
-	self.postMessage({ type: "clone-progress", data });
+self.onRemoteProgress = (data) => {
+	self.postMessage({ type: "remote-progress", data });
 };
 
 const broadcast = new BroadcastChannel("pthreads-broadcast");
@@ -74,8 +74,8 @@ self.addEventListener("message", async (ev) => {
 		const id = await callGit(ev.data.command, ev.data.args);
 		callbacks[id] = { callbackId: ev.data.callbackId, command: ev.data.command, type: ev.data.type };
 
-		if (ev.data.command === "clone_cancel")
-			broadcast.postMessage({ type: "cancel-clone", id: ev.data.args.id, date: Date.now() });
+		if (ev.data.command === "cancel")
+			broadcast.postMessage({ type: "cancel", id: ev.data.args.id, date: Date.now() });
 		return;
 	}
 

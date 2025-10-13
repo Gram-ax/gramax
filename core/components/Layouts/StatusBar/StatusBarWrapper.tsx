@@ -13,6 +13,7 @@ interface StatusBarWrapperProps {
 	tooltipArrow?: boolean;
 	isShow?: boolean;
 	iconStrokeWidth?: string;
+	additionalStyles?: CSSProperties;
 }
 
 const Wrapper = styled.div<{ show?: boolean }>`
@@ -28,10 +29,11 @@ const Wrapper = styled.div<{ show?: boolean }>`
 `;
 
 const StatusBarWrapper = (props: StatusBarWrapperProps) => {
-	const { children, dataQa, onClick, iconCode, iconStyle, tooltipText, isShow, iconStrokeWidth } = props;
+	const { children, dataQa, onClick, iconCode, iconStyle, tooltipText, isShow, iconStrokeWidth, additionalStyles } =
+		props;
 
 	return (
-		<Wrapper data-qa={dataQa} show={isShow}>
+		<Wrapper data-qa={dataQa} show={isShow} style={additionalStyles}>
 			<StatusBarElement
 				onClick={onClick}
 				iconCode={iconCode}

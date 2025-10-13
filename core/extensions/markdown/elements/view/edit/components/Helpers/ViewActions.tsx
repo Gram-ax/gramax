@@ -3,16 +3,18 @@ import t from "@ext/localization/locale/translate";
 import AddFilter from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
 import Menu from "@ext/markdown/elements/view/edit/components/Helpers/Orderby/Menu";
 import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/ViewButton";
-import PropertyItem from "@ext/properties/components/PropertyItem";
-import { getInputType, isHasValue, Property, PropertyTypes, PropertyValue } from "@ext/properties/models";
+import { isHasValue, Property, PropertyTypes, PropertyValue } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/display";
+import { getInputComponent } from "@ext/properties/components/Helpers/CustomInputRenderer";
 import { Node } from "@tiptap/pm/model";
-import { MouseEvent, useCallback } from "react";
+import { useCallback } from "react";
+import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
+import Icon from "@components/Atoms/Icon";
 
 interface ViewActionsProps {
 	node: Node;
 	catalogProps: ClientCatalogProps;
-	updateDisplay: (e: MouseEvent, display: Display) => void;
+	updateDisplay: (display: Display) => void;
 	updateAttributes: (attributes: Record<string, any>) => void;
 }
 
@@ -42,7 +44,7 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 	return (
 		<>
 			<AddFilter
-				specialValues
+				ignoreEmpty
 				icon="filter"
 				tooltipText={t("properties.view.filter")}
 				attributeName="defs"
@@ -52,7 +54,6 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 				closeOnSelection={false}
 			/>
 			<AddFilter
-				allowAddAll
 				availableValues
 				icon="arrow-down-a-z"
 				tooltipText={t("properties.view.order-by")}
@@ -60,15 +61,18 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 				properties={node.attrs.orderby as PropertyValue[]}
 				updateAttributes={updateAttributes}
 				catalogProps={catalogProps}
-				oneValue={false}
+				mode="multiple"
 				allowSystemProperties={false}
 				closeOnSelection={false}
 				customPropertyMenu={(property, updateData) => {
-					if (isHasValue[property.type] && !getInputType[property.type])
+					if (isHasValue[property.type] && !getInputComponent(property.type))
 						return (
 							<Menu
 								name={property.name}
-								data={getDataFromAttribute("orderby", property.name)?.value || property.values}
+								data={
+									getDataFromAttribute("orderby", property.name)?.value.filter((v) => v !== "none") ||
+									property.values
+								}
 								defaultData={property.values}
 								updateData={updateData}
 							/>
@@ -84,7 +88,7 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 				catalogProps={catalogProps}
 				availableValues={false}
 				filter={propertyGroupFilter}
-				oneValue={node.attrs.display === Display.Kanban}
+				mode={node.attrs.display === Display.Kanban ? "single" : "multiple"}
 				allowSystemProperties={false}
 			/>
 			<AddFilter
@@ -98,27 +102,20 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 				allowSystemProperties={false}
 			/>
 			<ViewButton icon="eye" tooltipText={t("properties.view.displays.name")}>
-				<PropertyItem
-					id={Display.List}
-					name={t("properties.view.displays.list")}
-					startIcon="list"
-					endIcon={displayType === Display.List && "check"}
-					onClick={updateDisplay}
-				/>
-				<PropertyItem
-					id={Display.Kanban}
-					name={t("properties.view.displays.kanban")}
-					startIcon="square-kanban"
-					endIcon={displayType === Display.Kanban && "check"}
-					onClick={updateDisplay}
-				/>
-				<PropertyItem
-					id={Display.Table}
-					name={t("properties.view.displays.table")}
-					startIcon="table"
-					endIcon={displayType === Display.Table && "check"}
-					onClick={updateDisplay}
-				/>
+				<DropdownMenuRadioGroup value={displayType} onValueChange={updateDisplay}>
+					<DropdownMenuRadioItem value={Display.List}>
+						<Icon code="list" />
+						{t("properties.view.displays.list")}
+					</DropdownMenuRadioItem>
+					<DropdownMenuRadioItem value={Display.Kanban}>
+						<Icon code="square-kanban" />
+						{t("properties.view.displays.kanban")}
+					</DropdownMenuRadioItem>
+					<DropdownMenuRadioItem value={Display.Table}>
+						<Icon code="table" />
+						{t("properties.view.displays.table")}
+					</DropdownMenuRadioItem>
+				</DropdownMenuRadioGroup>
 			</ViewButton>
 		</>
 	);

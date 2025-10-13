@@ -4,8 +4,8 @@ import { Command } from "../../types/Command";
 const removeSourceData: Command<{ ctx: Context; sourceName: string }, void> = Command.create({
 	path: "storage/removeSourceData",
 
-	do({ ctx, sourceName }) {
-		this._app.rp.removeSource(ctx, sourceName);
+	async do({ ctx, sourceName }) {
+		await this._app.rp.removeSource(ctx, sourceName);
 	},
 
 	params(ctx, query) {

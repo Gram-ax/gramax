@@ -21,7 +21,7 @@ const Wrapper = styled.div`
 	z-index: var(--z-index-popover);
 	font-size: 14px;
 	width: 30em;
-	word-break: break-all;
+	word-break: break-word;
 `;
 
 const Comment = (props: CommentProps) => {

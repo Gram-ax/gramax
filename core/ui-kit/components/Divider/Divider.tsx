@@ -3,20 +3,29 @@
 // Даже ts-ignore не помог, пишет что файла не существует, хотя в дев запуске все норм, пришлось вот так сделать:
 
 import styled from "@emotion/styled";
+import { CSSProperties } from "react";
 
 export const Divider = () => {
 	return <div className="h-px w-full bg-secondary-border" />;
 };
 
-export const DescriptionDivider = styled(({ description, className }: { description: string; className?: string }) => {
+interface UnstyledDescriptionDividerProps {
+	description: string;
+	className?: string;
+	style?: CSSProperties;
+}
+
+export const UnstyledDescriptionDivider = ({ description, className, style }: UnstyledDescriptionDividerProps) => {
 	return (
-		<div className={className}>
+		<div className={className} style={style}>
 			<Divider />
 			<div className={"description"}>{description}</div>
 			<Divider />
 		</div>
 	);
-})`
+};
+
+export const DescriptionDivider = styled(UnstyledDescriptionDivider)`
 	width: 100%;
 	display: flex;
 	flex-direction: row;

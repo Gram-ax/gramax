@@ -6,4 +6,5 @@ export enum ResponseKind {
 	none = "none",
 	redirect = "redirect",
 	html = "html",
+	stream = "stream",
 }

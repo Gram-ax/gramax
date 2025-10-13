@@ -1,21 +1,24 @@
-import { useEffect, forwardRef, MutableRefObject, useRef, CSSProperties, useCallback } from "react";
+import {
+	useEffect,
+	forwardRef,
+	MutableRefObject,
+	useRef,
+	CSSProperties,
+	useCallback,
+	memo,
+	useLayoutEffect,
+	useState,
+} from "react";
 import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import styled from "@emotion/styled";
-import { keyframes } from "@emotion/react";
-import {
-	calculateTransform,
-	getCanMoves,
-	getClampedValues,
-	ZOOM_COUNT,
-} from "@components/Atoms/Image/modalImage/utils";
+import { getCanMoves, getClampedValues, ZOOM_COUNT } from "@components/Atoms/Image/modalImage/utils";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import { useTouchHandler } from "@core-ui/hooks/useTouchHandler";
+import { useDebounce } from "@core-ui/hooks/useDebounce";
 
 interface ImageProps {
 	id: string;
-	isClosing: boolean;
 	objects: ImageObject[];
-	startPos: MutableRefObject<DOMRect>;
 	zoomImage: (count: number, mouseX?: number, mouseY?: number) => void;
 	src?: string;
 	svg?: string;
@@ -24,9 +27,26 @@ interface ImageProps {
 	html?: string | TrustedHTML;
 }
 
+type Rect = {
+	left: number;
+	top: number;
+	scale: number;
+};
+
 const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageElement>) => {
-	const { id, zoomImage, isClosing, className, src, svg, objects = [], modalStyle, startPos } = props;
+	const { id, zoomImage, className, src, svg, objects = [], modalStyle } = props;
 	const imgRef = useRef<HTMLImageElement>();
+	const [rect, setRect] = useState<Rect>();
+
+	const debounceUpdateRect = useDebounce(() => {
+		const target = imgRef.current.parentElement;
+		if (!target) return;
+		setRect({
+			left: parseFloat(target.style.left) || 0,
+			top: parseFloat(target.style.top) || 0,
+			scale: parseFloat(target.style.scale),
+		});
+	}, 100);
 
 	const onWheel = (event: WheelEvent) => {
 		const isCtrl = event.ctrlKey || event.metaKey;
@@ -37,6 +57,9 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		if (!isCtrl) return moveImage(event);
 		zoomImage(event.deltaY, event.clientX, event.clientY);
 		target.style.removeProperty("transition");
+
+		if (debounceUpdateRect.timeoutIdRef.current) debounceUpdateRect.cancel();
+		debounceUpdateRect.start();
 	};
 
 	const moveImage = useCallback((event: WheelEvent) => {
@@ -58,6 +81,9 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		if (left && right) target.style.left = clampedLeft + "px";
 		if (top && bottom) target.style.top = clampedTop + "px";
 		target.style.removeProperty("transition");
+
+		if (debounceUpdateRect.timeoutIdRef.current) debounceUpdateRect.cancel();
+		debounceUpdateRect.start();
 	}, []);
 
 	const onKeyDown = (event: KeyboardEvent) => {
@@ -99,6 +125,9 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		const target = ref.current;
 		document.body.style.removeProperty("cursor");
 		target.style.removeProperty("transition");
+
+		if (debounceUpdateRect.timeoutIdRef.current) debounceUpdateRect.cancel();
+		debounceUpdateRect.start();
 	}, []);
 
 	const { onPointerDown, onTouchStart, onMouseDown } = useTouchHandler({
@@ -117,21 +146,14 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		};
 	}, [src, svg]);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const maxScale = () => {
 			const container = ref.current;
 			const view = container.firstElementChild as HTMLElement;
-			const viewRect = view.getBoundingClientRect();
 			const windowWidth = window.innerWidth;
 			const windowHeight = window.innerHeight;
 			const maxViewWidth = windowWidth * 0.8;
 			const maxViewHeight = windowHeight * 0.8;
-
-			if (view.nodeName !== "DIV" && viewRect.width < maxViewWidth && viewRect.height < maxViewHeight) {
-				container.style.scale = "1";
-				container.setAttribute("data-scale", "1");
-				return;
-			}
 
 			const scaleWidth = maxViewWidth / view.offsetWidth;
 			const scaleHeight = maxViewHeight / view.offsetHeight;
@@ -139,6 +161,12 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 
 			container.style.scale = `${newScale}`;
 			container.setAttribute("data-scale", `${newScale}`);
+
+			setRect({
+				left: parseFloat(container.style.left) || 0,
+				top: parseFloat(container.style.top) || 0,
+				scale: parseFloat(container.style.scale),
+			});
 		};
 
 		const element = document.createElement(svg ? "div" : "img");
@@ -149,89 +177,47 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 			(element as HTMLDivElement).innerHTML = svg;
 			maxScale();
 		}
+
+		element.remove();
 	}, [src, svg]);
 
-	const moveInImage = () => keyframes`
-		0% {
-			transform: ${calculateTransform(startPos.current)};
-			width: ${startPos.current.width}px;
-			height: ${startPos.current.height}px;
-		}
-		100% {
-			transform: scale(1);
-			width: ${startPos.current.width}px;
-			height: ${startPos.current.height}px;
-		}
-	`;
-
-	const moveOutImage = () => keyframes`
-		0% {
-			transform: scale(${parseFloat(ref.current?.style.scale || "1")});
-			scale: 1;
-			width: ${startPos.current.width}px;
-			height: ${startPos.current.height}px;
-		}
-		100% {
-			transform: ${calculateTransform(startPos.current)};
-			width: ${startPos.current.width}px;
-			height: ${startPos.current.height}px;
-		}
-	`;
-
-	const AnimatedDiv = styled.div`
-		animation: ${() => (!isClosing ? moveInImage() : moveOutImage())} 200ms forwards;
-		position: relative;
-		width: fit-content;
-		height: fit-content;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	`;
-
 	return (
-		<div key={src} className={className}>
-			<AnimatedDiv data-close="true">
-				<div
-					ref={ref}
-					onPointerDown={onPointerDown}
-					onTouchStart={onTouchStart}
-					onMouseDown={onMouseDown}
-					style={{
-						...modalStyle,
-						scale: 1,
-					}}
-					className="image-container"
-				>
-					{svg ? (
-						<div ref={imgRef} id={id} draggable={false} dangerouslySetInnerHTML={{ __html: svg }} />
-					) : (
-						<img ref={imgRef} id={id} draggable="false" src={src} alt="" />
-					)}
+		<div className={className}>
+			<div
+				ref={ref}
+				onPointerDown={onPointerDown}
+				onTouchStart={onTouchStart}
+				onMouseDown={onMouseDown}
+				style={{
+					left: rect?.left,
+					top: rect?.top,
+					scale: rect?.scale || 1,
+					...modalStyle,
+				}}
+				className="image-container"
+			>
+				{svg ? (
+					<div ref={imgRef} id={id} draggable={false} dangerouslySetInnerHTML={{ __html: svg }} />
+				) : (
+					<img key={id} ref={imgRef} id={id} draggable="false" src={src} alt="" />
+				)}
 
-					<div className="object-container">
-						<ObjectRenderer imageRef={imgRef} objects={objects} editable={false} parentRef={ref} />
-					</div>
+				<div className="object-container">
+					<ObjectRenderer imageRef={imgRef} objects={objects} editable={false} parentRef={ref} />
 				</div>
-			</AnimatedDiv>
+			</div>
 		</div>
 	);
 });
 
-export default styled(MediaRenderer)`
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	z-index: var(--z-index-article-modal);
-	user-select: none;
-
+export default styled(memo(MediaRenderer))`
 	.image-container {
 		display: flex;
 		flex-direction: column;
 		position: relative;
 		max-width: 90vw;
 		max-height: 90vh;
-		transition: left 0.2s, top 0.2s, scale 0.2s;
+		transition: left 0.2s, top 0.2s;
 		margin: unset;
 	}
 

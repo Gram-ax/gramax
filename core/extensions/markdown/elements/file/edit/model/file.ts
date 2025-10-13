@@ -63,7 +63,9 @@ export const File = Mark.create({
 	},
 
 	addProseMirrorPlugins() {
-		return [editTooltip(this.editor, this.options.apiUrlCreator, this.options.pageDataContext)];
+		return [
+			editTooltip(this.editor, this.options.apiUrlCreator, this.options.pageDataContext, this.options.platform),
+		];
 	},
 
 	addKeyboardShortcuts() {

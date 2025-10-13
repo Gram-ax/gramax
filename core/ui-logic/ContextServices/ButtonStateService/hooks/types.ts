@@ -4,8 +4,9 @@ import { Level } from "@ext/markdown/elements/heading/edit/model/heading";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import { Selection } from "@tiptap/pm/state";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import DiagramType from "@core/components/Diagram/DiagramType";
 
-export type Attrs = { level: Level; notFirstInList?: boolean; type?: Exclude<NoteType, "hotfixes"> };
+export type Attrs = { level: Level; notFirstInList?: boolean; type?: Exclude<NoteType, "hotfixes">; diagramName?: DiagramType };
 
 export type NodeType =
 	| "html"

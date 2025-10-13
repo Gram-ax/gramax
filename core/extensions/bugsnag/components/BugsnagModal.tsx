@@ -1,10 +1,9 @@
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import t from "@ext/localization/locale/translate";
 import { Textarea } from "@ui-kit/Textarea";
 import { CheckboxField } from "@ui-kit/Checkbox";
@@ -22,8 +21,8 @@ const Wrapper = styled.div`
 	gap: 0.5rem;
 `;
 
-const NewBugsnagModal = ({ itemLogicPath }: { itemLogicPath: string }) => {
-	const [open, setOpen] = useState(false);
+const BugsnagModal = ({ itemLogicPath, onClose }: { itemLogicPath: string; onClose: () => void }) => {
+	const [open, setOpen] = useState(true);
 
 	const { onSubmit, getTechDetails } = useBugsnag(itemLogicPath);
 
@@ -37,10 +36,6 @@ const NewBugsnagModal = ({ itemLogicPath }: { itemLogicPath: string }) => {
 		mode: "onChange",
 	});
 
-	const openModal = () => {
-		setOpen(true);
-	};
-
 	const formSubmit = (e) => {
 		form.handleSubmit((data) => {
 			onSubmit({
@@ -50,13 +45,15 @@ const NewBugsnagModal = ({ itemLogicPath }: { itemLogicPath: string }) => {
 		})(e);
 	};
 
+	const onOpenChange = (open: boolean) => {
+		setOpen(open);
+		if (!open) onClose?.();
+	};
+
 	return (
-		<Modal open={open} onOpenChange={setOpen}>
-			<ModalTrigger asChild>
-				<ButtonLink iconCode="bug" text={t("bug-report.name")} onClick={openModal} />
-			</ModalTrigger>
+		<Modal open={open} onOpenChange={onOpenChange}>
 			<ModalContent data-modal-root>
-				<ModalErrorHandler onError={() => {}} onClose={() => setOpen(false)}>
+				<ModalErrorHandler onError={() => {}} onClose={() => onOpenChange(false)}>
 					<Form asChild {...form}>
 						<form className="contents ui-kit" onSubmit={formSubmit}>
 							<FormHeader
@@ -105,4 +102,4 @@ const NewBugsnagModal = ({ itemLogicPath }: { itemLogicPath: string }) => {
 	);
 };
 
-export default NewBugsnagModal;
+export default BugsnagModal;

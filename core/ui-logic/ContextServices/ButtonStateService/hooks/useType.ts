@@ -15,6 +15,7 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 	let { $anchor } = selection;
 	let headingLevel = null;
 	let noteType = null;
+	let diagramName = null;
 
 	const nodeStack = [];
 	let ignoreList = false;
@@ -40,6 +41,10 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 			nodeStack.push("note");
 			noteType = node.attrs?.type;
 		},
+		diagrams: (node) => {
+			nodeStack.push("diagrams");
+			diagramName = node.attrs?.diagramName;
+		},
 	};
 
 	while ($anchor) {
@@ -56,7 +61,12 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 
 	if (!nodeStack.some((nodeName) => ["paragraph", "heading", "code_block"].includes(nodeName))) {
 		const cursor = state.selection.$from;
-		nodeStack.unshift(cursor.nodeAfter?.type?.name || cursor.nodeBefore?.type?.name);
+		const node = cursor.nodeAfter || cursor.nodeBefore;
+		const name = node?.type?.name;
+		if (name) {
+			if (addRules[name]) addRules[name](node);
+			nodeStack.unshift(name);
+		}
 	}
 
 	if (!empty) {
@@ -79,6 +89,7 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 			(elem) => !["doc", "text", "listItem", "taskItem", "tableHeader", "tableCell", "tableRow"].includes(elem),
 		),
 		headingLevel,
+		diagramName,
 	};
 };
 
@@ -86,14 +97,14 @@ const useType = (editor: Editor) => {
 	const mirror = useRef<State>({
 		actions: [],
 		marks: [],
-		attrs: { level: null, notFirstInList: false },
+		attrs: { level: null, notFirstInList: false, diagramName: null },
 		selection: null,
 	});
 
 	const [state, setState] = useState<State>({
 		actions: [],
 		marks: [],
-		attrs: { level: null, notFirstInList: false },
+		attrs: { level: null, notFirstInList: false, diagramName: null },
 		selection: null,
 	});
 
@@ -126,9 +137,10 @@ const useType = (editor: Editor) => {
 	};
 
 	useWatch(() => {
-		const { actions, headingLevel, noteType } = getNodeNameFromCursor(editor.state);
+		const { actions, headingLevel, noteType, diagramName } = getNodeNameFromCursor(editor.state);
 		if (headingLevel) mirror.current.attrs.level = headingLevel;
 		if (noteType) mirror.current.attrs.type = noteType;
+		if (diagramName) mirror.current.attrs.diagramName = diagramName;
 
 		const marks = getMarksAction();
 
@@ -136,7 +148,8 @@ const useType = (editor: Editor) => {
 			state.marks.toString() !== marks.toString() ||
 			state.attrs?.level !== mirror.current.attrs?.level ||
 			state.attrs.notFirstInList !== mirror.current.attrs.notFirstInList ||
-			state.attrs.type !== mirror.current.attrs.type;
+			state.attrs.type !== mirror.current.attrs.type ||
+			state.attrs.diagramName !== mirror.current.attrs.diagramName;
 
 		if (actions.toString() !== mirror.current.actions.toString() || deepDifference) {
 			mirror.current.actions = [...actions];
@@ -149,6 +162,7 @@ const useType = (editor: Editor) => {
 					level: mirror.current.attrs?.level,
 					notFirstInList: mirror.current.attrs?.notFirstInList,
 					type: mirror.current.attrs?.type,
+					diagramName: mirror.current.attrs?.diagramName,
 				},
 				selection: editor.state.selection,
 			});

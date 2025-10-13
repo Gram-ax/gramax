@@ -1,4 +1,4 @@
-import { IParagraphOptions, IRunPropertiesOptions, ParagraphChild } from "docx";
+import type { IParagraphOptions, IRunPropertiesOptions, ParagraphChild } from "docx";
 import { FileChild } from "docx/build/file/file-child";
 import ParserContext from "../../markdown/core/Parser/ParserContext/ParserContext";
 import { RenderableTreeNode, Tag } from "../../markdown/core/render/logic/Markdoc";

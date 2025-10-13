@@ -6,7 +6,6 @@ import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import GitStorageData from "@ext/git/core/model/GitStorageData";
 import StorageData from "@ext/storage/models/StorageData";
-import Branch from "@ext/VersionControl/model/branch/Branch";
 import assert from "assert";
 
 export default class GitVerseSourceAPI extends GitSourceApi {
@@ -94,7 +93,7 @@ export default class GitVerseSourceAPI extends GitSourceApi {
 	}
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	isBranchContainsFile(filename: string, data: GitStorageData, branch: Branch): Promise<boolean> {
+	isBranchContainsFile(filename: string, data: GitStorageData, branch: string): Promise<boolean> {
 		throw new Error("Method not implemented in GitVerse.");
 	}
 

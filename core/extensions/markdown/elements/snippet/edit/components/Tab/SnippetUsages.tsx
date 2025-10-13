@@ -1,49 +1,38 @@
 import GoToArticle from "@components/Actions/GoToArticle";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { MouseEvent, useRef, useState } from "react";
-import { Props } from "tippy.js";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+} from "@ui-kit/Dropdown";
+import { useState } from "react";
 
-interface SnippetUsagesProps {
+export interface SnippetUsagesItemProps {
 	pathname: string;
 	title: string;
 }
 
-interface ComponentProps {
+interface SnippetUsagesProps {
 	snippetId: string;
 	trigger: JSX.Element;
-	openTrigger?: string;
-	placement?: Props["placement"];
-	offset?: Props["offset"];
+	isSubmenu?: boolean;
 }
 
-const Loader = styled.div`
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	width: 8em !important;
-`;
-
-const SnippetUsages = ({
-	snippetId,
-	trigger,
-	openTrigger = "click",
-	placement = "right-end",
-	offset = [0, -5],
-}: ComponentProps) => {
-	const [list, setList] = useState<SnippetUsagesProps[]>([]);
+const SnippetUsages = ({ snippetId, trigger, isSubmenu }: SnippetUsagesProps) => {
+	const [list, setList] = useState<SnippetUsagesItemProps[]>([]);
 	const [isApiRequest, setIsApiRequest] = useState(false);
-
-	const ref = useRef<HTMLDivElement>(null);
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const fetchTemplateItems = async () => {
+	const fetchSnippetUsages = async () => {
 		setIsApiRequest(true);
 		const url = apiUrlCreator.getArticlesWithSnippet(snippetId);
 		const res = await FetchService.fetch(url);
@@ -55,61 +44,42 @@ const SnippetUsages = ({
 		setIsApiRequest(false);
 	};
 
-	const onClick = (e: MouseEvent) => {
-		e.stopPropagation();
-		e.preventDefault();
+	const onOpenChange = (value: boolean) => {
+		if (value) void fetchSnippetUsages();
+		else setList([]);
 	};
 
-	const onLinkClick = (e: MouseEvent) => {
-		e.stopPropagation();
-	};
+	const onClick = () => SnippetService.closeItem();
+
+	const Menu = isSubmenu ? DropdownMenuSub : DropdownMenu;
+	const MenuContent = isSubmenu ? DropdownMenuSubContent : DropdownMenuContent;
+	const MenuTrigger = isSubmenu ? DropdownMenuSubTrigger : DropdownMenuTrigger;
 
 	return (
-		<PopupMenuLayout
-			offset={offset}
-			appendTo={() => ref.current}
-			placement={placement}
-			className="wrapper"
-			openTrigger={openTrigger}
-			onOpen={() => {
-				fetchTemplateItems();
-			}}
-			trigger={
-				<span ref={ref} onClick={onClick}>
-					{trigger}
-				</span>
-			}
-		>
-			{isApiRequest ? (
-				<>
-					{[...Array(3)].map((_, index) => (
-						<Loader key={index}>
-							<ButtonLink text={t("loading")} />
-							<SpinnerLoader width={14} height={14} />
-						</Loader>
-					))}
-				</>
-			) : (
-				<>
-					{list.map((item, idx) => (
-						<GoToArticle
-							key={idx}
-							href={item.pathname}
-							trigger={
-								<div
-									className="popup-button"
-									style={{ color: "var(--color-link)", fontSize: "0.75rem" }}
-									onClick={onLinkClick}
-								>
-									{item.title}
-								</div>
-							}
-						/>
-					))}
-					{!list.length && <ButtonLink onClick={onClick} text={t("snippet-no-usages")} />}
-				</>
-			)}
-		</PopupMenuLayout>
+		<Menu onOpenChange={onOpenChange}>
+			<MenuTrigger asChild={!isSubmenu}>{trigger}</MenuTrigger>
+			<MenuContent>
+				{isApiRequest ? (
+					<>
+						{[
+							<DropdownMenuItem key={0}>
+								<SpinnerLoader width={16} height={16} />
+								{t("loading")}
+							</DropdownMenuItem>,
+						]}
+					</>
+				) : (
+					<>
+						{list.map((item, idx) => (
+							<DropdownMenuItem key={idx}>
+								<GoToArticle href={item.pathname} trigger={item.title} onClick={onClick} />
+							</DropdownMenuItem>
+						))}
+						{!list.length && <DropdownMenuItem disabled>{t("snippet-no-usages")}</DropdownMenuItem>}
+					</>
+				)}
+			</MenuContent>
+		</Menu>
 	);
 };
 

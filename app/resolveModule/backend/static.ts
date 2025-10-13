@@ -1,4 +1,6 @@
-export const getStaticModules = async () => {
+import { DynamicModules } from "@app/resolveModule/backend";
+
+export const getStaticModules = async (): Promise<DynamicModules> => {
 	const [
 		{ default: BrowserCookie },
 		{ default: BrowserSvgToPng },
@@ -23,6 +25,7 @@ export const getStaticModules = async () => {
 		getImageFromDom: BrowserGetImageFromDom,
 		moveToTrash: () => Promise.resolve(),
 		getDOMParser: () => new DOMParser(),
+		getXMLSerializer: () => new XMLSerializer(),
 		setSessionData: () => Promise.resolve(),
 		pdfLoadFont: browserLoadFont,
 		getImageByPath: StaticGetImageByPath,

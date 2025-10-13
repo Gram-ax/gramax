@@ -18,11 +18,18 @@ mod settings;
 mod shared;
 mod updater;
 
+use std::path::Path;
+
+use anyhow::Context;
 use platform::*;
 
 use shared::http_server::start_ping_server;
 use shared::AppBuilder;
 use tauri::*;
+
+use crate::error::ShowError;
+
+const MAX_OPEN_FILES: u64 = 8192;
 
 #[macro_export]
 macro_rules! include_script {
@@ -50,6 +57,12 @@ fn set_locale() {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   crate::error::setup_bugsnag_and_panic_hook(option_env!("BUGSNAG_API_KEY").unwrap_or_default().to_string());
+
+  #[cfg(target_family = "unix")]
+  if let Err(e) = rlimit::setrlimit(rlimit::Resource::NOFILE, MAX_OPEN_FILES, MAX_OPEN_FILES) {
+    error!("failed to set rlimit: {e}");
+  }
+
   set_locale();
 
   let builder = Builder::default().init().attach_commands().attach_plugins();
@@ -118,6 +131,25 @@ impl<R: Runtime> AppBuilder for Builder<R> {
   fn attach_commands(self) -> Self {
     commands::generate_handler(self)
   }
+}
+
+pub fn open_path<S: AsRef<Path>>(uri: S) -> Result<()> {
+  _ = uri.as_ref().metadata()?;
+
+  #[cfg(not(target_os = "windows"))]
+  open::that_detached(uri.as_ref())
+    .or_show_with_message(&t!("etc.error.open-path", path = uri.as_ref().display()))?;
+
+  #[cfg(target_os = "windows")]
+  open::that(uri.as_ref()).or_show_with_message(&t!("etc.error.open-path", path = uri.as_ref().display()))?;
+
+  Ok(())
+}
+
+pub fn open_url<S: AsRef<str>>(uri: S) -> Result<()> {
+  let url = Url::parse(uri.as_ref()).context("can not open invalid url in web")?;
+  open::that(url.to_string()).or_show_with_message(&t!("etc.error.open-url", url = uri.as_ref()))?;
+  Ok(())
 }
 
 fn ensure_required_paths_exist<R: Runtime>(app: &AppHandle<R>) {

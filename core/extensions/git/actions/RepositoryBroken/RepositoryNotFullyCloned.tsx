@@ -1,0 +1,120 @@
+import Icon from "@components/Atoms/Icon";
+import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
+import { useRouter } from "@core/Api/useRouter";
+import styled from "@emotion/styled";
+import { makeGitShareData } from "@ext/git/actions/Clone/logic/makeGitShareData";
+import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
+import { ErrorMessage, TechnicalDetails } from "@ext/git/actions/RepositoryBroken/TechnicalDetails";
+import getUrlFromShareData from "@ext/git/core/GitPathnameHandler/clone/logic/getUrlFromShareData";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
+import t from "@ext/localization/locale/translate";
+import useStorage from "@ext/storage/logic/utils/useStorage";
+import { AlertConfirm } from "@ui-kit/AlertDialog/AlertConfirm";
+import { Button } from "@ui-kit/Button";
+import { Modal, ModalBody, ModalContent, ModalTitle, ModalTrigger } from "@ui-kit/Modal";
+import { useMemo, useState } from "react";
+
+export type RepositoryNotFullyClonedProps = {
+	trigger: JSX.Element;
+	error: Error;
+};
+
+const FooterWrapper = styled.div`
+	display: flex;
+	gap: 0.5rem;
+	padding: 0rem 1rem 1rem 3rem;
+`;
+
+export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyClonedProps) => {
+	const router = useRouter();
+	const catalogProps = CatalogPropsService.value;
+
+	const {
+		call: removeCatalog,
+		status: removeStatus,
+		error: removeCatalogError,
+	} = useApi({
+		url: (api) => api.removeCatalog(),
+		onDone: () => {
+			setOpen(false);
+			void router.pushPath("/");
+		},
+	});
+
+	const source = useStorage();
+
+	const url = useMemo(() => getUrlFromShareData(makeGitShareData(catalogProps.link.pathname)), [catalogProps]);
+
+	const { startClone } = useCloneRepo({
+		storageData: {
+			name: catalogProps.name,
+			url,
+			source,
+		} as GitStorageData,
+		deleteIfExists: true,
+		skipCheck: true,
+		redirectOnClone: catalogProps.link.pathname,
+		onStart: () => {
+			setOpen(false);
+			void router.pushPath("/");
+		},
+	});
+
+	const isBusy = removeStatus === RequestStatus.Loading;
+
+	const [open, setOpen] = useState(false);
+
+	return (
+		<Modal open={open} onOpenChange={setOpen}>
+			<ModalTrigger asChild>{trigger}</ModalTrigger>
+			<ModalContent>
+				<ModalBody className="flex flex-row items-start gap-4 lg:py-6">
+					<Icon code="circle-alert" className="text-status-error" size="24px" />
+					<div className="space-y-2">
+						<ModalTitle className="text-lg">{t("git.error.broken.clone-failed.title")}</ModalTitle>
+						<p style={{ paddingBottom: "1rem" }}>{t("git.error.broken.clone-failed.body")}</p>
+						{removeCatalogError && (
+							<ErrorMessage className="text-status-error">
+								<pre>{removeCatalogError?.message}</pre>
+							</ErrorMessage>
+						)}
+					</div>
+				</ModalBody>
+				<FooterWrapper>
+					<TechnicalDetails error={error}>
+						<Button variant="link" size="xl" className="p-0 h-auto underline">
+							{t("git.error.broken.clone-failed.technical-details")}
+						</Button>
+					</TechnicalDetails>
+					<div className="ml-auto gap-2 flex">
+						<AlertConfirm
+							title={t("git.error.broken.clone-failed.title")}
+							description={t("git.error.broken.clone-failed.delete.description")}
+							onConfirm={removeCatalog}
+						>
+							<Button
+								iconClassName={isBusy ? "animate-spin" : ""}
+								startIcon={isBusy ? "loader-circle" : null}
+								disabled={isBusy}
+								className="ml-auto text-sm"
+								variant="outline"
+							>
+								{t("git.error.broken.clone-failed.delete.button")}
+							</Button>
+						</AlertConfirm>
+						<AlertConfirm
+							title={t("git.error.broken.clone-failed.clone.title")}
+							description={t("git.error.broken.clone-failed.clone.description")}
+							onConfirm={startClone}
+						>
+							<Button variant="primary" className="text-sm">
+								{t("git.error.broken.clone-failed.clone.button")}
+							</Button>
+						</AlertConfirm>
+					</div>
+				</FooterWrapper>
+			</ModalContent>
+		</Modal>
+	);
+};

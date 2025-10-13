@@ -44,20 +44,5 @@ impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {
   }
 }
 
-pub const ALLOWED_DOMAINS: [&str; 15] = [
-  "tauri.localhost",
-  "vigo.one",
-  "api.vigo.one",
-  "gramax",
-  "localhost",
-  "app.gram.ax",
-  "dev.gram.ax",
-  "youtube.com",
-  "www.youtube.com",
-  "youtu.be",
-  "www.youtu.be",
-  "drive.google.com",
-  "mega.nz",
-  "dropbox.com",
-  "rutube.ru",
-];
+pub const ALLOWED_DOMAINS: [&str; 5] =
+  ["tauri.localhost", "gramax", "localhost", "app.gram.ax", "dev.gram.ax"];

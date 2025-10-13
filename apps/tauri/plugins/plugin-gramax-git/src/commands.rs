@@ -10,6 +10,7 @@ use gramaxgit::commands::Result;
 
 use std::path::Path;
 use std::path::PathBuf;
+use std::rc::Rc;
 
 #[command]
 pub(crate) fn is_init(repo_path: &Path) -> Result<bool> {
@@ -42,8 +43,13 @@ pub(crate) fn default_branch(repo_path: &Path, creds: AccessTokenCreds) -> Resul
 }
 
 #[command(async)]
-pub(crate) fn fetch(repo_path: &Path, creds: AccessTokenCreds, force: bool, lock: bool) -> Result<()> {
-  git::fetch(repo_path, creds, force, lock)
+pub(crate) fn fetch(
+  repo_path: &Path,
+  creds: AccessTokenCreds,
+  opts: RemoteOptions,
+  lock: bool,
+) -> Result<()> {
+  git::fetch(repo_path, creds, opts, lock)
 }
 
 #[command(async)]
@@ -107,17 +113,29 @@ pub(crate) fn clone<R: Runtime>(
   creds: AccessTokenCreds,
   opts: CloneOptions,
 ) -> Result<()> {
-  let handle = window.app_handle().clone();
-  let cancel_token = opts.cancel_token;
-  git::clone(creds, opts, Box::new(move |chunk| _ = window.emit("clone-progress", chunk)))?;
-  let _ = handle.emit("clone-progress", CloneProgress::Finish { id: cancel_token, is_cancelled: false });
+  git::clone(creds, opts, Rc::new(move |chunk| _ = window.emit("remote-progress", chunk)))?;
+  Ok(())
+}
 
+#[command(async)]
+pub(crate) fn recover<R: Runtime>(
+  window: Window<R>,
+  repo_path: &Path,
+  creds: AccessTokenCreds,
+  cancel_token: usize,
+) -> Result<()> {
+  git::recover(
+    repo_path,
+    creds,
+    cancel_token.into(),
+    Rc::new(move |chunk| _ = window.emit("remote-progress", chunk)),
+  )?;
   Ok(())
 }
 
 #[command]
-pub(crate) fn clone_cancel(id: usize) -> Result<bool> {
-  git::clone_cancel(id)
+pub(crate) fn cancel(id: usize) -> Result<bool> {
+  git::cancel(id)
 }
 
 #[command(async)]
@@ -141,11 +159,8 @@ pub(crate) fn commit(repo_path: &Path, creds: AccessTokenCreds, opts: CommitOpti
 }
 
 #[command(async)]
-pub(crate) fn graph_head_upstream_files(
-  repo_path: &Path,
-  search_in: &Path,
-) -> Result<UpstreamCountChangedFiles> {
-  git::graph_head_upstream_files(Path::new(&repo_path), search_in)
+pub(crate) fn count_changed_files(repo_path: &Path, search_in: &Path) -> Result<UpstreamCountChangedFiles> {
+  git::count_changed_files(Path::new(&repo_path), search_in)
 }
 
 #[command(async)]
@@ -261,8 +276,20 @@ pub(crate) fn get_all_cancel_tokens() -> Result<Vec<usize>> {
 }
 
 #[command]
+pub(crate) fn healthcheck(repo_path: &Path) -> Result<()> {
+  git::healthcheck(repo_path)?;
+  Ok(())
+}
+
+#[command]
 pub(crate) fn reset_repo() -> Result<bool> {
   git::reset_repo();
+  Ok(true)
+}
+
+#[command]
+pub(crate) fn reset_file_lock(repo_path: &Path) -> Result<bool> {
+  git::reset_file_lock(repo_path);
   Ok(true)
 }
 

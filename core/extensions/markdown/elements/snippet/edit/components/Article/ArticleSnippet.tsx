@@ -28,10 +28,9 @@ const ArticleSnippet = ({ item }: { item: ProviderItemProps }) => {
 		SnippetService.setItems(Array.from(snippets.values()));
 	};
 
-	const onCloseClick = () => {
+	const onCloseClick = async () => {
+		await SnippetUpdateService.updateContent(item.id, apiUrlCreator);
 		SnippetService.closeItem();
-		SnippetUpdateService.updateContent(item.id, apiUrlCreator);
-		refreshPage();
 	};
 
 	return (

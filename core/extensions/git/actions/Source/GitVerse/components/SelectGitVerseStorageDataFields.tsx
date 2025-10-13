@@ -6,34 +6,35 @@ import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPagina
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import type GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
 import { useMakeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
 import { useMemo } from "react";
+import { UseFormReturn } from "react-hook-form";
+import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
 
 interface SelectGitVerseStorageDataFieldsProps {
 	source: GitVerseSourceData;
-	mode: Mode;
-	onChange?: (data: GitStorageData) => void;
+	mode?: "init" | "clone";
+	form: UseFormReturn<SelectFormSchemaType>;
 }
 
 const SelectGitVerseStorageDataFields = (props: SelectGitVerseStorageDataFieldsProps) => {
-	const { source, onChange, mode } = props;
+	const { source, mode, form } = props;
 	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
 	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GitSourceApi;
 	const gitPaginatedProjectList = useMemo(() => new GitPaginatedProjectList(sourceApi), [sourceApi]);
 
-	useWatch(async () => {
-		if (mode !== Mode.init) return;
-		const userData = await sourceApi.getUser();
-		onChange?.({
-			source,
-			group: userData.username,
-			name: null,
-		});
-	}, [mode]);
+	// useWatch(async () => {
+	// 	if (mode !== Mode.init) return;
+	// 	const userData = await sourceApi.getUser();
+	// 	onChange?.({
+	// 		source,
+	// 		group: userData.username,
+	// 		name: null,
+	// 	});
+	// }, [mode]);
 
 	if (mode === Mode.init) return null;
 
-	return <CloneFields onChange={onChange} source={source} gitPaginatedProjectList={gitPaginatedProjectList} />;
+	// return <CloneFields form={form} source={source} gitPaginatedProjectList={gitPaginatedProjectList} />;
 };
 
 export default SelectGitVerseStorageDataFields;

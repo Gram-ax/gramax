@@ -14,11 +14,15 @@ pub fn init() -> Result<(), std::io::Error> {
     .parse("")
     .unwrap();
 
-  tracing_subscriber::registry()
-    .with(filter)
-    .with(stdout())
-    .with(dir_json(LOG_DIR.into(), MAX_FILE_COUNT)?)
-    .init();
+  let subscriber = tracing_subscriber::registry().with(filter).with(stdout());
+
+  match dir_json(LOG_DIR.into(), MAX_FILE_COUNT) {
+    Ok(dir) => subscriber.with(dir).init(),
+    Err(e) => {
+      println!("error creating log file: {}", e);
+      subscriber.init()
+    }
+  };
 
   Ok(())
 }

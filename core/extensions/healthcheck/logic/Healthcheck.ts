@@ -1,5 +1,5 @@
 import { CATEGORY_ROOT_FILENAME, GRAMAX_EDITOR_URL } from "@app/config/const";
-import LucideIcon from "@components/Atoms/Icon/LucideIcon";
+import { LucideIcon } from "@components/Atoms/Icon/LucideIcon";
 import { Article } from "@core/FileStructue/Article/Article";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
@@ -169,7 +169,7 @@ class Healthcheck {
 			const article = await this._getArticleByResourcePath(item, resource);
 			if (!article) return pushError();
 
-			const tocItems = collapseTocItems(await article.parsedContent.read((p) => p.tocItems));
+			const tocItems = collapseTocItems(await article.parsedContent.read((p) => p?.tocItems ?? []));
 			if (!tocItems.length || !tocItems.some(({ url }) => url === decodeURIComponent(hash))) return pushError();
 		}
 	}
@@ -195,7 +195,7 @@ class Healthcheck {
 	};
 
 	private async _checkIcons(item: Article, code: string) {
-		if ((await this._catalog.customProviders.iconProvider.getIconByCode(code)) || LucideIcon(code)) return;
+		if ((await this._catalog.customProviders.iconProvider.getIconByCode(code)) || (await LucideIcon(code))) return;
 		this._errors.icons.push(
 			this._getRefCatalogError({
 				value: code,

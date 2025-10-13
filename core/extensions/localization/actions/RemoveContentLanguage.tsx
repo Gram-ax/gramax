@@ -1,4 +1,4 @@
-import ButtonLink from "@components/Molecules/ButtonLink";
+import { MenuItemIconButton } from "@ui-kit/MenuItem";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
@@ -26,7 +26,8 @@ const RemoveContentLanguage = ({ targetCode, disabled, setIsLoading }: RemoveCon
 		refreshPage();
 	};
 
-	return <ButtonLink iconCode="trash" text={t("delete")} onClick={removeLanguage} disabled={disabled} />;
+	if (disabled) return null;
+	return <MenuItemIconButton icon="trash" onClick={removeLanguage} />;
 };
 
 export default RemoveContentLanguage;

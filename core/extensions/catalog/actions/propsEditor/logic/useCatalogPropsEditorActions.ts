@@ -9,33 +9,54 @@ import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
-import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
-import { useCallback, useMemo, useState } from "react";
+import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
+import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
+import { useCallback, useEffect, useState } from "react";
+
+type ExtendedCatalogEditProps = CatalogEditProps & {
+	icons: { name: string; content: string; size: number; type: string }[];
+	logo?: {
+		light?: null;
+		dark?: null;
+	};
+};
 
 interface UseCatalogPropsEditorActionsReturn {
-	onMouseTriggerEnter: () => Promise<void>;
 	allCatalogNames: string[];
 	open: boolean;
 	setOpen: (value: boolean) => void;
-	originalProps: CatalogEditProps;
-	onSubmit: (newProps: ClientCatalogProps) => Promise<void>;
+	getOriginalProps: () => Promise<ExtendedCatalogEditProps>;
+	onSubmit: (newProps: ExtendedCatalogEditProps, defaultValues: ExtendedCatalogEditProps) => Promise<void>;
 	isLoading: boolean;
 	error: string | null;
 }
 
-export const useCatalogPropsEditorActions = (): UseCatalogPropsEditorActionsReturn => {
+export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPropsEditorActionsReturn => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogProps = CatalogPropsService.value;
 	const articleProps = ArticlePropsService.value;
 	const { confirmChanges: confirmCatalogLogoChanges } = CatalogLogoService.value();
 	const router = useRouter();
 
-	const [open, setOpenInner] = useState(false);
+	const [open, setOpenInner] = useState(true);
 	const [allCatalogNames, setAllCatalogNames] = useState<string[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const originalProps = useMemo(() => getCatalogEditProps(catalogProps), [catalogProps]);
+	const getOriginalProps = useCallback(async (): Promise<ExtendedCatalogEditProps> => {
+		const res = await FetchService.fetch(apiUrlCreator.getCustomIconsList());
+		if (!res.ok) return { ...getCatalogEditProps(catalogProps), icons: [] };
+		const icons = (await res.json()) ?? [];
+		return {
+			...getCatalogEditProps(catalogProps),
+			icons: icons.map((icon: IconEditorProps) => ({
+				name: icon.code,
+				content: icon.svg,
+				size: icon.size,
+				type: "image/svg+xml",
+			})),
+		};
+	}, [catalogProps, apiUrlCreator]);
 
 	const fetchCatalogNames = useCallback(async () => {
 		try {
@@ -51,16 +72,18 @@ export const useCatalogPropsEditorActions = (): UseCatalogPropsEditorActionsRetu
 		}
 	}, [apiUrlCreator]);
 
-	const onMouseTriggerEnter = useCallback(async () => {
-		await fetchCatalogNames();
-	}, [fetchCatalogNames]);
-
-	const setOpen = useCallback((value: boolean) => {
-		if (value) {
-			setError(null);
-		}
-		setOpenInner(value);
+	useEffect(() => {
+		void fetchCatalogNames();
 	}, []);
+
+	const setOpen = useCallback(
+		(value: boolean) => {
+			if (value) setError(null);
+			setOpenInner(value);
+			if (!value) onClose?.();
+		},
+		[onClose],
+	);
 
 	const buildNewPath = useCallback(
 		(newCatalogProps: ClientCatalogProps) => {
@@ -75,14 +98,50 @@ export const useCatalogPropsEditorActions = (): UseCatalogPropsEditorActionsRetu
 		[articleProps.logicPath, router.path],
 	);
 
+	const deleteIcons = useCallback(
+		async (icons: { name: string; content: string }[], initialIcons: { name: string; content: string }[]) => {
+			await initialIcons.forEachAsync(async (icon) => {
+				if (icons.some((i) => i.content === icon.content)) return;
+				await FetchService.fetch(apiUrlCreator.deleteCustomIcon(icon.name));
+			});
+		},
+		[apiUrlCreator],
+	);
+
+	const uploadIcons = useCallback(
+		async (icons: { name: string; content: string }[]) => {
+			await icons.forEachAsync(async (icon) => {
+				await FetchService.fetch(
+					apiUrlCreator.createCustomIcon(),
+					JSON.stringify({
+						code: new Path(icon.name).name,
+						svg: icon.content,
+					}),
+				);
+			});
+		},
+		[apiUrlCreator],
+	);
+
 	const onSubmit = useCallback(
-		async (newProps: ClientCatalogProps) => {
-			const mergedProps = { ...originalProps, ...newProps };
+		async (newProps: ExtendedCatalogEditProps, defaultValues: ExtendedCatalogEditProps) => {
+			const originalProps: ExtendedCatalogEditProps = await getOriginalProps();
+
+			const mergedProps = {
+				...originalProps,
+				...newProps,
+			};
+
+			delete mergedProps.logo;
 
 			setIsLoading(true);
 			setError(null);
 
 			try {
+				await deleteIcons(mergedProps.icons, defaultValues.icons);
+				await uploadIcons(mergedProps.icons);
+				delete mergedProps.icons;
+
 				const response = await FetchService.fetch<ClientCatalogProps>(
 					apiUrlCreator.updateCatalogProps(),
 					JSON.stringify(mergedProps),
@@ -100,22 +159,30 @@ export const useCatalogPropsEditorActions = (): UseCatalogPropsEditorActionsRetu
 				router.pushPath(newPath);
 
 				await confirmCatalogLogoChanges();
-				setOpenInner(false);
+				setOpen(false);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Unknown error occurred");
 			} finally {
 				setIsLoading(false);
 			}
 		},
-		[originalProps, apiUrlCreator, buildNewPath, router, confirmCatalogLogoChanges],
+		[
+			getOriginalProps,
+			apiUrlCreator,
+			buildNewPath,
+			router,
+			confirmCatalogLogoChanges,
+			setOpen,
+			deleteIcons,
+			uploadIcons,
+		],
 	);
 
 	return {
-		onMouseTriggerEnter,
 		allCatalogNames,
 		open,
 		setOpen,
-		originalProps,
+		getOriginalProps,
 		onSubmit,
 		isLoading,
 		error,

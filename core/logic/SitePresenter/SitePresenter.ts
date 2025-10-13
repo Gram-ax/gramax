@@ -1,18 +1,20 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import homeSections from "@core/utils/homeSections";
+import htmlToText from "@dynamicImports/htmlToText";
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { catalogHasItems, isLanguageCategory, resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
-import TabsTags from "@ext/markdown/elements/tabs/model/TabsTags";
 import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandlers";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import { Property, PropertyValue, type PropertyID } from "@ext/properties/models";
@@ -21,7 +23,6 @@ import { TemplateField } from "@ext/templates/models/types";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig, WorkspaceSection } from "@ext/workspace/WorkspaceConfig";
 import { WorkspaceView } from "@ext/workspace/WorkspaceConfig";
-import htmlToText from "html-to-text";
 import UiLanguage, { ContentLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
@@ -41,11 +42,11 @@ export type ClientCatalogProps = {
 	title: string;
 	docroot: string;
 	repositoryName: string;
+	repositoryError: Error;
 	contactEmail: string;
 	language: ContentLanguage;
 	supportedLanguages: ContentLanguage[];
 	properties?: Property[];
-	tabsTags?: TabsTags;
 	sourceName: string;
 	userInfo: UserInfo;
 	link: CatalogLink;
@@ -58,6 +59,8 @@ export type ClientCatalogProps = {
 	notFound: boolean;
 	resolvedFilterProperty?: PropertyID;
 	filterProperties?: PropertyID[];
+	logo?: string;
+	logo_dark?: string;
 };
 
 export type ClientArticleProps = {
@@ -239,6 +242,7 @@ export default class SitePresenter {
 	}
 
 	async getOpenGraphData(path: string[], readyArticle?: Article, readyCatalog?: Catalog): Promise<OpenGraphData> {
+		if (getExecutingEnvironment() !== "next") return null;
 		const { article, catalog } = readyArticle
 			? { article: readyArticle, catalog: readyCatalog }
 			: await this.getArticleByPathOfCatalog(path, [this._filters[1], this._filters[2]]);
@@ -246,13 +250,11 @@ export default class SitePresenter {
 		if (!article) return null;
 		if (await article.parsedContent.isNull())
 			await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
-
+		const { convert } = await htmlToText();
 		const htmlValue = await article.parsedContent.read((p) => p?.getHtmlValue.get());
 		let description =
 			article.props["summary"] ??
-			htmlToText.fromString(htmlValue, {
-				ignoreHref: true,
-				ignoreImage: true,
+			convert(htmlValue, {
 				selectors: ["h1", "h2", "h3", "h4"].map((v) => ({ selector: v, options: { uppercase: false } })),
 			});
 		if (description.length > 150) description = description.slice(0, 150) + "...";
@@ -300,10 +302,10 @@ export default class SitePresenter {
 				relatedLinks: null,
 				link: null,
 				contactEmail: null,
-				tabsTags: null,
 				name: null,
 				title: "",
 				repositoryName: null,
+				repositoryError: null,
 				sourceName: null,
 				userInfo: null,
 				language: ContentLanguage[resolveLanguage()],
@@ -313,7 +315,7 @@ export default class SitePresenter {
 			};
 		}
 
-		const storage = catalog.repo.storage;
+		const sourceName = await catalog.repo?.storage?.getSourceName();
 
 		const workspaceConfig = await this._workspace.config();
 		const link = await this._nav.getCatalogLink(catalog, new LastVisited(this._context, workspaceConfig.name));
@@ -323,14 +325,14 @@ export default class SitePresenter {
 			link,
 			relatedLinks: await this._nav.getRelatedLinks(catalog),
 			contactEmail: catalog.props.contactEmail ?? null,
-			tabsTags: catalog.props.tabsTags ?? null,
 			name: catalog.name ?? null,
 			title: catalog.props.title ?? "",
 			language: catalog.props.language,
 			properties: getAllCatalogProperties(catalog),
 			repositoryName: catalog.name,
-			sourceName: (await storage?.getSourceName()) ?? null,
-			userInfo: this._grp.getSourceUserInfo(this._context, await storage?.getSourceName()),
+			repositoryError: catalog.repo instanceof BrokenRepository ? catalog.repo.error : null,
+			sourceName,
+			userInfo: this._grp.getSourceUserInfo(this._context, sourceName),
 			docroot: catalog.getRelativeRootCategoryPath()?.value,
 			supportedLanguages: Array.from(catalog.props.supportedLanguages || []),
 			versions: catalog.props.versions,

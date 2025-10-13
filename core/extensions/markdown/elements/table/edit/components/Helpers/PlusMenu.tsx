@@ -1,7 +1,5 @@
 import Icon from "@components/Atoms/Icon";
-import PopupMenuLayout from "@components/Layouts/PopupMenuLayout";
 import { classNames } from "@components/libs/classNames";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
@@ -15,7 +13,20 @@ import {
 import { AlignEnumTypes, TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
-import { memo, useMemo, useRef } from "react";
+import { memo, useMemo } from "react";
+import {
+	DropdownMenu,
+	DropdownMenuCheckboxItem,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	DropdownMenuTrigger,
+} from "@ui-kit/Dropdown";
 
 interface PlusMenuProps {
 	isHovered: boolean;
@@ -28,17 +39,6 @@ interface PlusMenuProps {
 	tableSheet?: TableNodeSheet;
 }
 
-export const PopoverItem = styled.div`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	width: 100%;
-
-	i:has(.lucide.lucide-check) {
-		margin-left: 0.5em;
-	}
-`;
-
 export const TriggerParent = styled.div`
 	display: flex;
 	align-items: center;
@@ -48,7 +48,6 @@ export const TriggerParent = styled.div`
 
 const PlusMenu = (props: PlusMenuProps) => {
 	const { vertical, className, index, getPos, node, editor, tableSheet } = props;
-	const submenuRef = useRef<HTMLDivElement>(null);
 	const cell = useMemo(() => {
 		if (vertical) return;
 		const position = getFirstTdPosition(node, index + 1, getPos());
@@ -161,85 +160,100 @@ const PlusMenu = (props: PlusMenuProps) => {
 		editor.chain().focus(position).setMeta("removeDecoration", true).run();
 	};
 
+	const onOpenChange = (open: boolean) => {
+		if (open) onOpen();
+		else onClose();
+	};
+
 	return (
-		<PopupMenuLayout
-			buttonClassName={classNames(className, { vertical: vertical, horizontal: !vertical }, ["hidden"])}
-			offset={[10, 0]}
-			appendTo={() => document.body}
-			openTrigger="click"
-			onOpen={onOpen}
-			onClose={onClose}
-			trigger={<Icon code={vertical ? "ellipsis-vertical" : "ellipsis"} />}
-		>
-			{vertical ? (
-				<>
-					{index === 0 && (
-						<PopoverItem onClick={() => setHeader(TableHeaderTypes.ROW)}>
-							<ButtonLink text={t("editor.table.row.title")} iconCode="row-title" />
-							{node.attrs.header === TableHeaderTypes.ROW && <Icon code="check" />}
-						</PopoverItem>
-					)}
-					<ButtonLink
-						onMouseEnter={onMouseEnter}
-						onMouseLeave={onMouseLeave}
-						text={t("editor.table.row.delete")}
-						onClick={rowDelete}
-						iconCode="delete-row"
-					/>
-				</>
-			) : (
-				<>
-					{index === 0 && (
-						<PopoverItem onClick={() => setHeader(TableHeaderTypes.COLUMN)}>
-							<ButtonLink text={t("editor.table.column.title")} iconCode="column-title" />
-							{node.attrs.header === TableHeaderTypes.COLUMN && <Icon code="check" />}
-						</PopoverItem>
-					)}
-					<AggregationPopup
-						editor={editor}
-						tableSheet={tableSheet}
-						node={node}
-						cell={cell}
-						index={index}
-						getPos={getPos}
-					/>
-					<PopupMenuLayout
-						openTrigger="focus mouseenter"
-						placement="right-start"
-						offset={[10, -5]}
-						appendTo={() => submenuRef.current}
-						trigger={
-							<TriggerParent ref={submenuRef}>
-								<ButtonLink text={t("editor.table.align.name")} iconCode="align-justify" />
-								<Icon code="chevron-right" />
-							</TriggerParent>
-						}
-					>
-						<PopoverItem onClick={() => setAlign(AlignEnumTypes.LEFT)}>
-							<ButtonLink text={t("editor.table.align.left")} iconCode="align-left" />
-							{(cell?.attrs?.align === AlignEnumTypes.LEFT || !cell?.attrs?.align) && (
-								<Icon code="check" />
-							)}
-						</PopoverItem>
-						<PopoverItem onClick={() => setAlign(AlignEnumTypes.CENTER)}>
-							<ButtonLink text={t("editor.table.align.center")} iconCode="align-center" />
-							{cell?.attrs?.align === AlignEnumTypes.CENTER && <Icon code="check" />}
-						</PopoverItem>
-						<PopoverItem onClick={() => setAlign(AlignEnumTypes.RIGHT)}>
-							<ButtonLink text={t("editor.table.align.right")} iconCode="align-right" />
-							{cell?.attrs?.align === AlignEnumTypes.RIGHT && <Icon code="check" />}
-						</PopoverItem>
-					</PopupMenuLayout>
-					<ButtonLink
-						onMouseEnter={onMouseEnter}
-						onMouseLeave={onMouseLeave}
-						text={t("editor.table.column.delete")}
-						onClick={columnDelete}
-						iconCode="delete-column"
-					/>
-				</>
-			)}
-		</PopupMenuLayout>
+		<DropdownMenu onOpenChange={onOpenChange}>
+			<DropdownMenuTrigger
+				asChild
+				className={classNames(className, { vertical: vertical, horizontal: !vertical }, ["hidden"])}
+			>
+				<Icon code={vertical ? "ellipsis-vertical" : "ellipsis"} />
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="start">
+				{vertical ? (
+					<>
+						{index === 0 && (
+							<>
+								<DropdownMenuCheckboxItem
+									checked={node.attrs.header === TableHeaderTypes.ROW}
+									onSelect={() => setHeader(TableHeaderTypes.ROW)}
+								>
+									{t("editor.table.row.title")}
+								</DropdownMenuCheckboxItem>
+								<DropdownMenuSeparator />
+							</>
+						)}
+						<DropdownMenuItem
+							onMouseEnter={onMouseEnter}
+							onMouseLeave={onMouseLeave}
+							type="danger"
+							onSelect={rowDelete}
+						>
+							<Icon code="delete-row" />
+							{t("editor.table.row.delete")}
+						</DropdownMenuItem>
+					</>
+				) : (
+					<>
+						{index === 0 && (
+							<DropdownMenuCheckboxItem
+								checked={node.attrs.header === TableHeaderTypes.COLUMN}
+								onSelect={() => setHeader(TableHeaderTypes.COLUMN)}
+							>
+								{t("editor.table.column.title")}
+							</DropdownMenuCheckboxItem>
+						)}
+						<AggregationPopup
+							editor={editor}
+							tableSheet={tableSheet}
+							node={node}
+							cell={cell}
+							index={index}
+							getPos={getPos}
+						/>
+						<DropdownMenuSub>
+							<DropdownMenuSubTrigger>
+								<Icon code="align-justify" />
+								{t("editor.table.align.name")}
+							</DropdownMenuSubTrigger>
+							<DropdownMenuSubContent>
+								<DropdownMenuRadioGroup
+									value={cell?.attrs?.align || AlignEnumTypes.LEFT}
+									onValueChange={(value) => setAlign(value as AlignEnumTypes)}
+								>
+									<DropdownMenuRadioItem value={AlignEnumTypes.LEFT}>
+										<Icon code="align-left" />
+										{t("editor.table.align.left")}
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value={AlignEnumTypes.CENTER}>
+										<Icon code="align-center" />
+										{t("editor.table.align.center")}
+									</DropdownMenuRadioItem>
+									<DropdownMenuRadioItem value={AlignEnumTypes.RIGHT}>
+										<Icon code="align-right" />
+										{t("editor.table.align.right")}
+									</DropdownMenuRadioItem>
+								</DropdownMenuRadioGroup>
+							</DropdownMenuSubContent>
+						</DropdownMenuSub>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem
+							onMouseEnter={onMouseEnter}
+							onMouseLeave={onMouseLeave}
+							onSelect={columnDelete}
+							type="danger"
+						>
+							<Icon code="delete-column" />
+							{t("editor.table.column.delete")}
+						</DropdownMenuItem>
+					</>
+				)}
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 };
 

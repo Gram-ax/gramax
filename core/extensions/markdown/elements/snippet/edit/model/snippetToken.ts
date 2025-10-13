@@ -15,6 +15,7 @@ const snippetToken = (context?: ParserContext): ParseSpec => {
 
 				const newContext = context.createContext(snippet);
 				snippetData = await snippetProvider.getRenderData(tok.attrs.id, newContext);
+				context.snippet.add(tok.attrs.id);
 			} catch {
 				snippetData = { content: null, title: null, id: tok.attrs.id };
 			}

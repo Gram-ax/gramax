@@ -1,28 +1,32 @@
-import Icon from "@components/Atoms/Icon";
+import { Icon } from "@ui-kit/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import {
 	useSyncableWorkspaces,
 	type UseSyncableWorkspacesReturn,
 } from "@core-ui/ContextServices/SyncCount/useSyncableWorkspaces";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import styled from "@emotion/styled";
 import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/components/useEditEnterpriseWorkspace";
 import t, { pluralize } from "@ext/localization/locale/translate";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { MenuItemInteractiveTemplate } from "@ui-kit/MenuItem";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import {
+	DropdownIndicator,
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTriggerButton,
-} from "ics-ui-kit/components/dropdown";
+} from "@ui-kit/Dropdown";
 import { useState } from "react";
+import resolveModule from "@app/resolveModule/frontend";
 
 const formatTooltip = (
 	workspace: WorkspacePath,
@@ -92,26 +96,6 @@ const formatTooltip = (
 	);
 };
 
-const IconWithDot = styled.div<{ showDot?: boolean }>`
-	${({ showDot }) =>
-		showDot &&
-		`.workspace-item > i.icon::after {
-			content: '';
-			position: absolute;
-			top: -2px;
-			width: 3px;
-			right: 0px;
-			height: 3px;
-			background-color: red;
-			border-radius: 9999px;
-		}
-
-		.workspace-item > i.icon {
-			position: relative;
-		}
-	`}
-`;
-
 interface WorkspaceItemProps {
 	currentWorkspace: ClientWorkspaceConfig;
 	workspace: ClientWorkspaceConfig;
@@ -124,7 +108,7 @@ const WorkspaceItem = ({ workspace, currentWorkspace, setDropdownOpen, showDot }
 
 	const gesUrl = workspace.enterprise?.gesUrl;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const editInfo = useEnterpriseWorkspaceEdit({
+	const { editInfo, isLoading } = useEnterpriseWorkspaceEdit({
 		workspacePath: path,
 		apiUrlCreator,
 		gesUrl,
@@ -134,69 +118,90 @@ const WorkspaceItem = ({ workspace, currentWorkspace, setDropdownOpen, showDot }
 	const workspaceName = name?.length > 20 ? name.slice(0, 20) + "..." : name;
 
 	return (
-		<IconWithDot showDot={showDot}>
-			<DropdownMenuItem
-				className="workspace-item"
-				data-qa="qa-clickable"
-				key={path}
-				onClick={() => {
-					void WorkspaceService.setActive(path, apiUrlCreator);
+		<DropdownMenuItem
+			className="workspace-item"
+			data-qa="qa-clickable"
+			key={path}
+			onClick={async () => {
+				await WorkspaceService.setActive(path, apiUrlCreator);
+				SourceDataService.refresh();
+			}}
+		>
+			<MenuItemInteractiveTemplate
+				icon={icon}
+				indicator={showDot}
+				indicatorClassName="bg-status-error"
+				text={workspaceName}
+				indicatorTooltip={showDot && t("available-changes-sync")}
+				isSelected={path === currentWorkspace.path}
+				buttonIcon={isLoading ? "loader" : disableEnterpriseEdit ? "pen-off" : "pen"}
+				buttonDisabled={disableEnterpriseEdit}
+				disabledTooltip={editInfo?.tooltip}
+				buttonOnClick={(e) => {
+					if (editInfo.permitted) {
+						return resolveModule("openInWeb")(editInfo.href);
+					}
+					setDropdownOpen(false);
+					e.stopPropagation();
+					ModalToOpenService.setValue(ModalToOpen.EditWorkspaceForm, {
+						workspace,
+					});
 				}}
-			>
-				<MenuItemInteractiveTemplate
-					icon={icon}
-					text={workspaceName}
-					isSelected={path === currentWorkspace.path}
-					buttonIcon={disableEnterpriseEdit ? "pen-off" : "pen"}
-					buttonDisabled={disableEnterpriseEdit}
-					disabledTooltip={editInfo?.tooltip}
-					buttonOnClick={(e) => {
-						if (editInfo.permitted) {
-							return window.open(editInfo.href, editInfo.target);
-						}
-						setDropdownOpen(false);
-						e.stopPropagation();
-						ModalToOpenService.setValue(ModalToOpen.EditWorkspaceForm, {
-							workspace,
-						});
-					}}
-				/>
-			</DropdownMenuItem>
-		</IconWithDot>
+			/>
+		</DropdownMenuItem>
 	);
 };
 
 const SwitchWorkspace = () => {
+	const { isBrowser } = usePlatform();
+	const isEnterprise = PageDataContextService.value.conf.enterprise.gesUrl;
 	const isMobile = isMobileService.value;
 	const syncableWorkspaces = useSyncableWorkspaces();
 	const workspaces = WorkspaceService.workspaces();
 	const currentWorkspace = WorkspaceService.current();
 	const [dropdownOpen, setDropdownOpen] = useState(false);
+	const showDot = syncableWorkspaces.hasSyncableWorkspaces;
 
 	return (
 		<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
 			{isMobile ? (
-				<DropdownMenuTriggerButton variant="ghost" className="aspect-square p-2" data-qa="qa-clickable">
-					<Icon code="layers" />
+				<DropdownMenuTriggerButton
+					variant="ghost"
+					className="relative aspect-square p-2"
+					size="lg"
+					data-qa="qa-clickable"
+				>
+					{showDot && (
+						<DropdownIndicator className="h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error left-[23px] top-1" />
+					)}
+					<Icon icon="layers" size="lg" />
 				</DropdownMenuTriggerButton>
 			) : (
-				<DropdownMenuTriggerButton variant="ghost" data-qa="qa-clickable">
-					<Icon code="layers" />
+				<DropdownMenuTriggerButton variant="ghost" data-qa="qa-clickable" className="relative pl-3 pr-2">
+					{showDot && (
+						<DropdownIndicator className="h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error left-[23px] top-1" />
+					)}
+					<Icon icon="layers" />
 					{currentWorkspace.name}
-					<Icon code="chevrons-up-down" />
+					<Icon icon="chevrons-up-down" />
 				</DropdownMenuTriggerButton>
 			)}
 			<DropdownMenuContent align="start">
 				<DropdownMenuGroup>
-					<DropdownMenuItem
-						data-qa="qa-clickable"
-						onClick={() => ModalToOpenService.setValue(ModalToOpen.CreateWorkspaceForm)}
-					>
-						<Icon code="plus" />
-						{t("workspace.add")}
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
+					{!(isEnterprise && isBrowser) && (
+						<>
+							<DropdownMenuItem
+								data-qa="qa-clickable"
+								onClick={() => ModalToOpenService.setValue(ModalToOpen.CreateWorkspaceForm)}
+							>
+								<Icon icon="plus" />
+								{t("workspace.add")}
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />
+						</>
+					)}
 					{workspaces.map((workspace) => {
+						if (isEnterprise && isBrowser && !workspace.enterprise?.gesUrl) return null;
 						const tooltip = formatTooltip(workspace.path, null, syncableWorkspaces);
 						const showDot = syncableWorkspaces.syncableWorkspaces[workspace.path] > 0;
 

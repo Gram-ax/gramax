@@ -1,8 +1,7 @@
 import ContextService from "@core-ui/ContextServices/ContextService";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useMediaQuery } from "@mui/material";
 import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useLayoutEffect, useState } from "react";
 import isMobileFunction from "../utils/IsMobile";
+import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 
 const IsMobileContext = createContext<boolean>(undefined);
 
@@ -10,7 +9,7 @@ class IsMobileService implements ContextService<boolean> {
 	private _setIsMobile: Dispatch<SetStateAction<boolean>>;
 
 	Init({ children }: { children: ReactElement }): ReactElement {
-		const isMobileByCSS = useMediaQuery(cssMedia.JSnarrow);
+		const isMobileByCSS = useBreakpoint() === "sm";
 		const [isMobile, setIsMobile] = useState<boolean>(isMobileByCSS);
 		this._setIsMobile = setIsMobile;
 

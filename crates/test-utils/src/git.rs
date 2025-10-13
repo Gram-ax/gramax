@@ -1,9 +1,10 @@
 pub use gramaxgit::ext::*;
+pub use gramaxgit::file_lock::*;
 pub use gramaxgit::prelude::*;
 
 use std::fs;
 use std::path::PathBuf;
-use std::sync::atomic::AtomicUsize;
+use std::rc::Rc;
 
 pub use gramaxgit::creds::ActualCreds;
 pub use gramaxgit::creds::Creds;
@@ -13,14 +14,13 @@ use tempdir::TempDir;
 
 use crate::sandbox;
 
-pub type Result = std::result::Result<(), gramaxgit::error::Error>;
+pub type Result<T = ()> = std::result::Result<T, gramaxgit::error::Error>;
 
-static ATOMIC_COUNTER: AtomicUsize = AtomicUsize::new(0);
-
+#[derive(Debug, Clone)]
 pub struct TestCreds;
 
 impl Creds for TestCreds {
-  fn signature(&self) -> std::result::Result<Signature, gramaxgit::git2::Error> {
+  fn signature(&self) -> std::result::Result<Signature<'_>, gramaxgit::git2::Error> {
     Signature::now("test-user", "test@email.com")
   }
 
@@ -51,10 +51,11 @@ pub fn repo(#[default(&sandbox())] sandbox: &TempDir, #[default("")] url: &str) 
         to: sandbox.path().to_path_buf(),
         branch: Some("master".to_string()),
         is_bare: false,
+        allow_non_empty_dir: false,
         depth: None,
-        cancel_token: ATOMIC_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+        cancel_token: 0,
       },
-      Box::new(|_| {}),
+      Rc::new(|_| {}),
     )
     .unwrap();
 
@@ -87,9 +88,10 @@ pub fn repos(#[default(&sandbox())] sandbox: &TempDir) -> Repos {
       branch: Some("master".to_string()),
       is_bare: false,
       depth: None,
-      cancel_token: ATOMIC_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+      allow_non_empty_dir: false,
+      cancel_token: 0,
     },
-    Box::new(|_| {}),
+    Rc::new(|_| {}),
   )
   .unwrap();
 

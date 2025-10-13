@@ -1,7 +1,9 @@
+import { listTypes } from "@ext/markdown/elements/joinLists/joinLists";
 import getNodeByPos from "../../../elementsUtils/getNodeByPos";
 import isTypeOf from "../../../elementsUtils/isTypeOf";
 import KeyboardRule from "../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
 import KeyboardShortcut from "../../../elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
+import getDeepiestLastChild from "@ext/markdown/elementsUtils/getDeepiesLastChild";
 
 const betweenNoteOrCut: KeyboardRule = ({ editor }) => {
 	const { state } = editor;
@@ -36,10 +38,44 @@ const headingAfterNode: KeyboardRule = ({ editor, nodePosition, node }): boolean
 	editor.chain().toggleHeading({ level: headingNode.attrs.level }).run();
 };
 
+const gotoEndOfList: KeyboardRule = ({ editor }) => {
+	const { state } = editor;
+	const { selection } = state;
+	if (!selection.empty) return;
+	if (selection.$from.textOffset !== 0) return;
+
+	const { node, position, parentNode } = getNodeByPos(
+		state.selection.anchor,
+		state.doc,
+		(node) => node.type.name == "paragraph",
+	);
+	if (!node) return;
+	if (selection.$anchor.pos !== position + 1) return;
+
+	const parentNodeIsList = listTypes.includes(parentNode.type.name);
+	const parentNodeIsListItem = parentNode.type.name === "listItem";
+	if (parentNodeIsList || parentNodeIsListItem) return;
+
+	const { node: nodeBefore, position: nodeBeforePosition } = getNodeByPos(position - 1, state.doc, (node) =>
+		isTypeOf(node, listTypes),
+	);
+	if (!nodeBefore || !listTypes.includes(nodeBefore.type.name)) return;
+	const deepiestLastChild = getDeepiestLastChild(nodeBefore, nodeBeforePosition);
+	if (!deepiestLastChild?.node) return;
+
+	const insertPosition = deepiestLastChild.position + deepiestLastChild.node.nodeSize;
+	return editor
+		.chain()
+		.deleteRange({ from: position, to: position + node.nodeSize })
+		.insertContentAt(insertPosition, node.content)
+		.focus(insertPosition)
+		.run();
+};
+
 const getBackspaceShortcuts = (): KeyboardShortcut => {
 	return {
 		key: "Backspace",
-		rules: [betweenNoteOrCut, headingAfterNode],
+		rules: [betweenNoteOrCut, headingAfterNode, gotoEndOfList],
 	};
 };
 

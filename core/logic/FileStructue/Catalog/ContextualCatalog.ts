@@ -11,7 +11,7 @@ import type { Item, UpdateItemProps } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import type PathnameData from "@core/RouterPath/model/PathnameData";
-import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps.schema";
+import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import type IPermission from "@ext/security/logic/Permission/IPermission";
 
 export type ContextualCatalogEvents<P extends CatalogProps = CatalogProps> = Event<

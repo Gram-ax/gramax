@@ -43,13 +43,19 @@ const CreateArticle = (props: CreateArticleProps) => {
 	const url = apiUrlCreator.createArticle(item ? item.ref.path : root?.path);
 
 	const onClickHandler: MouseEventHandler<HTMLElement> = (e) => {
+		e?.preventDefault();
 		e?.stopPropagation();
 		FetchService.fetch(url).then(async (response) => {
 			setIsLoading(false);
 			if (!response.ok) return refreshPage();
 			onCreate?.();
-			await NavigationEvents.emit("item-create", { path: await response.text() });
-			router.pushPath(await response.text());
+
+			const mutable = { preventGoto: false };
+			const path = await response.text();
+			await NavigationEvents.emit("item-create", { path, mutable });
+			if (mutable.preventGoto) return;
+
+			router.pushPath(path);
 		});
 		setIsLoading(true);
 	};

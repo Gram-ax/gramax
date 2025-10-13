@@ -26,7 +26,7 @@ export const bulletListHandler = async (
 			}
 
 			const isChecked = "attributes" in taskItem ? taskItem.attributes?.checked : taskItem.attrs?.checked;
-			const iconPath = getSvgIconFromString(isChecked ? "square-check-big" : "square");
+			const iconPath = await getSvgIconFromString(isChecked ? "square-check-big" : "square");
 
 			return {
 				columns: [

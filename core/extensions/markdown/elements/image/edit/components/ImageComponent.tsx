@@ -1,4 +1,4 @@
-import { resolveImageKind } from "@components/Atoms/Image/resolveImageKind";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import Image from "@ext/markdown/elements/image/edit/components/Image";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
@@ -23,7 +23,7 @@ const ImageComponent = (props: NodeViewProps): ReactElement => {
 				const buffer = resourceService.getBuffer(node.attrs.src);
 
 				if (buffer) {
-					const urlToImage = URL.createObjectURL(new Blob([buffer], { type: resolveImageKind(buffer) }));
+					const urlToImage = URL.createObjectURL(new Blob([buffer], { type: resolveFileKind(buffer) }));
 					const newSize = await getNaturalSize(urlToImage);
 					if (newSize) {
 						attributes.width = newSize.width + "px";

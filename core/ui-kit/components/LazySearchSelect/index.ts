@@ -1,1 +1,1 @@
-export { LazySearchSelect } from "ics-ui-kit/components/search-select";
+export { LazySearchSelect, type RenderOptionProps, type LazySearchSelectOption } from "./LazySearchSelect";

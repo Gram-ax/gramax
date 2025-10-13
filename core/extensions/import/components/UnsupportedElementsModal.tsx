@@ -39,7 +39,7 @@ const UnsupportedElementsModal = (props: UnsupportedElementsModalProps) => {
 			firstColumnTitle={t("page")}
 			renderArticleLink={(article) => (
 				<Anchor href={article.link}>
-					<Button variant="link" status="info" className="p-0">
+					<Button variant="link" status="info" className="p-0" style={{ height: "auto", textAlign: "left" }}>
 						{article.title}
 					</Button>
 				</Anchor>

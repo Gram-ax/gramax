@@ -62,8 +62,8 @@ export const useWorkspaceAi = (workspacePath: string) => {
 			return debounce<boolean>(
 				async () => {
 					try {
-						const url = apiUrlCreator.checkAiAuth(apiUrl, token);
-						const res = await FetchService.fetch(url);
+						const url = apiUrlCreator.checkAiAuth(apiUrl);
+						const res = await FetchService.fetch(url, JSON.stringify({ token }));
 						return await res.json();
 					} finally {
 						setIsChecking(false);

@@ -5,24 +5,24 @@ import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
-import useIsStorageInitialized from "@ext/storage/logic/utils/useIsStorageInitialized";
+import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
 import { useEffect, useRef } from "react";
 
 const useFetchCatalog = () => {
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isOffline = isOfflineService.value;
-	const isStorageInitialized = useIsStorageInitialized();
-	const isStorageInitializedRef = useRef<boolean>(isStorageInitialized);
+	const isRepoOk = useIsRepoOk(catalogProps) && !!catalogProps;
+	const isRepoOkRef = useRef<boolean>(isRepoOk);
 	const readOnly = PageDataContextService.value.conf.isReadOnly;
 
 	const fetchCatalog = async () => {
 		if (
-			!catalogName ||
+			!catalogProps ||
 			isOffline ||
-			!isStorageInitializedRef.current ||
+			!isRepoOkRef.current ||
 			readOnly ||
-			!CatalogFetchTimersService.canFetch(catalogName)
+			!CatalogFetchTimersService.canFetch(catalogProps.name)
 		)
 			return;
 
@@ -30,12 +30,12 @@ const useFetchCatalog = () => {
 		const res = await FetchService.fetch(apiUrlCreator.getStorageFetch());
 		SyncIconService.stop();
 		if (!res) return;
-		CatalogFetchTimersService.setTimer(catalogName);
+		CatalogFetchTimersService.setTimer(catalogProps.name);
 	};
 
 	useEffect(() => {
-		isStorageInitializedRef.current = isStorageInitialized;
-	}, [isStorageInitialized]);
+		isRepoOkRef.current = isRepoOk;
+	}, [isRepoOk]);
 
 	useEffect(() => {
 		const interval = setInterval(() => {
@@ -47,7 +47,7 @@ const useFetchCatalog = () => {
 
 	useEffect(() => {
 		fetchCatalog();
-	}, [catalogName]);
+	}, [catalogProps]);
 
 	useEffect(() => {
 		window.addEventListener("focus", fetchCatalog);

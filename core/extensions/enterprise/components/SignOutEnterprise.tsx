@@ -3,19 +3,19 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { useState } from "react";
 
-const SignOutEnterprise = ({
-	trigger,
-	workspaceConfig,
-}: {
-	trigger: JSX.Element;
+interface SignOutEnterpriseProps {
 	workspaceConfig: ClientWorkspaceConfig;
-}) => {
-	const [isOpen, setIsOpen] = useState(false);
+	onClose: () => void;
+}
+
+const SignOutEnterprise = ({ workspaceConfig, onClose }: SignOutEnterpriseProps) => {
+	const [isOpen, setIsOpen] = useState(true);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const removeWorkspace = async () => {
@@ -23,11 +23,11 @@ const SignOutEnterprise = ({
 		await FetchService.fetch(apiUrlCreator.getLogoutEnterpriseUrl(workspaceConfig.path));
 		ModalToOpenService.resetValue();
 		await refreshPage();
+		SourceDataService.refresh();
 	};
 
 	return (
 		<ModalLayout
-			trigger={trigger}
 			contentWidth="S"
 			isOpen={isOpen}
 			closeOnCmdEnter={false}
@@ -36,6 +36,7 @@ const SignOutEnterprise = ({
 			}}
 			onClose={() => {
 				setIsOpen(false);
+				onClose();
 			}}
 		>
 			<InfoModalForm
@@ -44,6 +45,7 @@ const SignOutEnterprise = ({
 				closeButton={{ text: t("cancel") }}
 				onCancelClick={() => {
 					setIsOpen(false);
+					onClose();
 					refreshPage();
 				}}
 				actionButton={{

@@ -2,11 +2,11 @@ import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/Cata
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import t from "@ext/localization/locale/translate";
-import { ComponentProps, useState } from "react";
+import { ComponentProps } from "react";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 
 const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
-	const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
 	const formatError = () => {
 		if (!error.props?.storage) return error.message;
 		const parts = t("catalog.error.already-exist-2").split("%");
@@ -22,31 +22,27 @@ const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetE
 	};
 
 	return (
-		<>
-			{isSettingsOpen && (
-				<CatalogPropsEditor
-					onClose={() => setIsSettingsOpen(false)}
-					onSubmit={onCancelClick}
-					modalContentProps={{ "data-upper-error": true }}
-					isOpen={isSettingsOpen}
-				/>
-			)}
-
-			{!isSettingsOpen && (
-				<InfoModalForm
-					onCancelClick={onCancelClick}
-					title={t("catalog.error.already-exist")}
-					actionButton={{
-						text: t("catalog.configure"),
-						onClick: () => setIsSettingsOpen(true),
-					}}
-					closeButton={{ text: t("close") }}
-					icon={{ code: "alert-circle", color: "var(--color-danger)" }}
-				>
-					{formatError()}
-				</InfoModalForm>
-			)}
-		</>
+		<InfoModalForm
+			onCancelClick={onCancelClick}
+			title={t("catalog.error.already-exist")}
+			actionButton={{
+				text: t("catalog.configure"),
+				onClick: () => {
+					ModalToOpenService.setValue<ComponentProps<typeof CatalogPropsEditor>>(
+						ModalToOpen.CatalogPropsEditor,
+						{
+							onClose: () => ModalToOpenService.resetValue(),
+							onSubmit: onCancelClick,
+							modalContentProps: { "data-upper-error": true },
+						},
+					);
+				},
+			}}
+			closeButton={{ text: t("close") }}
+			icon={{ code: "alert-circle", color: "var(--color-danger)" }}
+		>
+			{formatError()}
+		</InfoModalForm>
 	);
 };
 

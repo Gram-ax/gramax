@@ -3,10 +3,17 @@ import { useWatchClient } from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
 import LogoUploader from "@ext/workspace/components/LogoUploader";
 import { FormField } from "@ui-kit/Form";
-import { useMemo } from "react";
-import type { FormProps } from "../logic/createFormSchema";
+import { useMemo, useCallback } from "react";
+import type { FormData, FormProps } from "../logic/createFormSchema";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { UseFormReturn } from "react-hook-form";
 
-const UploadCatalogLogo = ({ formProps }: { formProps: FormProps }) => {
+interface UploadCatalogLogoProps {
+	form: UseFormReturn<FormData>;
+	formProps: FormProps;
+}
+
+const UploadCatalogLogo = ({ formProps, form }: UploadCatalogLogoProps) => {
 	const {
 		deleteLightLogo,
 		deleteDarkLogo,
@@ -35,30 +42,50 @@ const UploadCatalogLogo = ({ formProps }: { formProps: FormProps }) => {
 		return { name: "logo_dark.svg", url: darkLogo };
 	}, [isLoadingDark, darkLogo]);
 
+	const onError = useCallback(
+		(name: "logo.light" | "logo.dark", error: DefaultError) => {
+			form.setError(name, { message: error.message });
+		},
+		[form],
+	);
+
+	const onChange = useCallback(
+		(name: "logo.light" | "logo.dark") => {
+			form.setError(name, { message: null });
+		},
+		[form],
+	);
+
 	return (
 		<>
 			<FormField
-				name="lightLogo"
+				name="logo.light"
 				title={t("file-input.logo-light")}
 				description={t("file-input.both-themes-if-no-dark")}
-				control={() => (
+				control={({ fieldState }) => (
 					<LogoUploader
 						deleteResource={deleteLightLogo}
 						updateResource={updateLightLogo}
 						defaultFileInfo={defaultLightFileInfo}
+						onChange={() => onChange("logo.light")}
+						error={fieldState.error?.message}
+						onError={(error) => onError("logo.light", error)}
 					/>
 				)}
 				{...formProps}
 			/>
 			<FormField
-				name={"darkLogo"}
+				name="logo.dark"
 				title={t("file-input.logo-dark")}
 				description={t("file-input.dark-theme-only")}
-				control={() => (
+				control={({ fieldState }) => (
 					<LogoUploader
 						deleteResource={deleteDarkLogo}
 						updateResource={updateDarkLogo}
 						defaultFileInfo={defaultDarkFileInfo}
+						onChange={() => onChange("logo.dark")}
+						error={fieldState.error?.message}
+						onError={(error) => onError("logo.dark", error)}
 					/>
 				)}
 				{...formProps}

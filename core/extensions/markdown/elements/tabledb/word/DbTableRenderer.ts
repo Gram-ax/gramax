@@ -1,11 +1,12 @@
 import { Field } from "../../../../../logic/components/tableDB/table";
 import { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
-import { IRunOptions, Table, TableCell, TableRow, WidthType } from "docx";
+import type { IRunOptions } from "docx";
+import docx from "@dynamicImports/docx";
 import { Table as TableDB } from "../../../../../logic/components/tableDB/table";
 import {
 	wordFontSizes,
 	WordFontStyles,
-	HeadingStyles,
+	getHeadingStyles,
 	wordMarginsType,
 	WordBlockType,
 	WordFontColors,
@@ -17,82 +18,85 @@ import { createContent } from "@ext/wordExport/TextWordGenerator";
 export class DbTableRenderer {
 	private readonly _defaultWidths = [2500, 2000, 2000];
 
-	renderDbTable(table: TableDB) {
+	async renderDbTable(table: TableDB) {
+		const { Table } = await docx();
+		const headingStyles = await getHeadingStyles();
 		return [
-			createParagraph(
+			await createParagraph(
 				[
-					createContent(NON_BREAKING_SPACE + table.code + NON_BREAKING_SPACE, {
+					await createContent(NON_BREAKING_SPACE + table.code + NON_BREAKING_SPACE, {
 						size: wordFontSizes.tableDBHeading[3] - 4,
 						style: WordFontStyles.code,
 					}),
-					...(table.title.default ? [createContent(NON_BREAKING_SPACE + table.title.default)] : []),
+					...(table.title.default ? [await createContent(NON_BREAKING_SPACE + table.title.default)] : []),
 				],
-				HeadingStyles[3],
+				headingStyles[3],
 			),
-			...(table.subtitle ? [createParagraph([createContent(table.subtitle)], WordFontStyles.normal)] : []),
+			...(table.subtitle
+				? [await createParagraph([await createContent(table.subtitle)], WordFontStyles.normal)]
+				: []),
 			new Table({
-				rows: [this._createFirstRow(), ...this._createOtherRows(table)],
+				rows: [await this._createFirstRow(), ...(await this._createOtherRows(table))],
 				margins: wordMarginsType[WordBlockType.table],
 				columnWidths: this._defaultWidths,
 			}),
 		];
 	}
 
-	private _createOtherRows(table: TableDB) {
-		return [
-			...table.fields.map(
-				(field) =>
-					new TableRow({
-						children: [
-							this._createFirstCell(field, { style: WordFontStyles.code }),
-							this._createSecondCell(field, { style: WordFontStyles.code }),
-							this._createThirdCell(field),
-						],
-					}),
-			),
-		];
+	private async _createOtherRows(table: TableDB) {
+		const { TableRow } = await docx();
+		return await table.fields.mapAsync(async (field) => {
+			const [c1, c2, c3] = await Promise.all([
+				this._createFirstCell(field, { style: WordFontStyles.code }),
+				this._createSecondCell(field, { style: WordFontStyles.code }),
+				this._createThirdCell(field),
+			]);
+			return new TableRow({ children: [c1, c2, c3] });
+		});
 	}
 
-	private _createFirstRow() {
-		const cells = ["field", "type", "description"].map(
-			(text) =>
+	private async _createFirstRow() {
+		const { TableRow, TableCell } = await docx();
+		const cells = await ["field", "type", "description"].mapAsync(
+			async (text) =>
 				new TableCell({
-					children: [createParagraph([createContent(text)], WordFontStyles.tableTitle)],
+					children: [await createParagraph([await createContent(text)], WordFontStyles.tableTitle)],
 				}),
 		);
 
 		return new TableRow({ children: cells });
 	}
 
-	private _createFirstCell(field: Field, addOptions: IRunOptions) {
+	private async _createFirstCell(field: Field, addOptions: IRunOptions) {
+		const { TableCell, WidthType } = await docx();
 		const texts = [
-			createContent(
+			await createContent(
 				NON_BREAKING_SPACE + field.code + (field.nullable ? NON_BREAKING_SPACE : ""),
 				addOptions as AddOptionsWord,
 			),
 			...(field.nullable
 				? []
 				: [
-						createContent(NON_BREAKING_SPACE + "*" + NON_BREAKING_SPACE, {
+						await createContent(NON_BREAKING_SPACE + "*" + NON_BREAKING_SPACE, {
 							...addOptions,
 							color: WordFontColors.dontNullableTypeTableDB,
 						} as AddOptionsWord),
 				  ]),
-			createContent(NON_BREAKING_SPACE),
+			await createContent(NON_BREAKING_SPACE),
 			field.primary
-				? createContent(NON_BREAKING_SPACE + "PK" + NON_BREAKING_SPACE, addOptions as AddOptionsWord)
+				? await createContent(NON_BREAKING_SPACE + "PK" + NON_BREAKING_SPACE, addOptions as AddOptionsWord)
 				: undefined,
 		].filter((val) => val);
 
 		return new TableCell({
 			children: [
-				createParagraph(texts, WordFontStyles.normal),
+				await createParagraph(texts, WordFontStyles.normal),
 				...(field.refObject
 					? [
-							createParagraph(
+							await createParagraph(
 								[
-									createContent("→" + NON_BREAKING_SPACE),
-									createContent(
+									await createContent("→" + NON_BREAKING_SPACE),
+									await createContent(
 										NON_BREAKING_SPACE + (field.refObject || "") + NON_BREAKING_SPACE,
 										addOptions as AddOptionsWord,
 									),
@@ -109,12 +113,13 @@ export class DbTableRenderer {
 		});
 	}
 
-	private _createSecondCell(field: Field, addOptions: IRunOptions) {
+	private async _createSecondCell(field: Field, addOptions: IRunOptions) {
+		const { TableCell, WidthType } = await docx();
 		return new TableCell({
 			children: [
-				createParagraph(
+				await createParagraph(
 					[
-						createContent(
+						await createContent(
 							NON_BREAKING_SPACE + (field.sqlType ?? "") + NON_BREAKING_SPACE,
 							addOptions as AddOptionsWord,
 						),
@@ -129,14 +134,17 @@ export class DbTableRenderer {
 		});
 	}
 
-	private _createThirdCell(field: Field) {
+	private async _createThirdCell(field: Field) {
+		const { TableCell, WidthType } = await docx();
 		return new TableCell({
 			children: [
-				createParagraph(
+				await createParagraph(
 					[
-						...(field.title.default ? [createContent(field.title.default)] : []),
-						...(field.title.default && field.description.default ? [createContent("", { break: 1 })] : []),
-						...(field.description.default ? [createContent(field.description.default)] : []),
+						...(field.title.default ? [await createContent(field.title.default)] : []),
+						...(field.title.default && field.description.default
+							? [await createContent("", { break: 1 })]
+							: []),
+						...(field.description.default ? [await createContent(field.description.default)] : []),
 					],
 					WordFontStyles.normal,
 				),

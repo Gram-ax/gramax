@@ -20,7 +20,16 @@ const getTestModules = async (): Promise<any> => {
 	return {
 		Link: NextLink,
 		Router: NextRouter,
-		Fetcher: async <T = any>(url: any, body?: BodyInit, mime?: any, method?: any) => {
+		Fetcher: async <T = any>(
+			url: any,
+			body?: BodyInit,
+			mime?: any,
+			method?: any,
+			_notifyError?: any,
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+			_onDidCommand?: (command: string, args: object, result: unknown) => void,
+			signal?: AbortSignal,
+		) => {
 			const l = LocalizerModule.extract(window.location.pathname);
 			const headers = {
 				"Content-Type": mime,
@@ -35,8 +44,9 @@ const getTestModules = async (): Promise<any> => {
 							method,
 							body,
 							headers,
+							signal,
 					  }
-					: { headers },
+					: { headers, signal },
 			)) as any;
 			res.buffer = async () => Buffer.from(await res.arrayBuffer());
 			return res;
@@ -52,6 +62,7 @@ const getTestModules = async (): Promise<any> => {
 		setBadge: () => undefined,
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
+		openInWeb: () => undefined,
 	};
 };
 

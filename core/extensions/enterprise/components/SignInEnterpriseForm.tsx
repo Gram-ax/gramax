@@ -1,48 +1,42 @@
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
-import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
-import { AuthMethod } from "@ext/enterprise/types/UserSettings";
 import t from "@ext/localization/locale/translate";
-import { Button, IconButton } from "@ui-kit/Button";
+import { Button } from "@ui-kit/Button";
 import { DescriptionDivider } from "@ui-kit/Divider";
-import { Form, FormField, FormFooterBase, FormStack } from "@ui-kit/Form";
+import { Form, FormField, FormStack } from "@ui-kit/Form";
 import GesFormHeader, { GesFormHeaderProps } from "@ui-kit/Form/GesFormHeader";
 import { Input } from "@ui-kit/Input";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@ui-kit/InputOTP";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { UseFormReturn } from "react-hook-form";
+import { z } from "zod";
 
-const SignInEnterpriseForm = ({ authUrl }: { authUrl: string }) => {
-	const [isOpen, setIsOpen] = useState(false);
+interface SignInEnterpriseFormProps {
+	authUrl: string;
+	form: UseFormReturn<any>;
+	isLoading: boolean;
+	isPasswordSent: boolean;
+	sendButtonCooldown: number;
+	isResendButtonDisabled: boolean;
+	formSubmit: (data: z.infer<any>) => Promise<void>;
+	handleOtpChange: (value: string) => void;
+	handleSendPassword: () => Promise<void>;
+	relocateToAuthUrl: () => void;
+	onlySSO: boolean;
+}
 
-	const workspace = WorkspaceService.current();
-	const onlySSO = !workspace.enterprise.authMethods?.includes(AuthMethod.GUEST_MAIL);
-
+const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
 	const {
 		form,
 		isLoading,
 		isPasswordSent,
 		sendButtonCooldown,
+		isResendButtonDisabled,
 		formSubmit,
 		handleOtpChange,
-		isResendButtonDisabled,
 		handleSendPassword,
-		resetForm,
-	} = useSignInEnterprise();
-
-	const relocateToAuthUrl = () => {
-		window.location.href = authUrl;
-	};
-
-	const onOpenChange = useCallback(
-		(value: boolean) => {
-			if (!value) {
-				resetForm();
-			}
-			setIsOpen(value);
-		},
-		[resetForm],
-	);
+		relocateToAuthUrl,
+		onlySSO,
+	} = props;
 
 	const formProps: FormProps = useMemo(() => {
 		return {
@@ -59,25 +53,12 @@ const SignInEnterpriseForm = ({ authUrl }: { authUrl: string }) => {
 	}, []);
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
-			<ModalTrigger asChild>
-				<IconButton
-					variant="ghost"
-					icon="log-in"
-					onClick={(e) => {
-						if (onlySSO) {
-							e.stopPropagation();
-							e.preventDefault();
-							relocateToAuthUrl();
-						}
-					}}
-				/>
-			</ModalTrigger>
-			<ModalContent data-modal-root data-sign-in-enteprise-form>
-				<Form asChild {...form}>
-					<form className="contents" onSubmit={form.handleSubmit(formSubmit)}>
-						<GesFormHeader {...formHeaderProps} />
-						<ModalBody>
+		<Form asChild {...form}>
+			<form className="contents" onSubmit={form.handleSubmit(formSubmit)}>
+				<div className="flex flex-col gap-4">
+					<GesFormHeader {...formHeaderProps} />
+					{!onlySSO && (
+						<>
 							<FormStack>
 								<FormField
 									name="email"
@@ -103,6 +84,7 @@ const SignInEnterpriseForm = ({ authUrl }: { authUrl: string }) => {
 										name="otp"
 										title={t("enterprise-guest.fields.otpLabel")}
 										description={t("enterprise-guest.descriptions.otpFieldDescription")}
+										{...formProps}
 										control={({ field }) => (
 											<InputOTP
 												autoFocus
@@ -126,7 +108,6 @@ const SignInEnterpriseForm = ({ authUrl }: { authUrl: string }) => {
 												</InputOTPGroup>
 											</InputOTP>
 										)}
-										{...formProps}
 									/>
 								)}
 
@@ -155,27 +136,26 @@ const SignInEnterpriseForm = ({ authUrl }: { authUrl: string }) => {
 									</Button>
 								)}
 							</FormStack>
-						</ModalBody>
 
-						<FormFooterBase>
-							<FormStack style={{ marginTop: "-1rem" }}>
-								<DescriptionDivider description={t("enterprise-guest.descriptions.continueWith")} />
+							<DescriptionDivider
+								description={t("enterprise-guest.descriptions.continueWith")}
+								style={{ marginTop: "-0.5rem" }}
+							/>
+						</>
+					)}
 
-								<Button
-									type="button"
-									variant="outline"
-									startIcon="building-2"
-									style={{ width: "100%" }}
-									onClick={relocateToAuthUrl}
-								>
-									{t("enterprise-guest.buttons.corporateLoginButton")}
-								</Button>
-							</FormStack>
-						</FormFooterBase>
-					</form>
-				</Form>
-			</ModalContent>
-		</Modal>
+					<Button
+						type="button"
+						variant="outline"
+						startIcon="building-2"
+						style={{ width: "100%", marginTop: "-0.5rem" }}
+						onClick={relocateToAuthUrl}
+					>
+						{t("enterprise-guest.buttons.corporateLoginButton")}
+					</Button>
+				</div>
+			</form>
+		</Form>
 	);
 };
 

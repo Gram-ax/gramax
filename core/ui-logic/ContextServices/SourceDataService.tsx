@@ -1,6 +1,7 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import ContextService from "@core-ui/ContextServices/ContextService";
+import useTrigger from "@core-ui/triggers/useTrigger";
 import { useValidateSource } from "@ext/git/actions/Source/logic/useValidateSource";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useState } from "react";
@@ -8,25 +9,28 @@ import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useE
 export const SourceDataContext = createContext<SourceData[]>(undefined);
 
 class SourceDataService implements ContextService {
-	private _setSourceDataContecxt: Dispatch<SetStateAction<SourceData[]>>;
+	private _setSourceDataContext: Dispatch<SetStateAction<SourceData[]>>;
+	private _bumpRefresh: () => void;
 
 	Init({ children }: { children: ReactElement }): ReactElement {
 		const [sourceDatas, setSourceDatas] = useState<SourceData[]>([]);
-		this._setSourceDataContecxt = setSourceDatas;
+		const [trigger, setTrigger] = useTrigger();
+		this._setSourceDataContext = setSourceDatas;
+		this._bumpRefresh = setTrigger;
 
 		const apiUrlCreator = ApiUrlCreator.value;
 		const validateSource = useValidateSource();
 
 		useEffect(() => {
-			void (async () => {
+			(async () => {
 				const res = await FetchService.fetch<SourceData[]>(apiUrlCreator.getSourceData());
 				if (!res.ok) return;
 				const sourceDatas = await res.json();
 				setSourceDatas(sourceDatas);
-				await sourceDatas.mapAsync((sourceData) => validateSource(sourceData, sourceDatas));
+				await sourceDatas.mapAsync((sd) => validateSource(sd, sourceDatas));
 				setSourceDatas([...sourceDatas]);
 			})();
-		}, []);
+		}, [trigger]);
 
 		return <SourceDataContext.Provider value={sourceDatas}>{children}</SourceDataContext.Provider>;
 	}
@@ -40,7 +44,11 @@ class SourceDataService implements ContextService {
 	}
 
 	set value(value: SourceData[]) {
-		this._setSourceDataContecxt(value);
+		this._setSourceDataContext(value);
+	}
+
+	refresh() {
+		this._bumpRefresh?.();
 	}
 }
 
