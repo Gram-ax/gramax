@@ -3,9 +3,13 @@ import SingInOut from "@components/Actions/SingInOut";
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsMacService from "@core-ui/ContextServices/IsMac";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
+import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import styled from "@emotion/styled";
 import AddCatalogMenu from "@ext/catalog/actions/AddCatalogMenu";
 import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
@@ -15,9 +19,6 @@ import ThemeToggle from "@ext/Theme/components/ThemeToggle";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
 import useUrlImage from "../Atoms/Image/useUrlImage";
-import styled from "@emotion/styled";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 
 export type HomePageActionsProps = { catalogLinks: CatalogLink[]; pin?: boolean };
 
@@ -53,10 +54,11 @@ const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
 	const { isTauri } = usePlatform();
 	const isMacDesktop = IsMacService.value && isTauri;
 	const { isNext, isStatic } = usePlatform();
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const hasWorkspace = WorkspaceService.hasActive() && !PageDataContextService.value.isGesUnauthorized;
 	const workspacePath = WorkspaceService.current()?.path;
 
-	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath);
+	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName);
 	const canConfigureWorkspace = PermissionService.useCheckPermission(configureWorkspacePermission, workspacePath);
 	const canAddCatalog = (isNext && canConfigureWorkspace) || (!isNext && canEditCatalog);
 

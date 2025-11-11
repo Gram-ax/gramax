@@ -3,6 +3,7 @@ import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/View
 import { Property, PropertyTypes, PropertyValue, SystemProperties } from "@ext/properties/models";
 import { ReactNode, useCallback, useMemo } from "react";
 import FilterMenu from "@ext/markdown/elements/view/edit/components/Helpers/FilterMenu";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type Mode = "single" | "multiple";
 
@@ -10,7 +11,6 @@ interface AddFilterProps {
 	icon: string;
 	ignoreEmpty?: boolean;
 	attributeName: string;
-	catalogProps: ClientCatalogProps;
 	properties: PropertyValue[] | string[];
 	tooltipText?: string;
 	availableValues?: boolean;
@@ -34,7 +34,6 @@ const AddFilter = (props: AddFilterProps) => {
 		icon,
 		ignoreEmpty,
 		attributeName,
-		catalogProps,
 		properties,
 		updateAttributes,
 		customPropertyMenu,
@@ -45,9 +44,10 @@ const AddFilter = (props: AddFilterProps) => {
 		closeOnSelection = true,
 		filter,
 	} = props;
+	const catalogProperties = useCatalogPropsStore((state) => state.data.properties, "shallow");
 	const oneValue = mode === "single";
 	const noAssignedProperties: PropertyFilter[] = useMemo(() => {
-		return catalogProps.properties
+		return catalogProperties
 			.filter((prop) => filter?.(prop) ?? true)
 			.filter((prop) => allowSystemProperties || !SystemProperties[prop.name.toLowerCase()])
 			.map((prop) => {
@@ -68,11 +68,11 @@ const AddFilter = (props: AddFilterProps) => {
 
 				return prop;
 			});
-	}, [catalogProps?.properties, properties, filter, allowSystemProperties]);
+	}, [catalogProperties, properties, filter, allowSystemProperties]);
 
 	const addFilter = useCallback(
 		(name: string, val?: string | string[]) => {
-			const property = catalogProps.properties.find((prop) => prop.name === name);
+			const property = catalogProperties.find((prop) => prop.name === name);
 			if (!property) return;
 
 			let newValue: string[] = [];
@@ -95,7 +95,7 @@ const AddFilter = (props: AddFilterProps) => {
 				],
 			});
 		},
-		[catalogProps, properties, oneValue, availableValues],
+		[catalogProperties, properties, oneValue, availableValues],
 	);
 
 	const removeProperty = useCallback(
@@ -136,7 +136,7 @@ const AddFilter = (props: AddFilterProps) => {
 
 	const updateFilter = useCallback(
 		(name: string, val?: string | string[]) => {
-			const originalProperty = catalogProps.properties.find((prop) => prop.name === name);
+			const originalProperty = catalogProperties.find((prop) => prop.name === name);
 			if (!originalProperty) return;
 
 			const propIndex = properties.findIndex((def) => {
@@ -172,7 +172,7 @@ const AddFilter = (props: AddFilterProps) => {
 
 			return addFilter(name, val);
 		},
-		[catalogProps, updateAttributes, properties, attributeName, oneValue],
+		[catalogProperties, updateAttributes, properties, attributeName, oneValue],
 	);
 
 	return (

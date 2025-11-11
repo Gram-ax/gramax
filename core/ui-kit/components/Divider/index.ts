@@ -1,2 +1,1 @@
-export { Divider, DescriptionDivider } from "./Divider";
-export { ContentDivider } from "ics-ui-kit/components/divider";
+export { ContentDivider, Divider } from "ics-ui-kit/components/divider";

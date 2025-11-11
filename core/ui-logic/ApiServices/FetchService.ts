@@ -31,9 +31,17 @@ export default class FetchService {
 	): Promise<FetchResponse<T>> {
 		const command = trimRoutePrefix(url);
 
-		const res = await resolveModule("Fetcher")(url, body, mime, method, false, (command, args, result) => {
-			void events.emit("on-did-command", { command, args, result });
-		});
+		const res = await resolveModule("Fetcher")(
+			url,
+			body,
+			mime,
+			method,
+			false,
+			(command, args, result) => {
+				void events.emit("on-did-command", { command, args, result });
+			},
+			signal,
+		);
 
 		if (res.ok) return res;
 

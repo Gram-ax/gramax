@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import useElementExistence from "@core-ui/hooks/useElementExistence";
-import { cssMedia } from "@core-ui/utils/cssUtils";
+import { mediaQueries } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@react-hook/media-query";
 import Tippy, { TippyProps } from "@tippyjs/react";
@@ -55,7 +55,7 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 	const tooltipRef = ref ?? useRef();
 	const exists = useElementExistence(tooltipRef);
 	const [finalPlace, setFinalPlace] = useState<Placement>(place);
-	const isNarrow = useMediaQuery(cssMedia.narrow);
+	const isNarrow = useMediaQuery(mediaQueries.narrow);
 
 	useEffect(() => {
 		setPlaceCallback(finalPlace);

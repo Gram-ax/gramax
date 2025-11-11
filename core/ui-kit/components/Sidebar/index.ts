@@ -1,0 +1,17 @@
+export {
+	Sidebar,
+	SidebarContent,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarProvider,
+	SidebarRail,
+	SidebarSeparator,
+	SidebarHeader,
+	SidebarFooter,
+	SidebarMenuSub,
+	SidebarMenuSubButton,
+	SidebarMenuSubItem,
+} from "ics-ui-kit/components/sidebar";

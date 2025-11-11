@@ -26,7 +26,7 @@ const InlineUser = ({ name, mail, date, className }: UserProps) => {
 					<span className="dot-divider">
 						<Icon code="dot" />
 					</span>
-					<Date date={date} tooltipDelay={[1000, 0]} tooltipAppendTo={() => document.body} />
+					<Date date={date} tooltipDelay={1000} />
 				</>
 			)}
 		</div>

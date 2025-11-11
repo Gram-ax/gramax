@@ -1,5 +1,6 @@
 import { env, getExecutingEnvironment } from "@app/resolveModule/env";
 import assert from "assert";
+import getStaticFeatures from "../../../apps/gramax-cli/src/logic/initialDataUtils/getStaticFeatures";
 
 export enum FeatureTarget {
 	none = 0,
@@ -27,7 +28,10 @@ export type Feature = {
 		ru: string;
 		en: string;
 	};
-	url?: string;
+	url?: {
+		ru: string;
+		en: string;
+	};
 	status?: "in-dev" | "experimental" | "unstable" | "beta";
 	default: boolean;
 	isEnabled: boolean;
@@ -36,8 +40,10 @@ export type Feature = {
 
 let cachedFeatures: Record<string, Feature> = null;
 
-const getRawEnabledFeatures = () => {
-	if (getExecutingEnvironment() == "next") return env("DOCPORTAL_FEATURES");
+export const getRawEnabledFeatures = (): string | null => {
+	if (getExecutingEnvironment() == "next" || getExecutingEnvironment() === "cli")
+		return env("DOCPORTAL_FEATURES") || env("FEATURES") || null;
+	if (getExecutingEnvironment() === "static") return getStaticFeatures();
 	return typeof window !== "undefined" ? window.localStorage?.getItem(FEATURES_KEY) : null;
 };
 
@@ -95,8 +101,11 @@ export const setFeature = (name: keyof typeof features, value: boolean) => {
 	typeof window !== "undefined" && window.localStorage?.setItem(FEATURES_KEY, enabledFeatureNames.join(","));
 };
 
-export const setFeatureList = (enabled: (keyof typeof features)[]) => {
-	assert(getExecutingEnvironment() === "next", "Supported only in next environment");
+export const setFeatureList = (enabled?: (keyof typeof features)[]) => {
+	assert(
+		getExecutingEnvironment() !== "browser" && getExecutingEnvironment() !== "tauri",
+		"Not supported in browser & tauri environment",
+	);
 	loadFeatures(enabled);
 };
 
@@ -106,7 +115,7 @@ const target: Record<ReturnType<typeof getExecutingEnvironment>, FeatureTarget> 
 	next: FeatureTarget.docportal,
 	static: FeatureTarget.static,
 	test: FeatureTarget.none,
-	cli: FeatureTarget.none,
+	cli: FeatureTarget.static,
 };
 
 export const feature = (name: keyof typeof features): boolean => {
@@ -123,7 +132,10 @@ export const features = {
 			ru: "Опубликуйте портал для читателей за несколько кликов",
 			en: "Publish a docportal for readers in a few clicks",
 		},
-		url: "https://gram.ax/resources/docs/doc-portal/cloud-gramax",
+		url: {
+			ru: "https://gram.ax/resources/docs/doc-portal/cloud-gramax",
+			en: null, // Waiting for translation
+		},
 		icon: "cloud",
 		targets: FeatureTarget.web | FeatureTarget.desktop,
 		default: false,
@@ -137,7 +149,10 @@ export const features = {
 			ru: "Создайте разные сборки документации из одного каталога",
 			en: "Create a various docs builds from single catalog",
 		},
-		url: "https://gram.ax/resources/docs/catalog/filter",
+		url: {
+			ru: "https://gram.ax/resources/docs/catalog/filter",
+			en: null, // Waiting for translation
+		},
 		icon: "filter",
 		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
 		default: false,
@@ -154,7 +169,7 @@ export const features = {
 		icon: "file-text",
 		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
 		default: false,
-	}
+	},
 } as const satisfies FeatureList;
 
 loadFeatures();

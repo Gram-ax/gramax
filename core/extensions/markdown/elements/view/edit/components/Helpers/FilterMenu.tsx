@@ -74,6 +74,7 @@ const FilterMenu = memo((props: FilterMenuProps) => {
 			<DropdownMenuRadioGroup
 				value={noAssignedProperties.find((property) => property.selected)?.name}
 				onValueChange={(value) => updateData(value, value)}
+				indicatorIconPosition="start"
 			>
 				{noAssignedProperties.map((property) => (
 					<Item

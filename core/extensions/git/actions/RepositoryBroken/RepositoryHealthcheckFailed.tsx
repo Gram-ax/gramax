@@ -2,7 +2,6 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import resolveModule from "@app/resolveModule/frontend";
 import Icon from "@components/Atoms/Icon";
 import CloneProgress from "@components/HomePage/CardParts/CloneProgress";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { useApi } from "@core-ui/hooks/useApi";
@@ -19,6 +18,7 @@ import { AlertConfirm } from "@ui-kit/AlertDialog/AlertConfirm";
 import { Button } from "@ui-kit/Button";
 import { Modal, ModalBody, ModalContent, ModalTitle, ModalTrigger } from "@ui-kit/Modal";
 import { useCallback, useEffect, useState, type ComponentProps } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const FooterWrapper = styled.div`
 	display: flex;
@@ -47,12 +47,12 @@ const DownloadZip = () => {
 };
 
 const OpenInExplorer = () => {
-	const catalog = CatalogPropsService.value;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 
 	const workspace = WorkspaceService.current();
 	if (!workspace) return null;
 
-	const path = new Path(workspace.path).join(new Path(catalog.name)).value;
+	const path = new Path(workspace.path).join(new Path(catalogName)).value;
 	const isMac = IsMacService.value;
 
 	const open = useCallback(() => resolveModule("openInExplorer")(path), [path]);
@@ -92,7 +92,7 @@ export const RepositoryHealthcheckError = ({
 };
 
 export const RepositoryHealthcheckFailed = ({ trigger, error }: RepositoryHealthcheckFailedProps) => {
-	const catalog = CatalogPropsService.value;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const { isTauri } = usePlatform();
 	const [open, setOpen] = useState(false);
 
@@ -112,7 +112,7 @@ export const RepositoryHealthcheckFailed = ({ trigger, error }: RepositoryHealth
 		error: recoverError,
 		isCloning: inProgress,
 		progress,
-	} = useRemoteProgress(catalog.name, null, true, null, onRecoverCompleted);
+	} = useRemoteProgress(catalogName, null, true, null, onRecoverCompleted);
 
 	const { call: startRecovering, error: startRecoveringError } = useApi<{ started: boolean }>({
 		url: (api) => api.startRecover(),
@@ -143,7 +143,7 @@ export const RepositoryHealthcheckFailed = ({ trigger, error }: RepositoryHealth
 								</ErrorMessage>
 							)}
 							<p className="w-full flex justify-center">
-								{inProgress && <StyledCloneProgress progress={progress} name={catalog.name} />}
+								{inProgress && <StyledCloneProgress progress={progress} name={catalogName} />}
 							</p>
 						</p>
 					</div>

@@ -2,14 +2,13 @@ import { Range } from "@tiptap/core";
 import { useCallback } from "react";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
+import { addComment, deleteComment } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import { CommentBlock } from "@core-ui/CommentBlock";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 
 const useCommentCallbacks = (articlePathname: string) => {
-	const comments = CommentCounterService.value;
 	const pageData = PageDataContextService.value;
 	const apiUrlCreator = ApiUrlCreator.value;
 
@@ -32,13 +31,13 @@ const useCommentCallbacks = (articlePathname: string) => {
 
 			const data = editor.storage.comments?.find((comment) => comment.id === id);
 			const user = (data?.comment?.user as UserInfo) || pageData.userInfo;
-			CommentCounterService.add(comments, articlePathname, user, id);
+			addComment(articlePathname, user, id);
 			if (!data) return;
 
 			const url = apiUrlCreator.updateComment(id);
 			void FetchService.fetch(url, JSON.stringify(data.comment));
 		},
-		[apiUrlCreator, articlePathname, comments, pageData.userInfo],
+		[apiUrlCreator, articlePathname, addComment, pageData.userInfo],
 	);
 
 	const onMarkDeleted = useCallback(
@@ -53,13 +52,13 @@ const useCommentCallbacks = (articlePathname: string) => {
 			}
 
 			const user = (data?.comment?.user as UserInfo) || pageData.userInfo;
-			CommentCounterService.delete(comments, articlePathname, user, id);
+			deleteComment(articlePathname, user, id);
 
 			if (positions.length) return;
 			const url = apiUrlCreator.deleteComment(id);
 			await FetchService.fetch(url);
 		},
-		[apiUrlCreator, loadComment, articlePathname, comments, pageData.userInfo],
+		[apiUrlCreator, loadComment, articlePathname, deleteComment, pageData.userInfo],
 	);
 
 	return {

@@ -3,9 +3,9 @@ import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
-import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import GitVerseSourceAPI from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceAPI";
 import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
+import handleFormApiError from "@ext/git/actions/Source/logic/handleApiError";
 import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -62,12 +62,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 		async (data: GitVerseSourceData, domain: string) => {
 			if (data.token && domain) {
 				const api = new GitVerseSourceAPI(data, authServiceUrl, (error) => {
-					if (!(error instanceof NetworkApiError)) return;
-
-					if (error.props.status == 401 || error.props.status == 403)
-						form.setError("token", { type: "invalid", message: t("invalid2") + " " + t("token") });
-					else form.setError("url", { message: t("invalid") + " " + t("value") });
-
+					handleFormApiError(error, form);
 					setIsLoading(false);
 				});
 

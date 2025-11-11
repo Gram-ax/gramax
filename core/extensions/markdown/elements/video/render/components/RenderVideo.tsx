@@ -2,11 +2,12 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import GifImage from "@components/Atoms/Image/GifImage";
 import styled from "@emotion/styled";
 import { type HTMLAttributes } from "react";
+import { getUrlFileExtension } from "../../logic/getUrlFileExtension";
 
 export type RenderVideoProps = {
 	url: string;
-	onLoad: () => void;
-	onError: () => void;
+	onLoad?: () => void;
+	onError?: () => void;
 	setIsError?: (isError: boolean) => void;
 	setIsLoaded?: (isLoaded: boolean) => void;
 };
@@ -30,7 +31,8 @@ const rutubeUrlReplacer = (url: string): string => {
 const supportedVideoFormats = ["mp4", "webm", "ogg"];
 
 const isVideoFormatSupported = (url: string): boolean => {
-	const extension = url.split(".").pop()?.toLowerCase();
+	const extension = getUrlFileExtension(url);
+
 	return extension ? supportedVideoFormats.includes(extension) : false;
 };
 
@@ -108,7 +110,7 @@ const PreviewVideo = styled(PreviewVideoUnstyled)`
 	height: fit-content;
 `;
 
-const IFrameVideo = ({ url, onLoad: onLoad, onError }: RenderVideoProps) => {
+export const IFrameVideo = ({ url, onLoad: onLoad, onError }: RenderVideoProps) => {
 	const props = {
 		credentialless: "true",
 		allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",

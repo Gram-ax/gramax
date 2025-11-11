@@ -1,4 +1,4 @@
-import { PAGE_CLASS } from "@ext/print/utils/paginateIntoPages";
+import { createPage, PAGE_CLASS } from "./pagination/pageElements";
 
 export interface PrintablePage {
 	title: string;
@@ -12,6 +12,7 @@ export const TOC_PAGE_ITEM_CLASS = "toc-item";
 export const TOC_PAGE_ITEM_LINK_CLASS = "toc-item-link";
 export const TOC_PAGE_ITEM_TITLE_CLASS = "toc-item-title";
 export const TOC_PAGE_ITEM_NUMBER_CLASS = "toc-item-number";
+export const TOC_PAGE_ITEM_DOTS_CLASS = "toc-item-dots";
 
 export function insertAfterTitleOrFirst(pages: HTMLElement, element: HTMLElement): void {
 	const title = pages.querySelector(":scope > .title-page");
@@ -49,18 +50,17 @@ function buildItemFirstPageByH1(pages: HTMLElement, items: PrintablePage[]): (nu
 		const queue = indexQueues.get(key);
 		if (!queue?.length) continue;
 
-		const itemIndex = queue.shift()!;
+		const itemIndex = queue.shift();
 		const num = Number(page.dataset.pageNumber) || 0;
 		if (num) firstPage[itemIndex] = num;
 	}
 	return firstPage;
 }
 
-function createTocPage(withHeader: boolean): { page: HTMLElement; ul: HTMLUListElement } {
-	const page = document.createElement("div");
-	page.classList.add(PAGE_CLASS, TOC_PAGE_CLASS);
+function createTocPage(pages, afterend?: HTMLElement): { page: HTMLElement; ul: HTMLUListElement } {
+	const page = createPage(pages, { prepend: true, afterend, classNames: [PAGE_CLASS, TOC_PAGE_CLASS] });
 
-	if (withHeader) {
+	if (!afterend) {
 		const h = document.createElement("h1");
 		h.className = TOC_PAGE_HEADER_CLASS;
 		h.textContent = "Оглавление";
@@ -84,8 +84,7 @@ export const initTocPageContent = (pages: HTMLElement, items: PrintablePage[], h
 	ensurePageIds(pages);
 	const firstPageNumbers = buildItemFirstPageByH1(pages, items);
 
-	let { page: curPage, ul: curUl } = createTocPage(true);
-	insertAfterTitleOrFirst(pages, curPage);
+	let { page: curPage, ul: curUl } = createTocPage(pages);
 
 	const tocPages: HTMLElement[] = [curPage];
 	const numberSpans: HTMLSpanElement[] = [];
@@ -108,12 +107,16 @@ export const initTocPageContent = (pages: HTMLElement, items: PrintablePage[], h
 		titleSpan.className = TOC_PAGE_ITEM_TITLE_CLASS;
 		titleSpan.textContent = it.title ?? "";
 
+		const dotSpan = document.createElement("span");
+		dotSpan.className = TOC_PAGE_ITEM_DOTS_CLASS;
+
 		const numSpan = document.createElement("span");
 		numSpan.className = TOC_PAGE_ITEM_NUMBER_CLASS;
 		numSpan.dataset.base = String(basePageNum);
 		numberSpans.push(numSpan);
 
 		a.appendChild(titleSpan);
+		a.appendChild(dotSpan);
 		a.appendChild(numSpan);
 		li.appendChild(a);
 
@@ -122,8 +125,7 @@ export const initTocPageContent = (pages: HTMLElement, items: PrintablePage[], h
 		if (isOverflow(curPage, curUl)) {
 			curUl.removeChild(li);
 
-			const created = createTocPage(false);
-			curPage.insertAdjacentElement("afterend", created.page);
+			const created = createTocPage(pages, curPage.parentElement);
 			tocPages.push(created.page);
 
 			curPage = created.page;

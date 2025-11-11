@@ -1,24 +1,24 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
 import { useEffect, useRef } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const useFetchCatalog = () => {
-	const catalogProps = CatalogPropsService.value;
+	const catalogProps = useCatalogPropsStore((state) => state.data, "shallow");
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isOffline = isOfflineService.value;
-	const isRepoOk = useIsRepoOk(catalogProps) && !!catalogProps;
+	const isRepoOk = useIsRepoOk(catalogProps) && !!catalogProps?.name;
 	const isRepoOkRef = useRef<boolean>(isRepoOk);
 	const readOnly = PageDataContextService.value.conf.isReadOnly;
 
 	const fetchCatalog = async () => {
 		if (
-			!catalogProps ||
+			!catalogProps?.name ||
 			isOffline ||
 			!isRepoOkRef.current ||
 			readOnly ||

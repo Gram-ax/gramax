@@ -1,0 +1,121 @@
+import { GroupToolbarAddBtn } from "@ext/enterprise/components/admin/settings/components/GroupToolbarAddBtn";
+import { RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import { useWorkspaceAccess } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceAccess";
+import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
+import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
+import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
+import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
+import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
+import { useCallback, useMemo, useState } from "react";
+import { groupsTableColumns } from "./config/GroupTableConfig";
+import { Group } from "./types/GroupTypes";
+import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+
+interface WorkspaceAccessGroupProps {
+	localSettings: WorkspaceSettings;
+	setLocalSettings: React.Dispatch<React.SetStateAction<WorkspaceSettings>>;
+	ownerRole: RoleId;
+	groups: string[];
+}
+
+export function WorkspaceAccessGroup({
+	localSettings,
+	setLocalSettings,
+	ownerRole,
+	groups = [],
+}: WorkspaceAccessGroupProps) {
+	const { getAccessForRole, handleRoleUpdate } = useWorkspaceAccess(localSettings, setLocalSettings);
+
+	const [groupsRowSelection, setGroupsRowSelection] = useState({});
+
+	const currentAccess = getAccessForRole(ownerRole);
+
+	const groupsTableData = useMemo(
+		() => currentAccess.gxGroups.map((group) => ({ id: group, group })),
+		[currentAccess.gxGroups],
+	);
+
+	const groupsTable = useReactTable({
+		data: groupsTableData,
+		columns: groupsTableColumns,
+		getCoreRowModel: getCoreRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
+		onRowSelectionChange: setGroupsRowSelection,
+		state: {
+			rowSelection: groupsRowSelection,
+		},
+	});
+
+	const handleDeleteSelectedGroups = useCallback(() => {
+		const selectedRows = groupsTable.getFilteredSelectedRowModel().rows;
+		const selectedGroupIds = selectedRows.map((row) => row.original.id);
+
+		setLocalSettings((prev: any) => ({
+			...prev,
+			access: {
+				...prev.access,
+				[ownerRole]: {
+					...currentAccess,
+					gxGroups: currentAccess.gxGroups.filter((group) => !selectedGroupIds.includes(group)),
+				},
+			},
+		}));
+		setGroupsRowSelection({});
+	}, [setLocalSettings, groupsTable, currentAccess, ownerRole]);
+
+	const groupsSelectedCount = useMemo(
+		() => groupsTable.getFilteredSelectedRowModel().rows.length,
+		[groupsTable, groupsRowSelection],
+	);
+
+	const handleFilterChange = useCallback(
+		(value: string | null) => {
+			groupsTable.getColumn("group")?.setFilterValue(value);
+		},
+		[groupsTable],
+	);
+
+	const handleAddGroups = useCallback(
+		(groups: string[]) => {
+			if (!localSettings) return;
+			const currentAccess = getAccessForRole(ownerRole);
+			handleRoleUpdate(ownerRole, {
+				users: currentAccess.users,
+				gxGroups: [...currentAccess.gxGroups, ...groups],
+			});
+		},
+		[localSettings, getAccessForRole, handleRoleUpdate, ownerRole],
+	);
+
+	return (
+		<div>
+			<TableInfoBlock title="Группы" description={currentAccess.gxGroups.length} />
+
+			<TableToolbar
+				input={
+					<TableToolbarTextInput
+						placeholder="Найти группы..."
+						value={(groupsTable.getColumn("group")?.getFilterValue() as string) ?? ""}
+						onChange={handleFilterChange}
+					/>
+				}
+			>
+				<AlertDeleteDialog
+					hidden={!groupsSelectedCount}
+					onConfirm={handleDeleteSelectedGroups}
+					selectedCount={groupsSelectedCount}
+				/>
+				<GroupToolbarAddBtn
+					key="add-group"
+					disable={groups.length === 0}
+					onAdd={handleAddGroups}
+					groups={groups}
+					existingGroups={currentAccess.gxGroups}
+				/>
+			</TableToolbar>
+
+			<TableComponent<Group> table={groupsTable} columns={groupsTableColumns} />
+		</div>
+	);
+}

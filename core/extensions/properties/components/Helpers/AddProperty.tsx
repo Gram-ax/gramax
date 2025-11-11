@@ -1,6 +1,5 @@
 import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import t from "@ext/localization/locale/translate";
 import { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
 import { Property, PropertyValue } from "@ext/properties/models";
@@ -14,6 +13,10 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
 import PropertyItem from "@ext/properties/components/Helpers/PropertyItem";
+import {
+	useCatalogPropsStore,
+	updateCatalogPropsStore,
+} from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface AddPropertyProps {
 	properties: Property[] | PropertyValue[];
@@ -28,7 +31,7 @@ const AddProperty = (props: AddPropertyProps) => {
 	const { canAdd = false, properties, catalogProperties, onSubmit, setProperties, disabled } = props;
 	const articleProps = ArticlePropsService.value;
 	const setArticleProps = ArticlePropsService.setArticleProps;
-	const catalogProps = CatalogPropsService.value;
+	const catalogProps = useCatalogPropsStore((state) => state);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const isOpenRef = useRef(false);
@@ -41,7 +44,7 @@ const AddProperty = (props: AddPropertyProps) => {
 
 	const saveCatalogProperties = useCallback(
 		async (property: Property, isDelete: boolean = false, saveValue?: boolean) => {
-			const newProps = getCatalogEditProps(catalogProps);
+			const newProps = getCatalogEditProps(catalogProps.data);
 			const index = newProps.properties.findIndex((obj) => obj.name === property.name);
 
 			ModalToOpenService.setValue(ModalToOpen.Loading);
@@ -87,10 +90,10 @@ const AddProperty = (props: AddPropertyProps) => {
 
 			ModalToOpenService.resetValue();
 			FetchService.fetch(apiUrlCreator.updateCatalogProps(), JSON.stringify(newProps), MimeTypes.json);
-			CatalogPropsService.value = { ...catalogProps, properties: newProps.properties };
+			catalogProps.update({ properties: newProps.properties });
 			setArticleProps({ ...articleProps, properties: combineProperties(properties, catalogProperties) });
 		},
-		[catalogProps, properties, setArticleProps, articleProps],
+		[catalogProps.data, properties, setArticleProps, articleProps],
 	);
 
 	const editProperty = useCallback(

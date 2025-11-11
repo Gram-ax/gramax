@@ -7,7 +7,7 @@ import IPermission from "../Permission/IPermission";
 import UserInfo from "./UserInfo";
 import UserJSONData from "./UserJSONData";
 
-export type UserType = "base" | "enterprise";
+export type UserType = "base" | "enterprise" | "ticket";
 
 export default class User {
 	constructor(

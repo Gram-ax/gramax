@@ -1,6 +1,5 @@
 import t from "@ext/localization/locale/translate";
 import { ComponentProps, useState } from "react";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import getPartGitSourceDataByStorageName from "../logic/utils/getPartSourceDataByStorageName";
 import { Modal, ModalContent, ModalBody, ModalTrigger } from "@ui-kit/Modal";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
@@ -9,10 +8,11 @@ import { Label } from "@ui-kit/Label";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import CreateStorage from "@ext/storage/components/CreateStorage";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const sourceName = CatalogPropsService.value.sourceName;
+	const sourceName = useCatalogPropsStore((state) => state.data.sourceName);
 	const { sourceType, data } = getPartGitSourceDataByStorageName(sourceName);
 
 	const handleAddStorage = () => {

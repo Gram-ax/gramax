@@ -1,4 +1,4 @@
-import { isDeepestArticle } from "@ext/artilce/actions/CreateArticle";
+import { isDeepestArticle } from "@ext/article/actions/CreateArticle";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import hash from "object-hash";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";

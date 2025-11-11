@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
 import DiagramData from "../../../../elements/diagrams/component/DiagramData";
-import HTMLComponents, { unSupportedElements } from "./HTMLComponents";
 
 import Error from "@components/Error";
 import Alert from "@ext/markdown/elements/alert/render/component/Alert";
@@ -41,12 +40,13 @@ import Term from "../../../../elements/term/render/Term";
 import Video from "../../../../elements/video/render/components/Video";
 import When from "../../../../elements/whowhen/render/When";
 import Who from "../../../../elements/whowhen/render/Who";
-import ParserContext from "../../../Parser/ParserContext/ParserContext";
 import BlockField from "@ext/markdown/elements/blockContentField/render/components/BlockField";
 import BlockProperty from "@ext/markdown/elements/blockProperty/render/components/BlockProperty";
 import HtmlTag from "@ext/markdown/elements/htmlTag/render/component/HtmlTag";
 import InlineImage from "@ext/markdown/elements/inlineImage/render/components/InlineImage";
 import Highlight from "@ext/markdown/elements/highlight/render/components/Highlight";
+import { Answer } from "@ext/markdown/elements/answer/render/components/Answer";
+import { Question } from "@ext/markdown/elements/question/render/components/Question";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -66,6 +66,8 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		"inline-property": InlineProperty,
 		"block-field": BlockField,
 		"block-property": BlockProperty,
+		questionAnswer: Answer,
+		question: Question,
 		inlineImage: InlineImage,
 		Issue,
 		Module,
@@ -110,30 +112,6 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		"Ts-diagram": getDiagramRender(DiagramType["ts-diagram"]),
 	};
 }
-
-export const getComponentsHTML = (requestURL?: string, context?: ParserContext) => {
-	const components = getComponents();
-	if (!context) return components;
-
-	const htmlComponents: HTMLComponents = new HTMLComponents(requestURL, context);
-	components.Link = htmlComponents.getLink();
-	components.Code = htmlComponents.getCode();
-	components.Image = htmlComponents.getImg();
-	components.Drawio = htmlComponents.getDrawio();
-	components.tab = htmlComponents.getNullComponent(unSupportedElements.tab);
-	components.tabs = htmlComponents.getTabs();
-	components.Mermaid = htmlComponents.getNullComponent(unSupportedElements.mermaid);
-	components.OpenApi = htmlComponents.getNullComponent(unSupportedElements.openApi);
-	components["Plant-uml"] = htmlComponents.getPlantUmlDiagram();
-	components["C4-diagram"] = htmlComponents.getNullComponent(unSupportedElements["c4-diagram"]);
-	components["Ts-diagram"] = htmlComponents.getNullComponent(unSupportedElements["ts-diagram"]);
-	components["Db-diagram"] = htmlComponents.getNullComponent(unSupportedElements["db-diagram"]);
-	// components["Db-diagram"] = htmlComponents.getDiagramdb();
-	// components.Mermaid = htmlComponents.getDiagramRendererImage(DiagramType.mermaid);
-	// components["C4-diagram"] = htmlComponents.getDiagramRendererImage(DiagramType["c4-diagram"]);
-	// components["Ts-diagram"] = htmlComponents.getDiagramRendererImage(DiagramType["ts-diagram"]);
-	return components;
-};
 
 function getDiagramRender(diagramName: DiagramType) {
 	return (props) => <DiagramData diagramName={diagramName} {...props} />;

@@ -1,8 +1,16 @@
 import { CommentOptions, CommentStorage } from "@ext/markdown/elements/comment/edit/model/types";
-import { Editor, MarkConfig, ParentConfig, Range } from "@tiptap/core";
+import {
+	Editor,
+	MarkConfig,
+	ParentConfig,
+	Range,
+	combineTransactionSteps,
+	getChangedRanges,
+	ChangedRange,
+} from "@tiptap/core";
 import { MarkType, Node } from "@tiptap/pm/model";
 import { EditorState, Plugin, PluginKey, Transaction } from "@tiptap/pm/state";
-import { AddMarkStep, AttrStep, RemoveMarkStep } from "@tiptap/pm/transform";
+import { AddMarkStep, AttrStep, RemoveMarkStep, Transform } from "@tiptap/pm/transform";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 const processCommentPositions = (doc: Node): Map<string, Range[]> => {
@@ -25,6 +33,25 @@ const processCommentPositions = (doc: Node): Map<string, Range[]> => {
 	return commentPositions;
 };
 
+const processEmptyRanges = (tr: Transform, changes: ChangedRange[]) => {
+	tr.steps.forEach((step) => {
+		if (step instanceof AddMarkStep && step.mark.type.name === "comment") {
+			changes.push({ oldRange: { from: step.from, to: step.to }, newRange: { from: step.from, to: step.to } });
+		}
+
+		if (step instanceof RemoveMarkStep && step.mark.type.name === "comment") {
+			changes.push({ oldRange: { from: step.from, to: step.to }, newRange: { from: step.from, to: step.to } });
+		}
+
+		if (step instanceof AttrStep) {
+			changes.push({
+				oldRange: { from: step.pos, to: step.pos + 1 },
+				newRange: { from: step.pos, to: step.pos + 1 },
+			});
+		}
+	});
+};
+
 function StateWatcher(this: {
 	name: string;
 	options: CommentOptions;
@@ -35,142 +62,117 @@ function StateWatcher(this: {
 }) {
 	const { onMarkDeleted, onMarkAdded } = this.options;
 
-	const updateCommentPositions = (tr: Transaction) => {
-		if (!tr.docChanged) return null;
+	const updateCommentPositions = (transactions: Transaction[], oldDoc: Node, newDoc: Node) => {
+		const tr = combineTransactionSteps(oldDoc, transactions);
+		const changes = [...(getChangedRanges(tr) || [])];
 
-		const updatedPositions: Map<string, Range[]> = new Map(this.storage.positions);
+		const currentPositions = new Map(this.storage.positions);
 		const deletedComments = new Set<string>();
-		const addedComments: Map<string, Range[]> = new Map();
-		const isHistoryStep = tr.getMeta("history$");
+		const addedComments = new Map<string, Range[]>();
+		processEmptyRanges(tr, changes);
 
-		tr.steps.forEach((step) => {
-			if (step instanceof AddMarkStep && step.mark.type.name === "comment") {
-				const commentId = step.mark.attrs.id;
-				if (!commentId) return;
-				if (!addedComments.has(commentId)) addedComments.set(commentId, []);
-				addedComments.get(commentId)?.push({ from: step.from, to: step.to });
-			}
+		if (changes.length === 0) return;
 
-			if (step instanceof RemoveMarkStep && step.mark.type.name === "comment") {
-				const commentId = step.mark.attrs.id;
-				if (!commentId) return;
-				deletedComments.add(commentId);
+		currentPositions.forEach((ranges, commentId) => {
+			const updatedRanges: Range[] = [];
 
-				if (updatedPositions.has(commentId)) {
-					updatedPositions.get(commentId)?.filter(({ from, to }) => !(from >= step.from && to <= step.to));
-					if (updatedPositions.get(commentId)?.length === 0) updatedPositions.delete(commentId);
+			ranges.forEach((range) => {
+				let newFrom = range.from;
+				let newTo = range.to;
+				let isDeleted = false;
+
+				changes.forEach(({ oldRange, newRange }) => {
+					const sizeDiff = newRange.to - newRange.from - (oldRange.to - oldRange.from);
+
+					if (range.from >= oldRange.to) {
+						newFrom += sizeDiff;
+						newTo += sizeDiff;
+					} else if (range.from < oldRange.from && range.to > oldRange.from) {
+						newTo += sizeDiff;
+					} else if (range.from >= oldRange.from && range.to <= oldRange.to) {
+						isDeleted = true;
+					}
+				});
+
+				if (!isDeleted) {
+					updatedRanges.push({ from: newFrom, to: newTo });
 				}
-			}
+			});
 
-			if (step instanceof AttrStep) {
-				const node = tr.doc.nodeAt(step.pos);
-				const oldNode = tr.before.nodeAt(step.pos);
+			if (updatedRanges.length === 0) {
+				currentPositions.delete(commentId);
+				deletedComments.add(commentId);
+			} else currentPositions.set(commentId, updatedRanges);
+		});
 
-				if ((node.isBlock || node.isInline) && !node.isTextblock && step.attr === "comment") {
-					const commentId = oldNode?.attrs?.comment?.id || node.attrs.comment?.id;
-					if (!commentId) return;
+		changes.forEach(({ newRange }) => {
+			newDoc.nodesBetween(newRange.from, newRange.to, (node, pos) => {
+				node.marks.forEach((mark) => {
+					if (mark.type.name === "comment" && mark.attrs.id) {
+						const commentId = mark.attrs.id;
+						const range = { from: pos, to: pos + node.nodeSize };
 
-					if (step.value) {
-						if (!addedComments.has(commentId)) addedComments.set(commentId, []);
-						addedComments.get(commentId)?.push({ from: step.pos, to: step.pos + node.nodeSize });
+						if (!currentPositions.has(commentId)) {
+							currentPositions.set(commentId, [range]);
+							addedComments.set(commentId, [range]);
+							deletedComments.delete(commentId);
+						} else {
+							const existingRanges = currentPositions.get(commentId);
+							if (existingRanges) {
+								const rangeExists = existingRanges.some(
+									(existingRange) =>
+										existingRange.from === range.from && existingRange.to === range.to,
+								);
+
+								if (!rangeExists) {
+									const updatedRanges = [...existingRanges, range];
+									currentPositions.set(commentId, updatedRanges);
+									if (!addedComments.has(commentId)) {
+										addedComments.set(commentId, updatedRanges);
+									}
+								}
+							}
+						}
+					}
+				});
+
+				if ((node.isBlock || node.isInline) && node.attrs.comment?.id) {
+					const commentId = node.attrs.comment.id;
+					const range = { from: pos, to: pos + node.nodeSize };
+
+					if (!currentPositions.has(commentId)) {
+						currentPositions.set(commentId, [range]);
+						addedComments.set(commentId, [range]);
+						deletedComments.delete(commentId);
 					} else {
-						const oldCommentId = oldNode?.attrs.comment?.id;
-						deletedComments.add(oldCommentId);
+						const existingRanges = currentPositions.get(commentId);
+						if (existingRanges) {
+							const rangeExists = existingRanges.some(
+								(existingRange) => existingRange.from === range.from && existingRange.to === range.to,
+							);
 
-						if (updatedPositions.has(oldCommentId)) {
-							updatedPositions
-								.get(oldCommentId)
-								?.filter(({ from, to }) => !(from >= step.pos && to <= step.pos + node.nodeSize));
-
-							if (updatedPositions.get(oldCommentId)?.length === 0) updatedPositions.delete(oldCommentId);
+							if (!rangeExists) {
+								const updatedRanges = [...existingRanges, range];
+								currentPositions.set(commentId, updatedRanges);
+								if (!addedComments.has(commentId)) {
+									addedComments.set(commentId, updatedRanges);
+								}
+							}
 						}
 					}
 				}
-			}
+			});
 		});
 
-		if (isHistoryStep) {
-			const restoredPositions = processCommentPositions(tr.doc);
+		deletedComments.forEach((commentId) => {
+			onMarkDeleted?.(commentId, []);
+		});
 
-			restoredPositions.forEach((positions, commentId) => {
-				if (!updatedPositions.has(commentId) || updatedPositions.get(commentId)?.length === 0) {
-					if (!addedComments.has(commentId)) addedComments.set(commentId, []);
-					addedComments.get(commentId)?.push(...positions);
-					updatedPositions.set(commentId, [...positions]);
-					deletedComments.delete(commentId);
-				}
-			});
-
-			updatedPositions.forEach((positions, commentId) => {
-				if (!restoredPositions.has(commentId)) {
-					deletedComments.add(commentId);
-					updatedPositions.delete(commentId);
-				}
-			});
-		}
-
-		if (updatedPositions.size > 0) {
-			tr.steps.forEach((step) => {
-				const stepMap = step.getMap();
-
-				stepMap.forEach((oldStart, oldEnd, newStart, newEnd) => {
-					const oldSize = oldEnd - oldStart;
-					const newSize = newEnd - newStart;
-					const sizeDiff = newSize - oldSize;
-
-					updatedPositions.forEach((positions, commentId) => {
-						if (deletedComments.has(commentId)) return;
-
-						updatedPositions.set(
-							commentId,
-							positions
-								.map(({ from, to }) => {
-									// TODO: find a better way to handle this
-									if (from >= oldEnd) {
-										return {
-											from: from + sizeDiff,
-											to: to + sizeDiff,
-										};
-									} else if (from < oldStart && to > oldStart) {
-										return {
-											from,
-											to: to + sizeDiff,
-										};
-									} else if (from >= oldStart && to <= oldEnd) {
-										if (newSize === 0) {
-											deletedComments.add(commentId);
-											return null;
-										}
-										return {
-											from: Math.max(from, newStart),
-											to: Math.min(to + sizeDiff, newEnd),
-										};
-									} else return { from, to };
-								})
-								.filter(Boolean) as Range[],
-						);
-					});
-				});
-			});
-		}
-
-		deletedComments.forEach((commentId) => onMarkDeleted?.(commentId, updatedPositions.get(commentId) || []));
 		addedComments.forEach((positions, commentId) => {
-			updatedPositions.set(commentId, [...positions]);
 			onMarkAdded?.(commentId, positions);
 		});
 
-		Object.keys(updatedPositions).forEach((commentId) => {
-			const positions = updatedPositions.get(commentId);
-			if (!positions?.length) {
-				deletedComments.add(commentId);
-				updatedPositions.delete(commentId);
-			}
-		});
-
-		deletedComments.forEach((commentId) => updatedPositions.delete(commentId));
-
-		this.editor.storage.comment.positions = updatedPositions;
+		this.storage.positions = currentPositions;
 	};
 
 	this.editor.storage.comment.positions = processCommentPositions(this.editor.state.doc);
@@ -183,8 +185,8 @@ function StateWatcher(this: {
 
 	return new Plugin({
 		key: new PluginKey("commentStateWatcher$"),
-		appendTransaction(transactions) {
-			transactions.forEach((tr) => updateCommentPositions(tr));
+		appendTransaction(transactions, oldState, newState) {
+			updateCommentPositions(transactions as Transaction[], oldState.doc, newState.doc);
 			return null;
 		},
 		props: {

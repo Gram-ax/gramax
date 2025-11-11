@@ -85,11 +85,25 @@ impl Error {
     }
   }
 
+  #[allow(clippy::unnecessary_cast)]
   pub fn class(&self) -> Option<u32> {
     match self {
       Error::Io(_) => Some(1000),
-      Error::Healthcheck(_) => Some(1001),
-      Error::FileLockHealthcheckFailed(_) => Some(1002),
+      Error::Healthcheck(e) => {
+        let has_bad_objects = e.bad_objects.as_ref().is_some_and(|o| !o.is_empty());
+        if has_bad_objects {
+          return Some(1001);
+        }
+
+        e.inner.as_ref().map(|e| e.raw_class() as u32)
+      }
+      Error::FileLockHealthcheckFailed(e) => {
+        let has_bad_objects = e.bad_objects.as_ref().is_some_and(|o| !o.is_empty());
+        if has_bad_objects {
+          return Some(1002);
+        }
+        e.inner.as_ref().map(|e| e.raw_class() as u32)
+      }
       Error::FileLock(_) => Some(1003),
       Error::NoWorkdir => Some(1004),
       Error::NoModifiedFiles => Some(1005),

@@ -332,7 +332,7 @@ describe("TemplateProcessor", () => {
 			expect(updatedXml).toContain('<w:tblStyle w:val="TableGrid"/>');
 			expect(updatedXml).toContain('<w:tblInd w:w="100"/>');
 			expect(updatedXml).not.toContain("w:tblW");
-			expect(updatedXml).not.toContain("w:trPr");
+			expect(updatedXml).toContain("w:trPr");
 			expect(updatedXml).toContain('<w:tcW w:w="2500" w:type="pct"/>');
 			expect(updatedXml).not.toContain("w:tcBorders");
 		});

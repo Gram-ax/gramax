@@ -15,8 +15,11 @@ export default class SearcherContext {
 		return this._info.scope;
 	}
 
-	async scope(selector: string, by: "lookup" | "find" = "lookup") {
-		this._info.scope = by == "lookup" ? await this.lookup(selector) : await this.find(selector);
+	async scope(selector: string, by: "lookup" | "find" = "lookup", number?: number) {
+		this._info.scope =
+			by == "lookup"
+				? await this.lookup(selector, undefined, undefined, number)
+				: await this.find(selector, undefined, number - 1);
 		return this;
 	}
 
@@ -25,7 +28,7 @@ export default class SearcherContext {
 		return this;
 	}
 
-	async lookup(selector: string, scope?: Locator, forceQa?: boolean) {
+	async lookup(selector: string, scope?: Locator, forceQa?: boolean, number?: number) {
 		const was = scope ?? this._info.scope ?? page;
 		const alias = this._alias(selector);
 		const makeLocator = () => {
@@ -33,13 +36,14 @@ export default class SearcherContext {
 			if (alias) return was.locator(alias);
 			return was.locator(`[data-qa]:has-text("${selector}"), [data-qa="${selector}"]`);
 		};
-		const locator = makeLocator().first();
+		const locator = number ? makeLocator().nth(number) : makeLocator().first();
 		// if (config.highlight) await locator.highlight();
 		return locator;
 	}
 
-	async find(selector: string, scope?: Locator) {
-		const elem = (scope ?? this._info.scope ?? page).locator(selector).last();
+	async find(selector: string, scope?: Locator, number?: number) {
+		const elems = (scope ?? this._info.scope ?? page).locator(selector);
+		const elem = number ? elems.nth(number) : elems.last();
 		if (config.highlight) await elem.highlight();
 		return elem;
 	}

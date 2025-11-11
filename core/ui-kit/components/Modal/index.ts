@@ -7,6 +7,8 @@ export {
 	ModalHeader,
 	ModalTitle,
 	ModalTrigger,
+	ModalHeaderTemplate,
+	ModalFooterTemplate,
 } from "ics-ui-kit/components/modal";
 
 export { ModalContent } from "./ModalContent";

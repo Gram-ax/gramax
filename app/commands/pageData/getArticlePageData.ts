@@ -1,12 +1,12 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
 import { Article } from "@core/FileStructue/Article/Article";
 import LastVisited from "@core/SitePresenter/LastVisited";
-import { ArticlePageData, OpenGraphData, type GetArticlePageDataOptions } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import isReadOnlyBranch from "@ext/enterprise/utils/isReadOnlyBranch";
 import { Command } from "../../types/Command";
 import getPageDataContext from "./getPageDataContext";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 const getArticlePageData: Command<
 	{ path: string[]; pathname: string; ctx: Context },
@@ -15,7 +15,6 @@ const getArticlePageData: Command<
 	async do({ path, pathname, ctx }) {
 		const { wm, customArticlePresenter, logger, sitePresenterFactory } = this._app;
 
-		const dataProvider = sitePresenterFactory.fromContext(ctx);
 		logger.logTrace(`Article: ${path.join("/")}`);
 		let data: ArticlePageData;
 		let openGraphData: OpenGraphData;
@@ -32,27 +31,24 @@ const getArticlePageData: Command<
 			(catalog?.basePath && workspace.getFileProvider().at(catalog.basePath).isReadOnly) ||
 			(this._app.em.getConfig().gesUrl && (await isReadOnlyBranch(ctx.user, catalog)));
 
-		const opts: GetArticlePageDataOptions = {
-			editableContent: !isReadOnly,
-			markdown: this._app.conf.isReadOnly,
-		};
+		const dataProvider = sitePresenterFactory.fromContext(ctx, isReadOnly);
 
 		const config = await workspace.config();
 		const lastVisited = new LastVisited(ctx, config.name);
 		try {
-			data = await dataProvider.getArticlePageDataByPath(path, pathname, opts);
+			data = await dataProvider.getArticlePageDataByPath(path, pathname);
 			if (
 				(!data || data?.articleProps?.errorCode) &&
 				lastVisited.getLastVisitedArticle(catalog) == pathname.replace(/^\//, "")
 			)
-				data = await dataProvider.getArticlePageDataByPath([catalogName], pathname, opts);
+				data = await dataProvider.getArticlePageDataByPath([catalogName], pathname);
 			else data && lastVisited.setLastVisitedArticle(catalog, data.articleProps);
 
 			openGraphData = await dataProvider.getOpenGraphData(path);
 
 			if (!data) {
 				const errorArticle = customArticlePresenter.getArticle("Catalog404", { pathname });
-				data = await dataProvider.getArticlePageData(errorArticle, catalog, opts);
+				data = await dataProvider.getArticlePageData(errorArticle, catalog);
 				openGraphData = await dataProvider.getOpenGraphData(path, errorArticle, catalog);
 			}
 			data.articleProps.errorCode = data.articleProps.errorCode || null;
@@ -69,7 +65,7 @@ const getArticlePageData: Command<
 				{ type: showErrorTypeText ? error?.type ?? null : null },
 				article?.ref,
 			);
-			data = await dataProvider.getArticlePageData(errorArticle, catalog, opts);
+			data = await dataProvider.getArticlePageData(errorArticle, catalog);
 			openGraphData = await dataProvider.getOpenGraphData(path, errorArticle, catalog);
 		}
 

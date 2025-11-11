@@ -5,9 +5,9 @@ import resolveModule from "@app/resolveModule/backend";
 import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import CatalogProps from "@core-ui/ContextServices/CatalogProps";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import pdfmake from "@dynamicImports/pdfmake";
+import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 
 const HEADLINE_LEVELS = [1, 2, 3, 4] as const;
 const FOOTER_NODES_AMOUNT = 3;

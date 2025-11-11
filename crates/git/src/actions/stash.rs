@@ -68,7 +68,7 @@ impl<C: Creds> Stash for Repo<'_, C> {
     let prev_tree = self.repo().find_tree(prev_tree)?;
 
     let mut diff_opts = DiffOptions::default();
-    diff_opts.context_lines(0).enable_fast_untracked_dirs(true).force_binary(true);
+    diff_opts.context_lines(0).enable_fast_untracked_dirs(true).force_binary(true).ignore_submodules(true);
 
     let diff = self.repo().diff_tree_to_index(Some(&prev_tree), Some(&index), Some(&mut diff_opts))?;
 

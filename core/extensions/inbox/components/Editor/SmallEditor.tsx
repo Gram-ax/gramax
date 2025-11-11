@@ -2,7 +2,6 @@ import { classNames } from "@components/libs/classNames";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
@@ -187,9 +186,7 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 					<ArticleMat editor={editor} />
 				</div>
 			</div>
-			<IsMenuBarOpenService.Provider>
-				<Menu menu={options?.menu} editor={editor} id={ContentEditorId} />
-			</IsMenuBarOpenService.Provider>
+			<Menu menu={options?.menu} editor={editor} id={ContentEditorId} />
 		</SmallEditorWrapper>
 	);
 };

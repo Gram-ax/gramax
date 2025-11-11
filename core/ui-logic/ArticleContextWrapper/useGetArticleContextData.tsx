@@ -40,6 +40,7 @@ const useGetArticleContextData = (props: UseGetArticleContextDataProps) => {
 	};
 
 	useEffect(() => {
+		if (!catalogName || !articlePath) return;
 		void fetchData();
 	}, [articlePath, catalogName, scope]);
 

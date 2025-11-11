@@ -1,9 +1,9 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import checkConflict from "@ext/git/actions/MergeConflictHandler/error/logic/checkConflict";
 import { useRef } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const visitedCatalogs: string[] = [];
 
@@ -13,7 +13,7 @@ const useOnCatalogFirstClick = () => {
 	const { isArticle } = pageData;
 	const { isReadOnly } = pageData.conf;
 	const prevIsArticle = useRef<boolean>();
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const { isNext } = usePlatform();
 
 	if (prevIsArticle.current !== isArticle) {

@@ -32,6 +32,7 @@ const Comment = Mark.create<CommentOptions, CommentStorage>({
 
 	addOptions() {
 		return {
+			enabled: false,
 			onMarkDeleted: null,
 			onMarkAdded: null,
 		};

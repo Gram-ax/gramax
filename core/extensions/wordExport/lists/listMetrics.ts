@@ -27,7 +27,8 @@ export async function calcWrapperMetrics({
 	const leftText = mmToTw(leftIndentMmFn(level));
 	const leftCell = mmToTw(hangingMm + gapMm);
 	const indent = Math.max(leftText - leftCell, 0);
-	const right = Math.max(availableTw - leftCell, mmToTw(10));
+	const right = Math.max(availableTw - (indent + leftCell), mmToTw(10));
+
 	return {
 		indent,
 		leftCellWidth: leftCell,

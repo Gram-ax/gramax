@@ -1,5 +1,4 @@
 import Icon from "@components/Atoms/Icon";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
 import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
@@ -14,6 +13,7 @@ import { AlertConfirm } from "@ui-kit/AlertDialog/AlertConfirm";
 import { Button } from "@ui-kit/Button";
 import { Modal, ModalBody, ModalContent, ModalTitle, ModalTrigger } from "@ui-kit/Modal";
 import { useMemo, useState } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type RepositoryNotFullyClonedProps = {
 	trigger: JSX.Element;
@@ -28,7 +28,10 @@ const FooterWrapper = styled.div`
 
 export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyClonedProps) => {
 	const router = useRouter();
-	const catalogProps = CatalogPropsService.value;
+	const { name, link } = useCatalogPropsStore(
+		(state) => ({ name: state.data?.name, link: state.data?.link.pathname }),
+		"shallow",
+	);
 
 	const {
 		call: removeCatalog,
@@ -44,17 +47,17 @@ export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyC
 
 	const source = useStorage();
 
-	const url = useMemo(() => getUrlFromShareData(makeGitShareData(catalogProps.link.pathname)), [catalogProps]);
+	const url = useMemo(() => getUrlFromShareData(makeGitShareData(link)), [link]);
 
 	const { startClone } = useCloneRepo({
 		storageData: {
-			name: catalogProps.name,
+			name: name,
 			url,
 			source,
 		} as GitStorageData,
 		deleteIfExists: true,
 		skipCheck: true,
-		redirectOnClone: catalogProps.link.pathname,
+		redirectOnClone: link,
 		onStart: () => {
 			setOpen(false);
 			void router.pushPath("/");

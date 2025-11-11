@@ -1,7 +1,7 @@
 import { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
-import { DescriptionDivider } from "@ui-kit/Divider";
+import { ContentDivider } from "@ui-kit/Divider";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import GesFormHeader, { GesFormHeaderProps } from "@ui-kit/Form/GesFormHeader";
 import { Input } from "@ui-kit/Input";
@@ -137,10 +137,13 @@ const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
 								)}
 							</FormStack>
 
-							<DescriptionDivider
-								description={t("enterprise-guest.descriptions.continueWith")}
-								style={{ marginTop: "-0.5rem" }}
-							/>
+							<div style={{ marginTop: "-0.5rem" }}>
+								<ContentDivider>
+									<div className="text-sm text-center font-normal text-muted whitespace-nowrap">
+										{t("enterprise-guest.descriptions.continueWith")}
+									</div>
+								</ContentDivider>
+							</div>
 						</>
 					)}
 

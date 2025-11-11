@@ -21,6 +21,7 @@ import versionControl from "./versionControl";
 import word from "./word";
 import templates from "@app/commands/templates";
 import ai from "@app/commands/ai";
+import quiz from "./quiz";
 
 const commands = {
 	ai,
@@ -44,6 +45,7 @@ const commands = {
 	workspace,
 	inbox,
 	templates,
+	quiz,
 };
 
 type CommandTree = typeof commands;

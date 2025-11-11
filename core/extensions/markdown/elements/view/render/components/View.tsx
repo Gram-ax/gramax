@@ -5,7 +5,6 @@ import { Display } from "@ext/properties/models/display";
 import { useCallback, useState } from "react";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 
 interface ViewProps {
 	defs: PropertyValue[];
@@ -22,7 +21,7 @@ interface ViewProps {
 const View = (props: ViewProps) => {
 	const { defs, orderby, groupby, select, display, updateArticle, disabled = true, commentId, isPrint } = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const catalogProps = CatalogPropsService.value;
+
 	const [content, setContent] = useState<ViewRenderGroup[]>(null);
 
 	const getRenderData = useCallback(
@@ -65,7 +64,6 @@ const View = (props: ViewProps) => {
 			display={display}
 			disabled={disabled}
 			updateArticle={updateArticle}
-			catalogProps={catalogProps}
 			commentId={commentId}
 		/>
 	);

@@ -1,24 +1,31 @@
+import { EnterpriseConfig } from "@app/config/AppConfig";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import t from "@ext/localization/locale/translate";
 import TokenValidationError from "@ext/publicApi/TokenValidationError";
+import TicketUser from "@ext/security/logic/TicketManager/TicketUser";
 import { Encoder } from "../../../Encoder/Encoder";
 import IPermission from "../Permission/IPermission";
 import Permission from "../Permission/Permission";
-import User from "../User/User";
 
 export class TicketManager {
-	constructor(private _encoder: Encoder, private _shareAccessToken: string, private _gesUrl?: string) {}
+	constructor(
+		private _encoder: Encoder,
+		private _shareAccessToken: string,
+		private _enterpriseConfig?: EnterpriseConfig,
+	) {}
 
 	checkShareTicket(ticket: string) {
-		const catalogPermissions: { [catalogName: string]: IPermission } = {};
-
 		const st = this._checkShareTicket(ticket);
-		if (st) catalogPermissions[st.catalogName] = st.permission;
+		const user = new TicketUser();
+		if (st) {
+			const values = st.permission.getValues();
+			if (values?.length) {
+				const newValues = values.filter((v) => !v.includes("@"));
+				st.permission = new Permission(newValues);
+			}
+			user.addCatalogPermission(st.catalogName, st.permission);
+		}
 
-		const user = new User(true, null, null, null, null);
-		Object.keys(catalogPermissions).forEach((catalogName) => {
-			user.addCatalogPermission(catalogName, catalogPermissions[catalogName]);
-		});
 		return user;
 	}
 
@@ -52,13 +59,13 @@ export class TicketManager {
 	}
 
 	private async _checkUserTicket(ticket: string): Promise<EnterpriseUser> {
-		if (!this._gesUrl) return null;
+		if (!this._enterpriseConfig?.gesUrl) return null;
 		const datas = this._encoder.decode(this._shareAccessToken, ticket);
 		const { token, date } = this._parseUserSharedDatas(datas);
 
 		if (new Date(date).valueOf() < Date.now()) throw new TokenValidationError("Token has expired");
 
-		const user = new EnterpriseUser(true, null, null, null, null, this._gesUrl, token);
+		const user = new EnterpriseUser(true, null, null, null, null, this._enterpriseConfig, token);
 		return await user.updatePermissions(false);
 	}
 

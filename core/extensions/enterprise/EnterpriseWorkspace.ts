@@ -1,12 +1,12 @@
+import Path from "@core/FileProvider/Path/Path";
+import { XxHash } from "@core/Hash/Hasher";
+import { svgToBase64 } from "@core/utils/CustomLogoDriver";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
+import { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
+import { calcTemplatesHash } from "@ext/enterprise/utils/calcTemplatesHash";
+import { WORD_TEMPLATES_DIR } from "@ext/wordExport/WordTemplateManager";
 import { PredefinedAssets } from "@ext/workspace/WorkspaceAssets";
 import { Workspace } from "../workspace/Workspace";
-import { svgToBase64 } from "@core/utils/CustomLogoDriver";
-import { XxHash } from "@core/Hash/Hasher";
-import { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
-import Path from "@core/FileProvider/Path/Path";
-import { WORD_TEMPLATES_DIR } from "@ext/workspace/WorkspaceAssets";
-import { calcTemplatesHash } from "@ext/enterprise/utils/calcTemplatesHash";
 
 export class EnterpriseWorkspace extends Workspace {
 	private _updateInterval: number = 1000 * 60 * 15; // 15 minutes
@@ -18,7 +18,7 @@ export class EnterpriseWorkspace extends Workspace {
 	}
 
 	private async _updateConfig() {
-		const timeDiff = Date.now() - this._updateInterval;
+		const timeDiff = Date.now() - (this._config.get("enterprise")?.refreshInterval ?? this._updateInterval);
 		if (Number(this._config.get("enterprise")?.lastUpdateDate) > timeDiff) return;
 
 		const gesUrl = this._config.get("enterprise")?.gesUrl || this._config.get("gesUrl");
@@ -68,6 +68,7 @@ export class EnterpriseWorkspace extends Workspace {
 		this._config.set("enterprise", {
 			...this._config.get("enterprise"),
 			authMethods: config.authMethods,
+			modules: config.modules,
 		});
 
 		config.style?.css

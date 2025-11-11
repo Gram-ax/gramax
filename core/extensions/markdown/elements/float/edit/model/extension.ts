@@ -6,7 +6,7 @@ import { NodeType } from "@tiptap/pm/model";
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
 		float: {
-			setFloat: (typeOrName: NodeType | string, value: FloatAlign) => ReturnType;
+			setFloat: (position: number, typeOrName: NodeType | string, value: FloatAlign) => ReturnType;
 		};
 	}
 }
@@ -33,10 +33,12 @@ export const FloatExtension = Extension.create({
 	addCommands() {
 		return {
 			setFloat:
-				(typeOrName: string, value: FloatAlign) =>
-				({ commands }) => {
-					if (value === "center") return commands.updateAttributes(typeOrName, { float: null });
-					return commands.updateAttributes(typeOrName, { float: value });
+				(position: number, typeOrName: string, value: FloatAlign) =>
+				({ chain }) => {
+					return chain()
+						.setNodeSelection(position)
+						.updateAttributes(typeOrName, { float: value === "center" ? null : value })
+						.run();
 				},
 		};
 	},

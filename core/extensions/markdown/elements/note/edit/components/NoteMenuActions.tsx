@@ -83,13 +83,22 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 					<ActionButton icon={noteIcons[node.attrs.type]} tooltipText={t("type")} />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent>
-					<DropdownMenuRadioGroup value={node.attrs.type} onValueChange={updateType}>
+					<DropdownMenuRadioGroup
+						value={node.attrs.type}
+						onValueChange={updateType}
+						indicatorIconPosition="end"
+					>
 						{Object.values(NoteType).map(
 							(value, key) =>
 								value !== NoteType.hotfixes && (
 									<DropdownMenuRadioItem key={key} value={value}>
-										<Icon code={noteIcons[value]} style={{ color: `var(--color-admonition-${value}-br-h)` }} />
-										<span style={{ color: `var(--color-admonition-${value}-br-h)` }}>{t(`${value}-text`)}</span>
+										<Icon
+											code={noteIcons[value]}
+											style={{ color: `var(--color-admonition-${value}-br-h)` }}
+										/>
+										<span style={{ color: `var(--color-admonition-${value}-br-h)` }}>
+											{t(`${value}-text`)}
+										</span>
 									</DropdownMenuRadioItem>
 								),
 						)}

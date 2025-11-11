@@ -60,11 +60,12 @@ const DiagramData = (props: DiagramDataProps) => {
 	useLayoutEffect(() => {
 		if (!width?.endsWith("px")) return;
 		const parentWidth = parentRef.current?.clientWidth;
+		const container = ref.current;
 
-		if (!parentWidth) return;
+		if (!parentWidth || !container) return;
 		const newSize = getAdjustedSize(parseFloat(width), parseFloat(height), parentWidth);
-		const computedStyleOne = window.getComputedStyle(ref.current.parentElement);
-		const computedStyleTwo = window.getComputedStyle(ref.current);
+		const computedStyleOne = window.getComputedStyle(container.parentElement);
+		const computedStyleTwo = window.getComputedStyle(container);
 		const offset = parseFloat(computedStyleTwo.marginTop) * 2 + parseFloat(computedStyleOne.paddingTop) * 2;
 		setSize({ width: parentWidth + "px", height: newSize.height + offset + "px" });
 	}, [width, height]);
@@ -75,8 +76,8 @@ const DiagramData = (props: DiagramDataProps) => {
 			try {
 				setError(null);
 				const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
-					? await DIAGRAM_FUNCTIONS?.[diagramName](buffer.toString(), diagramsServiceUrl)
-					: await getAnyDiagrams(buffer.toString());
+					? await DIAGRAM_FUNCTIONS?.[diagramName](buffer?.toString(), diagramsServiceUrl)
+					: await getAnyDiagrams(buffer?.toString());
 				setData(diagramData);
 			} catch (err) {
 				setError(err);

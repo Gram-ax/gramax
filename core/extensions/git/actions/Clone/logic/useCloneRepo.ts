@@ -59,7 +59,7 @@ export const useCloneRepo = ({ onError, ...props }: UseCloneRepoProps) => {
 		async (defer?: UseCloneRepoProps) => {
 			const data = defer ? { ...props, ...defer } : props;
 
-			if (!data) return;
+			if (!data || !data.storageData) return;
 
 			return await call({
 				url: (api) =>

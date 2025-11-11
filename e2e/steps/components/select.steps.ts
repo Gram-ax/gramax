@@ -10,9 +10,12 @@ Given("смотрим на список опций", async function (this: E2EWo
 });
 
 When("нажимаем на опцию {string}", async function (this: E2EWorld, text: string) {
-	const elem = await this.page()
-		.search()
-		.lookup(replaceMultiple(text, this.replace.bind(this)), undefined);
+	const selectContainer = await this.page().search().reset().scope(SELECT_SELECTOR, "find");
+
+	const elem = selectContainer.current().locator(SELECT_OPTIONS_SELECTOR, {
+		hasText: replaceMultiple(text, this.replace.bind(this)),
+	});
+
 	await elem.click();
 	await this.page().waitForLoad();
 });

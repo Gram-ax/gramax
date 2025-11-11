@@ -1,6 +1,8 @@
+import { EnterpriseConfig } from "@app/config/AppConfig";
 import EnterpriseUser, { EnterpriseInfo } from "@ext/enterprise/EnterpriseUser";
 import EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
 import AuthManager from "@ext/security/logic/AuthManager";
+import TicketUser from "@ext/security/logic/TicketManager/TicketUser";
 import UserJSONData from "@ext/security/logic/User/UserJSONData";
 import ApiRequest from "../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../logic/Api/ApiResponse";
@@ -14,8 +16,8 @@ const QUERY_TICKET = "t";
 export default class ServerAuthManager extends AuthManager {
 	protected _usersEnterprisePermissionInfo: Record<string, EnterpriseInfo> = {};
 
-	constructor(private _ap: AuthProvider, private _ticketManager: TicketManager, private _gesUrl: string) {
-		super();
+	constructor(private _ap: AuthProvider, private _ticketManager: TicketManager, enterpriseConfig: EnterpriseConfig) {
+		super(enterpriseConfig);
 	}
 
 	async getUser(cookie: Cookie, query: any, headers: ApiRequest["headers"]): Promise<User> {
@@ -65,8 +67,8 @@ export default class ServerAuthManager extends AuthManager {
 	}
 
 	private async _getAnonymousUser(cookie: Cookie): Promise<User> {
-		if (!this._gesUrl) return new User();
-		const user = new EnterpriseUser(false, null, null, null, null, this._gesUrl);
+		if (!this._enterpriseConfig?.gesUrl) return new User();
+		const user = new EnterpriseUser(false, null, null, null, null, this._enterpriseConfig);
 		user.setEnterpriseInfo(this._getUsersEnterpriseInfo(user));
 		await this._updateEnterpriseUser(cookie, user);
 		return user;
@@ -81,6 +83,7 @@ export default class ServerAuthManager extends AuthManager {
 			if (!user) return this._getAnonymousUser(cookie);
 			return user;
 		}
+		if (json.type === "ticket") return TicketUser.initInJSON(json);
 		return User.initInJSON(json);
 	}
 

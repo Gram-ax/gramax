@@ -1109,6 +1109,12 @@ export const styles = /* xml */ `<?xml version="1.0" encoding="UTF-8" standalone
 				<w:right w:w="170" w:type="dxa"/>
 			</w:tblCellMar>
 		</w:tblPr>
+		<w:tblStylePr w:type="firstRow">
+   			<w:rPr><w:b/></w:rPr>
+  		</w:tblStylePr>
+		<w:tblStylePr w:type="firstCol">
+			<w:rPr><w:b/></w:rPr>
+		</w:tblStylePr>
 	</w:style>
 	<w:style w:type="table" w:customStyle="1" w:styleId="FenceTable">
 		<w:name w:val="Fence Table"/>

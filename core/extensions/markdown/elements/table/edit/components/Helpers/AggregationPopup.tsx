@@ -18,11 +18,13 @@ import {
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import {
+	DropdownMenuItem,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
 	DropdownMenuSub,
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
+	DropdownMenuSeparator,
 } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useState } from "react";
@@ -128,6 +130,15 @@ const AggregationPopup = ({ editor, tableSheet, node, cell, index, getPos }: Agg
 						</DropdownMenuRadioItem>
 					))}
 				</DropdownMenuRadioGroup>
+				{cell.attrs?.aggregation && (
+					<>
+						<DropdownMenuSeparator />
+						<DropdownMenuItem onSelect={() => setAggregation(null)} type="danger">
+							<Icon code="trash" />
+							{t("delete")}
+						</DropdownMenuItem>
+					</>
+				)}
 			</DropdownMenuSubContent>
 		</DropdownMenuSub>
 	);

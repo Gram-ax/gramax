@@ -36,8 +36,12 @@ module.exports = {
 		"^@core-ui/(.*)$": "<rootDir>/core/ui-logic/$1",
 		"^@ext/(.*)$": "<rootDir>/core/extensions/$1",
 		"^@app/(.*)$": "<rootDir>/app/$1",
-		"^@services/(.*)$": "<rootDir>/services/core/$1",
 	},
-	transformIgnorePatterns: ["<rootDir>/.next", "<rootDir>/public", "<rootDir>/docs", "<rootDir>/application"],
+	transformIgnorePatterns: [
+		"<rootDir>/.next",
+		"<rootDir>/public",
+		"<rootDir>/docs",
+		"<rootDir>/application",
+	],
 	coveragePathIgnorePatterns: ["/node_modules/", "(.test)\\.(ts|tsx|js)$", "/distribution/.*\\.(ts|js)$"],
 };

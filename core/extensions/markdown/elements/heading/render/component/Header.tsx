@@ -1,3 +1,4 @@
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import isNavigatorAvailable from "@core-ui/isNavigatorAvailable";
 import useGetHref from "@core-ui/useGetHref";
 import styled from "@emotion/styled";
@@ -10,13 +11,15 @@ export interface HeaderProps {
 	copyLinkIcon?: boolean;
 	className?: string;
 	dataQa?: string;
+	isPrint?: boolean;
 }
 
 const Header = (props: HeaderProps) => {
-	const { level, id, children, className, dataQa, copyLinkIcon = true } = props;
+	const { level, id, children, className, dataQa, copyLinkIcon = true, isPrint } = props;
 	const copyAllowed = isNavigatorAvailable();
 	const hash = id ? `#${id}` : "";
 	const href = useGetHref(hash);
+	const articleProps = ArticlePropsService.value;
 
 	const onClickHandler = (e: MouseEvent<HTMLAnchorElement>) => {
 		if (!copyAllowed) return;
@@ -24,6 +27,8 @@ const Header = (props: HeaderProps) => {
 		const clipboardLink = window.location.origin + window.location.pathname + hash;
 		void navigator.clipboard.writeText(clipboardLink);
 	};
+
+	const headerId = !isPrint ? id : articleProps.logicPath + hash;
 
 	const header = (
 		<>
@@ -36,7 +41,7 @@ const Header = (props: HeaderProps) => {
 		</>
 	);
 
-	return React.createElement("h" + level, { id, className, "data-qa": dataQa }, header);
+	return React.createElement("h" + level, { id: headerId, className, "data-qa": dataQa }, header);
 };
 
 const getFontSize = (level: number) => {

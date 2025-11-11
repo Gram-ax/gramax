@@ -3,7 +3,6 @@ import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import { useRouter } from "@core/Api/useRouter";
@@ -21,6 +20,7 @@ import Renderer from "../../extensions/markdown/core/render/components/Renderer"
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../../extensions/markdown/elements/heading/render/component/Header";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
+import Workspace from "@core-ui/ContextServices/Workspace";
 
 interface ArticleRendererProps {
 	data: ArticlePageData;
@@ -34,6 +34,8 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	const { data } = props;
 
 	const resourceService = ResourceService.value;
+	const workspace = Workspace.current();
+	const isGES = !!workspace?.enterprise?.gesUrl;
 	const [actualData, setActualData] = useState(data);
 
 	const router = useRouter();
@@ -47,6 +49,9 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	const editorUpdateContent = EditorService.createOnUpdateCallback();
 	const updateTitle = EditorService.createUpdateTitleFunction();
 	const editorHandlePaste = EditorService.createHandlePasteCallback(resourceService);
+
+	const pendingPromise = useRef(Promise.resolve());
+	const lastUpdateRef = useRef<{ filename?: string }>({});
 
 	useWatch(() => {
 		apiUrlCreatorRef.current = apiUrlCreator;
@@ -106,16 +111,21 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 					: undefined;
 
 			if (maybeKebabName || newTitle !== articleProps.title)
-				updateTitle(
-					{
-						articleProps,
-						apiUrlCreator,
-						propertyService: propertyServiceRef.current,
-					},
-					router,
-					newTitle,
-					maybeKebabName,
-				);
+				pendingPromise.current = pendingPromise.current.finally(async () => {
+					if (lastUpdateRef.current.filename === maybeKebabName) return;
+
+					lastUpdateRef.current = { filename: maybeKebabName };
+					await updateTitle(
+						{
+							articleProps,
+							apiUrlCreator,
+							propertyService: propertyServiceRef.current,
+						},
+						router,
+						newTitle,
+						maybeKebabName,
+					);
+				});
 		},
 		[updateTitle, articleProps],
 	);
@@ -136,9 +146,10 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		() =>
 			getExtensions({
 				includeResources: true,
+				includeQuestions: isGES,
 				...(actualData.articleProps.template && { isTemplateInstance: true }),
 			}),
-		[actualData.articleProps.ref.path, actualData.articleProps.template],
+		[actualData.articleProps.ref.path, actualData.articleProps.template, isGES],
 	);
 
 	return (
@@ -158,7 +169,6 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 
 export const ArticleReadRenderer = memo(({ data }: { data: ArticlePageData }) => {
 	const { articleProps } = data;
-	const { isStaticCli } = usePlatform();
 	return (
 		<ArticleParent>
 			<>
@@ -170,9 +180,7 @@ export const ArticleReadRenderer = memo(({ data }: { data: ArticlePageData }) =>
 						{articleProps.description}
 					</Header>
 				)}
-				{typeof window == "undefined" && !isStaticCli
-					? data.markdown
-					: Renderer(JSON.parse(data.articleContentRender), { components: useMemo(getComponents, []) })}
+				{Renderer(JSON.parse(data.articleContentRender), { components: useMemo(getComponents, []) })}
 				<ArticleMat />
 			</>
 		</ArticleParent>

@@ -8,6 +8,11 @@ export interface BuildOptions {
 	destination: string;
 	SkipCheck: boolean;
 	forceUiLangSync: boolean;
+	features: string;
+	customCss: string;
+	docxTemplates: string;
+	pdfTemplates: string;
+	BaseUrl: string;
 }
 
 export interface OptionProps {
@@ -50,6 +55,47 @@ const buildOptions: { [K in keyof BuildOptions]: OptionProps } = {
 			description: "false",
 		},
 		short: "l",
+	},
+	features: {
+		description: "Enable specific features for the build (comma-separated list)",
+		defaultValue: {
+			value: "",
+			description: "none",
+		},
+		short: "f",
+		type: "string",
+	},
+	customCss: {
+		description: "Path to CSS file to include in the build",
+		defaultValue: {
+			value: "",
+			description: "none",
+		},
+		short: "cc",
+		type: "path",
+	},
+	docxTemplates: {
+		description: "Path or glob pattern to DOCX templates for document export",
+		defaultValue: {
+			value: "",
+			description: "none",
+		},
+		short: "dt",
+		type: "path|glob",
+	},
+	pdfTemplates: {
+		description:
+			"Path or glob pattern to PDF templates for document export (requires the 'export-pdf' feature to be enabled)",
+		defaultValue: {
+			value: "",
+			description: "none",
+		},
+		short: "pt",
+		type: "path|glob",
+	},
+	BaseUrl: {
+		description: "Base site URL for sitemap.xml and robots.txt.",
+		type: "url",
 	},
 };
 

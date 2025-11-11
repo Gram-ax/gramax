@@ -25,8 +25,6 @@ const getAllSyncableWorkspaces: Command<
 		const workspaces = await wm.getUnintializedWorkspaces();
 
 		await workspaces.forEachAsync(async (workspace) => {
-			const label = `sync workspace: ${workspace.path()}`;
-			console.group(label);
 			await workspace.getCatalogNames().forEachAsync(async (name) => {
 				const source = await workspace.getSourceByCatalogName(ctx, name);
 				const repo = workspace.getRepositoryByName(name);
@@ -42,7 +40,6 @@ const getAllSyncableWorkspaces: Command<
 				)
 					res.set(workspace.path(), (res.get(workspace.path()) || 0) + 1);
 			}, 3);
-			console.groupEnd();
 		}, 1);
 
 		return { workspaces: Object.fromEntries(res.entries()) };

@@ -52,11 +52,6 @@ const locale = {
 				properties: {
 					name: "Properties",
 				},
-				group: {
-					name: "Group",
-					placeholder: "Group",
-					description: "Group on the main page where it will be displayed",
-				},
 				icons: {
 					name: "Icons",
 					description: "Icons that will be available in the article",
@@ -455,6 +450,16 @@ const locale = {
 			available: "New version is available",
 			updating: "Updating...",
 			installed: "Update installed",
+			more: "Detailed error",
+			code: {
+				install: "Failed to install update",
+				check: "Failed to check for updates",
+				"not-found": "Server did not return update information",
+				"download-failed": "Failed to download update",
+				signature: "Failed to verify update",
+				"check-enterprise-version": "Failed to check enterprise server version",
+				reqwest: "Failed to fetch update from the server",
+			},
 		},
 		loading: "loading",
 		error: {
@@ -587,6 +592,7 @@ const locale = {
 		logo: "Logo",
 		appearance: "Appearance",
 		"set-ai-server": "AI server",
+		"set-ai-server-description": "Fill to enable AI functions in the workspace.",
 		"ai-server-url": "AI server URL",
 		"ai-server-url-description": "Enter the URL of your AI server",
 		"ai-server-token": "AI server token",
@@ -697,6 +703,8 @@ const locale = {
 			description: "Configure your article settings",
 		},
 		"edit-markdown": "Edit Markdown",
+		"edit-markdown-disabled-template": "You can't edit the Markdown of a template article",
+		"edit-markdown-disabled-not-current-item": "You can't edit the Markdown of a non-current article",
 		"markdown-edit": {
 			title: "Markdown Formatting",
 			description: "Edit or define the article styling using Markdown",
@@ -828,6 +836,14 @@ title: Unable to display the article
 		},
 	},
 	diagram: {
+		modal: {
+			"warning-have-changes": {
+				title: "Leave the editor?",
+				body: "Unsaved changes will be lost.",
+				stay: "Stay",
+				exit: "Exit",
+			},
+		},
 		name: "Diagram",
 		names: {
 			c4: "C4 Diagram",
@@ -1344,6 +1360,11 @@ title: Unable to display the article
 				},
 			},
 		},
+		"connect-source": {
+			error: {
+				"unable-to-connect": "Unable to connect to git server",
+			},
+		},
 	},
 	confluence: {
 		blogs: "Blogs",
@@ -1441,6 +1462,22 @@ title: Unable to display the article
 		bold: "Bold",
 		stroke: "Strikethrough",
 		code: "Code line",
+		question: {
+			name: "Question block",
+			placeholder: "Question title",
+			required: "Required question",
+			types: {
+				name: "Question type",
+				one: "One answer",
+				many: "Multiple answers",
+			},
+			answer: {
+				add: "Add answer",
+				check: "Check",
+				checking: "Checking...",
+				placeholder: "Answer to the question",
+			},
+		},
 		"code-block": "Code block",
 		"bullet-list": "Bullet list",
 		"ordered-list": "Numbered list",
@@ -1620,6 +1657,158 @@ title: Unable to display the article
 			"error-message":
 				"Connection interrupted — server sessions may still be active. Check your internet and try again.",
 		},
+		admin: {
+			"delete-alert": "Are you sure you want to delete",
+			"settings-title": "Space settings",
+			"settings-description": "Set the space parameters",
+			error: {
+				"loading-settings": "An error occurred while loading the settings",
+			},
+			pages: {
+				check: "Style guide",
+				workspace: "Workspace",
+				groups: "User groups",
+				editors: "Editors",
+				resources: "Repositories",
+				mail: "Mail server",
+				guests: "External readers",
+				quiz: "Training",
+				modules: "Modules",
+			},
+			users: {
+				users: "Users",
+				"add-select": "Select users to add",
+				add: "Enter the user's email address",
+			},
+			roles: {
+				role: "Role",
+				select: "Select role",
+				workspaceOwner: "Workspace owner",
+				catalogOwner: "Catalog owner",
+				editor: "Editor",
+				reviewer: "Reviewer",
+				reader: "Reader",
+			},
+			search: {
+				users: {
+					title: "Select users",
+					description: "Available slots: {count}",
+					placeholder: "Find users",
+					searchPlaceholder: "Enter name or email",
+					inputHintText: "Enter at least 1 character to search",
+					loadingText: "Searching users...",
+					emptyText: "Users not found",
+					errorText: "Search error",
+				},
+				quiz: {
+					title: "Select tests",
+					placeholder: "Search tests",
+					searchPlaceholder: "Enter name",
+					inputHintText: "Enter at least 1 character to search",
+					loadingText: "Searching tests...",
+					emptyText: "No tests found",
+					errorText: "Search error",
+				},
+			},
+			quiz: {
+				"test-info": {
+					"correct-answers-count": "Correct answers count",
+				},
+				switch: {
+					on: "The training module is enabled",
+					off: "The training module is disabled",
+				},
+				errors: {
+					update: "Failed to update the training module",
+					"save-data": "Failed to save the data. Status:",
+				},
+				filters: {
+					users: {
+						name: "Users",
+						search: "Search users...",
+						loading: "Loading users...",
+						empty: "Users not found",
+					},
+					tests: {
+						name: "Tests",
+						search: "Search tests...",
+						loading: "Loading tests...",
+						empty: "Tests not found",
+					},
+				},
+				"users-test-table": {
+					test: "Test name",
+					user: "User",
+					version: "Version",
+					"updated-at": "Updated at",
+					"created-at": "Completed at",
+				},
+			},
+			editors: {
+				placeholder: "Find editors",
+			},
+			"client-access-keys": {
+				groups: "Groups",
+				externalUsers: "External users",
+			},
+			resources: {
+				repository: "Repository",
+				"repository-permission": "Configure permissions",
+				"base-repository-alert": "Deletion is not available: the repository is marked as a base repository",
+				"add-repository": "Add repository",
+				"select-repository-description": "Select repository to configure",
+				"select-repository-placeholder": "Select repository",
+				"search-repository-placeholder": "Search repository...",
+				"repository-not-found": "Repository not found",
+				"main-branch": "Main branch",
+				"main-branch-description":
+					"Publication in the main branch in the Gramax interface is prohibited. Changes can only be made through merging or a merge request.",
+				"select-main-branch-placeholder": "Select main branch",
+				"search-main-branch-placeholder": "Search branch...",
+				"main-branch-not-found": "Branches not found",
+				"add-branches": "Add branches",
+				"user-branches-description": "User {user} - repository {repository}",
+				access: "Access",
+				users: {
+					user: "User",
+					"search-placeholder": "Search users...",
+					"already-exist": "User already exists in the list",
+				},
+				groups: {
+					group: "Group",
+				},
+				branches: {
+					branches: "Branches",
+					select: "Select branches",
+					placeholder: "Search branches",
+					searchPlaceholder: "Enter branch name",
+					inputHintText: "Enter at least 1 character to search",
+					loadingText: "Searching branches...",
+					emptyText: "Branches not found",
+					errorText: "Search error",
+					required: "Select at least 1 branch",
+				},
+			},
+			guests: {
+				"general-settings": "General settings",
+				"session-duration-hours": "Session duration (hours)",
+				"whitelist-settings": "Whitelist settings",
+				"whitelist-enabled": "Use whitelist",
+				"whitelist-domains": "Whitelist domains",
+				"whitelist-domains-placeholder": "Search domains...",
+				"whitelist-domains-empty": "Whitelist domains cannot be empty",
+				"domain-not-allowed": "Domain not in whitelist. Whitelist is configured in the external readers tab",
+				inactive: "User does not match the current whitelist domains and is not considered an external reader",
+			},
+			check: {
+				rule: "Rule",
+				"import-rules": "Import rules",
+				"no-rules": "No rules",
+				"rule-types-description": "Text types to which the rule applies:",
+				"no-rules-description":
+					"You have no rules configured yet. Import a rules file or create them manually to start working with spell and grammar checking.",
+			},
+		},
 	},
 	network: {
 		error: {
@@ -1654,7 +1843,9 @@ title: Unable to display the article
 			catalog: "Catalog to PDF",
 			article: "Article to PDF",
 			category: "Section to PDF",
-			process: "Preparing to export PDF document",
+			process: "Exporting PDF",
+			canceled: "Cancelling...",
+
 			form: {
 				title: "Export to PDF",
 				description: "Generate PDF from the selected catalog element.",
@@ -1668,6 +1859,11 @@ title: Unable to display the article
 				template: "Custom template",
 				templateDescription:
 					"Use custom CSS styles to format the PDF. Learn more about creating templates in the project documentation.",
+			},
+
+			error: {
+				title: "Error exporting to PDF",
+				message: "Something went wrong during the export to PDF",
 			},
 		},
 	},
@@ -1699,6 +1895,7 @@ title: Unable to display the article
 	creating: "Creating",
 	current: "English",
 	delete: "Delete",
+	deleting: "Deleting",
 	description: "Description",
 	edit2: "Edit",
 	actions: "Actions",
@@ -1758,6 +1955,7 @@ title: Unable to display the article
 	repository: "Repository",
 	resolve: " Resolved ",
 	save: "Save",
+	save2: "Saving",
 	see: "See",
 	select: "Select",
 	send: "Send",
@@ -2227,7 +2425,37 @@ title: Unable to display the article
 		"some-files-too-large": "Some files exceed the maximum size of ${maxSizeBytes}",
 		"too-many-files": "You can only upload a maximum of ${maxFiles} files",
 	},
+	empty: "Empty",
+	pagination: {
+		shown: "Shown {count} of {total}",
+		previous: "Previous",
+		next: "Next",
+	},
+	confirmation: {
+		delete: {
+			title: "Confirm deletion",
+			body: "Are you sure you want to delete {count} {item}?",
+		},
+		unsaved: {
+			title: "Unsaved changes",
+			body: "You have unsaved changes. Please select an action:",
+		},
+	},
+	"save-and-close": "Save and close",
+	record: "record",
+	records: "records",
+	"already-added": "Already added",
 	"available-changes-sync": "Available changes for synchronization",
+	quiz: {
+		info: {
+			title: "Questions",
+			question: "Question",
+			answered: "Answered",
+			total: "Total",
+			send: "Send answers",
+		},
+		"required-questions": "Please answer all required questions",
+	},
 };
 
 export default locale;

@@ -5,6 +5,8 @@ const ElementGroups = {
 	listItemContent: "listItemContent",
 	list: "list",
 	tab: "tab",
+	paragraph: "paragraph",
+	answer: "questionAnswer",
 };
 
 export default ElementGroups;

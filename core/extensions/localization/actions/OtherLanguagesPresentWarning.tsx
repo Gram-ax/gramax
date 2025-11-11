@@ -15,16 +15,15 @@ import { Button } from "@ui-kit/Button";
 import { cloneElement, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { CheckboxField } from "@ui-kit/Checkbox";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const DO_NOT_SHOW_AGAIN = "languages.skip-warn";
 
-export const shouldShowActionWarning = (catalogProps: ClientCatalogProps) =>
-	catalogProps?.supportedLanguages?.length > 1;
+export const shouldShowActionWarning = (supportedLanguagesLength: number) => supportedLanguagesLength > 1;
 
 export type ActionWarningProps = {
 	children?: JSX.Element;
 	action: (e?: ReactMouseEvent<HTMLButtonElement>) => void;
-	catalogProps: ClientCatalogProps;
 	isDelete?: boolean;
 	onClose?: () => void;
 	isOpen?: boolean;
@@ -40,7 +39,6 @@ const Footer = styled.div`
 const OtherLanguagesPresentWarning = ({
 	children,
 	action,
-	catalogProps,
 	onClose,
 	isDelete,
 	isOpen: initialIsOpen,
@@ -54,8 +52,8 @@ const OtherLanguagesPresentWarning = ({
 		if (doNotShowAgain) localStorage.setItem(DO_NOT_SHOW_AGAIN, "1");
 		onClose?.();
 	};
-
-	if (initialDoNotShow || (shouldShowActionWarning && !shouldShowActionWarning(catalogProps))) {
+	const languagesLength = useCatalogPropsStore((state) => state.data.supportedLanguages?.length);
+	if (initialDoNotShow || (shouldShowActionWarning && !shouldShowActionWarning(languagesLength))) {
 		if (!children) {
 			action?.();
 			onClose?.();

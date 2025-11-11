@@ -1,4 +1,3 @@
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import t from "@ext/localization/locale/translate";
 import isSystemProperty from "@ext/properties/logic/isSystemProperty";
 import { feature } from "@ext/toggleFeatures/features";
@@ -11,6 +10,7 @@ import { FORM_DATA_QA } from "../../consts/form";
 import type { FormProps, SelectOption } from "../../logic/createFormSchema";
 import { UseFormReturn } from "react-hook-form";
 import { FormData } from "../../logic/createFormSchema";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type BasicProps = {
 	formProps: FormProps;
@@ -21,7 +21,7 @@ export type BasicProps = {
 };
 
 export const EditBasicProps = ({ formProps, form, languages, sourceType, inputRef }: BasicProps) => {
-	const catalogProps = CatalogPropsService.value;
+	const properties = useCatalogPropsStore((state) => state.data?.properties, "shallow");
 
 	return (
 		<>
@@ -107,37 +107,36 @@ export const EditBasicProps = ({ formProps, form, languages, sourceType, inputRe
 				{...formProps}
 			/>
 
-			{feature("filtered-catalog") &&
-				catalogProps.properties?.filter((p) => !isSystemProperty(p.name)).length > 0 && (
-					<FormField
-						name="filterProperties"
-						title={t("forms.catalog-edit-props.props.filterProperties.name")}
-						description={t("forms.catalog-edit-props.props.filterProperties.description")}
-						control={({ field }) => (
-							<MultiSelect
-								keepOpenOnSelect
-								value={field.value?.map((value) => ({
-									value,
-									label: value,
-								}))}
-								placeholder={t("forms.catalog-edit-props.props.filterProperties.placeholder")}
-								loadOptions={async () => ({
-									options:
-										catalogProps.properties
-											?.filter((p) => !isSystemProperty(p.name))
-											.map((property) => ({
-												value: property.name,
-												label: property.name,
-											})) || [],
-								})}
-								onChange={(options) => {
-									field.onChange(options.map((option) => option.value));
-								}}
-							/>
-						)}
-						{...formProps}
-					/>
-				)}
+			{feature("filtered-catalog") && properties?.filter((p) => !isSystemProperty(p.name)).length > 0 && (
+				<FormField
+					name="filterProperties"
+					title={t("forms.catalog-edit-props.props.filterProperties.name")}
+					description={t("forms.catalog-edit-props.props.filterProperties.description")}
+					control={({ field }) => (
+						<MultiSelect
+							keepOpenOnSelect
+							value={field.value?.map((value) => ({
+								value,
+								label: value,
+							}))}
+							placeholder={t("forms.catalog-edit-props.props.filterProperties.placeholder")}
+							loadOptions={async () => ({
+								options:
+									properties
+										?.filter((p) => !isSystemProperty(p.name))
+										.map((property) => ({
+											value: property.name,
+											label: property.name,
+										})) || [],
+							})}
+							onChange={(options) => {
+								field.onChange(options.map((option) => option.value));
+							}}
+						/>
+					)}
+					{...formProps}
+				/>
+			)}
 		</>
 	);
 };

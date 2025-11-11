@@ -29,22 +29,27 @@ async function collectPrintablePages(
 	const itemVisible = filters.every((filter) => filter(item, catalog));
 	if (!itemVisible) return;
 
+	const isRootCategory = isCatalog && isFirstLevel;
 	try {
-		await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
-		const parsedData = await (item as Article).parsedContent.read((p) => ({
-			content: p?.renderTree,
-			resourceManager: p?.resourceManager,
-			itemRefPath: item.ref.path.value,
-		}));
+		if (!isRootCategory) {
+			const title = item.getTitle() || item.getFileName();
+			await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
+			const parsedData = await (item as Article).parsedContent.read((p) => ({
+				content: p?.renderTree,
+				resourceManager: p?.resourceManager,
+				itemRefPath: item.ref.path.value,
+				logicPath: item.logicPath,
+			}));
 
-		const title = item.getTitle() || item.getFileName();
-		pages.push({
-			level: itemLevel,
-			title: setTitleNumber ? `${titleNumber}. ${title}` : title,
-			content: parsedData.content,
-			resources: parsedData.resourceManager,
-			itemRefPath: parsedData.itemRefPath,
-		});
+			pages.push({
+				level: itemLevel,
+				title: setTitleNumber ? `${titleNumber}. ${title}` : title,
+				content: parsedData.content,
+				resources: parsedData.resourceManager,
+				itemRefPath: parsedData.itemRefPath,
+				logicPath: parsedData.logicPath,
+			});
+		}
 	} catch (error) {
 		console.error(`Error parsing content for ${item.ref.path}:`, error);
 	}
@@ -52,7 +57,7 @@ async function collectPrintablePages(
 	if (item.type === ItemType.category && isCategory) {
 		const children = (item as Category).getFilteredItems(filters, catalog) || [];
 
-		let idx = 1;
+		let idx = !isRootCategory ? 1 : 0;
 		for (const child of children) {
 			const childNumber = isFirstLevel ? `${idx + 1}` : `${titleNumber}.${idx}`;
 			const childLevel = isFirstLevel ? 1 : itemLevel + 1;

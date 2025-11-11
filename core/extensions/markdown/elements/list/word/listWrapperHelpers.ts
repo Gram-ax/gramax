@@ -49,7 +49,7 @@ export async function buildListWrapperTable(
 		indent: { size: metrics.indent, type: WidthType.DXA },
 		borders: TableBorders.NONE,
 		columnWidths: [metrics.leftCellWidth, metrics.rightCellWidth],
-		layout: TableLayoutType.FIXED,
+		layout: TableLayoutType.AUTOFIT,
 		rows: [
 			new TableRow({
 				cantSplit: true,

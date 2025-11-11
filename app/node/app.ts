@@ -85,13 +85,11 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const adp = new AiDataProvider(wm);
 
+	const enterpriseConfig = em.getConfig();
 	const workspace = await wm.addWorkspace(config.paths.root.value, {
 		name: "Gramax",
 		icon: "layers",
-		enterprise: {
-			gesUrl: em.getConfig()?.gesUrl,
-			lastUpdateDate: Date.now(),
-		},
+		enterprise: enterpriseConfig.gesUrl ? { ...enterpriseConfig, lastUpdateDate: Date.now() } : {},
 	});
 	await wm.setWorkspace(workspace);
 
@@ -99,7 +97,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const encoder = new Encoder();
 
-	const ticketManager = new TicketManager(encoder, config.tokens.share, em.getConfig()?.gesUrl);
+	const ticketManager = new TicketManager(encoder, config.tokens.share, enterpriseConfig);
 
 	const parser = new MarkdownParser();
 
@@ -116,11 +114,11 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const tm = new ThemeManager();
 	const am: AuthManager = new ServerAuthManager(
-		em.getConfig()?.gesUrl
-			? new EnterpriseAuth(em.getConfig().gesUrl, () => wm.current())
+		enterpriseConfig?.gesUrl
+			? new EnterpriseAuth(enterpriseConfig, () => wm.current(), config.paths.base)
 			: new EnvAuth(config.paths.base, config.admin.login, config.admin.password),
 		ticketManager,
-		em.getConfig()?.gesUrl,
+		enterpriseConfig,
 	);
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
 	const sitePresenterFactory = new SitePresenterFactory(

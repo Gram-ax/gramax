@@ -1,3 +1,4 @@
+import { EnterpriseConfig } from "@app/config/AppConfig";
 import EnterpriseUser, { EnterpriseInfo } from "@ext/enterprise/EnterpriseUser";
 import EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
 import AuthManager from "@ext/security/logic/AuthManager";
@@ -18,8 +19,8 @@ interface EnterpriseInfoData {
 export default class ClientAuthManager extends AuthManager {
 	private readonly _PERMISSION_COOKIE_NAME = "user_permissions";
 
-	constructor(private _gesUrl: string) {
-		super();
+	constructor(enterpriseConfig: EnterpriseConfig) {
+		super(enterpriseConfig);
 	}
 
 	async getUser(cookie: Cookie): Promise<User> {
@@ -41,7 +42,7 @@ export default class ClientAuthManager extends AuthManager {
 
 	private async _getUser(cookie: Cookie): Promise<User> {
 		const userData = cookie.get(this._COOKIE_USER);
-		if (!userData || !this._gesUrl) return localUser;
+		if (!userData || !this._enterpriseConfig.gesUrl) return localUser;
 
 		const json: UserJSONData = JSON.parse(userData);
 		if (json.type !== "enterprise") return localUser;

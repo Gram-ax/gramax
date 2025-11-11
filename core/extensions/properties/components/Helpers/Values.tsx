@@ -18,6 +18,7 @@ import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react"
 import t from "@ext/localization/locale/translate";
 import Input from "@components/Atoms/Input";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@ui-kit/Tooltip";
+import { EmptyState } from "@ui-kit/EmptyState";
 
 interface ValuesProps {
 	data: string[];
@@ -44,7 +45,7 @@ const DraggableTableRow = ({ row, children, state }: DraggableTableRowProps) => 
 	};
 
 	return (
-		<TableRow ref={setNodeRef} style={style} data-state={state}>
+		<TableRow ref={setNodeRef} style={style} data-state={state} className="border-secondary-border">
 			{children}
 		</TableRow>
 	);
@@ -201,7 +202,7 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 			modifiers={[restrictToVerticalAxis]}
 			onDragEnd={handleDragEnd}
 		>
-			<div className="overflow-hidden rounded-md border">
+			<div className="overflow-hidden rounded-md border border-secondary-border">
 				<Table>
 					<SortableContext items={data} strategy={verticalListSortingStrategy}>
 						<TableBody>
@@ -217,8 +218,8 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 												key={cell.id}
 												className={
 													cell.column.id === "actions" || cell.column.id === "draggable"
-														? "w-6"
-														: "auto"
+														? "w-6 border-secondary-border"
+														: "auto border-secondary-border"
 												}
 											>
 												{flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -228,8 +229,11 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 								))
 							) : (
 								<TableRow>
-									<TableCell colSpan={columns.length} className="h-24 text-center">
-										{t("properties.no-values")}
+									<TableCell
+										colSpan={columns.length}
+										className="h-24 text-center border-secondary-border"
+									>
+										<EmptyState>{t("properties.no-values")}</EmptyState>
 									</TableCell>
 								</TableRow>
 							)}

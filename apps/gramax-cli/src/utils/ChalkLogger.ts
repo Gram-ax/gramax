@@ -22,19 +22,67 @@ interface LogOptions {
 const BASE_INDENT = 3;
 
 class ChalkLogger {
+	private static _silent = false;
+	static #originalConsole = {
+		log: console.log,
+		error: console.error,
+		warn: console.warn,
+		info: console.info,
+		debug: console.debug,
+	};
+
+	static setSilent(silent: boolean) {
+		if (silent === this._silent) return;
+		this._silent = silent;
+
+		if (silent) {
+			this.#originalConsole = {
+				log: console.log,
+				error: console.error,
+				warn: console.warn,
+				info: console.info,
+				debug: console.debug,
+			};
+			console.log = () => {};
+			console.error = () => {};
+			console.warn = () => {};
+			console.info = () => {};
+			console.debug = () => {};
+		} else {
+			console.log = this.#originalConsole.log;
+			console.error = this.#originalConsole.error;
+			console.warn = this.#originalConsole.warn;
+			console.info = this.#originalConsole.info;
+			console.debug = this.#originalConsole.debug;
+		}
+	}
+
 	static write(text?: string) {
-		if (!this._checkStdout) return;
+		if (!this._checkStdout || this._silent) return;
 
 		process.stdout.write(chalk.white(text));
 	}
 
 	static deletePrevLine() {
+		if (this._silent) return;
 		process.stdout.write("\r\x1b[K");
 	}
 
 	static log(str?: string, options?: LogOptions) {
 		const log = this._formatLog(str, options);
 		console.log(log);
+	}
+
+	static warn(str?: string, options: LogOptions = {}) {
+		options.styles = options.styles || [];
+		options.styles.push("yellow");
+		this.log(str, options);
+	}
+
+	static error(str?: string, options: LogOptions = {}) {
+		options.styles = options.styles || [];
+		options.styles.push("yellow");
+		this.log(str, options);
 	}
 
 	protected static _formatLog(str?: string, options: LogOptions = {}) {

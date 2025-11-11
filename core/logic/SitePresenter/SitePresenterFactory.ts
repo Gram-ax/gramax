@@ -17,7 +17,7 @@ export default class SitePresenterFactory {
 		private _isReadOnly: boolean,
 	) {}
 
-	public fromContext(context: Context): SitePresenter {
+	public fromContext(context: Context, isReadOnly: boolean = this._isReadOnly): SitePresenter {
 		const nav = new Navigation();
 		return new SitePresenter(
 			nav,
@@ -27,7 +27,7 @@ export default class SitePresenterFactory {
 			this._grp,
 			this._customArticlePresenter,
 			context,
-			this._isReadOnly,
+			isReadOnly,
 		);
 	}
 }

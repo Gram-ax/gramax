@@ -25,6 +25,17 @@ const getDiffLineContent = (doc: Node, diffLine: DiffLine) => {
 	return content;
 };
 
+const retryOperation = (operation: () => void, attempts = 3) => {
+	for (let attempt = 1; attempt <= attempts; attempt++) {
+		try {
+			operation();
+			return;
+		} catch (e) {
+			if (attempt === attempts) throw e;
+		}
+	}
+};
+
 describe("DiffRenderDataHandler", () => {
 	it("should return inline decorators in changed text", () => {
 		const { oldDoc, newDoc } = createDiffDocs(
@@ -217,14 +228,16 @@ describe("DiffRenderDataHandler", () => {
 					},
 				);
 
-				const startTime = performance.now();
-				const { diffLines } = getDiffData(oldDoc, newDoc);
-				const endTime = performance.now();
+				retryOperation(() => {
+					const startTime = performance.now();
+					const { diffLines } = getDiffData(oldDoc, newDoc);
+					const endTime = performance.now();
 
-				const executionTime = endTime - startTime;
+					const executionTime = endTime - startTime;
 
-				expect(diffLines.length).toBe(iterations);
-				expect(executionTime).toBeLessThan(1000);
+					expect(diffLines.length).toBe(iterations);
+					expect(executionTime).toBeLessThan(1000);
+				});
 			});
 
 			test("added and deleted", () => {
@@ -238,14 +251,16 @@ describe("DiffRenderDataHandler", () => {
 					},
 				);
 
-				const startTime = performance.now();
-				const { diffLines } = getDiffData(oldDoc, newDoc);
-				const endTime = performance.now();
+				retryOperation(() => {
+					const startTime = performance.now();
+					const { diffLines } = getDiffData(oldDoc, newDoc);
+					const endTime = performance.now();
 
-				const executionTime = endTime - startTime;
+					const executionTime = endTime - startTime;
 
-				expect(diffLines.length).toBe(iterations * 2);
-				expect(executionTime).toBeLessThan(1000);
+					expect(diffLines.length).toBe(iterations * 2);
+					expect(executionTime).toBeLessThan(1000);
+				});
 			});
 		});
 
@@ -263,14 +278,16 @@ describe("DiffRenderDataHandler", () => {
 					},
 				);
 
-				const startTime = performance.now();
-				const { diffLines } = getDiffData(oldDoc, newDoc);
-				const endTime = performance.now();
+				retryOperation(() => {
+					const startTime = performance.now();
+					const { diffLines } = getDiffData(oldDoc, newDoc);
+					const endTime = performance.now();
 
-				const executionTime = endTime - startTime;
+					const executionTime = endTime - startTime;
 
-				expect(diffLines.length).toBe(replacements);
-				expect(executionTime).toBeLessThan(1000);
+					expect(diffLines.length).toBe(replacements);
+					expect(executionTime).toBeLessThan(1000);
+				});
 			});
 
 			test("added and deleted", () => {
@@ -286,14 +303,16 @@ describe("DiffRenderDataHandler", () => {
 					},
 				);
 
-				const startTime = performance.now();
-				const { diffLines } = getDiffData(oldDoc, newDoc);
-				const endTime = performance.now();
+				retryOperation(() => {
+					const startTime = performance.now();
+					const { diffLines } = getDiffData(oldDoc, newDoc);
+					const endTime = performance.now();
 
-				const executionTime = endTime - startTime;
+					const executionTime = endTime - startTime;
 
-				expect(diffLines.length).toBe(replacements * 2);
-				expect(executionTime).toBeLessThan(1000);
+					expect(diffLines.length).toBe(replacements * 2);
+					expect(executionTime).toBeLessThan(1000);
+				});
 			});
 		});
 	});

@@ -1,6 +1,8 @@
+import { EnterpriseConfig } from "@app/config/AppConfig";
 import ApiRequest from "@core/Api/ApiRequest";
 import ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
+import Path from "@core/FileProvider/Path/Path";
 import Cookie from "@ext/cookie/Cookie";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
@@ -14,16 +16,24 @@ import { UserRepositoryProvider } from "@ext/security/logic/UserRepository";
 import { Workspace } from "@ext/workspace/Workspace";
 
 class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
-	constructor(private _gesUrl: string, private _getCurrentWorkspace: () => Workspace) {}
+	private _basePath: string;
+	constructor(
+		private _enterpriseConfig: EnterpriseConfig,
+		private _getCurrentWorkspace: () => Workspace,
+		basePath: Path,
+	) {
+		this._basePath = basePath.value ? `/${basePath.value}` : "";
+	}
 
 	getUser(): Promise<UserInfo> {
 		return;
 	}
 
 	login(req: ApiRequest, res: ApiResponse): Promise<void> | void {
-		const redirectAssert = encodeURIComponent(`${apiUtils.getDomain(req)}/api/auth/assert`);
-		const redirect = encodeURIComponent(`${this._gesUrl}/enterprise/sso/assert?redirect=${redirectAssert}`);
-		res.redirect(`${this._gesUrl}/sso/login?from=${req.query.from}&redirect=${redirect}`);
+		const gesUrl = this._enterpriseConfig.gesUrl;
+		const redirectAssert = encodeURIComponent(`${apiUtils.getDomain(req)}${this._basePath}/api/auth/assert`);
+		const redirect = encodeURIComponent(`${gesUrl}/enterprise/sso/assert?redirect=${redirectAssert}`);
+		res.redirect(`${gesUrl}/sso/login?from=${req.query.from}&redirect=${redirect}`);
 	}
 
 	logout(req: ApiRequest, res: ApiResponse): Promise<void> | void {
@@ -38,12 +48,18 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 	): Promise<void> {
 		const from = req.query.from as string;
 		const otc = req.query.oneTimeCode as string;
-		const ei = new EnterpriseApi(this._gesUrl);
+		const ei = new EnterpriseApi(this._enterpriseConfig.gesUrl);
 		const token = await ei.getToken(otc);
+		const baseFrom = `${this._basePath ? `${apiUtils.getDomain(req)}/${this._basePath}` : ""}/`;
+
+		if (!token) {
+			res.redirect(from || baseFrom);
+			return;
+		}
 		const userData = await ei.getUser(token);
 
 		if (!userData) {
-			res.redirect(from || "/");
+			res.redirect(from || baseFrom);
 			return;
 		}
 
@@ -54,12 +70,12 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 			null,
 			new StrictPermissionMap({ [workspacePath]: new Permission(userData.workspacePermissions) }),
 			new StrictPermissionMap({}),
-			this._gesUrl,
+			this._enterpriseConfig,
 			token,
 		);
 
 		await setUser(cookie, user);
-		res.redirect(from || "/");
+		res.redirect(from || baseFrom);
 	}
 
 	async mailSendOTP(req: ApiRequest, res: ApiResponse): Promise<void> {
@@ -69,7 +85,7 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 			return;
 		}
 
-		const { status, timeLeft } = await new EnterpriseApi(this._gesUrl).mailSendOTP(email);
+		const { status, timeLeft } = await new EnterpriseApi(this._enterpriseConfig.gesUrl).mailSendOTP(email);
 
 		if (status === 200) {
 			res.statusCode = 200;
@@ -100,17 +116,17 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 			return;
 		}
 
-		const json = await new EnterpriseApi(this._gesUrl).mailLoginOTP(email, otp);
-		const token = json?.token;
+		const json = await new EnterpriseApi(this._enterpriseConfig.gesUrl).mailLoginOTP(email, otp);
+		const oneTimeCode = json?.oneTimeCode;
 
-		if (!token) {
+		if (!oneTimeCode) {
 			apiUtils.sendError(res, new DefaultError("Invalid OTP"), 401);
 			return;
 		}
 
 		apiUtils.sendPlainText(
 			res,
-			`${apiUtils.getDomain(req)}/api/auth/assert?enterpriseToken=${encodeURIComponent(token)}`,
+			`${apiUtils.getDomain(req)}${this._basePath}/api/auth/assert?oneTimeCode=${oneTimeCode}`,
 		);
 	}
 }

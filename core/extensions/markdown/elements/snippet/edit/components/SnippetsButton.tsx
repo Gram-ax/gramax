@@ -1,17 +1,17 @@
 import Divider from "@components/Atoms/Divider";
-import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import TooltipListLayout from "@components/List/TooltipListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import LinkItemSidebar from "@ext/article/LinkCreator/components/LinkItemSidebar";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
-import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
 import t from "@ext/localization/locale/translate";
 import SnippetListElement from "@ext/markdown/elements/snippet/edit/components/SnippetListElement";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
 import { Editor } from "@tiptap/core";
 import { useState } from "react";
-import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 
 interface SnippetsButtonProps {
 	editor: Editor;

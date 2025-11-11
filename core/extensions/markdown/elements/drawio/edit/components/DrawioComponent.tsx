@@ -36,9 +36,11 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 	const setImgData = useCallback(() => {
 		const imagData = refT.current?.src;
 		if (!isDataImage(imagData)) {
-			refT.current.src = Base64ToDataImage(getBuffer(nodeSrc)?.toString("base64"));
+			const buffer = getBuffer(nodeSrc);
+			if (!buffer || !buffer.byteLength || !refT.current) return;
+			refT.current.src = Base64ToDataImage(buffer.toString("base64"));
 		}
-	}, [nodeSrc, refT, getBuffer]);
+	}, [nodeSrc, getBuffer]);
 
 	const saveCallBack = useCallback(
 		async (data: string) => {

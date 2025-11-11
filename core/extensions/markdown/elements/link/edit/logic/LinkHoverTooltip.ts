@@ -1,6 +1,5 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import ArticleLinkTooltip from "@ext/markdown/elements/link/edit/logic/ArticleLinkTooltip";
 import TooltipBase from "@ext/markdown/elementsUtils/prosemirrorPlugins/TooltipBase";
 import { Mark } from "@tiptap/pm/model";
@@ -22,11 +21,9 @@ class LinkHoverTooltip extends TooltipBase {
 		parentElement: HTMLElement,
 		apiUrlCreator: ApiUrlCreator,
 		pageDataContext: PageDataContext,
-		catalogProps: ClientCatalogProps,
 	) {
 		const props = {
 			isOpen: false,
-			catalogProps,
 			apiUrlCreator,
 			pageDataContext,
 			closeHandler: () => this.closeComponent(),

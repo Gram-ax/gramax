@@ -27,6 +27,7 @@ const aliases = {
 	свойство: '[data-qa="qa-property"]',
 	"диаграмма draw.io": '[data-qa="qa-drawio"]',
 	"html блок": '[data-qa="qa-html"]',
+	"блок вопроса": "div.question",
 	"выделить таблицу": '[data-qa="table-select-all"]',
 	"действия каталога": '[data-qa="qa-catalog-actions"]',
 	"действия статьи": '[data-qa="qa-article-actions"]',
@@ -46,6 +47,9 @@ const aliases = {
 
 	"%next-login%": process.env.ADMIN_LOGIN,
 	"%next-password%": process.env.ADMIN_PASSWORD,
+	"%azure-mail%": process.env.E2E_AZURE_MAIL,
+	"%azure-password%": process.env.E2E_AZURE_PASSWORD,
+	"%enterprise-storage%": "enterprise.gramax.local",
 } as Aliases;
 
 const icons = {
@@ -62,6 +66,7 @@ const icons = {
 	"новый комментарий": ".lucide-message-square",
 	глобус: ".lucide-globe",
 	корзина: ".lucide-trash",
+	"буква t": ".lucide-type",
 	корзина2: ".lucide-trash2",
 	карандаш: ".lucide-pencil",
 	ручка: ".lucide-pen",
@@ -89,7 +94,8 @@ const icons = {
 	"Вставить строку сверху": `[data-qa="table-add-row-up"]`,
 	"удалить строку": `[data-qa="table-del-row"]`,
 	"удалить столбец": `[data-qa="table-del-col"]`,
-	"цитата": ".lucide-quote",
+	цитата: ".lucide-quote",
+	"файл с вопросиком": ".lucide-file-question-mark",
 };
 
 export type Aliases = { [key: string]: string };

@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use axum::extract::Path;
+use axum::extract::Query;
 use axum::extract::Request;
 use axum::extract::State;
 use axum::middleware::Next;
@@ -13,9 +14,10 @@ use crate::metrics::doc::UserAction;
 use crate::metrics::doc::UserId;
 use crate::metrics::doc::UserMetadata;
 use crate::metrics::exporter::MetricExporter;
+use crate::metrics::exporter::MetricExporterCollection;
 use crate::metrics::exporter::MetricSender;
 
-use crate::updater::Bucket;
+use crate::updater;
 use crate::updater::Platform;
 
 use tracing::*;
@@ -24,6 +26,12 @@ use tracing::*;
 pub struct Metrics {
   pub cookie_domain: Arc<Option<String>>,
   pub sender: MetricSender,
+}
+
+impl Default for Metrics {
+  fn default() -> Self {
+    Metrics { cookie_domain: Arc::new(None), sender: MetricSender::new(MetricExporterCollection::default()) }
+  }
 }
 
 pub async fn static_assets_metrics(
@@ -80,14 +88,7 @@ pub async fn updater_metrics(
 
   let doc = match user_id {
     Some(id) => MetricDocBuilder::user(UserId(id))
-      .with_metadata(UserMetadata {
-        os,
-        os_version,
-        browser: None,
-        browser_version: None,
-        platform,
-        device,
-      })
+      .with_metadata(UserMetadata { os, os_version, browser: None, browser_version: None, platform, device })
       .with_user_agent(user_agent.clone()),
     None => {
       let Some(id) = UserId::from_jar(&jar) else {
@@ -110,21 +111,31 @@ pub async fn updater_metrics(
   (jar, next.run(req).await)
 }
 
-pub async fn insert_metrics_user_action_update_check(mut req: Request, next: Next) -> Response {
-  req.extensions_mut().insert(UserAction::CheckUpdate);
+pub async fn insert_metrics_user_action_check_updates(
+  Query(q): Query<updater::extract::ParamsQuery>,
+  mut req: Request,
+  next: Next,
+) -> Response {
+  req.extensions_mut().insert(UserAction::CheckUpdates { channel: q.channel });
+  next.run(req).await
+}
+
+pub async fn insert_metrics_user_action_check_single_update(
+  Path(platform): Path<Platform>,
+  Query(q): Query<updater::extract::ParamsQuery>,
+  mut req: Request,
+  next: Next,
+) -> Response {
+  req.extensions_mut().insert(UserAction::CheckUpdate { channel: q.channel, platform, package: q.package });
   next.run(req).await
 }
 
 pub async fn insert_metrics_user_action_download(
-  Path((bucket, platform)): Path<(Bucket, Platform)>,
+  Path(platform): Path<Platform>,
+  Query(q): Query<updater::extract::ParamsQuery>,
   mut req: Request,
   next: Next,
 ) -> Response {
-  let action = match bucket {
-    Bucket::Updates => UserAction::DownloadUpdate { platform, bucket },
-    Bucket::Downloads => UserAction::DownloadRelease { platform, bucket },
-  };
-
-  req.extensions_mut().insert(action);
+  req.extensions_mut().insert(UserAction::Download { channel: q.channel, platform, package: q.package });
   next.run(req).await
 }

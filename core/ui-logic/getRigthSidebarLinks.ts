@@ -2,23 +2,31 @@ import { feedbackLink } from "@components/libs/utils";
 import t from "@ext/localization/locale/translate";
 import { TitledLink } from "@ext/navigation/NavigationLinks";
 import ArticlePropsService from "./ContextServices/ArticleProps";
-import CatalogPropsService from "./ContextServices/CatalogProps";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const divider = {} as TitledLink;
 
 export const useGetArticleLinks = (): TitledLink[] => {
 	const articleProps = ArticlePropsService.value;
-	const catalogProps = CatalogPropsService.value;
+	const { relatedLinks, contactEmail, repositoryName } = useCatalogPropsStore(
+		(state) => ({
+			relatedLinks: state.data.relatedLinks,
+			contactEmail: state.data.contactEmail,
+			repositoryName: state.data.repositoryName,
+		}),
+		"shallow",
+	);
+
 	const links: TitledLink[] = [];
 
-	if (catalogProps.relatedLinks) links.push(...catalogProps.relatedLinks);
+	if (relatedLinks) links.push(...relatedLinks);
 
-	if (catalogProps.contactEmail)
+	if (contactEmail)
 		links.push({
 			icon: "mail",
 			title: t("comments-to-article"),
-			url: feedbackLink(catalogProps.contactEmail, articleProps.logicPath, catalogProps.repositoryName),
+			url: feedbackLink(contactEmail, articleProps.logicPath, repositoryName),
 		});
 
 	// if (!sidebarsIsExpand) {

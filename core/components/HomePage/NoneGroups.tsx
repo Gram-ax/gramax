@@ -1,19 +1,27 @@
 import resolveModule from "@app/resolveModule/frontend";
+import LegacyIcon from "@components/Atoms/Icon";
 import Welcome from "@components/Welcome";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
+import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
+import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
+import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
+import ImportModal from "@ext/import/components/ImportModal";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { configureWorkspacePermission, editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import { ComponentProps, type HTMLAttributes } from "react";
-import CreateCatalog from "../../extensions/catalog/actions/CreateCatalog";
-import Button from "../Atoms/Button/Button";
-import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
+import ThemeService from "@ext/Theme/components/ThemeService";
+import Theme from "@ext/Theme/Theme";
+import { Icon } from "@ui-kit/Icon";
 import {
 	PageState,
 	PageStateAction,
@@ -22,16 +30,9 @@ import {
 	PageStateFolderSvg,
 	PageStateTitle,
 } from "@ui-kit/PageState";
-import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
-import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
-import { Icon } from "@ui-kit/Icon";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import ThemeService from "@ext/Theme/components/ThemeService";
-import Theme from "@ext/Theme/Theme";
-import { useRouter } from "@core/Api/useRouter";
-import LegacyIcon from "@components/Atoms/Icon";
-import ImportModal from "@ext/import/components/ImportModal";
+import { ComponentProps, type HTMLAttributes } from "react";
+import CreateCatalog from "../../extensions/catalog/actions/CreateCatalog";
+import Button from "../Atoms/Button/Button";
 
 const EnterpriseSignIn = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -104,10 +105,11 @@ const EditorWelcome = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const hasWorkspace = !!PageDataContextService.value.workspace.current;
 	const workspacePath = WorkspaceService?.current()?.path;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const { isStatic } = usePlatform();
 
 	const canEditCatalog = workspacePath
-		? PermissionService.useCheckPermission(editCatalogPermission, workspacePath)
+		? PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName)
 		: true;
 
 	const canAddCatalog = (() => {

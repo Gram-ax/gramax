@@ -9,8 +9,8 @@ import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import DiagramsMenuButton from "@ext/markdown/elements/diagrams/edit/components/DiagramsMenuButton";
 import DrawioMenuButton from "@ext/markdown/elements/drawio/edit/components/DrawioMenuButton";
 import OpenApiMenuButton from "@ext/markdown/elements/openApi/edit/components/OpenApiMenuButton";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface DiagramsMenuGroupProps {
 	editor?: Editor;
@@ -21,7 +21,7 @@ const DiagramsMenuGroup = ({ editor, fileName }: DiagramsMenuGroupProps) => {
 	const drawIo = ButtonStateService.useCurrentAction({ action: "drawio" });
 	const diagrams = ButtonStateService.useCurrentAction({ action: "diagrams" });
 
-	const syntax = CatalogPropsService.value.syntax;
+	const syntax = useCatalogPropsStore((state) => state.data.syntax);
 	const formatterSupportedElements = getFormatterType(syntax).supportedElements;
 
 	const isDrawioSupported = formatterSupportedElements.includes("drawio");

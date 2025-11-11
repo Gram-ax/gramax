@@ -2,6 +2,8 @@
 
 mod event;
 
+pub use sysinfo;
+
 use std::panic::PanicHookInfo;
 
 use app::BugsnagApp;

@@ -46,9 +46,8 @@ export function hoverTooltip(
 	editor: Editor,
 	apiUrlCreator: ApiUrlCreator,
 	pageDataContext: PageDataContext,
-	catalogProps: ClientCatalogProps,
 ): Plugin {
-	const tooltipManager = new LinkHoverTooltipManager(document.body, apiUrlCreator, pageDataContext, catalogProps);
+	const tooltipManager = new LinkHoverTooltipManager(document.body, apiUrlCreator, pageDataContext);
 
 	editor.on("selectionUpdate", (editor) => {
 		const cursorPos = editor.editor.view.state.selection.anchor;

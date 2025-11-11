@@ -30,7 +30,7 @@ impl<C: Creds> Count for Repo<'_, C> {
     let head_tree = head_commit.tree()?;
 
     let mut opts = DiffOptions::new();
-    opts.force_binary(true).skip_binary_check(true).pathspec(search_in.as_ref());
+    opts.force_binary(true).skip_binary_check(true).pathspec(search_in.as_ref()).ignore_submodules(true);
 
     upstream_count_files.changed =
       self.0.diff_tree_to_index(Some(&head_tree), Some(&self.0.index()?), Some(&mut opts))?.deltas().count();

@@ -1,8 +1,6 @@
 import Portal from "@components/Portal";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import IsMenuBarOpenService from "@core-ui/ContextServices/IsMenuBarOpenService";
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
-import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { Editor } from "@tiptap/react";
@@ -21,13 +19,8 @@ interface MenuProps {
 
 const Menu = ({ editor, id, className, children }: MenuProps) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const { isOpen: isMenuBarOpen } = IsMenuBarOpenService.value;
 	const isEditable = editor?.isEditable;
 	const { recorderState } = AudioRecorderService.value;
-
-	useWatch(() => {
-		setIsOpen(isMenuBarOpen);
-	}, [isMenuBarOpen]);
 
 	useEffect(() => {
 		if (!editor) return;
@@ -44,11 +37,11 @@ const Menu = ({ editor, id, className, children }: MenuProps) => {
 			<div className={className}>
 				<div>
 					{isActive(recorderState) && <ArticleAudioToolbar editor={editor} />}
-					<div style={isOpen ? null : { visibility: "hidden" }} data-qa="qa-edit-menu-button">
+					{isOpen && <div data-qa="qa-edit-menu-button">
 						<IsSelectedOneNodeService.Provider editor={editor}>
 							<ButtonStateService.Provider editor={editor}>{children}</ButtonStateService.Provider>
 						</IsSelectedOneNodeService.Provider>
-					</div>
+					</div>}
 				</div>
 			</div>
 		</Portal>

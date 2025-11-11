@@ -2,19 +2,18 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import Group from "@ext/markdown/elements/view/render/components/Displays/Helpers/Table/Group";
 import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 import { useRef } from "react";
 import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface TableProps {
 	content: ViewRenderGroup[];
 	className?: string;
 	groupby: string[];
 	select: string[];
-	catalogProps: ClientCatalogProps;
 	commentId?: string;
 }
 
@@ -23,7 +22,8 @@ const getWidth = (property: Property) => {
 	return "8em";
 };
 
-const Table = ({ content, className, groupby, select, catalogProps, commentId }: TableProps) => {
+const Table = ({ content, className, groupby, select, commentId }: TableProps) => {
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const { properties } = PropertyServiceProvider.value;
 	const ref = useRef<HTMLTableElement>(null);
 	return (
@@ -53,7 +53,7 @@ const Table = ({ content, className, groupby, select, catalogProps, commentId }:
 									key={group.group?.[0]}
 									group={group}
 									select={select}
-									catalogName={catalogProps.name}
+									catalogName={catalogName}
 									catalogProperties={properties}
 								/>
 							))}

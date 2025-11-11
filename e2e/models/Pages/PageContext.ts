@@ -25,7 +25,7 @@ export default class PageContext {
 
 	async goto(path: string) {
 		await this.inner().evaluate(async () => await window.debug?.clearGxLock());
-    
+
 		const url = config.url + this._alias(path, () => replaceMultiple(path, this._alias.bind(this)));
 		if (this.inner().url() == url) return await this.waitForLoad();
 		await this.inner().goto(url, { waitUntil: "domcontentloaded" });
@@ -38,7 +38,7 @@ export default class PageContext {
 
 	async waitForLoad(scope?: Locator) {
 		try {
-			const loaders = await this.search().find(`[data-qa="loader"]`, scope);
+			const loaders = await this.search().find(`[data-qa="loader"], [role="progressbar"]`, scope);
 			for (const loader of await loaders.all())
 				await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
 		} catch (e) {

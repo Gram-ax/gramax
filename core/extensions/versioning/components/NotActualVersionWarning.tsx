@@ -1,18 +1,18 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { useRouter } from "@core/Api/useRouter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import Alert, { AlertType } from "@ext/markdown/elements/alert/render/component/Alert";
 import { addScopeToPath } from "@ext/versioning/utils";
 import type { HTMLAttributes } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type NotActualRevisionWarningProps = HTMLAttributes<HTMLDivElement>;
 
 // todo: remove word break in code
 const NotActualRevisionWarning = (props: NotActualRevisionWarningProps) => {
-	const catalogProps = CatalogPropsService.value;
+	const resolvedVersion = useCatalogPropsStore((state) => state.data.resolvedVersion);
 	const router = useRouter();
 
 	const { className, ...restProps } = props;
@@ -27,7 +27,7 @@ const NotActualRevisionWarning = (props: NotActualRevisionWarningProps) => {
 						{t("versions.not-actual-warning.1")}
 						<code>
 							<Icon code="tag" />
-							<span>{catalogProps.resolvedVersion?.name}</span>
+							<span>{resolvedVersion?.name}</span>
 						</code>
 					</div>
 					<div

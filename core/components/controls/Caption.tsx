@@ -17,7 +17,7 @@ interface CaptionProps {
 }
 
 const Caption = forwardRef<HTMLInputElement, CaptionProps>((props, ref: RefObject<HTMLInputElement>) => {
-	const { text, autoFocus = false, editor, getPos, onUpdate, onLoseFocus, className, visible = false } = props;
+	const { text, editor, getPos, onUpdate, onLoseFocus, className, visible = false } = props;
 
 	const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") return editor.commands.focus(getPos(), { scrollIntoView: false });

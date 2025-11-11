@@ -14,7 +14,6 @@
 		"prune": "node-prune"
 	},
 	"dependencies": {
-		"ics-ui-kit": "^0.1.0-alpha.30",
 		"wouter": "^3.7.0"
 	},
 	"devDependencies": {

@@ -16,6 +16,7 @@ import YamlFileConfig from "@core/utils/YamlFileConfig";
 import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import ThemeManager from "@ext/Theme/ThemeManager";
+import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
@@ -35,13 +36,12 @@ import SearcherManager from "@ext/serach/SearcherManager";
 import WorkspaceCheckIsCatalogCloning from "@ext/storage/events/WorkspaceCheckIsCatalogCloning";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import FSTemplateEvents from "@ext/templates/logic/FSTemplateEvents";
+import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
+import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import setWorkerProxy from "../../apps/browser/src/logic/setWorkerProxy";
 import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
 import Application from "../types/Application";
-import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
-import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
-import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 
 const _init = async (config: AppConfig): Promise<Application> => {
 	await initModulesFrontend();
@@ -60,9 +60,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	);
 
 	const rp = new RepositoryProvider(config);
-
 	const em = new EnterpriseManager(config.enterprise, fileConfig);
-
 	const templateEventHandlers = new FSTemplateEvents();
 
 	const wm = new WorkspaceManager(
@@ -110,7 +108,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	);
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
-	const am: AuthManager = em.getConfig().gesUrl ? new ClientAuthManager(em.getConfig().gesUrl) : null;
+	const enterpriseConfig = em.getConfig();
+	const am: AuthManager = enterpriseConfig.gesUrl ? new ClientAuthManager(enterpriseConfig) : null;
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
 
 	const cache = new Cache(new DiskFileProvider(config.paths.data));

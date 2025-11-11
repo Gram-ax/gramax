@@ -2,6 +2,7 @@ import React, { ReactElement, useContext, useEffect, useState, useMemo } from "r
 import ContextService from "@core-ui/ContextServices/ContextService";
 import CloudApi from "@ext/static/logic/CloudApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { feature } from "@ext/toggleFeatures/features";
 
 const CatalogPropsContext = React.createContext<CloudStateServiceContextProps>(undefined);
 
@@ -24,7 +25,7 @@ class CloudStateService implements ContextService {
 		const { catalogName, cloudServiceUrl } = value;
 		const { isStatic, isStaticCli } = usePlatform();
 
-		if (!cloudServiceUrl || isStatic || isStaticCli) return children;
+		if (!cloudServiceUrl || isStatic || isStaticCli || !feature("cloud")) return children;
 
 		const [clientName, setClientName] = useState<string>();
 		const [catalogVersion, setCatalogVersion] = useState<string>();

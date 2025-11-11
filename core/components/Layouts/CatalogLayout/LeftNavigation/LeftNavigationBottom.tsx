@@ -1,20 +1,23 @@
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import CreateArticle from "@ext/article/actions/CreateArticle";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { configureCatalogPermission, editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
 import { useMediaQuery } from "@react-hook/media-query";
-import CreateArticle from "../../../../extensions/artilce/actions/CreateArticle";
-import CatalogPropsService from "../../../../ui-logic/ContextServices/CatalogProps";
 import ExtensionBarLayout from "../../ExtensionBarLayout";
 import ArticleStatusBar from "../../StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import PinToggleArrowIcon from "./PinToggleArrowIcon";
 
 const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData; closeNavigation?: () => void }) => {
-	const catalogProps = CatalogPropsService.value;
-	const isCatalogExist = !!catalogProps.name;
+	const { catalogName, sourceName } = useCatalogPropsStore(
+		(state) => ({ catalogName: state.data?.name, sourceName: state.data?.sourceName }),
+		"shallow",
+	);
+	const isCatalogExist = !!catalogName;
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const mediumMedia = useMediaQuery(cssMedia.JSmedium);
 	const workspacePath = WorkspaceService.current().path;
@@ -24,17 +27,17 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	const canEditContentCatalog = PermissionService.useCheckPermission(
 		editCatalogContentPermission,
 		workspacePath,
-		catalogProps.name,
+		catalogName,
 	);
 	const canConfigureCatalog = PermissionService.useCheckPermission(
 		configureCatalogPermission,
 		workspacePath,
-		catalogProps.name,
+		catalogName,
 	);
 
 	const canSeeStatusBar =
 		!isStaticOrStaticCli &&
-		((isNext && canConfigureCatalog) || (!isNext && (canEditContentCatalog || !catalogProps.sourceName)));
+		((isNext && canConfigureCatalog) || (!isNext && (canEditContentCatalog || !sourceName)));
 
 	return (
 		<div data-qa="qa-status-bar">

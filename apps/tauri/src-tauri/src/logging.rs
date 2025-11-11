@@ -1,5 +1,8 @@
 use std::path::PathBuf;
-
+use sysinfo::Pid;
+use sysinfo::ProcessRefreshKind;
+use sysinfo::ProcessesToUpdate;
+use tracing::level_filters::LevelFilter;
 use tracing_subscriber::filter::FilterFn;
 use tracing_subscriber::fmt::MakeWriter;
 use tracing_subscriber::layer::SubscriberExt;
@@ -9,10 +12,14 @@ use tracing_subscriber::Layer;
 
 use tauri::*;
 
+use crate::memory::MemoryInfo;
+use crate::memory::ProcessMemoryInfo;
+
 const MAX_FILE_COUNT: usize = 10;
 
 pub fn init<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
-  let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or(EnvFilter::new("info"));
+  let filter = tracing_subscriber::EnvFilter::try_from_default_env()
+    .unwrap_or(EnvFilter::builder().with_default_directive(LevelFilter::INFO.into()).from_env_lossy());
 
   tracing_subscriber::registry()
     .with(filter)
@@ -29,7 +36,7 @@ where
   S: tracing::Subscriber,
   for<'a> S: tracing_subscriber::registry::LookupSpan<'a>,
 {
-  let layer = tracing_subscriber::fmt::layer().with_writer(std::io::stderr).pretty();
+  let layer = tracing_subscriber::fmt::layer().with_writer(std::io::stderr).pretty().with_thread_ids(true);
 
   #[cfg(not(debug_assertions))]
   let layer = layer.with_timer(tracing_subscriber::fmt::time::LocalTime::rfc_3339());
@@ -65,7 +72,15 @@ where
   _ = std::fs::remove_file(&symlink_path);
   std::fs::hard_link(&log_path, &symlink_path)?;
 
-  Ok(tracing_subscriber::fmt::layer().with_ansi(false).pretty().json().flatten_event(true).with_writer(file))
+  Ok(
+    tracing_subscriber::fmt::layer()
+      .with_ansi(false)
+      .pretty()
+      .with_thread_ids(true)
+      .json()
+      .flatten_event(true)
+      .with_writer(file),
+  )
 }
 
 struct WebviewLogFmt<R: Runtime> {
@@ -175,4 +190,84 @@ pub fn js_log<R: Runtime>(
   }
 
   Ok(())
+}
+
+struct FmtProcessInfo<'m>(&'m MemoryInfo);
+
+impl std::fmt::Display for FmtProcessInfo<'_> {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    let opts = humansize::FormatSizeOptions::default()
+      .space_after_value(true)
+      .long_units(false)
+      .units(humansize::Kilo::Binary);
+
+    writeln!(
+      f,
+      "total rss: {}, total cpu: {:.2}%, total open files: {}",
+      humansize::format_size(self.0.total_rss(), opts),
+      self.0.total_cpu_usage(),
+      self.0.total_open_files(),
+    )?;
+
+    for p in self.0 .0.iter() {
+      let name = match p {
+        ProcessMemoryInfo::Webview { wv_label, .. } => {
+          format!("{} (wv)", wv_label)
+        }
+        ProcessMemoryInfo::WebviewChild { parent_wv_label, .. } => {
+          format!("{} (wv child)", parent_wv_label)
+        }
+        p => p.name().to_string(),
+      };
+
+      writeln!(
+        f,
+        "{} (pid {}{}{}): rss {}, vm {}, cpu {:.2}%, open files {}; run for: {:?}",
+        name,
+        p.pid(),
+        p.parent_pid().map(|p| format!(", parent pid {}", p)).unwrap_or("".to_string()),
+        if p.is_main() { ", main" } else { "" },
+        humansize::format_size(p.rss(), opts),
+        humansize::format_size(p.virtual_memory(), opts),
+        p.cpu_usage(),
+        p.open_files(),
+        std::time::Duration::from_secs(p.run()),
+      )?;
+    }
+
+    writeln!(f)?;
+
+    Ok(())
+  }
+}
+
+pub fn watch_process<R: Runtime>(app: AppHandle<R>) {
+  std::thread::spawn(move || loop {
+    let pid = std::process::id();
+    let mut system = bugsnag::sysinfo::System::new_all();
+
+    std::thread::sleep(sysinfo::MINIMUM_CPU_UPDATE_INTERVAL);
+    system.refresh_processes_specifics(
+      ProcessesToUpdate::All,
+      true,
+      ProcessRefreshKind::nothing().with_cpu(),
+    );
+
+    let mut memory_info = MemoryInfo::default();
+
+    memory_info.feed_process(Pid::from(pid as usize), &system);
+
+    for window in app.webview_windows().iter() {
+      if let Err(e) = memory_info.feed_webview(window.1, &system) {
+        warn!("failed to get webview memory info: {}", e);
+      }
+    }
+
+    memory_info.0.sort_by_key(|a| a.pid());
+    memory_info.0.dedup_by_key(|a| a.pid());
+    memory_info.0.sort_by_key(|a| a.is_main());
+
+    tracing::info!("mem usage:\n\n{}", FmtProcessInfo(&memory_info));
+    std::thread::sleep(std::time::Duration::from_secs(60 * 5));
+  });
 }

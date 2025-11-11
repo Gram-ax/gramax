@@ -10,7 +10,7 @@ import t from "@ext/localization/locale/translate";
 import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 import useStorage from "@ext/storage/logic/utils/useStorage";
 import { Loader } from "@ui-kit/Loader";
-import { ProgressBlockTemplate } from "@ui-kit/Template";
+import { ProgressBlockTemplate } from "@ui-kit/Progress";
 import { useMemo, type HTMLAttributes } from "react";
 
 export type CloneProgressProps = {

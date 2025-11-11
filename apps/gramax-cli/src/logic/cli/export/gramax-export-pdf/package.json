@@ -1,0 +1,24 @@
+{
+	"name": "gramax-export-pdf",
+	"version": "0.0.5",
+	"type": "module",
+	"description": "PDF export utility for Gramax CLI",
+	"main": "index.js",
+	"bin": {
+		"gramax-export-pdf": "index.js"
+	},
+	"dependencies": {
+		"playwright": "^1.49.0",
+		"sirv": "^3.0.2"
+	},
+	"scripts": {
+		"postinstall": "npx -y playwright install chromium --with-deps"
+	},
+	"keywords": [
+		"pdf",
+		"export",
+		"gramax",
+		"cli"
+	],
+	"license": "GPL-3.0"
+}

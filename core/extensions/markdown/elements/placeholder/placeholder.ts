@@ -91,25 +91,31 @@ export const Placeholder = Extension.create<PlaceholderOptions>({
 
 export default Placeholder.configure({
 	placeholder: ({ editor, node, pos }) => {
+		const isParagraph = node.type.name === "paragraph";
 		if (editor.state.doc.firstChild.type.name === "paragraph" && editor.state.doc.firstChild === node)
 			return t("article.title");
 
-		if (
-			node.type.name === "paragraph" &&
-			editor.state.doc.content.child(1) === node &&
-			editor.state.doc.content.childCount === 2
-		)
+		if (isParagraph && editor.state.doc.content.child(1) === node && editor.state.doc.content.childCount === 2)
 			return t("article.placeholder");
 
 		const parent = getParentNode(editor, pos);
+		if (parent.type.name === "questionAnswer" && parent.firstChild === node && isParagraph) {
+			return t("editor.question.answer.placeholder");
+		}
+
+		if (parent.type.name === "question" && parent.firstChild === node && isParagraph) {
+			return t("editor.question.placeholder");
+		}
 
 		if (
 			parent.type.name === blockFieldEditName &&
-			node.type.name === "paragraph" &&
+			isParagraph &&
 			parent.firstChild === node &&
 			parent.childCount === 1
-		)
+		) {
 			return parent.attrs.placeholder;
+		}
+
 		if (node.attrs.placeholder) return node.attrs.placeholder;
 	},
 });

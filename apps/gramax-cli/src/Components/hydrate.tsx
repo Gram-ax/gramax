@@ -6,7 +6,8 @@ import Gramax, { GramaxData } from "../../../browser/src/Gramax";
 import AppError from "../../../browser/src/components/Atoms/AppError";
 import useLocation from "../../../browser/src/logic/Api/useLocation";
 import { InitialData } from "../logic/ArticleTypes";
-import { ExtendedWindow, getCatalogNameFromInitialData, InitialDataKeys } from "../logic/initialDataUtils";
+import { getCatalogNameFromInitialData } from "../logic/initialDataUtils/getCatalogName";
+import { ExtendedWindow, InitialDataKeys } from "../../src/logic/initialDataUtils/types";
 
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
@@ -23,6 +24,7 @@ import { HomePageData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import { setFeatureList } from "@ext/toggleFeatures/features";
 
 import "ics-ui-kit/styles.css";
 import "../../../../core/styles/ProseMirror.css";
@@ -55,6 +57,7 @@ const getBasePath = () => {
 	return basePath === "/" ? Path.empty : new Path(basePath);
 };
 global.config = (window as ExtendedWindow)[InitialDataKeys.CONFIG];
+setFeatureList();
 (global.config as AppConfig).paths = {
 	base: getBasePath(),
 	data: new Path("/"),

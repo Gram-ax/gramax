@@ -58,7 +58,7 @@ const createImages = async (
 		if (isInline && ($from.parent === view.state.doc.firstChild || $to.parent === view.state.doc.firstChild))
 			continue;
 
-		const name = `${fileName}.${file.type.slice("image/".length)}`;
+		const name = `${fileName}.${file.name.split(".").pop()}`;
 		const newName = await resourceService.setResource(name, Buffer.from(await file.arrayBuffer()));
 		attributes.src = newName;
 

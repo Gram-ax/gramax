@@ -133,7 +133,7 @@ impl<C: Creds> Repo<'_, C> {
 
   fn diff_without_merge_base(&self, opts: &DiffConfig) -> Result<git2::Diff<'_>> {
     let mut diff_opts = git2::DiffOptions::new();
-    diff_opts.context_lines(0);
+    diff_opts.context_lines(0).ignore_submodules(true);
 
     let diff = match &opts.compare {
       DiffCompareOptions::Tree2Tree { new, old } => {
@@ -177,7 +177,7 @@ impl<C: Creds> Repo<'_, C> {
 
   fn diff_using_merge_base(&self, merge_base: Oid, opts: &DiffConfig) -> Result<git2::Diff<'_>> {
     let mut diff_opts = git2::DiffOptions::new();
-    diff_opts.context_lines(0);
+    diff_opts.context_lines(0).ignore_submodules(true);
 
     let diff = match &opts.compare {
       DiffCompareOptions::Tree2Tree { new, old } => {

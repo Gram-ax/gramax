@@ -211,7 +211,7 @@
 		rgba(255, 255, 255, 0.05);
 }
 
-[data-theme="light"] {
+[data-theme] {
 	/* Property styles */
 	--color-property-bg-red: #fecaca;
 	--color-property-bg-blue: #bfdbfe;
@@ -274,65 +274,67 @@
 	--color-property-text-purple-orange: #86198f;
 }
 
-[data-theme="dark"] {
-	/* Property styles */
-	--color-property-bg-red: #991b1b;
-	--color-property-bg-blue: #1e40af;
-	--color-property-bg-black: #1f2937;
-	--color-property-bg-green: #166534;
-	--color-property-bg-purple: #5b21b6;
-	--color-property-bg-blue-pink: #9d174d;
-	--color-property-bg-red-green: #b45309;
-	--color-property-bg-pink-blue: #1e40af;
-	--color-property-bg-orange-red: #c2410c;
-	--color-property-bg-red-orange: #991b1b;
-	--color-property-bg-blue-green: #0f766e;
-	--color-property-bg-blue-purple: #3730a3;
-	--color-property-bg-purple-blue: #1e3a8a;
-	--color-property-bg-dark-orange: #854d0e;
-	--color-property-bg-pink-purple: #86198f;
-	--color-property-bg-orange-green: #854d0e;
-	--color-property-bg-green-orange: #3f6212;
-	--color-property-bg-bright-orange: #c2410c;
-	--color-property-bg-purple-orange: #86198f;
+@media not print {
+	[data-theme="dark"] {
+		/* Property styles */
+		--color-property-bg-red: #991b1b;
+		--color-property-bg-blue: #1e40af;
+		--color-property-bg-black: #1f2937;
+		--color-property-bg-green: #166534;
+		--color-property-bg-purple: #5b21b6;
+		--color-property-bg-blue-pink: #9d174d;
+		--color-property-bg-red-green: #b45309;
+		--color-property-bg-pink-blue: #1e40af;
+		--color-property-bg-orange-red: #c2410c;
+		--color-property-bg-red-orange: #991b1b;
+		--color-property-bg-blue-green: #0f766e;
+		--color-property-bg-blue-purple: #3730a3;
+		--color-property-bg-purple-blue: #1e3a8a;
+		--color-property-bg-dark-orange: #854d0e;
+		--color-property-bg-pink-purple: #86198f;
+		--color-property-bg-orange-green: #854d0e;
+		--color-property-bg-green-orange: #3f6212;
+		--color-property-bg-bright-orange: #c2410c;
+		--color-property-bg-purple-orange: #86198f;
 
-	--color-property-border-red: #b91c1c;
-	--color-property-border-blue: #1d4ed8;
-	--color-property-border-black: #374151;
-	--color-property-border-green: #15803d;
-	--color-property-border-purple: #6b21a8;
-	--color-property-border-blue-pink: #9d174d;
-	--color-property-border-red-green: #b45309;
-	--color-property-border-pink-blue: #1d4ed8;
-	--color-property-border-orange-red: #c2410c;
-	--color-property-border-red-orange: #b91c1c;
-	--color-property-border-blue-green: #047857;
-	--color-property-border-blue-purple: #4338ca;
-	--color-property-border-purple-blue: #3730a3;
-	--color-property-border-dark-orange: #854d0e;
-	--color-property-border-pink-purple: #86198f;
-	--color-property-border-orange-green: #854d0e;
-	--color-property-border-green-orange: #3f6212;
-	--color-property-border-bright-orange: #c2410c;
-	--color-property-border-purple-orange: #86198f;
+		--color-property-border-red: #b91c1c;
+		--color-property-border-blue: #1d4ed8;
+		--color-property-border-black: #374151;
+		--color-property-border-green: #15803d;
+		--color-property-border-purple: #6b21a8;
+		--color-property-border-blue-pink: #9d174d;
+		--color-property-border-red-green: #b45309;
+		--color-property-border-pink-blue: #1d4ed8;
+		--color-property-border-orange-red: #c2410c;
+		--color-property-border-red-orange: #b91c1c;
+		--color-property-border-blue-green: #047857;
+		--color-property-border-blue-purple: #4338ca;
+		--color-property-border-purple-blue: #3730a3;
+		--color-property-border-dark-orange: #854d0e;
+		--color-property-border-pink-purple: #86198f;
+		--color-property-border-orange-green: #854d0e;
+		--color-property-border-green-orange: #3f6212;
+		--color-property-border-bright-orange: #c2410c;
+		--color-property-border-purple-orange: #86198f;
 
-	--color-property-text-red: #fecaca;
-	--color-property-text-blue: #bfdbfe;
-	--color-property-text-black: #e5e7eb;
-	--color-property-text-green: #bbf7d0;
-	--color-property-text-purple: #ddd6fe;
-	--color-property-text-blue-pink: #f5d0fe;
-	--color-property-text-red-green: #fef9c3;
-	--color-property-text-pink-blue: #bfdbfe;
-	--color-property-text-orange-red: #fed7aa;
-	--color-property-text-red-orange: #fecaca;
-	--color-property-text-blue-green: #a7f3d0;
-	--color-property-text-blue-purple: #c4b5fd;
-	--color-property-text-purple-blue: #c7d2fe;
-	--color-property-text-dark-orange: #fef08a;
-	--color-property-text-pink-purple: #e9d5ff;
-	--color-property-text-orange-green: #fef3c7;
-	--color-property-text-green-orange: #d9f99d;
-	--color-property-text-bright-orange: #fed7aa;
-	--color-property-text-purple-orange: #e9d5ff;
+		--color-property-text-red: #fecaca;
+		--color-property-text-blue: #bfdbfe;
+		--color-property-text-black: #e5e7eb;
+		--color-property-text-green: #bbf7d0;
+		--color-property-text-purple: #ddd6fe;
+		--color-property-text-blue-pink: #f5d0fe;
+		--color-property-text-red-green: #fef9c3;
+		--color-property-text-pink-blue: #bfdbfe;
+		--color-property-text-orange-red: #fed7aa;
+		--color-property-text-red-orange: #fecaca;
+		--color-property-text-blue-green: #a7f3d0;
+		--color-property-text-blue-purple: #c4b5fd;
+		--color-property-text-purple-blue: #c7d2fe;
+		--color-property-text-dark-orange: #fef08a;
+		--color-property-text-pink-purple: #e9d5ff;
+		--color-property-text-orange-green: #fef3c7;
+		--color-property-text-green-orange: #d9f99d;
+		--color-property-text-bright-orange: #fed7aa;
+		--color-property-text-purple-orange: #e9d5ff;
+	}
 }

@@ -9,6 +9,7 @@ import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
 import GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
 import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
+import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
@@ -34,13 +35,13 @@ const CloneWithShareData = (props: CloneWithShareDataProps) => {
 	const getBranch = () => {
 		if (!shareData) return;
 
-		if (shareData.sourceType === SourceType.gitHub || shareData.sourceType === SourceType.gitLab) {
+		if (isGitSourceType(shareData.sourceType)) {
 			return (shareData as GitShareData).branch;
 		}
 	};
 
 	const getPartSourceData = () => {
-		if (shareData && (shareData.sourceType === SourceType.gitHub || shareData.sourceType === SourceType.gitLab)) {
+		if (shareData && isGitSourceType(shareData.sourceType)) {
 			return getPartGitSourceDataByStorageName((shareData as GitShareData).domain).data;
 		}
 		return {};

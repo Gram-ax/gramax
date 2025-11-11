@@ -5,7 +5,6 @@ use std::sync::Arc;
 use axum::extract::ConnectInfo;
 use axum::extract::Request;
 use axum::http::HeaderValue;
-use axum::http::Uri;
 use axum::middleware;
 use axum::middleware::Next;
 use axum::response::Redirect;
@@ -14,6 +13,7 @@ use axum::routing::get;
 use axum::Router;
 
 use clap::Parser;
+use reqwest::Url;
 use tower_http::trace::TraceLayer;
 
 use tracing::*;
@@ -21,10 +21,7 @@ use tracing::*;
 use crate::metrics::doc::MetricDoc;
 use crate::metrics::layers::Metrics;
 
-mod logging;
-mod metrics;
-mod static_assets;
-mod updater;
+use spa::*;
 
 #[derive(clap::Parser, Clone, Debug)]
 pub enum Mode {
@@ -37,10 +34,7 @@ pub enum Mode {
   },
   Updater {
     #[arg(long = "s3", env = "S3_BASE_URL")]
-    s3_base_url: Uri,
-
-    #[arg(long = "host", env = "HOST")]
-    host: Uri,
+    s3_base_url: Url,
   },
 }
 
@@ -53,7 +47,7 @@ impl std::fmt::Display for Mode {
         dir.display(),
         fallback.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| "none".to_string())
       ),
-      Mode::Updater { s3_base_url, host } => write!(f, "updater server (s3: {s3_base_url}; host: {host})"),
+      Mode::Updater { s3_base_url } => write!(f, "updater server (s3: {s3_base_url})"),
     }
   }
 }
@@ -70,7 +64,7 @@ pub struct Options {
   port: u16,
 
   #[arg(long = "redirect404", env = "REDIRECT_404")]
-  redirect_404: Option<Uri>,
+  redirect_404: Option<Url>,
 
   #[arg(long = "cookie-domain", env = "COOKIE_DOMAIN")]
   cookie_domain: Option<String>,
@@ -100,19 +94,22 @@ async fn main() {
     Mode::Static { dir, fallback } => {
       router.merge(static_assets::serve_static_assets(dir, fallback, metrics.clone()))
     }
-    Mode::Updater { s3_base_url, host } => router.merge(updater::updater(host, s3_base_url, metrics.clone())),
+    Mode::Updater { s3_base_url } => {
+      let updater = updater::Updater { s3_base_url, metrics: metrics.clone() }.into_router();
+      router.merge(updater)
+    }
   }
   .route("/robots.txt", get(|| async { "User-agent: *\nDisallow: /" }))
   .layer(middleware::from_fn(set_xreal_ip_if_none))
   .layer(trace);
 
   let router = match opts.redirect_404 {
-    Some(redirect_404) => router.fallback(async move || Redirect::permanent(&redirect_404.to_string())),
+    Some(redirect_404) => router.fallback(async move || Redirect::permanent(redirect_404.as_ref())),
     _ => router,
   };
 
   let listener = tokio::net::TcpListener::bind(format!("{}:{}", opts.addr, opts.port)).await.unwrap();
-  info!("listening on {} as a {}", listener.local_addr().unwrap(), mode_str);
+  info!("listening on {} as {}", listener.local_addr().unwrap(), mode_str);
 
   let server = axum::serve(listener, router.into_make_service_with_connect_info::<SocketAddr>())
     .with_graceful_shutdown(on_shutdown());
@@ -136,7 +133,7 @@ async fn set_xreal_ip_if_none(
 async fn init_metrics(opts: metrics::exporter::ElasticOptions) -> metrics::exporter::MetricSender<MetricDoc> {
   use metrics::exporter::*;
 
-  let exporter = MetricExporterCollection::<MetricDoc>::new();
+  let exporter = MetricExporterCollection::<MetricDoc>::default();
 
   #[cfg(debug_assertions)]
   let exporter = exporter.with_exporter(AnyMetricExporter::stdout());

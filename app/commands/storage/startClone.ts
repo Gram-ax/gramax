@@ -60,7 +60,11 @@ const startClone: Command<
 				return true;
 			}
 
-			await workspace.addCatalog(await fs.getCatalogByPath(path));
+			const catalog = await fs.getCatalogByPath(path);
+			delete catalog.props.isCloning;
+			delete catalog.props.cloneCancelDisabled;
+			delete catalog.props.redirectOnClone;
+			await workspace.addCatalog(catalog);
 		});
 
 		return { alreadyExist: false };

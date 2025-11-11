@@ -30,7 +30,7 @@ export interface FormatterType {
 const formatters: Record<Syntax, FormatterType> = {
 	"GitHub Flavored Markdown": GitHubFormatter,
 	Legacy: LegacyFormatter,
-	Xml: XmlFormatter,
+	XML: XmlFormatter,
 };
 
 export const getFormatterTypeByContext = (context: ParserContext) => {
@@ -38,7 +38,7 @@ export const getFormatterTypeByContext = (context: ParserContext) => {
 };
 
 const getFormatterType = (syntax: Syntax) => {
-	return formatters[syntax] ?? LegacyFormatter;
+	return formatters[syntax?.toUpperCase?.() === Syntax.xml ? Syntax.xml : syntax] ?? LegacyFormatter;
 };
 
 export default getFormatterType;

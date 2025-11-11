@@ -16,11 +16,11 @@ interface VideoProps {
 }
 
 const Video = ({ path, title, noEm, className, commentId, isPrint }: VideoProps) => {
-	const [isError, setIsError] = useState(false);
+	const [isError, setIsError] = useState(!path?.length);
 	const [isLoaded, setIsLoaded] = useState(false);
 
 	useEffect(() => {
-		setIsError(false);
+		setIsError(!path?.length);
 	}, [path]);
 
 	if (isPrint)

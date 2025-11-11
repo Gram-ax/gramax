@@ -5,7 +5,6 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
@@ -35,8 +34,7 @@ import Breadcrumb from "../../Breadcrumbs/LinksBreadcrumb";
 import ModalLayout from "../../Layouts/Modal";
 import ModalLayoutLight from "../../Layouts/ModalLayoutLight";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-// import Path from "../../../logic/FileProvider/Path/Path";
-// import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const DEBOUNCE_DELAY = 400;
 const SEARCH_SYMBOL = Symbol();
@@ -57,8 +55,13 @@ const Search = (props: SearchProps) => {
 	const query = SearchQueryService.value;
 	const isOpenModal = IsOpenModalService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const catalogName = CatalogPropsService.value?.name;
-	const catalogDefaultLanguage = CatalogPropsService.value?.language;
+	const { catalogName, catalogDefaultLanguage } = useCatalogPropsStore(
+		(state) => ({
+			catalogName: state.data?.name,
+			catalogDefaultLanguage: state.data?.language,
+		}),
+		"shallow",
+	);
 	const currentArticleLanguage = PageDataContextService.value?.language?.content;
 	const { isNext } = usePlatform();
 	const vectorSearchEnabled = (isNext && PageDataContextService.value?.conf?.ai?.enabled) ?? false;

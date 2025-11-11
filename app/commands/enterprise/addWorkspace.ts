@@ -22,7 +22,8 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 
 	async do({ ctx, oneTimeCode }) {
 		const { wm, em, am } = this._app;
-		const gesUrl = em.getConfig().gesUrl;
+		const enterpriseConfig = em.getConfig();
+		const gesUrl = enterpriseConfig.gesUrl;
 		if (!gesUrl) throw new DefaultError(t("enterprise.config-error"));
 
 		const gesApi = new EnterpriseApi(gesUrl);
@@ -43,8 +44,9 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 
 		if (!userSettings.workspace) throw new DefaultError(t("enterprise.config-error"));
 
-		const existWorkspace = wm.workspaces().find((workspace) => workspace.name === userSettings.workspace.name);
-		
+		const path = wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.name)).toString();
+		const existWorkspace = wm.workspaces().find((workspace) => workspace.path === path);
+
 		if (existWorkspace && !existWorkspace.enterprise?.gesUrl) {
 			throw new DefaultError(
 				t("enterprise.workspace-exists"),
@@ -55,27 +57,26 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			);
 		}
 
-		const path = wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.name)).toString();
+		const workspaceConfig: ClientWorkspaceConfig = {
+			...userSettings.workspace,
+			path,
+			enterprise: {
+				...enterpriseConfig,
+				authMethods: userSettings.workspace.authMethods,
+				modules: userSettings.workspace.modules,
+				lastUpdateDate: Date.now(),
+			},
+			services: {
+				gitProxy: { url: null },
+				auth: { url: null },
+				review: { url: null },
+				diagramRenderer: { url: `${gesUrl}/diagram-renderer` },
+			},
+		};
+		delete (workspaceConfig as any).style;
 
-		if (!existWorkspace) {
-			const workspace: ClientWorkspaceConfig = {
-				...userSettings.workspace,
-				path,
-				enterprise: {
-					gesUrl,
-					lastUpdateDate: Date.now(),
-				},
-				services: {
-					gitProxy: { url: null },
-					auth: { url: null },
-					review: { url: null },
-					diagramRenderer: { url: `${gesUrl}/diagram-renderer` },
-				},
-			};
-			delete (workspace as any).style;
-
-			await this._commands.workspace.create.do({ config: workspace });
-		}
+		if (!existWorkspace) await this._commands.workspace.create.do({ config: workspaceConfig });
+		else await this._commands.workspace.edit.do({ data: { ...workspaceConfig } });
 
 		const workspacePermission = new RelaxPermissionMap({ [path]: new Permission([]) });
 		const catalogPermission = new RelaxPermissionMap({});
@@ -87,7 +88,7 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			null,
 			workspacePermission,
 			catalogPermission,
-			gesUrl,
+			enterpriseConfig,
 			sourceData.token,
 		);
 		am.setUser(ctx.cookie, user);
@@ -128,6 +129,13 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			}
 
 			await this._app.wtm.addTemplates(currentWorkspace, templates);
+		}
+
+		if (userSettings.workspace.modules) {
+			await this._commands.enterprise.modules.set.do({
+				workspacePath: path,
+				modules: userSettings.workspace.modules,
+			});
 		}
 
 		return userSettings;

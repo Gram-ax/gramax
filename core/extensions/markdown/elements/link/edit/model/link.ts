@@ -66,6 +66,7 @@ export const Link = Mark.create<LinkOptions>({
 	},
 
 	renderHTML({ HTMLAttributes }) {
+		HTMLAttributes.href = `/${HTMLAttributes.href}`;
 		return ["a", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
 	},
 
@@ -157,14 +158,7 @@ export default Link.extend({
 
 		plugins.push(editTooltip(this.editor, this.options.apiUrlCreator));
 		plugins.push(linkPastePlugin(this.editor));
-		plugins.push(
-			hoverTooltip(
-				this.editor,
-				this.options.apiUrlCreator,
-				this.options.pageDataContext,
-				this.options.catalogProps,
-			),
-		);
+		plugins.push(hoverTooltip(this.editor, this.options.apiUrlCreator, this.options.pageDataContext));
 
 		return plugins;
 	},

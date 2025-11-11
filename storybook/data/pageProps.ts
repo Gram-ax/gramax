@@ -801,8 +801,8 @@ export default {
 			version: "0.0.0@storybook",
 			buildVersion: "0.0.0@storybook",
 			enterprise: {
-				gepsUrl: "",
 				gesUrl: "https://test-ges-url.com",
+				refreshInterval: 1000 * 60 * 10,
 			},
 			metrics: {
 				yandex: { metricCounter: "" },

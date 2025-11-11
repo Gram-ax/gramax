@@ -15,7 +15,6 @@ interface ViewRenderContentProps {
 	select: string[];
 	className?: string;
 	disabled?: boolean;
-	catalogProps: ClientCatalogProps;
 	commentId?: string;
 	isPrint?: boolean;
 	updateArticle?: (articlePath: string, property: string, value: string, isDelete?: boolean) => void;

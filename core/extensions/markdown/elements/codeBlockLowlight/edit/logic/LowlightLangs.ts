@@ -423,6 +423,23 @@ export function getStandardCaseByLower(name?: string) {
 	return StandardCaseLangList[index];
 }
 
+export function normalizeLangName(name?: string): string | undefined {
+	if (!name || typeof name !== "string") return;
+
+	if (langKeys.includes(name)) return name;
+
+	const lowerName = getLowerLangName(name);
+	if (lowerName && langKeys.includes(lowerName)) return lowerName;
+
+	const standardCase = getStandardCaseByLower(name);
+	if (standardCase) {
+		const originalLang = getOriginalLangName(standardCase);
+		if (originalLang) return originalLang;
+	}
+
+	return getLowerLangName(name);
+}
+
 export async function getLangImportFuncByName(name?: string): Promise<void | LanguageFn> {
 	const linkToLangModule = languages[name];
 	if (!linkToLangModule) return;

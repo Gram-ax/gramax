@@ -53,6 +53,7 @@ const startCli = async () => {
 		ChalkLogger.log();
 		await program.parseAsync(process.argv);
 	} catch (error) {
+		ChalkLogger.setSilent(false);
 		if (error instanceof Error) {
 			const logErrorMessage = (text: string) => {
 				ChalkLogger.log(text, {

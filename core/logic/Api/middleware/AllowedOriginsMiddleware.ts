@@ -2,6 +2,7 @@ import Cors from "cors";
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import Middleware from "./Middleware";
+import { ErrorTitle } from "@ext/publicApi/ExceptionsResponse";
 
 export class AllowedOriginsMiddleware extends Middleware {
 	private _corsMiddleware: ReturnType<typeof Cors>;
@@ -11,7 +12,7 @@ export class AllowedOriginsMiddleware extends Middleware {
 		this._corsMiddleware = Cors({
 			origin: (origin, callback) => {
 				const allowedOrigins = this._app.conf.allowedOrigins;
-				if (!origin || !allowedOrigins?.length || allowedOrigins.includes(origin)) {
+				if (!origin || (allowedOrigins?.length && allowedOrigins.includes(origin))) {
 					callback(null, true);
 				} else {
 					callback(null, false);
@@ -35,6 +36,14 @@ export class AllowedOriginsMiddleware extends Middleware {
 
 		if (isOriginAllowed) {
 			await this._next.Process(req, res);
+		} else {
+			res.statusCode = 403;
+			res.setHeader("Content-Type", "application/json; charset=utf-8");
+			res.setHeader("Vary", "Origin");
+			res.send({
+				error: ErrorTitle.Forbidden,
+				message: "CORS policy violation: Origin not allowed",
+			});
 		}
 	}
 }

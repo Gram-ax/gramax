@@ -5,9 +5,11 @@ export type CustomSuccessLog<T> = (result: T) => { message: string; LogSymbol?: 
 
 export const STEP_ERROR_NAME = "StepError";
 
-const logResult = (message: string, LogSymbol: keyof typeof LogStatusIcons) => {
+export const logResult = (message: string, LogSymbol?: keyof typeof LogStatusIcons, additionalMessage = "") => {
 	const logResult = `\r${
-		LogSymbol ? `${chalk.white(`${message.padEnd(40)}`)}${LogStatusIcons[LogSymbol]}` : chalk.white(message)
+		LogSymbol
+			? `${chalk.white(`${message.padEnd(40)}`)}${LogStatusIcons[LogSymbol]} ${additionalMessage}`
+			: chalk.white(message)
 	}\n`;
 	ChalkLogger.write(logResult);
 };
@@ -15,26 +17,29 @@ const logResult = (message: string, LogSymbol: keyof typeof LogStatusIcons) => {
 export const logStep = async <T>(
 	step: string,
 	action: () => Promise<T> | T,
-	params?: {
+	params: {
 		catchF?: (error: Error) => Error;
 		finallyF?: () => void;
 		customSuccessLog?: CustomSuccessLog<T>;
-	},
+		silent?: boolean;
+	} = {},
 ) => {
 	ChalkLogger.write(`${step}...`);
-
+	params.silent && ChalkLogger.setSilent(true);
 	try {
 		const result = await action();
-		const successLog = params?.customSuccessLog?.(result) ?? { message: step, LogSymbol: "SUCCESS_EXT" };
+		const successLog = params.customSuccessLog?.(result) ?? { message: step, LogSymbol: "SUCCESS_EXT" };
+		params.silent && ChalkLogger.setSilent(false);
 		logResult(successLog.message, successLog.LogSymbol);
 		return result;
 	} catch (e) {
+		params.silent && ChalkLogger.setSilent(false);
 		logResult(step, "ERROR");
-		const error = params?.catchF ? params.catchF(e as Error) : e;
+		const error = params.catchF ? params.catchF(e as Error) : e;
 		(error as Error).name = STEP_ERROR_NAME;
 		throw error;
 	} finally {
-		params?.finallyF?.();
+		params.finallyF?.();
 	}
 };
 

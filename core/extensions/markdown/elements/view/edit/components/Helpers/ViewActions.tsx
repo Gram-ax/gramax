@@ -13,12 +13,11 @@ import Icon from "@components/Atoms/Icon";
 
 interface ViewActionsProps {
 	node: Node;
-	catalogProps: ClientCatalogProps;
 	updateDisplay: (display: Display) => void;
 	updateAttributes: (attributes: Record<string, any>) => void;
 }
 
-const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: ViewActionsProps) => {
+const ViewActions = ({ node, updateDisplay, updateAttributes }: ViewActionsProps) => {
 	const displayType = node.attrs.display;
 
 	const getDataFromAttribute = useCallback(
@@ -50,7 +49,6 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 				attributeName="defs"
 				properties={node.attrs.defs as PropertyValue[]}
 				updateAttributes={updateAttributes}
-				catalogProps={catalogProps}
 				closeOnSelection={false}
 			/>
 			<AddFilter
@@ -60,7 +58,6 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 				attributeName="orderby"
 				properties={node.attrs.orderby as PropertyValue[]}
 				updateAttributes={updateAttributes}
-				catalogProps={catalogProps}
 				mode="multiple"
 				allowSystemProperties={false}
 				closeOnSelection={false}
@@ -85,7 +82,6 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 				attributeName="groupby"
 				properties={node.attrs.groupby as PropertyValue[]}
 				updateAttributes={updateAttributes}
-				catalogProps={catalogProps}
 				availableValues={false}
 				filter={propertyGroupFilter}
 				mode={node.attrs.display === Display.Kanban ? "single" : "multiple"}
@@ -97,12 +93,11 @@ const ViewActions = ({ node, updateDisplay, updateAttributes, catalogProps }: Vi
 				attributeName="select"
 				properties={node.attrs.select as PropertyValue[]}
 				updateAttributes={updateAttributes}
-				catalogProps={catalogProps}
 				availableValues={false}
 				allowSystemProperties={false}
 			/>
 			<ViewButton icon="eye" tooltipText={t("properties.view.displays.name")}>
-				<DropdownMenuRadioGroup value={displayType} onValueChange={updateDisplay}>
+				<DropdownMenuRadioGroup value={displayType} onValueChange={updateDisplay} indicatorIconPosition="start">
 					<DropdownMenuRadioItem value={Display.List}>
 						<Icon code="list" />
 						{t("properties.view.displays.list")}

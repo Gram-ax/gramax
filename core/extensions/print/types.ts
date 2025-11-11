@@ -11,11 +11,25 @@ export interface PdfPrintParams {
 	template?: string;
 }
 
+export type PdfExportStage = "exporting" | "printing" | "cancelled";
+
+export interface PdfExportProgress {
+	stage: PdfExportStage;
+	ratio?: number;
+	cliMessage?: CliPrintStatus;
+}
+
+export interface PrintableContent<T> {
+	title: string;
+	items: T[];
+}
+
 export type ArticlePreview = {
 	title: string;
 	level: number;
 	apiUrlCreator: ApiUrlCreator;
 	content: RenderableTreeNodes;
+	logicPath: string;
 };
 export interface PrintablePage {
 	title: string;
@@ -23,5 +37,21 @@ export interface PrintablePage {
 	content: RenderableTreeNodes;
 	resources: ResourceManager;
 	itemRefPath: string;
+	logicPath: string;
 	number?: string;
 }
+
+export interface PaginateIntoPagesOptions {
+	signal?: AbortSignal;
+	throttleUnits?: number;
+}
+
+export type CliPrintStatus =
+	| "start-data-load"
+	| "error-data-load"
+	| "done-render"
+	| `done-print-element-${number}/${number}|-pages-${number}`
+	| `done-print-document-${number}`
+	| "done";
+
+export type CliOnProgress = (status: CliPrintStatus) => void;

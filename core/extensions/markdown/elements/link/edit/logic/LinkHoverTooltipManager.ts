@@ -1,7 +1,7 @@
 import LinkHoverTooltip from "./LinkHoverTooltip";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+
 
 export class LinkHoverTooltipManager {
 	private tooltips: Set<LinkHoverTooltip> = new Set();
@@ -10,7 +10,6 @@ export class LinkHoverTooltipManager {
 		private parentElement: HTMLElement,
 		private apiUrlCreator: ApiUrlCreator,
 		private pageDataContext: PageDataContext,
-		private catalogProps: ClientCatalogProps,
 	) {}
 
 	createTooltip({
@@ -30,7 +29,6 @@ export class LinkHoverTooltipManager {
 			this.parentElement,
 			this.apiUrlCreator,
 			this.pageDataContext,
-			this.catalogProps,
 		);
 
 		tooltip.onDestroy = () => {

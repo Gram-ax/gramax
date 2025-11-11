@@ -1,5 +1,4 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { createParagraphAfterTable } from "@ext/wordExport/createParagraph";
 import {
 	STANDARD_PAGE_WIDTH,
 	WordBlockType,
@@ -36,8 +35,7 @@ export const createBlock = async (
 	] as FileChild[];
 
 	const blockChild = await createBlockChild(fileChildren, blockType, style, addOptions);
-	if (addOptions?.insideTableWrapper) return [blockChild];
-	return [blockChild, await createParagraphAfterTable()];
+	return [blockChild];
 };
 
 export const createBlockChild = async (

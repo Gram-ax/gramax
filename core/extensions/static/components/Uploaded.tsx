@@ -8,7 +8,7 @@ import Anchor from "@components/controls/Anchor";
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
 import CloudModalBody from "@ext/static/components/CloudModalBody";
-import getCatalogUrl from "@ext/static/utils/cloudUrl";
+import useGetCatalogCloudUrl from "@ext/static/utils/cloudUrl";
 
 const IconComponent = ({ className }: { className?: string }) => {
 	return (
@@ -29,7 +29,7 @@ const StyledIconComponent = styled(IconComponent)`
 `;
 
 const Uploaded = () => {
-	const url = getCatalogUrl();
+	const url = useGetCatalogCloudUrl();
 
 	const onCopyClick = () => {
 		navigator.clipboard.writeText(url);

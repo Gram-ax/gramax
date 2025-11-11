@@ -103,7 +103,7 @@ export default class CatalogTagFilter implements EventHandlerCollection {
 
 		for (const filterTag of catalog.props.filterProperties) {
 			const realPath = catalog.basePath;
-			const virtualPath = new Path(addScopeToPath(realPath, filterTag));
+			const virtualPath = new Path(addScopeToPath(realPath, filterTag, false));
 
 			const parentFp = fs.fp.at(realPath);
 

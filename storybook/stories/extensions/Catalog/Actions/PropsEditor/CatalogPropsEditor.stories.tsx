@@ -1,9 +1,9 @@
 // import { JSONSchema7, validate } from "json-schema";
 import Style from "@components/HomePage/Cards/model/Style";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { Meta, StoryObj } from "@storybook/react";
 import CatalogPropsEditor from "../../../../../../core/extensions/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import CatalogEditProps from "../../../../../../core/extensions/catalog/actions/propsEditor/model/CatalogEditProps";
+import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const meta: Meta = {
 	title: "gx/extensions/Catalog/Actions/PropsEditor",
@@ -29,9 +29,9 @@ export const InlineContent: StoryObj = {
 		};
 
 		return (
-			<CatalogPropsService.Init value={props as any}>
+			<CatalogStoreProvider data={props as any}>
 				<CatalogPropsEditor onSubmit={console.log} />
-			</CatalogPropsService.Init>
+			</CatalogStoreProvider>
 		);
 	},
 };

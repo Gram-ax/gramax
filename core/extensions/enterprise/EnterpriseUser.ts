@@ -1,3 +1,4 @@
+import { EnterpriseConfig } from "@app/config/AppConfig";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
 import IPermission from "@ext/security/logic/Permission/IPermission";
@@ -27,7 +28,7 @@ class EnterpriseUser extends User {
 		globalPermission?: IPermission,
 		workspacePermission?: IPermissionMap,
 		catalogPermission?: IPermissionMap,
-		private _gesUrl?: string,
+		private _enterpriseConfig?: EnterpriseConfig,
 		private _token?: string,
 	) {
 		super(isLogged, info, globalPermission, workspacePermission, catalogPermission);
@@ -41,10 +42,6 @@ class EnterpriseUser extends User {
 
 	get type(): UserType {
 		return "enterprise";
-	}
-
-	get gesUrl(): string {
-		return this._gesUrl;
 	}
 
 	get token(): string {
@@ -65,18 +62,19 @@ class EnterpriseUser extends User {
 	async updatePermissions(checkSsoToken: true): Promise<EnterpriseUser | User>;
 	async updatePermissions(checkSsoToken: false): Promise<EnterpriseUser>;
 	async updatePermissions(checkSsoToken: boolean = false): Promise<EnterpriseUser | User> {
-		if (!this._gesUrl) return;
-		if (
-			this._enterpriseInfo &&
-			new Date().getTime() - this._enterpriseInfo.updateDate.getTime() < this._updateInterval
-		) {
+		// if (!this._token) return; -- not needed because we get user data from null token (anonymous user)
+		if (!this._enterpriseConfig?.gesUrl) return;
+
+		const timeDiff = new Date().getTime() - this._enterpriseInfo.updateDate.getTime();
+		const interval = this._enterpriseConfig?.refreshInterval ?? this._updateInterval;
+		if (this._enterpriseInfo && timeDiff < interval) {
 			return;
 		}
 
-		const data = await new EnterpriseApi(this._gesUrl).getUser(this._token, checkSsoToken);
+		const data = await new EnterpriseApi(this._enterpriseConfig?.gesUrl).getUser(this._token, checkSsoToken);
 		if (!data) {
-			if (checkSsoToken) return new User();
-			console.log(`User data not found. ${this._gesUrl}`);
+			if (checkSsoToken) return new EnterpriseUser();
+			console.log(`User data not found. ${this._enterpriseConfig?.gesUrl}`);
 			return;
 		}
 
@@ -116,11 +114,10 @@ class EnterpriseUser extends User {
 			workspacePermissionType: this._workspacePermission.type,
 			workspacePermissionKeys: this._workspacePermission.keys,
 			token: this._token ?? "",
-			gesUrl: this._gesUrl ?? "",
 		};
 	}
 
-	static override initInJSON(json: EnterpriseUserJSONData): EnterpriseUser {
+	static override initInJSON(json: EnterpriseUserJSONData, enterpriseConfig?: EnterpriseConfig): EnterpriseUser {
 		const permissions = {};
 		for (const key of json.workspacePermissionKeys ?? []) {
 			permissions[key] = { permissions: [], type: PermissionType.plain };
@@ -138,7 +135,7 @@ class EnterpriseUser extends User {
 				type: json.catalogPermissionType ?? PermissionMapType.strict,
 				permissions: {},
 			}),
-			json.gesUrl,
+			enterpriseConfig,
 			json.token,
 		);
 		return user;

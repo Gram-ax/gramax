@@ -1,10 +1,11 @@
 import getApplication from "@app/node/app";
+import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import Permission from "@ext/security/logic/Permission/Permission";
+import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
 import HiddenRules from "../../../../../logic/FileStructue/Rules/HiddenRules/HiddenRule";
 import LocalizationRules from "../../../../localization/core/events/LocalizationEvents";
 import { ContentLanguage } from "../../../../localization/core/model/Language";
 import SecurityRules from "../../../../security/logic/SecurityRules";
-import User from "../../../../security/logic/User/User";
 import getItemRef from "../../../../workspace/test/getItemRef";
 import Navigation from "./Navigation";
 
@@ -13,7 +14,12 @@ const getNavigationData = async () => {
 	const errorArticlesProvider = app.customArticlePresenter;
 	const nav = new Navigation();
 
-	const user = new User(null, null, new Permission(["ReadCatalogContent"]));
+	const user = new EnterpriseUser(
+		null,
+		null,
+		null,
+		new StrictPermissionMap({ test: new Permission(["ConfigureWorkspace"]) }),
+	);
 	const hr = new HiddenRules(nav, errorArticlesProvider);
 	const lr = new LocalizationRules(nav, ContentLanguage.ru, errorArticlesProvider);
 	const sr = new SecurityRules(user, nav, errorArticlesProvider);

@@ -30,6 +30,8 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     #[cfg(desktop)]
     move_to_trash,
     #[cfg(desktop)]
+    crate::platform::menu::set_menuitem_spellcheck_enabled,
+    #[cfg(desktop)]
     crate::updater::update_check,
     #[cfg(desktop)]
     crate::updater::update_install,
@@ -37,6 +39,8 @@ pub fn generate_handler<R: Runtime>(builder: Builder<R>) -> Builder<R> {
     crate::updater::update_cache_clear,
     #[cfg(desktop)]
     crate::updater::update_install_by_path,
+    #[cfg(desktop)]
+    crate::updater::update_reset_bytes,
     #[cfg(desktop)]
     crate::updater::restart_app,
     #[cfg(target_os = "macos")]

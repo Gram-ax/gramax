@@ -5,7 +5,6 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
@@ -15,6 +14,10 @@ import styled from "@emotion/styled";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import {
+	CatalogStoreProvider,
+	useCatalogPropsStore,
+} from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { Mark } from "@tiptap/pm/model";
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -42,7 +45,6 @@ type TooltipProviderProps = {
 	children: ReactNode;
 	apiUrlCreator: ApiUrlCreator;
 	pageDataContext: PageDataContext;
-	catalogProps: ClientCatalogProps;
 };
 
 export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" | "data"> {
@@ -172,15 +174,15 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 };
 
 const TooltipProvider = (props: TooltipProviderProps) => {
-	const { pageDataContext, catalogProps, apiUrlCreator, data, children } = props;
-
+	const { pageDataContext, apiUrlCreator, data, children } = props;
+	const catalogProps = useCatalogPropsStore((store) => store.data);
 	if (!data) return null;
 
 	return (
 		<ApiUrlCreatorService.Provider value={apiUrlCreator.fromNewArticlePath(data.path)}>
 			<ResourceService.Provider>
 				<PageDataContextService.Provider value={pageDataContext}>
-					<CatalogPropsService.Context value={catalogProps}>
+					<CatalogStoreProvider data={catalogProps}>
 						<ArticlePropsService.Provider value={data?.articleProps}>
 							<PropertyServiceProvider.Provider>
 								<ArticleRefService.Provider>
@@ -188,7 +190,7 @@ const TooltipProvider = (props: TooltipProviderProps) => {
 								</ArticleRefService.Provider>
 							</PropertyServiceProvider.Provider>
 						</ArticlePropsService.Provider>
-					</CatalogPropsService.Context>
+					</CatalogStoreProvider>
 				</PageDataContextService.Provider>
 			</ResourceService.Provider>
 		</ApiUrlCreatorService.Provider>

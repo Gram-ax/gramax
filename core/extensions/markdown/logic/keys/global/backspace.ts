@@ -30,7 +30,7 @@ const headingAfterNode: KeyboardRule = ({ editor, nodePosition, node }): boolean
 	const doc = editor.state.doc;
 	const headingPosition = isEmptyHeading ? nodePosition : nodePosition - 1;
 	const headingNode = doc.nodeAt(headingPosition);
-	if (headingNode.type.name !== "heading") return;
+	if (!headingNode || headingNode.type.name !== "heading") return;
 
 	const nodeBefore = getNodeByPos(headingPosition - 1, doc, (node) => isTypeOf(node, ["note", "listItem"]));
 	if (!nodeBefore) return;
@@ -63,11 +63,14 @@ const gotoEndOfList: KeyboardRule = ({ editor }) => {
 	const deepiestLastChild = getDeepiestLastChild(nodeBefore, nodeBeforePosition);
 	if (!deepiestLastChild?.node) return;
 
-	const insertPosition = deepiestLastChild.position + deepiestLastChild.node.nodeSize;
+	const insertPosition = Math.min(
+		Math.max(deepiestLastChild.position + deepiestLastChild.node.nodeSize, 0),
+		state.doc.content.size,
+	);
 	return editor
 		.chain()
-		.deleteRange({ from: position, to: position + node.nodeSize })
 		.insertContentAt(insertPosition, node.content)
+		.deleteRange({ from: position, to: position + node.nodeSize })
 		.focus(insertPosition)
 		.run();
 };

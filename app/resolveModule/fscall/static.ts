@@ -1,6 +1,7 @@
 import PathUtils from "path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
-import { getCatalogNameFromInitialData, InitialDataKeys } from "../../../apps/gramax-cli/src/logic/initialDataUtils";
+import { getBaseCatalogName } from "../../../apps/gramax-cli/src/logic/initialDataUtils/getCatalogName";
+import { InitialDataKeys } from "../../../apps/gramax-cli/src/logic/initialDataUtils/types";
 import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 
@@ -21,7 +22,7 @@ export const StaticCall = async <O>(command: string, args?: any): Promise<O> => 
 	return await commands[command](args);
 };
 
-const catalogName = getCatalogNameFromInitialData();
+const catalogName = getBaseCatalogName();
 
 const fetchFile = async (path: string) => {
 	const importPath = new URL(PathUtils.join(document.baseURI, path)).href;

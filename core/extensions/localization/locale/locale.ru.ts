@@ -53,11 +53,6 @@ const locale: DefaultLocale = {
 				properties: {
 					name: "Свойства",
 				},
-				group: {
-					name: "Группа",
-					placeholder: "Группа",
-					description: "Группа на главной странице, в которой будет отображаться",
-				},
 				icons: {
 					name: "Иконки",
 					description: "Иконки, которые будут доступны в статье",
@@ -452,11 +447,21 @@ const locale: DefaultLocale = {
 	},
 	app: {
 		update: {
-			error: "Не удалось обновить приложение",
+			error: "Ошибка обновления приложения",
 			retry: "Повторить",
 			available: "Доступна новая версия",
 			updating: "Обновление...",
 			installed: "Обновление установлено",
+			more: "Подробная ошибка",
+			code: {
+				install: "Не удалось установить обновление",
+				check: "Не удалось проверить наличие обновлений",
+				"not-found": "Сервер не вернул информацию об обновлениях",
+				"download-failed": "Не удалось загрузить обновление",
+				signature: "Не удалось проверить подлинность обновления",
+				"check-enterprise-version": "Не удалось проверить версию энтерпрайз-сервера",
+				reqwest: "Не удалось получить обновление с сервера",
+			},
 		},
 		loading: "загружаем",
 		error: {
@@ -587,6 +592,7 @@ const locale: DefaultLocale = {
 		logo: "Логотип",
 		appearance: "Внешний вид",
 		"set-ai-server": "AI-сервер",
+		"set-ai-server-description": "Заполните для включения AI-функций в пространстве.",
 		"ai-server-url": "URL AI-сервера",
 		"ai-server-url-description": "Введите ссылку до вашего AI-сервера",
 		"ai-server-token": "Токен AI-сервера",
@@ -691,6 +697,8 @@ const locale: DefaultLocale = {
 			description: "Настройте параметры вашей статьи",
 		},
 		"edit-markdown": "Редактировать Markdown",
+		"edit-markdown-disabled-template": "Вы не можете редактировать Markdown шаблонной статьи",
+		"edit-markdown-disabled-not-current-item": "Вы не можете редактировать Markdown не текущей статьи",
 		links: {
 			name: "Связанные статьи",
 			backlinks: "Ссылки на статью",
@@ -829,6 +837,14 @@ title: Не удалось отобразить статью
 		},
 	},
 	diagram: {
+		modal: {
+			"warning-have-changes": {
+				title: "Выйти из режима редактирования?",
+				body: "Несохранённые изменения будут потеряны.",
+				stay: "Остаться",
+				exit: "Выйти",
+			},
+		},
 		name: "Диаграмма",
 		names: {
 			c4: "C4 диаграмма",
@@ -1341,6 +1357,11 @@ title: Не удалось отобразить статью
 				},
 			},
 		},
+		"connect-source": {
+			error: {
+				"unable-to-connect": "Не удалось подключиться к git-серверу",
+			},
+		},
 	},
 	confluence: {
 		blogs: "Блоги",
@@ -1444,6 +1465,22 @@ title: Не удалось отобразить статью
 		bold: "Жирный",
 		stroke: "Зачёркнутый",
 		code: "Строка кода",
+		question: {
+			name: "Блок вопроса",
+			placeholder: "Заголовок вопроса",
+			required: "Обязательный вопрос",
+			types: {
+				name: "Тип вопроса",
+				one: "Один ответ",
+				many: "Несколько ответов",
+			},
+			answer: {
+				add: "Добавить ответ",
+				placeholder: "Ответ на вопрос",
+				check: "Проверить",
+				checking: "Проверяется...",
+			},
+		},
 		"code-block": "Блок кода",
 		"bullet-list": "Маркированый список",
 		"ordered-list": "Нумерованный список",
@@ -1620,6 +1657,159 @@ title: Не удалось отобразить статью
 			"error-message":
 				"Соединение прервано — серверные сессии могли остаться активными. Проверьте интернет и повторите выход.",
 		},
+		admin: {
+			"delete-alert": "Вы уверены, что хотите удалить",
+			"settings-title": "Настройки пространства",
+			"settings-description": "Задайте параметры пространства",
+			error: {
+				"loading-settings": "Произошла ошибка при загрузке настроек",
+			},
+			pages: {
+				check: "Стайлгайд",
+				workspace: "Пространство",
+				groups: "Группы пользователей",
+				editors: "Редакторы",
+				resources: "Репозитории",
+				mail: "Почтовый сервер",
+				guests: "Внешние читатели",
+				quiz: "Обучение",
+				modules: "Модули",
+			},
+			users: {
+				users: "Пользователи",
+				"add-select": "Выберите пользователей для добавления",
+				add: "Введите почту пользователя",
+			},
+			roles: {
+				role: "Роль",
+				select: "Выберите роль",
+				workspaceOwner: "Владелец пространства",
+				catalogOwner: "Владелец каталога",
+				editor: "Редактор",
+				reviewer: "Рецензент",
+				reader: "Читатель",
+			},
+			search: {
+				users: {
+					title: "Выберите пользователей",
+					description: "Доступно мест: {count}",
+					placeholder: "Поиск пользователей",
+					searchPlaceholder: "Введите имя или email",
+					inputHintText: "Введите минимум 1 символ для поиска",
+					loadingText: "Ищем пользователей...",
+					emptyText: "Пользователи не найдены",
+					errorText: "Ошибка поиска",
+				},
+				quiz: {
+					title: "Выберите тесты",
+					placeholder: "Поиск тестов",
+					searchPlaceholder: "Введите название",
+					inputHintText: "Введите минимум 1 символ для поиска",
+					loadingText: "Ищем тесты...",
+					emptyText: "Тесты не найдены",
+					errorText: "Ошибка поиска",
+				},
+			},
+			quiz: {
+				"test-info": {
+					"correct-answers-count": "Количество верных ответов",
+				},
+				switch: {
+					on: "Модуль обучения включен",
+					off: "Модуль обучения выключен",
+				},
+				errors: {
+					update: "Не удалось обновить модуль обучения",
+					"save-data": "Не удалось сохранить данные. Статус: ",
+				},
+				filters: {
+					users: {
+						name: "Пользователи",
+						search: "Найти пользователей...",
+						loading: "Загрузка пользователей...",
+						empty: "Пользователи не найдены",
+					},
+					tests: {
+						name: "Тесты",
+						search: "Найти тесты...",
+						loading: "Загрузка тестов...",
+						empty: "Тесты не найдены",
+					},
+				},
+				"users-test-table": {
+					test: "Название теста",
+					user: "Пользователь",
+					version: "Версия",
+					"updated-at": "Дата обновления",
+					"created-at": "Дата прохождения",
+				},
+			},
+			editors: {
+				placeholder: "Найдите редактора",
+			},
+			"client-access-keys": {
+				groups: "Группы",
+				externalUsers: "Внешние пользователи",
+			},
+			resources: {
+				repository: "Репозиторий",
+				"repository-permission": "Настроить доступы",
+				"base-repository-alert": "Удаление недоступно: репозиторий отмечен как базовый",
+				"add-repository": "Добавить репозиторий",
+				"select-repository-description": "Выберите репозиторий для настройки",
+				"select-repository-placeholder": "Выберите репозиторий",
+				"search-repository-placeholder": "Поиск репозитория...",
+				"repository-not-found": "Репозиторий не найден",
+				"main-branch": "Основная ветка",
+				"main-branch-description":
+					"Публикация в основную ветку в интерфейсе Gramax запрещена. Изменения можно внести только через слияние или запрос на слияние.",
+				"select-main-branch-placeholder": "Выберите основную ветку",
+				"search-main-branch-placeholder": "Поиск ветки...",
+				"main-branch-not-found": "Ветки не найдены",
+				"add-branches": "Добавьте ветки",
+				"user-branches-description": "Пользователь {user} - репозиторий {repository}",
+				access: "Доступы",
+				users: {
+					user: "Пользователь",
+					"search-placeholder": "Найти пользователей...",
+					"already-exist": "Пользователь уже добавлен в список",
+				},
+				groups: {
+					group: "Группа",
+				},
+				branches: {
+					branches: "Ветки",
+					select: "Выберите ветки",
+					placeholder: "Найдите ветки",
+					searchPlaceholder: "Введите название ветки",
+					inputHintText: "Введите минимум 1 символ для поиска",
+					loadingText: "Ищем ветки...",
+					emptyText: "Ветки не найдены",
+					errorText: "Ошибка поиска",
+					required: "Выберите минимум 1 ветку",
+				},
+			},
+			guests: {
+				"general-settings": "Общие настройки",
+				"session-duration-hours": "Продолжительность сеанса (часы)",
+				"whitelist-settings": "Настройки белого списка",
+				"whitelist-enabled": "Использовать белый список",
+				"whitelist-domains": "Белый список доменов",
+				"whitelist-domains-placeholder": "Найти домены...",
+				"whitelist-domains-empty": "Белый список доменов не может быть пустым",
+				"domain-not-allowed": "Домен не в белом списке. Белый список настроен во вкладке внешних читателях",
+				inactive:
+					"Пользователь не соответствует текущему белому списку доменов и не считается внешним читателем",
+			},
+			check: {
+				rule: "Правило",
+				"import-rules": "Импортировать правила",
+				"no-rules": "Нет правил проверки",
+				"rule-types-description": "Типы текста, к которым применяется правило:",
+				"no-rules-description":
+					"У вас пока нет настроенных правил проверки текста. Импортируйте файл с правилами или создайте их вручную, чтобы начать работу с проверкой орфографии и грамматики.",
+			},
+		},
 	},
 	network: {
 		error: {
@@ -1654,7 +1844,8 @@ title: Не удалось отобразить статью
 			catalog: "Каталог в PDF",
 			article: "Статью в PDF",
 			category: "Раздел в PDF",
-			process: "Подготовка к выгрузке PDF-документа",
+			process: "Экспортируем PDF",
+			canceled: "Отмена...",
 
 			form: {
 				title: "Экспорт в PDF",
@@ -1669,6 +1860,11 @@ title: Не удалось отобразить статью
 				titleNumberDescription: "Добавить номера для заголовков.",
 				template: "Кастомный шаблон",
 				templateDescription: "Используйте собственные CSS-стили для оформления PDF. Подробнее.",
+			},
+
+			error: {
+				title: "Ошибка экспорта в PDF",
+				message: "Что-то пошло не так во время экспорта в PDF",
 			},
 		},
 	},
@@ -1701,6 +1897,7 @@ title: Не удалось отобразить статью
 	creating: "Создание",
 	current: "Русский",
 	delete: "Удалить",
+	deleting: "Удаление",
 	description: "Описание",
 	edit2: "Редактировать",
 	actions: "Действия",
@@ -1759,6 +1956,7 @@ title: Не удалось отобразить статью
 	repository: "Репозиторий",
 	resolve: " Решено ",
 	save: "Сохранить",
+	save2: "Сохраняем",
 	see: "См.",
 	select: "Выбрать",
 	send: "Отправить",
@@ -2230,7 +2428,37 @@ title: Не удалось отобразить статью
 		"some-files-too-large": "Некоторые файлы превышают максимальный размер ${maxSizeBytes}",
 		"too-many-files": "Вы можете загрузить максимум ${maxFiles} файлов",
 	},
+	empty: "Пусто",
+	pagination: {
+		shown: "Показано {count} из {total}",
+		previous: "Предыдущая",
+		next: "Следующая",
+	},
+	confirmation: {
+		delete: {
+			title: "Подтверждение удаления",
+			body: "Вы уверены, что хотите удалить {count} {item}?",
+		},
+		unsaved: {
+			title: "Несохраненные изменения",
+			body: "У вас есть несохраненные изменения. Выберите действие:",
+		},
+	},
+	"save-and-close": "Сохранить и закрыть",
+	record: "запись",
+	records: "записи",
+	"already-added": "Уже добавлен",
 	"available-changes-sync": "Доступны изменения для синхронизации",
+	quiz: {
+		info: {
+			title: "Вопросы",
+			question: "Вопрос",
+			answered: "Отвечено",
+			total: "Всего",
+			send: "Отправить ответы",
+		},
+		"required-questions": "Пожалуйста, ответьте на все обязательные вопросы",
+	},
 };
 
 export default locale;

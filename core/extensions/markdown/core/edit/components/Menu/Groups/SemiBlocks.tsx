@@ -2,7 +2,6 @@ import Tooltip from "@components/Atoms/Tooltip";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import HTMLMenuButton from "@ext/markdown/elements/html/edit/components/HTMLMenuButton";
@@ -11,6 +10,8 @@ import TabsMenuButton from "@ext/markdown/elements/tabs/edit/components/TabsMenu
 import ViewMenuButton from "@ext/markdown/elements/view/edit/components/ViewMenuButton";
 import { Editor } from "@tiptap/core";
 import { useState } from "react";
+import QuestionMenuButton from "@ext/markdown/elements/question/edit/components/QuestionMenuButton";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface SemiBlocksProps {
 	editor?: Editor;
@@ -22,7 +23,7 @@ const SemiBlocks = ({ editor, includeResources, isSmallEditor }: SemiBlocksProps
 	const tabs = ButtonStateService.useCurrentAction({ action: "tabs" });
 	const snippet = ButtonStateService.useCurrentAction({ action: "snippet" });
 
-	const syntax = CatalogPropsService.value.syntax;
+	const syntax = useCatalogPropsStore((state) => state.data.syntax);
 	const formatterSupportedElements = getFormatterType(syntax).supportedElements;
 
 	const isTabsSupported = formatterSupportedElements.includes("tabs");
@@ -53,6 +54,7 @@ const SemiBlocks = ({ editor, includeResources, isSmallEditor }: SemiBlocksProps
 			content={
 				<ModalLayoutDark>
 					<ButtonsLayout>
+						<QuestionMenuButton editor={editor} />
 						{isTabsSupported && <TabsMenuButton editor={editor} />}
 						{!isSmallEditor && isSnippetSupported && includeResources && (
 							<SnippetsButton editor={editor} onClose={() => setIsOpen(false)} />

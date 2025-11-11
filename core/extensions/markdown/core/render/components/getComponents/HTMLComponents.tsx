@@ -1,11 +1,9 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import camelToKebabCase from "@core-ui/camelToKebabCase";
 import PublicApiUrlCreator from "@ext/publicApi/PublicApiUrlCreator";
 import React from "react";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
-
-const renderImage = getExecutingEnvironment() === "next";
+import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 
 export enum unSupportedElements {
 	"tab" = "Tab",
@@ -28,82 +26,22 @@ class HTMLComponents {
 		);
 	}
 
-	public getNullComponent(name: unSupportedElements) {
-		return (props) => {
-			const content = camelToKebabCase(name);
-			return React.createElement(content, {
-				...props,
-				...(props.src && {
-					src: this._getApiArticleResource(props.src),
-				}),
-			});
-		};
-	}
+	public renderIcon({ code, ...props }: { code: string } & React.HTMLAttributes<HTMLElement> & Record<string, any>) {
+		const IconComponent = LucideIcon(code) || LucideIcon("circle-help");
 
-	public getTabs() {
-		return (props) => {
-			const { children } = props;
-			return React.createElement("tabs", null, children);
-		};
-	}
-
-	public getCode() {
-		return ({ children }: { children: JSX.Element }) => {
-			return <code>{children}</code>;
-		};
-	}
-
-	public getLink() {
-		return (props) => {
-			const { children, href, isFile, resourcePath, hash } = props;
-			const newHref = resourcePath
-				? isFile
-					? this._getApiArticleResource(resourcePath)
-					: this._getApiArticle(href, hash)
-				: href;
-			return <a href={newHref}>{children}</a>;
-		};
-	}
-
-	public getImg() {
-		return (props) => {
-			const src = this._getApiArticleResource(props.src);
-			return this._getImage(src, props.title);
-		};
-	}
-
-	public getDrawio() {
-		return (props) => {
-			const src = this._getApiArticleResource(props.src);
-			return this._getImage(src, props.title);
-		};
-	}
-
-	public getPlantUmlDiagram() {
-		return (props) => {
-			const { content, ...otherProps } = props;
-			return this.getNullComponent(unSupportedElements["plant-uml"])({
-				...otherProps,
-				...(content && { children: content }),
-			});
-		};
-	}
-
-	private _getImage = (src: string, title?: string) => {
 		return (
-			<div>
-				{renderImage && <img src={src} />}
-				{title && <em>{title}</em>}
-			</div>
+			<i {...props}>
+				<IconComponent />
+			</i>
 		);
-	};
+	}
 
 	private _getApiArticle(link: string, hash?: string) {
 		const url = this._publicApiUrlCreator.getApiArticle(link.replace(hash, ""), hash);
 		return this._addRequestUrl(url.toString());
 	}
 
-	private _getApiArticleResource(src: string) {
+	public getApiArticleResource(src: string) {
 		const url = this._publicApiUrlCreator.getApiArticleResource(src);
 		return this._addRequestUrl(url.toString());
 	}
@@ -111,6 +49,27 @@ class HTMLComponents {
 	private _addRequestUrl = (src: string) => {
 		return src.slice(0, 4) == "http" ? src : this._requestUrl + Path.empty.join(new Path(src)).value;
 	};
+
+	public getNullComponent(name: unSupportedElements) {
+		return (props) => {
+			const content = camelToKebabCase(name);
+			return React.createElement(content, {
+				...props,
+				...(props.src && {
+					src: this.getApiArticleResource(props.src),
+				}),
+			});
+		};
+	}
+
+	public getHref(resourcePath, isFile, hash, href) {
+		const newHref = resourcePath
+			? isFile
+				? this.getApiArticleResource(resourcePath)
+				: this._getApiArticle(href, hash)
+			: href;
+		return newHref;
+	}
 }
 
 export default HTMLComponents;

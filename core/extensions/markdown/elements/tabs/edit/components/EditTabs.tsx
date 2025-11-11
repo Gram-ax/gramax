@@ -105,18 +105,20 @@ const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement =
 
 	return (
 		<NodeViewContextableWrapper props={props}>
-			<Tabs
-				isEdit
-				onTabEnter={onTabEnter}
-				onAddClick={onAddClick}
-				onNameUpdate={onNameUpdate}
-				onRemoveClick={onRemoveClick}
-				childAttrs={node.attrs.childAttrs}
-				onDeleteClick={onDeleteClick}
-				className={`${className} ${activeHoverStyle ? "hover" : ""}`}
-			>
-				<NodeViewContent className="content" />
-			</Tabs>
+			<div className="flex flex-col">
+				<Tabs
+					isEdit
+					onTabEnter={onTabEnter}
+					onAddClick={onAddClick}
+					onNameUpdate={onNameUpdate}
+					onRemoveClick={onRemoveClick}
+					childAttrs={node.attrs.childAttrs}
+					onDeleteClick={onDeleteClick}
+					className={`${className} ${activeHoverStyle ? "hover" : ""}`}
+				>
+					<NodeViewContent className="content" />
+				</Tabs>
+			</div>
 		</NodeViewContextableWrapper>
 	);
 };

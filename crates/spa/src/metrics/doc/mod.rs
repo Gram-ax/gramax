@@ -18,7 +18,8 @@ pub struct MetricDoc {
   pub ip: Option<IpAddr>,
   pub metadata: Option<UserMetadata>,
   pub raw_user_agent: Option<String>,
-  pub timestamp: chrono::DateTime<chrono::Utc>,
+  #[serde(with = "time::serde::rfc3339")]
+  pub timestamp: time::OffsetDateTime,
 }
 
 pub struct MetricDocBuilder {
@@ -35,7 +36,7 @@ impl MetricDocBuilder {
         ip: None,
         metadata: None,
         raw_user_agent: None,
-        timestamp: chrono::Utc::now(),
+        timestamp: time::OffsetDateTime::now_utc(),
       },
     }
   }

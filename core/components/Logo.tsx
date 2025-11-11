@@ -1,21 +1,28 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import Link from "./Atoms/Link";
 import { ActionLogo, CatalogLogo } from "./CatalogLogo";
 
 const Logo = ({ className }: { className?: string; imageUrl?: string }) => {
-	const catalogProps = CatalogPropsService.value;
 	const pageData = PageDataContextService.value;
-
+	const { name, link, title, repositoryName } = useCatalogPropsStore(
+		(state) => ({
+			name: state.data.name,
+			link: state.data?.link,
+			title: state.data?.title,
+			repositoryName: state.data?.repositoryName,
+		}),
+		"shallow",
+	);
 	return (
 		<div className={className}>
-			<Link href={Url.from(catalogProps.link)}>
-				{pageData.conf.logo.imageUrl ? <ActionLogo /> : <CatalogLogo catalogName={catalogProps.name} />}
-				<span className="title" title={catalogProps.title}>
-					{catalogProps.title}
+			<Link href={Url.from(link)}>
+				{pageData.conf.logo.imageUrl ? <ActionLogo /> : <CatalogLogo catalogName={name} />}
+				<span className="title" title={title}>
+					{title || repositoryName}
 				</span>
 			</Link>
 		</div>

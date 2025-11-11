@@ -1,7 +1,7 @@
 import { CustomAttributeType, Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
 
 export const tabs: Schema = {
-	render: "Tabs",
+	render: "tabs",
 	attributes: {
 		childAttrs: {
 			type: {} as CustomAttributeType,
@@ -14,7 +14,7 @@ export const tabs: Schema = {
 		if (!children || children.length == 0) return null;
 		if (children.length == 1) return children;
 		return new Tag(
-			"Tabs",
+			"tabs",
 			{
 				childAttrs: children.map((t, idx) => {
 					(t as Tag).attributes.idx = idx;
@@ -27,7 +27,7 @@ export const tabs: Schema = {
 };
 
 export const tab: Schema = {
-	render: "Tab",
+	render: "tab",
 	attributes: {
 		name: { type: String },
 		icon: { type: String },
@@ -36,6 +36,6 @@ export const tab: Schema = {
 	selfClosing: false,
 	type: SchemaType.block,
 	transform: async (node, config) => {
-		return new Tag("Tab", node.attributes, await node.transformChildren(config));
+		return new Tag("tab", node.attributes, await node.transformChildren(config));
 	},
 };

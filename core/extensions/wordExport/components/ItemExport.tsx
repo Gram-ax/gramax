@@ -5,7 +5,6 @@ import PureLink from "@components/Atoms/PureLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -27,6 +26,7 @@ import {
 } from "@ui-kit/Dropdown";
 import { Loader } from "ics-ui-kit/components/loader";
 import { ComponentProps, useMemo, useRef } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface ItemExportProps {
 	fileName: string;
@@ -39,6 +39,7 @@ interface ItemExportProps {
 export enum ExportFormat {
 	pdf = "pdf",
 	docx = "docx",
+	"beta-pdf" = "beta-pdf",
 }
 
 const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat, isLoading }: ItemExportProps) => {
@@ -184,7 +185,7 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat, isLoading
 };
 
 const PdfExportButton = ({ itemRefPath, isCategory }: { itemRefPath?: string; isCategory?: boolean }) => {
-	const catalogProps = CatalogPropsService.value;
+	const catalogProps = useCatalogPropsStore((state) => state.data);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const pdfTemplates = PageDataContextService.value.pdfTemplates;
 

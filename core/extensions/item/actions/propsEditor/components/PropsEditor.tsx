@@ -6,7 +6,6 @@ import { Form, FormField, FormFooter, FormStack } from "@ui-kit/Form";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
 import { FC, useRef, useCallback, useState, useEffect, useMemo } from "react";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -37,7 +36,6 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 	const [open, setOpen] = useState(true);
 	const { ref, open: openOverflow, onOpenChange: onOpenChangeOverflow } = useOverflowTooltip<HTMLDivElement>();
 
-	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { onClose, submit, item, itemLink, ...hookParams } = props;
 	const formRef = useRef<HTMLFormElement>(null);
@@ -175,10 +173,7 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 								isOnlyTitleChanged ? (
 									<Button type="submit">{t("save")}</Button>
 								) : (
-									<OtherLanguagesPresentWarning
-										catalogProps={catalogProps}
-										action={formSubmitHandler}
-									>
+									<OtherLanguagesPresentWarning action={formSubmitHandler}>
 										<Button type="button">{t("save")}</Button>
 									</OtherLanguagesPresentWarning>
 								)

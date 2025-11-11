@@ -37,7 +37,7 @@ class PermissionService implements ContextService {
 
 	useCheckPermission(permission: IPermission, workspacePath?: WorkspacePath, catalogName?: string): boolean {
 		const { global, workspace, catalog } = useContext(UserPermissionsContext);
-		if (workspacePath && catalogName) return catalog?.enough(catalogName, permission);
+		if (catalogName) return catalog?.enough(catalogName, permission);
 		if (workspacePath) return workspace?.enough(workspacePath, permission);
 		return global?.enough?.(permission);
 	}

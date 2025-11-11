@@ -190,7 +190,7 @@ const parentLinksTagTransformer = (tag: Child): object | object[] => {
 
 	if (!linkChildrenExist) return tag;
 
-	const newChildren: Tag[] = [];
+	const newChildren: (Tag | JSONContent)[] = [];
 
 	for (let i = 0; i < children.length; i++) {
 		const child = children[i];
@@ -204,10 +204,15 @@ const parentLinksTagTransformer = (tag: Child): object | object[] => {
 		const previousElement = newChildren[newChildren.length - 1];
 
 		if (previousElement && previousElement.attributes?.href === currentHref) {
-			previousElement.children.push(...child.children);
+			if ("children" in previousElement) previousElement.children.push(...child.children);
+			else if ("content" in previousElement) previousElement.content.push(...child.children);
 		} else {
 			newChildren.push(child);
 		}
+	}
+
+	if ("content" in tag) {
+		return { ...tag, content: newChildren };
 	}
 
 	return {

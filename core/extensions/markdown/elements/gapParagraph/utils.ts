@@ -38,8 +38,8 @@ export function gapParagraph(): Plugin {
 			const newDoc = newState.doc;
 			const oldDoc = oldState.doc;
 
-			const newNode = newDoc.nodeAt(pos);
-			const oldNode = oldDoc.nodeAt(pos);
+			const newNode = newDoc.nodeAt(Math.min(Math.max(pos, 0), newDoc.content.size));
+			const oldNode = oldDoc.nodeAt(Math.min(Math.max(pos, 0), oldDoc.content.size));
 
 			if (!newNode) return newState.tr.setMeta("gapParagraph", { pos: null });
 			if (!oldNode) return newState.tr.setMeta("gapParagraph", { pos: null });

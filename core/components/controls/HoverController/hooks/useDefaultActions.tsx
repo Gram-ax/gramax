@@ -7,6 +7,7 @@ import { useNodeViewContext } from "@ext/markdown/core/element/NodeViewContextab
 import { NodeSelection } from "@tiptap/pm/state";
 import { ReactNode, useCallback, useMemo } from "react";
 import FloatActions from "@ext/markdown/elements/float/edit/components/FloatActions";
+import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 
 export interface UseDefaultActionsOptions {
 	// Button for adding a comment to the node. Need to add node type in Comment extension.
@@ -18,10 +19,10 @@ export interface UseDefaultActionsOptions {
 }
 
 const useDefaultActions = (right: ReactNode, left: ReactNode, options: UseDefaultActionsOptions = {}) => {
-	const { editor, deleteNode, node } = useNodeViewContext();
+	const { editor, deleteNode, node, getPos } = useNodeViewContext();
 	const apiUrlCreator = ApiUrlCreator.value;
 	const pageDataContext = PageDataContext.value;
-	const disabledComment = !pageDataContext.userInfo;
+	const disabledComment = !pageDataContext.userInfo || !EditorService.getData("commentEnabled");
 	const { comment = false, delete: deleteAction = true, float = false } = options;
 	const hasComment = Boolean(node?.attrs?.comment?.id);
 
@@ -49,7 +50,7 @@ const useDefaultActions = (right: ReactNode, left: ReactNode, options: UseDefaul
 	const memoRight = useMemo(
 		() => (
 			<>
-				{float && <FloatActions node={node} editor={editor} />}
+				{float && <FloatActions node={node} editor={editor} getPos={getPos} />}
 				{right}
 				{comment && !disabledComment && (
 					<ActionButton

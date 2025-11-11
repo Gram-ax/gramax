@@ -1,4 +1,5 @@
 import IsMacService from "@core-ui/ContextServices/IsMac";
+import isMobileService from "@core-ui/ContextServices/isMobileService";
 import LanguageService from "@core-ui/ContextServices/Language";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
@@ -6,14 +7,13 @@ import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { configureWorkspacePermission } from "@ext/security/logic/Permission/Permissions";
 import { getFeatureList, setFeature, type Feature } from "@ext/toggleFeatures/features";
-import { Divider } from "@ui-kit/Divider";
-import { Popover, PopoverContent, PopoverTrigger } from "ics-ui-kit/components/popover";
-import { useCallback, useRef, useState } from "react";
+import { Badge } from "@ui-kit/Badge";
 import { Button } from "@ui-kit/Button";
-import isMobileService from "@core-ui/ContextServices/isMobileService";
+import { Divider } from "@ui-kit/Divider";
 import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Badge } from "@ui-kit/Badge";
+import { Popover, PopoverContent, PopoverTrigger } from "ics-ui-kit/components/popover";
+import { useCallback, useRef, useState } from "react";
 
 const StyledPopoverContent = styled(PopoverContent)`
 	width: 100%;
@@ -47,6 +47,7 @@ const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolea
 	const language = LanguageService.currentUi();
 	const title = language === "ru" ? feature.title.ru : feature.title.en;
 	const desc = language === "ru" ? feature.desc?.ru : feature.desc?.en;
+	const url = language === "ru" ? feature.url?.ru : feature.url?.en;
 
 	const onClick = useCallback(
 		(e) => {
@@ -101,8 +102,8 @@ const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolea
 				description={
 					<div className="text-xs">
 						<span>{desc}. </span>
-						{feature.url && (
-							<Info href={feature.url} target="_blank" rel="noreferrer">
+						{url && (
+							<Info href={url} target="_blank" rel="noreferrer">
 								{t("read-more")}
 							</Info>
 						)}
@@ -146,7 +147,7 @@ const ToggleFeatures = () => {
 	return (
 		<Popover onOpenChange={onOpenChange} modal>
 			<PopoverTrigger asChild>
-				<Button size="lg" variant="text" className="h-auto px-0" endIcon="chevron-down">
+				<Button size="lg" variant="text" className="h-auto px-0 whitespace-nowrap" endIcon="chevron-down">
 					{t("experimental-features.label")}
 				</Button>
 			</PopoverTrigger>

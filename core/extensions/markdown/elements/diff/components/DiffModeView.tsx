@@ -4,8 +4,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ArticleContextWrapper from "@core-ui/ArticleContextWrapper/ArticleContextWrapper";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
+import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useRouter } from "@core/Api/useRouter";
@@ -21,7 +20,7 @@ import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import Controllers from "@ext/markdown/elements/controllers/controllers";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
+import { useEditorExtensions } from "@ext/markdown/elements/diff/components/store/EditorExtensionsStore";
 import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
 import DiffExtension from "@ext/markdown/elements/diff/logic/DiffExtension";
 import useDiff from "@ext/markdown/elements/diff/logic/hooks/useDiff";
@@ -37,6 +36,8 @@ import { Editor, Extensions } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
 import { useEffect, useState } from "react";
+import Workspace from "@core-ui/ContextServices/Workspace";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface DiffModeViewProps {
 	oldContent: JSONContent;
@@ -63,7 +64,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		onUpdate: currentOnUpdate,
 	} = props;
 
-	const extensions = EditorExtensionsService.value;
+	const extensions = useEditorExtensions();
 	const resourceService = ResourceService.value;
 	const router = useRouter();
 
@@ -71,6 +72,8 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const editorOnUpdate = EditorService.createOnUpdateCallback();
 	const editorTitleOnUpdate = EditorService.createUpdateTitleFunction();
 	const propertyService = PropertyService.value;
+	const workspace = Workspace.current();
+	const isGES = !!workspace?.enterprise?.gesUrl;
 
 	const articleProps = ArticlePropsService.value;
 	const isTemplateInstance = articleProps.template?.length > 0;
@@ -109,7 +112,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const getNewEditorExtensions = () => {
 		if (!extensions)
 			return [
-				...getExtensions({ isTemplateInstance, includeResources: true }),
+				...getExtensions({ isTemplateInstance, includeResources: true, includeQuestions: isGES }),
 				Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
 			];
 
@@ -133,12 +136,15 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		return extensions.filter((e) => !excludeExtensions.includes(e.name));
 	};
 
+	const catalogProps = useCatalogPropsStore((state) => state.data);
+
 	const newEditor = useEditor(
 		{
 			extensions: getNewEditorExtensions(),
 			content: extensions ? newContent : undefined,
 			editorProps: {
-				handlePaste: (view, event, slice) => handlePaste(view, event, slice, apiUrlCreator, articleProps),
+				handlePaste: (view, event, slice) =>
+					handlePaste(view, event, slice, apiUrlCreator, articleProps, catalogProps),
 			},
 			editable: !readOnly,
 			onUpdate: ({ editor }) => {
@@ -147,7 +153,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 				onUpdateDebounce(editor);
 			},
 		},
-		[extensions, newContent, articleProps],
+		[extensions, newContent, articleProps, catalogProps],
 	);
 
 	ExtensionContextUpdater.useUpdateContextInExtensions(newEditor);
@@ -161,14 +167,14 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 						...(isTemplateInstance ? getTemplateExtensions(false) : []),
 				  ]
 				: [
-						...getExtensions({ isTemplateInstance, includeResources: true }),
+						...getExtensions({ isTemplateInstance, includeResources: true, includeQuestions: isGES }),
 						Comment,
 						Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
 				  ],
 			editable: false,
 			content: extensions ? oldContent : undefined,
 		},
-		[extensions, oldContent],
+		[extensions, oldContent, isGES],
 	);
 
 	useEffect(() => {
@@ -176,7 +182,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		oldContentEditor.commands.updateIsPin(isPin, false);
 	}, [isPin.left, isPin.right]);
 
-	const diffViewMode = DiffViewModeService.value;
+	const diffViewMode = useDiffViewMode();
 
 	useEffect(() => {
 		newEditor.commands.updateDiffViewMode(diffViewMode, true);
@@ -193,7 +199,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 			<EditorContent editor={newEditor} data-qa="article-editor" data-iseditable={!readOnly} />
 		);
 
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const oldContextArticlePath = Path.join(catalogName, oldArticlePath ?? articlePath);
 
 	const isDelete = changeType === FileStatus.delete;
@@ -243,7 +249,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 export const DiffModeView = (props: DiffModeViewProps & { filePath: DiffFilePaths }) => {
 	const { articlePath, newScope, oldScope, changeType, filePath } = props;
 	const scope = changeType === FileStatus.delete ? oldScope : newScope;
-	const catalogName = CatalogPropsService.value.name;
+	const catalogName = useCatalogPropsStore((state) => state.data.name);
 
 	return (
 		<ArticleContextWrapper

@@ -8,8 +8,8 @@ class EnterpriseManager {
 		return { ...this._defaultConfig, ...(this._config?.inner?.() ?? {}) };
 	}
 
-	async setConfig(config: EnterpriseConfig) {
-		this._config?.set("gesUrl", config.gesUrl);
+	async setGesUrl(gesUrl: string) {
+		this._config?.set("gesUrl", gesUrl);
 		await this._config?.save();
 	}
 }

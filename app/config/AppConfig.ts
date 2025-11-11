@@ -22,6 +22,7 @@ export interface ServicesConfig {
 
 export interface EnterpriseConfig {
 	gesUrl: string;
+	refreshInterval: number;
 }
 
 export interface MetricsConfig {
@@ -76,6 +77,11 @@ export type AppConfig = {
 	};
 
 	forceUiLangSync: boolean;
+};
+
+const getNumber = (value: string) => {
+	const int = parseInt(value);
+	return Number.isNaN(int) ? undefined : int;
 };
 
 const getServices = (): ServicesConfig => {
@@ -201,6 +207,7 @@ export const getConfig = (): AppConfig => {
 
 		enterprise: {
 			gesUrl: env("GES_URL"),
+			refreshInterval: (getNumber(env("GES_REFRESH_INTERVAL")) || 10 * 60) * 1000, // 10 minutes by default
 		},
 
 		logo: {
@@ -211,9 +218,7 @@ export const getConfig = (): AppConfig => {
 
 		forceUiLangSync: env("FORCE_UI_LANG_SYNC") === "true",
 
-		allowedGramaxUrls: env("ALLOWED_GRAMAX_URLS")
-			?.split(",")
-			.map((origin) => origin.trim()),
+		allowedGramaxUrls: (env("ALLOWED_GRAMAX_URLS") || null)?.split(",").map((origin) => origin.trim()) || [],
 	} as AppConfig;
 
 	return global.config;

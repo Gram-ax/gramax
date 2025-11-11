@@ -59,6 +59,10 @@ enum ModalToOpen {
 	ActionConfirm = "ActionConfirm",
 
 	ExportPdf = "ExportPdf",
+
+	GesAdmin = "GesAdmin",
+
+	UnsavedChangesModal = "UnsavedChangesModal",
 }
 
 export default ModalToOpen;

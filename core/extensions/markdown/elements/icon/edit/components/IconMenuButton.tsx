@@ -7,13 +7,25 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import { Editor } from "@tiptap/core";
-import { useState } from "react";
+import { memo, useState } from "react";
 
 interface IconMenuButtonProps {
 	editor: Editor;
 	className?: string;
 	onClose?: () => void;
 }
+
+const titleCustomIcons: ListItem = {
+	isTitle: true,
+	disable: true,
+	element: <div className="itemTitle">{t("catalog-icons-title")}</div>,
+};
+
+const titleSystemIcons: ListItem = {
+	isTitle: true,
+	disable: true,
+	element: <div className="itemTitle">{t("system-icons-title")}</div>,
+};
 
 const IconMenuButton = ({ editor, onClose, className }: IconMenuButtonProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -41,19 +53,6 @@ const IconMenuButton = ({ editor, onClose, className }: IconMenuButtonProps) => 
 		editor.commands.setIcon({ code: labelField, svg: customIconsList.find((i) => i.code === labelField)?.svg });
 		editor.commands.focus(editor.state.selection.anchor);
 	};
-
-	const titleCustomIcons: ListItem = {
-		isTitle: true,
-		disable: true,
-		element: <div className="itemTitle">{t("catalog-icons-title")}</div>,
-	};
-
-	const titleSystemIcons: ListItem = {
-		isTitle: true,
-		disable: true,
-		element: <div className="itemTitle">{t("system-icons-title")}</div>,
-	};
-
 	const items: ItemContent[] = (
 		customIconsList?.length > 0 ? [titleCustomIcons].concat(customIconsList.map((i) => toListItem(i))) : []
 	).concat([titleSystemIcons].concat(lucideIconListFiltered));
@@ -61,7 +60,7 @@ const IconMenuButton = ({ editor, onClose, className }: IconMenuButtonProps) => 
 	return (
 		<TooltipListLayout
 			className={className}
-			action={"icon"}
+			action="icon"
 			buttonIcon="smile"
 			items={items}
 			onShow={getIcons}
@@ -73,7 +72,7 @@ const IconMenuButton = ({ editor, onClose, className }: IconMenuButtonProps) => 
 	);
 };
 
-export default styled(IconMenuButton)`
+export default memo(styled(IconMenuButton)`
 	.itemTitle {
 		width: 100%;
 		padding: 5px 10px;
@@ -86,4 +85,4 @@ export default styled(IconMenuButton)`
 	i {
 		line-height: 1px;
 	}
-`;
+`);

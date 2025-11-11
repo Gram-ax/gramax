@@ -3,7 +3,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { FavoriteArticleData } from "@ext/artilce/Favorite/models/types";
+import { FavoriteArticleData } from "@ext/article/Favorite/models/types";
 
 const add: Command<{ ctx: Context; catalogName: string; paths: string[] }, FavoriteArticleData[]> = Command.create({
 	path: "catalog/favorite/getArticlesData",

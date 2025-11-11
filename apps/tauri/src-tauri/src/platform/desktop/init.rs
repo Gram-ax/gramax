@@ -15,9 +15,9 @@ pub struct OpenUrl(pub Mutex<Option<String>>);
 
 type InitResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
-pub fn window_post_init<R: Runtime>(w: &WebviewWindow<R>) -> Result<()> {
+pub fn window_post_init<R: Runtime>(_w: &WebviewWindow<R>) -> Result<()> {
   #[cfg(target_os = "macos")]
-  w.with_webview(|webview| unsafe {
+  _w.with_webview(|webview| unsafe {
     let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
     // webview.setAllowsBackForwardNavigationGestures(true);
     webview.setAllowsMagnification(true);
@@ -26,6 +26,8 @@ pub fn window_post_init<R: Runtime>(w: &WebviewWindow<R>) -> Result<()> {
 }
 
 pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
+  crate::logging::watch_process(app.handle().clone());
+
   #[cfg(target_os = "macos")]
   macos_init_spellcheck(&app.config().identifier);
 
@@ -65,7 +67,23 @@ pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
   std::env::set_var("USER_DATA_PATH", user_data_path(app));
   std::env::set_var("OS", std::env::consts::OS);
 
-  let documents_dir = &app.path().document_dir().expect("Documents directory not exists");
+  let documents_dir = &app.path().document_dir();
+
+  #[cfg(target_os = "macos")]
+  let documents_dir =
+    documents_dir.as_ref().expect("Failed to find documents directory: probably $HOME env var is not set");
+
+  #[cfg(target_os = "windows")]
+  let documents_dir = documents_dir.as_ref().expect("Failed to find documents directory");
+
+  #[cfg(target_os = "linux")]
+  let documents_dir = documents_dir
+    .as_ref()
+    .expect("Failed to find documents directory: probably $XDG_DOCUMENTS_DIR env var is not set");
+
+  #[cfg(not(any(target_os = "linux", target_os = "macos", target_os = "windows")))]
+  let documents_dir = documents_dir.as_ref().expect("Failed to find documents directory");
+
   std::env::set_var("GRAMAX_DEFAULT_WORKSPACE_PATH", Path::new(documents_dir).join("Gramax/default"));
 
   INITED.store(true, Ordering::Relaxed);

@@ -1,6 +1,7 @@
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
+import { HttpMethodsMiddleware } from "@core/Api/middleware/HttpMethodsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 import TransformData from "@ext/publicApi/TransformData";
@@ -14,7 +15,17 @@ export default ApplyApiMiddleware(
 		res.setHeader("Content-type", "application/json; charset=utf-8");
 		res.setHeader("Access-Control-Allow-Origin", "*");
 		const сatalogList = TransformData.getListOfCatalogs(homePageData);
+		if (req.method === "HEAD") {
+			res.setHeader("Content-Length", `${Buffer.byteLength(JSON.stringify(сatalogList), "utf8")}`);
+			res.end();
+			return;
+		}
 		res.send(сatalogList);
 	},
-	[new MainMiddleware(), new AllowedOriginsMiddleware(), new TokenValidationMiddleware()],
+	[
+		new MainMiddleware(),
+		new AllowedOriginsMiddleware(),
+		new HttpMethodsMiddleware(),
+		new TokenValidationMiddleware(),
+	],
 );

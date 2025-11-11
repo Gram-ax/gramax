@@ -4,6 +4,12 @@
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap");
 @import "../ui-kit/style.css";
 
+@media print {
+	body {
+		visibility: hidden;
+	}
+}
+
 span + i,
 i + span {
 	padding-left: var(--distance-i-span);
@@ -95,6 +101,10 @@ ol {
 ul li {
 	line-height: 1.2em;
 	margin-bottom: 0.6em;
+}
+
+.order-last {
+	order: 9999;
 }
 
 a {

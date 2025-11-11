@@ -1,7 +1,7 @@
 import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
 import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
 import { IconButton } from "@ui-kit/Button";
-import { Modal, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { useCallback, useState } from "react";
 
 const SignInEnterpriseModal = ({ authUrl }: { authUrl: string }) => {
@@ -35,12 +35,14 @@ const SignInEnterpriseModal = ({ authUrl }: { authUrl: string }) => {
 				/>
 			</ModalTrigger>
 			<ModalContent data-modal-root data-sign-in-enteprise-form>
-				<SignInEnterpriseForm
-					authUrl={authUrl}
-					relocateToAuthUrl={relocateToAuthUrl}
-					onlySSO={onlySSO}
-					{...otherFields}
-				/>
+				<ModalBody>
+					<SignInEnterpriseForm
+						authUrl={authUrl}
+						relocateToAuthUrl={relocateToAuthUrl}
+						onlySSO={onlySSO}
+						{...otherFields}
+					/>
+				</ModalBody>
 			</ModalContent>
 		</Modal>
 	);

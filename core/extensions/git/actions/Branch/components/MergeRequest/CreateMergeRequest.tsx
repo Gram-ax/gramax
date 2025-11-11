@@ -59,14 +59,15 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 		description: z.string().optional(),
 		options: z
 			.object({
-				deleteAfterMerge: z.boolean().default(false).optional(),
-				squash: z.boolean().default(false).optional(),
+				deleteAfterMerge: z.boolean().default(true).optional(),
+				squash: z.boolean().default(true).optional(),
 			})
 			.optional(),
 	});
 
 	const form = useForm<z.infer<typeof schema>>({
 		resolver: zodResolver(schema),
+		defaultValues: { options: { deleteAfterMerge: true, squash: true } },
 		mode: "onChange",
 	});
 
@@ -144,7 +145,10 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 																})),
 															...additionalReviewers.map((reviewer) => ({
 																label: reviewer.value,
-																value: AuthorInfoCodec.serialize(reviewer),
+																value: AuthorInfoCodec.serialize({
+																	name: reviewer.value,
+																	email: reviewer.value,
+																}),
 															})),
 														];
 

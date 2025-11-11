@@ -4,15 +4,16 @@ import { TextSize } from "@components/Atoms/Button/Button";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useWatch from "@core-ui/hooks/useWatch";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import AddToFavoriteButton from "@ext/artilce/Favorite/components/AddToFavoriteButton";
-import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
+import AddToFavoriteButton from "@ext/article/Favorite/components/AddToFavoriteButton";
+import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditorTrigger";
 import { shouldShowActionWarning } from "@ext/localization/actions/OtherLanguagesPresentWarning";
@@ -22,7 +23,6 @@ import TemplateItemList from "@ext/templates/components/TemplateItemList";
 import React, { CSSProperties, Dispatch, SetStateAction, useEffect, useState } from "react";
 import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
-import useWatch from "@core-ui/hooks/useWatch";
 
 interface EditMenuProps {
 	itemLink: ItemLink;
@@ -38,8 +38,11 @@ const EditMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const articleProps = ArticlePropsService.value;
-	const catalogProps = CatalogPropsService.value;
-	const isCatalogExist = !!catalogProps.name;
+	const { catalogName, supportedLanguagesLength } = useCatalogPropsStore((state) => ({
+		catalogName: state.data?.name,
+		supportedLanguagesLength: state.data?.supportedLanguages?.length,
+	}));
+	const isCatalogExist = !!catalogName;
 	const hasError = articleProps?.errorCode;
 	const router = useRouter();
 	const [itemProps, setItemProps] = useState<ClientArticleProps>(null);
@@ -62,7 +65,7 @@ const EditMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 
 	const onClickHandler = async () => {
 		const deleteConfirmText = t(isCategory ? "confirm-category-delete" : "confirm-article-delete");
-		if (!shouldShowActionWarning(catalogProps) && !(await confirm(deleteConfirmText))) return;
+		if (!shouldShowActionWarning(supportedLanguagesLength) && !(await confirm(deleteConfirmText))) return;
 
 		ErrorConfirmService.stop();
 		await FetchService.fetch(apiUrlCreator.removeItem(itemLink.ref.path));

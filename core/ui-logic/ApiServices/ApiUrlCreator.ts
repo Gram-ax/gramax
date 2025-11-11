@@ -1189,6 +1189,15 @@ export default class ApiUrlCreator {
 		});
 	}
 
+	public copyComment(id: string, copyPath: string) {
+		return Url.fromBasePath(`/api/comments/copy`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+			id,
+			copyPath,
+		});
+	}
+
 	public transcribeAudio() {
 		return Url.fromBasePath(`/api/ai/audio/transcribe`, this._basePath, {
 			catalogName: this._catalogName,
@@ -1201,5 +1210,20 @@ export default class ApiUrlCreator {
 			catalogName: this._catalogName,
 			path: url,
 		});
+	}
+
+	public getAnswers() {
+		return Url.fromBasePath(`/api/quiz/answers/get`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+		});
+	}
+
+	public getMailSendOTPUrl() {
+		return Url.fromBasePath(`/api/auth/mailSendOTP`, this._basePath);
+	}
+
+	public getMailLoginOTPUrl() {
+		return Url.fromBasePath(`/api/auth/mailLoginOTP`, this._basePath);
 	}
 }

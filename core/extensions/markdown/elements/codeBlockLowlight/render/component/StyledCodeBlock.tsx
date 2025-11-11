@@ -17,6 +17,7 @@ const ChildWrapper = styled.div`
 
 interface StyledCodeBlockProps extends HTMLAttributes<HTMLPreElement> {
 	children: ReactNode;
+	isPrint?: boolean;
 }
 
 const StyledCodeBlock = (props: StyledCodeBlockProps) => {

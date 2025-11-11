@@ -14,9 +14,10 @@ interface ListProps {
 	disabled?: boolean;
 	commentId?: string;
 	updateArticle?: (articlePath: string, property: string, value: string, isDelete?: boolean) => void;
+	isPrint?: boolean;
 }
 
-const List = ({ content, groupby, className, disabled, updateArticle, commentId }: ListProps): ReactNode => {
+const List = ({ content, groupby, className, disabled, updateArticle, commentId, isPrint }: ListProps): ReactNode => {
 	const catalogProperties = PropertyServiceProvider.value?.properties;
 	if (!content.length) return null;
 	const [data, setData] = useState<ViewRenderGroup[]>(content);
@@ -48,7 +49,9 @@ const List = ({ content, groupby, className, disabled, updateArticle, commentId 
 			<div data-focusable="true" className="flex w-full h-full">
 				<ul className={className}>
 					{data.map((group: ViewRenderGroup, idx: number) => (
-						<Fragment key={`${group.group?.[0]}-${idx}`}>{renderGroup(group, disabled, onSubmit)}</Fragment>
+						<Fragment key={`${group.group?.[0]}-${idx}`}>
+							{renderGroup(group, disabled, onSubmit, isPrint)}
+						</Fragment>
 					))}
 				</ul>
 			</div>

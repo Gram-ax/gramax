@@ -4,7 +4,7 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import FileStructueErrorCode from "@core/FileStructue/error/model/FileStructueErrorCode";
-import { ArticlePageData, GetArticlePageDataOptions } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import DefaultError from "../../../../core/extensions/errorHandlers/logic/DefaultError";
 import { Command } from "../../../types/Command";
 
@@ -37,12 +37,7 @@ const checkLastModified: Command<{ ctx: Context; articlePath: Path; catalogName:
 					throw new DefaultError(null, e, { errorCode: FileStructueErrorCode.ArticleNotFoundError });
 			}
 
-			const opts: GetArticlePageDataOptions = {
-				editableContent: !this._app.conf.isReadOnly,
-				markdown: this._app.conf.isReadOnly,
-			};
-
-			return res ? await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog, opts) : null;
+			return res ? await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog) : null;
 		},
 
 		params(ctx, q) {

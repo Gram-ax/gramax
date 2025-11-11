@@ -48,6 +48,8 @@ import inlineImageSchema from "@ext/markdown/elements/inlineImage/edit/models/sc
 import highlightSchema from "@ext/markdown/elements/highlight/edit/model/schema";
 import commentSchemaModifier from "@ext/markdown/elements/comment/edit/logic/commentSchemaModifier";
 import floatSchemaModifier from "@ext/markdown/elements/float/edit/logic/floatSchemaModifier";
+import questionSchema from "@ext/markdown/elements/question/edit/models/questionSchema";
+import questionAnswerSchema from "@ext/markdown/elements/answer/edit/models/answerSchema";
 
 type SchemaModifier = (schema: SchemaSpec<any, any>) => void;
 
@@ -80,6 +82,9 @@ export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: Sc
 			"plant-uml": plantUml,
 			"c4-diagram": c4Diagram,
 			"ts-diagram": tsDiagram,
+
+			question: questionSchema,
+			questionAnswer: questionAnswerSchema,
 
 			"inline-property": inlinePropertySchema,
 			"block-property": blockPropertySchema,

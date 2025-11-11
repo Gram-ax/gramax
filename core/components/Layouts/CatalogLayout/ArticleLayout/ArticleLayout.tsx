@@ -173,6 +173,8 @@ export default styled(ArticleLayout)`
 		}
 	}
 
+	`}
+
 	@media print {
 		margin-right: 0px;
 		background: #fff;
@@ -187,7 +189,5 @@ export default styled(ArticleLayout)`
 			min-width: ${PAGE_WIDTH_PDF}px !important;
 		}
 	}
-	`}
-
 	${(p) => p.additionalStyles ?? ""}
 `;

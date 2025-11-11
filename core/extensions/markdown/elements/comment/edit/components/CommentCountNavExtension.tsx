@@ -1,5 +1,5 @@
 import VersionControlCommentCountSrc from "@components/Comments/CommentCount";
-import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
+import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import { ItemLink } from "../../../../../navigation/NavigationLinks";
@@ -11,7 +11,9 @@ const VersionControlCommentCount = styled(VersionControlCommentCountSrc)`
 const CommentCountNavExtension = ({ item }: { item: ItemLink }) => {
 	const { isNext, isStatic, isStaticCli } = usePlatform();
 	if (isNext || isStatic || isStaticCli) return null;
-	return <VersionControlCommentCount count={CommentCounterService.useGetTotalByPathname(item.pathname)} />;
+
+	const total = useGetTotalCommentsByPathname(item.pathname);
+	return <VersionControlCommentCount count={total} />;
 };
 
 export default CommentCountNavExtension;

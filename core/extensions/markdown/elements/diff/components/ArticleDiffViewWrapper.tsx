@@ -1,6 +1,5 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import debounceFunction from "@core-ui/debounceFunction";
 import Path from "@core/FileProvider/Path/Path";
@@ -12,6 +11,7 @@ import useFetchDiffData from "@ext/markdown/elements/diff/logic/hooks/useFetchDi
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { useEffect, useRef, useState } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const DEBOUNCE_TIME = 200;
 const DEBOUNCE_SYMBOL = Symbol();
@@ -26,7 +26,7 @@ interface ArticleDiffViewWrapperProps {
 const ArticleDiffViewWrapper = (props: ArticleDiffViewWrapperProps) => {
 	const { sideBarData, scope, oldScope, isReadOnly } = props;
 
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const isAdded = sideBarData.data.status === FileStatus.new;

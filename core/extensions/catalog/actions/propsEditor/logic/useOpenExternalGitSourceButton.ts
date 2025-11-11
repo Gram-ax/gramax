@@ -1,4 +1,3 @@
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import openNewTab from "@core-ui/utils/openNewTab";
 import { makeGitShareData } from "@ext/git/actions/Clone/logic/makeGitShareData";
@@ -7,11 +6,15 @@ import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { MouseEvent, useMemo } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
-	const catalogProps = CatalogPropsService.value;
+	const { sourceName, linkPathname } = useCatalogPropsStore(
+		(state) => ({ sourceName: state.data?.sourceName, linkPathname: state.data?.link?.pathname }),
+		"shallow",
+	);
 	const gesUrl = WorkspaceService.current().enterprise?.gesUrl;
-	const { sourceType } = getPartGitSourceDataByStorageName(catalogProps.sourceName);
+	const { sourceType } = getPartGitSourceDataByStorageName(sourceName);
 
 	const githubIcon = SourceType.gitHub === sourceType ? "github" : undefined;
 	const gitlabIcon = SourceType.gitLab === sourceType ? "gitlab" : undefined;
@@ -23,17 +26,17 @@ export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
 			shouldRender: !!sourceType && !gesUrl,
 			children: `${t("open-in.generic")} ${sourceType}`,
 			startIcon: gitlabIcon || githubIcon || gitverseIcon || giteaIcon,
-			
+
 			onClick: (e: MouseEvent<HTMLButtonElement>) => {
 				e.preventDefault();
 
-				const gitShareData = makeGitShareData(catalogProps.link.pathname);
+				const gitShareData = makeGitShareData(linkPathname);
 
 				openNewTab(getRepUrl(gitShareData).href);
 				closeHandler();
 			},
 		}),
-		[sourceType, gesUrl, closeHandler, catalogProps],
+		[sourceType, gesUrl, closeHandler, linkPathname],
 	);
 
 	return { gitButtonProps };

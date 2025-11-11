@@ -1,6 +1,7 @@
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
+import { HttpMethodsMiddleware } from "@core/Api/middleware/HttpMethodsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
@@ -22,7 +23,17 @@ export default ApplyApiMiddleware(
 		res.setHeader("Content-type", "application/json; charset=utf-8");
 		res.setHeader("Access-Control-Allow-Origin", "*");
 
+		if (req.method === "HEAD") {
+			res.setHeader("Content-Length", `${Buffer.byteLength(JSON.stringify(jsonNavigationTree), "utf8")}`);
+			res.end();
+			return;
+		}
 		res.send(jsonNavigationTree);
 	},
-	[new MainMiddleware(), new AllowedOriginsMiddleware(), new TokenValidationMiddleware()],
+	[
+		new MainMiddleware(),
+		new AllowedOriginsMiddleware(),
+		new HttpMethodsMiddleware(),
+		new TokenValidationMiddleware(),
+	],
 );

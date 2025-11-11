@@ -42,7 +42,10 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 	}
 
 	static parseName(name: string) {
-		const [n, metadata] = name?.split(":") ?? [name];
+		let [n, metadata] = name?.split(":") ?? [name];
+		if (!metadata) {
+			[n, metadata] = name?.split("~") ?? [name];
+		}
 		return { name: n, metadata };
 	}
 

@@ -22,7 +22,7 @@ export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"remove-catalog", { name: string }> &
 	Event<"resolve-category", EventArgs<CatalogEvents, "resolve-category">> &
 	Event<"catalog-changed", CatalogFilesUpdated> &
-	Event<"on-catalog-resolve", { mutableCatalog: { catalog: Catalog }; name: string; metadata: string }> &
+	Event<"on-catalog-resolve", { mutableCatalog: { catalog: Catalog }; metadata: string }> &
 	Event<"on-catalog-entry-resolve", { mutableEntry: { entry: BaseCatalog }; name: string; metadata: string }> &
 	Event<"on-entries-read", { mutableEntries: { entries: CatalogEntry[] } }> &
 	Event<"config-updated">;
@@ -88,7 +88,6 @@ export class Workspace {
 		const mutableCatalog = { catalog };
 		await this.events.emit("on-catalog-resolve", {
 			mutableCatalog,
-			name,
 			metadata,
 		});
 		return mutableCatalog.catalog;

@@ -6,7 +6,6 @@ import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
@@ -15,6 +14,7 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import { MouseEvent, useMemo, useRef, useState } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface ShareProps {
 	path: string;
@@ -44,7 +44,7 @@ const ShareModal = (props: ShareProps) => {
 		return RouterPathProvider.parsePath(logicPath);
 	}, [path]);
 
-	const domain = CatalogPropsService.value;
+	const sourceName = useCatalogPropsStore((state) => state.data?.sourceName);
 	const legend: string = isArticle ? t("share.name.article") : t("share.name.catalog");
 
 	const onOpenChange = (open: boolean) => {
@@ -76,7 +76,7 @@ const ShareModal = (props: ShareProps) => {
 								<p>
 									<span
 										dangerouslySetInnerHTML={{
-											__html: t("share.desc").replace("{{domain}}", domain.sourceName),
+											__html: t("share.desc").replace("{{domain}}", sourceName),
 										}}
 									/>
 								</p>

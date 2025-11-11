@@ -1,6 +1,6 @@
+import FormSkeleton from "@components/Atoms/FormSkeleton";
 import Icon from "@components/Atoms/Icon";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
 import { useCatalogPropsEditorActions } from "@ext/catalog/actions/propsEditor/logic/useCatalogPropsEditorActions";
 import { useOpenExternalGitSourceButton } from "@ext/catalog/actions/propsEditor/logic/useOpenExternalGitSourceButton";
@@ -10,6 +10,7 @@ import UploadArticleIcon from "@ext/markdown/elements/icon/edit/components/Uploa
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
+import { Description } from "@ui-kit/Description";
 import { Divider } from "@ui-kit/Divider";
 import { Form, FormFooter, FormHeader, FormSectionTitle, FormStack } from "@ui-kit/Form";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
@@ -22,8 +23,7 @@ import type { CatalogSettingsModalProps, FormData, FormProps } from "../logic/cr
 import { createFormSchema } from "../logic/createFormSchema";
 import { EditBasicProps, EditDisplayProps, EditExtendedProps } from "./Sections";
 import UploadCatalogLogo from "./UploadCatalogLogo";
-import { Description } from "@ui-kit/Description";
-import FormSkeleton from "@components/Atoms/FormSkeleton";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 	const { modalContentProps, onSubmit: onSubmitParent, onClose, startUpdatingProps } = props;
@@ -33,10 +33,10 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 		useCatalogPropsEditorActions(onClose);
 	const { inputRef } = usePreventAutoFocusToInput(open);
 
-	const { workspaceGroups, cardColors, languages, syntaxes } = useFormSelectValues();
+	const { cardColors, languages, syntaxes } = useFormSelectValues();
 
-	const catalogProps = CatalogPropsService.value;
-	const { sourceType } = getPartGitSourceDataByStorageName(catalogProps.sourceName);
+	const sourceName = useCatalogPropsStore((state) => state.data?.sourceName);
+	const { sourceType } = getPartGitSourceDataByStorageName(sourceName);
 
 	const { gitButtonProps } = useOpenExternalGitSourceButton(useCallback(() => setOpen(false), [setOpen]));
 	const { confirmChanges } = CatalogLogoService.value();
@@ -104,12 +104,7 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 
 										<Divider />
 										<FormSectionTitle children={t("forms.catalog-edit-props.section.display")} />
-										<EditDisplayProps
-											form={form}
-											formProps={formProps}
-											cardColors={cardColors}
-											workspaceGroups={workspaceGroups}
-										/>
+										<EditDisplayProps formProps={formProps} cardColors={cardColors} />
 
 										<UploadCatalogLogo formProps={formProps} form={form} />
 

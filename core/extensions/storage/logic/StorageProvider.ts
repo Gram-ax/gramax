@@ -120,6 +120,12 @@ export default class StorageProvider {
 		await GitStorage.cancel(progress.cancelToken, fs, path);
 	}
 
+	disposeCloneProgress(absolutePath: Path) {
+		assert(absolutePath);
+		const id = absolutePath.toString();
+		SharedCloneProgressManager.instance.disposeProgress(id);
+	}
+
 	getCloneProgress(absolutePath: Path): RemoteProgress {
 		assert(absolutePath);
 
@@ -140,35 +146,42 @@ export default class StorageProvider {
 		if (!SharedCloneProgressManager.instance.hasSavedAsInProgress(possibleId)) return;
 
 		const id = XxHash.hasher().hash(possibleId).finalize();
+		const hasCancelToken = cancelTokens.some((e) => e === id);
+		const isBrowser = getExecutingEnvironment() === "browser";
 
-		if (!cancelTokens.some((e) => e === id) || getExecutingEnvironment() === "browser") return;
+		if (!hasCancelToken && !isBrowser) {
+			SharedCloneProgressManager.instance.removeAsInProgress(possibleId);
+			return;
+		}
 
 		const progress = SharedCloneProgressManager.instance.createProgress(possibleId, false);
 
+		const resetCloningFlags = () => {
+			delete initProps.isCloning;
+			delete initProps.cloneCancelDisabled;
+			delete initProps.redirectOnClone;
+		};
+
 		progress.onDone((p) => {
 			SharedCloneProgressManager.instance.removeAsInProgress(possibleId);
+			resetCloningFlags();
 			if (p.type === "error") void workspace.removeCatalog(path.toString(), true);
 			if (p.type === "finish" && p.data.isCancelled) void workspace.removeCatalog(path.toString(), false);
 		});
 
-		if (cancelTokens.some((e) => e === id)) {
+		if (isBrowser) {
+			initProps.isCloning = true;
+			initProps.cloneCancelDisabled = true;
+			progress.startEventWaitTimer(3000);
+			return;
+		}
+
+		if (hasCancelToken) {
 			initProps.isCloning = true;
 			progress.disableTimer();
 			progress.withCancelToken(id);
 			progress[id] = progress.setProgress.bind(progress);
-
-			return;
 		}
-
-		if (getExecutingEnvironment() === "browser") {
-			initProps.isCloning = true;
-			initProps.cloneCancelDisabled = true;
-			progress.startEventWaitTimer(3000);
-
-			return;
-		}
-
-		SharedCloneProgressManager.instance.removeAsInProgress(possibleId);
 	}
 
 	cleanupProgressCache(fs: FileStructure, entries: Path[]) {

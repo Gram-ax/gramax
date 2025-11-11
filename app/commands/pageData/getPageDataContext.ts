@@ -2,10 +2,11 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
 import getClientPermissions from "@ext/enterprise/utils/getClientPermissions";
+import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import UserInfo from "@ext/security/logic/User/UserInfo";
+import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import { getEnabledFeatures } from "@ext/toggleFeatures/features";
 import Application from "../../types/Application";
-import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 
 type GetPageDataContext = (args: {
 	ctx: Context;
@@ -27,10 +28,14 @@ const getPageDataContext: GetPageDataContext = async ({ ctx, app, isArticle, use
 		conf.portalAi.enabled || app.adp.getEditorAiData(ctx, workspace?.path() ?? "").apiUrl,
 	);
 
+	let sourceDatas: SourceData[] = [];
+	try {
+		sourceDatas = app.rp.getSourceDatas(ctx, workspace?.path());
+	} catch (error) {
+		console.error(error);
+	}
 	const isEnterprise = !!enterpriseConfig.gesUrl;
-	const isUnauthorized =
-		isEnterprise &&
-		!getEnterpriseSourceData(app.rp.getSourceDatas(ctx, workspace?.path()), enterpriseConfig.gesUrl);
+	const isUnauthorized = isEnterprise && !getEnterpriseSourceData(sourceDatas, enterpriseConfig.gesUrl);
 
 	const isGesUnauthorized = isEnterprise && isUnauthorized && isBrowser;
 	if (isGesUnauthorized) isArticle = false;

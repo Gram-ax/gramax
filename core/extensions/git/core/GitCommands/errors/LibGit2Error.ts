@@ -34,6 +34,7 @@ export const fromRaw = (klass: number, code: number, message: string, command?: 
 			return GitErrorCode.MergeConflictError;
 
 		case eq(12, 19):
+		case eq(12, 21):
 			return GitErrorCode.GitPushError;
 
 		case eq(4, 4):

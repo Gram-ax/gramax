@@ -4,7 +4,9 @@ import { env } from "@app/resolveModule/env";
 import Path from "@core/FileProvider/Path/Path";
 import { downloadZipArchive } from "@core/FileProvider/utils/createZipArchive";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import BrowserStashCache from "@ext/git/core/BrowserStashCache/BrowserStashCache";
 import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import GitStash from "@ext/git/core/model/GitStash";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import { LogLevel } from "@ext/loggers/Logger";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
@@ -127,7 +129,17 @@ export const clearGxLock = async () => {
 export const gitAddAll = async (catalogName: string) => {
 	const app = await getApp();
 	const { gvc } = (await app.wm.current().getContextlessCatalog(catalogName)).repo;
-	await gvc.add();
+	await gvc?.add();
+};
+
+export const gitStashes = (catalogName?: string) => {
+	return catalogName ? BrowserStashCache.getStashCache(catalogName) : BrowserStashCache.getAllStashCaches();
+};
+
+export const gitApplyStash = async (catalogName: string, stashOid: string) => {
+	const app = await getApp();
+	const { gvc } = (await app.wm.current().getContextlessCatalog(catalogName)).repo;
+	await gvc?.applyStash(new GitStash(stashOid));
 };
 
 export const zip = async (catalog: string) => {

@@ -10,15 +10,15 @@ pub struct StdoutExporter<T: Serialize + Send + Sync> {
   _marker: std::marker::PhantomData<T>,
 }
 
-impl<T: Serialize + Send + Sync> StdoutExporter<T> {
-  pub fn new() -> Self {
+impl<T: Serialize + Send + Sync> Default for StdoutExporter<T> {
+  fn default() -> Self {
     Self { _marker: std::marker::PhantomData }
   }
 }
 
 impl<T: Serialize + Send + Sync> AnyMetricExporter<T> {
   pub fn stdout() -> Self {
-    Self::Stdout(StdoutExporter::new())
+    Self::Stdout(StdoutExporter::default())
   }
 }
 

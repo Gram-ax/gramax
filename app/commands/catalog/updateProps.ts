@@ -5,6 +5,7 @@ import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddlewar
 import Context from "@core/Context/Context";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
+import { compareSyntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { Command } from "../../types/Command";
 
 const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEditProps }, ClientCatalogProps> =
@@ -21,7 +22,7 @@ const updateProps: Command<{ ctx: Context; catalogName: string; props: CatalogEd
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return;
-			const isSyntaxChanged = props.syntax && catalog.props.syntax !== props.syntax;
+			const isSyntaxChanged = props.syntax && !compareSyntax(catalog.props.syntax, props.syntax);
 			const newCatalog = await catalog.updateProps(props, resourceUpdaterFactory);
 			if (isSyntaxChanged) await this._commands.catalog.setSyntax.do({ ctx, catalogName });
 

@@ -3,7 +3,6 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
@@ -12,6 +11,7 @@ import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatal
 import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import { useCallback, useEffect, useState } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 type ExtendedCatalogEditProps = CatalogEditProps & {
 	icons: { name: string; content: string; size: number; type: string }[];
@@ -33,7 +33,7 @@ interface UseCatalogPropsEditorActionsReturn {
 
 export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPropsEditorActionsReturn => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const catalogProps = CatalogPropsService.value;
+	const catalogProps = useCatalogPropsStore((state) => state, "shallow");
 	const articleProps = ArticlePropsService.value;
 	const { confirmChanges: confirmCatalogLogoChanges } = CatalogLogoService.value();
 	const router = useRouter();
@@ -45,10 +45,10 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 
 	const getOriginalProps = useCallback(async (): Promise<ExtendedCatalogEditProps> => {
 		const res = await FetchService.fetch(apiUrlCreator.getCustomIconsList());
-		if (!res.ok) return { ...getCatalogEditProps(catalogProps), icons: [] };
+		if (!res.ok) return { ...getCatalogEditProps(catalogProps.data), icons: [] };
 		const icons = (await res.json()) ?? [];
 		return {
-			...getCatalogEditProps(catalogProps),
+			...getCatalogEditProps(catalogProps.data),
 			icons: icons.map((icon: IconEditorProps) => ({
 				name: icon.code,
 				content: icon.svg,
@@ -56,7 +56,7 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 				type: "image/svg+xml",
 			})),
 		};
-	}, [catalogProps, apiUrlCreator]);
+	}, [catalogProps.data, apiUrlCreator]);
 
 	const fetchCatalogNames = useCallback(async () => {
 		try {
@@ -153,7 +153,7 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 				}
 
 				const newCatalogProps = await response.json();
-				CatalogPropsService.value = newCatalogProps;
+				catalogProps.update(newCatalogProps);
 
 				const newPath = buildNewPath(newCatalogProps);
 				router.pushPath(newPath);

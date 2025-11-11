@@ -13,7 +13,7 @@ import {
 import { AlignEnumTypes, TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef } from "react";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -47,6 +47,7 @@ export const TriggerParent = styled.div`
 `;
 
 const PlusMenu = (props: PlusMenuProps) => {
+	const openRef = useRef(false);
 	const { vertical, className, index, getPos, node, editor, tableSheet } = props;
 	const cell = useMemo(() => {
 		if (vertical) return;
@@ -135,7 +136,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 	};
 
 	const onMouseLeave = () => {
-		if (!tableSheet) return;
+		if (!tableSheet || !openRef.current) return;
 		let tr = editor.state.tr.setMeta("removeDecoration", true);
 
 		if (vertical) {
@@ -161,6 +162,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 	};
 
 	const onOpenChange = (open: boolean) => {
+		openRef.current = open;
 		if (open) onOpen();
 		else onClose();
 	};

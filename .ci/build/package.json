@@ -1,0 +1,15 @@
+{
+	"name": "build",
+	"module": "src/index.ts",
+	"type": "module",
+	"private": true,
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.8.3"
+	},
+	"dependencies": {
+		"yocto-spinner": "^1.0.0"
+	}
+}

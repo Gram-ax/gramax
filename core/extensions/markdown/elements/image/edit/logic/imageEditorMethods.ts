@@ -46,7 +46,8 @@ export const getCroppedCanvas = async (
 	if (context) {
 		const image = new Image();
 		const buffer = originalBuffer || null;
-		image.src = buffer ? "data:" + resolveFileKind(buffer) + ";base64," + buffer.toString("base64") : realSrc;
+		const type = resolveFileKind(buffer);
+		image.src = buffer ? "data:" + type + ";base64," + buffer.toString("base64") : realSrc;
 
 		return new Promise((resolve) => {
 			image.onload = () => {
@@ -60,7 +61,7 @@ export const getCroppedCanvas = async (
 
 				context.drawImage(image, x, y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
-				canvas.toBlob((blob) => resolve(blob), "image/png");
+				canvas.toBlob((blob) => resolve(blob), resolveFileKind(buffer));
 			};
 		});
 	}

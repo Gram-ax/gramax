@@ -67,6 +67,7 @@ const PropertyButtons = (props: PropertyButtonsProps) => {
 			<DropdownMenuRadioGroup
 				value={props.value?.[0]}
 				onValueChange={props.onChange}
+				indicatorIconPosition="start"
 				onSelect={(event) => {
 					if (props.options?.closeOnSelect) event.preventDefault();
 				}}

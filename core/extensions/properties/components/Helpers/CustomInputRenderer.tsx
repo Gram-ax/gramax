@@ -31,7 +31,11 @@ const CalendarInput = (props: InputProps<Date>) => {
 			onSelect={onSelect}
 			mode="single"
 			defaultMonth={selectedValue}
-			className="border-0 shadow-none"
+			className="border-0 shadow-none bg-transparent"
+			classNames={{
+				dropdown_root:
+					"has-focus:border-ring has-focus:ring-ring/50 has-focus:ring-[3px] shadow-xs relative rounded-md border border-input text-foreground",
+			}}
 		/>
 	);
 };

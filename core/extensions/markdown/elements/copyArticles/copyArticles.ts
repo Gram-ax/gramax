@@ -1,5 +1,4 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { copyArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { Editor, Extension } from "@tiptap/core";
@@ -9,6 +8,8 @@ import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 import { EditorView } from "prosemirror-view";
 import { Fragment } from "prosemirror-model";
 import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
+import { copy } from "@ext/markdown/elements/copyArticles/handlers/copy";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 
 const mapFragment = (fragment: Fragment, transform: (node: Node) => Node) => {
 	const mapContent = (content: Fragment) => {
@@ -63,6 +64,7 @@ const selectNodes = (editor: Editor): boolean => {
 };
 
 interface CopyArticlesOptions {
+	articleProps: ClientArticleProps;
 	apiUrlCreator: ApiUrlCreator;
 	resourceService: ResourceServiceType;
 }
@@ -72,6 +74,7 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 
 	addOptions() {
 		return {
+			articleProps: null,
 			apiUrlCreator: null,
 			resourceService: null,
 		};
@@ -94,11 +97,13 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 					handleDOMEvents: {
 						copy: (view: EditorView, event: ClipboardEvent) => {
 							event.preventDefault();
-							copyArticleResource(view, event, this.options.resourceService);
+							copy(view, event, this.options.articleProps, this.options.resourceService);
 						},
 						cut: (view: EditorView, event: ClipboardEvent) => {
 							event.preventDefault();
-							copyArticleResource(view, event, this.options.resourceService, view.editable);
+							copy(view, event, this.options.articleProps, this.options.resourceService, {
+								cut: view.editable,
+							});
 						},
 					},
 					transformPastedHTML(html) {

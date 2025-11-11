@@ -2,9 +2,9 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { Router } from "@core/Api/Router";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
-import { pasteArticleResource } from "@ext/markdown/elements/copyArticles/copyPasteArticleResource";
+import { paste } from "@ext/markdown/elements/copyArticles/handlers/paste";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
@@ -31,23 +31,28 @@ export type EditorPasteHandler = (
 	slice: Slice,
 	apiUrlCreator: ApiUrlCreator,
 	articleProps: ClientArticleProps,
+	catalogProps: ClientCatalogProps,
 ) => boolean | void;
 
 export interface EditorData {
+	commentEnabled: boolean;
 	lastUsedHighlightColor: HIGHLIGHT_COLOR_NAMES;
 }
 
 export type EditorDataKey = keyof EditorData;
-export type EditorDataValue = EditorData[EditorDataKey];
 
 export default abstract class EditorService {
 	private static _editor: Editor;
 	private static _data: EditorData = {
+		commentEnabled: false,
 		lastUsedHighlightColor: null,
 	};
 
 	public static bindEditor(editor: Editor) {
 		this._editor = editor;
+		const commentExtension = editor.options.extensions.find((ext) => ext.name === "comment");
+		if (!commentExtension) return this.setData("commentEnabled", false);
+		this.setData("commentEnabled", commentExtension.options.enabled);
 	}
 
 	public static getEditor(): Editor {
@@ -66,12 +71,12 @@ export default abstract class EditorService {
 	}
 
 	public static createHandlePasteCallback(resourceService: ResourceServiceType): EditorPasteHandler {
-		return (view, event, _slice, apiUrlCreator, articleProps) => {
+		return (view, event, _slice, apiUrlCreator, articleProps, catalogProps) => {
 			if (!event.clipboardData) return false;
 			if (event.clipboardData.files.length !== 0)
 				return imageHandlePaste(view, event, articleProps.fileName, resourceService);
 
-			return pasteArticleResource({ view, event, apiUrlCreator, resourceService });
+			return paste({ view, event, apiUrlCreator, resourceService, catalogProps });
 		};
 	}
 
@@ -107,11 +112,11 @@ export default abstract class EditorService {
 		};
 	}
 
-	public static setData(key: EditorDataKey, value: EditorDataValue) {
+	public static setData<K extends EditorDataKey>(key: K, value: EditorData[K]) {
 		this._data[key] = value;
 	}
 
-	public static getData(key: EditorDataKey): EditorDataValue {
+	public static getData<K extends EditorDataKey>(key: K): EditorData[K] {
 		return this._data?.[key];
 	}
 

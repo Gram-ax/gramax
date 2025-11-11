@@ -113,4 +113,5 @@ export interface GcOptions {
   packFilesLimit: number | null
 }
 export declare function gc(repoPath: string, opts: GcOptions): Promise<unknown>
+export declare function healthcheck(repoPath: string): Promise<unknown>
 export declare function get_all_cancel_tokens(): Output

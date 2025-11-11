@@ -6,7 +6,7 @@ import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component
 import { Description } from "@ui-kit/Description";
 import { Button } from "@ui-kit/Button";
 import CloudModalBody from "@ext/static/components/CloudModalBody";
-import getCatalogUrl from "@ext/static/utils/cloudUrl";
+import useGetCatalogCloudUrl from "@ext/static/utils/cloudUrl";
 
 interface UploadCloudComponentProps {
 	onUpload?: () => void;
@@ -14,7 +14,7 @@ interface UploadCloudComponentProps {
 
 const UploadCloud = ({ onUpload }: UploadCloudComponentProps) => {
 	const { cloudApi, checkClientName, catalogVersion } = CloudStateService.value;
-	const url = getCatalogUrl();
+	const url = useGetCatalogCloudUrl();
 
 	const onClickLogOut = async () => {
 		await cloudApi.signOut();

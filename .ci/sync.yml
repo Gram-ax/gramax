@@ -1,0 +1,10 @@
+sync-with-github:
+  stage: sync
+  image: gitlab.ics-it.ru:4567/devops/oci-images:docker-latest
+  tags:
+    - kubernetes01-gramax
+  script:
+    - ./.ci/sync/install-trufflehog.sh
+    - ./.ci/sync/sync.sh
+  rules:
+    - if: '$CI_COMMIT_TAG'

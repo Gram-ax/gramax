@@ -4,9 +4,12 @@ import ApiRequest from "../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../logic/Api/ApiResponse";
 import Cookie from "../../cookie/Cookie";
 import User from "./User/User";
+import { EnterpriseConfig } from "@app/config/AppConfig";
 
 export default abstract class AuthManager {
 	protected readonly _COOKIE_USER = "user";
+
+	constructor(protected _enterpriseConfig: EnterpriseConfig) {}
 
 	abstract getUser(cookie: Cookie, query: any, headers?: ApiRequest["headers"]): Promise<User>;
 	abstract assert(
@@ -32,7 +35,7 @@ export default abstract class AuthManager {
 	}
 
 	protected async _getEnterpriseUser(cookie: Cookie, json: EnterpriseUserJSONData): Promise<EnterpriseUser> {
-		const user = EnterpriseUser.initInJSON(json);
+		const user = EnterpriseUser.initInJSON(json, this._enterpriseConfig);
 		const info = this._getUsersEnterpriseInfo(user, cookie);
 		if (info) user.setEnterpriseInfo(info);
 		await this._updateEnterpriseUser(cookie, user);

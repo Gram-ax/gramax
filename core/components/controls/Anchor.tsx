@@ -5,6 +5,7 @@ import { useRouter } from "@core/Api/useRouter";
 import { ReactNode } from "react";
 import Icon from "../Atoms/Icon";
 import Link from "../Atoms/Link";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 interface AnchorProps {
 	href: string;
@@ -16,6 +17,7 @@ interface AnchorProps {
 	onClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 	hideExternalLinkIcon?: boolean;
 	hash?: string;
+	isPrint?: boolean;
 }
 
 const Anchor = (Props: AnchorProps) => {
@@ -30,11 +32,14 @@ const Anchor = (Props: AnchorProps) => {
 		const isExternal = props.href?.match(/^\w+:/);
 
 		if (!isExternal) {
+			const logicPath = RouterPathProvider.getLogicPath(props.href);
+			const pdfHref = `#${logicPath}${props.hash ?? ""}`;
+
 			return (
 				<Link
 					onClick={onClick}
 					onMouseEnter={(event) => setLink(event.target as HTMLElement, resourcePath, props.hash)}
-					href={Url.from({ pathname: props.href + (props.hash ?? "") })}
+					href={Url.from({ pathname: !props.isPrint ? props.href + (props.hash ?? "") : pdfHref })}
 				>
 					{children}
 				</Link>

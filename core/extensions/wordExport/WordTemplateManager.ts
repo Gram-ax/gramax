@@ -3,7 +3,7 @@ import { Workspace } from "@ext/workspace/Workspace";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { Buffer } from "buffer";
 
-const WORD_TEMPLATES_DIR = "word";
+export const WORD_TEMPLATES_DIR = "word";
 const WORD_TEMPLATE_FORMATS = ["doc", "dot"];
 
 class WordTemplate {
@@ -47,6 +47,14 @@ export class WordTemplateManager {
 		await this._refreshTemplatesCache(workspace);
 	}
 
+	public static isWordTemplateName(templateName: string): boolean {
+		const lastDotIndex = templateName.lastIndexOf(".");
+		if (lastDotIndex === -1 || lastDotIndex === templateName.length - 1) return false;
+
+		const extension = templateName.substring(lastDotIndex + 1).toLowerCase();
+		return WORD_TEMPLATE_FORMATS.some((prefix) => extension.startsWith(prefix));
+	}
+
 	private _clearCache(workspace: Workspace): void {
 		delete this._templates[workspace.path()];
 	}
@@ -56,13 +64,7 @@ export class WordTemplateManager {
 
 		const templates = (await workspace.getAssets().listFiles(WORD_TEMPLATES_DIR)) || [];
 
-		this._templates[workspace.path()] = templates.filter((template) => {
-			const lastDotIndex = template.lastIndexOf(".");
-			if (lastDotIndex === -1 || lastDotIndex === template.length - 1) return false;
-
-			const extension = template.substring(lastDotIndex + 1).toLowerCase();
-			return WORD_TEMPLATE_FORMATS.some((prefix) => extension.startsWith(prefix));
-		});
+		this._templates[workspace.path()] = templates.filter(WordTemplateManager.isWordTemplateName);
 		return this._templates[workspace.path()];
 	}
 

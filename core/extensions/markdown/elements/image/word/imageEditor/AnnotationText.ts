@@ -35,7 +35,7 @@ class AnnotationText {
 
 		return [
 			new Paragraph({
-				children: [new TextRun(title), ...annotations],
+				children: [new TextRun(title ?? ""), ...annotations],
 				style: WordFontStyles.pictureTitle,
 				indent,
 			}),

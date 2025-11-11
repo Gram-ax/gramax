@@ -1,4 +1,5 @@
 import ReformattedSelect from "@components/Select/ReformattedSelect";
+import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
 import useGitCommitAuthors from "@ext/git/actions/Branch/components/useGitCommitAuthors";
 import type { Signature } from "@ext/git/core/model/Signature";
 import t from "@ext/localization/locale/translate";
@@ -25,12 +26,12 @@ const SelectGitCommitAuthors = ({ shouldFetch, approvers, onChange }: SelectGitC
 			createNewLabel={`${t("git.merge.add-user")} {search}`}
 			required
 			values={approvers?.map((approver) => ({
-				value: `${approver.name} <${approver.email}>`,
-				label: `${approver.name} <${approver.email}>`,
+				value: AuthorInfoCodec.serialize(approver),
+				label: AuthorInfoCodec.serialize(approver),
 			}))}
 			options={authors?.map((author) => ({
-				value: `${author.name} <${author.email}>`,
-				label: `${author.name} <${author.email}>`,
+				value: AuthorInfoCodec.serialize(author),
+				label: AuthorInfoCodec.serialize(author),
 				name: author.name,
 				email: author.email,
 			}))}

@@ -3,7 +3,6 @@ import { getConfig } from "@app/config/AppConfig";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { DirectoryInfoBasic } from "@app/resolveModule/fscall/static";
 import Application from "@app/types/Application";
-import FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import StaticRenderer from "./StaticRenderer";
@@ -12,11 +11,10 @@ import { HtmlData } from "./ArticleTypes";
 import { STORAGE_DIR_NAME } from "@app/config/const";
 import { dirname } from "path";
 import { joinTitles } from "@core-ui/getPageTitle";
-import CliUserError from "./CliUserError";
-import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
-import { InitialDataKeys } from "./initialDataUtils";
-
-export type StaticFileProvider = Pick<FileProvider, "write" | "copy" | "mkdir">;
+import { InitialDataKeys, StaticConfig } from "./initialDataUtils/types";
+import StaticContentCopier, { CopyTemplatesFunction, StaticFileProvider } from "./StaticContentCopier";
+import generateStaticSeo from "./StaticSeoGenerator";
+import { getRawEnabledFeatures } from "@ext/toggleFeatures/features";
 
 const htmlTags = {
 	base: "<!--base-tag-->",
@@ -28,30 +26,49 @@ const htmlTags = {
 	styles: "<!--app-styles-->",
 };
 
+const CUSTOM_STYLE_FILENAME = "styles.css";
+const CUSTOM_STYLE_LINK_ID = "custom-style-link";
+
 const isBrowser = getExecutingEnvironment() === "browser";
+
+interface StaticSiteGenerationOptions {
+	baseUrl?: string;
+	customStyles?: string;
+	copyTemplate?: {
+		copyWordTemplatesFunction?: CopyTemplatesFunction;
+		copyPdfTemplatesFunction?: CopyTemplatesFunction;
+	};
+}
 
 class StaticSiteBuilder {
 	constructor(private _fp: StaticFileProvider, private _app: Application, private _html: string) {}
 	static readonly readonlyDir = "../bundle";
 
-	async generate(catalog: Catalog, targetDir: Path) {
+	async generate(catalog: Catalog, targetDir: Path, options: StaticSiteGenerationOptions = {}) {
+		const { copyTemplate, customStyles, baseUrl } = options;
 		const catalogName = catalog.name;
 
-		const directoryTree = await logStepWithErrorSuppression("Copying directory", () =>
-			this._copyDir(catalog, targetDir),
-		);
+		const directoryCopier = new StaticContentCopier(this._fp, this._app);
+		await logStepWithErrorSuppression("Copying directory", () => directoryCopier.copyCatalog(catalog, targetDir));
+		const { directoryTree, wordTemplates, pdfTemplates } = await directoryCopier.copyWordTemplates(copyTemplate);
 
 		const { rendered, searchDirectoryTree } = await logStepWithErrorSuppression(
 			"Rendering HTML pages",
 			async () => {
 				return {
-					rendered: await new StaticRenderer(this._app).render(catalogName),
+					rendered: await new StaticRenderer(this._app, { wordTemplates, pdfTemplates }).render(catalogName),
 					searchDirectoryTree: await this._createSearchIndexes(catalog, targetDir),
 				};
 			},
 		);
 
 		directoryTree.children.push(searchDirectoryTree);
+
+		if (customStyles) {
+			await this._fp.write(targetDir.join(new Path([catalogName, CUSTOM_STYLE_FILENAME])), customStyles);
+			const customStyleLinkTag = this._createCustomStyleLinkTag(catalogName);
+			this._html = this._html.replace(htmlTags.styles, customStyleLinkTag + "\n" + htmlTags.styles);
+		}
 
 		await this._fp.write(
 			targetDir.join(new Path([catalogName, "data.js"])),
@@ -61,102 +78,9 @@ class StaticSiteBuilder {
 		await logStep("Writing rendered HTML files", () =>
 			this._writingRenderedHtmlFiles(rendered, targetDir, catalogName),
 		);
-	}
 
-	private async _copyDir(catalog: Catalog, targetDir: Path) {
-		const wmPath = this._app.wm.current().path();
-
-		const directoryTree: DirectoryInfoBasic = { type: "dir", name: "docs", children: [] };
-
-		const addToDirectoryTree = (path: string) => {
-			const parts = path.split("/");
-			let currentDir = directoryTree;
-			for (let i = 0; i < parts.length - 1; i++) {
-				let nextDir = currentDir.children.find(
-					(child): child is DirectoryInfoBasic => child.type === "dir" && child.name === parts[i],
-				);
-				if (!nextDir) {
-					nextDir = { type: "dir", name: parts[i], children: [] };
-					currentDir.children.push(nextDir);
-				}
-				currentDir = nextDir;
-			}
-			currentDir.children.push({ type: "file", name: parts[parts.length - 1] });
-		};
-
-		const copyFile = async (from: Path, to: Path, fp?: StaticFileProvider) => {
-			const absoluteFrom = new Path(wmPath).join(from);
-			const targetPath = fp ? to : targetDir.join(to);
-			await (fp || this._fp).copy(absoluteFrom, targetPath);
-			addToDirectoryTree(to.value);
-		};
-
-		const copyLogoFile = async (logoProp: string) => {
-			if (!catalog.props[logoProp]) return;
-			await copyFile(
-				catalog.getRootCategoryDirectoryPath().join(new Path(catalog.props[logoProp])),
-				new Path(catalog.name).join(new Path(catalog.props[logoProp])),
-			);
-		};
-
-		const ctx = await this._app.contextFactory.fromBrowser({
-			language: "",
-		});
-		const sp = this._app.sitePresenterFactory.fromContext(ctx);
-		await sp.parseAllItems(catalog);
-
-		const items = catalog.getContentItems();
-
-		for (const i of items) {
-			if (!(await i.parsedContent.read()))
-				throw new CliUserError(`Failed to parse ${new Path(wmPath).join(i.ref.path).value}`);
-		}
-
-		const folderPath = catalog.getRootCategory().folderPath.value;
-		const fp = this._app.wm.current().getFileProvider();
-
-		const docroot = catalog.getRootCategoryRef().path;
-		if (await fp.exists(docroot)) {
-			await copyFile(docroot, new Path(catalog.name).join(new Path(docroot.value.replace(folderPath, ""))));
-			await copyLogoFile("logo");
-			await copyLogoFile("logo_dark");
-		}
-
-		const zipFileProvider = await ZipFileProvider.create();
-
-		await catalog.getItems().forEachAsync(async (item) => {
-			const itemPath = item.ref.path;
-			const targetArticlePath = new Path(catalog.name).join(new Path(itemPath.value.replace(folderPath, "")));
-			await copyFile(itemPath, targetArticlePath, zipFileProvider);
-		});
-
-		const buffer = await zipFileProvider.zip.generateAsync({
-			type: "nodebuffer",
-			compression: "DEFLATE",
-			compressionOptions: { level: 9 },
-		});
-		await this._fp.write(targetDir.join(new Path([catalog.name, ".zip"])), buffer);
-
-		const snippetsPaths = await catalog.customProviders.snippetProvider.getSnippetsPaths();
-		await snippetsPaths.forEachAsync(async (path) => {
-			const targetPath = new Path(catalog.name).join(new Path(path.value.replace(folderPath, "")));
-			await copyFile(path, targetPath);
-		});
-
-		await catalog.customProviders.iconProvider.getIconsPaths().forEachAsync(async (path) => {
-			const targetPath = new Path(catalog.name).join(new Path(path.value.replace(folderPath, "")));
-			await copyFile(path, targetPath);
-		});
-		await items.forEachAsync(async (item) => {
-			const resources = await item.parsedContent.read();
-			const rm = resources.resourceManager;
-			await rm.resources.forEachAsync(async (r) => {
-				const absolutePath = rm.getAbsolutePath(new Path(decodeURIComponent(r.value)));
-				const targetPath = new Path(catalog.name).join(new Path(absolutePath.value.replace(folderPath, "")));
-				await copyFile(absolutePath, targetPath);
-			});
-		});
-		return directoryTree;
+		if (baseUrl)
+			await logStep("Creating sitemap.xml & robots.txt", () => this._writeSEOFiles(baseUrl, catalog, targetDir));
 	}
 
 	private _createSearchIndexes = async (catalog: Catalog, targetDir: Path) => {
@@ -187,6 +111,7 @@ class StaticSiteBuilder {
 	private _writingRenderedHtmlFiles = async (htmlDatas: HtmlData[], targetDir: Path, catalogName: string) => {
 		const config = getConfig();
 		config.isReadOnly = true;
+		(config as StaticConfig).features = getRawEnabledFeatures();
 
 		const templateHtml = this._html
 			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ` + (JSON.stringify(config) ?? "{}"))
@@ -233,6 +158,15 @@ class StaticSiteBuilder {
 		for (const htmlData of htmlDatas) await generateHtmlFile(htmlData);
 	};
 
+	private async _writeSEOFiles(baseUrl: string, catalog: Catalog, targetDir: Path) {
+		const sanitizeBaseUrl = baseUrl.trim().replace(/\/+$/, "");
+		const workspace = this._app.wm.current();
+		const SEOFiles = await generateStaticSeo(sanitizeBaseUrl, catalog, workspace);
+		await SEOFiles.mapAsync(async ({ content, name }) => {
+			await this._fp.write(targetDir.join(new Path(isBrowser ? [catalog.name, name] : name)), content);
+		});
+	}
+
 	private _escapeDollars(str: string) {
 		return str.replaceAll("$$", "$$$$$$$$");
 	}
@@ -247,6 +181,10 @@ class StaticSiteBuilder {
 		<meta http-equiv="refresh" content="0;url=./${catalogName}">
 	</head>
 	</html>`;
+	}
+
+	private _createCustomStyleLinkTag(catalogName: string) {
+		return `<link id="${CUSTOM_STYLE_LINK_ID}" rel="stylesheet" crossorigin href="${catalogName}/${CUSTOM_STYLE_FILENAME}">`;
 	}
 }
 

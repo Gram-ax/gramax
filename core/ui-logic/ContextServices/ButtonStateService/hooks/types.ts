@@ -5,8 +5,14 @@ import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import { Selection } from "@tiptap/pm/state";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import DiagramType from "@core/components/Diagram/DiagramType";
+import { editName as questionEditName } from "@ext/markdown/elements/question/consts";
 
-export type Attrs = { level: Level; notFirstInList?: boolean; type?: Exclude<NoteType, "hotfixes">; diagramName?: DiagramType };
+export type Attrs = {
+	level: Level;
+	notFirstInList?: boolean;
+	type?: Exclude<NoteType, "hotfixes">;
+	diagramName?: DiagramType;
+};
 
 export type NodeType =
 	| "html"
@@ -32,7 +38,8 @@ export type NodeType =
 	| "code_block"
 	| "inline-property"
 	| typeof blockFieldEditName
-	| typeof blockPropertyEditName;
+	| typeof blockPropertyEditName
+	| typeof questionEditName;
 
 export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment" | "s" | "highlight";
 

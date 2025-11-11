@@ -48,11 +48,16 @@ gramax-cli build --source <path> --destination <path> [--skip-check]
 
 #### **Options**
 
-| Option              | Description                                                   | Default                   |
-| ------------------- | ------------------------------------------------------------- | ------------------------- |
-| `--source, -s`      | Path to the source directory created using the Gramax editor. | Current working directory |
-| `--destination, -d` | Path where the generated static site will be saved.           | `./build`                 |
-| `--skip-check`      | Skips validation checks during the build process.             | `false`                   |
+| Option                     | Description                                                    | Default                   |
+| -------------------------- | -------------------------------------------------------------- | ------------------------- |
+| `--source, -s`             | Path to the source directory created using the Gramax editor.  | Current working directory |
+| `--destination, -d`        | Path where the generated static site will be saved.            | `./build`                 |
+| `--skip-check`             | Skip the check process.                                        | `false`                   |
+| `--force-ui-lang-sync, -l` | Use UI language same as content language if available.         | `false`                   |
+| `--features, -f`           | Enable specific features for the build (comma-separated list). | Not specified             |
+| `--custom-css, -cc`        | Path to CSS file to include in the build.                      | Not specified             |
+| `--docx-templates, -dt`    | Path or glob pattern to DOCX templates for document export.    | Not specified             |
+| `--base-url`               | Base site URL for sitemap.xml and robots.txt.                  | Not specified             |
 
 #### **Configuration**
 
@@ -72,6 +77,10 @@ build:
             siteId: 1
             matomoUrl: "https://example.com/matomo"
             matomoContainerUrl: "https://example.com/container"
+    forceUiLangSync: true
+    features:
+        - filtered-catalog
+        - export-pdf
 ```
 
 **Environment Variable Overrides:**
@@ -87,6 +96,10 @@ build:
 -   `MATOMO_URL`
 
 -   `MATOMO_CONTAINER_URL`
+
+-   `FORCE_UI_LANG_SYNC`
+
+-   `FEATURES` (comma-separated list)
 
 #### **Example**
 
@@ -121,7 +134,7 @@ gramax-cli check --destination ./catalog --output ./error-log.txt
 
 ### **Export Command**
 
-The `export` command exports the specified catalog directory to a document format (docx or pdf).
+The `export` command exports the specified catalog directory to a document format (docx, pdf, or beta-pdf).
 
 ```shell
 gramax-cli export --source <path> --output <path> [--format <format>] [--yes]
@@ -133,9 +146,12 @@ gramax-cli export --source <path> --output <path> [--format <format>] [--yes]
 | ---------------- | --------------------------------------------------------------------------------------------------- | ------------------------- |
 | `--source, -s`   | Path to the catalog directory for export.                                                           | Current working directory |
 | `--output, -o`   | Path where the generated file will be saved.                                                        | `./export`                |
-| `--format, -f`   | Export format: docx or pdf.                                                                         | `docx`                    |
+| `--format, -f`   | Export format: docx, pdf, or beta-pdf.                                                              | `docx`                    |
 | `--yes, -y`      | Skip confirmation.                                                                                  | `false`                   |
-| `--template, -t` | Path to a template file, or template name from the workspace of the catalog (only for docx export). | Not specified             |
+| `--template, -t` | Path to a template file, or template name from the workspace of the catalog (applies to docx and beta-pdf formats). | Not specified             |
+| `--pdf-title`    | Add a title page (only for 'beta-pdf' format).                                                      | `false`                   |
+| `--pdf-toc`      | Add a table of contents (only for 'beta-pdf' format).                                               | `false`                   |
+| `--pdf-number`   | Add heading numbering (only for 'beta-pdf' format).                                                 | `false`                   |
 
 #### **Example**
 

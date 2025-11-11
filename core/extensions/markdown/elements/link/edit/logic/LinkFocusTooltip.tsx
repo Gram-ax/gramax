@@ -1,3 +1,4 @@
+import Tooltip from "@components/Atoms/Tooltip";
 import LinkTitleContextService from "@core-ui/ContextServices/LinkTitleTooltip";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
 import getFirstPatentByName from "@core-ui/utils/getFirstPatentByName";
@@ -6,15 +7,14 @@ import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
+import { Instance, Props } from "tippy.js";
 import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
-import LinkItem from "../../../../../artilce/LinkCreator/models/LinkItem";
+import LinkItem from "../../../../../article/LinkCreator/models/LinkItem";
 import getFocusMark from "../../../../elementsUtils/getFocusMark";
 import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import LinkMenu from "../components/LinkMenu";
-import { Instance, Props } from "tippy.js";
-import Tooltip from "@components/Atoms/Tooltip";
 
 let callbackLink: () => void;
 

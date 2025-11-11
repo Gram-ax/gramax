@@ -3,19 +3,19 @@ import CardBroken from "@components/HomePage/CardParts/CardBroken";
 import CardError, { useCardError } from "@components/HomePage/CardParts/CardError";
 import CardCloneProgress from "@components/HomePage/CardParts/CloneProgress";
 import useGetCatalogTitleLogo from "@components/HomePage/Cards/useGetCatalogTitleLogo";
+import { classNames } from "@components/libs/classNames";
 import Url from "@core-ui/ApiServices/Types/Url";
+import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useRemoteProgress from "@ext/git/actions/Clone/logic/useRemoteProgress";
 import CatalogFetchNotification from "@ext/git/actions/Fetch/CatalogFetchNotification";
 import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { OverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "ics-ui-kit/components/card";
 import { ProgressBlockTemplate } from "ics-ui-kit/components/progress";
 import { useEffect, useState } from "react";
 import Link from "../Atoms/Link";
-import { OverflowTooltip } from "@ui-kit/Tooltip";
-import { classNames } from "@components/libs/classNames";
 
 interface CardProps {
 	link: CatalogLink;
@@ -28,8 +28,10 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 	const [isCancel, setIsCancel] = useState(false);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
 
+	const workspace = Workspace.current()?.path;
+
 	const { isNext, isStatic } = usePlatform();
-	const logo = useGetCatalogTitleLogo(link.name);
+	const logo = useGetCatalogTitleLogo(link.name, [workspace]);
 	const { isCloning, progress, error, start } = useRemoteProgress(
 		link.name,
 		link.redirectOnClone,
@@ -75,7 +77,7 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 			</CardSubTitle>
 			{!isLoading && !isCloning && !isError && <CardActions catalogLink={link} />}
 			<CardFooter className={`flex ${renderLogo ? "mr-14" : ""}`}>
-				{!isLoading && !isError && <CatalogFetchNotification catalogLink={link} />}
+				{!isLoading && !isError && !isCloning && <CatalogFetchNotification catalogLink={link} />}
 				{isLoading && !isCancel && (
 					<div className="w-full" style={{ marginBottom: "-4px" }}>
 						<ProgressBlockTemplate indeterminate size="sm" data-qa="loader" />

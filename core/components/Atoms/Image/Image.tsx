@@ -13,6 +13,7 @@ import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditor
 import { useDoubleTap } from "../../../ui-logic/hooks/useDoubleTap";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import Caption from "@components/Atoms/Caption";
 
 interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> {
 	realSrc?: string;
@@ -63,7 +64,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 				onDoubleClick={onDoubleClick}
 				onTouchStart={onTouchStart}
 			/>
-			{title && <em>{title}</em>}
+			{title && <Caption>{title}</Caption>}
 		</>
 	);
 });

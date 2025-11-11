@@ -3,6 +3,7 @@ import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
 import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
+import { HttpMethodsMiddleware } from "@core/Api/middleware/HttpMethodsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 import Path from "@core/FileProvider/Path/Path";
@@ -41,7 +42,21 @@ export default ApplyApiMiddleware(
 		if (mime == MimeTypes.xml || mime == MimeTypes.xls || MimeTypes.xlsx)
 			res.setHeader("Content-Disposition", `attachment; filename=${encodeURIComponent(src)}`);
 
+		if (req.method === "HEAD") {
+			const content = await hashItem.getContent();
+			if (content) {
+				res.setHeader("Content-Length", `${Buffer.byteLength(content, "utf8")}`);
+			}
+			res.end();
+			return;
+		}
+
 		if (hashItem) await apiUtils.sendWithETag(req, res, hashItem, this.app.hashes);
 	},
-	[new MainMiddleware(), new AllowedOriginsMiddleware(), new TokenValidationMiddleware()],
+	[
+		new MainMiddleware(),
+		new AllowedOriginsMiddleware(),
+		new HttpMethodsMiddleware(),
+		new TokenValidationMiddleware(),
+	],
 );

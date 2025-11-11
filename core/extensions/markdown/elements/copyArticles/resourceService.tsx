@@ -5,9 +5,9 @@ import Method from "@core-ui/ApiServices/Types/Method";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import fileNameUtils from "@core-ui/fileNameUtils";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import Path from "@core/FileProvider/Path/Path";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import getArticleFileBrotherNames from "@ext/markdown/elementsUtils/AtricleResource/getAtricleResourceNames";
@@ -59,9 +59,11 @@ type ResourceServiceProps = {
 };
 
 abstract class ResourceService {
+	private static _loadingPromises: Set<Promise<void>> = new Set();
+
 	static Provider({ children, provider, id }: ResourceServiceProps) {
 		const [data, setData] = useState<ResourceData>({});
-		const catalogName = CatalogPropsService.value?.name;
+		const catalogName = useCatalogPropsStore((state) => state.data?.name);
 		const articleProps = ArticlePropsService.value;
 		const apiUrlCreator = ApiUrlCreatorService.value;
 
@@ -153,16 +155,27 @@ abstract class ResourceService {
 			};
 
 			useEffect(() => {
-				if (content) callback(Buffer.from(content));
-				else if (data?.[src]) callback(data[src]);
-				else loadData(src);
+				if (content) {
+					callback(Buffer.from(content));
+					return;
+				}
+
+				if (data?.[src]) {
+					callback(data[src]);
+					return;
+				}
+
+				const loadPromise = loadData(src);
+
+				ResourceService._loadingPromises.add(loadPromise);
+				loadPromise.finally(() => ResourceService._loadingPromises.delete(loadPromise));
 			}, [src, data?.[src], content]);
 		};
 
 		const setResource: SetResource = useCallback(
 			async (name, file, path, force) => {
 				const pathedName = new Path(name);
-				const extension = pathedName.extension;
+				const extension = pathedName.extension?.toLowerCase();
 
 				const names = force ? [] : await getArticleFileBrotherNames(apiUrlCreator, id, provider);
 				const newName = fileNameUtils.getNewName(names, pathedName.name ?? articleProps.fileName, extension);
@@ -219,6 +232,27 @@ abstract class ResourceService {
 
 	static get value(): ResourceServiceType {
 		return useContext(ResourceServiceContext);
+	}
+
+	static async waitForAllLoads(signal?: AbortSignal) {
+		const ensureNotAborted = () => {
+			if (!signal?.aborted) return;
+			const reason = signal.reason ?? new Error("Resource loading aborted");
+			throw reason instanceof Error ? reason : new Error(String(reason));
+		};
+
+		const yieldThread = () =>
+			new Promise<void>((resolve) => {
+				setTimeout(resolve, 0);
+			});
+
+		while (ResourceService._loadingPromises.size) {
+			ensureNotAborted();
+			const pending = Array.from(ResourceService._loadingPromises);
+			await Promise.race([Promise.allSettled(pending), yieldThread()]);
+		}
+
+		ensureNotAborted();
 	}
 }
 

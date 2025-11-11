@@ -1,6 +1,6 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 
-FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.88-slim-bookworm AS build
+FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.91-slim-bookworm AS build
 
 WORKDIR /src
 
@@ -22,8 +22,8 @@ FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/oven/bun:latest AS run
 
 RUN apt-get update && apt-get install -y \
     curl \
-    git \
     unzip \
+    git \
     && rm -rf /var/lib/apt/lists/* 
 
 STOPSIGNAL SIGTERM

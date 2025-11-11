@@ -1,14 +1,11 @@
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import Style from "@components/HomePage/Cards/model/Style";
+import { ContentLanguage } from "@ext/localization/core/model/Language";
 import { tString } from "@ext/localization/locale/translate";
+import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { useMemo } from "react";
 import type { FormSelectValues } from "../logic/createFormSchema";
-import { ContentLanguage } from "@ext/localization/core/model/Language";
-import Style from "@components/HomePage/Cards/model/Style";
-import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 
 export const useFormSelectValues = (): FormSelectValues => {
-	const workspace = WorkspaceService.current();
-
 	const languages = useMemo(
 		() =>
 			Object.keys(ContentLanguage).map((shortLang) => ({
@@ -29,15 +26,6 @@ export const useFormSelectValues = (): FormSelectValues => {
 		[],
 	);
 
-	const workspaceGroups = useMemo(
-		() =>
-			Object.entries(workspace?.sections || workspace?.groups || {}).map(([key, group]) => ({
-				value: key,
-				children: group.title,
-			})),
-		[workspace?.groups, workspace?.sections],
-	);
-
 	const syntaxes = useMemo(
 		() =>
 			Object.values(Syntax).map((syntax) => ({
@@ -47,5 +35,5 @@ export const useFormSelectValues = (): FormSelectValues => {
 		[],
 	);
 
-	return { workspaceGroups, cardColors, languages, syntaxes };
+	return { cardColors, languages, syntaxes };
 };

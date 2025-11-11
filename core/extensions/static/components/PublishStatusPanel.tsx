@@ -6,18 +6,18 @@ import Divider from "@components/Atoms/Divider";
 import Anchor from "@components/controls/Anchor";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import CloudStateService from "@core-ui/ContextServices/CloudState";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { useState } from "react";
 import { classNames } from "@components/libs/classNames";
 import openCloudModal from "@ext/static/components/openCloudModal";
-import getCatalogUrl from "@ext/static/utils/cloudUrl";
+import useGetCatalogCloudUrl from "@ext/static/utils/cloudUrl";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const PublishStatusPanel = ({ className }: { className?: string }) => {
 	if (!CloudStateService.value) return;
 	const { catalogVersion } = CloudStateService.value;
 	if (!catalogVersion) return;
 	const [modalOpen, setModalOpen] = useState(false);
-	const url = getCatalogUrl();
+	const url = useGetCatalogCloudUrl();
 
 	const date = new Date(catalogVersion).toLocaleDateString();
 
@@ -60,7 +60,7 @@ const PublishStatusPanel = ({ className }: { className?: string }) => {
 
 const DeleteButton = ({ className }: { className?: string }) => {
 	const { cloudApi, checkCatalogVersion } = CloudStateService.value;
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 
 	const onClick = async () => {
 		// eslint-disable-next-line @typescript-eslint/await-thenable

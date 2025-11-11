@@ -1,8 +1,7 @@
 import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
 import CommentCountSrc from "@components/Comments/CommentCount";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import CommentCounterService from "@core-ui/ContextServices/CommentCounter";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import TooltipIfOveflow from "@core-ui/TooltipIfOveflow";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
@@ -15,9 +14,9 @@ import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overv
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
 import getUnscopedLogicPath from "@ext/git/core/GitMergeRequest/logic/getUnscopedLogicPath";
 import t from "@ext/localization/locale/translate";
+import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { DiffItem } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-
 import { useCallback, useContext, useRef } from "react";
 
 export type DiffEntryProps = {
@@ -178,8 +177,7 @@ const DiffEntry = ({
 	renderCommentsCount,
 }: DiffEntryProps) => {
 	const { selectedByPath } = useContext(SelectedDiffEntryContext);
-	const comments = CommentCounterService.value;
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 
 	indent = Math.min(Math.max(indent || 0, 0), 10);
 
@@ -204,6 +202,10 @@ const DiffEntry = ({
 	);
 
 	const overflowElement = useRef<HTMLDivElement>(null);
+	const unscopedLogicPath =
+		entry.type === "item" ? getUnscopedLogicPath((entry.rawItem as DiffItem).logicPath, catalogName) : null;
+	const totalCommentsCount = useGetTotalCommentsByPathname(unscopedLogicPath?.value);
+	const commentsCount = renderCommentsCount ? totalCommentsCount : 0;
 
 	if (hidden) return null;
 
@@ -286,11 +288,6 @@ const DiffEntry = ({
 			</>
 		);
 	}
-
-	const unscopedLogicPath = getUnscopedLogicPath((entry.rawItem as DiffItem).logicPath, catalogName);
-	const commentsCount = renderCommentsCount
-		? CommentCounterService.getTotalByPathname(comments, unscopedLogicPath.value)
-		: 0;
 
 	return (
 		<>

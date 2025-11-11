@@ -80,6 +80,8 @@ export const updateCacheClear = () => invoke<void>("update_cache_clear");
 
 export const updateInstallByPath = () => invoke<void>("update_install_by_path");
 
+export const updateResetBytes = () => invoke<void>("update_reset_bytes");
+
 const reloadAll = async () => {
 	const webviews = await getAllWebviews();
 	for (const webview of webviews) setTimeout(() => void webview.emit("reload"), 100);
@@ -92,6 +94,7 @@ Object.assign(window, {
 	updateInstall,
 	updateCacheClear,
 	updateInstallByPath,
+	updateResetBytes,
 	setBadge,
 	reloadAll,
 	restartApp,

@@ -1,26 +1,26 @@
 import CatalogActions from "@components/Actions/CatalogActions";
 import { TextSize } from "@components/Atoms/Button/Button";
+import NotificationIcon from "@components/Layouts/LeftNavigationTabs/NotificationIcon";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import Url from "@core-ui/ApiServices/Types/Url";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
+import PromptService from "@ext/ai/components/Tab/PromptService";
+import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
+import InboxService from "@ext/inbox/components/InboxService";
+import t from "@ext/localization/locale/translate";
+import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
+import TemplateService from "@ext/templates/components/TemplateService";
 import Search from "../../Actions/Modal/Search";
 import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
-import InboxService from "@ext/inbox/components/InboxService";
-import NotificationIcon from "@components/Layouts/LeftNavigationTabs/NotificationIcon";
-import TemplateService from "@ext/templates/components/TemplateService";
-import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
-import PromptService from "@ext/ai/components/Tab/PromptService";
-import t from "@ext/localization/locale/translate";
-import FavoriteService from "@ext/artilce/Favorite/components/FavoriteService";
-import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 
 interface TopBarContentProps {
 	data: ArticlePageData;
@@ -33,8 +33,8 @@ interface TopBarContentProps {
 const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, className }: TopBarContentProps) => {
 	const { logo, cloudServiceUrl } = PageDataContextService.value.conf;
 	const logoImageUrl = logo.imageUrl;
-	const catalogProps = CatalogPropsService.value;
-	const isCatalogExist = !!catalogProps.name;
+	const catalogName = useCatalogPropsStore((state) => state.data.name);
+	const isCatalogExist = !!catalogName;
 	const { isStatic, isStaticCli } = usePlatform();
 	const showHomePageButton = (!(isStatic || isStaticCli) || cloudServiceUrl) && !logoImageUrl;
 

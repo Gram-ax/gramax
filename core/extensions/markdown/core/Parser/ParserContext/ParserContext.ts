@@ -10,6 +10,7 @@ import UiLanguage from "../../../../localization/core/model/Language";
 import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
+import { Question } from "@ext/markdown/elements/question/types";
 
 export default interface ParserContext {
 	getItemByPath(itemPath: Path): Item;
@@ -33,16 +34,21 @@ export default interface ParserContext {
 	formatter: MarkdownFormatter;
 	snippet: Set<string>;
 	icons: Set<string>;
+	questions: Map<string, Question>;
 }
 
 export abstract class BaseContext {
 	private _snippet = new Set<string>();
+	private _questions = new Map<string, Question>();
+	private _icons = new Set<string>();
 
 	get snippet() {
 		return this._snippet;
 	}
 
-	private _icons = new Set<string>();
+	get questions() {
+		return this._questions;
+	}
 
 	get icons() {
 		return this._icons;

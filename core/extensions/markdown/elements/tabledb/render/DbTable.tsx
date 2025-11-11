@@ -15,7 +15,7 @@ interface TableDBProps {
 	className?: string;
 }
 
-const TableDB = ({ object, error, className }: TableDBProps) => {
+export const TableDB = ({ object, error, className }: TableDBProps) => {
 	const lang = LanguageService.currentUi();
 
 	if (error)

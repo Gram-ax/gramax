@@ -3,8 +3,8 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import LinkItemCreator from "@ext/artilce/LinkCreator/logic/LinkItemCreator";
-import type LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
+import LinkItemCreator from "@ext/article/LinkCreator/logic/LinkItemCreator";
+import type LinkItem from "@ext/article/LinkCreator/models/LinkItem";
 
 const getLinkItems: Command<{ ctx: Context; path: Path; catalogName: string }, LinkItem[]> = Command.create({
 	path: "article/features/getLinkItems",

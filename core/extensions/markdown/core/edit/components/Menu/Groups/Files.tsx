@@ -8,9 +8,9 @@ import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import IconMenuButton from "@ext/markdown/elements/icon/edit/components/IconMenuButton";
 import Tooltip from "@components/Atoms/Tooltip";
-import { useState } from "react";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import { useCallback, useState } from "react";
 import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface FilesMenuGroupProps {
 	editor?: Editor;
@@ -24,7 +24,7 @@ const FilesMenuGroup = ({ editor, fileName, isSmallEditor }: FilesMenuGroupProps
 	const video = ButtonStateService.useCurrentAction({ action: "video" });
 	const icon = ButtonStateService.useCurrentAction({ action: "icon" });
 
-	const syntax = CatalogPropsService.value.syntax;
+	const syntax = useCatalogPropsStore((state) => state.data.syntax);
 	const supportedElements = getFormatterType(syntax).supportedElements;
 
 	const isVideoSupported = supportedElements.includes("video");
@@ -35,13 +35,17 @@ const FilesMenuGroup = ({ editor, fileName, isSmallEditor }: FilesMenuGroupProps
 
 	const [isOpen, setIsOpen] = useState(false);
 
+	const handleClose = useCallback(() => {
+		setIsOpen(false);
+	}, []);
+
 	return (
 		<Tooltip
 			onAfterUpdate={(instance) => {
 				if (!isOpen) instance.hide();
 			}}
 			onShow={() => setIsOpen(true)}
-			onHide={() => setIsOpen(false)}
+			onHide={handleClose}
 			arrow={false}
 			interactive
 			distance={8}
@@ -49,10 +53,14 @@ const FilesMenuGroup = ({ editor, fileName, isSmallEditor }: FilesMenuGroupProps
 			content={
 				<ModalLayoutDark>
 					<ButtonsLayout>
-						{!isSmallEditor && <FileMenuButton editor={editor} />}
-						<ImageMenuButton editor={editor} fileName={fileName} />
-						{isVideoSupported && <VideoMenuButton editor={editor} />}
-						{isIconSupported && <IconMenuButton editor={editor} onClose={() => setIsOpen(false)} />}
+						{isOpen && (
+							<>
+								{!isSmallEditor && <FileMenuButton editor={editor} />}
+								<ImageMenuButton editor={editor} fileName={fileName} />
+								{isVideoSupported && <VideoMenuButton editor={editor} />}
+								{isIconSupported && <IconMenuButton editor={editor} onClose={handleClose} />}
+							</>
+						)}
 					</ButtonsLayout>
 				</ModalLayoutDark>
 			}

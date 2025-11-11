@@ -7,8 +7,6 @@ export enum PredefinedAssets {
 	darkHomeIcon = "home_logo_dark.svg",
 }
 
-export const WORD_TEMPLATES_DIR = "word";
-
 export default class WorkspaceAssets {
 	constructor(private readonly _fp: FileProvider) {}
 

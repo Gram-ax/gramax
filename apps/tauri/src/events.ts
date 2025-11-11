@@ -10,6 +10,8 @@ import { getCurrentWebviewWindow, type WebviewWindow } from "@tauri-apps/api/web
 import type { ComponentProps } from "react";
 import TauriCookie from "./cookie/TauriCookie";
 import { attachConsole } from "./logging";
+import { initSpellcheck, toggleSpellcheck } from "./spellcheck";
+import { resetLastUpdateCheck } from "./update/useUpdateChecker";
 import { initZoom } from "./window/zoom";
 
 const subscribeEnterpriseEvents = async (current: WebviewWindow) => {
@@ -18,7 +20,10 @@ const subscribeEnterpriseEvents = async (current: WebviewWindow) => {
 		if (!app?.em) return;
 		ModalToOpenService.setValue<ComponentProps<typeof EditEnterpriseConfig>>(ModalToOpen.EditEnterpriseConfig, {
 			config: app.em.getConfig(),
-			onSave: (config) => void app.em.setConfig(config).then(() => window.location.reload()),
+			onSave: (config) => {
+				void invoke("update_reset_bytes");
+				void app.em.setGesUrl(config).then(() => window.location.reload());
+			},
 		});
 	});
 };
@@ -30,6 +35,7 @@ const initSettings = async () => {
 };
 
 const subscribeEvents = async () => {
+	initSpellcheck();
 	await attachConsole();
 	TauriCookie.onCookieUpdated(
 		async (encoded) => await invoke("set_settings", { data: encoded ? Object.fromEntries(encoded) : {} }),
@@ -43,6 +49,7 @@ const subscribeEvents = async () => {
 		current.listen("on_language_changed", (ev) =>
 			LanguageService.setUiLanguage(UiLanguage[ev.payload as string], true),
 		),
+		current.listen("on_toggle_spellcheck", toggleSpellcheck),
 		current.listen("reload", () => location.reload()),
 		current.listen("refresh", () => void refreshPage()),
 		subscribeEnterpriseEvents(current),

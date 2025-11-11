@@ -59,7 +59,7 @@ const DiagramComponent = (props: NodeViewProps): ReactElement => {
 	};
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElement} props={props} data-float={float}>
+		<NodeViewContextableWrapper ref={hoverElement} props={props} data-float={float} data-drag-handle>
 			<BlockActionPanel
 				isSignature={node.attrs?.title?.length > 0}
 				hoverElementRef={hoverElement}

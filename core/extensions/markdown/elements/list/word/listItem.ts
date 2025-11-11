@@ -127,10 +127,9 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 
 		if (isOfType(childName, ["table", "fence", "note"])) {
 			if (!numberConsumed) {
-				//if first block of list item use 1x2 table wrapper
+				//if first list item is block use 1x2 table wrapper
 				const inner = await state.renderBlock(child, {
 					...restAddOptions,
-					insideTableWrapper: true,
 					maxTableWidth: metrics.rightCellWidth,
 					indent: 0, //only wrapper needs indent
 				});

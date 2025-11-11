@@ -4,7 +4,6 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import useWatch, { useWatchClient } from "@core-ui/hooks/useWatch";
 import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import ThemeService from "@ext/Theme/components/ThemeService";
@@ -12,6 +11,7 @@ import Theme from "@ext/Theme/Theme";
 import { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { useCallback, useRef, useState } from "react";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const useCatalogLogoManager = (catalogPath: string, theme: Theme) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -72,7 +72,7 @@ const useCatalogLogoManager = (catalogPath: string, theme: Theme) => {
 
 export const useCatalogLogo = (catalogPath?: string, successUpdateCallback?: () => void) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const catalogProps = CatalogPropsService.value;
+	const catalogProps = useCatalogPropsStore((state) => state.data);
 
 	const {
 		deleteLogo: deleteDark,

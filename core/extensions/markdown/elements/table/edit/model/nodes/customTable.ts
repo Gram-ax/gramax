@@ -51,9 +51,10 @@ const CustomTable = Table.extend({
 							const oldCellPos = rect.tableStart + rect.map.map[rect.top * rect.map.width + i];
 							const oldCell = tr.doc.nodeAt(oldCellPos);
 							const newCell = tr.doc.nodeAt(newCellPos);
+							if (!oldCell) return;
 							tr.setNodeMarkup(newCellPos, null, {
 								...newCell.attrs,
-								align: oldCell.attrs["align"],
+								align: oldCell.attrs["align"] || "",
 							});
 							newCellPos += cell.nodeSize;
 						});
@@ -81,9 +82,10 @@ const CustomTable = Table.extend({
 								rect.tableStart + rect.map.map[rect.top * rect.map.width + i] + tableRow.nodeSize;
 							const oldCell = tr.doc.nodeAt(oldCellPos);
 							const newCell = tr.doc.nodeAt(newCellPos);
+							if (!oldCell) return;
 							tr.setNodeMarkup(newCellPos, null, {
 								...newCell.attrs,
-								align: oldCell.attrs["align"],
+								align: oldCell.attrs["align"] || "",
 							});
 							newCellPos += cell.nodeSize;
 						});

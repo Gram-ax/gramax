@@ -3,9 +3,10 @@
 	"version": "0.0.0",
 	"type": "commonjs",
 	"scripts": {
-		"test": "cucumber-js -f junit:junit.web.xml -f progress-bar -t \"not @next-only\"",
-		"test:next": "cucumber-js -f junit:junit.next.xml -f progress-bar -t \"@next or @next-only\"",
-		"test:static": "cucumber-js -f junit:junit.static.xml -f progress-bar -t \"@static\"",
+		"test": "cucumber-js -f junit:junit.web.xml -f progress-bar -t \"not @next-only and not @enterprise\"",
+		"test:next": "cucumber-js -f junit:junit.next.xml -f progress-bar -t \"(@next or @next-only) and not @enterprise\"",
+		"test:static": "cucumber-js -f junit:junit.static.xml -f progress-bar -t \"@static and not @enterprise\"",
+		"test:enterprise": "cucumber-js -f junit:junit.enterprise.xml -f progress-bar -t \"@enterprise\"",
 		"dev": "npm --prefix ../apps/browser run dev"
 	},
 	"dependencies": {

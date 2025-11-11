@@ -1,5 +1,4 @@
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { PanelMenu } from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
 import AIGroup from "@ext/markdown/elements/article/edit/helpers/Panels/AIGroup";
@@ -8,6 +7,7 @@ import CommentMenuButton from "@ext/markdown/elements/comment/edit/components/Co
 import FileMenuButton from "@ext/markdown/elements/file/edit/components/FileMenuButton";
 import LinkMenuButton from "@ext/markdown/elements/link/edit/components/LinkMenuButton";
 import { Editor } from "@tiptap/core";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface InlineMenuGroupProps {
 	editor?: Editor;
@@ -17,7 +17,7 @@ interface InlineMenuGroupProps {
 }
 
 const InlineMenuGroup = ({ editor, onClick, isGramaxAiEnabled, setPanel }: InlineMenuGroupProps) => {
-	const syntax = CatalogPropsService.value.syntax;
+	const syntax = useCatalogPropsStore((state) => state.data.syntax);
 	const supportedElements = getFormatterType(syntax).supportedElements;
 	const isCommentSupported = supportedElements.includes("comment");
 

@@ -2,17 +2,17 @@ import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import { useMemo } from "react";
-import CatalogPropsService from "../../../../ui-logic/ContextServices/CatalogProps";
 import getStorageNameByData from "./getStorageNameByData";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const useStorage = (sourceName?: string): SourceData | null => {
 	const sourceDatas = SourceDataService.value;
-	const props = CatalogPropsService.value;
+	const catalogSourceName = useCatalogPropsStore((state) => state.data?.sourceName);
 	return useMemo(() => {
-		const source = sourceName || props?.sourceName;
+		const source = sourceName || catalogSourceName;
 		if (!source) return null;
 		return sourceDatas.find((data) => getStorageNameByData(data) === source);
-	}, [sourceDatas, sourceName, props]);
+	}, [sourceDatas, sourceName, catalogSourceName]);
 };
 
 export const useIsStorageConnected = (): boolean => {
@@ -21,7 +21,8 @@ export const useIsStorageConnected = (): boolean => {
 };
 
 export const useIsRepoOk = (catalogProps?: ClientCatalogProps, checkInvalid = true): boolean => {
-	const props = catalogProps || CatalogPropsService.value;
+	const repositoryError = useCatalogPropsStore((state) => state.data?.repositoryError);
+	const props = catalogProps || { repositoryError };
 	const storage = useStorage();
 	if (!checkInvalid) return !props?.repositoryError;
 	return !!storage && !storage.isInvalid && !props?.repositoryError;

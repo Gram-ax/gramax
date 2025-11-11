@@ -23,7 +23,6 @@ export type ExtendedArticlePageData = StaticArticlePageData & {
 
 export interface InitialArticleData {
 	catalogProps: ClientCatalogProps;
-	articlePageData?: ExtendedArticlePageData;
 	articlesPageData?: ExtendedArticlePageData[];
 	articlePageDataContext: PageDataContext;
 }

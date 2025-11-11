@@ -58,7 +58,17 @@ impl<T: Serialize + Send + Sync> AnyMetricExporter<T> {
 impl<T: Serialize + Send + Sync> MetricExporter<T> for ElasticSearchExporter<T> {
   async fn send(&self, doc: T) -> anyhow::Result<()> {
     let res = self.es_client.index(IndexParts::Index(&self.es_index)).body(doc).send().await?;
-    res.error_for_status_code().context("failed to send metric to elasticsearch")?;
+
+    if !res.status_code().is_success() {
+      let error = format!(
+        "failed to send metric to elasticsearch: status {}; message: {}",
+        res.status_code(),
+        serde_json::to_string_pretty(&res.json::<serde_json::Value>().await?)?
+      );
+
+      return Err(anyhow::anyhow!(error));
+    }
+
     Ok(())
   }
 }

@@ -1,3 +1,7 @@
+import {
+	QuizAnswerCreate,
+	QuizTestCreate,
+} from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
 import UserSettings, { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
@@ -88,7 +92,7 @@ class EnterpriseApi {
 	}
 
 	async isEnabledGetUsers(): Promise<boolean> {
-		const res = await fetch(`${this._gesUrl}/sso/connectors/enabled`);
+		const res = await fetch(`${this._gesUrl}/sso/connectors/enabled`, {});
 		return res.ok && res.status === 200;
 	}
 
@@ -124,7 +128,7 @@ class EnterpriseApi {
 
 	async healthcheckStyleGuide() {
 		try {
-			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/health`);
+			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/health`, {});
 			return res.ok;
 		} catch (e) {
 			return false;
@@ -163,7 +167,10 @@ class EnterpriseApi {
 			},
 			body: JSON.stringify({ oneTimeCode }),
 		});
-		if (!res.ok || res.status !== 200) return;
+		if (!res.ok || res.status !== 200) {
+			console.error("Failed to get token:", res.status);
+			return;
+		}
 
 		return await res.text();
 	}
@@ -207,7 +214,7 @@ class EnterpriseApi {
 				url.searchParams.append("hash", configHash);
 			}
 
-			const res = await fetch(url.toString());
+			const res = await fetch(url.toString(), {});
 
 			if (!res.ok || res.status !== 200) return;
 
@@ -238,6 +245,40 @@ class EnterpriseApi {
 		});
 
 		if (!res.ok) return;
+
+		return await res.json();
+	}
+
+	async existsQuizTest(token: string, testId: string): Promise<boolean> {
+		const res = await fetch(`${this._gesUrl}/enterprise/quiz/test/exist?id=${encodeURIComponent(testId)}`, {
+			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+		});
+
+		if (!res.ok) return false;
+
+		return await res.json();
+	}
+
+	async addQuizTest(token: string, test: QuizTestCreate): Promise<boolean> {
+		const res = await fetch(`${this._gesUrl}/enterprise/quiz/test/add`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+			body: JSON.stringify(test),
+		});
+
+		if (!res.ok) return false;
+
+		return await res.json();
+	}
+
+	async addQuizAnswer(token: string, answer: QuizAnswerCreate): Promise<boolean> {
+		const res = await fetch(`${this._gesUrl}/enterprise/quiz/answer/add`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+			body: JSON.stringify(answer),
+		});
+
+		if (!res.ok) return false;
 
 		return await res.json();
 	}

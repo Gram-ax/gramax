@@ -8,6 +8,7 @@ import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
+import { HttpMethodsMiddleware } from "@core/Api/middleware/HttpMethodsMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
@@ -37,9 +38,19 @@ export default ApplyApiMiddleware(
 		);
 
 		res.setHeader("Content-type", "text/html; charset=utf-8");
-		res.setHeader("Access-Control-Allow-Origin", "*");
+
+		if (req.method === "HEAD") {
+			res.setHeader("Content-Length", `${Buffer.byteLength(htmlContent, "utf8")}`);
+			res.end();
+			return;
+		}
 
 		res.send(htmlContent);
 	},
-	[new MainMiddleware(), new AllowedOriginsMiddleware(), new TokenValidationMiddleware()],
+	[
+		new MainMiddleware(),
+		new AllowedOriginsMiddleware(),
+		new HttpMethodsMiddleware(),
+		new TokenValidationMiddleware(),
+	],
 );

@@ -21,6 +21,7 @@ import { FC, Suspense, lazy, memo, useCallback, useEffect, useRef, useState } fr
 import { FormFooter, FormHeader } from "@ui-kit/Form";
 import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { Button } from "@ui-kit/Button";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
 
 const LazySwaggerUI = lazy(() => import("@ext/markdown/elements/openApi/render/SwaggerUI"));
 
@@ -73,6 +74,8 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [pendedData, setPendedData] = useState(content ?? "");
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
 
+	const [showWarning, setShowWarning] = useState(false);
+
 	const saveSrc = (newContent = "") => {
 		if (!src) return;
 		setResource(src, newContent, undefined, true);
@@ -108,6 +111,12 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 				height: newSize.height + "px",
 			});
 		}
+	};
+
+	const tryCancel = () => {
+		const haveChanges = contentEditState !== startContent;
+		if (haveChanges) return setShowWarning(true);
+		cancel();
 	};
 
 	const cancel = () => {
@@ -175,53 +184,64 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	}, [start]);
 
 	const onOpenChange = (open: boolean) => {
-		setIsOpen(open);
-		if (open) void loadContent(src);
-		else cancel();
+		if (open) {
+			setIsOpen(open);
+			void loadContent(src);
+		} else void tryCancel();
 	};
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
-			<ModalTrigger asChild>{trigger}</ModalTrigger>
-			<ModalContent data-modal-root data-diagram-editor-modal size="L" className="h-full">
-				<FormHeader icon="pen" title={t("edit-diagram")} description={t("edit-diagram-description")} />
-				<ModalBody className="h-full overflow-hidden">
-					<div className={className}>
-						<div className={classNames("window", { isMobile })}>
-							<div className={"left-item"}>
-								<FileInput
-									className={classNames("top", { "top-short": error })}
-									language={langs[diagramName]}
-									value={contentState?.toString() || ""}
-									onChange={setContentEditState}
-									height={monacoHeight}
-									uiKitTheme
-								/>
-								{error && (
-									<div className={"bottom"} style={{ height: alertHeight }}>
-										<div ref={alertWrapperRef}>
-											<DiagramError error={error} diagramName={diagramName} />
-										</div>
-									</div>
-								)}
-							</div>
-							<div className={classNames("divider", { hide: isMobile })} />
-							<div className={classNames("right-item", { hide: isMobile })} ref={rightItemRef}>
-								<div>
-									<OverloadDiagramRenderer
-										setError={setError}
-										error={error}
-										diagramName={diagramName as DiagramType}
-										content={pendedData}
+		<>
+			<Modal open={isOpen} onOpenChange={onOpenChange}>
+				<ModalTrigger asChild>{trigger}</ModalTrigger>
+				<ModalContent data-modal-root data-diagram-editor-modal size="L" className="h-full">
+					<FormHeader icon="pen" title={t("edit-diagram")} description={t("edit-diagram-description")} />
+					<ModalBody className="h-full overflow-hidden">
+						<div className={className}>
+							<div className={classNames("window", { isMobile })}>
+								<div className={"left-item"}>
+									<FileInput
+										className={classNames("top", { "top-short": error })}
+										language={langs[diagramName]}
+										value={contentState?.toString() || ""}
+										onChange={setContentEditState}
+										height={monacoHeight}
+										uiKitTheme
 									/>
+									{error && (
+										<div className={"bottom"} style={{ height: alertHeight }}>
+											<div ref={alertWrapperRef}>
+												<DiagramError error={error} diagramName={diagramName} />
+											</div>
+										</div>
+									)}
+								</div>
+								<div className={classNames("divider", { hide: isMobile })} />
+								<div className={classNames("right-item", { hide: isMobile })} ref={rightItemRef}>
+									<div>
+										<OverloadDiagramRenderer
+											setError={setError}
+											error={error}
+											diagramName={diagramName as DiagramType}
+											content={pendedData}
+										/>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-				</ModalBody>
-				<FormFooter primaryButton={<Button onClick={save}>{t("save")}</Button>} />
-			</ModalContent>
-		</Modal>
+					</ModalBody>
+					<FormFooter primaryButton={<Button onClick={save}>{t("save")}</Button>} />
+				</ModalContent>
+			</Modal>
+			{showWarning && (
+				<UnsavedChangesModal
+					isOpen={showWarning}
+					onOpenChange={setShowWarning}
+					onSave={save}
+					onDontSave={cancel}
+				/>
+			)}
+		</>
 	);
 };
 

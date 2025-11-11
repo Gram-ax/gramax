@@ -1,5 +1,5 @@
 import { Property, PropertyTypes, PropertyValue } from "@ext/properties/models";
-import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Form, FormField, FormFieldSet, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { FieldLabel } from "@ui-kit/Label";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { useState } from "react";
@@ -13,7 +13,7 @@ import { Input } from "@ui-kit/Input";
 import useLucideIconLists from "@components/Atoms/Icon/lucideIconList";
 import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
-import { Button } from "@ui-kit/Button";
+import { Button, IconButton } from "@ui-kit/Button";
 import styled from "@emotion/styled";
 import { ErrorState } from "@ui-kit/ErrorState";
 import ActionWarning from "@ext/properties/components/Modals/ActionWarning";
@@ -46,10 +46,11 @@ const CustomFormField = styled.div`
 	flex-direction: column;
 	gap: 0.25rem;
 	width: 100%;
-	margin-top: 1.5rem !important;
 `;
 
 const CustomFormFieldLabel = styled(FieldLabel)`
+	height: auto;
+
 	.truncate {
 		width: 100%;
 	}
@@ -70,16 +71,15 @@ const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps)
 			<CustomFormFieldLabel>
 				<BetweenContainer>
 					<span>{t("forms.catalog-create-props.props.values.name")}</span>
-					<Button
-						startIcon="plus"
+					<IconButton
+						icon="plus"
 						variant="outline"
 						type="button"
 						onClick={addValue}
-						size="sm"
+						size="xs"
+						className="rounded-full"
 						data-qa="qa-add-value"
-					>
-						{t("add")}
-					</Button>
+					/>
 				</BetweenContainer>
 			</CustomFormFieldLabel>
 			<ErrorState>{error}</ErrorState>
@@ -251,11 +251,13 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 									)}
 								/>
 								{(type === PropertyTypes.enum || type === PropertyTypes.many) && (
-									<FormFieldValues
-										values={form.watch("values")}
-										onChange={onChangeValues}
-										error={form.formState.errors.values?.message}
-									/>
+									<FormFieldSet style={{ padding: "1rem" }}>
+										<FormFieldValues
+											values={form.watch("values")}
+											onChange={onChangeValues}
+											error={form.formState.errors.values?.message}
+										/>
+									</FormFieldSet>
 								)}
 							</FormStack>
 						</ModalBody>

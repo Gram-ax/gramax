@@ -59,9 +59,12 @@ import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import { FloatExtension } from "@ext/markdown/elements/float/edit/model/extension";
+import Question from "@ext/markdown/elements/question/edit/models/question";
+import QuestionAnswer from "@ext/markdown/elements/answer/edit/models/answer";
 
 export interface GetExtensionsPropsOptions {
 	includeResources?: boolean;
+	includeQuestions?: boolean;
 	isTemplateInstance?: boolean;
 }
 
@@ -101,6 +104,8 @@ const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => [
 	GapParagraph,
 	GramaxAi,
 	FloatExtension,
+
+	...(options?.includeQuestions ? [Question, QuestionAnswer] : []),
 
 	...(options?.includeResources ? getResourcesExtensions() : []),
 

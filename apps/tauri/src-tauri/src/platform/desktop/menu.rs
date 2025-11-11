@@ -1,5 +1,6 @@
 use std::borrow::Cow;
 use std::str::FromStr;
+use std::sync::Mutex;
 
 use tauri::menu::*;
 use tauri::*;
@@ -41,6 +42,7 @@ pub enum MenuItemId {
   Refresh,
   ToggleInspector,
   EnterpriseConfigure,
+  ToggleSpellcheck,
   Unknown,
   #[cfg(target_family = "unix")]
   ZoomIn,
@@ -68,6 +70,7 @@ impl MenuItemId {
       MenuItemId::ZoomOut => t!("menu.view.zoom-out"),
       #[cfg(target_family = "unix")]
       MenuItemId::ActualSize => t!("menu.view.actual-size"),
+      MenuItemId::ToggleSpellcheck => t!("menu.edit.toggle-spellcheck"),
       _ => Cow::Owned("unknown".to_string()),
     }
   }
@@ -82,6 +85,47 @@ pub fn search_menu<R: Runtime>(menu: &Menu<R>, id: MenuItemId) -> Option<MenuIte
     });
   }
   None
+}
+
+static SPELLCHECK_ENABLED: Mutex<bool> = Mutex::new(false);
+
+#[command]
+pub fn set_menuitem_spellcheck_enabled<R: Runtime>(
+  window: WebviewWindow<R>,
+  new_enabled: bool,
+) -> Result<()> {
+  let mut enabled = SPELLCHECK_ENABLED.lock().unwrap();
+
+  if *enabled == new_enabled {
+    return Ok(());
+  }
+
+  #[cfg(not(target_os = "windows"))]
+  {
+    let Some(menu) = window.app_handle().menu() else {
+      return Ok(());
+    };
+
+    let Some(item) = search_menu(&menu, MenuItemId::ToggleSpellcheck) else {
+      return Ok(());
+    };
+
+    item.as_check_menuitem_unchecked().set_checked(new_enabled)?;
+  }
+
+  #[cfg(target_os = "windows")]
+  {
+    for window in window.app_handle().webview_windows().values() {
+      if let Some(menu) = window.menu() {
+        if let Some(item) = search_menu(&menu, MenuItemId::ToggleSpellcheck) {
+          item.as_check_menuitem_unchecked().set_checked(new_enabled)?;
+        }
+      }
+    }
+  }
+
+  *enabled = new_enabled;
+  Ok(())
 }
 
 pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
@@ -117,6 +161,9 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
         app.emit_to(EventTarget::webview_window(window.label()), "enterprise-configure", ()).unwrap();
       }
     }
+    Id::ToggleSpellcheck => {
+      app.emit("on_toggle_spellcheck", ()).unwrap();
+    }
     Id::CloseWindow => {
       std::thread::spawn(move || app.get_focused_webview().map(|w| w.close()));
     }
@@ -139,7 +186,20 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
     #[cfg(target_family = "unix")]
     Id::ActualSize => {
       if let Some(focused) = app.get_focused_webview() {
-        app.emit_to(EventTarget::webview_window(focused.label()), "actual-size", ()).unwrap();
+        #[cfg(target_os = "macos")]
+        {
+          focused
+            .with_webview(|wv| unsafe {
+              let wv: &objc2_web_kit::WKWebView = &*wv.inner().cast();
+              wv.setPageZoom(1.0);
+              wv.setMagnification(1.0);
+            })
+            .unwrap();
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+          app.emit_to(EventTarget::webview_window(focused.label()), "actual-size", ()).unwrap();
+        }
       }
     }
     _ => (),
@@ -199,6 +259,9 @@ fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Result<Menu<R>> {
     &PredefinedMenuItem::copy(app, Some(&t!("menu.edit.copy")))?,
     &PredefinedMenuItem::paste(app, Some(&t!("menu.edit.paste")))?,
     &PredefinedMenuItem::select_all(app, Some(&t!("menu.edit.select-all")))?,
+    &CheckMenuItemBuilder::with_id(Id::ToggleSpellcheck.as_ref(), &t!("menu.edit.spellcheck"))
+      .checked(*SPELLCHECK_ENABLED.lock().unwrap())
+      .build(app)?,
   ])?;
 
   menu.append(&edit_sub)?;

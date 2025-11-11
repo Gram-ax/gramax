@@ -1,23 +1,45 @@
-import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { Loader } from "ics-ui-kit/components/loader";
+import { Icon } from "@ui-kit/Icon";
 import { Toast, ToastAction } from "@ui-kit/Toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
+import { Loader } from "ics-ui-kit/components/loader";
 import { useCallback, useMemo } from "react";
 import { updateCheck } from "../window/commands";
 import { ErrorIcon } from "./UpdateIcons";
-import useUpdateChecker, { UpdateAcceptance, UpdateStatus } from "./useUpdateChecker";
+import useUpdateChecker, { UpdateAcceptance, UpdateStatus, type UpdaterErrorCode } from "./useUpdateChecker";
 
 const Wrapper = styled.div`
 	position: absolute;
 	bottom: 2rem;
 	right: 2rem;
-	z-index: var(--z-index-popover);
+	z-index: var(--z-index-overlay);
 
 	@media print {
 		display: none;
 	}
 `;
+
+const translated = (code: UpdaterErrorCode): string | null => {
+	switch (code) {
+		case "check-enterprise-version":
+			return t("app.update.code.check-enterprise-version");
+		case "install-failed":
+			return t("app.update.code.install");
+		case "check-failed":
+			return t("app.update.code.check");
+		case "not-found":
+			return t("app.update.code.not-found");
+		case "download-failed":
+			return t("app.update.code.download-failed");
+		case "signature-mismatch":
+			return t("app.update.code.signature");
+		case "reqwest":
+			return t("app.update.code.reqwest");
+		default:
+			return null;
+	}
+};
 
 const UpdateChecker = () => {
 	const { state, resetUpdate, acceptance, install, accept, decline } = useUpdateChecker();
@@ -55,26 +77,46 @@ const UpdateChecker = () => {
 			</Wrapper>
 		);
 
-	if (state.state === UpdateStatus.Error)
+	if (state.state === UpdateStatus.Error) {
+		const message = "inner" in state.info ? state.info.inner.message : state.info.message;
+		const src = "inner" in state.info ? state.info.inner.src : state.info.src;
+
+		const name = translated(state.info.code) || message;
+
 		return (
-			<Wrapper>
-				<Toast
-					title={t("app.update.error")}
-					focus="low"
-					icon={<ErrorIcon fw code="alert-circle" />}
-					description={state.info.error}
-					status="error"
-					size="lg"
-					closeAction
-					onClose={resetUpdate}
-					primaryAction={
-						<ToastAction onClick={retry}>
-							<span>{t("app.update.retry")}</span>
-						</ToastAction>
-					}
-				/>
-			</Wrapper>
+			<TooltipProvider>
+				<Wrapper>
+					<Toast
+						title={t("app.update.error")}
+						focus="low"
+						icon={<ErrorIcon fw code="alert-circle" />}
+						description={
+							<span className="flex items-center gap-1">
+								{name}{" "}
+								<Tooltip>
+									<TooltipTrigger>
+										<Icon icon="info" />
+									</TooltipTrigger>
+									<TooltipContent>
+										{message?.charAt(0).toUpperCase() + message?.slice(1)} {src ? `(${src})` : ""}
+									</TooltipContent>
+								</Tooltip>
+							</span>
+						}
+						status="error"
+						size="lg"
+						closeAction
+						onClose={resetUpdate}
+						primaryAction={
+							<ToastAction onClick={retry}>
+								<span>{t("app.update.retry")}</span>
+							</ToastAction>
+						}
+					/>
+				</Wrapper>
+			</TooltipProvider>
 		);
+	}
 
 	return (
 		<Wrapper>
@@ -83,7 +125,7 @@ const UpdateChecker = () => {
 				title={t("app.update.available")}
 				primaryAction={
 					<ToastAction onClick={() => (state.state === UpdateStatus.Ready ? install() : accept())}>
-						<Icon code="refresh-ccw" />
+						<Icon icon="refresh-ccw" size="sm" />
 					</ToastAction>
 				}
 			/>

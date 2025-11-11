@@ -8,12 +8,12 @@ import t from "@ext/localization/locale/translate";
 import { ComponentProps } from "react";
 import InfoModalForm from "../../../../extensions/errorHandlers/client/components/ErrorForm";
 import GetErrorComponent from "../../../../extensions/errorHandlers/logic/GetErrorComponent";
-import CatalogPropsService from "../../../../ui-logic/ContextServices/CatalogProps";
 import { useRouter } from "../../../Api/useRouter";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const ArticleNotFoundErrorComponent = (args: ComponentProps<typeof GetErrorComponent>) => {
 	const router = useRouter();
-	const catalogProps = CatalogPropsService.value;
+	const catalogLinkPath = useCatalogPropsStore((state) => state.data?.link.pathname);
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	return (
@@ -26,7 +26,7 @@ const ArticleNotFoundErrorComponent = (args: ComponentProps<typeof GetErrorCompo
 					const res = await FetchService.fetch<BranchData>(apiUrlCreator.getCurrentBranch({ cached: false }));
 					if (!res.ok) return;
 					const branch = (await res.json())?.name;
-					const path = RouterPathProvider.updatePathnameData(new Path(catalogProps.link.pathname), {
+					const path = RouterPathProvider.updatePathnameData(new Path(catalogLinkPath), {
 						refname: branch,
 					});
 					router.pushPath(path.value);

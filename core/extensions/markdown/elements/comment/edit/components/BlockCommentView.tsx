@@ -12,7 +12,7 @@ const Wrapper = styled.div`
 	height: inherit;
 	width: inherit;
 
-	&:first-child {
+	&:first-of-type {
 		margin: 0 !important;
 	}
 `;

@@ -42,8 +42,7 @@
 		"icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"],
 		"linux": {
 			"appimage": {
-				"bundleMediaFramework": true,
-				"files": {}
+				"bundleMediaFramework": true
 			}
 		},
 		"macOS": {
@@ -71,7 +70,6 @@
 			"nsis": {
 				"installerIcon": "icons/icon.ico"
 			},
-			"signCommand": "sign.sh --win %1",
 			"timestampUrl": null,
 			"tsp": true,
 			"webviewInstallMode": {
@@ -84,7 +82,7 @@
 
 	"plugins": {
 		"updater": {
-			"endpoints": ["http://localhost:8909/dev/updates.json"],
+			"endpoints": ["http://localhost:3001/darwin-aarch64/updates?channel=dev"],
 			"dangerousInsecureTransportProtocol": true,
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVBQzhGRjE3NzMxODk0OTgKUldTWWxCaHpGLy9JV2dVMzBVbUdURDMwV3NBcGJGK1EzYUtJTkY0Vzl5cFNONjJiWGJ3TzloTzQK",
 			"windows": {

@@ -2,11 +2,9 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useRouter } from "@core/Api/useRouter";
 import { HomePageBreadcrumb, Section, Sections } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
-import FavoriteCatalogLinkService from "@ext/artilce/Favorite/components/FavoriteCatalogLinkService";
+import FavoriteCatalogLinkService from "@ext/article/Favorite/components/FavoriteCatalogLinkService";
 import t from "@ext/localization/locale/translate";
 
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
-import Group from "./Group";
 import { WorkspaceView } from "@ext/workspace/WorkspaceConfig";
 import {
 	Breadcrumb,
@@ -17,6 +15,8 @@ import {
 	BreadcrumbSeparator,
 } from "@ui-kit/Breadcrumb";
 import { ContentDivider } from "@ui-kit/Divider";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import Group from "./Group";
 
 interface GroupsProps {
 	className?: string;
@@ -70,7 +70,7 @@ const SectionView = ({ section, setIsAnyCardLoading, group }: ViewGroupProps) =>
 					</div>
 				);
 			})}
-			{sectionKeys.length > 0 && section.catalogLinks && (
+			{sectionKeys.length > 0 && section.catalogLinks?.length > 0 && (
 				<ContentDivider>
 					<div className="text-medium text-center font-normal text-muted">{t("other")}</div>
 				</ContentDivider>

@@ -8,7 +8,7 @@ import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
 import { useState } from "react";
 
-const useGetCatalogTitleLogo = (catalogName: string) => {
+const useGetCatalogTitleLogo = (catalogName: string, deps: Array<any> = []) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const theme = ThemeService.value;
 	const { isStatic } = usePlatform();
@@ -17,7 +17,7 @@ const useGetCatalogTitleLogo = (catalogName: string) => {
 	const isInCloud = isStatic && typeof window !== "undefined" && !!cloudServiceUrl;
 	const [cloudApi] = useState(() => new CloudApi(cloudServiceUrl));
 
-	const image = resolveModule("useImage")(isInCloud ? null : apiUrlCreator.getLogoUrl(catalogName, theme));
+	const image = resolveModule("useImage")(isInCloud ? null : apiUrlCreator.getLogoUrl(catalogName, theme), deps);
 
 	if (isInCloud) {
 		const login = getCloudLoginByLocation(window.location);

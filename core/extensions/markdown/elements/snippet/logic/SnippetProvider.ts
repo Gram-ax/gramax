@@ -93,11 +93,6 @@ export default class SnippetProvider extends ArticleProvider {
 		}
 	}
 
-	public async getSnippetsPaths() {
-		const items = await this.getItems<Article<ArticleProps>>(true);
-		return items.map((a) => a.ref.path);
-	}
-
 	override async updateContent(
 		id: ItemID,
 		editTree: JSONContent,

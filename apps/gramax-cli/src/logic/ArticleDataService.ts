@@ -19,8 +19,13 @@ export type StaticArticlePageData = {
 	articleProps: ClientArticleProps;
 };
 
+export interface Options {
+	pdfTemplates?: string[];
+	wordTemplates?: string[];
+}
+
 export class ArticleDataService {
-	constructor(private readonly _app: Application) {}
+	constructor(private readonly _app: Application, private readonly _options: Options) {}
 
 	async getArticlesPageData(
 		context: Context,
@@ -58,7 +63,7 @@ export class ArticleDataService {
 
 		const nav = await sitePresenter.getCatalogNav(catalog, "");
 
-		await getArticle404InitialData();
+		if (!catalog.props.resolvedFilterProperty) await getArticle404InitialData();
 
 		const defaultArticlePageData = await this._createArticlePageData(
 			defaultArticle,
@@ -80,26 +85,23 @@ export class ArticleDataService {
 		return { catalogProps, articlesPageData, articlePageDataContext };
 	}
 
-	async getMultiLangArticlesPageData(catalog: Catalog, logicPath: string): Promise<InitialArticleData[]> {
-		return await Promise.all(
-			catalog.props.supportedLanguages.map(async (language) => {
-				const ctx = await this._app.contextFactory.fromBrowser({
-					language,
-				});
-				const sp = this._app.sitePresenterFactory.fromContext(ctx);
-				const { catalog, article: initialArticle } = await sp.getArticleByPathOfCatalog([logicPath]);
-				let article = initialArticle;
-				let articleLogicPath = logicPath;
+	async getMultiLangArticlesPageData(catalog: Catalog): Promise<InitialArticleData[]> {
+		const defaultLogicPath = catalog.name;
+		return catalog.props.supportedLanguages.mapAsync(async (language) => {
+			const ctx = await this._app.contextFactory.fromBrowser({ language });
+			const sp = this._app.sitePresenterFactory.fromContext(ctx);
+			const { catalog, article: initialArticle } = await sp.getArticleByPathOfCatalog([defaultLogicPath]);
+			let article = initialArticle;
+			let articleLogicPath = defaultLogicPath;
 
-				if (!article) {
-					const root = resolveRootCategory(catalog, catalog.props, ctx.contentLanguage);
-					articleLogicPath = root.logicPath;
-					const splittedPath = articleLogicPath.split("/").filter((x) => x);
-					article = (await sp.getArticleByPathOfCatalog(splittedPath)).article;
-				}
-				return await this.getArticlesPageData(ctx, catalog.deref, article, articleLogicPath);
-			}),
-		);
+			if (!article) {
+				const root = resolveRootCategory(catalog, catalog.props, ctx.contentLanguage);
+				articleLogicPath = root.logicPath;
+				const splittedPath = articleLogicPath.split("/").filter((x) => x);
+				article = (await sp.getArticleByPathOfCatalog(splittedPath)).article;
+			}
+			return await this.getArticlesPageData(ctx, catalog.deref, article, articleLogicPath);
+		});
 	}
 
 	async getArticle404InitialData(
@@ -132,6 +134,8 @@ export class ArticleDataService {
 			isReadOnly: true,
 		});
 		pageDataContext.userInfo = null;
+		pageDataContext.wordTemplates = this._options.wordTemplates || [];
+		pageDataContext.pdfTemplates = this._options.pdfTemplates || [];
 		return pageDataContext;
 	}
 

@@ -1,13 +1,13 @@
-import Path from "@core/FileProvider/Path/Path";
-import { StyledButton } from "@ext/artilce/LinkCreator/components/SelectLinkItem";
-import styled from "@emotion/styled";
+import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import { ComponentProps } from "react";
-import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import Path from "@core/FileProvider/Path/Path";
+import styled from "@emotion/styled";
+import { StyledButton } from "@ext/article/LinkCreator/components/SelectLinkItem";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import FilePreviewModal from "@ext/markdown/elements/file/edit/components/Preview/FilePreviewModal";
+import { ComponentProps } from "react";
 
 const Anchor = styled.a`
 	color: var(--color-article-bg) !important;

@@ -3,13 +3,13 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
-import { PrintablePage } from "@ext/print/types";
+import { PrintableContent, PrintablePage } from "@ext/print/types";
 import collectPrintablePages from "@ext/print/utils/collectPrintablePages";
 import RuleProvider from "@ext/rules/RuleProvider";
 
 const getPrintableContent: Command<
 	{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string; titleNumber?: boolean },
-	PrintablePage[]
+	PrintableContent<PrintablePage>
 > = Command.create({
 	path: "item/getPrintableContent",
 	kind: ResponseKind.json,
@@ -25,7 +25,7 @@ const getPrintableContent: Command<
 
 		const filters = new RuleProvider(ctx).getItemFilters();
 		const pages: PrintablePage[] = [];
-
+		const title = isCatalog ? catalog.props.title : item.getTitle() || item.getFileName();
 		await collectPrintablePages(
 			item,
 			catalog,
@@ -39,7 +39,7 @@ const getPrintableContent: Command<
 			titleNumber,
 		);
 
-		return pages;
+		return { title, items: pages };
 	},
 
 	params(ctx, q) {

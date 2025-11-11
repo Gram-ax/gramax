@@ -9,12 +9,13 @@ const renderGroup = (
 	group: ViewRenderGroup,
 	disabled?: boolean,
 	onSubmit?: (article: string, groups: string[], propertyName: string, value: string, isDelete?: boolean) => void,
+	isPrint?: boolean,
 	parentGroups: string[] = [],
 ): ReactNode => {
 	const listItems = group.articles.map((article: ViewRenderData) => (
 		<li key={article.itemPath}>
 			<div>
-				<Anchor href={article.linkPath} resourcePath={article.resourcePath}>
+				<Anchor href={article.linkPath} resourcePath={article.resourcePath} isPrint={isPrint}>
 					{article.title || t("article.no-name")}
 				</Anchor>
 				<div className="chips">
@@ -52,7 +53,7 @@ const renderGroup = (
 				{listItems}
 				{group.subgroups?.map((subgroup) => (
 					<Fragment key={subgroup.group?.[0]}>
-						{renderGroup(subgroup, disabled, onSubmit, [...parentGroups, group.group?.[0]])}
+						{renderGroup(subgroup, disabled, onSubmit, isPrint, [...parentGroups, group.group?.[0]])}
 					</Fragment>
 				))}
 			</>
@@ -66,7 +67,7 @@ const renderGroup = (
 				<ul>
 					{group.subgroups.map((subgroup) => (
 						<Fragment key={subgroup.group?.[0]}>
-							{renderGroup(subgroup, disabled, onSubmit, [...parentGroups, group.group?.[0]])}
+							{renderGroup(subgroup, disabled, onSubmit, isPrint, [...parentGroups, group.group?.[0]])}
 						</Fragment>
 					))}
 				</ul>

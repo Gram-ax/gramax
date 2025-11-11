@@ -16,6 +16,7 @@ import { TocItem } from "../../../extensions/navigation/article/logic/createTocI
 import ResourceManager from "../../Resource/ResourceManager";
 import { Category } from "../Category/Category";
 import { Item, UpdateItemProps, type ItemEvents, type ItemProps } from "../Item/Item";
+import { Question } from "@ext/markdown/elements/question/types";
 
 export type ArticleEvents = ItemEvents;
 
@@ -203,6 +204,7 @@ export interface Content {
 	renderTree: RenderableTreeNode;
 	snippets: Set<string>;
 	icons: Set<string>;
+	questions: Map<string, Question>;
 	linkManager: LinkResourceManager;
 	resourceManager: ResourceManager;
 }

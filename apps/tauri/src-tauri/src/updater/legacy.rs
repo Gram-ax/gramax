@@ -46,13 +46,13 @@ enum UpdateCheckMode {
 
 impl<R: Runtime> Updater<R> {
   pub fn new(app: AppHandle<R>) -> updater::Result<Self> {
+    let channel = option_env!("UPDATE_CHANNEL").unwrap_or("dev");
+
+    let update_host = if channel == "prod" { "gram.ax" } else { "develop.gram.ax" };
+
     let updater = app
       .updater_builder()
-      .endpoints(vec![Url::parse(&format!(
-        "https://s3.gram.ax/{}/updates.json",
-        option_env!("S3_ENV_FOLDER").unwrap_or("dev")
-      ))
-      .unwrap()])?
+      .endpoints(vec![format!("https://{update_host}/apps/updates?channel={channel}",).parse().unwrap()])?
       .version_comparator(|v, r| is_version_newer(v, r.version))
       .build()?;
     Ok(Self { app, inner: updater })

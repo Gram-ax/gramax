@@ -7,14 +7,13 @@ import CliUserError from "../../CliUserError";
 
 type AppBuildConfig = Pick<AppConfig, "logo" | "metrics" | "forceUiLangSync">;
 
-type BuildConfig = {
-	logo: AppBuildConfig["logo"];
-	metrics: {
+type BuildConfig = Omit<AppBuildConfig, "metrics"> & {
+	metrics: Omit<AppBuildConfig["metrics"], "matomo"> & {
 		matomo: Omit<AppBuildConfig["metrics"]["matomo"], "matomoSiteId"> & {
 			siteId: AppBuildConfig["metrics"]["matomo"]["matomoSiteId"];
 		};
-	} & Omit<AppBuildConfig["metrics"], "matomo">;
-	forceUiLangSync: AppBuildConfig["forceUiLangSync"];
+	};
+	features?: string | string[];
 };
 
 export type CliConfig = {

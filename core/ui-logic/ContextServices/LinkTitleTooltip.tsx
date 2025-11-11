@@ -1,7 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import eventEmitter from "@core/utils/eventEmitter";
-import LinkItem from "@ext/artilce/LinkCreator/models/LinkItem";
+import LinkItem from "@ext/article/LinkCreator/models/LinkItem";
 import { LevelTocItem } from "@ext/navigation/article/logic/createTocItems";
 import { MutableRefObject, createContext, useContext, useRef, useState } from "react";
 

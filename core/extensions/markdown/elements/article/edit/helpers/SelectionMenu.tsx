@@ -4,7 +4,6 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -22,6 +21,7 @@ import PageDataContext from "../../../../../../logic/Context/PageDataContext";
 import { TooltipProvider } from "@ui-kit/Tooltip";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface SelectionMenuProps {
 	catalogProps: ClientCatalogProps;
@@ -58,7 +58,7 @@ const SelectionMenuComponent = (props: SelectionMenuProps) => {
 		<IsMacService.Provider value={isMac}>
 			<ApiUrlCreatorService.Provider value={apiUrlCreator}>
 				<PageDataContextService.Provider value={pageDataContext}>
-					<CatalogPropsService.Provider value={catalogProps}>
+					<CatalogStoreProvider data={catalogProps}>
 						<ArticlePropsService.Provider value={articleProps}>
 							<ResourceService.Provider>
 								<SourceDataService.Provider value={sourceData}>
@@ -83,7 +83,7 @@ const SelectionMenuComponent = (props: SelectionMenuProps) => {
 								</SourceDataService.Provider>
 							</ResourceService.Provider>
 						</ArticlePropsService.Provider>
-					</CatalogPropsService.Provider>
+					</CatalogStoreProvider>
 				</PageDataContextService.Provider>
 			</ApiUrlCreatorService.Provider>
 		</IsMacService.Provider>

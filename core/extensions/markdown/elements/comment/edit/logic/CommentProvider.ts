@@ -4,6 +4,10 @@ import Path from "../../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../../logic/FileProvider/model/FileProvider";
 import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 import generateUniqueID from "@core/utils/generateUniqueID";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import Context from "@core/Context/Context";
+import { Workspace } from "@ext/workspace/Workspace";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 
 type CommentData = Record<string, { stringifiedData: CommentBlock<string>; parsedData: CommentBlock }>;
 
@@ -21,8 +25,9 @@ class CommentProvider {
 
 	async getComment(id: string, articlePath: Path, context: ParserContext): Promise<CommentBlock> {
 		const articlePathString = articlePath.value;
-		if (this._comments.has(articlePathString) && this._comments.get(articlePathString)?.[id])
+		if (this._comments.has(articlePathString) && this._comments.get(articlePathString)?.[id]) {
 			return this._comments.get(articlePathString)[id]?.parsedData;
+		}
 
 		const allComments: CommentData = {};
 		for (const [id, comment] of Object.entries(await this._read(articlePath))) {
@@ -51,6 +56,36 @@ class CommentProvider {
 		);
 		this._comments.set(articlePathString, allComments);
 		await this._write(articlePath, allStringifiedComments);
+	}
+
+	async copyComment(
+		id: string,
+		copyPath: Path,
+		articlePath: Path,
+		workspace: Workspace,
+		parserContextFactory: ParserContextFactory,
+		ctx: Context,
+	): Promise<boolean> {
+		const copyCatalogName = copyPath.rootDirectory.value;
+		const copyCatalog = await workspace.getCatalog(copyCatalogName, ctx);
+		if (!copyCatalog) return false;
+
+		const copyArticle = copyCatalog.findArticle(copyPath.value, []);
+		if (!copyArticle) return false;
+
+		const context = await parserContextFactory.fromArticle(
+			copyArticle,
+			copyCatalog,
+			convertContentToUiLanguage(ctx.contentLanguage || copyCatalog.props.language),
+			ctx.user.isLogged,
+		);
+
+		const copyComment = await this.getComment(id, copyArticle.ref.path, context);
+		if (!copyComment) return false;
+
+		await this.saveComment(id, copyComment, articlePath, context);
+
+		return true;
 	}
 
 	async deleteComment(id: string, articlePath: Path) {

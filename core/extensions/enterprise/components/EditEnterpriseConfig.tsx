@@ -10,13 +10,7 @@ import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import { formatGesUrl } from "../utils/formatGesUrl";
 
-const EditEnterpriseConfig = ({
-	config,
-	onSave,
-}: {
-	config: EnterpriseConfig;
-	onSave: (config: EnterpriseConfig) => void;
-}) => {
+const EditEnterpriseConfig = ({ config, onSave }: { config: EnterpriseConfig; onSave: (gesUrl: string) => void }) => {
 	const [value, setValue] = useState(config.gesUrl);
 	const [disabled, setDisabled] = useState(false);
 
@@ -50,7 +44,7 @@ const EditEnterpriseConfig = ({
 							</div>
 						</fieldset>
 						<div className="buttons">
-							<Button disabled={disabled} onClick={() => onSave({ gesUrl: value })}>
+							<Button disabled={disabled} onClick={() => onSave(value)}>
 								{t("save")}
 							</Button>
 						</div>

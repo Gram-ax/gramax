@@ -3,10 +3,11 @@ import ActionConfirm from "@components/Atoms/ActionConfirm";
 import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
 import ModalLoading from "@components/ModalLoading";
-import EditMarkdown from "@ext/artilce/actions/EditMarkdown";
+import EditMarkdown from "@ext/article/actions/EditMarkdown";
 import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
 import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
+import { Admin } from "@ext/enterprise/components/admin/Admin";
 import EditEnterpriseConfig from "@ext/enterprise/components/EditEnterpriseConfig";
 import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
 import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
@@ -39,6 +40,7 @@ import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
@@ -102,6 +104,10 @@ const getModalComponentToRender: {
 	[ModalToOpen.ActionConfirm]: ActionConfirm,
 
 	[ModalToOpen.ExportPdf]: ExportPdf,
+
+	[ModalToOpen.GesAdmin]: Admin,
+
+	[ModalToOpen.UnsavedChangesModal]: UnsavedChangesModal,
 };
 
 export default getModalComponentToRender;

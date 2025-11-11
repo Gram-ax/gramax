@@ -3,6 +3,7 @@ import deleteComment from "./deleteComment";
 import getNewCommentId from "./getNewCommentId";
 import getComment from "./get";
 import updateComment from "./update";
+import copyComment from "./copy";
 
 const comments = {
 	deleteComment,
@@ -10,6 +11,7 @@ const comments = {
 	updateComment,
 	getNewCommentId,
 	getCommentsByAuthors,
+	copyComment,
 };
 
 export default comments;

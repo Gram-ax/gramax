@@ -7,7 +7,6 @@ import ArticleTitleHelpers from "@ext/markdown/elements/article/edit/ArticleTitl
 import Controllers from "@ext/markdown/elements/controllers/controllers";
 import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import EditorExtensionsService from "@ext/markdown/elements/diff/components/EditorExtensionsService";
 import Placeholder from "@ext/markdown/elements/placeholder/placeholder";
 import EditorService, {
 	BaseEditorContext,
@@ -29,6 +28,9 @@ import Menu from "./Menu/Menu";
 import CommentEditorProvider from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
 import useCommentCallbacks from "@ext/markdown/elements/comment/edit/logic/hooks/useCommentCallbacks";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
+import { updateEditorExtensions } from "@ext/markdown/elements/diff/components/store/EditorExtensionsStore";
+import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export const ContentEditorId = "ContentEditorId";
 
@@ -43,11 +45,13 @@ interface ContentEditorProps {
 const ContentEditor = (props: ContentEditorProps) => {
 	const { content, extensions, onTitleLoseFocus, onUpdate, handlePaste } = props;
 
+	const catalogProps = useCatalogPropsStore((state) => state.data);
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const resourceService = ResourceService.value;
 	const pageDataContext = PageDataContextService.value;
 	const isGramaxAiEnabled = pageDataContext.conf.ai.enabled;
+	const isStorageConnected = useIsStorageConnected();
 
 	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
 	const { onMarkAdded: onMarkAddedComment, onMarkDeleted: onMarkDeletedComment } = useCommentCallbacks(
@@ -62,7 +66,11 @@ const ContentEditor = (props: ContentEditorProps) => {
 			Controllers.configure({ editable: articleProps?.template?.length > 0 }),
 			OnDeleteNode.configure({ onDeleteNodes }),
 			OnAddMark.configure({ onAddMarks }),
-			Comment.configure({ onMarkAdded: onMarkAddedComment, onMarkDeleted: onMarkDeletedComment }),
+			Comment.configure({
+				enabled: isStorageConnected,
+				onMarkAdded: onMarkAddedComment,
+				onMarkDeleted: onMarkDeletedComment,
+			}),
 			CopyArticles.configure({ resourceService }),
 			OnDeleteMark.configure({ onDeleteMarks }),
 			ArticleTitleHelpers.configure({
@@ -80,13 +88,14 @@ const ContentEditor = (props: ContentEditorProps) => {
 			resourceService,
 			onMarkAddedComment,
 			onMarkDeletedComment,
+			isStorageConnected,
 		],
 	);
 
 	const extensionsList = ExtensionContextUpdater.useExtendExtensionsWithContext(ext);
 
 	useEffect(() => {
-		EditorExtensionsService.value = extensionsList;
+		updateEditorExtensions(extensionsList);
 	}, [extensionsList]);
 
 	useWatch(() => {
@@ -107,12 +116,13 @@ const ContentEditor = (props: ContentEditorProps) => {
 			extensions: extensionsList,
 			injectCSS: false,
 			editorProps: {
-				handlePaste: (view, event, slice) => handlePaste(view, event, slice, apiUrlCreator, articleProps),
+				handlePaste: (view, event, slice) =>
+					handlePaste(view, event, slice, apiUrlCreator, articleProps, catalogProps),
 			},
 			onUpdate: ({ editor }) => onUpdate({ editor, apiUrlCreator, articleProps }),
 			editable: true,
 		},
-		[content, apiUrlCreator, pageDataContext, articleProps.ref.path],
+		[content, apiUrlCreator, pageDataContext, articleProps.ref.path, catalogProps],
 	);
 
 	ExtensionContextUpdater.useUpdateContextInExtensions(editor);

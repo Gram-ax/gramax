@@ -1,11 +1,11 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import EditMarkdownTrigger from "@ext/article/actions/EditMarkdownTrigger";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import EditMarkdownTrigger from "@ext/artilce/actions/EditMarkdownTrigger";
 import DeleteItem from "@ext/item/actions/DeleteItem";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from "@ui-kit/Dropdown";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { ReactNode, useCallback } from "react";
 

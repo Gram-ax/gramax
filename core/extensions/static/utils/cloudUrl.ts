@@ -1,10 +1,10 @@
 import CloudStateService from "@core-ui/ContextServices/CloudState";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
-const getCatalogUrl = () => {
+const useGetCatalogCloudUrl = () => {
 	const cloudUrl = CloudStateService.value.cloudUrl;
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	return `${cloudUrl}/${catalogName}`;
-}
+};
 
-export default getCatalogUrl
+export default useGetCatalogCloudUrl;

@@ -1,20 +1,20 @@
-import t from "@ext/localization/locale/translate";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import validateEmail from "@core/utils/validateEmail";
-import { useState, useCallback, useMemo, useEffect } from "react";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import validateEmail from "@core/utils/validateEmail";
 import { AuthMethod } from "@ext/enterprise/types/UserSettings";
+import t from "@ext/localization/locale/translate";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 const OTP_LENGTH = 6;
-const MAIL_SEND_ENDPOINT = "/api/auth/mailSendOTP";
-const MAIL_LOGIN_ENDPOINT = "/api/auth/mailLoginOTP";
 const SENT_OTP_REQUEST_DELAY = 60;
 const MINUTE = 60;
 const SECOND = 1000;
 
 export const useSignInEnterprise = ({ authUrl }: { authUrl: string }) => {
+	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [isLoading, setIsLoading] = useState(false);
 	const [isPasswordSent, setIsPasswordSent] = useState(false);
 	const [sendButtonCooldown, setSendButtonCooldown] = useState(0);
@@ -72,7 +72,7 @@ export const useSignInEnterprise = ({ authUrl }: { authUrl: string }) => {
 			form.clearErrors("otp");
 
 			try {
-				const response = await fetch(MAIL_LOGIN_ENDPOINT, {
+				const response = await fetch(apiUrlCreator.getMailLoginOTPUrl().toString(), {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({ email, otp }),
@@ -121,7 +121,7 @@ export const useSignInEnterprise = ({ authUrl }: { authUrl: string }) => {
 		form.clearErrors("email");
 
 		try {
-			const response = await fetch(MAIL_SEND_ENDPOINT, {
+			const response = await fetch(apiUrlCreator.getMailSendOTPUrl().toString(), {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ email }),

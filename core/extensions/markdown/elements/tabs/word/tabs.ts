@@ -17,32 +17,53 @@ const INNER_BLOCK_WIDTH_DIFFERENCE = 310;
 export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
 	const { Table, TableCell, TableRow, WidthType } = await docx();
 	const wordBordersType = await getWordBordersType();
-	const children = "children" in tag ? tag.children : tag.content;
-	const rows = await Promise.all(
-		children.map(async (tab: Tag | JSONContent) => {
-			const tabTag = tab;
-			const attrs = "attributes" in tabTag ? tabTag.attributes : tabTag.attrs;
-			const children = "children" in tabTag ? tabTag.children : tabTag.content;
-			const paragraphs = [
-				await createParagraph([await createContent(attrs.name, addOptions)], WordFontStyles.tabsTitle),
-				...(
-					await Promise.all(
-						children.map((child) =>
-							state.renderBlock(child as Tag, {
-								...addOptions,
-								maxTableWidth:
-									(addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
-							}),
-						),
-					)
-				).flat(),
-			];
+	const tabs = "children" in tag ? tag.children : tag.content;
 
-			return new TableRow({
-				children: [new TableCell({ children: paragraphs })],
-			});
-		}),
-	);
+	const rows: InstanceType<typeof TableRow>[] = [];
+
+	for (const tab of tabs as Array<Tag | JSONContent>) {
+		const tabTag = tab as any;
+		const attrs = "attributes" in tabTag ? tabTag.attributes : tabTag.attrs;
+		const tabChildren = "children" in tabTag ? tabTag.children : tabTag.content;
+
+		const titleParagraph = await createParagraph(
+			[await createContent(attrs?.name, addOptions)],
+			WordFontStyles.tabsTitle,
+		);
+		rows.push(
+			new TableRow({
+				children: [
+					new TableCell({
+						children: [titleParagraph],
+						width: { size: STANDARD_PAGE_WIDTH, type: WidthType.DXA },
+					}),
+				],
+			}),
+		);
+
+		const contentChildren = (
+			await Promise.all(
+				(tabChildren ?? []).map((child: Tag) =>
+					state.renderBlock(child, {
+						...addOptions,
+						maxTableWidth:
+							(addOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH) - INNER_BLOCK_WIDTH_DIFFERENCE,
+					}),
+				),
+			)
+		).flat();
+
+		rows.push(
+			new TableRow({
+				children: [
+					new TableCell({
+						children: contentChildren,
+						width: { size: STANDARD_PAGE_WIDTH, type: WidthType.DXA },
+					}),
+				],
+			}),
+		);
+	}
 
 	return [
 		new Table({

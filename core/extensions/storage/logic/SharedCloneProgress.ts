@@ -165,8 +165,8 @@ export default class SharedCloneProgressManager {
 		const progress = this._progress.get(id);
 
 		if (!progress) {
-			this._progress.delete(id);
 			this.disposeProgress(id);
+			return null;
 		}
 
 		return progress;

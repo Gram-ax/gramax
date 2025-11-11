@@ -1,0 +1,138 @@
+build-app-dev:
+  stage: build-dev
+  needs: []
+  dependencies: []
+  tags:
+    - shell-macos-arm64v8
+  variables:
+    GIT_DEPTH: 600
+    ANDROID_HOME: '/opt/homebrew/share/android-commandlinetools'
+    NDK_HOME: '/opt/homebrew/share/android-commandlinetools/ndk/25.2.9519653'
+    APPLE_SIGNING_IDENTITY: 'Developer ID Application: INTELLEKTUALNYE KORPORATIVNYE RESHENIYA, OOO (V9C959AY94)'
+    AR: llvm-ar
+    RANLIB: llvm-ranlib
+  script:
+    - rm -r ./services
+    - ./install-deps.sh --ci
+    - ./ci make-icons
+    - ./ci build --web --darwin-aarch64
+    - mv ./apps-build-artifacts/darwin-aarch64/*.dmg .
+  artifacts:
+    when: on_success
+    access: all
+    expire_in: '1 day'
+    paths:
+      - ./*.dmg
+  when: manual
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+
+build-docportal-dev:
+  stage: build-dev
+  tags:
+    - kubernetes01-gramax
+  when: manual
+  extends: .template.docker.base
+  rules: !reference [.condition, build, merge_request, rules]
+  needs: []
+  variables:
+    GIT_DEPTH: 2000
+    NEED_TO_SIGN: true
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
+  script:
+    - apk add bash git
+    - . ./.ci/apps/init.sh --only-env
+    - .ci/sync/delete-secrets.sh
+    - docker build --cache-from $CI_REGISTRY/$CI_PROJECT_PATH:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-docportal --rm
+      -f apps/next/next.Dockerfile
+      --build-arg BRANCH=${BRANCH}
+      --build-arg BUGSNAG_API_KEY=$BUGSNAG_API_KEY_DEVELOP
+      --build-arg PRODUCTION=true
+      --build-arg UPLOAD_SOURCE_MAPS_TO_BUGSNAG=$UPLOAD_SOURCE_MAPS_TO_BUGSNAG
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
+      --tag $CI_REGISTRY/$CI_PROJECT_PATH:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-docportal
+      .
+    - docker push $CI_REGISTRY/$CI_PROJECT_PATH:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-docportal
+
+deploy-docportal-dev:
+  stage: deploy-dev
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:build-dev
+  tags:
+    - kubernetes01-gramax
+  needs:
+    - job: build-docportal-dev
+  when: on_success
+  rules: !reference [.condition, build, merge_request, rules]
+  before_script:
+    - mkdir -p ~/.kube
+    - echo "$KUBECONFIG_TEST_WEB_DEPLOY" > ~/.kube/config
+    - unset KUBECONFIG
+  script:
+    - |
+      BRANCH_NAME="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-docportal"
+      START_TIME=$(date -u -d "@$(($(date +%s) + 54000))" +"%M %H %d %m *")
+      END_TIME=$(date -u -d "@$(($(date +%s) + 54400))" +"%M %H %d %m *")
+      REDEPLOYAT=$(date -u +"%M %H %d %m %Y %S")
+      helm repo add gitlab_ics ${CI_API_V4_URL}/projects/416/packages/helm/stable
+      helm upgrade --install $BRANCH_NAME gitlab_ics/gramax-docportal-ci-DO-2491 --namespace dev-next-web --set-string start_time="$START_TIME" --set-string end_time="$END_TIME" --set-string redeployAt="$REDEPLOYAT"
+      kubectl rollout status deployment/$BRANCH_NAME-deployment -n dev-next-web --timeout=500s
+      echo "========================================================"
+      echo "|                                                      |"
+      echo "|    Deployed to https://$BRANCH_NAME.dev.gram.ax      |"
+      echo "|                                                      |"
+      echo "========================================================"
+  environment:
+    name: docportal
+    url: https://${CI_COMMIT_REF_SLUG}-docportal.dev.gram.ax
+
+build-web-dev:
+  when: manual
+  needs: []
+  stage: build-dev
+  tags:
+    - kubernetes01-gramax
+  extends: .template.docker.base
+  rules: !reference [.condition, build, merge_request, rules]
+  variables:
+    DOCKERFILE_PATH: './apps/browser/Dockerfile'
+  script:
+    - docker build --cache-from $CI_REGISTRY/$CI_PROJECT_PATH:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-app -t $CI_REGISTRY/$CI_PROJECT_PATH:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-app
+      -f $DOCKERFILE_PATH
+      --metadata-file build-metadata.json
+      --build-arg BRANCH=$BRANCH
+      --build-arg PRODUCTION=$PRODUCTION
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      .
+    - docker push $CI_REGISTRY/$CI_PROJECT_PATH:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-app
+    - ./.ci/apps/sign.sh --container
+
+deploy-web-dev:
+  stage: deploy-dev
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:build-dev
+  tags:
+    - kubernetes01-gramax
+  needs:
+    - job: build-web-dev
+  when: on_success
+  rules: !reference [.condition, build, merge_request, rules]
+  before_script:
+    - mkdir -p ~/.kube
+    - echo "$KUBECONFIG_TEST_WEB_DEPLOY" > ~/.kube/config
+    - unset KUBECONFIG
+  script:
+    - |
+      BRANCH_NAME="${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-app"
+      START_TIME=$(date -u -d "@$(($(date +%s) + 54000))" +"%M %H %d %m *")
+      END_TIME=$(date -u -d "@$(($(date +%s) + 54400))" +"%M %H %d %m *")
+      REDEPLOYAT=$(date -u +"%M %H %d %m %Y %S")
+      helm repo add gitlab_ics ${CI_API_V4_URL}/projects/416/packages/helm/stable
+      helm upgrade --install $BRANCH_NAME gitlab_ics/gramax-web-ci-DO-2491 --namespace dev-next-web --set-string start_time="$START_TIME" --set-string end_time="$END_TIME" --set-string redeployAt="$REDEPLOYAT"
+      kubectl rollout status deployment/$BRANCH_NAME-deployment -n dev-next-web --timeout=300s
+      echo "========================================================"
+      echo "|                                                      |"
+      echo "|  Deployed to https://$BRANCH_NAME.dev.gram.ax        |"
+      echo "|                                                      |"
+      echo "========================================================"
+  environment:
+    name: app
+    url: https://${CI_COMMIT_REF_SLUG}-app.dev.gram.ax

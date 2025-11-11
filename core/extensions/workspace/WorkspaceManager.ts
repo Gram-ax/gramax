@@ -23,6 +23,7 @@ import WorkspaceRepositoriesOverview from "@ext/workspace/UnintializedWorkspace"
 import { Workspace, type WorkspaceInitCallback } from "@ext/workspace/Workspace";
 import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import { getBaseCatalogName } from "../../../apps/gramax-cli/src/logic/initialDataUtils/getCatalogName";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (change: CatalogFilesUpdated) => void | Promise<void>;
@@ -181,7 +182,7 @@ export default class WorkspaceManager {
 		}
 
 		if (!this._workspaces.get(path)) throw new Error(`Workspace with path ${path} not found`);
-		const fp = this._makeFileProvider(new Path([path, ".workspace", "assets"]).value);
+		const fp = this._makeFileProvider(this._getAssetsPath(path).value);
 		return new WorkspaceAssets(fp);
 	}
 
@@ -260,6 +261,7 @@ export default class WorkspaceManager {
 			enterprise: {
 				gesUrl: config?.enterprise?.gesUrl ?? null,
 				lastUpdateDate: config?.enterprise?.lastUpdateDate ?? null,
+				refreshInterval: config?.enterprise?.refreshInterval ?? null,
 			},
 			services: mergeObjects<ServicesConfig>(this._config.services, config?.services ?? {}),
 		});
@@ -334,5 +336,11 @@ export default class WorkspaceManager {
 			return window.sessionStorage.getItem(LATEST_WORKSPACE_KEY) || path;
 
 		return path;
+	}
+
+	private _getAssetsPath(path: WorkspacePath): Path {
+		const isStatic = getExecutingEnvironment() === "static";
+		const assetsDir = isStatic ? [getBaseCatalogName(), ".gramax"] : [".workspace"];
+		return new Path([path, ...assetsDir, "assets"]);
 	}
 }

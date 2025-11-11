@@ -1,6 +1,5 @@
 import docx from "@dynamicImports/docx";
 import { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
-import { createParagraphAfterTable, createParagraphBeforeTable } from "@ext/wordExport/createParagraph";
 import { WordBlockType } from "@ext/wordExport/options/wordExportSettings";
 import { createBlockChild } from "@ext/wordExport/createBlock";
 
@@ -22,8 +21,7 @@ export const getCodeBlock = async (lines: string[], addOptions: AddOptionsWord) 
 	});
 
 	const fence = await createBlockChild([paragraph], WordBlockType.fence, WordBlockType.fenceTable, addOptions);
-
-	return [await createParagraphBeforeTable(), fence, await createParagraphAfterTable()];
+	return [fence];
 };
 
 export { fenceWordLayout };

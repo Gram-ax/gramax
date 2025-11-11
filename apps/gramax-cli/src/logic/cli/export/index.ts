@@ -1,42 +1,34 @@
+import { getConfig } from "@app/config/AppConfig";
 import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
+import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
-import { defaultName, ExportOptions } from "./command";
-import { logStepWithErrorSuppression, logStep } from "../utils/logger";
-import { checkExistsPath, getPathWithExtension, setRootPath } from "../utils/paths";
-import { basename, resolve, dirname } from "path";
-import readline from "readline";
-import { getConfig } from "@app/config/AppConfig";
-import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import chalk from "chalk";
-import { mkdir, writeFileSync, readFile, exists } from "fs-extra";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
+import chalk from "chalk";
+import { exists, mkdir, readFile, writeFileSync } from "fs-extra";
+import { basename, dirname, resolve } from "path";
 import ChalkLogger from "../../../utils/ChalkLogger";
 import CliUserError from "../../CliUserError";
+import { logStep, logStepWithErrorSuppression } from "../utils/logger";
+import { checkExistsPath, getPathWithExtension, setRootPath } from "../utils/paths";
+import { defaultName, ExportOptions } from "./command";
+import runPdfCli from "./newPdf/runPdfCli";
+import askQuestion from "../utils/askQuestion";
 
-const askQuestion = (query: string): Promise<string> => {
-	const rl = readline.createInterface({
-		input: process.stdin,
-		output: process.stdout,
-	});
-
-	return new Promise((resolve) => {
-		rl.question(query, (answer) => {
-			rl.close();
-			resolve(answer);
-		});
-	});
+const fileExt: { [key in ExportFormat]: string } = {
+	pdf: "pdf",
+	"beta-pdf": "pdf",
+	docx: "docx",
 };
 
-const logWarnMessage = (str: string, indent?: number) => ChalkLogger.log(str, { styles: ["yellow"], indent });
-
 export const exportCommandFunction = async (options: ExportOptions) => {
-	const { source, output, yes: skipConfirm, format, template } = options;
+	const { source, output, yes: skipConfirm, format, template, PdfNumber, PdfTitle, PdfToc } = options;
 
 	if (!ExportFormat[format]) throw new CliUserError(`Unsupported format: ${format}. Allowed formats: docx, pdf`);
+
 	const formatName = format.toUpperCase();
-	const outputPath = await getPathWithExtension(resolve(output), `${defaultName}.${format}`);
+	const outputPath = await getPathWithExtension(resolve(output), `${defaultName}.${fileExt[format]}`);
 
 	const fullPath = resolve(source);
 	await checkExistsPath(fullPath);
@@ -56,7 +48,7 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 	const getTemplateValue = async () => {
 		if (!template) return;
 		if (format !== ExportFormat.docx) {
-			logWarnMessage("`template` is only applicable when format is 'docx'. It will be ignored.");
+			ChalkLogger.warn("`template` is only applicable when format is 'docx'. It will be ignored.");
 			ChalkLogger.log();
 			return;
 		}
@@ -85,8 +77,6 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 		throw new CliUserError(errorMessage);
 	};
 
-	const wordTemplate = await getTemplateValue();
-
 	const checkAndProcessUnsupportedElements = async () => {
 		const checkMessage = "Checking for unsupported elements";
 		const customSuccessLog = (result: UnsupportedElements[]) => {
@@ -107,20 +97,24 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 					catalogName,
 					itemPath: new Path(""),
 					isCategory: true,
-					exportFormat: format,
+					exportFormat: ExportFormat[format],
 				}),
 			customSuccessLog,
 		);
 		if (errorElements.length) {
 			ChalkLogger.log();
 			errorElements.forEach((element) => {
-				logWarnMessage(`${fp.toAbsolute(catalog.findArticle(element.article.link, []).ref.path)}`, 1);
+				ChalkLogger.warn(`${fp.toAbsolute(catalog.findArticle(element.article.link, []).ref.path)}`, {
+					indent: 1,
+				});
 				element.elements.forEach((unsupported) => {
-					logWarnMessage(`- ${unsupported.name}${unsupported.count > 1 ? ` (${unsupported.count})` : ""}`, 2);
+					ChalkLogger.warn(`- ${unsupported.name}${unsupported.count > 1 ? ` (${unsupported.count})` : ""}`, {
+						indent: 2,
+					});
 				});
 				ChalkLogger.log();
 			});
-			logWarnMessage(
+			ChalkLogger.warn(
 				`${formatName} does not support some elements of Gramax. The file will be saved without them.`,
 			);
 			ChalkLogger.log();
@@ -133,26 +127,40 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 		}
 	};
 
-	await checkAndProcessUnsupportedElements();
+	const simpleExport = async () => {
+		const wordTemplate = await getTemplateValue();
+		await checkAndProcessUnsupportedElements();
+		const getWordCommand = commands.word.getAsWordDocument;
+		const command: typeof getWordCommand = format === ExportFormat.docx ? getWordCommand : commands.pdf.getDocument;
 
-	const getWordCommand = commands.word.getAsWordDocument;
-	const command: typeof getWordCommand = format === ExportFormat.docx ? getWordCommand : commands.pdf.getDocument;
+		const wordDocument = await logStepWithErrorSuppression(`Generating ${formatName}`, () =>
+			command.do({
+				ctx,
+				catalogName,
+				itemPath: new Path(""),
+				isCategory: true,
+				wordTemplate,
+			}),
+		);
 
-	const wordDocument = await logStepWithErrorSuppression(`Generating ${formatName}`, () =>
-		command.do({
-			ctx,
-			catalogName,
-			itemPath: new Path(""),
-			isCategory: true,
-			wordTemplate,
-		}),
-	);
+		await logStep(`Saving ${formatName}`, async () => {
+			await mkdir(dirname(outputPath), { recursive: true });
+			writeFileSync(outputPath, new Uint8Array(wordDocument));
+		});
+	};
 
-	await logStep(`Saving ${formatName}`, async () => {
-		await mkdir(dirname(outputPath), { recursive: true });
-		writeFileSync(outputPath, new Uint8Array(wordDocument));
-	});
-	ChalkLogger.log();
-	ChalkLogger.log(`Export completed successfully. Saved to:`, { prefix: "SUCCESS" });
-	ChalkLogger.log(outputPath, { indent: 1 });
+	await (format === ExportFormat["beta-pdf"]
+		? runPdfCli({
+				source,
+				output: outputPath,
+				skipConfirm,
+				params: {
+					tocPage: PdfToc,
+					titlePage: PdfTitle,
+					titleNumber: PdfNumber,
+					template,
+				},
+		  })
+		: simpleExport());
+	ChalkLogger.log(`Saved to: ${outputPath}`, { indent: 1 });
 };

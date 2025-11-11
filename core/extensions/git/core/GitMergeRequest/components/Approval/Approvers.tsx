@@ -1,12 +1,12 @@
 import Approver from "@ext/git/core/GitMergeRequest/components/Approval/Approver";
-import useReviewerComments from "@ext/git/core/GitMergeRequest/components/Approval/useReviewerComments";
+import { useReviewerComments } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { Section } from "@ext/git/core/GitMergeRequest/components/Elements";
 import type { ApprovalSignature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import { useMemo, useState } from "react";
 
 const Approvers = ({ approvers }: { approvers: ApprovalSignature[] }) => {
-	const { comments } = useReviewerComments({ authors: approvers });
+	const comments = useReviewerComments({ authors: approvers });
 	const [isCollapsed, setIsCollapsed] = useState(false);
 
 	const CachedApprovers = useMemo(() => {

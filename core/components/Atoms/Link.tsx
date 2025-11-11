@@ -11,11 +11,12 @@ interface LinkProps extends HTMLAttributes<HTMLAnchorElement> {
 const Link = forwardRef((props: LinkProps, ref: RefObject<HTMLAnchorElement>) => {
 	const ExternalLink = resolveModule("Link");
 
+	const pathname = props.href.pathname;
 	const newProps = {
 		...props,
 		href: {
 			...props.href,
-			pathname: props.href.pathname.startsWith("/") ? props.href.pathname : "/" + props.href.pathname,
+			pathname: pathname.startsWith("/") || pathname.startsWith("#") ? pathname : "/" + pathname,
 		},
 	};
 

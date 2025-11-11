@@ -6,7 +6,7 @@ bun.lockb
 Cargo.lock
 target
 .ci/github-private-key
-
+apps-build-artifacts
 
 # storybook
 /storybook/storybook-static
@@ -21,6 +21,7 @@ next-env.d.ts
 
 # target -> vite
 .build
+/apps/gramax-cli/build
 
 # target -> application
 /application/bin

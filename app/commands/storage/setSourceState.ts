@@ -6,6 +6,7 @@ const setSourceInvalidState: Command<{ ctx: Context; storageName: string; isVali
 
 	do({ ctx, storageName, isValid }) {
 		const source = this._app.rp.getSourceData(ctx, storageName);
+		if (!source) return;
 		source.isInvalid = !isValid;
 		this._app.rp.setSourceData(ctx, source);
 	},

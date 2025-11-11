@@ -2,19 +2,23 @@ import Application from "@app/types/Application";
 import PageDataContext from "@core/Context/PageDataContext";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { renderAppContent } from "../Components/renderAppContent";
-import { ArticleDataService } from "./ArticleDataService";
+import { ArticleDataService, Options } from "./ArticleDataService";
 import { HtmlData, InitialArticleData } from "./ArticleTypes";
 import { overriddenLanguage } from "@ext/localization/core/model/Language";
+import { Article } from "@core/FileStructue/Article/Article";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import Context from "@core/Context/Context";
+import { feature } from "@ext/toggleFeatures/features";
 
 class StaticRenderer {
 	private _articleDataService: ArticleDataService;
 
-	constructor(private _app: Application) {
-		this._articleDataService = new ArticleDataService(_app);
+	constructor(private _app: Application, options: Options) {
+		this._articleDataService = new ArticleDataService(_app, options);
 	}
 
-	async render(logicPath: string): Promise<HtmlData[]> {
-		const languageGroupedArticles = await this._getData(logicPath);
+	async render(catalogName: string): Promise<HtmlData[]> {
+		const languageGroupedArticles = await this._getData(catalogName);
 		const htmlData = this._getArticlesHtmlData(languageGroupedArticles);
 		return htmlData;
 	}
@@ -63,20 +67,49 @@ class StaticRenderer {
 		return pageDataContext;
 	}
 
-	private async _getData(logicPath: string): Promise<InitialArticleData[]> {
-		const language = RouterPathProvider.parsePath(logicPath).language;
-		const ctx = await this._app.contextFactory.fromBrowser({
-			language,
-		});
-		const sp = this._app.sitePresenterFactory.fromContext(ctx);
-		const { catalog: contextualCatalog, article: defaultArticle } = await sp.getArticleByPathOfCatalog([logicPath]);
+	private async _getData(catalogName: string): Promise<InitialArticleData[]> {
+		const language = RouterPathProvider.parsePath(catalogName).language;
+		const ctx = await this._app.contextFactory.fromBrowser({ language });
+		const contextualCatalog = await this._app.wm.current().getCatalog(catalogName, ctx);
 		const catalog = contextualCatalog.deref;
 
-		const languageGroupedArticles = catalog.props.supportedLanguages?.length
-			? await this._articleDataService.getMultiLangArticlesPageData(catalog, logicPath)
-			: [await this._articleDataService.getArticlesPageData(ctx, catalog, defaultArticle, logicPath)];
+		const groupedArticles = await this._getArticlesData(catalog, ctx);
 
-		return languageGroupedArticles;
+		return groupedArticles;
+	}
+
+	private async _getArticlesData(catalog: Catalog, ctx: Context): Promise<InitialArticleData[]> {
+		const sp = this._app.sitePresenterFactory.fromContext(ctx);
+		const initialArticleData: InitialArticleData[] = [];
+
+		const getData = async (currentCatalog: Catalog) => {
+			const { article } = await sp.getArticleByPathOfCatalog([currentCatalog.name]);
+			initialArticleData.push(...(await this._getArticleDataItems(currentCatalog, ctx, article)));
+		};
+		await getData(catalog);
+
+		const getFilteredCatalogs = () =>
+			catalog.props.filterProperties?.mapAsync(async (property) => {
+				const mutableCatalog = { catalog };
+				await this._app.wm.current().events.emit("on-catalog-resolve", {
+					mutableCatalog,
+					metadata: property,
+				});
+				await getData(mutableCatalog.catalog);
+			});
+		if (feature("filtered-catalog")) await getFilteredCatalogs();
+
+		return initialArticleData;
+	}
+
+	private async _getArticleDataItems(
+		catalog: Catalog,
+		ctx: Context,
+		defaultArticle: Article,
+	): Promise<InitialArticleData[]> {
+		return catalog.props.supportedLanguages?.length
+			? await this._articleDataService.getMultiLangArticlesPageData(catalog)
+			: [await this._articleDataService.getArticlesPageData(ctx, catalog, defaultArticle, catalog.name)];
 	}
 }
 

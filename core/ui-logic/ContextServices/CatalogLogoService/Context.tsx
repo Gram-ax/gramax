@@ -1,8 +1,8 @@
 import { useCatalogLogo, useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import ContextService from "@core-ui/ContextServices/ContextService";
 import { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { createContext, ReactElement, useContext, useState, useCallback } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface CatalogLogoInterface {
 	isLoadingLight: boolean;
@@ -22,15 +22,15 @@ const CatalogLogoContext = createContext<CatalogLogoInterface>(undefined);
 
 class CatalogLogoService implements ContextService {
 	Init({ children }: { children: ReactElement }): ReactElement {
-		const catalogProps = CatalogPropsService.value;
+		const linkName = useCatalogPropsStore((state) => state.data?.link?.name);
 		const [key, setKey] = useState(0);
 
 		const successCallback = useCallback(() => {
 			setKey((p) => p + 1);
 		}, []);
 
-		const { ...data } = useCatalogLogo(catalogProps?.link?.name, successCallback);
-		const { isExist, src } = useGetCatalogLogoSrc(catalogProps?.link?.name, [key]);
+		const { ...data } = useCatalogLogo(linkName, successCallback);
+		const { isExist, src } = useGetCatalogLogoSrc(linkName, [key]);
 
 		return (
 			<CatalogLogoContext.Provider value={{ ...data, logo: isExist && src }}>

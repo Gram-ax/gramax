@@ -15,7 +15,7 @@ pub use stdout::*;
 use crate::metrics::doc::MetricDoc;
 
 pub trait MetricExporter<T: Serialize + Send + Sync> {
-  async fn send(&self, doc: T) -> anyhow::Result<()>;
+  fn send(&self, doc: T) -> impl std::future::Future<Output = anyhow::Result<()>> + Send;
 }
 
 #[derive(Debug)]
@@ -23,11 +23,13 @@ pub struct MetricExporterCollection<T: Serialize + Send + Sync> {
   exporters: Vec<AnyMetricExporter<T>>,
 }
 
-impl<T: Serialize + Send + Sync> MetricExporterCollection<T> {
-  pub fn new() -> Self {
+impl<T: Serialize + Send + Sync> Default for MetricExporterCollection<T> {
+  fn default() -> Self {
     Self { exporters: vec![] }
   }
+}
 
+impl<T: Serialize + Send + Sync> MetricExporterCollection<T> {
   pub fn with_exporter(mut self, exporter: AnyMetricExporter<T>) -> Self {
     self.exporters.push(exporter);
     self

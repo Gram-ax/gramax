@@ -90,6 +90,8 @@
 		]
 	},
 
+	"yaml.customTags": ["!reference sequence"],
+
 	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
 

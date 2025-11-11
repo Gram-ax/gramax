@@ -1,6 +1,5 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
@@ -15,13 +14,14 @@ import { getExtensionUpdaterRules } from "./rules/getExtensionUpdaterRules";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import PlatformService from "@core-ui/ContextServices/PlatformService";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export default abstract class ExtensionContextUpdater {
 	static useExtendExtensionsWithContext(extensions: Extensions): Extensions {
 		const theme = ThemeService.value;
 		const isMac = IsMacService.value;
 		const articleProps = ArticlePropsService.value;
-		const catalogProps = CatalogPropsService.value;
+		const catalogProps = useCatalogPropsStore((state) => state.data);
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
 		const articleRef = ArticleRefService.value;
@@ -95,7 +95,7 @@ export default abstract class ExtensionContextUpdater {
 		const theme = ThemeService.value;
 		const isMac = IsMacService.value;
 		const articleProps = ArticlePropsService.value;
-		const catalogProps = CatalogPropsService.value;
+		const catalogProps = useCatalogPropsStore((state) => state.data);
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
 		const articleRef = ArticleRefService.value;

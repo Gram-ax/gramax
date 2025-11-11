@@ -1,12 +1,12 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import useWatch from "@core-ui/hooks/useWatch";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import type { DiffTree, TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import PublishChangesProvider from "@ext/git/core/GitPublish/PublishChangesProvider";
 import { useCallback, useEffect, useState } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type UsePublishDiffEntries = {
 	diffTree?: DiffTree;
@@ -20,7 +20,7 @@ export type UsePublishDiffEntries = {
 
 const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePublishDiffEntries => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const catalogProps = CatalogPropsService.value;
+	const catalog = useCatalogPropsStore((state) => state.data);
 
 	const [diffTree, setDiffTree] = useState<DiffTree>(null);
 	const [isEntriesLoading, setIsEntriesLoading] = useState(false);
@@ -51,7 +51,7 @@ const usePublishDiffEntries = ({ autoUpdate }: { autoUpdate?: boolean }): UsePub
 		}
 
 		setIsEntriesLoading(false);
-	}, [catalogProps.name]);
+	}, [catalog]);
 
 	useWatch(() => {
 		if (!autoUpdate) return;

@@ -1,0 +1,197 @@
+rstests:
+  stage: test
+  tags:
+    - shell-macos-arm64v8
+  rules:
+    - !reference [.condition, tests, base, rules]
+    - !reference [.condition, ci, rules]
+    - !reference [.condition, tests, rstests, rules]
+  script:
+    - ./gx make-icons
+    - cargo test --all-targets -p spa --tests --manifest-path ./Cargo.toml
+    - cargo test --all-targets -p gramax-git --tests --manifest-path ./Cargo.toml
+  cache:
+    - !reference [.template.cache, npm]
+    - !reference [.template.cache, cargo]
+
+unit-tests:
+  extends: .template.tests
+  stage: test
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
+  rules:
+    - !reference [.condition, tests, base, rules]
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - !reference [.condition, core, rules]
+  variables:
+    CARGO_HOME: '$CI_PROJECT_DIR/.cargo'
+  script:
+    - ./install-deps.sh --ci --node
+    - npm run lint
+    - npm run test
+    - bun test --cwd services
+  artifacts:
+    reports:
+      junit: junit.xml
+  cache:
+    - !reference [.template.cache, npm]
+    - !reference [.template.cache, cargo]
+
+run-e2e:
+  extends: .template.tests
+  stage: test
+  tags:
+    - kubernetes01-gramax-5ghz
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:playwright-$BRANCH
+  rules:
+    - !reference [.condition, tests, base, rules]
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - !reference [.condition, core, rules]
+    - !reference [.condition, tests, e2e, rules]
+  variables:
+    PORT: 5173
+    PRODUCTION: 'false'
+    GX_E2E_GITLAB_PUSH_REPO: test-push-$CI_COMMIT_SHORT_SHA
+  before_script:
+    - ./install-deps.sh --ci
+  script:
+    - nice -n 15 ionice -c 3 npm --prefix apps/browser run build
+    - npm --prefix apps/browser run start &
+    - nice -n -15 ./.ci/e2e/run.sh
+
+  after_script:
+    - ./.ci/e2e/delete-repo.sh
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - e2e/report/
+    reports:
+      junit: e2e/junit*.xml
+  cache:
+    - !reference [.template.cache, npm]
+    - !reference [.template.cache, cargo]
+
+run-e2e-next:
+  extends: run-e2e
+  tags:
+    - kubernetes01-gramax
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:playwright-$BRANCH
+  variables:
+    PORT: 5173
+    ADMIN_LOGIN: 1
+    ADMIN_PASSWORD: 1
+    ROOT_PATH: ${PWD}/x
+    PRODUCTION: 'false'
+    CARGO_HOME: '$CI_PROJECT_DIR/.cargo'
+  before_script:
+    - ./install-deps.sh --ci --node
+    - mkdir -p $ROOT_PATH
+  script:
+    - nice -n 15 ionice -c 3 npm --prefix apps/next run build
+    - npm --prefix apps/next run start &
+    - nice -n -15 npm --prefix e2e run test:next
+  cache:
+    - !reference [.template.cache, npm]
+    - !reference [.template.cache, cargo]
+
+run-e2e-static:
+  extends: .template.tests
+  stage: test
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:playwright-$BRANCH
+  rules:
+    - !reference [.condition, tests, base, rules]
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - !reference [.condition, core, rules]
+    - !reference [.condition, tests, e2e, rules]
+  variables:
+    PORT: 5173
+  before_script:
+    - ./install-deps.sh --ci
+    - ./.ci/e2e/repo-info.sh
+  script:
+    - npm --prefix apps/gramax-cli run build
+
+    - git clone https://git:$GX_E2E_GITLAB_TOKEN@$GX_E2E_GITLAB_URL/$GX_E2E_GITLAB_GROUP/$GX_E2E_GITLAB_TEST_REPO.git
+    - npx --prefix apps/gramax-cli/dist gramax-cli build -s "$GX_E2E_GITLAB_TEST_REPO" --skip-check
+    - npx http-server build &
+    - npm --prefix e2e run test:static
+
+    - curl -fsSL https://raw.githubusercontent.com/tj/n/master/bin/n | bash -s 20
+    - node -v
+    - npx --prefix apps/gramax-cli/dist gramax-cli build -s "$GX_E2E_GITLAB_TEST_REPO" --skip-check
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - e2e/report/
+    reports:
+      junit: e2e/junit*.xml
+  cache:
+    - !reference [.template.cache, npm]
+    - !reference [.template.cache, cargo]
+
+run-e2e-enterprise:
+  extends: .template.tests
+  stage: test
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:playwright-$BRANCH
+  rules:
+    - !reference [.condition, tests, base, rules]
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - !reference [.condition, core, rules]
+    - !reference [.condition, tests, e2e, rules]
+  variables:
+    PORT: 5173
+    PRODUCTION: 'false'
+    GES_URL: https://enterprise.gramax.local
+    NODE_TLS_REJECT_UNAUTHORIZED: 0
+    ENTERPRISE_STORAGE_TYPE: local
+    GIT_SERVER_TOKEN: $ENTERPRISE_GIT_SERVER_TOKEN
+    GIT_PROJECT_PATH: $ENTERPRISE_GIT_PROJECT_PATH
+    LDAP_ADMIN_PASSWORD: $ENTERPRISE_LDAP_ADMIN_PASSWORD
+    CLIENT_ID: $ENTERPRISE_CLIENT_ID
+    CLIENT_SECRET: $ENTERPRISE_CLIENT_SECRET
+    E2E_AZURE_MAIL: $E2E_AZURE_MAIL
+    E2E_AZURE_PASSWORD: $E2E_AZURE_PASSWORD
+  before_script:
+    - echo '127.0.0.1 enterprise.gramax.local' >> /etc/hosts
+    - ./install-deps.sh --ci
+    - cd scripts/enterprise/test-local
+    - chmod +x ./install-caddy.sh
+    - ./install-caddy.sh
+    - ./start-enterprise.sh &
+  script:
+    - cd ../../..
+    - nice -n 15 ionice -c 3 npm --prefix apps/browser run build
+    - npm --prefix apps/browser run start &
+    - npm --prefix e2e run test:enterprise
+
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - e2e/report/
+    reports:
+      junit: e2e/junit*.xml
+  cache:
+    - !reference [.template.cache, npm]
+    - !reference [.template.cache, cargo]
+
+container_scanning:
+  rules: !reference [.condition, build, onlymaster, rules]
+  variables:
+    GIT_STRATEGY: fetch
+  parallel:
+    matrix:
+      - CS_IMAGE: 'docker.io/gramax/docportal'
+        CS_DOCKERFILE_PATH: ./apps/next/next.Dockerfile
+      - CS_IMAGE: 'docker.io/gramax/editor'
+        CS_DOCKERFILE_PATH: ./apps/browser/Dockerfile
+
+secret_detection:
+  # extends: .template.tests
+  tags:
+    - docker-linux-amd64-pull-policy-always
+  rules:
+    - !reference [.condition, tests, base, rules]
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - !reference [.condition, core, rules]

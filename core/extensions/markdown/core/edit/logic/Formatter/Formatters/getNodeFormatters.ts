@@ -37,6 +37,8 @@ import brFormatter from "@ext/markdown/elements/br/edit/logic/brFormatter";
 import blockPropertyFormatter from "@ext/markdown/elements/blockProperty/edit/logic/blockPropertyFormatter";
 import htmlTagNodeFormatters from "@ext/markdown/elements/htmlTag/edit/logic/htmlTagNodeFormatters";
 import inlineImageFormatter from "@ext/markdown/elements/inlineImage/edit/logic/formatter";
+import { questionAnswerFormatter } from "@ext/markdown/elements/answer/edit/logic/questionAnswerFormatter";
+import { questionFormatter } from "@ext/markdown/elements/question/edit/logic/questionFormatter";
 
 type NodeFormatterModifier = (formatters: { [node: string]: NodeSerializerSpec }) => void;
 
@@ -87,6 +89,8 @@ const getNodeFormatters = (
 		br: brFormatter,
 		text: textFormatter,
 		...htmlTagNodeFormatters,
+		questionAnswer: questionAnswerFormatter(formatter),
+		question: questionFormatter(formatter),
 	};
 
 	if (modifiers) {

@@ -1,8 +1,8 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
 import { createContext, useContext, useRef, useEffect } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface ArticleTooltipContext {
 	setLink: (link: HTMLElement, resourcePath: string, hash?: string) => void;
@@ -16,7 +16,6 @@ export const ArticleTooltip = createContext<ArticleTooltipContext>({
 
 abstract class ArticleTooltipService {
 	static Provider({ children }: { children: JSX.Element }): JSX.Element {
-		const catalogProps = CatalogPropsService.value;
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
 		const tooltipManager = useRef<LinkHoverTooltipManager>(null);
@@ -28,12 +27,7 @@ abstract class ArticleTooltipService {
 				tooltipManager.current.destroyAll();
 			}
 
-			tooltipManager.current = new LinkHoverTooltipManager(
-				document.body,
-				apiUrlCreator,
-				pageDataContext,
-				catalogProps,
-			);
+			tooltipManager.current = new LinkHoverTooltipManager(document.body, apiUrlCreator, pageDataContext);
 
 			return () => {
 				if (tooltipManager.current !== null) {
@@ -41,7 +35,7 @@ abstract class ArticleTooltipService {
 					tooltipManager.current = null;
 				}
 			};
-		}, [catalogProps]);
+		}, []);
 
 		const setLinkHandler = (element: HTMLElement, resourcePath: string, hash?: string) => {
 			if (typeof document === "undefined") return;

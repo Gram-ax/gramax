@@ -81,7 +81,7 @@ const Note = Node.create({
 						return false;
 
 					const note = findParentNode((node) => node.type.name === this.name)(state.selection);
-					if (!state.selection.empty && note?.node && note.node.attrs.type === type) {
+					if (!state.selection.empty && note?.node) {
 						return chain().focus().toggleWrap(this.name);
 					}
 
@@ -91,13 +91,7 @@ const Note = Node.create({
 							.toggleWrap(this.name, { type: type || NoteType.note });
 					}
 
-					if (note?.node && note.node.attrs.type !== type) {
-						return chain().updateAttributes(this.name, { type: type || NoteType.note });
-					}
-
-					return chain()
-						.setTextSelection({ from: note.start, to: note.start + note.node.nodeSize })
-						.toggleWrap(this.name, { type: type || NoteType.note });
+					return chain().updateAttributes(this.name, { type: type || NoteType.note });
 				},
 			updateNote:
 				(props: NoteAttrs) =>

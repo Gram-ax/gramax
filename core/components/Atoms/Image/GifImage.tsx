@@ -1,6 +1,7 @@
 import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import PlayButton from "@components/Atoms/Image/PlayButton";
 import ImageSkeleton from "@components/Atoms/ImageSkeleton";
+import Caption from "@components/Atoms/Caption";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
@@ -11,6 +12,7 @@ import styled from "@emotion/styled";
 import React, {
 	ComponentProps,
 	memo,
+	MouseEvent,
 	ReactEventHandler,
 	ReactNode,
 	useCallback,
@@ -89,18 +91,22 @@ const GifImage = (props: GifImageProps) => {
 		setIsplaying(true);
 	}, [noplay]);
 
-	const onDoubleClick = useCallback(() => {
-		ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
-			id: realSrc,
-			src: src,
-			title: title,
-			downloadSrc: realSrc,
-			openedElement: gifRef,
-			onClose: () => {
-				ModalToOpenService.resetValue();
-			},
-		});
-	}, [src, title, realSrc]);
+	const onDoubleClick = useCallback(
+		(event: MouseEvent<HTMLDivElement>) => {
+			event.stopPropagation();
+			ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
+				id: realSrc,
+				src: src,
+				title: title,
+				downloadSrc: realSrc,
+				openedElement: gifRef,
+				onClose: () => {
+					ModalToOpenService.resetValue();
+				},
+			});
+		},
+		[src, title, realSrc],
+	);
 
 	const preOnLoad = useCallback(() => {
 		const canvas = canvasRef.current;
@@ -120,32 +126,34 @@ const GifImage = (props: GifImageProps) => {
 	}, [onLoad, thumbnail]);
 
 	return (
-		<div className={className} onClick={onDoubleClick}>
-			<div
-				onDoubleClickCapture={onDoubleClick}
-				className={classNames("ff-container", { "ff-active": isPlaying, "ff-inactive": !isPlaying })}
-			>
-				<HoverableActions
-					hoverElementRef={hoverElementRef}
-					isHovered={isHovered}
-					setIsHovered={setIsHovered}
-					rightActions={rightActions}
+		<div className={className}>
+			<div>
+				<div
+					onDoubleClick={onDoubleClick}
+					className={classNames("ff-container", { "ff-active": isPlaying, "ff-inactive": !isPlaying })}
 				>
-					<ImageSkeleton width={size?.width} height={size?.height} isLoaded={!!thumbnail}>
-						<PlayButton onClick={onPlayButtonClick} ref={buttonRef} className="ff-button" />
-						<canvas className="ff-canvas" ref={canvasRef} data-focusable="true" />
-						<div className="ff-gif" data-focusable={true} onClick={onImageClick}>
-							<img
-								src={(!thumbnail && !isPlaying) || (isPlaying && thumbnail) ? src : thumbnail}
-								alt={alt}
-								onLoad={preOnLoad}
-								ref={gifRef}
-								onError={onError}
-							/>
-						</div>
-					</ImageSkeleton>
-					{title && <em>{title}</em>}
-				</HoverableActions>
+					<HoverableActions
+						hoverElementRef={hoverElementRef}
+						isHovered={isHovered}
+						setIsHovered={setIsHovered}
+						rightActions={rightActions}
+					>
+						<ImageSkeleton width={size?.width} height={size?.height} isLoaded={!!thumbnail}>
+							<PlayButton onClick={onPlayButtonClick} ref={buttonRef} className="ff-button" />
+							<canvas className="ff-canvas" ref={canvasRef} data-focusable="true" />
+							<div className="ff-gif" data-focusable={true} onClick={onImageClick}>
+								<img
+									src={(!thumbnail && !isPlaying) || (isPlaying && thumbnail) ? src : thumbnail}
+									alt={alt}
+									onLoad={preOnLoad}
+									ref={gifRef}
+									onError={onError}
+								/>
+							</div>
+						</ImageSkeleton>
+					</HoverableActions>
+				</div>
+				{title && <Caption>{title}</Caption>}
 			</div>
 		</div>
 	);
@@ -153,7 +161,7 @@ const GifImage = (props: GifImageProps) => {
 export default styled(memo(GifImage))`
 	display: flex;
 	justify-content: center;
-	margin: 0.5em auto 0.5em auto !important;
+	margin: 0.5em auto;
 
 	img {
 		user-select: none;
@@ -181,7 +189,6 @@ export default styled(memo(GifImage))`
 	}
 
 	.ff-container {
-		display: inline-block;
 		position: relative;
 
 		.ff-canvas {
@@ -206,7 +213,7 @@ export default styled(memo(GifImage))`
 			right: 0%;
 			bottom: 0%;
 			margin: auto;
-			z-index: var(--z-index-base);
+			z-index: var(--z-index-foreground);
 			color: var(--color-white);
 			cursor: pointer;
 			max-width: 5.875em;

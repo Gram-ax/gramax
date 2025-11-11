@@ -33,9 +33,7 @@ export const NodeViewContextableWrapper = forwardRef(
 	({ children, props, as, ...rest }: NodeViewContextableWrapperProps, ref: RefObject<HTMLElement>) => {
 		return (
 			<NodeViewWrapper {...rest} ref={ref} as={as}>
-				<NodeViewContext.Provider value={props}>
-					<div className="flex flex-col">{children}</div>
-				</NodeViewContext.Provider>
+				<NodeViewContext.Provider value={props}>{children}</NodeViewContext.Provider>
 			</NodeViewWrapper>
 		);
 	},

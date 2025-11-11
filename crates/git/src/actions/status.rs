@@ -119,6 +119,7 @@ impl<C: Creds> Status for Repo<'_, C> {
       .include_unmodified(false)
       .include_ignored(false)
       .include_untracked(true)
+      .exclude_submodules(true)
       .update_index(true)
       .recurse_untracked_dirs(true)
       .show(if index { StatusShow::Index } else { StatusShow::IndexAndWorkdir });

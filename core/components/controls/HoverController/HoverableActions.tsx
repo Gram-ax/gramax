@@ -144,7 +144,7 @@ export default memo(styled(HoverableActions)`
 		margin: 0.5rem;
 		transform-origin: top;
 		opacity: 0;
-		z-index: var(--z-index-base);
+		z-index: var(--z-index-toolbar);
 		transition: opacity var(--transition-time-fast) ease-in-out;
 		user-select: none;
 

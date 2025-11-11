@@ -8,7 +8,7 @@ import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
-import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import { ExcludedProps, type CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
@@ -170,9 +170,12 @@ export default class FileStructure {
 
 	async saveCatalog(catalog: Catalog): Promise<void> {
 		const props = catalog.props;
-		delete props.docroot;
-		delete props.docrootIsNoneExistent;
-		const text = this._serializeProps({ ...props });
+		delete (props as any).link;
+
+		const propsToSave = { ...props };
+		ExcludedProps.forEach((key) => delete propsToSave[key]);
+
+		const text = this._serializeProps(propsToSave);
 		await this._fp.write(catalog.getRootCategoryPath().join(new Path(DOC_ROOT_FILENAME)), text);
 		catalog.repo?.resetCachedStatus();
 	}

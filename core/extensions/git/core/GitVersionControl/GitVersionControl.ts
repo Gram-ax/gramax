@@ -1,6 +1,7 @@
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import BrowserStashCache from "@ext/git/core/BrowserStashCache/BrowserStashCache";
 import type { CommitAuthorInfo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import type {
 	DiffConfig,
@@ -132,7 +133,9 @@ export default class GitVersionControl {
 		// in other case stash will fail with error: cannot create a tree from a not fully merged index; class=Index (10); code=Unmerged (-10)
 		await this.reset({ mode: "mixed" });
 
-		return this._gitRepository.stash(data);
+		const stash = await this._gitRepository.stash(data);
+		if (stash) BrowserStashCache.setStashCache(this.getPath().value, stash.toString());
+		return stash;
 	}
 
 	async applyStash(

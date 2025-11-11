@@ -12,11 +12,11 @@ import {
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
 
-const FloatActions = ({ node, editor }: { node: Node; editor: Editor }) => {
+const FloatActions = ({ node, editor, getPos }: { node: Node; editor: Editor; getPos: () => number }) => {
 	const float: FloatAlign = node.attrs.float || "center";
 
 	const setFloat = (align: FloatAlign) => {
-		editor.commands.setFloat(node.type, align);
+		editor.commands.setFloat(getPos(), node.type, align);
 	};
 
 	return (

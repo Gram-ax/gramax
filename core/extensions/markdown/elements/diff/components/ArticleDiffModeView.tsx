@@ -1,7 +1,6 @@
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
+import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
@@ -16,6 +15,7 @@ import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { useEffect, useLayoutEffect, useState } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface ArticleDiffModeViewProps {
 	oldEditTree: JSONContent;
@@ -68,8 +68,8 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 	})();
 
 	const articleProps = ArticlePropsService.value;
-	const diffViewService = DiffViewModeService.value;
-	const catalogName = CatalogPropsService.value?.name;
+	const diffViewService = useDiffViewMode();
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 
 	const restoreRightSidebar = useRestoreRightSidebar();
 	const [diffView, setDiffView] = useState(diffViewService);
@@ -103,7 +103,7 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 
 	const setViewModeWrapper = (mode: DiffViewMode) => {
 		setDiffView(mode);
-		DiffViewModeService.value = mode;
+		updateDiffViewMode(mode);
 		onViewModeChange?.(mode);
 	};
 

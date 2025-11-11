@@ -1,6 +1,5 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
@@ -18,14 +17,18 @@ import {
 	DropdownMenuSeparator,
 } from "@ui-kit/Dropdown";
 import { useEffect, useState } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const SwitchContentLanguage = () => {
 	const router = useRouter();
 	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
 
 	const articleProps = ArticlePropsService.value;
-	const props = CatalogPropsService.value;
-	const currentLanguage = PageDataContextService.value.language.content || props?.language;
+	const { language, supportedLanguages } = useCatalogPropsStore(
+		(state) => ({ language: state.data?.language, supportedLanguages: state.data?.supportedLanguages }),
+		"shallow",
+	);
+	const currentLanguage = PageDataContextService.value.language.content || language;
 
 	const [isLoading, setIsLoading] = useState(false);
 	const { isNext } = usePlatform();
@@ -35,12 +38,12 @@ const SwitchContentLanguage = () => {
 	}, [currentLanguage]);
 
 	useEffect(() => {
-		if (!props || !articleProps) return;
-		if (props.language && !props.supportedLanguages.includes(currentLanguage)) switchLanguage(props.language);
-	}, [props, articleProps]);
+		if (!language || !articleProps) return;
+		if (language && !supportedLanguages.includes(currentLanguage)) switchLanguage(language);
+	}, [language, supportedLanguages, articleProps]);
 
-	if (!articleProps || !props || !articleProps?.pathname || articleProps.welcome || !props.language) return null;
-	if (isNext && props.supportedLanguages?.length < 2) return null;
+	if (!articleProps || !language || !articleProps?.pathname || articleProps.welcome || !language) return null;
+	if (isNext && supportedLanguages?.length < 2) return null;
 
 	const switchLanguage = (code: ContentLanguage) => {
 		if (code == currentLanguage) return;
@@ -51,7 +54,7 @@ const SwitchContentLanguage = () => {
 					current: currentLanguage,
 					logicPath: articleProps.logicPath,
 					target: code,
-					primaryLanguage: props.language,
+					primaryLanguage: language,
 				}),
 			);
 			return;
@@ -63,7 +66,7 @@ const SwitchContentLanguage = () => {
 				logicPath: articleProps.logicPath,
 				pathname: articleProps.pathname,
 				target: code,
-				primaryLanguage: props.language,
+				primaryLanguage: language,
 			}),
 		);
 	};
@@ -85,9 +88,13 @@ const SwitchContentLanguage = () => {
 						<DropdownMenuSeparator />
 					</>
 				)}
-				<DropdownMenuRadioGroup value={currentLanguage} onValueChange={switchLanguage}>
-					{Object.values(props.supportedLanguages).map((code) => {
-						const showActions = !isReadOnly && props.language != code;
+				<DropdownMenuRadioGroup
+					value={currentLanguage}
+					onValueChange={switchLanguage}
+					indicatorIconPosition="start"
+				>
+					{Object.values(supportedLanguages).map((code) => {
+						const showActions = !isReadOnly && language != code;
 
 						return (
 							<DropdownMenuRadioItem key={code} value={code}>

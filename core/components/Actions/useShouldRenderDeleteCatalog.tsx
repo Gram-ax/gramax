@@ -1,20 +1,20 @@
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { configureCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import { useMemo } from "react";
 
 const useShouldRenderDeleteCatalog = () => {
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const workspacePath = WorkspaceService.current()?.path;
-	const catalogProps = CatalogPropsService.value;
 	const { cloudServiceUrl } = PageDataContextService.value.conf;
 
 	const canConfigureCatalog = PermissionService.useCheckPermission(
 		configureCatalogPermission,
 		workspacePath,
-		catalogProps.name,
+		catalogName,
 	);
 	const { environment } = usePlatform();
 

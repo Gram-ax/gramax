@@ -2,9 +2,9 @@ import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpd
 import Icon from "@components/Atoms/Icon";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchActions from "@ext/git/actions/Branch/components/BranchActions";
@@ -33,12 +33,11 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate }: Bra
 	const branchName = branch?.name;
 
 	const workspacePath = WorkspaceService.current().path;
-	const catalogProps = CatalogPropsService.value;
-
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const canEditCatalog = PermissionService.useCheckPermission(
 		editCatalogPermission,
 		workspacePath,
-		catalogProps.name,
+		catalogName,
 	);
 
 	const allowAddNewBranch = !isNext && canEditCatalog;

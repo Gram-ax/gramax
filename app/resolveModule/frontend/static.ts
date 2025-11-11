@@ -5,7 +5,7 @@ export const getStaticModules = async (): Promise<any> => {
 		{ default: BrowserFetchService },
 		{ default: StaticRouter },
 	] = await Promise.all([
-		import("../../../apps/browser/src/components/Atoms/Link"),
+		import("../../../apps/gramax-cli/src/Components/Atoms/Link"),
 		import("../../../apps/browser/src/hooks/useUrlObjectImage"),
 		import("../../../apps/browser/src/logic/Api/BrowserFetchService"),
 		import("../../../apps/gramax-cli/src/logic/api/StaticRouter"),

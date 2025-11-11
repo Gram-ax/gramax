@@ -1,5 +1,4 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import { useSyncCount } from "@core-ui/ContextServices/SyncCount/useSyncCount";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
@@ -7,13 +6,14 @@ import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import useSourceData from "@ext/storage/components/useSourceData";
 import { useOpenRestoreSourceTokenModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenRestoreSourceTokenModal";
 import { CSSProperties, useCallback, useEffect } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const Sync = ({ style }: { style?: CSSProperties }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const catalogProps = CatalogPropsService.value;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const syncProcess = SyncIconService.value;
 
-	const { syncCount, updateSyncCount } = useSyncCount(catalogProps.name);
+	const { syncCount, updateSyncCount } = useSyncCount(catalogName);
 
 	const source = useSourceData();
 	const openRestoreSourceModal = useOpenRestoreSourceTokenModal(source);

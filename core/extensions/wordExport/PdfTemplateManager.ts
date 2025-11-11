@@ -47,6 +47,14 @@ export class PdfTemplateManager {
 		await this._refreshTemplatesCache(workspace);
 	}
 
+	public static isPdfTemplateName(templateName: string): boolean {
+		const lastDotIndex = templateName.lastIndexOf(".");
+		if (lastDotIndex === -1 || lastDotIndex === templateName.length - 1) return false;
+
+		const extension = templateName.substring(lastDotIndex + 1).toLowerCase();
+		return PDF_TEMPLATE_FORMATS.some((prefix) => extension.startsWith(prefix));
+	}
+
 	private _clearCache(workspace: Workspace): void {
 		delete this._templates[workspace.path()];
 	}
@@ -56,13 +64,7 @@ export class PdfTemplateManager {
 
 		const templates = (await workspace.getAssets().listFiles(PRF_TEMPLATES_DIR)) || [];
 
-		this._templates[workspace.path()] = templates.filter((template) => {
-			const lastDotIndex = template.lastIndexOf(".");
-			if (lastDotIndex === -1 || lastDotIndex === template.length - 1) return false;
-
-			const extension = template.substring(lastDotIndex + 1).toLowerCase();
-			return PDF_TEMPLATE_FORMATS.some((prefix) => extension.startsWith(prefix));
-		});
+		this._templates[workspace.path()] = templates.filter(PdfTemplateManager.isPdfTemplateName);
 		return this._templates[workspace.path()];
 	}
 

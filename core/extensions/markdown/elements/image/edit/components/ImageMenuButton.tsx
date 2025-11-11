@@ -7,6 +7,7 @@ import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import createImages from "../logic/createImages";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import { ChangeEvent } from "react";
 
 interface ImageMenuButtonProps {
 	editor: Editor;
@@ -24,6 +25,16 @@ const ImageMenuButton = ({ editor, className, fileName }: ImageMenuButtonProps) 
 		return <Button icon="image" nodeValues={{ action: "image" }} tooltipText={t("image")} />;
 	}
 
+	const onChange = async (event: ChangeEvent<HTMLInputElement>) => {
+		await createImages(
+			[...event.currentTarget.files],
+			editor.view,
+			fileName || articleProps?.fileName,
+			resourceService,
+		);
+		event.target.value = "";
+	};
+
 	return (
 		<Button
 			tooltipText={t("image")}
@@ -31,15 +42,7 @@ const ImageMenuButton = ({ editor, className, fileName }: ImageMenuButtonProps) 
 			onClick={() => ArticleUpdaterService.stopLoadingAfterFocus()}
 		>
 			<label className={className}>
-				<input
-					type="file"
-					name="my-image"
-					id="image"
-					accept="image/*"
-					onChange={(event) =>
-						createImages([...event.currentTarget.files], editor.view, fileName || articleProps?.fileName, resourceService)
-					}
-				/>
+				<input type="file" accept="image/*" onChange={onChange} />
 				<Button icon="image" />
 			</label>
 		</Button>

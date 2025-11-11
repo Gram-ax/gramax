@@ -3,7 +3,6 @@ import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import AnnotationMenu from "@ext/markdown/elements/image/edit/components/ImageEditor/AnnotationMenu";
@@ -13,7 +12,15 @@ import {
 	cropImage,
 	restoreImage,
 } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import { CSSProperties, MouseEventHandler, ReactEventHandler, useEffect, useRef, useState } from "react";
+import {
+	ComponentProps,
+	CSSProperties,
+	MouseEventHandler,
+	ReactEventHandler,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import {
 	AdditionData,
 	AnnotationObject,
@@ -27,6 +34,9 @@ import {
 } from "../../model/imageEditorTypes";
 import ImageCropper from "./ImageCropper";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 
 const ImageEditor = (props: EditorProps & { className?: string; style?: CSSProperties }) => {
 	const { crop, src, objects, handleSave, handleToggle, className, style } = props;
@@ -519,137 +529,138 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 		setIsLoaded(true);
 	};
 
-	return (
-		<div
-			id="image-editor-container"
-			ref={containerRef}
-			onMouseDown={(event) => (event.target as HTMLDivElement)?.id === "image-editor-container" && closeEditor()}
-			onMouseUp={handleMouseUp}
-			onClick={clearSelected}
-			className={className}
-		>
-			<Icon className="x-mark" code="x" onClick={() => closeEditor()} />
+	const openWarningModal = () => {
+		ModalToOpenService.setValue<ComponentProps<typeof UnsavedChangesModal>>(ModalToOpen.UnsavedChangesModal, {
+			isOpen: showWarning,
+			onOpenChange: setShowWarning,
+			onSave: () => saveData(true),
+			onDontSave: () => closeEditor(true),
+		});
+	};
 
-			{showWarning && (
-				<div className="modal__confirm">
-					<div className="modal__confirm__container">
-						<InfoModalForm
-							title={messages.unsavedChanges}
-							icon={{ code: "circle-alert", color: "rgb(255 187 1)" }}
-							onCancelClick={() => setShowWarning(false)}
-							secondButton={{ onClick: () => closeEditor(true), text: messages.dontSave }}
-							actionButton={{ onClick: () => saveData(true), text: messages.saveChanges }}
-							closeButton={{ text: messages.cancel }}
-						>
-							<span>{messages.exitEditMode}</span>
-						</InfoModalForm>
+	useEffect(() => {
+		if (showWarning) return openWarningModal();
+		ModalToOpenService.resetValue();
+	}, [showWarning]);
+
+	return (
+		<>
+			<div
+				id="image-editor-container"
+				ref={containerRef}
+				onMouseDown={(event) =>
+					(event.target as HTMLDivElement)?.id === "image-editor-container" && closeEditor()
+				}
+				onMouseUp={handleMouseUp}
+				onClick={clearSelected}
+				className={className}
+			>
+				<Icon className="x-mark" code="x" onClick={() => closeEditor()} />
+
+				<div
+					draggable="false"
+					onDragStart={(e) => e.preventDefault()}
+					onMouseDown={handleMouseDown}
+					onMouseMove={handleMouseMove}
+					className="modal__container"
+				>
+					<ImageCropper
+						crop={curCrop}
+						setCrop={setCrop}
+						handleUpdateArea={handleUpdateArea}
+						cropEnabled={cropEnabled}
+						parentRef={imageContainerRef}
+					/>
+					<div ref={imageContainerRef} className="modal__container__image">
+						<img
+							ref={imgRef}
+							onLoad={handleOnLoad}
+							draggable="false"
+							onDragStart={(e) => e.preventDefault()}
+							src={src}
+							style={style}
+							alt=""
+						/>
+						{isLoaded && (
+							<ObjectRenderer
+								percentToPx
+								objects={elements}
+								imageRef={imgRef}
+								parentRef={imageContainerRef}
+								editable={true}
+								onClick={selectElement}
+								selectedIndex={selectedIndex}
+								changeData={setElementData}
+							/>
+						)}
 					</div>
 				</div>
-			)}
 
-			<div
-				draggable="false"
-				onDragStart={(e) => e.preventDefault()}
-				onMouseDown={handleMouseDown}
-				onMouseMove={handleMouseMove}
-				className="modal__container"
-			>
-				<ImageCropper
-					crop={curCrop}
-					setCrop={setCrop}
-					handleUpdateArea={handleUpdateArea}
-					cropEnabled={cropEnabled}
-					parentRef={imageContainerRef}
-				/>
-				<div ref={imageContainerRef} className="modal__container__image">
-					<img
-						ref={imgRef}
-						onLoad={handleOnLoad}
-						draggable="false"
-						onDragStart={(e) => e.preventDefault()}
-						src={src}
-						style={style}
-						alt=""
-					/>
-					{isLoaded && (
-						<ObjectRenderer
-							percentToPx
-							objects={elements}
-							imageRef={imgRef}
-							parentRef={imageContainerRef}
-							editable={true}
-							onClick={selectElement}
-							selectedIndex={selectedIndex}
-							changeData={setElementData}
-						/>
-					)}
-				</div>
-			</div>
+				{src && (
+					<div className="toolbar__under">
+						{selectedIndex !== null && (
+							<AnnotationMenu
+								setIndex={changeIndex}
+								remove={removeObject}
+								curDirection={curDirection}
+								tooltipText={tooltipText}
+								setTooltipText={changeText}
+								index={selectedIndex}
+								changeDirection={changeDirection}
+								maxIndex={elements.length}
+							/>
+						)}
 
-			{src && (
-				<div className="toolbar__under">
-					{selectedIndex !== null && (
-						<AnnotationMenu
-							setIndex={changeIndex}
-							remove={removeObject}
-							curDirection={curDirection}
-							tooltipText={tooltipText}
-							setTooltipText={changeText}
-							index={selectedIndex}
-							changeDirection={changeDirection}
-							maxIndex={elements.length}
-						/>
-					)}
+						{cropEnabled && (
+							<ModalLayoutDark>
+								<ButtonsLayout>
+									<>
+										<Button text={messages.apply} icon={"check"} onClick={toggleCropper} />
+										<Button text={messages.cancel} icon={"x"} onClick={resetCropper} />
+									</>
+								</ButtonsLayout>
+							</ModalLayoutDark>
+						)}
 
-					{cropEnabled && (
 						<ModalLayoutDark>
 							<ButtonsLayout>
-								<>
-									<Button text={messages.apply} icon={"check"} onClick={toggleCropper} />
-									<Button text={messages.cancel} icon={"x"} onClick={resetCropper} />
-								</>
+								<Button
+									tooltipText={messages.addAnnotation}
+									icon={"circle-arrow-out-up-left"}
+									onClick={() => createChildren(ImageObjectTypes.Annotation)}
+								/>
+								<Button
+									tooltipText={messages.addSquare}
+									icon={"scan"}
+									onClick={() => createChildren(ImageObjectTypes.Square)}
+								/>
+
+								<div className="divider" />
+								<Button
+									tooltipText={messages.cropImage}
+									icon={"crop"}
+									onClick={cropEnabled ? resetCropper : toggleCropper}
+									isActive={cropEnabled || (curCrop.w < 99 && curCrop.h < 99)}
+								/>
+
+								<div className="divider" />
+								<Button
+									hidden={!src}
+									text={messages.saveAndExit}
+									icon={"save"}
+									onClick={() => saveData(true)}
+								/>
 							</ButtonsLayout>
 						</ModalLayoutDark>
-					)}
-
-					<ModalLayoutDark>
-						<ButtonsLayout>
-							<Button
-								tooltipText={messages.addAnnotation}
-								icon={"circle-arrow-out-up-left"}
-								onClick={() => createChildren(ImageObjectTypes.Annotation)}
-							/>
-							<Button
-								tooltipText={messages.addSquare}
-								icon={"scan"}
-								onClick={() => createChildren(ImageObjectTypes.Square)}
-							/>
-
-							<div className="divider" />
-							<Button
-								tooltipText={messages.cropImage}
-								icon={"crop"}
-								onClick={cropEnabled ? resetCropper : toggleCropper}
-								isActive={cropEnabled || (curCrop.w < 99 && curCrop.h < 99)}
-							/>
-
-							<div className="divider" />
-							<Button
-								hidden={!src}
-								text={messages.saveAndExit}
-								icon={"save"}
-								onClick={() => saveData(true)}
-							/>
-						</ButtonsLayout>
-					</ModalLayoutDark>
-				</div>
-			)}
-		</div>
+					</div>
+				)}
+			</div>
+		</>
 	);
 };
 
 export default styled(ImageEditor)`
-	z-index: var(--z-index-article-modal);
+	z-index: var(--z-index-ui-kit-modal);
 	position: fixed;
 	width: 100vw;
 	height: 100vh;
@@ -664,23 +675,6 @@ export default styled(ImageEditor)`
 	input[type="number"]::-webkit-inner-spin-button,
 	input[type="number"]::-webkit-outer-spin-button {
 		-webkit-appearance: none;
-	}
-
-	.modal__confirm {
-		z-index: var(--z-index-article-confirm-modal);
-		background-color: #2929298d;
-		position: fixed;
-		width: 100vw;
-		height: 100vh;
-	}
-
-	.modal__confirm__container {
-		position: absolute;
-		min-width: 30em;
-		max-width: 45%;
-		left: 50%;
-		top: 50%;
-		transform: translate(-50%, -50%);
 	}
 
 	.x-mark {

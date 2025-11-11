@@ -1,5 +1,4 @@
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import { PAGE_WIDTH } from "@ext/print/const";
 import { Node } from "@tiptap/pm/model";
 import { memo, RefObject, useLayoutEffect, useMemo, useState } from "react";
 
@@ -104,7 +103,6 @@ const ColGroup = ({ content, parentElement, tableRef, isPrint }: ColGroupProps) 
 
 	const generatedCols = useMemo(() => {
 		const cols = [];
-		let allWidth = 0;
 
 		colInfo.forEach((col, i) => {
 			for (let j = 0; j < col.colspan; j++) {
@@ -121,16 +119,9 @@ const ColGroup = ({ content, parentElement, tableRef, isPrint }: ColGroupProps) 
 							}}
 						/>,
 					);
-					allWidth += typeof width === "string" ? Number(width.replace("px", "")) : width;
 				} else cols.push(<col key={`${i}-${j}`} />);
 			}
 		});
-
-		if (tableRef?.current && isPrint) {
-			allWidth = allWidth === 0 ? PAGE_WIDTH : allWidth;
-			allWidth = allWidth > PAGE_WIDTH ? PAGE_WIDTH : allWidth;
-			tableRef.current.style.width = `${allWidth}px`;
-		}
 
 		return cols;
 	}, [colInfo, cellWidth]);

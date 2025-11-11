@@ -10,6 +10,22 @@ interface TouchHandlerConfig {
 	capturePointer?: boolean;
 }
 
+const isInteractiveElement = (element: Element): boolean => {
+	const tagName = element.tagName.toLowerCase();
+	const interactiveTags = ["a", "button", "input", "textarea", "select", "label"];
+
+	if (interactiveTags.includes(tagName)) return true;
+	const role = element.getAttribute("role");
+
+	if (role && ["button", "link", "textbox", "combobox"].includes(role)) return true;
+	return false;
+};
+
+const shouldIgnoreEvent = (target: Element): boolean => {
+	if (isInteractiveElement(target) || isInteractiveElement(target.parentElement)) return true;
+	return false;
+};
+
 interface TouchHandlers {
 	onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void;
 	onTouchStart: (event: ReactTouchEvent<HTMLElement>) => void;
@@ -131,6 +147,7 @@ export const useTouchHandler = (config: TouchHandlerConfig): TouchHandlers => {
 
 	const onPointerDown = useCallback(
 		(event: ReactPointerEvent<HTMLElement>) => {
+			if (shouldIgnoreEvent(event.target as Element)) return;
 			if (preventDefault && event.cancelable) event.preventDefault();
 			if (stopPropagation) event.stopPropagation();
 
@@ -141,6 +158,7 @@ export const useTouchHandler = (config: TouchHandlerConfig): TouchHandlers => {
 
 	const onTouchStart = useCallback(
 		(event: ReactTouchEvent<HTMLElement>) => {
+			if (shouldIgnoreEvent(event.target as Element)) return;
 			if (preventDefault && event.cancelable) event.preventDefault();
 			if (stopPropagation) event.stopPropagation();
 
@@ -157,6 +175,7 @@ export const useTouchHandler = (config: TouchHandlerConfig): TouchHandlers => {
 
 	const onMouseDown = useCallback(
 		(event: ReactMouseEvent<HTMLElement>) => {
+			if (shouldIgnoreEvent(event.target as Element)) return;
 			if (event.nativeEvent instanceof PointerEvent) return;
 
 			if (preventDefault && event.cancelable) event.preventDefault();

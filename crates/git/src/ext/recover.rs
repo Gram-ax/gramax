@@ -59,7 +59,7 @@ impl<C: ActualCreds> Recover for Repo<'_, C> {
     });
 
     if let Some(head_ref) = head_ref {
-        self.0.set_head(head_ref.name().or_utf8_err()?)?;
+      self.0.set_head(head_ref.name().or_utf8_err()?)?;
     } else {
       let default_branch = self.default_branch()?;
       if let Some(default_branch) = default_branch {

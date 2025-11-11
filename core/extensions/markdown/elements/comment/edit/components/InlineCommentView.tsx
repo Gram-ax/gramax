@@ -14,12 +14,13 @@ const InlineCommentView = ({ children, commentId, style, className, ...props }: 
 	const { editor } = useCurrentEditor();
 
 	const onMouseEnter = useCallback(() => {
-		if (!commentId) return;
-		editor?.commands.hoverComment(commentId);
+		if (!commentId || !editor) return;
+		editor.commands.hoverComment(commentId);
 	}, [commentId, editor]);
 
 	const onMouseLeave = useCallback(() => {
-		editor?.commands.unhoverComment();
+		if (!editor) return;
+		editor.commands.unhoverComment();
 	}, [editor]);
 
 	const onClick = useCallback(() => {

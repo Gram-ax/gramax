@@ -16,6 +16,7 @@ import PublishStatusPanel from "@ext/static/components/PublishStatusPanel";
 import SwitchVersion from "@ext/versioning/components/SwitchVersion";
 import { useRef } from "react";
 import Links from "../../layoutComponents";
+import { QuizNavigationInfo } from "@ext/quiz/components/QuizNavigationInfo";
 
 const RightNavigation = ({ className }: { className?: string }): JSX.Element => {
 	const ref = useRef<HTMLDivElement>(null);
@@ -51,6 +52,7 @@ const RightNavigation = ({ className }: { className?: string }): JSX.Element => 
 				{showArticleActions && <TableOfContents />}
 				<Links articleLinks={articleLinks} catalogLinks={getCatalogLinks()} />
 				{cloudServiceUrl && <PublishStatusPanel />}
+				<QuizNavigationInfo />
 			</aside>
 			{isNext && (
 				<div className={"gramax-link"}>

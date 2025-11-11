@@ -12,7 +12,7 @@ import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 import TemplateProcessor from "@ext/wordExport/TemplateProcessor";
 import t from "@ext/localization/locale/translate";
-import { WORD_TEMPLATES_DIR } from "@ext/workspace/WorkspaceAssets";
+import { WORD_TEMPLATES_DIR } from "@ext/wordExport/WordTemplateManager";
 import assert from "assert";
 import docx from "@dynamicImports/docx";
 

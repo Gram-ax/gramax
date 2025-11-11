@@ -48,6 +48,8 @@ import {
 	blockWithInlineHtmlTag,
 } from "@ext/markdown/elements/htmlTag/render/model/htmlTag";
 import { highlight } from "@ext/markdown/elements/highlight/render/model/schema";
+import { question } from "@ext/markdown/elements/question/render/models/question";
+import { questionAnswer } from "@ext/markdown/elements/answer/render/models/answer";
 
 function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
 	return {
@@ -109,6 +111,8 @@ export default function getTagElementRenderModels(context?: ParserContext): Reco
 		kbd,
 		see,
 		br,
+		questionAnswer: questionAnswer(),
+		question: question(),
 		"inline-property": inlineProperty,
 		"block-field": blockField,
 		"block-property": blockProperty,

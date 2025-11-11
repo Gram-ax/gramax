@@ -75,6 +75,5 @@ export interface TitleInfo {
 }
 
 export interface TableInsideListItem {
-	insideTableWrapper?: boolean;
 	indent?: number;
 }

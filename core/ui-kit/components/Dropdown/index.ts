@@ -3,7 +3,6 @@ export {
 	DropdownMenuSeparator,
 	DropdownMenuCheckboxItem,
 	DropdownMenuGroup,
-	DropdownMenuRadioGroup,
 	DropdownMenuTriggerButton,
 	DropdownMenuSub,
 	DropdownMenuSubTrigger,
@@ -16,3 +15,4 @@ export { DropdownMenuSubContent } from "./DropdownMenuSubContent";
 export { DropdownMenuLabel } from "./DropdownMenuLabel";
 export { isInDropdown } from "./utils/isInDropdown";
 export { DropdownIndicator } from "./DropdownIndicator";
+export { DropdownMenuRadioGroup } from "./DropdownMenuRadioGroup";

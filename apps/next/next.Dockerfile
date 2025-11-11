@@ -5,25 +5,6 @@ FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$
 
 WORKDIR /app
 
-COPY ./package.json ./package-lock.json ./
-COPY ./apps/browser/package.json ./apps/browser/
-COPY ./apps/tauri/package.json ./apps/tauri/
-COPY ./apps/next/package.json ./apps/next/
-COPY ./e2e/package.json ./e2e/
-COPY ./apps/next/crates/next-gramax-git/package.json ./apps/next/crates/next-gramax-git/
-
-RUN npm ci -f
-
-# TODO: rust caching
-# COPY ./Cargo.toml ./Cargo.lock ./recipe.json ./
-
-# RUN cargo install cargo-chef && \
-#   cargo chef cook --release --recipe-path recipe.json -p next-gramax-git
-
-FROM deps AS build
-
-WORKDIR /app
-
 ARG BUGSNAG_API_KEY \
   PRODUCTION \
   BASE_PATH \
@@ -76,7 +57,7 @@ ENV PORT=80 \
 # ENV SSO_SERVICE_URL=http://localhost:3000
 
 RUN mkdir -p $ROOT_PATH
-COPY --from=build /app .
+COPY --from=deps /app .
 
 # TODO: temp solution; delete in future
 RUN git config --global url."https://gitlab.ics-it.ru/".insteadOf git@gitlab.ics-it.ru:

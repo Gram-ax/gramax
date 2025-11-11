@@ -1,0 +1,197 @@
+build-service:
+  extends: .template.docker.build.service
+  parallel:
+    matrix:
+      - SERVICE_NAME:
+          [
+            'auth',
+            'diagram-renderer',
+            'enterprise-git-proxy',
+            'git-proxy',
+            'enterprise',
+            'sso',
+            'cloud',
+          ]
+
+build-service-git-proxy-opensource:
+  extends: .template.docker.build.service
+  stage: build
+  rules:
+    - !reference [.condition, build, onlymaster, rules]
+  script:
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - apk add bash git
+    - . ./.ci/apps/init.sh --only-env
+    - docker build --rm
+      -f ./services/target/git-proxy/Dockerfile
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      --tag gramax/git-proxy:${VERSION_GIT_PROXY}
+      --tag gramax/git-proxy:latest
+      .
+    - docker push gramax/git-proxy:${VERSION_GIT_PROXY}
+    - docker push gramax/git-proxy:latest
+
+build-image:
+  extends: .template.docker.build.image
+  needs:
+    - job: build-image-dind-bun
+      optional: true
+  stage: build-images
+  parallel:
+    matrix:
+      - IMAGE_NAME: ['linux-tauri', 'playwright', 'dind-bun', 'build-dev']
+
+build-image-dind-bun:
+  extends: .template.docker.build.image
+  image: docker:28.5.1-dind
+  stage: build-images
+  variables:
+    IMAGE_NAME: 'dind-bun'
+
+build-image-spa:
+  extends: .template.docker.build.image
+  stage: build-images
+  rules: !reference [.condition, build, rust, rules]
+  variables:
+    IMAGE_NAME: 'spa'
+    DOCKERFILE_PATH: './crates/spa/Dockerfile'
+
+build-image-multiplatform:
+  extends: .template.docker.build.image
+  stage: build-images
+  variables:
+    BUILD_PLATFORMS: 'linux/amd64,linux/arm64'
+  parallel:
+    matrix:
+      - IMAGE_NAME: ['base-image']
+
+build-assets-cloud:
+  extends: .template.docker.build
+  rules: !reference [.condition, build, onlymaster, rules]
+  variables:
+    SERVICE_NAME: 'assets-cloud'
+    DOCKERFILE_PATH: './services/target/cloud/Dockerfile.assets'
+
+build-web:
+  extends: .template.docker.base
+  stage: build
+  rules: !reference [.condition, build, base, rules]
+  variables:
+    SERVICE_NAME: 'web'
+    DOCKERFILE_PATH: './apps/browser/Dockerfile'
+  script:
+    - docker build --rm -t $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
+      -f $DOCKERFILE_PATH
+      --metadata-file build-metadata.json
+      --build-arg BRANCH=$BRANCH
+      --build-arg PRODUCTION=$PRODUCTION
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      .
+    - docker push $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
+    - ./.ci/apps/sign.sh --container
+
+build-web-opensource:
+  extends: .template.docker.base
+  stage: build
+  rules:
+    - !reference [.condition, build, onlymaster, rules]
+  variables:
+    SERVICE_NAME: 'web'
+  script:
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - apk add bash git
+    - . ./.ci/apps/init.sh --only-env
+    - docker build --rm
+      -f ./apps/browser/Dockerfile
+      --build-arg BRANCH=$BRANCH
+      --build-arg PRODUCTION=$PRODUCTION
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      --tag gramax/editor:${VERSION_WEB}
+      --tag gramax/editor:latest
+      .
+    - docker push gramax/editor:${VERSION_WEB}
+    - docker push gramax/editor:latest
+
+build-next:
+  extends: .template.docker.build
+  rules: !reference [.condition, build, base, rules]
+  variables:
+    GIT_DEPTH: 2000
+    # NEED_TO_SIGN: true
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'true'
+    SERVICE_NAME: 'next'
+    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
+
+build-blog:
+  extends: .template.docker.build
+  rules:
+    - !reference [.condition, build, onlymaster, rules]
+  variables:
+    GIT_DEPTH: 2000
+    SERVICE_NAME: 'blog'
+    BASE_PATH: '/resources'
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
+    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
+
+build-partners:
+  extends: .template.docker.build
+  rules:
+    - !reference [.condition, build, onlymaster, rules]
+  variables:
+    GIT_DEPTH: 2000
+    SERVICE_NAME: 'partners'
+    BASE_PATH: '/docs'
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
+    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
+
+build-docportal:
+  extends: .template.docker.base
+  rules:
+    - !reference [.condition, build, onlymaster, rules]
+  variables:
+    GIT_DEPTH: 2000
+    NEED_TO_SIGN: true
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
+  stage: build
+  script:
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - apk add bash git
+    - . ./.ci/apps/init.sh --only-env
+    - .ci/sync/delete-secrets.sh
+    - docker build --rm
+      -f apps/next/next.Dockerfile
+      --build-arg BRANCH=${BRANCH}
+      --build-arg BUGSNAG_API_KEY=$BUGSNAG_API_KEY
+      --build-arg PRODUCTION=$PRODUCTION
+      --build-arg UPLOAD_SOURCE_MAPS_TO_BUGSNAG=$UPLOAD_SOURCE_MAPS_TO_BUGSNAG
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      --tag gramax/docportal:${VERSION_DOCPORTAL}
+      --tag gramax/docportal:latest
+      .
+    - docker push gramax/docportal:${VERSION_DOCPORTAL}
+    - docker push gramax/docportal:latest
+
+build-storybook:
+  extends: .template.docker.build
+  rules: !reference [.condition, build, storybook, rules]
+  variables:
+    SERVICE_NAME: storybook
+    DOCKERFILE_PATH: ./storybook/Dockerfile
+
+publish-cli:
+  tags:
+    - kubernetes01-gramax
+  stage: build
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH:-"develop"}
+  rules: !reference [.condition, build, onlymaster, rules]
+  when: manual
+  before_script:
+    - echo "//registry.npmjs.org/:_authToken=${NPM_PUBLISH_TOKEN}" > ~/.npmrc
+  script:
+    - npm whoami
+    - ./install-deps.sh --ci
+    - bun run --cwd ./apps/gramax-cli build
+    - cd ./apps/gramax-cli/dist
+    - npm version $(npm show gramax-cli version) --no-git-tag-version
+    - npm version patch --no-git-tag-version
+    - npm publish

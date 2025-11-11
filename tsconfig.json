@@ -82,7 +82,7 @@
 		".git",
 		"storybook/storybook-static",
 		"services/**/Services/TSClassDiagram/files",
-		"services/target/admin/client",
-		"apps/tauri/src-tauri"
+		"apps/tauri/src-tauri",
+		"gx"
 	]
 }

@@ -1,4 +1,3 @@
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import styled from "@emotion/styled";
 import View from "@ext/markdown/elements/view/render/components/View";
 import { Display } from "@ext/properties/models/display";
@@ -16,7 +15,6 @@ interface ViewComponentProps extends NodeViewProps {
 
 const ViewComponent = (props: ViewComponentProps) => {
 	const { node, className, updateAttributes, editor } = props;
-	const catalogProps = CatalogPropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const hoverElementRef = useRef<HTMLDivElement>(null);
 	const [isHovered, setIsHovered] = useState(false);
@@ -53,7 +51,6 @@ const ViewComponent = (props: ViewComponentProps) => {
 								node={node}
 								updateDisplay={updateDisplay}
 								updateAttributes={updateAttributes}
-								catalogProps={catalogProps}
 							/>
 						)
 					}

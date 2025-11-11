@@ -8,6 +8,9 @@ use axum_extra::extract::cookie::SameSite;
 use axum_extra::extract::CookieJar;
 
 use crate::metrics::doc::UNIQ_ID_COOKIE_NAME;
+use crate::updater::Channel;
+use crate::updater::Package;
+use crate::updater::Platform;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(transparent)]
@@ -50,9 +53,9 @@ impl UserId {
 #[serde(rename_all = "kebab-case")]
 pub enum UserAction {
   GetAssets,
-  CheckUpdate,
-  DownloadUpdate { platform: crate::updater::Platform, bucket: crate::updater::Bucket },
-  DownloadRelease { platform: crate::updater::Platform, bucket: crate::updater::Bucket },
+  CheckUpdates { channel: Channel },
+  CheckUpdate { channel: Channel, platform: Platform, package: Option<Package> },
+  Download { channel: Channel, platform: Platform, package: Option<Package> },
   Other(String),
   Unknown,
 }

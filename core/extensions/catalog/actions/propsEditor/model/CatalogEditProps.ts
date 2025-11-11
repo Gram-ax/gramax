@@ -9,7 +9,6 @@ export interface CatalogEditProps {
 	docroot?: string;
 	versions?: string[];
 	description?: string;
-	group?: string;
 	language?: ContentLanguage;
 	filterProperties?: string[];
 	style?: Style;

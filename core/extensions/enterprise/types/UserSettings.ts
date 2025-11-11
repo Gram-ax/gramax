@@ -22,11 +22,16 @@ interface WorkspaceStyle {
 	css?: string;
 }
 
+export interface ModuleOptions {
+	quiz?: boolean;
+}
+
 export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
 	source: WorkspaceSource;
 	style: WorkspaceStyle;
 	authMethods: AuthMethod[];
 	wordTemplates?: { title: string; bufferBase64?: string }[];
+	modules?: ModuleOptions;
 }
 
 interface UserSettings {

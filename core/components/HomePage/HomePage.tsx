@@ -1,10 +1,10 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { GlobalAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
-import FavoriteCatalogLinkService from "@ext/artilce/Favorite/components/FavoriteCatalogLinkService";
+import FavoriteCatalogLinkService from "@ext/article/Favorite/components/FavoriteCatalogLinkService";
 import { getGesSignInUrl } from "@ext/enterprise/components/SignInEnterprise";
 import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
 import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
@@ -101,7 +101,7 @@ export default styled(HomePage)`
 		}
 
 		.top-shadow {
-			top: 4.25rem;
+			top: 3.25rem;
 		}
 
 		.bottom-info {
@@ -123,7 +123,7 @@ export default styled(HomePage)`
 			padding-left: 1.5rem;
 		}
 		.top-shadow {
-			top: 4.25rem;
+			top: 3.25rem;
 		}
 		.group-container {
 			gap: 1.25rem;
@@ -148,7 +148,7 @@ export default styled(HomePage)`
 			padding-left: 2.25rem;
 		}
 		.top-shadow {
-			top: 4.7rem;
+			top: 3.7rem;
 		}
 		.group-container {
 			gap: 1.5rem;
@@ -173,7 +173,7 @@ export default styled(HomePage)`
 			padding-left: 2.25rem;
 		}
 		.top-shadow {
-			top: 4.7rem;
+			top: 3.7rem;
 		}
 		.group-container {
 			gap: 1.5rem;
@@ -197,7 +197,7 @@ export default styled(HomePage)`
 			padding-left: 2.25rem;
 		}
 		.top-shadow {
-			top: 4.7rem;
+			top: 3.7rem;
 		}
 		.group-container {
 			gap: 1.5rem;

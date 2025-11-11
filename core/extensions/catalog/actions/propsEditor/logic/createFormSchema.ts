@@ -23,7 +23,6 @@ export type MultiSelectOption = {
 };
 
 export type FormSelectValues = {
-	workspaceGroups: SelectOption[];
 	cardColors: SelectOption[];
 	languages: SelectOption[];
 	syntaxes: SelectOption[];
@@ -69,7 +68,6 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 				dark: z.null().optional(),
 			})
 			.optional(),
-		group: z.optional(z.string().nullable()),
 		syntax: z.optional(z.string().nullable()),
 		icons: z.optional(
 			z

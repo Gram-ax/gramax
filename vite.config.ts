@@ -67,6 +67,9 @@ export default (): UserConfig => ({
 					)}</script>`,
 					polyfill: `<script>${readFileAsString("scripts/browser/polyfill.js")}</script>`,
 					tryOpenInDesktop: `<script>${readFileAsString("scripts/browser/tryOpenInDesktop.js")}</script>`,
+					ensureCustomStyleLast: `<script>${readFileAsString(
+						"scripts/static/ensureCustomStyleLast.js",
+					)}</script>`,
 				},
 			},
 
@@ -86,7 +89,6 @@ export default (): UserConfig => ({
 			"@dynamicImports": path.resolve(__dirname, "core/dynamicImports"),
 			"@ext": path.resolve(__dirname, "core/extensions"),
 			"@app": path.resolve(__dirname, "app"),
-			"@services": path.resolve(__dirname, "services/core"),
 			"fs-extra": path.resolve(__dirname, "core/logic/FileProvider/DiskFileProvider/DFPIntermediateCommands.ts"),
 		},
 	},

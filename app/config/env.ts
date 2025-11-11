@@ -34,6 +34,7 @@ export type EnvironmentVariable = {
 	DOC_READER_MAIL: string;
 	DOC_READER_MAIL_PASSWORD: string;
 	DOCPORTAL_FEATURES: string;
+	FEATURES: string;
 
 	// Algolia
 	NEXT_PUBLIC_ALGOLIA_APP_ID: string;
@@ -61,9 +62,9 @@ export type EnvironmentVariable = {
 	ADMIN_PASSWORD: string;
 
 	// Enterprise
-	GEPS_URL: string;
 	GES_URL: string;
 	ALLOWED_GRAMAX_URLS: string;
+	GES_REFRESH_INTERVAL: string;
 
 	// SEO
 	DISABLE_SEO: Bool;

@@ -1,25 +1,25 @@
-import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import TooltipListLayout from "@components/List/TooltipListLayout";
-import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import { Divider } from "@mui/material";
-import LinkItemSidebar from "@ext/artilce/LinkCreator/components/LinkItemSidebar";
-import { TemplateCustomProperty } from "@ext/templates/models/types";
-import { isComplexProperty } from "@ext/templates/models/properties";
-import { ItemContent } from "@components/List/Item";
-import { useCallback, useMemo } from "react";
-import { Property, PropertyTypes } from "@ext/properties/models";
-import Sidebar from "@components/Layouts/Sidebar";
 import Icon from "@components/Atoms/Icon";
-import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
+import ButtonsLayout from "@components/Layouts/ButtonLayout";
+import Sidebar from "@components/Layouts/Sidebar";
+import { ItemContent } from "@components/List/Item";
+import TooltipListLayout from "@components/List/TooltipListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import LinkItemSidebar from "@ext/article/LinkCreator/components/LinkItemSidebar";
+import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
+import t from "@ext/localization/locale/translate";
+import { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import { Property, PropertyTypes } from "@ext/properties/models";
+import { isComplexProperty } from "@ext/templates/models/properties";
+import { TemplateCustomProperty } from "@ext/templates/models/types";
+import { Divider } from "@mui/material";
+import { Editor } from "@tiptap/core";
+import { useCallback, useMemo } from "react";
 
 interface ButtonProps {
 	buttonIcon: string;
@@ -75,7 +75,7 @@ const Button = ({ items, onItemClick, updateProperty, onAddNewProperty, buttonIc
 const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 	const { properties } = PropertyServiceProvider.value;
 	const apiUrlCreator = ApiUrlCreator.value;
-	const catalogProps = CatalogPropsService.value;
+	const { data: catalogPropsData, update: updateCatalogProps } = useCatalogPropsStore((state) => state);
 	const onItemClick = useCallback(
 		(item: string) => {
 			if (item === "") return;
@@ -107,7 +107,7 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 
 	const updateProperty = useCallback(
 		async (property: Property, isDelete: boolean = false, isArchive: boolean = false) => {
-			const newProps = getCatalogEditProps(catalogProps);
+			const newProps = getCatalogEditProps(catalogPropsData);
 			const index = newProps.properties.findIndex((obj) => obj.name === property.name);
 
 			ModalToOpenService.setValue(ModalToOpen.Loading);
@@ -139,9 +139,9 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 
 			ModalToOpenService.resetValue();
 			FetchService.fetch(apiUrlCreator.updateCatalogProps(), JSON.stringify(newProps), MimeTypes.json);
-			CatalogPropsService.value = { ...catalogProps, properties: newProps.properties };
+			updateCatalogProps({ properties: newProps.properties });
 		},
-		[apiUrlCreator, catalogProps],
+		[apiUrlCreator, catalogPropsData],
 	);
 
 	const onEditClickHandler = useCallback(

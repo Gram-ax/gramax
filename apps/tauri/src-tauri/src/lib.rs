@@ -18,6 +18,8 @@ mod settings;
 mod shared;
 mod updater;
 
+mod memory;
+
 use std::path::Path;
 
 use anyhow::Context;
@@ -29,6 +31,7 @@ use tauri::*;
 
 use crate::error::ShowError;
 
+#[cfg(target_family = "unix")]
 const MAX_OPEN_FILES: u64 = 8192;
 
 #[macro_export]
@@ -90,11 +93,16 @@ pub fn run() {
   #[cfg(desktop)]
   {
     use crate::updater::legacy::LegacyUpdaterBuilder;
-    use crate::updater::UpdaterExt;
 
     #[cfg(target_family = "unix")]
     app.handle().setup_menu().expect("unable to setup menu");
-    app.handle().updater_init().expect("unable to setup updater");
+
+    let app_updater = app.handle().clone();
+    std::thread::spawn(move || {
+      use crate::updater::UpdaterExt;
+      app_updater.updater_init().expect("unable to setup updater");
+    });
+
     app.setup_legacy_updater().expect("unable to setup legacy updater");
   }
 

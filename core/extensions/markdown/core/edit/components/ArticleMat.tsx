@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { Editor } from "@tiptap/core";
-import { CSSProperties } from "react";
+import { CSSProperties, memo, useCallback } from "react";
 
 interface ArticleMatProps {
 	editor?: Editor;
@@ -9,8 +9,9 @@ interface ArticleMatProps {
 	style?: CSSProperties;
 }
 
-const ArticleMat = ({ editor, className, style }: ArticleMatProps) => {
-	const onClickHandler = () => {
+const ArticleMat = memo(({ editor, className, style }: ArticleMatProps) => {
+	const onClickHandler = useCallback(() => {
+		if (!editor) return;
 		const doc = editor.state.doc;
 		const lastChild = doc.lastChild;
 		const inNotParagraph = lastChild && lastChild.type.name !== "paragraph";
@@ -31,16 +32,10 @@ const ArticleMat = ({ editor, className, style }: ArticleMatProps) => {
 		} else {
 			editor?.commands.focus("end");
 		}
-	};
+	}, [editor]);
 
-	return (
-		<div
-			className={classNames("mat-under-article", {}, [className])}
-			onClick={editor ? onClickHandler : undefined}
-			style={style}
-		/>
-	);
-};
+	return <div className={classNames("mat-under-article", {}, [className])} onClick={onClickHandler} style={style} />;
+});
 
 export const getMat = () => {
 	const matCollection = document.getElementsByClassName("mat-under-article");

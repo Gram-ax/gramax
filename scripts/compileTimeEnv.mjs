@@ -15,9 +15,9 @@ const env = {
 	DIAGRAM_RENDERER_SERVICE_URL: null,
 	REVIEW_SERVICE_URL: null,
 	GIT_PROXY_SERVICE_URL: null,
-	GEPS_URL: null,
-	GES_URL: null,
 	CLOUD_SERVICE_URL: null,
+	GES_URL: null,
+	GES_REFRESH_INTERVAL: null,
 };
 
 if (process.env.PRODUCTION && !process.env.COOKIE_SECRET)

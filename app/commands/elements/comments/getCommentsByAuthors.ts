@@ -1,5 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import type { AuthoredCommentsByAuthor } from "@core-ui/ContextServices/CommentCounter";
+import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Context from "@core/Context/Context";

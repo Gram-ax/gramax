@@ -5,7 +5,7 @@ import { Item } from "@core/FileStructue/Item/Item";
 import { Workspace } from "@ext/workspace/Workspace";
 
 class SEOGenerator {
-	constructor(private _workspace: Workspace, private _filters?: ItemFilter[]) {}
+	constructor(private _workspace: Workspace, private _filters: ItemFilter[] = []) {}
 
 	async generateSitemapIndex(baseUrl: string) {
 		const catalogEntries = this._workspace.getAllCatalogs();
@@ -34,9 +34,14 @@ class SEOGenerator {
 		}`;
 	}
 
+	generateStaticRobots(sitemapUrl: string) {
+		return `User-agent: *
+Disallow: 
+Sitemap: ${sitemapUrl}\n`;
+	}
+
 	async generateCatalogSitemap(domain: string, catalog: ReadonlyCatalog): Promise<string> {
-		let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n
-		<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+		let sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
 		const items = catalog.getItems();
 		sitemap += await this._processItems(catalog, items, domain);

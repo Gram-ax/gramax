@@ -171,9 +171,14 @@ export default class RepositoryProvider {
 	}
 
 	tryInitEntryCloningStatus(workspacePath: WorkspacePath, catalog: BaseCatalog) {
-		const progress = this._sp.getCloneProgress(new Path(workspacePath).join(catalog.basePath));
-		if (!progress) return;
-		catalog.props.isCloning = true;
+		const path = new Path(workspacePath).join(catalog.basePath);
+		const progress = this._sp.getCloneProgress(path);
+
+		if (!progress || progress.type === "error" || progress.type === "finish") {
+			return this._sp.disposeCloneProgress(path);
+		} else {
+			catalog.props.isCloning = true;
+		}
 	}
 
 	private async _makeRepository(

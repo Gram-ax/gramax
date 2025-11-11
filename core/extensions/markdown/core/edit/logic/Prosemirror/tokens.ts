@@ -37,11 +37,10 @@ import tabToken from "@ext/markdown/elements/tabs/edit/model/tab/tabToken";
 import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
 import unsupportedToken from "@ext/markdown/elements/unsupported/edit/model/unsupportedToken";
 import viewToken from "@ext/markdown/elements/view/edit/models/viewToken";
+import { questionToken } from "@ext/markdown/elements/question/edit/models/questionToken";
+import { questionAnswerToken } from "@ext/markdown/elements/answer/edit/models/answerToken";
 import { ParseSpec } from "./from_markdown";
-import tokensCommentModifier from "@ext/markdown/elements/comment/edit/logic/tokensCommentModifier";
-import tokensFloatModifier from "@ext/markdown/elements/float/edit/logic/floatTokenModifier";
-
-type TokenModifier = (tokens: { [name: string]: ParseSpec }, context?: ParserContext) => void;
+import tokensModifier from "./tokensModifier";
 
 function listIsTight(tokens, i) {
 	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
@@ -56,10 +55,8 @@ const getTokensByContext = (context?: ParserContext): { [name: string]: ParseSpe
 	};
 };
 
-const defaultModifiers: TokenModifier[] = [tokensCommentModifier, tokensFloatModifier];
-export const getTokens = (context?: ParserContext, modifiers?: TokenModifier[]): { [name: string]: ParseSpec } => {
+export const getTokens = (context?: ParserContext): { [name: string]: ParseSpec } => {
 	const contextTokens = context ? getTokensByContext(context) : {};
-	const allModifiers = [...defaultModifiers, ...(modifiers ?? [])];
 	const tokens = {
 		link: linkToken(context),
 		image: imageToken(context),
@@ -79,6 +76,8 @@ export const getTokens = (context?: ParserContext, modifiers?: TokenModifier[]):
 		code_block: codeBlockToken,
 		html: htmlToken,
 		view: viewToken,
+		question: questionToken(context),
+		questionAnswer: questionAnswerToken(context),
 		"inline-property": inlinePropertyToken(),
 		"block-field": blockFieldToken(),
 		"block-property": blockPropertyToken(),
@@ -135,6 +134,5 @@ export const getTokens = (context?: ParserContext, modifiers?: TokenModifier[]):
 		comment_old,
 	};
 
-	if (allModifiers) allModifiers.forEach((modifier) => modifier(tokens, context));
-	return tokens;
+	return tokensModifier(tokens, context);
 };

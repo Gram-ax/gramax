@@ -1,1 +1,1 @@
-export { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "ics-ui-kit/components/card";
+export { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge, Card } from "ics-ui-kit/components/card";

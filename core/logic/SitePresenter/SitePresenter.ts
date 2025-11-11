@@ -15,6 +15,8 @@ import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
+import { StoredQuestion } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
+import { getStoredQuestionsByContent } from "@ext/markdown/elements/question/render/logic/getStoredQuestionsByContent";
 import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandlers";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import { Property, PropertyValue, type PropertyID } from "@ext/properties/models";
@@ -77,6 +79,7 @@ export type ClientArticleProps = {
 	properties?: PropertyValue[];
 	template?: string;
 	fields?: TemplateField[];
+	questions?: Record<string, StoredQuestion>;
 };
 
 export type ClientItemRef = {
@@ -106,11 +109,6 @@ export type HomePageData = {
 	breadcrumb: HomePageBreadcrumb[];
 	catalogsLinks: CatalogLink[];
 	group?: string;
-};
-
-export type GetArticlePageDataOptions = {
-	editableContent?: boolean;
-	markdown?: boolean;
 };
 
 export type ArticlePageData = {
@@ -166,11 +164,7 @@ export default class SitePresenter {
 		return { section, catalogsLinks, breadcrumb, group };
 	}
 
-	async getArticlePageData(
-		article: Article,
-		catalog: ReadonlyCatalog,
-		{ editableContent, markdown }: GetArticlePageDataOptions = {},
-	): Promise<ArticlePageData> {
+	async getArticlePageData(article: Article, catalog: ReadonlyCatalog): Promise<ArticlePageData> {
 		if (!this._isReadOnly && !catalog?.customProviders?.templateProvider?.isTransferedLegacyProperties()) {
 			const formatter = new MarkdownFormatter();
 			await catalog?.customProviders?.templateProvider?.transferLegacyProperties(
@@ -191,12 +185,12 @@ export default class SitePresenter {
 
 			return {
 				render: JSON.stringify(p.renderTree),
-				edit: editableContent ? JSON.stringify(getArticleWithTitle(article.props.title, p.editTree)) : null,
+				edit: !this._isReadOnly ? JSON.stringify(getArticleWithTitle(article.props.title, p.editTree)) : null,
 			};
 		});
 
 		return {
-			markdown: markdown ? article.content : null,
+			markdown: this._isReadOnly ? article.content : null,
 			articleContentRender: render,
 			articleContentEdit: edit,
 			articleProps: await this.serializeArticleProps(article, await catalog?.getPathname(article)),
@@ -206,11 +200,7 @@ export default class SitePresenter {
 		};
 	}
 
-	async getArticlePageDataByPath(
-		path: string[],
-		pathname?: string,
-		options: GetArticlePageDataOptions = {},
-	): Promise<ArticlePageData> {
+	async getArticlePageDataByPath(path: string[], pathname?: string): Promise<ArticlePageData> {
 		const data = await this.getArticleByPathOfCatalog(path);
 		if (!data.catalog) return null;
 		if (!data.article) {
@@ -218,7 +208,7 @@ export default class SitePresenter {
 				? this._customArticlePresenter.getArticle("Article404", { pathname, logicPath: path.join("/") })
 				: this._customArticlePresenter.getArticle("welcome");
 		}
-		return await this.getArticlePageData(data.article, data.catalog, options);
+		return await this.getArticlePageData(data.article, data.catalog);
 	}
 
 	async getCatalogNav(catalog: ReadonlyCatalog, currentItemPath: string): Promise<ItemLink[]> {
@@ -276,6 +266,12 @@ export default class SitePresenter {
 	}
 
 	async serializeArticleProps(article: Article, pathname: string): Promise<ClientArticleProps> {
+		let storedQuestions: Record<string, StoredQuestion> = null;
+		if (this._isReadOnly) {
+			const renderTree = await article.parsedContent.read((p) => p?.renderTree);
+			storedQuestions = getStoredQuestionsByContent(renderTree);
+		}
+
 		return {
 			pathname,
 			logicPath: article.logicPath,
@@ -292,6 +288,7 @@ export default class SitePresenter {
 			welcome: article.props.welcome ?? null,
 			template: article.props.template ?? null,
 			fields: article.props.fields ?? [],
+			questions: storedQuestions,
 		};
 	}
 
@@ -319,6 +316,7 @@ export default class SitePresenter {
 
 		const workspaceConfig = await this._workspace.config();
 		const link = await this._nav.getCatalogLink(catalog, new LastVisited(this._context, workspaceConfig.name));
+		const syntax = catalog.props.syntax;
 
 		return {
 			notFound: false,
@@ -340,7 +338,7 @@ export default class SitePresenter {
 			resolvedVersion: catalog.props.resolvedVersion,
 			resolvedFilterProperty: catalog.props.resolvedFilterProperty,
 			resolvedVersions: catalog.props.resolvedVersions,
-			syntax: catalog.props.syntax,
+			syntax: syntax?.toUpperCase() === Syntax.xml ? Syntax.xml : syntax,
 			docrootIsNoneExsistent: catalog.props.docrootIsNoneExistent,
 		};
 	}

@@ -1,9 +1,8 @@
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const useHasRemoteStorage = (): boolean => {
-	const catalogProps = CatalogPropsService.value;
-	if (!catalogProps) return false;
-	return !!catalogProps.sourceName;
+	const sourceName = useCatalogPropsStore((state) => state.data?.sourceName);
+	return !!sourceName;
 };
 
 export default useHasRemoteStorage;

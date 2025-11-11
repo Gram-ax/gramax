@@ -1,5 +1,3 @@
-import { Icon } from "@ui-kit/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -11,11 +9,11 @@ import {
 	type UseSyncableWorkspacesReturn,
 } from "@core-ui/ContextServices/SyncCount/useSyncableWorkspaces";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { Admin } from "@ext/enterprise/components/admin/Admin";
 import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/components/useEditEnterpriseWorkspace";
 import t, { pluralize } from "@ext/localization/locale/translate";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { MenuItemInteractiveTemplate } from "@ui-kit/MenuItem";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import {
 	DropdownIndicator,
 	DropdownMenu,
@@ -25,8 +23,9 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTriggerButton,
 } from "@ui-kit/Dropdown";
-import { useState } from "react";
-import resolveModule from "@app/resolveModule/frontend";
+import { Icon } from "@ui-kit/Icon";
+import { MenuItemInteractiveTemplate } from "@ui-kit/MenuItem";
+import { ComponentProps, useState } from "react";
 
 const formatTooltip = (
 	workspace: WorkspacePath,
@@ -100,10 +99,17 @@ interface WorkspaceItemProps {
 	currentWorkspace: ClientWorkspaceConfig;
 	workspace: ClientWorkspaceConfig;
 	setDropdownOpen: (open: boolean) => void;
-	showDot?: boolean;
+	showIndicator?: boolean;
+	indicatorText?: string;
 }
 
-const WorkspaceItem = ({ workspace, currentWorkspace, setDropdownOpen, showDot }: WorkspaceItemProps) => {
+const WorkspaceItem = ({
+	workspace,
+	currentWorkspace,
+	setDropdownOpen,
+	showIndicator,
+	indicatorText,
+}: WorkspaceItemProps) => {
 	const { name, path, icon } = workspace;
 
 	const gesUrl = workspace.enterprise?.gesUrl;
@@ -129,20 +135,28 @@ const WorkspaceItem = ({ workspace, currentWorkspace, setDropdownOpen, showDot }
 		>
 			<MenuItemInteractiveTemplate
 				icon={icon}
-				indicator={showDot}
+				indicator={showIndicator}
 				indicatorClassName="bg-status-error"
 				text={workspaceName}
-				indicatorTooltip={showDot && t("available-changes-sync")}
+				indicatorTooltip={showIndicator && indicatorText}
 				isSelected={path === currentWorkspace.path}
 				buttonIcon={isLoading ? "loader" : disableEnterpriseEdit ? "pen-off" : "pen"}
 				buttonDisabled={disableEnterpriseEdit}
 				disabledTooltip={editInfo?.tooltip}
 				buttonOnClick={(e) => {
-					if (editInfo.permitted) {
-						return resolveModule("openInWeb")(editInfo.href);
-					}
 					setDropdownOpen(false);
 					e.stopPropagation();
+					e.preventDefault();
+
+					if (editInfo.permitted) {
+						setDropdownOpen(false);
+						return ModalToOpenService.setValue<ComponentProps<typeof Admin>>(ModalToOpen.GesAdmin, {
+							gesUrl,
+							onClose: () => ModalToOpenService.resetValue(),
+						});
+					}
+
+					setDropdownOpen(false);
 					ModalToOpenService.setValue(ModalToOpen.EditWorkspaceForm, {
 						workspace,
 					});
@@ -203,23 +217,16 @@ const SwitchWorkspace = () => {
 					{workspaces.map((workspace) => {
 						if (isEnterprise && isBrowser && !workspace.enterprise?.gesUrl) return null;
 						const tooltip = formatTooltip(workspace.path, null, syncableWorkspaces);
-						const showDot = syncableWorkspaces.syncableWorkspaces[workspace.path] > 0;
 
-						const Item = (
+						return (
 							<WorkspaceItem
-								showDot={showDot}
+								showIndicator={!!tooltip}
+								indicatorText={tooltip}
 								key={workspace.path}
 								workspace={workspace}
 								currentWorkspace={currentWorkspace}
 								setDropdownOpen={setDropdownOpen}
 							/>
-						);
-						if (!tooltip) return Item;
-
-						return (
-							<Tooltip key={workspace.path} content={tooltip}>
-								{Item}
-							</Tooltip>
 						);
 					})}
 				</DropdownMenuGroup>

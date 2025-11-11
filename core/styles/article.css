@@ -95,13 +95,13 @@
 .article .h3 + ul,
 .article .h2 + ul + .admonition + ul,
 .article ul {
-	padding-left: 20px !important;
+	padding-left: 20px;
 }
 
 .article .h2 + ol,
 .article .h3 + ol,
 .article ol {
-	padding-left: 2em !important;
+	padding-left: 2em;
 }
 
 .article .code-copped {
@@ -179,6 +179,10 @@ article a span.external-link-wrapper {
 	line-height: 1.8em;
 }
 
+.article p:empty {
+	height: 1.7em;
+}
+
 .article li {
 	line-height: 1.6em;
 }
@@ -252,6 +256,27 @@ article a span.external-link-wrapper {
 	display: flex;
 	position: relative;
 	flex-direction: column;
+	counter-reset: question 0;
+}
+
+.article {
+	counter-reset: question 0 question-readonly 0;
+}
+
+.article .node-question {
+	counter-increment: question 1;
+}
+
+.article .node-question .question-number::before {
+	content: counter(question);
+}
+
+.article .question {
+	counter-increment: question-readonly 1;
+}
+
+.article .question .question-number::before {
+	content: counter(question-readonly);
 }
 
 .article .article-body ol,
@@ -540,7 +565,6 @@ article a span.external-link-wrapper {
 	margin-block-end: 1em;
 	margin-inline-start: 0;
 	margin-inline-end: 0;
-	padding-inline-start: 40px;
 }
 
 .article ul li,
@@ -728,6 +752,10 @@ article a span.external-link-wrapper {
 	font-family: "Roboto Mono", Consolas, monospace;
 	font-size: 0.813em;
 	font-weight: normal;
+}
+
+.article a code {
+	color: unset;
 }
 
 .article h1 code,

@@ -1,9 +1,9 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import useWatch from "@core-ui/hooks/useWatch";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import { Property, SystemProperties } from "@ext/properties/models";
 import { createContext, ReactElement, useContext, useState, useEffect, Dispatch, SetStateAction } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type PropertyService = {
 	properties: Map<string, Property>;
@@ -22,7 +22,7 @@ class PropertyServiceProvider {
 		const [articleProperties, setArticleProperties] = useState<Property[]>([]);
 		const [properties, setProperties] = useState<Map<string, Property>>(new Map());
 
-		const catalogProps = CatalogPropsService.value;
+		const catalogProperties = useCatalogPropsStore((state) => state.data?.properties, "shallow");
 		const articleProps = ArticlePropsService.value;
 
 		useEffect(() => {
@@ -31,9 +31,9 @@ class PropertyServiceProvider {
 		}, [articleProps.properties, properties]);
 
 		const updateProperties = () => {
-			const map = catalogProps?.properties
+			const map = catalogProperties
 				? new Map(
-						catalogProps.properties
+						catalogProperties
 							.filter((prop) => !SystemProperties[prop.name])
 							.map((prop) => [prop.name, prop]),
 				  )
@@ -44,7 +44,7 @@ class PropertyServiceProvider {
 
 		useWatch(() => {
 			updateProperties();
-		}, [catalogProps.properties]);
+		}, [catalogProperties]);
 
 		return (
 			<PropertyContext.Provider value={{ properties, articleProperties, setArticleProperties }}>

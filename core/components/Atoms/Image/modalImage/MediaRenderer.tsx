@@ -224,6 +224,14 @@ export default styled(memo(MediaRenderer))`
 	.image-container img,
 	.image-container div:first-of-type {
 		box-shadow: unset !important;
+		max-width: ${(p) =>
+			`calc(90vw - ${p.modalStyle?.paddingLeft || p.modalStyle?.padding || "0px"} - ${
+				p.modalStyle?.paddingLeft || p.modalStyle?.padding || "0px"
+			})`};
+		max-height: ${(p) =>
+			`calc(90vh - ${p.modalStyle?.paddingTop || p.modalStyle?.padding || "0px"} - ${
+				p.modalStyle?.paddingBottom || p.modalStyle?.padding || "0px"
+			})`};
 	}
 
 	.image-container div:first-of-type {

@@ -3,6 +3,7 @@ use std::ops::Deref;
 
 use tauri::http::HeaderMap;
 use tauri::http::HeaderValue;
+use tauri::utils::config::BundleType;
 use tauri::*;
 
 const METRIC_FILE_NAME: &str = ".metric-id";
@@ -21,6 +22,7 @@ pub struct Metric {
   os_version: String,
   platform: String,
   device: String,
+  package_type: String,
 }
 
 impl Metric {
@@ -47,6 +49,15 @@ impl Metric {
       os_version.push_str(edition);
     }
 
+    let package_type = match tauri::utils::platform::bundle_type() {
+      Some(BundleType::Dmg | BundleType::App) => "dmg",
+      Some(BundleType::Nsis) => "nsis",
+      Some(BundleType::AppImage) => "appimage",
+      Some(BundleType::Deb) => "deb",
+      Some(BundleType::Rpm) => "rpm",
+      _ => "unknown",
+    };
+
     Self {
       id,
       app_version: app.package_info().version.to_string(),
@@ -54,6 +65,7 @@ impl Metric {
       os_version,
       platform: info.architecture().unwrap_or("unknown").to_string(),
       device: if cfg!(desktop) { "pc" } else { "mobile" }.to_string(),
+      package_type: package_type.to_string(),
     }
   }
 
@@ -68,6 +80,7 @@ impl Metric {
     headers.insert("x-gx-os-version", self.os_version.parse().unwrap_or(unknown.clone()));
     headers.insert("x-gx-platform", self.platform.parse().unwrap_or(unknown.clone()));
     headers.insert("x-gx-device", self.device.parse().unwrap_or(unknown.clone()));
+    headers.insert("x-gx-package", self.package_type.parse().unwrap_or(unknown.clone()));
 
     headers
   }

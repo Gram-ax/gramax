@@ -1,6 +1,6 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
+import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useWatch from "@core-ui/hooks/useWatch";
 import Path from "@core/FileProvider/Path/Path";
@@ -124,7 +124,7 @@ const SetArticleDiffView = ({
 };
 
 const useSetArticleDiffView = (isReadOnly: boolean, scope?: TreeReadScope, deleteScope?: TreeReadScope) => {
-	const diffViewMode = DiffViewModeService.value;
+	const diffViewMode = useDiffViewMode();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isWysiwyg = diffViewMode === "wysiwyg-single" || diffViewMode === "wysiwyg-double";
 	const useDefaultStylesRef = useRef(isWysiwyg);

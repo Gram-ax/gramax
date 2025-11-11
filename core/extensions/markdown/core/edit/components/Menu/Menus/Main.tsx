@@ -50,11 +50,7 @@ const MainMenu = (props: MainMenuProps) => {
 					/>
 					<div className="divider" />
 					<TranscribeButton editor={editor} />
-					{isGramaxAiEnabled && (
-						<>
-							<AIGroup editor={editor} />
-						</>
-					)}
+					{isGramaxAiEnabled && <AIGroup editor={editor} />}
 				</ButtonsLayout>
 			</ModalLayoutDark>
 		</ToolbarWrapper>

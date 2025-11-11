@@ -5,6 +5,7 @@ import ResourceService from "@ext/markdown/elements/copyArticles/resourceService
 import { ReactNode, useState } from "react";
 import styled from "@emotion/styled";
 import InlineCommentView from "@ext/markdown/elements/comment/edit/components/InlineCommentView";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 
 interface InlineImageProps {
 	src: string;
@@ -81,12 +82,16 @@ const InlineImage = ({ src: initialSrc, alt, width, height, commentId }: InlineI
 	};
 
 	const onError = () => {
+		if (!src) return;
 		setIsError(true);
 	};
 
 	useGetResource((buffer) => {
-		const url = URL.createObjectURL(new Blob([buffer as any]));
+		if (!buffer || !buffer.byteLength) return setIsError(true);
+		if (isLoaded) setIsLoaded(false);
+
 		if (src) URL.revokeObjectURL(src);
+		const url = URL.createObjectURL(new Blob([buffer as any], { type: resolveFileKind(buffer) }));
 		setSrc(url);
 	}, initialSrc);
 

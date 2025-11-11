@@ -43,14 +43,14 @@ import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/compo
 import SourceData from "../logic/SourceDataProvider/model/SourceData";
 import SourceType from "../logic/SourceDataProvider/model/SourceType";
 import getStorageNameByData from "../logic/utils/getStorageNameByData";
-import StorageData from "../models/StorageData";
+import GitStorageData from "@ext/git/core/model/GitStorageData";
 
 interface SelectStorageDataFormProps {
 	mode?: "init" | "clone";
 	title?: string;
 	description?: string;
 	selectedStorage?: string;
-	onSubmit?: (storageData: StorageData) => Promise<boolean> | boolean | void;
+	onSubmit?: (data: GitStorageData) => Promise<boolean> | boolean | void;
 }
 
 type GitSourceDatas = GitSourceData | GitlabSourceData | GitHubSourceData;
@@ -90,7 +90,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 		form.handleSubmit(async (data) => {
 			setIsLoading(true);
 			const storageData = getStorageDataByForm(sourceData, data);
-			await onSubmit?.(storageData);
+			await onSubmit?.(storageData as GitStorageData);
 			setIsLoading(false);
 		})(e);
 	};

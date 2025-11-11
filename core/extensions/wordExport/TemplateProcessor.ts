@@ -392,7 +392,7 @@ class TemplateProcessor {
 		for (let i = 0; i < tables.length; i++) {
 			const table = tables[i];
 			this._cleanTblPr(xmlDoc, table);
-			this._removeTrPr(table);
+			this._cleanTrPr(xmlDoc, table);
 			this._cleanTcPr(xmlDoc, table);
 		}
 
@@ -412,35 +412,63 @@ class TemplateProcessor {
 		const tblInd = tblPr.getElementsByTagName("w:tblInd")[0];
 		if (tblInd) newTblPr.appendChild(tblInd.cloneNode(true));
 
+		const tblLook = tblPr.getElementsByTagName("w:tblLook")[0];
+		if (tblLook) newTblPr.appendChild(tblLook.cloneNode(true));
+
 		if (parent) {
 			parent.insertBefore(newTblPr, tblPr);
 			parent.removeChild(tblPr);
 		}
 	}
 
-	private _removeTrPr(table: Element): void {
+	private _cleanTrPr(xmlDoc: Document, table: Element): void {
 		const rows = Array.from(table.getElementsByTagName("w:tr"));
 		for (const row of rows) {
 			const trPr = row.getElementsByTagName("w:trPr")[0];
-			if (trPr) row.removeChild(trPr);
+			if (!trPr) continue;
+
+			const newTrPr = xmlDoc.createElement("w:trPr");
+
+			const gridBefore = trPr.getElementsByTagName("w:gridBefore")[0];
+			if (gridBefore) newTrPr.appendChild(gridBefore.cloneNode(true));
+
+			const gridAfter = trPr.getElementsByTagName("w:gridAfter")[0];
+			if (gridAfter) newTrPr.appendChild(gridAfter.cloneNode(true));
+
+			const tblHeader = trPr.getElementsByTagName("w:tblHeader")[0];
+			if (tblHeader) newTrPr.appendChild(tblHeader.cloneNode(true));
+			const cantSplit = trPr.getElementsByTagName("w:cantSplit")[0];
+			if (cantSplit) newTrPr.appendChild(cantSplit.cloneNode(true));
+
+			row.insertBefore(newTrPr, trPr);
+			row.removeChild(trPr);
 		}
 	}
 
 	private _cleanTcPr(xmlDoc: Document, table: Element): void {
 		const cells = Array.from(table.getElementsByTagName("w:tc"));
 		for (const cell of cells) {
-			const tcPr = cell.getElementsByTagName("w:tcPr")[0];
-			if (!tcPr) continue;
+			const oldTcPr = cell.getElementsByTagName("w:tcPr")[0];
 
-			const parent = tcPr.parentNode;
 			const newTcPr = xmlDoc.createElement("w:tcPr");
 
-			const tcW = tcPr.getElementsByTagName("w:tcW")[0];
+			const tcW = oldTcPr?.getElementsByTagName("w:tcW")[0];
 			if (tcW) newTcPr.appendChild(tcW.cloneNode(true));
 
-			if (parent) {
-				parent.insertBefore(newTcPr, tcPr);
-				parent.removeChild(tcPr);
+			const gridSpan = oldTcPr?.getElementsByTagName("w:gridSpan")[0];
+			if (gridSpan) newTcPr.appendChild(gridSpan.cloneNode(true));
+
+			const hMerge = oldTcPr?.getElementsByTagName("w:hMerge")?.[0];
+			if (hMerge) newTcPr.appendChild(hMerge.cloneNode(true));
+
+			const vMerge = oldTcPr?.getElementsByTagName("w:vMerge")[0];
+			if (vMerge) newTcPr.appendChild(vMerge.cloneNode(true));
+
+			if (oldTcPr) {
+				cell.insertBefore(newTcPr, oldTcPr);
+				cell.removeChild(oldTcPr);
+			} else {
+				cell.insertBefore(newTcPr, cell.firstChild);
 			}
 		}
 	}

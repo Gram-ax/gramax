@@ -6,7 +6,7 @@ import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
 import SecurityRules from "@ext/security/logic/SecurityRules";
 
-enum errorTitle {
+export enum ErrorTitle {
 	NotFound = "404 Not Found",
 	Forbidden = "403 Forbidden",
 	Unauthorized = "401 Unauthorized",
@@ -31,7 +31,7 @@ class ExceptionsResponse {
 		if (!catalog || !this._hidenFilter(catalog.getRootCategory(), catalog)) {
 			this._res.statusCode = 404;
 			const response = {
-				error: errorTitle.NotFound,
+				error: ErrorTitle.NotFound,
 				message: `Catalog with id '${catalogId}' not found`,
 			};
 
@@ -41,7 +41,7 @@ class ExceptionsResponse {
 		if (!this._securityFilter(catalog.getRootCategory(), catalog)) {
 			this._res.statusCode = 403;
 			const response = {
-				error: errorTitle.Forbidden,
+				error: ErrorTitle.Forbidden,
 				message: `Catalog with id '${catalogId}' is private and access is denied.`,
 			};
 			this._res.send(response);
@@ -55,7 +55,7 @@ class ExceptionsResponse {
 		if (!article || !this._hidenFilter(article, catalog)) {
 			this._res.statusCode = 404;
 			const response = {
-				error: errorTitle.NotFound,
+				error: ErrorTitle.NotFound,
 				message: `Article with id '${articleId}' not found in catalog '${catalogId}'.`,
 			};
 			this._res.send(response);
@@ -65,7 +65,7 @@ class ExceptionsResponse {
 		if (!this._securityFilter(article, catalog)) {
 			this._res.statusCode = 403;
 			const response = {
-				error: errorTitle.Forbidden,
+				error: ErrorTitle.Forbidden,
 				message: `Article with id '${articleId}' is private in catalog '${catalogId}' and access is denied.`,
 			};
 			this._res.send(response);
@@ -76,7 +76,7 @@ class ExceptionsResponse {
 	getResourceException(catalogId: string, articleId: string, resourcePath: string) {
 		this._res.statusCode = 404;
 		const response = {
-			error: errorTitle.NotFound,
+			error: ErrorTitle.NotFound,
 			message: `Resource with path '${resourcePath}' not found for article '${articleId}' in catalog '${catalogId}'.`,
 		};
 		this._res.send(response);
@@ -86,7 +86,7 @@ class ExceptionsResponse {
 	getValidataionTokenException(message: string) {
 		this._res.statusCode = 401;
 		const response = {
-			error: errorTitle.Unauthorized,
+			error: ErrorTitle.Unauthorized,
 			message: validataionTokenErrorMessages[message],
 		};
 		this._res.send(response);

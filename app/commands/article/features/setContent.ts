@@ -5,7 +5,7 @@ import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddlewar
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
-import { ArticlePageData, GetArticlePageDataOptions } from "@core/SitePresenter/SitePresenter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../../types/Command";
 
 const setContent: Command<
@@ -28,12 +28,7 @@ const setContent: Command<
 		if (rawMarkdown) await article.rawUpdateContent(content ?? "");
 		else await article.updateContent(content ?? "");
 
-		const opts: GetArticlePageDataOptions = {
-			editableContent: !this._app.conf.isReadOnly,
-			markdown: this._app.conf.isReadOnly,
-		};
-
-		return await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog, opts);
+		return await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog);
 	},
 
 	params(ctx, q, body) {

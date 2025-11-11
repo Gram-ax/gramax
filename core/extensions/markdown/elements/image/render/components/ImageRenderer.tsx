@@ -165,8 +165,9 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	const articleRef = ArticleRefService.value;
 
 	const onError = useCallback(() => {
+		if (!imageSrc) return;
 		setError(true);
-	}, []);
+	}, [imageSrc]);
 
 	const onLoad = useCallback(() => {
 		if (!imageSrc) return;
@@ -357,5 +358,6 @@ export default styled(ImageRenderer)`
 
 	img {
 		user-select: none;
+		width: 100%;
 	}
 `;

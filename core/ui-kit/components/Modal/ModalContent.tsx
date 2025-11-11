@@ -4,7 +4,8 @@ import { FC } from "react";
 import styled from "@emotion/styled";
 import { classNames } from "@components/libs/classNames";
 
-export type ModalContentSize = "default" | "M" | "L";
+// FS - full screen
+export type ModalContentSize = "default" | "M" | "L" | "FS";
 
 type UiKitModalContentProps = ExtractComponentGeneric<typeof UiKitModalContent>;
 
@@ -22,6 +23,7 @@ export const ModalContent: FC<ModalContentTemplateProps> = styled((props) => {
 			className={classNames(className, {
 				"size-l": size === "L",
 				"size-M": size === "M",
+				"size-FS": size === "FS",
 			})}
 		/>
 	);
@@ -41,5 +43,12 @@ export const ModalContent: FC<ModalContentTemplateProps> = styled((props) => {
 
 	&.size-l > .grid {
 		height: 100%;
+	}
+
+	&.size-FS {
+		width: 95vw;
+		height: 95vh;
+		max-width: calc(95vw - 2rem);
+		max-height: calc(95vh - 2rem);
 	}
 `;

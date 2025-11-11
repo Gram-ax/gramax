@@ -2,15 +2,6 @@ FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image A
 
 WORKDIR /src
 
-COPY ./package.json ./package-lock.json ./
-COPY  ./apps/gramax-cli/package.json ./apps/gramax-cli/
-
-RUN npm ci -f
-
-FROM deps AS build
-
-WORKDIR /src
-
 RUN [ "apt-get", "install", "-y", "git", "bash" ]
 
 COPY . .

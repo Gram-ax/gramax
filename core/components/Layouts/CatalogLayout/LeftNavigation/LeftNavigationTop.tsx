@@ -2,25 +2,26 @@ import { TextSize } from "@components/Atoms/Button/Button";
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import PromptTab from "@ext/ai/components/Tab/PromptTab";
+import FavoriteArticlesTab from "@ext/article/Favorite/components/FavoriteArticlesTab";
+import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
+import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import InboxTab from "@ext/inbox/components/InboxTab";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import SnippetsTab from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetsTab";
 import TemplateTab from "@ext/templates/components/Tab/TemplateTab";
+import TemplateService from "@ext/templates/components/TemplateService";
 import { useMediaQuery } from "@react-hook/media-query";
+import { useEffect } from "react";
 import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
-import FavoriteArticlesTab from "@ext/artilce/Favorite/components/FavoriteArticlesTab";
-import { useEffect } from "react";
-import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
-import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
-import TemplateService from "@ext/templates/components/TemplateService";
 
 const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
@@ -32,7 +33,7 @@ const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 
 const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
-	const catalogProps = CatalogPropsService.value;
+	const catalogNotFound = useCatalogPropsStore((state) => state.data.notFound);
 	const narrowMedia = useMediaQuery(cssMedia.narrow);
 	const { isTauri, isBrowser, isStaticCli } = usePlatform();
 	const { topTab } = NavigationTabsService.value;
@@ -45,8 +46,9 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 	};
 
 	useEffect(() => {
-		const onBranchChange = () => {
+		const onBranchChange = (_, caller: any) => {
 			NavigationTabsService.setTop(LeftNavigationTab.None);
+			if (caller === OnBranchUpdateCaller.Init) return;
 			[SnippetService, TemplateService].forEach((context) => context.closeItem());
 		};
 
@@ -83,7 +85,7 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 					/>
 				</TopBarContentWrapper>
 			</BarLayout>
-			{(isTauri || isBrowser) && !catalogProps.notFound && (
+			{(isTauri || isBrowser) && !catalogNotFound && (
 				<>
 					<InboxTab show={topTab === LeftNavigationTab.Inbox} />
 					<TemplateTab show={topTab === LeftNavigationTab.Template} />
@@ -91,7 +93,7 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 					<PromptTab show={topTab === LeftNavigationTab.Prompt} />
 				</>
 			)}
-			{!isStaticCli && !catalogProps.notFound && (
+			{!isStaticCli && !catalogNotFound && (
 				<FavoriteArticlesTab show={topTab === LeftNavigationTab.FavoriteArticles} />
 			)}
 		</>

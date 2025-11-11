@@ -17,7 +17,7 @@ import getNodeElementRenderModels from "../render/logic/getRenderElements/getNod
 import getTagElementRenderModels from "../render/logic/getRenderElements/getTagElementRenderModels";
 
 import { Content } from "@core/FileStructue/Article/Article";
-import { getComponentsHTML } from "../render/components/getComponents/getComponents";
+import getComponentsHTML from "../render/components/getComponents/getComponentsHTML";
 import MdParser from "./MdParser/MdParser";
 
 import { Node } from "prosemirror-model";
@@ -48,6 +48,7 @@ import getTabsNodeTransformer from "@ext/markdown/elements/tabs/edit/logic/getTa
 import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
 import { JSONContent } from "@tiptap/core";
 import inlineNodeTransformers from "@ext/markdown/elements/comment/edit/logic/inlineNodeTransformers";
+import quizTokensTransformer from "@ext/markdown/elements/answer/edit/logic/quizTokensTransformer";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -81,6 +82,7 @@ export default class MarkdownParser {
 				resourceManager: context?.getResourceManager(),
 				snippets: context?.snippet,
 				icons: context?.icons,
+				questions: context?.questions,
 			};
 		} catch (e) {
 			throw new ParseError(e);
@@ -202,6 +204,7 @@ export default class MarkdownParser {
 				commentTokenTransformer,
 				iconTokenTransformer,
 				htmlTagTokenTransformer,
+				quizTokensTransformer,
 			],
 			context,
 		);

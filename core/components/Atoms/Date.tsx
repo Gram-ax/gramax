@@ -1,20 +1,21 @@
 import DateUtils, { DateType } from "@core-ui/utils/dateUtils";
-import { Props } from "tippy.js";
-import Tooltip from "./Tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
 interface DateProps {
 	date: DateType;
-	tooltipDelay?: Props["delay"];
-	tooltipAppendTo?: Props["appendTo"];
+	tooltipDelay?: number;
 	className?: string;
 }
 
-const Date = ({ date, className, tooltipDelay, tooltipAppendTo }: DateProps) => {
+const Date = ({ date, className, tooltipDelay }: DateProps) => {
 	const relativeDate = DateUtils.getRelativeDateTime(date);
 	const dateViewModel = DateUtils.getDateViewModel(date);
 	return (
-		<Tooltip delay={tooltipDelay} content={dateViewModel} appendTo={tooltipAppendTo}>
-			<span className={className}>{relativeDate}</span>
+		<Tooltip delayDuration={tooltipDelay}>
+			<TooltipTrigger>
+				<span className={className}>{relativeDate}</span>
+			</TooltipTrigger>
+			<TooltipContent>{dateViewModel}</TooltipContent>
 		</Tooltip>
 	);
 };

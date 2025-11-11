@@ -3,10 +3,11 @@ import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import useRemoveQueryT from "@core-ui/useRemoveQueryT";
 import useShareHandler from "@ext/catalog/actions/share/logic/useShareHandler";
 import useEnterpriseTokenHandler from "@ext/enterprise/utils/useEnterpriseTokenHandler";
+import useSwitchToEnterpriseWorkspace from "@ext/enterprise/utils/useSwitchToEnterpriseWorkspace";
 import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";
 import usePathnameHandler from "@ext/git/core/GitPathnameHandler/usePathnameHandler";
-import useSwitchToEnterpriseWorkspace from "@ext/enterprise/utils/useSwitchToEnterpriseWorkspace";
+import usePrintHandler from "@ext/print/usePrintHandler";
 
 const closeIfChild = () => {
 	if (typeof window === "undefined") return;
@@ -33,6 +34,7 @@ const useOnFirstLoadFuncs = () => {
 	usePathnameCloneHandler();
 	usePathnameHandler(isFirstLoad);
 	useSwitchToEnterpriseWorkspace(isFirstLoad);
+	usePrintHandler(isFirstLoad);
 	// useReviewHandler(isFirstLoad);
 };
 

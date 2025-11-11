@@ -1,5 +1,5 @@
 import { ServicesConfig } from "@app/config/AppConfig";
-import { AuthMethod } from "@ext/enterprise/types/UserSettings";
+import { AuthMethod, ModuleOptions } from "@ext/enterprise/types/UserSettings";
 
 export enum WorkspaceView {
 	folder = "folder",
@@ -23,8 +23,10 @@ export interface WorkspaceConfig {
 	services?: ServicesConfig;
 	enterprise?: {
 		gesUrl?: string;
+		refreshInterval?: number;
 		lastUpdateDate?: number;
 		authMethods?: AuthMethod[];
+		modules?: ModuleOptions;
 	};
 	gesUrl?: string; // legacy
 }

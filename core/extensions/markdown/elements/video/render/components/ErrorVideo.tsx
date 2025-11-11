@@ -58,6 +58,7 @@ const ErrorVideo = ({ isLink, link, className, isNoneError = false }: ErrorVideo
 
 export default styled(ErrorVideo)`
 	position: relative;
+	aspect-ratio: 16/9;
 
 	${cssMedia.narrow} {
 		height: 394px;

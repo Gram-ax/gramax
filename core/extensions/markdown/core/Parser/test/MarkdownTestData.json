@@ -14,7 +14,7 @@
 				"name": "Fence",
 				"children": []
 			},
-			"html": "<div>Error rendering component Fence</div>"
+			"html": "<pre data-component=\"fence\">text\n</pre>"
 		}
 	],
 	"Code": [
@@ -36,7 +36,7 @@
 					}
 				]
 			},
-			"html": "<p><code>text</code></p>"
+			"html": "<p><code data-component=\"code\">text</code></p>"
 		}
 	],
 	"GitConflict": [
@@ -93,7 +93,7 @@
 				"attributes": { "text": "text", "icon": "icon" },
 				"children": []
 			},
-			"html": "<button class=\"inline-flex cursor-pointer select-none items-center justify-center overflow-hidden rounded-lg font-medium text-primary-fg transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50 border border-solid border-secondary-border bg-secondary-bg shadow-sm hover:border-primary-border hover:bg-secondary-bg-hover h-7 gap-2 px-2.5 py-1.5 text-xs\" data-qa=\"qa-clickable\"><div class=\"flex items-center justify-center gap-2 overflow-hidden\"><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></div></button>"
+			"html": "<button data-component=\"cmd\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-question-mark\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3\"></path><path d=\"M12 17h.01\"></path></svg></i><span>text</span></button>"
 		}
 	],
 	"Kbd": [
@@ -103,7 +103,7 @@
 				"xml": "<kbd text=\"text\"/>"
 			},
 			"renderTree": { "$$mdtype": "Tag", "name": "Kbd", "attributes": { "text": "text" }, "children": [] },
-			"html": "<div class=\"inline-flex h-5 items-center justify-center rounded-sm px-1 py-0.5 text-xs text-muted border border-secondary-border bg-secondary-bg\">text</div>"
+			"html": "<kbd data-component=\"kbd\">text</kbd>"
 		}
 	],
 	"Icon": [
@@ -117,7 +117,7 @@
 				"content": [],
 				"type": "icon"
 			},
-			"html": "<i style=\"color: green;\" class=\"css-wkbl5c\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-code\" aria-hidden=\"true\"><path d=\"m16 18 6-6-6-6\"></path><path d=\"m8 6-6 6 6 6\"></path></svg></i>"
+			"html": "<i data-component=\"icon\" style=\"color: green;\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-code\" aria-hidden=\"true\"><path d=\"m16 18 6-6-6-6\"></path><path d=\"m8 6-6 6 6 6\"></path></svg></i>"
 		}
 	],
 	"Issue": [
@@ -127,7 +127,7 @@
 				"xml": "<issue id=\"DR-1\"/>"
 			},
 			"renderTree": { "$$mdtype": "Tag", "name": "Issue", "attributes": { "id": "DR-1" }, "children": [] },
-			"html": "<a class=\"issueLink\" href=\"https://support.ics-it.ru/issue/DR-1\" data-id=\"DR-1\" target=\"_blank\" rel=\"noopener\">DR-1<span style=\"white-space: nowrap; padding: 0px;\" class=\"external-link-wrapper\" data-mdignore=\"true\">﻿<i class=\"link-icon css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-external-link\" aria-hidden=\"true\"><path d=\"M15 3h6v6\"></path><path d=\"M10 14 21 3\"></path><path d=\"M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6\"></path></svg></i></span></a>"
+			"html": "<a data-component=\"issue\" href=\"https://support.ics-it.ru/issue/DR-1\">DR-1</a>"
 		}
 	],
 	"Module": [
@@ -137,7 +137,7 @@
 				"xml": "<module id=\"id\"/>"
 			},
 			"renderTree": { "$$mdtype": "Tag", "name": "Module", "attributes": { "id": "id" }, "children": [] },
-			"html": "<span class=\"module\"><i style=\"padding-right: 4px;\" class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-box\" aria-hidden=\"true\"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"></path><path d=\"m3.3 7 8.7 5 8.7-5\"></path><path d=\"M12 22V12\"></path></svg></i>id</span>"
+			"html": "<span data-component=\"module\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-box\" aria-hidden=\"true\"><path d=\"M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z\"></path><path d=\"m3.3 7 8.7 5 8.7-5\"></path><path d=\"M12 22V12\"></path></svg></i>id</span>"
 		}
 	],
 	"Who": [
@@ -147,7 +147,7 @@
 				"xml": "<who text=\"text\"/>"
 			},
 			"renderTree": { "$$mdtype": "Tag", "name": "Who", "attributes": { "text": "text" }, "children": [] },
-			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-user\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><circle cx=\"12\" cy=\"10\" r=\"3\"></circle><path d=\"M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662\"></path></svg></i><span>text</span></span>"
+			"html": "<span data-component=\"who\"><span class=\"delimiter\">/</span><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-user\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><circle cx=\"12\" cy=\"10\" r=\"3\"></circle><path d=\"M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662\"></path></svg></i><span>text</span></span>"
 		}
 	],
 	"When": [
@@ -157,7 +157,7 @@
 				"xml": "<when text=\"text\"/>"
 			},
 			"renderTree": { "$$mdtype": "Tag", "name": "When", "attributes": { "text": "text" }, "children": [] },
-			"html": "<span class=\"attr\"><span class=\"delimiter\">/</span><i class=\"css-15fiha7\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"1em\" height=\"1em\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"max(0.075em, 1.3px)\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock\" aria-hidden=\"true\"><path d=\"M12 6v6l4 2\"></path><circle cx=\"12\" cy=\"12\" r=\"10\"></circle></svg></i><span>text</span></span>"
+			"html": "<span data-component=\"when\"><span class=\"delimiter\">/</span>x<i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-clock\" aria-hidden=\"true\"><path d=\"M12 6v6l4 2\"></path><circle cx=\"12\" cy=\"12\" r=\"10\"></circle></svg></i><span>text</span></span>"
 		}
 	],
 	"Header": [
@@ -176,7 +176,7 @@
 				"children": ["Header "],
 				"name": "Heading"
 			},
-			"html": "<h2 id=\"my-id\" class=\"css-jc0o3i\">Header <a href=\"#my-id\" class=\"anchor\" data-mdignore=\"true\" contenteditable=\"false\"><i class=\"link-icon chain-icon\"></i></a></h2>"
+			"html": "<h2 id=\"my-id\" data-component=\"header\">Header <a href=\"#my-id\" class=\"anchor\" data-mdignore=\"true\" contenteditable=\"false\"><i class=\"link-icon chain-icon\"></i></a></h2>"
 		}
 	],
 	"Image": [
@@ -209,7 +209,7 @@
 				"children": [],
 				"name": "Image"
 			},
-			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fimage.png\"><em>someTitle</em></div>"
+			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fimage.png\" data-component=\"image\"><em>someTitle</em></div>"
 		}
 	],
 	"Video": [
@@ -231,7 +231,7 @@
 				"children": [],
 				"name": "Video"
 			},
-			"html": "<div class=\"css-1rkrvv1\" data-type=\"video\"><div class=\"css-cvlp6m skeleton\"><div class=\"block-comment-view css-88ttk\" data-comment=\"false\" data-comment-block=\"false\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div></div></div>"
+			"html": "<div data-component=\"video\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div>"
 		}
 	],
 	"Term": [
@@ -251,7 +251,7 @@
 				"children": [],
 				"name": "Term"
 			},
-			"html": "<span class=\"css-11cflfh\" data-qa=\"term\"><span class=\"term\" aria-expanded=\"false\">second</span></span>"
+			"html": "<span data-component=\"term\" data-title=\"second\" data-summary=\"\" data-children=\"{&quot;key&quot;:null,&quot;ref&quot;:null,&quot;props&quot;:{},&quot;_owner&quot;:null,&quot;_store&quot;:{}}\">second</span>"
 		}
 	],
 	"Strong": [
@@ -339,7 +339,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><span data-color=\"red\" style=\"color: red;\">123</span></p>"
+			"html": "<p><span data-component=\"color\" data-color=\"red\" style=\"color: red;\">123</span></p>"
 		}
 	],
 	"Hr": [
@@ -377,7 +377,7 @@
 				"children": [],
 				"name": "Drawio"
 			},
-			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fdrawio.svg\"><em>someTitle</em></div>"
+			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fdrawio.svg\" data-component=\"image\"><em>someTitle</em></div>"
 		}
 	],
 	"Formula": [
@@ -394,7 +394,7 @@
 				"children": [],
 				"name": "Formula"
 			},
-			"html": "<span class=\"css-anpco5\"><p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n</span>"
+			"html": "<span data-component=\"formula\"><p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n</span>"
 		},
 		{
 			"text": {
@@ -409,7 +409,7 @@
 				"children": [],
 				"name": "Formula"
 			},
-			"html": "<span class=\"css-anpco5\" style=\"display: inline-flex;\">$ a=b+c $\n</span>"
+			"html": "<span data-component=\"formula\"><p>$ a=b+c $</p>\n</span>"
 		}
 	],
 	"Table": [
@@ -625,7 +625,7 @@
 				],
 				"type": "Table"
 			},
-			"html": "<div data-wrapper=\"table\" class=\"css-1in1ksi\"><div class=\"css-cmk6bc\"><table data-focusable=\"true\" style=\"padding: 1.5em 0px;\"><colgroup></colgroup><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table></div></div>"
+			"html": "<table data-component=\"table\"><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table>"
 		},
 		{
 			"text": {
@@ -856,7 +856,7 @@
 				],
 				"type": "Table"
 			},
-			"html": "<div data-wrapper=\"table\" class=\"css-1in1ksi\"><div class=\"css-cmk6bc\"><table data-header=\"row\" data-focusable=\"true\" style=\"padding: 1.5em 0px;\"><colgroup></colgroup><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li><p>Объединённая</p></li><li><p>ячейка</p></li><li><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table></div></div>"
+			"html": "<table data-component=\"table\"><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li data-component=\"list-item\"><p>Объединённая</p></li><li data-component=\"list-item\"><p>ячейка</p></li><li data-component=\"list-item\"><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table>"
 		}
 	],
 	"Note": [
@@ -881,7 +881,7 @@
 				],
 				"type": "note"
 			},
-			"html": "<Note type=\"quote\" title=\"Цитата\" collapsed=\"false\"><p>Текст заметки</p></Note>"
+			"html": "<div data-component=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-quote\" aria-hidden=\"true\"><path d=\"M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z\"></path><path d=\"M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\">Цитата</div></div><div class=\"admonition-content\"><p>Текст заметки</p></div></div>"
 		},
 		{
 			"text": {
@@ -904,7 +904,7 @@
 				],
 				"type": "note"
 			},
-			"html": "<Note type=\"danger\" title=\"Предупреждение\" collapsed=\"true\"><p>Текст заметки</p></Note>"
+			"html": "<div data-component=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-triangle-alert\" aria-hidden=\"true\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"></path><path d=\"M12 9v4\"></path><path d=\"M12 17h.01\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\">Предупреждение</div></div><div class=\"admonition-content\"><p>Текст заметки</p></div></div>"
 		},
 		{
 			"text": {
@@ -949,7 +949,7 @@
 				],
 				"type": "note"
 			},
-			"html": "<Note type=\"info\" title=\"Внешняя заметка\" collapsed=\"false\"><p>Внешний текст</p><Note type=\"note\" title=\"Вложенная заметка\" collapsed=\"false\"><p>Текст внутренней заметки</p></Note><p>Еще текст внешней заметки</p></Note>"
+			"html": "<div data-component=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-info\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 16v-4\"></path><path d=\"M12 8h.01\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\">Внешняя заметка</div></div><div class=\"admonition-content\"><p>Внешний текст</p><div data-component=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-alert\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"></line><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"></line></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\">Вложенная заметка</div></div><div class=\"admonition-content\"><p>Текст внутренней заметки</p></div></div><p>Еще текст внешней заметки</p></div></div>"
 		}
 	],
 	"Link": [
@@ -976,7 +976,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><a href=\"https://ics-it.gram.ax/\">Gramax</a></p>"
+			"html": "<p><a href=\"https://ics-it.gram.ax/\" data-component=\"link\">Gramax</a></p>"
 		},
 		{
 			"text": {
@@ -1001,7 +1001,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2F1718261246743-2.log\">Очень важный файл</a></p>"
+			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2F1718261246743-2.log\" data-component=\"link\">Очень важный файл</a></p>"
 		},
 		{
 			"text": {
@@ -1026,7 +1026,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/html#какой-то-там-заголовок\">Ссылка</a></p>"
+			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/html#какой-то-там-заголовок\" data-component=\"link\">Ссылка</a></p>"
 		}
 	]
 }

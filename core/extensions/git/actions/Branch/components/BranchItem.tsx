@@ -1,4 +1,6 @@
 import Tooltip from "@components/Atoms/Tooltip";
+import Sidebar from "@components/Layouts/Sidebar";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { DateType } from "@core-ui/utils/dateUtils";
 import styled from "@emotion/styled";
 import BranchMenu from "@ext/git/actions/Branch/components/BranchMenu";
@@ -7,7 +9,6 @@ import DisableTooltipContent from "@ext/git/actions/Branch/components/DisableToo
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import InlineUser from "@ext/security/components/User/InlineUser";
-import Sidebar from "../../../../../components/Layouts/Sidebar";
 import { isInDropdown } from "@ui-kit/Dropdown";
 import { MouseEvent } from "react";
 
@@ -126,6 +127,7 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 	} = props;
 
 	const hasMergeRequest = !!mergeRequest;
+	const { isNext } = usePlatform();
 
 	const onBranchSwitch = (e: MouseEvent<HTMLElement>) => {
 		if (isInDropdown(e)) return;
@@ -152,15 +154,17 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 								hasMergeRequest={hasMergeRequest}
 							/>
 						}
-						rightActions={[
-							<BranchMenu
-								refreshList={refreshList}
-								key={1}
-								branchName={title}
-								onMergeRequestCreate={onMergeRequestCreate}
-								currentBranchName={currentBranchName}
-							/>,
-						]}
+						rightActions={
+							!isNext && [
+								<BranchMenu
+									refreshList={refreshList}
+									key={1}
+									branchName={title}
+									onMergeRequestCreate={onMergeRequestCreate}
+									currentBranchName={currentBranchName}
+								/>,
+							]
+						}
 					/>
 				</div>
 			</div>

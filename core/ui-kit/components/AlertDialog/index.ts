@@ -9,5 +9,6 @@ export {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 	AlertDialogPrimitiveAction,
+	AlertDialogPrimitiveCancel,
 } from "ics-ui-kit/components/alert-dialog";
 export { AlertDialogIcon } from "./AlertDialogIcon";

@@ -21,6 +21,7 @@ import { Loader } from "ics-ui-kit/components/loader";
 import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Description } from "@ui-kit/Description";
 
 interface WorkspaceSettingsModalProps {
 	workspace: ClientWorkspaceConfig;
@@ -227,6 +228,21 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 
 									<Divider />
 									<FormSectionTitle children={t("workspace.set-ai-server")} />
+									<Description
+										style={{ marginTop: "0.25rem" }}
+										className="font-sans text-sm font-normal tracking-tight text-muted"
+									>
+										{t("workspace.set-ai-server-description")}
+										<a
+											href="https://gram.ax/resources/docs/space/ai-open-source"
+											target="_blank"
+											rel="noreferrer"
+										>
+											<Button variant="link" type="button" className="h-auto pt-0 pb-0 px-2">
+												{t("more")}
+											</Button>
+										</a>
+									</Description>
 									<FormField
 										name="ai.apiUrl"
 										title={t("workspace.ai-server-url")}

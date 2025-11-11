@@ -1,5 +1,4 @@
 import { useDismissableToast } from "@components/Atoms/DismissableToast";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useApi } from "@core-ui/hooks/useApi";
 import { useRouter } from "@core/Api/useRouter";
@@ -8,6 +7,7 @@ import t from "@ext/localization/locale/translate";
 import CloudApi from "@ext/static/logic/CloudApi";
 import { Loader } from "ics-ui-kit/components/loader";
 import { useCallback } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type UseDeleteCatalogProps = {
 	name: string;
@@ -17,7 +17,7 @@ export type UseDeleteCatalogProps = {
 export const useDeleteCloudCatalog = ({ onDeleted }: Omit<UseDeleteCatalogProps, "name">) => {
 	const router = useRouter();
 
-	const catalogProps = CatalogPropsService.value;
+	const name = useCatalogPropsStore((state) => state.data?.name);
 	const cloudServiceUrl = PageDataContextService.value.conf.cloudServiceUrl;
 
 	const { dismiss, show } = useDismissableToast({
@@ -31,14 +31,14 @@ export const useDeleteCloudCatalog = ({ onDeleted }: Omit<UseDeleteCatalogProps,
 		try {
 			show();
 			const cloudApi = new CloudApi(cloudServiceUrl, (e) => ErrorConfirmService.notify(e));
-			await cloudApi.deleteCatalog(catalogProps.name);
+			await cloudApi.deleteCatalog(name);
 		} finally {
 			dismiss.current?.();
 		}
 		router.pushPath("/");
 		location.reload();
 		onDeleted?.();
-	}, [catalogProps.name, cloudServiceUrl, dismiss, router, show]);
+	}, [name, cloudServiceUrl, dismiss, router, show]);
 };
 
 export const useDeleteCatalog = ({ name, onDeleted }: UseDeleteCatalogProps) => {

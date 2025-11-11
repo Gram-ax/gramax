@@ -2,8 +2,7 @@ import Divider from "@components/Atoms/Divider";
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
 import ArticleContextWrapper from "@core-ui/ArticleContextWrapper/ArticleContextWrapper";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
-import DiffViewModeService from "@core-ui/ContextServices/DiffViewModeService";
+import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
@@ -19,6 +18,7 @@ import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/Re
 import Image from "@ext/markdown/elements/image/render/components/Image";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { useEffect, useLayoutEffect, useState } from "react";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export const IMG_FILE_TYPES = ["png", "jpg", "jpeg", "bmp", "svg", "gif", "webp", "avif", "tiff", "heif", "ico", "pdf"];
 export const DIAGRAM_FILE_TYPES = {
@@ -42,7 +42,7 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 	const { children, oldScope, newScope, status, oldChildren, parentPath, type } = props;
 
 	const currentArticlePath = ArticlePropsService.value?.ref.path;
-	const catalogName = CatalogPropsService.value?.name;
+	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 
 	const newArticlePath = parentPath?.path ? Path.join(catalogName, parentPath.path) : currentArticlePath;
 	const oldArticlePath = parentPath?.oldPath ? Path.join(catalogName, parentPath.oldPath) : currentArticlePath;
@@ -211,7 +211,7 @@ const ResourceDiffView = ({
 	oldContent: string;
 	filePath: DiffFilePaths;
 }) => {
-	const diffViewService = DiffViewModeService.value;
+	const diffViewService = useDiffViewMode();
 	const [diffView, setDiffView] = useState(diffViewService);
 	const hasContent = !!oldContent || !!newContent;
 
@@ -278,7 +278,7 @@ const ResourceDiffView = ({
 				diffViewMode={diffView}
 				onDiffViewPick={(mode) => {
 					setDiffView(mode);
-					DiffViewModeService.value = mode;
+					updateDiffViewMode(mode);
 				}}
 				hasWysiwyg={type !== "text"}
 			/>

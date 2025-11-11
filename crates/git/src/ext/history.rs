@@ -206,7 +206,11 @@ impl<C: Creds> History for Repo<'_, C> {
       }
 
       let mut diff_opts = DiffOptions::new();
-      diff_opts.enable_fast_untracked_dirs(true).pathspec(path.as_path()).disable_pathspec_match(true);
+      diff_opts
+        .enable_fast_untracked_dirs(true)
+        .pathspec(path.as_path())
+        .disable_pathspec_match(true)
+        .ignore_submodules(true);
 
       match self
         .0

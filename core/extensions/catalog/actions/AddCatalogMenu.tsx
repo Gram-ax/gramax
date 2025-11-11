@@ -1,20 +1,20 @@
-import { Icon } from "@ui-kit/Icon";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
+import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
+import ImportModal from "@ext/import/components/ImportModal";
 import t from "@ext/localization/locale/translate";
+import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
+import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
+import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { DropdownMenu, DropdownMenuContent } from "@ui-kit/Dropdown";
+import { Icon } from "@ui-kit/Icon";
 import { MenuItemRichTemplate } from "@ui-kit/MenuItem";
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuTriggerButton } from "ics-ui-kit/components/dropdown";
+import type { ComponentProps } from "react";
 import IsReadOnlyHOC from "../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import CreateCatalog from "./CreateCatalog";
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
-import { ComponentProps } from "react";
-import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
-import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
-import ImportModal from "@ext/import/components/ImportModal";
-import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 
 const itemClassName = "w-full flex items-center gap-2";
 const AddCatalogMenu = () => {

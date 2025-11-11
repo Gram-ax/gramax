@@ -3,7 +3,6 @@ import ShowPublishBar from "@components/Layouts/StatusBar/Extensions/ShowPublish
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CatalogPropsService from "@core-ui/ContextServices/CatalogProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
@@ -26,6 +25,7 @@ import t from "@ext/localization/locale/translate";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import { useEffect, useRef, useState } from "react";
 import ConnectStorage from "../../../../../extensions/catalog/actions/ConnectStorage";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import Branch from "../../../../../extensions/git/actions/Branch/components/Branch";
 import Sync from "../../../../../extensions/git/actions/Sync/components/Sync";
 import StatusBar from "../../StatusBar";
@@ -65,11 +65,17 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 	const [mergeRequestIsDraft, setMergeRequestIsDraft] = useState(false);
 	const [mergeRequest, setMergeRequest] = useState<MergeRequest>(null);
 	const mergeRequestRef = useRef<MergeRequest>(null);
-	const catalogProps = CatalogPropsService.value;
-	const catalogName = catalogProps.name;
+	const { catalogName, repositoryError, resolvedFilterProperty } = useCatalogPropsStore(
+		(state) => ({
+			catalogName: state.data.name,
+			repositoryError: state.data.repositoryError,
+			resolvedFilterProperty: state.data.resolvedFilterProperty,
+		}),
+		"shallow",
+	);
 
 	const isStorageConnected = useIsStorageConnected();
-	const isRepoError = !!catalogProps.repositoryError;
+	const isRepoError = !!repositoryError;
 
 	const { bottomTab } = NavigationTabsService.value;
 
@@ -119,6 +125,10 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 		};
 	}, [isStorageConnected, isRepoError, catalogName]);
 
+	useEffect(() => {
+		NavigationTabsService.setBottom(LeftNavigationTab.None);
+	}, [catalogName]);
+
 	const bar = () => {
 		if (!isStorageConnected) return [<ConnectStorage key={0} />];
 
@@ -133,7 +143,7 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 							tooltipText={t("git.error.broken.tooltip")}
 						/>
 					}
-					error={isRepoError ? catalogProps.repositoryError : branchError}
+					error={isRepoError ? repositoryError : branchError}
 				/>,
 			];
 		}
@@ -157,7 +167,8 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 	};
 
 	return (
-		<Wrapper>
+		// key to force re-render when catalog changes (for desktop)
+		<Wrapper key={catalogName}>
 			<MergeRequestTab
 				mergeRequest={mergeRequest}
 				isDraft={mergeRequestIsDraft}
@@ -190,7 +201,7 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 			<StatusBar
 				padding={padding}
 				leftElements={
-					!isRepoError && isStorageConnected && !branchError && !catalogProps.resolvedFilterProperty
+					!isRepoError && isStorageConnected && !branchError && !resolvedFilterProperty
 						? [
 								<Branch
 									key={LeftNavigationTab.Branch}

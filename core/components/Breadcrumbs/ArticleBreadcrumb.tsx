@@ -8,7 +8,7 @@ import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
-import getArticleItemLink from "@ext/artilce/LinkCreator/logic/getArticleItemLink";
+import getArticleItemLink from "@ext/article/LinkCreator/logic/getArticleItemLink";
 import ItemMenu from "@ext/item/EditMenu";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import { ItemLink } from "@ext/navigation/NavigationLinks";

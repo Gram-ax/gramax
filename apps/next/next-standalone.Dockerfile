@@ -5,24 +5,6 @@ FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$
 
 WORKDIR /app
 
-COPY ./package.json ./package-lock.json ./
-COPY ./apps/browser/package.json ./apps/browser/
-COPY ./apps/tauri/package.json ./apps/tauri/
-COPY ./apps/next/package.json ./apps/next/
-COPY ./apps/next/crates/next-gramax-git/package.json ./apps/next/crates/next-gramax-git/
-
-RUN npm ci -f
-
-# TODO: rust caching
-# COPY ./Cargo.toml ./Cargo.lock ./recipe.json ./
-
-# RUN cargo install cargo-chef && \
-#   cargo chef cook --release --recipe-path recipe.json -p next-gramax-git
-
-FROM deps AS build
-
-WORKDIR /app
-
 ARG BUGSNAG_API_KEY \
   PRODUCTION
 
@@ -65,7 +47,7 @@ RUN apt-get update && \
   apt-get clean && \
   mkdir -p $ROOT_PATH
 
-COPY --from=build /app/apps/next/.next/standalone /app \
+COPY --from=deps /app/apps/next/.next/standalone /app \
   /app/apps/next/.next/static /app/apps/next/.next/static/ \
   /app/apps/next/.next/server /app/apps/next/.next/server/
 

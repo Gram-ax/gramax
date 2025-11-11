@@ -22,6 +22,36 @@ export type UpdateDownloadProgress = {
 	etaSec: number | null;
 };
 
+export type UpdaterErrorCode =
+	| "check-enterprise-version"
+	| "install-failed"
+	| "check-failed"
+	| "download-failed"
+	| "signature-mismatch"
+	| "not-found"
+	| "invalid-header"
+	| "io"
+	| "json"
+	| "semver"
+	| "url"
+	| "reqwest"
+	| "tauri"
+	| "updater";
+
+export type UpdateErrorInner = {
+	code: UpdaterErrorCode;
+	message: string;
+	src: string | null;
+};
+
+export type UpdateError =
+	| {
+			code: "check-enterprise-version";
+			inner: UpdateErrorInner;
+			src: string | null;
+	  }
+	| UpdateErrorInner;
+
 export enum UpdateStatus {
 	None,
 	Incoming,
@@ -35,7 +65,7 @@ export type UpdateState =
 	| { state: UpdateStatus.Incoming; info: UpdateIncoming }
 	| { state: UpdateStatus.Downloading; info: UpdateDownloadProgress }
 	| { state: UpdateStatus.Ready; info: Record<string, never> }
-	| { state: UpdateStatus.Error; info: { error: string } };
+	| { state: UpdateStatus.Error; info: UpdateError };
 
 export enum UpdateAcceptance {
 	None,
@@ -84,7 +114,7 @@ const useUpdateChecker = () => {
 
 		current.listen("update:error", (ev) => {
 			setState(() => {
-				ref.current = { state: UpdateStatus.Error, info: { error: ev.payload as string } };
+				ref.current = { state: UpdateStatus.Error, info: ev.payload as UpdateError };
 				return ref.current;
 			});
 		});
@@ -150,6 +180,10 @@ const useUpdateChecker = () => {
 	}, [acceptance, state, install, resetUpdate]);
 
 	return { state, resetUpdate, acceptance, install, accept, decline };
+};
+
+export const resetLastUpdateCheck = () => {
+	window.sessionStorage.removeItem(LAST_UPDATE_CHECK_KEY);
 };
 
 export default useUpdateChecker;
