@@ -145,12 +145,12 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 										/>
 									) : (
 										<Input
+											{...field}
 											placeholder={t("enterprise.admin.search.users.placeholder")}
 											onChange={(e) => {
 												const value = e.target.value;
 												field.onChange(value ? [value] : []);
 											}}
-											{...field}
 										/>
 									)
 								}

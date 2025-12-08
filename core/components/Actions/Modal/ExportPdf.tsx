@@ -11,7 +11,7 @@ import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import styled from "@emotion/styled";
-import { Loader } from "ics-ui-kit/components/loader";
+import { Loader } from "@ui-kit/Loader";
 import { Controller, useForm } from "react-hook-form";
 import { useRef } from "react";
 import { z } from "zod";

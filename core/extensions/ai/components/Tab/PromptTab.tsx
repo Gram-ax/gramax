@@ -1,10 +1,7 @@
-import { TextSize } from "@components/Atoms/Button/Button";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import generateUniqueID from "@core/utils/generateUniqueID";
-import styled from "@emotion/styled";
 import PromptService from "@ext/ai/components/Tab/PromptService";
 import ItemList from "@ext/articleProvider/components/ItemList";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
@@ -13,10 +10,7 @@ import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/l
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const ExtensionWrapper = styled.div`
-	margin-left: -0.5em;
-`;
+import { Button } from "@ui-kit/Button";
 
 interface PromptTab {
 	show: boolean;
@@ -133,15 +127,9 @@ const PromptTab = ({ show }: PromptTab) => {
 			title=""
 			contentHeight={height}
 			titleRightExtension={
-				<ExtensionWrapper>
-					<ButtonLink
-						textSize={TextSize.S}
-						text={t("ai.prompt.new-prompt")}
-						style={{ marginLeft: "-8px" }}
-						iconCode="plus"
-						onClick={addNewNote}
-					/>
-				</ExtensionWrapper>
+				<Button startIcon="plus" onClick={addNewNote} size="sm" variant="text" className="p-0 h-auto">
+					{t("ai.prompt.new-prompt")}
+				</Button>
 			}
 		>
 			<ItemList

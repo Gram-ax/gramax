@@ -5,6 +5,7 @@ import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
 import { calcTemplatesHash } from "@ext/enterprise/utils/calcTemplatesHash";
 import { WORD_TEMPLATES_DIR } from "@ext/wordExport/WordTemplateManager";
+import { PDF_TEMPLATES_DIR } from "@ext/wordExport/PdfTemplateManager";
 import { PredefinedAssets } from "@ext/workspace/WorkspaceAssets";
 import { Workspace } from "../workspace/Workspace";
 
@@ -43,6 +44,15 @@ export class EnterpriseWorkspace extends Workspace {
 				bufferBase64: buffer.toString("base64"),
 			});
 		}
+		const pdfTemplates = [];
+		const pdfTemplatesFileNames = await this._assets.listFiles(PDF_TEMPLATES_DIR);
+		for (const fileName of pdfTemplatesFileNames) {
+			const bufferBase64 = await this._assets.get(Path.join(PDF_TEMPLATES_DIR, fileName));
+			pdfTemplates.push({
+				title: fileName,
+				bufferBase64,
+			});
+		}
 
 		const baseHasher = XxHash.hasher();
 		baseHasher.hash({
@@ -56,6 +66,7 @@ export class EnterpriseWorkspace extends Workspace {
 			authMethods: this._config.get("enterprise")?.authMethods || [],
 		});
 		baseHasher.hash(calcTemplatesHash(wordTemplates));
+		baseHasher.hash(calcTemplatesHash(pdfTemplates));
 		this._configHash = baseHasher.finalize().toString();
 
 		const config = await new EnterpriseApi(gesUrl).getClientWorkspace(this._configHash);
@@ -83,48 +94,52 @@ export class EnterpriseWorkspace extends Workspace {
 			? await this._assets.write(PredefinedAssets.darkHomeIcon, svgToBase64(config.style.logoDark))
 			: await this._assets.delete(PredefinedAssets.darkHomeIcon);
 
-		await this._updateWordTemplates(config);
-
+		await this._updateTemplates(config);
 		await this._config.save();
 
 		await this.events.emit("config-updated", {});
 	}
 
-	private async _updateWordTemplates(config: EnterpriseWorkspaceConfig) {
-		const prevTemplates = await this._assets.listFiles(WORD_TEMPLATES_DIR);
+	private async _updateTemplates(config: EnterpriseWorkspaceConfig) {
+		await this._updateTemplatesOfType(config.wordTemplates ?? [], WORD_TEMPLATES_DIR, "base64");
+		await this._updateTemplatesOfType(config.pdfTemplates ?? [], PDF_TEMPLATES_DIR, "utf-8");
+	}
 
-		const newTemplates = config.wordTemplates ?? [];
+	private async _updateTemplatesOfType(
+		newTemplates: { title: string; bufferBase64: string }[],
+		templatesDir: string,
+		encoding: "base64" | "utf-8",
+	) {
+		const prevTemplates = await this._assets.listFiles(templatesDir);
 
 		await Promise.all(
 			prevTemplates
 				.filter((t) => !newTemplates.find((nt) => nt.title === t))
-				.map((t) => this._assets.delete(Path.join(WORD_TEMPLATES_DIR, t))),
+				.map((t) => this._assets.delete(Path.join(templatesDir, t))),
 		);
 
 		await Promise.all(
 			newTemplates.map(async (template) => {
 				if (!template.bufferBase64) return;
 
-				const existingContent = await this._assets.getBuffer(Path.join(WORD_TEMPLATES_DIR, template.title));
+				const existingContent = await this._assets.getBuffer(Path.join(templatesDir, template.title));
 
 				if (!existingContent) {
 					await this._assets.write(
-						Path.join(WORD_TEMPLATES_DIR, template.title),
-						Buffer.from(template.bufferBase64, "base64"),
+						Path.join(templatesDir, template.title),
+						Buffer.from(template.bufferBase64, encoding),
 					);
 					return;
 				}
 
-				const newTemplateBuffer = Buffer.from(template.bufferBase64, "base64");
-
+				const newTemplateBuffer = Buffer.from(template.bufferBase64, encoding);
 				const existingHash = XxHash.hasher().hash(existingContent).finalize();
 				const newHash = XxHash.hasher().hash(newTemplateBuffer).finalize();
-
 				const needUpdate = existingHash !== newHash;
 
 				if (!needUpdate) return;
 
-				await this._assets.write(Path.join(WORD_TEMPLATES_DIR, template.title), newTemplateBuffer);
+				await this._assets.write(Path.join(templatesDir, template.title), newTemplateBuffer);
 			}),
 		);
 	}

@@ -5,9 +5,8 @@ import { getBlockChildren } from "../../../../wordExport/getBlockChildren";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { Tag } from "../../../core/render/logic/Markdoc";
 import { JSONContent } from "@tiptap/core";
-import { buildListWrapperTable, separatorParaAfterTable } from "./listWrapperHelpers";
 import { LIST_LEFT_INDENT_MM, getMmToTw, IMG_WIDTH_COEFF } from "@ext/wordExport/lists/consts";
-import { calcWrapperMetrics } from "@ext/wordExport/lists/listMetrics";
+import { wrapWithListContinuationBookmark } from "@ext/wordExport/utils/listContinuation";
 
 const calcMaxPictureWidth = async (availableTw: number, leftIndentTw: number) =>
 	Math.floor(Math.max(availableTw - leftIndentTw, (await getMmToTw())(10)) / IMG_WIDTH_COEFF);
@@ -28,33 +27,56 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 
 	const { numbering, ...restAddOptions } = addOptions;
 	const level = numbering?.level ?? 0;
-	const metrics = await calcWrapperMetrics({
-		level,
-		availableTw: restAddOptions?.maxTableWidth,
-	});
-
 	const contentIndentTw = (await getMmToTw())(LIST_LEFT_INDENT_MM(level));
 	const availableTw = restAddOptions?.maxTableWidth ?? STANDARD_PAGE_WIDTH;
 	const maxPictureWidth = await calcMaxPictureWidth(availableTw, contentIndentTw);
 
-	const flushParagraph = () => {
+	const ensureNumberingParagraph = () => {
+		if (numberConsumed || !numbering) return;
+		listElements.push(
+			new Paragraph({
+				children: [new TextRun("")],
+				numbering,
+				spacing: { after: 0 },
+				keepNext: true,
+				style: WordFontStyles.listParagraph,
+			}),
+		);
+		numberConsumed = true;
+	};
+
+	const continuationOptions = {
+		...restAddOptions,
+		style: WordFontStyles.listParagraph,
+		listContinuationLevel: level,
+	};
+
+	const wrapIfContinuation = async (nodes: any[], shouldWrap: boolean) => {
+		if (!shouldWrap) return nodes;
+		const wrapped = await wrapWithListContinuationBookmark(nodes, level);
+		return wrapped;
+	};
+
+	const flushParagraph = async () => {
 		if (paragraph.length === 0) return;
 
 		const isFirstParaOfItem = !numberConsumed;
 
 		const paraOpts: any = {
 			children: paragraph.flat(),
-			...restAddOptions,
+			...continuationOptions,
 		};
 
 		if (isFirstParaOfItem && numbering) {
 			paraOpts.numbering = numbering;
 		} else {
-			paraOpts.style = WordFontStyles.listParagraph;
 			paraOpts.indent = { left: contentIndentTw };
 		}
 
-		listElements.push(new Paragraph(paraOpts));
+		const para = new Paragraph(paraOpts);
+		const shouldWrap = !paraOpts.numbering;
+		const wrapped = await wrapIfContinuation([para], shouldWrap);
+		listElements.push(...wrapped);
 		numberConsumed = true;
 		paragraph = [];
 	};
@@ -96,24 +118,16 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 		}
 
 		if (childName === "Image") {
-			if (paragraph.length > 0) flushParagraph();
+			if (paragraph.length > 0) await flushParagraph();
 
-			if (!numberConsumed && numbering) {
-				listElements.push(
-					new Paragraph({
-						children: [new TextRun("")],
-						numbering,
-						spacing: { after: 0 },
-						keepNext: true,
-					}),
-				);
-				numberConsumed = true;
-			}
+			ensureNumberingParagraph();
 
 			const figure = await imageWordLayout(
 				child,
 				{
 					...restAddOptions,
+					listContinuation: true,
+					listContinuationLevel: level,
 					maxPictureWidth,
 					indent: contentIndentTw,
 				},
@@ -123,54 +137,30 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 			continue;
 		}
 
-		if (paragraph.length > 0) flushParagraph();
+		if (paragraph.length > 0) await flushParagraph();
 
-		if (isOfType(childName, ["table", "fence", "note"])) {
+		if (isOfType(childName, ["table", "fence", "note", "tabs"])) {
 			if (!numberConsumed) {
-				//if first list item is block use 1x2 table wrapper
-				const inner = await state.renderBlock(child, {
-					...restAddOptions,
-					maxTableWidth: metrics.rightCellWidth,
-					indent: 0, //only wrapper needs indent
-				});
-
-				const wrapper = await buildListWrapperTable(
-					inner,
-					{
-						reference: numbering?.reference || "",
-						level: numbering?.level ?? 0,
-						instance: numbering?.instance,
-					},
-					metrics,
-				);
-				listElements.push(wrapper, await separatorParaAfterTable());
-				numberConsumed = true;
-			} else {
-				const inner = await state.renderBlock(child, {
-					...restAddOptions,
-					indent: contentIndentTw,
-				});
-				listElements.push(...(Array.isArray(inner) ? inner : [inner]));
+				ensureNumberingParagraph();
 			}
+			const inner = await state.renderBlock(child, {
+				...continuationOptions,
+				listContinuation: true,
+				indent: contentIndentTw,
+			});
+			listElements.push(...(Array.isArray(inner) ? inner : [inner]));
 			continue;
 		}
 
-		const rendered = await state.renderBlock(child, { ...restAddOptions, indent: contentIndentTw });
-		if (!numberConsumed && numbering) {
-			listElements.push(
-				new Paragraph({
-					children: [new TextRun("")],
-					numbering,
-					spacing: { after: 0 },
-					keepNext: true,
-				}),
-			);
-			numberConsumed = true;
-		}
+		const rendered = await state.renderBlock(child, {
+			...continuationOptions,
+			indent: contentIndentTw,
+		});
+		ensureNumberingParagraph();
 		listElements.push(...(Array.isArray(rendered) ? rendered : [rendered]));
 	}
 
-	if (paragraph.length > 0) flushParagraph();
+	if (paragraph.length > 0) await flushParagraph();
 
 	return listElements;
 };

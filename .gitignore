@@ -37,7 +37,7 @@ work.svg
 work.ts
 
 # dependencies
-*.schema.json
+
 node_modules
 IndexCaches
 testFiles

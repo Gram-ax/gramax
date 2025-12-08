@@ -44,6 +44,12 @@ export default class BrowserRouter extends Router {
 		return this;
 	}
 
+	setUrl(url: Url): this {
+		const path = this._transform(url.toString());
+		this._setPath(path);
+		return this;
+	}
+
 	static use(rules: RouterRule[]): Router {
 		const [path, , query] = useLocation();
 		return new BrowserRouter(path, parserQuery(query), navigate, rules);

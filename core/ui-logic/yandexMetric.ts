@@ -26,3 +26,10 @@ export default function yandexMetric(counter: string) {
 		});
 	}
 }
+
+export const yandexHit = (counter: string) => {
+	if (typeof window !== "undefined" && (window as any).ym) {
+		// @ts-ignore
+		ym(counter, "hit");
+	}
+};

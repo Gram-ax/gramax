@@ -36,6 +36,7 @@ export enum TableHeaderTypes {
 	NONE = "none",
 	COLUMN = "column",
 	ROW = "row",
+	BOTH = "both",
 }
 
 export type ColumnData = string[];

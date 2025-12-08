@@ -7,6 +7,13 @@ import { AiGenerateOptions, AiPrettifyOptions, AiTranscribeOptions } from "@ext/
 import t from "@ext/localization/locale/translate";
 import { CommandProps } from "@tiptap/core";
 
+const getInsertContentOptions = () => {
+	return {
+		updateSelection: true,
+		parseOptions: { preserveWhitespace: false },
+	};
+};
+
 export const prettify =
 	(apiUrlCreator: ApiUrlCreator) =>
 	(options: AiPrettifyOptions) =>
@@ -14,8 +21,11 @@ export const prettify =
 		const ai = new TiptapGramaxAi(apiUrlCreator, editor.schema);
 
 		const { selection } = editor.state;
-		const from = selection.from;
-		const to = selection.to;
+		const $from = selection.$from;
+		const $to = selection.$to;
+
+		const from = $from.start();
+		const to = $to.pos;
 
 		const decorations = createLoadingDecoration(from, to);
 
@@ -27,7 +37,12 @@ export const prettify =
 		void ai
 			.prettify(nodes.content, options.command)
 			.then((html) => {
-				editor.chain().setMeta("removeDecoration", true).deleteRange({ from, to }).insertContent(html).run();
+				editor
+					.chain()
+					.setMeta("removeDecoration", true)
+					.deleteRange({ from, to })
+					.insertContentAt(from, html, getInsertContentOptions())
+					.run();
 				editor.setEditable(true);
 
 				return html;
@@ -62,7 +77,12 @@ export const generate =
 		void ai
 			.generate(options.command)
 			.then((html) => {
-				editor.chain().setMeta("removeDecoration", true).deleteRange({ from, to }).insertContent(html).run();
+				editor
+					.chain()
+					.setMeta("removeDecoration", true)
+					.deleteRange({ from, to })
+					.insertContentAt(from, html, getInsertContentOptions())
+					.run();
 				editor.setEditable(true);
 
 				return html;
@@ -108,7 +128,12 @@ export const transcribe =
 		void ai
 			.transcribe(options.buffer)
 			.then((text) => {
-				editor.chain().setMeta("removeDecoration", true).deleteRange({ from, to }).insertContent(text).run();
+				editor
+					.chain()
+					.setMeta("removeDecoration", true)
+					.deleteRange({ from, to })
+					.insertContentAt(from, text, getInsertContentOptions())
+					.run();
 				editor.setEditable(true);
 
 				return text;

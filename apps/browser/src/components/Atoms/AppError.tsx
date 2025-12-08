@@ -5,9 +5,13 @@ import t from "@ext/localization/locale/translate";
 import { HTMLAttributes } from "react";
 
 const errorCodes = {
-	wasmInitTimeout: {
+	wasmNotSupported: {
 		title: "app.error.browser-not-supported.title",
 		desc: "app.error.browser-not-supported.desc",
+	},
+	wasmInitTimeout: {
+		title: "app.error.wasm-init-timeout.title",
+		desc: "app.error.wasm-init-timeout.desc",
 	},
 	notHttps: {
 		title: "app.error.cannot-load",

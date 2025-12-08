@@ -3,7 +3,6 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { initModules as initModulesFrontend } from "@app/resolveModule/frontend";
 import autoPull from "@core/AutoPull/AutoPull";
 import { ContextFactory } from "@core/Context/ContextFactory";
-import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileStructureEventHandlers from "@core/FileStructue/events/FileStuctureEventHandlers";
@@ -15,7 +14,6 @@ import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
-import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
@@ -34,12 +32,11 @@ import AuthManager from "@ext/security/logic/AuthManager";
 import EnterpriseAuth from "@ext/security/logic/AuthProviders/EnterpriseAuth";
 import ServerAuthManager from "@ext/security/logic/ServerAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
-import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import SearcherManager from "@ext/serach/SearcherManager";
-import VectorChatBotSearcher from "@ext/serach/vector/VectorChatBotSearcher";
-import VectorDatabaseClient from "@ext/serach/vector/VectorDatabaseClient";
-import { VectorSearcher } from "@ext/serach/vector/VectorSearcher";
+import ModulithChatBotSearcher from "@ext/serach/modulith/ModulithChatBotSearcher";
+import { ModulithSearcher } from "@ext/serach/modulith/ModulithSearcher";
+import { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
+import { createModulithService } from "@ext/serach/modulith/createModulithService";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
@@ -54,7 +51,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	await initModules();
 	if (!config.isReadOnly && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
 
-	const logger: Logger = config.isProduction ? await BugsnagLogger.init(config) : new ConsoleLogger();
+	const logger: Logger =
+		config.isProduction && getExecutingEnvironment() !== "cli"
+			? await BugsnagLogger.init(config)
+			: new ConsoleLogger();
 	logger.setLogLevel(LogLevel.trace);
 
 	await XxHash.init();
@@ -130,34 +130,31 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		config.isReadOnly,
 	);
 
-	const cacheFileProvider = new DiskFileProvider(config.paths.data);
-	await cacheFileProvider.createRootPathIfNeed();
-	const cache = new Cache(cacheFileProvider);
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
-	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
-
-	const vectorDatabaseClient = config.portalAi.enabled
-		? new VectorDatabaseClient(
-				{
+	const remoteModulithClient =
+		config.portalAi.enabled && getExecutingEnvironment() !== "cli"
+			? new RemoteModulithSearchClient({
 					apiUrl: config.portalAi.apiUrl,
 					apiKey: config.portalAi.token,
 					collectionName: config.portalAi.instanceName,
-				},
+			  })
+			: undefined;
+
+	const aiAvailable = remoteModulithClient ? await remoteModulithClient.checkConnection() : false;
+
+	const searcherManager = new SearcherManager(
+		new ModulithSearcher(
+			await createModulithService({
+				basePath: config.paths.data,
 				wm,
 				parser,
 				parserContextFactory,
-		  )
-		: null;
-
-	const aiAvailable = config.portalAi.enabled ? await vectorDatabaseClient.checkConnection() : false;
-
-	const searcherManager = new SearcherManager(
-		new FuseSearcher(indexDataProvider),
-		vectorDatabaseClient ? new VectorChatBotSearcher(vectorDatabaseClient, wm) : null,
-		{
-			vector: vectorDatabaseClient ? new VectorSearcher(vectorDatabaseClient) : null,
-		},
+				remoteClient: remoteModulithClient,
+				parseResources: Boolean(enterpriseConfig.gesUrl),
+			}),
+		),
+		remoteModulithClient ? new ModulithChatBotSearcher(remoteModulithClient, wm) : undefined,
 	);
 
 	const workspaceConfig = await wm.maybeCurrent()?.config();
@@ -184,7 +181,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		tablesManager,
 		contextFactory,
 		searcherManager,
-		indexDataProvider,
 		parserContextFactory,
 		sitePresenterFactory,
 		customArticlePresenter,

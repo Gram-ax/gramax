@@ -64,6 +64,8 @@ const print = async ({ source, output, params = {} }) => {
 		format: "A4",
 		printBackground: true,
 		preferCSSPageSize: true,
+		tagged: true,
+		outline: true,
 	});
 	console.log("done-export");
 

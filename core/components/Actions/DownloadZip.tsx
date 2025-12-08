@@ -5,7 +5,7 @@ import { useDownloadAsZip } from "@core-ui/hooks/useDownloadAsZip";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import { Loader } from "ics-ui-kit/components/loader";
+import { Loader } from "@ui-kit/Loader";
 
 const DownloadZip = () => {
 	const platform = usePlatform();

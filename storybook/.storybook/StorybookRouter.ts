@@ -1,5 +1,6 @@
 import Query from "@core/Api/Query";
 import { Router } from "@core/Api/Router";
+import Url from "../../core/ui-logic/ApiServices/Types/Url";
 
 export default class StorybookRouter extends Router {
 	get basePath(): string {
@@ -20,6 +21,10 @@ export default class StorybookRouter extends Router {
 	}
 	pushPath(path: string): this {
 		console.log("push path", path);
+		return this;
+	}
+	setUrl(url: Url): this {
+		console.log("set url", url);
 		return this;
 	}
 	static use() {

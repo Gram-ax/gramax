@@ -1,5 +1,5 @@
 import type { IParagraphOptions } from "docx";
-import { FileChild } from "docx/build/file/file-child";
+import { FileChild } from "@ext/wordExport/types";
 import { WordSerializerState } from "../../../../wordExport/WordExportState";
 import { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
 import { Tag } from "../../../core/render/logic/Markdoc";

@@ -86,10 +86,18 @@ export default abstract class EditorService {
 
 			articleProps.title = title;
 			articleProps.fileName = fileName
-				? uniqueName(fileName, await this._getBrotherFileNames(articleProps.ref.path, apiUrlCreator))
+				? uniqueName(
+						fileName,
+						await this._getBrotherFileNames(
+							articleProps.ref.path,
+							apiUrlCreator,
+							articleProps.fileName,
+							fileName,
+						),
+				  )
 				: articleProps.fileName;
 
-			const url = apiUrlCreator.updateItemProps();
+			const url = apiUrlCreator.updateItemProps(articleProps.ref.path, articleProps.fileName);
 			const res = await FetchService.fetch(
 				url,
 				JSON.stringify({
@@ -120,8 +128,13 @@ export default abstract class EditorService {
 		return this._data?.[key];
 	}
 
-	private static async _getBrotherFileNames(articlePath: string, apiUrlCreator: ApiUrlCreator): Promise<string[]> {
-		const response = await FetchService.fetch(apiUrlCreator.getArticleBrotherFileNames(articlePath));
+	private static async _getBrotherFileNames(
+		articlePath: string,
+		apiUrlCreator: ApiUrlCreator,
+		fileName?: string,
+		newFileName?: string,
+	): Promise<string[]> {
+		const response = await FetchService.fetch(apiUrlCreator.getArticleBrotherFileNames(articlePath, fileName, newFileName));
 		if (!response.ok) return;
 		const data = (await response.json()) as string[];
 		return data;

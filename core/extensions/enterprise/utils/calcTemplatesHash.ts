@@ -1,11 +1,7 @@
 import { XxHash } from "@core/Hash/Hasher";
+import { ExportTemplate } from "@ext/enterprise/types/UserSettings";
 
-interface WordTemplate {
-	title: string;
-	bufferBase64?: string;
-}
-
-export function calcTemplatesHash(templates: WordTemplate[]): number {
+export function calcTemplatesHash(templates: ExportTemplate[]): number {
 	return templates.reduce((acc, { title, bufferBase64 }) => {
 		const hasher = XxHash.hasher();
 		hasher.hash(title);

@@ -115,8 +115,3 @@ if $SHOULD_COMPILE_WARP; then
 fi
 
 echo "Compiling schemes"
-
-npm run build:schemes 2>&1 || {
-    echo "Failed to compile schemes"
-    exit 1
-}

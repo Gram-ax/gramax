@@ -139,9 +139,11 @@ const RawVideo = ({ url, onLoad, onError }: RenderVideoProps) => {
 			controls
 			preload="auto"
 			data-setup="{}"
+			crossOrigin="anonymous"
 			src={url}
 			onLoad={onLoad}
 			onError={onError}
+			onLoadedData={onLoad}
 		/>
 	);
 };
@@ -156,6 +158,7 @@ const RenderVideo = ({ url, setIsError, setIsLoaded }: RenderVideoPropsWithoutLo
 	};
 
 	if (typeof url !== "string") return;
+
 	if (url.includes("embed")) return <IFrameVideo url={url} onLoad={onLoad} onError={onError} />;
 
 	return (

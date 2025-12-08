@@ -45,16 +45,20 @@ const EditNote = (props: NodeViewProps): ReactElement => {
 				<Note
 					{...node.attrs}
 					titleEditor={
-						showHeadEditor && (
-							<NoteHeadEditor
-								editor={editor}
-								getPos={getPos}
-								ref={titleRef}
-								autoFocus={node.attrs.title?.length === 0}
-								defaultValue={node.attrs.title}
-								onChange={onChange}
-							/>
-						)
+						showHeadEditor
+							? (expanded: boolean) => (
+									<NoteHeadEditor
+										editor={editor}
+										getPos={getPos}
+										ref={titleRef}
+										autoFocus={node.attrs.title?.length === 0}
+										defaultValue={node.attrs.title}
+										onChange={onChange}
+										expanded={expanded}
+										nodeSize={node.nodeSize}
+									/>
+							  )
+							: null
 					}
 				>
 					<NodeViewContent className="content" />

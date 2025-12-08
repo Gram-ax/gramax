@@ -12,6 +12,7 @@ import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import sourceComponents from "@ext/storage/logic/SourceDataProvider/logic/sourceComponents";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { getAllSourceTypes, getAllowedSourceTypes } from "@ext/import/logic/useFilteredSourceData";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
 interface CreateStorageContentProps {
 	// Default data is used to prefill the form
@@ -41,6 +42,7 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 	const allowedSourceTypes = getAllowedSourceTypes(isTauri);
 	const allSourceTypes = getAllSourceTypes();
 	const firstSourceType = Object.keys(allowedSourceTypes)?.[0] as SourceType;
+	const desktopOnlyTooltip = t("forms.create-source.desktop-only");
 
 	useWatch(() => {
 		setIsOpen(propsIsOpen);
@@ -78,24 +80,36 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 				<ModalBody>
 					<Tabs defaultValue={sourceType || firstSourceType}>
 						<TabsList className="w-full">
-							{allSourceTypes.map((type) => (
-								<TabsTrigger
-									key={type}
-									value={type}
-									className="flex-1"
-									disabled={!allowedSourceTypes[type] || Boolean(isReadonly && type !== sourceType)}
-								>
-									<Icon
-										code={getStorageIconByData({
-											sourceType: type as SourceType,
-											userName: "",
-											userEmail: "",
-										})}
-										className="text-base"
-									/>
-									{type}
-								</TabsTrigger>
-							))}
+							{allSourceTypes.map((type) => {
+								const isDisabledByAllowed = !allowedSourceTypes[type];
+								const isDisabledByReadonly = Boolean(isReadonly && type !== sourceType);
+								const disabled = isDisabledByAllowed || isDisabledByReadonly;
+
+								return (
+									<div key={type} className="flex-1">
+										<Tooltip>
+											<TooltipTrigger asChild>
+												<div className="w-full">
+													<TabsTrigger value={type} className="flex-1 w-full" disabled={disabled}>
+														<Icon
+															code={getStorageIconByData({
+																sourceType: type as SourceType,
+																userName: "",
+																userEmail: "",
+															})}
+															className="text-base"
+														/>
+														{type}
+													</TabsTrigger>
+												</div>
+											</TooltipTrigger>
+											{isDisabledByAllowed && (
+												<TooltipContent>{desktopOnlyTooltip}</TooltipContent>
+											)}
+										</Tooltip>
+									</div>
+								);
+							})}
 						</TabsList>
 						{allSourceTypes.map((type) => {
 							const Form = sourceComponents[type];

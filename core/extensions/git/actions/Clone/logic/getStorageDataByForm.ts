@@ -43,7 +43,9 @@ const TYPES_GETTERS: Record<
 		};
 	},
 	[SourceType.gitVerse]: (sourceData: GitVerseSourceData, data: SelectFormSchemaType) => {
-		const urlWithDomain = `${sourceData.protocol}://${sourceData.domain}/${data.repository?.path}`;
+		const urlWithDomain = `${sourceData.protocol}://${sourceData.domain}/${
+			data.repository?.path || data.user?.name
+		}`;
 		const { group, name } = parseStorageUrl(urlWithDomain);
 
 		return {
@@ -53,7 +55,9 @@ const TYPES_GETTERS: Record<
 		};
 	},
 	[SourceType.gitea]: (sourceData: GiteaSourceData, data: SelectFormSchemaType) => {
-		const urlWithDomain = `${sourceData.protocol}://${sourceData.domain}/${data.repository?.path || data.user?.name}`;
+		const urlWithDomain = `${sourceData.protocol}://${sourceData.domain}/${
+			data.repository?.path || data.user?.name
+		}`;
 		const { group, name } = parseStorageUrl(urlWithDomain);
 
 		return {

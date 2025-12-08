@@ -8,8 +8,9 @@ import {
 import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 import { WordSerializerState } from "@ext/wordExport/WordExportState";
 import docx from "@dynamicImports/docx";
-import { FileChild } from "docx/build/file/file-child";
 import { JSONContent } from "@tiptap/core";
+import { FileChild } from "@ext/wordExport/types";
+import { markTableAsListContinuation } from "@ext/wordExport/utils/listContinuation";
 
 export const createBlock = async (
 	state: WordSerializerState,
@@ -55,15 +56,19 @@ export const createBlockChild = async (
 	const indent =
 		typeof addOptions?.indent === "number" ? { size: addOptions.indent, type: WidthType.DXA } : undefined;
 
-	return Promise.resolve(
-		new Table({
-			rows,
-			columnWidths: [width.size],
-			margins: wordMarginsType[blockType],
-			style,
-			indent,
-		}),
-	);
+	const table = new Table({
+		rows,
+		columnWidths: [width.size],
+		margins: wordMarginsType[blockType],
+		style,
+		indent,
+	});
+
+	if (addOptions?.listContinuation) {
+		await markTableAsListContinuation(table, addOptions.listContinuationLevel);
+	}
+
+	return table;
 };
 
 export const createBlockTitle = async (tag: Tag | JSONContent, blockType: WordBlockType) => {

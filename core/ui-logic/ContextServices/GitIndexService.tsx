@@ -56,6 +56,11 @@ export default abstract class GitIndexService {
 		"article/provider/create",
 		"article/provider/update",
 		"article/provider/remove",
+		"comments/copy",
+		"comments/update",
+		"comments/delete",
+		"catalog/move",
+		"article/move",
 	]);
 
 	private static _enabled = false;

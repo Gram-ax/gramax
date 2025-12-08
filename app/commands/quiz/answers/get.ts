@@ -7,13 +7,13 @@ import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import { CheckAnswer } from "@ext/markdown/elements/answer/types";
-import { QuestionResult } from "@ext/markdown/elements/question/types";
 import { getArticleId, getTestId } from "@ext/quiz/logic/getIds";
 import { QuizTestCreate } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
 import assert from "assert";
-import { isAnswersCorrect } from "@ext/quiz/logic/isAnswersCorrect";
+import { QuizResult } from "@ext/quiz/models/types";
+import { getQuizResult } from "@ext/quiz/logic/getQuizResult";
 
-const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answers: CheckAnswer[] }, QuestionResult[]> =
+const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answers: CheckAnswer[] }, QuizResult> =
 	Command.create({
 		path: "quiz/answers/get",
 
@@ -26,22 +26,24 @@ const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answe
 			const workspace = wm.current();
 			const config = await workspace.config();
 
-			if (!config.enterprise.gesUrl || !config.gesUrl) return [];
-			if (!config.enterprise?.modules?.quiz) return [];
+			if (!config.enterprise?.gesUrl && !config.gesUrl) return { passed: false, questions: [] };
+			if (!config.enterprise?.modules?.quiz) return { passed: false, questions: [] };
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			assert(catalog, "Catalog not found");
 
 			const article = catalog.findItemByItemPath<Article>(articlePath);
-			if (!article) return [];
+			if (!article) return { passed: false, questions: [] };
 
 			if (await article.parsedContent.isNull()) {
 				await parseContent(article, catalog, ctx, parser, parserContextFactory);
 			}
 
 			const questions = await article.parsedContent.read((p) => p?.questions);
-			if (!questions) return [];
-			const results = isAnswersCorrect(questions, answers);
+			if (!questions) return { passed: false, questions: [] };
+
+			const quizSettings = article.props.quiz;
+			const results = getQuizResult(questions, answers, quizSettings);
 
 			const gvc = catalog.repo.gvc;
 			if (!gvc) return results;
@@ -77,7 +79,7 @@ const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answe
 				});
 			}
 
-			void this._commands.enterprise.quiz.answer.add.do({
+			await this._commands.enterprise.quiz.answer.add.do({
 				ctx,
 				workspaceId: workspace.path(),
 				answer: {

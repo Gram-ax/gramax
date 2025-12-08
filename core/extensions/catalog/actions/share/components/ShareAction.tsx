@@ -6,6 +6,7 @@ import { useRouter } from "@core/Api/useRouter";
 import { getClientDomain } from "@core/utils/getClientDomain";
 import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import t from "@ext/localization/locale/translate";
+import { Button } from "@ui-kit/Button";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { ComponentProps, useCallback, useMemo } from "react";
 
@@ -14,6 +15,7 @@ const SHARE_SKIP_MODAL = "share.skip";
 interface ShareActionProps {
 	path: string;
 	isArticle: boolean;
+	variant?: "MenuItem" | "Button";
 }
 
 const shouldShowShareModal = () => {
@@ -26,7 +28,7 @@ const setShareSkipModal = (flag: boolean) => {
 	flag ? window.localStorage.setItem(SHARE_SKIP_MODAL, "1") : window.localStorage.removeItem(SHARE_SKIP_MODAL);
 };
 
-const ShareAction = ({ path, isArticle }: ShareActionProps) => {
+const ShareAction = ({ path, isArticle, variant = "MenuItem" }: ShareActionProps) => {
 	const router = useRouter();
 	const shouldShowModal = useMemo(() => {
 		return shouldShowShareModal();
@@ -64,6 +66,15 @@ const ShareAction = ({ path, isArticle }: ShareActionProps) => {
 		if (shouldShowModal) return openModal();
 		onClick();
 	};
+
+	if (variant === "Button") {
+		return (
+			<Button onClick={onClickButton} variant="text" size="xs" className="p-0 h-full">
+				<Icon code="link" />
+				{isArticle ? t("share.name.article") : t("share.name.catalog")}
+			</Button>
+		);
+	}
 
 	return (
 		<DropdownMenuItem onSelect={onClickButton}>

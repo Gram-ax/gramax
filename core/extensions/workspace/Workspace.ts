@@ -126,9 +126,11 @@ export class Workspace {
 
 	async removeCatalog(name: string, deleteFromFs = true) {
 		await RepositoryProvider.resetRepo();
+		const catalog = await this.getBaseCatalog(name);
+
+		catalog.repo.unsubscribeEvents();
 
 		if (deleteFromFs) {
-			const catalog = await this.getContextlessCatalog(name);
 			const fp = this.getFileProvider();
 			const path = FileStructure.getCatalogPath(catalog);
 			await fp.delete(path, false);
@@ -158,8 +160,8 @@ export class Workspace {
 		catalog.events.on("resolve-category", (args) => this.events.emitSync("resolve-category", args));
 		catalog.events.on("update", async (arg) => {
 			const entry = await this._fs.getCatalogByPath(catalog.basePath);
-			arg.catalog = entry;
 			await this.addCatalog(entry);
+			arg.catalog = entry;
 		});
 
 		await this._events.emit("add-catalog", { catalog });

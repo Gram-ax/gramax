@@ -12,6 +12,7 @@ import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import ArticleMoveAction from "@ext/article/actions/move/ArticleMoveAction";
 import AddToFavoriteButton from "@ext/article/Favorite/components/AddToFavoriteButton";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
@@ -20,7 +21,7 @@ import { shouldShowActionWarning } from "@ext/localization/actions/OtherLanguage
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import TemplateItemList from "@ext/templates/components/TemplateItemList";
-import React, { CSSProperties, Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, { CSSProperties, Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
 
@@ -50,18 +51,29 @@ const EditMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 	const { articles } = FavoriteService.value;
 	const isFavorite = articles.some((article) => article === itemLink.ref.path);
 
-	const { isStatic, isStaticCli } = usePlatform();
+	const { isStatic, isStaticCli, isNext } = usePlatform();
 
 	useEffect(() => {
-		if (isCurrentItem) setItemProps(articleProps);
-	}, [articleProps, isCurrentItem]);
+		if (!isCurrentItem) return;
+		const fetchItemProps = async () => {
+			const response = await FetchService.fetch(apiUrlCreator.getItemProps(articleProps.ref.path));
+			if (!response.ok) return;
+			const data = (await response.json()) as ClientArticleProps;
+			setItemProps(data);
+		};
 
-	const setItemPropsData = async (path: string) => {
-		const response = await FetchService.fetch(apiUrlCreator.getItemProps(path));
-		if (!response.ok) return;
-		const data = (await response.json()) as ClientArticleProps;
-		setItemProps(data);
-	};
+		void fetchItemProps();
+	}, [articleProps?.ref?.path, isCurrentItem]);
+
+	const setItemPropsData = useCallback(
+		async (path: string) => {
+			const response = await FetchService.fetch(apiUrlCreator.getItemProps(path));
+			if (!response.ok) return;
+			const data = (await response.json()) as ClientArticleProps;
+			setItemProps(data);
+		},
+		[apiUrlCreator],
+	);
 
 	const onClickHandler = async () => {
 		const deleteConfirmText = t(isCategory ? "confirm-category-delete" : "confirm-article-delete");
@@ -84,15 +96,19 @@ const EditMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 
 	useWatch(() => {
 		if (!isCurrentItem && !itemProps) setItemPropsData(itemLink.ref.path);
-	}, [isCurrentItem, isReadOnly, itemLink?.ref?.path, itemProps]);
+	}, [isCurrentItem, isReadOnly, itemLink?.ref?.path]);
 
-	const updateFavorite = () => {
+	const updateFavorite = useCallback(() => {
 		const newFavoriteArticles = isFavorite
 			? articles.filter((article) => article !== itemLink.ref.path)
 			: [...articles, itemLink.ref.path];
 
 		FavoriteService.setArticles(newFavoriteArticles);
-	};
+	}, [articles, itemLink.ref.path, isFavorite]);
+
+	const onUpdate = useCallback(() => {
+		setItemPropsData(itemLink.ref.path);
+	}, [itemLink.ref.path, setItemPropsData]);
 
 	return (
 		<>
@@ -105,6 +121,7 @@ const EditMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 							isCategory={isCategory}
 							isCurrentItem={isCurrentItem}
 							setItemLink={setItemLink}
+							onUpdate={onUpdate}
 						/>
 					)}
 					<ArticleActions
@@ -117,6 +134,9 @@ const EditMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 					<AddToFavoriteButton isFavorite={isFavorite} onClick={updateFavorite} />
 					{!hasError && (
 						<>
+							{!isStatic && !isStaticCli && !isNext && (
+								<ArticleMoveAction articlePath={itemProps?.ref?.path} catalogName={catalogName} />
+							)}
 							<ExportToDocxOrPdf
 								isCategory={isCategory}
 								fileName={itemProps?.fileName}

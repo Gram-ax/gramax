@@ -8,13 +8,12 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
 import AddCatalogMenu from "@ext/catalog/actions/AddCatalogMenu";
 import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { configureWorkspacePermission, editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import { configureWorkspacePermission, readPermission } from "@ext/security/logic/Permission/Permissions";
 import ThemeToggle from "@ext/Theme/components/ThemeToggle";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
@@ -50,17 +49,17 @@ const StyledLogo = styled(Logo)`
 	height: 2.25rem;
 `;
 
-const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
+const TopMenu = () => {
 	const { isTauri } = usePlatform();
 	const isMacDesktop = IsMacService.value && isTauri;
 	const { isNext, isStatic } = usePlatform();
-	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const hasWorkspace = WorkspaceService.hasActive() && !PageDataContextService.value.isGesUnauthorized;
 	const workspacePath = WorkspaceService.current()?.path;
 
-	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName);
-	const canConfigureWorkspace = PermissionService.useCheckPermission(configureWorkspacePermission, workspacePath);
-	const canAddCatalog = (isNext && canConfigureWorkspace) || (!isNext && canEditCatalog);
+	const canAddCatalog = PermissionService.useCheckPermission(
+		isNext ? configureWorkspacePermission : readPermission,
+		workspacePath,
+	);
 
 	return (
 		<div
@@ -80,7 +79,7 @@ const TopMenu = ({ catalogLinks }: { catalogLinks: CatalogLink[] }) => {
 						</div>
 					</div>
 					<div className="flex flex-row items-center gap-0.5 lg:gap-2">
-						{hasWorkspace && !isStatic && <Search isHomePage catalogLinks={catalogLinks} />}
+						{hasWorkspace && !isStatic && <Search isHomePage />}
 						<SwitchUiLanguage size="lg" />
 						<ThemeToggle isHomePage />
 						{hasWorkspace && !isStatic && <SingInOut />}

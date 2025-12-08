@@ -1,5 +1,5 @@
 import type { IParagraphOptions, IRunPropertiesOptions, ParagraphChild } from "docx";
-import { FileChild } from "docx/build/file/file-child";
+import { FileChild } from "@ext/wordExport/types";
 import ParserContext from "../../markdown/core/Parser/ParserContext/ParserContext";
 import { RenderableTreeNode, Tag } from "../../markdown/core/render/logic/Markdoc";
 import { WordSerializerState } from "../WordExportState";
@@ -43,7 +43,8 @@ export type AddOptionsWord = IRunPropertiesOptions &
 	CodeOptions &
 	TableMaxWidth &
 	MaxPictureWidth &
-	TableInsideListItem;
+	TableInsideListItem &
+	ListContinuationMarker;
 
 export type TextRunOptions = { readonly break?: number; removeWhiteSpace?: boolean };
 
@@ -76,4 +77,9 @@ export interface TitleInfo {
 
 export interface TableInsideListItem {
 	indent?: number;
+}
+
+export interface ListContinuationMarker {
+	listContinuation?: boolean;
+	listContinuationLevel?: number;
 }

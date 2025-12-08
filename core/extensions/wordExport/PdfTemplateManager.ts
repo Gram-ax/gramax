@@ -3,7 +3,7 @@ import { Workspace } from "@ext/workspace/Workspace";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { Buffer } from "buffer";
 
-const PRF_TEMPLATES_DIR = "pdf";
+export const PDF_TEMPLATES_DIR = "pdf";
 const PDF_TEMPLATE_FORMATS = ["css"];
 
 class PdfTemplate {
@@ -14,7 +14,7 @@ class PdfTemplate {
 	}
 
 	getTemplate(name: string) {
-		return this._workspace.getAssets().getBuffer(Path.join(PRF_TEMPLATES_DIR, name));
+		return this._workspace.getAssets().getBuffer(Path.join(PDF_TEMPLATES_DIR, name));
 	}
 }
 
@@ -33,7 +33,7 @@ export class PdfTemplateManager {
 
 	async addTemplates(workspace: Workspace, templates: Array<{ name: string; buffer: Buffer }>): Promise<void> {
 		for (const template of templates) {
-			await workspace.getAssets().write(Path.join(PRF_TEMPLATES_DIR, template.name), template.buffer);
+			await workspace.getAssets().write(Path.join(PDF_TEMPLATES_DIR, template.name), template.buffer);
 		}
 
 		await this._refreshTemplatesCache(workspace);
@@ -41,7 +41,7 @@ export class PdfTemplateManager {
 
 	async removeTemplates(workspace: Workspace, templateNames: string[]): Promise<void> {
 		for (const name of templateNames) {
-			await workspace.getAssets().delete(Path.join(PRF_TEMPLATES_DIR, name));
+			await workspace.getAssets().delete(Path.join(PDF_TEMPLATES_DIR, name));
 		}
 
 		await this._refreshTemplatesCache(workspace);
@@ -62,7 +62,7 @@ export class PdfTemplateManager {
 	private async _getTemplates(workspace: Workspace) {
 		if (this._templates[workspace.path()]) return this._templates[workspace.path()];
 
-		const templates = (await workspace.getAssets().listFiles(PRF_TEMPLATES_DIR)) || [];
+		const templates = (await workspace.getAssets().listFiles(PDF_TEMPLATES_DIR)) || [];
 
 		this._templates[workspace.path()] = templates.filter(PdfTemplateManager.isPdfTemplateName);
 		return this._templates[workspace.path()];

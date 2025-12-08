@@ -1,8 +1,5 @@
-import { TextSize } from "@components/Atoms/Button/Button";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
@@ -10,10 +7,7 @@ import SnippetsList from "@ext/markdown/elements/snippet/edit/components/Tab/Sni
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "@core/Api/useRouter";
-
-const ExtensionWrapper = styled.div`
-	margin-left: -0.5em;
-`;
+import { Button } from "@ui-kit/Button";
 
 interface SnippetsTabProps {
 	show: boolean;
@@ -59,15 +53,9 @@ const SnippetsTab = ({ show }: SnippetsTabProps) => {
 			title=""
 			contentHeight={height}
 			titleRightExtension={
-				<ExtensionWrapper>
-					<ButtonLink
-						textSize={TextSize.S}
-						text={t("new-snippet")}
-						style={{ marginLeft: "-8px" }}
-						iconCode="plus"
-						onClick={addNewSnippet}
-					/>
-				</ExtensionWrapper>
+				<Button startIcon="plus" onClick={addNewSnippet} size="sm" variant="text" className="p-0 h-auto">
+					{t("new-snippet")}
+				</Button>
 			}
 		>
 			<SnippetsList

@@ -9,6 +9,13 @@ import Snippet from "@ext/markdown/elements/snippet/render/components/Snippet";
 import { NodeViewProps } from "@tiptap/react";
 import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import styled from "@emotion/styled";
+
+const StyledBlockCommentView = styled(BlockCommentView)`
+	margin: -4px -8px 0.2em -8px;
+	padding: 4px 8px;
+	padding-bottom: 0;
+`;
 
 const SnippetComponent = (props: NodeViewProps): ReactElement => {
 	const { node } = props;
@@ -37,9 +44,9 @@ const SnippetComponent = (props: NodeViewProps): ReactElement => {
 				actionsOptions={{ comment: true }}
 				rightActions={isExist ? <SnippetActions onClickEdit={handleEdit} /> : null}
 			>
-				<BlockCommentView commentId={node.attrs.comment?.id}>
+				<StyledBlockCommentView commentId={node.attrs.comment?.id}>
 					<Snippet id={node.attrs.id}>{contents}</Snippet>
-				</BlockCommentView>
+				</StyledBlockCommentView>
 			</HoverableActions>
 		</NodeViewContextableWrapper>
 	);

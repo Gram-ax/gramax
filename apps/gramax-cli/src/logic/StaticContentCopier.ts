@@ -9,7 +9,7 @@ import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFilePro
 import assert from "assert";
 import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
 
-export type StaticFileProvider = Pick<FileProvider, "write" | "copy" | "mkdir">;
+export type StaticFileProvider = Pick<FileProvider, "write" | "copy" | "mkdir" | "getItems">;
 type CopyFileFunction = (from: Path, to: Path, fp?: StaticFileProvider) => Promise<void>;
 export type CopyTemplatesFunction = (copyFile: CopyFileFunction) => Promise<string[]>;
 

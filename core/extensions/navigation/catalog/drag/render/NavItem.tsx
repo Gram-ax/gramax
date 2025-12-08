@@ -1,5 +1,4 @@
 import { ItemType } from "@core/FileStructue/Item/ItemType";
-import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { NodeModel, RenderParams, useDragOver } from "@minoru/react-dnd-treeview";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
@@ -8,6 +7,7 @@ import useWatch from "@core-ui/hooks/useWatch";
 import useHover from "@core-ui/hooks/useHover";
 import LeftExtensions from "./LeftExtensions";
 import RightExtensions from "./RightExtensions";
+import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
 
 interface NavItemProps {
 	node: NodeModel<ItemLink>;
@@ -15,7 +15,6 @@ interface NavItemProps {
 	toggleOpen: (id: number | string, shouldOpen: boolean) => void;
 	draggedItemPath: string;
 	closeNavigation: () => void;
-	articleElement: HTMLElement;
 }
 
 const NavItem = React.memo(
@@ -25,7 +24,6 @@ const NavItem = React.memo(
 		toggleOpen,
 		draggedItemPath,
 		closeNavigation,
-		articleElement,
 	}: NavItemProps) => {
 		const [thisItem, setThisItem] = useState(node.data);
 		const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -65,35 +63,18 @@ const NavItem = React.memo(
 			});
 		}, []);
 
-		const handleClick = useCallback(
-			(event: React.MouseEvent) => {
-				const mutable = { preventGoto: false };
-				NavigationEvents.emit("item-click", { path: thisItem.pathname, mutable });
-				if (mutable.preventGoto) event.preventDefault();
+		const toggleFunction = useCallback(() => {
+			if (!onToggle) return;
+			if (!existsContent || isSelected) currentOnToggle();
+			else if (!isOpen) return currentOnToggle();
+		}, [onToggle, existsContent, isSelected, currentOnToggle, isOpen]);
 
-				closeNavigation?.();
-				if (node.data.isCurrentLink)
-					articleElement?.scrollTo({
-						top: 0,
-						left: 0,
-						behavior: "smooth",
-					});
-				if (!onToggle) return;
-				if (!existsContent || isSelected) currentOnToggle();
-				else if (!isOpen) return currentOnToggle();
-			},
-			[
-				thisItem.pathname,
-				closeNavigation,
-				node.data.isCurrentLink,
-				articleElement,
-				onToggle,
-				existsContent,
-				isSelected,
-				currentOnToggle,
-				isOpen,
-			],
-		);
+		const handleClick = useHandleItemClick({
+			isCurrentLink: node.data.isCurrentLink,
+			itemPath: thisItem.pathname,
+			closeNavigation,
+			toggleFunction,
+		});
 
 		const dragOverProps = useDragOver(node.id, isOpen, currentOnToggle);
 

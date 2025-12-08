@@ -7,6 +7,8 @@ import GlobalEditorIsEditable from "@ext/markdown/elements/comment/edit/logic/Gl
 import Tooltip from "@components/Atoms/Tooltip";
 import { Instance, Props } from "tippy.js";
 import { isInDropdown } from "@ui-kit/Dropdown";
+import { isCommentBlockDirty } from "../logic/isCommentBlockDirty";
+import { confirmCommentClose } from "@ext/markdown/elements/comment/edit/logic/confirmCommentClose";
 
 export type CommentViewProps = {
 	commentId: string;
@@ -44,27 +46,35 @@ const CommentView = memo((props: CommentViewProps) => {
 	useEffect(() => {
 		if (!editor || editor.isDestroyed) return;
 
+		const hideComment = () => {
+			const instance = instanceRef.current;
+			if (!isCommentBlockDirty(instance)) return instance?.hide();
+			confirmCommentClose().then((result) => {
+				if (result) instance?.hide();
+			});
+		};
+
 		const onSelectionUpdate = ({ editor }: { editor: Editor }) => {
 			const openedCommentId = openedCommentIdRef.current;
 			if (!openedCommentId) return;
 
 			const { selection, doc } = editor.state;
 			const node = doc.nodeAt(selection.anchor);
-			if (!node) return instanceRef.current?.hide();
+			if (!node) return hideComment();
 
 			const commentMark = node.marks.find((mark) => mark.type.name === "comment");
 			const commentIdAttribute = node.attrs.comment?.id;
 
 			const id = commentMark?.attrs.id || commentIdAttribute;
-			if (!id) return instanceRef.current?.hide();
+			if (!id) return hideComment();
 
 			if (openedCommentId === id) return;
-			instanceRef.current?.hide();
+			hideComment();
 		};
 
 		const onKeyDown = (event: KeyboardEvent) => {
 			const instance = instanceRef.current;
-			if (event.key === "Escape" && instance?.state.isVisible) instance.hide();
+			if (event.key === "Escape" && instance?.state.isVisible) hideComment();
 		};
 
 		document.addEventListener("keydown", onKeyDown, { capture: true });
@@ -158,7 +168,10 @@ const CommentView = memo((props: CommentViewProps) => {
 		(_, event) => {
 			const target = event.target as HTMLElement;
 			if (editor.view.dom.contains(target) || isInDropdown(event)) return;
-			instanceRef.current?.hide();
+			if (!isCommentBlockDirty(instanceRef.current)) return instanceRef.current?.hide();
+			confirmCommentClose().then((result) => {
+				if (result) instanceRef.current?.hide();
+			});
 		},
 		[editor],
 	);

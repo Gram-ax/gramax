@@ -52,18 +52,21 @@ export function useWorkspaceSections(
 		setShowSectionDialog(true);
 	};
 
-	const handleSaveSection = () => {
-		if (!form.key || !form.title) return;
+	const handleSaveSection = (overrideForm?: WorkspaceFormData, overrideCatalogs?: string[]) => {
+		const currentForm = overrideForm || form;
+		const currentCatalogs = overrideCatalogs !== undefined ? overrideCatalogs : selectedCatalogs;
 
-		const alertMessage = `Секция с ключом "${form.key}" уже существует. Пожалуйста, выберите другой ключ.`;
+		if (!currentForm.key || !currentForm.title) return;
 
-		if (editingKey && editingKey !== form.key) {
-			if (localSettings.sections?.[form.key]) {
+		const alertMessage = `Секция с ключом "${currentForm.key}" уже существует. Пожалуйста, выберите другой ключ.`;
+
+		if (editingKey && editingKey !== currentForm.key) {
+			if (localSettings.sections?.[currentForm.key]) {
 				alert(alertMessage);
 				return;
 			}
 		} else if (!editingKey) {
-			if (localSettings.sections?.[form.key]) {
+			if (localSettings.sections?.[currentForm.key]) {
 				alert(alertMessage);
 				return;
 			}
@@ -72,16 +75,16 @@ export function useWorkspaceSections(
 		setLocalSettings((prev) => {
 			const newSections = { ...prev.sections };
 
-			if (editingKey && editingKey !== form.key) {
+			if (editingKey && editingKey !== currentForm.key) {
 				delete newSections[editingKey];
 			}
 
-			newSections[form.key] = {
-				title: form.title,
-				description: form.description,
-				icon: form.icon,
-				catalogs: selectedCatalogs,
-				view: form.view,
+			newSections[currentForm.key] = {
+				title: currentForm.title,
+				description: currentForm.description,
+				icon: currentForm.icon,
+				catalogs: currentCatalogs,
+				view: currentForm.view,
 			};
 
 			return {

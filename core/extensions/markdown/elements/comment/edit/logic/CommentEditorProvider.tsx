@@ -1,10 +1,10 @@
-import CommentView from "@ext/markdown/elements/comment/edit/components/CommentView";
-import { Editor, Range } from "@tiptap/core";
-import { memo, useCallback } from "react";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { CommentBlock } from "@core-ui/CommentBlock";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import CommentView from "@ext/markdown/elements/comment/edit/components/CommentView";
 import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
+import { Editor, Range } from "@tiptap/core";
+import { memo, useCallback } from "react";
 
 interface CommentEditorProviderProps {
 	editor: Editor;
@@ -37,21 +37,12 @@ const CommentEditorProvider = (props: CommentEditorProviderProps): JSX.Element =
 	);
 
 	const deleteComment = useCallback(
-		async (id: string, positions: Range[]) => {
-			const data = await loadComment(id);
-			if (data) {
-				if (!editor.storage.comments) editor.storage.comments = [];
-				editor.storage.comments.push({ id, comment: data });
-			}
-
-			const url = apiUrlCreator.deleteComment(id);
-			await FetchService.fetch(url);
-
+		(id: string, positions: Range[]) => {
 			const blockMark = new CommentBlockMark(editor.state.tr, editor.schema.marks.comment);
 			const tr = blockMark.deleteMarkup(positions);
 			editor.view.dispatch(tr);
 		},
-		[apiUrlCreator, editor, loadComment],
+		[editor],
 	);
 
 	return (

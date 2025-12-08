@@ -40,7 +40,6 @@ export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends 
 	getItemRefPath(relativeRepoPath: Path): Path;
 	getItems(): Item[];
 	getContentItems(): Article[];
-	getArticles(): Article[];
 	getCategories(): Category[];
 
 	findItemByItemPath<T extends Item = Item>(itemPath: Path): T;

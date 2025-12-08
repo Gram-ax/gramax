@@ -652,7 +652,9 @@ article a span.external-link-wrapper {
 }
 
 .article table[data-header="column"] tbody tr td:first-child,
+.article table[data-header="both"] tbody tr td:first-child,
 .article table[data-header="row"] tbody tr:first-child td,
+.article table[data-header="both"] tbody tr:first-child td,
 .article table tbody tr[data-aggregation] td,
 .article table thead td {
 	font-weight: 500;

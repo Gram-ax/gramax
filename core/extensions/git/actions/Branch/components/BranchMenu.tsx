@@ -4,7 +4,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import Workspace from "@core-ui/ContextServices/Workspace";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
@@ -30,7 +30,8 @@ const BranchMenu = (props: BranchMenuProps) => {
 	const [isLoading, setIsLoading] = useState(false);
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
+	const workspace = Workspace.current();
+	const gesUrl = workspace?.enterprise?.gesUrl;
 	const isEnterprise = !!gesUrl;
 
 	const setCreateMergeRequestModal = useCallback(() => {

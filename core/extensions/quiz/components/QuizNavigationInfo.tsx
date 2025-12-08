@@ -17,22 +17,42 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { FieldLabel } from "@ui-kit/Label";
 import { shallow } from "zustand/shallow";
 import { toast } from "@ui-kit/Toast";
+import Workspace from "@core-ui/ContextServices/Workspace";
 
 const StyledListItem = styled.li`
 	label {
 		cursor: pointer;
+	}
+
+	label:not([data-status]) {
 		color: var(--color-primary-general) !important;
 	}
 
-	label:hover {
+	label:not([data-status]):hover {
 		color: var(--color-primary) !important;
+	}
+
+	label[data-status="success"] {
+		color: hsl(var(--status-success) / 0.7);
+	}
+
+	label[data-status="error"] {
+		color: hsl(var(--status-error) / 0.7);
+	}
+
+	label[data-status="success"]:hover {
+		color: hsl(var(--status-success));
+	}
+
+	label[data-status="error"]:hover {
+		color: hsl(var(--status-error));
 	}
 `;
 
 interface CollapsibleInfoProps {
 	answeredCount: number;
 	totalCount: number;
-	state: QuestionsStoreState;
+	state: QuestionsStoreState["type"];
 	questions: StoredQuestion[];
 	setFocusedQuestion: (questionId: string, state: FocusState) => void;
 }
@@ -56,7 +76,10 @@ const CollapsibleInfo = ({ answeredCount, totalCount, state, questions, setFocus
 	return (
 		<Collapsible open={open} onOpenChange={setOpen}>
 			<GroupHeader>
-				<CollapsibleTrigger className="w-full flex justify-between items-center">
+				<CollapsibleTrigger
+					className="w-full flex justify-between items-center"
+					style={{ textTransform: "uppercase" }}
+				>
 					<div className="flex items-center gap-2">
 						{t("quiz.info.title")}
 						<Icon icon={open ? "chevron-down" : "chevron-right"} />
@@ -101,13 +124,59 @@ const CollapsibleInfo = ({ answeredCount, totalCount, state, questions, setFocus
 	);
 };
 
+const Statistics = () => {
+	const { passed, countOfCorrectAnswers } = useQuestionsStore(
+		(store) => ({
+			passed: store.state.passed,
+			countOfCorrectAnswers: store.state.countOfCorrectAnswers,
+		}),
+		shallow,
+	);
+	return (
+		<>
+			<GroupHeader style={{ marginTop: 0 }}>
+				<div>{t("quiz.info.statistics.title")}</div>
+			</GroupHeader>
+			<ul style={{ paddingLeft: "0" }}>
+				<StyledListItem>
+					<div className="flex justify-between items-center">
+						<FieldLabel className="text-xs font-normal">
+							{t("quiz.info.statistics.correct-answers")}
+						</FieldLabel>
+						<FieldLabel className="text-xs font-normal">
+							{countOfCorrectAnswers ? `${countOfCorrectAnswers}` : "0"}
+						</FieldLabel>
+					</div>
+				</StyledListItem>
+				{passed ? (
+					<StyledListItem>
+						<FieldLabel className="text-xs font-normal" data-status="success">
+							{t("quiz.info.statistics.passed")}
+						</FieldLabel>
+					</StyledListItem>
+				) : (
+					<StyledListItem>
+						<FieldLabel className="text-xs font-normal" data-status="error">
+							{t("quiz.info.statistics.failed")}
+						</FieldLabel>
+					</StyledListItem>
+				)}
+			</ul>
+		</>
+	);
+};
+
 export const QuizNavigationInfo = memo(() => {
 	const { isNext } = usePlatform();
+
 	if (!isNext) return null;
+	const workspace = Workspace.current();
+
+	if (!workspace?.enterprise?.gesUrl) return null;
 
 	const { state, questions, setFocusedQuestion, isAllRequiredAnswered } = useQuestionsStore(
 		(store) => ({
-			state: store.state,
+			state: store.state.type,
 			questions: store.questions,
 			setFocusedQuestion: store.setFocusedQuestion,
 			isAllRequiredAnswered: Object.values(store.questions)
@@ -146,7 +215,7 @@ export const QuizNavigationInfo = memo(() => {
 		checkAnswers();
 	};
 
-	if (!questionsArray.length) return null;
+	if (!questionsArray.length || !workspace?.enterprise?.modules?.quiz) return null;
 
 	return (
 		<div className="flex flex-col gap-2">
@@ -157,13 +226,14 @@ export const QuizNavigationInfo = memo(() => {
 				questions={questionsArray}
 				setFocusedQuestion={setFocusedQuestion}
 			/>
+			{state === "finished" && <Statistics />}
 			{isNext && (
 				<>
 					<Button
 						onClick={checkAnswersHandler}
 						startIcon="check"
 						variant="text"
-						className="w-full mt-4"
+						className="w-full"
 						size="sm"
 						disabled={state !== "answering"}
 					>

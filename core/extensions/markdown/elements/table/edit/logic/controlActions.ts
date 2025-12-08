@@ -2,7 +2,7 @@ import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes"
 
 export const hideOldControls = (containerVertical: Element, containerHorizontal: Element, hoveredData: HoveredData) => {
 	const verticalController = containerVertical?.childNodes?.item(hoveredData.rowIndex) as HTMLElement;
-	const horizontalController = containerHorizontal?.childNodes?.item(hoveredData.cellIndex) as HTMLElement;
+	const horizontalController = containerHorizontal?.childNodes?.item(hoveredData.cellIndex + 1) as HTMLElement;
 
 	verticalController?.childNodes?.forEach((child: HTMLElement) => {
 		child.classList.add("hidden");
@@ -17,10 +17,9 @@ export const hideOldControls = (containerVertical: Element, containerHorizontal:
 		child.classList.add("hidden");
 	});
 
-	const nextHorizontalController = containerHorizontal?.childNodes
-		?.item(hoveredData.cellIndex + 1)
-		?.childNodes.item(0) as HTMLElement;
-	if (nextHorizontalController) nextHorizontalController.classList.add("hidden");
+	const childNodes = containerHorizontal?.childNodes?.item(hoveredData.cellIndex)?.childNodes;
+	const preHorizontalController = childNodes.item(childNodes.length - 1) as HTMLElement;
+	if (preHorizontalController) preHorizontalController.classList.add("hidden");
 };
 
 export const showNewControls = (
@@ -30,7 +29,7 @@ export const showNewControls = (
 	cellIndex: number,
 ) => {
 	const verticalController = containerVertical?.childNodes?.item(rowIndex) as HTMLElement;
-	const horizontalController = containerHorizontal?.childNodes?.item(cellIndex) as HTMLElement;
+	const horizontalController = containerHorizontal?.childNodes?.item(cellIndex + 1) as HTMLElement;
 
 	verticalController?.childNodes?.forEach((child: HTMLElement) => {
 		child.classList.remove("hidden");
@@ -45,8 +44,7 @@ export const showNewControls = (
 		?.childNodes?.item(0) as HTMLElement;
 	if (nextVerticalController) nextVerticalController.classList.remove("hidden");
 
-	const nextHorizontalController = containerHorizontal?.childNodes
-		?.item(cellIndex + 1)
-		?.childNodes.item(0) as HTMLElement;
-	if (nextHorizontalController) nextHorizontalController.classList.remove("hidden");
+	const childNodes = containerHorizontal?.childNodes?.item(cellIndex)?.childNodes;
+	const preHorizontalController = childNodes.item(childNodes.length - 1) as HTMLElement;
+	if (preHorizontalController) preHorizontalController.classList.remove("hidden");
 };

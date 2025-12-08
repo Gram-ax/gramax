@@ -9,15 +9,17 @@ interface NoteHeadEditorProps {
 	onChange: (value: string) => void;
 	autoFocus?: boolean;
 	defaultValue?: string;
+	expanded: boolean;
+	nodeSize: number;
 }
 
 const NoteHeadEditor = forwardRef((props: NoteHeadEditorProps, ref: RefObject<HTMLInputElement>) => {
-	const { editor, getPos, onChange, defaultValue, autoFocus = true } = props;
+	const { editor, getPos, onChange, defaultValue, autoFocus = true, expanded, nodeSize } = props;
 
 	const onKeyUp = (e: KeyboardEvent<HTMLInputElement>) => {
 		if (e.key === "Enter") {
 			const pos = getPos();
-			const posInNote = pos + 1;
+			const posInNote = expanded ? pos + 1 : pos + nodeSize;
 			editor.chain().insertContentAt(posInNote, "<p></p>").focus(posInNote, { scrollIntoView: false }).run();
 			return;
 		}

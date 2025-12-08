@@ -8,7 +8,15 @@ import { Editor } from "@tiptap/core";
 import createFile from "../logic/createFile";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 
-const FileMenuButton = ({ editor, onSave }: { editor: Editor; onSave?: () => void }) => {
+const FileMenuButton = ({
+	editor,
+	onSave,
+	setIsProcessing,
+}: {
+	editor: Editor;
+	onSave?: () => void;
+	setIsProcessing?: (v: boolean) => void;
+}) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const rs = ResourceService.value;
 
@@ -21,6 +29,7 @@ const FileMenuButton = ({ editor, onSave }: { editor: Editor; onSave?: () => voi
 	return (
 		<InputFile
 			onChange={async (event) => {
+				setIsProcessing?.(false);
 				const filesArray = Array.from(event.currentTarget.files);
 				await createFile(filesArray, editor.view, apiUrlCreator, rs);
 				onSave?.();
@@ -30,6 +39,7 @@ const FileMenuButton = ({ editor, onSave }: { editor: Editor; onSave?: () => voi
 				icon="file"
 				nodeValues={{ mark: "file" }}
 				tooltipText={t("file")}
+				onMouseDown={() => setIsProcessing?.(true)}
 				onClick={() => ArticleUpdaterService.stopLoadingAfterFocus()}
 			/>
 		</InputFile>

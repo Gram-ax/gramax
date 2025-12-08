@@ -13,6 +13,7 @@ import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceD
 import SelectGitVerseStorageDataFields from "@ext/git/actions/Source/GitVerse/components/SelectGitVerseStorageDataFields";
 import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/model/GitVerseSourceData.schema";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import CreateStorage from "@ext/storage/components/CreateStorage";
 import SourceOption from "@ext/storage/components/SourceOption";
@@ -43,7 +44,6 @@ import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/compo
 import SourceData from "../logic/SourceDataProvider/model/SourceData";
 import SourceType from "../logic/SourceDataProvider/model/SourceType";
 import getStorageNameByData from "../logic/utils/getStorageNameByData";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
 
 interface SelectStorageDataFormProps {
 	mode?: "init" | "clone";
@@ -51,12 +51,13 @@ interface SelectStorageDataFormProps {
 	description?: string;
 	selectedStorage?: string;
 	onSubmit?: (data: GitStorageData) => Promise<boolean> | boolean | void;
+	onClose?: () => void;
 }
 
-type GitSourceDatas = GitSourceData | GitlabSourceData | GitHubSourceData;
+type GitSourceDatas = GitSourceData | GitlabSourceData | GitHubSourceData | GitVerseSourceData;
 
 const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
-	const { onSubmit, selectedStorage, mode = "clone", ...formProps } = props;
+	const { onSubmit, selectedStorage, mode = "clone", onClose, ...formProps } = props;
 
 	const isEnterprise = useIsEnterpriseWorkspace();
 	const sourceDatas = SourceDataService.value;
@@ -234,7 +235,10 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 				isOpen={isCreateStorageOpen}
 				setIsOpen={setIsCreateStorageOpen}
 				onSubmit={onSourceDataCreate}
-				onClose={() => setInvalidSourceData(null)}
+				onClose={() => {
+					setInvalidSourceData(null);
+					onClose?.();
+				}}
 				title={invalidSourceData ? t("forms.add-storage.name3") : t("forms.add-storage.name2")}
 				data={invalidSourceData}
 				sourceType={invalidSourceData?.sourceType}

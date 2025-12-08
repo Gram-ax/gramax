@@ -7,6 +7,7 @@ import UserJSONData from "@ext/security/logic/User/UserJSONData";
 import ApiRequest from "../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../logic/Api/ApiResponse";
 import Cookie from "../../cookie/Cookie";
+import TokenValidationError from "../../publicApi/TokenValidationError";
 import { AuthProvider } from "./AuthProviders/AuthProvider";
 import { TicketManager } from "./TicketManager/TicketManager";
 import User from "./User/User";
@@ -29,13 +30,14 @@ export default class ServerAuthManager extends AuthManager {
 			if (ticketUser) user = ticketUser;
 			this.setUser(cookie, user);
 		}
+		if (!this._enterpriseConfig?.gesUrl) return user;
 
-		const authorizationHeader = headers?.["authorization"];
-		const authorizationToken = authorizationHeader?.startsWith("Bearer ") ? authorizationHeader.slice(7) : "";
+		const authorizationToken = this._extractAuthorizationToken(headers);
 		if (authorizationToken) {
 			const userTicket = decodeURIComponent(authorizationToken);
 			const ticketUser = await this._ticketManager.checkUserTicket(userTicket);
-			if (ticketUser) user = ticketUser;
+			if (!ticketUser) throw new TokenValidationError("Invalid token");
+			user = ticketUser;
 		}
 
 		return user;
@@ -93,5 +95,13 @@ export default class ServerAuthManager extends AuthManager {
 
 	protected _setUsersEnterpriseInfo(user: EnterpriseUser): void {
 		this._usersEnterprisePermissionInfo[user?.info?.mail ?? ""] = user.getEnterpriseInfo();
+	}
+
+	private _extractAuthorizationToken(headers: ApiRequest["headers"]): string {
+		const authorizationHeader = headers?.["authorization"];
+		if (!authorizationHeader) return "";
+		if (!authorizationHeader.startsWith("Bearer ")) throw new TokenValidationError("Invalid authorization header");
+
+		return authorizationHeader.slice(7);
 	}
 }

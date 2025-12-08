@@ -17,6 +17,7 @@ const env = {
 	GIT_PROXY_SERVICE_URL: null,
 	CLOUD_SERVICE_URL: null,
 	GES_URL: null,
+	GES_IS_CLOUD: null,
 	GES_REFRESH_INTERVAL: null,
 };
 

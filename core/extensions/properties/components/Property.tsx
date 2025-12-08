@@ -3,6 +3,7 @@ import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
 import { PropertyTypes } from "@ext/properties/models";
+import { IconButton } from "@ui-kit/Button";
 import { CSSProperties } from "react";
 
 interface PropertyProps {
@@ -13,15 +14,17 @@ interface PropertyProps {
 	icon?: string;
 	style?: CSSProperties;
 	shouldShowValue?: boolean | ((value: string[] | string) => boolean);
+	onClear?: () => void;
 	className?: string;
 }
 
-const Property = ({ type, name, value, className, style, icon, shouldShowValue = true }: PropertyProps) => {
+const Property = ({ type, name, value, className, style, icon, shouldShowValue = true, onClear }: PropertyProps) => {
 	return (
 		<Tooltip content={name}>
 			<div className={className} style={style} data-qa="qa-property">
-				{icon && <Icon code={icon} />}
+				{icon && <Icon className="prop-icon" code={icon} />}
 				{shouldShowValue ? getDisplayValue(type, value) : name}
+				{onClear ? <IconButton className="prop-x-mark" variant="text" size="xs" icon="x" onClick={() => onClear()} /> : null}
 			</div>
 		</Tooltip>
 	);
@@ -49,9 +52,14 @@ export default styled(Property)`
 		filter: brightness(var(--filter-property));
 	}
 
-	i {
+	.prop-icon {
 		display: flex;
 		font-size: 1.2em;
 		margin-right: 0.25em;
+	}
+
+	.prop-x-mark {
+		padding: 0;
+		height: auto;
 	}
 `;

@@ -24,13 +24,15 @@ interface WorkspaceStyle {
 
 export interface ModuleOptions {
 	quiz?: boolean;
+	styleGuide?: boolean;
 }
 
 export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
 	source: WorkspaceSource;
 	style: WorkspaceStyle;
 	authMethods: AuthMethod[];
-	wordTemplates?: { title: string; bufferBase64?: string }[];
+	wordTemplates?: ExportTemplate[];
+	pdfTemplates?: ExportTemplate[];
 	modules?: ModuleOptions;
 }
 
@@ -41,5 +43,10 @@ interface UserSettings {
 	from: string;
 	isNotEditor?: boolean;
 }
+
+export type ExportTemplate = {
+	title: string;
+	bufferBase64: string;
+};
 
 export default UserSettings;

@@ -2,13 +2,11 @@ import useCheck from "@core-ui/hooks/useCheck";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { useWorkspaceSections } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSections";
 import { useWorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSettings";
-import { useWorkspaceTemplates } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceTemplates";
 import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
 import { useEffect } from "react";
-import { ConfirmationDialog } from "../../ui-kit/ConfirmationDialog";
 import { FloatingAlert } from "../../ui-kit/FloatingAlert";
 import { Spinner } from "../../ui-kit/Spinner";
 import { StickyHeader } from "../../ui-kit/StickyHeader";
@@ -20,8 +18,9 @@ import { WorkspaceRepositories } from "./components/repositories/WorkspaceReposi
 import { WorkspaceSections } from "./components/sections/WorkspaceSections";
 import { WorkspaceInfo } from "./components/WorkspaceInfo";
 import { WorkspaceStyling } from "./components/WorkspaceStyling";
-import { WorkspaceTemplates } from "./components/WorkspaceTemplates";
+import { WordTemplates } from "./components/WordTemplates";
 import { AuthMethod, AuthOption } from "./types/WorkspaceComponent";
+import { PdfTemplates } from "@ext/enterprise/components/admin/settings/workspace/components/PdfTemplates";
 
 const ownerRole: RoleId = "workspaceOwner";
 
@@ -39,14 +38,6 @@ const WorkspaceComponent = () => {
 
 	const isEqual = useCheck(workspaceSettings, localSettings);
 	const { hasSectionsOrderChanged, setOriginalSectionsOrder } = useWorkspaceSections(localSettings, setLocalSettings);
-
-	const {
-		duplicateDialogOpen,
-		setDuplicateDialogOpen,
-		pendingDuplicate,
-		setPendingDuplicate,
-		handleReplaceTemplate,
-	} = useWorkspaceTemplates(localSettings, setLocalSettings);
 
 	const selectGroups = [...Object.keys(settings?.groups ?? {})];
 	const selectResources = settings?.resources?.map((resource) => resource.id) ?? [];
@@ -140,22 +131,9 @@ const WorkspaceComponent = () => {
 
 				<WorkspaceStyling localSettings={localSettings} setLocalSettings={setLocalSettings} />
 
-				<WorkspaceTemplates localSettings={localSettings} setLocalSettings={setLocalSettings} />
+				<WordTemplates localSettings={localSettings} setLocalSettings={setLocalSettings} />
+				<PdfTemplates localSettings={localSettings} setLocalSettings={setLocalSettings} />
 			</div>
-
-			<ConfirmationDialog
-				isOpen={duplicateDialogOpen}
-				onOpenChange={setDuplicateDialogOpen}
-				onSave={handleReplaceTemplate}
-				onClose={() => {
-					setPendingDuplicate(null);
-				}}
-				title="Шаблон уже существует"
-				description={`Шаблон «${pendingDuplicate?.title ?? ""}» уже существует. Заменить его?`}
-				confirmText="Заменить"
-				cancelText="Отмена"
-				showDiscard={false}
-			/>
 		</div>
 	);
 };

@@ -1,4 +1,5 @@
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
+import useWatch from "@core-ui/hooks/useWatch";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
@@ -15,7 +16,7 @@ import {
 	FormStack,
 } from "@ui-kit/Form";
 import { SecretInput, TextInput } from "@ui-kit/Input";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -30,7 +31,7 @@ interface GitFormData {
 const getFormSchema = () =>
 	z.object({
 		url: z.string({ message: t("must-be-not-empty") }),
-		username: z.string({ message: t("must-be-not-empty") }),
+		username: z.string({ message: t("must-be-not-empty") }).optional(),
 		authorName: z.string({ message: t("must-be-not-empty") }),
 		authorEmail: z.string({ message: t("must-be-not-empty") }),
 		token: z.string({ message: t("must-be-not-empty") }),
@@ -61,6 +62,11 @@ const GitForm = ({ data, onSubmit }: EditGitProps) => {
 	const [isToken, setIsToken] = useState(true);
 	const { setPrimaryButton } = useSetFooterButton();
 
+	const isTokenRef = useRef(isToken);
+	useWatch(() => {
+		isTokenRef.current = isToken;
+	}, [isToken]);
+
 	const form = useForm({
 		resolver: zodResolver(getFormSchema()),
 		defaultValues: data
@@ -78,7 +84,7 @@ const GitForm = ({ data, onSubmit }: EditGitProps) => {
 	const formSubmit = (e) => {
 		e.preventDefault();
 		form.handleSubmit((data) => {
-			const sourceData = getSourceDataByFormData(data, isToken);
+			const sourceData = getSourceDataByFormData(data, isTokenRef.current);
 
 			onSubmit(sourceData);
 		})(e);
@@ -129,18 +135,20 @@ const GitForm = ({ data, onSubmit }: EditGitProps) => {
 						</FormSectionHeaderButton>
 					</div>
 					<FormFieldSet style={{ marginTop: 0 }}>
-						<FormField
-							title={t("forms.git-source-data.props.gitServerUsername.name")}
-							name="username"
-							layout="vertical"
-							description={t("forms.git-source-data.props.gitServerUsername.description")}
-							control={({ field }) => (
-								<TextInput
-									{...field}
-									placeholder={t("forms.git-source-data.props.gitServerUsername.placeholder")}
-								/>
-							)}
-						/>
+						{!isToken && (
+							<FormField
+								title={t("forms.git-source-data.props.gitServerUsername.name")}
+								name="username"
+								layout="vertical"
+								description={t("forms.git-source-data.props.gitServerUsername.description")}
+								control={({ field }) => (
+									<TextInput
+										{...field}
+										placeholder={t("forms.git-source-data.props.gitServerUsername.placeholder")}
+									/>
+								)}
+							/>
+						)}
 
 						{isToken && (
 							<FormField

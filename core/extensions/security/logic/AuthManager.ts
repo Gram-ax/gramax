@@ -1,10 +1,10 @@
+import { EnterpriseConfig } from "@app/config/AppConfig";
 import EnterpriseUser, { EnterpriseInfo } from "@ext/enterprise/EnterpriseUser";
 import EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
 import ApiRequest from "../../../logic/Api/ApiRequest";
 import ApiResponse from "../../../logic/Api/ApiResponse";
 import Cookie from "../../cookie/Cookie";
 import User from "./User/User";
-import { EnterpriseConfig } from "@app/config/AppConfig";
 
 export default abstract class AuthManager {
 	protected readonly _COOKIE_USER = "user";

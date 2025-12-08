@@ -136,4 +136,19 @@ describe("isAnswersCorrect", () => {
 
 		expect(results).toEqual([{ questionId: "q1", isCorrect: false }]);
 	});
+
+	it("should include correct answers ids if the option is true", () => {
+		const questions = new Map<string, Question>();
+		questions.set("q1", {
+			id: "q1",
+			title: "Question 1",
+			type: "one",
+			answers: { a1: { id: "a1", type: "radio", correct: true, title: "Answer 1" } },
+		});
+
+		const answers = [{ questionId: "q1", answersIds: ["a1"] }];
+		const results = isAnswersCorrect(questions, answers, { includeCorrectAnswersIds: true });
+
+		expect(results).toEqual([{ questionId: "q1", isCorrect: true, correctAnswersIds: ["a1"] }]);
+	});
 });

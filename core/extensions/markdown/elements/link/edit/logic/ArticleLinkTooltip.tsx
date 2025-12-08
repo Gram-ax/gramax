@@ -8,19 +8,18 @@ import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import PageDataContext from "@core/Context/PageDataContext";
-import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import styled from "@emotion/styled";
-import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import {
 	CatalogStoreProvider,
 	useCatalogPropsStore,
 } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import PageDataContext from "@core/Context/PageDataContext";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import styled from "@emotion/styled";
+import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { Mark } from "@tiptap/pm/model";
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useLocation } from "wouter";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 type dataType = {
 	path: string;
@@ -92,7 +91,8 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		url: useMemo(() => {
 			const mark = getMark();
 			const combinedResourcePath = mark?.attrs?.resourcePath || resourcePath;
-			return apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
+			const url = apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
+			return url;
 		}, [apiUrlCreator, getMark, resourcePath]),
 		onDone: () => {
 			const mark = getMark();
@@ -198,14 +198,8 @@ const TooltipProvider = (props: TooltipProviderProps) => {
 };
 
 const TooltipContent = (props: TooltipContent) => {
-	const { data, start, clear, close, className, hash } = props;
+	const { data, start, clear, className, hash } = props;
 	const articleRef = ArticleRefService.value;
-	const [location] = useLocation();
-	const test = useRef(location);
-
-	useEffect(() => {
-		if (test.current !== location) close();
-	}, [location]);
 
 	useEffect(() => {
 		const handleMouseLeave = () => start();

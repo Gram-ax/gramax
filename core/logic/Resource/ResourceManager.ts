@@ -27,6 +27,10 @@ class ResourceManager implements Hashable {
 		return this._resources;
 	}
 
+	getAllPaths(): Path[] {
+		return this._resources;
+	}
+
 	setNewBasePath(newBasePath: Path, ignoredResources?: Path[]): ResourceMovements {
 		if (newBasePath.compare(this._basePath)) {
 			return { oldResources: this._resources, newResources: this._resources };
@@ -93,7 +97,9 @@ class ResourceManager implements Hashable {
 	}
 
 	async hash(hash: Hasher) {
-		await Promise.all(this._resources.map(async (resource) => hash.hash(await this.getContent(resource))));
+		await this._resources.forEachAsync(async (resource) => {
+			hash.hash(await this.getContent(resource));
+		});
 		return hash;
 	}
 

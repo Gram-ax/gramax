@@ -6,7 +6,7 @@ export const strongWordLayout: WordInlineChild = async ({ state, tag, addOptions
 		return state.renderInline(tag, { ...addOptions, bold: true, font: wordFontTypes.bold });
 
 	if (addOptions?.style === WordFontStyles.emphasis.toString())
-		return state.renderInline(tag, { ...addOptions, style: WordFontStyles.bookTitle });
+		return state.renderInline(tag, { ...addOptions, italics: true, style: WordFontStyles.strong });
 
 	return state.renderInline(tag, { ...addOptions, style: WordFontStyles.strong });
 };

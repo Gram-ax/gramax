@@ -24,6 +24,9 @@ switch (arg) {
 	case "int":
 		jestArgs = [...jestArgs, "--testMatch", "**/*.int.test.ts"];
 		break;
+	case "ges":
+		jestArgs = [...jestArgs, "--testMatch", "**/*.ges.test.ts"];
+		break;
 	case undefined:
 		break;
 	default:

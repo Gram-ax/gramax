@@ -1,5 +1,5 @@
 import { Form, FormField, FormStack } from "@ui-kit/Form";
-import { WebInput, SecretInput } from "@ui-kit/Input";
+import { Input, SecretInput } from "@ui-kit/Input";
 import { Button } from "@ui-kit/Button";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -45,9 +45,9 @@ const EditConfluenceServer = ({ onSubmit, data }: EditConfluenceServerProps) => 
 
 	const formSubmit = (e) => {
 		form.handleSubmit(async (data) => {
-			const { domain } = parseStorageUrl(data.url);
+			const { origin } = parseStorageUrl(data.url);
 			const user = await new ConfluenceServerAPI({
-				domain,
+				domain: origin || data.url,
 				token: data.token,
 				sourceType: SourceType.confluenceServer,
 				userName: "",
@@ -59,7 +59,7 @@ const EditConfluenceServer = ({ onSubmit, data }: EditConfluenceServerProps) => 
 			onSubmit({
 				sourceType: SourceType.confluenceServer,
 				token: data.token,
-				domain,
+				domain: origin || data.url,
 				userName: user.name,
 				userEmail: user.email,
 			});
@@ -89,7 +89,7 @@ const EditConfluenceServer = ({ onSubmit, data }: EditConfluenceServerProps) => 
 						title={t("forms.confluence-server-source-data.props.domain.name")}
 						description={t("forms.confluence-server-source-data.props.domain.description")}
 						control={({ field }) => (
-							<WebInput
+							<Input
 								{...field}
 								readOnly={!!data?.domain}
 								placeholder={t("forms.confluence-server-source-data.props.domain.placeholder")}

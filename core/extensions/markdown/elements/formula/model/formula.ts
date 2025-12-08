@@ -4,10 +4,11 @@ import { Node, RenderableTreeNodes, Schema, Tag } from "../../../core/render/log
 export function formula(context: ParserContext): Schema {
 	return {
 		render: "Formula",
-		attributes: { content: { type: String } },
+		attributes: { content: { type: String }, latex: { type: String } },
 		transform: async (node: Node): Promise<RenderableTreeNodes> => {
 			return new Tag("Formula", {
 				content: await context.parser.getRenderMarkdownIt(node.attributes.content),
+				latex: node.attributes.content,
 			});
 		},
 	};

@@ -18,6 +18,13 @@ export type FSLocalizationProps = {
 	supportedLanguages?: ContentLanguage[];
 };
 
+declare module "@core/FileStructue/Item/Item" {
+	interface ItemProps {
+		language?: ContentLanguage;
+		supportedLanguages?: ContentLanguage[];
+	}
+}
+
 export default class FSLocalizationEvents implements EventHandlerCollection {
 	// For some reason we need to save unsubscribe token address from "catalog-read" event and maybe other events
 	private _unsubribeTokens: UnsubscribeToken[] = [];
@@ -169,6 +176,7 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 		if (!catalog.props.language) return;
 
 		await this.applyAll(catalog, true, originalItem.ref, async (ref, item) => {
+			if (!item) return;
 			await item.setOrder(originalItem.props.order, true);
 		});
 	};
@@ -177,7 +185,7 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 		catalog: Catalog,
 		check: boolean,
 		originalRef: ItemRef,
-		callback: (ref: ItemRef, item: Item) => void | Promise<void>,
+		callback: (ref: ItemRef, item?: Item) => void | Promise<void>,
 	) => {
 		if (!originalRef) {
 			const rootCategoryPath = catalog.getRootCategoryPath();

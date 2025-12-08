@@ -13,7 +13,6 @@ import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
-import Cache from "@ext/Cache";
 import { Encoder } from "@ext/Encoder/Encoder";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
@@ -30,9 +29,9 @@ import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter
 import AuthManager from "@ext/security/logic/AuthManager";
 import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import FuseSearcher from "@ext/serach/Fuse/FuseSearcher";
-import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import SearcherManager from "@ext/serach/SearcherManager";
+import { ModulithSearcher } from "@ext/serach/modulith/ModulithSearcher";
+import { createModulithService } from "@ext/serach/modulith/createModulithService";
 import WorkspaceCheckIsCatalogCloning from "@ext/storage/events/WorkspaceCheckIsCatalogCloning";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import FSTemplateEvents from "@ext/templates/logic/FSTemplateEvents";
@@ -112,9 +111,17 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const am: AuthManager = enterpriseConfig.gesUrl ? new ClientAuthManager(enterpriseConfig) : null;
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
 
-	const cache = new Cache(new DiskFileProvider(config.paths.data));
-	const indexDataProvider = new IndexDataProvider(wm, cache, parser, parserContextFactory);
-	const searcherManager = new SearcherManager(new FuseSearcher(indexDataProvider));
+	const searcherManager = new SearcherManager(
+		new ModulithSearcher(
+			await createModulithService({
+				basePath: config.paths.data,
+				wm,
+				parser,
+				parserContextFactory,
+				parseResources: Boolean(enterpriseConfig.gesUrl),
+			}),
+		),
+	);
 	const wtm = new WordTemplateManager(wm);
 	const ptm = new PdfTemplateManager(wm);
 
@@ -139,7 +146,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		ticketManager,
 		contextFactory,
 		searcherManager,
-		indexDataProvider,
 		sitePresenterFactory,
 		parserContextFactory,
 		resourceUpdaterFactory,

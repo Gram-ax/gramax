@@ -9,11 +9,13 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import AddToFavoriteButton from "@ext/article/Favorite/components/AddToFavoriteButton";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
+import CatalogMoveAction from "@ext/catalog/actions/move/components/CatalogMoveAction";
 import CatalogExport from "@ext/catalog/actions/propsEditor/components/CatalogExport";
 import CatalogPropsTrigger from "@ext/catalog/actions/propsEditor/components/CatalogPropsTrigger";
 import CatalogTools from "@ext/catalog/actions/propsEditor/components/CatalogTools";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
+import RepositoryPermissionTrigger from "@ext/enterprise/components/RepositoryPermission";
 import HealthcheckTrigger from "@ext/healthcheck/components/HealthcheckTrigger";
 import t from "@ext/localization/locale/translate";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
@@ -45,8 +47,9 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 		"shallow",
 	);
 	const workspacePath = WorkspaceService.current()?.path;
+	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 	const pageData = PageDataContextService.value;
-	const { isNext, isTauri, isStatic, isStaticCli } = usePlatform();
+	const { isNext, isBrowser, isTauri, isStatic, isStaticCli } = usePlatform();
 	const isMac = IsMacService.value;
 	const shouldRenderDeleteCatalog = useShouldRenderDeleteCatalog();
 	const [renderDeleteCatalog, setRenderDeleteCatalog] = useState(false);
@@ -56,7 +59,11 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 	const validateDeleteCatalogInStatic = useValidateDeleteCatalogInStatic();
 	const { catalogs } = FavoriteService.value;
 
-	const canConfigureCatalog = PermissionService.useCheckPermission(configureCatalogPermission, workspacePath, catalogName);
+	const canConfigureCatalog = PermissionService.useCheckPermission(
+		configureCatalogPermission,
+		workspacePath,
+		catalogName,
+	);
 
 	useEffect(() => {
 		setRenderDeleteCatalog(shouldRenderDeleteCatalog);
@@ -93,9 +100,21 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 			}
 		>
 			{canConfigureCatalog && !isReadOnly && <CatalogPropsTrigger />}
+			{gesUrl && canConfigureCatalog && (isBrowser || isTauri) ? (
+				<RepositoryPermissionTrigger
+					gesUrl={gesUrl}
+					catalogName={catalogName}
+					pathName={pathName}
+					sourceName={sourceName}
+				/>
+			) : (
+				<>{!isNext && sourceName && <ShareAction path={`/${pathName}`} isArticle={false} />}</>
+			)}
 			{/* {canConfigureCatalog && isNext && <SharedTicketTrigger />} */}
-			{!isNext && sourceName && <ShareAction path={`/${pathName}`} isArticle={false} />}
 			{isTauri && <ShowInExplorer />}
+			<IsReadOnlyHOC>
+				{!isStatic && !isStaticCli && !isNext && <CatalogMoveAction catalogName={catalogName} />}
+			</IsReadOnlyHOC>
 			<CatalogExport name={catalogName} disabled={!isArticleExist} />
 
 			{!(isMac && isTauri) && cloudServiceUrl && feature("cloud") && (

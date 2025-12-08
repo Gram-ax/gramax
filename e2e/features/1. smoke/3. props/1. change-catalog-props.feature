@@ -13,6 +13,10 @@
       qa-catalog-title: Тест
       qa-catalog-url: test
       qa-catalog-docroot: test/a/b
+      """
+    И нажимаем на кнопку "Внешний вид"
+    И заполняем форму
+      """
       qa-catalog-description: 123
       """
     И нажимаем на кнопку "Сохранить"

@@ -31,7 +31,7 @@ export enum RequestStatus {
 	Error,
 }
 
-export type CallApiDefer<T, O> = (deferApiProps?: UseApiProps<T, O>) => Promise<O> | void;
+export type CallApiDefer<T, O> = (deferApiProps?: Partial<UseApiProps<T, O>>) => Promise<O> | void;
 export type CallApi<T> = () => Promise<T> | void;
 export type CreateUrl = (api: ApiUrlCreator) => Url | Promise<Url>;
 export type ResetApi = () => void;
@@ -109,7 +109,7 @@ const parseResponse = async <T>(res: FetchResponse<T>, mode: ResponseParser, thr
 		}
 	} catch (error) {
 		if (throwError) throw error;
-		console.warn("failed to parse response", error);
+		console.warn(new Error("failed to parse response", error));
 		return null;
 	}
 };
@@ -217,6 +217,8 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 	const [status, setStatus] = useState(RequestStatus.Init);
 	const [error, setError] = useState<Error | null>(null);
 
+	const statusRef = useRef(status);
+
 	useWatch(() => {
 		endpoint.current = resolveEndpoint(rawUrl, apiUrlCreator);
 	}, [rawUrl, apiUrlCreator]);
@@ -230,6 +232,10 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 			map,
 		};
 	}, [onStart, onDone, onError, onFinally, map]);
+
+	useWatch(() => {
+		statusRef.current = status;
+	}, [status]);
 
 	const call = useCallback(
 		async (defer?: UseApiProps<T, O>) => {
@@ -254,13 +260,13 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 
 			const url = await endpoint.current;
 
-			if (status === RequestStatus.Loading) {
-				console.warn(`request '${url}' already in progress`);
+			if (statusRef.current === RequestStatus.Loading) {
+				console.warn(new Error(`request '${url}' already in progress`));
 				return;
 			}
 
 			if (!url) {
-				console.warn(`request url isn't set`);
+				console.warn(new Error(`request url isn't set`));
 				return;
 			}
 
@@ -294,7 +300,7 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 				await cbs.onFinally?.(data, error);
 			}
 		},
-		[opts, status, parse],
+		[opts, parse],
 	);
 
 	const reset = useCallback(() => {
@@ -312,9 +318,9 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 	};
 };
 
-export type UseDeferApiProps<T, O> = Omit<UseApiProps<T, O>, "url">;
+export type UseDeferApiProps<T, O> = Omit<UseApiProps<T, O>, "url"> & { url?: SpecifyOrCreateApi };
 export type UseDeferApiResult<T, O> = UseApiResult<O> & {
-	call: (defer?: UseApiProps<T, O>) => Promise<O> | void;
+	call: (defer?: UseDeferApiProps<T, O>) => Promise<O> | void;
 };
 
 export const useDeferApi = <T, O = T>(props: UseDeferApiProps<T, O>): UseDeferApiResult<T, O> => {

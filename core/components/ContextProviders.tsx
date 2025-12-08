@@ -30,7 +30,8 @@ import matomoMetric from "@core-ui/matomoMetric";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { initRefresh } from "@core-ui/utils/initGlobalFuncs";
-import yandexMetric from "@core-ui/yandexMetric";
+import yandexMetric, { yandexHit as yandexMetricHit } from "@core-ui/yandexMetric";
+import { useRouter } from "@core/Api/useRouter";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import PromptService from "@ext/ai/components/Tab/PromptService";
@@ -46,6 +47,7 @@ import PropertyService from "@ext/properties/components/PropertyService";
 import permissionService from "@ext/security/logic/Permission/components/PermissionService";
 import TemplateService from "@ext/templates/components/TemplateService";
 import { TooltipProvider } from "@ui-kit/Tooltip";
+import { useEffect } from "react";
 import ThemeService from "../extensions/Theme/components/ThemeService";
 import PageDataContext from "../logic/Context/PageDataContext";
 import IsMobileService from "../ui-logic/ContextServices/isMobileService";
@@ -108,8 +110,16 @@ export default function ContextProviders({
 
 	const isProduction = pageProps.context.conf.isProduction;
 	const metrics = pageProps.context.conf.metrics;
-	if (platform === "next" && isProduction) matomoMetric(metrics.matomo);
-	if (platform === "next" && isProduction) yandexMetric(metrics.yandex.metricCounter);
+
+	if ((platform === "next" || platform === "static") && isProduction) {
+		matomoMetric(metrics.matomo);
+		yandexMetric(metrics.yandex.metricCounter);
+
+		if (metrics.yandex.metricCounter && platform === "static") {
+			const url = useRouter().path;
+			useEffect(() => yandexMetricHit(metrics.yandex.metricCounter), [url]);
+		}
+	}
 
 	initRefresh(refreshPage, clearData);
 	return (

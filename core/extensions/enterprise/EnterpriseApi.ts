@@ -6,9 +6,13 @@ import UserSettings, { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/U
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import UserInfo from "@ext/security/logic/User/UserInfo";
-import { RequestChunkModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
-import { Suggestion } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptResponse";
+import { CheckChunk, CheckSuggestion } from "@ics/gx-vector-search";
 import { EnterpriseAuthResult } from "./types/EnterpriseAuthResult";
+
+export type ResponseError = {
+	code: number;
+	message: string;
+};
 
 class EnterpriseApi {
 	constructor(private _gesUrl: string) {}
@@ -32,6 +36,7 @@ class EnterpriseApi {
 			};
 			const res = await fetch(`${this._gesUrl}/enterprise/sso/get-user?&checkSsoToken=${checkSsoToken}`, {
 				headers,
+				credentials: "include",
 			});
 			if (!res.ok || res.status !== 200) {
 				console.warn(`Error retrieving user information. Status: ${res.status} Status text: ${res.statusText}`);
@@ -60,7 +65,7 @@ class EnterpriseApi {
 			});
 			return { ...data, catalogsPermissions: newCatalogsPermissions, catalogsProps: newCatalogsProps };
 		} catch (e) {
-			console.log(e);
+			console.error(e);
 		}
 	}
 
@@ -70,7 +75,7 @@ class EnterpriseApi {
 		};
 		const url = `${this._gesUrl}/enterprise/config/check`;
 		try {
-			const res = await fetch(url, { headers });
+			const res = await fetch(url, { headers, credentials: "include" });
 			return res.status === 200 ? EnterpriseAuthResult.Permitted : EnterpriseAuthResult.Forbidden;
 		} catch (e) {
 			return EnterpriseAuthResult.Error;
@@ -83,6 +88,7 @@ class EnterpriseApi {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ emailOrCn: search }),
+			credentials: "include",
 		});
 		if (!res.ok) {
 			console.error(await res.json());
@@ -92,7 +98,7 @@ class EnterpriseApi {
 	}
 
 	async isEnabledGetUsers(): Promise<boolean> {
-		const res = await fetch(`${this._gesUrl}/sso/connectors/enabled`, {});
+		const res = await fetch(`${this._gesUrl}/sso/connectors/enabled`, { credentials: "include" });
 		return res.ok && res.status === 200;
 	}
 
@@ -100,6 +106,7 @@ class EnterpriseApi {
 		try {
 			const res = await fetch(`${this._gesUrl}/enterprise/sso/logout`, {
 				headers: { Authorization: `Bearer ${token}` },
+				credentials: "include",
 			});
 			if (!res.ok) throw new Error();
 		} catch (e) {
@@ -113,22 +120,28 @@ class EnterpriseApi {
 		}
 	}
 
-	async checkStyleGuide(paragraphs: RequestChunkModel[]): Promise<Suggestion[]> {
+	async checkStyleGuide(paragraphs: CheckChunk[]): Promise<CheckSuggestion[] | ResponseError> {
 		try {
 			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/check`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(paragraphs),
+				credentials: "include",
 			});
+			const status = res.status;
+			if (status === 503) return { code: status, message: t("style-guide.disabled") };
+
+			if (!res.ok) return { code: status, message: t("style-guide.failed-to-check") };
 			return await res.json();
 		} catch (e) {
-			console.log(e);
+			console.error(e);
+			return { code: 500, message: t("style-guide.failed-to-check") };
 		}
 	}
 
 	async healthcheckStyleGuide() {
 		try {
-			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/health`, {});
+			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/health`, { credentials: "include" });
 			return res.ok;
 		} catch (e) {
 			return false;
@@ -141,12 +154,14 @@ class EnterpriseApi {
 				method: "POST",
 				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
 				body: JSON.stringify({ resourceId }),
+				credentials: "include",
 			});
 			if (res.status == 403) throw new DefaultError(t("enterprise.init-repo.forbidden"));
 			if (res.status == 409) throw new DefaultError(t("enterprise.init-repo.already-exists"));
 
 			const resProxy = await fetch(`${this._gesUrl}/update`, {
 				headers: { Authorization: `Bearer ${token}` },
+				credentials: "include",
 			});
 			if (res.status == 403) throw new DefaultError(t("enterprise.init-repo.forbidden"));
 
@@ -166,6 +181,7 @@ class EnterpriseApi {
 				"Content-Type": "application/json",
 			},
 			body: JSON.stringify({ oneTimeCode }),
+			credentials: "include",
 		});
 		if (!res.ok || res.status !== 200) {
 			console.error("Failed to get token:", res.status);
@@ -180,6 +196,7 @@ class EnterpriseApi {
 
 		const res = await fetch(`${this._gesUrl}/enterprise/sso/get-user-settings`, {
 			headers: { Authorization: `Bearer ${token}` },
+			credentials: "include",
 		});
 		if (!res.ok || res.status !== 200) return;
 
@@ -193,6 +210,7 @@ class EnterpriseApi {
 			method: "POST",
 			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
 			body: JSON.stringify({ resourceId, reviewers, branch }),
+			credentials: "include",
 		});
 
 		if (res.status === 403) throw new DefaultError(t("enterprise.add-reviews.forbidden"));
@@ -200,6 +218,7 @@ class EnterpriseApi {
 
 		const gitRes = await fetch(`${this._gesUrl}/update`, {
 			headers: { Authorization: `Bearer ${token}` },
+			credentials: "include",
 		});
 
 		return gitRes.ok && res.ok && res.status === 200;
@@ -214,7 +233,7 @@ class EnterpriseApi {
 				url.searchParams.append("hash", configHash);
 			}
 
-			const res = await fetch(url.toString(), {});
+			const res = await fetch(url.toString(), { credentials: "include" });
 
 			if (!res.ok || res.status !== 200) return;
 
@@ -230,6 +249,7 @@ class EnterpriseApi {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email }),
+			credentials: "include",
 		});
 
 		if (res.status === 429) return { status: res.status, timeLeft: (await res.json())?.timeLeft };
@@ -242,6 +262,7 @@ class EnterpriseApi {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ email, otp }),
+			credentials: "include",
 		});
 
 		if (!res.ok) return;
@@ -249,14 +270,18 @@ class EnterpriseApi {
 		return await res.json();
 	}
 
-	async existsQuizTest(token: string, testId: string): Promise<boolean> {
-		const res = await fetch(`${this._gesUrl}/enterprise/quiz/test/exist?id=${encodeURIComponent(testId)}`, {
-			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-		});
+	async existsQuizTest(token: string, testId: number): Promise<boolean> {
+		try {
+			const res = await fetch(`${this._gesUrl}/enterprise/quiz/test/exist?id=${encodeURIComponent(testId)}`, {
+				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+			});
 
-		if (!res.ok) return false;
+			if (!res.ok) return false;
 
-		return await res.json();
+			return await res.json();
+		} catch {
+			return false;
+		}
 	}
 
 	async addQuizTest(token: string, test: QuizTestCreate): Promise<boolean> {
@@ -281,6 +306,25 @@ class EnterpriseApi {
 		if (!res.ok) return false;
 
 		return await res.json();
+	}
+
+	async getQuizTestByUser(token: string, testId: number, userMail: string): Promise<QuizAnswerCreate["answers"]> {
+		try {
+			const res = await fetch(
+				`${this._gesUrl}/enterprise/quiz/answer/get-by-user?test_id=${encodeURIComponent(
+					testId,
+				)}&user_mail=${encodeURIComponent(userMail)}`,
+				{
+					headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+				},
+			);
+
+			if (!res.ok) return [];
+
+			return (await res.json())?.data;
+		} catch {
+			return [];
+		}
 	}
 }
 

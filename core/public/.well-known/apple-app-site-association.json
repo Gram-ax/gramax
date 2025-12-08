@@ -1,0 +1,17 @@
+{
+	"applinks": {
+		"details": [
+			{
+				"appIDs": ["V9C959AY94.gramax.app", "V9C959AY94.gramax.dev"],
+				"components": [
+					{
+						"/": "/*"
+					}
+				]
+			}
+		]
+	},
+	"webcredentials": {
+		"apps": ["V9C959AY94.gramax.app", "V9C959AY94.gramax.dev"]
+	}
+}

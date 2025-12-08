@@ -231,7 +231,7 @@
 				"children": [],
 				"name": "Video"
 			},
-			"html": "<div data-component=\"video\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div>"
+			"html": "<div data-component=\"video\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" crossorigin=\"anonymous\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div>"
 		}
 	],
 	"Term": [
@@ -389,7 +389,8 @@
 			"renderTree": {
 				"$$mdtype": "Tag",
 				"attributes": {
-					"content": "<p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n"
+					"content": "<p class=\"katex-block math-block\"><span class=\"katex-display\"><span class=\"katex\"><span class=\"katex-mathml\"><math xmlns=\"http://www.w3.org/1998/Math/MathML\" display=\"block\"><semantics><mrow><mi>a</mi><mo>=</mo><mi>b</mi><mo>+</mo><mi>c</mi></mrow><annotation encoding=\"application/x-tex\">a=b+c \n</annotation></semantics></math></span><span class=\"katex-html\" aria-hidden=\"true\"><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">a</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span><span class=\"mrel\">=</span><span class=\"mspace\" style=\"margin-right:0.2778em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.7778em;vertical-align:-0.0833em;\"></span><span class=\"mord mathnormal\">b</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span><span class=\"mbin\">+</span><span class=\"mspace\" style=\"margin-right:0.2222em;\"></span></span><span class=\"base\"><span class=\"strut\" style=\"height:0.4306em;\"></span><span class=\"mord mathnormal\">c</span></span></span></span></span></p>\n",
+					"latex": "$$ a=b+c $$"
 				},
 				"children": [],
 				"name": "Formula"
@@ -404,7 +405,8 @@
 			"renderTree": {
 				"$$mdtype": "Tag",
 				"attributes": {
-					"content": "<p>$ a=b+c $</p>\n"
+					"content": "<p>$ a=b+c $</p>\n",
+					"latex": "$ a=b+c $"
 				},
 				"children": [],
 				"name": "Formula"

@@ -22,7 +22,7 @@ const getArticlePageData: Command<
 		const catalogName = path[0];
 		const catalog = await wm.getCatalogOrFindAtAnyWorkspace(catalogName);
 		if (getExecutingEnvironment() !== "static" && getExecutingEnvironment() !== "next" && catalog)
-			await catalog.parseEveryArticle(ctx, this._app.parser, this._app.parserContextFactory);
+			await catalog.parseEveryItem(ctx, this._app.parser, this._app.parserContextFactory);
 
 		const workspace = wm.current(); // `wm.getCatalogAtAnyWorkspace` can change workspace
 

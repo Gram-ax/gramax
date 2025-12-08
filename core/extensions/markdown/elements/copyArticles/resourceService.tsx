@@ -11,13 +11,14 @@ import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import Path from "@core/FileProvider/Path/Path";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import getArticleFileBrotherNames from "@ext/markdown/elementsUtils/AtricleResource/getAtricleResourceNames";
-import { ReactElement, createContext, useCallback, useContext, useEffect, useState } from "react";
+import { ReactElement, createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 
 type UseGetResource = (
-	callback: (buffer: Buffer) => void,
+	callback: (buffer: Buffer) => void | Promise<void>,
 	src: string,
 	content?: string,
 	haveParentPath?: boolean,
+	isPrint?: boolean,
 ) => void;
 
 type SetResource = (name: string, file: string | Buffer, path?: string, force?: boolean) => Promise<string>;
@@ -107,12 +108,23 @@ abstract class ResourceService {
 			[apiUrlCreator],
 		);
 
-		const useGetResource = (
-			callback: (buffer: Buffer) => void,
-			src: string,
-			content?: string,
-			haveParentPath = true,
-		) => {
+		const useGetResource: UseGetResource = (callback, src, content?, haveParentPath = true, isPrint?) => {
+			const resolvePromiseRef = useRef<(() => void) | null>(null);
+			const promiseRef = useRef<Promise<void> | null>(null);
+
+			useEffect(() => {
+				if (!isPrint) return;
+				promiseRef.current = new Promise<void>((resolve) => {
+					resolvePromiseRef.current = resolve;
+				});
+				ResourceService._loadingPromises.add(promiseRef.current);
+				promiseRef.current.finally(() => ResourceService._loadingPromises.delete(promiseRef.current));
+
+				return () => {
+					resolvePromiseRef.current();
+				};
+			}, []);
+
 			const fetchImage = async (src: string) => {
 				const res = await fetch(src);
 				if (!res.ok) return;
@@ -141,34 +153,46 @@ abstract class ResourceService {
 				return await res.buffer();
 			};
 
+			const wrappedCallback = useCallback<typeof callback>(
+				async (buffer) => {
+					try {
+						await Promise.resolve(callback(buffer));
+					} finally {
+						resolvePromiseRef.current?.();
+					}
+				},
+				[callback, isPrint],
+			);
+
 			const loadData = async (src: string) => {
 				let buffer: Buffer;
-
-				if (!haveParentPath) {
-					buffer = await getNoParentResource(new Path(src));
-				} else {
-					buffer = isExternalLink(src).isExternal ? await loadExternalData(src) : await loadInternalData(src);
+				try {
+					if (!haveParentPath) {
+						buffer = await getNoParentResource(new Path(src));
+					} else {
+						buffer = isExternalLink(src).isUrl ? await loadExternalData(src) : await loadInternalData(src);
+					}
+				} catch (e) {
+					if (isPrint) wrappedCallback(undefined);
+					throw e;
 				}
 
-				if (!buffer || !buffer.length) return callback(undefined);
+				if (!buffer || !buffer.length) return wrappedCallback(undefined);
 				update(src, buffer);
 			};
 
 			useEffect(() => {
 				if (content) {
-					callback(Buffer.from(content));
+					wrappedCallback(Buffer.from(content));
 					return;
 				}
 
 				if (data?.[src]) {
-					callback(data[src]);
+					wrappedCallback(data[src]);
 					return;
 				}
 
-				const loadPromise = loadData(src);
-
-				ResourceService._loadingPromises.add(loadPromise);
-				loadPromise.finally(() => ResourceService._loadingPromises.delete(loadPromise));
+				loadData(src);
 			}, [src, data?.[src], content]);
 		};
 

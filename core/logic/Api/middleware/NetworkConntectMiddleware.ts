@@ -10,7 +10,7 @@ export class NetworkConnectMiddleWare extends Middleware {
 	}
 
 	async Process(req: ApiRequest, res: ApiResponse): Promise<void> {
-		if (haveInternetAccess()) await this._next.Process(req, res);
+		if (await haveInternetAccess(this?._app?.em?.getConfig?.()?.gesUrl)) await this._next.Process(req, res);
 		else throw new NetworkError();
 	}
 }

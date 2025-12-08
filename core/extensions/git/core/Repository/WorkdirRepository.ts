@@ -44,11 +44,11 @@ export default class WorkdirRepository extends Repository {
 	) {
 		super(repoPath, fp, gvc, storage, disableMergeRequests);
 		this._state = new RepositoryStateProvider(this, this._repoPath, this._fp);
-		if (gvc) this.subscribeEvents(fp);
 	}
 
-	subscribeEvents(fp: FileProvider) {
-		if (!(fp instanceof MountFileProvider && fp.default() instanceof DiskFileProvider)) return;
+	subscribeFpEvents() {
+		if (!(this._fp instanceof MountFileProvider && this._fp.default() instanceof DiskFileProvider)) return;
+		if (!this._gvc) return;
 
 		this._unsubscribeTokens.push(
 			DiskFileProvider.events.on("write", (e) => this._gitIndexAddFiles([e.path])),
@@ -56,6 +56,10 @@ export default class WorkdirRepository extends Repository {
 			DiskFileProvider.events.on("copy", (e) => this._gitIndexAddFiles([e.from, e.to])),
 			DiskFileProvider.events.on("delete", (e) => this._gitIndexAddFiles([e.path])),
 		);
+	}
+
+	unsubscribeEvents() {
+		this._unsubscribeTokens.forEach((token) => DiskFileProvider.events.off(token));
 	}
 
 	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {
@@ -86,7 +90,7 @@ export default class WorkdirRepository extends Repository {
 	}
 
 	async isShouldSync({ data, shouldFetch, onFetch, lockFetch = true }: IsShouldSyncOptions): Promise<boolean> {
-		let toPull = (await this.storage.getSyncCount()).pull;
+		const toPull = (await this.storage.getSyncCount()).pull;
 		if (toPull > 0) return true;
 
 		if (shouldFetch) {
@@ -136,7 +140,7 @@ export default class WorkdirRepository extends Repository {
 		const oldVersion = await this.gvc.getCurrentVersion();
 		const oldBranch = await this.gvc.getCurrentBranch();
 		const allBranches = (await this.gvc.getAllBranches()).map((b) => b.getData().remoteName ?? b.getData().name);
-		const haveInternet = haveInternetAccess();
+		const haveInternet = await haveInternetAccess();
 
 		const state: RepositoryCheckoutState = { value: "checkout", data: { to: branch } };
 		await this._state.saveState(state);
@@ -256,7 +260,12 @@ export default class WorkdirRepository extends Repository {
 
 		if (paths.length === 0) return;
 		const gitPaths = paths.map((x) => this._repoPath.rootDirectory.subDirectory(x));
-		await this.gvc.add(gitPaths);
+
+		try {
+			await this.gvc.add(gitPaths);
+		} catch (e) {
+			console.error(e);
+		}
 	}
 
 	private async _push({

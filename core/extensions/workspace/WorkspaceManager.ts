@@ -15,11 +15,12 @@ import mergeObjects from "@core/utils/mergeObjects";
 import { uniqueName } from "@core/utils/uniqueName";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import t from "@ext/localization/locale/translate";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
-import WorkspaceRepositoriesOverview from "@ext/workspace/UnintializedWorkspace";
+import UnintializedWorkspace from "@ext/workspace/UnintializedWorkspace";
 import { Workspace, type WorkspaceInitCallback } from "@ext/workspace/Workspace";
 import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
 import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
@@ -27,6 +28,7 @@ import { getBaseCatalogName } from "../../../apps/gramax-cli/src/logic/initialDa
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (change: CatalogFilesUpdated) => void | Promise<void>;
+export type CatalogAddedCallback = (args: { catalog: Catalog }) => void | Promise<void>;
 export type FSCatalogsInitializedCallback = (fp: FileProvider, catalogs: CatalogEntry[]) => void;
 export type FSFileProviderFactory = (path: WorkspacePath) => MountFileProvider;
 
@@ -48,6 +50,7 @@ export default class WorkspaceManager {
 	private _current: Workspace;
 	private _workspaces: Map<WorkspacePath, WorkspaceConfigWithCatalogs> = new Map();
 	private _rules: CatalogChangedCallback[] = [];
+	private _addingRules: CatalogAddedCallback[] = [];
 	private _events = createEventEmitter<WorkspaceManagerEvents>();
 
 	constructor(
@@ -70,11 +73,15 @@ export default class WorkspaceManager {
 		const workspaces = Array.from(this._workspaces.keys() || []).filter((w) => w !== current);
 
 		return await workspaces.mapAsync(async (w) => {
-			return await WorkspaceRepositoriesOverview.init({
-				path: w,
-				fs: new FileStructure(this._makeFileProvider(w), this._config.isReadOnly),
-				rp: this._rp,
-			});
+			return await this.getUnintializedWorkspace(w);
+		});
+	}
+
+	async getUnintializedWorkspace(path: WorkspacePath) {
+		return await UnintializedWorkspace.init({
+			path,
+			fs: new FileStructure(this._makeFileProvider(path), this._config.isReadOnly),
+			rp: this._rp,
 		});
 	}
 
@@ -98,6 +105,7 @@ export default class WorkspaceManager {
 		});
 
 		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));
+		this._addingRules?.forEach((fn) => this._current.events.on("add-catalog", fn));
 
 		this._current.events.on("add-catalog", (catalog) => {
 			const current = this._workspaces.get(this._current.path());
@@ -181,7 +189,14 @@ export default class WorkspaceManager {
 			return null;
 		}
 
-		if (!this._workspaces.get(path)) throw new Error(`Workspace with path ${path} not found`);
+		if (!this._workspaces.get(path))
+			throw new DefaultError(
+				t("errors.workspace-path-not-found").replace("{{path}}", path),
+				null,
+				null,
+				null,
+				t("not-found"),
+			);
 		const fp = this._makeFileProvider(this._getAssetsPath(path).value);
 		return new WorkspaceAssets(fp);
 	}
@@ -250,6 +265,11 @@ export default class WorkspaceManager {
 	onCatalogChange(callback: CatalogChangedCallback) {
 		this._rules.push(callback);
 		this.maybeCurrent()?.events.on("catalog-changed", callback);
+	}
+
+	onCatalogAdd(callback: CatalogAddedCallback) {
+		this._addingRules.push(callback);
+		this.maybeCurrent()?.events.on("add-catalog", callback);
 	}
 
 	private async readWorkspace(fp: FileProvider, config?: WorkspaceConfig): Promise<WorkspaceConfigWithCatalogs> {

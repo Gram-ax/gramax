@@ -2,16 +2,18 @@ import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { ReactNode } from "react";
 
-interface ArticlePreviewProps {
+interface ArticlePreviewProps extends React.HTMLAttributes<HTMLDivElement> {
 	mainArticle: ReactNode;
 	previewArticle?: ReactNode;
 	className?: string;
 }
 
-const ArticleWithPreviewArticle = (props: ArticlePreviewProps) => {
-	const { mainArticle, previewArticle, className } = props;
+const ArticleWithPreviewArticle = ({ mainArticle, previewArticle, className, ...props }: ArticlePreviewProps) => {
 	return (
-		<div className={classNames("article-page-wrapper", { ["preview-style"]: !!previewArticle }, [className])}>
+		<div
+			className={classNames("article-page-wrapper", { ["preview-style"]: !!previewArticle }, [className])}
+			{...props}
+		>
 			<div className="main-article">{mainArticle}</div>
 			{previewArticle && <div className="preview-article">{previewArticle}</div>}
 		</div>

@@ -19,10 +19,11 @@ interface DrawioProps {
 	className?: string;
 	noEm?: boolean;
 	commentId?: string;
+	isPrint?: boolean;
 }
 
 const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageElement>): ReactElement => {
-	const { id, src, title, width, height, className, openEditor, noEm, commentId } = props;
+	const { id, src, title, width, height, className, openEditor, noEm, commentId, isPrint } = props;
 	const { useGetResource } = ResourceService.value;
 
 	const ref = refT || useRef<HTMLImageElement>(null);
@@ -54,11 +55,17 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 		setSize({ width: newSize.width + "px", height: newSize.height + offset + "px" });
 	}, [width, height]);
 
-	useGetResource((buffer) => {
-		if (!buffer || !buffer.byteLength) return setIsError(true);
-		setIsLoaded(false);
-		setSrc(new Blob([buffer], { type: resolveFileKind(buffer) }));
-	}, src);
+	useGetResource(
+		(buffer) => {
+			if (!buffer || !buffer.byteLength) return setIsError(true);
+			setIsLoaded(false);
+			setSrc(new Blob([buffer], { type: resolveFileKind(buffer) }));
+		},
+		src,
+		undefined,
+		undefined,
+		isPrint,
+	);
 
 	if (!src || isError)
 		return <DiagramError error={{ message: t("diagram.error.cannot-get-data") }} diagramName="diagrams.net" />;

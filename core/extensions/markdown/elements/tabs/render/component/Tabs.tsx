@@ -37,7 +37,7 @@ const Tabs = (props: TabsProps) => {
 
 	if (!childAttrs.length) return null;
 	return (
-		<div className={className}>
+		<div className={className} data-component="tabs">
 			{(childAttrs.length == 1 && !isEdit) || isPrint ? null : (
 				<div className="switch" contentEditable="false" suppressContentEditableWarning>
 					<div className="cases flex flex-row gap-2 overflow-hidden min-w-0">
@@ -138,6 +138,36 @@ const Tabs = (props: TabsProps) => {
 	);
 };
 
+export const tabsFoundElementBeforeHighlightHandler = (foundEl: HTMLElement) => {
+	const tabsEl = foundEl.closest('[data-component="tabs"]');
+	if (!tabsEl) return;
+
+	const isFoundElementTabActivator = foundEl.parentElement?.classList.contains("case");
+	if (isFoundElementTabActivator) {
+		foundEl.click();
+		return;
+	}
+
+	const tabWithFoundElement = foundEl.closest(".tab");
+	if (!tabWithFoundElement) return;
+
+	const tabCaseClassName = Array.from(tabWithFoundElement.classList.values()).find((className) =>
+		className.startsWith("c-"),
+	);
+	if (!tabCaseClassName) return;
+
+	const tabCaseIndex = parseInt(tabCaseClassName.slice(2));
+	if (isNaN(tabCaseIndex)) return;
+
+	const neededTabActivator = tabsEl.querySelector<HTMLElement>(`.case:nth-of-type(${tabCaseIndex + 1})`);
+	if (!neededTabActivator) return;
+
+	if (!neededTabActivator.classList.contains("active")) neededTabActivator.click();
+	const elementToHighlight = neededTabActivator.querySelector("span");
+
+	return elementToHighlight ? { additionalElementsToHighlight: [elementToHighlight] } : undefined;
+};
+
 export default styled(Tabs)`
 	margin: ${(p) => (p.isEdit ? "-4px -8px 0.2em -8px" : "0 0 0.2em 0")};
 	.switch {
@@ -200,12 +230,17 @@ export default styled(Tabs)`
 		position: relative;
 
 		.tab {
-			width: 100%;
-			top: 0;
-			left: 0;
-			pointer-events: none;
-			position: ${(p) => (p.isPrint ? "unset" : "absolute")};
-			visibility: ${(p) => (p.isPrint ? "visible" : "hidden")};
+			${(p) =>
+				!p.isPrint &&
+				`
+				opacity: 0;
+				width: 100%;
+				top: 0;
+				left: 0;
+				pointer-events: none;
+				position: absolute;
+				visibility: hidden;
+			`}
 		}
 	}
 
@@ -215,6 +250,7 @@ export default styled(Tabs)`
 	.tabs.c-3 .tab.c-3,
 	.tabs.c-4 .tab.c-4,
 	.tabs.c-5 .tab.c-5 {
+		opacity: 1;
 		width: unset;
 		position: unset;
 		visibility: visible;

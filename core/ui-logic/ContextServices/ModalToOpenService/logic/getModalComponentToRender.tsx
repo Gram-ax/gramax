@@ -3,12 +3,16 @@ import ActionConfirm from "@components/Atoms/ActionConfirm";
 import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
 import ModalLoading from "@components/ModalLoading";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import EditMarkdown from "@ext/article/actions/EditMarkdown";
+import DuplicateArticleDialog from "@ext/article/actions/move/DuplicateArticleDialog";
 import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
+import DuplicateCatalogDialog from "@ext/catalog/actions/move/components/DuplicateCatalogDialog";
 import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import { Admin } from "@ext/enterprise/components/admin/Admin";
 import EditEnterpriseConfig from "@ext/enterprise/components/EditEnterpriseConfig";
+import { RepositoryPermission } from "@ext/enterprise/components/RepositoryPermission";
 import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
 import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
 import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
@@ -40,11 +44,13 @@ import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
-import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import { AlertComment } from "@ext/markdown/elements/comment/edit/components/AlertComment";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
 } = {
+	[ModalToOpen.DuplicateCatalogDialog]: DuplicateCatalogDialog,
+	[ModalToOpen.DuplicateArticleDialog]: DuplicateArticleDialog,
 	[ModalToOpen.MergeConfirm]: MergeConflictConfirm,
 	[ModalToOpen.MergeResolver]: MergeResolver,
 
@@ -108,6 +114,9 @@ const getModalComponentToRender: {
 	[ModalToOpen.GesAdmin]: Admin,
 
 	[ModalToOpen.UnsavedChangesModal]: UnsavedChangesModal,
+	[ModalToOpen.UnsavedCommentModal]: AlertComment,
+
+	[ModalToOpen.RepositoryPermission]: RepositoryPermission,
 };
 
 export default getModalComponentToRender;

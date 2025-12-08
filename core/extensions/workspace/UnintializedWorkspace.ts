@@ -1,4 +1,6 @@
 import type Context from "@core/Context/Context";
+import Path from "@core/FileProvider/Path/Path";
+import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import FileStructure from "@core/FileStructue/FileStructure";
 import type Repository from "@ext/git/core/Repository/Repository";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
@@ -9,6 +11,10 @@ export type UnintializedWorkspaceProps = {
 	fs: FileStructure;
 	rp: RepositoryProvider;
 };
+
+export type CatalogSummary = {
+	name: string;
+} & Pick<CatalogProps, "title">;
 
 export default class UnintializedWorkspace {
 	private _repos: Map<string, Repository> = new Map();
@@ -28,6 +34,10 @@ export default class UnintializedWorkspace {
 		return self;
 	}
 
+	getFileProvider() {
+		return this._fs.fp;
+	}
+
 	path() {
 		return this._path;
 	}
@@ -36,8 +46,21 @@ export default class UnintializedWorkspace {
 		return this._repos.get(name);
 	}
 
-	getCatalogNames() {
+	getCatalogDirNames() {
 		return Array.from(this._repos.keys());
+	}
+
+	async getCatalogSummary(): Promise<CatalogSummary[]> {
+		const dirs = this.getCatalogDirNames();
+
+		return await dirs.mapAsync(async (dir) => {
+			const entry = await this._fs.getCatalogEntryByPath(new Path(dir));
+
+			return {
+				name: entry?.name || dir,
+				title: entry?.props.title || entry?.name || dir,
+			};
+		});
 	}
 
 	async getSourceByCatalogName(ctx: Context, name: string) {

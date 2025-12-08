@@ -1,8 +1,7 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
-import { createContext, useContext, useRef, useEffect } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { createContext, useContext, useEffect, useRef } from "react";
 
 interface ArticleTooltipContext {
 	setLink: (link: HTMLElement, resourcePath: string, hash?: string) => void;
@@ -27,7 +26,7 @@ abstract class ArticleTooltipService {
 				tooltipManager.current.destroyAll();
 			}
 
-			tooltipManager.current = new LinkHoverTooltipManager(document.body, apiUrlCreator, pageDataContext);
+			tooltipManager.current = new LinkHoverTooltipManager(document.body, pageDataContext);
 
 			return () => {
 				if (tooltipManager.current !== null) {
@@ -40,7 +39,7 @@ abstract class ArticleTooltipService {
 		const setLinkHandler = (element: HTMLElement, resourcePath: string, hash?: string) => {
 			if (typeof document === "undefined") return;
 
-			tooltipManager.current?.createTooltip({ linkElement: element, resourcePath, hash });
+			tooltipManager.current?.createTooltip({ linkElement: element, resourcePath, hash, apiUrlCreator });
 		};
 
 		const removeLinkHandler = (resourcePath: string) => {

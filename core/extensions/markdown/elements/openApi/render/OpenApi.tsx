@@ -13,10 +13,11 @@ interface OpenApiProps {
 	className?: string;
 	flag?: boolean;
 	commentId?: string;
+	isPrint?: boolean;
 }
 
 const OpenApi = (props: OpenApiProps) => {
-	const { src, className, flag = true, commentId } = props;
+	const { src, className, flag = true, commentId, isPrint } = props;
 	const [data, setData] = useState<string>();
 	const [isError, setIsError] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -24,10 +25,16 @@ const OpenApi = (props: OpenApiProps) => {
 
 	if (typeof window === "undefined" || !apiUrlCreator || !resourceService) return null;
 
-	resourceService.useGetResource((buffer: Buffer) => {
-		if (!buffer || !buffer?.byteLength) return setIsError(true);
-		setData(buffer.toString());
-	}, src);
+	resourceService.useGetResource(
+		(buffer: Buffer) => {
+			if (!buffer || !buffer?.byteLength) return setIsError(true);
+			setData(buffer.toString());
+		},
+		src,
+		undefined,
+		undefined,
+		isPrint,
+	);
 
 	return (
 		<div data-qa="qa-open-api">

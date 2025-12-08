@@ -110,13 +110,13 @@ fn lock_file_wait(sandbox: TempDir) -> Result {
 }
 
 #[rstest]
-fn lock_file_run_read_command(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+fn lock_file_run_without_lock(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   let lock_path = repo.repo().path().join(FILE_LOCK_PATH);
   let global_lock = FileLock::lock(lock_path.clone())?;
 
   let ran = std::sync::atomic::AtomicBool::new(false);
 
-  Repo::run_rw_read(sandbox.path(), TestCreds, |_| {
+  Repo::run_read(sandbox.path(), TestCreds, |_| {
     ran.store(true, std::sync::atomic::Ordering::Relaxed);
     Ok(())
   })
@@ -130,13 +130,13 @@ fn lock_file_run_read_command(sandbox: TempDir, #[with(&sandbox)] repo: Repo<Tes
 }
 
 #[rstest]
-fn lock_file_run_write_command(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
+fn lock_file_with_lock(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Result {
   let lock_path = repo.repo().path().join(FILE_LOCK_PATH);
   let global_lock = FileLock::lock(lock_path.clone())?;
 
   let ran = std::sync::atomic::AtomicBool::new(false);
 
-  Repo::run_rw_write(sandbox.path(), TestCreds, "test", |_| {
+  Repo::run_write(sandbox.path(), TestCreds, "test", |_| {
     ran.store(true, std::sync::atomic::Ordering::Relaxed);
     Ok(())
   })
@@ -178,7 +178,7 @@ fn lock_file_run_read_command_healthcheck_fails(
     let thread = std::thread::spawn(move || {
       let ran = std::sync::atomic::AtomicBool::new(false);
 
-      let result = Repo::run_rw_read(path.clone(), TestCreds, |_| {
+      let result = Repo::run_write(path.clone(), TestCreds, "test", |_| {
         ran.store(true, std::sync::atomic::Ordering::Relaxed);
         Ok(())
       });
@@ -231,7 +231,7 @@ fn lock_file_run_write_command_healthcheck_fails(
     let thread = std::thread::spawn(move || {
       let ran = std::sync::atomic::AtomicBool::new(false);
 
-      let result = Repo::run_rw_write(path.clone(), TestCreds, "test", |_| {
+      let result = Repo::run_write(path.clone(), TestCreds, "test", |_| {
         ran.store(true, std::sync::atomic::Ordering::Relaxed);
         Ok(())
       });

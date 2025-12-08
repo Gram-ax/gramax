@@ -1,6 +1,6 @@
 import { Article } from "@core/FileStructue/Article/Article";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
-import { ArticleLanguage } from "@ext/serach/vector/VectorArticle";
+import { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 
 export interface SearchArgsBase {
 	query: string;

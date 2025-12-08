@@ -12,10 +12,12 @@ type TabProps = {
 const Tab = ({ idx, name, icon, isPrint, children }: TabProps): ReactElement => {
 	if (isPrint) {
 		return (
-			<div>
-				{icon && <Icon code={icon} style={{ marginRight: "0.2em" }} />}
-				{name && <strong>{name}</strong>}
-				{children}
+			<div className="tab">
+				<div className="case">
+					{icon && <Icon code={icon} style={{ marginRight: "0.2em" }} />}
+					{name && <strong>{name}</strong>}
+				</div>
+				<div className="content">{children}</div>
 			</div>
 		);
 	}

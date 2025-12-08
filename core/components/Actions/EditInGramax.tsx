@@ -4,10 +4,10 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import useEditUrl from "./useEditUrl";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import useEditUrl from "./useEditUrl";
 
-const DESKTOP_APP_LISTENING_ADDRESS = "http://127.0.0.1:52055";
+const DESKTOP_APP_LISTENING_ADDRESS = "http://127.0.0.1:52055/";
 
 interface EditInGramaxButtonProps {
 	text: string;
@@ -44,39 +44,51 @@ const EditInGramaxButton = ({ text, targetSelf, onClick, pathname, articlePath }
 	);
 };
 
-export const assertDesktopOpened = async (callback?: () => void) => {
-	let attempts = 3;
-	await new Promise((resolve) => setTimeout(resolve, 200));
-	while (attempts--) {
-		try {
-			if (await fetch(DESKTOP_APP_LISTENING_ADDRESS).then((r) => r.ok)) {
-				callback?.();
-				return;
-			}
-		} catch {}
-		await new Promise((resolve) => setTimeout(resolve, 1000));
+const tryOpen = async (url: string) => {
+	try {
+		const controller = new AbortController();
+		const id = setTimeout(() => controller.abort(), 500);
+		const res = await fetch(url, { signal: controller.signal });
+		clearTimeout(id);
+		return res.ok;
+	} catch (e) {
+		console.error(e);
+		return false;
 	}
-
-	ErrorConfirmService.notify(
-		new DefaultError(
-			t("open-in.error.cannot-open-desktop.desc"),
-			null,
-			{ html: true },
-			true,
-			t("open-in.error.cannot-open-desktop.title"),
-		),
-	);
 };
 
-const EditInDesktop = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => (
-	<EditInGramaxButton
-		targetSelf
-		text={t("open-in.desktop")}
-		pathname={pathname}
-		articlePath={articlePath}
-		onClick={assertDesktopOpened}
-	/>
-);
+const EditInDesktop = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => {
+	const handleOpen = async (openProtocol: () => void) => {
+		const ok = await tryOpen(DESKTOP_APP_LISTENING_ADDRESS + pathname);
+		if (ok) return;
+
+		openProtocol();
+
+		setTimeout(() => {
+			if (document.hasFocus()) {
+				ErrorConfirmService.notify(
+					new DefaultError(
+						t("open-in.error.cannot-open-desktop.desc"),
+						null,
+						{ html: true },
+						true,
+						t("open-in.error.cannot-open-desktop.title"),
+					),
+				);
+			}
+		}, 2000);
+	};
+
+	return (
+		<EditInGramaxButton
+			targetSelf
+			text={t("open-in.desktop")}
+			pathname={pathname}
+			articlePath={articlePath}
+			onClick={handleOpen}
+		/>
+	);
+};
 
 const EditInWeb = ({ pathname, articlePath }: { pathname: string; articlePath: string }) =>
 	!PageDataContextService.value?.conf.isRelease && (

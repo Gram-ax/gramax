@@ -21,6 +21,10 @@ export default {
 		args: [
 			"--disable-web-security",
 			"--disable-features=IsolateOrigins,site-per-process",
+      "--disable-gpu",
+      "--disable-dev-shm-usage",
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
 			!ci(true) ? "--headless=new" : "",
 		],
 	} as LaunchOptions,

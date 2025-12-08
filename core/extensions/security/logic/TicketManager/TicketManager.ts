@@ -59,7 +59,6 @@ export class TicketManager {
 	}
 
 	private async _checkUserTicket(ticket: string): Promise<EnterpriseUser> {
-		if (!this._enterpriseConfig?.gesUrl) return null;
 		const datas = this._encoder.decode(this._shareAccessToken, ticket);
 		const { token, date } = this._parseUserSharedDatas(datas);
 

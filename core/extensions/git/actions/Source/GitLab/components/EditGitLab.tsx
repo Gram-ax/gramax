@@ -229,7 +229,6 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 									type="button"
 									startIcon="rotate-ccw"
 									className="p-0 ml-auto"
-									size="xs"
 									onClick={() => {
 										onChangeAuthFields();
 										form.clearErrors("token");

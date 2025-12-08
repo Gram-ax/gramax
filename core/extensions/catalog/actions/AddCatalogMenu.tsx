@@ -1,51 +1,18 @@
 import isMobileService from "@core-ui/ContextServices/isMobileService";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
-import ImportModal from "@ext/import/components/ImportModal";
 import t from "@ext/localization/locale/translate";
-import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
-import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
-import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { DropdownMenu, DropdownMenuContent } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { MenuItemRichTemplate } from "@ui-kit/MenuItem";
-import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuTriggerButton } from "ics-ui-kit/components/dropdown";
-import type { ComponentProps } from "react";
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuTriggerButton } from "@ui-kit/Dropdown";
 import IsReadOnlyHOC from "../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import CreateCatalog from "./CreateCatalog";
+import CanEditCatalogHOC from "@ext/enterprise/components/CanEditCatalogHOC";
+import { useButtonsHandlers } from "./logic/useButtonsHandlers";
 
 const itemClassName = "w-full flex items-center gap-2";
 const AddCatalogMenu = () => {
-	const sourceDatas = SourceDataService.value;
-	const isEmptyCloneData = !sourceDatas.some((data) => isGitSourceType(data.sourceType));
+	const { onCloneClick, onImportClick } = useButtonsHandlers();
 	const isMobile = isMobileService.value;
-
-	const onCloneClick = () => {
-		if (isEmptyCloneData) {
-			ModalToOpenService.setValue<ComponentProps<typeof CreateStorageModal>>(ModalToOpen.CreateStorage, {
-				onSubmit: (data) => {
-					ModalToOpenService.setValue<ComponentProps<typeof CloneModal>>(ModalToOpen.Clone, {
-						selectedStorage: getStorageNameByData(data),
-						onClose: () => ModalToOpenService.resetValue(),
-					});
-				},
-				onClose: () => ModalToOpenService.resetValue(),
-			});
-		} else {
-			ModalToOpenService.setValue<ComponentProps<typeof CloneModal>>(ModalToOpen.Clone, {
-				onSubmit: () => ModalToOpenService.resetValue(),
-				onClose: () => ModalToOpenService.resetValue(),
-			});
-		}
-	};
-
-	const onImportClick = () => {
-		ModalToOpenService.setValue<ComponentProps<typeof ImportModal>>(ModalToOpen.ImportModal, {
-			onClose: () => ModalToOpenService.resetValue(),
-		});
-	};
 
 	return (
 		<DropdownMenu>
@@ -66,20 +33,22 @@ const AddCatalogMenu = () => {
 			)}
 			<DropdownMenuContent align="start">
 				<DropdownMenuGroup>
-					<IsReadOnlyHOC>
-						<DropdownMenuItem data-qa="qa-clickable">
-							<CreateCatalog
-								className={itemClassName}
-								trigger={
-									<MenuItemRichTemplate
-										icon={"plus"}
-										title={t("catalog.new-2")}
-										description={t("catalog.new-3")}
-									/>
-								}
-							/>
-						</DropdownMenuItem>
-					</IsReadOnlyHOC>
+					<CanEditCatalogHOC>
+						<IsReadOnlyHOC>
+							<DropdownMenuItem data-qa="qa-clickable">
+								<CreateCatalog
+									className={itemClassName}
+									trigger={
+										<MenuItemRichTemplate
+											icon={"plus"}
+											title={t("catalog.new-2")}
+											description={t("catalog.new-3")}
+										/>
+									}
+								/>
+							</DropdownMenuItem>
+						</IsReadOnlyHOC>
+					</CanEditCatalogHOC>
 
 					<DropdownMenuItem data-qa="qa-clickable" onSelect={onCloneClick}>
 						<MenuItemRichTemplate
@@ -89,15 +58,17 @@ const AddCatalogMenu = () => {
 						/>
 					</DropdownMenuItem>
 
-					<IsReadOnlyHOC>
-						<DropdownMenuItem data-qa="qa-clickable" onSelect={onImportClick}>
-							<MenuItemRichTemplate
-								icon={"import"}
-								title={t("catalog.import-2")}
-								description={t("catalog.import-3")}
-							/>
-						</DropdownMenuItem>
-					</IsReadOnlyHOC>
+					<CanEditCatalogHOC>
+						<IsReadOnlyHOC>
+							<DropdownMenuItem data-qa="qa-clickable" onSelect={onImportClick}>
+								<MenuItemRichTemplate
+									icon={"import"}
+									title={t("catalog.import-2")}
+									description={t("catalog.import-3")}
+								/>
+							</DropdownMenuItem>
+						</IsReadOnlyHOC>
+					</CanEditCatalogHOC>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>

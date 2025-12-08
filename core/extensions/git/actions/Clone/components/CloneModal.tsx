@@ -52,7 +52,12 @@ const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: C
 			{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
 			<ModalContent>
 				<OnNetworkApiErrorService.Provider callback={() => closeForm()}>
-					<SelectStorageDataForm {...props} onSubmit={handleSubmit} selectedStorage={selectedStorage} />
+					<SelectStorageDataForm
+						{...props}
+						onSubmit={handleSubmit}
+						selectedStorage={selectedStorage}
+						onClose={() => closeForm()}
+					/>
 				</OnNetworkApiErrorService.Provider>
 			</ModalContent>
 		</Modal>

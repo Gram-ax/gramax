@@ -13,8 +13,13 @@ import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui-kit/Tabs";
 import { useCallback, useState } from "react";
 
-// TODO: Add GitVerse to allowed source types
-const ALLOWED_SOURCE_TYPES = [SourceType.gitLab, SourceType.gitHub, SourceType.gitea, SourceType.git] as const;
+const ALLOWED_SOURCE_TYPES = [
+	SourceType.gitLab,
+	SourceType.gitHub,
+	SourceType.gitVerse,
+	SourceType.gitea,
+	SourceType.git,
+] as const;
 
 const BoldIcon = styled(Icon)`
 	svg {
@@ -23,14 +28,15 @@ const BoldIcon = styled(Icon)`
 `;
 
 const TabsListStyled = styled(TabsList)`
-	.${SourceType.gitea} {
+	.${SourceType.gitea}, .${SourceType.gitVerse} {
 		fill: hsl(var(--muted));
 		:hover {
 			fill: hsl(var(--secondary-fg));
 		}
 	}
 
-	.${SourceType.gitea}[data-state="active"] {
+	.${SourceType.gitea}[data-state="active"],
+	.${SourceType.gitVerse}[data-state="active"] {
 		fill: hsl(var(--primary-fg));
 	}
 `;

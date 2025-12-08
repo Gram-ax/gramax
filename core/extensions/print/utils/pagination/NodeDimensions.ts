@@ -4,9 +4,8 @@ export interface NodeDimensionsData {
 	height: number;
 	marginTop: number;
 	marginBottom: number;
-	paddingTop: number;
-	paddingBottom: number;
-	lineHeight: number;
+	paddingH: number;
+	lineHeight?: number;
 }
 
 export interface AccumulatedHeight {
@@ -15,17 +14,11 @@ export interface AccumulatedHeight {
 }
 
 export class NodeDimensions {
-	constructor(private _maxHeight: number, private _dimensions: WeakMap<HTMLElement, NodeDimensionsData>) {}
+	constructor(private _dimensions: WeakMap<HTMLElement, NodeDimensionsData>) {}
 
-	static async init(
-		maxHeight: number,
-		source: HTMLElement,
-		yieldTick: () => Promise<void>,
-		throwIfAborted?: () => void,
-	) {
+	static async init(source: HTMLElement, yieldTick: () => Promise<void>, throwIfAborted?: () => void) {
 		const nodeHeights = new WeakMap<HTMLElement, NodeDimensionsData>();
 		const allNodes = Array.from(source.querySelectorAll("*"));
-
 		for (let i = 0; i < allNodes.length; i++) {
 			throwIfAborted();
 
@@ -36,8 +29,7 @@ export class NodeDimensions {
 				height: node.offsetHeight || node.getBoundingClientRect().height || 0,
 				marginTop: parseFloat(computedStyle.marginTop) || 0,
 				marginBottom: parseFloat(computedStyle.marginBottom) || 0,
-				paddingTop: parseFloat(computedStyle.paddingTop) || 0,
-				paddingBottom: parseFloat(computedStyle.paddingBottom) || 0,
+				paddingH: (parseFloat(computedStyle.paddingTop) || 0) + (parseFloat(computedStyle.paddingBottom) || 0),
 				lineHeight: this._getLineHeightInPixels(computedStyle) || 0,
 			});
 
@@ -47,32 +39,46 @@ export class NodeDimensions {
 			}
 		}
 
-		return new NodeDimensions(maxHeight, nodeHeights);
+		return new NodeDimensions(nodeHeights);
 	}
 
 	get(node: HTMLElement) {
 		return this._dimensions.get(node);
 	}
 
-	canUpdateAccumulatedHeight(node: HTMLElement, accumulatedHeight: AccumulatedHeight): boolean {
+	canUpdateAccumulatedHeight(node: HTMLElement, accumulatedHeight: AccumulatedHeight, height: number): boolean {
 		const dims = this.get(node);
 		if (!dims) return true;
 
 		const collapsedMargin = Math.max(accumulatedHeight.marginBottom, dims.marginTop);
-		const newHeight = accumulatedHeight.height + collapsedMargin + dims.height;
-		return newHeight <= this._maxHeight;
+		const newHeight = accumulatedHeight.height + collapsedMargin + dims.height + dims.marginBottom;
+		return newHeight <= height;
 	}
 
-	updateAccumulatedHeight(node: HTMLElement, accumulatedHeight: AccumulatedHeight = NodeDimensions.createInitial()) {
+	updateAccumulatedHeightNode(
+		node: HTMLElement,
+		accumulatedHeight: AccumulatedHeight = NodeDimensions.createInitial(),
+	) {
 		const dims = this.get(node);
 		if (!dims) return;
 
-		const collapsedMargin =
-			accumulatedHeight.height > 0 ? Math.max(accumulatedHeight.marginBottom, dims.marginTop) : 0;
-		const newHeight = accumulatedHeight.height + collapsedMargin + dims.height;
+		return this.updateAccumulatedHeightDim(dims, accumulatedHeight);
+	}
+
+	updateAccumulatedHeightDim(
+		dimension: NodeDimensionsData,
+		accumulatedHeight: AccumulatedHeight = NodeDimensions.createInitial(),
+	) {
+		const collapsedMargin = Math.max(accumulatedHeight.marginBottom, dimension.marginTop);
+		const newHeight =
+			accumulatedHeight.height +
+			collapsedMargin +
+			dimension.height -
+			accumulatedHeight.marginBottom +
+			dimension.marginBottom;
 		return {
 			height: newHeight,
-			marginBottom: dims.marginBottom,
+			marginBottom: dimension.marginBottom,
 		};
 	}
 
@@ -94,12 +100,25 @@ export class NodeDimensions {
 		assert(parentDim && childDim, "Both parentDim and childDim are required");
 
 		return {
-			height: parentDim.height || childDim.height || 0,
-			lineHeight: childDim.lineHeight || parentDim.lineHeight || 0,
-			marginTop: (parentDim.marginTop || 0) + (childDim.marginTop || 0),
-			marginBottom: (parentDim.marginBottom || 0) + (childDim.marginBottom || 0),
-			paddingTop: (parentDim.paddingTop || 0) + (childDim.paddingTop || 0),
-			paddingBottom: (parentDim.paddingBottom || 0) + (childDim.paddingBottom || 0),
+			height: parentDim.height || childDim.height,
+			lineHeight: childDim.lineHeight || parentDim.lineHeight,
+			marginTop: parentDim.marginTop + childDim.marginTop,
+			marginBottom: parentDim.marginBottom + childDim.marginBottom,
+			paddingH: parentDim.paddingH + childDim.paddingH,
+		};
+	}
+
+	static concatDimensions(
+		firstDim: NodeDimensionsData,
+		secondDim: NodeDimensionsData,
+	): NodeDimensionsData | undefined {
+		assert(firstDim && secondDim, "Both parentDim and childDim are required");
+
+		return {
+			height: firstDim.height + secondDim.height,
+			marginTop: firstDim.marginTop,
+			marginBottom: secondDim.marginBottom,
+			paddingH: firstDim.paddingH + secondDim.paddingH + Math.max(firstDim.marginBottom, secondDim.marginTop),
 		};
 	}
 }

@@ -15,11 +15,13 @@ class AnnotationText {
 
 	public static async getText(title?: string, objects: ImageObject[] = [], addOptions?: AddOptionsWord) {
 		const { Paragraph, TextRun } = await docx();
-		const indent = typeof addOptions?.indent === "number" ? { left: addOptions.indent } : undefined;
+		const indentValue = addOptions?.indent;
+		const indent = typeof indentValue === "number" ? { left: indentValue } : undefined;
+		const paragraphStyle = WordFontStyles.pictureTitle;
 
 		if (!objects.some((object) => object.text))
 			return title
-				? [new Paragraph({ children: [new TextRun(title)], style: WordFontStyles.pictureTitle, indent })]
+				? [new Paragraph({ children: [new TextRun(title)], style: paragraphStyle, indent })]
 				: [];
 
 		const lastIndex = objects.reduce((lastIndex, object, index) => {
@@ -36,7 +38,7 @@ class AnnotationText {
 		return [
 			new Paragraph({
 				children: [new TextRun(title ?? ""), ...annotations],
-				style: WordFontStyles.pictureTitle,
+				style: paragraphStyle,
 				indent,
 			}),
 		];

@@ -2,7 +2,7 @@ import { TABLE_EDIT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/
 import { ColumnDef, getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { QuizTest } from "../types/QuizComponentTypes";
 import Date from "@components/Atoms/Date";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import useWatch from "@core-ui/hooks/useWatch";
 import { IconButton } from "@ui-kit/Button";
@@ -14,7 +14,11 @@ import {
 } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
 import DateUtils from "@core-ui/utils/dateUtils";
-import { LazyInfinityTable, RequestCursor } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable";
+import {
+	LazyInfinityTable,
+	RequestCursor,
+	RequestData,
+} from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable";
 
 const columns: ColumnDef<QuizTest>[] = [
 	{
@@ -56,7 +60,7 @@ const columns: ColumnDef<QuizTest>[] = [
 
 const PAGE_SIZE = 10;
 
-export const QuizTestsTable = () => {
+export const QuizTestsTable = ({ isHealthy }: { isHealthy: boolean }) => {
 	const { getQuizUsersAnswers } = useSettings();
 	const [isOpen, setIsOpen] = useState(false);
 	const [tests, setTests] = useState<QuizTest[]>([]);
@@ -64,12 +68,13 @@ export const QuizTestsTable = () => {
 	const cursorRef = useRef<RequestCursor>(null);
 	const hasMoreRef = useRef(true);
 
-	const loadOptions = useCallback(async () => {
+	const loadOptions = useCallback(async (): Promise<RequestData<QuizTest>> => {
+		if (!isHealthy) return { data: [], has_more: false, next_cursor: null };
 		const response = await getQuizUsersAnswers(cursorRef.current, PAGE_SIZE, filters);
 		if (response.next_cursor) cursorRef.current = response.next_cursor;
 		hasMoreRef.current = response.has_more;
 		return response;
-	}, [filters]);
+	}, [filters, isHealthy]);
 
 	const table = useReactTable<QuizTest>({
 		data: tests,
@@ -93,17 +98,24 @@ export const QuizTestsTable = () => {
 		hasMoreRef.current = true;
 	}, [filters]);
 
+	useEffect(() => {
+		return () => {
+			cursorRef.current = null;
+			hasMoreRef.current = false;
+		};
+	}, []);
+
 	return (
 		<div className="flex gap-4 h-full max-h-full">
 			<div className="flex flex-col flex-1 min-h-0 max-h-full gap-2 overflow-hidden">
-				<TableControls filters={filters} setFilters={setFilters} />
+				<TableControls filters={filters} setFilters={setFilters} disabled={!isHealthy} />
 				<div className="flex-1 min-h-0 max-h-full">
 					<LazyInfinityTable<QuizTest>
 						table={table}
 						setData={setTests}
 						columns={columns}
 						hasMore={hasMoreRef.current}
-						deps={[filters]}
+						deps={[filters, isHealthy]}
 						loadOptions={loadOptions}
 						onRowClick={(row) => row.toggleSelected()}
 					/>

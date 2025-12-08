@@ -122,7 +122,7 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 						onCloseNotification={onClosePrompt}
 					/>
 				)}
-				<Search isHomePage={false} catalogLinks={[data.catalogProps.link]} itemLinks={data.itemLinks} />
+				<Search isHomePage={false} />
 				<CatalogActions
 					isCatalogExist={isCatalogExist}
 					itemLinks={data.itemLinks}

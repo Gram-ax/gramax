@@ -26,7 +26,7 @@ export const noteIcons: { [note in NoteType]: string } = {
 interface NoteProps {
 	type?: NoteType;
 	title?: string;
-	titleEditor?: ReactElement;
+	titleEditor?: (expanded: boolean) => ReactElement;
 	children?: ReactElement;
 	collapsed?: string | boolean;
 	className?: string;
@@ -89,7 +89,7 @@ const Note = (props: NoteProps): ReactElement => {
 				</div>
 				<div contentEditable={false} suppressContentEditableWarning={true} className="titleWrapper">
 					<div className={classNames("title", { clickable: clickable && !titleEditor })}>
-						{titleEditor || title}
+						{titleEditor?.(expanded) || title}
 					</div>
 				</div>
 			</div>
@@ -100,6 +100,22 @@ const Note = (props: NoteProps): ReactElement => {
 			</div>
 		</div>
 	);
+};
+
+export const noteFoundElementBeforeHighlightHandler = (foundEl: HTMLElement) => {
+	const admonition = foundEl.closest(".admonition");
+	if (!admonition) return;
+
+	const heading = admonition.querySelector<HTMLElement>(".admonition-heading");
+	if (!heading) return;
+
+	const isAlreadyExpanded = !heading.classList.contains("expanded");
+	if (isAlreadyExpanded) return;
+
+	const clickableEl = admonition.querySelector<HTMLElement>(".admonition-icon");
+	if (!clickableEl) return;
+
+	clickableEl.click();
 };
 
 export default Note;

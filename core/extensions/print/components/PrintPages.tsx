@@ -8,6 +8,7 @@ import { ArticlePrintPreview } from "@ext/print/components/ArticlePrintPreview";
 import { StartPaginationFunction } from "@ext/print/components/hooks/usePaginationTask";
 import { useGetItems } from "@ext/print/components/useGetItems";
 import { PdfExportProgress, PdfPrintParams } from "@ext/print/types";
+import PagePaginator from "@ext/print/utils/pagination/PagePaginator";
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
 const StyledPrintBody = styled.div<{ title: string; titlePageExist: boolean }>`
@@ -71,12 +72,18 @@ const PrintPages = memo(
 		}, [printableContent.title]);
 
 		useWatch(() => {
-			if (!printableContent.template || !containerDivRef?.current) return;
+			const setTemplate = () => {
+				const template = document.createElement("style");
+				template.textContent = printableContent.template;
+				containerDivRef.current.appendChild(template);
+			};
 
-			const template = document.createElement("style");
-			template.textContent = printableContent.template;
-			containerDivRef.current.appendChild(template);
+			if (printableContent.template && containerDivRef.current) setTemplate();
 		}, [printableContent.template]);
+
+		useWatch(() => {
+			if (renderDivRef.current) PagePaginator.setUsablePageWidth(renderDivRef.current);
+		}, [renderDivRef.current]);
 
 		const handleLastRender = useCallback(() => {
 			if (!renderDivRef.current || !printDivRef.current || printableContent.items.length === 0) return;

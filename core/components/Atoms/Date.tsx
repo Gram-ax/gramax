@@ -12,7 +12,7 @@ const Date = ({ date, className, tooltipDelay }: DateProps) => {
 	const dateViewModel = DateUtils.getDateViewModel(date);
 	return (
 		<Tooltip delayDuration={tooltipDelay}>
-			<TooltipTrigger>
+			<TooltipTrigger asChild>
 				<span className={className}>{relativeDate}</span>
 			</TooltipTrigger>
 			<TooltipContent>{dateViewModel}</TooltipContent>

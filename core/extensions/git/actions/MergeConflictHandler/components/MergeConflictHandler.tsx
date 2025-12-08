@@ -5,12 +5,11 @@ import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInpu
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import LeftNavViewContent from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import Sidebar from "@components/Layouts/Sidebar";
+import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
+import styled from "@emotion/styled";
 import FileInputMergeConflict, {
 	CodeLensText,
 } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
-
-import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
-import styled from "@emotion/styled";
 import { GitMarkers } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
 import getCodeLensReversedText from "@ext/git/actions/MergeConflictHandler/error/logic/getCodeLensReversedText";
 import reverseMergeStatus from "@ext/git/actions/MergeConflictHandler/logic/GitMergeStatusReverse";

@@ -32,7 +32,6 @@ export const TestInfo = memo(({ table: parentTable, isOpen, onClose }: TestInfoP
 		setIsLoading(true);
 		getQuizDetailedUserAnswers(row.original.id)
 			.then((response) => {
-				console.log(response);
 				setData(response);
 			})
 			.finally(() => {

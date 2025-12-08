@@ -31,6 +31,7 @@ import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import { updateEditorExtensions } from "@ext/markdown/elements/diff/components/store/EditorExtensionsStore";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { highlightSearchFragmentByUrl } from "../../../../../components/Article/SearchHandler/ArticleSearchFragmentHander";
 
 export const ContentEditorId = "ContentEditorId";
 
@@ -130,7 +131,10 @@ const ContentEditor = (props: ContentEditorProps) => {
 	useEffect(() => {
 		if (!editor) return;
 		if (editor && !editor.state.doc.textContent) editor.commands.focus();
-		if (editor) EditorService.bindEditor(editor);
+		if (editor) {
+			EditorService.bindEditor(editor);
+			editor.on("create", () => highlightSearchFragmentByUrl(0, "editor"));
+		}
 	}, [editor]);
 
 	useEffect(() => {

@@ -47,6 +47,8 @@ export const ArticlePropsKeys = [
 	"description",
 	"template",
 	"customProperties",
+	"quiz",
+	"searchPhrases"
 ] as const;
 
 export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
@@ -179,10 +181,10 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		await this._fs.moveArticle(this, path);
 		this._lastModified = new Date().getTime();
 		const newArticle = this._getUpdateArticleByProps(path, catalog);
-		await resourceUpdater.update(this, newArticle);
 		this._logicPath = newArticle.logicPath;
 		this._ref = newArticle.ref;
 		this._content = newArticle._content;
+		await resourceUpdater.update(this, newArticle);
 		await this.parsedContent.write(() => newArticle.parsedContent.read());
 
 		return this;

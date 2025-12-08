@@ -13,6 +13,7 @@ interface InlineImageProps {
 	width: string;
 	height: string;
 	commentId?: string;
+	isPrint?: boolean;
 }
 
 interface SkeletonWrapperProps {
@@ -70,7 +71,7 @@ const ContainerWrapper = styled(InlineCommentView)`
 	}
 `;
 
-const InlineImage = ({ src: initialSrc, alt, width, height, commentId }: InlineImageProps) => {
+const InlineImage = ({ src: initialSrc, alt, width, height, commentId, isPrint }: InlineImageProps) => {
 	const { useGetResource } = ResourceService.value;
 
 	const [isLoaded, setIsLoaded] = useState(false);
@@ -86,14 +87,20 @@ const InlineImage = ({ src: initialSrc, alt, width, height, commentId }: InlineI
 		setIsError(true);
 	};
 
-	useGetResource((buffer) => {
-		if (!buffer || !buffer.byteLength) return setIsError(true);
-		if (isLoaded) setIsLoaded(false);
+	useGetResource(
+		(buffer) => {
+			if (!buffer || !buffer.byteLength) return setIsError(true);
+			if (isLoaded) setIsLoaded(false);
 
-		if (src) URL.revokeObjectURL(src);
-		const url = URL.createObjectURL(new Blob([buffer as any], { type: resolveFileKind(buffer) }));
-		setSrc(url);
-	}, initialSrc);
+			if (src) URL.revokeObjectURL(src);
+			const url = URL.createObjectURL(new Blob([buffer as any], { type: resolveFileKind(buffer) }));
+			setSrc(url);
+		},
+		initialSrc,
+		undefined,
+		undefined,
+		isPrint,
+	);
 
 	if (isError) return <AlertError title={t("alert.image.unavailable")} error={{ message: t("alert.image.path") }} />;
 

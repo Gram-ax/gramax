@@ -39,15 +39,29 @@ abstract class WordExport {
 		});
 	}
 
-	async getSections(documentTree: DocumentTree, skipFirstNode = false) {
-		return await this._getDocumentSections(documentTree, skipFirstNode);
+	async getSections(documentTree: DocumentTree, skipFirstNode = false, combineIntoSingleSection = false) {
+		return await this._getDocumentSections(documentTree, skipFirstNode, combineIntoSingleSection);
 	}
 
-	protected async _getDocumentSections(rootNode: DocumentTree, skipFirstNode = false) {
+	protected async _getDocumentSections(
+		rootNode: DocumentTree,
+		skipFirstNode = false,
+		combineIntoSingleSection = false,
+	) {
 		const sections: ISectionOptions[] = [];
+		const combinedChildren: Paragraph[] = [];
+
+		const pushChildren = (children: Paragraph[]) => {
+			if (!children.length) return;
+			if (combineIntoSingleSection) {
+				combinedChildren.push(...children);
+			} else {
+				sections.push({ children });
+			}
+		};
 
 		if (this._exportType == ExportType.withTableOfContents)
-			sections.push({ children: await this._createTableOfContents(rootNode) });
+			pushChildren((await this._createTableOfContents(rootNode)) as Paragraph[]);
 
 		const processNode = async (currentNode: DocumentTree, content = [], skipFirstNode = false) => {
 			if (!skipFirstNode) content.push(...(await this._parseArticle(currentNode)));
@@ -63,12 +77,16 @@ abstract class WordExport {
 				return;
 			}
 
-			if (content.length) sections.push({ children: content });
+			if (content.length) pushChildren(content);
 
 			if (!isEmptyArticle) for (const child of currentNode.children) await processNode(child);
 		};
 
 		await processNode(rootNode, [], skipFirstNode);
+
+		if (combineIntoSingleSection && combinedChildren.length) {
+			return [{ children: combinedChildren }];
+		}
 
 		return sections;
 	}

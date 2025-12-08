@@ -34,7 +34,13 @@ const RadioComponent = memo((props: BaseComponentProps<"radio">): JSX.Element =>
 
 	return (
 		<RadioGroup>
-			<RadioGroupItem value="1" checked={value} disabled={disabled} onPointerDown={onClick} />
+			<RadioGroupItem
+				value="1"
+				checked={value}
+				disabled={disabled}
+				onPointerDown={onClick}
+				data-selected={value}
+			/>
 		</RadioGroup>
 	);
 });

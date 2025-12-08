@@ -1,18 +1,16 @@
 import { ArticlePreview, PdfPrintParams } from "@ext/print/types";
 
-jest.mock("../../initTocPageContent", () => ({
+jest.mock("../../tocPage/initTocPageContent", () => ({
 	initTocPageContent: jest.fn(),
 }));
 
-import { initTocPageContent } from "../../initTocPageContent";
-import { clearUsableHeightCache } from "@ext/print/utils/pagination/pageElements";
+import { initTocPageContent } from "../../tocPage/initTocPageContent";
 import paginateIntoPages from "@ext/print/utils/paginateIntoPages";
 import { TITLE_PAGE_CLASS } from "@ext/print/utils/pagination/titlePage";
 import { PaginationAbortError } from "@ext/print/utils/pagination/abort";
 
 describe("paginateIntoPages integration", () => {
 	beforeEach(() => {
-		clearUsableHeightCache();
 		(document as any).fonts = { ready: Promise.resolve() };
 
 		window.requestAnimationFrame = (cb: FrameRequestCallback) => {

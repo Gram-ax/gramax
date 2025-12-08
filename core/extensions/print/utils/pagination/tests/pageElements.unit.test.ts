@@ -1,16 +1,9 @@
-import {
-	createPage,
-	getUsableHeight,
-	getUsableWidth,
-	getUsableHeightCached,
-	clearUsableHeightCache,
-	PAGE_CONTENT_CLASS,
-	PAGE_CLASS,
-} from "../pageElements";
+import { createPage, PAGE_CONTENT_CLASS, PAGE_CLASS } from "../pageElements";
+import PagePaginator from "../PagePaginator";
+import Paginator from "../Paginator";
 
 describe("pageElements", () => {
 	afterEach(() => {
-		clearUsableHeightCache();
 		jest.restoreAllMocks();
 	});
 
@@ -85,71 +78,51 @@ describe("pageElements", () => {
 		expect((bottom.children[0] as HTMLElement).className).toBe("page-bottom-left");
 		expect((bottom.children[1] as HTMLElement).className).toBe("page-bottom-right");
 	});
+});
 
-	it("calculates usable height with paddings", () => {
-		const el = document.createElement("div");
-		Object.defineProperty(el, "clientHeight", { value: 300, configurable: true });
+describe("PagePaginator", () => {
+	beforeEach(() => {
+		Paginator.printPageInfo = {};
+	});
+
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
+
+	it("calculates and sets usable page height with paddings", () => {
+		const page = document.createElement("div");
+		Object.defineProperty(page, "clientHeight", { value: 300, configurable: true });
 
 		const styleSpy = jest.spyOn(window, "getComputedStyle").mockReturnValue({
 			paddingTop: "10px",
 			paddingBottom: "20px",
 		} as any);
 
-		expect(getUsableHeight(el)).toBe(270);
-		expect(styleSpy).toHaveBeenCalledTimes(1);
+		PagePaginator.setUsablePageHeight(page);
+
+		expect(Paginator.printPageInfo.usablePageHeight).toBe(270.5);
+		expect(styleSpy).toHaveBeenCalledWith(page);
 	});
 
-	it("calculates usable width with paddings", () => {
-		const el = document.createElement("div");
-		Object.defineProperty(el, "clientWidth", { value: 400, configurable: true });
+	it("calculates and sets usable page width with paddings", () => {
+		const page = document.createElement("div");
+		Object.defineProperty(page, "clientWidth", { value: 400, configurable: true });
 
 		const styleSpy = jest.spyOn(window, "getComputedStyle").mockReturnValue({
 			paddingLeft: "15px",
 			paddingRight: "25px",
 		} as any);
 
-		expect(getUsableWidth(el)).toBe(360);
-		expect(styleSpy).toHaveBeenCalledTimes(1);
-	});
+		PagePaginator.setUsablePageWidth(page);
 
-	it("caches usable height values", () => {
-		const el = document.createElement("div");
-		Object.defineProperty(el, "clientHeight", { value: 200, configurable: true });
-
-		const styleSpy = jest.spyOn(window, "getComputedStyle").mockReturnValue({
-			paddingTop: "5px",
-			paddingBottom: "5px",
-		} as any);
-
-		expect(getUsableHeightCached(el)).toBe(190);
-		styleSpy.mockClear();
-		expect(getUsableHeightCached(el)).toBe(190);
-
-		expect(styleSpy).not.toHaveBeenCalled();
-	});
-
-	it("clears usable height cache", () => {
-		const el = document.createElement("div");
-		Object.defineProperty(el, "clientHeight", { value: 150, configurable: true });
-
-		const styleSpy = jest.spyOn(window, "getComputedStyle").mockReturnValue({
-			paddingTop: "10px",
-			paddingBottom: "10px",
-		} as any);
-
-		expect(getUsableHeightCached(el)).toBe(130);
-		expect(getUsableHeightCached(el)).toBe(130);
-
-		clearUsableHeightCache();
-
-		expect(getUsableHeightCached(el)).toBe(130);
-		expect(styleSpy).toHaveBeenCalledTimes(2);
+		expect(Paginator.printPageInfo.usablePageWidth).toBe(360);
+		expect(styleSpy).toHaveBeenCalledWith(page);
 	});
 
 	it("handles zero padding values", () => {
-		const el = document.createElement("div");
-		Object.defineProperty(el, "clientHeight", { value: 100, configurable: true });
-		Object.defineProperty(el, "clientWidth", { value: 200, configurable: true });
+		const page = document.createElement("div");
+		Object.defineProperty(page, "clientHeight", { value: 100, configurable: true });
+		Object.defineProperty(page, "clientWidth", { value: 200, configurable: true });
 
 		jest.spyOn(window, "getComputedStyle").mockReturnValue({
 			paddingTop: "0px",
@@ -158,7 +131,24 @@ describe("pageElements", () => {
 			paddingRight: "0px",
 		} as any);
 
-		expect(getUsableHeight(el)).toBe(100);
-		expect(getUsableWidth(el)).toBe(200);
+		PagePaginator.setUsablePageHeight(page);
+		PagePaginator.setUsablePageWidth(page);
+
+		expect(Paginator.printPageInfo.usablePageHeight).toBe(100.5);
+		expect(Paginator.printPageInfo.usablePageWidth).toBe(200);
+	});
+
+	it("adds height tolerance to usable page height", () => {
+		const page = document.createElement("div");
+		Object.defineProperty(page, "clientHeight", { value: 200, configurable: true });
+
+		jest.spyOn(window, "getComputedStyle").mockReturnValue({
+			paddingTop: "10px",
+			paddingBottom: "10px",
+		} as any);
+
+		PagePaginator.setUsablePageHeight(page);
+
+		expect(Paginator.printPageInfo.usablePageHeight).toBe(180.5);
 	});
 });

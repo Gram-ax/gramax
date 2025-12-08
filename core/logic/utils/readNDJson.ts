@@ -12,7 +12,7 @@ export async function* readNDJson<T>(
 
 		buffer += decoder.decode(value, { stream: true });
 
-		let lines = buffer.split("\n");
+		const lines = buffer.split("\n");
 
 		buffer = lines.pop() ?? "";
 

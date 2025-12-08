@@ -1,3 +1,21 @@
 export { EditBasicProps } from "./Basic";
-export { EditDisplayProps } from "./Display";
-export { EditExtendedProps } from "./Extended";
+export { EditAppearanceProps as EditDisplayProps } from "./Appearance";
+
+export const SettingsTabs = {
+	general: {
+		icon: "settings",
+		label: "general",
+	},
+	appearance: {
+		icon: "id-card",
+		label: "appearance",
+	},
+	icons: {
+		icon: "images",
+		label: "icons",
+	},
+};
+
+export type SettingsTab = keyof typeof SettingsTabs;
+
+export { SectionComponent } from "./SectionComponent";

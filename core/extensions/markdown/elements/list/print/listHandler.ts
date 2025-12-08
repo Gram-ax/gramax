@@ -1,31 +1,20 @@
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
-import { NodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
-import paginateList from "./paginateList";
+import { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
+import { ListPaginator } from "./ListPaginator";
+import Paginator from "@ext/print/utils/pagination/Paginator";
 
-const listHandler: NodeHandler = async (node, state, { pages, nodeDimension, yieldTick, progress, signal }) => {
+const listHandlerFn: PrintNodeHandler["handle"] = async (node, paginator) => {
 	if (node.tagName !== "UL" && node.tagName !== "OL") return false;
-	throwIfAborted(signal);
 
-	if (state.fragment.childNodes.length) {
-		state.currentPage.appendChild(state.fragment);
-		state.fragment = document.createDocumentFragment();
-		await yieldTick();
-		throwIfAborted(signal);
-	}
-
-	state.currentPage = await paginateList(
-		pages,
-		node as HTMLOListElement | HTMLUListElement,
-		state,
-		nodeDimension,
-		yieldTick,
-		progress,
-		signal,
-	);
-	progress.increase(1);
-	await yieldTick();
-	throwIfAborted(signal);
+	const listPaginator = new ListPaginator(node as HTMLOListElement | HTMLUListElement, paginator);
+	await listPaginator.paginateNode();
+	await Paginator.controlInfo.yieldTick();
+	throwIfAborted(Paginator.controlInfo.signal);
 	return true;
+};
+
+const listHandler: PrintNodeHandler = {
+	handle: listHandlerFn,
 };
 
 export default listHandler;

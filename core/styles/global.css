@@ -245,3 +245,25 @@ span.pk .far {
 .tippy-box {
 	outline: none;
 }
+
+.is-found-article-element {
+	animation: BLINK_ANIMATION 1.5s forwards linear;
+}
+
+@keyframes BLINK_ANIMATION {
+	0% {
+		background-color: transparent;
+	}
+	25% {
+		background-color: var(--search-fragment-highlight-bg);
+	}
+	50% {
+		background-color: transparent;
+	}
+	75% {
+		background-color: var(--search-fragment-highlight-bg);
+	}
+	100% {
+		background-color: transparent;
+	}
+}

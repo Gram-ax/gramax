@@ -59,7 +59,7 @@ const getAsWordDocument: Command<
 
 			assert(templateBuffer, t("word.template.error.template-not-found"));
 
-			const docxSections = await wordExport.getSections(documentTree, isCatalog);
+			const docxSections = await wordExport.getSections(documentTree, isCatalog, true);
 			const documentProps = {
 				title: item.getTitle(),
 			};

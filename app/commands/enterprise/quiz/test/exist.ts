@@ -5,7 +5,7 @@ import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 
-const existTest: Command<{ ctx: Context; workspaceId: WorkspacePath; testId: string }, boolean> = Command.create({
+const existTest: Command<{ ctx: Context; workspaceId: WorkspacePath; testId: number }, boolean> = Command.create({
 	path: "enterprise/quiz/test/exist",
 
 	kind: ResponseKind.json,
@@ -23,7 +23,8 @@ const existTest: Command<{ ctx: Context; workspaceId: WorkspacePath; testId: str
 	},
 
 	params(ctx, q) {
-		const { workspaceId, testId } = q;
+		const { workspaceId } = q;
+		const testId = Number(q.testId);
 		return { ctx, workspaceId, testId };
 	},
 });

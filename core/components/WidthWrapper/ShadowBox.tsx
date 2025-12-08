@@ -8,9 +8,10 @@ interface ScrollableShadowProps {
 	height: number;
 	direction: Direction;
 	className?: string;
+	marginLeft?: number;
 }
 
-const ScrollableShadow = ({ width, height, direction, className }: ScrollableShadowProps) => {
+const ScrollableShadow = ({ width, height, direction, className, marginLeft }: ScrollableShadowProps) => {
 	return (
 		width > 0 && (
 			<div
@@ -20,6 +21,7 @@ const ScrollableShadow = ({ width, height, direction, className }: ScrollableSha
 					height: `${height}px`,
 					background: `linear-gradient(to ${direction}, transparent 0, var(--color-article-bg) 100%)`,
 					[direction]: 0,
+					...(marginLeft ? { marginLeft: `${marginLeft}px` } : {}),
 				}}
 			/>
 		)
@@ -28,6 +30,7 @@ const ScrollableShadow = ({ width, height, direction, className }: ScrollableSha
 
 export default styled(ScrollableShadow)`
 	top: 0;
+	z-index: 2;
 	pointer-events: none;
 	position: absolute;
 

@@ -5,37 +5,44 @@ import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingA
 import { SheetComponent } from "@ext/enterprise/components/admin/ui-kit/SheetComponent";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { Alert, AlertDescription, AlertIcon } from "@ui-kit/Alert";
+import t from "@ext/localization/locale/translate";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
+import { Form, FormField } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
 import { TextInput } from "@ui-kit/Input";
-import { Form, FormField } from "@ui-kit/Form";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { GroupValue } from "../components/roles/Access";
 import { GroupsTable } from "./components/GroupsTable";
 import { GroupsUserTable } from "./components/GroupsUserTable";
+import { shallow } from "zustand/shallow";
 
-const GROUP_NAME_EXISTS_ERROR = "Группа с таким именем уже существует";
-
-const createFormSchema = (groupSettings: Record<string, GroupValue[]> | undefined, editingGroup: string | null) => z.object({
-	groupName: z
-		.string()
-		.min(1, "Название группы обязательно для заполнения")
-		.refine((name) => {
-			if (!groupSettings || editingGroup) return true;
-			return !Object.prototype.hasOwnProperty.call(groupSettings, name.trim());
-		}, GROUP_NAME_EXISTS_ERROR)
-});
+const createFormSchema = (groupSettings: Record<string, GroupValue[]> | undefined, editingGroup: string | null) =>
+	z.object({
+		groupName: z
+			.string()
+			.min(1, t("enterprise.admin.groups.name-error"))
+			.refine((name) => {
+				if (!groupSettings || editingGroup) return true;
+				return !Object.prototype.hasOwnProperty.call(groupSettings, name.trim());
+			}, t("enterprise.admin.groups.group-name-exists")),
+	});
 
 type FormData = z.infer<ReturnType<typeof createFormSchema>>;
 
 const GroupsComponent = () => {
 	const { settings, addGroup, ensureGroupsLoaded, deleteGroups, getTabError, isInitialLoading } = useSettings();
 	const groupSettings = settings?.groups;
-	const { setParams, params } = useAdminPageData();
+	const { setParams, params } = useAdminPageData(
+		(store) => ({
+			setParams: store.setParams,
+			params: store.params,
+		}),
+		shallow,
+	);
+
 	const { entityId } = params;
 
 	const [isEditing, setIsEditing] = useState(false);
@@ -49,8 +56,8 @@ const GroupsComponent = () => {
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			groupName: ""
-		}
+			groupName: "",
+		},
 	});
 
 	useEffect(() => {
@@ -155,7 +162,7 @@ const GroupsComponent = () => {
 			<SheetComponent
 				isOpen={isEditing}
 				onOpenChange={(open) => !open && handleClose()}
-				title={editingGroup ? editingGroup : "Добавить группу"}
+				title={editingGroup ? editingGroup : t("enterprise.admin.groups.add-group")}
 				sheetContent={
 					<Form asChild {...form}>
 						<form className="contents">
@@ -163,19 +170,21 @@ const GroupsComponent = () => {
 								{!editingGroup && (
 									<FormField
 										name="groupName"
-										title="Название группы"
+										title={t("enterprise.admin.groups.group-name")}
 										layout="vertical"
-										description="Введите название группы"
+										description={t("enterprise.admin.groups.group-name-description")}
 										control={({ field }) => (
 											<TextInput
 												className="w-[300px]"
-												placeholder="Введите название группы"
+												placeholder={t("enterprise.admin.groups.group-name-placeholder")}
 												{...field}
 											/>
 										)}
 									/>
 								)}
-								{form.watch("groupName") && <GroupsUserTable users={groupUsers} onChange={setGroupUsers} />}
+								{form.watch("groupName") && (
+									<GroupsUserTable users={groupUsers} onChange={setGroupUsers} />
+								)}
 							</div>
 						</form>
 					</Form>
@@ -183,11 +192,11 @@ const GroupsComponent = () => {
 				confirmButton={
 					<>
 						{isSaving ? (
-							<LoadingButtonTemplate text="Сохраняем..." />
+							<LoadingButtonTemplate text={`${t("save2")}...`} />
 						) : (
 							<Button onClick={handleSave}>
 								<Icon icon="save" />
-								Сохранить
+								{t("save")}
 							</Button>
 						)}
 					</>

@@ -117,7 +117,7 @@ const createGramaxClipboardData = (
 	const { $from, $to } = view.state.selection;
 
 	return {
-		copyPath: articleProps.logicPath,
+		copyPath: articleProps?.logicPath || "",
 		range: { from: $from.pos, to: $to.pos },
 		data: createNodesJSON(view, fragment, resourceService.getBuffer),
 	};

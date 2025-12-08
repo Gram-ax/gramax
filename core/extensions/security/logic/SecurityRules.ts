@@ -1,3 +1,4 @@
+import { Environment, getExecutingEnvironment } from "@app/resolveModule/env";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
@@ -11,11 +12,14 @@ import Permission from "./Permission/Permission";
 import User from "./User/User";
 
 export default class SecurityRules implements RuleCollection, EventHandlerCollection {
+	private _environment: Environment;
 	constructor(
 		private _currentUser: User,
 		private _nav?: Navigation,
 		private _customArticlePresenter?: CustomArticlePresenter,
-	) {}
+	) {
+		this._environment = getExecutingEnvironment();
+	}
 
 	mount(): void {
 		this._nav.events.on("filter-item", ({ catalog, item, link }) => {
@@ -56,6 +60,7 @@ export default class SecurityRules implements RuleCollection, EventHandlerCollec
 	}
 
 	private _canRead(itemPermission: IPermission, catalogName: string): boolean {
+		if (this._environment !== "next" && this._environment !== "test") return true;
 		if (!this._currentUser) return false;
 		if (this._currentUser.type === "base") return true;
 		const baseCatalogName = BaseCatalog.parseName(catalogName).name;

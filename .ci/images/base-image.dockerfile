@@ -1,6 +1,6 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 
-FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.91-slim-bookworm
+FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.91-bookworm
 
 RUN apt-get update && \ 
   apt-get install -y \
@@ -34,4 +34,3 @@ COPY .ci/github-private-key /root/.ssh/
 RUN ssh-keyscan github.com > /root/.ssh/known_hosts && \
   printf "Host github.com\nPreferredAuthentications publickey\nUser git\nIdentityFile /root/.ssh/github-private-key\n" > /root/.ssh/config && \
   chmod -R 700 /root/.ssh && chmod 600 /root/.ssh/config
-

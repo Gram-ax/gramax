@@ -47,29 +47,3 @@ export const createPage = (
 
 	return content;
 };
-
-export const getUsableWidth = (el: HTMLElement): number => {
-	const cs = getComputedStyle(el);
-	const paddingV = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-	return el.clientWidth - paddingV;
-};
-
-export const getUsableHeight = (el: HTMLElement): number => {
-	const cs = getComputedStyle(el);
-	const paddingV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-	return el.clientHeight - paddingV;
-};
-
-let usableHeightCache = new WeakMap<HTMLElement, number>();
-
-export const getUsableHeightCached = (el: HTMLElement): number => {
-	const cached = usableHeightCache.get(el);
-	if (cached != null) return cached;
-	const value = getUsableHeight(el);
-	usableHeightCache.set(el, value);
-	return value;
-};
-
-export const clearUsableHeightCache = () => {
-	usableHeightCache = new WeakMap<HTMLElement, number>();
-};

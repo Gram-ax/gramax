@@ -136,8 +136,8 @@ export default class DiskFileProvider implements FileProvider {
 		}
 	}
 
-	async move(from: Path, to: Path) {
-		await fs.move(this.toAbsolute(from), this.toAbsolute(to));
+	async move(from: Path, to: Path, outside?: DiskFileProvider) {
+		await fs.move(this.toAbsolute(from), outside ? outside.toAbsolute(to) : this.toAbsolute(to));
 		await DiskFileProvider.events.emit("move", { from, to });
 	}
 

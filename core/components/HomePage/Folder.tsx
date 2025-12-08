@@ -1,7 +1,7 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import type { Section } from "@core/SitePresenter/SitePresenter";
 import { FeatureIcon } from "@ui-kit/Icon";
-import { ActionCard, CardFolder, CardSubTitle, CardTitle, CardFeature } from "ics-ui-kit/components/card";
+import { ActionCard, CardFolder, CardSubTitle, CardTitle, CardFeature } from "@ui-kit/Card";
 import Link from "../Atoms/Link";
 import t from "@ext/localization/locale/translate";
 

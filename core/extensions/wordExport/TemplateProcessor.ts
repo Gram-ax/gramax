@@ -5,12 +5,13 @@ import type JSZip from "jszip";
 import jszip from "@dynamicImports/jszip";
 import assert from "assert";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import resolveModule from "@app/resolveModule/backend";
+import { readTemplateStyles, normalizeStyleMapping } from "./templateProcessing/stylesReader";
+import { TemplateStylesInfo } from "./templateProcessing/types";
+import { applyTemplateListIndents } from "./templateProcessing/listIndentApplier";
+import { fitIndentedContentWidth } from "./templateProcessing/contentScaler";
+import { parseXml, printXml } from "./templateProcessing/xmlUtils";
 
-const CONTENT_PLACEHOLDER = "gramax_content";
-
-const parseXml = (xml: string) => resolveModule("getDOMParser")().parseFromString(xml, "application/xml");
-const printXml = (node) => resolveModule("getXMLSerializer")().serializeToString(node);
+export const CONTENT_PLACEHOLDER = "gramax_content";
 
 function setNsAttr(node: Element, name: string, value: string): void {
 	node.setAttribute(name, value);
@@ -84,14 +85,16 @@ class TemplateProcessor {
 	}
 
 	private async _processDocumentInSingleZip(documentBuffer: Uint8Array): Promise<Uint8Array> {
-		const templateStyleMapping = await this._readTemplateStyles();
+		const templateStyles = await readTemplateStyles(this._templateBuffer);
+		const normalizedStyles = normalizeStyleMapping(templateStyles.mapping);
 
 		const JSZip = await jszip();
 		const zip = await JSZip.loadAsync(documentBuffer);
 
 		await this._fixNumIdInZip(zip);
 		await this._updateDocumentPropertiesInZip(zip);
-		await this._fixStyleReferencesInZip(zip, templateStyleMapping);
+		await this._fixStyleReferencesInZip(zip, templateStyles.mapping);
+		await this._applyListIndentsAndScaling(zip, templateStyles, normalizedStyles);
 		await this._cleanTablePropertiesInZip(zip);
 		await this._updateSettingsXmlInZip(zip);
 		await this._updateContentTypesXmlInZip(zip);
@@ -99,37 +102,23 @@ class TemplateProcessor {
 		return zip.generateAsync({ type: "uint8array" });
 	}
 
-	private async _readTemplateStyles(): Promise<Map<string, string>> {
-		const JSZip = await jszip();
-		const templateZip = new JSZip();
-		await templateZip.loadAsync(new Uint8Array(this._templateBuffer));
+	private async _applyListIndentsAndScaling(
+		zip: JSZip,
+		templateStyles: TemplateStylesInfo,
+		normalizedStyles: Map<string, string>,
+	): Promise<void> {
+		const docFile = zip.file("word/document.xml");
+		const numberingFile = zip.file("word/numbering.xml");
+		if (!docFile || !numberingFile) return;
 
-		const templateStylesXmlFile = templateZip.file("word/styles.xml");
-		assert.ok(templateStylesXmlFile, "styles.xml not found in template.");
+		const [docXml, numberingXml] = await Promise.all([docFile.async("text"), numberingFile.async("text")]);
+		const doc = parseXml(docXml);
+		const numberingDoc = parseXml(numberingXml);
 
-		const stylesContent = await templateStylesXmlFile.async("text");
-		return this._extractStylesMapping(stylesContent);
-	}
+		applyTemplateListIndents(doc, numberingDoc, templateStyles, normalizedStyles);
+		fitIndentedContentWidth(doc);
 
-	private _extractStylesMapping(stylesContent: string): Map<string, string> {
-		const doc = parseXml(stylesContent);
-		const mapping = new Map<string, string>();
-
-		const styles = Array.from(doc.getElementsByTagName("w:style"));
-		for (const node of styles as any[]) {
-			const type = node.getAttribute("w:type");
-			if (type !== "paragraph" && type !== "character") continue;
-
-			const styleId = node.getAttribute("w:styleId");
-			const nameEl = node.getElementsByTagName("w:name")[0];
-			const styleName = nameEl?.getAttribute("w:val");
-
-			if (styleId && styleName) {
-				mapping.set(styleName, styleId);
-			}
-		}
-
-		return mapping;
+		zip.file("word/document.xml", printXml(doc));
 	}
 
 	private async _fixNumIdInZip(zip: JSZip): Promise<void> {
@@ -344,7 +333,7 @@ class TemplateProcessor {
 	}
 
 	private async _fixStyleReferencesInZip(zip: JSZip, templateStyleMapping: Map<string, string>): Promise<void> {
-		const map = this._normalizeStyleMapping(templateStyleMapping);
+		const map = normalizeStyleMapping(templateStyleMapping);
 
 		const docFile = zip.file("word/document.xml");
 		assert.ok(docFile, "document.xml not found for style fixing.");
@@ -370,17 +359,6 @@ class TemplateProcessor {
 		zip.file("word/document.xml", printXml(doc));
 	}
 
-	private _normalizeStyleMapping(mapping: Map<string, string>): Map<string, string> {
-		const normalized = new Map<string, string>();
-		for (const [name, id] of mapping.entries()) {
-			normalized.set(name.toLowerCase().replace(/\s+/g, ""), id);
-		}
-
-		if (normalized.has("heading1")) normalized.set("title", normalized.get("heading1"));
-
-		return normalized;
-	}
-
 	private async _cleanTablePropertiesInZip(zip: JSZip): Promise<void> {
 		const docPath = "word/document.xml";
 		const docFile = zip.file(docPath);
@@ -399,8 +377,18 @@ class TemplateProcessor {
 		zip.file(docPath, printXml(xmlDoc));
 	}
 
+	private _getDirectChild(element: Element, tagName: string): Element | null {
+		const children = Array.from(element.childNodes);
+		for (const child of children) {
+			if (child.nodeType === Node.ELEMENT_NODE && (child as Element).tagName === tagName) {
+				return child as Element;
+			}
+		}
+		return null;
+	}
+
 	private _cleanTblPr(xmlDoc: Document, table: Element): void {
-		const tblPr = table.getElementsByTagName("w:tblPr")[0];
+		const tblPr = this._getDirectChild(table, "w:tblPr");
 		if (!tblPr) return;
 
 		const parent = tblPr.parentNode;
@@ -424,7 +412,7 @@ class TemplateProcessor {
 	private _cleanTrPr(xmlDoc: Document, table: Element): void {
 		const rows = Array.from(table.getElementsByTagName("w:tr"));
 		for (const row of rows) {
-			const trPr = row.getElementsByTagName("w:trPr")[0];
+			const trPr = this._getDirectChild(row, "w:trPr");
 			if (!trPr) continue;
 
 			const newTrPr = xmlDoc.createElement("w:trPr");
@@ -448,7 +436,7 @@ class TemplateProcessor {
 	private _cleanTcPr(xmlDoc: Document, table: Element): void {
 		const cells = Array.from(table.getElementsByTagName("w:tc"));
 		for (const cell of cells) {
-			const oldTcPr = cell.getElementsByTagName("w:tcPr")[0];
+			const oldTcPr = this._getDirectChild(cell, "w:tcPr");
 
 			const newTcPr = xmlDoc.createElement("w:tcPr");
 

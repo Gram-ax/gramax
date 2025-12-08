@@ -8,10 +8,7 @@ import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import { InboxProps } from "@ext/inbox/models/types";
-import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import t from "@ext/localization/locale/translate";
-import { Property, PropertyValue } from "@ext/properties/models";
-import { TemplateField } from "@ext/templates/models/types";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
@@ -25,24 +22,23 @@ export type ItemEvents = Event<"item-order-updated", { item: Item }> &
 	Event<"item-update-content", { item: Item }> &
 	Event<"item-get-content", { item: Item; mutableContent: { content: string } }>;
 
-export type ItemProps = FSLocalizationProps & {
-	title?: string;
-	description?: string;
-	tags?: string[];
-	order?: number;
-	properties?: PropertyValue[];
-	customProperties?: Property[]; // will be deleted in future
-	template?: string;
-	fields?: TemplateField[];
+declare module "@core/FileStructue/Item/Item" {
+	interface ItemProps {
+		title?: string;
+		description?: string;
+		tags?: string[];
+		order?: number;
+		logicPath?: string;
 
-	logicPath?: string;
+		hidden?: boolean;
+		private?: string[];
+		external?: string;
 
-	hidden?: boolean;
-	private?: string[];
-	external?: string;
+		shouldBeCreated?: boolean;
 
-	shouldBeCreated?: boolean;
-};
+		searchPhrases?: string[];
+	}
+}
 
 export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string }) | ClientArticleProps | InboxProps;
 
@@ -77,16 +73,20 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 	get parent(): Category {
 		return this._parent;
 	}
-	set parent(value: Category) {
+	
+  set parent(value: Category) {
 		this._parent = value;
 	}
+
 	get props() {
 		return this._props;
 	}
-	get neededPermission(): IPermission {
+	
+  get neededPermission(): IPermission {
 		return this._neededPermission;
 	}
-	get order(): number {
+	
+  get order(): number {
 		return this._props.order;
 	}
 

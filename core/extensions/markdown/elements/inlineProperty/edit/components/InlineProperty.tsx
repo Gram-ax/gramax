@@ -56,7 +56,7 @@ const EditableProperty = ({ bind, onChangeProperty, articleProp, catalogProp, is
 
 	const trigger = (
 		<TriggerWrapper data-focusable="true">
-			{articleProp && <Icon code={catalogProp?.icon} />}
+			{articleProp && catalogProp?.icon && <Icon code={catalogProp?.icon} />}
 			{displayValue}
 		</TriggerWrapper>
 	);
@@ -110,7 +110,7 @@ const InlineProperty = ({ bind, props, isEditable, onChangeProperty, selected }:
 
 	return (
 		<TriggerWrapper data-focusable="true" className={selected ? "selected" : ""}>
-			{articleProp && <Icon code={catalogProp?.icon} />}
+			{articleProp && catalogProp?.icon && <Icon code={catalogProp?.icon} />}
 			{bind || "???"}
 		</TriggerWrapper>
 	);

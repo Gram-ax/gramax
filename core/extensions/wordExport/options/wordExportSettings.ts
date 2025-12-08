@@ -78,6 +78,8 @@ export enum WordFontStyles {
 	bookTitle = "BookTitle",
 	tabsTitle = "TabsTitle",
 	tableOfContents = "TableOfContent",
+	formula = "Formula",
+	formulaInline = "FormulaInline",
 }
 
 export const HStyles = {

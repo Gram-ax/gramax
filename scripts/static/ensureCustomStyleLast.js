@@ -1,34 +1,69 @@
 (function () {
 	var id = "custom-style-link";
-	function moveLast() {
+	var styleId = "custom-style-inline";
+
+	function loadAndMoveStyles() {
 		var link = document.getElementById(id);
-		if (!link || !document.head) return;
-		try {
-			document.head.appendChild(link);
-		} catch (e) {}
-	}
-	function schedule() {
-		if (typeof requestAnimationFrame === "function") {
-			requestAnimationFrame(function () {
-				setTimeout(moveLast, 0);
+		if (!link) return;
+
+		function copyStylesToInline() {
+			if (!link.sheet) return;
+			var sheet = Array.from(document.styleSheets).find(function (s) {
+				return s.ownerNode === link;
 			});
+
+			if (!sheet || !sheet.cssRules) return;
+
+			var cssText = Array.from(sheet.cssRules)
+				.map(function (rule) {
+					return rule.cssText;
+				})
+				.join("\n");
+
+			var style = document.createElement("style");
+			style.id = styleId;
+			style.textContent = cssText;
+			document.head.appendChild(style);
+			link.remove();
+			startObserving();
+		}
+		if (link.sheet) {
+			copyStylesToInline();
 		} else {
-			setTimeout(moveLast, 0);
+			link.onload = copyStylesToInline;
+			link.onerror = function () {
+				console.warn("Failed to load custom styles from link");
+				if (document.head.lastElementChild !== link) {
+					document.head.appendChild(link);
+				}
+			};
 		}
 	}
-	if (document.readyState === "complete" || document.readyState === "interactive") {
-		schedule();
-	} else {
-		document.addEventListener("DOMContentLoaded", schedule, { once: true });
+
+	function ensureStyleLast() {
+		var style = document.getElementById(styleId);
+		if (!style || !document.head) return;
+
+		if (document.head.lastElementChild !== style) {
+			document.head.appendChild(style);
+		}
 	}
-	window.addEventListener("load", schedule, { once: true });
-	try {
-		var obs = new MutationObserver(function () {
-			schedule();
-		});
-		obs.observe(document.head, { childList: true, subtree: false });
-		setTimeout(function () {
-			obs.disconnect();
-		}, 10000);
-	} catch (e) {}
+
+	function startObserving() {
+		try {
+			var obs = new MutationObserver(function () {
+				ensureStyleLast();
+			});
+			obs.observe(document.head, { childList: true, subtree: false });
+			setTimeout(function () {
+				obs.disconnect();
+			}, 10000);
+		} catch (e) {}
+	}
+
+	if (document.readyState === "complete") {
+		loadAndMoveStyles();
+	} else {
+		window.addEventListener("load", loadAndMoveStyles, { once: true });
+	}
 })();

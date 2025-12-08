@@ -1,33 +1,34 @@
 import { GroupValue } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import { QuizTableFilters } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
+import {
+	QuizTest,
+	QuizTestData,
+	SearchedAnsweredUsers,
+	SearchedQuizTest,
+} from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
 import type { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
-import type { Settings } from "@ext/enterprise/types/EnterpriseAdmin";
+import { RequestCursor, RequestData } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable";
 import EnterpriseService, { type searchUserInfo } from "@ext/enterprise/EnterpriseService";
+import type { Settings } from "@ext/enterprise/types/EnterpriseAdmin";
+import t from "@ext/localization/locale/translate";
 import {
 	createContext,
-	type ReactNode,
 	useContext,
 	useEffect,
 	useState,
 	type Dispatch,
+	type ReactNode,
 	type SetStateAction,
 } from "react";
-import {
-	QuizTestData,
-	SearchedAnsweredUsers,
-	SearchedQuizTest,
-	QuizTest,
-} from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
-import { QuizTableFilters } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
-import t from "@ext/localization/locale/translate";
-import { RequestCursor, RequestData } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable";
 
 export type SettingsState = Partial<Settings>;
 
 // Tab keys for per-tab loading/error isolation
-export type TabKey = "workspace" | "groups" | "editors" | "resources" | "mail" | "guests" | "check" | "quiz";
+export type TabKey = "workspace" | "groups" | "editors" | "resources" | "mail" | "guests" | "styleGuide" | "quiz";
 
 type SettingsContextType = {
 	settings: Readonly<SettingsState>;
+	global: { allGitResources: string[] };
 	error: Error | null;
 	users: string[] | null;
 	hasUsers: boolean;
@@ -39,7 +40,9 @@ type SettingsContextType = {
 	deleteResources: (resourceIds: string[]) => Promise<void>;
 	updateMail: (mail: Settings["mailServer"]) => Promise<void>;
 	updateGuests: (guests: Settings["guests"]) => Promise<void>;
-	updateCheck: (check: Settings["check"]) => Promise<void>;
+	updateStyleGuide: (styleGuide: Settings["styleGuide"]) => Promise<void>;
+	healthcheckStyleGuide: () => Promise<boolean>;
+	healthcheckDataProvider: () => Promise<boolean>;
 	searchUsers: (query: string) => Promise<searchUserInfo[]>;
 	searchBranches: (repoName: string) => Promise<string[]>;
 	updateQuiz: (quiz: Settings["quiz"]) => Promise<void>;
@@ -48,7 +51,7 @@ type SettingsContextType = {
 		limit: number,
 		filters: QuizTableFilters,
 	) => Promise<RequestData<QuizTest>>;
-	getQuizDetailedUserAnswers: (testId: string) => Promise<QuizTestData>;
+	getQuizDetailedUserAnswers: (testId: number) => Promise<QuizTestData>;
 	searchQuizTests: (query: string) => Promise<SearchedQuizTest[]>;
 	searchAnsweredUsers: (query: string) => Promise<SearchedAnsweredUsers[]>;
 	// Per-tab loaders (ленивые)
@@ -58,7 +61,7 @@ type SettingsContextType = {
 	ensureGroupsLoaded: (force?: boolean) => Promise<void>;
 	ensureResourcesLoaded: (force?: boolean) => Promise<void>;
 	ensureEditorsLoaded: (force?: boolean) => Promise<void>;
-	ensureCheckLoaded: (force?: boolean) => Promise<void>;
+	ensureStyleGuideLoaded: (force?: boolean) => Promise<void>;
 	ensureQuizLoaded: (force?: boolean) => Promise<void>;
 	// Tab-scoped loading/error selectors & utils
 	isInitialLoading: (tab: TabKey) => boolean;
@@ -85,13 +88,14 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 	const [guestsEtag, setGuestsEtag] = useState<string | null>(null);
 	const [groupsEtag, setGroupsEtag] = useState<string | null>(null);
 	const [editorsEtag, setEditorsEtag] = useState<string | null>(null);
-	const [checkEtag, setCheckEtag] = useState<string | null>(null);
+	const [styleGuideETag, setStyleGuideEtag] = useState<string | null>(null);
 	const [quizEtag, setQuizEtag] = useState<string | null>(null);
 	const [resourcesEtag, setResourcesEtag] = useState<string | null>(null);
 	const [workspaceEtag, setWorkspaceEtag] = useState<string | null>(null);
+	const [allGitResources, setAllGitResources] = useState<string[]>([]);
 
 	// Per-tab loading and error state
-	const tabs: TabKey[] = ["workspace", "groups", "editors", "resources", "mail", "guests", "check", "quiz"];
+	const tabs: TabKey[] = ["workspace", "groups", "editors", "resources", "mail", "guests", "styleGuide", "quiz"];
 	const makeBoolMap = (val: boolean) =>
 		tabs.reduce((acc, t) => ({ ...acc, [t]: val }), {} as Record<TabKey, boolean>);
 	const makeErrorMap = () => tabs.reduce((acc, t) => ({ ...acc, [t]: null }), {} as Record<TabKey, Error | null>);
@@ -141,6 +145,28 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 	useEffect(() => {
 		checkHasUsers();
 	}, [enterpriseService, token]);
+
+	useEffect(() => {
+		(async () => {
+			let pageNum = 1;
+			const pageSize = 100;
+			let acc: string[] = [];
+
+			// eslint-disable-next-line no-constant-condition
+			while (true) {
+				const res = await enterpriseService.getResources(token, pageNum);
+				if (!res) break;
+
+				const { repos } = res;
+				acc = acc.concat(repos ?? []);
+				pageNum++;
+
+				if (!repos || repos.length < pageSize) break;
+			}
+
+			setAllGitResources(acc);
+		})();
+	}, []);
 
 	const ensureWorkspaceLoaded = async (force = false) => {
 		await withLoad("workspace", Boolean(settings?.workspace), async () => {
@@ -226,16 +252,24 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		});
 	};
 
-	const ensureCheckLoaded = async (force = false) => {
-		await withLoad("check", Boolean(settings?.check), async () => {
-			const { data, etag, notModified } = await enterpriseService.getCheckConfig(
+	const ensureStyleGuideLoaded = async (force = false) => {
+		await withLoad("styleGuide", Boolean(settings?.styleGuide), async () => {
+			const { data, etag, notModified } = await enterpriseService.getStyleGuideConfig(
 				token,
-				force ? undefined : checkEtag ?? undefined,
+				force ? undefined : styleGuideETag ?? undefined,
 			);
-			if (!notModified && data) patch("check", data);
-			if (etag) setCheckEtag(etag);
+			if (!notModified && data) patch("styleGuide", data);
+			if (etag) setStyleGuideEtag(etag);
 			return true as const;
 		});
+	};
+
+	const healthcheckStyleGuide = async () => {
+		return await enterpriseService.checkStyleGuideHealth();
+	};
+
+	const healthcheckDataProvider = async () => {
+		return await enterpriseService.checkDataProviderHealth();
 	};
 
 	const updateEditors = async (editors: Settings["editors"]) => {
@@ -319,12 +353,12 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		}
 	};
 
-	const updateCheck = async (check: Settings["check"]) => {
+	const updateStyleGuide = async (styleGuide: Settings["styleGuide"]) => {
 		try {
-			await enterpriseService.setCheck(token, check);
-			patch("check", check);
+			await enterpriseService.setStyleGuide(token, styleGuide);
+			patch("styleGuide", styleGuide);
 		} catch (e) {
-			setTabError("check", (e as Error) ?? new Error("Не удалось обновить данные стайлгайдов"));
+			setTabError("styleGuide", (e as Error) ?? new Error("Не удалось обновить данные стайлгайдов"));
 			throw e;
 		}
 	};
@@ -355,7 +389,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		return await enterpriseService.searchQuizAnsweredUsers(token, query);
 	};
 
-	const getQuizDetailedUserAnswers = async (testId: string): Promise<QuizTestData> => {
+	const getQuizDetailedUserAnswers = async (testId: number): Promise<QuizTestData> => {
 		return await enterpriseService.getQuizDetailedUserAnswers(token, testId);
 	};
 
@@ -371,6 +405,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		<SettingsContext.Provider
 			value={{
 				settings,
+				global: { allGitResources },
 				error,
 				users,
 				hasUsers,
@@ -378,7 +413,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				updateWorkspace,
 				updateMail,
 				updateGuests,
-				updateCheck,
+				updateStyleGuide,
 				addGroup,
 				deleteGroups,
 				addResource,
@@ -386,11 +421,13 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				searchUsers,
 				searchBranches,
 				ensureWorkspaceLoaded,
+				healthcheckStyleGuide,
+				healthcheckDataProvider,
 				ensureMailLoaded,
 				ensureGuestsLoaded,
 				ensureGroupsLoaded,
 				ensureEditorsLoaded,
-				ensureCheckLoaded,
+				ensureStyleGuideLoaded,
 				ensureResourcesLoaded,
 				ensureQuizLoaded,
 				searchAnsweredUsers,

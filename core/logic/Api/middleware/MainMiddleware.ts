@@ -29,7 +29,7 @@ export class MainMiddleware extends Middleware {
 				const error = this._getPathError(e);
 				this._app.logger.logError(error, true);
 				defaultError = new DefaultError(
-					isEnterprise ? t("app.error.command-failed.body-enterprise") : t("app.error.command-failed.body"),
+					t("app.error.command-failed.body"),
 					error,
 					{ html: true, showCause: true },
 					false,

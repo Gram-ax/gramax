@@ -178,34 +178,57 @@ export const useGetCatalogLogoSrc = (catalogName: string, deeps = []) => {
 	const useImage = resolveModule("useImage");
 	const [isExist, setIsExist] = useState(false);
 	const [urlToFetch, setUrlToFetch] = useState<Url>();
+	const activeRequestId = useRef(0);
+
+	const getLogoUrlForTheme = useCallback(
+		async (themeToCheck: Theme) => {
+			if (!catalogName) return null;
+
+			const existUrl = apiUrlCreator.catalogLogoExist(catalogName, themeToCheck);
+			const res = await FetchService.fetch(existUrl);
+			if (!res.ok || !res?.body) return null;
+
+			const data: { isExist: boolean } = await res.json();
+			return data.isExist ? apiUrlCreator.getLogoUrl(catalogName, themeToCheck, true) : null;
+		},
+		[apiUrlCreator, catalogName],
+	);
 
 	useWatchClient(async () => {
-		const url = apiUrlCreator.catalogLogoExist(catalogName, theme);
-		const res = await FetchService.fetch(url);
-		if (!res?.body) return;
-		const data: { isExist: boolean } = await res.json();
-		const isExist = data.isExist;
+		activeRequestId.current += 1;
+		const requestId = activeRequestId.current;
 
-		if (isExist) {
-			setIsExist(isExist);
-			setUrlToFetch(apiUrlCreator.getLogoUrl(catalogName, theme, true));
+		if (!catalogName) {
+			if (requestId === activeRequestId.current) {
+				setIsExist(false);
+				setUrlToFetch(undefined);
+			}
 			return;
-		} else {
-			if (theme !== Theme.light) {
-				const url = apiUrlCreator.catalogLogoExist(catalogName, Theme.light);
-				const res = await FetchService.fetch(url);
-				if (!res?.body) return;
-				const data: { isExist: boolean } = await res.json();
-				if (data.isExist) {
-					setIsExist(data.isExist);
-					setUrlToFetch(apiUrlCreator.getLogoUrl(catalogName, Theme.light, true));
-				}
+		}
+
+		const currentThemeLogo = await getLogoUrlForTheme(theme);
+		if (requestId !== activeRequestId.current) return;
+
+		if (currentThemeLogo) {
+			setIsExist(true);
+			setUrlToFetch(currentThemeLogo);
+			return;
+		}
+
+		if (theme !== Theme.light) {
+			const fallbackLogo = await getLogoUrlForTheme(Theme.light);
+			if (requestId !== activeRequestId.current) return;
+
+			if (fallbackLogo) {
+				setIsExist(true);
+				setUrlToFetch(fallbackLogo);
 				return;
 			}
 		}
+
 		setIsExist(false);
 		setUrlToFetch(undefined);
-	}, [theme, catalogName, ...deeps]);
+	}, [theme, catalogName, ...deeps, getLogoUrlForTheme]);
 
 	const src = useImage(urlToFetch, deeps);
 

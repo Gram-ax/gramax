@@ -3,7 +3,7 @@ import t from "@ext/localization/locale/translate";
 import { Icon } from "@ui-kit/Icon";
 import { Toast, ToastAction } from "@ui-kit/Toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Loader } from "ics-ui-kit/components/loader";
+import { Loader } from "@ui-kit/Loader";
 import { useCallback, useMemo } from "react";
 import { updateCheck } from "../window/commands";
 import { ErrorIcon } from "./UpdateIcons";
@@ -98,7 +98,10 @@ const UpdateChecker = () => {
 										<Icon icon="info" />
 									</TooltipTrigger>
 									<TooltipContent>
-										{message?.charAt(0).toUpperCase() + message?.slice(1)} {src ? `(${src})` : ""}
+										<div style={{ whiteSpace: "pre-line" }}>
+											{message?.charAt(0).toUpperCase() + message?.slice(1)}{" "}
+											{src ? `(${src})` : ""}
+										</div>
 									</TooltipContent>
 								</Tooltip>
 							</span>

@@ -19,6 +19,8 @@ import { Tooltip, TooltipContent, TooltipTrigger, useOverflowTooltip, TooltipArr
 import { getClientDomain } from "@core/utils/getClientDomain";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
+import { QuizSettingsFields } from "@ext/quiz/components/QuizSettingsFields";
+import { TagInput } from "@ui-kit/TagInput";
 
 interface PropsEditorProps extends Omit<UsePropsEditorActionsParams, "onExternalClose"> {
 	submit: SubmitHandler<{ title: string; fileName: string }>;
@@ -32,16 +34,8 @@ const OverflowContainer = styled.div`
 	white-space: nowrap;
 `;
 
-const PropsEditor: FC<PropsEditorProps> = (props) => {
-	const [open, setOpen] = useState(true);
-	const { ref, open: openOverflow, onOpenChange: onOpenChangeOverflow } = useOverflowTooltip<HTMLDivElement>();
-
-	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { onClose, submit, item, itemLink, ...hookParams } = props;
-	const formRef = useRef<HTMLFormElement>(null);
-	const brotherFileNames = useRef<string[]>([]);
-
-	const formSchema = z.object({
+const getSchema = (brotherFileNames: string[]) => {
+	return z.object({
 		title: z.string().min(1, { message: t("must-be-not-empty") }),
 		fileName: z
 			.string()
@@ -49,18 +43,40 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 			.refine((val) => /^[\w\d\-_]+$/m.test(val), {
 				message: t("no-encoding-symbols-in-url"),
 			})
-			.refine((val) => !brotherFileNames?.current?.includes(val), {
+			.refine((val) => !brotherFileNames?.includes(val), {
 				message: t("cant-be-same-name"),
 			}),
+		quiz: z
+			.object({
+				showAnswers: z.boolean().optional(),
+				countOfCorrectAnswers: z.number().optional(),
+			})
+			.nullable()
+			.optional(),
+		searchPhrases: z.array(z.string().min(1, { message: t("must-be-not-empty") })).nullish(),
 	});
+};
 
-	type FormValues = z.infer<typeof formSchema>;
+export type PropsEditorFormValues = z.infer<ReturnType<typeof getSchema>>;
 
-	const form = useForm<FormValues>({
+const PropsEditor: FC<PropsEditorProps> = (props) => {
+	const [open, setOpen] = useState(true);
+	const { ref, open: openOverflow, onOpenChange: onOpenChangeOverflow } = useOverflowTooltip<HTMLDivElement>();
+
+	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { onClose, submit, item, itemLink, isCategory, ...hookParams } = props;
+	const formRef = useRef<HTMLFormElement>(null);
+	const brotherFileNames = useRef<string[]>([]);
+
+	const formSchema = useMemo(() => getSchema(brotherFileNames.current), [brotherFileNames.current]);
+
+	const form = useForm<PropsEditorFormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			title: item?.title === t("article.no-name") ? "" : item?.title,
 			fileName: item?.fileName,
+			quiz: item?.quiz,
+			searchPhrases: item?.searchPhrases ?? [],
 		},
 		mode: "onChange",
 	});
@@ -111,10 +127,11 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 	const fileName = watch("fileName");
 	const isOnlyTitleChanged = watch("title") !== item?.title && fileName === item?.fileName;
 	const url = useMemo(() => {
-		const parentLinkPath = new Path(itemLink?.ref.path).parentDirectoryPath.value;
+		const parentLinkPath = new Path(itemLink?.ref.path).parentDirectoryPath;
+		const parentLinkPathValue = (isCategory ? parentLinkPath.parentDirectoryPath : parentLinkPath).value;
 		const domain = getClientDomain();
 
-		return `${domain}${parentLinkPath.startsWith("/") ? parentLinkPath : `/${parentLinkPath}`}`;
+		return `${domain}${parentLinkPathValue.startsWith("/") ? parentLinkPathValue : `/${parentLinkPathValue}`}`;
 	}, [itemLink?.pathname]);
 
 	return (
@@ -123,9 +140,7 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 				<Form asChild {...form}>
 					<form ref={formRef} className="contents ui-kit" onSubmit={formSubmitHandler}>
 						<ModalHeader>
-							<ModalTitle>
-								{t(`${hookParams.isCategory ? "section" : "article"}.configure.title`)}
-							</ModalTitle>
+							<ModalTitle>{t(`${isCategory ? "section" : "article"}.configure.title`)}</ModalTitle>
 						</ModalHeader>
 						<ModalBody>
 							<FormStack>
@@ -162,6 +177,22 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 												{...field}
 											/>
 										</InputGroup>
+									)}
+									labelClassName={"w-44"}
+								/>
+
+								<QuizSettingsFields isCurrentItem={hookParams.isCurrentItem} form={form} />
+
+								<FormField
+									name="searchPhrases"
+									title={t("searchPhrases")}
+									layout="vertical"
+									control={({ field }) => (
+										<TagInput
+											placeholder={t("searchPhrases-placeholder")}
+											onChange={(newValues) => field.onChange(newValues.length === 0 ? undefined : newValues)}
+											{...field}
+										/>
 									)}
 									labelClassName={"w-44"}
 								/>

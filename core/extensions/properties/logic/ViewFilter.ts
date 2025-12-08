@@ -109,7 +109,7 @@ class ViewFilter extends ViewSorter {
 		callback(article.ref.path.value);
 
 		return {
-			title: article.props.title,
+			title: article.getTitle(),
 			resourcePath,
 			itemPath: article.ref.path.value,
 			linkPath: await this._catalog.getPathname(article),

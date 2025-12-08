@@ -105,6 +105,7 @@ export default class GiteaSourceAPI extends GitSourceApi {
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
+		await this._assertHasInternetAccess();
 		const sourceUrl = `${this._data.protocol ?? "https"}://${this._data.domain}`;
 		try {
 			const res = await fetch(`${sourceUrl}/api/v1/${url}`, {

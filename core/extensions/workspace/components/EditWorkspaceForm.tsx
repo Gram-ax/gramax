@@ -17,11 +17,11 @@ import { Form, FormField, FormFooter, FormHeader, FormSectionTitle, FormStack } 
 import { Input } from "@ui-kit/Input";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { TextInput } from "@ui-kit/Input";
-import { Loader } from "ics-ui-kit/components/loader";
 import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Description } from "@ui-kit/Description";
+import { Loader } from "@ui-kit/Loader";
 
 interface WorkspaceSettingsModalProps {
 	workspace: ClientWorkspaceConfig;

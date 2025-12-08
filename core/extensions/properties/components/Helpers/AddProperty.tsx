@@ -23,12 +23,13 @@ interface AddPropertyProps {
 	catalogProperties: Map<string, Property>;
 	setProperties?: Dispatch<SetStateAction<Property[]>>;
 	canAdd?: boolean;
+	canEdit?: boolean;
 	disabled?: boolean;
 	onSubmit: (propertyName: string, value: string) => void;
 }
 
 const AddProperty = (props: AddPropertyProps) => {
-	const { canAdd = false, properties, catalogProperties, onSubmit, setProperties, disabled } = props;
+	const { canAdd = false, canEdit = true, properties, catalogProperties, onSubmit, setProperties, disabled } = props;
 	const articleProps = ArticlePropsService.value;
 	const setArticleProps = ArticlePropsService.setArticleProps;
 	const catalogProps = useCatalogPropsStore((state) => state);
@@ -141,7 +142,7 @@ const AddProperty = (props: AddPropertyProps) => {
 					property={property}
 					disabled={disabled}
 					onClick={addProperty}
-					onEditClick={editProperty}
+					onEditClick={canEdit ? editProperty : undefined}
 				/>
 			);
 		});

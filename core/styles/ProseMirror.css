@@ -72,6 +72,7 @@
 .ProseMirror [data-comment="true"]:not([data-comment-block="true"]) {
 	cursor: pointer;
 	background: var(--color-comment-bg);
+	color: var(--color-comment-fg);
 	border-bottom: 2px solid var(--color-comment-border);
 }
 
@@ -193,6 +194,11 @@
 	opacity: 0.4;
 	float: left;
 	height: 0;
+}
+
+[data-qa="article-editor"] > .ProseMirror {
+	padding: 0 30px;
+	margin: 0 -30px;
 }
 
 [data-qa="article-editor"] > .ProseMirror > p:first-of-type {

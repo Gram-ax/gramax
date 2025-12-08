@@ -76,8 +76,10 @@ async function parseContent(
 				: article.content;
 
 		const parsedContent = await parser.parse(content, context, requestUrl);
-		const header = getExtractHeader(parsedContent);
-		if (header) article.props.title = header;
+		if (!article.props.title) {
+			const header = getExtractHeader(parsedContent);
+			if (header) article.props.title = header;
+		}
 		return parsedContent;
 	});
 }

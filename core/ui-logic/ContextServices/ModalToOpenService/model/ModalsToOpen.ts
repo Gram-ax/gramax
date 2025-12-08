@@ -1,4 +1,6 @@
 enum ModalToOpen {
+	DuplicateCatalogDialog = "DuplicateCatalogDialog",
+	DuplicateArticleDialog = "DuplicateArticleDialog",
 	MergeConfirm = "MergeConfirm",
 	MergeResolver = "MergeResolver",
 
@@ -27,6 +29,8 @@ enum ModalToOpen {
 	CreateStorage = "CreateStorage",
 
 	EditEnterpriseConfig = "EditEnterpriseConfig",
+	EnterpriseLogout = "EnterpriseLogout",
+	RepositoryPermission = "RepositoryPermission",
 
 	TemplateContentWarning = "TemplateContentWarning",
 	PropertySettings = "PropertySettings",
@@ -40,8 +44,6 @@ enum ModalToOpen {
 
 	MediaPreview = "MediaPreview",
 	FilePreview = "FilePreview",
-
-	EnterpriseLogout = "EnterpriseLogout",
 
 	// Article dropdown modals
 	ItemPropsEditor = "ItemPropsEditor",
@@ -63,6 +65,7 @@ enum ModalToOpen {
 	GesAdmin = "GesAdmin",
 
 	UnsavedChangesModal = "UnsavedChangesModal",
+	UnsavedCommentModal = "UnsavedCommentModal",
 }
 
 export default ModalToOpen;

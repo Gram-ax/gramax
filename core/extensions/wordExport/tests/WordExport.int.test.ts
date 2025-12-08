@@ -73,7 +73,12 @@ const replaysIdsToZero = (xmlString: string) => {
 	return xmlString.replace(/r:id="[^"]+"/g, 'r:id="0"');
 };
 
-const prettyPrintXml = (xmlString: string) => xmlString.replace(/>\s*</g, ">\n<").trim();
+const normalizeNewLines = (xmlString: string) => xmlString.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+const stripTrailingNewlinesInText = (xmlString: string) => xmlString.replace(/\n<\/w:t>/g, "</w:t>");
+
+const prettyPrintXml = (xmlString: string) =>
+	stripTrailingNewlinesInText(normalizeNewLines(xmlString)).replace(/>\s*</g, ">\n<").trim();
 
 const getReferenceXml = async (referencePath: string, newXml: string): Promise<string> => {
 	if (UPD_REF_XML) {

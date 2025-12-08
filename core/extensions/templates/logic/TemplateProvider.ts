@@ -230,13 +230,13 @@ export default class TemplateProvider extends ArticleProvider {
 		const newCatalogProperties = [...(this._catalog.props.properties || [])];
 		newCatalogProperties.push(...transformedOldProps);
 
-		const newCatalog = await this._catalog.updateProps(
+		await this._catalog.updateProps(
 			{ ...this._catalog.props, properties: newCatalogProperties },
 			rc.withContext(ctx),
 		);
 
-		if (!newCatalog) return;
-		return { new: newCatalog.props.properties, names: newAndOldNames };
+		if (!this._catalog) return;
+		return { new: this._catalog.props.properties, names: newAndOldNames };
 	}
 
 	private async _renamePropsInJSONContent(

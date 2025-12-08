@@ -18,7 +18,6 @@ import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/Parser
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import AuthManager from "@ext/security/logic/AuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import { IndexDataProvider } from "@ext/serach/IndexDataProvider";
 import SearcherManager from "@ext/serach/SearcherManager";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
@@ -43,7 +42,6 @@ interface Application {
 	ticketManager: TicketManager;
 	contextFactory: ContextFactory;
 	searcherManager: SearcherManager;
-	indexDataProvider: IndexDataProvider;
 	parserContextFactory: ParserContextFactory;
 	sitePresenterFactory: SitePresenterFactory;
 	resourceUpdaterFactory: ResourceUpdaterFactory;

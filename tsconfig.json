@@ -28,7 +28,7 @@
 		"esModuleInterop": true,
 		"isolatedModules": true,
 		"module": "esnext",
-		"moduleResolution": "node",
+		"moduleResolution": "bundler",
 
 		"paths": {
 			"ics-ui-kit/*": ["node_modules/ics-ui-kit/dist/*"],
@@ -84,5 +84,5 @@
 		"services/**/Services/TSClassDiagram/files",
 		"apps/tauri/src-tauri",
 		"gx"
-	]
+	],
 }

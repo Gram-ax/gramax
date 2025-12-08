@@ -1,14 +1,17 @@
 import { ReactElement, useEffect, useMemo, useRef } from "react";
+import { HtmlOptions, useResolveHtmlOptions } from "../../logic/useResolveHtmlOptions";
 
 type HtmlProps = { content: string; className?: string };
 
-function wrapUserHtml(userHtml: string, iframeId: string) {
+function wrapUserHtml(userHtml: string, iframeId: string, options: HtmlOptions) {
+	const { theme } = options;
 	return `<!doctype html><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy"
       content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:;">
 <style>html,body{margin:0;padding:0;}</style>
 ${userHtml}
 <script>
+  document.documentElement.dataset.theme = "${theme}";
   const post = () => {
   parent.postMessage(
     { type: "embed:height", h: document.scrollingElement.scrollHeight, iframeId: "${iframeId}" },
@@ -22,7 +25,8 @@ ${userHtml}
 const Html = ({ content, className }: HtmlProps): ReactElement => {
 	const iframeRef = useRef<HTMLIFrameElement>(null);
 	const iframeId = useMemo(() => `iframe-${Math.random().toString(36).slice(2)}`, []);
-	const srcDoc = useMemo(() => wrapUserHtml(content, iframeId), [content, iframeId]);
+	const options = useResolveHtmlOptions();
+	const srcDoc = useMemo(() => wrapUserHtml(content, iframeId, options), [content, iframeId, options]);
 
 	useEffect(() => {
 		const onMessage = (e: MessageEvent) => {
@@ -41,7 +45,7 @@ const Html = ({ content, className }: HtmlProps): ReactElement => {
 				ref={iframeRef}
 				data-hover-target="true"
 				title="embedded-html"
-				sandbox="allow-scripts"
+				sandbox="allow-scripts allow-popups"
 				referrerPolicy="no-referrer"
 				frameBorder={0}
 				width="100%"

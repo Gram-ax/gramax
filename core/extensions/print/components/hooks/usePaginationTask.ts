@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import paginateIntoPages from "@ext/print/utils/paginateIntoPages";
 import { waitForNextPaint } from "@ext/print/utils/pagination/scheduling";
@@ -84,19 +83,11 @@ export const usePaginationTask = ({
 				await ResourceService.waitForAllLoads(controller.signal);
 				await waitForNextPaint(controller.signal);
 
-				let runtimeParams: PdfPrintParams = { ...params };
-
-				if (params.template) {
-					onProgress?.({ stage: "exporting", ratio: 0.05 });
-					const response = await FetchService.fetch(apiUrlCreator.getPdfTemplateUrl(params.template));
-					if (response.ok) runtimeParams = { ...runtimeParams, template: await response.text() };
-				}
-
 				onProgress?.({ stage: "exporting", ratio: 0.05 });
 
 				await waitForNextPaint(controller.signal);
 
-				await paginateIntoPages(renderRoot, printRoot, runtimeParams, items, onDone, onProgress, {
+				await paginateIntoPages(renderRoot, printRoot, params, items, onDone, onProgress, {
 					signal: controller.signal,
 					throttleUnits,
 				});

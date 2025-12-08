@@ -18,6 +18,7 @@
 	},
 	"devDependencies": {
 		"fake-indexeddb": "^6.0.0",
+		"vite-bundle-visualizer": "^1.2.1",
 		"vite-plugin-mkcert": "^1.17.8"
 	}
 }

@@ -15,6 +15,16 @@ const self = global.self as typeof global.self & {
 	getStore: (key: number) => string;
 };
 
+try {
+	self.wasm = await Promise.race([
+		WasmModule(),
+		new Promise((resolve, reject) => setTimeout(() => reject(new Error("wasm init timed out")), 10_000)),
+	]);
+} catch (error) {
+	self.postMessage({ type: "timeout" });
+	throw error;
+}
+
 self.store = async (key: number, value: string): Promise<void> => {
 	const [len, ptr] = await str2ptr(value);
 	self.wasm["_store"](key, len, ptr);
@@ -84,7 +94,5 @@ self.addEventListener("message", async (ev) => {
 		return;
 	}
 });
-
-self.wasm = await WasmModule();
 
 self.postMessage({ type: "ready" });

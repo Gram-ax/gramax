@@ -5,7 +5,7 @@ import { useRouter } from "@core/Api/useRouter";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import t from "@ext/localization/locale/translate";
 import CloudApi from "@ext/static/logic/CloudApi";
-import { Loader } from "ics-ui-kit/components/loader";
+import { Loader } from "@ui-kit/Loader";
 import { useCallback } from "react";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 

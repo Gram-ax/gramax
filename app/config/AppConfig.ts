@@ -21,6 +21,7 @@ export interface ServicesConfig {
 }
 
 export interface EnterpriseConfig {
+	isCloud?: boolean;
 	gesUrl: string;
 	refreshInterval: number;
 }
@@ -207,6 +208,7 @@ export const getConfig = (): AppConfig => {
 
 		enterprise: {
 			gesUrl: env("GES_URL"),
+			isCloud: env("GES_IS_CLOUD") === "true",
 			refreshInterval: (getNumber(env("GES_REFRESH_INTERVAL")) || 10 * 60) * 1000, // 10 minutes by default
 		},
 

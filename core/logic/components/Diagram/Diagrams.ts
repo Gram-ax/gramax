@@ -48,7 +48,7 @@ export default class Diagrams {
 
 	private async _getDiagramInternal(type: DiagramType, content: string) {
 		const metadata = this._diagramMetadata[type];
-		if (!haveInternetAccess()) throw new NetworkError({ errorCode: "silent" });
+		if (!(await haveInternetAccess())) throw new NetworkError({ errorCode: "silent" });
 		const url = `${this._diagramRendererServerUrl}/convert/${metadata.req}/${metadata.toType}`;
 
 		if (!content) throw new SilentError(t("diagram.error.cannot-get-data"));

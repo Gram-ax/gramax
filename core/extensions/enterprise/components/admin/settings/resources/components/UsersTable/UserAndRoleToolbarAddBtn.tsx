@@ -21,7 +21,7 @@ import { ModalComponent } from "../../../../ui-kit/ModalComponent";
 import { SelectDisableItem } from "../../../components/SelectDisableItem";
 import { TriggerAddButtonTemplate } from "../../../components/TriggerAddButtonTemplate";
 
-const createFormSchema = (inSelectInput: boolean, existingUsers: string[], guests: GuestsSettings) =>
+const createFormSchema = (inSelectInput: boolean, isExternal: boolean, existingUsers: string[], guests: GuestsSettings) =>
 	z.object({
 		users: inSelectInput
 			? z.array(z.string()).refine((users) => {
@@ -34,6 +34,7 @@ const createFormSchema = (inSelectInput: boolean, existingUsers: string[], guest
 						t("enterprise.admin.resources.users.already-exist"),
 					)
 					.refine((user) => {
+						if (!isExternal) return true;
 						if (!user.includes("@")) return true;
 						const domain = user.split("@")[1];
 						if (guests.whitelistEnabled) return guests.domains.includes(domain);
@@ -66,7 +67,7 @@ export const UserAndRoleToolbarAddBtn = ({
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const inSelectInput = hasUsers && !isExternal;
-	const formSchema = createFormSchema(inSelectInput, existingUsers, settings.guests);
+	const formSchema = createFormSchema(inSelectInput, isExternal, existingUsers, settings.guests);
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
 		defaultValues: { users: [] },

@@ -13,7 +13,7 @@ export interface BrowserLinkProps extends HTMLAttributes<HTMLAnchorElement> {
 const BrowserLink = forwardRef((props: BrowserLinkProps, ref: RefObject<HTMLAnchorElement>) => {
 	const { href, dataQa, ...otherProps } = props;
 	const url = href ? Url.from(href) : null;
-	return <WouterLink {...otherProps} ref={ref} data-qa={dataQa} href={url?.pathname} />;
+	return <WouterLink {...otherProps} ref={ref} data-qa={dataQa} href={url?.toString()} />;
 });
 
 export default BrowserLink;

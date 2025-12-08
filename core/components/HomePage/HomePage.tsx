@@ -17,8 +17,8 @@ import TopMenu from "./TopMenu";
 const HomePage = ({ data, className }: { data: HomePageData; className?: string }) => {
 	const { isStatic, isStaticCli, isNext } = usePlatform();
 	const catalogCount = data.catalogsLinks.length;
-	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
-	const authUrl = getGesSignInUrl(gesUrl, true);
+	const { gesUrl, isCloud } = PageDataContextService.value.conf.enterprise;
+	const authUrl = getGesSignInUrl(gesUrl, true, isCloud);
 	const isGesUnauthorized = PageDataContextService.value.isGesUnauthorized;
 	const breakpoint = useBreakpoint();
 	const signInEnterpriseProps = useSignInEnterprise({ authUrl });
@@ -29,7 +29,7 @@ const HomePage = ({ data, className }: { data: HomePageData; className?: string 
 				wrapperClassName="flex flex-col shadow-scroll h-full"
 				shadowTopClassName="top-shadow"
 			>
-				<TopMenu catalogLinks={data.catalogsLinks} />
+				<TopMenu />
 				{isGesUnauthorized ? (
 					<div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
 						<SignInEnterpriseForm authUrl={authUrl} {...signInEnterpriseProps} onlySSO />

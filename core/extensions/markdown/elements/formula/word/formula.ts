@@ -1,18 +1,39 @@
 import docx from "@dynamicImports/docx";
-import { WordInlineChild } from "@ext/wordExport/options/WordTypes";
-import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
-import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
+import { WordBlockChild, WordInlineChild } from "@ext/wordExport/options/WordTypes";
+import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import { latexToOmmlComponent } from "./logic/latexToOmml";
+import { normalizeLatex } from "./logic/normalizeLatex";
+import { buildInlineMathRun } from "./logic/buildInlineMathRun";
 
-export const formulaWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
-	const { ImageRun } = await docx();
-	const size = ImageDimensionsFinder.getSvgDimensions(tag.attributes.content, addOptions?.maxPictureWidth);
-	return [
-		new ImageRun({
-			data: await BaseImageProcessor.svgToPng(tag.attributes.content, size),
-			transformation: {
-				width: size.width,
-				height: size.height,
-			},
-		}),
-	];
+export const formulaWordBlockLayout: WordBlockChild = async ({ tag }) => {
+	const { Paragraph, TextRun } = await docx();
+	const latexRaw = tag?.attributes?.latex ?? tag?.attributes?.content;
+	const { latex, display } = normalizeLatex(latexRaw);
+
+	try {
+		const result = await latexToOmmlComponent(latex, display);
+		if (result?.component) return [new Paragraph({ style: WordFontStyles.formula, children: [result.component] })];
+	} catch {
+		// ignore and fall back to text
+	}
+
+	return [new Paragraph({ style: WordFontStyles.formula, children: [new TextRun(latexRaw ?? "")] })];
+};
+
+export const formulaWordInlineLayout: WordInlineChild = async ({ tag }) => {
+	const { TextRun, ImportedXmlComponent } = await docx();
+	const latexRaw = tag?.attributes?.latex ?? tag?.attributes?.content;
+	const { latex } = normalizeLatex(latexRaw);
+
+	try {
+		const result = await latexToOmmlComponent(latex, false);
+		if (result?.component) {
+			const run = buildInlineMathRun(result.component, WordFontStyles.formulaInline, ImportedXmlComponent);
+			if (run) return [run];
+		}
+	} catch {
+		// ignore and fall back to text
+	}
+
+	return [new TextRun({ text: latexRaw ?? "", style: WordFontStyles.formulaInline })];
 };

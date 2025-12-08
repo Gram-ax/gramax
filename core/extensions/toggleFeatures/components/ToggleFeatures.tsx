@@ -10,9 +10,9 @@ import { getFeatureList, setFeature, type Feature } from "@ext/toggleFeatures/fe
 import { Badge } from "@ui-kit/Badge";
 import { Button } from "@ui-kit/Button";
 import { Divider } from "@ui-kit/Divider";
+import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Popover, PopoverContent, PopoverTrigger } from "ics-ui-kit/components/popover";
 import { useCallback, useRef, useState } from "react";
 
 const StyledPopoverContent = styled(PopoverContent)`

@@ -12,9 +12,10 @@ export enum ErrorTitle {
 	Unauthorized = "401 Unauthorized",
 }
 
-const validataionTokenErrorMessages = {
+export const validataionTokenErrorMessages = {
 	"Invalid token": "Invalid token. Please provide a valid authentication token.",
 	"Token has expired": "Token has expired. Please refresh your token.",
+	"Invalid authorization header": "Invalid authorization header format. Expected 'Bearer <token>'.",
 };
 
 class ExceptionsResponse {

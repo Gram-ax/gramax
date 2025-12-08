@@ -1,5 +1,5 @@
 import type { ParagraphChild } from "docx";
-import { FileChild } from "docx/build/file/file-child";
+import { FileChild } from "@ext/wordExport/types";
 import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
 import { Tag } from "../markdown/core/render/logic/Markdoc";
 import { AddOptionsWord, TitleInfo, WordBlockChildren, WordInlineChildren } from "./options/WordTypes";

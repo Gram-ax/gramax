@@ -12,6 +12,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import EditMarkdownTrigger from "@ext/article/actions/EditMarkdownTrigger";
+import ArticleMoveAction from "@ext/article/actions/move/ArticleMoveAction";
 import BugsnagTrigger from "@ext/bugsnag/components/BugsnagTrigger";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
 import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseCheckStyleGuide";

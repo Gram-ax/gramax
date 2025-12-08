@@ -2,7 +2,17 @@ import { CheckAnswer } from "@ext/markdown/elements/answer/types";
 import { Question } from "@ext/markdown/elements/question/types";
 import { QuestionResult } from "@ext/markdown/elements/question/types";
 
-export const isAnswersCorrect = (questions: Map<string, Question>, answers: CheckAnswer[]): QuestionResult[] => {
+interface isAnswersCorrectOptions {
+	// If true, the correct answers ids will be included in the result
+	includeCorrectAnswersIds?: boolean;
+}
+
+export const isAnswersCorrect = (
+	questions: Map<string, Question>,
+	answers: CheckAnswer[],
+	options?: isAnswersCorrectOptions,
+): QuestionResult[] => {
+	const { includeCorrectAnswersIds = false } = options || {};
 	const results: QuestionResult[] = [];
 
 	for (const checkAnswer of answers) {
@@ -46,6 +56,7 @@ export const isAnswersCorrect = (questions: Map<string, Question>, answers: Chec
 		results.push({
 			questionId: checkAnswer.questionId,
 			isCorrect,
+			correctAnswersIds: includeCorrectAnswersIds ? Array.from(correctAnswerIds) : undefined,
 		});
 	}
 

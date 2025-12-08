@@ -69,10 +69,10 @@ const PrintView = ({
 	});
 
 	useEffect(() => {
-		if (!onCancelRef) return;
-		onCancelRef(() => cancel());
+		onCancelRef?.(() => cancel());
 		return () => {
-			onCancelRef(undefined);
+			cancel();
+			onCancelRef?.(undefined);
 		};
 	}, [cancel, onCancelRef]);
 
@@ -137,10 +137,17 @@ export default styled(PrintView)`
 		.page-content {
 			flex: 1;
 			overflow: hidden;
+			li.no-marker {
+				&::before,
+				&.task-item > label {
+					display: none;
+				}
+			}
 		}
 	}
 
-	table[data-header="row"] tbody tr:first-child td {
+	table[data-header="row"] tbody tr:first-child td,
+	table[data-header="both"] tbody tr:first-child td {
 		font-weight: 300;
 		color: var(--color-article-text);
 	}
@@ -156,19 +163,26 @@ export default styled(PrintView)`
 			padding-left: 0 !important;
 
 			.toc-item-link {
+				position: relative;
 				display: flex;
 				align-items: baseline;
 				text-decoration: none;
 				width: 100%;
 				color: inherit;
 
+				.toc-item-right {
+					position: absolute;
+					right: 0;
+					display: flex;
+					align-items: baseline;
+					bottom: 0;
+				}
+
 				.toc-item-dots {
+					width: 100%;
 					--size: 2px;
 					--gap: 4px;
 					--step: calc(var(--size) + var(--gap));
-
-					flex: 1 1 auto;
-					min-width: 0;
 					height: var(--size);
 					margin: 0 0.5ch;
 
@@ -182,48 +196,6 @@ export default styled(PrintView)`
 				.toc-item-number {
 					flex-shrink: 0;
 				}
-			}
-
-			.toc-item-level-2 {
-				font-size: 0.95em;
-			}
-			.toc-item-level-3,
-			.toc-item-level-4,
-			.toc-item-level-5,
-			.toc-item-level-6,
-			.toc-item-level-7,
-			.toc-item-level-8,
-			.toc-item-level-9,
-			.toc-item-level-10 {
-				font-size: 0.9em;
-			}
-
-			.toc-item-level-2 {
-				margin-left: 1em;
-			}
-			.toc-item-level-3 {
-				margin-left: 2em;
-			}
-			.toc-item-level-4 {
-				margin-left: 3em;
-			}
-			.toc-item-level-5 {
-				margin-left: 4em;
-			}
-			.toc-item-level-6 {
-				margin-left: 5em;
-			}
-			.toc-item-level-7 {
-				margin-left: 6em;
-			}
-			.toc-item-level-8 {
-				margin-left: 7em;
-			}
-			.toc-item-level-9 {
-				margin-left: 8em;
-			}
-			.toc-item-level-10 {
-				margin-left: 9em;
 			}
 		}
 

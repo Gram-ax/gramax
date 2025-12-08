@@ -6,7 +6,7 @@ import parseContent from "@core/FileStructue/Article/parseContent";
 import BaseCatalog, { type BaseCatalogInitProps } from "@core/FileStructue/Catalog/BaseCatalog";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
 import { CatalogItemSearcher } from "@core/FileStructue/Catalog/CatalogItemSearcher";
-import { ExcludedProps, type CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import { type CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import ContextualCatalogEventHandlers from "@core/FileStructue/Catalog/ContextualCatalogEvents";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
@@ -25,7 +25,6 @@ import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentPr
 import IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import CatalogLinksProvider from "@ext/properties/logic/CatalogLinksProvider";
-import { SystemProperties } from "@ext/properties/models";
 import Permission from "@ext/security/logic/Permission/Permission";
 import TemplateProvider from "@ext/templates/logic/TemplateProvider";
 import assert from "assert";
@@ -150,7 +149,10 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		const prev = this.repo;
 
 		if (prev?.gvc) this._unsubscirbeTokens.gvc.forEach((token) => prev.gvc.events.off(token));
-		if (prev) this._unsubscirbeTokens.repo.forEach((token) => prev.events.off(token));
+		if (prev) {
+			this._unsubscirbeTokens.repo.forEach((token) => prev.events.off(token));
+			prev.unsubscribeEvents();
+		}
 		this._unsubscirbeTokens = { repo: [], gvc: [] };
 
 		this.repo = repo;
@@ -158,6 +160,8 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		this._events.emitSync("repository-set", { catalog: this });
 
 		if (!this.repo?.gvc || !subscribeToEvents) return;
+
+		this.repo.subscribeFpEvents();
 
 		const fileChangesToken = this.repo.gvc.events.on("files-changed", async ({ items }) => {
 			await this.update();
@@ -285,18 +289,12 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	}
 
 	async updateProps(props: CatalogEditProps | CatalogProps, makeResourceUpdater: MakeResourceUpdater) {
-		const newProps = {
-			...props,
-			properties: props?.properties?.filter((property) => !SystemProperties[property.name.toLowerCase()]),
-		};
-		Object.keys(newProps)
-			.filter((k: keyof typeof newProps) => !ExcludedProps.includes(k))
-			.forEach((k) => (this.props[k] = newProps[k]));
+		await super.updateProps(props, makeResourceUpdater);
+
 		await this._fs.saveCatalog(this);
 		if (props.docroot) await this._moveRootCategoryIfNeed(new Path(props.docroot), makeResourceUpdater);
 		await this.update();
-		if (props.url && props.url !== this.name) return this.updateName(props.url);
-		return this;
+		if (props.url && props.url !== this.name) await this.updateName(props.url);
 	}
 
 	async updateName(name: string) {
@@ -353,14 +351,8 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		return this._searcher.findItemByLogicPath(root ?? this._resolveRootCategory(), logicPath, filters) as Article;
 	}
 
-	getItems(filters: ArticleFilter[] = [], root?: Category): Item[] {
-		return this._getItems(root || this._resolveRootCategory(), filters);
-	}
-
-	getArticles(filters?: ArticleFilter[]): Article[] {
-		if (!filters) filters = [];
-		filters.push((item: Item) => item.type == ItemType.article);
-		return this._getItems(this._resolveRootCategory(), filters) as Article[];
+	getItems(filters: ArticleFilter[] = [], root?: Category): Article[] {
+		return this._getItems(root || this._resolveRootCategory(), filters) as Article[];
 	}
 
 	getCategories(filters?: CategoryFilter[]): Category[] {
@@ -435,12 +427,12 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		return category;
 	}
 
-	async parseEveryArticle(ctx: Context, parser: MarkdownParser, parserContextFactory: ParserContextFactory) {
+	async parseEveryItem(ctx: Context, parser: MarkdownParser, parserContextFactory: ParserContextFactory) {
 		if (this._parsedOnce) return;
 		this._parsedOnce = true;
 
 		await Promise.all(
-			this.getArticles().map(async (article) => {
+			this.getItems().map(async (article) => {
 				try {
 					await parseContent(article, this, ctx, parser, parserContextFactory);
 				} catch (error) {}

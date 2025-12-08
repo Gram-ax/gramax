@@ -1799,4 +1799,27 @@ export const styles = /* xml */ `<?xml version="1.0" encoding="UTF-8" standalone
 			<w14:ligatures w14:val="none"/>
 		</w:rPr>
 	</w:style>
+	<w:style w:type="paragraph" w:customStyle="1" w:styleId="Formula">
+		<w:name w:val="Formula"/>
+		<w:basedOn w:val="Normal"/>
+		<w:qFormat/>
+		<w:rsid w:val="00E34352"/>
+		<w:pPr>
+			<w:jc w:val="center"/>
+		</w:pPr>
+		<w:rPr>
+			<w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
+			<w:sz w:val="24"/>
+		</w:rPr>
+	</w:style>
+	<w:style w:type="character" w:customStyle="1" w:styleId="FormulaInline">
+		<w:name w:val="Formula Inline"/>
+		<w:basedOn w:val="DefaultParagraphFont"/>
+		<w:qFormat/>
+		<w:rsid w:val="00E34352"/>
+		<w:rPr>
+			<w:rFonts w:ascii="Cambria Math" w:hAnsi="Cambria Math"/>
+			<w:sz w:val="24"/>
+		</w:rPr>
+	</w:style>
 </w:styles>`;

@@ -38,7 +38,7 @@ const autoPull = async (app: Promise<Application>) => {
 
 	const pullCatalogs = async (lib: Workspace) => {
 		const catalogEntries = Array.from(lib.getAllCatalogs().values());
-		await Promise.all(catalogEntries.map((catalogEntry) => pullCatalog(catalogEntry, logger)));
+		for (const catalogEntry of catalogEntries) await pullCatalog(catalogEntry, logger);
 		setTimeout(() => void pullCatalogs(wm.current()), pullInterval);
 	};
 

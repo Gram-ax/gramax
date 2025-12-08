@@ -1,6 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
+import { HELPERS_LEFT, VERTICAL_TOP_OFFSET } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 import { MouseEvent, RefObject, useState } from "react";
 
 interface PlusActionsProps {
@@ -137,11 +138,11 @@ export default styled(PlusActions)`
 	}
 
 	&.horizontal {
-		left: -0.5rem;
+		right: calc(-100% + ${HELPERS_LEFT});
 	}
 
 	&.vertical {
-		left: 0.5rem;
-		top: -0.5rem;
+		left: ${HELPERS_LEFT};
+		top: -${VERTICAL_TOP_OFFSET};
 	}
 `;

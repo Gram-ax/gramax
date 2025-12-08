@@ -2,7 +2,7 @@ import type { PropsOf } from "@emotion/react";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
-import { Button } from "ics-ui-kit/components/button";
+import { Button } from "@ui-kit/Button";
 import {
 	Modal,
 	ModalBody,
@@ -13,7 +13,7 @@ import {
 	ModalHeader,
 	ModalTitle,
 	ModalTrigger,
-} from "ics-ui-kit/components/modal";
+} from "@ui-kit/Modal";
 
 export type TechnicalDetailsProps = PropsOf<typeof Button> & {
 	error: Error;

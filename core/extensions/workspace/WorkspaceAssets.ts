@@ -10,7 +10,7 @@ export enum PredefinedAssets {
 export default class WorkspaceAssets {
 	constructor(private readonly _fp: FileProvider) {}
 
-	async get(name: PredefinedAssets): Promise<string> {
+	async get(name: PredefinedAssets | string): Promise<string> {
 		const status = await this._fp.exists(new Path(name));
 		if (!status) return null;
 

@@ -15,7 +15,7 @@ function multiLayoutSearcher<T>(searcher: (query: string) => T | Promise<T>, syn
 			let result = searcher(query);
 
 			for (const transform of transformations) {
-				if (result) return result;
+				if (result && (!Array.isArray(result) || result.length > 0)) return result;
 				const transformedQuery = transform(query);
 				result = searcher(transformedQuery);
 			}
@@ -27,7 +27,7 @@ function multiLayoutSearcher<T>(searcher: (query: string) => T | Promise<T>, syn
 		let result = await searcher(query);
 
 		for (const transform of transformations) {
-			if (result) return result;
+			if (result && (!Array.isArray(result) || result.length > 0)) return result;
 			const transformedQuery = transform(query);
 			result = await searcher(transformedQuery);
 		}

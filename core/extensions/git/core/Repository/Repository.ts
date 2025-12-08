@@ -127,6 +127,10 @@ export default abstract class Repository {
 		return this._events;
 	}
 
+	subscribeFpEvents() {}
+
+	unsubscribeEvents() {}
+
 	update(repoPath: Path, gvc: GitVersionControl, storage: Storage, fp: FileProvider) {
 		this._repoPath = repoPath;
 		this._gvc = gvc;

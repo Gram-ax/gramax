@@ -34,7 +34,7 @@ const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const catalogNotFound = useCatalogPropsStore((state) => state.data.notFound);
-	const narrowMedia = useMediaQuery(cssMedia.narrow);
+	const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
 	const { isTauri, isBrowser, isStaticCli } = usePlatform();
 	const { topTab } = NavigationTabsService.value;
 

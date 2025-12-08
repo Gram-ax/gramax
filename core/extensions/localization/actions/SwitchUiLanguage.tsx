@@ -10,7 +10,7 @@ import {
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from "ics-ui-kit/components/dropdown";
+} from "@ui-kit/Dropdown";
 import { MenuItemInfoTemplate } from "@ui-kit/MenuItem";
 import { useCallback } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";

@@ -24,9 +24,9 @@ import {
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 } from "@ui-kit/Dropdown";
-import { Loader } from "ics-ui-kit/components/loader";
 import { ComponentProps, useMemo, useRef } from "react";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { Loader } from "@ui-kit/Loader";
 
 interface ItemExportProps {
 	fileName: string;

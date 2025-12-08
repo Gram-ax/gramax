@@ -1,6 +1,7 @@
 import CardActions from "@components/HomePage/CardParts/CardActions";
 import CardBroken from "@components/HomePage/CardParts/CardBroken";
 import CardError, { useCardError } from "@components/HomePage/CardParts/CardError";
+import { clearCardLoading, setCardLoading, useCardLoading } from "@components/HomePage/CardParts/CardStore";
 import CardCloneProgress from "@components/HomePage/CardParts/CloneProgress";
 import useGetCatalogTitleLogo from "@components/HomePage/Cards/useGetCatalogTitleLogo";
 import { classNames } from "@components/libs/classNames";
@@ -12,8 +13,8 @@ import CatalogFetchNotification from "@ext/git/actions/Fetch/CatalogFetchNotific
 import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import { OverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "ics-ui-kit/components/card";
-import { ProgressBlockTemplate } from "ics-ui-kit/components/progress";
+import { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "@ui-kit/Card";
+import { ProgressBlockTemplate } from "@ui-kit/Progress";
 import { useEffect, useState } from "react";
 import Link from "../Atoms/Link";
 
@@ -26,7 +27,7 @@ interface CardProps {
 
 const GxCard = ({ link, className, onClick, name }: CardProps) => {
 	const [isCancel, setIsCancel] = useState(false);
-	const [isLoading, setIsLoading] = useState<boolean>(false);
+	const isLoading = useCardLoading(link.name);
 
 	const workspace = Workspace.current()?.path;
 
@@ -44,6 +45,12 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 	useEffect(() => {
 		if (link.isCloning && !isCloning && !(progress?.type == "finish" || progress?.type == "error")) start();
 	}, [link, start, progress, isCloning]);
+
+	useEffect(() => {
+		return () => {
+			clearCardLoading(link.name);
+		};
+	}, [link.name]);
 
 	const renderLogo = !isCloning && !error && logo;
 	const pathname = link.lastVisited || link.pathname;
@@ -64,7 +71,7 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 				if (error) return onClickError();
 				if (isNext || isStatic || isCloning) return;
 				onClick();
-				setIsLoading(true);
+				setCardLoading(link.name, true);
 			}}
 		>
 			<CardTitle>

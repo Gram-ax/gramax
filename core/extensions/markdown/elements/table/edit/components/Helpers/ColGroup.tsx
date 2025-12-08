@@ -3,22 +3,22 @@ import { Node } from "@tiptap/pm/model";
 import { memo, RefObject, useLayoutEffect, useMemo, useState } from "react";
 
 interface ColGroupProps {
+	initColInfo?: ColInfo[];
 	content?: Node;
 	parentElement?: HTMLElement;
 	tableRef?: RefObject<HTMLTableElement>;
-	isPrint?: boolean;
 }
 
-interface ColInfo {
+export interface ColInfo {
 	colspan: number;
 	colwidth?: (number | string)[];
 }
 
 const TABLE_WRAPPER_PADDINGS = 48; //1.5em + 1.5em
 
-const ColGroup = ({ content, parentElement, tableRef, isPrint }: ColGroupProps) => {
+const ColGroup = ({ content, parentElement, tableRef, initColInfo }: ColGroupProps) => {
 	const articleRef = ArticleRefService.value;
-	const [colInfo, setColInfo] = useState<ColInfo[]>([]);
+	const [colInfo, setColInfo] = useState<ColInfo[]>(initColInfo || []);
 	const [cellWidth, setCellWidth] = useState<number>(null);
 
 	const getColInfoFromNode = (): ColInfo[] => {
@@ -80,6 +80,7 @@ const ColGroup = ({ content, parentElement, tableRef, isPrint }: ColGroupProps) 
 	};
 
 	const updateColInfo = () => {
+		if (initColInfo) return;
 		const newColInfo = content ? getColInfoFromNode() : getColInfoFromTable();
 		const newCellWidth = calculateCellWidth(newColInfo);
 
@@ -125,8 +126,6 @@ const ColGroup = ({ content, parentElement, tableRef, isPrint }: ColGroupProps) 
 
 		return cols;
 	}, [colInfo, cellWidth]);
-
-	if (isPrint) return null;
 
 	return <colgroup>{generatedCols}</colgroup>;
 };

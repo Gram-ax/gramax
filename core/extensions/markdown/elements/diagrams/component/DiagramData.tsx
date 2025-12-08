@@ -28,10 +28,11 @@ interface DiagramDataProps {
 	width?: string;
 	height?: string;
 	float?: string;
+	isPrint?: boolean;
 }
 
 const DiagramData = (props: DiagramDataProps) => {
-	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId, float } = props;
+	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId, float, isPrint } = props;
 	const isC4Diagram = diagramName == DiagramType["c4-diagram"];
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
@@ -88,6 +89,8 @@ const DiagramData = (props: DiagramDataProps) => {
 		},
 		src,
 		content,
+		undefined,
+		isPrint,
 	);
 
 	return (

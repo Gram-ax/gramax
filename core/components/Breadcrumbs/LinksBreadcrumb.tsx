@@ -1,18 +1,20 @@
+import { useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
 import styled from "@emotion/styled";
-import { ArticleLink, BaseLink, CatalogLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
+import { ArticleLink, BaseLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import { forwardRef, MutableRefObject } from "react";
 import Breadcrumb from "./Breadcrumb";
-import { useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
 
 interface BreadcrumbProps {
 	itemLinks?: ItemLink[];
-	catalogLink?: CatalogLink;
+	catalog?: { name: string; title: string };
 	readyData?: { titles: string[]; links: BaseLink[] };
 	className?: string;
 }
 
 const LinksBreadcrumb = forwardRef((props: BreadcrumbProps, ref: MutableRefObject<HTMLDivElement>) => {
-	const { itemLinks, catalogLink, readyData, className } = props;
+	const { itemLinks, catalog, readyData, className } = props;
+	const { isExist, src } = useGetCatalogLogoSrc(catalog?.name);
+
 	let titles: string[] = [];
 	let lastIsIndexArticle = false;
 	let categoryLinks: BaseLink[] = [];
@@ -47,25 +49,19 @@ const LinksBreadcrumb = forwardRef((props: BreadcrumbProps, ref: MutableRefObjec
 		categoryLinks = readyData.links;
 	}
 
-	if (!titles.length && !catalogLink) return <div />;
-
-	const { isExist, src } = useGetCatalogLogoSrc(catalogLink?.name);
-
+	if (!titles.length && !catalog) return <div />;
 	return (
 		<div
 			ref={ref}
 			className={className + " breadcrumb"}
-			style={catalogLink || (titles.length && categoryLinks.length) ? {} : { visibility: "hidden" }}
+			style={catalog || (titles.length && categoryLinks.length) ? {} : { visibility: "hidden" }}
 		>
-			{catalogLink ? (
-				<>
-					<a className="catalog-logo">
-						{isExist && <img src={src} alt={catalogLink.name} />}
-						<span className="title">{catalogLink.title}</span>
-					</a>
-				</>
-			) : null}
-
+			{catalog && (
+				<a className="catalog-logo">
+					{isExist && <img src={src} alt={catalog.name} />}
+					<span className="title">{catalog.title}</span>
+				</a>
+			)}
 			<div className="article-breadcrumb">
 				{titles.length && categoryLinks.length ? (
 					<Breadcrumb
@@ -86,6 +82,7 @@ export default styled(LinksBreadcrumb)`
 	align-items: center;
 
 	img {
+		width: 100%;
 		margin: 0px !important;
 		max-width: 25px !important;
 		max-height: 15px !important;

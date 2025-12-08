@@ -160,7 +160,8 @@ class LinkFocusTooltip extends BaseMark {
 			return href + (mark?.attrs?.hash ?? "");
 		}
 
-		return (isURL(href) ? href : "/" + href) + (mark?.attrs?.hash ?? "");
+		const isUrl = isURL(href);
+		return (isUrl || href.startsWith("/") ? href : "/" + href) + (mark?.attrs?.hash ?? "");
 	}
 
 	private _getValue(mark: Mark) {

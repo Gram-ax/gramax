@@ -98,10 +98,6 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 		return this.deref.getContentItems();
 	}
 
-	getArticles(): Article[] {
-		return this.deref.getArticles();
-	}
-
 	getCategories(): Category[] {
 		return this.deref.getCategories();
 	}

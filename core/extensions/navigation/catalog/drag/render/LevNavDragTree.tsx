@@ -1,4 +1,3 @@
-import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import { DropOptions, NodeModel, Tree } from "@minoru/react-dnd-treeview";
@@ -25,7 +24,6 @@ interface LevNavDragTreeProps {
 
 const LevNavDragTree = (props: LevNavDragTreeProps) => {
 	const { items = [], onDrop, closeNavigation, canDrag = true, className } = props;
-	const articleElement = ArticleRefService.value.current;
 	const [initialOpen, setInitialOpen] = useState(() => new Set<number | string>(getOpenItemsIds(items)));
 	const [draggedItemPath, setDraggedItemPath] = useState<string>();
 
@@ -89,7 +87,6 @@ const LevNavDragTree = (props: LevNavDragTreeProps) => {
 							toggleOpen={toggleOpen}
 							draggedItemPath={draggedItemPath}
 							closeNavigation={closeNavigation}
-							articleElement={articleElement}
 						/>
 					)}
 					placeholderRender={(_, { depth }) => {

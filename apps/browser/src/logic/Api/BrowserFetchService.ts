@@ -93,9 +93,27 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 
 	if (kind == ResponseKind.html) return res.send(commandResult);
 
-	if (kind == ResponseKind.stream) return res.send(commandResult);
+	if (kind == ResponseKind.stream) return res.send(generatorToReadableStream(commandResult.iterator ?? commandResult));
 
 	throw new Error("Invalid ResponseKind");
 };
+
+function generatorToReadableStream(gen: AsyncGenerator<string, void, void>): ReadableStream<Uint8Array> {
+	const encoder = new TextEncoder();
+
+	return new ReadableStream<Uint8Array>({
+		async pull(controller) {
+			const item = await gen.next();
+			if (item.done === true) {
+				controller.close();
+			} else {
+				controller.enqueue(encoder.encode(item.value));
+			}
+		},
+		async cancel() {
+			if (gen.return) await gen.return();
+		},
+	});
+}
 
 export default fetchSelf;

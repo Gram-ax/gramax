@@ -13,6 +13,7 @@ import { useCallback, useMemo, useState } from "react";
 import { TriggerAddButtonTemplate } from "../../components/TriggerAddButtonTemplate";
 import { groupTableColumns } from "../config/GroupsTableConfig";
 import { Group } from "../types/GroupsComponentTypes";
+import { shallow } from "zustand/shallow";
 
 interface GroupsTableProps {
 	onDelete: (groupIds: string[]) => Promise<void>;
@@ -21,7 +22,13 @@ interface GroupsTableProps {
 export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 	const { settings } = useSettings();
 	const groupSettings = settings?.groups;
-	const { setPage, setParams } = useAdminPageData();
+	const { setPage, setParams } = useAdminPageData(
+		(store) => ({
+			setPage: store.setPage,
+			setParams: store.setParams,
+		}),
+		shallow,
+	);
 
 	const [groupsRowSelection, setGroupsRowSelection] = useState({});
 
@@ -67,12 +74,12 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 
 	const handleAdd = useCallback(() => {
 		setPage(Page.USER_GROUPS);
-		setParams((pr) => ({ ...pr, entityId: "new" }));
+		setParams({ entityId: "new" });
 	}, []);
 
 	const handleEdit = useCallback((groupId: string) => {
 		setPage(Page.USER_GROUPS);
-		setParams((pr) => ({ ...pr, entityId: groupId }));
+		setParams({ entityId: groupId });
 	}, []);
 
 	const handleFilterChange = useCallback(

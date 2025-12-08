@@ -11,6 +11,7 @@ const Wrapper = styled.div`
 	align-items: center;
 	justify-content: space-between;
 	flex-wrap: wrap;
+	padding: 30px 30px 0 30px;
 `;
 
 const BaseArticleBreadcrumb = ({ onCloseClick }: BaseArticleBreadcrumbProps) => {

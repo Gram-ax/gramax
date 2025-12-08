@@ -99,7 +99,7 @@ interface SectionDialogProps {
 	selectedCatalogs: string[];
 	setSelectedCatalogs: React.Dispatch<React.SetStateAction<string[]>>;
 	sectionResources: string[];
-	onSave: () => void;
+	onSave: (overrideForm?: WorkspaceFormData, overrideCatalogs?: string[]) => void;
 	onClose: () => void;
 }
 
@@ -213,15 +213,16 @@ export function SectionDialog({
 	}, [form, rhfForm]);
 
 	const onSubmit = (values: z.infer<typeof formSchema>) => {
-		setForm({
-			...form,
+		const updatedForm: WorkspaceFormData = {
 			key: values.key,
 			title: values.title,
 			icon: values.icon || "",
 			view: values.view ? getViewByLabel(values.view.value) || WorkspaceView.FOLDER : WorkspaceView.FOLDER,
 			description: values.description || "",
-		});
-		onSave();
+			catalogs: selectedCatalogs,
+		};
+		setForm(updatedForm);
+		onSave(updatedForm, selectedCatalogs);
 	};
 
 	const hasChanges = useMemo(() => {
@@ -270,14 +271,14 @@ export function SectionDialog({
 
 	const handleApplyAndClose = useCallback(() => {
 		setShowConfirmDialog(false);
-		onSave();
+		onSave(form, selectedCatalogs);
 		if (pendingClose) {
 			pendingClose();
 			setPendingClose(null);
 		}
 		setOriginalForm(null);
 		setOriginalCatalogs([]);
-	}, [onSave, pendingClose]);
+	}, [onSave, pendingClose, form, selectedCatalogs]);
 
 	const handleCancelClose = useCallback(() => {
 		setShowConfirmDialog(false);

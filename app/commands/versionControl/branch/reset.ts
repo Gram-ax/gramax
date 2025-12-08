@@ -18,8 +18,9 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { rp, wm } = this._app;
+		const { rp, wm, em } = this._app;
 		const workspace = wm.current();
+		const gesUrl = em.getConfig().gesUrl;
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
@@ -28,10 +29,10 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 		const isBare = catalog.repo.isBare;
 		let hasCheckout = false;
 		if (isBare) {
-			if (haveInternetAccess() && storage && !data.isInvalid) await storage.fetch(data);
+			if ((await haveInternetAccess(gesUrl)) && storage && !data.isInvalid) await storage.fetch(data);
 			hasCheckout = (await catalog.repo.checkoutIfCurrentBranchNotExist(data)).hasCheckout;
 		}
-		if (haveInternetAccess() && storage && !data.isInvalid) await storage.fetch(data, isBare);
+		if ((await haveInternetAccess()) && storage && !data.isInvalid) await storage.fetch(data, isBare);
 		if (hasCheckout) {
 			throw new DefaultError(t("git.branch.error.not-found-reload"));
 		}

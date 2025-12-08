@@ -5,6 +5,13 @@ const locale = {
 		"catalog-edit-props": {
 			name: "Catalog Settings",
 			description: "Set the catalog parameters and its display",
+			tabs: {
+				title: "Sections",
+				general: "General",
+				appearance: "Appearance",
+				icons: "Icons",
+				extended: "Extended",
+			},
 			props: {
 				title: {
 					name: "Catalog Title",
@@ -301,7 +308,7 @@ const locale = {
 				},
 				domain: {
 					name: "Confluence server URL",
-					placeholder: "confluence.domain.com",
+					placeholder: "https://confluence.domain.com",
 					description: "Copy the URL of your Confluence server",
 				},
 				password: {
@@ -435,6 +442,7 @@ const locale = {
 		"create-source": {
 			name: "Add new source",
 			description: "Specify the source type and enter the necessary data",
+			"desktop-only": "Available only in the desktop app",
 			props: {
 				source: {
 					name: "Source type",
@@ -463,9 +471,17 @@ const locale = {
 		},
 		loading: "loading",
 		error: {
+			offline: {
+				"no-internet": "No internet connection",
+				mode: "Offline mode",
+			},
 			"browser-not-supported": {
 				title: "This browser is not supported",
 				desc: "<span>Open Gramax in a <a href='https://gram.ax/resources/docs/app/web-editor'>different browser</a> or </span><a href='https://gram.ax'> download the app</a><span> to your computer</span>",
+			},
+			"wasm-init-timeout": {
+				title: "Failed to initialize Gramax",
+				desc: "The wasm module initialization is timed out. Please try again",
 			},
 			"unknown-error": "Unknown error",
 			"cannot-load": "Unable to load the application",
@@ -473,8 +489,7 @@ const locale = {
 				"Missing <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated'>cross-origin isolation</a> or HTTPS connection which is required to run application",
 			"command-failed": {
 				title: "Something went wrong",
-				body: '<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — <a href="https://t.me/gramax_assist_bot">contact support</a>.</p>',
-				"body-enterprise": `<p>Reload the page and try again. If the error prevents you from working, <a href='https://t.me/gramax_chat' target='${
+				body: `<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — <a href="https://t.me/gramax_assist_bot target='${
 					getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
 				}'>contact support</a>.</p>`,
 			},
@@ -526,6 +541,8 @@ const locale = {
 		"invalid-file-format": "Invalid file format",
 		"select-file": "Select a file",
 		"no-file-selected": "No file selected",
+		disabled: "Style guide is disabled",
+		"failed-to-check": "Failed to check style article",
 		"token-descriprion":
 			"Your token remains on your device and is not transmitted to our servers. Please keep your token secure and do not share it with others.",
 		"settings-description": `<p>To upload a style guide configuration file, follow these steps:</p>
@@ -683,6 +700,23 @@ const locale = {
 		},
 	},
 	article: {
+		move: {
+			"to-workspace": "Move",
+			"create-new-catalog": "Create new catalog",
+			"no-workspaces": "No other workspaces",
+			"no-catalogs": "No other catalogs",
+			"cannot-move-language": "You can not move article out of catalog with multiple languages",
+			progress: "Moving article",
+
+			duplicate: {
+				title: "This article already exists",
+				description:
+					"Article <code>{{articleName}}</code> already exists in the catalog <code>{{targetCatalogName}}</code>. You can either keep both or replace the existing article",
+				"keep-both": "Keep Both",
+				replace: "Replace",
+				cancel: "Cancel",
+			},
+		},
 		create: {
 			title: "Create Article",
 			body: "Your sections and articles will be in the left navigation. Start by creating your first article.",
@@ -770,6 +804,19 @@ title: Unable to display the article
 			local: "This catalog is stored only in the app. You will not be able to restore it",
 			storage: "The catalog will be deleted only from the app. But you can reload it from storage",
 			progress: "Removing catalog",
+		},
+		move: {
+			"unavailable-in-ges": "Cannot move catalog out of Enterprise workspace",
+			"to-workspace": "Move",
+			"no-workspaces": "No other workspaces available",
+		},
+		duplicate: {
+			title: "This catalog already exists",
+			description:
+				"Catalog <code>{{catalogName}}</code> already exists in the workspace <code>{{targetWorkspaceName}}</code>. You can either keep both or replace the existing catalog",
+			"keep-both": "Keep Both",
+			replace: "Replace",
+			cancel: "Cancel",
 		},
 		name: "catalog",
 		configure: "Configure catalog",
@@ -977,6 +1024,9 @@ title: Unable to display the article
 		"ai-search-error":
 			"The AI search function is unavailable due to technical problems. We recommend contacting the system administrator for additional information.",
 		"ai-search-error-title": "Technical problems with AI search",
+		"indexing-info": "Updating search index...",
+		"hidden-results": "...{{count}} more",
+		"recommended": "Recommended",
 	},
 	list: {
 		"no-results-found": "No results found",
@@ -1001,7 +1051,7 @@ title: Unable to display the article
 				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>.<br><a style="color: hsl(201 96% 32%)" target="_blank" rel="noopener noreferrer" href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Learn more</a>`,
 			},
 			gitverse: {
-				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>Репозиторий</code>, <code>Публичный API</code>. <a style="color: hsl(201 96% 32%)" target="_blank" rel="noopener noreferrer" href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Learn more</a>`,
+				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>Репозитории</code>, <code>Пользователи</code>. <a style="color: hsl(201 96% 32%)" target="_blank" rel="noopener noreferrer" href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Learn more</a>`,
 			},
 			gitea: {
 				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>repository</code>, <code>user</code> (Read and Write).<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitea.com/development/oauth2-provider#scopes'>Learn more</a>`,
@@ -1788,6 +1838,20 @@ title: Unable to display the article
 					errorText: "Search error",
 					required: "Select at least 1 branch",
 				},
+				catalog: {
+					permission: {
+						title: "Configure permissions",
+						description: "Configure permissions to the catalog",
+					},
+				},
+			},
+			groups: {
+				"add-group": "Add group",
+				"group-name": "Group name",
+				"group-name-description": "Enter the group name",
+				"group-name-placeholder": "Enter the group name",
+				"name-error": "Group name is required",
+				"group-name-exists": "Group with this name already exists",
 			},
 			guests: {
 				"general-settings": "General settings",
@@ -1801,6 +1865,10 @@ title: Unable to display the article
 				inactive: "User does not match the current whitelist domains and is not considered an external reader",
 			},
 			check: {
+				switch: {
+					on: "The check module is enabled",
+					off: "The check module is disabled",
+				},
 				rule: "Rule",
 				"import-rules": "Import rules",
 				"no-rules": "No rules",
@@ -1973,6 +2041,8 @@ title: Unable to display the article
 	synchronization: "Synchronizing...",
 	theme: "Theme",
 	title: "Title",
+	searchPhrases: "Search keywords",
+	"searchPhrases-placeholder": "Add keyword...",
 	token: "token",
 	type: "Type",
 	unresolve: "Unresolved",
@@ -2089,7 +2159,7 @@ title: Unable to display the article
 	"enter-snippet-text": "Enter snippet text",
 	"error-expand": "Show details",
 	"error-mail": "The email provided is incorrect.",
-	"error-sing-in": "Ошибка входа",
+	"error-sing-in": "Sign in error",
 	"error-occured": "An error occurred while displaying the documentation.",
 	"export-disabled": "Add an article to export",
 	"file-content": "File content",
@@ -2416,6 +2486,24 @@ title: Unable to display the article
 			title: "Welcome to Gramax!",
 			description: "Start by loading an existing catalog from storage",
 		},
+		editor: {
+			title: "Welcome to Gramax!",
+			description: "Create a docs in Gramax and publish them as a fast, modern website with AI-powered search",
+			options: {
+				"create-blank": {
+					title: "Create a blank catalog",
+					description: "Start from scratch",
+				},
+				"download-exists": {
+					title: "Link GutHub or GitLab",
+					description: "Connect Gramax to your Git repository",
+				},
+				"import-exists": {
+					title: "Import documentation",
+					description: "Move your docs from Notion or Confluence",
+				},
+			},
+		},
 	},
 	"try-later": "Please try again later",
 	"file-upload": {
@@ -2440,6 +2528,10 @@ title: Unable to display the article
 			title: "Unsaved changes",
 			body: "You have unsaved changes. Please select an action:",
 		},
+		"unsaved-comment": {
+			title: "Unsaved comment",
+			body: "Are you sure you want to close the comment window? Unsaved changes will be lost.",
+		},
 	},
 	"save-and-close": "Save and close",
 	record: "record",
@@ -2453,8 +2545,30 @@ title: Unable to display the article
 			answered: "Answered",
 			total: "Total",
 			send: "Send answers",
+			statistics: {
+				title: "Statistics",
+				"correct-answers": "Correct answers",
+				passed: "Passed",
+				failed: "Failed",
+			},
+		},
+		settings: {
+			name: "Quiz settings",
+			"show-answers": {
+				title: "Show answers",
+				description: "Show answers to the questions after the test is completed",
+			},
+			"precent-of-correct-answers": {
+				title: "Percentage of correct answers",
+				description: "The percentage of correct answers to pass the test",
+				placeholder: "Number between 0 and 100",
+			},
 		},
 		"required-questions": "Please answer all required questions",
+	},
+	or: "or",
+	errors: {
+		"workspace-path-not-found": "Workspace with path {{path}} not found",
 	},
 };
 

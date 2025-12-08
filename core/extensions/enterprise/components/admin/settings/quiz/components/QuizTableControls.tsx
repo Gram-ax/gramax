@@ -6,8 +6,9 @@ import { useCache } from "@ui-kit/MultiSelect";
 import { Dispatch, memo, SetStateAction, useCallback } from "react";
 
 interface TableControlProps {
-	setFilters: Dispatch<SetStateAction<QuizTableFilters>>;
 	filters: QuizTableFilters;
+	disabled: boolean;
+	setFilters: Dispatch<SetStateAction<QuizTableFilters>>;
 }
 
 export type QuizTableFilters = {
@@ -20,7 +21,7 @@ interface MultiSelectFilterProps<T extends keyof QuizTableFilters> extends Omit<
 }
 
 const TestsSelect = memo((props: MultiSelectFilterProps<"tests">) => {
-	const { filter, setFilters } = props;
+	const { filter, setFilters, disabled } = props;
 	const { searchQuizTests } = useSettings();
 
 	const { loadOptions } = useCache(async (params) => {
@@ -40,6 +41,7 @@ const TestsSelect = memo((props: MultiSelectFilterProps<"tests">) => {
 
 	return (
 		<FilterMultiSelect
+			disabled={disabled}
 			existingOptions={filter}
 			onAdd={onTestsChange}
 			onRemove={onTestsChange}
@@ -53,7 +55,7 @@ const TestsSelect = memo((props: MultiSelectFilterProps<"tests">) => {
 });
 
 const UsersSelect = memo((props: MultiSelectFilterProps<"users">) => {
-	const { filter, setFilters } = props;
+	const { filter, setFilters, disabled } = props;
 	const { searchAnsweredUsers } = useSettings();
 
 	const { loadOptions } = useCache(async (params) => {
@@ -73,6 +75,7 @@ const UsersSelect = memo((props: MultiSelectFilterProps<"users">) => {
 
 	return (
 		<FilterMultiSelect
+			disabled={disabled}
 			existingOptions={filter}
 			onAdd={onUsersChange}
 			onRemove={onUsersChange}
@@ -86,16 +89,17 @@ const UsersSelect = memo((props: MultiSelectFilterProps<"users">) => {
 });
 
 export const TableControls = (props: TableControlProps) => {
-	const { setFilters, filters } = props;
+	const { setFilters, filters, disabled } = props;
 
 	return (
 		<div className="flex gap-2">
-			<UsersSelect filter={filters.users} setFilters={setFilters} />
-			<TestsSelect filter={filters.tests} setFilters={setFilters} />
+			<UsersSelect filter={filters.users} setFilters={setFilters} disabled={disabled} />
+			<TestsSelect filter={filters.tests} setFilters={setFilters} disabled={disabled} />
 			<Button
 				variant="outline"
 				startIcon="eraser"
 				className="ml-auto"
+				disabled={disabled}
 				onClick={() => setFilters({ users: [], tests: [] })}
 			>
 				{t("clear")}

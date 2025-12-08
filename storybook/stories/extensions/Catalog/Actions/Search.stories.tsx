@@ -6,5 +6,5 @@ export default {
 } as Meta<typeof Search>;
 
 export const Search = () => {
-	return <SearchSource isHomePage={true} catalogLinks={[]} />;
+	return <SearchSource isHomePage={true} />;
 };

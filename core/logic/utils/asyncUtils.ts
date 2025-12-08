@@ -17,37 +17,42 @@ declare global {
 
 type Callback<T, U> = (value: T, index: number, array: T[]) => Promise<U>;
 
-Array.prototype.mapAsync = async function <T, U>(
-	this: T[],
-	callback: Callback<T, U>,
-	concurrencyLimit: number = 5,
-): Promise<U[]> {
+function defineArrayProperty(name: string, value: any) {
+	if (name in Array.prototype) return;
+	Object.defineProperty(Array.prototype, name, {
+		value,
+		enumerable: false,
+	});
+}
+
+defineArrayProperty("mapAsync", async function <
+	T,
+	U,
+>(this: T[], callback: Callback<T, U>, concurrencyLimit: number = 5): Promise<U[]> {
 	return asyncUtils.mapAsync(this, callback, concurrencyLimit);
-};
+});
 
-Array.prototype.forEachAsync = async function <T>(
-	this: T[],
-	callback: Callback<T, void>,
-	concurrencyLimit: number = 5,
-): Promise<void> {
+defineArrayProperty("forEachAsync", async function <
+	T,
+>(this: T[], callback: Callback<T, void>, concurrencyLimit: number = 5): Promise<void> {
 	return asyncUtils.forEachConcurrent(this, callback, concurrencyLimit);
-};
+});
 
-Array.prototype.waitAll = async function <T>(this: Promise<T>[]): Promise<T[]> {
+defineArrayProperty("waitAll", async function <T>(this: Promise<T>[]): Promise<T[]> {
 	return Promise.all(this);
-};
+});
 
-Array.prototype.waitAllSettled = async function <T>(this: Promise<T>[]): Promise<PromiseSettledResult<T>[]> {
+defineArrayProperty("waitAllSettled", async function <T>(this: Promise<T>[]): Promise<PromiseSettledResult<T>[]> {
 	return Promise.allSettled(this);
-};
+});
 
-Array.prototype.waitAny = async function <T>(this: Promise<T>[]): Promise<T> {
+defineArrayProperty("waitAny", async function <T>(this: Promise<T>[]): Promise<T> {
 	return Promise.any(this);
-};
+});
 
-Array.prototype.waitRace = async function <T>(this: Promise<T>[]): Promise<T> {
+defineArrayProperty("waitRace", async function <T>(this: Promise<T>[]): Promise<T> {
 	return Promise.race(this);
-};
+});
 
 export const asyncUtils = {
 	mapSeq: async <T, U>(array: T[], callback: Callback<T, U>): Promise<U[]> => {

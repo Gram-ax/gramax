@@ -15,4 +15,4 @@
     И ждём конца загрузки
     И видим текст "новая статья"
     И нажимаем на кнопку "Новая статья"
-    Тогда находимся по адресу "/-/-/-/-/test/test1/new-article/new-article"
+    Тогда находимся по адресу "/-/-/-/-/test/test1/new-article/new-article?highlightFragment=%D0%9D%D0%BE%D0%B2%D0%B0%D1%8F%20%D1%81%D1%82%D0%B0%D1%82%D1%8C%D1%8F&highlightFragmentIndex=0"

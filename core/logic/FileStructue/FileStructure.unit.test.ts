@@ -58,7 +58,7 @@ describe("FileStructure", () => {
 			for (const entry of await fs.getCatalogEntries()) catalogs.push(await entry.load());
 
 			const articles = catalogs
-				.map((c) => c.getArticles())
+				.map((c) => c.getItems())
 				.map((c) => c.map((a) => a.getFileName()))
 				.map((c) => c.sort());
 
@@ -66,7 +66,16 @@ describe("FileStructure", () => {
 				["article"],
 				[],
 				[],
-				["1. article4", "1.article3", "article 1", "article1", "article2", "test_article"],
+				[
+					"1. article4",
+					"1.article3",
+					"article 1",
+					"article1",
+					"article2",
+					"category 1",
+					"category1",
+					"test_article",
+				],
 				[],
 			]);
 		});
@@ -96,7 +105,7 @@ describe("FileStructure", () => {
 			for (const entry of await fs.getCatalogEntries()) catalogs.push(await entry.load());
 
 			const articles = catalogs
-				.map((c) => c.getArticles())
+				.map((c) => c.getItems())
 				.map((c) => c.map((a) => a.logicPath))
 				.map((c) => c.sort());
 
@@ -108,7 +117,9 @@ describe("FileStructure", () => {
 					"catalog1/1. article4",
 					"catalog1/1.article3",
 					"catalog1/article2",
+					"catalog1/category 1",
 					"catalog1/category 1/article 1",
+					"catalog1/category1",
 					"catalog1/category1/article1",
 					"catalog1/test_article",
 				],
@@ -126,7 +137,7 @@ describe("FileStructure", () => {
 			const catalog = await entry.load();
 			expect(catalog).toBeDefined();
 			expect(fp.exists(path("test1/doc-root.yaml"))).toBeTruthy();
-			expect(catalog.getArticles()).toHaveLength(0);
+			expect(catalog.getItems()).toHaveLength(0);
 		});
 
 		test("статью", async () => {

@@ -1,4 +1,4 @@
-import type { CheckSettings } from "@ext/enterprise/components/admin/settings/check/CheckComponent";
+import type { StyleGuideSettings } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
 import { GroupValue } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { EditorsSettings } from "@ext/enterprise/components/admin/settings/editors/types/EditorsComponentTypes";
 import type { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups/types/GroupsComponentTypes";
@@ -41,6 +41,7 @@ class EnterpriseService {
 	async isAdmin(token: string): Promise<boolean> {
 		const res = await fetch(`${this._url}/enterprise/config/check`, {
 			headers: { Authorization: `Bearer ${token}` },
+			credentials: "include",
 		});
 		this.checkUnauthorized(res);
 		return res.status !== 401 && res.status !== 403;
@@ -59,9 +60,25 @@ class EnterpriseService {
 	}
 
 	async checkDataProviderHealth(): Promise<boolean> {
-		const res = await fetch(`${this._url}/enterprise/data-provider-health`);
-		if (!res.ok) return false;
-		return res.status === 200;
+		try {
+			const res = await fetch(`${this._url}/enterprise/data-provider-health`);
+			if (!res.ok) return false;
+			return res.status === 200;
+		} catch (error) {
+			console.error(error);
+			return false;
+		}
+	}
+
+	async checkStyleGuideHealth(): Promise<boolean> {
+		try {
+			const res = await fetch(`${this._url}/enterprise/style-guide/health`);
+			if (!res.ok) return false;
+			return res.status === 200;
+		} catch (error) {
+			console.error(error);
+			return false;
+		}
 	}
 
 	private async _getWithEtag<T>(
@@ -76,7 +93,7 @@ class EnterpriseService {
 			};
 			if (etag) headers["If-None-Match"] = etag;
 
-			const res = await fetch(url, { headers });
+			const res = await fetch(url, { headers, credentials: "include" });
 
 			this.checkUnauthorized(res);
 
@@ -150,12 +167,12 @@ class EnterpriseService {
 		return this._getWithEtag<GuestsSettings>(url, token, etag);
 	}
 
-	async getCheckConfig(
+	async getStyleGuideConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: CheckSettings | null; etag: string | null; notModified: boolean }> {
-		const url = `${this._url}/enterprise/config/check-config/get`;
-		return this._getWithEtag<CheckSettings>(url, token, etag);
+	): Promise<{ data: StyleGuideSettings | null; etag: string | null; notModified: boolean }> {
+		const url = `${this._url}/enterprise/config/style-guide/get`;
+		return this._getWithEtag<StyleGuideSettings>(url, token, etag);
 	}
 
 	async getQuizConfig(
@@ -175,6 +192,7 @@ class EnterpriseService {
 
 			const res = await fetch(`${this._url}/enterprise/git/get-repos?page=${page}`, {
 				headers,
+				credentials: "include",
 			});
 
 			this.checkUnauthorized(res);
@@ -200,6 +218,7 @@ class EnterpriseService {
 				`${this._url}/enterprise/git/get-branches?&repoName=${encodeURIComponent(repoName)}`,
 				{
 					headers,
+					credentials: "include",
 				},
 			);
 
@@ -224,6 +243,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify(workspace),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 
@@ -246,6 +266,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify(group),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error("Не удалось добавить группу. Статус: " + res.status);
@@ -267,6 +288,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify({ groupIds }),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error("Не удалось удалить группы. Статус: " + res.status);
@@ -288,6 +310,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify(editors),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error("Не удалось сохранить данные редакторов. Статус: " + res.status);
@@ -309,6 +332,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify(resource),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error("Не удалось добавить репозиторий. Статус: " + res.status);
@@ -330,6 +354,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify({ resourceIds }),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error("Не удалось сохранить данные почтового клиента. Статус: " + res.status);
@@ -351,6 +376,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify(mail),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error("Не удалось сохранить данные почтового клиента. Статус: " + res.status);
@@ -372,6 +398,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify(guests),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error("Не удалось сохранить данные внешних читателей. Статус: " + res.status);
@@ -382,17 +409,18 @@ class EnterpriseService {
 		}
 	}
 
-	async setCheck(token: string, check: CheckSettings) {
+	async setStyleGuide(token: string, styleGuide: StyleGuideSettings) {
 		if (!this._url) return false;
 		try {
 			const headers = {
 				Authorization: `Bearer ${token}`,
 				"Content-Type": "application/json",
 			};
-			const res = await fetch(`${this._url}/enterprise/config/check/set`, {
+			const res = await fetch(`${this._url}/enterprise/config/style-guide/set`, {
 				method: "POST",
 				headers,
-				body: JSON.stringify(check),
+				body: JSON.stringify(styleGuide),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error("Не удалось сохранить данные стайлгайдов. Статус: " + res.status);
@@ -414,6 +442,7 @@ class EnterpriseService {
 				method: "POST",
 				headers,
 				body: JSON.stringify(quiz),
+				credentials: "include",
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.quiz.errors.save-data")} ${res.status}`);
@@ -433,6 +462,7 @@ class EnterpriseService {
 			const gitRes = await fetch(`${this._url}/update`, {
 				method: "POST",
 				headers,
+				credentials: "include",
 			});
 			return gitRes.ok;
 		} catch (error) {
@@ -444,7 +474,7 @@ class EnterpriseService {
 	async checkConnector(): Promise<boolean> {
 		if (!this._url) return false;
 		try {
-			const res = await fetch(`${this._url}/sso/connectors/enabled`);
+			const res = await fetch(`${this._url}/sso/connectors/enabled`, { credentials: "include" });
 			return res.ok ? true : false;
 		} catch (error) {
 			console.error(error);
@@ -528,7 +558,7 @@ class EnterpriseService {
 		}
 	}
 
-	async getQuizDetailedUserAnswers(token: string, id: string): Promise<QuizTestData> {
+	async getQuizDetailedUserAnswers(token: string, id: number): Promise<QuizTestData> {
 		try {
 			let url = `${this._url}/enterprise/quiz/answer/get`;
 			url += `?id=${encodeURIComponent(id)}`;
@@ -559,6 +589,7 @@ class EnterpriseService {
 					"Content-Type": "application/json",
 				},
 				body: JSON.stringify({ emailOrCn: query }),
+				credentials: "include",
 			});
 
 			return res.ok ? await res.json() : [];

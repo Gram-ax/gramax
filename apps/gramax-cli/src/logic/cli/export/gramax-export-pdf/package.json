@@ -1,6 +1,6 @@
 {
 	"name": "gramax-export-pdf",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"type": "module",
 	"description": "PDF export utility for Gramax CLI",
 	"main": "index.js",

@@ -1,0 +1,9 @@
+export const TOC_PAGE_CLASS = "toc-page";
+export const TOC_PAGE_HEADER_CLASS = "toc-page-header";
+export const TOC_PAGE_ITEMS_CLASS = "toc-page-items";
+export const TOC_PAGE_ITEM_CLASS = "toc-item";
+export const TOC_PAGE_ITEM_LINK_CLASS = "toc-item-link";
+export const TOC_PAGE_ITEM_TITLE_CLASS = "toc-item-title";
+export const TOC_PAGE_ITEM_NUMBER_CLASS = "toc-item-number";
+export const TOC_PAGE_ITEM_DOTS_CLASS = "toc-item-dots";
+export const TOC_PAGE_ITEM_RIGHT_CLASS = "toc-item-right";

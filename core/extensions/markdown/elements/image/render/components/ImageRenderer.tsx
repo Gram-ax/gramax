@@ -124,6 +124,7 @@ interface ImageProps {
 	commentId?: string;
 	float?: string;
 	hasParentPath?: boolean;
+	isPrint?: boolean;
 }
 
 const ImageRenderer = memo((props: ImageProps): ReactElement => {
@@ -149,6 +150,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		commentId,
 		float,
 		hasParentPath = true,
+		isPrint,
 	} = props;
 
 	const [error, setError] = useState<boolean>(false);
@@ -232,15 +234,16 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	}, []);
 
 	useGetResource(
-		(buffer: Buffer) => {
+		async (buffer: Buffer) => {
 			if (!buffer || !buffer.byteLength) return setError(true);
 			if (isLoaded) setIsLoaded(false);
 
-			void cropImg(buffer, crop);
+			await cropImg(buffer, crop);
 		},
 		realSrc,
 		undefined,
 		hasParentPath,
+		isPrint,
 	);
 
 	if (error)

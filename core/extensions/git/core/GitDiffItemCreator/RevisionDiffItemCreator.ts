@@ -64,8 +64,12 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 
 				const { paths, resourceManager } = parsedContent;
 
+				// resourceManager.getAbsolutePath(path) returns the path including catalog name but the resource doesn't have one in it's path
+				// so we need to remove the catalog name from the path to compare it with the resource path
+				const rootCategoryPath = catalog.basePath;
+
 				for (const path of paths) {
-					if (resourceManager.getAbsolutePath(path).endsWith(resource.path)) {
+					if (rootCategoryPath.subDirectory(resourceManager.getAbsolutePath(path)).compare(resource.path)) {
 						resourcePathAssignees.set(resource.path.value, { article, catalog });
 						parentPath = catalog.getRepositoryRelativePath(article.ref).value;
 						const diffResource = this._getDiffResource(resource, {
@@ -108,7 +112,7 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 					}
 					if (
 						resource.status === FileStatus.rename &&
-						resourceManager.getAbsolutePath(path).endsWith(resource.oldPath)
+						rootCategoryPath.subDirectory(resourceManager.getAbsolutePath(path)).compare(resource.oldPath)
 					) {
 						resourcePathAssignees.set(resource.oldPath.value, { article, catalog });
 					}

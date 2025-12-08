@@ -6,6 +6,7 @@ import parseStorageUrl from "@core/utils/parseStorageUrl";
 import GitVerseSourceAPI from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceAPI";
 import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
 import handleFormApiError from "@ext/git/actions/Source/logic/handleApiError";
+import validateToken from "@ext/git/actions/Source/logic/validateToken";
 import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,24 +16,21 @@ import { Form, FormField, FormFieldSet, FormSectionHeaderButton, FormSectionTitl
 import { SecretInput, TextInput } from "@ui-kit/Input";
 import { Skeleton } from "@ui-kit/Skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+
+const GITVERSE_URL = "gitverse.ru";
+const GITVERSE_SETTINGS_TOKENS_URL = `https://${GITVERSE_URL}/settings/tokens`;
 
 interface EditGitVerseProps {
 	data?: Partial<GitVerseSourceData>;
 	onSubmit: (data: GitVerseSourceData) => void;
 }
 
-const validateToken = (token: string) => {
-	// eslint-disable-next-line no-control-regex
-	const hasNonISOChars = /[^\x00-\xFF]/.test(token);
-	return !hasNonISOChars;
-};
-
 const getFormSchema = () =>
 	z.object({
-		url: z.string({ message: t("must-be-not-empty") }).default("https://gitverse.ru"),
+		url: z.string({ message: t("must-be-not-empty") }).default(`https://${GITVERSE_URL}`),
 		authorName: z.string({ message: t("must-be-not-empty") }),
 		authorEmail: z.string({ message: t("must-be-not-empty") }),
 		token: z.string({ message: t("must-be-not-empty") }).refine((val) => validateToken(val), {
@@ -49,7 +47,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 		resolver: zodResolver(getFormSchema()),
 		defaultValues: data
 			? {
-					url: `${data?.protocol ? data.protocol : "https"}://${data?.domain || "gitverse.ru"}`,
+					url: `${data?.protocol ? data.protocol : "https"}://${data?.domain || GITVERSE_URL}`,
 					token: data?.token,
 					authorName: data?.userName,
 					authorEmail: data?.userEmail,
@@ -76,10 +74,15 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 		true,
 	);
 
+	useEffect(() => {
+		if (data?.isInvalid) form.setError("token", { type: "invalid", message: t("invalid2") + " " + t("token") });
+	}, [data?.isInvalid]);
+
 	const onChangeAuthFields = () => {
 		const formValues = form.getValues();
+		formValues.url = `https://${GITVERSE_URL}`;
 
-		if (!formValues.token || !formValues.url) {
+		if (!formValues.token) {
 			cancelCheck();
 			setIsLoading(false);
 			return;
@@ -90,19 +93,20 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 		const { protocol, origin, pathname } = parseStorageUrl(
 			hasProtocol ? formValues.url : "https://" + formValues.url,
 		);
+
 		startCheck(
 			{
 				url: formValues.url,
 				token: formValues.token,
 				sourceType: SourceType.gitVerse,
-				domain: "gitverse.ru",
+				domain: GITVERSE_URL,
 				userName: "",
 				userEmail: "",
 				protocol,
 				origin,
 				pathname,
 			} as GitVerseSourceData,
-			"gitverse.ru",
+			GITVERSE_URL,
 		);
 	};
 
@@ -117,7 +121,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 				token: data.token,
 				userName: data.authorName,
 				userEmail: data.authorEmail,
-				domain: "gitverse.ru",
+				domain: GITVERSE_URL,
 				protocol,
 				createDate: new Date().toJSON(),
 				isInvalid,
@@ -146,7 +150,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 					<div className="flex flex-row items-center justify-between gap-3 pb-2 lg:gap-4">
 						<FormSectionTitle>{t("authorization")}</FormSectionTitle>
 						<FormSectionHeaderButton size="xs" variant="link" type="button">
-							<a href="https://gitverse.ru/settings/tokens" target="_blank" rel="noreferrer">
+							<a href={GITVERSE_SETTINGS_TOKENS_URL} target="_blank" rel="noreferrer">
 								{`${t("create")} ${t("token")}`}
 							</a>
 							<Tooltip>
@@ -189,7 +193,6 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 									type="button"
 									startIcon="rotate-ccw"
 									className="p-0 ml-auto"
-									size="xs"
 									onClick={() => {
 										onChangeAuthFields();
 										form.clearErrors("token");

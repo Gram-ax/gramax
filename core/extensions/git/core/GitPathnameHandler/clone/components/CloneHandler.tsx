@@ -1,4 +1,3 @@
-import { assertDesktopOpened } from "@components/Actions/EditInGramax";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -66,11 +65,7 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 					<div>{t("git.clone.not-cloned.body")}</div>
 					{isBrowser && (
 						<div>
-							<a
-								onClick={() => assertDesktopOpened()}
-								href={`gramax://${clonePath}`}
-								style={{ outline: 0 }}
-							>
+							<a href={`gramax://${clonePath}`} style={{ outline: 0 }}>
 								{t("git.clone.open-in-app")}
 							</a>
 						</div>

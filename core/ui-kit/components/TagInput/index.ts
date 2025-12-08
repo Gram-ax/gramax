@@ -1,0 +1,1 @@
+export { TagInput } from "ics-ui-kit/components/tag-input";

@@ -66,6 +66,9 @@ export type EnvironmentVariable = {
 	ALLOWED_GRAMAX_URLS: string;
 	GES_REFRESH_INTERVAL: string;
 
+	// Enterprise Cloud
+	GES_IS_CLOUD: Bool;
+
 	// SEO
 	DISABLE_SEO: Bool;
 

@@ -9,7 +9,7 @@ export const ListGroup = ["orderedList", "bulletList", "taskList"];
 export const BlockPlus = ["table", "cut", "tab", "tabs", "blockquote"];
 
 const BlockOutContent = ["drawio", "diagrams", "note", "image", "video", "code_block", "snippet", OPEN_API_NAME];
-const WrappableBlocks = ["note"];
+export const WrappableBlocks = ["note"];
 
 const disabledMarkRule: Record<Mark, Mark[]> = {
 	code: ["link", "file", "comment"],

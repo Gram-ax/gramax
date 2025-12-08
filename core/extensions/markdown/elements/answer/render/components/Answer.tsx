@@ -3,8 +3,9 @@ import { ReactNode, useCallback, memo, HTMLAttributes, useMemo } from "react";
 import styled from "@emotion/styled";
 import { AnswerType, AnswerValueType } from "@ext/markdown/elements/answer/types";
 import { getComponentByType } from "@ext/markdown/elements/answer/edit/logic/getComponentByType";
-import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
-import { shallow } from "zustand/shallow";
+import { useAnswerProps } from "@ext/markdown/elements/answer/render/logic/useAnswerProps";
+import { Skeleton } from "@ui-kit/Skeleton";
+import { cn } from "@core-ui/utils/cn";
 
 interface BaseAnswerProps extends HTMLAttributes<HTMLDivElement> {
 	correct: boolean;
@@ -26,7 +27,7 @@ interface Props<T extends AnswerType = AnswerType> extends BaseComponentProps<T>
 }
 
 const baseClassName =
-	"answer p-0.5 pl-2 pr-2 rounded-lg border border-secondary-border bg-secondary-bg hover:bg-secondary-bg-hover transition-all text-primary-fg hover:border-primary-border";
+	"relative answer p-0.5 pl-2 pr-2 rounded-lg border border-secondary-border bg-secondary-bg hover:bg-secondary-bg-hover transition-all text-primary-fg hover:border-primary-border";
 const correctClassName =
 	"border-status-success-border bg-status-success-bg hover:bg-status-success-bg-hover hover:border-status-success-border";
 const incorrectClassName =
@@ -39,6 +40,11 @@ export const AnswerContent = styled.div`
 	gap: 0.5em;
 	align-items: center;
 	flex: 1;
+
+	&.invisible {
+		opacity: 0;
+		pointer-events: none;
+	}
 
 	> div > :last-of-type {
 		margin-bottom: 0;
@@ -69,36 +75,7 @@ export const BaseAnswer = memo(
 
 export const Answer = memo(
 	({ children, type, answerId, questionId, ...props }: Omit<Props, "value" | "onClick">): JSX.Element => {
-		const { isCorrected, setAnswer, isSelected, state } = useQuestionsStore((store) => {
-			const question = store.questions[questionId];
-
-			if (!question) {
-				return {
-					isCorrected: undefined,
-					setAnswer: () => {},
-					isSelected: false,
-					state: "answering",
-				};
-			}
-
-			const state = store.state;
-			const isSelected = question.selectedAnswers.includes(answerId);
-			const isCorrected =
-				state !== "answering"
-					? question.selectedAnswers.length > 0
-						? isSelected
-							? question.isCorrected
-							: undefined
-						: false
-					: undefined;
-
-			return {
-				isCorrected,
-				setAnswer: store.selectAnswer,
-				isSelected,
-				state,
-			};
-		}, shallow);
+		const { isCorrected, setAnswer, isSelected, state } = useAnswerProps(questionId, answerId);
 
 		const onClick = useCallback(() => {
 			setAnswer(questionId, answerId);
@@ -115,7 +92,8 @@ export const Answer = memo(
 				className="cursor-pointer"
 				disabled={state !== "answering"}
 			>
-				<AnswerContent>
+				{state === "loading" && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
+				<AnswerContent className={cn(state === "loading" && "invisible")}>
 					{Component}
 					<div>{children}</div>
 				</AnswerContent>

@@ -114,7 +114,4 @@
       -  text
       
       ![](./new-article-6.png){width=1280px height=720px}
-      
-      
-      
       """

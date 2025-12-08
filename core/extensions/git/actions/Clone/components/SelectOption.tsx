@@ -1,9 +1,13 @@
 import Icon from "@components/Atoms/Icon";
+import { classNames } from "@components/libs/classNames";
+import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import { STORAGE_GET_ICON } from "@ext/storage/logic/SourceDataProvider/logic/getStorageIconByData";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import {
 	DropdownMenu,
-	DropdownMenuItem,
 	DropdownMenuContent,
+	DropdownMenuItem,
 	DropdownMenuTrigger,
 	isInDropdown,
 } from "@ui-kit/Dropdown";
@@ -22,6 +26,14 @@ interface CustomSelectOptionProps {
 	onDelete?: (e: PointerEvent<HTMLDivElement>) => void;
 	onClickInvalid?: (e: PointerEvent<HTMLDivElement>) => void;
 }
+
+const IconWrapper = styled.span`
+	.${STORAGE_GET_ICON[SourceType.gitea]}, .${STORAGE_GET_ICON[SourceType.gitVerse]} {
+		svg {
+			fill: hsl(var(--primary-fg));
+		}
+	}
+`;
 
 const CustomSelectOption = (props: CustomSelectOptionProps) => {
 	const { value, label, icon, onDelete, onEdit, invalid, onClickInvalid } = props;
@@ -65,8 +77,8 @@ const CustomSelectOption = (props: CustomSelectOptionProps) => {
 					<Icon code="check" className="absolute left-2" />
 				</SelectItemIndicator>
 				<SelectItemText asChild>
-					<span className="flex flex-row items-center gap-2 p-0">
-						<span className="relative">
+					<IconWrapper className="flex flex-row items-center gap-2 p-0">
+						<span className={classNames("relative", {}, [icon])}>
 							{invalid && (
 								<Tooltip>
 									<TooltipContent>{t("git.source.error.invalid-credentials2")}</TooltipContent>
@@ -88,7 +100,7 @@ const CustomSelectOption = (props: CustomSelectOptionProps) => {
 							<MenuItemIcon icon={icon} />
 						</span>
 						<MenuItemText>{label}</MenuItemText>
-					</span>
+					</IconWrapper>
 				</SelectItemText>
 				{(onDelete || onEdit) && (
 					<DropdownMenu open={open} onOpenChange={setOpen}>

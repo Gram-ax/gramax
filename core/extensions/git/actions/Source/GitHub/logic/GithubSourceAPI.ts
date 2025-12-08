@@ -178,6 +178,7 @@ export default class GithubSourceAPI extends GitSourceApi {
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
+		await this._assertHasInternetAccess();
 		const res = await fetch(`https://api.github.com/${url}`, {
 			...init,
 			headers: { ...(init?.headers ?? {}), Authorization: `token ${this._data.token}` },

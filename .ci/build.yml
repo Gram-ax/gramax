@@ -83,8 +83,8 @@ build-web:
     - docker build --rm -t $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
       -f $DOCKERFILE_PATH
       --metadata-file build-metadata.json
-      --build-arg BRANCH=$BRANCH
       --build-arg PRODUCTION=$PRODUCTION
+      --build-arg BRANCH=$BRANCH
       --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
       .
     - docker push $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
@@ -182,7 +182,7 @@ publish-cli:
   tags:
     - kubernetes01-gramax
   stage: build
-  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH:-"develop"}
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
   rules: !reference [.condition, build, onlymaster, rules]
   when: manual
   before_script:

@@ -25,6 +25,42 @@ jest.mock("@dynamicImports/docx", () => {
 		TextRun: class MockTextRun {},
 		WidthType: { DXA: "DXA" },
 		BorderStyle: { NIL: "NIL", SINGLE: "SINGLE" },
+		ImportedXmlComponent: class MockImportedXmlComponent {
+			rootKey: string;
+			root: any[];
+
+			constructor(rootKey: string) {
+				this.rootKey = rootKey;
+				this.root = [];
+			}
+
+			static fromXmlString(xml: string) {
+				const mockComponent = new MockImportedXmlComponent("w:tblLook");
+
+				const firstRow = xml.includes('w:firstRow="1"') ? 1 : 0;
+				const lastRow = xml.includes('w:lastRow="1"') ? 1 : 0;
+				const firstColumn = xml.includes('w:firstColumn="1"') ? 1 : 0;
+				const lastColumn = xml.includes('w:lastColumn="1"') ? 1 : 0;
+				const noHBand = xml.includes('w:noHBand="0"') ? 0 : 1;
+				const noVBand = xml.includes('w:noVBand="0"') ? 0 : 1;
+
+				mockComponent.root = [
+					{
+						rootKey: "w:tblLook",
+						attributes: {
+							"w:firstRow": firstRow,
+							"w:lastRow": lastRow,
+							"w:firstColumn": firstColumn,
+							"w:lastColumn": lastColumn,
+							"w:noHBand": noHBand,
+							"w:noVBand": noVBand,
+						},
+					},
+				];
+
+				return mockComponent;
+			}
+		},
 	};
 	const mock = jest.fn(() => Promise.resolve(mockDocxModule));
 	return {

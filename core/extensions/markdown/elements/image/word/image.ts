@@ -8,6 +8,7 @@ import { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordType
 import AnnotationText from "@ext/markdown/elements/image/word/imageEditor/AnnotationText";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 import { JSONContent } from "@tiptap/core";
+import { wrapWithListContinuationBookmark } from "@ext/wordExport/utils/listContinuation";
 
 export const renderImageWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
 	const result = await imageWordLayout(tag, addOptions, wordRenderContext.parserContext);
@@ -20,7 +21,7 @@ export const imageWordLayout = async (
 	parserContext: ParserContext,
 ) => {
 	try {
-		const { Paragraph } = await docx();
+		const { Paragraph, AlignmentType } = await docx();
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 
 		const imageRun = await WordImageExporter.getImageByPath(
@@ -40,11 +41,17 @@ export const imageWordLayout = async (
 			style: WordFontStyles.picture,
 			keepNext: true,
 			indent,
+			alignment: AlignmentType.CENTER,
 		});
 
 		const annotations = await AnnotationText.getText(attrs.title, attrs.objects, addOptions);
-		return [imageParagraph, ...annotations];
+		let result = [imageParagraph, ...annotations];
+		if (addOptions?.listContinuation) {
+			result = await wrapWithListContinuationBookmark(result, addOptions.listContinuationLevel);
+		}
+		return result;
 	} catch (error) {
+		console.error(error);
 		return errorWordLayout(imageString(parserContext.getLanguage()), parserContext.getLanguage());
 	}
 };

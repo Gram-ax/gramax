@@ -1,20 +1,21 @@
 import { getConfig } from "@app/config/AppConfig";
 
+import { STORAGE_DIR_NAME } from "@app/config/const";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { DirectoryInfoBasic } from "@app/resolveModule/fscall/static";
 import Application from "@app/types/Application";
+import { joinTitles } from "@core-ui/getPageTitle";
 import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import StaticRenderer from "./StaticRenderer";
-import { logStepWithErrorSuppression, logStep } from "./cli/utils/logger";
-import { HtmlData } from "./ArticleTypes";
-import { STORAGE_DIR_NAME } from "@app/config/const";
+import { getRawEnabledFeatures } from "@ext/toggleFeatures/features";
 import { dirname } from "path";
-import { joinTitles } from "@core-ui/getPageTitle";
+import { HtmlData } from "./ArticleTypes";
+import { logStep, logStepWithErrorSuppression } from "./cli/utils/logger";
 import { InitialDataKeys, StaticConfig } from "./initialDataUtils/types";
 import StaticContentCopier, { CopyTemplatesFunction, StaticFileProvider } from "./StaticContentCopier";
+import StaticRenderer from "./StaticRenderer";
 import generateStaticSeo from "./StaticSeoGenerator";
-import { getRawEnabledFeatures } from "@ext/toggleFeatures/features";
+import { createModulithService } from "@ext/serach/modulith/createModulithService";
 
 const htmlTags = {
 	base: "<!--base-tag-->",
@@ -84,32 +85,25 @@ class StaticSiteBuilder {
 	}
 
 	private _createSearchIndexes = async (catalog: Catalog, targetDir: Path) => {
-		const catalogFolderPath = catalog.getRootCategory().folderPath.value;
-		const catalogBasePath = catalog.basePath.value;
-		const indexData = await this._app.indexDataProvider.getIndexData(catalog.name);
+		const modulithService = await createModulithService({
+			basePath: targetDir,
+			parser: this._app.parser,
+			parserContextFactory: this._app.parserContextFactory,
+			wm: this._app.wm,
+			parseResources: false,
+		});
 
-		const processedIndexData = indexData.map((item) => ({
-			...item,
-			path: item.path.replace(catalogFolderPath, catalogBasePath),
-		}));
-		await this._fp.write(
-			targetDir.join(new Path([STORAGE_DIR_NAME, catalog.name])),
-			JSON.stringify(processedIndexData),
-		);
-		return {
-			type: "dir",
-			name: STORAGE_DIR_NAME,
-			children: [
-				{
-					type: "file",
-					name: catalog.name,
-				},
-			],
-		} as DirectoryInfoBasic;
+		await modulithService.updateCatalog(catalog.name);
+		const treeBase = targetDir.join(new Path(STORAGE_DIR_NAME));
+
+		const tree = await this._readTree(STORAGE_DIR_NAME, treeBase);
+
+		return tree;
 	};
 
 	private _writingRenderedHtmlFiles = async (htmlDatas: HtmlData[], targetDir: Path, catalogName: string) => {
 		const config = getConfig();
+		config.isProduction = true;
 		config.isReadOnly = true;
 		(config as StaticConfig).features = getRawEnabledFeatures();
 
@@ -185,6 +179,39 @@ class StaticSiteBuilder {
 
 	private _createCustomStyleLinkTag(catalogName: string) {
 		return `<link id="${CUSTOM_STYLE_LINK_ID}" rel="stylesheet" crossorigin href="${catalogName}/${CUSTOM_STYLE_FILENAME}">`;
+	}
+
+	private async _readTree(baseDirName: string, baseDirPath: Path): Promise<DirectoryInfoBasic> {
+		const resDir: DirectoryInfoBasic = {
+			type: "dir",
+			name: baseDirName,
+			children: [],
+		};
+
+		const walkDir = async (dir: Path, dirInfo: DirectoryInfoBasic) => {
+			const items = await this._fp.getItems(dir);
+			await items.forEachAsync(async (x) => {
+				if (x.type === "dir") {
+					const subDirInfo: DirectoryInfoBasic = {
+						type: "dir",
+						name: x.name,
+						children: [],
+					};
+
+					dirInfo.children.push(subDirInfo);
+					await walkDir(x.path, subDirInfo);
+				} else {
+					dirInfo.children.push({
+						type: x.type,
+						name: x.name,
+					});
+				}
+			});
+		};
+
+		await walkDir(baseDirPath, resDir);
+
+		return resDir;
 	}
 }
 

@@ -50,8 +50,9 @@
 	--inline-element-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.05);
 
 	--color-comment-border: #facc15;
-	--color-comment-bg: #facc1526;
-	--color-comment-hover-bg: #facc1566;
+	--color-comment-bg: #ffd9b7;
+	--color-comment-fg: #0f172a;
+	--color-comment-hover-bg: #ffc999;
 	--color-comment-block-border: #fed531;
 	--color-comment-block-hover-border: #ffb700;
 	--color-removed-text: rgb(255 82 82);
@@ -115,6 +116,8 @@
 	--z-index-diff-bottom-bar: 104;
 	--z-index-article-search: 110;
 	--z-index-modal-overlay: 190;
+
+	--search-fragment-highlight-bg: #fff59e;
 }
 
 [data-theme] {
@@ -403,6 +406,9 @@
 		--color-hp-product-red: hsl(0deg 13% 29%);
 
 		--color-comments-bg: #151828;
+		--color-comment-bg: #866241;
+		--color-comment-fg: #f8fafc;
+		--color-comment-hover-bg: #a1764e;
 		--color-body-text: var(--color-text-main);
 		--color-btn-bg: #252833;
 		--color-text-accent: #ffa800;
@@ -468,6 +474,8 @@
 		--color-highlight-border-peach: #b35c3f;
 		--color-highlight-border-light-pink: #a04c64;
 		--color-highlight-border-grayish-blue: #5a636b;
+
+		--search-fragment-highlight-bg: #8c7b2c;
 	}
 }
 

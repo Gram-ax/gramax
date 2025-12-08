@@ -1,6 +1,7 @@
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import haveInternetAccess from "@core/utils/haveInternetAccess";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
@@ -106,9 +107,20 @@ abstract class GitSourceApi implements SourceAPI {
 
 		if (res.ok) return;
 		const isText = res.headers.get("content-type")?.includes("text/plain");
-		const errorJson = isText
-			? { message: await res.text() }
-			: ((await res.json()) as { message: string; status: string });
+
+		let errorJson: { message: string };
+		const resClone = res.clone();
+
+		if (isText) {
+			errorJson = { message: await res.text() };
+		} else {
+			try {
+				errorJson = await res.json();
+			} catch {
+				errorJson = { message: await resClone.text() };
+			}
+		}
+
 		const error = new NetworkApiError(
 			errorJson.message,
 			{
@@ -120,6 +132,17 @@ abstract class GitSourceApi implements SourceAPI {
 		);
 		this._onError?.(error);
 		throw error;
+	}
+
+	protected async _assertHasInternetAccess() {
+		const gesUrl = this._data.isEnterprise ? `${this._data.protocol ?? "https"}://${this._data.domain}` : undefined;
+		if (!(await haveInternetAccess(gesUrl))) {
+			throw new NetworkApiError(
+				t("app.error.offline.no-internet"),
+				{ url: null, errorJson: null, status: -1 },
+				t("app.error.offline.mode"),
+			);
+		}
 	}
 }
 

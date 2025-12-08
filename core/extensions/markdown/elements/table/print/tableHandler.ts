@@ -1,31 +1,21 @@
-import { paginateTable } from "@ext/markdown/elements/table/print/tablePagination";
+import { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
+import { TablePaginator } from "./TablePaginator";
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
-import { NodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
+import Paginator from "@ext/print/utils/pagination/Paginator";
 
-const tableHandler: NodeHandler = async (node, state, { pages, nodeDimension, yieldTick, progress, signal }) => {
-	if (node.tagName !== "TABLE") return false;
-	throwIfAborted(signal);
+const tableHandlerFn: PrintNodeHandler["handle"] = async (node, paginator) => {
+	if (node.dataset?.component !== "table") return false;
 
-	if (state.fragment.childNodes.length) {
-		state.currentPage.appendChild(state.fragment);
-		state.fragment = document.createDocumentFragment();
-		await yieldTick();
-		throwIfAborted(signal);
-	}
-
-	state.currentPage = await paginateTable(
-		pages,
-		node as HTMLTableElement,
-		state,
-		nodeDimension,
-		yieldTick,
-		progress,
-		signal,
-	);
-	progress.increase(1);
-	await yieldTick();
-	throwIfAborted(signal);
+	const tablePaginator = new TablePaginator(node as HTMLDivElement, paginator);
+	await tablePaginator.paginateNode();
+	await Paginator.controlInfo.yieldTick();
+	throwIfAborted(Paginator.controlInfo.signal);
 	return true;
+};
+
+const tableHandler: PrintNodeHandler = {
+	isRequired: true,
+	handle: tableHandlerFn,
 };
 
 export default tableHandler;

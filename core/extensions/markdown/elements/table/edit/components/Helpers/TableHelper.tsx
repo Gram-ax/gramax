@@ -1,6 +1,5 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
@@ -20,7 +19,8 @@ import {
 	useState,
 	useMemo,
 } from "react";
-import { Wrapper } from "@ext/markdown/elements/table/edit/components/TableComponent";
+import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
+import { HELPERS_LEFT, HELPERS_TOP } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 
 interface TableHelperProps {
 	tableRef: RefObject<HTMLTableElement>;
@@ -30,7 +30,6 @@ interface TableHelperProps {
 	getPos: () => number;
 	editor: Editor;
 	disabledWrapper?: boolean;
-	className?: string;
 }
 
 type TableDataString = {
@@ -38,10 +37,14 @@ type TableDataString = {
 	rows: string[];
 };
 
-const TriangleButton = styled.div`
+const TriangleButtonContainer = styled.div`
 	position: absolute;
-	top: 0.25em;
-	left: 0.5em;
+	top: ${HELPERS_TOP};
+	left: ${HELPERS_LEFT};
+`;
+
+const TriangleButton = styled.div`
+	position: relative;
 	cursor: pointer;
 	border-top: 4px solid transparent;
 	border-left: 4px solid transparent;
@@ -70,7 +73,7 @@ const actionsOptions = {
 };
 
 const TableHelper = (props: TableHelperProps) => {
-	const { tableRef, hoverElementRef, children, className, node, getPos, editor, disabledWrapper } = props;
+	const { tableRef, hoverElementRef, children, node, getPos, editor, disabledWrapper } = props;
 
 	const [tableSizes, setTableSizes] = useState<TableDataString>(null);
 	const [isHovered, setIsHovered] = useState(false);
@@ -129,9 +132,7 @@ const TableHelper = (props: TableHelperProps) => {
 		};
 	}, [tableRef.current]);
 
-	const commonParent = disabledWrapper
-		? tableRef.current?.parentElement.parentElement.parentElement
-		: tableRef.current?.parentElement.parentElement;
+	const commonParent = tableRef.current?.parentElement.parentElement;
 
 	const hideControls = useCallback(() => {
 		const containerHorizontal = commonParent?.querySelector(".controls-container-horizontal");
@@ -167,11 +168,13 @@ const TableHelper = (props: TableHelperProps) => {
 	const WrapperChildren = (
 		<>
 			{children}
-			{isHovered && (
+			{
 				<Tooltip content={t("select-table")} delay={[1000, 0]}>
-					<TriangleButton onClick={selectNode} data-qa="table-select-all" contentEditable={false} />
+					<TriangleButtonContainer data-table-select-all-container>
+						<TriangleButton onClick={selectNode} data-qa="table-select-all" contentEditable={false} />
+					</TriangleButtonContainer>
 				</Tooltip>
-			)}
+			}
 			<TablePlusActions
 				isHovered={isHovered}
 				tableSizes={tableSizes}
@@ -192,11 +195,9 @@ const TableHelper = (props: TableHelperProps) => {
 			actionsOptions={actionsOptions}
 		>
 			<div onMouseMove={onMouseMove}>
-				{disabledWrapper ? (
-					<Wrapper>{WrapperChildren}</Wrapper>
-				) : (
-					<WidthWrapper className={className}>{WrapperChildren}</WidthWrapper>
-				)}
+				<StickyTableWrapper tableRef={tableRef} disableWrapper={disabledWrapper}>
+					{WrapperChildren}
+				</StickyTableWrapper>
 			</div>
 		</HoverableActions>
 	);

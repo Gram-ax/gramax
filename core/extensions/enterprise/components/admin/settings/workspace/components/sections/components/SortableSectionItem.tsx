@@ -5,7 +5,6 @@ import { Badge } from "@ui-kit/Badge";
 import { IconButton } from "@ui-kit/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
-import { IconRenderer } from "../../../../../ui-kit/IconRenderer";
 import { WorkspaceSection } from "../../../types/WorkspaceComponent";
 
 const MAX_VISIBLE_CATALOGS = 6;
@@ -50,7 +49,7 @@ export function SortableSectionItem({ sectionKey, section, onEdit, onDelete }: S
 					<div className="flex items-center gap-2 mb-2">
 						{section.icon && (
 							<div className="text-lg">
-								<IconRenderer iconName={section.icon} size={24} className="text-primary" />
+								<Icon icon={section.icon} size="md" className="text-primary" />
 							</div>
 						)}
 						<h3 className="text-lg font-medium">{section.title}</h3>

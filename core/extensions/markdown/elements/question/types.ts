@@ -14,11 +14,10 @@ export type SavedQuestion = {
 	answers: TypedAnswer[];
 };
 
-export type QuestionLocalStorageData = {
-	[key: string]: SavedQuestion;
-};
+export type QuestionLocalStorageData = Record<string, Record<string, string[]>>;
 
 export type QuestionResult = {
 	questionId: string;
 	isCorrect: boolean;
+	correctAnswersIds?: string[];
 };

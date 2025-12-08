@@ -1,253 +1,404 @@
-import { handleSpecialNode, PaginationState } from "../nodeHandlers";
-import { createProgressTracker } from "../progress";
-import { createPage } from "../pageElements";
+import printHandlers from "../nodeHandlers";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
-import { paginateTable } from "@ext/markdown/elements/table/print/tablePagination";
-import paginateCodeBlock from "@ext/markdown/elements/codeBlockLowlight/print/codeBlockPagination";
+import PagePaginator from "@ext/print/utils/pagination/PagePaginator";
+import Paginator from "@ext/print/utils/pagination/Paginator";
+import { AbortController } from "abort-controller";
 
-jest.mock("@ext/markdown/elements/table/print/tablePagination", () => ({
-	__esModule: true,
-	paginateTable: jest.fn(),
+jest.mock("@ext/print/utils/pagination/abort", () => ({
+	throwIfAborted: jest.fn(),
 }));
-
-jest.mock("@ext/markdown/elements/codeBlockLowlight/print/codeBlockPagination", () => ({
-	__esModule: true,
-	default: jest.fn(),
-}));
-
-const paginateTableMock = paginateTable as jest.MockedFunction<typeof paginateTable>;
-const paginateCodeBlockMock = paginateCodeBlock as jest.MockedFunction<typeof paginateCodeBlock>;
 
 describe("nodeHandlers", () => {
-	beforeEach(() => {
-		paginateTableMock.mockReset();
-		paginateCodeBlockMock.mockReset();
-	});
+	let mockNodeDimensions: jest.Mocked<NodeDimensions>;
+	let mockControlInfo: any;
+	let mockPaginationInfo: any;
+	let mockPrintPageInfo: any;
+	let abortController: AbortController;
+	let mockPaginator: jest.Mocked<PagePaginator>;
 
-	const createContext = (overrides: Partial<Parameters<typeof handleSpecialNode>[2]> = {}) => {
-		const reporter = jest.fn();
-		const progress = createProgressTracker({
-			totalUnits: 10,
-			reporter,
+	beforeEach(() => {
+		abortController = new AbortController();
+
+		mockNodeDimensions = {
+			get: jest.fn(() => ({
+				height: 20,
+				marginTop: 0,
+				marginBottom: 0,
+				paddingH: 5,
+			})),
+			canUpdateAccumulatedHeight: jest.fn(),
+			updateAccumulatedHeight: jest.fn(),
+			updateAccumulatedHeightNode: jest.fn(() => ({ height: 20, marginBottom: 0 })),
+			updateAccumulatedHeightDim: jest.fn(() => ({ height: 20, marginBottom: 0 })),
+		} as any;
+
+		mockControlInfo = {
+			signal: abortController.signal,
+			progress: { increase: jest.fn() },
+			yieldTick: jest.fn().mockResolvedValue(undefined),
+		};
+
+		mockPaginationInfo = {
+			nodeDimension: mockNodeDimensions,
+			accumulatedHeight: { height: 0, marginBottom: 0 },
+			printHandlers: printHandlers,
+		};
+
+		mockPrintPageInfo = {
+			pages: document.createElement("div"),
+		};
+
+		// Устанавливаем статические свойства
+		Paginator.controlInfo = mockControlInfo;
+		Paginator.paginationInfo = mockPaginationInfo;
+		Paginator.printPageInfo = mockPrintPageInfo;
+
+		// Мокаем PagePaginator
+		mockPaginator = Object.create(PagePaginator.prototype);
+		Object.assign(mockPaginator, {
+			currentContainer: document.createElement("div"),
+			createPage: jest.fn(),
+			getUsableHeight: jest.fn(() => 100),
 		});
 
-		const mockNodeDimension = {
-			get: jest.fn(),
-			canUpdateAccumulatedHeight: jest.fn(),
-			updateAccumulatedHeight: jest.fn().mockReturnValue({ height: 0, marginBottom: 0 }),
-		};
-
-		return {
-			pages: document.createElement("div"),
-			nodeDimension: mockNodeDimension as unknown as NodeDimensions,
-			nodeHeights: new WeakMap<HTMLElement, number>(),
-			yieldTick: jest.fn().mockResolvedValue(undefined),
-			progress,
-			signal: undefined as AbortSignal | undefined,
-			...overrides,
-		};
-	};
-
-	it("returns false when node is not handled", async () => {
-		const context = createContext();
-		const page = createPage(context.pages);
-		const state: PaginationState = {
-			currentPage: page,
-			fragment: document.createDocumentFragment(),
-			accumulatedHeight: { height: 0, marginBottom: 0 },
-		};
-
-		const handled = await handleSpecialNode(document.createElement("section"), state, context);
-
-		expect(handled).toBe(false);
-		expect(state.currentPage).toBe(page);
+		jest.clearAllMocks();
 	});
 
-	it("handles h1 nodes and prepares a fresh page", async () => {
-		const context = createContext();
-		const progressSpy = jest.spyOn(context.progress, "increase");
-		const currentPage = createPage(context.pages);
-		currentPage.appendChild(document.createElement("p"));
-
-		const fragment = document.createDocumentFragment();
-		fragment.appendChild(document.createElement("span"));
-
-		const state: PaginationState = {
-			currentPage,
-			fragment,
-			accumulatedHeight: { height: 42, marginBottom: 0 },
-		};
-
-		const heading = document.createElement("h1");
-		heading.textContent = "Heading";
-
-		const handled = await handleSpecialNode(heading, state, context);
-
-		expect(handled).toBe(true);
-		expect(context.pages.children).toHaveLength(2);
-		expect(state.currentPage).not.toBe(currentPage);
-		expect(state.fragment.childNodes).toHaveLength(0);
-		expect(state.accumulatedHeight).toEqual({ height: 0, marginBottom: 0 });
-		expect(progressSpy).toHaveBeenCalledWith(1);
-		expect(state.currentPage.contains(heading)).toBe(true);
-		expect(currentPage.childElementCount).toBeGreaterThan(1);
+	afterEach(() => {
+		jest.restoreAllMocks();
 	});
 
-	it("handles h1 nodes on empty page without creating new page", async () => {
-		const context = createContext();
-		const progressSpy = jest.spyOn(context.progress, "increase");
-		const currentPage = createPage(context.pages);
+	describe("printHandlers structure", () => {
+		it("should export required and conditional handler groups", () => {
+			expect(printHandlers).toHaveProperty("required");
+			expect(printHandlers).toHaveProperty("conditional");
+			expect(Array.isArray(printHandlers.required)).toBe(true);
+			expect(Array.isArray(printHandlers.conditional)).toBe(true);
+		});
 
-		const state: PaginationState = {
-			currentPage,
-			fragment: document.createDocumentFragment(),
-			accumulatedHeight: { height: 0, marginBottom: 0 },
-		};
+		it("should have required handlers", () => {
+			expect(printHandlers.required.length).toBeGreaterThan(0);
+		});
 
-		const heading = document.createElement("h1");
-		heading.textContent = "Heading";
-
-		const handled = await handleSpecialNode(heading, state, context);
-
-		expect(handled).toBe(true);
-		expect(context.pages.children).toHaveLength(1);
-		expect(state.currentPage).toBe(currentPage);
-		expect(state.fragment.childNodes).toHaveLength(0);
-		expect(state.accumulatedHeight).toEqual({ height: 0, marginBottom: 0 });
-		expect(progressSpy).toHaveBeenCalledWith(1);
-		expect(state.currentPage.contains(heading)).toBe(true);
+		it("should have conditional handlers", () => {
+			expect(printHandlers.conditional.length).toBeGreaterThan(0);
+		});
 	});
 
-	it("handles table nodes, flushing fragments and delegating to paginateTable", async () => {
-		const context = createContext();
-		const progressSpy = jest.spyOn(context.progress, "increase");
-		const currentPage = createPage(context.pages);
+	describe("headingHandler", () => {
+		it("should handle H1 elements and create new page when container has content", async () => {
+			const h1 = document.createElement("h1");
+			h1.textContent = "Test Heading";
 
-		const fragment = document.createDocumentFragment();
-		fragment.appendChild(document.createElement("span"));
+			// Добавляем контент в контейнер
+			mockPaginator.currentContainer.appendChild(document.createElement("p"));
 
-		const newPage = createPage(context.pages);
-		newPage.parentElement.remove();
+			// Импортируем и тестируем headingHandler
+			const { default: headingHandler } = await import("@ext/markdown/elements/heading/print/headingHandler");
 
-		paginateTableMock.mockResolvedValueOnce(newPage);
+			const result = await headingHandler.handle(h1, mockPaginator);
 
-		const state: PaginationState = {
-			currentPage,
-			fragment,
-			accumulatedHeight: { height: 100, marginBottom: 0 },
-		};
+			expect(result).toBe(true);
+			expect(mockPaginator.createPage).toHaveBeenCalled();
+			expect(mockPaginator.currentContainer.contains(h1)).toBe(true);
+		});
 
-		const table = document.createElement("table");
-		const handled = await handleSpecialNode(table, state, context);
+		it("should handle H1 elements without creating new page when container is empty", async () => {
+			const h1 = document.createElement("h1");
+			h1.textContent = "Test Heading";
 
-		expect(handled).toBe(true);
-		expect(paginateTableMock).toHaveBeenCalledWith(
-			context.pages,
-			table,
-			state,
-			context.nodeDimension,
-			context.yieldTick,
-			context.progress,
-			context.signal,
-		);
-		expect(progressSpy).toHaveBeenCalledWith(1);
-		expect(progressSpy).toHaveBeenCalledTimes(1);
-		expect(context.yieldTick).toHaveBeenCalledTimes(2);
-		expect(state.currentPage).toBe(newPage);
-		expect(state.fragment.childNodes).toHaveLength(0);
-		expect(state.accumulatedHeight).toEqual({ height: 100, marginBottom: 0 });
-		expect(currentPage.childElementCount).toBeGreaterThan(0);
+			// Контейнер пустой
+			mockPaginator.currentContainer.innerHTML = "";
+
+			const { default: headingHandler } = await import("@ext/markdown/elements/heading/print/headingHandler");
+
+			const result = await headingHandler.handle(h1, mockPaginator);
+
+			expect(result).toBe(true);
+			expect(mockPaginator.createPage).not.toHaveBeenCalled();
+			expect(mockPaginator.currentContainer.contains(h1)).toBe(true);
+		});
+
+		it("should return false for non-H1 elements", async () => {
+			const div = document.createElement("div");
+
+			const { default: headingHandler } = await import("@ext/markdown/elements/heading/print/headingHandler");
+
+			const result = await headingHandler.handle(div, mockPaginator);
+
+			expect(result).toBe(false);
+		});
 	});
 
-	it("handles pre nodes (code blocks) and delegates to paginateCodeBlock", async () => {
-		const context = createContext();
-		const progressSpy = jest.spyOn(context.progress, "increase");
-		const currentPage = createPage(context.pages);
+	describe("tableHandler", () => {
+		it("should handle TABLE elements and delegate to TablePaginator", async () => {
+			const tableWrapper = document.createElement("div");
+			tableWrapper.dataset.component = "table";
+			const table = document.createElement("table");
+			const tbody = document.createElement("tbody");
+			const row = document.createElement("tr");
+			const cell = document.createElement("td");
+			cell.textContent = "Test";
+			row.appendChild(cell);
+			tbody.appendChild(row);
+			table.appendChild(tbody);
+			tableWrapper.appendChild(table);
 
-		const fragment = document.createDocumentFragment();
-		fragment.appendChild(document.createElement("span"));
+			const mockTablePaginator = {
+				paginateNode: jest.fn().mockResolvedValue(undefined),
+				currentContainer: document.createElement("div"),
+			};
 
-		const newPage = createPage(context.pages);
-		newPage.parentElement.remove();
+			const TablePaginatorMock = jest.fn().mockReturnValue(mockTablePaginator);
+			jest.doMock("@ext/markdown/elements/table/print/TablePaginator", () => ({
+				TablePaginator: TablePaginatorMock,
+			}));
 
-		paginateCodeBlockMock.mockResolvedValueOnce(newPage);
+			const { default: tableHandler } = await import("@ext/markdown/elements/table/print/tableHandler");
 
-		const state: PaginationState = {
-			currentPage,
-			fragment,
-			accumulatedHeight: { height: 50, marginBottom: 0 },
-		};
+			const result = await tableHandler.handle(tableWrapper, mockPaginator);
 
-		const pre = document.createElement("pre");
-		const handled = await handleSpecialNode(pre, state, context);
+			expect(result).toBe(true);
+		});
 
-		expect(handled).toBe(true);
-		expect(paginateCodeBlockMock).toHaveBeenCalledWith(
-			context.pages,
-			pre,
-			state,
-			context.nodeDimension,
-			context.yieldTick,
-			context.progress,
-			context.signal,
-		);
-		expect(progressSpy).toHaveBeenCalledWith(1);
-		expect(context.yieldTick).toHaveBeenCalledTimes(2);
-		expect(state.currentPage).toBe(newPage);
-		expect(state.fragment.childNodes).toHaveLength(0);
-		expect(state.accumulatedHeight).toEqual({ height: 50, marginBottom: 0 });
-		expect(currentPage.childElementCount).toBeGreaterThan(0);
+		it("should return false for non-TABLE elements", async () => {
+			const div = document.createElement("div");
+
+			const { default: tableHandler } = await import("@ext/markdown/elements/table/print/tableHandler");
+
+			const result = await tableHandler.handle(div, mockPaginator);
+
+			expect(result).toBe(false);
+		});
 	});
 
-	it("handles pre nodes on empty page without flushing fragments", async () => {
-		const context = createContext();
-		const progressSpy = jest.spyOn(context.progress, "increase");
-		const currentPage = createPage(context.pages);
+	describe("codeBlockHandler", () => {
+		it("should handle PRE elements with child-wrapper", async () => {
+			const pre = document.createElement("pre");
+			pre.textContent = "console.log('test');";
 
-		const newPage = createPage(context.pages);
-		newPage.parentElement.remove();
+			const childWrapper = document.createElement("div");
+			childWrapper.classList.add("child-wrapper");
+			const codeLine = document.createElement("div");
+			codeLine.classList.add("code-line");
+			codeLine.textContent = "console.log('test');";
+			childWrapper.appendChild(codeLine);
+			pre.appendChild(childWrapper);
 
-		paginateCodeBlockMock.mockResolvedValueOnce(newPage);
+			const { default: codeBlockHandler } = await import(
+				"@ext/markdown/elements/codeBlockLowlight/print/codeBlockHandler"
+			);
 
-		const state: PaginationState = {
-			currentPage,
-			fragment: document.createDocumentFragment(),
-			accumulatedHeight: { height: 0, marginBottom: 0 },
-		};
+			const result = await codeBlockHandler.handle(pre, mockPaginator);
 
-		const pre = document.createElement("pre");
-		const handled = await handleSpecialNode(pre, state, context);
+			expect(result).toBe(true);
+		});
 
-		expect(handled).toBe(true);
-		expect(paginateCodeBlockMock).toHaveBeenCalledWith(
-			context.pages,
-			pre,
-			state,
-			context.nodeDimension,
-			context.yieldTick,
-			context.progress,
-			context.signal,
-		);
-		expect(progressSpy).toHaveBeenCalledWith(1);
-		expect(context.yieldTick).toHaveBeenCalledTimes(1);
-		expect(state.currentPage).toBe(newPage);
+		it("should return false for PRE elements without child-wrapper", async () => {
+			const pre = document.createElement("pre");
+			pre.textContent = "console.log('test');";
+
+			const { default: codeBlockHandler } = await import(
+				"@ext/markdown/elements/codeBlockLowlight/print/codeBlockHandler"
+			);
+
+			const result = await codeBlockHandler.handle(pre, mockPaginator);
+
+			expect(result).toBe(false);
+		});
 	});
 
-	it("returns false for unsupported tags", async () => {
-		const context = createContext();
-		const page = createPage(context.pages);
-		const state: PaginationState = {
-			currentPage: page,
-			fragment: document.createDocumentFragment(),
-			accumulatedHeight: { height: 0, marginBottom: 0 },
-		};
+	describe("listHandler", () => {
+		it("should handle UL and OL elements and delegate to ListPaginator", async () => {
+			const ul = document.createElement("ul");
+			const li = document.createElement("li");
+			li.textContent = "List item";
+			ul.appendChild(li);
 
-		const div = document.createElement("div");
-		const p = document.createElement("p");
-		const span = document.createElement("span");
+			const mockListPaginator = {
+				paginateNode: jest.fn().mockResolvedValue(undefined),
+				currentContainer: document.createElement("div"),
+			};
 
-		expect(await handleSpecialNode(div, state, context)).toBe(false);
-		expect(await handleSpecialNode(p, state, context)).toBe(false);
-		expect(await handleSpecialNode(span, state, context)).toBe(false);
+			const ListPaginatorMock = jest.fn().mockReturnValue(mockListPaginator);
+			jest.doMock("@ext/markdown/elements/list/print/ListPaginator", () => ({
+				ListPaginator: ListPaginatorMock,
+			}));
+
+			const { default: listHandler } = await import("@ext/markdown/elements/list/print/listHandler");
+
+			const result = await listHandler.handle(ul, mockPaginator);
+
+			expect(result).toBe(true);
+		});
+
+		it("should handle OL elements", async () => {
+			const ol = document.createElement("ol");
+			const li = document.createElement("li");
+			li.textContent = "Ordered item";
+			ol.appendChild(li);
+
+			const mockListPaginator = {
+				paginateNode: jest.fn().mockResolvedValue(undefined),
+				currentContainer: document.createElement("div"),
+			};
+
+			const ListPaginatorMock = jest.fn().mockReturnValue(mockListPaginator);
+			jest.doMock("@ext/markdown/elements/list/print/ListPaginator", () => ({
+				ListPaginator: ListPaginatorMock,
+			}));
+
+			const { default: listHandler } = await import("@ext/markdown/elements/list/print/listHandler");
+
+			const result = await listHandler.handle(ol, mockPaginator);
+
+			expect(result).toBe(true);
+		});
+
+		it("should return false for non-list elements", async () => {
+			const div = document.createElement("div");
+
+			const { default: listHandler } = await import("@ext/markdown/elements/list/print/listHandler");
+
+			const result = await listHandler.handle(div, mockPaginator);
+
+			expect(result).toBe(false);
+		});
+	});
+
+	describe("snippetHandler", () => {
+		it("should handle DIV elements with snippet component", async () => {
+			const snippet = document.createElement("div");
+			snippet.dataset.component = "snippet";
+			snippet.textContent = "Snippet content";
+
+			const { default: snippetHandler } = await import("@ext/markdown/elements/snippet/print/snippetHandler");
+
+			const result = await snippetHandler.handle(snippet, mockPaginator);
+
+			expect(result).toBe(true);
+		});
+
+		it("should return false for DIV elements without snippet component", async () => {
+			const div = document.createElement("div");
+			div.textContent = "Regular div";
+
+			const { default: snippetHandler } = await import("@ext/markdown/elements/snippet/print/snippetHandler");
+
+			const result = await snippetHandler.handle(div, mockPaginator);
+
+			expect(result).toBe(false);
+		});
+	});
+
+	describe("noteHandler", () => {
+		it("should handle DIV elements with admonition class and proper structure", async () => {
+			const note = document.createElement("div");
+			note.classList.add("admonition");
+
+			const heading = document.createElement("div");
+			heading.classList.add("admonition-heading");
+			heading.textContent = "Note title";
+			note.appendChild(heading);
+
+			const content = document.createElement("div");
+			content.classList.add("admonition-content");
+
+			const contentInner = document.createElement("div");
+			contentInner.textContent = "Note content";
+			content.appendChild(contentInner);
+			note.appendChild(content);
+
+			const { default: noteHandler } = await import("@ext/markdown/elements/note/print/noteHandler");
+
+			const result = await noteHandler.handle(note, mockPaginator);
+
+			expect(result).toBe(true);
+		});
+
+		it("should return false for DIV elements without admonition class", async () => {
+			const div = document.createElement("div");
+			div.textContent = "Regular div";
+
+			const { default: noteHandler } = await import("@ext/markdown/elements/note/print/noteHandler");
+
+			const result = await noteHandler.handle(div, mockPaginator);
+
+			expect(result).toBe(false);
+		});
+	});
+
+	describe("tabsHandler", () => {
+		it("should handle DIV elements with tabs component", async () => {
+			const tabs = document.createElement("div");
+			tabs.dataset.component = "tabs";
+			tabs.textContent = "Tabs content";
+
+			const { default: tabsHandler } = await import("@ext/markdown/elements/tabs/print/tabsHandler");
+
+			const result = await tabsHandler.handle(tabs, mockPaginator);
+
+			expect(result).toBe(true);
+		});
+
+		it("should return false for DIV elements without tabs component", async () => {
+			const div = document.createElement("div");
+			div.textContent = "Regular div";
+
+			const { default: tabsHandler } = await import("@ext/markdown/elements/tabs/print/tabsHandler");
+
+			const result = await tabsHandler.handle(div, mockPaginator);
+
+			expect(result).toBe(false);
+		});
+	});
+
+	describe("handler integration through printHandlers", () => {
+		it("should call required handlers first", async () => {
+			const h1 = document.createElement("h1");
+			h1.textContent = "Heading";
+
+			mockPaginator.currentContainer.innerHTML = "";
+
+			// Вызываем через printHandlers.required
+			const requiredHandlers = printHandlers.required;
+			let handled = false;
+
+			for (const handler of requiredHandlers) {
+				if (await handler(h1, mockPaginator)) {
+					handled = true;
+					break;
+				}
+			}
+
+			expect(handled).toBe(true);
+		});
+
+		it("should call conditional handlers if required handlers don't handle", async () => {
+			const unknownElement = document.createElement("unknown");
+
+			// Вызываем через printHandlers.required и conditional
+			let handled = false;
+
+			// Сначала required
+			for (const handler of printHandlers.required) {
+				if (await handler(unknownElement, mockPaginator)) {
+					handled = true;
+					break;
+				}
+			}
+
+			// Потом conditional, если required не обработали
+			if (!handled) {
+				for (const handler of printHandlers.conditional) {
+					if (await handler(unknownElement, mockPaginator)) {
+						handled = true;
+						break;
+					}
+				}
+			}
+
+			expect(handled).toBe(false); // unknown элемент не должен быть обработан
+		});
 	});
 });

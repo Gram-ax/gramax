@@ -8,6 +8,17 @@ Given("находимся в новой статье", { timeout: config.timeout
 	await this.page().resetToArticle();
 });
 
+Given("находимся в существующей статье", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
+	if (this.page().kind() != "home") await this.page().goto("/");
+
+	await this.page().waitForLoad();
+
+	const firstArticle = this.page().inner().locator('a[data-catalog-card="new-catalog"]').first();
+	await firstArticle.waitFor({ state: "visible", timeout: config.timeouts.long });
+	await firstArticle.click();
+	await this.page().waitForLoad();
+});
+
 Given("находимся в/на {string}", { timeout: config.timeouts.long * 4 }, async function (this: E2EWorld, path: string) {
 	await this.page().goto(path);
 });

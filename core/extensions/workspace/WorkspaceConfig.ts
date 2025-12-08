@@ -28,6 +28,8 @@ export interface WorkspaceConfig {
 		authMethods?: AuthMethod[];
 		modules?: ModuleOptions;
 	};
+
+	/** @deprecated use enterprise.gesUrl instead */
 	gesUrl?: string; // legacy
 }
 

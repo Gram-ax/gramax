@@ -77,7 +77,7 @@ const createParagraph = (view: EditorView, pos: number, isBottom: boolean = fals
 	view.dispatch(tr);
 };
 
-const isCloserToTop = (target: HTMLElement, clickY: number): boolean | null => {
+const isCloserToTop = (target: HTMLElement, clickY: number): boolean => {
 	const pos = target.getBoundingClientRect();
 	const relativeClickY = clickY - pos.top;
 	const elementHeight = pos.bottom - pos.top;
@@ -85,6 +85,16 @@ const isCloserToTop = (target: HTMLElement, clickY: number): boolean | null => {
 	if (relativeClickY >= elementHeight / 4 && relativeClickY <= (3 * elementHeight) / 4) return null;
 
 	return relativeClickY < elementHeight / 2;
+};
+
+const isCloserToCenter = (target: HTMLElement, clickY: number): boolean => {
+	const pos = target.getBoundingClientRect();
+	const relativeClickY = clickY - pos.top;
+	const elementHeight = pos.bottom - pos.top;
+
+	if (relativeClickY >= elementHeight / 4 && relativeClickY <= (3 * elementHeight) / 4) return true;
+
+	return false;
 };
 
 const nativeClick = (view: EditorView, event: MouseEvent) => {
@@ -117,6 +127,16 @@ const handleClick = (view: EditorView, pos: number, event: MouseEvent) => {
 	const clickPos = view.posAtCoords({ left: event.clientX, top: event.clientY });
 	if (clickPos && clickPos.inside > -1 && NodeSelection.isSelectable(view.state.doc.nodeAt(clickPos.inside)!))
 		return false;
+
+	const $clickPos = view.state.doc.resolve(clickPos.pos);
+	clickPos.pos =
+		$clickPos.node() === view.state.doc && $clickPos.nodeBefore
+			? $clickPos.after($clickPos.depth + 1)
+			: clickPos.pos;
+
+	const target = view.nodeDOM(clickPos.pos) as HTMLElement;
+	if (!target || target === view.dom) return false;
+	if (isCloserToCenter(target, event.clientY)) return false;
 
 	createParagraph(view, $pos.pos);
 	event.preventDefault();

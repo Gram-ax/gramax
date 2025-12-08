@@ -1,20 +1,25 @@
 import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import { ExcludedProps, type CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import type { Item, ItemProps } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
 import type PathnameData from "@core/RouterPath/model/PathnameData";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import type GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import type Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import { SystemProperties } from "@ext/properties/models";
 import type Permission from "@ext/security/logic/Permission/Permission";
 
 export type CatalogOnLoad<C extends BaseCatalog> = (catalog: C) => Promise<void> | void;
 
 export type BaseCatalogInitProps = {
+	fs: FileStructure;
 	name: string;
 	basePath: Path;
 	isReadOnly: boolean;
@@ -81,6 +86,10 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 		return this._repo ?? RepositoryProvider.null();
 	}
 
+	getRootCategoryPath(): Path {
+		return this._rootCategoryRef.path.parentDirectoryPath;
+	}
+
 	getRootCategoryRef(): ItemRef {
 		return this._rootCategoryRef;
 	}
@@ -120,6 +129,16 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 			catalogName: this.name,
 			itemLogicPath,
 		};
+	}
+
+	async updateProps(props: CatalogEditProps | CatalogProps, _makeResourceUpdater: MakeResourceUpdater) {
+		const newProps = {
+			...props,
+			properties: props?.properties?.filter((property) => !SystemProperties[property.name.toLowerCase()]),
+		};
+		Object.keys(newProps)
+			.filter((k: keyof typeof newProps) => !ExcludedProps.includes(k))
+			.forEach((k) => (this.props[k] = newProps[k]));
 	}
 
 	upgrade<T extends CatalogType, L extends boolean = false>(to: T, load?: L) {

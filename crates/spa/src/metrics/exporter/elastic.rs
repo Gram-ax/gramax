@@ -50,8 +50,8 @@ impl<T: Serialize + Send + Sync> ElasticSearchExporter<T> {
 }
 
 impl<T: Serialize + Send + Sync> AnyMetricExporter<T> {
-  pub async fn elasticsearch(opts: ElasticOptions) -> Self {
-    Self::ElasticSearch(ElasticSearchExporter::new(opts).await.unwrap())
+  pub async fn elasticsearch(opts: ElasticOptions) -> Result<Self, anyhow::Error> {
+    Ok(Self::ElasticSearch(ElasticSearchExporter::new(opts).await?))
   }
 }
 

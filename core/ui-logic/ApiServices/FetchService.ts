@@ -47,12 +47,19 @@ export default class FetchService {
 
 		let error: any;
 		if (res.status === 404) {
-			error = new DefaultError(`${t("command")} "${command}" ${t("not-found2").toLowerCase()}`, error);
+			error = new DefaultError(`${t("command")} "${command}" ${t("not-found2").toLowerCase()}`);
 		} else {
 			try {
 				error = await res.json();
 			} catch (e) {
-				console.log(`Command ${command} does not have correct error!`);
+				error = new DefaultError(
+					t("app.error.command-failed.body"),
+					null,
+					{ html: true },
+					false,
+					t("app.error.command-failed.title"),
+				);
+				console.error(new Error(`${command} \n${e.message}`));
 			}
 		}
 		if (notifyError) (await ErrorConfirmService).default.notify(error);

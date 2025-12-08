@@ -42,6 +42,12 @@ export class XxHash {
 		return new Hasher(this._xxhash);
 	}
 
+	static single(val: string | object | Uint8Array | number | bigint | boolean) {
+		const hasher = this.hasher();
+		hasher.hash(val);
+		return hasher.finalize();
+	}
+
 	static async hash(val: Hashable, recursive = true): Promise<number> {
 		const hasher = this.hasher();
 		await val.hash(hasher, recursive);

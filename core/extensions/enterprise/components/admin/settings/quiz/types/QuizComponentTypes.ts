@@ -6,7 +6,7 @@ export type QuizSettings = {
 
 export type QuizAnswer = {
 	id: string;
-	test_id: string;
+	test_id: number;
 	user_mail: string;
 	answers: CheckAnswer[];
 	created_at: Date;
@@ -35,8 +35,8 @@ export type SearchedAnsweredUsers = {
 };
 
 export type QuizTest = {
-	id: string;
-	test_id: string;
+	id: number;
+	test_id: number;
 	test_title: string;
 	user_mail: string;
 	test_version: string;
@@ -50,9 +50,9 @@ export type QuizStoredQuestion = {
 };
 
 export type QuizTestCreate = {
-	id: string;
+	id: number;
 	title: string;
-	articleId: string;
+	articleId: number;
 	questions: QuizStoredQuestion[];
 };
 

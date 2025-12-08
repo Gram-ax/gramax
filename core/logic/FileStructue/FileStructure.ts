@@ -5,6 +5,7 @@ import Path from "@core/FileProvider/Path/Path";
 import FileInfo from "@core/FileProvider/model/FileInfo";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
+import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
@@ -72,7 +73,7 @@ export default class FileStructure {
 		return !!path.match(CATEGORY_ROOT_REGEXP)?.[1];
 	}
 
-	static getCatalogPath(catalog: Catalog): Path {
+	static getCatalogPath(catalog: BaseCatalog): Path {
 		return new Path(catalog.name);
 	}
 
@@ -120,6 +121,7 @@ export default class FileStructure {
 			props: { ...initProps, ...props },
 			load: (entry) => this._getCatalogByEntry(entry),
 			isReadOnly: this._isReadOnly,
+			fs: this,
 		});
 
 		await this._events.emit("catalog-entry-read", { entry });
@@ -168,7 +170,7 @@ export default class FileStructure {
 		await this._fp.move(category.ref.path.parentDirectoryPath, path);
 	}
 
-	async saveCatalog(catalog: Catalog): Promise<void> {
+	async saveCatalog(catalog: BaseCatalog): Promise<void> {
 		const props = catalog.props;
 		delete (props as any).link;
 
@@ -185,7 +187,16 @@ export default class FileStructure {
 		await this.events.emit("item-serialize", { mutable });
 		const text = this.serialize({ props: mutable.props, content: mutable.content });
 		await this._fp.write(path, text);
-		return await this._fp.getStat(path);
+
+		let stat: FileInfo;
+		try {
+			return await this._fp.getStat(path);
+		} catch (e) {
+			console.error("got an error while getting stat", { path: path.value, error: e });
+			await new Promise((resolve) => setTimeout(resolve, 100));
+			stat = await this._fp.getStat(path);
+			return stat;
+		}
 	}
 
 	makeArticleByProps(

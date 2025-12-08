@@ -11,13 +11,12 @@ interface NextLinkProps extends HTMLAttributes<HTMLAnchorElement> {
 
 const NextLink = (props: NextLinkProps, ref: RefObject<HTMLAnchorElement>) => {
 	const { href, children, onClick, dataQa, ...otherProps } = props;
-	const url = href ? Url.from({ pathname: href?.pathname, query: href?.query }) : null;
-
+	const url = href ? Url.from({ pathname: decodeURI(href.pathname), query: href?.query }) : null;
 
 	return (
 		<Link
 			ref={ref}
-			href={decodeURI(url.toString())}
+			href={url?.toString()}
 			scroll={true}
 			passHref
 			onClick={onClick}

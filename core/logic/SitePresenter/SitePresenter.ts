@@ -38,6 +38,7 @@ import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
 import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "../FileStructue/Catalog/ReadonlyCatalog";
+import { QuizSettings } from "@ext/quiz/models/types";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -80,6 +81,8 @@ export type ClientArticleProps = {
 	template?: string;
 	fields?: TemplateField[];
 	questions?: Record<string, StoredQuestion>;
+	quiz?: QuizSettings;
+	searchPhrases?: string[];
 };
 
 export type ClientItemRef = {
@@ -289,6 +292,8 @@ export default class SitePresenter {
 			template: article.props.template ?? null,
 			fields: article.props.fields ?? [],
 			questions: storedQuestions,
+			quiz: article.props.quiz ?? null,
+			searchPhrases: article.props.searchPhrases ?? [],
 		};
 	}
 

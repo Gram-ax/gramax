@@ -4,11 +4,12 @@ import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import FavoriteProvider from "@ext/article/Favorite/logic/FavoriteProvider";
+import CatalogMoveAction from "@ext/catalog/actions/move/components/CatalogMoveAction";
 import { useDeleteCatalog } from "@ext/catalog/actions/propsEditor/components/useDeleteCatalog";
 import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import { CardMenuTrigger } from "ics-ui-kit/components/card";
+import { CardMenuTrigger } from "@ui-kit/Card";
 import { useCallback } from "react";
 
 interface CardActionsProps {
@@ -56,17 +57,20 @@ const CardActions = ({ catalogLink }: CardActionsProps) => {
 					{isFavorite ? t("remove-favorite") : t("add-favorite")}
 				</DropdownMenuItem>
 				{isLogged && (
-					<DropdownMenuItem
-						type="danger"
-						onClick={async (e) => {
-							e.stopPropagation();
-							if (!(await confirm(t("catalog.delete.name") + "?"))) return;
-							await deleteCatalog();
-						}}
-					>
-						<Icon code="trash" />
-						{t("catalog.delete.name")}
-					</DropdownMenuItem>
+					<>
+						<CatalogMoveAction catalogName={catalogLink.name} />
+						<DropdownMenuItem
+							type="danger"
+							onClick={async (e) => {
+								e.stopPropagation();
+								if (!(await confirm(t("catalog.delete.name") + "?"))) return;
+								await deleteCatalog();
+							}}
+						>
+							<Icon code="trash" />
+							{t("catalog.delete.name")}
+						</DropdownMenuItem>
+					</>
 				)}
 			</DropdownMenuContent>
 		</DropdownMenu>

@@ -6,7 +6,9 @@ import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPi
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { CSSProperties, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { VERTICAL_TOP_OFFSET } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
+import { PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/component/TableWrapper";
+import { CSSProperties, RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
 
 export const CELL_MIN_WIDTH = "3em";
 
@@ -19,18 +21,22 @@ const calculateContentWidth = (element: Element | null): number => {
 	return element.firstElementChild.clientWidth;
 };
 
-interface WidthWrapperProps {
+export interface WidthWrapperProps {
 	children: JSX.Element;
+	additional?: JSX.Element;
 	className?: string;
 	"data-wrapper"?: string;
+	tableRef?: RefObject<HTMLTableElement>;
+	disableWrapper?: boolean;
 }
 
-const WidthWrapper = ({ children, className, "data-wrapper": dataWrapper }: WidthWrapperProps) => {
+const WidthWrapper = (props: WidthWrapperProps) => {
+	const { children, className, "data-wrapper": dataWrapper, disableWrapper, additional } = props;
 	const [rightWidth, setRightWidth] = useState(0);
 	const [leftWidth, setLeftWidth] = useState(0);
 	const [height, setHeight] = useState(0);
 	const [wrapperSize, setWrapperSize] = useState(0);
-	const articleRef = ArticleRefService.value;
+	const articleRef = !disableWrapper ? ArticleRefService.value : null;
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const isPin = SidebarsIsPinService.value.left;
 	const leftNavigation = SidebarsIsOpenService?.transitionEndIsLeftOpen;
@@ -84,7 +90,7 @@ const WidthWrapper = ({ children, className, "data-wrapper": dataWrapper }: Widt
 		};
 	}, [scrollContainerRef.current]);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		resizeWrapper();
 		setWidth();
 	}, [leftNavigation]);
@@ -92,6 +98,7 @@ const WidthWrapper = ({ children, className, "data-wrapper": dataWrapper }: Widt
 	const getWidth = useCallback((): CSSProperties => {
 		if (isShowMainLangContentPreview) return {};
 		if (typeof isPin === "undefined" || wrapperSize <= 0) return {};
+		if (!articleRef?.current) return {};
 
 		const parentElement = scrollContainerRef?.current?.parentElement.parentElement;
 		const nodeWidth = parentElement.clientWidth;
@@ -121,10 +128,11 @@ const WidthWrapper = ({ children, className, "data-wrapper": dataWrapper }: Widt
 			className={classNames(
 				className,
 				{
-					center: isShowMainLangContentPreview
-						? scrollContainerRef.current?.parentElement.clientWidth <
-						  scrollContainerRef.current?.firstElementChild?.firstElementChild?.clientWidth
-						: wrapperSize > 0,
+					center:
+						disableWrapper || isShowMainLangContentPreview
+							? scrollContainerRef.current?.parentElement.clientWidth <
+							  scrollContainerRef.current?.firstElementChild?.firstElementChild?.clientWidth
+							: wrapperSize > 0,
 				},
 				["width-wrapper"],
 			)}
@@ -134,6 +142,7 @@ const WidthWrapper = ({ children, className, "data-wrapper": dataWrapper }: Widt
 			<div ref={scrollContainerRef} className={"scrollableContent"} onScroll={setWidth}>
 				{children}
 			</div>
+			{additional}
 			<ShadowBox width={leftWidth} height={height} direction="left" />
 			<ShadowBox width={rightWidth} height={height} direction="right" />
 		</div>
@@ -143,6 +152,13 @@ const WidthWrapper = ({ children, className, "data-wrapper": dataWrapper }: Widt
 export default styled(WidthWrapper)`
 	position: relative;
 	z-index: 1;
+
+	&:has(.scrollableContent > div[data-table-wrapper]) {
+		padding-bottom: ${PADDING_TOP_BOTTOM} - ${VERTICAL_TOP_OFFSET};
+		.scrollableContent > div[data-table-wrapper] {
+			padding-bottom: ${VERTICAL_TOP_OFFSET};
+		}
+	}
 
 	${cssMedia.medium} {
 		&.center {

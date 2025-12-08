@@ -222,7 +222,7 @@ function updateColumnWidth(view: EditorView, cell: number, width: number): void 
 	const col = map.colCount($cell.pos - start) + $cell.nodeAfter.attrs.colspan - 1;
 	const tr = view.state.tr;
 	for (let row = 0; row < map.height; row++) {
-		for (let cell = 0; cell < map.width; cell++) {
+		for (let cell = 0; cell < map.width; ) {
 			const mapIndex = row * map.width + cell;
 
 			const pos = map.map[mapIndex];
@@ -231,8 +231,10 @@ function updateColumnWidth(view: EditorView, cell: number, width: number): void 
 
 			const colwidth = attrs.colwidth ? attrs.colwidth.slice() : zeroes(attrs.colspan);
 			for (let i = 0; i < attrs.colspan; i++) {
-				colwidth[i] = cell === col ? width : widths[cell - index + i];
+				const isEditingCol = cell + i === col;
+				colwidth[i] = isEditingCol ? width : widths[cell - index + i];
 			}
+			cell += attrs.colspan;
 			tr.setNodeMarkup(start + pos, null, { ...attrs, colwidth: colwidth });
 		}
 	}

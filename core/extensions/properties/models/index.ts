@@ -68,3 +68,9 @@ export interface PropertyUsage {
 }
 
 export const enumTypes = [PropertyTypes.enum, PropertyTypes.many];
+
+declare module "@core/FileStructue/Item/Item" {
+	interface ItemProps {
+		properties?: PropertyValue[];
+	}
+}

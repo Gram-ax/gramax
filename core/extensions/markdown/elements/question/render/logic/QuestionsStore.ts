@@ -1,8 +1,11 @@
+import Workspace from "@core-ui/ContextServices/Workspace";
 import { useApi } from "@core-ui/hooks/useApi";
 import { TypedAnswer, AnswerType } from "@ext/markdown/elements/answer/types";
-import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
+import { QuestionStorage, useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
 import { Question, QuestionResult } from "@ext/markdown/elements/question/types";
+import { QuizResult, StoredQuizResult } from "@ext/quiz/models/types";
 import { toast } from "@ui-kit/Toast";
+import { DependencyList, useLayoutEffect } from "react";
 import { create } from "zustand";
 import { shallow } from "zustand/shallow";
 
@@ -13,9 +16,14 @@ export interface StoredQuestion extends Omit<Question, "answers"> {
 	answers: Record<string, StoredAnswer>;
 	isRequired?: boolean;
 	isCorrected?: boolean;
+	correctAnswers?: string[];
 }
 
-export type QuestionsStoreState = "answering" | "checking" | "finished";
+export type QuestionsStoreState = {
+	passed: boolean;
+	type: "loading" | "answering" | "checking" | "finished";
+	countOfCorrectAnswers?: number;
+};
 
 export type FocusState = "default" | "error";
 
@@ -24,22 +32,36 @@ export interface QuestionsStore {
 	state: QuestionsStoreState;
 	focusState?: { questionId: string; state: FocusState };
 	resetStore: (content: string) => void;
-	setState: (state: QuestionsStoreState) => void;
+	setState: (state: Partial<QuestionsStoreState>) => void;
 	setQuestions: (questions: Record<string, StoredQuestion>) => void;
 	selectAnswer: (questionId: string, answerId: string) => void;
 	getAnswer: (questionId: string, answerId: string) => StoredAnswer;
 	getSelectedAnswers: (questionId: string) => string[];
+	restoreStoredAnswers: (result: StoredQuizResult) => void;
 	setIsCorrectedQuestions: (result: QuestionResult[]) => void;
 	setFocusedQuestion: (questionId: string, state: FocusState) => void;
 }
 
-export const createQuestionsStore = (questions: Record<string, StoredQuestion>) => {
+export const createQuestionsStore = (questions: Record<string, StoredQuestion>, storage: QuestionStorage) => {
 	return create<QuestionsStore>((set, get) => ({
-		questions,
+		questions: Object.fromEntries(
+			Object.entries(questions).map(([questionId, question]) => [
+				questionId,
+				{
+					...question,
+					selectedAnswers: storage.getQuestion(questionId),
+				},
+			]),
+		),
 		focusState: null,
-		state: "answering",
-		resetStore: () => set({ questions, state: "answering" }),
-		setState: (state: QuestionsStoreState) => set({ state }),
+		state: { type: "loading", passed: false, countOfCorrectAnswers: undefined },
+		resetStore: () =>
+			set({ questions, state: { type: "answering", passed: false, countOfCorrectAnswers: undefined } }),
+		setState: (state: Partial<QuestionsStoreState>) => {
+			const oldState = get().state;
+			if (state.type === "finished") storage.clearQuestions();
+			return set({ state: { ...oldState, ...state } });
+		},
 		setQuestions: (questions: Record<string, StoredQuestion>) => set({ questions }),
 		selectAnswer: (questionId: string, answerId: string) => {
 			const { questions } = get();
@@ -68,6 +90,8 @@ export const createQuestionsStore = (questions: Record<string, StoredQuestion>) 
 				},
 				focusState: null,
 			});
+
+			storage.saveQuestion(questionId, newSelectedAnswers);
 		},
 		getAnswer: (questionId: string, answerId: string) => {
 			const { questions } = get();
@@ -83,6 +107,7 @@ export const createQuestionsStore = (questions: Record<string, StoredQuestion>) 
 
 			results.forEach((result) => {
 				newQuestions[result.questionId].isCorrected = result.isCorrect;
+				newQuestions[result.questionId].correctAnswers = result.correctAnswersIds;
 			});
 
 			set({ questions: newQuestions });
@@ -90,6 +115,39 @@ export const createQuestionsStore = (questions: Record<string, StoredQuestion>) 
 		setFocusedQuestion: (questionId: string, state: FocusState) => {
 			set({
 				focusState: { questionId, state },
+			});
+		},
+		restoreStoredAnswers: (result: StoredQuizResult) => {
+			const { questions } = get();
+			const newQuestions = { ...questions };
+
+			Object.entries(result.selectedAnswers).forEach(([questionId, selectedAnswers]) => {
+				if (newQuestions[questionId]) {
+					newQuestions[questionId] = {
+						...newQuestions[questionId],
+						selectedAnswers,
+					};
+					storage.saveQuestion(questionId, selectedAnswers);
+				}
+			});
+
+			result.questions.forEach((questionResult) => {
+				if (newQuestions[questionResult.questionId]) {
+					newQuestions[questionResult.questionId] = {
+						...newQuestions[questionResult.questionId],
+						isCorrected: questionResult.isCorrect,
+						correctAnswers: questionResult.correctAnswersIds,
+					};
+				}
+			});
+
+			set({
+				questions: newQuestions,
+				state: {
+					type: "finished",
+					passed: result.passed,
+					countOfCorrectAnswers: result.countOfCorrectAnswers,
+				},
 			});
 		},
 	}));
@@ -108,7 +166,7 @@ export const useCheckAnswers = () => {
 		shallow,
 	);
 
-	const { call: checkAnswers } = useApi<QuestionResult[]>({
+	const { call: checkAnswers } = useApi<QuizResult>({
 		url: (api) => api.getAnswers(),
 		opts: {
 			body: JSON.stringify({
@@ -118,16 +176,56 @@ export const useCheckAnswers = () => {
 				})),
 			}),
 		},
-		onStart: () => setState("checking"),
+		onStart: () => setState({ type: "checking" }),
 		onError: () => {
 			toast("Error checking answers", { status: "error", icon: "triangle-alert", duration: 10000 });
-			setState("answering");
+			setState({ type: "answering" });
 		},
 		onDone: (result) => {
-			setIsCorrectedQuestions(result);
-			setState("finished");
+			setIsCorrectedQuestions(result.questions);
+			setState({
+				type: "finished",
+				passed: result.passed,
+				countOfCorrectAnswers: result.countOfCorrectAnswers,
+			});
 		},
 	});
 
 	return checkAnswers;
+};
+
+export const useIsAnsweredToTest = (deps: DependencyList) => {
+	const workspace = Workspace.current();
+
+	const { setState, restoreStoredAnswers } = useQuestionsStore(
+		(store) => ({
+			setState: store.setState,
+			restoreStoredAnswers: store.restoreStoredAnswers,
+		}),
+		shallow,
+	);
+
+	const { call: isAnswered } = useApi<StoredQuizResult>({
+		url: (api) => api.isAnsweredTest(),
+		onError: () => {
+			toast("Error checking answers", { status: "error", icon: "triangle-alert", duration: 10000 });
+			setState({ type: "answering" });
+		},
+		onDone: (result) => {
+			if (result.passed === null) return setState({ type: "answering" });
+			restoreStoredAnswers(result);
+			setState({
+				type: "finished",
+				passed: result.passed,
+				countOfCorrectAnswers: result.countOfCorrectAnswers,
+			});
+		},
+	});
+
+	useLayoutEffect(() => {
+		if (!workspace?.enterprise?.modules?.quiz) return;
+		void isAnswered();
+	}, [workspace?.enterprise?.modules?.quiz, ...deps]);
+
+	return isAnswered;
 };

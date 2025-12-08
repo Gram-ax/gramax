@@ -239,7 +239,10 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 				isOpen={isCreateSourceOpen}
 				setIsOpen={setIsCreateSourceOpen}
 				onSubmit={onSourceDataCreate}
-				onClose={() => setInvalidSourceData(null)}
+				onClose={() => {
+					setInvalidSourceData(null);
+					onOpenChange(false);
+				}}
 				data={invalidSourceData}
 				isReadonly={!!invalidSourceData}
 				sourceType={invalidSourceData?.sourceType}

@@ -120,7 +120,7 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 
 		if (userSettings.workspace.wordTemplates?.length) {
 			const currentWorkspace = this._app.wm.current();
-			const templates = [];
+			const templates: { name: string; buffer: Buffer }[] = [];
 			for (const template of userSettings.workspace.wordTemplates) {
 				templates.push({
 					name: template.title,
@@ -129,6 +129,20 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			}
 
 			await this._app.wtm.addTemplates(currentWorkspace, templates);
+		}
+
+		if (userSettings.workspace.pdfTemplates?.length) {
+			const currentWorkspace = this._app.wm.current();
+
+			const templates: { name: string; buffer: Buffer }[] = [];
+			for (const template of userSettings.workspace.pdfTemplates) {
+				templates.push({
+					name: template.title,
+					buffer: Buffer.from(template.bufferBase64, "utf-8"),
+				});
+			}
+
+			await this._app.ptm.addTemplates(currentWorkspace, templates);
 		}
 
 		if (userSettings.workspace.modules) {

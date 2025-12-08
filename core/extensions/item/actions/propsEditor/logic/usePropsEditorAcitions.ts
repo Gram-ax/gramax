@@ -12,6 +12,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
+import { QuizSettings } from "@ext/quiz/models/types";
 
 export interface UsePropsEditorActionsParams {
 	item: ClientArticleProps;
@@ -19,11 +20,19 @@ export interface UsePropsEditorActionsParams {
 	setItemLink: Dispatch<SetStateAction<ItemLink>>;
 	isCategory: boolean;
 	isCurrentItem: boolean;
+	onUpdate?: () => void;
 	onExternalClose?: () => void;
 }
 
+export interface PropsEditorData {
+	title: string;
+	fileName: string;
+	quiz?: QuizSettings;
+	searchPhrases?: string[];
+}
+
 export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
-	const { item, itemLink, setItemLink, isCurrentItem, onExternalClose, isCategory } = params;
+	const { item, itemLink, setItemLink, isCurrentItem, onExternalClose, isCategory, onUpdate } = params;
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const articleProps = ArticlePropsService.value;
@@ -57,11 +66,13 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 	}, [onExternalClose]);
 
 	const submit = useCallback(
-		async (data: { title: string; fileName: string }) => {
+		async (data: PropsEditorData) => {
 			const newProps: ClientArticleProps = {
 				...item,
 				title: data.title,
 				fileName: data.fileName,
+				quiz: data.quiz,
+				searchPhrases: data.searchPhrases,
 			} as ClientArticleProps;
 
 			const response = await FetchService.fetch(
@@ -85,8 +96,9 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 			}
 
 			closeModal();
+			onUpdate?.();
 		},
-		[updateNavigation, closeModal],
+		[updateNavigation, closeModal, onUpdate],
 	);
 
 	const openModal = useCallback(() => {
@@ -99,7 +111,7 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 			onClose: closeModal,
 			isCategory,
 		});
-	}, [item, itemLink, setItemLink, isCurrentItem, isCategory]);
+	}, [item, itemLink, setItemLink, isCurrentItem, isCategory, submit]);
 
 	return {
 		submit,

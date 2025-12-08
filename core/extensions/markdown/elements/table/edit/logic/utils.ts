@@ -5,6 +5,32 @@ import { Attrs, Node } from "@tiptap/pm/model";
 import { Transaction } from "@tiptap/pm/state";
 import { Decoration } from "@tiptap/pm/view";
 import { MouseEvent } from "react";
+import { TableHeaderTypes } from "../model/tableTypes";
+
+export const workHeaderType = (
+	currentHeader: TableHeaderTypes,
+	type: TableHeaderTypes.ROW | TableHeaderTypes.COLUMN,
+) => {
+	const checked = currentHeader === type || currentHeader === TableHeaderTypes.BOTH;
+	let newHeader: TableHeaderTypes;
+	if (checked) {
+		if (currentHeader === TableHeaderTypes.BOTH) {
+			newHeader = type === TableHeaderTypes.ROW ? TableHeaderTypes.COLUMN : TableHeaderTypes.ROW;
+		} else {
+			newHeader = TableHeaderTypes.NONE;
+		}
+	} else {
+		if (
+			(currentHeader === TableHeaderTypes.COLUMN && type === TableHeaderTypes.ROW) ||
+			(currentHeader === TableHeaderTypes.ROW && type === TableHeaderTypes.COLUMN)
+		) {
+			newHeader = TableHeaderTypes.BOTH;
+		} else {
+			newHeader = type;
+		}
+	}
+	return { checked, newHeader };
+};
 
 export const getTableColumnCellPositions = (node: Node, pos: number, index: number) => {
 	const numRows = node.childCount;

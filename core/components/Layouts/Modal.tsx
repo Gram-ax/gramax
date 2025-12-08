@@ -140,7 +140,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 				trigger={trigger}
 				overlayStyle={{
 					backgroundColor: "var(--color-modal-overlay-style-bg)",
-					zIndex: "var(--z-index-modal-overlay)",
+					zIndex: "var(--z-index-ui-kit-modal)",
 				}}
 				contentStyle={{
 					display: "flex",

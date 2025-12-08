@@ -3,7 +3,6 @@ import styled from "@emotion/styled";
 import { TitledLink } from "@ext/navigation/NavigationLinks";
 import { Fragment, ReactNode } from "react";
 import Divider from "../Atoms/Divider";
-import Anchor from "../controls/Anchor";
 
 interface RenderTitledLinks {
 	links: TitledLink[];
@@ -13,10 +12,16 @@ interface RenderTitledLinks {
 
 const RenderTitledLink = ({ link }: { link: TitledLink }): JSX.Element => {
 	return (
-		<Anchor className="layout_link" href={link.url} target={link.target} data-qa="qa-clickable">
+		<a
+			className="layout_link"
+			href={link.url}
+			target={link.target ?? "_blank"}
+			rel="noreferrer"
+			data-qa="qa-clickable"
+		>
 			<ButtonLink iconCode={link.icon} text={link.title} />
 			{link.childrens && <RenderTitledLinks links={link.childrens} isChildren={true} />}
-		</Anchor>
+		</a>
 	);
 };
 

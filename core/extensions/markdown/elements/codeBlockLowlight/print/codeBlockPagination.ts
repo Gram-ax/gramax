@@ -1,30 +1,17 @@
-import { HEIGHT_TOLERANCE_PX } from "@ext/print/const";
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
-import { PaginationState } from "@ext/print/utils/pagination/nodeHandlers";
-import { YieldFn } from "@ext/markdown/elements/table/print/tablePagination";
-import { createPage, getUsableHeight } from "@ext/print/utils/pagination/pageElements";
-import { ProgressTracker } from "@ext/print/utils/pagination/progress";
+import Paginator from "@ext/print/utils/pagination/Paginator";
 
-const paginateCodeBlock = async (
-	pages: HTMLElement,
-	srcPre: HTMLPreElement,
-	state: PaginationState,
-	nodeDimension: NodeDimensions,
-	yieldTick: YieldFn,
-	progress: ProgressTracker,
-	signal?: AbortSignal,
-): Promise<HTMLElement> => {
-	const { currentPage } = state;
-	throwIfAborted(signal);
+const paginateCodeBlock = async (srcPre: HTMLPreElement, paginator: Paginator): Promise<boolean> => {
+	let pageContainer = paginator.currentContainer;
+	throwIfAborted(Paginator.controlInfo.signal);
 
-	let page = currentPage;
-	const preDimension = nodeDimension.get(srcPre);
-	const maxHeight = getUsableHeight(page) + HEIGHT_TOLERANCE_PX;
+	const preDimension = Paginator.paginationInfo.nodeDimension.get(srcPre);
+	const maxHeight = paginator.getUsableHeight();
 
 	const srcWrapper = srcPre.querySelector(".child-wrapper");
-	if (!srcWrapper) return currentPage;
-	const srcWrapperDimension = nodeDimension.get(srcWrapper as HTMLElement);
+	if (!srcWrapper) return false;
+	const srcWrapperDimension = Paginator.paginationInfo.nodeDimension.get(srcWrapper as HTMLElement);
 	const wrapperDimension = NodeDimensions.combineDimensions(preDimension, srcWrapperDimension);
 
 	const codeLines = Array.from(srcWrapper.querySelectorAll(".code-line"));
@@ -32,51 +19,50 @@ const paginateCodeBlock = async (
 	let currentPre = srcPre.cloneNode(false) as HTMLPreElement;
 	let currentWrapper = srcWrapper.cloneNode(false) as HTMLDivElement;
 	currentPre.appendChild(currentWrapper);
-	page.appendChild(currentPre);
+	pageContainer.appendChild(currentPre);
 
 	let accumulatedHeight =
-		state.accumulatedHeight.height +
-		Math.max(state.accumulatedHeight.marginBottom, wrapperDimension?.marginTop || 0);
-	let currentHeight = (wrapperDimension?.paddingTop || 0) + (wrapperDimension?.paddingBottom || 0);
+		Paginator.paginationInfo.accumulatedHeight.height +
+		Math.max(Paginator.paginationInfo.accumulatedHeight.marginBottom, wrapperDimension?.marginTop || 0);
+	let currentHeight = wrapperDimension?.paddingH + wrapperDimension.marginBottom;
 
 	for (let i = 0; i < codeLines.length; i++) {
-		throwIfAborted(signal);
+		throwIfAborted(Paginator.controlInfo.signal);
 		const lineElement = codeLines[i];
 
-		const lineDimension = nodeDimension.get(lineElement as HTMLElement);
-		const lineHeight = Math.max(lineDimension?.height || 0, wrapperDimension.lineHeight);
+		const lineDimension = Paginator.paginationInfo.nodeDimension.get(lineElement as HTMLElement);
+		const height = Math.ceil(lineDimension?.height / wrapperDimension.lineHeight) * wrapperDimension.lineHeight;
 
-		if (accumulatedHeight + currentHeight + lineHeight > maxHeight) {
+		if (accumulatedHeight + currentHeight + height > maxHeight) {
 			if (!currentWrapper.hasChildNodes()) {
 				currentPre.remove();
 			}
 
-			page = createPage(pages);
+			pageContainer = paginator.createPage();
 			currentPre = srcPre.cloneNode(false) as HTMLPreElement;
 			currentWrapper = srcWrapper.cloneNode(false) as HTMLDivElement;
 			currentPre.appendChild(currentWrapper);
-			page.appendChild(currentPre);
+			pageContainer.appendChild(currentPre);
 
-			accumulatedHeight = 0;
-			currentHeight = (wrapperDimension?.paddingTop || 0) + (wrapperDimension?.paddingBottom || 0);
+			accumulatedHeight = Paginator.paginationInfo.accumulatedHeight.height + wrapperDimension?.marginTop;
+			currentHeight = wrapperDimension?.paddingH + wrapperDimension.marginBottom;
 
-			await yieldTick();
-			throwIfAborted(signal);
+			await Paginator.controlInfo.yieldTick();
+			throwIfAborted(Paginator.controlInfo.signal);
 		}
 
 		currentWrapper.appendChild(lineElement.cloneNode(true));
 		if (i < codeLines.length - 1) {
 			currentWrapper.appendChild(document.createTextNode("\n"));
 		}
-		currentHeight += lineHeight;
-		progress.increase();
+		currentHeight += height;
 	}
 
-	state.accumulatedHeight.height = accumulatedHeight + currentHeight;
-	state.accumulatedHeight.marginBottom = wrapperDimension?.marginBottom || 0;
+	Paginator.paginationInfo.accumulatedHeight.height = accumulatedHeight + currentHeight;
+	Paginator.paginationInfo.accumulatedHeight.marginBottom = wrapperDimension?.marginBottom || 0;
 
 	srcPre.remove();
-	return page;
+	return true;
 };
 
 export default paginateCodeBlock;

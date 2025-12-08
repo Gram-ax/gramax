@@ -1,5 +1,4 @@
-import useSWR, { SWRResponse } from "swr";
-import { BareFetcher, PublicConfiguration } from "swr/dist/types";
+import useSWR, { SWRResponse, BareFetcher, SWRConfiguration } from "swr";
 import FetchService from "./FetchService";
 import Fetcher from "./Types/Fetcher";
 import Method from "./Types/Method";
@@ -16,7 +15,7 @@ export default abstract class UseSWRService {
 		url: Url,
 		fetcher = Fetcher.json,
 		isLoad = true,
-		config?: Partial<PublicConfiguration<Type, Error, BareFetcher<Type>>>,
+		config?: SWRConfiguration<Type, Error, BareFetcher<Type>>,
 	): SWRResponse<Type, Error> {
 		try {
 			return useSWR<Type, Error>(

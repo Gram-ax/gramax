@@ -25,7 +25,7 @@ const getAllSyncableWorkspaces: Command<
 		const workspaces = await wm.getUnintializedWorkspaces();
 
 		await workspaces.forEachAsync(async (workspace) => {
-			await workspace.getCatalogNames().forEachAsync(async (name) => {
+			await workspace.getCatalogDirNames().forEachAsync(async (name) => {
 				const source = await workspace.getSourceByCatalogName(ctx, name);
 				const repo = workspace.getRepositoryByName(name);
 

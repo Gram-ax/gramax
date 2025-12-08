@@ -18,9 +18,11 @@ import getEditorContent from "./features/getEditorContent";
 import getLinkItems from "./features/getLinkItems";
 import getRenderContent from "./features/getRenderContent";
 import setContent from "./features/setContent";
+import getNameAfterMove from "./getNameAfterMove";
 import getProps from "./getProps";
 import markAsOpened from "./markAsOpened";
 import markAsRead from "./markAsRead";
+import move from "./move";
 import get from "./resource/get";
 import getByPath from "./resource/getByPath";
 import removeResource from "./resource/remove";
@@ -57,6 +59,8 @@ const article = {
 		update,
 		removeProperty,
 	},
+	move,
+	getNameAfterMove,
 	provider,
 	create,
 	getProps,

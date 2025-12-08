@@ -67,11 +67,13 @@ const CloneWithShareData = (props: CloneWithShareDataProps) => {
 		</div>
 	);
 
+	const sourceType = shareData.sourceType || SourceType.git;
+
 	const openCreateStorageModal = () => {
 		ModalToOpenService.setValue<ComponentProps<typeof CreateStorageModal>>(ModalToOpen.CreateStorage, {
-			isReadonly: true,
+			isReadonly: sourceType !== SourceType.git,
 			data: partSourceData,
-			sourceType: shareData.sourceType || SourceType.git,
+			sourceType,
 			onClose: () => ModalToOpenService.resetValue(),
 			onSubmit: (data) => {
 				startClone({

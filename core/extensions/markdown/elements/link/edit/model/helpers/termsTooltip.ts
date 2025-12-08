@@ -1,13 +1,11 @@
-import LinkHoverTooltip from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltip";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
 import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
+import { Editor } from "@tiptap/core";
+import { Mark } from "@tiptap/pm/model";
+import { Node } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Node } from "prosemirror-model";
-import { Mark } from "@tiptap/pm/model";
-import { Editor } from "@tiptap/core";
 
 export type MarkWithPos = { mark: Mark; from: number; to: number };
 
@@ -42,12 +40,8 @@ const getLinkMarkByView = (view: EditorView, x: number, y: number) => {
 	return { ...findMarkAtPosition(marksWithPositions, "link", cursorPos), parentNodePos };
 };
 
-export function hoverTooltip(
-	editor: Editor,
-	apiUrlCreator: ApiUrlCreator,
-	pageDataContext: PageDataContext,
-): Plugin {
-	const tooltipManager = new LinkHoverTooltipManager(document.body, apiUrlCreator, pageDataContext);
+export function hoverTooltip(editor: Editor, apiUrlCreator: ApiUrlCreator, pageDataContext: PageDataContext): Plugin {
+	const tooltipManager = new LinkHoverTooltipManager(document.body, pageDataContext);
 
 	editor.on("selectionUpdate", (editor) => {
 		const cursorPos = editor.editor.view.state.selection.anchor;
@@ -79,6 +73,7 @@ export function hoverTooltip(
 							linkElement,
 							markData: markWithPosition,
 							anchorPos: view.state.selection.anchor,
+							apiUrlCreator,
 						});
 					}
 				},

@@ -1,18 +1,19 @@
 import docx from "@dynamicImports/docx";
-import { ITableRowPropertiesOptions, TableRow, TableCell, ImportedXmlComponent } from "docx";
-import { FileChild } from "docx/build/file/file-child";
-import { WordSerializerState } from "@ext/wordExport/WordExportState";
-import { TableAddOptionsWord, WordTableChildren } from "./WordTableExportTypes";
-import { tableLayout } from "./getTableChilds";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { aggregateTable, setCellAlignment } from "@ext/markdown/elements/table/edit/logic/exportUtils";
+import { AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { WordBlockType, getWordBordersType, wordMarginsType } from "@ext/wordExport/options/wordExportSettings";
 import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
-import { JSONContent } from "@tiptap/core";
-import { AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { aggregateTable, setCellAlignment } from "@ext/markdown/elements/table/edit/logic/exportUtils";
+import { FileChild } from "@ext/wordExport/types";
+import { markTableAsListContinuation } from "@ext/wordExport/utils/listContinuation";
+import { WordSerializerState } from "@ext/wordExport/WordExportState";
+import type { JSONContent } from "@tiptap/core";
+import type { ITableRowPropertiesOptions, TableCell, TableRow } from "docx";
+import { tableLayout } from "./getTableChilds";
+import { TableAddOptionsWord, WordTableChildren } from "./WordTableExportTypes";
 import {
-	TableWidthContext,
 	TWIPS_PER_PIXEL,
+	TableWidthContext,
 	buildTableWidthContext,
 	calculateCellBaseWidthTwips,
 	getColumnWidthsTwips,
@@ -38,6 +39,7 @@ export class WordTableExport {
 		const maxPictureWidth = WordTableExport._convertTwipsToPixels(safeWidth);
 		return this._wordSerializerState.renderBlock(tag, {
 			...tag.attributes,
+			...(this._environment?.addOptions ?? {}),
 			removeWhiteSpace: true,
 			maxPictureWidth,
 			maxTableWidth: safeWidth,
@@ -146,9 +148,13 @@ export class WordTableExport {
 			indent,
 		});
 
+		if (addOptions?.listContinuation) {
+			await markTableAsListContinuation(t, addOptions.listContinuationLevel);
+		}
+
 		const { hasHeaderRow, hasHeaderCol } = this._getHeaderType(table);
 
-		this._injectTblLook(t, {
+		await this._injectTblLook(t, {
 			firstRow: hasHeaderRow,
 			firstColumn: hasHeaderCol,
 			lastRow: false,
@@ -178,7 +184,7 @@ export class WordTableExport {
 		}
 	}
 
-	private _injectTblLook(
+	private async _injectTblLook(
 		table: any,
 		opts: {
 			firstRow?: boolean;
@@ -189,6 +195,7 @@ export class WordTableExport {
 			bandedColumns?: boolean;
 		},
 	) {
+		const { ImportedXmlComponent } = await docx();
 		const xml = `
 		  <w:tblLook
 			w:firstRow="${opts.firstRow ? 1 : 0}"

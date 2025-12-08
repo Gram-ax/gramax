@@ -53,6 +53,7 @@ const getPageData: Command<
 
 			const shareData = getShareDataFromPathnameData(pathnameData, sourceType);
 			const { context, data } = await getHomePageData();
+
 			return { data, context: { ...context, shareData } };
 		}
 	},

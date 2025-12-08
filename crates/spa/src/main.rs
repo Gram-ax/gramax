@@ -69,6 +69,9 @@ pub struct Options {
   #[arg(long = "cookie-domain", env = "COOKIE_DOMAIN")]
   cookie_domain: Option<String>,
 
+  #[arg(long = "enable-health-probe", env = "ENABLE_HEALTH_PROBE", default_value = "false")]
+  enable_health_probe: bool,
+
   #[clap(flatten)]
   es: metrics::exporter::ElasticOptions,
 }
@@ -82,7 +85,11 @@ async fn main() {
     .on_failure(logging::on_failure);
 
   let opts = Options::parse();
-  let metrics_sender = init_metrics(opts.es).await;
+
+  let metrics_sender = init_metrics(opts.es)
+    .await
+    .inspect_err(|err| error!("failed to init metrics: {:#?}", err))
+    .unwrap_or_else(|_| init_metrics_fallback());
 
   let mode_str = opts.mode.to_string();
 
@@ -108,6 +115,8 @@ async fn main() {
     _ => router,
   };
 
+  let router = if opts.enable_health_probe { router.merge(healthprobe::healthprobe()) } else { router };
+
   let listener = tokio::net::TcpListener::bind(format!("{}:{}", opts.addr, opts.port)).await.unwrap();
   info!("listening on {} as {}", listener.local_addr().unwrap(), mode_str);
 
@@ -130,7 +139,9 @@ async fn set_xreal_ip_if_none(
   next.run(req).await
 }
 
-async fn init_metrics(opts: metrics::exporter::ElasticOptions) -> metrics::exporter::MetricSender<MetricDoc> {
+async fn init_metrics(
+  opts: metrics::exporter::ElasticOptions,
+) -> Result<metrics::exporter::MetricSender<MetricDoc>, anyhow::Error> {
   use metrics::exporter::*;
 
   let exporter = MetricExporterCollection::<MetricDoc>::default();
@@ -139,10 +150,19 @@ async fn init_metrics(opts: metrics::exporter::ElasticOptions) -> metrics::expor
   let exporter = exporter.with_exporter(AnyMetricExporter::stdout());
 
   let exporter = match opts.es_url {
-    Some(_) => exporter.with_exporter(AnyMetricExporter::elasticsearch(opts).await),
+    Some(_) => exporter.with_exporter(AnyMetricExporter::elasticsearch(opts).await?),
     None => exporter,
   };
 
+  Ok(metrics::exporter::MetricSender::new(exporter))
+}
+
+fn init_metrics_fallback() -> metrics::exporter::MetricSender<MetricDoc> {
+  use metrics::exporter::*;
+
+  warn!("using fallback metrics exporter");
+  let exporter = MetricExporterCollection::<MetricDoc>::default();
+  let exporter = exporter.with_exporter(AnyMetricExporter::stdout());
   metrics::exporter::MetricSender::new(exporter)
 }
 

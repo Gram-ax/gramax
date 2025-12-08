@@ -95,7 +95,7 @@
 	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
 
-	"cSpell.words": ["katex", "Markdoc", "prosemirror", "Renderable", "tiptap", "traptitech", "Bugsnag"],
+	"cSpell.words": ["Bugsnag", "katex", "Markdoc", "Modulith", "prosemirror", "Renderable", "tiptap", "traptitech"],
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"ansible.python.interpreterPath": "/sbin/python3.13"
 }

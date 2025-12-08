@@ -28,15 +28,16 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-	SidebarProvider,
-	SidebarRail,
-	SidebarSeparator,
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
+	SidebarProvider,
+	SidebarRail,
+	SidebarSeparator,
 } from "@ui-kit/Sidebar";
 import { Settings } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { shallow } from "zustand/shallow";
 
 interface BaseProps {
 	token: string;
@@ -64,7 +65,7 @@ const SidebarContainer = styled(SidebarProvider)`
 	}
 `;
 
-function MainContent({ page, onNavigate, enterpriseService, token }: MainContentProps) {
+function MainContent({ page, onNavigate }: MainContentProps) {
 	const {
 		settings,
 		error,
@@ -74,35 +75,11 @@ function MainContent({ page, onNavigate, enterpriseService, token }: MainContent
 		ensureWorkspaceLoaded,
 		ensureEditorsLoaded,
 		ensureResourcesLoaded,
-		ensureCheckLoaded,
+		ensureStyleGuideLoaded,
 		ensureQuizLoaded,
 	} = useSettings();
 
-	const [selectAllResources, setSelectAllResources] = useState<string[]>([]);
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
-	const { params } = useAdminPageData();
-
-	useEffect(() => {
-		(async () => {
-			let pageNum = 1;
-			const pageSize = 100;
-			let acc: string[] = [];
-
-			// eslint-disable-next-line no-constant-condition
-			while (true) {
-				const res = await enterpriseService.getResources(token, pageNum);
-				if (!res) break;
-
-				const { repos } = res;
-				acc = acc.concat(repos ?? []);
-				pageNum++;
-
-				if (!repos || repos.length < pageSize) break;
-			}
-
-			setSelectAllResources(acc);
-		})();
-	}, []);
 
 	useEffect(() => {
 		switch (page) {
@@ -124,8 +101,8 @@ function MainContent({ page, onNavigate, enterpriseService, token }: MainContent
 				ensureResourcesLoaded();
 				ensureGroupsLoaded();
 				break;
-			case Page.CHECK:
-				ensureCheckLoaded();
+			case Page.STYLEGUIDE:
+				ensureStyleGuideLoaded();
 				break;
 			case Page.MAIL:
 				ensureMailLoaded();
@@ -237,24 +214,22 @@ function MainContent({ page, onNavigate, enterpriseService, token }: MainContent
 										<SidebarMenuSub>
 											<SidebarMenuSubItem>
 												<SidebarMenuSubButton
-													isActive={page === Page.CHECK}
-													onClick={() => onNavigate(Page.CHECK)}
+													isActive={page === Page.STYLEGUIDE}
+													onClick={() => onNavigate(Page.STYLEGUIDE)}
 												>
 													<Icon icon="file-check2" />
-													<span>{getAdminPageTitle(Page.CHECK)}</span>
+													<span>{getAdminPageTitle(Page.STYLEGUIDE)}</span>
 												</SidebarMenuSubButton>
 											</SidebarMenuSubItem>
-											{params.dataProviderAvailable && (
-												<SidebarMenuSubItem>
-													<SidebarMenuSubButton
-														isActive={page === Page.QUIZ}
-														onPointerDown={() => onNavigate(Page.QUIZ)}
-													>
-														<Icon icon="file-question-mark" />
-														<span>{getAdminPageTitle(Page.QUIZ)}</span>
-													</SidebarMenuSubButton>
-												</SidebarMenuSubItem>
-											)}
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton
+													isActive={page === Page.QUIZ}
+													onPointerDown={() => onNavigate(Page.QUIZ)}
+												>
+													<Icon icon="file-question-mark" />
+													<span>{getAdminPageTitle(Page.QUIZ)}</span>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
 										</SidebarMenuSub>
 									</CollapsibleContent>
 								</Collapsible>
@@ -268,7 +243,7 @@ function MainContent({ page, onNavigate, enterpriseService, token }: MainContent
 			<main className="w-full max-w-full overflow-hidden">
 				<div className="flex-1 p-6 h-full" ref={scrollContainerRef} style={{ overflowY: "scroll" }}>
 					<ScrollContainerProvider container={scrollContainerRef.current}>
-						{Component && <Component selectAllResources={selectAllResources} />}
+						{Component && <Component />}
 					</ScrollContainerProvider>
 				</div>
 			</main>
@@ -277,13 +252,13 @@ function MainContent({ page, onNavigate, enterpriseService, token }: MainContent
 }
 
 function TabPage({ enterpriseService, token }: BaseProps) {
-	const { page, setPage, setParams } = useAdminPageData();
-
-	useEffect(() => {
-		enterpriseService.checkDataProviderHealth().then((available) => {
-			setParams((params) => ({ ...params, dataProviderAvailable: available }));
-		});
-	}, []);
+	const { page, setPage } = useAdminPageData(
+		(store) => ({
+			page: store.page,
+			setPage: store.setPage,
+		}),
+		shallow,
+	);
 
 	useEffect(() => {
 		const url = new URL(window.location.href);

@@ -19,3 +19,9 @@ When("смотрим на карточку с текстом {string}", async fu
 	await expect(elem).toBeVisible();
 	return elem;
 });
+
+When("наводимся на карточку с текстом {string}", async function (this: E2EWorld, text: string) {
+	const processedText = replaceMultiple(text, this.replace.bind(this));
+	const elem = page.locator(`${CARD_SELECTOR}:has-text("${processedText}")`);
+	await elem.hover();
+})

@@ -14,25 +14,13 @@ import { isComplexProperty } from "@ext/templates/models/properties";
 import { isMarkdownText } from "@ext/markdown/elements/pasteMarkdown/handlePasteMarkdown";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { IconButton } from "@ui-kit/Button";
-import styled from "@emotion/styled";
+import { ArticlePropertyWrapper } from "@ext/properties/components/ArticlePropertyWrapper";
 
 interface PropertiesProps {
 	properties: Property[];
 	setProperties: Dispatch<SetStateAction<Property[]>>;
 	hideList?: boolean;
 }
-
-const ArticlePropertyWrapper = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.5em;
-	font-size: 0.7em;
-
-	@media print {
-		display: none;
-	}
-`;
 
 const Properties = ({ properties, setProperties, hideList }: PropertiesProps) => {
 	const articleProps = ArticlePropsService.value;
@@ -127,11 +115,17 @@ const Properties = ({ properties, setProperties, hideList }: PropertiesProps) =>
 	}, [properties, onSubmit, hideList]);
 
 	return (
-		<div className="flex gap-2">
+		<div className="flex gap-2 ml-auto">
 			<ArticlePropertyWrapper>{articleRenderedProperties}</ArticlePropertyWrapper>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<IconButton variant="text" size="xs" icon="list-plus" data-qa="qa-add-property" />
+					<IconButton
+						variant="text"
+						size="xs"
+						icon="list-plus"
+						className="flex-shrink-0"
+						data-qa="qa-add-property"
+					/>
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start">
 					<AddProperty

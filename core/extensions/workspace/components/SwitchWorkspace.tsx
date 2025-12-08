@@ -13,6 +13,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { Admin } from "@ext/enterprise/components/admin/Admin";
 import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/components/useEditEnterpriseWorkspace";
 import t, { pluralize } from "@ext/localization/locale/translate";
+import CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import {
 	DropdownIndicator,
@@ -25,6 +26,7 @@ import {
 } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { MenuItemInteractiveTemplate } from "@ui-kit/MenuItem";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { ComponentProps, useState } from "react";
 
 const formatTooltip = (
@@ -193,7 +195,16 @@ const SwitchWorkspace = () => {
 			) : (
 				<DropdownMenuTriggerButton variant="ghost" data-qa="qa-clickable" className="relative pl-3 pr-2">
 					{showDot && (
-						<DropdownIndicator className="h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error left-[23px] top-1" />
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<div className="absolute left-[23px] top-1 h-1.5 w-1.5">
+									<DropdownIndicator className="w-full h-full m-0.5 rounded-full bg-status-error" />
+								</div>
+							</TooltipTrigger>
+							<TooltipContent side="right">
+								{formatTooltip(currentWorkspace.path, currentWorkspace.path, syncableWorkspaces)}
+							</TooltipContent>
+						</Tooltip>
 					)}
 					<Icon icon="layers" />
 					{currentWorkspace.name}
@@ -206,7 +217,12 @@ const SwitchWorkspace = () => {
 						<>
 							<DropdownMenuItem
 								data-qa="qa-clickable"
-								onClick={() => ModalToOpenService.setValue(ModalToOpen.CreateWorkspaceForm)}
+								onClick={() =>
+									ModalToOpenService.setValue<ComponentProps<typeof CreateWorkspaceForm>>(
+										ModalToOpen.CreateWorkspaceForm,
+										{ onSubmit: () => SourceDataService.refresh() },
+									)
+								}
 							>
 								<Icon icon="plus" />
 								{t("workspace.add")}

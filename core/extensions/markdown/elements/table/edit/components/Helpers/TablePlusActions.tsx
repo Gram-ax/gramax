@@ -16,6 +16,10 @@ import { Node } from "@tiptap/pm/model";
 import { Transaction } from "@tiptap/pm/state";
 import { columnResizingPluginKey } from "prosemirror-tables";
 import { RefObject, useCallback, useEffect, useState } from "react";
+import {
+	CONTROLS_CONTAINER_VERTICAL_TOP,
+	HELPERS_TOP,
+} from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 
 interface TablePlusActionsProps {
 	node: Node;
@@ -67,15 +71,15 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 
 	const plusColumn = useCallback(
 		(index?: number) => {
-			if (index === node.content.firstChild?.childCount) {
-				const tdPos = getFirstTdPosition(node, node.firstChild.childCount, getPos());
+			if (index === -1) {
+				const tdPos = getFirstTdPosition(node, 0, getPos());
 				if (!tdPos) return;
-				return addColumnRight(editor, tdPos);
+				return addColumn(editor, tdPos);
 			}
 
 			const position = getFirstTdPosition(node, index + 1, getPos());
 			if (!position) return;
-			addColumn(editor, position);
+			addColumnRight(editor, position);
 		},
 		[editor, node, getPos],
 	);
@@ -87,14 +91,16 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 		>
 			<div className="table-controller">
 				<div className="controls-container-horizontal">
+					<div data-col-number={-1} className="plus-actions-container">
+						<PlusActions
+							index={-1}
+							onClick={plusColumn}
+							dataQa={`qa-add-column-right`}
+							tableRef={tableRef}
+						/>
+					</div>
 					{tableSizes?.cols?.map((_, index) => (
 						<div key={index} data-col-number={index} className="plus-actions-container">
-							<PlusActions
-								index={index}
-								onClick={plusColumn}
-								dataQa={`qa-add-column-${index}`}
-								tableRef={tableRef}
-							/>
 							<PlusMenu
 								getPos={getPos}
 								node={node}
@@ -103,16 +109,14 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 								editor={editor}
 								tableSheet={tableSheet}
 							/>
+							<PlusActions
+								index={index}
+								onClick={plusColumn}
+								dataQa={`qa-add-column-${index}`}
+								tableRef={tableRef}
+							/>
 						</div>
 					))}
-					<div data-col-number={tableSizes?.cols?.length} className="plus-actions-container">
-						<PlusActions
-							index={tableSizes?.cols?.length}
-							onClick={plusColumn}
-							dataQa={`qa-add-column-right`}
-							tableRef={tableRef}
-						/>
-					</div>
 				</div>
 
 				<div className="controls-container-vertical">
@@ -168,20 +172,24 @@ export default styled(TablePlusActions)`
 	.controls-container-horizontal {
 		position: absolute;
 		left: 1.5em;
-		top: 0.25em;
+		top: ${HELPERS_TOP};
 		overflow-x: visible;
 		display: grid;
 		justify-content: center;
-		grid-template-columns: ${({ tableSizes }) => `${tableSizes?.cols?.join(" ")} 0px`};
+		grid-template-columns: ${({ tableSizes }) => `0px ${tableSizes?.cols?.join(" ")}`};
 
 		.plus-actions-container {
 			height: 12px;
+			pointer-events: none;
+			> * {
+				pointer-events: auto;
+			}
 		}
 	}
 
 	.controls-container-vertical {
 		position: absolute;
-		top: 1.325em;
+		top: ${CONTROLS_CONTAINER_VERTICAL_TOP};
 		left: 0;
 		overflow-y: visible;
 		display: grid;

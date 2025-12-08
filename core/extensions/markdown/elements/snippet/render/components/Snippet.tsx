@@ -21,7 +21,7 @@ interface SnippetProps {
 const Snippet = ({ id, children }: SnippetProps) => {
 	return children ? (
 		<ResourceService.Provider id={id} provider="snippet">
-			<Wrapper data-focusable="true" data-iseditable={false}>
+			<Wrapper data-focusable="true" data-iseditable={false} data-component="snippet">
 				{children}
 			</Wrapper>
 		</ResourceService.Provider>

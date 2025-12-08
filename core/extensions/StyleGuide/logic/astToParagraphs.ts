@@ -1,4 +1,4 @@
-import type { RequestChunkModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
+import type { CheckChunk } from "@ics/gx-vector-search";
 import { JSONContent } from "@tiptap/react";
 
 function extractSentences(text: string): string[] {
@@ -14,8 +14,8 @@ function extractSentences(text: string): string[] {
 	return texts;
 }
 
-function astToParagraphs(ast: JSONContent): RequestChunkModel[] {
-	const result: RequestChunkModel[] = [];
+function astToParagraphs(ast: JSONContent): CheckChunk[] {
+	const result: CheckChunk[] = [];
 	let idx = 0;
 
 	const traverse = (node: JSONContent, path: string[] = []) => {

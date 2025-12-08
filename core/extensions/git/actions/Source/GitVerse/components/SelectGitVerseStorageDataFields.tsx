@@ -1,14 +1,17 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import useWatch from "@core-ui/hooks/useWatch";
 import Mode from "@ext/git/actions/Clone/model/Mode";
 import CloneFields from "@ext/git/actions/Source/components/CloneFields";
+import ReadOnlyUserField from "@ext/git/actions/Source/components/ReadOnlyUserField";
 import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import type GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
 import { useMakeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
-import { useMemo } from "react";
-import { UseFormReturn } from "react-hook-form";
+import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import t from "@ext/localization/locale/translate";
 import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import { FormField } from "@ui-kit/Form";
+import { useEffect, useMemo, useState } from "react";
+import { UseFormReturn } from "react-hook-form";
 
 interface SelectGitVerseStorageDataFieldsProps {
 	source: GitVerseSourceData;
@@ -21,20 +24,34 @@ const SelectGitVerseStorageDataFields = (props: SelectGitVerseStorageDataFieldsP
 	const authServiceUrl = PageDataContextService.value.conf.authServiceUrl;
 	const sourceApi = useMakeSourceApi(source, authServiceUrl) as GitSourceApi;
 	const gitPaginatedProjectList = useMemo(() => new GitPaginatedProjectList(sourceApi), [sourceApi]);
+	const [user, setUser] = useState<SourceUser>(null);
 
-	// useWatch(async () => {
-	// 	if (mode !== Mode.init) return;
-	// 	const userData = await sourceApi.getUser();
-	// 	onChange?.({
-	// 		source,
-	// 		group: userData.username,
-	// 		name: null,
-	// 	});
-	// }, [mode]);
+	useEffect(() => {
+		if (mode !== "init") return;
+		sourceApi.getUser().then((user) => {
+			setUser(user);
 
-	if (mode === Mode.init) return null;
+			form.setValue("user", {
+				avatarUrl: user.avatarUrl,
+				name: user.username,
+				type: "User",
+				htmlUrl: "", // don't work without it
+			});
+		});
+	}, []);
 
-	// return <CloneFields form={form} source={source} gitPaginatedProjectList={gitPaginatedProjectList} />;
+	// don't render avatar for GitVerse because of CORS in browser
+	if (mode === Mode.init) return <ReadOnlyUserField user={user} renderAvatar={false} />;
+
+	return (
+		<FormField
+			title={t("repository")}
+			name="repository"
+			control={({ field }) => (
+				<CloneFields {...field} form={form} source={source} gitPaginatedProjectList={gitPaginatedProjectList} />
+			)}
+		/>
+	);
 };
 
 export default SelectGitVerseStorageDataFields;

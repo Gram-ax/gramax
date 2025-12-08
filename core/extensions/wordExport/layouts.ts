@@ -47,7 +47,7 @@ import { highlightWordLayout } from "@ext/markdown/elements/highlight/word/highl
 import { commentWordLayout } from "@ext/markdown/elements/comment/word/comment";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
-// import { formulaWordLayout } from "../markdown/elements/formula/word/formula";
+import { formulaWordBlockLayout, formulaWordInlineLayout } from "../markdown/elements/formula/word/formula";
 
 export const inlineLayouts = {
 	strong: strongWordLayout,
@@ -73,7 +73,7 @@ export const inlineLayouts = {
 	"inline-property": inlinePropertyWordLayout,
 	inlineImage: renderInlineImageWordLayout,
 	comment: commentWordLayout,
-	//Formula: formulaWordLayout,
+	Formula: formulaWordInlineLayout,
 	//Fn
 };
 
@@ -104,6 +104,7 @@ export const blockLayouts = {
 	"Db-table": tabledbWordlayout,
 	"block-property": blockPropertyWordLayout,
 	View: viewWordLayout,
+	Formula: formulaWordBlockLayout,
 	// "Img-v": imagesWordLayout,
 	// "Img-h": imagesWordLayout,
 	// See: seeWordLayout,

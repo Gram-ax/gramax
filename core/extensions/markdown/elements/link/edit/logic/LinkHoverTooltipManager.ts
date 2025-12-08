@@ -1,16 +1,11 @@
-import LinkHoverTooltip from "./LinkHoverTooltip";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
-
+import LinkHoverTooltip from "./LinkHoverTooltip";
 
 export class LinkHoverTooltipManager {
 	private tooltips: Set<LinkHoverTooltip> = new Set();
 
-	constructor(
-		private parentElement: HTMLElement,
-		private apiUrlCreator: ApiUrlCreator,
-		private pageDataContext: PageDataContext,
-	) {}
+	constructor(private parentElement: HTMLElement, private pageDataContext: PageDataContext) {}
 
 	createTooltip({
 		linkElement,
@@ -18,18 +13,16 @@ export class LinkHoverTooltipManager {
 		anchorPos,
 		resourcePath,
 		hash,
+		apiUrlCreator,
 	}: {
 		linkElement: HTMLElement;
 		markData?: { from: number; to: number; mark: any };
 		anchorPos?: number | null;
 		resourcePath?: string;
 		hash?: string;
+		apiUrlCreator: ApiUrlCreator;
 	}) {
-		const tooltip = new LinkHoverTooltip(
-			this.parentElement,
-			this.apiUrlCreator,
-			this.pageDataContext,
-		);
+		const tooltip = new LinkHoverTooltip(this.parentElement, apiUrlCreator, this.pageDataContext);
 
 		tooltip.onDestroy = () => {
 			this.tooltips.delete(tooltip);

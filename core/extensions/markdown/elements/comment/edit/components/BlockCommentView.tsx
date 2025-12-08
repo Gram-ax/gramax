@@ -1,11 +1,13 @@
 import { CSSProperties, ReactNode, useCallback } from "react";
 import { useCurrentEditor } from "@tiptap/react";
 import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 
 interface BlockCommentViewProps {
 	children: ReactNode;
 	commentId?: string;
 	style?: CSSProperties;
+	className?: string;
 }
 
 const Wrapper = styled.div`
@@ -17,7 +19,7 @@ const Wrapper = styled.div`
 	}
 `;
 
-const BlockCommentView = ({ children, commentId, style }: BlockCommentViewProps) => {
+const BlockCommentView = ({ children, commentId, style, className }: BlockCommentViewProps) => {
 	const { editor } = useCurrentEditor();
 
 	const onMouseEnter = useCallback(() => {
@@ -32,7 +34,7 @@ const BlockCommentView = ({ children, commentId, style }: BlockCommentViewProps)
 
 	return (
 		<Wrapper
-			className="block-comment-view"
+			className={cn("block-comment-view", className)}
 			data-comment={commentId ? "true" : "false"}
 			data-comment-id={commentId}
 			data-comment-block={commentId ? "true" : "false"}

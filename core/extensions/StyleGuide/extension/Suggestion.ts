@@ -50,9 +50,8 @@ export const Suggestion = Mark.create({
 				({ editor, state, dispatch }) => {
 					if (!suggestions?.length || !dispatch) return false;
 
+					let tr = state.tr;
 					const handleFindAndReplace = (findText: string, replaceText: string) => {
-						let tr = state.tr;
-
 						findText = getNodeByHTMLText(findText, editor).textContent;
 						if (!findText) {
 							console.warn("findText is empty");
@@ -72,9 +71,8 @@ export const Suggestion = Mark.create({
 								return false;
 							}
 						});
-
-						dispatch(tr);
 					};
+					dispatch(tr);
 					suggestions.forEach((suggestion) => {
 						if (!suggestion.originalSentence) return;
 						handleFindAndReplace(suggestion.originalSentence, suggestion.suggestion);

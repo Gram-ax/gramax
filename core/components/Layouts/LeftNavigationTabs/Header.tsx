@@ -60,7 +60,7 @@ const Header = (props: HeaderProps) => {
 	return (
 		<Wrapper>
 			<Part>
-				<Title className="tab-wrapper-title">{title}</Title>
+				{title && <Title className="tab-wrapper-title">{title}</Title>}
 				{rightExtension}
 			</Part>
 			{onClose && (

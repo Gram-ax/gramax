@@ -1,6 +1,6 @@
 build-desktop-web:
   stage: build
-  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH}
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
   tags:
     - kubernetes01-gramax
   rules: !reference [.condition, build, base, rules]

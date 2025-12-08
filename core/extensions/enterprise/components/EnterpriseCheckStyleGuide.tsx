@@ -1,4 +1,3 @@
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -10,16 +9,23 @@ import { getSuggestionItems } from "@ext/StyleGuide/logic/getSuggestionItems";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import t from "@ext/localization/locale/translate";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { ParagraphsMerger } from "@ics/gx-ai";
-import { useEffect, useState } from "react";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import { Icon } from "@ui-kit/Icon";
+import { CheckSuggestion } from "@ics/gx-vector-search";
+import { toast } from "@ui-kit/Toast";
 
 const EnterpriseCheckStyleGuide = () => {
-	const [render, setRender] = useState(false);
+	const workspace = WorkspaceService.current();
 	const { isNext } = usePlatform();
+
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
+	if (isNext || !workspace?.enterprise?.modules?.styleGuide) return null;
+
 	const checkArticle = async () => {
+		if (!workspace?.enterprise?.modules?.styleGuide) return;
 		const editor = EditorService.getEditor();
 		if (!editor) return;
 		ModalToOpenService.setValue(ModalToOpen.Loading, { title: "Проверка статьи" });
@@ -35,24 +41,25 @@ const EnterpriseCheckStyleGuide = () => {
 
 		const paragraphs = astToParagraphs(json);
 		const result = await new EnterpriseApi(gesUrl).checkStyleGuide(paragraphs);
-		const paragraphsMerger = new ParagraphsMerger({ suggestions: result ?? [] }, { paragraphs });
-		const suggestionItems = getSuggestionItems(paragraphsMerger.getMergedParagraphs(), paragraphs);
+		if (!result) return ModalToOpenService.resetValue();
+
+		const isError = "code" in result && result.code !== 200;
+		if (isError) {
+			ModalToOpenService.resetValue();
+			return toast(result.message, { status: "error", icon: "alert-circle", focus: "medium" });
+		}
+
+		const suggestionItems = getSuggestionItems(result as CheckSuggestion[], paragraphs);
 		editor.commands.setSuggestion(suggestionItems);
 		ModalToOpenService.resetValue();
 	};
 
-	const healthcheck = async (gesUrl: string) => {
-		const res = await new EnterpriseApi(gesUrl).healthcheckStyleGuide();
-		setRender(res);
-	};
-
-	useEffect(() => {
-		if (!gesUrl || isNext) return;
-		healthcheck(gesUrl);
-	}, []);
-
-	if (!render) return null;
-	return <ButtonLink iconCode="spell-check" text={t("style-guide.check-with-style-guide")} onClick={checkArticle} />;
+	return (
+		<DropdownMenuItem onSelect={checkArticle}>
+			<Icon icon="spell-check" />
+			{t("style-guide.check-with-style-guide")}
+		</DropdownMenuItem>
+	);
 };
 
 export default EnterpriseCheckStyleGuide;

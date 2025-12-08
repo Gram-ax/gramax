@@ -9,6 +9,7 @@ import assert from "assert";
 
 export default class GitlabSourceAPI extends GitSourceApi {
 	private readonly _allProjectsUrl = "projects?order_by=last_activity_at&simple=true&membership=true";
+
 	constructor(
 		data: GitlabSourceData,
 		private _authServiceUrl: string,
@@ -180,6 +181,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
+		await this._assertHasInternetAccess();
 		const isEnterprise = this._data.isEnterprise;
 		try {
 			const res = await fetch(

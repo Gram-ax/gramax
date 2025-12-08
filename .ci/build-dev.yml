@@ -14,8 +14,8 @@ build-app-dev:
   script:
     - rm -r ./services
     - ./install-deps.sh --ci
-    - ./ci make-icons
-    - ./ci build --web --darwin-aarch64
+    - ./gx make-icons
+    - ./gx build --web --darwin-aarch64
     - mv ./apps-build-artifacts/darwin-aarch64/*.dmg .
   artifacts:
     when: on_success
@@ -104,7 +104,7 @@ build-web-dev:
       --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
       .
     - docker push $CI_REGISTRY/$CI_PROJECT_PATH:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-app
-    - ./.ci/apps/sign.sh --container
+    - ./gx/apps/sign.sh --container
 
 deploy-web-dev:
   stage: deploy-dev

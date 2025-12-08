@@ -1,14 +1,11 @@
-import type { RequestChunkModel } from "@ics/gx-ai/dist/styleGuideCheck/styleGuideGptRequest";
+import type { CheckChunk, CheckSuggestion } from "@ics/gx-vector-search";
 import { SuggestionItem } from "../extension/Suggestion";
 
-export function getSuggestionItems(
-	items: { text: string; id: number }[],
-	sentences: RequestChunkModel[],
-): SuggestionItem[] {
+export function getSuggestionItems(items: CheckSuggestion[], chunks: CheckChunk[]): SuggestionItem[] {
 	return items.map((item) => {
 		return {
 			suggestion: item.text,
-			originalSentence: sentences.find((sentence) => sentence.id === item.id)?.text,
+			originalSentence: chunks.find((chunk) => chunk.id === item.id)?.text,
 		};
 	});
 }

@@ -1,42 +1,58 @@
 import FormSkeleton from "@components/Atoms/FormSkeleton";
-import Icon from "@components/Atoms/Icon";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
 import { useCatalogPropsEditorActions } from "@ext/catalog/actions/propsEditor/logic/useCatalogPropsEditorActions";
 import { useOpenExternalGitSourceButton } from "@ext/catalog/actions/propsEditor/logic/useOpenExternalGitSourceButton";
 import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import t from "@ext/localization/locale/translate";
-import UploadArticleIcon from "@ext/markdown/elements/icon/edit/components/UploadArticleIcon";
-import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
-import { Description } from "@ui-kit/Description";
-import { Divider } from "@ui-kit/Divider";
-import { Form, FormFooter, FormHeader, FormSectionTitle, FormStack } from "@ui-kit/Form";
+import { Form, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
-import { usePreventAutoFocusToInput } from "@ui-kit/Modal/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FORM_STYLES } from "../consts/form";
-import { useFormSelectValues } from "../hooks/useFormSelectValues";
 import type { CatalogSettingsModalProps, FormData, FormProps } from "../logic/createFormSchema";
 import { createFormSchema } from "../logic/createFormSchema";
-import { EditBasicProps, EditDisplayProps, EditExtendedProps } from "./Sections";
-import UploadCatalogLogo from "./UploadCatalogLogo";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { SettingsTabs, SettingsTab, SectionComponent } from "./Sections";
+import {
+	SidebarMenu,
+	SidebarGroupContent,
+	SidebarGroup,
+	SidebarContent,
+	Sidebar,
+	SidebarProvider,
+	SidebarMenuItem,
+	SidebarMenuButton,
+} from "@ui-kit/Sidebar";
+import styled from "@emotion/styled";
+import { Icon } from "@ui-kit/Icon";
+import { Loader } from "@ui-kit/Loader";
+
+const SidebarContainer = styled(SidebarProvider)`
+	--sidebar-width: 12rem !important;
+	height: 100%;
+	min-height: unset;
+	max-height: 100%;
+	overflow: hidden;
+
+	ul {
+		list-style: none !important;
+	}
+
+	li {
+		line-height: unset;
+		margin-bottom: unset;
+	}
+`;
 
 const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 	const { modalContentProps, onSubmit: onSubmitParent, onClose, startUpdatingProps } = props;
 	const [isFormLoading, setIsFormLoading] = useState(true);
+	const [activeTab, setActiveTab] = useState<SettingsTab>("general");
 
-	const { allCatalogNames, getOriginalProps, onSubmit, open, setOpen, isLoading, error } =
+	const { allCatalogNames, getOriginalProps, onSubmit, open, setOpen, isLoading } =
 		useCatalogPropsEditorActions(onClose);
-	const { inputRef } = usePreventAutoFocusToInput(open);
-
-	const { cardColors, languages, syntaxes } = useFormSelectValues();
-
-	const sourceName = useCatalogPropsStore((state) => state.data?.sourceName);
-	const { sourceType } = getPartGitSourceDataByStorageName(sourceName);
 
 	const { gitButtonProps } = useOpenExternalGitSourceButton(useCallback(() => setOpen(false), [setOpen]));
 	const { confirmChanges } = CatalogLogoService.value();
@@ -82,61 +98,73 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 
 	return (
 		<Modal open={open} onOpenChange={setOpen}>
-			<ModalContent data-modal-root {...modalContentProps}>
+			<ModalContent
+				data-modal-root
+				{...modalContentProps}
+				size="M"
+				className="overflow-hidden p-0"
+				style={{ height: "calc(100vh - 2rem)" }}
+			>
 				<ModalErrorHandler onError={() => {}} onClose={() => setOpen(false)}>
-					<FormSkeleton isLoading={isFormLoading} form={form}>
-						<Form asChild {...form}>
-							<form className="contents" onSubmit={formSubmit}>
-								<FormHeader
-									icon="settings"
-									title={t("forms.catalog-edit-props.name")}
-									description={t("forms.catalog-edit-props.description")}
-								/>
-								<ModalBody>
-									<FormStack>
-										<EditBasicProps
-											form={form}
-											formProps={formProps}
-											languages={languages}
-											sourceType={sourceType}
-											inputRef={inputRef}
-										/>
-
-										<Divider />
-										<FormSectionTitle children={t("forms.catalog-edit-props.section.display")} />
-										<EditDisplayProps formProps={formProps} cardColors={cardColors} />
-
-										<UploadCatalogLogo formProps={formProps} form={form} />
-
-										<Divider />
-										<FormSectionTitle children={t("forms.catalog-edit-props.props.icons.name")} />
-										<Description
-											children={t("forms.catalog-edit-props.props.icons.description")}
-											className="text-muted font-normal"
-											style={{ marginTop: 0 }}
-										/>
-										<UploadArticleIcon form={form} />
-
-										<Divider />
-										<FormSectionTitle children={t("forms.catalog-extended-edit-props.name")} />
-										<EditExtendedProps syntaxes={syntaxes} />
-									</FormStack>
-								</ModalBody>
-								<FormFooter
-									primaryButton={
-										<Button type="submit" variant="primary" disabled={isLoading}>
-											{isLoading && <Icon code="loader-circle" isLoading />}
-											{t("save")}
-										</Button>
-									}
-									secondaryButton={<Button variant="outline" {...gitButtonProps} />}
-								/>
-								{error && (
-									<div className="text-red-500 text-sm mt-2 p-2 bg-red-50 rounded">{error}</div>
-								)}
-							</form>
-						</Form>
-					</FormSkeleton>
+					<FormHeader
+						icon="settings"
+						title={t("forms.catalog-edit-props.name")}
+						description={t("forms.catalog-edit-props.description")}
+					/>
+					<SidebarContainer>
+						<Sidebar collapsible="none">
+							<SidebarContent>
+								<SidebarGroup>
+									<SidebarGroupContent>
+										<SidebarMenu>
+											{Object.entries(SettingsTabs).map(([key, tab]) => (
+												<SidebarMenuItem key={key}>
+													<SidebarMenuButton
+														isActive={activeTab === key}
+														onClick={() => setActiveTab(key as SettingsTab)}
+													>
+														<Icon icon={tab.icon} />
+														<span>
+															{t(`forms.catalog-edit-props.tabs.${key as SettingsTab}`)}
+														</span>
+													</SidebarMenuButton>
+												</SidebarMenuItem>
+											))}
+										</SidebarMenu>
+									</SidebarGroupContent>
+								</SidebarGroup>
+							</SidebarContent>
+						</Sidebar>
+						<main className="flex flex-1 flex-col overflow-hidden min-h-0">
+							<FormSkeleton isLoading={isFormLoading} form={form}>
+								<div className="flex flex-col h-full min-h-0">
+									<Form asChild {...form}>
+										<form className="flex flex-col h-full min-h-0" onSubmit={formSubmit}>
+											<ModalBody className="flex-1 overflow-auto min-h-0" style={{ flexGrow: 1 }}>
+												<FormStack>
+													<SectionComponent
+														activeTab={activeTab}
+														formProps={formProps}
+														form={form}
+													/>
+												</FormStack>
+											</ModalBody>
+											<FormFooter
+												className="flex-shrink-0"
+												primaryButton={
+													<Button type="submit" variant="primary" disabled={isLoading}>
+														{isLoading && <Loader size="sm" />}
+														{t("save")}
+													</Button>
+												}
+												secondaryButton={<Button variant="outline" {...gitButtonProps} />}
+											/>
+										</form>
+									</Form>
+								</div>
+							</FormSkeleton>
+						</main>
+					</SidebarContainer>
 				</ModalErrorHandler>
 			</ModalContent>
 		</Modal>

@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
-import { ArticleLanguage } from "@ext/serach/vector/VectorArticle";
+import { ArticleLanguage, isArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 import { Command } from "../../types/Command";
 
 export interface ResponseStreamItem {
@@ -50,7 +50,9 @@ const chat: Command<
 					case "articleRef": {
 						data = {
 							type: "text",
-							text: `[${x.article.getTitle()}](${ctx.domain}${app.conf.basePath}/${x.article.logicPath})`,
+							text: `[${x.article.getTitle()}](<${ctx.domain}${app.conf.basePath}/${
+								x.article.logicPath
+							}>)`,
 						};
 						break;
 					}
@@ -74,11 +76,7 @@ const chat: Command<
 			signal,
 			query: q.query,
 			catalogName: q.catalogName,
-			articlesLanguage: q.articlesLanguage
-				? q.articlesLanguage === "none"
-					? "none"
-					: ContentLanguage[q.articlesLanguage]
-				: undefined,
+			articlesLanguage: isArticleLanguage(q.articlesLanguage) ? q.articlesLanguage : undefined,
 			responseLanguage: q.responseLanguage ? ContentLanguage[q.responseLanguage] : undefined,
 		};
 	},

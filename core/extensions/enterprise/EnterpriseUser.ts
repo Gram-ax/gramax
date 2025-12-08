@@ -71,33 +71,38 @@ class EnterpriseUser extends User {
 			return;
 		}
 
-		const data = await new EnterpriseApi(this._enterpriseConfig?.gesUrl).getUser(this._token, checkSsoToken);
-		if (!data) {
-			if (checkSsoToken) return new EnterpriseUser();
-			console.log(`User data not found. ${this._enterpriseConfig?.gesUrl}`);
-			return;
+		try {
+			const data = await new EnterpriseApi(this._enterpriseConfig?.gesUrl).getUser(this._token, checkSsoToken);
+			if (!data) {
+				if (checkSsoToken) return new EnterpriseUser();
+				console.log(`User data not found. ${this._enterpriseConfig?.gesUrl}`);
+				return null;
+			}
+
+			const catalogsPermissions: { [catalogName: string]: PermissionJSONData } = {};
+			for (const catalogName in data.catalogsPermissions) {
+				catalogsPermissions[catalogName] = new Permission(data.catalogsPermissions[catalogName]).toJSON();
+			}
+
+			this._info = data.info;
+			this._workspacePermission.updateAllPermissions(new Permission(data.workspacePermissions));
+
+			this._enterpriseInfo = {
+				workspacePermission: this._workspacePermission,
+				catalogPermission: parsePermissionMapFromJSON({
+					type: this._catalogPermission.type,
+					permissions: catalogsPermissions,
+				}),
+				catalogsProps: data.catalogsProps,
+				updateDate: new Date(),
+			};
+			this._catalogPermission = this._enterpriseInfo.catalogPermission;
+
+			return this;
+		} catch (error) {
+			console.warn("Failed to update enterprise permissions, using cached", error);
+			return this;
 		}
-
-		const catalogsPermissions: { [catalogName: string]: PermissionJSONData } = {};
-		for (const catalogName in data.catalogsPermissions) {
-			catalogsPermissions[catalogName] = new Permission(data.catalogsPermissions[catalogName]).toJSON();
-		}
-
-		this._info = data.info;
-		this._workspacePermission.updateAllPermissions(new Permission(data.workspacePermissions));
-
-		this._enterpriseInfo = {
-			workspacePermission: this._workspacePermission,
-			catalogPermission: parsePermissionMapFromJSON({
-				type: this._catalogPermission.type,
-				permissions: catalogsPermissions,
-			}),
-			catalogsProps: data.catalogsProps,
-			updateDate: new Date(),
-		};
-		this._catalogPermission = this._enterpriseInfo.catalogPermission;
-
-		return this;
 	}
 
 	getToken(): string {

@@ -38,6 +38,10 @@ export const useLogoManager = (workspacePath: WorkspacePath, theme: Theme, ignor
 		setIsLoading(true);
 		const url = apiUrlCreator.getHomeLogo(workspacePath, theme);
 		const response = await FetchService.fetch(url);
+		if (!response.ok) {
+			setIsLoading(false);
+			return "";
+		}
 		const logo = await response.text();
 
 		setIsLoading(false);

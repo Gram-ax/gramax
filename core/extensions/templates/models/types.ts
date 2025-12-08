@@ -12,3 +12,11 @@ export type TemplateField = {
 	name: string;
 	value: string;
 };
+
+declare module "@core/FileStructue/Item/Item" {
+	interface ItemProps {
+		customProperties?: Property[];
+		fields?: TemplateField[];
+		template?: string;
+	}
+}

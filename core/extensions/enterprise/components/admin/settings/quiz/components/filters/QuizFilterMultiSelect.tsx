@@ -17,6 +17,7 @@ interface FilterMultiSelectProps {
 	searchPlaceholder?: string;
 	loadingPlaceholder?: string;
 	emptyPlaceholder?: string;
+	disabled: boolean;
 	loadOptions: (params: { searchQuery: string }) => Promise<LoadOptionsResult<SearchSelectOption>>;
 	onAdd: (tests: string[]) => void;
 	onRemove: (tests: string[]) => void;
@@ -32,6 +33,7 @@ export const FilterMultiSelect = (props: FilterMultiSelectProps) => {
 		searchPlaceholder = t("find2"),
 		loadingPlaceholder = t("loading2"),
 		emptyPlaceholder = t("empty"),
+		disabled,
 	} = props;
 	const [isLoading, setIsLoading] = useState(false);
 	const [options, setOptions] = useState<SearchSelectOption[]>([]);
@@ -93,7 +95,7 @@ export const FilterMultiSelect = (props: FilterMultiSelectProps) => {
 		<>
 			<Popover onOpenChange={handleOpenChange}>
 				<PopoverTrigger asChild>
-					<Button startIcon="book-check" variant="outline" endIcon="chevron-down">
+					<Button startIcon="book-check" variant="outline" endIcon="chevron-down" disabled={disabled}>
 						{trigger} {selectedOptions.length > 0 ? `(${selectedOptions.length})` : ""}
 					</Button>
 				</PopoverTrigger>

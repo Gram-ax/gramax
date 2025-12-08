@@ -1,12 +1,13 @@
 import Icon from "@components/Atoms/Icon";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import EditMenu from "@ext/item/EditMenu";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArticleLink, CategoryLink, ItemLink, LinkFilter } from "../../NavigationLinks";
 import IconExtension from "../main/render/IconExtension";
 import LevNavItem from "../main/render/Item";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import { Button } from "@ui-kit/Button";
+import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
 
 const LevNavWatchTree = React.memo(
 	({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
@@ -69,9 +70,20 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 		setIsOpen(!isOpen);
 	};
 
-	const onClick = () => {
+	const toggleFunction = useCallback(() => {
+		if (isActive || !isOpen) onToggle();
+	}, [onToggle]);
+
+	const handleCloseNavigation = useCallback(() => {
 		if (existsContent || item.type == ItemType.article) closeNavigation?.();
-	};
+	}, [closeNavigation]);
+
+	const handleClick = useHandleItemClick({
+		isCurrentLink: isActive,
+		itemPath: item.pathname,
+		closeNavigation: handleCloseNavigation,
+		toggleFunction,
+	});
 
 	useEffect(() => {
 		if (ref.current && scrollFlag && isActive)
@@ -110,7 +122,7 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 						/>
 					</NavigationDropdown>
 				}
-				onClick={onClick}
+				onClick={handleClick}
 				onToggle={onToggle}
 			/>
 			{isCategory && isOpen && (

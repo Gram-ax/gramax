@@ -1,4 +1,4 @@
-FROM --platform=$TARGETPLATFORM mcr.microsoft.com/playwright:v1.49.0-jammy
+FROM --platform=$TARGETPLATFORM mcr.microsoft.com/playwright:v1.56.1-noble
 
 RUN apt-get update && apt-get upgrade -y && \
   apt-get install -y \
@@ -10,8 +10,12 @@ RUN apt-get update && apt-get upgrade -y && \
   build-essential \
   git
 
-RUN curl -LO https://github.com/oven-sh/bun/releases/download/bun-v1.2.23/bun-linux-x64-baseline.zip; unzip -j bun-linux-x64-baseline.zip 'bun-linux-x64-baseline/bun' -d /usr/local/bin; rm bun-linux-x64-baseline.zip; \
-  curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh -s -- -y
+RUN rm -rf /var/lib/apt/lists/* && \
+  apt-get clean
+
+RUN curl -fsSL https://bun.com/install | bash
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 ENV PATH="/root/.bun/bin:/root/.cargo/bin:/emsdk:/emsdk/upstream/emscripten:${PATH}" \
   EMSDK="/emsdk" \
@@ -28,6 +32,7 @@ RUN git clone https://github.com/emscripten-core/emsdk.git && \
 
 RUN touch x.c && \
   emcc x.c -sUSE_ZLIB=1 -o /dev/null
+
 RUN git config --global url.ssh://git@github.com/.insteadOf https://github.com/
 
 COPY .ci/github-private-key /root/.ssh/

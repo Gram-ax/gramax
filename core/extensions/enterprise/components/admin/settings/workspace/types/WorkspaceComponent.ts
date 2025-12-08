@@ -59,7 +59,8 @@ export type WorkspaceSettings = {
 		logoDark?: SVG;
 		css?: string;
 	};
-	wordTemplates: { title: string; bufferBase64: string }[];
+	wordTemplates: ExportTemplate[];
+	pdfTemplates: ExportTemplate[];
 };
 
 export type WorkspaceFormData = {
@@ -71,7 +72,7 @@ export type WorkspaceFormData = {
 	catalogs: string[];
 };
 
-export type WorkspaceTemplate = {
+export type ExportTemplate = {
 	title: string;
 	bufferBase64: string;
 };

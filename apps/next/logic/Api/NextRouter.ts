@@ -1,8 +1,10 @@
 import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 import Query from "@core/Api/Query";
 import { Router, RouterRule } from "@core/Api/Router";
-import { NextRouter as DefaultNextRouter, useRouter as useDefaultNextRouter } from "next/router";
-import { useEffect } from "react";
+import { RouterContext } from "next/dist/shared/lib/router-context.shared-runtime";
+import { NextRouter as DefaultNextRouter } from "next/router";
+import { useContext, useEffect } from "react";
+import Url from "../../../../core/ui-logic/ApiServices/Types/Url";
 
 export default class NextRouter extends Router {
 	private _hash?: string;
@@ -41,11 +43,20 @@ export default class NextRouter extends Router {
 		return this;
 	}
 
+	setUrl(url: Url): this {
+		//TODO: transform path???
+		//TODO: refresh page???
+		void this._router.push(url).catch(null);
+		return this;
+	}
+
 	static use(rules: RouterRule[]) {
 		let router = null;
 
 		try {
-			router = new NextRouter(useDefaultNextRouter(), rules);
+			const context = useContext(RouterContext);
+			if (!context) return null;
+			router = new NextRouter(context, rules);
 		} catch (e) {
 			console.log(e);
 		}

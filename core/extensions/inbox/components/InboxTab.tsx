@@ -1,6 +1,4 @@
-import { TextSize } from "@components/Atoms/Button/Button";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
-import ButtonLink from "@components/Molecules/ButtonLink";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -14,6 +12,7 @@ import InboxService from "@ext/inbox/components/InboxService";
 import { InboxArticle } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@ui-kit/Button";
 
 const ExtensionWrapper = styled.div`
 	display: flex;
@@ -21,7 +20,6 @@ const ExtensionWrapper = styled.div`
 	justify-content: space-between;
 	padding-left: 1rem;
 	padding-right: 1rem;
-	margin-left: 0.5em;
 	margin-bottom: 0.5em;
 	margin-top: -0.5em;
 `;
@@ -84,14 +82,16 @@ const InboxTab = ({ show }: InboxTabProps) => {
 		<TabWrapper ref={tabWrapperRef} isTop show={show} title="" contentHeight={height}>
 			<>
 				<ExtensionWrapper>
-					<ButtonLink
-						textSize={TextSize.S}
-						text={t("inbox.new-note")}
-						style={{ marginLeft: "-8px" }}
-						iconCode="plus"
-						disabled={pageData.userInfo?.mail ? pageData.userInfo?.mail !== selectedAuthor : false}
+					<Button
+						startIcon="plus"
 						onClick={addNewNote}
-					/>
+						size="sm"
+						variant="text"
+						className="p-0 h-auto"
+						disabled={pageData.userInfo?.mail ? pageData.userInfo?.mail !== selectedAuthor : false}
+					>
+						{t("inbox.new-note")}
+					</Button>
 					<InboxFilter
 						show={show}
 						apiUrlCreator={apiUrlCreator}

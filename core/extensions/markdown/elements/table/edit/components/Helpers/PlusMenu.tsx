@@ -11,6 +11,7 @@ import {
 	getRowPosition,
 } from "@ext/markdown/elements/table/edit/logic/utils";
 import { AlignEnumTypes, TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import { workHeaderType } from "@ext/markdown/elements/table/edit/logic/utils";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import { memo, useMemo, useRef } from "react";
@@ -46,6 +47,22 @@ export const TriggerParent = styled.div`
 	width: 100%;
 `;
 
+interface TableHeaderCheckboxProps {
+	headerType: TableHeaderTypes.ROW | TableHeaderTypes.COLUMN;
+	node: Node;
+	setHeader: (header: TableHeaderTypes) => void;
+	label: string;
+}
+
+const TableHeaderCheckbox = ({ headerType, node, setHeader, label }: TableHeaderCheckboxProps) => {
+	const { checked, newHeader } = workHeaderType(node.attrs.header, headerType);
+	return (
+		<DropdownMenuCheckboxItem checked={checked} onSelect={() => setHeader(newHeader)}>
+			{label}
+		</DropdownMenuCheckboxItem>
+	);
+};
+
 const PlusMenu = (props: PlusMenuProps) => {
 	const openRef = useRef(false);
 	const { vertical, className, index, getPos, node, editor, tableSheet } = props;
@@ -78,11 +95,10 @@ const PlusMenu = (props: PlusMenuProps) => {
 	};
 
 	const setHeader = (header: TableHeaderTypes) => {
-		const newHeaderType = node.attrs.header === header ? TableHeaderTypes.NONE : header;
 		editor
 			.chain()
 			.focus(getPos() + 1)
-			.updateAttributes("table", { header: newHeaderType })
+			.updateAttributes("table", { header })
 			.run();
 	};
 
@@ -180,12 +196,12 @@ const PlusMenu = (props: PlusMenuProps) => {
 					<>
 						{index === 0 && (
 							<>
-								<DropdownMenuCheckboxItem
-									checked={node.attrs.header === TableHeaderTypes.ROW}
-									onSelect={() => setHeader(TableHeaderTypes.ROW)}
-								>
-									{t("editor.table.row.title")}
-								</DropdownMenuCheckboxItem>
+								<TableHeaderCheckbox
+									headerType={TableHeaderTypes.ROW}
+									node={node}
+									setHeader={setHeader}
+									label={t("editor.table.row.title")}
+								/>
 								<DropdownMenuSeparator />
 							</>
 						)}
@@ -202,12 +218,12 @@ const PlusMenu = (props: PlusMenuProps) => {
 				) : (
 					<>
 						{index === 0 && (
-							<DropdownMenuCheckboxItem
-								checked={node.attrs.header === TableHeaderTypes.COLUMN}
-								onSelect={() => setHeader(TableHeaderTypes.COLUMN)}
-							>
-								{t("editor.table.column.title")}
-							</DropdownMenuCheckboxItem>
+							<TableHeaderCheckbox
+								headerType={TableHeaderTypes.COLUMN}
+								node={node}
+								setHeader={setHeader}
+								label={t("editor.table.column.title")}
+							/>
 						)}
 						<AggregationPopup
 							editor={editor}

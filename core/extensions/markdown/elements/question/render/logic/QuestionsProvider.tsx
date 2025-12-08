@@ -1,10 +1,12 @@
 import { ReactNode, createContext, memo, useRef, useContext } from "react";
-import { SavedQuestion } from "@ext/markdown/elements/question/types";
 import { createQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
 import { QuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { StoredQuestion } from "./QuestionsStore";
+import { LocalQuestionsStorage } from "./LocalQuestionsStorage";
+import { useIsAnsweredToTest } from "./QuestionsStore";
+import Workspace from "@core-ui/ContextServices/Workspace";
 
 export type QuestionsStoreApi = ReturnType<typeof createQuestionsStore>;
 
@@ -15,8 +17,9 @@ interface QuestionsProviderProps {
 }
 
 export interface QuestionStorage {
-	getQuestion: (questionId: string) => SavedQuestion;
-	saveQuestion: (questionId: string, question: SavedQuestion) => void;
+	getQuestion: (questionId: string) => string[];
+	saveQuestion: (questionId: string, answers: string[]) => void;
+	clearQuestions: () => void;
 }
 
 export const QuestionsContext = createContext<QuestionsStoreApi>(null);
@@ -31,17 +34,28 @@ export const useQuestionsStore = <T,>(
 	return useStoreWithEqualityFn(questionsStoreContext, selector, equalityFn);
 };
 
+const ChildrenOfProvider = ({ children, path }: { children: ReactNode; path: string }) => {
+	useIsAnsweredToTest([path]);
+	return children;
+};
+
 export const QuestionsProvider = memo(({ children, questions, path }: QuestionsProviderProps) => {
 	const { isNext } = usePlatform();
 	if (!isNext) return children;
+	const workspace = Workspace.current();
+	if (!workspace?.enterprise?.gesUrl) return children;
 
 	const storeRef = useRef<QuestionsStoreApi>(null);
-	const pathRef = useRef<string>(path);
+	const localStorageRef = useRef<LocalQuestionsStorage>(new LocalQuestionsStorage(path));
 
-	if (!storeRef.current || pathRef.current !== path) {
-		storeRef.current = createQuestionsStore(questions);
-		pathRef.current = path;
+	if (!storeRef.current || localStorageRef.current.path !== path) {
+		localStorageRef.current.setPath(path);
+		storeRef.current = createQuestionsStore(questions, localStorageRef.current);
 	}
 
-	return <QuestionsContext.Provider value={storeRef.current}>{children}</QuestionsContext.Provider>;
+	return (
+		<QuestionsContext.Provider value={storeRef.current}>
+			<ChildrenOfProvider path={path}>{children}</ChildrenOfProvider>
+		</QuestionsContext.Provider>
+	);
 });

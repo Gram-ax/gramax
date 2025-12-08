@@ -79,6 +79,7 @@ Object.assign(Module, {
 			url = proxy && proxy !== "null" ? proxy + url.replace(/https?:\/\//, `/`) : url;
 			xhr.open(method, url, true);
 			xhr.responseType = "arraybuffer";
+			xhr.withCredentials = true;
 			if (token) xhr.setRequestHeader("x-private-token", token);
 			if (gitServerUsername) xhr.setRequestHeader("x-git-username", gitServerUsername);
 			if (protocol) xhr.setRequestHeader("x-protocol", protocol);

@@ -7,6 +7,7 @@ import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImag
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { MAX_HEIGHT, SCALE } from "@ext/wordExport/options/wordExportSettings";
 import { GetImageByPathOptions, GetImageByPathResult } from "@ext/markdown/elements/image/export/NextImageProcessor";
+import hasValidCrop from "@ext/markdown/elements/image/edit/logic/hasValidCrop";
 
 export class BrowserImageProccessor extends BaseImageProcessor {
 	static async getImageByPath(options: GetImageByPathOptions): Promise<GetImageByPathResult> {
@@ -56,7 +57,7 @@ export class BrowserImageProccessor extends BaseImageProcessor {
 	}
 
 	private static async _cropImage(imageBuffer: Buffer, image: HTMLImageElement, size: ImageDimensions, crop?: Crop) {
-		if (crop) {
+		if (hasValidCrop(crop ?? undefined)) {
 			imageBuffer = Buffer.from(await this._cropImageToBuffer(image, crop, size));
 			size = await ImageDimensionsFinder.getImageSizeFromImageData(imageBuffer);
 

@@ -8,7 +8,7 @@ import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import IconMenuButton from "@ext/markdown/elements/icon/edit/components/IconMenuButton";
 import Tooltip from "@components/Atoms/Tooltip";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
@@ -29,13 +29,15 @@ const FilesMenuGroup = ({ editor, fileName, isSmallEditor }: FilesMenuGroupProps
 
 	const isVideoSupported = supportedElements.includes("video");
 	const isIconSupported = supportedElements.includes("icon");
+	const isProcessing = useRef(false);
 
-	const disabled = file.disabled && image.disabled && video.disabled && icon.disabled;
-	const isActive = file.isActive || image.isActive || video.isActive || icon.isActive;
+	const disabled = (file.disabled && image.disabled && video.disabled && icon.disabled) || isProcessing.current;
+	const isActive = file.isActive || image.isActive || video.isActive || icon.isActive || isProcessing.current;
 
 	const [isOpen, setIsOpen] = useState(false);
 
 	const handleClose = useCallback(() => {
+		if (isProcessing.current) return;
 		setIsOpen(false);
 	}, []);
 
@@ -55,7 +57,12 @@ const FilesMenuGroup = ({ editor, fileName, isSmallEditor }: FilesMenuGroupProps
 					<ButtonsLayout>
 						{isOpen && (
 							<>
-								{!isSmallEditor && <FileMenuButton editor={editor} />}
+								{!isSmallEditor && (
+									<FileMenuButton
+										editor={editor}
+										setIsProcessing={(v: boolean) => (isProcessing.current = v)}
+									/>
+								)}
 								<ImageMenuButton editor={editor} fileName={fileName} />
 								{isVideoSupported && <VideoMenuButton editor={editor} />}
 								{isIconSupported && <IconMenuButton editor={editor} onClose={handleClose} />}

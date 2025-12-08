@@ -6,21 +6,25 @@ import { Input } from "@ui-kit/Input";
 import { MultiSelect } from "@ui-kit/MultiSelect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import { TagInput } from "ics-ui-kit/components/tag-input";
-import { FORM_DATA_QA } from "../../consts/form";
-import type { FormProps, SelectOption } from "../../logic/createFormSchema";
+import { FORM_DATA_QA, FORM_STYLES } from "../../consts/form";
+import type { FormProps } from "../../logic/createFormSchema";
 import { UseFormReturn } from "react-hook-form";
 import { FormData } from "../../logic/createFormSchema";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
+import { usePreventAutoFocusToInput } from "@ui-kit/Modal/utils";
+import { useFormSelectValues } from "@ext/catalog/actions/propsEditor/hooks/useFormSelectValues";
 
 export type BasicProps = {
 	formProps: FormProps;
 	form: UseFormReturn<FormData>;
-	languages: SelectOption[];
-	sourceType: string | undefined;
-	inputRef?: React.RefObject<HTMLInputElement>;
 };
 
-export const EditBasicProps = ({ formProps, form, languages, sourceType, inputRef }: BasicProps) => {
+export const EditBasicProps = ({ formProps, form }: BasicProps) => {
+	const sourceName = useCatalogPropsStore((state) => state.data?.sourceName);
+	const { inputRef } = usePreventAutoFocusToInput(true);
+	const { sourceType } = getPartGitSourceDataByStorageName(sourceName);
+	const { languages, syntaxes } = useFormSelectValues();
 	const properties = useCatalogPropsStore((state) => state.data?.properties, "shallow");
 
 	return (
@@ -137,6 +141,32 @@ export const EditBasicProps = ({ formProps, form, languages, sourceType, inputRe
 					{...formProps}
 				/>
 			)}
+
+			<FormField
+				name="syntax"
+				title={t("forms.catalog-extended-edit-props.props.syntax.name")}
+				description={t("forms.catalog-extended-edit-props.props.syntax.description")}
+				control={({ field }) => (
+					<Select onValueChange={field.onChange} defaultValue={field.value || undefined}>
+						<SelectTrigger data-qa={FORM_DATA_QA.SYNTAX}>
+							<SelectValue
+								placeholder={t("forms.catalog-extended-edit-props.props.syntax.placeholder")}
+							/>
+						</SelectTrigger>
+						<SelectContent>
+							{syntaxes.map(({ value, children }) => (
+								<SelectItem
+									data-qa={FORM_DATA_QA.CLICKABLE}
+									key={value}
+									children={children}
+									value={value}
+								/>
+							))}
+						</SelectContent>
+					</Select>
+				)}
+				labelClassName={FORM_STYLES.LABEL_WIDTH}
+			/>
 		</>
 	);
 };

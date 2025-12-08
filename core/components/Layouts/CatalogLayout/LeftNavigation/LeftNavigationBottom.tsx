@@ -6,7 +6,7 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import CreateArticle from "@ext/article/actions/CreateArticle";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { configureCatalogPermission, editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
+import { configureCatalogPermission, readPermission } from "@ext/security/logic/Permission/Permissions";
 import { useMediaQuery } from "@react-hook/media-query";
 import ExtensionBarLayout from "../../ExtensionBarLayout";
 import ArticleStatusBar from "../../StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
@@ -24,11 +24,11 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	const { isNext, isStatic, isStaticCli } = usePlatform();
 	const isStaticOrStaticCli = isStatic || isStaticCli;
 
-	const canEditContentCatalog = PermissionService.useCheckPermission(
-		editCatalogContentPermission,
+	const canReadContentCatalog = PermissionService.useCheckPermission(
+		readPermission,
 		workspacePath,
-		catalogName,
-	);
+		catalogName
+	)
 	const canConfigureCatalog = PermissionService.useCheckPermission(
 		configureCatalogPermission,
 		workspacePath,
@@ -37,7 +37,7 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 
 	const canSeeStatusBar =
 		!isStaticOrStaticCli &&
-		((isNext && canConfigureCatalog) || (!isNext && (canEditContentCatalog || !sourceName)));
+		((isNext && canConfigureCatalog) || (!isNext && (canReadContentCatalog || !sourceName)));
 
 	return (
 		<div data-qa="qa-status-bar">

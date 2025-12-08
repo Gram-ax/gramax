@@ -5,8 +5,12 @@ interface GroupHeaderProps extends HTMLAttributes<HTMLDivElement> {
 	children: React.ReactNode;
 }
 
-const GroupHeaderNotStyled = ({ children, className }: GroupHeaderProps) => {
-	return <div className={`group-header ${className}`}>{children}</div>;
+const GroupHeaderNotStyled = ({ children, className, ...props }: GroupHeaderProps) => {
+	return (
+		<div className={`group-header ${className}`} {...props}>
+			{children}
+		</div>
+	);
 };
 
 export const GroupHeader = styled(GroupHeaderNotStyled)`

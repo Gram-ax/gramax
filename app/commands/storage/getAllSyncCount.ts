@@ -52,7 +52,7 @@ const getAllSyncCount: Command<{ ctx: Context; shouldFetch?: boolean; resetSyncC
 				} catch (err) {
 					if (!res[name]) res[name] = { errorMessage: t("unable-to-get-sync-count") };
 				}
-			});
+			}, 2);
 
 			return res;
 		},

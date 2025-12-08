@@ -1,4 +1,7 @@
-import { AuthMethod, WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import {
+	AuthMethod,
+	WorkspaceSettings,
+} from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import { useScrollContainer } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { useEffect, useState } from "react";
@@ -13,6 +16,7 @@ const defaultSettings: WorkspaceSettings = {
 	authMethods: [AuthMethod.SSO],
 	sections: {},
 	wordTemplates: [],
+	pdfTemplates: [],
 };
 
 export function useWorkspaceSettings() {
@@ -32,10 +36,11 @@ export function useWorkspaceSettings() {
 
 	useEffect(() => {
 		if (workspaceSettings) {
-			const newSettings = {
+			const newSettings: WorkspaceSettings = {
 				...defaultSettings,
 				...workspaceSettings,
 				wordTemplates: workspaceSettings.wordTemplates ?? [],
+				pdfTemplates: workspaceSettings.pdfTemplates ?? [],
 			};
 			setLocalSettings(newSettings);
 		}

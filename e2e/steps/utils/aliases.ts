@@ -16,6 +16,12 @@ const aliases = {
 	"история изменений": '[data-qa="article-git-modal"]',
 	"окно добавления комментария": '[data-qa="qa-add-comment"]',
 	"панель действий статьи": ".right-extensions",
+	"кнопка аватара": 'button[aria-haspopup="menu"].rounded-full',
+	"кнопка выйти": '[role="menuitem"]:has(.lucide-log-out)',
+	"дропдаун аватара": '[data-qa="dropdown-menu-content"][role="menu"]',
+	"кнопка выход": '[data-qa="qa-clickable"] div:has-text("Выход")',
+	"кнопка входа": 'button:has(.lucide-log-in)',
+	"кнопка SSO": 'button:has(.lucide-building-2)',
 	"слияние веток": ".picker",
 	"верхнюю часть конфликта": ".top-part-conflict",
 	"нижнюю часть конфликта": ".bottom-part-conflict",
@@ -50,6 +56,18 @@ const aliases = {
 	"%azure-mail%": process.env.E2E_AZURE_MAIL,
 	"%azure-password%": process.env.E2E_AZURE_PASSWORD,
 	"%enterprise-storage%": "enterprise.gramax.local",
+
+	// Keycloak users by role
+	"%keycloak-reader-mail%": process.env.E2E_KEYCLOAK_READER_MAIL || "reader@test.com",
+	"%keycloak-reader-password%": process.env.E2E_KEYCLOAK_READER_PASSWORD,
+	"%keycloak-reviewer-mail%": process.env.E2E_KEYCLOAK_REVIEWER_MAIL || "reviewer@test.com",
+	"%keycloak-reviewer-password%": process.env.E2E_KEYCLOAK_REVIEWER_PASSWORD,
+	"%keycloak-editor-mail%": process.env.E2E_KEYCLOAK_EDITOR_MAIL || "editor@test.com",
+	"%keycloak-editor-password%": process.env.E2E_KEYCLOAK_EDITOR_PASSWORD,
+	"%keycloak-catalogOwner-mail%": process.env.E2E_KEYCLOAK_CATALOG_OWNER_MAIL || "catalog-owner@test.com",
+	"%keycloak-catalogOwner-password%": process.env.E2E_KEYCLOAK_CATALOG_OWNER_PASSWORD,
+	"%keycloak-workspaceOwner-mail%": process.env.E2E_KEYCLOAK_WORKSPACE_OWNER_MAIL || "workspace-owner@test.com",
+	"%keycloak-workspaceOwner-password%": process.env.E2E_KEYCLOAK_WORKSPACE_OWNER_PASSWORD,
 } as Aliases;
 
 const icons = {
@@ -69,6 +87,7 @@ const icons = {
 	"буква t": ".lucide-type",
 	корзина2: ".lucide-trash2",
 	карандаш: ".lucide-pencil",
+	"перечёркнутый карандаш": ".lucide-pen-off",
 	ручка: ".lucide-pen",
 	ссылка: ".lucide-link",
 	"карандаш с линейкой": ".lucide-pencil-ruler",
@@ -96,6 +115,7 @@ const icons = {
 	"удалить столбец": `[data-qa="table-del-col"]`,
 	цитата: ".lucide-quote",
 	"файл с вопросиком": ".lucide-file-question-mark",
+	слои: ".lucide-layers"
 };
 
 export type Aliases = { [key: string]: string };

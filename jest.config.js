@@ -36,6 +36,7 @@ module.exports = {
 		"^@core-ui/(.*)$": "<rootDir>/core/ui-logic/$1",
 		"^@ext/(.*)$": "<rootDir>/core/extensions/$1",
 		"^@app/(.*)$": "<rootDir>/app/$1",
+		"^pdfjs-dist/build/pdf.worker.min.js\\?url$": "<rootDir>/scripts/jest/mocks/pdf.worker.min.js"
 	},
 	transformIgnorePatterns: [
 		"<rootDir>/.next",

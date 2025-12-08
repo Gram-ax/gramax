@@ -1,8 +1,8 @@
-import { ModalContent as UiKitModalContent } from "ics-ui-kit/components/modal";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { FC } from "react";
-import styled from "@emotion/styled";
 import { classNames } from "@components/libs/classNames";
+import styled from "@emotion/styled";
+import { ModalContent as UiKitModalContent } from "ics-ui-kit/components/modal";
+import { FC } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 // FS - full screen
 export type ModalContentSize = "default" | "M" | "L" | "FS";
@@ -38,7 +38,7 @@ export const ModalContent: FC<ModalContentTemplateProps> = styled((props) => {
 	&.size-M {
 		width: calc(100vw - 2rem);
 		max-width: 700px;
-		max-height: 800px;
+		max-height: 700px;
 	}
 
 	&.size-l > .grid {

@@ -6,6 +6,13 @@ const locale: DefaultLocale = {
 		"catalog-edit-props": {
 			name: "Настройки каталога",
 			description: "Задайте параметры каталога и его отображение",
+			tabs: {
+				title: "Разделы",
+				general: "Основные",
+				appearance: "Внешний вид",
+				icons: "Иконки",
+				extended: "Формат",
+			},
 			props: {
 				title: {
 					name: "Название каталога",
@@ -302,7 +309,7 @@ const locale: DefaultLocale = {
 				},
 				domain: {
 					name: "URL сервера Confluence",
-					placeholder: "confluence.domain.com",
+					placeholder: "https://confluence.domain.com",
 					description: "Скопируйте URL вашего Confluence сервера",
 				},
 				password: {
@@ -437,6 +444,7 @@ const locale: DefaultLocale = {
 		"create-source": {
 			name: "Добавить новый источник",
 			description: "Укажите тип источника и введите необходимые данные",
+			"desktop-only": "Доступно только в десктопной версии приложения",
 			props: {
 				source: {
 					name: "Тип источника",
@@ -460,14 +468,22 @@ const locale: DefaultLocale = {
 				"download-failed": "Не удалось загрузить обновление",
 				signature: "Не удалось проверить подлинность обновления",
 				"check-enterprise-version": "Не удалось проверить версию энтерпрайз-сервера",
-				reqwest: "Не удалось получить обновление с сервера",
+				reqwest: "Не удалось получить обновление от сервера",
 			},
 		},
 		loading: "загружаем",
 		error: {
+			offline: {
+				"no-internet": "Нет подключения к интернету",
+				mode: "Оффлайн режим",
+			},
 			"browser-not-supported": {
 				title: "Этот браузер не поддерживается",
 				desc: "<span>Откройте Gramax в <a href='https://gram.ax/resources/docs/app/web-editor'>другом браузере</a> или <a href='https://gram.ax'>скачайте приложение</a> на компьютер</span>",
+			},
+			"wasm-init-timeout": {
+				title: "Не удалось инициализировать Gramax",
+				desc: "Превышено время ожидания инициализации wasm-модуля. Пожалуйста, попробуйте еще раз",
 			},
 			"unknown-error": "Неизвестная ошибка",
 			"cannot-load": "Не удалось загрузить приложение",
@@ -475,10 +491,9 @@ const locale: DefaultLocale = {
 				"Для работы приложения необходимо HTTPS-подключение и <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated'>cross-origin isolation</a>",
 			"command-failed": {
 				title: "Что-то пошло не так",
-				body: `<p>Перезагрузите страницу и попробуйте еще раз.</p><p>Мы получим сообщение о проблеме и постараемся ее быстро исправить. Если ошибка блокирует работу — напишите нам в <a href="https://t.me/gramax_assist_bot">Telegram</a>.</p>`,
-				"body-enterprise": `<p>Перезагрузите страницу и попробуйте еще раз. Если ошибка блокирует работу — обратитесь в <a href="https://t.me/gramax_chat" target="${
+				body: `<p>Перезагрузите страницу и попробуйте еще раз.</p><p>Мы получим сообщение о проблеме и постараемся ее быстро исправить. Если ошибка блокирует работу — напишите нам в <a href="https://t.me/gramax_assist_bot" target="${
 					getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-				}">поддержку</a>.</p>`,
+				}">Telegram</a>.</p>`,
 			},
 			"something-went-wrong": "Что-то пошло не так",
 		},
@@ -527,6 +542,8 @@ const locale: DefaultLocale = {
 		"invalid-file-format": "Неверный формат файла",
 		"select-file": "Выберите файл",
 		"no-file-selected": "Файл не выбран",
+		disabled: "Модуль стайлгайда отключен",
+		"failed-to-check": "Не удалось проверить статью",
 		"token-descriprion":
 			"Ваш токен остается на вашем устройстве и не передается на наши серверы. Пожалуйста, храните ваш токен в безопасности и не делитесь им с другими.",
 		"settings-description": `<p>Чтобы загрузить файл настроек стайлгайдов, выполните следующие шаги:</p>
@@ -687,6 +704,23 @@ const locale: DefaultLocale = {
 			title: "Создать статью",
 			body: "В левой навигации будут ваши разделы и статьи. Для начала создайте первую статью.",
 		},
+		move: {
+			"to-workspace": "Переместить",
+			"no-workspaces": "Нет доступных пространств для перемещения",
+			"create-new-catalog": "Создать новый каталог",
+			"no-catalogs": "Нет доступных каталогов",
+			"cannot-move-language": "Невозможно переместить статью из многоязычного каталога",
+			progress: "Перемещение статьи",
+
+			duplicate: {
+				title: "Эта статья уже существует",
+				description:
+					"В каталоге <code>{{targetCatalogName}}</code> статья <code>{{articleName}}</code> уже существует. Вы можете оставить обе статьи или заменить существующую",
+				"keep-both": "Оставить обе",
+				replace: "Заменить",
+				cancel: "Отмена",
+			},
+		},
 		title: "Заголовок статьи",
 		"no-name": "Без названия",
 		placeholder: "Текст статьи",
@@ -770,6 +804,19 @@ title: Не удалось отобразить статью
 			local: "Этот каталог хранится только в приложении. Вы не сможете его восстановить",
 			storage: "Каталог удалится только из приложения. Но вы сможете его заново загрузить из хранилища",
 			progress: "Удаление каталога",
+		},
+		move: {
+			"unavailable-in-ges": "Невозможно переместить каталог из энтерпрайз-пространства",
+			"to-workspace": "Переместить",
+			"no-workspaces": "Нет доступных пространств для перемещения",
+		},
+		duplicate: {
+			title: "Этот каталог уже существует",
+			description:
+				"В пространстве <code>{{targetWorkspaceName}}</code> каталог <code>{{catalogName}}</code> уже существует. Вы можете оставить оба, либо заменить существующий каталог",
+			"keep-both": "Оставить оба",
+			replace: "Заменить",
+			cancel: "Отмена",
 		},
 		name: "каталог",
 		configure: "Настроить каталог",
@@ -979,6 +1026,9 @@ title: Не удалось отобразить статью
 		"ai-search-error":
 			"Функция ИИ - поиска недоступна из - за технических неполадок. Рекомендуем обратиться к администратору системы за дополнительной информацией.",
 		"ai-search-error-title": "Технические проблемы с ИИ - поиском",
+		"indexing-info": "Обновление индекса...",
+		"hidden-results": "...еще {{count}}",
+		recommended: "Рекомендовано",
 	},
 	list: {
 		"no-results-found": "Ничего не найдено",
@@ -1003,7 +1053,7 @@ title: Не удалось отобразить статью
 				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>.<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Подробнее</a>`,
 			},
 			gitverse: {
-				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>Репозиторий</code>, <code>Публичный API</code>.<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Подробнее</a>`,
+				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>Репозитории</code>, <code>Пользователи</code>.<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Подробнее</a>`,
 			},
 			gitea: {
 				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>repository</code>, <code>user</code> (Read and Write).<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitea.com/development/oauth2-provider#scopes'>Подробнее</a>`,
@@ -1788,6 +1838,20 @@ title: Не удалось отобразить статью
 					errorText: "Ошибка поиска",
 					required: "Выберите минимум 1 ветку",
 				},
+				catalog: {
+					permission: {
+						title: "Настроить доступы",
+						description: "Настройте доступы к каталогу",
+					},
+				},
+			},
+			groups: {
+				"add-group": "Добавить группу",
+				"group-name": "Название группы",
+				"group-name-description": "Введите название группы",
+				"group-name-placeholder": "Введите название группы",
+				"name-error": "Название группы обязательно для заполнения",
+				"group-name-exists": "Группа с таким именем уже существует",
 			},
 			guests: {
 				"general-settings": "Общие настройки",
@@ -1802,6 +1866,10 @@ title: Не удалось отобразить статью
 					"Пользователь не соответствует текущему белому списку доменов и не считается внешним читателем",
 			},
 			check: {
+				switch: {
+					on: "Модуль проверки включен",
+					off: "Модуль проверки выключен",
+				},
 				rule: "Правило",
 				"import-rules": "Импортировать правила",
 				"no-rules": "Нет правил проверки",
@@ -1973,6 +2041,8 @@ title: Не удалось отобразить статью
 	sync: "Синхронизировать",
 	synchronization: "Синхронизация...",
 	theme: "Тема",
+	searchPhrases: "Поисковые фразы",
+	"searchPhrases-placeholder": "Добавить фразу...",
 	title: "Заголовок",
 	token: "токен",
 	type: "Тип",
@@ -2419,6 +2489,24 @@ title: Не удалось отобразить статью
 			title: "Добро пожаловать в Gramax!",
 			description: "Начните с загрузки существующего каталога из хранилища",
 		},
+		editor: {
+			title: "Добро пожаловать в Gramax!",
+			description: "Создайте в Gramax каталог документации и опубликуйте из него сайт с ИИ-поиском",
+			options: {
+				"create-blank": {
+					title: "Создать новый каталог",
+					description: "Начните с чистого листа",
+				},
+				"download-exists": {
+					title: "Подключить GitHub или GitLab",
+					description: "Свяжите Gramax с Git репозиторием",
+				},
+				"import-exists": {
+					title: "Перенести из другой системы",
+					description: "Загрузите данные из Confluence или Notion",
+				},
+			},
+		},
 	},
 	"try-later": "Попробуйте позже",
 	"file-upload": {
@@ -2443,6 +2531,10 @@ title: Не удалось отобразить статью
 			title: "Несохраненные изменения",
 			body: "У вас есть несохраненные изменения. Выберите действие:",
 		},
+		"unsaved-comment": {
+			title: "Несохраненный комментарий",
+			body: "Вы уверены, что хотите закрыть окно комментария? Несохраненные изменения будут потеряны.",
+		},
 	},
 	"save-and-close": "Сохранить и закрыть",
 	record: "запись",
@@ -2456,8 +2548,30 @@ title: Не удалось отобразить статью
 			answered: "Отвечено",
 			total: "Всего",
 			send: "Отправить ответы",
+			statistics: {
+				title: "Статистика",
+				"correct-answers": "Правильных ответов",
+				passed: "Тест пройден",
+				failed: "Тест не пройден",
+			},
+		},
+		settings: {
+			name: "Настройки теста",
+			"show-answers": {
+				title: "Показывать ответы",
+				description: "Показывать ответы на вопросы после прохождения теста",
+			},
+			"precent-of-correct-answers": {
+				title: "Процент правильных ответов",
+				description: "Процент правильных ответов для прохождения теста",
+				placeholder: "Число от 0 до 100",
+			},
 		},
 		"required-questions": "Пожалуйста, ответьте на все обязательные вопросы",
+	},
+	or: "или",
+	errors: {
+		"workspace-path-not-found": "Пространство с путем {{path}} не найдено",
 	},
 };
 

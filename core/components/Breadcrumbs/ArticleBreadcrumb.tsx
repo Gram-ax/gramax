@@ -1,6 +1,5 @@
 import Icon from "@components/Atoms/Icon";
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
-import { classNames } from "@components/libs/classNames";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -15,7 +14,7 @@ import { ItemLink } from "@ext/navigation/NavigationLinks";
 import Properties from "@ext/properties/components/Properties";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { Button } from "@ui-kit/Button";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 interface ArticleBreadcrumbProps {
 	className?: string;
@@ -29,41 +28,11 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	const { articleProperties, setArticleProperties } = PropertyServiceProvider.value;
 	const isMobile = IsMobileService.value;
 
-	const [isOverflow, setIsOverflow] = useState<boolean>(null);
 	const [itemLink, setItemLink] = useState<ItemLink>(null);
 
 	const pageData = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
 	const isReadOnly = pageData?.conf.isReadOnly;
-	const isTemplate = articleProps?.template?.length > 0;
-
-	const resize = useCallback(() => {
-		if (isReadOnly) return;
-		const breadcrumb = breadcrumbRef.current;
-		const properties = breadcrumb?.lastElementChild as HTMLElement;
-		if (!properties) return;
-
-		const width = breadcrumb?.clientWidth - properties.clientWidth - (linksRef.current?.clientWidth || 0);
-		if (linksRef.current?.clientWidth > 0 && width < 20) setIsOverflow(true);
-		else setIsOverflow(false);
-	}, [breadcrumbRef.current]);
-
-	const setNull = () => setIsOverflow(null);
-
-	useEffect(() => {
-		if (isReadOnly || isTemplate || isMobile) return;
-		window.addEventListener("resize", setNull);
-		return () => window.removeEventListener("resize", setNull);
-	}, [itemLinks, articleProperties]);
-
-	useEffect(() => {
-		if (isReadOnly || isMobile) return;
-		setNull();
-	}, [itemLinks, articleProperties]);
-
-	useLayoutEffect(() => {
-		resize();
-	}, [isOverflow]);
 
 	useWatch(() => {
 		const newItemLink = getArticleItemLink(itemLinks, articleProps.ref.path);
@@ -73,7 +42,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	const showArticleActions = !articleProps?.errorCode || articleProps?.errorCode === 500;
 
 	return (
-		<div ref={breadcrumbRef} className={classNames(className, { "next-line": isOverflow })}>
+		<div ref={breadcrumbRef} className={className}>
 			<LinksBreadcrumb ref={linksRef} itemLinks={itemLinks} />
 			{!isReadOnly && showArticleActions && (
 				<>
@@ -109,16 +78,8 @@ export default styled(ArticleBreadcrumb)`
 	position: relative;
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	flex-wrap: wrap;
 	${(p) => p.hasPreview && `& {width: 68%;}`}
-
-	&.next-line {
-		display: block;
-
-		> :last-of-type {
-			justify-content: end;
-		}
-	}
 
 	.article-actions {
 		position: absolute;

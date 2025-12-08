@@ -1,16 +1,17 @@
-import { HEIGHT_TOLERANCE_PX } from "@ext/print/const";
 import { ArticlePreview, PdfExportProgress, PdfPrintParams, PrintableContent } from "@ext/print/types";
-import { initTocPageContent } from "./initTocPageContent";
+import { initTocPageContent } from "./tocPage/initTocPageContent";
 import { createChunkScheduler, nextFrame } from "./pagination/scheduling";
-import { createPage, getUsableHeightCached, PAGE_CLASS } from "./pagination/pageElements";
+import { createPage, PAGE_CLASS } from "./pagination/pageElements";
 import { getTitlePageContent, TITLE_PAGE_CLASS } from "./pagination/titlePage";
-import { handleSpecialNode, PaginationState } from "./pagination/nodeHandlers";
-import { countTopLevelTableRows } from "../../markdown/elements/table/print/tablePagination";
+import { ControlInfo } from "@ext/print/utils/pagination/types";
+// import { countTopLevelTableRows } from "../../markdown/elements/table/print/tablePagination";
 import { throwIfAborted } from "./pagination/abort";
 import { createProgressTracker } from "./pagination/progress";
 import type { PaginateIntoPagesOptions } from "@ext/print/types";
 import type { ProgressTracker } from "./pagination/progress";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
+import PagePaginator from "./pagination/PagePaginator";
+import printHandlers from "@ext/print/utils/pagination/nodeHandlers";
 
 async function paginateIntoPages(
 	source: HTMLElement,
@@ -40,13 +41,11 @@ async function paginateIntoPages(
 	throwIfAborted(signal);
 
 	let currentPage = createPage(pages);
+	PagePaginator.setUsablePageHeight(currentPage);
 
-	const pageUsableHeight = getUsableHeightCached(currentPage);
+	const nodeDimension = await NodeDimensions.init(source, yieldTick, () => throwIfAborted(signal));
 
-	const maxHeight = pageUsableHeight + HEIGHT_TOLERANCE_PX;
-	const nodeDimension = await NodeDimensions.init(maxHeight, source, yieldTick, () => throwIfAborted(signal));
-
-	const totalUnits = source.childElementCount + countTopLevelTableRows(source, nodeDimension);
+	const totalUnits = source.childElementCount; //+ countTopLevelTableRows(source, nodeDimension);
 	const progressTracker: ProgressTracker = createProgressTracker({
 		totalUnits,
 		reporter: onProgress,
@@ -55,43 +54,20 @@ async function paginateIntoPages(
 	});
 	progressTracker.emit(true);
 
-	let fragment = document.createDocumentFragment();
-	let accumulatedHeight = NodeDimensions.createInitial();
+	const controlInfo: ControlInfo = {
+		yieldTick,
+		progress: progressTracker,
+		signal,
+	};
 
-	while (source.firstElementChild) {
-		throwIfAborted(signal);
-		const node = source.firstElementChild as HTMLElement;
+	const paginationInfo = {
+		printHandlers,
+		accumulatedHeight: NodeDimensions.createInitial(),
+		nodeDimension,
+	};
 
-		const handlerState: PaginationState = { currentPage, fragment, accumulatedHeight };
-		const handled = await handleSpecialNode(node, handlerState, {
-			pages,
-			nodeDimension,
-			yieldTick,
-			progress: progressTracker,
-			signal,
-		});
-		({ currentPage, fragment, accumulatedHeight } = handlerState);
-
-		if (handled) continue;
-
-		if (!nodeDimension.canUpdateAccumulatedHeight(node, accumulatedHeight)) {
-			currentPage.appendChild(fragment);
-
-			currentPage = createPage(pages);
-			fragment = document.createDocumentFragment();
-			accumulatedHeight = NodeDimensions.createInitial();
-			await yieldTick();
-			throwIfAborted(signal);
-		}
-
-		fragment.appendChild(node);
-		accumulatedHeight = nodeDimension.updateAccumulatedHeight(node, accumulatedHeight);
-		progressTracker.increase(1);
-	}
-
-	if (fragment.childNodes.length) {
-		currentPage.appendChild(fragment);
-	}
+	const paginator = new PagePaginator(source, { paginationInfo, pages, controlInfo });
+	await paginator.paginateNode(currentPage);
 
 	if (params.tocPage) initTocPageContent(pages, printableContent.items, params.titlePage);
 	throwIfAborted(signal);

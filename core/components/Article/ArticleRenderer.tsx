@@ -2,6 +2,7 @@ import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import Workspace from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
@@ -20,7 +21,7 @@ import Renderer from "../../extensions/markdown/core/render/components/Renderer"
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../../extensions/markdown/elements/heading/render/component/Header";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
-import Workspace from "@core-ui/ContextServices/Workspace";
+import { highlightSearchFragmentByUrl } from "./SearchHandler/ArticleSearchFragmentHander";
 
 interface ArticleRendererProps {
 	data: ArticlePageData;
@@ -180,7 +181,14 @@ export const ArticleReadRenderer = memo(({ data }: { data: ArticlePageData }) =>
 						{articleProps.description}
 					</Header>
 				)}
-				{Renderer(JSON.parse(data.articleContentRender), { components: useMemo(getComponents, []) })}
+				{Renderer(
+					JSON.parse(data.articleContentRender),
+					{ components: useMemo(getComponents, []) },
+					false,
+					() => {
+						highlightSearchFragmentByUrl(100, "docportal");
+					},
+				)}
 				<ArticleMat />
 			</>
 		</ArticleParent>

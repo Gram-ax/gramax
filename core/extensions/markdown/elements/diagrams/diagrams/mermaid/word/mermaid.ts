@@ -7,7 +7,8 @@ import { getCodeBlock } from "@ext/markdown/elements/codeBlockLowlight/word";
 export const mermaidWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
 	if (getExecutingEnvironment() === "next" || getExecutingEnvironment() === "cli")
 		return getCodeBlock(
-			[await WordDiagramRenderer.getDiagramContent(tag, wordRenderContext.parserContext.getResourceManager())],
+			await WordDiagramRenderer.getDiagramContent(tag, wordRenderContext.parserContext.getResourceManager()),
+			undefined,
 			addOptions,
 		);
 
