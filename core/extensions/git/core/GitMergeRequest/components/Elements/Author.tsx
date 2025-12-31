@@ -1,6 +1,6 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import UserCircle from "@components/Atoms/UserCircle";
-import VersionControlCommentCount from "@components/Comments/CommentCount";
+import VersionControlCommentCount from "@ext/markdown/elements/comment/edit/components/CommentCount";
 import styled from "@emotion/styled";
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
 import type { Signature } from "@ext/git/core/model/Signature";
@@ -30,10 +30,10 @@ const Author = ({ author, comments, you }: { author: Signature; comments?: numbe
 
 	return (
 		<Inline>
-			<Tooltip content={author.email} interactive>
+			<Tooltip content={author.email || "unknown"} interactive>
 				<Inline>
-					<Avatar name={author.name || "Unknown"} />
-					<Accent bold>{author.name || "Unknown"}</Accent>
+					<Avatar name={author.name || author.email || "Unknown"} />
+					<Accent bold>{author.name || author.email || "Unknown"}</Accent>
 					{you && <span>({t("git.merge-requests.you")})</span>}
 				</Inline>
 			</Tooltip>

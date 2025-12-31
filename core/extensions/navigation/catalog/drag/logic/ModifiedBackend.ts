@@ -1,57 +1,84 @@
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
-import { getBackendOptions } from "@minoru/react-dnd-treeview";
-import { HTML5Backend, HTML5BackendOptions } from "react-dnd-html5-backend";
-import { TouchBackend, TouchBackendOptions } from "react-dnd-touch-backend";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import { TouchBackend } from "react-dnd-touch-backend";
+import { MouseTransition, TouchTransition, MultiBackend } from "dnd-multi-backend";
 
-const getDefaultBackendOptions = (): { html5: Partial<HTML5BackendOptions>; touch: Partial<TouchBackendOptions> } => {
-	return {
-		html5: {},
-		touch: {
-			delayTouchStart: 300,
-			touchSlop: 16,
-			ignoreContextMenu: true,
-			scrollAngleRanges: [
-				{ start: 30, end: 150 },
-				{ start: 210, end: 330 },
-			],
+const HTML5toTouch = {
+	backends: [
+		{
+			id: "html5",
+			backend: HTML5Backend,
+			transition: MouseTransition,
+			options: {},
+			preview: false,
+			skipDispatchOnTransition: false,
 		},
+		{
+			id: "touch",
+			backend: TouchBackend,
+			transition: TouchTransition,
+			options: {
+				delay: 150,
+				ignoreContextMenu: true,
+				enableMouseEvents: true,
+			},
+			preview: true,
+			skipDispatchOnTransition: true,
+		},
+	],
+};
+
+const createModifiedBackend = (backendFactory: any) => {
+	return (manager: any, context: any, options: any) => {
+		const backendInstance = backendFactory(manager, context, options);
+
+		const listeners = [
+			"handleTopDragStart",
+			"handleTopDragStartCapture",
+			"handleTopDragEndCapture",
+			"handleTopDragEnter",
+			"handleTopDragEnterCapture",
+			"handleTopDragLeaveCapture",
+			"handleTopDragOver",
+			"handleTopDragOverCapture",
+			"handleTopDrop",
+			"handleTopDropCapture",
+		];
+
+		listeners.forEach((name) => {
+			const original = backendInstance[name];
+			if (typeof original === "function") {
+				backendInstance[name] = (event: any, ...extraArgs: any[]) => {
+					if (event?.target && shouldProcessEvent(event.target)) {
+						original.call(backendInstance, event, ...extraArgs);
+					}
+				};
+			}
+		});
+
+		return backendInstance;
 	};
-};
-
-export const useDragDrop = () => {
-	const isMobile = IsMobileService.value;
-	const backend = isMobile ? TouchBackend : HTML5Backend;
-	const options = getBackendOptions(getDefaultBackendOptions());
-
-	return { backend, options };
-};
-
-const ModifiedBackend = (backend: any) => {
-	const listeners = [
-		"handleTopDragStart",
-		"handleTopDragStartCapture",
-		"handleTopDragEndCapture",
-		"handleTopDragEnter",
-		"handleTopDragEnterCapture",
-		"handleTopDragLeaveCapture",
-		"handleTopDragOver",
-		"handleTopDragOverCapture",
-		"handleTopDrop",
-		"handleTopDropCapture",
-	];
-
-	listeners.forEach((name) => {
-		const original = backend[name];
-		backend[name] = (event, ...extraArgs) => {
-			if (event?.target && shouldProcessEvent(event.target)) original(event, ...extraArgs);
-		};
-	});
-
-	return backend;
 };
 
 const shouldProcessEvent = (target: any): boolean => {
 	return target instanceof Element && typeof target.closest === "function" && target.closest(".tree-root") !== null;
 };
 
-export default ModifiedBackend;
+const modifiedHTML5toTouch = {
+	backends: HTML5toTouch.backends.map((config) => ({
+		...config,
+		backend: createModifiedBackend(config.backend),
+	})),
+};
+
+export const useDragDrop = () => {
+	const isMobile = IsMobileService.value;
+
+	return {
+		backend: (manager: any) => MultiBackend(manager, undefined, modifiedHTML5toTouch),
+		options: modifiedHTML5toTouch,
+		currentBackendType: isMobile ? "touch" : "html5",
+	};
+};
+
+export default modifiedHTML5toTouch;

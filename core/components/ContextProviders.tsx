@@ -120,7 +120,7 @@ export default function ContextProviders({
 			useEffect(() => yandexMetricHit(metrics.yandex.metricCounter), [url]);
 		}
 	}
-
+	
 	initRefresh(refreshPage, clearData);
 	return (
 		<PlatformService.Provider value={platform}>

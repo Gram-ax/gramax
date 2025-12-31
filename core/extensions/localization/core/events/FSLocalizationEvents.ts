@@ -256,7 +256,7 @@ export default class FSLocalizationEvents implements EventHandlerCollection {
 
 				const languageCategory = catalog.findArticle(languageCategoryName, []) as Category;
 
-				if (!languageCategory) continue;
+				if (!languageCategory || languageCategory.type !== ItemType.category) continue;
 
 				await addExternalItems(
 					catalog.getRootCategory(),

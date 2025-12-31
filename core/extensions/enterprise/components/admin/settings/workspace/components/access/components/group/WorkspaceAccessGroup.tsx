@@ -1,22 +1,23 @@
 import { GroupToolbarAddBtn } from "@ext/enterprise/components/admin/settings/components/GroupToolbarAddBtn";
 import { RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { useWorkspaceAccess } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceAccess";
+import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
+import t from "@ext/localization/locale/translate";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
 import { groupsTableColumns } from "./config/GroupTableConfig";
-import { Group } from "./types/GroupTypes";
-import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import { Group, GroupInfo } from "./types/GroupTypes";
 
 interface WorkspaceAccessGroupProps {
 	localSettings: WorkspaceSettings;
 	setLocalSettings: React.Dispatch<React.SetStateAction<WorkspaceSettings>>;
 	ownerRole: RoleId;
-	groups: string[];
+	groups: GroupInfo[];
 }
 
 export function WorkspaceAccessGroup({
@@ -31,10 +32,12 @@ export function WorkspaceAccessGroup({
 
 	const currentAccess = getAccessForRole(ownerRole);
 
-	const groupsTableData = useMemo(
-		() => currentAccess.gxGroups.map((group) => ({ id: group, group })),
-		[currentAccess.gxGroups],
-	);
+	const groupsTableData = useMemo(() => {
+		return currentAccess.gxGroups.map((groupId) => {
+			const groupInfo = groups.find((g) => g.id === groupId);
+			return { id: groupId, group: groupInfo?.name ?? groupId };
+		});
+	}, [currentAccess.gxGroups, groups]);
 
 	const groupsTable = useReactTable({
 		data: groupsTableData,
@@ -90,12 +93,12 @@ export function WorkspaceAccessGroup({
 
 	return (
 		<div>
-			<TableInfoBlock title="Группы" description={currentAccess.gxGroups.length} />
+			<TableInfoBlock title={t("enterprise.admin.resources.groups.group")} description={currentAccess.gxGroups.length} />
 
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
-						placeholder="Найти группы..."
+						placeholder={`${t("enterprise.admin.resources.groups.search-placeholder")}...`}
 						value={(groupsTable.getColumn("group")?.getFilterValue() as string) ?? ""}
 						onChange={handleFilterChange}
 					/>

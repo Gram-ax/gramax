@@ -1,5 +1,11 @@
 import { ModulithService, SearchBatchArgs } from "@ext/serach/modulith/ModulithService";
-import Searcher, { SearchAllArgs, SearchArgs, SearcherProgressGenerator, SearchResult } from "@ext/serach/Searcher";
+import Searcher, {
+	SearchAllArgs,
+	SearchArgs,
+	SearcherProgressGenerator,
+	SearchResult,
+	UpdateIndexArgs,
+} from "@ext/serach/Searcher";
 
 export class ModulithSearcher implements Searcher {
 	constructor(private readonly _service: ModulithService) {}
@@ -8,14 +14,17 @@ export class ModulithSearcher implements Searcher {
 		return this._service.progress();
 	}
 
-	async resetAllCatalogs(): Promise<void> {
-		await this._service.updateAllCatalogs();
+	updateIndex({ force, catalogName }: UpdateIndexArgs): SearcherProgressGenerator {
+		return this._service.updateIndex({
+			force,
+			catalogName,
+		});
 	}
 
 	async searchAll({
 		query,
 		catalogToArticleIds,
-		properties,
+		propertyFilter,
 		articlesLanguage,
 	}: SearchAllArgs): Promise<SearchResult[]> {
 		const catalogNames = [];
@@ -32,7 +41,7 @@ export class ModulithSearcher implements Searcher {
 						{
 							query,
 							catalogNames,
-							properties,
+							propertyFilter,
 							articlesLanguage,
 						},
 					],
@@ -48,7 +57,7 @@ export class ModulithSearcher implements Searcher {
 		query,
 		catalogName,
 		articleIds,
-		properties,
+		propertyFilter,
 		articlesLanguage,
 	}: SearchArgs): Promise<SearchResult[]> {
 		return (
@@ -58,7 +67,7 @@ export class ModulithSearcher implements Searcher {
 						{
 							query,
 							catalogNames: [catalogName],
-							properties,
+							propertyFilter,
 							articlesLanguage,
 						},
 					],
@@ -80,7 +89,7 @@ export class ModulithSearcher implements Searcher {
 							type: "catalog",
 							name: x.catalogName,
 							title: x.title,
-							url: x.pathname,
+							url: x.url,
 						};
 					}
 
@@ -90,7 +99,7 @@ export class ModulithSearcher implements Searcher {
 						catalog: x.catalog,
 						title: x.title,
 						items: x.items,
-						url: x.pathname,
+						url: x.url,
 						breadcrumbs: x.breadcrumbs,
 						properties: x.properties,
 					};

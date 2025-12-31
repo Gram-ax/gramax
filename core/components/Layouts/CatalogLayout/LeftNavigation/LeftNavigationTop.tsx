@@ -23,6 +23,8 @@ import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
 
+const PADDING = "0.875rem";
+
 const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
 	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
 	width: 100%;
@@ -41,8 +43,8 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 	const isMacDesktop = IsMacService.value && isTauri;
 
 	const getPadding = () => {
-		if (narrowMedia) return "0 14px";
-		return leftNavIsOpen ? "0 14px" : "0 30px";
+		if (narrowMedia) return `0 ${PADDING}`;
+		return leftNavIsOpen ? `0 ${PADDING}` : "0 30px";
 	};
 
 	useEffect(() => {
@@ -64,7 +66,6 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 			<BarLayout
 				className={className}
 				padding={getPadding()}
-				gap={narrowMedia ? "14px" : 0}
 				height={isMacDesktop ? null : "var(--top-bar-height)"}
 			>
 				<TopBarContentWrapper isMacDesktop={isMacDesktop}>
@@ -77,12 +78,7 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 							}}
 						/>
 					)}
-					<TopBarContent
-						isMacDesktop={isMacDesktop}
-						currentTab={topTab}
-						setCurrentTab={(tab) => NavigationTabsService.setTop(tab)}
-						data={data}
-					/>
+					<TopBarContent isMacDesktop={isMacDesktop} currentTab={topTab} data={data} />
 				</TopBarContentWrapper>
 			</BarLayout>
 			{(isTauri || isBrowser) && !catalogNotFound && (
@@ -107,5 +103,11 @@ export default styled(LeftNavigationTop)`
 
 	${cssMedia.narrow} {
 		border-bottom: 0.5px var(--color-line) solid;
+		gap: ${PADDING};
+
+		.buttonLink {
+			margin: calc(${PADDING} / -2);
+			padding: calc(${PADDING} / 2);
+		}
 	}
 `;

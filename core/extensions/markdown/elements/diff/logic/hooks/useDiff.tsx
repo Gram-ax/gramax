@@ -1,55 +1,50 @@
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import addDecorations from "@ext/markdown/elements/diff/logic/addDecorations";
+import { CommentEditorEventsContext } from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
+import AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
 import ProsemirrorAstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/ProseMirrorAstDiffTransformer";
+import getParagraphCommentsDiffLines from "@ext/markdown/elements/diff/logic/commentsDiff/getParagraphCommentsDiffLines";
+import useCommentsDiff from "@ext/markdown/elements/diff/logic/commentsDiff/useCommentsDiff";
 import DiffRenderDataHandler from "@ext/markdown/elements/diff/logic/DiffRenderDataHandler";
-import { PluginKey, Transaction } from "@tiptap/pm/state";
-import { AddMarkStep, RemoveMarkStep } from "@tiptap/pm/transform";
+import { Transaction } from "@tiptap/pm/state";
 import { DecorationSet } from "@tiptap/pm/view";
 import { Editor } from "@tiptap/react";
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 
 const DEBOUNCDE_DELAY = 250;
-const diffNewEditorPluginKey = new PluginKey("diff-new-editor");
-const diffOldEditorPluginKey = new PluginKey("diff-old-editor");
 
-const marksToIgnore = ["comment", "link"];
-function ignoreMarkTransactions(transaction: Transaction) {
-	const isAddCommentMark =
-		transaction.steps.length === 1 &&
-		transaction.steps[0] instanceof AddMarkStep &&
-		marksToIgnore.includes(transaction.steps[0].mark.type.name);
-	if (isAddCommentMark) return true;
-
-	const isDeleteCommentMark =
-		transaction.steps.length === 1 &&
-		transaction.steps[0] instanceof RemoveMarkStep &&
-		marksToIgnore.includes(transaction.steps[0].mark.type.name);
-	if (isDeleteCommentMark) return true;
-
-	const isUpdateCommentMark =
-		transaction.steps.length === 2 &&
-		((transaction.steps[0] instanceof RemoveMarkStep && transaction.steps[1] instanceof AddMarkStep) ||
-			(transaction.steps[0] instanceof AddMarkStep && transaction.steps[1] instanceof RemoveMarkStep)) &&
-		marksToIgnore.includes(transaction.steps[0].mark.type.name) &&
-		marksToIgnore.includes(transaction.steps[1].mark.type.name);
-	if (isUpdateCommentMark) return true;
-
-	return false;
+interface UseDiffProps {
+	newEditor: Editor;
+	oldEditor: Editor;
+	newApiUrlCreator: ApiUrlCreator;
+	oldApiUrlCreator: ApiUrlCreator;
 }
 
-const useDiff = ({ editor: newEditor, oldContentEditor }: { editor: Editor; oldContentEditor: Editor }) => {
+const useDiff = (props: UseDiffProps) => {
+	const { newEditor, oldEditor, newApiUrlCreator, oldApiUrlCreator } = props;
 	const newEditorDecorations = useRef<DecorationSet>(null);
 
-	const updateDiffDecorators = () => {
-		const astDiffTransformer = new ProsemirrorAstDiffTransformer(oldContentEditor.state.doc, newEditor.state.doc);
-		const diffRenderDataHandler = new DiffRenderDataHandler(astDiffTransformer);
+	const commentEditorEvents = useContext(CommentEditorEventsContext);
+	const getCommentsDiff = useCommentsDiff(newApiUrlCreator, oldApiUrlCreator);
+
+	const updateDiffDecorators = async () => {
+		const astDiffTransformer = new ProsemirrorAstDiffTransformer(oldEditor.state.doc, newEditor.state.doc);
+		const astDiffDataHandler = new AstDiffDataHandler(astDiffTransformer);
+
+		astDiffDataHandler.calculateData();
+
+		const diffRenderDataHandler = new DiffRenderDataHandler(astDiffDataHandler);
 
 		const { addedDecorations, removedDecorations, changedContextDecorations, diffLines } =
 			diffRenderDataHandler.getDiffRenderData();
 
+		const { oldParagraphComments, newParagraphComments } = astDiffTransformer.getParagraphComments();
+		const paragraphCommentsDiff = await getCommentsDiff(oldParagraphComments, newParagraphComments);
+		const commentsDiffLines = getParagraphCommentsDiffLines(astDiffDataHandler, paragraphCommentsDiff);
+
 		const extraRemovedDecorations = diffRenderDataHandler.makeRemovedDiffLinesToDecorators(diffLines);
 
-		const oldEditorDecorations = DecorationSet.create(oldContentEditor.state.doc, [
+		const oldEditorDecorations = DecorationSet.create(oldEditor.state.doc, [
 			...removedDecorations,
 			...extraRemovedDecorations,
 		]);
@@ -60,36 +55,36 @@ const useDiff = ({ editor: newEditor, oldContentEditor }: { editor: Editor; oldC
 
 		const proseMirrorDiffLines = astDiffTransformer.convertToProseMirrorDiffLines(diffLines);
 
-		newEditor.commands.updateDiffLinesModel(proseMirrorDiffLines);
+		newEditor.commands.updateDiffLinesModel([...proseMirrorDiffLines, ...commentsDiffLines]);
 
 		newEditorDecorations.current = newEditorDecoration;
-		addDecorations(newEditor, newEditorDecoration, diffNewEditorPluginKey);
-		addDecorations(oldContentEditor, oldEditorDecorations, diffOldEditorPluginKey);
+		oldEditor.commands.setMeta("updateDiffDecorators", oldEditorDecorations);
+		newEditor.commands.setMeta("updateDiffDecorators", newEditorDecoration);
 	};
 
-	const { start: onUpdateWithDebounce } = useDebounce(
-		({ transaction }: { editor: Editor; transaction: Transaction }) => {
-			if (ignoreMarkTransactions(transaction)) return;
-			updateDiffDecorators();
-		},
-		DEBOUNCDE_DELAY,
-	);
+	const { start: onUpdateWithDebounce } = useDebounce(() => {
+		updateDiffDecorators();
+	}, DEBOUNCDE_DELAY);
 
 	useEffect(() => {
-		if (!newEditor || newEditor.isDestroyed || !oldContentEditor) return;
-		updateDiffDecorators();
+		if (!newEditor || newEditor.isDestroyed || !oldEditor || !commentEditorEvents) return;
+		void updateDiffDecorators();
 
 		const onEditorUpdate = ({ editor, transaction }: { editor: Editor; transaction: Transaction }) => {
 			newEditorDecorations.current = newEditorDecorations.current.map(transaction.mapping, editor.state.doc);
-			addDecorations(newEditor, newEditorDecorations.current, diffNewEditorPluginKey);
-			onUpdateWithDebounce({ transaction, editor });
+			editor.commands.setMeta("updateDiffDecorators", newEditorDecorations.current);
+			onUpdateWithDebounce();
 		};
 
 		newEditor.on("update", onEditorUpdate);
+		const commentEditorEventsTokens = [];
+		commentEditorEventsTokens.push(commentEditorEvents.on("update", () => void updateDiffDecorators()));
+		commentEditorEventsTokens.push(commentEditorEvents.on("delete", () => void updateDiffDecorators()));
 		return () => {
 			newEditor.off("update", onEditorUpdate);
+			commentEditorEventsTokens.forEach((token) => commentEditorEvents.off(token));
 		};
-	}, [newEditor, oldContentEditor]);
+	}, [newEditor, oldEditor, commentEditorEvents]);
 };
 
 export default useDiff;

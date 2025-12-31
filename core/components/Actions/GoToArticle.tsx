@@ -8,11 +8,12 @@ interface GoToArticleProps extends HTMLAttributes<HTMLAnchorElement> {
 	trigger: ReactNode;
 	href: string;
 	distance?: number;
+	containerClassName?: string;
 	onClick?: (e: MouseEvent) => void;
 }
 
 const GoToArticle = (props: GoToArticleProps) => {
-	const { trigger, href, distance = 10, onClick, ...otherProps } = props;
+	const { trigger, href, distance = 10, onClick, containerClassName, ...otherProps } = props;
 	const ref = useRef<HTMLAnchorElement>(null);
 
 	const onClickHandler = (e: MouseEvent) => {
@@ -27,7 +28,7 @@ const GoToArticle = (props: GoToArticleProps) => {
 
 	return (
 		<Tooltip hideOnClick={true} content={t("go-to-article")} distance={distance}>
-			<span onClick={onClickHandler}>
+			<span onClick={onClickHandler} className={containerClassName}>
 				<Link href={Url.from({ pathname: href })} ref={ref} {...otherProps}>
 					{trigger}
 				</Link>

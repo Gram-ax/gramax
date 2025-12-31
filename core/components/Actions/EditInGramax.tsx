@@ -6,6 +6,11 @@ import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import useEditUrl from "./useEditUrl";
+import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";
+import Workspace from "@core-ui/ContextServices/Workspace";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 
 const DESKTOP_APP_LISTENING_ADDRESS = "http://127.0.0.1:52055/";
 
@@ -107,7 +112,19 @@ const editInGramaxComponents = {
 
 const EditInGramax = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => {
 	const { environment } = usePlatform();
-	return editInGramaxComponents[environment]({ pathname, articlePath });
+	const workspacePath = Workspace.current().path;
+	const { isNext, isStatic, isStaticCli } = usePlatform();
+	const isEnterprise = useIsEnterpriseWorkspace();
+
+	const { sourceName, catalogName } = useCatalogPropsStore((state) => ({
+		sourceName: state.data?.sourceName,
+		catalogName: state.data?.name,
+	}));
+	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName);
+	const shouldShowEditInGramax =
+		!isEnterprise && !isNext && !isStatic && !isStaticCli && (canEditCatalog || !sourceName);
+
+	return shouldShowEditInGramax ? editInGramaxComponents[environment]({ pathname, articlePath }) : null;
 };
 
 export default EditInGramax;

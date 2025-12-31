@@ -1,4 +1,4 @@
-import styled from "@emotion/styled";
+import { ToolbarText } from "@ui-kit/Toolbar";
 import { useEffect, useState } from "react";
 
 interface TimerProps {
@@ -8,16 +8,6 @@ interface TimerProps {
 	formatTime: (ms: number) => string;
 	onTimeChange?: (time: number) => void;
 }
-
-const TimeIndicator = styled.div`
-	font-size: 1em;
-	font-weight: 500;
-	color: var(--color-article-bg);
-	background: var(--color-bg);
-	padding: 2px 6px;
-	border-radius: var(--radius-small);
-	white-space: nowrap;
-`;
 
 const Timer = ({ formatTime, maxDurationMs, accumulatedTimeMs, paused, onTimeChange }: TimerProps) => {
 	const [currentTime, setCurrentTime] = useState(accumulatedTimeMs);
@@ -33,9 +23,9 @@ const Timer = ({ formatTime, maxDurationMs, accumulatedTimeMs, paused, onTimeCha
 	}, [currentTime, paused]);
 
 	return (
-		<TimeIndicator>
+		<ToolbarText className="whitespace-nowrap font-medium text-xs">
 			{formatTime(currentTime)} / {formatTime(maxDurationMs)}
-		</TimeIndicator>
+		</ToolbarText>
 	);
 };
 

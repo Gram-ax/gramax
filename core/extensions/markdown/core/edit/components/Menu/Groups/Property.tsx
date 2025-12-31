@@ -1,74 +1,154 @@
+import t from "@ext/localization/locale/translate";
+import { Editor } from "@tiptap/core";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import { TemplateCustomProperty } from "@ext/templates/models/types";
+import { isComplexProperty } from "@ext/templates/models/properties";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { Property, PropertyTypes } from "@ext/properties/models";
 import Icon from "@components/Atoms/Icon";
-import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import Sidebar from "@components/Layouts/Sidebar";
-import { ItemContent } from "@components/List/Item";
-import TooltipListLayout from "@components/List/TooltipListLayout";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import LinkItemSidebar from "@ext/article/LinkCreator/components/LinkItemSidebar";
-import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
-import t from "@ext/localization/locale/translate";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { MenuItemIconButton } from "@ui-kit/MenuItem";
 import { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { Property, PropertyTypes } from "@ext/properties/models";
-import { isComplexProperty } from "@ext/templates/models/properties";
-import { TemplateCustomProperty } from "@ext/templates/models/types";
-import { Divider } from "@mui/material";
-import { Editor } from "@tiptap/core";
-import { useCallback, useMemo } from "react";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
+import {
+	Command,
+	CommandEmpty,
+	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
+	CommandSeparator,
+} from "@ui-kit/Command";
+import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
+import { useMediaQuery } from "@mui/material";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import { useHoverDropdown } from "@ui-kit/Dropdown";
+import { ComponentVariantProvider } from "@ui-kit/Providers";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+
+const StyledCommand = styled(Command)`
+	max-height: min(18.75rem, 60vh);
+`;
 
 interface ButtonProps {
 	buttonIcon: string;
-	items: ItemContent[];
 	properties: TemplateCustomProperty[];
 	onAddNewProperty: (type: PropertyTypes, bind: string) => void;
+	onEditClick: (item: Property) => void;
 	updateProperty: (property: Property, isDelete?: boolean, isArchive?: boolean) => void;
 	onItemClick: (item: string) => void;
 }
 
-const Button = ({ items, onItemClick, updateProperty, onAddNewProperty, buttonIcon, properties }: ButtonProps) => {
-	const buttons = [
-		{
-			element: (
-				<div style={{ width: "100%" }} data-qa="qa-clickable">
-					<LinkItemSidebar title={t("properties.add-property")} iconCode={"plus"} />
-					<Divider
-						style={{
-							background: "var(--color-edit-menu-button-active-bg)",
-						}}
-					/>
-				</div>
-			),
-			labelField: "addNewProperty",
-			onClick: () => {
-				ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
-					properties,
-					data: null,
-					onSubmit: (property) => {
-						ModalToOpenService.resetValue();
-						onAddNewProperty(property.type, property.name);
-						updateProperty(property);
-					},
-					onClose: () => {
-						ModalToOpenService.resetValue();
-					},
-				});
+const Button = (props: ButtonProps) => {
+	const { onItemClick, updateProperty, onAddNewProperty, buttonIcon, properties, onEditClick } = props;
+	const isMobile = useMediaQuery(cssMedia.JSnarrow);
+	const [listHeight, setListHeight] = useState<string>(null);
+	const listRef = useRef<HTMLDivElement>(null);
+	const { isOpen, setIsOpen, handleMouseEnter, handleMouseLeave } = useHoverDropdown();
+
+	const onClickAddNewProperty = useCallback(() => {
+		ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
+			properties,
+			data: null,
+			onSubmit: (property) => {
+				onAddNewProperty(property.type, property.name);
+				updateProperty(property);
 			},
+			onClose: () => {
+				ModalToOpenService.resetValue();
+			},
+		});
+	}, [onAddNewProperty, updateProperty, properties]);
+
+	const onOpenChange = useCallback(
+		(open: boolean) => {
+			if (!isMobile) return;
+			setIsOpen(open);
 		},
-	];
+		[isMobile],
+	);
+
+	useLayoutEffect(() => {
+		if (listRef.current) {
+			const height = listRef.current.offsetHeight;
+			setListHeight(`${height}px`);
+		}
+	}, [listRef.current]);
 
 	return (
-		<TooltipListLayout
-			buttonIcon={buttonIcon}
-			buttons={buttons}
-			items={items}
-			onItemClick={onItemClick}
-			tooltipText={`${t("find")} ${t("properties.name").toLowerCase()}`}
-		/>
+		<ComponentVariantProvider variant="inverse">
+			<div tabIndex={-1} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+				<Popover open={isOpen} onOpenChange={onOpenChange}>
+					<PopoverTrigger asChild>
+						<ToolbarToggleButton active={isOpen}>
+							<ToolbarIcon icon={buttonIcon} />
+						</ToolbarToggleButton>
+					</PopoverTrigger>
+					<PopoverContent
+						side="top"
+						sideOffset={-0.5}
+						className="p-2 bg-transparent border-none"
+						style={{
+							maxWidth: "calc(min(12rem, var(--radix-popover-content-available-width, 100%)))",
+							height: listHeight,
+							maxHeight: listHeight,
+							overflowY: "auto",
+							boxShadow: "none",
+						}}
+					>
+						<StyledCommand className={cn("rounded-lg lg:shadow-hard-base", isMobile && "mobile")}>
+							{properties.length > 0 && <CommandInput placeholder={t("properties.find")} />}
+							<CommandList>
+								<CommandEmpty>{t("properties.no-properties")}</CommandEmpty>
+								<CommandGroup style={{ maxHeight: "11rem" }} className="overflow-y-auto text-xs">
+									{properties.map((item) => (
+										<CommandItem
+											key={item.name}
+											value={item.name}
+											onSelect={() => onItemClick(item.name)}
+										>
+											<div className="flex flex-row items-center gap-2 overflow-hidden">
+												<Icon code={item.icon} />
+												<TextOverflowTooltip className="truncate whitespace-nowrap ml-auto">
+													{item.name}
+												</TextOverflowTooltip>
+											</div>
+											<MenuItemIconButton
+												icon="pen"
+												data-qa="edit-property"
+												className="ml-auto right-extensions"
+												onPointerDown={(e) => {
+													e.stopPropagation();
+													e.preventDefault();
+													onEditClick(item);
+												}}
+											/>
+										</CommandItem>
+									))}
+								</CommandGroup>
+								{properties.length > 0 && <CommandSeparator />}
+								<div className="p-1">
+									<CommandItem onSelect={onClickAddNewProperty}>
+										<div className="flex items-center gap-2">
+											<Icon code="plus" />
+											{t("properties.add-property")}
+										</div>
+									</CommandItem>
+								</div>
+							</CommandList>
+						</StyledCommand>
+					</PopoverContent>
+				</Popover>
+			</div>
+		</ComponentVariantProvider>
 	);
 };
 
@@ -165,45 +245,15 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 		[properties, updateProperty],
 	);
 
-	const items = useMemo(() => {
-		return Array.from(properties.entries()).map(([, value]) => {
-			return {
-				labelField: value.name,
-				element: (
-					<div style={{ width: "100%", padding: "5px 13px" }}>
-						<Sidebar
-							title={value.name}
-							rightActions={[
-								<Icon
-									tooltipContent={t("edit2")}
-									key={"pencil-snippet-" + value.name}
-									code="pencil"
-									onClick={(e) => {
-										e.stopPropagation();
-										e.preventDefault();
-										onEditClickHandler(value);
-									}}
-								/>,
-							]}
-						/>
-					</div>
-				),
-				value: value.name,
-			};
-		});
-	}, [properties]);
-
 	return (
-		<ButtonsLayout>
-			<Button
-				properties={Array.from(properties.values())}
-				buttonIcon="rectangle-ellipsis"
-				onItemClick={onItemClick}
-				updateProperty={updateProperty}
-				onAddNewProperty={onAddNewProperty}
-				items={items}
-			/>
-		</ButtonsLayout>
+		<Button
+			properties={Array.from(properties.values())}
+			buttonIcon="rectangle-ellipsis"
+			onItemClick={onItemClick}
+			updateProperty={updateProperty}
+			onAddNewProperty={onAddNewProperty}
+			onEditClick={onEditClickHandler}
+		/>
 	);
 };
 

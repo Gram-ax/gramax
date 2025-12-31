@@ -12,16 +12,13 @@ class LinkHoverTooltip extends TooltipBase {
 	isLeaved = false;
 	element: HTMLElement;
 	resourcePath?: string;
+	href?: string;
 	anchorPos: number;
 	onDestroy: () => void;
 	mark: Mark;
 	hash?: string;
 
-	constructor(
-		parentElement: HTMLElement,
-		apiUrlCreator: ApiUrlCreator,
-		pageDataContext: PageDataContext,
-	) {
+	constructor(parentElement: HTMLElement, apiUrlCreator: ApiUrlCreator, pageDataContext: PageDataContext) {
 		const props = {
 			isOpen: false,
 			apiUrlCreator,
@@ -70,9 +67,10 @@ class LinkHoverTooltip extends TooltipBase {
 		this.mark = mark;
 	}
 
-	setResourcePath = (resourcePath: string, hash?: string) => {
+	setResourcePath = (resourcePath: string, hash?: string, href?: string) => {
 		this.resourcePath = resourcePath;
 		this.hash = hash;
+		this.href = href;
 	};
 
 	setComponent(element: HTMLElement) {
@@ -92,7 +90,7 @@ class LinkHoverTooltip extends TooltipBase {
 		this.element = element;
 		this.isMounted = true;
 
-		this.updateProps({ isOpen: true, element, resourcePath: this.resourcePath, hash: this.hash });
+		this.updateProps({ isOpen: true, element, resourcePath: this.resourcePath, hash: this.hash, href: this.href });
 	}
 
 	setObserver(element: HTMLElement) {

@@ -10,7 +10,6 @@ import space from "@ext/markdown/logic/keys/marks/space";
 import { Mark, markPasteRule, mergeAttributes } from "@tiptap/core";
 import { find } from "linkifyjs";
 import { autolink } from "./helpers/autolink";
-import { editTooltip } from "./helpers/editTooltip";
 import { pasteHandler } from "./helpers/pasteHandler";
 
 export interface LinkOptions {
@@ -66,7 +65,8 @@ export const Link = Mark.create<LinkOptions>({
 	},
 
 	renderHTML({ HTMLAttributes }) {
-		HTMLAttributes.href = `/${HTMLAttributes.href}`;
+		const href = HTMLAttributes.href;
+		HTMLAttributes.href = href.startsWith("http") ? href : `/${HTMLAttributes.href}`;
 		return ["a", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), 0];
 	},
 
@@ -156,7 +156,6 @@ export default Link.extend({
 	addProseMirrorPlugins() {
 		const plugins = [];
 
-		plugins.push(editTooltip(this.editor, this.options.apiUrlCreator));
 		plugins.push(linkPastePlugin(this.editor));
 		plugins.push(hoverTooltip(this.editor, this.options.apiUrlCreator, this.options.pageDataContext));
 

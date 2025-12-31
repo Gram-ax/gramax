@@ -1,6 +1,7 @@
-﻿import useCheck from "@core-ui/hooks/useCheck";
-import { useScrollContainer } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
+import useCheck from "@core-ui/hooks/useCheck";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
+import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
 import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
 import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
@@ -9,10 +10,11 @@ import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorB
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
+import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface MailSettings {
 	sender: string;
@@ -35,13 +37,12 @@ const defaultSettings: MailSettings = {
 };
 
 const MailComponent = () => {
-	const { settings, updateMail, ensureMailLoaded, isRefreshing, getTabError } = useSettings();
+	const { settings, updateMail, ensureMailLoaded, isRefreshing, getTabError, isInitialLoading } = useSettings();
 	const mailSettings = settings?.mailServer;
 	const [localSettings, setLocalSettings] = useState<MailSettings>(mailSettings || defaultSettings);
 	const [isSaving, setIsSaving] = useState(false);
-	const [isScrolled, setIsScrolled] = useState(false);
+	const { isScrolled } = useScrollShadow();
 	const [saveError, setSaveError] = useState<string | null>(null);
-	const scrollContainer = useScrollContainer();
 	const isEqual = useCheck(mailSettings, localSettings);
 
 	useEffect(() => {
@@ -49,19 +50,6 @@ const MailComponent = () => {
 			setLocalSettings(mailSettings);
 		}
 	}, [mailSettings]);
-
-	useEffect(() => {
-		if (!scrollContainer) return;
-
-		const handleScroll = () => {
-			setIsScrolled(scrollContainer.scrollTop > 0);
-		};
-
-		scrollContainer.addEventListener("scroll", handleScroll);
-		handleScroll();
-
-		return () => scrollContainer.removeEventListener("scroll", handleScroll);
-	}, [scrollContainer]);
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
@@ -84,7 +72,7 @@ const MailComponent = () => {
 		});
 	};
 
-	const handleSave = async () => {
+	const handleSave = useCallback(async () => {
 		setIsSaving(true);
 		try {
 			await updateMail(localSettings);
@@ -93,13 +81,29 @@ const MailComponent = () => {
 		} finally {
 			setIsSaving(false);
 		}
-	};
+	}, [localSettings, updateMail]);
 
 	useEffect(() => {
 		if (!saveError) return;
 		const t = setTimeout(() => setSaveError(null), 4000);
 		return () => clearTimeout(t);
 	}, [saveError]);
+
+	useTabGuard({
+		page: Page.MAIL,
+		hasChanges: () => {
+			if (isInitialLoading("mail") || !mailSettings) {
+				return false;
+			}
+			return !isEqual;
+		},
+		onSave: handleSave,
+		onDiscard: () => {
+			if (mailSettings) {
+				setLocalSettings(mailSettings);
+			}
+		},
+	});
 
 	const tabError = getTabError("mail");
 
@@ -112,7 +116,7 @@ const MailComponent = () => {
 	}
 
 	return (
-		<div>
+		<>
 			<StickyHeader
 				title={
 					<>
@@ -123,11 +127,11 @@ const MailComponent = () => {
 				actions={
 					<>
 						{isSaving ? (
-							<LoadingButtonTemplate text="Сохраняем..." />
+							<LoadingButtonTemplate text={`${t("save2")}...`} />
 						) : (
 							<Button disabled={isEqual || isSaving} onClick={handleSave}>
 								<Icon icon="save" />
-								Сохранить
+								{t("save")}
 							</Button>
 						)}
 					</>
@@ -135,12 +139,12 @@ const MailComponent = () => {
 			/>
 			<FloatingAlert show={Boolean(saveError)} message={saveError} />
 
-			<div className="space-y-6">
+			<div className="px-6 space-y-6">
 				<div>
-					<h2 className="text-xl font-medium mb-4">Настройки отправителя</h2>
+					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.mail.sender-settings")}</h2>
 
 					<StyledField
-						title="Адрес отправителя (From)"
+						title={t("enterprise.admin.mail.sender-address")}
 						control={() => (
 							<Input
 								id="sender"
@@ -154,10 +158,10 @@ const MailComponent = () => {
 				</div>
 
 				<div>
-					<h2 className="text-xl font-medium mb-4">Настройки SMTP</h2>
+					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.mail.smtp-settings")}</h2>
 					<div className="space-y-4">
 						<StyledField
-							title="Хост"
+							title={t("enterprise.admin.mail.host")}
 							control={() => (
 								<Input
 									id="smtp.host"
@@ -170,7 +174,7 @@ const MailComponent = () => {
 						/>
 
 						<StyledField
-							title="Порт"
+							title={t("enterprise.admin.mail.port")}
 							control={() => (
 								<Input
 									id="smtp.port"
@@ -184,7 +188,7 @@ const MailComponent = () => {
 						/>
 
 						<StyledField
-							title="Пользователь"
+							title={t("enterprise.admin.mail.user")}
 							control={() => (
 								<Input
 									id="smtp.user"
@@ -197,11 +201,11 @@ const MailComponent = () => {
 						/>
 
 						<StyledField
-							title="Пароль"
+							title={t("enterprise.admin.mail.password")}
 							control={() => (
 								<Input
 									id="smtp.password"
-									placeholder="Введите пароль"
+									placeholder={t("enterprise.admin.mail.password-placeholder")}
 									name="smtp.password"
 									type="password"
 									value={localSettings.smtp.password}
@@ -212,7 +216,7 @@ const MailComponent = () => {
 					</div>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 

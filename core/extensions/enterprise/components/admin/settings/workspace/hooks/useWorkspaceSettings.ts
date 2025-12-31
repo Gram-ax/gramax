@@ -4,7 +4,7 @@ import {
 } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import { useScrollContainer } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const defaultSettings: WorkspaceSettings = {
 	name: "",
@@ -13,7 +13,6 @@ const defaultSettings: WorkspaceSettings = {
 		type: "GitLab",
 		repos: null,
 	},
-	authMethods: [AuthMethod.SSO],
 	sections: {},
 	wordTemplates: [],
 	pdfTemplates: [],
@@ -84,7 +83,7 @@ export function useWorkspaceSettings() {
 		}
 	};
 
-	const handleSave = async () => {
+	const handleSave = useCallback(async () => {
 		setIsSaving(true);
 		try {
 			await updateWorkspace(localSettings);
@@ -93,7 +92,7 @@ export function useWorkspaceSettings() {
 		} finally {
 			setIsSaving(false);
 		}
-	};
+	}, [localSettings, updateWorkspace]);
 
 	const updateSettings = (updates: Partial<WorkspaceSettings>) => {
 		setLocalSettings((prev) => ({ ...prev, ...updates }));

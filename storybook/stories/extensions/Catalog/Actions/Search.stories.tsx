@@ -1,4 +1,4 @@
-import SearchSource from "@components//Actions/Modal/Search";
+import SearchSource from "@ext/serach/components/Search";
 import { Meta } from "@storybook/react";
 
 export default {

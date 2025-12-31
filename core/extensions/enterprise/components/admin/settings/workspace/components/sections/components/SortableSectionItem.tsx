@@ -39,7 +39,7 @@ export function SortableSectionItem({ sectionKey, section, onEdit, onDelete }: S
 			ref={setNodeRef}
 			style={style}
 			className={`relative border rounded-lg p-4 bg-primary/[0.03] hover:bg-primary/[0.03] transition-colors cursor-grab active:cursor-grabbing ${
-				isDragging ? "opacity-50 shadow-lg" : ""
+				isDragging ? "opacity-50 shadow-soft-lg" : ""
 			}`}
 			{...listeners}
 			{...attributes}

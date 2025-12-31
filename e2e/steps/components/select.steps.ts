@@ -3,7 +3,7 @@ import E2EWorld from "../../models/World";
 import { replaceMultiple } from "../utils/utils";
 
 const SELECT_SELECTOR = '[role="listbox"]';
-const SELECT_OPTIONS_SELECTOR = "[data-radix-collection-item]";
+const SELECT_OPTIONS_SELECTOR = "[data-radix-collection-item], [role='option']";
 
 Given("смотрим на список опций", async function (this: E2EWorld) {
 	await this.page().search().reset().scope(SELECT_SELECTOR, "find");

@@ -4,7 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "next build",
+		"build-sdk": "node ../../scripts/plugins/build-sdk.mjs",
+		"build": "npm run build-sdk && next build",
 		"build:standalone": "NEXT_OUTPUT_TYPE='standalone' next build",
 		"start": "next start -p ${PORT}",
 		"run": "npm run build && npm run start",

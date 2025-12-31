@@ -6,13 +6,14 @@ import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/m
 import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import { DiffEntriesLoadStage } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
-import { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import { WithMergeBase } from "@ext/VersionControl/model/Diff";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export const useDiffEntries = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const [changes, setChanges] = useState<DiffTree>(null);
+	const [changes, setChanges] = useState<WithMergeBase<DiffTree>>(null);
 	const [stage, setLoadStage] = useState(DiffEntriesLoadStage.NotLoaded);
 	const gitStatus = GitIndexService.getStatus();
 	const mergeRequest = useRef<MergeRequest>(null);
@@ -23,7 +24,7 @@ export const useDiffEntries = () => {
 				setLoadStage(DiffEntriesLoadStage.Loading);
 				try {
 					const url = apiUrlCreator.getVersionControlDiffTreeUrl({ reference: targetRef });
-					const res = await FetchService.fetch<DiffTree>(url);
+					const res = await FetchService.fetch<WithMergeBase<DiffTree>>(url);
 					if (res.ok) {
 						const data = await res.json();
 						setChanges(data);

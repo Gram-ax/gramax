@@ -4,12 +4,14 @@ import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatt
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import { Mark, Node } from "@tiptap/pm/model";
 
-function isPlainURL(link, parent, index, side) {
+function isPlainURL(link: Mark, parent: Node, index: number, side: number) {
 	if (link.attrs.title || !/^\w+:/.test(link.attrs.href)) return false;
 	const content = parent.child(index + (side < 0 ? -1 : 0));
 	if (!content.isText || content.text != link.attrs.href || content.marks[content.marks.length - 1] != link)
 		return false;
+	if ((link.attrs.href as string).endsWith("-")) return false;
 	if (index == (side < 0 ? 1 : parent.childCount - 1)) return true;
 	const next = parent.child(index + (side < 0 ? -2 : 1));
 	return !link.isInSet(next.marks);

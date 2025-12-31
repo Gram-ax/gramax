@@ -7,6 +7,7 @@ interface CommentStorage {
 }
 
 interface CommentOptions {
+	appendCommentToBody?: boolean;
 	enabled?: boolean;
 	onMarkDeleted?: (id: string, positions: Range[]) => void;
 	onMarkAdded?: (id: string, positions: Range[]) => void;

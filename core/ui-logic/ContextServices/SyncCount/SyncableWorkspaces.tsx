@@ -4,10 +4,9 @@ import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTime
 import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import { feature } from "@ext/toggleFeatures/features";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import assert from "assert";
-import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type SyncableWorkspacesContext = {
 	syncableWorkspaces: { [key: WorkspacePath]: number };
@@ -15,7 +14,9 @@ export type SyncableWorkspacesContext = {
 	fetchSyncableWorkspaces: (fetch: boolean) => Promise<void>;
 };
 
-const SYNCABLE_WORKSPACES_FETCH_INTERVAL = 60 * 15 * 1000; // 15 mins
+const SYNCABLE_WORKSPACES_FETCH_INTERVAL = 60 * 10 * 1000; // 10 mins
+
+const SYNCABLE_WORKSPACES_FETCH_INTERVAL_DOUBLED = SYNCABLE_WORKSPACES_FETCH_INTERVAL * 2;
 
 const SyncableWorkspacesContext = createContext<SyncableWorkspacesContext | null>(null);
 
@@ -30,6 +31,9 @@ export default class SyncableWorkspacesService {
 
 		const [isLoading, setIsLoading] = useState(false);
 		const [syncableWorkspaces, setSyncableWorkspaces] = useState<{ [key: WorkspacePath]: number }>({});
+
+		const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+		const lastFocusTimeRef = useRef(Date.now());
 
 		const endpoint = useMemo(() => apiUrlCreator.getAllSyncableWorkspacesUrl(), [apiUrlCreator]);
 
@@ -65,10 +69,43 @@ export default class SyncableWorkspacesService {
 			fetchSyncableWorkspaces(false);
 		}, [currentWorkspace?.path]);
 
+		const fetchWorkspacesBackground = useCallback(
+			async (delay: number): Promise<NodeJS.Timeout> => {
+				if (!fetchAllowed) return null;
+				await fetchSyncableWorkspaces(true);
+				clearTimeout(fetchTimeoutRef.current);
+				return setTimeout(() => fetchWorkspacesBackground(delay), delay);
+			},
+			[fetchSyncableWorkspaces, fetchAllowed],
+		);
+
+		const handleFocus = useCallback(async () => {
+			if (Date.now() - lastFocusTimeRef.current > SYNCABLE_WORKSPACES_FETCH_INTERVAL)
+				await fetchSyncableWorkspaces(true);
+
+			lastFocusTimeRef.current = Date.now();
+			clearTimeout(fetchTimeoutRef.current);
+			const timeout = await fetchWorkspacesBackground(SYNCABLE_WORKSPACES_FETCH_INTERVAL);
+			if (timeout !== null) fetchTimeoutRef.current = timeout;
+		}, [fetchSyncableWorkspaces, fetchWorkspacesBackground]);
+
+		const handleBlur = useCallback(async () => {
+			lastFocusTimeRef.current = Date.now();
+
+			clearTimeout(fetchTimeoutRef.current);
+			const timeout = await fetchWorkspacesBackground(SYNCABLE_WORKSPACES_FETCH_INTERVAL_DOUBLED);
+			if (timeout !== null) fetchTimeoutRef.current = timeout;
+		}, [fetchSyncableWorkspaces, fetchWorkspacesBackground]);
+
 		useEffect(() => {
-			const interval = setInterval(() => fetchSyncableWorkspaces(true), SYNCABLE_WORKSPACES_FETCH_INTERVAL);
-			return () => clearInterval(interval);
-		}, [fetchSyncableWorkspaces]);
+			window.addEventListener("focus", handleFocus);
+			window.addEventListener("blur", handleBlur);
+			return () => {
+				window.removeEventListener("focus", handleFocus);
+				window.removeEventListener("blur", handleBlur);
+				clearTimeout(fetchTimeoutRef.current);
+			};
+		}, [fetchSyncableWorkspaces, handleFocus, handleBlur]);
 
 		const value = useMemo(
 			() => ({

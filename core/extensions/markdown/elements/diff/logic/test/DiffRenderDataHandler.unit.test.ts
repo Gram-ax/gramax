@@ -1,3 +1,4 @@
+import AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
 import ProsemirrorAstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/ProseMirrorAstDiffTransformer";
 import DiffRenderDataHandler from "@ext/markdown/elements/diff/logic/DiffRenderDataHandler";
 import { DiffLine } from "@ext/markdown/elements/diff/logic/model/DiffLine";
@@ -8,9 +9,9 @@ import { Decoration } from "prosemirror-view";
 
 const getDiffData = (oldDoc: Node, newDoc: Node) => {
 	const astDiffTransformer = new ProsemirrorAstDiffTransformer(oldDoc, newDoc);
-	return new DiffRenderDataHandler(astDiffTransformer, {
-		canStringsBeCompared: (oldString, newString) => oldString.length > 1 && newString.length > 1,
-	}).getDiffRenderData();
+	const astDiffDataHandler = new AstDiffDataHandler(astDiffTransformer);
+	astDiffDataHandler.calculateData();
+	return new DiffRenderDataHandler(astDiffDataHandler).getDiffRenderData();
 };
 
 const getDecoratorText = (doc: Node, decoration: Decoration) => {

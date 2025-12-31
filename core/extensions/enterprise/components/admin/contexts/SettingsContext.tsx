@@ -1,4 +1,12 @@
+import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
+import { useApi } from "@core-ui/hooks/useApi";
 import { GroupValue } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import type { ChartDataPoint, TableDataResponse } from "@ext/enterprise/components/admin/settings/metrics/types";
+import {
+	AnonymousFilter,
+	loadMetricsFilters,
+} from "@ext/enterprise/components/admin/settings/metrics/useMetricsFilters";
+import { getDateRangeForInterval, PAGE_SIZE } from "@ext/enterprise/components/admin/settings/metrics/utils";
 import { QuizTableFilters } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
 import {
 	QuizTest,
@@ -7,14 +15,20 @@ import {
 	SearchedQuizTest,
 } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
 import type { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
-import { RequestCursor, RequestData } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable";
+import {
+	RequestCursor,
+	RequestData,
+} from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
 import EnterpriseService, { type searchUserInfo } from "@ext/enterprise/EnterpriseService";
-import type { Settings } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Settings, type Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
+import type { PluginConfig } from "@plugins/types";
 import {
 	createContext,
 	useContext,
 	useEffect,
+	useMemo,
 	useState,
 	type Dispatch,
 	type ReactNode,
@@ -23,8 +37,47 @@ import {
 
 export type SettingsState = Partial<Settings>;
 
+type BuiltInModulesSettings = Pick<SettingsState, "styleGuide" | "quiz" | "metrics">;
+export interface BuiltInPluginDefinition {
+	id: string;
+	icon: string;
+	navigateTo: string;
+	getSettings: (settings: BuiltInModulesSettings) => BuiltInModulesSettings[keyof BuiltInModulesSettings] | undefined;
+}
+
+export const BUILT_IN_PLUGIN_DEFINITIONS: BuiltInPluginDefinition[] = [
+	{
+		id: "styleGuide",
+		icon: "file-check2",
+		navigateTo: "styleGuide",
+		getSettings: (settings: SettingsState) => settings?.styleGuide,
+	},
+	{
+		id: "quiz",
+		icon: "file-question-mark",
+		navigateTo: "quiz",
+		getSettings: (settings: SettingsState) => settings?.quiz,
+	},
+	{
+		id: "metrics",
+		icon: "chart-bar",
+		navigateTo: "metrics",
+		getSettings: (settings: SettingsState) => ({ enabled: settings?.metrics?.enabled ?? false }),
+	},
+];
+
 // Tab keys for per-tab loading/error isolation
-export type TabKey = "workspace" | "groups" | "editors" | "resources" | "mail" | "guests" | "styleGuide" | "quiz";
+export type TabKey =
+	| "workspace"
+	| "groups"
+	| "editors"
+	| "resources"
+	| "mail"
+	| "guests"
+	| "styleGuide"
+	| "quiz"
+	| "plugins"
+	| "metrics";
 
 type SettingsContextType = {
 	settings: Readonly<SettingsState>;
@@ -33,19 +86,23 @@ type SettingsContextType = {
 	users: string[] | null;
 	hasUsers: boolean;
 	updateEditors: (editors: Settings["editors"]) => Promise<void>;
-	addGroup: (group: { groupId: string; groupValue: GroupValue[] }) => Promise<void>;
+	addGroup: (group: { groupId: string; groupValue: GroupValue[]; groupName?: string }) => Promise<void>;
 	deleteGroups: (groupIds: string[]) => Promise<void>;
+	renameGroup: (groupId: string, newName: string) => Promise<void>;
+	updateGroup: (groupId: string, groupValue: GroupValue[], groupName: string) => Promise<void>;
 	updateWorkspace: (workspace: Settings["workspace"]) => Promise<void>;
 	addResource: (resource: ResourcesSettings) => Promise<void>;
 	deleteResources: (resourceIds: string[]) => Promise<void>;
 	updateMail: (mail: Settings["mailServer"]) => Promise<void>;
 	updateGuests: (guests: Settings["guests"]) => Promise<void>;
+	updatePlugins: (plugins: Settings["plugins"]) => Promise<void>;
 	updateStyleGuide: (styleGuide: Settings["styleGuide"]) => Promise<void>;
 	healthcheckStyleGuide: () => Promise<boolean>;
 	healthcheckDataProvider: () => Promise<boolean>;
 	searchUsers: (query: string) => Promise<searchUserInfo[]>;
 	searchBranches: (repoName: string) => Promise<string[]>;
 	updateQuiz: (quiz: Settings["quiz"]) => Promise<void>;
+	updateMetrics: (metrics: { enabled: boolean }) => Promise<void>;
 	getQuizUsersAnswers: (
 		cursor: RequestCursor,
 		limit: number,
@@ -54,6 +111,27 @@ type SettingsContextType = {
 	getQuizDetailedUserAnswers: (testId: number) => Promise<QuizTestData>;
 	searchQuizTests: (query: string) => Promise<SearchedQuizTest[]>;
 	searchAnsweredUsers: (query: string) => Promise<SearchedAnsweredUsers[]>;
+	getMetricsTableData: (
+		cursor?: number,
+		startDate?: string,
+		endDate?: string,
+		sortBy?: string,
+		sortOrder?: string,
+		userEmails?: string[],
+		anonymousFilter?: AnonymousFilter,
+	) => Promise<TableDataResponse | null>;
+	loadFilteredChartData: (
+		startDate: string,
+		endDate: string,
+		articleIds?: number[],
+		userEmails?: string[],
+		anonymousFilter?: AnonymousFilter,
+	) => Promise<ChartDataPoint[] | null>;
+	getMetricsUsers: (
+		search?: string,
+		limit?: number,
+		cursor?: number,
+	) => Promise<{ users: string[]; hasMore: boolean; nextCursor: number | null } | null>;
 	// Per-tab loaders (ленивые)
 	ensureWorkspaceLoaded: (force?: boolean) => Promise<void>;
 	ensureMailLoaded: (force?: boolean) => Promise<void>;
@@ -63,6 +141,8 @@ type SettingsContextType = {
 	ensureEditorsLoaded: (force?: boolean) => Promise<void>;
 	ensureStyleGuideLoaded: (force?: boolean) => Promise<void>;
 	ensureQuizLoaded: (force?: boolean) => Promise<void>;
+	ensurePluginsLoaded: (force?: boolean) => Promise<void>;
+	ensureMetricsLoaded: () => Promise<void>;
 	// Tab-scoped loading/error selectors & utils
 	isInitialLoading: (tab: TabKey) => boolean;
 	isRefreshing: (tab: TabKey) => boolean;
@@ -90,12 +170,31 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 	const [editorsEtag, setEditorsEtag] = useState<string | null>(null);
 	const [styleGuideETag, setStyleGuideEtag] = useState<string | null>(null);
 	const [quizEtag, setQuizEtag] = useState<string | null>(null);
+	const [metricsConfigEtag, setMetricsConfigEtag] = useState<string | null>(null);
 	const [resourcesEtag, setResourcesEtag] = useState<string | null>(null);
 	const [workspaceEtag, setWorkspaceEtag] = useState<string | null>(null);
+	const [pluginsEtag, setPluginsEtag] = useState<string | null>(null);
 	const [allGitResources, setAllGitResources] = useState<string[]>([]);
 
+	const { refreshStyle, refreshHomeLogo } = WorkspaceAssetsService.value();
+
+	const { call: refreshWorkspace } = useApi({
+		url: (api) => api.refreshEnterpriseWorkspace(),
+	});
+
 	// Per-tab loading and error state
-	const tabs: TabKey[] = ["workspace", "groups", "editors", "resources", "mail", "guests", "styleGuide", "quiz"];
+	const tabs: TabKey[] = [
+		"workspace",
+		"groups",
+		"editors",
+		"resources",
+		"mail",
+		"guests",
+		"styleGuide",
+		"quiz",
+		"plugins",
+		"metrics",
+	];
 	const makeBoolMap = (val: boolean) =>
 		tabs.reduce((acc, t) => ({ ...acc, [t]: val }), {} as Record<TabKey, boolean>);
 	const makeErrorMap = () => tabs.reduce((acc, t) => ({ ...acc, [t]: null }), {} as Record<TabKey, Error | null>);
@@ -264,6 +363,93 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		});
 	};
 
+	const ensurePluginsLoaded = async (force = false) => {
+		await withLoad("plugins", Boolean(settings?.plugins), async () => {
+			const { data, etag, notModified } = await enterpriseService.getPluginsConfig(
+				token,
+				force ? undefined : pluginsEtag ?? undefined,
+			);
+			if (!notModified && data) patch("plugins", data);
+			if (etag) setPluginsEtag(etag);
+			return true as const;
+		});
+	};
+
+	const ensureMetricsLoaded = async () => {
+		const filters = loadMetricsFilters();
+		const { interval, startDate, endDate, selectedUserEmails, sortBy, sortOrder, anonymousFilter } = filters;
+		await withLoad("metrics", Boolean(settings?.metrics), async () => {
+			const [chartData, tableData, metricsConfigResult] = await Promise.all([
+				enterpriseService.getMetricsChartData(
+					token,
+					startDate,
+					endDate,
+					undefined,
+					selectedUserEmails,
+					anonymousFilter,
+				),
+				enterpriseService.getMetricsTableData(
+					token,
+					startDate,
+					endDate,
+					PAGE_SIZE,
+					undefined,
+					sortBy,
+					sortOrder,
+					selectedUserEmails,
+					anonymousFilter,
+				),
+				enterpriseService.getMetricsConfig(token, metricsConfigEtag ?? undefined),
+			]);
+
+			const metricsConfigEnabled = metricsConfigResult.data?.enabled ?? false;
+			if (metricsConfigResult.etag) setMetricsConfigEtag(metricsConfigResult.etag);
+
+			if (chartData && tableData) {
+				patch("metrics", {
+					chartData,
+					tableData: tableData.data,
+					hasMore: tableData.hasMore,
+					nextCursor: tableData.nextCursor,
+					interval,
+					enabled: metricsConfigEnabled,
+				});
+			} else {
+				patch("metrics", {
+					...settings?.metrics,
+					enabled: metricsConfigEnabled,
+				} as Settings["metrics"]);
+			}
+			return true as const;
+		});
+	};
+
+	const loadFilteredChartData = async (
+		startDate: string,
+		endDate: string,
+		articleIds?: number[],
+		userEmails?: string[],
+		anonymousFilter?: AnonymousFilter,
+	): Promise<ChartDataPoint[] | null> => {
+		setFlag(setRefreshing, "metrics", true);
+		try {
+			const chartData = await enterpriseService.getMetricsChartData(
+				token,
+				startDate,
+				endDate,
+				articleIds,
+				userEmails,
+				anonymousFilter,
+			);
+			return chartData;
+		} catch (e) {
+			setTabError("metrics", (e as Error) ?? new Error("Failed to load chart data"));
+			return null;
+		} finally {
+			setFlag(setRefreshing, "metrics", false);
+		}
+	};
+
 	const healthcheckStyleGuide = async () => {
 		return await enterpriseService.checkStyleGuideHealth();
 	};
@@ -277,17 +463,17 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			await enterpriseService.setEditors(token, editors);
 			patch("editors", editors);
 		} catch (e) {
-			setTabError("editors", (e as Error) ?? new Error("Не удалось обновить данные редакторов"));
+			setTabError("editors", (e as Error) ?? new Error(t("enterprise.admin.editors.errors.update")));
 			throw e;
 		}
 	};
 
-	const addGroup = async (group: { groupId: string; groupValue: GroupValue[] }) => {
+	const addGroup = async (group: { groupId: string; groupValue: GroupValue[]; groupName?: string }) => {
 		try {
 			await enterpriseService.addGroup(token, group);
 			await ensureGroupsLoaded(true);
 		} catch (e) {
-			setTabError("groups", (e as Error) ?? new Error("Не удалось добавить группу"));
+			setTabError("groups", (e as Error) ?? new Error(t("enterprise.admin.groups.errors.add")));
 			throw e;
 		}
 	};
@@ -297,7 +483,27 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			await enterpriseService.deleteGroups(token, groupIds);
 			await ensureGroupsLoaded(true);
 		} catch (e) {
-			setTabError("groups", (e as Error) ?? new Error("Не удалось удалить группы"));
+			setTabError("groups", (e as Error) ?? new Error(t("enterprise.admin.groups.errors.delete")));
+			throw e;
+		}
+	};
+
+	const renameGroup = async (groupId: string, newName: string) => {
+		try {
+			await enterpriseService.renameGroup(token, groupId, newName);
+			await ensureGroupsLoaded(true);
+		} catch (e) {
+			setTabError("groups", (e as Error) ?? new Error(t("enterprise.admin.groups.errors.rename")));
+			throw e;
+		}
+	};
+
+	const updateGroup = async (groupId: string, groupValue: GroupValue[], groupName: string) => {
+		try {
+			await enterpriseService.addGroup(token, { groupId, groupValue, groupName });
+			await ensureGroupsLoaded(true);
+		} catch (e) {
+			setTabError("groups", (e as Error) ?? new Error(t("enterprise.admin.groups.errors.add")));
 			throw e;
 		}
 	};
@@ -306,8 +512,11 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		try {
 			await enterpriseService.setWorkspace(token, workspace);
 			patch("workspace", workspace);
+			await refreshWorkspace?.();
+			refreshStyle?.();
+			await refreshHomeLogo?.();
 		} catch (e) {
-			setTabError("workspace", (e as Error) ?? new Error("Не удалось обновить данные пространства"));
+			setTabError("workspace", (e as Error) ?? new Error(t("enterprise.admin.workspace.errors.update")));
 			throw e;
 		}
 		patch("workspace", workspace);
@@ -318,7 +527,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			await enterpriseService.addResource(token, resource);
 			await ensureResourcesLoaded(true);
 		} catch (e) {
-			setTabError("resources", (e as Error) ?? new Error("Не удалось добавить репозиторий"));
+			setTabError("resources", (e as Error) ?? new Error(t("enterprise.admin.resources.errors.add")));
 			throw e;
 		}
 	};
@@ -328,7 +537,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			await enterpriseService.deleteResources(token, resourceIds);
 			await ensureResourcesLoaded(true);
 		} catch (e) {
-			setTabError("resources", (e as Error) ?? new Error("Не удалось удалить репозиторий"));
+			setTabError("resources", (e as Error) ?? new Error(t("enterprise.admin.resources.errors.delete")));
 			throw e;
 		}
 	};
@@ -338,7 +547,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			await enterpriseService.setMail(token, mail);
 			await ensureMailLoaded(true);
 		} catch (e) {
-			setTabError("mail", (e as Error) ?? new Error("Не удалось обновить данные почтового клиента"));
+			setTabError("mail", (e as Error) ?? new Error(t("enterprise.admin.mail.errors.update")));
 			throw e;
 		}
 	};
@@ -348,7 +557,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			await enterpriseService.setGuests(token, guests);
 			patch("guests", guests);
 		} catch (e) {
-			setTabError("guests", (e as Error) ?? new Error("Не удалось обновить данные внешних читателей"));
+			setTabError("guests", (e as Error) ?? new Error(t("enterprise.admin.guests.errors.update")));
 			throw e;
 		}
 	};
@@ -357,8 +566,19 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		try {
 			await enterpriseService.setStyleGuide(token, styleGuide);
 			patch("styleGuide", styleGuide);
+			await refreshWorkspace?.();
 		} catch (e) {
-			setTabError("styleGuide", (e as Error) ?? new Error("Не удалось обновить данные стайлгайдов"));
+			setTabError("styleGuide", (e as Error) ?? new Error(t("enterprise.admin.styleGuide.errors.update")));
+			throw e;
+		}
+	};
+
+	const updatePlugins = async (plugins: Settings["plugins"]) => {
+		try {
+			await enterpriseService.setPlugins(token, plugins);
+			patch("plugins", plugins);
+		} catch (e) {
+			setTabError("plugins", (e as Error) ?? new Error("Failed to update plugins"));
 			throw e;
 		}
 	};
@@ -367,8 +587,19 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		try {
 			await enterpriseService.setQuizConfig(token, quiz);
 			patch("quiz", quiz);
+			await refreshWorkspace?.();
 		} catch (e) {
 			setTabError("quiz", (e as Error) ?? new Error(t("enterprise.admin.quiz.errors.update")));
+			throw e;
+		}
+	};
+
+	const updateMetrics = async (metricsConfig: { enabled: boolean }) => {
+		try {
+			await enterpriseService.setMetricsConfig(token, metricsConfig);
+			patch("metrics", { ...settings?.metrics, enabled: metricsConfig.enabled } as Settings["metrics"]);
+		} catch (e) {
+			setTabError("metrics", (e as Error) ?? new Error("Failed to update metrics config"));
 			throw e;
 		}
 	};
@@ -379,6 +610,41 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		filters?: QuizTableFilters,
 	): Promise<RequestData<QuizTest>> => {
 		return await enterpriseService.getQuizUsersAnswers(token, limit, cursor, filters);
+	};
+
+	const getMetricsTableData = async (
+		cursor?: number,
+		startDate?: string,
+		endDate?: string,
+		sortBy?: string,
+		sortOrder?: string,
+		userEmails?: string[],
+		anonymousFilter?: AnonymousFilter,
+	): Promise<TableDataResponse | null> => {
+		const effectiveInterval = settings?.metrics?.interval || "month";
+		const dates =
+			startDate && endDate
+				? { startDate, endDate }
+				: getDateRangeForInterval(effectiveInterval === "custom" ? "month" : effectiveInterval);
+		return await enterpriseService.getMetricsTableData(
+			token,
+			dates.startDate,
+			dates.endDate,
+			PAGE_SIZE,
+			cursor,
+			sortBy,
+			sortOrder,
+			userEmails,
+			anonymousFilter,
+		);
+	};
+
+	const getMetricsUsers = async (
+		search?: string,
+		limit?: number,
+		cursor?: number,
+	): Promise<{ users: string[]; hasMore: boolean; nextCursor: number | null } | null> => {
+		return await enterpriseService.getMetricsUsers(token, search, limit, cursor);
 	};
 
 	const searchQuizTests = async (query: string): Promise<SearchedQuizTest[]> => {
@@ -401,10 +667,49 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		return await enterpriseService.getBranches(token, repoName);
 	};
 
+	const settingsWithBuiltInModules = useMemo((): SettingsState => {
+		const builtInUpdateHandlers = {
+			styleGuide: updateStyleGuide,
+			quiz: updateQuiz,
+			metrics: updateMetrics,
+		};
+
+		const modulePlugins: PluginConfig[] = BUILT_IN_PLUGIN_DEFINITIONS.map((def) => {
+			const currentSettings = def.getSettings(settings);
+			const isEnabled = currentSettings?.enabled ?? false;
+
+			return {
+				metadata: {
+					...def,
+					name: getAdminPageTitle(def.id as Page),
+					version: "-",
+					entryPoint: "",
+					disabled: !isEnabled,
+					isBuiltIn: true,
+					onSave: async (newSettings: BuiltInModulesSettings[keyof BuiltInModulesSettings]) => {
+						const handler = builtInUpdateHandlers[def.id];
+						if (handler) {
+							await handler(newSettings);
+						}
+					},
+				},
+				script: "",
+			};
+		});
+		const customPlugins = settings?.plugins?.plugins ?? [];
+
+		return {
+			...settings,
+			plugins: {
+				plugins: [...modulePlugins, ...customPlugins],
+			},
+		};
+	}, [settings]);
+
 	return (
 		<SettingsContext.Provider
 			value={{
-				settings,
+				settings: settingsWithBuiltInModules,
 				global: { allGitResources },
 				error,
 				users,
@@ -413,9 +718,12 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				updateWorkspace,
 				updateMail,
 				updateGuests,
+				updatePlugins,
 				updateStyleGuide,
 				addGroup,
 				deleteGroups,
+				renameGroup,
+				updateGroup,
 				addResource,
 				deleteResources,
 				searchUsers,
@@ -427,13 +735,19 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				ensureGuestsLoaded,
 				ensureGroupsLoaded,
 				ensureEditorsLoaded,
+				ensurePluginsLoaded,
+				ensureMetricsLoaded,
 				ensureStyleGuideLoaded,
 				ensureResourcesLoaded,
 				ensureQuizLoaded,
 				searchAnsweredUsers,
 				updateQuiz,
+				updateMetrics,
 				getQuizUsersAnswers,
 				getQuizDetailedUserAnswers,
+				getMetricsTableData,
+				loadFilteredChartData,
+				getMetricsUsers,
 				searchQuizTests,
 				isInitialLoading,
 				isRefreshing,

@@ -4,20 +4,21 @@ import { initEnterpriseStorage } from "@ext/enterprise/utils/initEnterpriseStora
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import StorageData from "@ext/storage/models/StorageData";
 import { Command } from "../../types/Command";
+import Context from "@core/Context/Context";
 
-const init: Command<{ catalogName: string; articlePath: Path; data: StorageData }, string> = Command.create({
+const init: Command<{ ctx: Context; catalogName: string; articlePath: Path; data: StorageData }, string> = Command.create({
 	path: "storage/init",
 
 	kind: ResponseKind.plain,
 
-	async do({ catalogName, articlePath, data }) {
-		const { rp, wm, em } = this._app;
+	async do({ ctx, catalogName, articlePath, data }) {
+		const { rp, wm, em, am } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
 
-		await initEnterpriseStorage(em.getConfig().gesUrl, data);
+		await initEnterpriseStorage(em.getConfig().gesUrl, data, ctx, am);
 
 		const config = await workspace.config();
 		await makeSourceApi(data.source, config.services?.auth?.url).assertStorageExist(data);
@@ -28,10 +29,10 @@ const init: Command<{ catalogName: string; articlePath: Path; data: StorageData 
 		return await catalog.getPathname(item);
 	},
 
-	params(_, q, body) {
+	params(ctx, q, body) {
 		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);
-		return { catalogName, articlePath, data: body };
+		return { ctx, catalogName, articlePath, data: body };
 	},
 });
 

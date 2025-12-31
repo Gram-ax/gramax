@@ -5,18 +5,30 @@ import { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups
 import GuestsComponent from "@ext/enterprise/components/admin/settings/guests/GuestsComponent";
 import { GuestsSettings } from "@ext/enterprise/components/admin/settings/guests/types/GuestsComponent";
 import MailComponent, { MailSettings } from "@ext/enterprise/components/admin/settings/MailComponent";
-import type { QuizSettings } from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
+import MetricsComponent from "@ext/enterprise/components/admin/settings/metrics/MetricsComponent";
+import { MetricsSettings } from "@ext/enterprise/components/admin/settings/metrics/types";
+import PluginDetailComponent from "@ext/enterprise/components/admin/settings/plugins/PluginDetail/PluginDetailComponent";
+import PluginsComponent from "@ext/enterprise/components/admin/settings/plugins/PluginPage/PluginsComponent";
 import QuizComponent from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
+import type { QuizSettings } from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
 import ResourcesComponent from "@ext/enterprise/components/admin/settings/resources/ResourcesComponent";
 import { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
 import StyleGuideComponent, {
 	StyleGuideSettings,
 } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
-import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import WorkspaceComponent from "@ext/enterprise/components/admin/settings/workspace/WorkspaceComponent";
+import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import { PluginConfig } from "@plugins/types";
 import { ComponentType } from "react";
 
+export interface PluginsSettings {
+	plugins: PluginConfig[];
+}
+
 export enum Page {
+	PLUGINS = "plugins",
+	PLUGIN_DETAIL = "pluginDetail",
+	METRICS = "metrics",
 	STYLEGUIDE = "styleGuide",
 	QUIZ = "quiz",
 	EDITORS = "editors",
@@ -36,17 +48,22 @@ export type Settings = {
 	styleGuide: StyleGuideSettings;
 	guests: GuestsSettings;
 	quiz: QuizSettings;
-};
-
-export const PageComponents: Record<Page, ComponentType> = {
-	[Page.STYLEGUIDE]: StyleGuideComponent,
-	[Page.QUIZ]: QuizComponent,
-	[Page.EDITORS]: EditorsComponent,
-	[Page.WORKSPACE]: WorkspaceComponent,
-	[Page.RESOURCES]: ResourcesComponent,
-	[Page.USER_GROUPS]: GroupsComponent,
-	[Page.MAIL]: MailComponent,
-	[Page.GUESTS]: GuestsComponent,
+	plugins: PluginsSettings;
+	metrics: MetricsSettings;
 };
 
 export const defaultGroupKeys = ["Everyone", "Authenticated"];
+
+export const PageComponents: Record<Page, ComponentType> = {
+	[Page.WORKSPACE]: WorkspaceComponent,
+	[Page.USER_GROUPS]: GroupsComponent,
+	[Page.EDITORS]: EditorsComponent,
+	[Page.STYLEGUIDE]: StyleGuideComponent,
+	[Page.RESOURCES]: ResourcesComponent,
+	[Page.MAIL]: MailComponent,
+	[Page.GUESTS]: GuestsComponent,
+	[Page.PLUGINS]: PluginsComponent,
+	[Page.PLUGIN_DETAIL]: PluginDetailComponent,
+	[Page.QUIZ]: QuizComponent,
+	[Page.METRICS]: MetricsComponent,
+};

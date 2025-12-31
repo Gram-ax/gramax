@@ -13,8 +13,9 @@ interface IPermissionMap {
 
 export enum PermissionMapType {
 	strict = "strict",
-	relax = "relax",
 	all = "all",
+	/** @deprecated use strict instead */
+	relax = "relax",
 }
 
 export type PermissionMapJSONData = {

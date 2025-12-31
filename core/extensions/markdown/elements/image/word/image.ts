@@ -9,6 +9,7 @@ import AnnotationText from "@ext/markdown/elements/image/word/imageEditor/Annota
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 import { JSONContent } from "@tiptap/core";
 import { wrapWithListContinuationBookmark } from "@ext/wordExport/utils/listContinuation";
+import getWordResourceManager from "@ext/wordExport/getWordResourceManager";
 
 export const renderImageWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
 	const result = await imageWordLayout(tag, addOptions, wordRenderContext.parserContext);
@@ -24,9 +25,11 @@ export const imageWordLayout = async (
 		const { Paragraph, AlignmentType } = await docx();
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 
+		const resourceManager = await getWordResourceManager(addOptions, parserContext);
+
 		const imageRun = await WordImageExporter.getImageByPath(
 			new Path(attrs.src),
-			parserContext.getResourceManager(),
+			resourceManager,
 			addOptions?.maxPictureWidth,
 			undefined,
 			attrs.crop,

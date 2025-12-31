@@ -10,6 +10,8 @@ import { useEffect, useRef, useState } from "react";
 import GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+import { useMediaQuery } from "@mui/material";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 
 interface CloneFieldsProps extends ControllerRenderProps<FieldValues, string> {
 	source: GitSourceData;
@@ -32,6 +34,7 @@ type Option = CloneListItem & {
 const CloneFields = (props: CloneFieldsProps) => {
 	const { gitPaginatedProjectList, deps, repositoryFilter, form, ...rest } = props;
 	const value = form.watch("repository") as Option;
+	const isMobile = useMediaQuery(cssMedia.JSmediumest);
 
 	const [options, setOptions] = useState<Option[]>([]);
 	const stateRef = useRef<GitRepsModelState>("notLoaded");
@@ -80,13 +83,13 @@ const CloneFields = (props: CloneFieldsProps) => {
 				const { option, type } = data;
 
 				if (type === "trigger") {
-					return <TextOverflowTooltip data-qa="qa-clickable">{option.label}</TextOverflowTooltip>;
+					return <TextOverflowTooltip data-qa="qa-clickable self-center">{option.label}</TextOverflowTooltip>;
 				}
 
 				return (
 					<div
 						className="flex items-center gap-2 justify-between w-full"
-						style={{ maxWidth: "288px", width: "288px" }}
+						style={!isMobile ? { maxWidth: "288px", width: "288px" } : undefined}
 					>
 						<TextOverflowTooltip className="flex-1">{option.label}</TextOverflowTooltip>
 						<Date date={option.date} className="text-muted" />

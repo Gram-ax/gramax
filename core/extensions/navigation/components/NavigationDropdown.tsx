@@ -6,6 +6,7 @@ import { CSSProperties, FC } from "react";
 interface NavigationDropdownProps {
 	children: React.ReactNode;
 	trigger: React.ReactNode;
+	tooltipText?: string;
 	style?: CSSProperties;
 	className?: string;
 	dataQa?: string;
@@ -14,7 +15,7 @@ interface NavigationDropdownProps {
 }
 
 const NavigationDropdown: FC<NavigationDropdownProps> = (props) => {
-	const { children, onOpen, onClose, style, className, trigger, dataQa } = props;
+	const { children, onOpen, onClose, style, className, trigger, dataQa, tooltipText } = props;
 
 	const handleOpenChange = (open: boolean) => {
 		if (open) onOpen?.();
@@ -26,14 +27,12 @@ const NavigationDropdown: FC<NavigationDropdownProps> = (props) => {
 			<DropdownMenuTrigger asChild>
 				<div style={style} className={className} data-qa={dataQa}>
 					<Tooltip>
-						<TooltipContent>{t("actions")}</TooltipContent>
+						<TooltipContent>{tooltipText ?? t("actions")}</TooltipContent>
 						<TooltipTrigger asChild>{trigger}</TooltipTrigger>
 					</Tooltip>
 				</div>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" style={{ minHeight: "fit-content" }}>
-				{children}
-			</DropdownMenuContent>
+			<DropdownMenuContent align="start">{children}</DropdownMenuContent>
 		</DropdownMenu>
 	);
 };

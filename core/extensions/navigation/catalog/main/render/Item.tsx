@@ -219,6 +219,13 @@ const StyledItem = styled(Item)`
 			}
 		`}
 	}
+
+	${cssMedia.narrow} {
+		.right-extensions > * {
+			margin: calc(var(--distance-i-span) / -2);
+			padding: calc(var(--distance-i-span) / 2);
+		}
+	}
 `;
 
 const LevNavItem = (props: LevNavItemProps) => {

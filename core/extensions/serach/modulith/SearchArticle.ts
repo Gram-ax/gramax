@@ -1,5 +1,6 @@
 import { ContentLanguage } from "@ext/localization/core/model/Language";
-import { Article, FieldsToDotPaths, Filter } from "@ics/gx-vector-search";
+import { Article, FieldsToDotPaths } from "@ics/gx-vector-search";
+import { ArticleFilter } from "@ics/modulith-search-domain/article";
 
 export type ArticleLanguage = ContentLanguage | "none";
 
@@ -36,4 +37,4 @@ export type SearchArticleMetadata =
 
 export type SearchArticle = Article<SearchArticleMetadata>;
 
-export type SearchArticleFilter = Filter<FieldsToDotPaths<SearchArticleMetadata>>;
+export type SearchArticleFilter = ArticleFilter<FieldsToDotPaths<SearchArticleMetadata>>;

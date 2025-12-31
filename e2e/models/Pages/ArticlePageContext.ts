@@ -4,6 +4,8 @@ import { ReplaceAlias } from "../World";
 import PageContext, { PageInfo } from "./PageContext";
 
 export default class ArticlePageContext extends PageContext {
+	private _previousPath: string;
+
 	constructor(page: Page, alias: ReplaceAlias, aliases: Aliases, _info: PageInfo) {
 		super(page, alias, aliases, _info);
 	}
@@ -30,20 +32,30 @@ export default class ArticlePageContext extends PageContext {
 	}
 
 	async setContent(content: string) {
-		const path = this._parsePath(this.url());
+		const currentUrl = this.url();
+		const path = this._parsePath(currentUrl);
+
+		const shouldClearContent = this._previousPath === currentUrl;
+
+		this._previousPath = currentUrl;
+
 		await this._page.press(".ProseMirror", ".");
 		await this._page.evaluate(
-			async ({ path, content }) => {
+			async ({ path, content, shouldClear }) => {
 				const app = await window.app;
 				const ctx = await app.contextFactory.fromBrowser({ language: "ru" as any });
 				const presenter = app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??
 					(await presenter.getArticleByPathOfCatalog(path[1], [])).article;
+
+				if (shouldClear) await data.updateContent("");
+				await window.refreshPage();
+
 				await data.updateContent(content.replace("(*)", "[cmd:focus]"));
 				await window.refreshPage();
 			},
-			{ path, content },
+			{ path, content, shouldClear: shouldClearContent },
 		);
 
 		if (content.includes("(*)")) {

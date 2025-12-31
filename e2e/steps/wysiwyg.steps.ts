@@ -3,7 +3,7 @@ import { expect } from "playwright/test";
 import E2EWorld from "../models/World";
 import { sleep } from "./utils/utils";
 
-const MENU_BAR_SELECTOR = `[data-qa="qa-edit-menu-button"]`;
+const MENU_BAR_SELECTOR = `[data-radix-menu-content], [data-qa="qa-edit-menu-button"]`;
 
 When("заполняем документ", async function (this: E2EWorld, text: string) {
 	await this.page().asArticle().setContent(text);

@@ -27,10 +27,12 @@ export default abstract class AuthManager {
 		cookie.set(this._COOKIE_USER, JSON.stringify(user.toJSON()), expires);
 	}
 
+	abstract setUsersEnterpriseInfo(user: EnterpriseUser, cookie: Cookie): void;
+
 	protected async _updateEnterpriseUser(cookie: Cookie, user: EnterpriseUser): Promise<void> {
 		const updatedUser = await user.updatePermissions(true);
 		if (!updatedUser) return;
-		if (updatedUser instanceof EnterpriseUser) this._setUsersEnterpriseInfo(updatedUser, cookie);
+		if (updatedUser instanceof EnterpriseUser) this.setUsersEnterpriseInfo(updatedUser, cookie);
 		this.setUser(cookie, updatedUser);
 	}
 
@@ -42,6 +44,5 @@ export default abstract class AuthManager {
 		return user;
 	}
 
-	protected abstract _setUsersEnterpriseInfo(user: EnterpriseUser, cookie: Cookie): void;
 	protected abstract _getUsersEnterpriseInfo(user: EnterpriseUser, cookie: Cookie): EnterpriseInfo;
 }

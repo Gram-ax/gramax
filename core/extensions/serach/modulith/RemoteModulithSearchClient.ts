@@ -1,18 +1,25 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
+import { SearchArgs, SearchStreamArgs } from "@ext/serach/ChatBotSearcher";
 import {
 	ModulithSearchClient,
 	SearchBatchArgs,
 	SearchResult,
 	UpdateArgs,
 } from "@ext/serach/modulith/ModulithSearchClient";
-import { SearchArticle, SearchArticleArticleMetadata, SearchArticleFilter, SearchArticleMetadata } from "@ext/serach/modulith/SearchArticle";
-import { SearchArgs, SearchStreamArgs } from "@ext/serach/ChatBotSearcher";
+import {
+	SearchArticle,
+	SearchArticleArticleMetadata,
+	SearchArticleFilter,
+	SearchArticleMetadata,
+} from "@ext/serach/modulith/SearchArticle";
 import {
 	ChatResponse,
 	ChatStreamResponse,
 	CheckAuthResponse,
 	CheckResponse,
+	FieldsToDotPaths,
+	LegacyArticleFilter,
 	RagApiClient,
 	SearchResponse,
 } from "@ics/gx-vector-search";
@@ -25,7 +32,7 @@ export interface RemoteModulithSearcherOptions {
 }
 
 const STATUS_POLLING_INTERVAL_MS = 500;
-const STATUS_POLLING_TIMEOUT_MS = (60 * 5 * 1000); // 5 min
+const STATUS_POLLING_TIMEOUT_MS = 60 * 5 * 1000; // 5 min
 
 export class RemoteModulithSearchClient implements ModulithSearchClient {
 	private readonly _apiClient: RagApiClient;
@@ -59,7 +66,7 @@ export class RemoteModulithSearchClient implements ModulithSearchClient {
 	async update({ articles, filter, progressCallback }: UpdateArgs): Promise<void> {
 		try {
 			const articlesForRemote = convertArticlesForRemote(articles);
-			const res = await this._apiClient.updateArticles(articlesForRemote, filter);
+			const res = await this._apiClient.updateArticles(articlesForRemote, convertFilterToLegacy(filter));
 			if (res.done === false) await this._waitUntilDone(res.taskId, progressCallback);
 		} catch (e) {
 			console.error(e);
@@ -99,7 +106,7 @@ export class RemoteModulithSearchClient implements ModulithSearchClient {
 	async chat(args: SearchArgs | SearchStreamArgs): Promise<ChatResponse | ChatStreamResponse>;
 	async chat(args: SearchArgs | SearchStreamArgs): Promise<ChatResponse | ChatStreamResponse> {
 		const { query, catalogName, articlesLanguage, responseLanguage, signal, stream } = args;
-		const filter: SearchArticleFilter = {
+		const filter: LegacyArticleFilter<FieldsToDotPaths<SearchArticleMetadata>> = {
 			metadata: [],
 		};
 
@@ -148,9 +155,12 @@ export class RemoteModulithSearchClient implements ModulithSearchClient {
 		}
 	}
 
-	private _searchBatchRemote({ items }: SearchBatchArgs): Promise<SearchResponse<SearchArticleMetadata>[]> {
+	private _searchBatchRemote({ items, signal }: SearchBatchArgs): Promise<SearchResponse<SearchArticleMetadata>[]> {
 		return this._apiClient.searchBatch<SearchArticleMetadata>({
 			items,
+			reqOptions: {
+				signal,
+			},
 		});
 	}
 
@@ -166,7 +176,7 @@ export class RemoteModulithSearchClient implements ModulithSearchClient {
 			if (status.done === true || elapsedMs > STATUS_POLLING_TIMEOUT_MS) {
 				return;
 			}
-			
+
 			if (lastProgress !== status.progress) {
 				progressCallback?.(status.progress);
 				lastProgress = status.progress;
@@ -175,13 +185,33 @@ export class RemoteModulithSearchClient implements ModulithSearchClient {
 	}
 }
 
+function convertFilterToLegacy(
+	filter?: SearchArticleFilter,
+): LegacyArticleFilter<FieldsToDotPaths<SearchArticleMetadata>> | undefined {
+	if (!filter?.metadata) {
+		return undefined;
+	}
+
+	const op = filter.metadata.op;
+	switch (op) {
+		case "eq":
+			return {
+				metadata: [filter.metadata],
+			};
+		default:
+			throw new Error(`Unexpected filter operation ${op}`);
+	}
+}
+
 // TODO: add support on AI server side
 //   return metadata on chat requests in links
 function convertArticlesForRemote(articles: SearchArticle[]): SearchArticle[] {
-	return articles.filter(x => x.metadata.type === "article").map(x => ({
-		...x,
-		// chat request returns this id as link
-		id: (x.metadata as SearchArticleArticleMetadata).logicPath,
-		children: convertArticlesForRemote(x.children)
-	}));
+	return articles
+		.filter((x) => x.metadata.type === "article")
+		.map((x) => ({
+			...x,
+			// chat request returns this id as link
+			id: (x.metadata as SearchArticleArticleMetadata).logicPath,
+			children: convertArticlesForRemote(x.children),
+		}));
 }

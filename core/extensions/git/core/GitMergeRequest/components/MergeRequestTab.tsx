@@ -1,9 +1,11 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
+import Icon from "@components/Atoms/Icon";
+import TabWrapper, { TAB_TRANSITION_TIME } from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
+import { useApi } from "@core-ui/hooks/useApi";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
@@ -12,10 +14,12 @@ import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import Approvers from "@ext/git/core/GitMergeRequest/components/Approval/Approvers";
 import { Changes } from "@ext/git/core/GitMergeRequest/components/Changes/Changes";
 import { DiffEntriesLoadStage } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
+import useOpenDeleteMergeRequestModal from "@ext/git/core/GitMergeRequest/components/DeleteMergeRequestModal";
 import { Creator, Description, MergeRequestFromWhere, Status } from "@ext/git/core/GitMergeRequest/components/Elements";
 import MergeButton from "@ext/git/core/GitMergeRequest/components/MergeButton";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export type MergeRequestProps = {
@@ -54,6 +58,7 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 	const [contentHeight, setContentHeight] = useState<number>(null);
 	const [stage, setStage] = useState(DiffEntriesLoadStage.NotLoaded);
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
+	const [isDeleteMergeRequestModalOpen, setIsDeleteMergeRequestModalOpen] = useState(false);
 
 	const restoreRightSidebar = useRestoreRightSidebar();
 
@@ -76,6 +81,21 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 		setShow(false);
 		restoreView();
 	};
+
+	const { call: callDeleteMr } = useApi({
+		url: (api) => api.deleteMergeRequest(),
+		onDone: () => {
+			setTimeout(() => {
+				BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.MergeRequest);
+			}, TAB_TRANSITION_TIME);
+		},
+	});
+
+	useOpenDeleteMergeRequestModal({
+		isOpen: isDeleteMergeRequestModalOpen,
+		onClose: () => setIsDeleteMergeRequestModalOpen(false),
+		onConfirm: callDeleteMr,
+	});
 
 	useEffect(() => {
 		const finishToken = SyncService.events.on("finish", () => {
@@ -120,6 +140,14 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 			titleRightExtension={<Status status={status} />}
 			onClose={close}
 			contentHeight={contentHeight}
+			actions={
+				<>
+					<DropdownMenuItem onSelect={() => setIsDeleteMergeRequestModalOpen(true)} type="danger">
+						<Icon code="trash" />
+						{t("delete")}
+					</DropdownMenuItem>
+				</>
+			}
 		>
 			{cached}
 		</TabWrapper>

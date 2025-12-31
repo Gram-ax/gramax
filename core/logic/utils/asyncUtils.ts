@@ -7,6 +7,7 @@ declare global {
 		forEachAsync(
 			callback: (value: T, index: number, array: T[]) => Promise<void>,
 			concurrencyLimit?: number,
+			settled?: boolean,
 		): Promise<void>;
 		waitAll(): Promise<T[]>;
 		waitAllSettled(): Promise<PromiseSettledResult<T>[]>;
@@ -34,8 +35,8 @@ defineArrayProperty("mapAsync", async function <
 
 defineArrayProperty("forEachAsync", async function <
 	T,
->(this: T[], callback: Callback<T, void>, concurrencyLimit: number = 5): Promise<void> {
-	return asyncUtils.forEachConcurrent(this, callback, concurrencyLimit);
+>(this: T[], callback: Callback<T, void>, concurrencyLimit: number = 5, settled?: boolean): Promise<void> {
+	return asyncUtils.forEachConcurrent(this, callback, concurrencyLimit, settled);
 });
 
 defineArrayProperty("waitAll", async function <T>(this: Promise<T>[]): Promise<T[]> {
@@ -74,6 +75,7 @@ export const asyncUtils = {
 		array: T[],
 		callback: Callback<T, void>,
 		concurrencyLimit: number = 5,
+		settled?: boolean,
 	): Promise<void> => {
 		if (concurrencyLimit === 1) return asyncUtils.forEachSeq(array, callback);
 		if (concurrencyLimit <= 0) concurrencyLimit = array.length;
@@ -88,7 +90,8 @@ export const asyncUtils = {
 		};
 
 		const workers = Array.from({ length: Math.min(concurrencyLimit, array.length) }, () => worker());
-		await Promise.all(workers);
+		if (settled === true) await Promise.allSettled(workers);
+		else await Promise.all(workers);
 	},
 
 	mapAsync: async <T, U>(array: T[], callback: Callback<T, U>, concurrencyLimit: number = 5): Promise<U[]> => {

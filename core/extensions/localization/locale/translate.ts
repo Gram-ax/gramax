@@ -3,7 +3,6 @@ import { getContext } from "../../../../apps/next/logic/Context/getContext";
 import UiLanguage, { resolveLanguage, type ContentLanguage } from "../core/model/Language";
 import en from "./locale.en";
 import ru from "./locale.ru";
-
 export type FormDefinition = {
 	[name: string]: {
 		name?: string;
@@ -42,7 +41,7 @@ type ObjectDotNotation<O, R = void> = O extends string
 		: never
 	: BreakDownObject<O, R>[keyof BreakDownObject<O, R>];
 
-const getCurrentLanguage = (): UiLanguage => {
+export const getCurrentLanguage = (): UiLanguage => {
 	return getContext()?.ui ?? resolveLanguage(LanguageService.currentUi());
 };
 
@@ -51,6 +50,7 @@ const resolveTranslationMap = (language: UiLanguage) => locales[language] ?? def
 const t = (key: TranslationKey, forceLanguage?: UiLanguage) => {
 	if (!key) return;
 	const language = forceLanguage ?? getCurrentLanguage();
+
 	const locale = resolveTranslationMap(language);
 
 	if (key.includes(".")) {

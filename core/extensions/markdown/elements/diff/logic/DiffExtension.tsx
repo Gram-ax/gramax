@@ -1,17 +1,23 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { SidebarsIsPinValue } from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import debounceFunction from "@core-ui/debounceFunction";
+import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import PageDataContext from "@core/Context/PageDataContext";
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import { Editor, Extension } from "@tiptap/core";
-import { PluginView } from "@tiptap/pm/state";
-import { Plugin, PluginKey } from "prosemirror-state";
-import { MutableRefObject } from "react";
-
 import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import ProseMirrorDiffLineComponent from "@ext/markdown/elements/diff/components/ProseMirrorDiffLine";
 import ProsemirrorAstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/ProseMirrorAstDiffTransformer";
 import { ProseMirrorDiffLine } from "@ext/markdown/elements/diff/logic/model/ProseMirrorDiffLine";
+import { Editor, Extension } from "@tiptap/core";
+import { PluginView } from "@tiptap/pm/state";
+import { TooltipProvider } from "@ui-kit/Tooltip";
+import { Plugin, PluginKey } from "prosemirror-state";
+import { DecorationSet } from "prosemirror-view";
+import { MutableRefObject } from "react";
 import { createRoot, Root } from "react-dom/client";
 
 export const DIFF_DEBOUNCE_DELAY = 300;
@@ -21,10 +27,13 @@ export interface DiffExtensionProps {
 	isOldEditor: boolean;
 	articleRef: MutableRefObject<HTMLDivElement>;
 	apiUrlCreator: ApiUrlCreator;
+	articlePath: string;
 	isPin: SidebarsIsPinValue;
 	oldScope: TreeReadScope;
 	newScope: TreeReadScope;
 	diffViewMode: DiffViewMode;
+	pageDataContext: PageDataContext;
+	catalogProps: ClientCatalogProps;
 }
 
 export interface DiffExtensionStore {
@@ -61,6 +70,9 @@ class DiffLines implements PluginView {
 		private _editor: Editor,
 		articleRef: MutableRefObject<HTMLDivElement>,
 		private _apiUrlCreator: ApiUrlCreator,
+		private _pageDataContext: PageDataContext,
+		private _catalogProps: ClientCatalogProps,
+		private _articlePath: string,
 	) {
 		this._article = document.getElementById("article") as HTMLDivElement;
 		this._articleRef = articleRef.current;
@@ -103,17 +115,26 @@ class DiffLines implements PluginView {
 			const uniqueKey = `${diffLine.pos.from}-${diffLine.pos.to}`;
 
 			rootData.root.render(
-				<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
-					<ProseMirrorDiffLineComponent
-						key={uniqueKey}
-						diffLine={diffLine}
-						oldScope={this._extensionStore.oldScope}
-						left={this._getLeft()}
-						top={this._getTop(diffLine)}
-						height={this._getHeight(diffLine)}
-						onDiscard={this._getOnDiscard(diffLine)?.bind(this)}
-					/>
-				</ApiUrlCreatorService.Provider>,
+				<TooltipProvider>
+					<PageDataContextService.Provider value={this._pageDataContext}>
+						<CatalogStoreProvider data={this._catalogProps}>
+							<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
+								<ArticleRefService.Provider value={this._articleRef}>
+									<ProseMirrorDiffLineComponent
+										articlePath={this._articlePath}
+										key={uniqueKey}
+										diffLine={diffLine}
+										oldScope={this._extensionStore.oldScope}
+										left={this._getLeft(diffLine)}
+										top={this._getTop(diffLine)}
+										height={this._getHeight(diffLine)}
+										onDiscard={this._getOnDiscard(diffLine)?.bind(this)}
+									/>
+								</ArticleRefService.Provider>
+							</ApiUrlCreatorService.Provider>
+						</CatalogStoreProvider>
+					</PageDataContextService.Provider>
+				</TooltipProvider>,
 			);
 		});
 	}
@@ -145,9 +166,10 @@ class DiffLines implements PluginView {
 		return coordsEnd.bottom - coordsStart.top + this._diffLinesStratchPixels * 2;
 	}
 
-	private _getLeft() {
+	private _getLeft(diffLine: ProseMirrorDiffLine) {
+		const isComment = diffLine.type === "comment";
 		const isPin = this._extensionStore.isPin;
-		const leftOffest = "0.5rem";
+		const leftOffest = isComment ? "7px" : "2px";
 		return isPin.left ? leftOffest : `calc(30px + ${leftOffest})`;
 	}
 
@@ -198,7 +220,10 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 			isOldEditor: false,
 			articleRef: null,
 			isPin: { left: true, right: true },
+			articlePath: null,
 			apiUrlCreator: null,
+			pageDataContext: null,
+			catalogProps: null,
 			oldScope: undefined,
 			newScope: undefined,
 			diffViewMode: null,
@@ -242,15 +267,42 @@ const DiffExtension = Extension.create<DiffExtensionProps, DiffExtensionStore>({
 	},
 
 	addProseMirrorPlugins() {
-		if (this.editor.storage.diff.isOldEditor) return [];
+		const inlineDiffDecorators = new Plugin({
+			key: new PluginKey("inlineDiffDecorators"),
+			state: {
+				init() {
+					return DecorationSet.empty;
+				},
+				apply(tr, set) {
+					const addDecoration = tr.getMeta("updateDiffDecorators");
+					if (addDecoration) set = addDecoration;
+					return set;
+				},
+			},
+			props: {
+				decorations(state) {
+					return this.getState(state);
+				},
+			},
+		});
+
+		if (this.editor.storage.diff.isOldEditor) return [inlineDiffDecorators];
 		return [
 			new Plugin({
 				key: new PluginKey("diff-lines"),
 				view: () => {
-					const diffLines = new DiffLines(this.editor, this.options.articleRef, this.options.apiUrlCreator);
+					const diffLines = new DiffLines(
+						this.editor,
+						this.options.articleRef,
+						this.options.apiUrlCreator,
+						this.options.pageDataContext,
+						this.options.catalogProps,
+						this.options.articlePath,
+					);
 					return diffLines;
 				},
 			}),
+			inlineDiffDecorators,
 		];
 	},
 });

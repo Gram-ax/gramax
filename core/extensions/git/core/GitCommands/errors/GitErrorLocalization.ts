@@ -105,7 +105,6 @@ const gitErrorLocalization: GitErrorLocalization = {
 	NetworkConntectionError: () => ({ message: t("git.error.network.message"), title: t("git.error.network.title") }),
 	FileNotFoundError: () => ({ message: t("not-found") }),
 	CancelledOperation: (props) => ({ message: props.error.message }),
-	LockFileHealthcheckFailed: (props) => ({ message: props.error.message }),
 	HealthcheckFailed: (props) => ({
 		title: t("git.error.broken.healthcheck.title"),
 		html: true,

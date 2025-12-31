@@ -7,8 +7,8 @@ import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 import { FileChild } from "@ext/wordExport/types";
 import { markTableAsListContinuation } from "@ext/wordExport/utils/listContinuation";
 import { WordSerializerState } from "@ext/wordExport/WordExportState";
-import type { JSONContent } from "@tiptap/core";
-import type { ITableRowPropertiesOptions, TableCell, TableRow } from "docx";
+import { JSONContent } from "@tiptap/core";
+import { ITableRowPropertiesOptions, TableCell, TableRow } from "docx";
 import { tableLayout } from "./getTableChilds";
 import { TableAddOptionsWord, WordTableChildren } from "./WordTableExportTypes";
 import {

@@ -8,15 +8,13 @@ import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import {
-	CatalogStoreProvider,
-	useCatalogPropsStore,
-} from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import PageDataContext from "@core/Context/PageDataContext";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { ClientArticleProps, type ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { Mark } from "@tiptap/pm/model";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
@@ -42,17 +40,19 @@ type TooltipContent = {
 type TooltipProviderProps = {
 	data: dataType;
 	children: ReactNode;
+	catalogProps: ClientCatalogProps;
 	apiUrlCreator: ApiUrlCreator;
 	pageDataContext: PageDataContext;
 };
 
-export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" | "data"> {
+export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" | "data" | "catalogProps"> {
 	closeHandler: () => void;
 	className?: string;
 	element: HTMLElement;
 	resourcePath?: string;
 	getMark: () => Mark | undefined;
 	hash?: string;
+	href?: string;
 }
 
 const ArticleLinkTooltip = (props: LinkTooltipProps) => {
@@ -64,11 +64,13 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		resourcePath,
 		className,
 		hash: initialHash,
+		href,
 		...otherProps
 	} = props;
 	const [isVisible, setIsVisible] = useState(false);
 	const [canClose, setCanClose] = useState(true);
 	const [hash, setHash] = useState<string>(initialHash);
+	const [catalogProps, setCatalogProps] = useState<ClientCatalogProps>(null);
 	const [tooltipPlace, setTooltipPlace] = useState("top");
 
 	const debounceClose = useDebounce(closeHandler, 200, canClose);
@@ -100,6 +102,25 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		},
 	});
 
+	const { call: fetchCatalogProps } = useApi<ClientCatalogProps>({
+		url: useMemo(() => {
+			const mark = getMark();
+			const parsedHref = mark ? getHref(mark) : href;
+			const catalogName = mark
+				? parsedHref
+					? parsedHref.split("/")?.[3] === "-"
+						? parsedHref.split("/")?.[5]
+						: parsedHref.split("/")?.[3]
+					: ""
+				: parsedHref?.split("/")?.[0];
+
+			return apiUrlCreator.getCatalogProps(catalogName);
+		}, [apiUrlCreator, href, getMark]),
+		onDone: (data) => {
+			setCatalogProps(data);
+		},
+	});
+
 	const clearHandler = useCallback(() => {
 		debounceClose.cancel();
 		addClosedClass.cancel();
@@ -108,12 +129,15 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	}, []);
 
 	useEffect(() => {
-		const fetchDataTimeout = setTimeout(() => fetchData(), 450);
+		const fetchDataTimeout = setTimeout(() => {
+			fetchData();
+			fetchCatalogProps();
+		}, 450);
 
 		return () => {
 			clearTimeout(fetchDataTimeout);
 		};
-	}, [fetchData]);
+	}, [fetchData, fetchCatalogProps]);
 
 	useEffect(() => {
 		const handleMouseLeave = () => close();
@@ -154,7 +178,12 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 			contentClassName={classNames("tooltip-wrapper", {}, [className])}
 			content={
 				isVisible && (
-					<TooltipProvider data={data} apiUrlCreator={apiUrlCreator} {...otherProps}>
+					<TooltipProvider
+						data={data}
+						apiUrlCreator={apiUrlCreator}
+						catalogProps={catalogProps}
+						{...otherProps}
+					>
 						<TooltipContent
 							className={classNames("tooltip-article", mods, [className])}
 							start={close}
@@ -174,12 +203,11 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 };
 
 const TooltipProvider = (props: TooltipProviderProps) => {
-	const { pageDataContext, apiUrlCreator, data, children } = props;
-	const catalogProps = useCatalogPropsStore((store) => store.data);
+	const { pageDataContext, apiUrlCreator, catalogProps, data, children } = props;
 	if (!data) return null;
 
 	return (
-		<ApiUrlCreatorService.Provider value={apiUrlCreator.fromNewArticlePath(data.path)}>
+		<ApiUrlCreatorService.Provider value={apiUrlCreator.fromNewArticlePath(data.path, catalogProps?.name)}>
 			<ResourceService.Provider>
 				<PageDataContextService.Provider value={pageDataContext}>
 					<CatalogStoreProvider data={catalogProps}>

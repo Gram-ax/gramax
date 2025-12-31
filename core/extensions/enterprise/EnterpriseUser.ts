@@ -59,15 +59,15 @@ class EnterpriseUser extends User {
 		return this._enterpriseInfo;
 	}
 
-	async updatePermissions(checkSsoToken: true): Promise<EnterpriseUser | User>;
-	async updatePermissions(checkSsoToken: false): Promise<EnterpriseUser>;
-	async updatePermissions(checkSsoToken: boolean = false): Promise<EnterpriseUser | User> {
+	async updatePermissions(checkSsoToken: true, force?: boolean): Promise<EnterpriseUser | User>;
+	async updatePermissions(checkSsoToken: false, force?: boolean): Promise<EnterpriseUser>;
+	async updatePermissions(checkSsoToken: boolean = false, force = false): Promise<EnterpriseUser | User> {
 		// if (!this._token) return; -- not needed because we get user data from null token (anonymous user)
 		if (!this._enterpriseConfig?.gesUrl) return;
 
 		const timeDiff = new Date().getTime() - this._enterpriseInfo.updateDate.getTime();
 		const interval = this._enterpriseConfig?.refreshInterval ?? this._updateInterval;
-		if (this._enterpriseInfo && timeDiff < interval) {
+		if (this._enterpriseInfo && timeDiff < interval && !force) {
 			return;
 		}
 

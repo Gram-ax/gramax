@@ -1,4 +1,3 @@
-import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import SemiBlocks from "@ext/markdown/core/edit/components/Menu/Groups/SemiBlocks";
 import CodeMenuButton from "@ext/markdown/elements/code/edit/components/CodeMenuButton";
 import TableMenuButton from "@ext/markdown/elements/table/edit/components/TableMenuButton";
@@ -16,18 +15,14 @@ interface AnyMenuGroupProps {
 
 const AnyMenuGroup = ({ editor, includeResources, fileName, isSmallEditor }: AnyMenuGroupProps) => {
 	return (
-		<ButtonsLayout>
+		<>
 			<CodeMenuButton editor={editor} />
-			<NotesMenuGroup editor={editor} />
 			<TableMenuButton editor={editor} />
+			<NotesMenuGroup editor={editor} />
+			{includeResources && <DiagramsMenuGroup editor={editor} fileName={fileName} />}
 			<SemiBlocks editor={editor} includeResources={includeResources} isSmallEditor={isSmallEditor} />
-			{includeResources && (
-				<>
-					<DiagramsMenuGroup editor={editor} fileName={fileName} />
-					<FilesMenuGroup editor={editor} fileName={fileName} isSmallEditor={isSmallEditor} />
-				</>
-			)}
-		</ButtonsLayout>
+			{includeResources && <FilesMenuGroup editor={editor} fileName={fileName} isSmallEditor={isSmallEditor} />}
+		</>
 	);
 };
 

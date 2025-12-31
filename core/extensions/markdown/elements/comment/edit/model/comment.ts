@@ -115,6 +115,7 @@ const Comment = Mark.create<CommentOptions, CommentStorage>({
 							dispatch?.(newTr);
 							return true;
 						})
+						.focus(position.to)
 						.openComment(attributes.id, position)
 						.run();
 				},

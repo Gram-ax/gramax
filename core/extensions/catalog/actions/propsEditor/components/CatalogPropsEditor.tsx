@@ -1,6 +1,7 @@
 import FormSkeleton from "@components/Atoms/FormSkeleton";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
+import styled from "@emotion/styled";
 import { useCatalogPropsEditorActions } from "@ext/catalog/actions/propsEditor/logic/useCatalogPropsEditorActions";
 import { useOpenExternalGitSourceButton } from "@ext/catalog/actions/propsEditor/logic/useOpenExternalGitSourceButton";
 import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
@@ -8,26 +9,25 @@ import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { Form, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Icon } from "@ui-kit/Icon";
+import { Loader } from "@ui-kit/Loader";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarProvider,
+} from "@ui-kit/Sidebar";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FORM_STYLES } from "../consts/form";
 import type { CatalogSettingsModalProps, FormData, FormProps } from "../logic/createFormSchema";
 import { createFormSchema } from "../logic/createFormSchema";
-import { SettingsTabs, SettingsTab, SectionComponent } from "./Sections";
-import {
-	SidebarMenu,
-	SidebarGroupContent,
-	SidebarGroup,
-	SidebarContent,
-	Sidebar,
-	SidebarProvider,
-	SidebarMenuItem,
-	SidebarMenuButton,
-} from "@ui-kit/Sidebar";
-import styled from "@emotion/styled";
-import { Icon } from "@ui-kit/Icon";
-import { Loader } from "@ui-kit/Loader";
+import { SectionComponent, SettingsTab, SettingsTabs } from "./Sections";
 
 const SidebarContainer = styled(SidebarProvider)`
 	--sidebar-width: 12rem !important;
@@ -67,7 +67,9 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 		defaultValues: async () => {
 			const props = await getOriginalProps();
 			setIsFormLoading(false);
-			return props;
+			return {
+				...props,
+			};
 		},
 		mode: "onChange",
 	});
@@ -84,12 +86,12 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 			e.preventDefault();
 			startUpdatingProps?.();
 
-			await form.handleSubmit((data) =>
+			await form.handleSubmit((data) => {
 				onSubmit(
 					data as Parameters<typeof onSubmit>[0],
 					form.formState.defaultValues as Parameters<typeof onSubmit>[1],
-				),
-			)(e);
+				);
+			})(e);
 			await confirmChanges();
 			onSubmitParent?.(await getOriginalProps());
 		},

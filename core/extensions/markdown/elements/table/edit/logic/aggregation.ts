@@ -6,34 +6,57 @@ import {
 	AlignEnumTypes,
 	ColumnData,
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { Fragment } from "@tiptap/pm/model";
-import { RefObject, useEffect } from "react";
-import Sheet, { SheetColumn, SheetType } from "@core-ui/utils/Sheet";
+import { DependencyList, RefObject, useEffect } from "react";
+import Sheet, { SheetType } from "@core-ui/utils/Sheet";
 
 const NULL_VALUE = "-";
+
+const getNumericData = (data: ColumnData): number[] => {
+	const result: number[] = [];
+	for (let i = 0; i < data.length; i++) {
+		const num = parseNumber(data[i]);
+		if (Number.isFinite(num)) result.push(num);
+	}
+	return result;
+};
+
 const AGGREGATIONS_FUNCS = {
 	[AggregationMethod.SUM]: (data: ColumnData) => {
-		const numericData = data.map(parseNumber).filter((d) => Number.isFinite(d));
-		return numericData.length ? numericData.reduce((acc, curr) => acc + curr, 0) : 0;
+		const numericData = getNumericData(data);
+		if (!numericData.length) return 0;
+		let sum = 0;
+		for (let i = 0; i < numericData.length; i++) sum += numericData[i];
+		return sum;
 	},
 	[AggregationMethod.AVG]: (data: ColumnData) => {
-		const numericData = data.map(parseNumber).filter((d) => Number.isFinite(d));
-		return numericData.length ? numericData.reduce((acc, curr) => acc + curr, 0) / numericData.length : 0;
+		const numericData = getNumericData(data);
+		if (!numericData.length) return 0;
+		let sum = 0;
+		for (let i = 0; i < numericData.length; i++) sum += numericData[i];
+		return sum / numericData.length;
 	},
 	[AggregationMethod.MIN]: (data: ColumnData) => {
-		const numericData = data.map(parseNumber).filter((d) => Number.isFinite(d));
+		const numericData = getNumericData(data);
 		return numericData.length ? Math.min(...numericData) : 0;
 	},
 	[AggregationMethod.MAX]: (data: ColumnData) => {
-		const numericData = data.map(parseNumber).filter((d) => Number.isFinite(d));
+		const numericData = getNumericData(data);
 		return numericData.length ? Math.max(...numericData) : 0;
 	},
 	[AggregationMethod.COUNT]: (data: ColumnData) => data.length,
 	[AggregationMethod.COUNT_DISTINCT]: (data: ColumnData) => new Set(data).size,
 };
 
-export const getFormatter = () =>
-	new Intl.NumberFormat(navigator.languages, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+let cachedFormatter: Intl.NumberFormat;
+export const getFormatter = () => {
+	if (!cachedFormatter) {
+		cachedFormatter = new Intl.NumberFormat(navigator.languages, {
+			minimumFractionDigits: 0,
+			maximumFractionDigits: 2,
+		});
+	}
+	return cachedFormatter;
+};
 export const getFormattedValue = (formatter: Intl.NumberFormat, value: number) => formatter.format(value);
 export const getAggregatedValue = (method: AggregationMethod, data: ColumnData) => {
 	if (!method || !data.length) return null;
@@ -75,13 +98,14 @@ const createRow = (table: HTMLTableElement, sheet: Sheet<string>, hasHeader: boo
 	const sheetData = sheet.getSheet();
 	const physicalCellCount = sheetData[0]?.length || 0;
 
+	const referenceRowIndex = 1;
 	let logicalIndex = 0;
 	for (let physicalIndex = 0; physicalIndex < physicalCellCount; physicalIndex++) {
-		if (sheet.isCellMerged(0, physicalIndex)) {
-			const masterCell = sheet.getMasterCell(0, physicalIndex);
-			if (masterCell && masterCell.column !== physicalIndex) {
-				continue;
-			}
+		const isMerged = sheet.isCellMerged(referenceRowIndex, physicalIndex);
+		const masterCell = isMerged ? sheet.getMasterCell(referenceRowIndex, physicalIndex) : null;
+
+		if (masterCell && masterCell.column !== physicalIndex) {
+			continue;
 		}
 
 		const previousCell = table.rows[table.rows.length - 2].cells[physicalIndex];
@@ -91,13 +115,10 @@ const createRow = (table: HTMLTableElement, sheet: Sheet<string>, hasHeader: boo
 		cell.setAttribute("align", previousCell?.getAttribute("align") || AlignEnumTypes.LEFT);
 		cell.appendChild(document.createTextNode(""));
 
-		if (sheet.isCellMerged(0, physicalIndex)) {
-			const masterCell = sheet.getMasterCell(0, physicalIndex);
-			if (masterCell && masterCell.column === physicalIndex) {
-				const cellSpan = sheet.getCellSpan(masterCell.row, masterCell.column);
-				if (cellSpan && cellSpan.colspan > 1) {
-					cell.setAttribute("colspan", cellSpan.colspan.toString());
-				}
+		if (masterCell && masterCell.column === physicalIndex) {
+			const cellSpan = sheet.getCellSpan(masterCell.row, masterCell.column);
+			if (cellSpan && cellSpan.colspan > 1) {
+				cell.setAttribute("colspan", cellSpan.colspan.toString());
 			}
 		}
 
@@ -134,25 +155,15 @@ const updateCellsData = (table: HTMLTableElement, sheet: Sheet<string>, hasHeade
 };
 
 const isAggregatedTable = (table: HTMLTableElement) => {
-	for (let i = 0; i < table.rows[0]?.cells?.length; i++) {
-		const child = table.rows[0]?.cells?.[i];
+	const rowToCheck = table.rows[1];
+	if (!rowToCheck) return false;
+
+	for (let i = 0; i < rowToCheck.cells?.length; i++) {
+		const child = rowToCheck.cells?.[i];
 		if (child?.getAttribute("aggregation")) return true;
 	}
 
 	return false;
-};
-
-export const getCellsColumnData = (cols: HTMLTableCellElement[]): ColumnData => {
-	const data: ColumnData = [];
-
-	for (let colIndex = 0; colIndex < cols.length; colIndex++) {
-		const cell = cols[colIndex];
-		if (!cell) continue;
-
-		data.push(cell.textContent?.trim() || "");
-	}
-
-	return data;
 };
 
 export const getCellsInColumn = (table: HTMLTableElement, colIndex: number): HTMLTableCellElement[] => {
@@ -173,30 +184,16 @@ const getAggregationData = (
 	const data: AggregationData = [];
 	const sheetData = sheet.getSheet();
 	const maxCols = sheetData[0]?.length || 0;
-	const isColumnHeader = table?.dataset.header === "column";
-
-	const startCol = isColumnHeader ? 0 : 0;
 	const startRow = hasHeader ? 1 : 0;
 
-	const getCellsColumnData = (cells: SheetColumn<string>): ColumnData => {
-		const data: ColumnData = [];
-
-		for (let colIndex = 0; colIndex < cells.length; colIndex++) {
-			const cell = cells[colIndex];
-			data.push(cell);
-		}
-
-		return data;
-	};
-
-	for (let colIndex = startCol; colIndex < maxCols; colIndex++) {
-		const method = table?.rows[0]?.cells[colIndex]?.getAttribute("aggregation") as AggregationMethod;
+	for (let colIndex = 0; colIndex < maxCols; colIndex++) {
+		const method = table?.rows[1]?.cells[colIndex]?.getAttribute("aggregation") as AggregationMethod;
 		if (!method) {
 			data.push({ method: null, data: [] });
 			continue;
 		}
 
-		const columnData = getCellsColumnData(sheet.getColumn(colIndex)).slice(startRow);
+		const columnData = sheet.getColumn(colIndex).slice(startRow);
 
 		data.push({ method, data: columnData });
 	}
@@ -204,7 +201,7 @@ const getAggregationData = (
 	return data;
 };
 
-export const useAggregation = (tableRef: RefObject<HTMLTableElement>, content?: Fragment) => {
+export const useAggregation = (tableRef: RefObject<HTMLTableElement>, deps?: DependencyList) => {
 	const updateDebounce = useDebounce((f: () => void) => f(), 200);
 
 	useEffect(() => {
@@ -227,74 +224,69 @@ export const useAggregation = (tableRef: RefObject<HTMLTableElement>, content?: 
 
 		const hasHeader = table.dataset.header !== "none";
 		const lastRowChildCount = lastRow.childElementCount;
+		const referenceCellCount = table.rows[1]?.cells.length || 0;
 
 		if (!isAggregatedRow) createRow(table, sheet, hasHeader);
-		else if (isAggregatedRow && lastRowChildCount !== table.rows[0].cells.length) {
+		else if (isAggregatedRow && lastRowChildCount !== referenceCellCount) {
 			updateRow(table, sheet, hasHeader);
-		} else if (isAggregatedRow && lastRowChildCount === table.rows[0].cells.length) {
+		} else if (isAggregatedRow && lastRowChildCount === referenceCellCount) {
 			updateDebounce.cancel();
 			updateDebounce.start(() => updateCellsData(table, sheet, hasHeader));
 		}
-	}, [tableRef.current, content]);
+	}, [tableRef.current, ...(deps || [])]);
 };
 
 export const convertHtmlTableToSheet = (table: HTMLTableElement): Sheet<string> => {
 	let maxColumns = 0;
-	for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+	let rowCount = 0;
+	for (let rowIndex = 1; rowIndex < table.rows.length; rowIndex++) {
 		const htmlRow = table.rows[rowIndex];
 		if (htmlRow.dataset.aggregation === "true") continue;
 
+		rowCount++;
 		let colCount = 0;
-
 		for (let cellIndex = 0; cellIndex < htmlRow.cells.length; cellIndex++) {
 			const cell = htmlRow.cells[cellIndex];
-			const colspan = parseInt(cell.getAttribute("colspan") || "1");
+			const colspan = parseInt(cell.getAttribute("colspan") || "1", 10);
 			colCount += colspan;
 		}
-
 		maxColumns = Math.max(maxColumns, colCount);
 	}
 
-	const data: SheetType<string> = [];
-	for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-		const htmlRow = table.rows[rowIndex];
-		if (htmlRow.dataset.aggregation === "true") continue;
-		data.push(new Array(maxColumns).fill(""));
-	}
-
-	const occupied: boolean[][] = [];
-	for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-		const htmlRow = table.rows[rowIndex];
-		if (htmlRow.dataset.aggregation === "true") continue;
-		occupied.push(new Array(maxColumns).fill(false));
+	const data: SheetType<string> = new Array(rowCount);
+	const occupied: boolean[][] = new Array(rowCount);
+	for (let i = 0; i < rowCount; i++) {
+		data[i] = new Array(maxColumns).fill("");
+		occupied[i] = new Array(maxColumns).fill(false);
 	}
 
 	const mergeCells: Array<{ startRow: number; startCol: number; endRow: number; endCol: number }> = [];
 
-	for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+	let dataRowIndex = 0;
+	for (let rowIndex = 1; rowIndex < table.rows.length; rowIndex++) {
 		const htmlRow = table.rows[rowIndex];
-		let dataColIndex = 0;
 		if (htmlRow.dataset.aggregation === "true") continue;
 
+		let dataColIndex = 0;
 		for (let cellIndex = 0; cellIndex < htmlRow.cells.length; cellIndex++) {
 			const cell = htmlRow.cells[cellIndex];
 			const cellText = cell.textContent?.trim() || "";
-			const colspan = parseInt(cell.getAttribute("colspan") || "1");
-			const rowspan = parseInt(cell.getAttribute("rowspan") || "1");
+			const colspan = parseInt(cell.getAttribute("colspan") || "1", 10);
+			const rowspan = parseInt(cell.getAttribute("rowspan") || "1", 10);
 
-			while (dataColIndex < maxColumns && occupied[rowIndex][dataColIndex]) {
+			while (dataColIndex < maxColumns && occupied[dataRowIndex][dataColIndex]) {
 				dataColIndex++;
 			}
 
 			if (dataColIndex < maxColumns) {
-				data[rowIndex][dataColIndex] = cellText;
+				data[dataRowIndex][dataColIndex] = cellText;
 
 				for (let r = 0; r < rowspan; r++) {
 					for (let c = 0; c < colspan; c++) {
-						const targetRow = rowIndex + r;
+						const targetRow = dataRowIndex + r;
 						const targetCol = dataColIndex + c;
 
-						if (targetRow < data.length && targetCol < maxColumns) {
+						if (targetRow < rowCount && targetCol < maxColumns) {
 							occupied[targetRow][targetCol] = true;
 							if (r !== 0 || c !== 0) {
 								data[targetRow][targetCol] = "";
@@ -304,10 +296,10 @@ export const convertHtmlTableToSheet = (table: HTMLTableElement): Sheet<string> 
 				}
 
 				if (colspan > 1 || rowspan > 1) {
-					const endRow = Math.min(rowIndex + rowspan - 1, data.length - 1);
+					const endRow = Math.min(dataRowIndex + rowspan - 1, rowCount - 1);
 					const endCol = Math.min(dataColIndex + colspan - 1, maxColumns - 1);
 					mergeCells.push({
-						startRow: rowIndex,
+						startRow: dataRowIndex,
 						startCol: dataColIndex,
 						endRow,
 						endCol,
@@ -317,6 +309,7 @@ export const convertHtmlTableToSheet = (table: HTMLTableElement): Sheet<string> 
 
 			dataColIndex++;
 		}
+		dataRowIndex++;
 	}
 
 	const sheet = Sheet.fromArray(data);

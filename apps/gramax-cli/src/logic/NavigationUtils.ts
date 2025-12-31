@@ -14,7 +14,9 @@ const updatePathnames = (catalog: Catalog, itemLinks: ItemLink[]) => {
 		items.forEach((itemLink) => {
 			itemLink.ref.storageId = "";
 			itemLink.ref.path = replacePathIfNeeded(itemLink.ref.path, catalog);
-			itemLink.pathname = RouterPathProvider.getLogicPath(itemLink.pathname);
+			itemLink.pathname = RouterPathProvider.getReadOnlyPathname(
+				RouterPathProvider.getLogicPath(itemLink.pathname),
+			);
 
 			if ((itemLink as CategoryLink).items) {
 				processItems((itemLink as CategoryLink).items);

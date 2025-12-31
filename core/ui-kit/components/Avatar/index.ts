@@ -1,10 +1,11 @@
 export { getAvatarFallback } from "./utils/getAvatarFallback";
+export { getUniqueColor } from "./utils/getUniqueColor";
 export {
 	Avatar,
-	AvatarFallback,
 	AvatarImage,
 	AvatarLabel,
 	AvatarLabelAvatar,
 	AvatarLabelDescription,
 	AvatarLabelTitle,
 } from "ics-ui-kit/components/avatar";
+export { AvatarFallback } from "./AvatarFallback";

@@ -1,12 +1,12 @@
-import { useTemplateManagement } from "../hooks/useTemplateManagement";
-import { ConfirmationDialog } from "../../../ui-kit/ConfirmationDialog";
-import { WorkspaceSettings } from "../types/WorkspaceComponent";
-import { Icon } from "@ui-kit/Icon";
 import { Button, IconButton } from "@ui-kit/Button";
 import { Description } from "@ui-kit/Description";
-import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
+import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
-import { Modal, ModalContent, ModalHeaderTemplate, ModalBody, ModalFooterTemplate } from "@ui-kit/Modal";
+import { Modal, ModalBody, ModalContent, ModalFooterTemplate, ModalHeaderTemplate } from "@ui-kit/Modal";
+import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
+import { ConfirmationDialog } from "../../../ui-kit/ConfirmationDialog";
+import { useTemplateManagement } from "../hooks/useTemplateManagement";
+import { WorkspaceSettings } from "../types/WorkspaceComponent";
 
 interface PdfTemplatesProps {
 	localSettings: WorkspaceSettings;
@@ -83,7 +83,7 @@ export function PdfTemplates({ localSettings, setLocalSettings }: PdfTemplatesPr
 				{templates.map((template) => (
 					<div
 						key={template.title}
-						className="relative w-40 border rounded-md p-3 flex flex-col items-center shadow-sm bg-card"
+						className="relative w-40 border rounded-md p-3 flex flex-col items-center shadow-soft-sm bg-card"
 					>
 						<Icon icon="file" size="xl" />
 						<span className="text-sm text-center break-words leading-4" title={template.title}>

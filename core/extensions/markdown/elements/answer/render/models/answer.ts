@@ -5,8 +5,9 @@ export function questionAnswer(): Schema {
 		render: "QuestionAnswer",
 		selfClosing: false,
 		attributes: {
-			type: { type: String },
 			questionId: { type: String },
+			correct: { type: Boolean },
+			type: { type: String },
 			answerId: { type: String },
 		},
 		type: SchemaType.block,

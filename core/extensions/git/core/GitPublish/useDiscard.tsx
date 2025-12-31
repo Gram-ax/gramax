@@ -22,7 +22,7 @@ export const useDiscard = (onDiscard?: () => void): UseDiscard => {
 			await FetchService.fetch(endpoint, JSON.stringify(paths), MimeTypes.json);
 			onDiscard?.();
 
-			ArticleUpdaterService.update(apiUrlCreator);
+			ArticleUpdaterService.forceUpdate();
 			BranchUpdaterService.updateBranch(
 				apiUrlCreator,
 				reset ? OnBranchUpdateCaller.MergeRequest : OnBranchUpdateCaller.DiscardNoReset,

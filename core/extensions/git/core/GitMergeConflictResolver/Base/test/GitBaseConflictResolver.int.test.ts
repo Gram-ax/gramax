@@ -8,18 +8,20 @@ import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import GitVersionControl from "../../../GitVersionControl/GitVersionControl";
 import GitBaseConflictResolver from "../GitBaseConflictResolver";
 
-const mockUserData: SourceData = {
+const mockGitSourceData: GitSourceData = {
 	sourceType: SourceType.gitHub,
 	userEmail: "test-email@email.com",
 	userName: "test user",
+	domain: "https://github.com",
+	token: "test",
 };
+
 const mockState: RepositoryMergeConflictState = { value: "mergeConflict", data: null };
 
 const path = (path: string) => new Path(path);
@@ -29,14 +31,14 @@ const commit = async (
 	files: { [filePath: string]: string | null },
 	message = "change files",
 ): Promise<void> => {
-	if (!files) return gvc.commit(message, mockUserData);
+	if (!files) return gvc.commit(message, mockGitSourceData);
 	await Promise.all(
 		Object.entries(files).map(async ([path, content]) => {
 			await dfp.write(repPath(path), content);
 		}),
 	);
 	await gvc.add(Object.keys(files).map(path));
-	return gvc.commit(message, mockUserData);
+	return gvc.commit(message, mockGitSourceData);
 };
 
 const dfp = new DiskFileProvider(__dirname);
@@ -54,7 +56,7 @@ conflict content theirs
 describe("GitBaseConflictResolver", () => {
 	beforeEach(async () => {
 		await dfp.mkdir(path("testRep"));
-		await GitVersionControl.init(dfp, path("testRep"), mockUserData);
+		await GitVersionControl.init(dfp, path("testRep"), mockGitSourceData);
 		gvc = new GitVersionControl(path("testRep"), dfp);
 		await commit(gvc, { "1.txt": "init" });
 		await gvc.createNewBranch("conflict");
@@ -72,11 +74,11 @@ describe("GitBaseConflictResolver", () => {
 
 	test("Прерывает слияние", async () => {
 		await commit(gvc, { "1.txt": "conflict content theirs" });
-		await gvc.checkoutToBranch("master");
+		await gvc.checkoutToBranch(mockGitSourceData, "master");
 		await commit(gvc, { "1.txt": "conflict content ours" });
 		const hashBefore = (await gvc.getCommitHash()).toString();
 		const statusBefore = await gvc.getChanges();
-		await gvc.mergeBranch(mockUserData, { theirs: "conflict" });
+		await gvc.mergeBranch(mockGitSourceData, { theirs: "conflict" });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 		await resolver.abortMerge(mockState);
@@ -89,14 +91,14 @@ describe("GitBaseConflictResolver", () => {
 
 	test("Решает конфликт слияния", async () => {
 		await commit(gvc, { "1.txt": "conflict content theirs" });
-		await gvc.checkoutToBranch("master");
+		await gvc.checkoutToBranch(mockGitSourceData, "master");
 		await commit(gvc, { "1.txt": "conflict content ours" });
 		const resolvedMergeFiles = [{ path: "1.txt", content: "conflict content ours and theirs :)" }];
-		await gvc.mergeBranch(mockUserData, { theirs: "conflict" });
+		await gvc.mergeBranch(mockGitSourceData, { theirs: "conflict" });
 		expect(await dfp.read(repPath("1.txt"))).toEqual(CONFLICT_CONTENT);
 
 		await expect(
-			resolver.resolveConflictedFiles(resolvedMergeFiles, mockState, mockUserData as GitSourceData),
+			resolver.resolveConflictedFiles(resolvedMergeFiles, mockState, mockGitSourceData),
 		).resolves.toBeUndefined();
 		expect(await dfp.read(repPath("1.txt"))).toBe("conflict content ours and theirs :)");
 	});

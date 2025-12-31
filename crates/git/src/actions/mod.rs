@@ -10,6 +10,7 @@ pub mod reset;
 pub mod stash;
 pub mod status;
 pub mod tags;
+pub mod checkout;
 
 pub mod prelude {
   pub use crate::actions::add::*;
@@ -24,4 +25,5 @@ pub mod prelude {
   pub use crate::actions::stash::*;
   pub use crate::actions::status::*;
   pub use crate::actions::tags::*;
+  pub use crate::actions::checkout::*;
 }

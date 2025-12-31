@@ -1,43 +1,49 @@
 import ArticleExtensions from "@components/Article/ArticleExtensions";
 import ArticleWithPreviewArticle from "@components/ArticlePage/ArticleWithPreviewArticle";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import ArticleContextWrapper from "@core-ui/ArticleContextWrapper/ArticleContextWrapper";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
+import Workspace from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
+import useGetArticleContextData from "@core-ui/ScopedContextWrapper/useGetArticleContextData";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import Menu from "@ext/markdown/core/edit/components/Menu/Menu";
-import Main from "@ext/markdown/core/edit/components/Menu/Menus/Main";
+import Toolbar from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
 import getExtensions, { getTemplateExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+import { InlineToolbar } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
+import CommentEditorProvider from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
+import useCommentCallbacks from "@ext/markdown/elements/comment/edit/logic/hooks/useCommentCallbacks";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import Controllers from "@ext/markdown/elements/controllers/controllers";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import { useEditorExtensions } from "@ext/markdown/elements/diff/components/store/EditorExtensionsStore";
 import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
+import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
+import { useEditorExtensions } from "@ext/markdown/elements/diff/components/store/EditorExtensionsStore";
 import DiffExtension from "@ext/markdown/elements/diff/logic/DiffExtension";
 import useDiff from "@ext/markdown/elements/diff/logic/hooks/useDiff";
+import { InlineLinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/InlineLinkMenu";
 import OnAddMark from "@ext/markdown/elements/onAdd/OnAddMark";
 import OnDeleteMark from "@ext/markdown/elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "@ext/markdown/elements/onDocChange/OnDeleteNode";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import ExtensionContextUpdater from "@ext/markdown/elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
 import PropertyService from "@ext/properties/components/PropertyService";
+import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { Editor, Extensions } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
-import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
+import { EditorContent, EditorContext, JSONContent, useEditor } from "@tiptap/react";
 import { useEffect, useState } from "react";
-import Workspace from "@core-ui/ContextServices/Workspace";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface DiffModeViewProps {
 	oldContent: JSONContent;
@@ -76,6 +82,12 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const isGES = !!workspace?.enterprise?.gesUrl;
 
 	const articleProps = ArticlePropsService.value;
+	const catalogProps = useCatalogPropsStore((state) => state?.data);
+	const oldContextArticlePath = Path.join(catalogProps?.name, oldArticlePath ?? articlePath);
+
+	const isDelete = changeType === FileStatus.delete;
+	const isAdded = changeType === FileStatus.new;
+
 	const isTemplateInstance = articleProps.template?.length > 0;
 
 	const { start: onUpdateDebounce } = useDebounce((editor: Editor) => {
@@ -90,7 +102,13 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	}, 500);
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const oldDiffArticleApiUrlCreator = oldArticlePath ? apiUrlCreator.fromArticle(oldArticlePath) : apiUrlCreator;
+
+	const { apiUrlCreator: oldDiffArticleApiUrlCreator, isLoading: isOldArticleContextDataLoading } =
+		useGetArticleContextData({
+			articlePath: isAdded ? null : oldContextArticlePath,
+			catalogName: isAdded ? null : catalogProps.name,
+			scope: oldScope,
+		});
 
 	const isPin = SidebarsIsPinService.value;
 	const hasChanges = changeType === FileStatus.modified || changeType === FileStatus.rename;
@@ -104,10 +122,15 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	}, []);
 
 	const UpdatedDiffExtension = ExtensionContextUpdater.useExtendExtensionsWithContext([
-		DiffExtension.configure({ isPin, oldScope, newScope }),
+		DiffExtension.configure({ isPin, oldScope, newScope, articlePath: Path.join(catalogProps.name, articlePath) }),
 	])[0] as typeof DiffExtension;
 
 	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
+	const isStorageConnected = useIsStorageConnected();
+
+	const { onMarkAdded: onMarkAddedComment, onMarkDeleted: onMarkDeletedComment } = useCommentCallbacks(
+		articleProps.pathname,
+	);
 
 	const getNewEditorExtensions = () => {
 		if (!extensions)
@@ -116,7 +139,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 				Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
 			];
 
-		const filterMainEditorExtensions = ["OnDeleteNode", "OnDeleteMark", "OnAddMark"];
+		const filterMainEditorExtensions = ["onDeleteNode", "OnDeleteMark", "OnAddMark", "comment"];
 
 		const updatedExtensions = [
 			...extensions.filter((e) => !filterMainEditorExtensions.includes(e.name)),
@@ -125,6 +148,11 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 			OnAddMark.configure({ onAddMarks }),
 			OnDeleteMark.configure({ onDeleteMarks }),
 			Controllers.configure({ editable: isTemplateInstance }),
+			Comment.configure({
+				enabled: isStorageConnected,
+				onMarkAdded: onMarkAddedComment,
+				onMarkDeleted: onMarkDeletedComment,
+			}),
 			...(isTemplateInstance ? getTemplateExtensions(readOnly) : []),
 		];
 		if (readOnly) return getReadOnlyExtensions(updatedExtensions);
@@ -135,8 +163,6 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		const excludeExtensions = ["selectionMenu", "ArticleTitleHelpers"];
 		return extensions.filter((e) => !excludeExtensions.includes(e.name));
 	};
-
-	const catalogProps = useCatalogPropsStore((state) => state.data);
 
 	const newEditor = useEditor(
 		{
@@ -162,13 +188,14 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		{
 			extensions: extensions
 				? [
-						...getReadOnlyExtensions(extensions),
+						...getReadOnlyExtensions(extensions).filter((e) => e.name !== "comment"),
 						UpdatedDiffExtension.configure({ isOldEditor: true }),
+						Comment.configure({ appendCommentToBody: true }),
 						...(isTemplateInstance ? getTemplateExtensions(false) : []),
 				  ]
 				: [
 						...getExtensions({ isTemplateInstance, includeResources: true, includeQuestions: isGES }),
-						Comment,
+						Comment.configure({ appendCommentToBody: true }),
 						Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
 				  ],
 			editable: false,
@@ -188,28 +215,31 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		newEditor.commands.updateDiffViewMode(diffViewMode, true);
 	}, [diffViewMode]);
 
-	useDiff(hasChanges ? { editor: newEditor, oldContentEditor } : { editor: null, oldContentEditor: null });
-
-	const mainArticle =
-		changeType === FileStatus.delete ? (
-			<ApiUrlCreatorService.Provider value={oldDiffArticleApiUrlCreator}>
-				<EditorContent editor={oldContentEditor} data-qa="article-editor" data-iseditable={false} />
-			</ApiUrlCreatorService.Provider>
-		) : (
-			<EditorContent editor={newEditor} data-qa="article-editor" data-iseditable={!readOnly} />
-		);
-
-	const catalogName = useCatalogPropsStore((state) => state.data?.name);
-	const oldContextArticlePath = Path.join(catalogName, oldArticlePath ?? articlePath);
-
-	const isDelete = changeType === FileStatus.delete;
-
 	const mainArticleWrapper = isDelete ? (
 		<ArticleContextWrapper scope={oldScope} articlePath={oldContextArticlePath}>
-			{mainArticle}
+			<EditorContext.Provider value={{ editor: oldContentEditor }}>
+				<CommentEditorProvider editor={oldContentEditor}>
+					<div>
+						<InlineToolbar editor={oldContentEditor} />
+						<InlineLinkMenu editor={oldContentEditor} />
+						<EditorContent editor={oldContentEditor} data-qa="article-editor" data-iseditable={false} />
+					</div>
+				</CommentEditorProvider>
+			</EditorContext.Provider>
 		</ArticleContextWrapper>
 	) : (
-		mainArticle
+		<CommentEditorProvider editor={newEditor}>
+			<EditorContext.Provider value={{ editor: newEditor }}>
+				<NewEditorWithDiff
+					newEditor={newEditor}
+					oldEditor={oldContentEditor}
+					readOnly={readOnly}
+					isUseDiff={hasChanges && !isOldArticleContextDataLoading}
+					newApiUrlCreator={apiUrlCreator}
+					oldApiUrlCreator={oldDiffArticleApiUrlCreator}
+				/>
+			</EditorContext.Provider>
+		</CommentEditorProvider>
 	);
 
 	return (
@@ -220,13 +250,19 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 					hasChanges &&
 					diffViewMode !== "wysiwyg-single" && (
 						<ArticleContextWrapper scope={oldScope} articlePath={oldContextArticlePath}>
-							<div style={{ marginLeft: "0.5rem" }}>
-								<EditorContent
-									editor={oldContentEditor}
-									data-qa="article-editor"
-									data-iseditable={false}
-								/>
-							</div>
+							<EditorContext.Provider value={{ editor: oldContentEditor }}>
+								<CommentEditorProvider editor={oldContentEditor}>
+									<div style={{ marginLeft: "0.5rem" }}>
+										<InlineToolbar editor={oldContentEditor} />
+										<InlineLinkMenu editor={oldContentEditor} />
+										<EditorContent
+											editor={oldContentEditor}
+											data-qa="article-editor"
+											data-iseditable={false}
+										/>
+									</div>
+								</CommentEditorProvider>
+							</EditorContext.Provider>
 						</ArticleContextWrapper>
 					)
 				}
@@ -237,12 +273,39 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 				<>
 					<ArticleMat editor={newEditor} />
 					<Menu editor={newEditor} id={"ContentEditorId"} key={"diff-mode-extensions"}>
-						<Main editor={newEditor} />
+						<Toolbar editor={newEditor} />
 					</Menu>
 					<ArticleExtensions id={"ContentEditorId"} bottom={`${diffBottomBarHeight + 4}px`} />
 				</>
 			)}
 		</>
+	);
+};
+
+interface NewEditorWithDiffProps {
+	newEditor: Editor;
+	oldEditor: Editor;
+	readOnly: boolean;
+	isUseDiff: boolean;
+	newApiUrlCreator: ApiUrlCreator;
+	oldApiUrlCreator: ApiUrlCreator;
+}
+
+const NewEditorWithDiff = (props: NewEditorWithDiffProps) => {
+	const { newEditor, oldEditor, readOnly, isUseDiff, newApiUrlCreator, oldApiUrlCreator } = props;
+
+	useDiff(
+		isUseDiff
+			? { newEditor, oldEditor, newApiUrlCreator, oldApiUrlCreator }
+			: { newEditor: null, oldEditor: null, newApiUrlCreator: null, oldApiUrlCreator: null },
+	);
+
+	return (
+		<div>
+			<InlineToolbar editor={newEditor} />
+			<InlineLinkMenu editor={newEditor} />
+			<EditorContent editor={newEditor} data-qa="article-editor" data-iseditable={!readOnly} />
+		</div>
 	);
 };
 

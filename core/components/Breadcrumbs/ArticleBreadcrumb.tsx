@@ -9,6 +9,7 @@ import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import getArticleItemLink from "@ext/article/LinkCreator/logic/getArticleItemLink";
 import ItemMenu from "@ext/item/EditMenu";
+import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import { ItemLink } from "@ext/navigation/NavigationLinks";
 import Properties from "@ext/properties/components/Properties";
@@ -50,6 +51,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 						<NavigationDropdown
 							className="article-actions"
 							style={{ marginRight: "-2px" }}
+							tooltipText={t("article.actions.title")}
 							trigger={
 								<Button variant="text" size="xs" className="p-0 h-full">
 									<Icon code="ellipsis-vertical" style={{ fontSize: "1.7em" }} />
@@ -63,13 +65,14 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 							/>
 						</NavigationDropdown>
 					</div>
-					<Properties
-						properties={articleProperties}
-						setProperties={setArticleProperties}
-						hideList={isMobile}
-					/>
 				</>
 			)}
+			<Properties
+				properties={articleProperties}
+				setProperties={setArticleProperties}
+				hideList={isMobile}
+				isReadOnly={isReadOnly}
+			/>
 		</div>
 	);
 };

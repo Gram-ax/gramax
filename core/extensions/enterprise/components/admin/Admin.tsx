@@ -1,14 +1,18 @@
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import {
-	AdminPageDataProvider,
-	useAdminPageData,
-} from "@ext/enterprise/components/admin/contexts/AdminPageDataContext";
+	AdminNavigationProvider,
+	useAdminNavigation,
+	type PluginDetailParams,
+} from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { OpenProvider } from "@ext/enterprise/components/admin/contexts/OpenContext";
 import { ScrollContainerProvider } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
 import { SettingsProvider, useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { GuardProvider, useGuard } from "@ext/enterprise/components/admin/hooks/useGuard";
 import ForbiddenPage from "@ext/enterprise/components/admin/pages/ForbiddenPage";
+import { SidePluginIcon } from "@ext/enterprise/components/admin/settings/plugins/plugin.common";
 import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
+import { getPageDataLoader } from "@ext/enterprise/components/admin/utils/pageDataLoaders";
 import EnterpriseService from "@ext/enterprise/EnterpriseService";
 import { Page, PageComponents } from "@ext/enterprise/types/EnterpriseAdmin";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
@@ -37,16 +41,10 @@ import {
 } from "@ui-kit/Sidebar";
 import { Settings } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { shallow } from "zustand/shallow";
 
 interface BaseProps {
 	token: string;
 	enterpriseService: EnterpriseService;
-}
-
-interface MainContentProps extends BaseProps {
-	page: Page;
-	onNavigate: (p: Page) => void;
 }
 
 const SidebarContainer = styled(SidebarProvider)`
@@ -65,7 +63,14 @@ const SidebarContainer = styled(SidebarProvider)`
 	}
 `;
 
-function MainContent({ page, onNavigate }: MainContentProps) {
+const PageRenderer = () => {
+	const { page } = useAdminNavigation();
+	const Component = PageComponents[page];
+	if (!Component) return null;
+	return <Component />;
+};
+
+function MainContent() {
 	const {
 		settings,
 		error,
@@ -77,43 +82,46 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 		ensureResourcesLoaded,
 		ensureStyleGuideLoaded,
 		ensureQuizLoaded,
+		ensurePluginsLoaded,
+		ensureMetricsLoaded,
 	} = useSettings();
 
+	const { page, pageParams, navigate } = useAdminNavigation();
+	const { getGuard, showUnsavedChangesModal } = useGuard();
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+	const tryNavigate = useCallback(
+		async (nextPage: Page, params?: any) => {
+			if (nextPage === page) return;
+			const currentGuard = getGuard(page);
+			if (currentGuard?.hasChanges()) {
+				showUnsavedChangesModal(
+					currentGuard,
+					() => navigate(nextPage, params),
+					() => navigate(nextPage, params),
+				);
+				return;
+			}
+			navigate(nextPage, params);
+		},
+		[page, getGuard, navigate, showUnsavedChangesModal],
+	);
+
 	useEffect(() => {
-		switch (page) {
-			case Page.WORKSPACE:
-				ensureWorkspaceLoaded();
-				ensureResourcesLoaded();
-				ensureGroupsLoaded();
-				break;
-			case Page.EDITORS:
-				ensureEditorsLoaded();
-				break;
-			case Page.RESOURCES:
-				ensureWorkspaceLoaded();
-				ensureGroupsLoaded();
-				ensureGuestsLoaded();
-				ensureResourcesLoaded();
-				break;
-			case Page.USER_GROUPS:
-				ensureResourcesLoaded();
-				ensureGroupsLoaded();
-				break;
-			case Page.STYLEGUIDE:
-				ensureStyleGuideLoaded();
-				break;
-			case Page.MAIL:
-				ensureMailLoaded();
-				break;
-			case Page.GUESTS:
-				ensureGuestsLoaded();
-				break;
-			case Page.QUIZ:
-				ensureQuizLoaded();
-				break;
-		}
+		const loadData = getPageDataLoader(page);
+
+		void loadData?.({
+			ensureWorkspaceLoaded,
+			ensureGroupsLoaded,
+			ensureEditorsLoaded,
+			ensureResourcesLoaded,
+			ensureMailLoaded,
+			ensureGuestsLoaded,
+			ensureStyleGuideLoaded,
+			ensureQuizLoaded,
+			ensurePluginsLoaded,
+			ensureMetricsLoaded,
+		});
 	}, [page]);
 
 	if (error) {
@@ -136,8 +144,6 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 		);
 	}
 
-	const Component = PageComponents[page];
-
 	return (
 		<SidebarContainer>
 			<Sidebar collapsible="none" className="h-full">
@@ -148,7 +154,7 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 								<SidebarMenuItem>
 									<SidebarMenuButton
 										isActive={page === Page.WORKSPACE}
-										onClick={() => onNavigate(Page.WORKSPACE)}
+										onClick={() => void tryNavigate(Page.WORKSPACE)}
 									>
 										<Icon icon="layers" />
 										<span>{getAdminPageTitle(Page.WORKSPACE)}</span>
@@ -157,7 +163,7 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 								<SidebarMenuItem>
 									<SidebarMenuButton
 										isActive={page === Page.USER_GROUPS}
-										onClick={() => onNavigate(Page.USER_GROUPS)}
+										onClick={() => void tryNavigate(Page.USER_GROUPS)}
 									>
 										<Icon icon="users" />
 										<span>{getAdminPageTitle(Page.USER_GROUPS)}</span>
@@ -166,7 +172,7 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 								<SidebarMenuItem>
 									<SidebarMenuButton
 										isActive={page === Page.EDITORS}
-										onClick={() => onNavigate(Page.EDITORS)}
+										onClick={() => void tryNavigate(Page.EDITORS)}
 									>
 										<Icon icon="user-round-pen" />
 										<span>{getAdminPageTitle(Page.EDITORS)}</span>
@@ -175,7 +181,7 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 								<SidebarMenuItem>
 									<SidebarMenuButton
 										isActive={page === Page.RESOURCES}
-										onClick={() => onNavigate(Page.RESOURCES)}
+										onClick={() => void tryNavigate(Page.RESOURCES)}
 									>
 										<Icon icon="git-branch" />
 										<span>{getAdminPageTitle(Page.RESOURCES)}</span>
@@ -184,7 +190,7 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 								<SidebarMenuItem>
 									<SidebarMenuButton
 										isActive={page === Page.MAIL}
-										onClick={() => onNavigate(Page.MAIL)}
+										onClick={() => void tryNavigate(Page.MAIL)}
 									>
 										<Icon icon="mail" />
 										<span>{getAdminPageTitle(Page.MAIL)}</span>
@@ -193,7 +199,7 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 								<SidebarMenuItem>
 									<SidebarMenuButton
 										isActive={page === Page.GUESTS}
-										onPointerDown={() => onNavigate(Page.GUESTS)}
+										onClick={() => void tryNavigate(Page.GUESTS)}
 									>
 										<Icon icon="users" />
 										<span>{getAdminPageTitle(Page.GUESTS)}</span>
@@ -201,35 +207,62 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 								</SidebarMenuItem>
 								<Collapsible className="group/sidebar-menu">
 									<CollapsibleTrigger asChild>
-										<SidebarMenuButton>
-											<Icon icon="package" />
-											<span>{t("enterprise.admin.pages.modules")}</span>
-											<Icon
-												icon="chevron-right"
-												className="ml-auto transition-transform group-data-[state=open]/sidebar-menu:rotate-90"
-											/>
-										</SidebarMenuButton>
+										<SidebarMenuSubItem>
+											<SidebarMenuButton
+												isActive={page === Page.PLUGINS}
+												onClick={() => void tryNavigate(Page.PLUGINS)}
+											>
+												<Icon icon="package" />
+												<span>{t("enterprise.admin.pages.modules")}</span>
+												<Icon
+													icon="chevron-right"
+													className="ml-auto transition-transform group-data-[state=open]/sidebar-menu:rotate-90"
+												/>
+											</SidebarMenuButton>
+										</SidebarMenuSubItem>
 									</CollapsibleTrigger>
 									<CollapsibleContent>
 										<SidebarMenuSub>
-											<SidebarMenuSubItem>
-												<SidebarMenuSubButton
-													isActive={page === Page.STYLEGUIDE}
-													onClick={() => onNavigate(Page.STYLEGUIDE)}
-												>
-													<Icon icon="file-check2" />
-													<span>{getAdminPageTitle(Page.STYLEGUIDE)}</span>
-												</SidebarMenuSubButton>
-											</SidebarMenuSubItem>
-											<SidebarMenuSubItem>
-												<SidebarMenuSubButton
-													isActive={page === Page.QUIZ}
-													onPointerDown={() => onNavigate(Page.QUIZ)}
-												>
-													<Icon icon="file-question-mark" />
-													<span>{getAdminPageTitle(Page.QUIZ)}</span>
-												</SidebarMenuSubButton>
-											</SidebarMenuSubItem>
+											{settings?.plugins?.plugins
+												.filter(
+													(plugin) =>
+														!(plugin.metadata.isBuiltIn && !plugin.metadata.navigateTo),
+												)
+												.map((plugin) => {
+													const isBuiltIn = plugin.metadata.isBuiltIn;
+													const navigateTo = plugin.metadata.navigateTo;
+													const isActive = isBuiltIn
+														? page === navigateTo
+														: page === Page.PLUGIN_DETAIL &&
+														  (pageParams as PluginDetailParams)?.selectedPluginId ===
+																plugin.metadata.id;
+
+													return (
+														<SidebarMenuSubItem key={plugin.metadata.id}>
+															<SidebarMenuSubButton
+																isActive={isActive}
+																onClick={() => {
+																	if (isBuiltIn && navigateTo) {
+																		void tryNavigate(navigateTo as Page);
+																	} else {
+																		void tryNavigate(Page.PLUGIN_DETAIL, {
+																			selectedPluginId: plugin.metadata.id,
+																		});
+																	}
+																}}
+															>
+																{plugin.metadata.icon ? (
+																	<Icon icon={plugin.metadata.icon} />
+																) : (
+																	<SidePluginIcon
+																		disabled={plugin.metadata.disabled}
+																	/>
+																)}
+																<span>{plugin.metadata.name}</span>
+															</SidebarMenuSubButton>
+														</SidebarMenuSubItem>
+													);
+												})}
 										</SidebarMenuSub>
 									</CollapsibleContent>
 								</Collapsible>
@@ -241,9 +274,13 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 				<SidebarRail />
 			</Sidebar>
 			<main className="w-full max-w-full overflow-hidden">
-				<div className="flex-1 p-6 h-full" ref={scrollContainerRef} style={{ overflowY: "scroll" }}>
+				<div
+					className="flex-1 h-full"
+					ref={scrollContainerRef}
+					style={{ overflowY: "scroll", paddingBottom: "24px" }}
+				>
 					<ScrollContainerProvider container={scrollContainerRef.current}>
-						{Component && <Component />}
+						<PageRenderer />
 					</ScrollContainerProvider>
 				</div>
 			</main>
@@ -251,27 +288,22 @@ function MainContent({ page, onNavigate }: MainContentProps) {
 	);
 }
 
-function TabPage({ enterpriseService, token }: BaseProps) {
-	const { page, setPage } = useAdminPageData(
-		(store) => ({
-			page: store.page,
-			setPage: store.setPage,
-		}),
-		shallow,
-	);
-
+function TabPage() {
 	useEffect(() => {
 		const url = new URL(window.location.href);
 		url.search = "";
 		window.history.replaceState(null, "", url.toString());
 	}, []);
 
-	return (
-		<MainContent page={page} onNavigate={(p) => setPage(p)} enterpriseService={enterpriseService} token={token} />
-	);
+	return <MainContent />;
 }
 
-const AdminModalContent = ({ enterpriseService, token }: BaseProps) => {
+interface AdminModalContentProps extends BaseProps {
+	onRequestClose: () => void;
+	guardedCloseRef: React.MutableRefObject<(() => void) | null>;
+}
+
+const AdminModalContent = ({ enterpriseService, token, onRequestClose, guardedCloseRef }: AdminModalContentProps) => {
 	const { loading, forbidden } = useAdminGate({
 		token,
 		enterpriseService,
@@ -288,13 +320,48 @@ const AdminModalContent = ({ enterpriseService, token }: BaseProps) => {
 				description={t("enterprise.admin.settings-description")}
 				icon={Settings}
 			/>
-			<AdminPageDataProvider>
-				<SettingsProvider enterpriseService={enterpriseService} token={token}>
-					<TabPage enterpriseService={enterpriseService} token={token} />
-				</SettingsProvider>
-			</AdminPageDataProvider>
+			<AdminNavigationProvider>
+				<GuardProvider>
+					<SettingsProvider enterpriseService={enterpriseService} token={token}>
+						<ModalCloseGuard onRequestClose={onRequestClose} guardedCloseRef={guardedCloseRef}>
+							<TabPage />
+						</ModalCloseGuard>
+					</SettingsProvider>
+				</GuardProvider>
+			</AdminNavigationProvider>
 		</ModalContent>
 	);
+};
+
+const ModalCloseGuard = ({
+	children,
+	onRequestClose,
+	guardedCloseRef,
+}: {
+	children: React.ReactNode;
+	onRequestClose: () => void;
+	guardedCloseRef: React.MutableRefObject<(() => void) | null>;
+}) => {
+	const { page } = useAdminNavigation();
+	const { getGuard, showUnsavedChangesModal } = useGuard();
+
+	const handleClose = useCallback(() => {
+		const guard = getGuard(page);
+		if (guard?.hasChanges()) {
+			showUnsavedChangesModal(guard, onRequestClose, onRequestClose);
+		} else {
+			onRequestClose();
+		}
+	}, [page, getGuard, showUnsavedChangesModal, onRequestClose]);
+
+	useEffect(() => {
+		guardedCloseRef.current = handleClose;
+		return () => {
+			guardedCloseRef.current = null;
+		};
+	}, [handleClose, guardedCloseRef]);
+
+	return <>{children}</>;
 };
 
 export const Admin = ({ onClose, gesUrl }: { onClose: () => void; gesUrl: string }) => {
@@ -302,19 +369,35 @@ export const Admin = ({ onClose, gesUrl }: { onClose: () => void; gesUrl: string
 	const sourceDatas = SourceDataService.value;
 	const enterpriseService = useMemo(() => new EnterpriseService(gesUrl), [gesUrl]);
 	const token = useMemo(() => getEnterpriseSourceData(sourceDatas, gesUrl)?.token, [gesUrl, sourceDatas]);
+	const guardedCloseRef = useRef<(() => void) | null>(null);
+
+	const handleRequestClose = useCallback(() => {
+		setIsOpen(false);
+		onClose();
+	}, [onClose]);
 
 	const onOpenChange = useCallback(
 		(open: boolean) => {
-			setIsOpen(open);
-			if (!open) onClose();
+			if (!open) {
+				if (guardedCloseRef.current) {
+					guardedCloseRef.current();
+				} else {
+					handleRequestClose();
+				}
+			}
 		},
-		[onClose],
+		[handleRequestClose],
 	);
 
 	return (
 		<Modal open={isOpen} onOpenChange={onOpenChange}>
-			<OpenProvider open={isOpen} setOpen={onOpenChange}>
-				<AdminModalContent enterpriseService={enterpriseService} token={token} />
+			<OpenProvider open={isOpen} setOpen={setIsOpen}>
+				<AdminModalContent
+					enterpriseService={enterpriseService}
+					token={token}
+					onRequestClose={handleRequestClose}
+					guardedCloseRef={guardedCloseRef}
+				/>
 			</OpenProvider>
 		</Modal>
 	);

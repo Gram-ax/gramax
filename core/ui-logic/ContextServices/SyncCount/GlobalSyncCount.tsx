@@ -5,7 +5,6 @@ import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import { feature } from "@ext/toggleFeatures/features";
 import assert from "assert";
 import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
@@ -31,6 +30,7 @@ export type GlobalSyncCountContext = {
 };
 
 const FOCUS_REFRESH_DELAY = 5000;
+const FETCH_BACKGROUND_INTERVAL = 1000 * 60 * 10; // 10 min
 
 const GlobalSyncCountContext = createContext<GlobalSyncCountContext | null>(null);
 
@@ -51,7 +51,9 @@ export default class GlobalSyncCountService {
 
 		const [syncCounts, setSyncCounts] = useState<CatalogSyncValues>({});
 		const [isLoading, setIsLoading] = useState(false);
+
 		const lastFocusTimeRef = useRef(Date.now());
+		const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 		const updateSyncCount = useCallback((name: string, value: CatalogSyncValue) => {
 			setSyncCounts((prev) => ({ ...prev, [name]: value }));
@@ -98,28 +100,48 @@ export default class GlobalSyncCountService {
 			fetchSyncCounts(false);
 		}, [fetchAllowed, hasWorkspace, fetchSyncCounts, sourceDatas]);
 
-		useEffect(() => {
+		const fetchSyncCountsBackground = useCallback(
+			(delay: number): Promise<NodeJS.Timeout> => {
+				if (!fetchAllowed) return null;
+
+				clearTimeout(fetchTimeoutRef.current);
+				fetchTimeoutRef.current = setTimeout(async () => {
+					await fetchSyncCounts(true);
+					fetchSyncCountsBackground(delay);
+				}, delay);
+			},
+			[fetchSyncCounts, fetchAllowed],
+		);
+
+		const handleFocus = useCallback(async () => {
 			if (!fetchAllowed) return;
 
-			const interval = setInterval(() => fetchSyncCounts(true), CatalogFetchTimersService.fetchIntervalDelay);
-			return () => clearInterval(interval);
-		}, [fetchAllowed, fetchSyncCounts]);
+			if (Date.now() - lastFocusTimeRef.current > FOCUS_REFRESH_DELAY) await fetchSyncCounts(false);
+
+			lastFocusTimeRef.current = Date.now();
+			await fetchSyncCountsBackground(FETCH_BACKGROUND_INTERVAL);
+		}, [fetchSyncCounts, fetchSyncCountsBackground]);
+
+		const handleBlur = useCallback(async () => {
+			if (!fetchAllowed) return;
+
+			lastFocusTimeRef.current = Date.now();
+			await fetchSyncCountsBackground(FETCH_BACKGROUND_INTERVAL * 2);
+		}, [fetchAllowed, fetchSyncCounts, fetchSyncCountsBackground]);
+
+		useEffect(() => {
+			window.addEventListener("focus", handleFocus);
+			window.addEventListener("blur", handleBlur);
+			return () => {
+				window.removeEventListener("focus", handleFocus);
+				window.removeEventListener("blur", handleBlur);
+				clearTimeout(fetchTimeoutRef.current);
+			};
+		}, [handleFocus, handleBlur]);
 
 		// useEffect(() => {
 		// void resolveModule("setBadge")?.(totalPullCount > 0 ? totalPullCount : null);
 		// }, [totalPullCount]);
-
-		useEffect(() => {
-			const handleFocus = () => {
-				if (fetchAllowed && Date.now() - lastFocusTimeRef.current > FOCUS_REFRESH_DELAY) {
-					fetchSyncCounts(false);
-					lastFocusTimeRef.current = Date.now();
-				}
-			};
-
-			window.addEventListener("focus", handleFocus);
-			return () => window.removeEventListener("focus", handleFocus);
-		}, [fetchAllowed, fetchSyncCounts]);
 
 		const val = useMemo<GlobalSyncCountContext>(
 			() => ({

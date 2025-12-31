@@ -4,8 +4,10 @@
 	// "rust-analyzer.cargo.target": "wasm32-unknown-emscripten",
 	// "rust-analyzer.check.targets": ["wasm32-unknown-emscripten"],
 	// "rust-analyzer.check.allTargets": true,
+	// "rust-analyzer.cargo.features": [],
 	// "rust-analyzer.cargo.extraEnv": {
-	// 	"BUGSNAG_API_KEY": ""
+	// 	"BUGSNAG_API_KEY": "",
+	// 	"CFLAGS": "-Wno-error=incompatible-pointer-types"
 	// },
 
 	// android
@@ -95,7 +97,17 @@
 	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
 
-	"cSpell.words": ["Bugsnag", "katex", "Markdoc", "Modulith", "prosemirror", "Renderable", "tiptap", "traptitech"],
+	"cSpell.words": [
+		"Bugsnag",
+		"gramax",
+		"katex",
+		"Markdoc",
+		"prosemirror",
+		"Renderable",
+		"STYLEGUIDE",
+		"tiptap",
+		"traptitech"
+	],
 	"typescript.tsdk": "node_modules/typescript/lib",
 	"ansible.python.interpreterPath": "/sbin/python3.13"
 }

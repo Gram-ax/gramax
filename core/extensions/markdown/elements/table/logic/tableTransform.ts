@@ -1,4 +1,5 @@
 import { Token } from "@ext/markdown/core/render/logic/Markdoc";
+import { COL_MIN_WIDTH } from "@ext/markdown/elements/table/edit/model/nodes/customTable";
 
 const tableTransform = (tokens: Token[]) => {
 	let depth = -1;
@@ -104,11 +105,12 @@ const tableTransform = (tokens: Token[]) => {
 				if (attrs.colspan && typeof attrs.colspan === "string") attrs.colspan = parseFloat(attrs.colspan);
 				if (attrs.rowspan && typeof attrs.rowspan === "string") attrs.rowspan = parseFloat(attrs.rowspan);
 				if (attrs.colwidth && !Array.isArray(attrs.colwidth)) attrs.colwidth = [attrs.colwidth];
+				if (attrs.colwidth) attrs.colwidth = attrs.colwidth.map((c) => Math.max(parseFloat(c), COL_MIN_WIDTH));
 				if (tableStates[depth].colwidths.length > 0) {
 					const colwidth = [];
 					const colspan = attrs.colspan || 1;
 					for (let i = tableStates[depth].cellIdx; i < colspan + tableStates[depth].cellIdx; i++)
-						colwidth.push(parseFloat(tableStates[depth].colwidths[i]));
+						colwidth.push(Math.max(parseFloat(tableStates[depth].colwidths[i]), COL_MIN_WIDTH));
 
 					if (colwidth.some((w) => w)) attrs.colwidth = colwidth;
 					tableStates[depth].cellIdx += colspan;

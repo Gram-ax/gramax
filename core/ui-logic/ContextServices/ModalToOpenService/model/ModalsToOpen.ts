@@ -64,6 +64,7 @@ enum ModalToOpen {
 
 	GesAdmin = "GesAdmin",
 
+	DefaultModal = "DefaultModal",
 	UnsavedChangesModal = "UnsavedChangesModal",
 	UnsavedCommentModal = "UnsavedCommentModal",
 }

@@ -1,15 +1,15 @@
+import { createFormSchema } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import EditStyles from "@ext/workspace/components/EditStyles";
 import LogoUploader, { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { Button } from "@ui-kit/Button";
 import { FormField } from "@ui-kit/Form";
-import { UseFormReturn } from "react-hook-form";
 import { memo, useCallback, useMemo } from "react";
+import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
-import { createFormSchema } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 
-interface EditWorkspaceAssetsProps {
+interface EditWorkspaceAssetsProps{
 	lightLogo?: string;
 	darkLogo?: string;
 	deleteLightLogo?: () => void;

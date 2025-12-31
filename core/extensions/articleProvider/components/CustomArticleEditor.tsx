@@ -4,7 +4,7 @@ import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import Document from "@tiptap/extension-document";
 import { useMemo } from "react";
 import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
-import Main, { MainMenuOptions } from "@ext/markdown/core/edit/components/Menu/Menus/Main";
+import Main, { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 
@@ -15,7 +15,7 @@ interface TemplateEditorProps {
 	extensions?: Extensions;
 	providerType: ArticleProviderType;
 	extensionsOptions?: GetExtensionsPropsOptions;
-	menuOptions?: MainMenuOptions;
+	menuOptions?: ToolbarMenuProps;
 	onUpdate: (id: string, content: JSONContent, title: string) => void;
 }
 
@@ -29,7 +29,16 @@ const getCustomArticleExtensions = (extensions: Extensions, options?: GetExtensi
 ];
 
 const CustomArticleEditor = (props: TemplateEditorProps) => {
-	const { title, content, id, extensions: customExtensions, extensionsOptions, onUpdate, menuOptions, providerType } = props;
+	const {
+		title,
+		content,
+		id,
+		extensions: customExtensions,
+		extensionsOptions,
+		onUpdate,
+		menuOptions,
+		providerType,
+	} = props;
 	const extensions = useMemo(
 		() => getCustomArticleExtensions(customExtensions, extensionsOptions),
 		[customExtensions, extensionsOptions],

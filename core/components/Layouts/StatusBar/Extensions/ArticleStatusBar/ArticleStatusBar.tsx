@@ -5,7 +5,6 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
-import CanEditCatalogHOC from "@ext/enterprise/components/CanEditCatalogHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
@@ -151,22 +150,18 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 
 		return [
 			<Sync key={0} style={{ height: "100%" }} />,
-			<CanEditCatalogHOC key={1}>
-				{!isNext && isReadOnly && <ProtectedBranch />}
-			</CanEditCatalogHOC>,
+			!isNext && isReadOnly && <ProtectedBranch key={1} />,
 			<IsReadOnlyHOC key={2}>
-				<CanEditCatalogHOC>
-					<ShowPublishBar
-						isShow={bottomTab === LeftNavigationTab.Publish}
-						onClick={() => {
-							NavigationTabsService.setBottom(
-								bottomTab === LeftNavigationTab.Publish
-									? LeftNavigationTab.None
-									: LeftNavigationTab.Publish,
-							);
-						}}
-					/>
-				</CanEditCatalogHOC>
+				<ShowPublishBar
+					isShow={bottomTab === LeftNavigationTab.Publish}
+					onClick={() => {
+						NavigationTabsService.setBottom(
+							bottomTab === LeftNavigationTab.Publish
+								? LeftNavigationTab.None
+								: LeftNavigationTab.Publish,
+						);
+					}}
+				/>
 			</IsReadOnlyHOC>,
 		];
 	};
@@ -197,14 +192,12 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 					NavigationTabsService.setBottom(show ? LeftNavigationTab.Revisions : LeftNavigationTab.None)
 				}
 			/>
-			<CanEditCatalogHOC>
-				<PublishTab
-					show={bottomTab === LeftNavigationTab.Publish}
-					setShow={(show) =>
-						NavigationTabsService.setBottom(show ? LeftNavigationTab.Publish : LeftNavigationTab.None)
-					}
-				/>
-			</CanEditCatalogHOC>
+			<PublishTab
+				show={bottomTab === LeftNavigationTab.Publish}
+				setShow={(show) =>
+					NavigationTabsService.setBottom(show ? LeftNavigationTab.Publish : LeftNavigationTab.None)
+				}
+			/>
 			<StatusBar
 				padding={padding}
 				leftElements={

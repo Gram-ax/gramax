@@ -1,6 +1,6 @@
 import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
-import CommentCountSrc from "@components/Comments/CommentCount";
+import CommentCountSrc from "@ext/markdown/elements/comment/edit/components/CommentCount";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import TooltipIfOveflow from "@core-ui/TooltipIfOveflow";
 import { css } from "@emotion/react";

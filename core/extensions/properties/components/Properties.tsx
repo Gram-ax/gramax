@@ -15,14 +15,16 @@ import { isMarkdownText } from "@ext/markdown/elements/pasteMarkdown/handlePaste
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { IconButton } from "@ui-kit/Button";
 import { ArticlePropertyWrapper } from "@ext/properties/components/ArticlePropertyWrapper";
+import { shouldPropertyVisible } from "@ext/properties/logic/shouldPropertyVisible";
 
 interface PropertiesProps {
 	properties: Property[];
-	setProperties: Dispatch<SetStateAction<Property[]>>;
 	hideList?: boolean;
+	isReadOnly?: boolean;
+	setProperties: Dispatch<SetStateAction<Property[]>>;
 }
 
-const Properties = ({ properties, setProperties, hideList }: PropertiesProps) => {
+const Properties = ({ properties, setProperties, hideList, isReadOnly }: PropertiesProps) => {
 	const articleProps = ArticlePropsService.value;
 	const { properties: catalogProperties } = PropertyServiceProvider.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -86,57 +88,70 @@ const Properties = ({ properties, setProperties, hideList }: PropertiesProps) =>
 		[updateHandler, deleteHandler],
 	);
 
-	const filterProperties = useCallback((value: Property) => {
-		return !isComplexProperty[value.type] && !isMarkdownText(value.value?.[0]);
-	}, []);
+	const filterProperties = useCallback(
+		(value: Property) => {
+			return (
+				!isComplexProperty[value.type] &&
+				!isMarkdownText(value.value?.[0]) &&
+				shouldPropertyVisible(value, isReadOnly)
+			);
+		},
+		[isReadOnly],
+	);
 
 	const articleRenderedProperties = useMemo(() => {
 		if (hideList) return null;
-		return properties?.filter(filterProperties)?.map((property) => (
-			<PropertyArticle
-				key={property.name}
-				property={property}
-				onSubmit={onSubmit}
-				trigger={
-					<div>
-						<PropertyComponent
-							key={property.name}
-							type={property.type}
-							icon={property.icon}
-							value={property.value?.length && property.value[0].length ? property.value : property.name}
-							name={property.name}
-							propertyStyle={property.style}
-							shouldShowValue={property.type !== PropertyTypes.flag}
-						/>
-					</div>
-				}
-			/>
-		));
+		return properties?.filter(filterProperties)?.map((property) => {
+			const button = (
+				<PropertyComponent
+					key={property.name}
+					type={property.type}
+					icon={property.icon}
+					value={property.value?.length && property.value[0].length ? property.value : property.name}
+					name={property.name}
+					propertyStyle={property.style}
+					shouldShowValue={property.type !== PropertyTypes.flag}
+				/>
+			);
+
+			if (isReadOnly) return button;
+
+			return (
+				<PropertyArticle
+					key={property.name}
+					property={property}
+					onSubmit={onSubmit}
+					trigger={<div>{button}</div>}
+				/>
+			);
+		});
 	}, [properties, onSubmit, hideList]);
 
 	return (
 		<div className="flex gap-2 ml-auto">
 			<ArticlePropertyWrapper>{articleRenderedProperties}</ArticlePropertyWrapper>
-			<DropdownMenu>
-				<DropdownMenuTrigger asChild>
-					<IconButton
-						variant="text"
-						size="xs"
-						icon="list-plus"
-						className="flex-shrink-0"
-						data-qa="qa-add-property"
-					/>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="start">
-					<AddProperty
-						canAdd
-						properties={properties}
-						catalogProperties={catalogProperties}
-						onSubmit={updateHandler}
-						setProperties={setProperties}
-					/>
-				</DropdownMenuContent>
-			</DropdownMenu>
+			{!isReadOnly && (
+				<DropdownMenu>
+					<DropdownMenuTrigger asChild>
+						<IconButton
+							variant="text"
+							size="xs"
+							icon="list-plus"
+							className="flex-shrink-0"
+							data-qa="qa-add-property"
+						/>
+					</DropdownMenuTrigger>
+					<DropdownMenuContent align="start">
+						<AddProperty
+							canAdd
+							properties={properties}
+							catalogProperties={catalogProperties}
+							onSubmit={updateHandler}
+							setProperties={setProperties}
+						/>
+					</DropdownMenuContent>
+				</DropdownMenu>
+			)}
 		</div>
 	);
 };

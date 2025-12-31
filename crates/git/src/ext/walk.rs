@@ -200,8 +200,6 @@ impl<C: Creds> Repo<'_, C> {
               err = last_failed_oid.unwrap()
             );
 
-            // error!(target: TAG, "{message}");
-
             opts.on_bad_object(BadObject {
               oid: Oid::zero(),
               raw_err: message,
@@ -281,7 +279,9 @@ impl<C: Creds> Repo<'_, C> {
 
         for entry in reflog.iter() {
           let new_oid = entry.id_new();
-          oids.push(new_oid);
+          if !new_oid.is_zero() {
+            oids.push(new_oid);
+          }
 
           let old_oid = entry.id_old();
           if !old_oid.is_zero() {

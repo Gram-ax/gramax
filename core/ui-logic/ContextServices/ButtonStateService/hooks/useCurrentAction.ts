@@ -108,7 +108,7 @@ interface ResultByActionDataProps {
 
 export const getResultByActionData = (props: ResultByActionDataProps) => {
 	const { currentNode: current, attrs, marks, actions, selection } = props;
-	const result = { isActive: false, disabled: false };
+	const result = { isActive: false, disabled: false, attrs, marks };
 
 	actions.forEach((action) => {
 		changeResultByAction(action, current.action, result);

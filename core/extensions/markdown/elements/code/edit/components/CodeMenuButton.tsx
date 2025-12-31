@@ -1,27 +1,39 @@
-import IsSelectedOneNodeService from "@core-ui/ContextServices/IsSelected";
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
 import getIsSelected from "@ext/markdown/elementsUtils/getIsSelected";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { memo, useCallback } from "react";
+import { useIsOneNodeSelected } from "@ext/markdown/core/edit/logic/hooks/useIsOneNodeSelected";
 
-const CodeMenuButton = ({ editor, isInline = false }: { editor: Editor; isInline?: boolean }) => {
-	const isSelected = IsSelectedOneNodeService.value;
+interface CodeMenuButtonProps {
+	editor: Editor;
+	isInline?: boolean;
+}
 
-	const toggleCode = () => {
+const CodeMenuButton = ({ editor, isInline = false }: CodeMenuButtonProps) => {
+	const isSelected = useIsOneNodeSelected(editor);
+	const { disabled: isDisabledCode, isActive: isActiveCode } = ButtonStateService.useCurrentAction(
+		isSelected ? { mark: "code" } : { action: "code_block" },
+	);
+
+	const toggleCode = useCallback(() => {
 		if (isSelected) editor.chain().focus().toggleCode().run();
 		else if (getIsSelected(editor.state)) editor.chain().focus().multilineCodeBlock().run();
 		else editor.chain().focus().toggleCodeBlock().run();
-	};
+	}, [isSelected, editor]);
 
 	return (
-		<Button
+		<ToolbarToggleButton
 			onClick={toggleCode}
-			icon={"code-xml"}
 			tooltipText={isSelected ? t("editor.code") : t("editor.code-block")}
 			hotKey={isInline && "Mod-L"}
-			nodeValues={isSelected ? { mark: "code" } : { action: "code_block" }}
-		/>
+			disabled={isDisabledCode}
+			active={isActiveCode}
+		>
+			<ToolbarIcon icon={"code-xml"} />
+		</ToolbarToggleButton>
 	);
 };
 
-export default CodeMenuButton;
+export default memo(CodeMenuButton);

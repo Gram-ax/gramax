@@ -29,6 +29,15 @@ pub enum FileLockError {
   Other(io::Error),
 }
 
+impl std::error::Error for FileLockError {
+  fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+    match self {
+      FileLockError::Other(e) => Some(e as &dyn std::error::Error),
+      _ => None,
+    }
+  }
+}
+
 type Result<T> = std::result::Result<T, FileLockError>;
 
 impl std::fmt::Display for FileLockError {

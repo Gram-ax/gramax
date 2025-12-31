@@ -1,5 +1,5 @@
 import { WorkspaceFormData, WorkspaceSettings, WorkspaceView } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function useWorkspaceSections(
 	localSettings: WorkspaceSettings,
@@ -18,11 +18,11 @@ export function useWorkspaceSections(
 	const [selectedCatalogs, setSelectedCatalogs] = useState<string[]>([]);
 	const [originalSectionsOrder, setOriginalSectionsOrder] = useState<string>("");
 
-	const hasSectionsOrderChanged = () => {
+	const hasSectionsOrderChanged = useCallback(() => {
 		if (!originalSectionsOrder) return false;
 		const currentOrder = Object.keys(localSettings.sections || {}).join(",");
 		return currentOrder !== originalSectionsOrder;
-	};
+	}, [localSettings.sections, originalSectionsOrder]);
 
 	const openSectionDialog = (key?: string) => {
 		if (key && localSettings.sections[key]) {

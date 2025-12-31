@@ -9,6 +9,7 @@ import {
 	flatTitleItems,
 	getTitleItemsByTocItems,
 } from "@ext/markdown/elements/link/edit/logic/titleItemsActions/getTitleItemsByTocItems";
+import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
 
 const getArticleHeadersByRelativePath: Command<
@@ -24,7 +25,16 @@ const getArticleHeadersByRelativePath: Command<
 		const workspace = wm.current();
 
 		const path = articlePath.parentDirectoryPath.join(articleRelativePath);
-		const catalog = await workspace.getCatalog(catalogName, ctx);
+		const currentCatalog = await workspace.getCatalog(catalogName, ctx);
+		const catalog = await workspace.getCatalog(
+			linkCreator.getCatalogNameFromPath(
+				articleRelativePath.value,
+				articlePath,
+				currentCatalog.getRootCategoryRef().path.parentDirectoryPath,
+			),
+			ctx,
+		);
+
 		const article: Article = catalog.findItemByItemPath(path);
 		if (!article) return [];
 

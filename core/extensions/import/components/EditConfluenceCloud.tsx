@@ -114,7 +114,7 @@ const EditConfluenceCloudForm = ({ onSubmit }: { onSubmit: (data: ConfluenceClou
 							startIcon={
 								<Avatar size="xs">
 									<AvatarImage src={user.avatarUrl} />
-									<AvatarFallback>{getAvatarFallback(user.name)}</AvatarFallback>
+									<AvatarFallback uniqueId={user.email}>{getAvatarFallback(user.name)}</AvatarFallback>
 								</Avatar>
 							}
 							className="font-medium"

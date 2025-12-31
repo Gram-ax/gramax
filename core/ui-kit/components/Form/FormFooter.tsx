@@ -3,6 +3,8 @@ import { FormFooter as UiKitFormFooter } from "ics-ui-kit/components/form";
 import React, { ReactNode, FC } from "react";
 import { tv } from "tailwind-variants";
 import { useMediaQuery } from "@react-hook/media-query";
+import { Button } from "@ui-kit/Button";
+import t from "@ext/localization/locale/translate";
 
 const formFooterTemplateStyles = tv({
 	slots: {
@@ -50,13 +52,19 @@ export const FormFooter: FC<FormHeaderTemplateProps> = (props) => {
 	const isMobile = useIsMobile();
 	const { container, endBlock } = formFooterTemplateStyles({ isMobile });
 
+	const rightButton = primaryButton || (
+		<Button type="submit" variant="primary" disabled>
+			{t("add")}
+		</Button>
+	);
+
 	return (
 		<UiKitFormFooter className={className}>
 			<div className={container()}>
 				{leftContent}
 				<div className={classNames(endBlock(), {}, [isMobile ? "flex-col-reverse" : "flex-row"])}>
 					{secondaryButton}
-					{primaryButton}
+					{rightButton}
 				</div>
 			</div>
 		</UiKitFormFooter>

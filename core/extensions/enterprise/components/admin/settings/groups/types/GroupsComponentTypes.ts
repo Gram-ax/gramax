@@ -1,7 +1,12 @@
 import { GroupValue } from "../../components/roles/Access";
 
+export type GroupData = {
+	name: string;
+	members: GroupValue[];
+};
+
 export type GroupsSettings = {
-	[name: string]: GroupValue[];
+	[id: string]: GroupData;
 };
 
 export interface Group {

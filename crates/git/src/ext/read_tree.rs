@@ -1,6 +1,9 @@
 use std::borrow::Cow;
 use std::path::Path;
 
+use git2_lfs::ext::RepoLfsExt;
+use git2_lfs::Pointer;
+
 use serde::Serialize;
 
 use git2::*;
@@ -95,6 +98,11 @@ impl<C: Creds> ReadTree for RepoTreeScope<'_, '_, C> {
     let stat = match object.kind() {
       Some(ObjectType::Blob) => {
         let blob = object.into_blob().unwrap();
+
+        if let Some(pointer) = Pointer::from_str_short(blob.content()) {
+          return Ok(Stat { is_binary: true, is_dir: false, size: pointer.size() });
+        }
+
         Stat { is_binary: blob.is_binary(), is_dir: false, size: blob.size() }
       }
       Some(ObjectType::Tree) => Stat { is_binary: false, is_dir: true, size: 0 },
@@ -129,9 +137,8 @@ impl<C: Creds> ReadTree for RepoTreeScope<'_, '_, C> {
     };
 
     let Some(tree) = tree_object else {
-      return Err(
-        git2::Error::new(ErrorCode::Invalid, ErrorClass::Tree, "tried to list directires of file").into(),
-      );
+      let err = "tried to list directires of file";
+      return Err(git2::Error::new(ErrorCode::Invalid, ErrorClass::Tree, err).into());
     };
 
     let paths = tree
@@ -149,8 +156,20 @@ impl<C: Creds> ReadTree for RepoTreeScope<'_, '_, C> {
 
   fn read_to_vec<P: AsRef<Path>>(&self, path: P) -> Result<Vec<u8>> {
     let entry = self.tree.get_path(path.as_ref())?;
-    let blob = entry.to_object(&self.repo.0)?.into_blob().map(|b| b.content().to_vec()).unwrap_or_default();
-    Ok(blob)
+    let object = entry.to_object(&self.repo.0)?;
+    let blob = match object.as_blob() {
+      Some(blob) => blob,
+      None => {
+        let error_message =
+          format!("the target object {} (at {}) is not a blob", object.id(), path.as_ref().display());
+        return Err(git2::Error::new(ErrorCode::Invalid, ErrorClass::Object, error_message).into());
+      }
+    };
+
+    match self.repo.0.get_lfs_blob_content(blob)? {
+      Cow::Borrowed(content) => Ok(content.to_vec()),
+      Cow::Owned(content) => Ok(content),
+    }
   }
 
   fn read_to_string<P: AsRef<Path>>(&self, path: P) -> Result<String> {

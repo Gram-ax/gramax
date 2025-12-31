@@ -1,7 +1,3 @@
-/**
- * @jest-environment node
- */
-
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";

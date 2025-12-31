@@ -35,6 +35,7 @@ class ParserContextFactory {
 			(await this._wm.current().config()).services?.diagramRenderer?.url,
 			this._tablesManager,
 			this._ur ? this._ur.getUser.bind(this._ur) : (m) => ({ name: m }),
+			this._wm,
 			this._wm.current().getFileProvider(),
 			this._parser,
 			this._formatter,

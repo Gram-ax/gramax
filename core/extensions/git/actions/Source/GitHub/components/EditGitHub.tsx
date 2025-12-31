@@ -128,7 +128,7 @@ const EditGitHub = ({ onSubmit, data: initialData }: EditGitHubProps) => {
 							startIcon={
 								<Avatar size="xs">
 									<AvatarImage src={data.avatarUrl} />
-									<AvatarFallback>{getAvatarFallback(data.userName)}</AvatarFallback>
+									<AvatarFallback uniqueId={data.userEmail}>{getAvatarFallback(data.userName)}</AvatarFallback>
 								</Avatar>
 							}
 							className="font-medium"

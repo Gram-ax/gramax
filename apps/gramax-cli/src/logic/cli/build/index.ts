@@ -12,6 +12,8 @@ import { checkExistsPath, checkIsFile, setRootPath } from "../utils/paths";
 import CliUserError from "../../CliUserError";
 import { copyWordTemplatesInCli, copyPdfTemplatesInCli } from "./copyTemplatesInCli";
 import { setFeatureList } from "@ext/toggleFeatures/features";
+import { DirectoryInfoBasic } from "@app/resolveModule/fscall/static";
+import { STORAGE_DIR_NAME } from "@app/config/const";
 
 const CONFIG_NAME = "gramax.config.yaml";
 
@@ -102,6 +104,40 @@ const validateBaseUrl = (baseUrl: string | undefined): void => {
 	}
 };
 
+const getStorageTree = (targetDir: Path, fp: DiskFileProvider) => async () => {
+	const baseDirPath = targetDir.join(new Path(STORAGE_DIR_NAME));
+	const resDir: DirectoryInfoBasic = {
+		type: "dir",
+		name: STORAGE_DIR_NAME,
+		children: [],
+	};
+
+	const walkDir = async (dir: Path, dirInfo: DirectoryInfoBasic) => {
+		const items = await fp.getItems(dir);
+		await items.forEachAsync(async (x) => {
+			if (x.type === "dir") {
+				const subDirInfo: DirectoryInfoBasic = {
+					type: "dir",
+					name: x.name,
+					children: [],
+				};
+
+				dirInfo.children.push(subDirInfo);
+				await walkDir(x.path, subDirInfo);
+			} else {
+				dirInfo.children.push({
+					type: x.type,
+					name: x.name,
+				});
+			}
+		});
+	};
+
+	await walkDir(baseDirPath, resDir);
+
+	return resDir;
+};
+
 const buildCommandFunction = async (options: BuildOptions) => {
 	const {
 		source,
@@ -145,7 +181,11 @@ const buildCommandFunction = async (options: BuildOptions) => {
 
 	const customStyles = await loadCustomStyles(customCss, fp);
 
-	await new StaticSiteBuilder(fp, app, templateHtml).generate(catalog, targetDir, {
+	const getCache = {
+		tree: getStorageTree(targetDir, fp),
+	};
+
+	await new StaticSiteBuilder({ fp, app, html: templateHtml, getCache }).generate(catalog, targetDir, {
 		customStyles,
 		copyTemplate: {
 			copyWordTemplatesFunction: copyWordTemplatesInCli({ fp, catalogName, sourcePath: docxTemplates }),

@@ -588,14 +588,20 @@ article a span.external-link-wrapper {
 	cursor: pointer;
 }
 
-.article .article-body a:hover {
-	text-decoration: underline;
+@media (pointer: fine) {
+	.article .article-body a:hover {
+		text-decoration: underline;
+	}
 }
 
 .article .article-body table th,
 .article strong {
 	font-weight: 500;
 	color: var(--color-article-strong-text);
+}
+
+.article [data-highlight] > strong {
+	color: inherit;
 }
 
 .article span[data-color] strong {

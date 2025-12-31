@@ -1,14 +1,17 @@
 import { WorkspaceSettings } from "../types/WorkspaceComponent";
-import { Field } from "@ui-kit/Field";
-import { AutogrowTextarea } from "@ui-kit/Textarea";
-import { IconButton } from "@ui-kit/Button";
+import { Button, IconButton } from "@ui-kit/Button";
 import { FileInput, Input, type FileValue } from "@ui-kit/Input";
 import { StyledField } from "@ext/enterprise/components/admin/ui-kit/StyledField";
 import styled from "@emotion/styled";
+import EditStyles from "@ext/workspace/components/EditStyles";
+import { useRef } from "react";
+import t from "@ext/localization/locale/translate";
 
 const StyledFileInput = styled(FileInput)`
 	width: 20rem;
 `;
+
+const toBase64 = (str) => btoa(String.fromCharCode(...new TextEncoder().encode(str)));
 
 interface WorkspaceStylingProps {
 	localSettings: WorkspaceSettings;
@@ -16,12 +19,25 @@ interface WorkspaceStylingProps {
 }
 
 export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceStylingProps) {
+	const originalCssRef = useRef<string>("");
+
+	const handleOpenCssEditor = () => {
+		originalCssRef.current = localSettings.style?.css || "";
+	};
+
+	const handleRevertCss = () => {
+		setLocalSettings((prev) => ({
+			...prev,
+			style: { ...prev.style, css: originalCssRef.current },
+		}));
+	};
+
 	return (
 		<div>
-			<h2 className="text-xl font-medium mb-4">Стилизация</h2>
+			<h2 className="text-xl font-medium mb-4">{t("workspace.appearance")}</h2>
 			<div className="space-y-4">
 				<StyledField
-					title="Логотип"
+					title={t("file-input.logo-light")}
 					control={() => (
 						<div className="flex-[2]">
 							{localSettings.style?.logo ? (
@@ -31,7 +47,7 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 										style={{ backgroundColor: "#f4f4f4", width: "20rem" }}
 									>
 										<img
-											src={`data:image/svg+xml;base64,${btoa(localSettings.style.logo)}`}
+											src={`data:image/svg+xml;base64,${toBase64(localSettings.style.logo)}`}
 											alt="logo"
 											className="w-full h-8"
 										/>
@@ -69,8 +85,8 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 							) : (
 								<StyledFileInput
 									accept="image/svg+xml"
-									placeholder="Выберите SVG файл"
-									chooseButtonText="Выбрать файл"
+									placeholder={t("file-input.select-file")}
+									chooseButtonText={t("select")}
 									onChange={async (file: FileValue) => {
 										if (!file || !(file instanceof File)) return;
 										const data = await file.arrayBuffer();
@@ -87,7 +103,7 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 				/>
 
 				<StyledField
-					title="Логотип (темная тема)"
+					title={t("file-input.logo-dark")}
 					control={() => (
 						<div className="flex-[2]">
 							{localSettings.style?.logoDark ? (
@@ -97,7 +113,7 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 										style={{ backgroundColor: "#151828", width: "20rem" }}
 									>
 										<img
-											src={`data:image/svg+xml;base64,${btoa(localSettings.style.logoDark)}`}
+											src={`data:image/svg+xml;base64,${toBase64(localSettings.style.logoDark)}`}
 											alt="logo"
 											className="w-full h-8"
 										/>
@@ -135,8 +151,8 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 							) : (
 								<StyledFileInput
 									accept="image/svg+xml"
-									placeholder="Выберите SVG файл"
-									chooseButtonText="Выбрать файл"
+									placeholder={t("file-input.select-file")}
+									chooseButtonText={t("select")}
 									onChange={async (file: FileValue) => {
 										if (!file || !(file instanceof File)) return;
 										const data = await file.arrayBuffer();
@@ -153,18 +169,24 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 				/>
 
 				<StyledField
-					title="CSS-стили"
+					title={t("workspace.css-style")}
 					control={() => (
-						<AutogrowTextarea
-							className="max-h-40 overflow-y-auto"
-							value={localSettings.style?.css}
-							onChange={(e) => {
-								setLocalSettings((prev) => ({
-									...prev,
-									style: { ...prev.style, css: e.target.value },
-								}));
-							}}
-						/>
+						<div className="flex-[2]">
+							<EditStyles
+								customCss={localSettings.style?.css || ""}
+								setCustomCss={(css: string) => {
+									setLocalSettings((prev) => ({
+										...prev,
+										style: { ...prev.style, css },
+									}));
+								}}
+								revertCustomCss={handleRevertCss}
+							>
+								<Button variant="outline" onClick={handleOpenCssEditor}>
+									{t("edit2")}
+								</Button>
+							</EditStyles>
+						</div>
 					)}
 				/>
 			</div>

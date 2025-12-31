@@ -38,6 +38,7 @@ export type DiffTree2TreeInfo = {
 	hasChanges: boolean;
 	added: number;
 	deleted: number;
+	mergeBase: GitVersion | null;
 	files: DiffTree2TreeFile[];
 };
 
@@ -153,7 +154,7 @@ interface GitCommandsModel {
 
 	push(data: GitSourceData): Promise<void>;
 	fetch(data: GitSourceData, force?: boolean, lock?: boolean): Promise<void>;
-	checkout(ref: string, force?: boolean): Promise<void>;
+	checkout(data: GitSourceData, ref: string, force?: boolean): Promise<void>;
 	merge(data: SourceData, opts: MergeOptions): Promise<MergeResult>;
 	formatMergeMessage(data: SourceData, opts: MergeMessageFormatOptions): Promise<string>;
 	restore(staged: boolean, filePaths: Path[]): Promise<void>;

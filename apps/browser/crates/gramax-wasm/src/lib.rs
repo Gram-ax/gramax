@@ -66,7 +66,7 @@ unsafe fn main() -> i32 {
     return 1;
   }
 
+  assert_eq!(create_status, 0, "failed to create directory {MOUNTPOINT}");
   info!("opfs was mounted on {MOUNTPOINT}");
-  assert_eq!(create_status, 0);
   0
 }

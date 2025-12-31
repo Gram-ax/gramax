@@ -29,7 +29,6 @@ pub trait Branch {
 
   fn delete_branch_local<S: AsRef<str>>(&self, shorthand: S) -> Result<()>;
   fn ensure_branch_exists_local<S: AsRef<str>>(&self, shorthand: S) -> Result<()>;
-  fn ensure_branch_has_upstream<S: AsRef<str>>(&self, shorthand: S) -> Result<bool>;
 }
 
 pub trait RemoteBranch {
@@ -183,28 +182,6 @@ impl<C: Creds> Branch for Repo<'_, C> {
       }
     };
     Ok(())
-  }
-
-  fn ensure_branch_has_upstream<S: AsRef<str>>(&self, shorthand: S) -> Result<bool> {
-    let Ok(mut branch) = self.0.find_branch(shorthand.as_ref(), BranchType::Local) else {
-      warn!(target: TAG, "branch {} does not exist; skipping upstream setting", shorthand.as_ref());
-      return Ok(false);
-    };
-
-    if branch.upstream().is_ok() {
-      return Ok(false);
-    }
-
-    let remote_name = format!("origin/{}", branch.name()?.or_utf8_err()?);
-
-    let Ok(_) = self.0.find_branch(&remote_name, BranchType::Remote) else {
-      warn!(target: TAG, "remote branch {remote_name} does not exist; skipping upstream setting");
-      return Ok(true);
-    };
-
-    info!(target: TAG, "setting upstream for branch {:?} to {remote_name}", shorthand.as_ref());
-    branch.set_upstream(Some(&remote_name))?;
-    Ok(false)
   }
 }
 

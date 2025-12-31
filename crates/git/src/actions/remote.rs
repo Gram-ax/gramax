@@ -7,7 +7,7 @@ use crate::creds::ActualCreds;
 use crate::creds::Creds;
 use crate::error::OrUtf8Err;
 use crate::error::Result;
-use crate::prelude::Branch;
+use crate::ext::lfs::Lfs;
 use crate::prelude::*;
 use crate::remote_callback::*;
 use crate::remote_progress::CreateRemoteTransferCallbacks;
@@ -88,15 +88,29 @@ impl<C: ActualCreds> RemoteConnect for Repo<'_, C> {
     let head = self.0.head()?;
     let mut remote = self.0.find_remote("origin")?;
     self.ensure_remote_has_postfix(&remote)?;
-    let should_set_upstream = self.ensure_branch_has_upstream(head.shorthand().or_utf8_err()?)?;
+
+    let local_name = head.shorthand().or_utf8_err()?;
+    let remote_name = format!("origin/{}", local_name);
+
+    let mut local_branch = self.0.find_branch(head.shorthand().or_utf8_err()?, BranchType::Local)?;
+    let has_corresponding_remote_branch = self.0.find_branch(&remote_name, BranchType::Remote).is_ok();
+    let has_upstream = local_branch.upstream().is_ok();
+
+    if !has_upstream && has_corresponding_remote_branch {
+      info!(target: TAG, "set upstream for branch {:?} (remote branch already exists)", head.shorthand().or_utf8_err()?);
+      local_branch.set_upstream(Some(&remote_name))?;
+    }
+
+    self.push_lfs_objects(&remote, cancel_token.clone())?;
+
     let refspec = head.name().or_utf8_err()?;
 
     info!(target: TAG, "pushing refspecs: {refspec}");
-
     remote.push(&[refspec], Some(&mut push_opts))?;
 
-    if should_set_upstream {
-      self.ensure_branch_has_upstream(head.shorthand().or_utf8_err()?)?;
+    if !has_upstream && !has_corresponding_remote_branch {
+      info!(target: TAG, "set upstream for branch {:?} (remote branch created)", head.shorthand().or_utf8_err()?);
+      local_branch.set_upstream(Some(&remote_name))?;
     }
 
     drop(cancel_token);
@@ -129,6 +143,9 @@ impl<C: ActualCreds> RemoteConnect for Repo<'_, C> {
     info!(target: TAG, "fetching refspec: {refspec:?} ({repo_path})");
 
     remote.fetch(&refspec, Some(&mut opts), None)?;
+
+    self.pull_missing_lfs_objects_by_head_upstream(cancel_token.clone())?;
+
     info!(target: TAG, "fetched successfully: {refspec:?}");
 
     drop(cancel_token);

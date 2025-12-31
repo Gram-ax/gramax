@@ -2,7 +2,7 @@ import EditMarkdown from "@ext/markdown/elements/md/component/EditMarkdown";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import Renderer from "../../../core/render/components/Renderer";
 import getComponents from "../../../core/render/components/getComponents/getComponents";
-import InlineCommentView from "@ext/markdown/elements/comment/edit/components/InlineCommentView";
+import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
 
 const EditInline = ({ node, selected }: NodeViewProps) => {
 	const commentId = node.attrs.comment?.id;

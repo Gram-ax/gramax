@@ -1,11 +1,12 @@
 import Divider from "@components/Atoms/Divider";
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
-import ArticleContextWrapper from "@core-ui/ArticleContextWrapper/ArticleContextWrapper";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
+import CatalogContextWrapper from "@core-ui/ScopedContextWrapper/CatalogContextWrapper";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import Path from "@core/FileProvider/Path/Path";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import { css } from "@emotion/react";
@@ -15,10 +16,10 @@ import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import DiagramData from "@ext/markdown/elements/diagrams/component/DiagramData";
 import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
+import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import Image from "@ext/markdown/elements/image/render/components/Image";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export const IMG_FILE_TYPES = ["png", "jpg", "jpeg", "bmp", "svg", "gif", "webp", "avif", "tiff", "heif", "ico", "pdf"];
 export const DIAGRAM_FILE_TYPES = {
@@ -40,6 +41,7 @@ interface DiffResourceScopesWrapperProps {
 
 const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 	const { children, oldScope, newScope, status, oldChildren, parentPath, type } = props;
+	const hasParentPath = !!parentPath?.path || !!parentPath?.oldPath;
 
 	const currentArticlePath = ArticlePropsService.value?.ref.path;
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
@@ -54,12 +56,13 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 
 		return (
 			<StatusWrapper status={status} isImg={isImg}>
-				<ArticleContextWrapper
-					articlePath={isDeleted ? oldArticlePath : newArticlePath}
+				<ScopeWrapper
 					scope={isDeleted ? oldScope : newScope}
+					hasParentPath={hasParentPath}
+					articlePath={isDeleted ? oldArticlePath : newArticlePath}
 				>
 					{children}
-				</ArticleContextWrapper>
+				</ScopeWrapper>
 			</StatusWrapper>
 		);
 	}
@@ -67,15 +70,15 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 	return (
 		<div>
 			<StatusWrapper status={FileStatus.delete} isImg={isImg}>
-				<ArticleContextWrapper articlePath={oldArticlePath} scope={oldScope}>
+				<ScopeWrapper scope={oldScope} hasParentPath={hasParentPath} articlePath={oldArticlePath}>
 					{oldChildren}
-				</ArticleContextWrapper>
+				</ScopeWrapper>
 			</StatusWrapper>
 			<Divider style={{ marginBottom: "0.5rem", marginTop: "0.5rem" }} />
 			<StatusWrapper status={FileStatus.new} isImg={isImg}>
-				<ArticleContextWrapper articlePath={newArticlePath} scope={newScope}>
+				<ScopeWrapper hasParentPath={hasParentPath} articlePath={newArticlePath} scope={newScope}>
 					{children}
-				</ArticleContextWrapper>
+				</ScopeWrapper>
 			</StatusWrapper>
 		</div>
 	);
@@ -197,6 +200,25 @@ const StatusWrapper = styled.div<{ status: FileStatus; isImg: boolean }>`
 			: statusStyles;
 	}};
 `;
+
+type ContextWrapperProps = { children: JSX.Element; scope?: TreeReadScope } & (
+	| { hasParentPath: false }
+	| { hasParentPath: true; articlePath: string }
+);
+
+const ScopeWrapper = (props: ContextWrapperProps) => {
+	const { scope, children, hasParentPath } = props;
+
+	if (hasParentPath) {
+		return (
+			<ArticleContextWrapper articlePath={props.articlePath} scope={scope}>
+				{children}
+			</ArticleContextWrapper>
+		);
+	}
+
+	return <CatalogContextWrapper scope={scope}>{children}</CatalogContextWrapper>;
+};
 
 const ResourceDiffView = ({
 	children,

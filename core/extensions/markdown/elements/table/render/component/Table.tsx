@@ -5,6 +5,7 @@ import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableT
 import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
 import { ReactElement, useLayoutEffect, useMemo, useRef, useState } from "react";
 import PrintColGroup from "@ext/markdown/elements/table/print/PrintColGroup";
+import modifyChildren from "@ext/markdown/elements/table/print/modifyChildren";
 
 interface TableProps {
 	children?: any;
@@ -21,10 +22,13 @@ const Table = (props: TableProps): ReactElement => {
 	const tableChildren = children?.props?.children;
 	const firstRow = Array.isArray(tableChildren) ? tableChildren[0] : tableChildren;
 
+	const modifiedChildren = isPrint ? modifyChildren(children, header) : children;
+
 	const colInfo: ColInfo[] = useMemo(() => {
-		const children = firstRow?.props?.children;
-		if (!children) return;
-		const cells = Array.isArray(children) ? children : [children];
+		const firstRowChildren = firstRow?.props?.children;
+		if (!firstRowChildren) return;
+
+		const cells = Array.isArray(firstRowChildren) ? firstRowChildren : [firstRowChildren];
 
 		if (!Array.isArray(cells) || !cells?.some((cell) => cell.props.colwidth)) return;
 
@@ -62,7 +66,7 @@ const Table = (props: TableProps): ReactElement => {
 				}
 			>
 				{ColGroupComponent}
-				{children}
+				{modifiedChildren}
 			</table>
 		);
 

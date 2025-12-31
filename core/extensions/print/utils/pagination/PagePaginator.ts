@@ -45,9 +45,7 @@ class PagePaginator extends Paginator {
 	}
 
 	cleanHeadingElementsIfNeed() {
-		const childNodes = this.currentContainer.childNodes;
-		if (!childNodes || !this.headingElements.length) return;
-		if (childNodes.length === this.headingElements.length) this.headingElements = [];
+		if (!this.lastChildNodeIsHeading()) this.headingElements = [];
 	}
 
 	static setUsablePageWidth(page: HTMLElement) {

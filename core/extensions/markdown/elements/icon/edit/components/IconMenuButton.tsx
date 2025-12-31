@@ -1,88 +1,179 @@
-import useLucideIconLists, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
-import { ItemContent, ListItem } from "@components/List/Item";
-import TooltipListLayout from "@components/List/TooltipListLayout";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import styled from "@emotion/styled";
+import { useBaseLucideIconList } from "@components/Atoms/Icon/lucideIconList";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
+import { useLazySearchList } from "@core-ui/hooks/useLazySearchList";
 import t from "@ext/localization/locale/translate";
 import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
+import CustomIcon from "@ext/markdown/elements/icon/render/components/Icon";
 import { Editor } from "@tiptap/core";
-import { memo, useState } from "react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
+import { DropdownMenuSub, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
+import { ToolbarDropdownMenuSubContent } from "@ui-kit/Toolbar";
+import { Icon } from "@ui-kit/Icon";
+import { Loader } from "@ui-kit/Loader";
+import { LoadMoreTrigger } from "@ui-kit/LoadMoreTrigger";
+import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useMediaQuery } from "@mui/material";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import { cn } from "@core-ui/utils/cn";
 
 interface IconMenuButtonProps {
 	editor: Editor;
-	className?: string;
-	onClose?: () => void;
 }
 
-const titleCustomIcons: ListItem = {
-	isTitle: true,
-	disable: true,
-	element: <div className="itemTitle">{t("catalog-icons-title")}</div>,
+type IconOption = {
+	value: string;
+	label: string;
+	svg?: string;
+	type: string;
 };
 
-const titleSystemIcons: ListItem = {
-	isTitle: true,
-	disable: true,
-	element: <div className="itemTitle">{t("system-icons-title")}</div>,
-};
-
-const IconMenuButton = ({ editor, onClose, className }: IconMenuButtonProps) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
-
+const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 	const [customIconsList, setCustomIconsList] = useState<IconEditorProps[]>([]);
+	const [listHeight, setListHeight] = useState<string | null>(null);
+	const listRef = useRef<HTMLDivElement>(null);
 
-	const lucideIconListFiltered = useLucideIconLists().lucideIconList.filter(
-		(listItem) => !customIconsList.some((icon) => icon.code === listItem.labelField),
+	const { disabled } = ButtonStateService.useCurrentAction({ action: "icon" });
+	const lucideIconList = useBaseLucideIconList();
+	const isMobile = useMediaQuery(cssMedia.JSnarrow);
+
+	const { call: getIcons, status } = useApi<IconEditorProps[], IconEditorProps[]>({
+		url: (api) => api.getCustomIconsList(),
+		onDone: (data) => {
+			if (JSON.stringify(data) === JSON.stringify(customIconsList)) return;
+			setCustomIconsList(data);
+		},
+	});
+
+	const insertCustomIcon = useCallback(
+		(code: string) => {
+			editor
+				.chain()
+				.setIcon({ code, svg: customIconsList.find((i) => i.code === code)?.svg })
+				.focus(editor.state.selection.anchor)
+				.run();
+		},
+		[editor, customIconsList],
 	);
 
-	const iconText = t("icon");
-	const iconPlaceholderText = t("icon-cone");
+	const allOptions = useMemo(() => {
+		return [
+			...customIconsList.map((icon) => ({ value: icon.code, label: icon.code, type: "custom", svg: icon.svg })),
+			...lucideIconList.map((icon) => ({ value: icon.value, label: icon.label, type: "lucide" })),
+		];
+	}, [customIconsList, lucideIconList]);
 
-	const getIcons = async () => {
-		const res = await FetchService.fetch<IconEditorProps[]>(apiUrlCreator.getCustomIconsList());
-		if (!res.ok) return;
-		const icons = await res.json();
-		if (JSON.stringify(icons) !== JSON.stringify(customIconsList)) {
-			setCustomIconsList(icons);
+	const filter = useCallback((option: IconOption, searchQuery: string) => {
+		if (!searchQuery) return 0;
+		if (option.value.toLowerCase().includes(searchQuery.toLowerCase())) return 2;
+		if (option.label.toLowerCase().includes(searchQuery.toLowerCase())) return 1;
+		return 0;
+	}, []);
+
+	const { visibleOptions, hasMoreItems, handleLoadMore, handleSearchChange, handleOpenChange } =
+		useLazySearchList<IconOption>({
+			pageSize: 30,
+			options: allOptions,
+			filter,
+			value: "",
+			defaultValue: "",
+		});
+
+	const insertLucideIcon = useCallback(
+		(labelField: string) => {
+			editor.chain().setIcon({ code: labelField }).focus(editor.state.selection.anchor).run();
+		},
+		[editor],
+	);
+
+	const onOpenChange = useCallback(
+		(open: boolean) => {
+			handleOpenChange(open);
+			if (!open) setListHeight(null);
+			if (open && status !== RequestStatus.Loading) getIcons();
+		},
+		[getIcons, status, editor, handleOpenChange],
+	);
+
+	const customList = useMemo(() => {
+		return visibleOptions.filter((option) => option.type === "custom");
+	}, [visibleOptions]);
+
+	const lucideList = useMemo(() => {
+		return visibleOptions.filter((option) => option.type === "lucide");
+	}, [visibleOptions]);
+
+	useLayoutEffect(() => {
+		if (status === RequestStatus.Ready && listRef.current) {
+			const height = listRef.current.offsetHeight;
+			setListHeight(`${height}px`);
 		}
-	};
-
-	const itemClickHandler = (labelField: string) => {
-		onClose();
-		editor.commands.setIcon({ code: labelField, svg: customIconsList.find((i) => i.code === labelField)?.svg });
-		editor.commands.focus(editor.state.selection.anchor);
-	};
-	const items: ItemContent[] = (
-		customIconsList?.length > 0 ? [titleCustomIcons].concat(customIconsList.map((i) => toListItem(i))) : []
-	).concat([titleSystemIcons].concat(lucideIconListFiltered));
+	}, [status]);
 
 	return (
-		<TooltipListLayout
-			className={className}
-			action="icon"
-			buttonIcon="smile"
-			items={items}
-			onShow={getIcons}
-			tooltipText={iconText}
-			onItemClick={itemClickHandler}
-			filterItems={iconFilter(customIconsList)}
-			placeholder={iconPlaceholderText}
-		/>
+		<DropdownMenuSub onOpenChange={onOpenChange}>
+			<DropdownMenuSubTrigger disabled={disabled}>
+				<div className="flex flex-row items-center gap-2 w-full">
+					<Icon icon="smile" />
+					{t("icon")}
+				</div>
+			</DropdownMenuSubTrigger>
+			<ToolbarDropdownMenuSubContent
+				ref={listRef}
+				sideOffset={!isMobile ? 2 : 6}
+				contentClassName="p-0 lg:shadow-hard-base"
+				className={cn(!isMobile && "px-3 py-3 pl-2")}
+				alignOffset={!isMobile ? -18 : 0}
+				style={{
+					maxWidth: "calc(min(11rem, var(--radix-dropdown-menu-content-available-width, 100%)))",
+					height: listHeight,
+					maxHeight: listHeight,
+					overflowY: "auto",
+				}}
+			>
+				<Command shouldFilter={false}>
+					<CommandInput onValueChange={handleSearchChange} placeholder={t("icon-cone")} />
+					<CommandList>
+						<CommandEmpty>{t("list.no-results-found")}</CommandEmpty>
+						{(status !== RequestStatus.Ready || customList.length !== 0) && (
+							<CommandGroup heading={t("catalog-icons-title")}>
+								{status === RequestStatus.Ready ? (
+									customList.map((icon) => (
+										<CommandItem key={icon.value} onSelect={() => insertCustomIcon(icon.value)}>
+											<div className="flex flex-row items-center gap-2 overflow-hidden">
+												<CustomIcon code={icon.value} svg={icon.svg} />
+												<div className="truncate whitespace-nowrap">{icon.label}</div>
+											</div>
+										</CommandItem>
+									))
+								) : (
+									<CommandItem disabled>
+										<div className="flex flex-row items-center gap-2">
+											<Loader size="sm" />
+											{t("loading")}
+										</div>
+									</CommandItem>
+								)}
+							</CommandGroup>
+						)}
+						{lucideList.length > 0 && (
+							<CommandGroup heading={t("system-icons-title")}>
+								{lucideList.map((icon) => (
+									<CommandItem key={icon.value} onSelect={() => insertLucideIcon(icon.value)}>
+										<div className="flex flex-row items-center gap-2 overflow-hidden">
+											<Icon icon={icon.value} />
+											<span className="truncate whitespace-nowrap">{icon.label}</span>
+										</div>
+									</CommandItem>
+								))}
+							</CommandGroup>
+						)}
+						<LoadMoreTrigger onLoad={handleLoadMore} hasMore={hasMoreItems} />
+					</CommandList>
+				</Command>
+			</ToolbarDropdownMenuSubContent>
+		</DropdownMenuSub>
 	);
 };
 
-export default memo(styled(IconMenuButton)`
-	.itemTitle {
-		width: 100%;
-		padding: 5px 10px;
-		text-transform: uppercase;
-		color: var(--color-loader);
-		font-weight: 450;
-		font-size: 12px;
-	}
-
-	i {
-		line-height: 1px;
-	}
-`);
+export default memo(IconMenuButton);

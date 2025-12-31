@@ -22,9 +22,13 @@ import Head from "next/head";
 import { initModules } from "@app/resolveModule/frontend";
 
 import { setFeatureList } from "@ext/toggleFeatures/features";
-import { Toaster } from "@ui-kit/Toast";
+import { PluginConfig } from "@plugins/index";
+import { usePluginLoader } from "@plugins/hooks/usePluginLoader";
+import { toast, Toaster } from "@ui-kit/Toast";
 import { TooltipProvider } from "@ui-kit/Tooltip";
 import { useEffect, useLayoutEffect, useState } from "react";
+import { usePluginEvent } from "@plugins/api/events";
+import { useRouter } from "next/router";
 
 const useInitModules = () => {
 	const [isInit, setIsInit] = useState(false);
@@ -58,7 +62,18 @@ export default function App({
 	}, [pageProps.context?.features]);
 
 	const isInit = useInitModules();
-	if (!isInit) return null;
+	const router = useRouter();
+
+	const { pluginsLoaded } = usePluginLoader({
+		basePath: pageProps.context?.conf?.basePath ?? "",
+		workspacePath: pageProps.context?.workspace?.current,
+		gesUrl: pageProps?.context?.conf?.enterprise?.gesUrl,
+		enabled: isInit && !!pageProps.context,
+	});
+
+	usePluginEvent("app:open", { ...pageProps, path: router.asPath });
+	usePluginEvent("app:close");
+	if (!isInit || !pluginsLoaded) return null;
 
 	if (pageProps.error) return <Error statusCode={pageProps.error} />;
 

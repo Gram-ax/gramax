@@ -1,7 +1,6 @@
-import { Modal, ModalContent, ModalBody } from "@ui-kit/Modal";
+import { Modal, ModalContent, ModalBody, ModalTrigger } from "@ui-kit/Modal";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui-kit/Tabs";
-import Icon from "@components/Atoms/Icon";
+import { Icon } from "@ui-kit/Icon";
 import getStorageIconByData from "@ext/storage/logic/SourceDataProvider/logic/getStorageIconByData";
 import { useCallback, useState } from "react";
 import t from "@ext/localization/locale/translate";
@@ -12,7 +11,10 @@ import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import sourceComponents from "@ext/storage/logic/SourceDataProvider/logic/sourceComponents";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { getAllSourceTypes, getAllowedSourceTypes } from "@ext/import/logic/useFilteredSourceData";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { Field } from "@ui-kit/Field";
+import { SearchSelect } from "@ui-kit/SearchSelect";
+import { Divider } from "@ui-kit/Divider";
+import { cn } from "@core-ui/utils/cn";
 
 interface CreateStorageContentProps {
 	// Default data is used to prefill the form
@@ -20,6 +22,8 @@ interface CreateStorageContentProps {
 	// Default data fields in prop defaultData set as readonly
 	isReadonly?: boolean;
 	sourceType?: SourceType;
+	title?: string;
+	trigger?: JSX.Element;
 	isOpen?: boolean;
 	onSubmit: (data: SourceData) => void;
 	setIsOpen?: (isOpen: boolean) => void;
@@ -35,14 +39,15 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 		data,
 		isReadonly,
 		sourceType,
+		title = t("forms.create-source.name"),
+		trigger,
 	} = props;
 	const [isOpen, setIsOpen] = useState(propsIsOpen);
+	const [selectedSourceType, setSelectedSourceType] = useState<string>(sourceType?.toString() || "");
 	const { primaryButton, secondaryButton } = useGetFooterButtons();
 	const { isTauri } = usePlatform();
 	const allowedSourceTypes = getAllowedSourceTypes(isTauri);
 	const allSourceTypes = getAllSourceTypes();
-	const firstSourceType = Object.keys(allowedSourceTypes)?.[0] as SourceType;
-	const desktopOnlyTooltip = t("forms.create-source.desktop-only");
 
 	useWatch(() => {
 		setIsOpen(propsIsOpen);
@@ -71,55 +76,80 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 
 	return (
 		<Modal open={isOpen} onOpenChange={onOpenChange}>
+			{trigger && <ModalTrigger>{trigger}</ModalTrigger>}
 			<ModalContent data-modal-root style={{ maxWidth: "570px" }}>
-				<FormHeader
-					icon="plug"
-					title={t("forms.create-source.name")}
-					description={t("forms.create-source.description")}
-				/>
+				<FormHeader icon="plug" title={title} description={t("forms.create-source.description")} />
 				<ModalBody>
-					<Tabs defaultValue={sourceType || firstSourceType}>
-						<TabsList className="w-full">
-							{allSourceTypes.map((type) => {
-								const isDisabledByAllowed = !allowedSourceTypes[type];
-								const isDisabledByReadonly = Boolean(isReadonly && type !== sourceType);
-								const disabled = isDisabledByAllowed || isDisabledByReadonly;
+					<Field
+						title={`${t("type")} ${t("source2").toLowerCase()}`}
+						description={
+							Object.keys(allowedSourceTypes).length !== allSourceTypes.length
+								? t("forms.create-source.props.source.description")
+								: undefined
+						}
+						layout="vertical"
+						labelClassName="w-44"
+						control={() => (
+							<SearchSelect
+								placeholder={t("select")}
+								options={allSourceTypes.map((type: string) => {
+									const isDisabledByAllowed = !allowedSourceTypes[type];
+									const isDisabledByReadonly = Boolean(isReadonly && type !== sourceType);
+									const disabled = isDisabledByAllowed || isDisabledByReadonly;
 
-								return (
-									<div key={type} className="flex-1">
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<div className="w-full">
-													<TabsTrigger value={type} className="flex-1 w-full" disabled={disabled}>
-														<Icon
-															code={getStorageIconByData({
-																sourceType: type as SourceType,
-																userName: "",
-																userEmail: "",
-															})}
-															className="text-base"
-														/>
-														{type}
-													</TabsTrigger>
-												</div>
-											</TooltipTrigger>
-											{isDisabledByAllowed && (
-												<TooltipContent>{desktopOnlyTooltip}</TooltipContent>
+									return {
+										label: type,
+										value: type,
+										disabled,
+									};
+								})}
+								value={selectedSourceType}
+								onChange={(value) => setSelectedSourceType(value)}
+								renderOption={(option) => {
+									return (
+										<div
+											className={cn(
+												"flex items-center gap-2 w-full",
+												option.type === "trigger" && "ml-2",
 											)}
-										</Tooltip>
-									</div>
-								);
-							})}
-						</TabsList>
-						{allSourceTypes.map((type) => {
-							const Form = sourceComponents[type];
-							return (
-								<TabsContent tabIndex={-1} key={type} value={type} className="mt-4 lg:mt-5">
-									<Form onSubmit={addSourceData} type={type} data={data} isReadonly={isReadonly} />
-								</TabsContent>
-							);
-						})}
-					</Tabs>
+										>
+											<Icon
+												icon={getStorageIconByData({
+													sourceType: option.option.value as SourceType,
+													userName: "",
+													userEmail: "",
+												})}
+												className="text-base"
+											/>
+											{option.option.label}
+											{option.type === "list" && selectedSourceType === option.option.value && (
+												<Icon icon="check" className="ml-auto" />
+											)}
+										</div>
+									);
+								}}
+								disabled={isReadonly}
+							/>
+						)}
+					/>
+					{selectedSourceType && sourceComponents[selectedSourceType] && (
+						<>
+							<div className="mt-4 lg:mt-5">
+								<Divider className="mb-4 lg:mb-5" />
+								{(() => {
+									const Form = sourceComponents[selectedSourceType];
+									return (
+										<Form
+											onSubmit={addSourceData}
+											type={selectedSourceType}
+											data={data}
+											isReadonly={isReadonly}
+										/>
+									);
+								})()}
+							</div>
+						</>
+					)}
 				</ModalBody>
 				<FormFooter primaryButton={primaryButton} secondaryButton={secondaryButton} />
 			</ModalContent>

@@ -28,6 +28,7 @@ import getByPath from "./resource/getByPath";
 import removeResource from "./resource/remove";
 import set from "./resource/set";
 import updateContent from "./updateContent";
+import getLinkItemByPath from "@app/commands/article/features/getLinkItemByPath";
 
 const article = {
 	features: {
@@ -35,6 +36,7 @@ const article = {
 		getArticleHeadersByRelativePath,
 		getContent,
 		getLinkItems,
+		getLinkItemByPath,
 		getCustomArticle,
 		getRenderContent,
 		getEditorContent,

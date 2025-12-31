@@ -163,7 +163,8 @@ export const tabsFoundElementBeforeHighlightHandler = (foundEl: HTMLElement) => 
 	if (!neededTabActivator) return;
 
 	if (!neededTabActivator.classList.contains("active")) neededTabActivator.click();
-	const elementToHighlight = neededTabActivator.querySelector("span");
+	// div in editor / span in docportal
+	const elementToHighlight = neededTabActivator.querySelector(":scope > *");
 
 	return elementToHighlight ? { additionalElementsToHighlight: [elementToHighlight] } : undefined;
 };

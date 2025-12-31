@@ -63,6 +63,14 @@ const selectNodes = (editor: Editor): boolean => {
 	return true;
 };
 
+declare module "@tiptap/core" {
+	interface Commands<ReturnType> {
+		copyArticles: {
+			clearHistory: () => ReturnType;
+		};
+	}
+}
+
 interface CopyArticlesOptions {
 	articleProps: ClientArticleProps;
 	apiUrlCreator: ApiUrlCreator;
@@ -87,6 +95,20 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 			"Mod-Z": () => this.editor.commands.undo(),
 			"Mod-Y": () => this.editor.commands.redo(),
 			"Shift-Mod-Z": () => this.editor.commands.redo(),
+		};
+	},
+
+	addCommands() {
+		return {
+			clearHistory:
+				() =>
+				({ chain }) => {
+					return chain()
+						.setMeta("ignoreDeleteNode", true)
+						.setMeta("ignoreDeleteMark", true)
+						.setMeta("addToHistory", false)
+						.run();
+				},
 		};
 	},
 

@@ -34,6 +34,12 @@ pub struct HealthcheckError {
   pub prev_log: Option<GcLog>,
 }
 
+impl std::error::Error for HealthcheckError {
+  fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+    self.inner.as_ref().map(|e| e as &dyn std::error::Error)
+  }
+}
+
 #[derive(Clone, Debug)]
 pub struct GcLog {
   pub timestamp_sec: u64,
@@ -251,6 +257,7 @@ impl<C: Creds> Repo<'_, C> {
         limit = opts.loose_objects_limit.as_ref().map_or("".to_string(), |limit| format!("; limit set to {limit}"))
       );
 
+      self.remove_lfs_objects(&unreachable_objects)?;
       self.remove_objects(&unreachable_objects)?;
     } else {
       info!(
@@ -292,6 +299,26 @@ impl<C: Creds> Repo<'_, C> {
     let packfile_path = pack_dir.join(pack_name).with_extension("pack");
 
     info!(target: TAG, "repacked {} objects in {:?}; packfile: {}", packbuilder.written(), time_repack, packfile_path.display());
+    Ok(())
+  }
+
+  fn remove_lfs_objects(&self, objects: &IndexSet<Oid>) -> Result<()> {
+    for oid in objects {
+      let Ok(object) = self.0.find_blob(*oid) else {
+        warn!(target: TAG, "remove lfs objects: failed to find blob {oid}; skipping");
+        continue;
+      };
+
+      let Some(pointer) = git2_lfs::Pointer::from_str_short(object.content()) else {
+        continue;
+      };
+
+      let path = self.0.path().join("lfs/objects").join(pointer.path());
+      if path.exists() {
+        std::fs::remove_file(&path)?;
+      }
+    }
+
     Ok(())
   }
 

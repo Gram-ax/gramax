@@ -3,14 +3,14 @@ import { RoleId } from "@ext/enterprise/components/admin/settings/components/rol
 import groupsTableColumns from "@ext/enterprise/components/admin/settings/resources/components/GroupsTable/groupsTableColumns";
 import { GroupAndRoleToolbarAddBtn } from "@ext/enterprise/components/admin/settings/resources/components/GroupsTable/GroupToolbarAddBtn";
 import { ClientAccessGroup } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import { getGroupsWithNames } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/utils/groupUtils";
 import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
-import { defaultGroupKeys } from "@ext/enterprise/types/EnterpriseAdmin";
 import t from "@ext/localization/locale/translate";
 import { getCoreRowModel, getFilteredRowModel, useReactTable, useTableSelection } from "@ui-kit/DataTable";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 interface GroupsTableProps {
 	groups: ClientAccessGroup[];
@@ -20,7 +20,7 @@ interface GroupsTableProps {
 const GroupsTable = ({ groups, onChange }: GroupsTableProps) => {
 	const [rowSelection, setRowSelection] = useState({});
 	const { settings } = useSettings();
-	const allGroups = [...defaultGroupKeys, ...Object.keys(settings.groups)];
+	const allGroups = useMemo(() => getGroupsWithNames(settings.groups), [settings.groups]);
 
 	const handleRoleCellChange = useCallback(
 		(groupId: string, role: RoleId) => {
@@ -37,8 +37,18 @@ const GroupsTable = ({ groups, onChange }: GroupsTableProps) => {
 		[groups, onChange],
 	);
 
+	const enrichedGroups = useMemo(() => {
+		return groups.map((group) => {
+			const groupInfo = allGroups.find((g) => g.id === group.id);
+			return {
+				...group,
+				name: groupInfo?.name ?? group.id,
+			};
+		});
+	}, [groups, allGroups]);
+
 	const groupsTable = useReactTable({
-		data: groups,
+		data: enrichedGroups,
 		columns: groupsTableColumns,
 		getCoreRowModel: getCoreRowModel(),
 		getFilteredRowModel: getFilteredRowModel(),

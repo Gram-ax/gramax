@@ -48,7 +48,7 @@ export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) 
 			<DropdownMenuTriggerButton variant="ghost" className="aspect-square rounded-full p-0">
 				<Avatar size="sm">
 					{/* <AvatarImage src="https://github.com/shadcn.png" /> */}
-					<AvatarFallback>{code}</AvatarFallback>
+					<AvatarFallback uniqueId={userInfo?.mail ?? ""}>{code}</AvatarFallback>
 				</Avatar>
 			</DropdownMenuTriggerButton>
 			<DropdownMenuContent align="end">

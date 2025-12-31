@@ -1,18 +1,24 @@
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Level } from "@ext/markdown/elements/heading/edit/model/heading";
 import { Editor } from "@tiptap/core";
+import { ToolbarIcon, ToolbarToggleItem } from "@ui-kit/Toolbar";
 
-const HeadingMenuButton = ({ level, editor }: { level: Level; editor: Editor }) => {
+interface HeadingMenuButtonProps {
+	level: Level;
+	editor: Editor;
+}
+
+const HeadingMenuButton = ({ level, editor }: HeadingMenuButtonProps) => {
 	return (
-		<Button
-			onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
+		<ToolbarToggleItem
 			tooltipText={`${t("editor.heading")} ${level}`}
+			active={editor.isActive("heading", { level })}
 			hotKey={`Mod-Alt-${level}`}
-			icon={`heading-${level}`}
-			iconViewBox="3 3 20 20"
-			nodeValues={{ action: "heading", attrs: { level } }}
-		/>
+			value={level.toString()}
+			onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
+		>
+			<ToolbarIcon icon={`heading-${level}-custom`} />
+		</ToolbarToggleItem>
 	);
 };
 

@@ -260,16 +260,16 @@ describe("Paginator System", () => {
 			};
 
 			const paginator = new RowPaginator(row, mockParentPaginator as any);
-			paginator["rows"] = [row];
-			paginator["rowIndex"] = 0;
-			paginator["cellIndex"] = 0;
+			paginator["_rows"] = [row];
+			paginator["_rowIndex"] = 0;
+			paginator["_cellIndex"] = 0;
 			paginator["currentContainer"] = cell;
-			paginator["currentTr"] = row;
+			paginator["_currentTr"] = row;
 
 			const newContainer = paginator.createPage();
 
 			expect(mockParentPaginator.createPage).toHaveBeenCalled();
-			expect(paginator["rows"]).toHaveLength(2);
+			expect(paginator["_rows"]).toHaveLength(2);
 			expect(newContainer).not.toBeNull();
 		});
 
@@ -320,10 +320,11 @@ describe("Paginator System", () => {
 			};
 
 			const paginator = new ListPaginator(ol, mockParentPaginator as any);
-			paginator["currentStartNumber"] = 3;
+			paginator["_currentStartNumber"] = 3;
+			paginator["_listContainer"] = document.createElement("ol");
 			paginator["currentContainer"] = document.createElement("li");
 
-			const newContainer = paginator.createPage();
+			paginator.createPage();
 
 			expect(mockParentPaginator.createPage).toHaveBeenCalled();
 			const newList = mockParentPaginator.createPage.mock.results[0].value.children[0];

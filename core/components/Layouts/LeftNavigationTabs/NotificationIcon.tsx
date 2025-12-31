@@ -5,6 +5,7 @@ import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/Arti
 import { classNames } from "@components/libs/classNames";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
+import NavigationTabsService from "./NavigationTabsService";
 
 interface NotificationIconProps {
 	isMacDesktop: boolean;
@@ -12,15 +13,14 @@ interface NotificationIconProps {
 	tooltipText?: string;
 	count?: number;
 	className?: string;
-	setCurrentTab: (tab: LeftNavigationTab) => void;
 	onCloseNotification?: () => void;
 }
 
 const NotificationIcon = (props: NotificationIconProps) => {
-	const { className, setCurrentTab, isMacDesktop, onCloseNotification, count = 0, iconCode, tooltipText } = props;
+	const { className, isMacDesktop, onCloseNotification, count = 0, iconCode, tooltipText } = props;
 
 	const onClose = () => {
-		setCurrentTab(LeftNavigationTab.None);
+		NavigationTabsService.setTop(LeftNavigationTab.None);
 		onCloseNotification?.();
 	};
 

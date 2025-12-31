@@ -1,9 +1,9 @@
-import { ReactNode, memo } from "react";
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
 import { QuestionType } from "@ext/markdown/elements/question/types";
+import { ReactNode, memo } from "react";
 import { shallow } from "zustand/shallow";
-import { classNames } from "@components/libs/classNames";
 import { FocusState } from "../logic/QuestionsStore";
 
 const Wrapper = styled.div`
@@ -57,7 +57,7 @@ export const BaseQuestion = memo(({ children, required, focused, focusState }: B
 			})}
 		>
 			<div className="p-4" contentEditable={false}>
-				<div className="question-number flex items-center justify-center border text-secondary-fg shadow-sm h-8 w-8 p-2 border-primary-border bg-secondary-bg-hover rounded-full font-medium" />
+				<div className="question-number flex items-center justify-center border text-secondary-fg shadow-soft-sm h-8 w-8 p-2 border-primary-border bg-secondary-bg-hover rounded-full font-medium" />
 			</div>
 			<StyledContent className="flex flex-col gap-4 w-full p-4 pl-0" data-required={required}>
 				{children}

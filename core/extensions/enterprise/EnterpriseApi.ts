@@ -272,9 +272,12 @@ class EnterpriseApi {
 
 	async existsQuizTest(token: string, testId: number): Promise<boolean> {
 		try {
-			const res = await fetch(`${this._gesUrl}/enterprise/quiz/test/exist?id=${encodeURIComponent(testId)}`, {
-				headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-			});
+			const res = await fetch(
+				`${this._gesUrl}/enterprise/modules/quiz/test/exist?id=${encodeURIComponent(testId)}`,
+				{
+					headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+				},
+			);
 
 			if (!res.ok) return false;
 
@@ -285,7 +288,7 @@ class EnterpriseApi {
 	}
 
 	async addQuizTest(token: string, test: QuizTestCreate): Promise<boolean> {
-		const res = await fetch(`${this._gesUrl}/enterprise/quiz/test/add`, {
+		const res = await fetch(`${this._gesUrl}/enterprise/modules/quiz/test/add`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
 			body: JSON.stringify(test),
@@ -297,7 +300,7 @@ class EnterpriseApi {
 	}
 
 	async addQuizAnswer(token: string, answer: QuizAnswerCreate): Promise<boolean> {
-		const res = await fetch(`${this._gesUrl}/enterprise/quiz/answer/add`, {
+		const res = await fetch(`${this._gesUrl}/enterprise/modules/quiz/answer/add`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
 			body: JSON.stringify(answer),
@@ -311,7 +314,7 @@ class EnterpriseApi {
 	async getQuizTestByUser(token: string, testId: number, userMail: string): Promise<QuizAnswerCreate["answers"]> {
 		try {
 			const res = await fetch(
-				`${this._gesUrl}/enterprise/quiz/answer/get-by-user?test_id=${encodeURIComponent(
+				`${this._gesUrl}/enterprise/modules/quiz/answer/get-by-user?test_id=${encodeURIComponent(
 					testId,
 				)}&user_mail=${encodeURIComponent(userMail)}`,
 				{

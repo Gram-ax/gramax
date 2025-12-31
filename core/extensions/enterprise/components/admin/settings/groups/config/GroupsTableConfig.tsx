@@ -6,6 +6,7 @@ import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
 import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
 import { Icon } from "@ui-kit/Icon";
 import { Group } from "../types/GroupsComponentTypes";
+import t from "@ext/localization/locale/translate";
 
 export const groupTableColumns: ColumnDef<Group>[] = [
 	{
@@ -42,6 +43,6 @@ export const groupTableColumns: ColumnDef<Group>[] = [
 	},
 	{
 		accessorKey: "group",
-		header: "Группа",
+		header: t("enterprise.admin.resources.groups.group"),
 	},
 ];

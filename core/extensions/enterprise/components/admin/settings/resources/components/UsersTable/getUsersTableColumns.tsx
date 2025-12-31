@@ -1,14 +1,12 @@
 import { REPOSITORY_USER_ROLES, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
-import { GuestsSettings } from "@ext/enterprise/components/admin/settings/guests/types/GuestsComponent";
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import t from "@ext/localization/locale/translate";
 import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
 import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
-import { Icon } from "@ui-kit/Icon";
 import { MultiSelect } from "@ui-kit/MultiSelect";
 import { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { InvalidEmailCell } from "@ext/enterprise/components/admin/settings/components/InvalidEmailCell";
 
 export type UsersTableColumn = {
 	value: string;
@@ -17,7 +15,7 @@ export type UsersTableColumn = {
 	branches?: string[];
 };
 
-const getUsersTableColumns = (isExternal: boolean, guests?: GuestsSettings): ColumnDef<UsersTableColumn>[] => {
+const getUsersTableColumns = (isExternal: boolean): ColumnDef<UsersTableColumn>[] => {
 	const commonColumns: ColumnDef<UsersTableColumn>[] = [
 		{
 			id: TABLE_SELECT_COLUMN_CODE,
@@ -49,26 +47,7 @@ const getUsersTableColumns = (isExternal: boolean, guests?: GuestsSettings): Col
 			accessorKey: "value",
 			header: t("enterprise.admin.resources.users.user"),
 			cell: ({ row }) => {
-				const user = row.original.value;
-				if (!isExternal) return <span>{user}</span>;
-
-				const domain = user.split("@")[1];
-				const isActive = !guests?.whitelistEnabled || guests?.domains?.includes(domain);
-				return (
-					<div className={`flex items-center gap-2 ${!isActive ? "" : ""}`}>
-						<span>{user}</span>
-						{!isActive && (
-							<Tooltip>
-								<TooltipTrigger>
-									<Icon icon="circle-alert" className="text-red-500" />
-								</TooltipTrigger>
-								<TooltipContent>
-									<p>{t("enterprise.admin.guests.inactive")}</p>
-								</TooltipContent>
-							</Tooltip>
-						)}
-					</div>
-				);
+				return <InvalidEmailCell value={row.original.value} />;
 			},
 		},
 		{

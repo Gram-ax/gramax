@@ -18,9 +18,26 @@ const logLevels = {
 
 export const attachConsole = async () => {
 	void listen<string>("log", (p) => {
-		const { level, message, target, file, line } = JSON.parse(p.payload) as LogEvent;
-		const log = file && line ? `${target}: ${message} (${file}:${line})` : `${target}: ${message}`;
-		logLevels[level](log);
+		const log = p.payload;
+		switch (true) {
+			case log.startsWith("INFO"):
+				console.info(log);
+				break;
+			case log.startsWith("WARN"):
+				console.warn(log);
+				break;
+			case log.startsWith("ERROR"):
+				console.error(log);
+				break;
+			case log.startsWith("TRACE"):
+				console.trace(log);
+				break;
+			default:
+				console.log(log);
+				break;
+		}
+		// const { level, message, target, file, line } = JSON.parse(p.payload) as LogEvent;
+		// const log = file && line ? `${target}: ${message} (${file}:${line})` : `${target}: ${message}`;
 	});
 
 	// const { log, warn, error, debug, trace } = console;

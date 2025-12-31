@@ -44,6 +44,7 @@ export default abstract class GitIndexService {
 		"elements/snippet/edit",
 		"elements/snippet/remove",
 		"mergeRequests/create",
+		"mergeRequests/deleteMr",
 		"mergeRequests/merge",
 		"mergeRequests/setApproval",
 		"storage/publish",

@@ -1,4 +1,4 @@
-import VersionControlCommentCountSrc from "@components/Comments/CommentCount";
+import VersionControlCommentCountSrc from "@ext/markdown/elements/comment/edit/components/CommentCount";
 import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";

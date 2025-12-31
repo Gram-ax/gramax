@@ -7,7 +7,7 @@ import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 
 interface DrawioProps {
 	id: string;
@@ -72,9 +72,9 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 
 	return (
 		<div ref={parentRef} data-qa="qa-drawio">
-			<Skeleton isLoaded={isLoaded} width="100%" height={size?.height}>
-				<div className={className} data-focusable="true">
-					<BlockCommentView commentId={commentId}>
+			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
+				<Skeleton isLoaded={isLoaded} width="100%" height={size?.height}>
+					<div className={className} data-focusable="true">
 						<div className="drawio">
 							<Image
 								ref={ref}
@@ -91,9 +91,9 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 								}}
 							/>
 						</div>
-					</BlockCommentView>
-				</div>
-			</Skeleton>
+					</div>
+				</Skeleton>
+			</BlockCommentView>
 
 			{title && !noEm && <em>{title}</em>}
 		</div>

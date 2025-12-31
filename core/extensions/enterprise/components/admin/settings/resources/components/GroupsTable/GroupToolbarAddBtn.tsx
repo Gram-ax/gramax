@@ -1,6 +1,7 @@
 import { REPOSITORY_GROUPS_ROLES, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { SelectDisableItem } from "@ext/enterprise/components/admin/settings/components/SelectDisableItem";
 import { TriggerAddButtonTemplate } from "@ext/enterprise/components/admin/settings/components/TriggerAddButtonTemplate";
+import { GroupInfo } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/types/GroupTypes";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
@@ -25,7 +26,7 @@ type FormData = z.infer<ReturnType<typeof createFormSchema>>;
 interface GroupAndRoleToolbarAddBtnProps {
 	disable?: boolean;
 	onAdd: (groups: string[], role: RoleId) => void;
-	groups: string[];
+	groups: GroupInfo[];
 	existingGroups: string[];
 }
 
@@ -47,13 +48,15 @@ export const GroupAndRoleToolbarAddBtn = ({
 
 	const loadOptions = useCallback(
 		async ({ searchQuery }: { searchQuery: string }) => {
-			const filteredGroups = groups.filter((group) => group.toLowerCase().includes(searchQuery.toLowerCase()));
+			const filteredGroups = groups.filter((group) =>
+				group.name.toLowerCase().includes(searchQuery.toLowerCase()),
+			);
 
 			return {
 				options: filteredGroups.map((group) => ({
-					value: group,
-					label: group,
-					disabled: existingGroups.includes(group),
+					value: group.id,
+					label: group.name,
+					disabled: existingGroups.includes(group.id),
 				})),
 			};
 		},
@@ -75,23 +78,23 @@ export const GroupAndRoleToolbarAddBtn = ({
 
 	const cancelButtonProps = useMemo(
 		() =>
-			({
-				variant: "outline",
-				onClick: () => {
-					form.reset();
-					setIsModalOpen(false);
-				},
-			} as ButtonProps),
+		({
+			variant: "outline",
+			onClick: () => {
+				form.reset();
+				setIsModalOpen(false);
+			},
+		} as ButtonProps),
 		[form],
 	);
 
 	const confirmButtonProps = useMemo(
 		() =>
-			({
-				type: "submit",
-				onClick: handleAddSelectedGroups,
-				disabled: !form.watch("groups").length || disable,
-			} as ButtonProps),
+		({
+			type: "submit",
+			onClick: handleAddSelectedGroups,
+			disabled: !form.watch("groups").length || disable,
+		} as ButtonProps),
 		[form, disable, handleAddSelectedGroups],
 	);
 
@@ -100,16 +103,16 @@ export const GroupAndRoleToolbarAddBtn = ({
 			isOpen={isModalOpen}
 			onOpenChange={setIsModalOpen}
 			trigger={<TriggerAddButtonTemplate disabled={disable} />}
-			title="Выберите группы"
+			title={t("enterprise.admin.resources.groups.select")}
 			modalContent={
 				<Form asChild {...form}>
 					<form className="contents">
 						<FormStack>
 							<FormField
 								name="groups"
-								title="Группы"
+								title={t("enterprise.admin.resources.groups.group")}
 								layout="vertical"
-								description="Выберите группы для добавления"
+								description={t("enterprise.admin.resources.groups.select-groups")}
 								control={({ field }) => (
 									<MultiSelect
 										loadOptions={loadOptions}
@@ -125,9 +128,9 @@ export const GroupAndRoleToolbarAddBtn = ({
 										}}
 										value={field.value?.map((value) => ({ value, label: value })) || []}
 										onChange={handleGroupsChange}
-										placeholder="Выберите группы"
-										emptyText="Группы не найдены"
-										errorText="Ошибка поиска"
+										placeholder={t("enterprise.admin.resources.groups.select")}
+										emptyText={t("enterprise.admin.resources.groups.not-found")}
+										errorText={t("enterprise.admin.resources.groups.error-search")}
 									/>
 								)}
 							/>

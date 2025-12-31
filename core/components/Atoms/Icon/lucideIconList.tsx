@@ -6,7 +6,8 @@ import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher"
 import { useLucideModule } from "@dynamicImports/lucide-icons";
 import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import Icon from "@ext/markdown/elements/icon/render/components/Icon";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useMemo } from "react";
+import { useIconCategories } from "./IconDataStore";
 
 interface IconListProps extends IconEditorProps {
 	category?: string;
@@ -51,27 +52,7 @@ export const toListItemByUikit = ({ code, svg, category }: IconListProps, invers
 };
 
 export const iconFilter = (customIconsList?: IconEditorProps[], inverse?: boolean) => {
-	const [categories, setCategories] = useState<{ [name: string]: string[] }>();
-
-	const getCategories = async () => {
-		try {
-			const response = await fetch("https://lucide.dev/api/categories", {
-				method: "GET",
-			});
-
-			if (!response.ok) {
-				throw new Error(`HTTP error! status: ${response.status}`);
-			}
-
-			const data = await response.json();
-			setCategories(data);
-		} catch (error) {
-			console.error("Error fetching categories:", error);
-		}
-	};
-	useEffect(() => {
-		getCategories();
-	}, []);
+	const categories = useIconCategories();
 
 	const transliterationSearch = useCallback(
 		(items: ListItem[], input: string): ListItem[] => {
@@ -101,9 +82,68 @@ export const iconFilter = (customIconsList?: IconEditorProps[], inverse?: boolea
 				});
 				return result.length > 0 ? result : null;
 			};
-			return multiLayoutSearcher<ListItem[]>(filterItems, true)(input);
+			return multiLayoutSearcher<ListItem[]>({
+				sync: true,
+				searcher: filterItems,
+			})(input);
 		},
 		[categories],
+	);
+
+	return transliterationSearch;
+};
+
+export const useBaseLucideIconList = () => {
+	const awaitedIcons = useLucideModule();
+	const result = useMemo(() => {
+		const iconKeys = awaitedIcons ? Object.keys(awaitedIcons.icons) : [];
+		return iconKeys.map((code) => {
+			const kebabCode = camelToKebabCase(code);
+			return {
+				label: kebabCode,
+				value: kebabCode,
+			};
+		});
+	}, []);
+
+	return result;
+};
+
+export const useIconFilter = (customIconsList?: IconEditorProps[], inverse?: boolean) => {
+	const categories = useIconCategories();
+
+	const transliterationSearch = useCallback(
+		(value: string, search: string): number => {
+			const filterFunc = (input: string): number => {
+				if (!input) return 1;
+
+				const currentFilter = filter(input);
+
+				if (currentFilter(value)) {
+					return 1;
+				}
+
+				if (categories && !customIconsList?.some((icon) => icon.code === value)) {
+					const iconCategories = categories[value];
+
+					if (iconCategories) {
+						const matchingCategory = iconCategories.find((c) => currentFilter(c));
+
+						if (matchingCategory) {
+							return 0.5;
+						}
+					}
+				}
+
+				return 0;
+			};
+
+			return multiLayoutSearcher<number>({
+				sync: true,
+				searcher: filterFunc,
+			})(search);
+		},
+		[categories, customIconsList, inverse],
 	);
 
 	return transliterationSearch;

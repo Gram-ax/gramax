@@ -3,11 +3,13 @@ import Paginator from "@ext/print/utils/pagination/Paginator";
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 
 export class RowPaginator extends NodePaginator<HTMLTableRowElement> {
-	private currentTr: HTMLTableRowElement;
-	private rows: HTMLTableRowElement[] = [];
-	private rowIndex: number;
-	private cellIndex: number;
-	private currentCell: HTMLTableCellElement;
+	private _currentTr: HTMLTableRowElement;
+	private _rows: HTMLTableRowElement[] = [];
+	private _rowIndex: number;
+	private _cellIndex: number;
+	private _currentCell: HTMLTableCellElement;
+	private _emptyAccumulatedHeight: number;
+	public accumulated: { height: number; rows: number }[] = [];
 
 	constructor(row: HTMLTableRowElement, parentPaginator: Paginator) {
 		super(row, parentPaginator);
@@ -18,67 +20,86 @@ export class RowPaginator extends NodePaginator<HTMLTableRowElement> {
 
 		const cells = Array.from(this.node.children as HTMLCollectionOf<HTMLTableCellElement>);
 
-		this.currentTr = this.node.cloneNode(false) as HTMLTableRowElement;
-		this.rows.push(this.currentTr);
+		this._currentTr = this.node.cloneNode(false) as HTMLTableRowElement;
+		this._rows.push(this._currentTr);
 
 		const accumulatedHeight = Paginator.paginationInfo.accumulatedHeight;
-		this.parentPaginator.currentContainer.appendChild(this.currentTr);
+		let accumulatedHeightAfter = 0;
+		this.parentPaginator.currentContainer.appendChild(this._currentTr);
 
-		for (this.cellIndex = 0; this.cellIndex < cells.length; this.cellIndex++) {
-			this.rowIndex = 0;
+		for (this._cellIndex = 0; this._cellIndex < cells.length; this._cellIndex++) {
+			if (
+				this._rowIndex === this._rows.length &&
+				Paginator.paginationInfo.accumulatedHeight.height > accumulatedHeightAfter
+			) {
+				accumulatedHeightAfter = Paginator.paginationInfo.accumulatedHeight.height;
+			}
+			this._rowIndex = 0;
+			this._currentTr = this._rows[this._rowIndex];
+
 			Paginator.paginationInfo.accumulatedHeight = { ...accumulatedHeight };
-
-			const cell = cells[this.cellIndex];
+			const cell = cells[this._cellIndex];
 
 			if (cell.childNodes.length > 0) {
-				this.currentCell = cell;
+				this._currentCell = cell;
 				this.addDimension();
 				this.currentContainer = cell.cloneNode(false) as HTMLTableCellElement;
 				await super.paginateSource(cell);
 			}
-			this.rows[this.rowIndex].appendChild(this.currentContainer);
+			this._rows[this._rowIndex].appendChild(this.currentContainer);
 
-			for (let index = ++this.rowIndex; index < this.rows.length; index++)
-				this.rows[index].appendChild(cell.cloneNode(false));
+			for (let index = ++this._rowIndex; index < this._rows.length; index++)
+				this._rows[index].appendChild(cell.cloneNode(false));
+
+			this.accumulated.push({
+				height: Paginator.paginationInfo.accumulatedHeight.height,
+				rows: this._rowIndex,
+			});
 		}
+		Paginator.paginationInfo.accumulatedHeight.height = accumulatedHeightAfter;
 	}
 
 	createPage() {
 		this.cleanHeadingElementsIfNeed();
-		this.rowIndex++;
-		const existRow = !!this.rows[this.rowIndex];
+		this._rowIndex++;
+		const nextRow = this._rows[this._rowIndex];
 
 		if (this.currentContainer.childNodes.length) {
-			this.currentTr.appendChild(this.currentContainer);
+			this._currentTr.appendChild(this.currentContainer);
 		}
 
-		if (!existRow) {
-			this.currentTr = this.currentTr.cloneNode(false) as HTMLTableRowElement;
-			this.rows.push(this.currentTr);
-			for (let i = 0; i < this.cellIndex; i++)
-				this.currentTr.appendChild(this.currentContainer.cloneNode(false) as HTMLElement);
+		if (!nextRow) {
+			this._currentTr = this._currentTr.cloneNode(false) as HTMLTableRowElement;
+			this._rows.push(this._currentTr);
+			for (let i = 0; i < this._cellIndex; i++)
+				this._currentTr.appendChild(this.currentContainer.cloneNode(false) as HTMLElement);
 
 			const parent = this.parentPaginator.createPage();
-			parent.appendChild(this.currentTr);
+			this._emptyAccumulatedHeight = Paginator.paginationInfo.accumulatedHeight.height;
+			parent.appendChild(this._currentTr);
+		} else {
+			this._currentTr = nextRow;
+			Paginator.paginationInfo.accumulatedHeight.height = this._emptyAccumulatedHeight;
 		}
 		this.currentContainer = this.currentContainer.cloneNode(false) as HTMLElement;
 
 		this.addDimension();
 		this.setHeadings();
+
 		return this.currentContainer;
 	}
 
 	getUsableHeight(): number {
 		const baseHeight = this.parentPaginator.getUsableHeight();
 		const nodeDimension = Paginator.paginationInfo.nodeDimension;
-		const cellPadding = nodeDimension.get(this.currentCell)?.paddingH;
+		const cellPadding = nodeDimension.get(this._currentCell)?.paddingH;
 		return baseHeight - cellPadding;
 	}
 
 	addDimension() {
 		const nodeDimension = Paginator.paginationInfo.nodeDimension;
 		const addDimension = { ...this.nodeDimension };
-		addDimension.height = nodeDimension.get(this.currentCell)?.paddingH || 0;
+		addDimension.height = nodeDimension.get(this._currentCell)?.paddingH || 0;
 		return this.updateAccumulatedHeightDim(addDimension);
 	}
 }

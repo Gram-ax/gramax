@@ -1,4 +1,4 @@
-import { useAdminPageData } from "@ext/enterprise/components/admin/contexts/AdminPageDataContext";
+import { useAdminNavigation } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import ResourceComponent from "@ext/enterprise/components/admin/settings/resources/components/Resource/ResourceComponent";
 import { ConfirmationDialog } from "@ext/enterprise/components/admin/ui-kit/ConfirmationDialog";
@@ -9,7 +9,6 @@ import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { FormFooter } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { shallow } from "zustand/shallow";
 import { FloatingAlert } from "../../ui-kit/FloatingAlert";
 import { TabErrorBlock } from "../../ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "../../ui-kit/TabInitialLoader";
@@ -19,11 +18,9 @@ import { ResourcesSettings } from "./types/ResourcesComponent";
 export default function ResourcesComponent() {
 	const { settings, addResource, deleteResources, ensureResourcesLoaded, getTabError, isInitialLoading } =
 		useSettings();
-	const { params, setPage, setParams } = useAdminPageData(
-		(store) => ({ params: store.params, setPage: store.setPage, setParams: store.setParams }),
-		shallow,
-	);
-	const { groupId, repositoryId } = params;
+	const { pageParams, navigate } = useAdminNavigation(Page.RESOURCES);
+	const groupId = pageParams?.groupId;
+	const repositoryId = pageParams?.repositoryId;
 	const resourcesSettings = settings?.resources;
 
 	const [isSaving, setIsSaving] = useState(false);
@@ -68,8 +65,7 @@ export default function ResourcesComponent() {
 
 	useEffect(() => {
 		if (isAddingMode && groupId !== "new") {
-			setPage(Page.RESOURCES);
-			setParams({ groupId: "new" });
+			navigate(Page.RESOURCES, { groupId: "new" });
 		}
 	}, [isAddingMode]);
 
@@ -97,16 +93,15 @@ export default function ResourcesComponent() {
 			setIsAddingMode(false);
 			const [g, r] = editedRepository.id.split("/");
 			if (g && r) {
-				setPage(Page.RESOURCES);
-				setParams({ groupId: g, repositoryId: r });
+				navigate(Page.RESOURCES, { groupId: g, repositoryId: r });
 			} else {
-				setPage(Page.RESOURCES);
+				navigate(Page.RESOURCES);
 			}
 			return;
 		}
 		await proceedAdd(editedRepository);
 		resetState();
-		setPage(Page.RESOURCES);
+		navigate(Page.RESOURCES);
 	};
 
 	const proceedAdd = async (resource: ResourcesSettings) => {
@@ -124,14 +119,14 @@ export default function ResourcesComponent() {
 		const openedRepository = localSettings?.find((item) => item.id === repoId);
 		setEditedRepository(openedRepository);
 		setOpenedRepository(openedRepository);
-		setPage(Page.RESOURCES);
+		navigate(Page.RESOURCES);
 		if (repoId) {
 			const parts = repoId.split("/");
 			const repository = parts.pop() || "";
 			const group = parts.join("/");
-			setParams({ groupId: group, repositoryId: repository });
+			navigate(Page.RESOURCES, { groupId: group, repositoryId: repository });
 		} else {
-			setParams({ groupId: undefined, repositoryId: undefined });
+			navigate(Page.RESOURCES, { groupId: undefined, repositoryId: undefined });
 		}
 	};
 
@@ -142,7 +137,7 @@ export default function ResourcesComponent() {
 
 	const closeResourceDialog = useCallback(() => {
 		resetState();
-		setPage(Page.RESOURCES);
+		navigate(Page.RESOURCES);
 	}, []);
 
 	const handleClose = useCallback(() => {
@@ -162,7 +157,7 @@ export default function ResourcesComponent() {
 	}
 
 	return (
-		<div>
+		<div className="p-6">
 			<ResourcesTable
 				items={localSettings}
 				disabled={isSaving}

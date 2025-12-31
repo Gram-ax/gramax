@@ -149,8 +149,12 @@ const TableHelper = (props: TableHelperProps) => {
 
 			if (hoveredData.current?.cellIndex === cellIndex && hoveredData.current?.rowIndex === rowIndex) return;
 
-			const containerHorizontal = commonParent?.querySelector(".controls-container-horizontal");
-			const containerVertical = commonParent?.querySelector(".controls-container-vertical");
+			const containerHorizontal = commonParent?.querySelector(
+				":scope > .table-actions .controls-container-horizontal",
+			);
+			const containerVertical = commonParent?.querySelector(
+				":scope > .table-actions .controls-container-vertical",
+			);
 
 			hideControls();
 			showNewControls(containerVertical, containerHorizontal, Math.min(rowIndex, node.childCount - 1), cellIndex);
@@ -168,13 +172,13 @@ const TableHelper = (props: TableHelperProps) => {
 	const WrapperChildren = (
 		<>
 			{children}
-			{
+			{isHovered && (
 				<Tooltip content={t("select-table")} delay={[1000, 0]}>
 					<TriangleButtonContainer data-table-select-all-container>
 						<TriangleButton onClick={selectNode} data-qa="table-select-all" contentEditable={false} />
 					</TriangleButtonContainer>
 				</Tooltip>
-			}
+			)}
 			<TablePlusActions
 				isHovered={isHovered}
 				tableSizes={tableSizes}

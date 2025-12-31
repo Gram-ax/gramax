@@ -32,10 +32,10 @@ pub fn make_span<B>(request: &Request<B>) -> Span {
   let u = request.headers().get("user-agent").map(|v| v.to_str().unwrap_or_default()).unwrap_or("<none>");
 
   tracing::info_span!(
-      "req",
-      method = %method,
-      uri = %uri,
-      user_agent = %u,
+    "req",
+    method = %method,
+    uri = %uri,
+    user_agent = %u,
   )
 }
 

@@ -1,5 +1,5 @@
 import { ServicesConfig } from "@app/config/AppConfig";
-import { AuthMethod, ModuleOptions } from "@ext/enterprise/types/UserSettings";
+import type { ModuleOptions } from "@ext/enterprise/types/UserSettings";
 
 export enum WorkspaceView {
 	folder = "folder",
@@ -17,6 +17,7 @@ export type WorkspaceSection = {
 
 export interface WorkspaceConfig {
 	name: string;
+	id?: string;
 	icon?: string;
 	groups?: Record<string, WorkspaceSection>;
 	sections?: Record<string, WorkspaceSection>;
@@ -25,12 +26,15 @@ export interface WorkspaceConfig {
 		gesUrl?: string;
 		refreshInterval?: number;
 		lastUpdateDate?: number;
-		authMethods?: AuthMethod[];
 		modules?: ModuleOptions;
 	};
 
 	/** @deprecated use enterprise.gesUrl instead */
 	gesUrl?: string; // legacy
+	/** @deprecated delete this field after 01.03.2026 */
+	pdfTemplates?: any;
+	/** @deprecated delete this field after 01.03.2026 */
+	wordTemplates?: any;
 }
 
 export type WorkspacePath = string;

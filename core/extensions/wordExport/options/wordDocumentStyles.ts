@@ -1,9 +1,8 @@
-import { wordFontSizes, wordFontTypes } from "@ext/wordExport/options/wordExportSettings";
 import docx from "@dynamicImports/docx";
-import type { LevelFormat, Document } from "docx";
+import { wordFontSizes, wordFontTypes } from "@ext/wordExport/options/wordExportSettings";
+import { IPropertiesOptions } from "core/utils/docx";
+import type { LevelFormat } from "docx";
 import { LIST_HANGING_MM, LIST_LEFT_INDENT_MM, getMmToTw } from "../lists/consts";
-
-type IPropertiesOptions = ConstructorParameters<typeof Document>[0];
 
 const levelText = {
 	0: "\u00B7",
@@ -125,5 +124,5 @@ export const getWordDocumentStyles = async (): Promise<Omit<IPropertiesOptions, 
 			},
 		};
 	}
-	return wordDocumentStyles
+	return wordDocumentStyles;
 };

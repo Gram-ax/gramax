@@ -1,3 +1,5 @@
+import type Url from "@core-ui/ApiServices/Types/Url";
+
 const getNextModules = async (): Promise<any> => {
 	const [
 		{ default: DiffFileInputCdn },
@@ -21,7 +23,7 @@ const getNextModules = async (): Promise<any> => {
 		Link: NextLink,
 		Router: NextRouter,
 		Fetcher: async <T = any>(
-			url: any,
+			url: Url,
 			body?: BodyInit,
 			mime?: any,
 			method?: any,
@@ -30,7 +32,12 @@ const getNextModules = async (): Promise<any> => {
 			_onDidCommand?: (command: string, args: object, result: unknown) => void,
 			signal?: AbortSignal,
 		) => {
-			const l = LocalizerModule.extract(typeof window === "undefined" ? "" : window.location.pathname);
+			let pathname = "";
+			if (typeof window !== "undefined") {
+				if (!url?.basePath) pathname = window.location.pathname;
+				else pathname = window.location.pathname.replace(url.basePath, "");
+			}
+			const l = LocalizerModule.extract(pathname);
 			const headers = {
 				"Content-Type": mime,
 				"x-gramax-ui-language": LanguageServiceModule.currentUi(),

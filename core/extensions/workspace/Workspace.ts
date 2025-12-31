@@ -73,7 +73,7 @@ export class Workspace {
 		return this._path;
 	}
 
-	async config() {
+	async config(_forceUpdate = false) {
 		return Promise.resolve(this._config.inner());
 	}
 
@@ -127,6 +127,7 @@ export class Workspace {
 	async removeCatalog(name: string, deleteFromFs = true) {
 		await RepositoryProvider.resetRepo();
 		const catalog = await this.getBaseCatalog(name);
+		if (!catalog) return;
 
 		catalog.repo.unsubscribeEvents();
 

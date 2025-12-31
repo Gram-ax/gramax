@@ -11,6 +11,7 @@ import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import C4Render from "./C4Render";
 import DiagramRender from "./DiagramRender";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 
 const DIAGRAM_FUNCTIONS = {
 	[DiagramType.mermaid]: getMermaidDiagram,
@@ -95,22 +96,23 @@ const DiagramData = (props: DiagramDataProps) => {
 
 	return (
 		<div ref={parentRef} data-qa="qa-diagram-data" data-float={float}>
-			<Skeleton isLoaded={isLoaded} width={size?.width} height={size?.height}>
-				{isC4Diagram ? (
-					<C4Render data={data} error={error} />
-				) : (
-					<DiagramRender
-						openEditor={openEditor}
-						ref={ref}
-						downloadSrc={src}
-						title={title}
-						diagramName={diagramName}
-						data={data}
-						error={error}
-						commentId={commentId}
-					/>
-				)}
-			</Skeleton>
+			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
+				<Skeleton isLoaded={isLoaded} width={size?.width} height={size?.height}>
+					{isC4Diagram ? (
+						<C4Render data={data} error={error} />
+					) : (
+						<DiagramRender
+							openEditor={openEditor}
+							ref={ref}
+							downloadSrc={src}
+							title={title}
+							diagramName={diagramName}
+							data={data}
+							error={error}
+						/>
+					)}
+				</Skeleton>
+			</BlockCommentView>
 			{title && !error && !noEm && <em>{title}</em>}
 		</div>
 	);

@@ -20,3 +20,9 @@ chrono = { workspace = true, default-features = false, features = [
   "std",
 ] }
 threadpool = "1.8.1"
+futures = "0.3.31"
+
+url = { workspace = true }
+
+[build-dependencies]
+cc = "1.2.48"

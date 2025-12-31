@@ -6,7 +6,7 @@ import HTML from "@ext/markdown/elements/html/render/components/HTML";
 import { NodeViewProps } from "@tiptap/core";
 import { ReactElement, useRef } from "react";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 
 const HTMLComponent = (props: NodeViewProps): ReactElement => {
 	const { node, getPos, editor, updateAttributes } = props;

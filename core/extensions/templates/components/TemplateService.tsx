@@ -2,6 +2,7 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import generateUniqueID from "@core/utils/generateUniqueID";
 import { ProviderContextService, ProviderItemProps } from "@ext/articleProvider/models/types";
 import ArticleTemplate from "@ext/templates/components/ArticleTemplate";
 import { createContext, useContext, useState } from "react";
@@ -59,6 +60,20 @@ class TemplateService implements ProviderContextService {
 	openItem(template: ProviderItemProps) {
 		ArticleViewService.setView(() => <ArticleTemplate item={template} />);
 		this._setSelectedID(template.id);
+	}
+
+	async addNewSnippet(apiUrlCreator: ApiUrlCreator) {
+		const uniqueID = generateUniqueID();
+		await FetchService.fetch(apiUrlCreator.createFileInGramaxDir(uniqueID, "template"));
+
+		const res = await FetchService.fetch<ProviderItemProps[]>(apiUrlCreator.getArticleListInGramaxDir("template"));
+		if (!res.ok) return;
+
+		const newTemplates = await res.json();
+		this.setItems(newTemplates);
+
+		const addedTemplate = newTemplates.find((template) => template.id === uniqueID);
+		return addedTemplate;
 	}
 }
 

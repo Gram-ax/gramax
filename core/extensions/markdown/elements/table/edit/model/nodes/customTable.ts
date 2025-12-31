@@ -9,6 +9,10 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 import { table } from "../tableSchema";
 import { deleteRow, deleteColumn, TableView, selectedRect, isInTable } from "prosemirror-tables";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { CELL_MIN_WIDTH } from "@components/WidthWrapper/WidthWrapper";
+export const COL_MIN_WIDTH = 48; // CELL_MIN_WIDTH
+
 const CustomTable = Table.extend({
 	...getExtensionOptions({ schema: table, name: Table.name }),
 	addNodeView() {
@@ -116,6 +120,7 @@ const CustomTable = Table.extend({
 	},
 }).configure({
 	resizable: true,
+	cellMinWidth: COL_MIN_WIDTH,
 });
 
 export default CustomTable;

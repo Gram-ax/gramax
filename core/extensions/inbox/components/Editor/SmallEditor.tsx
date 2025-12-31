@@ -1,6 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
@@ -19,6 +20,8 @@ import { Mark } from "@tiptap/pm/model";
 import { EditorView } from "@tiptap/pm/view";
 import { Editor, EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
 import { memo, useCallback, useEffect, useMemo } from "react";
+import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
+import { InlineLinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/InlineLinkMenu";
 
 type MiniProps<T> = T extends { title: string; content: JSONContent } ? T : { title: string; content: JSONContent };
 
@@ -95,6 +98,10 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const resourceService = ResourceService.value;
 
+	const newApiUrlCreator = useMemo(() => {
+		return ApiUrlCreator.createFrom(apiUrlCreator, id, articleType);
+	}, [apiUrlCreator, id, articleType]);
+
 	const updateContent = useCallback(
 		async (content: JSONContent, title: string) => {
 			const url = apiUrlCreator.updateFileInGramaxDir(id, articleType);
@@ -123,7 +130,16 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 		[debouncedUpdateContent],
 	);
 
+	const updateLinkExtansion = useCallback(() => {
+		if (!newApiUrlCreator) return;
+		const linkExtension = extensions.find((ext) => ext.name === "link");
+
+		if (!linkExtension) return;
+		linkExtension.options.apiUrlCreator = newApiUrlCreator;
+	}, [extensions, newApiUrlCreator]);
+
 	const editorExtensions = useMemo(() => {
+		updateLinkExtansion();
 		return extensions;
 	}, [extensions]);
 
@@ -174,20 +190,23 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 	}, [resourceService?.data]);
 
 	return (
-		<SmallEditorWrapper className={classNames(className, {}, ["article"])}>
-			<div className="mini-article">
-				<div className="mini-article-body">
-					<EditorContent
-						data-qa="article-editor"
-						data-iseditable={true}
-						editor={editor}
-						className={"article-body"}
-					/>
-					<ArticleMat editor={editor} />
+		<ApiUrlCreatorService.Provider value={newApiUrlCreator}>
+			<SmallEditorWrapper className={classNames(className, {}, ["article"])}>
+				<div className="mini-article">
+					<div className="mini-article-body">
+						<InlineLinkMenu editor={editor} />
+						<EditorContent
+							data-qa="article-editor"
+							data-iseditable={true}
+							editor={editor}
+							className={"article-body"}
+						/>
+						<ArticleMat editor={editor} />
+					</div>
 				</div>
-			</div>
-			<Menu menu={options?.menu} editor={editor} id={ContentEditorId} />
-		</SmallEditorWrapper>
+				<Menu menu={options?.menu} editor={editor} id={ContentEditorId} />
+			</SmallEditorWrapper>
+		</ApiUrlCreatorService.Provider>
 	);
 };
 

@@ -10,7 +10,6 @@ interface ObjectRendererProps {
 	originalWidth?: string;
 	selectedIndex?: number;
 	hasOffset?: boolean;
-	isLoaded?: boolean;
 	percentToPx?: boolean;
 	changeData?: (index: number, data: any) => void;
 	onClick?: (index: number) => void;
@@ -27,7 +26,6 @@ const ObjectRenderer = (props: ObjectRendererProps) => {
 		changeData,
 		onClick,
 		hasOffset = true,
-		isLoaded,
 		percentToPx = false,
 	} = props;
 	const [scaleFactor, setScaleFactor] = useState<number>(1);
@@ -37,7 +35,7 @@ const ObjectRenderer = (props: ObjectRendererProps) => {
 		const newOriginalWidth = originalWidth ? parseFloat(originalWidth) : imageRef.current?.naturalWidth;
 
 		if (containerWidth && newOriginalWidth) setScaleFactor(containerWidth / newOriginalWidth);
-	}, [parentRef.current, originalWidth, isLoaded]);
+	}, [parentRef.current, originalWidth]);
 
 	if (!objects?.length) return null;
 

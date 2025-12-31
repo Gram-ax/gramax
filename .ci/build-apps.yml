@@ -6,6 +6,9 @@ build-desktop-web:
   rules: !reference [.condition, build, base, rules]
   variables:
     GIT_DEPTH: 600
+    KUBERNETES_MEMORY_REQUEST: "4Gi"
+    KUBERNETES_CPU_REQUEST: "1.5"
+    KUBERNETES_CPU_LIMIT: "2"
   script:
     - rm -r ./services
     - ./install-deps.sh --ci
@@ -69,6 +72,9 @@ build-desktop-linux:
     GIT_DEPTH: 600
     CARGO_HOME: '$CI_PROJECT_DIR/.cargo'
     RUSTUP_PERMIT_COPY_RENAME: 1
+    KUBERNETES_MEMORY_REQUEST: "2.5Gi"
+    KUBERNETES_CPU_REQUEST: "2"
+    KUBERNETES_CPU_LIMIT: "5"
   script:
     - ./gx make-icons
     - ./gx build --linux-x86_64 --upload

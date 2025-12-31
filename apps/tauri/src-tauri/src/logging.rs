@@ -1,7 +1,12 @@
+use std::io::BufWriter;
 use std::path::PathBuf;
+
 use sysinfo::Pid;
 use sysinfo::ProcessRefreshKind;
 use sysinfo::ProcessesToUpdate;
+
+use tauri_plugin_dialog::DialogExt;
+
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::filter::FilterFn;
 use tracing_subscriber::fmt::MakeWriter;
@@ -12,6 +17,7 @@ use tracing_subscriber::Layer;
 
 use tauri::*;
 
+use crate::error::ShowError;
 use crate::memory::MemoryInfo;
 use crate::memory::ProcessMemoryInfo;
 
@@ -36,7 +42,13 @@ where
   S: tracing::Subscriber,
   for<'a> S: tracing_subscriber::registry::LookupSpan<'a>,
 {
-  let layer = tracing_subscriber::fmt::layer().with_writer(std::io::stderr).pretty().with_thread_ids(true);
+  let layer = tracing_subscriber::fmt::layer()
+    .with_writer(std::io::stderr)
+    .pretty()
+    .with_file(false)
+    .with_line_number(false)
+    .with_level(true)
+    .with_target(true);
 
   #[cfg(not(debug_assertions))]
   let layer = layer.with_timer(tracing_subscriber::fmt::time::LocalTime::rfc_3339());
@@ -54,8 +66,17 @@ where
 {
   std::fs::create_dir_all(&dir)?;
 
-  for file in std::fs::read_dir(&dir)?.skip(max_file_count) {
-    let file = file?;
+  let symlink_path = dir.join("gx-log-latest.json");
+  _ = std::fs::remove_file(&symlink_path);
+
+  let mut files = std::fs::read_dir(&dir)?
+    .filter_map(|f| f.ok())
+    .filter(|f| f.file_type().ok().map_or(false, |t| t.is_file()))
+    .collect::<Vec<_>>();
+
+  files.sort_by_key(|f| f.file_name());
+
+  for file in files.iter().skip(max_file_count) {
     if file.file_type()?.is_dir() {
       std::fs::remove_dir_all(file.path())?;
     } else {
@@ -65,11 +86,9 @@ where
 
   let now = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S");
   let log_path = dir.join(format!("gx-log-{now}.json"));
-  let symlink_path = dir.join("gx-log-latest.json");
 
   let file = std::fs::File::options().append(true).create(true).open(&log_path)?;
 
-  _ = std::fs::remove_file(&symlink_path);
   std::fs::hard_link(&log_path, &symlink_path)?;
 
   Ok(
@@ -128,12 +147,15 @@ where
   });
 
   tracing_subscriber::fmt::layer()
-    .with_ansi(false)
-    .compact()
     .without_time()
-    .json()
-    .with_file(true)
-    .flatten_event(true)
+    .with_ansi(false)
+    .with_target(false)
+    .with_thread_ids(false)
+    .with_thread_names(false)
+    .with_file(false)
+    .with_line_number(false)
+    .with_level(true)
+    .compact()
     .with_writer(WebviewLogFmt { app })
     .with_filter(webview_filter)
     .boxed()
@@ -201,7 +223,7 @@ impl std::fmt::Display for FmtProcessInfo<'_> {
       .long_units(false)
       .units(humansize::Kilo::Binary);
 
-    writeln!(
+    write!(
       f,
       "total rss: {}, total cpu: {:.2}%, total open files: {}",
       humansize::format_size(self.0.total_rss(), opts),
@@ -220,9 +242,9 @@ impl std::fmt::Display for FmtProcessInfo<'_> {
         p => p.name().to_string(),
       };
 
-      writeln!(
+      write!(
         f,
-        "{} (pid {}{}{}): rss {}, vm {}, cpu {:.2}%, open files {}; run for: {:?}",
+        "\n{} (pid {}{}{}): rss {}, vm {}, cpu {:.2}%, open files {}; run for: {:?}",
         name,
         p.pid(),
         p.parent_pid().map(|p| format!(", parent pid {}", p)).unwrap_or("".to_string()),
@@ -234,8 +256,6 @@ impl std::fmt::Display for FmtProcessInfo<'_> {
         std::time::Duration::from_secs(p.run()),
       )?;
     }
-
-    writeln!(f)?;
 
     Ok(())
   }
@@ -267,7 +287,37 @@ pub fn watch_process<R: Runtime>(app: AppHandle<R>) {
     memory_info.0.dedup_by_key(|a| a.pid());
     memory_info.0.sort_by_key(|a| a.is_main());
 
-    tracing::info!("mem usage:\n\n{}", FmtProcessInfo(&memory_info));
+    tracing::info!("mem usage:\n{}", FmtProcessInfo(&memory_info));
     std::thread::sleep(std::time::Duration::from_secs(60 * 5));
   });
+}
+
+pub fn collect_logs<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+  let logs_dir = app.path().app_data_dir()?.join("logs");
+  if !logs_dir.exists() {
+    return Ok(());
+  }
+
+  let archive_name = format!("logs-{}.tar.xz", chrono::Local::now().format("%Y-%m-%d_%H-%M-%S"));
+
+  let mut data = vec![];
+  let mut tar = tar::Builder::new(&mut data);
+  tar.append_dir_all("logs", logs_dir)?;
+  tar.finish()?;
+
+  let Some(out_path) =
+    app.dialog().file().set_file_name(&archive_name).set_can_create_directories(true).blocking_save_file()
+  else {
+    return Ok(());
+  };
+
+  drop(tar);
+
+  let Ok(out_path) = out_path.into_path() else { return Ok(()) };
+
+  let file = std::fs::File::options().create_new(true).write(true).open(out_path)?;
+  let mut writer = BufWriter::new(file);
+  _ = lzma_rs::xz_compress(&mut std::io::Cursor::new(data), &mut writer).or_show();
+
+  Ok(())
 }

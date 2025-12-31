@@ -1,3 +1,4 @@
+import { GroupInfo } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/types/GroupTypes";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
 import { ButtonProps } from "@ui-kit/Button";
@@ -10,6 +11,7 @@ import { z } from "zod";
 import { ModalComponent } from "../../ui-kit/ModalComponent";
 import { SelectDisableItem } from "./SelectDisableItem";
 import { TriggerAddButtonTemplate } from "./TriggerAddButtonTemplate";
+import t from "@ext/localization/locale/translate";
 
 const createFormSchema = () =>
 	z.object({
@@ -21,7 +23,7 @@ type FormData = z.infer<ReturnType<typeof createFormSchema>>;
 interface GroupToolbarAddBtnProps {
 	disable?: boolean;
 	onAdd: (groups: string[]) => void;
-	groups: string[];
+	groups: GroupInfo[];
 	existingGroups: string[];
 }
 
@@ -38,13 +40,15 @@ export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: G
 
 	const loadOptions = useCallback(
 		async ({ searchQuery }: { searchQuery: string }) => {
-			const filteredGroups = groups.filter((group) => group.toLowerCase().includes(searchQuery.toLowerCase()));
+			const filteredGroups = groups.filter((group) =>
+				group.name.toLowerCase().includes(searchQuery.toLowerCase()),
+			);
 
 			return {
 				options: filteredGroups.map((group) => ({
-					value: group,
-					label: group,
-					disabled: existingGroups.includes(group),
+					value: group.id,
+					label: group.name,
+					disabled: existingGroups.includes(group.id),
 				})),
 			};
 		},
@@ -66,23 +70,23 @@ export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: G
 
 	const cancelButtonProps = useMemo(
 		() =>
-			({
-				variant: "outline",
-				onClick: () => {
-					form.reset();
-					setIsModalOpen(false);
-				},
-			} as ButtonProps),
+		({
+			variant: "outline",
+			onClick: () => {
+				form.reset();
+				setIsModalOpen(false);
+			},
+		} as ButtonProps),
 		[form],
 	);
 
 	const confirmButtonProps = useMemo(
 		() =>
-			({
-				type: "submit",
-				onClick: handleAddSelectedGroups,
-				disabled: !form.watch("groups").length || disable,
-			} as ButtonProps),
+		({
+			type: "submit",
+			onClick: handleAddSelectedGroups,
+			disabled: !form.watch("groups").length || disable,
+		} as ButtonProps),
 		[form, disable, handleAddSelectedGroups],
 	);
 
@@ -91,16 +95,16 @@ export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: G
 			isOpen={isModalOpen}
 			onOpenChange={setIsModalOpen}
 			trigger={<TriggerAddButtonTemplate disabled={disable} />}
-			title="Выберите группы"
+			title={t("enterprise.admin.resources.groups.select")}
 			modalContent={
 				<Form asChild {...form}>
 					<form className="contents">
 						<FormStack>
 							<FormField
 								name="groups"
-								title="Группы"
+								title={t("enterprise.admin.resources.groups.group")}
 								layout="vertical"
-								description="Выберите группы для добавления"
+								description={t("enterprise.admin.resources.groups.select-groups")}
 								control={({ field }) => (
 									<MultiSelect
 										loadOptions={loadOptions}
@@ -116,9 +120,9 @@ export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: G
 										}}
 										value={field.value?.map((value) => ({ value, label: value })) || []}
 										onChange={handleGroupsChange}
-										placeholder="Выберите группы"
-										emptyText="Группы не найдены"
-										errorText="Ошибка поиска"
+										placeholder={t("enterprise.admin.resources.groups.select-groups")}
+										emptyText={t("enterprise.admin.resources.groups.not-found")}
+										errorText={t("enterprise.admin.resources.groups.error-search")}
 									/>
 								)}
 							/>
@@ -126,8 +130,8 @@ export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: G
 					</form>
 				</Form>
 			}
-			confirmButtonText="Добавить"
-			cancelButtonText="Отмена"
+			confirmButtonText={t("add")}
+			cancelButtonText={t("cancel")}
 			cancelButtonProps={cancelButtonProps}
 			confirmButtonProps={confirmButtonProps}
 		/>

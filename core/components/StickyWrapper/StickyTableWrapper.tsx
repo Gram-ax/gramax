@@ -13,36 +13,50 @@ import {
 	CONTROLS_CONTAINER_VERTICAL_TOP,
 	VERTICAL_TOP_OFFSET,
 } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
+import useWatch from "@core-ui/hooks/useWatch";
 import ThemeService from "@ext/Theme/components/ThemeService";
+import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+
+type TotalWidths = {
+	computedWidth: number;
+	styleWidth: number;
+};
+
+type GridColWidths = {
+	width: number;
+	colIndex: number;
+};
+
+type GridColumns = {
+	gridTemplateColumns?: string;
+	totalWidths?: TotalWidths[];
+	gridColWidths?: GridColWidths[];
+};
 
 export interface StickyWrapperProps {
-	styckyStyles: StickyTableHeaderState;
-	firstColumnWidth?: string;
+	tableStyles: StickyTableHeaderState["tableStyles"];
+	headerRowStyles: StickyTableHeaderState["headerRowStyles"];
+	firstColumnWidth?: number;
 	clientWidth?: number;
 	bgColor?: string;
-	gridTemplateColumns?: string;
+	gridColumns: GridColumns;
 	stickyColumnCSS?: string;
-	colWidths?: {
-		styleWidth: number;
-		computedWidth: string;
-	}[];
-	firstRowCellsWidths?: string[];
 }
 
 const SCROLL_SHADOW_SIZE = "1.25rem";
 
 const StickyWrapper = styled.div<StickyWrapperProps>`
-	${({ styckyStyles, bgColor, gridTemplateColumns, colWidths, firstRowCellsWidths, clientWidth }) => {
-		if (!styckyStyles.tableStyles.tableMarginTop) return;
+	${({ headerRowStyles, tableStyles, bgColor, gridColumns, clientWidth }) => {
+		if (!tableStyles.tableMarginTop) return;
 		return css`
 			> .width-wrapper > .scrollableContent > div[data-table-wrapper] > {
 				table[data-header="row"],
 				table[data-header="both"] {
-					margin-top: ${styckyStyles.tableStyles.tableMarginTop}px;
+					margin-top: ${tableStyles.tableMarginTop}px;
 
 					> tbody > tr:first-of-type {
 						${css({
-							...styckyStyles.headerRowStyles,
+							...headerRowStyles,
 						})}
 
 						position: fixed;
@@ -53,7 +67,7 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 						scrollbar-width: none;
 
 						display: grid;
-						grid-template-columns: ${gridTemplateColumns};
+						grid-template-columns: ${gridColumns.gridTemplateColumns};
 						z-index: 2;
 						background-color: ${bgColor};
 						padding: 0 calc(${PADDING_LEFT_RIGHT} + 0.5px);
@@ -63,32 +77,30 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 						> td:first-of-type {
 							left: -0.5px !important;
 							width: calc(100% + 0.5px);
-							box-shadow: -0.67px 0 0 0 var(--color-table-border);
+							box-shadow: -1px 0 0 0 var(--color-table-border);
 						}
 
 						> td {
 							border-left: none;
 						}
-
-						${colWidths.map(({ computedWidth, styleWidth }, i) => {
-							if (styleWidth) return;
+						${gridColumns.totalWidths.map(({ computedWidth, styleWidth }, i) => {
+							if (styleWidth && styleWidth > computedWidth) return;
 							return css`
 								> td:nth-of-type(${i + 1}) {
-									min-width: ${computedWidth};
+									min-width: ${computedWidth}px;
 								}
 							`;
 						})}
 					}
 
 					> colgroup {
-						${colWidths.map(({ styleWidth }, i) => {
-							if (styleWidth) return;
-							return css`
-								> col:nth-of-type(${i + 1}) {
-									min-width: ${firstRowCellsWidths[i]};
+						${gridColumns.gridColWidths.map(
+							({ colIndex, width }) => css`
+								> col:nth-of-type(${colIndex}) {
+									min-width: ${width}px;
 								}
-							`;
-						})}
+							`,
+						)}
 					}
 				}
 				table[data-header="both"] > tbody > tr:first-of-type {
@@ -103,17 +115,17 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 				position: fixed;
 				left: unset;
 				padding-left: ${PADDING_LEFT_RIGHT};
-				top: calc(${HELPERS_TOP} + ${styckyStyles.headerRowStyles.top - TOP_PADDING}px);
+				top: calc(${HELPERS_TOP} + ${headerRowStyles.top - TOP_PADDING}px);
 			}
 
 			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="both"]),
 			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="row"]) {
 				> .top-block {
 					position: fixed;
-					width: ${styckyStyles.headerRowStyles.width}px;
+					width: ${headerRowStyles.width}px;
 					height: ${PADDING_TOP_BOTTOM};
 					background: ${bgColor};
-					top: ${styckyStyles.headerRowStyles.top - TOP_PADDING}px;
+					top: ${headerRowStyles.top - TOP_PADDING}px;
 					z-index: 2;
 				}
 
@@ -121,12 +133,12 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 					position: fixed;
 					left: unset;
 					padding-left: ${PADDING_LEFT_RIGHT};
-					top: calc(${HELPERS_TOP} + ${styckyStyles.headerRowStyles.top - TOP_PADDING}px);
+					top: calc(${HELPERS_TOP} + ${headerRowStyles.top - TOP_PADDING}px);
 				}
 				> .scrollableContent > div[data-table-select-all-container] {
 					position: fixed;
 
-					top: calc(${HELPERS_TOP} + ${styckyStyles.headerRowStyles.top - TOP_PADDING}px);
+					top: calc(${HELPERS_TOP} + ${headerRowStyles.top - TOP_PADDING}px);
 					left: unset;
 					padding-left: ${HELPERS_LEFT};
 					z-index: 3;
@@ -136,9 +148,9 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 						position: fixed;
 						pointer-events: none;
 						height: ${SCROLL_SHADOW_SIZE};
-						top: ${styckyStyles.headerRowStyles.top + styckyStyles.tableStyles.tableMarginTop}px;
+						top: ${headerRowStyles.top + tableStyles.tableMarginTop}px;
 						z-index: 2;
-						width: ${styckyStyles.headerRowStyles.width}px;
+						width: ${headerRowStyles.width}px;
 						overflow: hidden;
 						padding: 0 1.5em;
 
@@ -152,12 +164,12 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 						z-index: 3;
 					}
 					> .table-actions > .table-controller > .controls-container-horizontal {
-						width: ${styckyStyles.headerRowStyles.width}px;
+						width: ${headerRowStyles.width}px;
 						overflow-x: hidden;
 						overflow-y: hidden;
 						pointer-events: none;
 						justify-content: unset;
-						height: ${styckyStyles.tableStyles.bottom}px;
+						height: 100%;
 
 						> .plus-actions-container.plus-actions-container:first-of-type,
 						> .plus-actions-container.plus-actions-container[data-col-number="0"] {
@@ -173,7 +185,7 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 							position: fixed;
 							top: calc(
 								${CONTROLS_CONTAINER_VERTICAL_TOP} - ${VERTICAL_TOP_OFFSET} +
-									${styckyStyles.headerRowStyles.top - TOP_PADDING}px
+									${headerRowStyles.top - TOP_PADDING}px
 							);
 							left: unset;
 							margin-left: ${HELPERS_LEFT};
@@ -182,9 +194,7 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 							position: fixed;
 							top: calc(
 								${CONTROLS_CONTAINER_VERTICAL_TOP} +
-									${styckyStyles.tableStyles.tableMarginTop / 2 +
-									styckyStyles.headerRowStyles.top -
-									TOP_PADDING}px
+									${tableStyles.tableMarginTop / 2 + headerRowStyles.top - TOP_PADDING}px
 							);
 							left: unset;
 							margin-left: ${HELPERS_LEFT};
@@ -195,9 +205,7 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 							position: fixed;
 							top: calc(
 								${CONTROLS_CONTAINER_VERTICAL_TOP} - ${VERTICAL_TOP_OFFSET} +
-									${styckyStyles.tableStyles.tableMarginTop +
-									styckyStyles.headerRowStyles.top -
-									TOP_PADDING}px
+									${tableStyles.tableMarginTop + headerRowStyles.top - TOP_PADDING}px
 							);
 							left: unset;
 							margin-left: ${HELPERS_LEFT};
@@ -249,7 +257,7 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 						width: ${SCROLL_SHADOW_SIZE};
 						position: sticky;
 						height: calc(100% - ${PADDING_TOP_BOTTOM} - ${VERTICAL_TOP_OFFSET});
-						left: calc(${firstColumnWidth} + ${PADDING_LEFT_RIGHT});
+						left: calc(${firstColumnWidth}px + ${PADDING_LEFT_RIGHT});
 						z-index: 2;
 						margin-top: 1.25em;
 					}
@@ -321,7 +329,7 @@ const hasRowspanInFirstRow = (table: HTMLTableElement | null): boolean => {
 
 const hasColspanInFirstCol = (table: HTMLTableElement | null): boolean => {
 	if (!table) return false;
-	const rows = table.querySelectorAll("tbody > tr");
+	const rows = table.querySelectorAll(":scope > tbody > tr");
 	for (const row of Array.from(rows)) {
 		const cell = row.querySelector("td, th");
 		if (cell && Number(cell.getAttribute("colspan")) > 1) {
@@ -329,6 +337,10 @@ const hasColspanInFirstCol = (table: HTMLTableElement | null): boolean => {
 		}
 	}
 	return false;
+};
+
+const isTableInsideTable = (table: HTMLTableElement | null): boolean => {
+	return !!table.closest("[data-sticky-wrapper]")?.parentElement?.closest("[data-sticky-wrapper]");
 };
 
 const getFirstColumnCells = (table: HTMLTableElement | null): HTMLTableCellElement[] => {
@@ -371,7 +383,7 @@ const getFirstColumnCells = (table: HTMLTableElement | null): HTMLTableCellEleme
 	return cells;
 };
 
-const StickyTableWrapper = (props: WidthWrapperProps) => {
+const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 	const { tableRef } = props;
 	const theme = ThemeService.value;
 	const bgColor = useMemo(() => getEffectiveBackgroundColor(tableRef.current), [tableRef.current, theme]);
@@ -385,40 +397,135 @@ const StickyTableWrapper = (props: WidthWrapperProps) => {
 
 	const cols =
 		!hasRowspan || !hasColspan
-			? tableRef?.current?.querySelectorAll<HTMLTableColElement>("colgroup > col") || []
+			? tableRef?.current?.querySelectorAll<HTMLTableColElement>(":scope > colgroup > col") || []
 			: [];
-	const rows = tableRef?.current?.querySelectorAll<HTMLTableRowElement>("tbody > tr");
+	const rows = tableRef?.current?.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr");
+	const colRow = tableRef?.current?.querySelectorAll<HTMLTableRowElement>(":scope > thead > tr > td") || [];
+	const header = tableRef?.current?.dataset["header"] as TableHeaderTypes;
 
-	const enableStickyRow = !hasRowspan && rows?.length !== 1;
-	const colWidths = [...cols].map((c) => {
-		return {
-			styleWidth: parseFloat(c.style.width),
-			computedWidth: window.getComputedStyle(c).width,
-		};
-	});
+	const enableStickyRow =
+		!hasRowspan && rows?.length !== 1 && (header === TableHeaderTypes.ROW || header === TableHeaderTypes.BOTH);
+
+	const colWidthsRef = useRef<Array<{ styleWidth: number; computedWidth: number }>>([]);
+	const colWidths = useMemo(() => {
+		const prevColWidths = colWidthsRef.current;
+		const newCols = [...(cols as NodeListOf<HTMLTableColElement>)];
+		if (!newCols.length) {
+			if (prevColWidths.length) colWidthsRef.current = [];
+			return colWidthsRef.current;
+		}
+		const newColWidths = [...colRow].map((c, i) => ({
+			styleWidth: parseFloat(newCols[i].style.width) || 0,
+			computedWidth: parseFloat(window.getComputedStyle(c).width),
+		}));
+
+		const sameLenght = newColWidths.length === prevColWidths.length;
+		const checkIdentityWidths = () =>
+			newColWidths.every(
+				(col, i) =>
+					col.styleWidth === prevColWidths[i]?.styleWidth &&
+					col.computedWidth === prevColWidths[i]?.computedWidth,
+			);
+
+		if (sameLenght && checkIdentityWidths()) return prevColWidths;
+
+		colWidthsRef.current = newColWidths;
+		return newColWidths;
+	}, [cols, colRow]);
 
 	const emptyColWidth = colWidths.some((colWidth) => !colWidth.styleWidth);
-	const firstRowCells = emptyColWidth ? rows?.[0]?.querySelectorAll<HTMLTableColElement>("td, th") || [] : [];
-	const firstRowCellsWidths = [...firstRowCells].map((c) => window.getComputedStyle(c).width);
+	const firstRowCells = [...(rows?.[0]?.querySelectorAll<HTMLTableCellElement>("td, th") || [])];
+	const firstRowCellsWidthsRef = useRef<string[]>([]);
+	const firstRowCellsWidths = useMemo(() => {
+		const newWidths = firstRowCells.map((c) => window.getComputedStyle(c).width);
+		const prevWidths = firstRowCellsWidthsRef.current;
 
-	const gridTemplateColumns = useMemo(
-		() => colWidths.map((colWidth) => (colWidth.styleWidth ? `${colWidth.styleWidth}px` : `max-content`)).join(" "),
-		[clientWidth, enableStickyRow],
-	);
+		if (
+			newWidths.length === prevWidths.length &&
+			newWidths.every((width, i) => parseFloat(width) - parseFloat(prevWidths[i]) <= 0.5)
+		) {
+			return prevWidths;
+		}
+
+		firstRowCellsWidthsRef.current = newWidths;
+		return newWidths;
+	}, [firstRowCells, emptyColWidth]);
+
+
+	const gridColumnsRef = useRef<GridColumns>({});
+	const gridColumns = useMemo(() => {
+		const gridColumns: string[] = [];
+		const totalWidths: TotalWidths[] = [];
+		const gridColWidths: GridColWidths[] = [];
+
+		for (let i = 0, colIndex = 0; i < firstRowCells.length; i++) {
+			const element = firstRowCells[i];
+			const colSpan = element.colSpan;
+			let size = 0;
+			const totalWidth = { computedWidth: 0, styleWidth: 0 };
+			for (let currentColIndex = colIndex; currentColIndex < colIndex + colSpan; currentColIndex++) {
+				const currentColWidth = colWidths[currentColIndex];
+				if (!currentColWidth) return gridColumnsRef.current;
+
+				const { computedWidth, styleWidth } = currentColWidth;
+
+				if (currentColIndex === colIndex + colSpan - 1 && (size !== -1 || !styleWidth)) {
+					const width = parseFloat(firstRowCellsWidths[i]) - totalWidth.computedWidth;
+					gridColWidths.push({
+						width,
+						colIndex: currentColIndex + 1,
+					});
+				}
+
+				totalWidth.computedWidth += computedWidth;
+				if (size === -1) continue;
+				if (styleWidth) {
+					totalWidth.styleWidth += styleWidth;
+					size += computedWidth > styleWidth ? computedWidth : styleWidth;
+					continue;
+				}
+				totalWidth.styleWidth = 0;
+				size = -1;
+			}
+			colIndex += colSpan;
+			gridColumns.push(size !== -1 ? `${size}px` : `max-content`);
+			totalWidths.push(totalWidth);
+		}
+		gridColumnsRef.current = { totalWidths, gridTemplateColumns: gridColumns.join(" "), gridColWidths };
+		return gridColumnsRef.current;
+	}, [colWidths, firstRowCellsWidths]);
+
 	const emptyRef = useRef();
 	const styckyStyles = useStickyTableHeader(
 		enableStickyRow ? tableRef : emptyRef,
 		stickyTableWrapperRef,
 		topShadowContainerRef,
 	);
-	const firstColumnCells = !hasColspan ? getFirstColumnCells(tableRef?.current) : [];
+	const firstColumnCellsRef = useRef<HTMLTableCellElement[]>([]);
+	const firstColumnCells = useMemo(() => {
+		const prevCells = firstColumnCellsRef.current;
+		if (hasColspan) {
+			if (prevCells.length !== 0) firstColumnCellsRef.current = [];
+			return prevCells;
+		}
+
+		const newCells = getFirstColumnCells(tableRef?.current);
+
+		if (newCells.length === prevCells.length && newCells.every((cell, i) => cell === prevCells[i])) {
+			return prevCells;
+		}
+
+		firstColumnCellsRef.current = newCells;
+		return newCells;
+	}, [hasColspan, tableRef?.current]);
 
 	const stickyColumnCSS = useMemo(() => {
 		if (!tableRef.current || !firstColumnCells.length) return "";
 
 		const selectors = firstColumnCells
 			.map((cell) => {
-				const rowIndex = Array.from(cell.parentElement.parentElement.children).indexOf(cell.parentElement) + 1;
+				const rowIndex =
+					Array.from(cell.parentElement?.parentElement?.children).indexOf(cell.parentElement) + 1;
 				return `tr:nth-of-type(${rowIndex}) td:first-of-type`;
 			})
 			.join(",\n");
@@ -431,7 +538,7 @@ const StickyTableWrapper = (props: WidthWrapperProps) => {
 				z-index: 1;
 				border-left: none;
 				border-right: none;
-				box-shadow: inset 0.67px 0 0 var(--color-table-border), inset -0.67px 0 0 var(--color-table-border);
+				box-shadow: inset 1px 0 0 var(--color-table-border), inset -1px 0 0 var(--color-table-border);
 			}
 		`.styles;
 	}, [firstColumnCells, bgColor, tableRef.current]);
@@ -451,14 +558,12 @@ const StickyTableWrapper = (props: WidthWrapperProps) => {
 		<StickyWrapper
 			ref={stickyTableWrapperRef}
 			data-sticky-wrapper=""
-			styckyStyles={styckyStyles}
 			firstColumnWidth={colWidths?.[0]?.computedWidth}
 			bgColor={bgColor}
 			clientWidth={clientWidth}
-			gridTemplateColumns={gridTemplateColumns}
+			gridColumns={gridColumns}
 			stickyColumnCSS={stickyColumnCSS}
-			colWidths={colWidths}
-			firstRowCellsWidths={firstRowCellsWidths}
+			{...styckyStyles}
 		>
 			<WidthWrapper
 				{...props}
@@ -473,6 +578,25 @@ const StickyTableWrapper = (props: WidthWrapperProps) => {
 			/>
 		</StickyWrapper>
 	);
+};
+
+const StickyTableWrapper = (props: WidthWrapperProps) => {
+	const isNestedTable = useRef<boolean>(undefined);
+
+	useWatch(() => {
+		if (!props.tableRef.current || typeof isNestedTable.current === "boolean") return;
+		isNestedTable.current = isTableInsideTable(props.tableRef.current);
+	}, [props.tableRef.current]);
+
+	if (isNestedTable.current) {
+		return (
+			<div data-sticky-wrapper="">
+				<WidthWrapper {...props} />
+			</div>
+		);
+	}
+
+	return <StickyTableWrapperInternal {...props} />;
 };
 
 export default StickyTableWrapper;

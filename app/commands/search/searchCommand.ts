@@ -2,18 +2,19 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import Context from "@core/Context/Context";
 import RuleProvider from "@ext/rules/RuleProvider";
-import { SearchResult } from "@ext/serach/Searcher";
+import { ArticleLanguage, isArticleLanguage } from "@ext/serach/modulith/SearchArticle";
+import { PropertyFilter, SearchResult } from "@ext/serach/Searcher";
 import { isSearcherType, SearcherType } from "@ext/serach/SearcherManager";
 import { Command } from "../../types/Command";
-import { ArticleLanguage, isArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 
 const searchCommand: Command<
 	{
 		ctx: Context;
+		signal?: AbortSignal;
 		type?: SearcherType;
 		catalogName?: string;
 		query: string | undefined;
-		properties?: { key: string; value: unknown }[];
+		propertyFilter?: PropertyFilter;
 		articlesLanguage?: ArticleLanguage;
 	},
 	SearchResult[]
@@ -22,7 +23,7 @@ const searchCommand: Command<
 
 	kind: ResponseKind.json,
 
-	async do({ ctx, query, type, catalogName, properties, articlesLanguage }) {
+	async do({ ctx, signal, query, type, catalogName, propertyFilter, articlesLanguage }) {
 		const getCatalogItemsIds = async (catalogName: string, requireExactLanguageMatch = false) => {
 			const filters = new RuleProvider(ctx).getItemFilters({ requireExactLanguageMatch });
 			const catalog = await this._app.wm.current().getContextlessCatalog(catalogName);
@@ -36,13 +37,20 @@ const searchCommand: Command<
 					query,
 					catalogName,
 					articleIds: await getCatalogItemsIds(catalogName, true),
-					properties,
+					propertyFilter,
 					articlesLanguage,
 				});
 				return result;
 			};
 
-			return (query ? await multiLayoutSearcher<SearchResult[]>(search)(query) : search(query)) ?? [];
+			const doSearch = query
+				? multiLayoutSearcher<SearchResult[]>({
+						searcher: search,
+						signal,
+				  })
+				: search;
+
+			return (await doSearch(query)) ?? [];
 		};
 
 		const getAllSearchData = async (query: string | undefined) => {
@@ -53,25 +61,32 @@ const searchCommand: Command<
 				const result = await this._app.searcherManager.getSearcher(type).searchAll({
 					query,
 					catalogToArticleIds: catalogArticleIds,
-					properties,
+					propertyFilter,
 					articlesLanguage,
 				});
 				return result;
 			};
 
-			return (query ? await multiLayoutSearcher<SearchResult[]>(search)(query) : search(query)) ?? [];
+			const doSearch = query
+				? multiLayoutSearcher<SearchResult[]>({
+						searcher: search,
+						signal,
+				  })
+				: search;
+
+			return (await doSearch(query)) ?? [];
 		};
 
 		return catalogName ? await getSearchData(query, catalogName) : await getAllSearchData(query);
 	},
 
-	params(ctx, q, body) {
+	params(ctx, q, body, signal) {
 		const query = q.query;
 		const catalogName = q.catalogName;
 		const type = isSearcherType(q.type) ? q.type : undefined;
-		const properties = body?.properties;
+		const propertyFilter = body?.propertyFilter;
 		const articlesLanguage = isArticleLanguage(q.articlesLanguage) ? q.articlesLanguage : undefined;
-		return { ctx, catalogName, type, query, properties, articlesLanguage };
+		return { ctx, signal, catalogName, type, query, propertyFilter, articlesLanguage };
 	},
 });
 

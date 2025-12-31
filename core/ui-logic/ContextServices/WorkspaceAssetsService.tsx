@@ -1,19 +1,26 @@
+import { GetPluginsResponse } from "@app/commands/workspace/assets/plugins/getPlugins";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ContextService from "@core-ui/ContextServices/ContextService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { CallApi, useApi } from "@core-ui/hooks/useApi";
+import useUpdateEffect from "@core-ui/hooks/useUpdateEffect";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
 import useTrigger from "@core-ui/triggers/useTrigger";
 import CustomLogoDriver from "@core/utils/CustomLogoDriver";
+import t from "@ext/localization/locale/translate";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
 import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { ReactElement, createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { clearAllPlugins, loadPlugins, makePluginReady } from "@plugins/store";
+import { toast } from "@ui-kit/Toast";
+import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 interface WorkspaceAssetsInterface {
 	updateStyle: (newStyles: string) => void;
 	refreshStyle: () => void;
+	refreshPlugin: CallApi<GetPluginsResponse>;
 	refreshHomeLogo: () => ReturnType<LogoManagerType["refreshLogo"]>;
 	homeLogo?: LogoManagerType["logo"];
 }
@@ -118,7 +125,6 @@ interface WorkspaceAssetsType {
 export const useWorkspaceAssets = (workspacePath?: string): WorkspaceAssetsType => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [initialStyle, setInitialStyle] = useState("");
-
 	const getCustomStyle = useCallback(async () => {
 		if (!workspacePath) return "";
 		const url = apiUrlCreator.getCustomStyleAsset(workspacePath);
@@ -182,6 +188,23 @@ class WorkspaceAssetsService implements ContextService {
 		const { logo: logoDark, refreshLogo: refreshDarkLogo } = useLogoManager(workspace.path, Theme.dark);
 		const { logo: logoLight, refreshLogo: refreshLightLogo } = useLogoManager(workspace.path, Theme.light);
 		const { getCustomStyle } = useWorkspaceAssets(workspace.path);
+		const { call: refreshPlugin } = useApi<GetPluginsResponse>({
+			url: (api) => api.getPlugins(workspace.path),
+			onStart: () => clearAllPlugins(),
+			onDone: async (response) => {
+				const { plugins, errors } = response;
+
+				for (const pluginName of errors) {
+					toast(t("plugins.messages.load-error").replace("{name}", pluginName), { status: "error" });
+				}
+
+				if (plugins.length) {
+					await loadPlugins(plugins);
+				}
+			},
+			onError: (error) => console.error("[WorkspaceAssetsService] Error loading plugins:", error),
+			onFinally: () => makePluginReady(),
+		});
 
 		const logo = useMemo(() => {
 			if (theme === Theme.dark && !logoDark) {
@@ -200,12 +223,18 @@ class WorkspaceAssetsService implements ContextService {
 			forceUpdateLogoInStorage();
 		};
 
+		useUpdateEffect(() => {
+			void refreshPlugin();
+		}, [workspace.path]);
+
 		useWatchClient(() => {
 			void refreshStyle();
 		}, [workspace.path]);
 
 		return (
-			<WorkspaceAssetsContext.Provider value={{ refreshHomeLogo, homeLogo: logo, updateStyle, refreshStyle }}>
+			<WorkspaceAssetsContext.Provider
+				value={{ refreshHomeLogo, homeLogo: logo, updateStyle, refreshStyle, refreshPlugin }}
+			>
 				{children}
 			</WorkspaceAssetsContext.Provider>
 		);

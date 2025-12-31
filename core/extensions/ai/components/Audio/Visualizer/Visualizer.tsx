@@ -2,13 +2,14 @@ import styled from "@emotion/styled";
 import { useCallback, useEffect, useRef, useState } from "react";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import CanvasVisualizator from "@ext/ai/components/Audio/Visualizer/CanvasVisualizator";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import t from "@ext/localization/locale/translate";
 import Timer from "@ext/ai/components/Audio/Timer";
 import { isActive, isPaused } from "@core-ui/hooks/useAudioRecorder";
 import useWatch from "@core-ui/hooks/useWatch";
 import AudioHistory from "@ext/ai/components/Audio/Visualizer/AudioHistory";
 import { AudioHistoryItem } from "@ext/ai/models/types";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { AiToolbarButton } from "@ext/ai/components/Helpers/AiToolbarButton";
 
 export interface VisualizerProps {
 	startTime?: number;
@@ -25,20 +26,13 @@ const Container = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	background: var(--color-edit-menu-button-bg);
-	border-radius: var(--radius-normal);
 	gap: 0.5em;
 	width: 100%;
 `;
 
 const EqualizerContainer = styled.div`
-	height: 2.15em;
+	height: 1em;
 	width: 100%;
-`;
-
-const RightContainer = styled.div`
-	display: flex;
-	align-items: center;
 `;
 
 const formatTime = (ms: number): string => {
@@ -285,14 +279,15 @@ const Visualizer = (props: VisualizerProps) => {
 	return (
 		<Container>
 			<AudioHistory disabled={sendDisabled} onClick={onFileClick} />
-			<Button
-				icon={getTooglerIcon()}
+			<ToolbarToggleButton
 				disabled={limitReached}
 				onClick={isActive(recorderState) && !isPaused(recorderState) ? handlePause : handlePlay}
 				tooltipText={getTogglerTooltipText()}
-			/>
+			>
+				<ToolbarIcon icon={getTooglerIcon()} />
+			</ToolbarToggleButton>
 			<EqualizerContainer>{renderVisualization()}</EqualizerContainer>
-			<RightContainer>
+			<div className="flex items-center gap-2">
 				<Timer
 					maxDurationMs={maxDurationMs}
 					accumulatedTimeMs={accumulatedTimeMs}
@@ -300,8 +295,13 @@ const Visualizer = (props: VisualizerProps) => {
 					formatTime={formatTime}
 					onTimeChange={handleTimeClick}
 				/>
-				<Button icon="check" tooltipText={sendTooltipText} disabled={sendDisabled} onClick={onSendClick} />
-			</RightContainer>
+				<AiToolbarButton
+					tooltipText={sendTooltipText}
+					disabled={sendDisabled}
+					onClick={onSendClick}
+					icon="check"
+				/>
+			</div>
 		</Container>
 	);
 };

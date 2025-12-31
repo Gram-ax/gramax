@@ -1,10 +1,10 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
 import { Editor } from "@tiptap/core";
 import createDrawio from "../logic/createDrawio";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 
 interface DrawioMenuButtonProps {
 	editor: Editor;
@@ -14,14 +14,15 @@ interface DrawioMenuButtonProps {
 const DrawioMenuButton = ({ editor, fileName }: DrawioMenuButtonProps) => {
 	const articleProps = ArticlePropsService.value;
 	const resourceService = ResourceService.value;
+	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "drawio" });
 
 	return (
-		<Button
-			nodeValues={{ action: "drawio" }}
-			tooltipText={t("diagram.names.drawio")}
-			onClick={() => createDrawio(editor, fileName || articleProps?.fileName, resourceService)}
+		<ToolbarDropdownMenuItem
+			disabled={disabled}
+			active={isActive}
+			onSelect={() => createDrawio(editor, fileName || articleProps?.fileName, resourceService)}
 		>
-			<SvgContainer>
+			<div className="flex flex-row items-center gap-2 mr-3">
 				<svg
 					data-qa="qa-edit-menu-diagrams.net"
 					width="16"
@@ -55,8 +56,9 @@ const DrawioMenuButton = ({ editor, fileName }: DrawioMenuButtonProps) => {
 						</clipPath>
 					</defs>
 				</svg>
-			</SvgContainer>
-		</Button>
+				{t("diagram.names.drawio")}
+			</div>
+		</ToolbarDropdownMenuItem>
 	);
 };
 

@@ -3,6 +3,8 @@ import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { forwardRef } from "react";
 
+export const TAB_TRANSITION_TIME = 150;
+
 const Wrapper = styled.div<{ height: number }>`
 	overflow: hidden;
 	height: 0;
@@ -50,10 +52,11 @@ interface TabWrapperProps {
 	contentHeight?: number;
 	isTop?: boolean;
 	titleRightExtension?: JSX.Element;
+	actions?: JSX.Element;
 }
 
 const TabWrapper = forwardRef<HTMLDivElement, TabWrapperProps>((props, ref) => {
-	const { children, show, title, titleRightExtension, onClose, contentHeight, isTop } = props;
+	const { children, show, title, titleRightExtension, onClose, contentHeight, isTop, actions } = props;
 
 	return (
 		<Wrapper
@@ -61,7 +64,13 @@ const TabWrapper = forwardRef<HTMLDivElement, TabWrapperProps>((props, ref) => {
 			className={classNames("tab-wrapper", { show, "is-top": isTop })}
 			height={show ? contentHeight : undefined}
 		>
-			<Header title={title} rightExtension={titleRightExtension} onClose={onClose} show={show} />
+			<Header
+				title={title}
+				rightExtension={titleRightExtension}
+				onClose={onClose}
+				show={show}
+				actions={actions}
+			/>
 			{children}
 		</Wrapper>
 	);

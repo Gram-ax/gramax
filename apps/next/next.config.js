@@ -40,7 +40,7 @@ export default withBundleAnalyzer({
 	output: process.env.NEXT_OUTPUT_TYPE,
 	// outputFileTracingRoot: process.env.NEXT_OUTPUT_TYPE ? path.join(dirname, '../../') : null,
 
-	transpilePackages: ["monaco-editor"],
+	transpilePackages: ["monaco-editor", "mdt-charts"],
 
 	webpack: (config, { isServer, webpack }) => {
 		if (isProduction && uploadSourceMapsToBugsnag) config.plugins.push(new NextSourceMapUploader(bugsnagOptions));
@@ -79,6 +79,7 @@ export default withBundleAnalyzer({
 			"@components": path.resolve(dirname, "../../core/components"),
 			"@ui-kit": path.resolve(dirname, "../../core/ui-kit/components"),
 			"@public": path.resolve(dirname, "../../core/public"),
+			"@plugins": path.resolve(dirname, "../../core/plugins"),
 			"@core": path.resolve(dirname, "../../core/logic"),
 			"@ext": path.resolve(dirname, "../../core/extensions"),
 			"@app": path.resolve(dirname, "../../app"),

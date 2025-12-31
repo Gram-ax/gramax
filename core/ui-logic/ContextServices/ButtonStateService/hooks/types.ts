@@ -6,12 +6,13 @@ import { Selection } from "@tiptap/pm/state";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import { editName as questionEditName } from "@ext/markdown/elements/question/consts";
+import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
 
 export type Attrs = {
 	level: Level;
-	notFirstInList?: boolean;
 	type?: Exclude<NoteType, "hotfixes">;
 	diagramName?: DiagramType;
+	color?: HIGHLIGHT_COLOR_NAMES;
 };
 
 export type NodeType =

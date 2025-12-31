@@ -1,5 +1,7 @@
 import { PageProps } from "@components/ContextProviders";
 import ContextService from "@core-ui/ContextServices/ContextService";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";
 import IPermission from "@ext/security/logic/Permission/IPermission";
 import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/PermissionParser";
 import ClientPermissions from "@ext/security/logic/Permission/model/ClientPermissions";
@@ -36,8 +38,12 @@ class PermissionService implements ContextService {
 	}
 
 	useCheckPermission(permission: IPermission, workspacePath?: WorkspacePath, catalogName?: string): boolean {
+		const { isTauri, isBrowser } = usePlatform();
+		const isEnterpriseWorkspace = useIsEnterpriseWorkspace();
+		if (!isEnterpriseWorkspace && (isTauri || isBrowser)) return true;
+
 		const { global, workspace, catalog } = useContext(UserPermissionsContext);
-		if (catalogName) return catalog?.enough(catalogName, permission);
+		if (workspacePath && catalogName) return catalog?.enough(catalogName, permission);
 		if (workspacePath) return workspace?.enough(workspacePath, permission);
 		return global?.enough?.(permission);
 	}

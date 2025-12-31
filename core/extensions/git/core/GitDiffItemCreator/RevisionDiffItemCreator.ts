@@ -69,7 +69,11 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 				const rootCategoryPath = catalog.basePath;
 
 				for (const path of paths) {
-					if (rootCategoryPath.subDirectory(resourceManager.getAbsolutePath(path)).compare(resource.path)) {
+					const absoluteResourcePath = resourceManager.getAbsolutePath(path);
+					const itemResourcePath =
+						rootCategoryPath.subDirectory(absoluteResourcePath) || absoluteResourcePath;
+
+					if (itemResourcePath.compare(resource.path)) {
 						resourcePathAssignees.set(resource.path.value, { article, catalog });
 						parentPath = catalog.getRepositoryRelativePath(article.ref).value;
 						const diffResource = this._getDiffResource(resource, {
@@ -110,10 +114,7 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 							diffItems.push(item);
 						}
 					}
-					if (
-						resource.status === FileStatus.rename &&
-						rootCategoryPath.subDirectory(resourceManager.getAbsolutePath(path)).compare(resource.oldPath)
-					) {
+					if (resource.status === FileStatus.rename && itemResourcePath.compare(resource.oldPath)) {
 						resourcePathAssignees.set(resource.oldPath.value, { article, catalog });
 					}
 				}
@@ -121,14 +122,75 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 
 			if (!isResourceAssigned) {
 				const unassigneedResource = this._getDiffResource(resource, { path: null, oldPath: null });
-				unassigneedResources.add(unassigneedResource);
-				allResources.add(unassigneedResource);
+				const isAssigned = await this._assignUnassigneedComment(unassigneedResource, diffItems);
+				if (!isAssigned) {
+					unassigneedResources.add(unassigneedResource);
+					allResources.add(unassigneedResource);
+				}
 			}
 		}
 
 		this._addOldParentPathToDiffResource(allResources, resourcePathAssignees);
 
 		return Array.from(unassigneedResources);
+	}
+
+	private async _assignUnassigneedComment(
+		unassigneedResource: DiffResource,
+		diffItems: DiffItem[],
+	): Promise<boolean> {
+		const isDeleted = unassigneedResource.status === FileStatus.delete;
+		if (isDeleted) return false;
+		const isComment = unassigneedResource.filePath.path.endsWith(".comments.yaml");
+		if (!isComment) return false;
+
+		const probablyArticleName = new Path(unassigneedResource.filePath.path).nameWithExtension.replace(
+			".comments.yaml",
+			".md",
+		);
+		const probablyArticlePath = unassigneedResource.filePath.path.replace(".comments.yaml", ".md");
+
+		const itemRefPath = this._newCatalog.getItemRefPath(new Path(unassigneedResource.filePath.path));
+		const directoryPath = itemRefPath.parentDirectoryPath;
+
+		const dir = await this._fp.readdir(directoryPath);
+		if (!dir.includes(probablyArticleName)) return false;
+
+		const article = await this._getArticleByRepPath(this._newCatalog, probablyArticlePath);
+		if (!article) return false;
+
+		const parsedContent = await article.parsedContent.read((p) => {
+			if (!p) return null;
+			return {
+				paths: [...p.resourceManager.resources, ...p.linkManager.resources],
+				resourceManager: p.resourceManager,
+			};
+		});
+
+		if (!parsedContent) return false;
+
+		const { paths, resourceManager } = parsedContent;
+
+		const isResourceExistsInArticle = paths.some((path) =>
+			resourceManager.getAbsolutePath(path).endsWith(new Path(unassigneedResource.filePath.path)),
+		);
+		if (!isResourceExistsInArticle) return false;
+
+		const diffItem = await this._getNewOrModifiedDiffItemByArticle(
+			{
+				added: 0,
+				deleted: 0,
+				path: new Path(probablyArticlePath),
+				oldPath: new Path(probablyArticlePath),
+				status: FileStatus.modified,
+			},
+			article,
+			this._newCatalog,
+			true,
+			[unassigneedResource],
+		);
+		diffItems.push(diffItem);
+		return true;
 	}
 
 	private _addOldParentPathToDiffResource(allResources: Set<DiffResource>, resourcePathAssignees: PathAssignees) {

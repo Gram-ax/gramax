@@ -112,15 +112,13 @@ impl<'s> ShortInfo<'s, StatusInfo> for Statuses<'s> {
 
 impl<C: Creds> Status for Repo<'_, C> {
   fn status(&self, index: bool) -> Result<Statuses<'_>> {
-    self.ensure_trash_ignored()?;
-
     let mut opts = StatusOptions::default();
+
     opts
       .include_unmodified(false)
       .include_ignored(false)
       .include_untracked(true)
       .exclude_submodules(true)
-      .update_index(true)
       .recurse_untracked_dirs(true)
       .show(if index { StatusShow::Index } else { StatusShow::IndexAndWorkdir });
 

@@ -43,6 +43,8 @@ pub enum MenuItemId {
   ToggleInspector,
   EnterpriseConfigure,
   ToggleSpellcheck,
+  ShowLogs,
+  ExportLogs,
   Unknown,
   #[cfg(target_family = "unix")]
   ZoomIn,
@@ -71,6 +73,8 @@ impl MenuItemId {
       #[cfg(target_family = "unix")]
       MenuItemId::ActualSize => t!("menu.view.actual-size"),
       MenuItemId::ToggleSpellcheck => t!("menu.edit.toggle-spellcheck"),
+      MenuItemId::ExportLogs => t!("menu.help.export-logs"),
+      MenuItemId::ShowLogs => t!("menu.help.show-logs"),
       _ => Cow::Owned("unknown".to_string()),
     }
   }
@@ -202,6 +206,22 @@ pub fn on_menu_event<R: Runtime>(app: &AppHandle<R>, event: MenuEvent) {
         }
       }
     }
+    Id::ExportLogs => {
+      std::thread::spawn(move || {
+        _ = crate::logging::collect_logs(&app).or_show();
+      });
+    }
+    Id::ShowLogs => {
+      let Ok(data_dir) = app.path().app_data_dir().or_show() else {
+        return;
+      };
+
+      if data_dir.join("logs").exists() {
+        _ = open::that_detached(data_dir.join("logs")).or_show();
+      } else {
+        _ = open::that_detached(data_dir).or_show();
+      }
+    }
     _ => (),
   }
 }
@@ -302,6 +322,9 @@ fn make_menu<R: Runtime>(app: &AppHandle<R>) -> Result<Menu<R>> {
     &build_item(Id::VisitGitHub, None)?,
     &build_item(Id::JoinTelegramNews, None)?,
     &build_item(Id::JoinTelegramChat, None)?,
+    &PredefinedMenuItem::separator(app)?,
+    &build_item(Id::ShowLogs, None)?,
+    &build_item(Id::ExportLogs, None)?,
   ])?;
   menu.append(&help_sub)?;
 

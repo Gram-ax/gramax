@@ -7,20 +7,33 @@ import { DiffTree2TreeFile, DiffTree2TreeInfo } from "@ext/git/core/GitCommands/
 import GitDiffItemAliasApplier from "@ext/git/core/GitDiffItemCreator/GitDiffItemAliasApplier";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import { getDiff } from "@ext/VersionControl/DiffHandler/DiffHandler";
-import type { DiffFilePaths, DiffItem, DiffItemResourceCollection, DiffResource } from "@ext/VersionControl/model/Diff";
+import type {
+	DiffFilePaths,
+	DiffItem,
+	DiffItemResourceCollection,
+	DiffResource,
+	WithMergeBase,
+} from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 export default abstract class GitDiffItemCreator {
 	protected _gitVersionControl: GitVersionControl;
+	private _mergeBase: string;
 
 	constructor(protected _catalog: ReadonlyCatalog, protected _sp: SitePresenter, protected _fs: FileStructure) {
 		this._gitVersionControl = this._catalog.repo.gvc;
+	}
+
+	public getMergeBase(): string {
+		return this._mergeBase;
 	}
 
 	public async getDiffItems(): Promise<DiffItemResourceCollection> {
 		if (!this._gitVersionControl) return { items: [], resources: [] };
 
 		const files = await this._getChangedFiles();
+		this._mergeBase = files.mergeBase;
+
 		const { items, resources } = await this._resolveDiffItems(files.items, files.resources);
 
 		if (resources.length === 0) {
@@ -92,10 +105,12 @@ export default abstract class GitDiffItemCreator {
 		});
 	}
 
-	protected async _getChangedFiles(): Promise<{
-		items: DiffTree2TreeFile[];
-		resources: DiffTree2TreeFile[];
-	}> {
+	protected async _getChangedFiles(): Promise<
+		WithMergeBase<{
+			items: DiffTree2TreeFile[];
+			resources: DiffTree2TreeFile[];
+		}>
+	> {
 		const items: DiffTree2TreeFile[] = [];
 		const resources: DiffTree2TreeFile[] = [];
 
@@ -110,7 +125,7 @@ export default abstract class GitDiffItemCreator {
 			return resources.push(c);
 		});
 
-		return { items, resources };
+		return { items, resources, mergeBase: diff.mergeBase.toString() };
 	}
 
 	protected _getFilePath(file: DiffTree2TreeFile): DiffFilePaths {

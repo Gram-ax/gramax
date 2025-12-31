@@ -12,7 +12,6 @@ import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 import TemplateProcessor from "@ext/wordExport/TemplateProcessor";
 import t from "@ext/localization/locale/translate";
-import { WORD_TEMPLATES_DIR } from "@ext/wordExport/WordTemplateManager";
 import assert from "assert";
 import docx from "@dynamicImports/docx";
 
@@ -54,7 +53,7 @@ const getAsWordDocument: Command<
 		if (wordTemplate) {
 			const templateBuffer =
 				typeof wordTemplate === "string"
-					? await workspace.getAssets().getBuffer(Path.join(WORD_TEMPLATES_DIR, wordTemplate))
+					? await workspace.getAssets().wordTemplates.getContent(wordTemplate)
 					: wordTemplate;
 
 			assert(templateBuffer, t("word.template.error.template-not-found"));

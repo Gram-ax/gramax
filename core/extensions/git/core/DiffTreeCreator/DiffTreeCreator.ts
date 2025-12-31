@@ -13,6 +13,7 @@ import Navigation from "@ext/navigation/catalog/main/logic/Navigation";
 
 export default class DiffTreeCreator {
 	private _gvc: GitVersionControl;
+	private _mergeBase: string;
 
 	constructor(
 		private _articleParser: ArticleParser,
@@ -23,6 +24,10 @@ export default class DiffTreeCreator {
 		private _newScope?: TreeReadScope,
 	) {
 		this._gvc = this._catalog.repo.gvc;
+	}
+
+	public getMergeBase(): string {
+		return this._mergeBase;
 	}
 
 	async getDiffTree(): Promise<DiffTree> {
@@ -41,6 +46,7 @@ export default class DiffTreeCreator {
 		);
 
 		const diffItems = await gitDiffItemCreator.getDiffItems();
+		this._mergeBase = gitDiffItemCreator.getMergeBase();
 
 		const nav = new Navigation();
 		const diffTreePresenter = new RevisionDiffTreePresenter({

@@ -9,13 +9,23 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { cn } from "@core-ui/utils/cn";
 
 interface EditMarkdownTriggerProps {
-	disabled?: boolean;
-	disabledTooltip?: string;
 	loadContent: () => Promise<string>;
 	saveContent: (content: string) => Promise<void>;
+	isCurrentItem: boolean;
+	isTemplate: boolean;
+	disabled?: boolean;
 }
 
-const EditMarkdownTrigger = ({ loadContent, saveContent, disabled, disabledTooltip }: EditMarkdownTriggerProps) => {
+const getDisabledMarkdownInfo = (isTemplate: boolean, isCurrentItem: boolean) => {
+	if (!isCurrentItem) {
+		return { disabled: true, disabledTooltip: t("article.edit-markdown-disabled-not-current-item") };
+	}
+	if (isTemplate) return { disabled: true, disabledTooltip: t("article.edit-markdown-disabled-template") };
+
+	return { disabled: false, disabledTooltip: undefined };
+};
+
+const EditMarkdownTrigger = ({ loadContent, saveContent, isCurrentItem, isTemplate }: EditMarkdownTriggerProps) => {
 	const onSelect = () => {
 		ModalToOpenService.setValue<ComponentProps<typeof EditMarkdown>>(ModalToOpen.MarkdownEditor, {
 			loadContent,
@@ -25,18 +35,21 @@ const EditMarkdownTrigger = ({ loadContent, saveContent, disabled, disabledToolt
 			},
 		});
 	};
-	const item = (
+
+	const { disabled, disabledTooltip } = getDisabledMarkdownInfo(isTemplate, isCurrentItem);
+
+	const dropdownItem = (
 		<DropdownMenuItem onSelect={onSelect} disabled={disabled}>
 			<Icon code="file-pen" />
 			{t("article.edit-markdown")}
 		</DropdownMenuItem>
 	);
 
-	if (!disabled) return item;
+	if (!disabled) return dropdownItem;
 
 	return (
 		<Tooltip>
-			<TooltipTrigger className={cn(disabled && "cursor-default")}>{item}</TooltipTrigger>
+			<TooltipTrigger className={cn(disabled && "cursor-default")}>{dropdownItem}</TooltipTrigger>
 			<TooltipContent>{disabledTooltip}</TooltipContent>
 		</Tooltip>
 	);

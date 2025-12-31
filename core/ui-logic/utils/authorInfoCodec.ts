@@ -10,6 +10,6 @@ export default class AuthorInfoCodec {
 	}
 
 	public static serialize(author: AuthorInfo): string {
-		return `${author.name}<${author.email}>`;
+		return `${author.name} <${author.email}>`;
 	}
 }

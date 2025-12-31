@@ -47,6 +47,10 @@ tempdir = "0.3.7"
 rayon = "1.11.0"
 time = { version = "0.3.44", features = ["parsing", "serde"] }
 semver = { version = "1.0.27", features = ["serde"] }
+prometheus-client = "0.24.0"
+sysinfo = { version = "0.37", default-features = false, features = [
+  "multithread", "system", "user"
+] }
 
 [dev-dependencies]
 assert2 = "0.3.16"

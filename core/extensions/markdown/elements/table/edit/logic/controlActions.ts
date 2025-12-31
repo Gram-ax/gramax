@@ -45,6 +45,6 @@ export const showNewControls = (
 	if (nextVerticalController) nextVerticalController.classList.remove("hidden");
 
 	const childNodes = containerHorizontal?.childNodes?.item(cellIndex)?.childNodes;
-	const preHorizontalController = childNodes.item(childNodes.length - 1) as HTMLElement;
+	const preHorizontalController = childNodes?.item(childNodes.length - 1) as HTMLElement;
 	if (preHorizontalController) preHorizontalController.classList.remove("hidden");
 };

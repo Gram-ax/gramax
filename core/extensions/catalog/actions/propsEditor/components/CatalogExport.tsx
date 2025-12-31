@@ -1,30 +1,30 @@
-import DownloadZip from "@components/Actions/DownloadZip";
+import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
-import ItemExport, { ExportFormat } from "@ext/wordExport/components/ItemExport";
-import { DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
 import t from "@ext/localization/locale/translate";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { ReactNode } from "react";
 
-const CatalogExport = ({ name, disabled }: { name: string; disabled: boolean }) => {
+const CatalogExport = ({ disabled, children }: { disabled: boolean; children?: () => ReactNode }) => {
 	return (
-		<DropdownMenuSub>
-			<DropdownMenuSubTrigger disabled={disabled}>
-				<Tooltip>
-					<TooltipContent>{t("export-disabled")}</TooltipContent>
-					<TooltipTrigger asChild>
-						<>
-							<Icon code="file-output" />
-							{t("export.name")}
-						</>
-					</TooltipTrigger>
-				</Tooltip>
-			</DropdownMenuSubTrigger>
-			<DropdownMenuSubContent>
-				<ItemExport fileName={name} exportFormat={ExportFormat.docx} />
-				<ItemExport fileName={name} exportFormat={ExportFormat.pdf} />
-				<DownloadZip />
-			</DropdownMenuSubContent>
-		</DropdownMenuSub>
+		<CatalogItem
+			renderLabel={(Item) => {
+				return (
+					<Item disabled={disabled}>
+						<Tooltip>
+							<TooltipContent>{t("export-disabled")}</TooltipContent>
+							<TooltipTrigger asChild>
+								<>
+									<Icon code="file-output" />
+									{t("export.name")}
+								</>
+							</TooltipTrigger>
+						</Tooltip>
+					</Item>
+				);
+			}}
+		>
+			{children}
+		</CatalogItem>
 	);
 };
 

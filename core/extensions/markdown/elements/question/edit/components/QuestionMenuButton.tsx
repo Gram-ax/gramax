@@ -1,9 +1,9 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
-import { NodeType } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
 import Workspace from "@core-ui/ContextServices/Workspace";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import { Icon } from "@ui-kit/Icon";
 
 interface QuestionMenuButtonProps {
 	editor: Editor;
@@ -12,12 +12,10 @@ interface QuestionMenuButtonProps {
 const QuestionMenuButton = ({ editor }: QuestionMenuButtonProps) => {
 	const workspace = Workspace.current();
 	if (!workspace?.enterprise?.gesUrl || !workspace?.enterprise?.modules?.quiz) return null;
-
-	const nodeValues = { action: "question" as NodeType };
-	const { isActive, disabled } = ButtonStateService.useCurrentAction(nodeValues);
+	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "question" });
 
 	return (
-		<Button
+		<ToolbarDropdownMenuItem
 			onClick={() =>
 				editor
 					.chain()
@@ -25,12 +23,14 @@ const QuestionMenuButton = ({ editor }: QuestionMenuButtonProps) => {
 					.setQuestion({ options: { type: "one" } })
 					.run()
 			}
-			icon="file-question-mark"
+			active={isActive}
 			disabled={disabled}
-			isActive={isActive}
-			tooltipText={t("editor.question.name")}
-			nodeValues={nodeValues}
-		/>
+		>
+			<div className="flex items-center gap-2">
+				<Icon icon="file-question-mark" />
+				{t("editor.question.name")}
+			</div>
+		</ToolbarDropdownMenuItem>
 	);
 };
 

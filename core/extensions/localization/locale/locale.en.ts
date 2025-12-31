@@ -1,6 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 const locale = {
+	"open-menu": "Open menu",
 	forms: {
 		"catalog-edit-props": {
 			name: "Catalog Settings",
@@ -11,6 +12,7 @@ const locale = {
 				appearance: "Appearance",
 				icons: "Icons",
 				extended: "Extended",
+				lfs: "Git LFS",
 			},
 			props: {
 				title: {
@@ -33,6 +35,11 @@ const locale = {
 					placeholder: "Specify the versions",
 					description:
 						"List of versions (branches or tags) to be shown in the doc portal. Specified as glob patterns, e.g., v19.* or release-*",
+				},
+				lfs: {
+					name: "Tracked LFS files",
+					placeholder: "Enter path patterns",
+					description: "Path patterns for git lfs to track (e.g., *.jpg, *.png, *.zip)",
 				},
 				filterProperties: {
 					name: "Filter Properties",
@@ -442,11 +449,11 @@ const locale = {
 		"create-source": {
 			name: "Add new source",
 			description: "Specify the source type and enter the necessary data",
-			"desktop-only": "Available only in the desktop app",
 			props: {
 				source: {
 					name: "Source type",
 					placeholder: "Select a source type",
+					description: "Some options are available only in the desktop app",
 				},
 			},
 		},
@@ -606,6 +613,7 @@ const locale = {
 			"Use the {{instruction}} to configure the CSS styles of the application and the portal",
 		instruction: "instruction",
 		"css-style": "CSS-style",
+		plugin: "Add plugin",
 		logo: "Logo",
 		appearance: "Appearance",
 		"set-ai-server": "AI server",
@@ -700,6 +708,9 @@ const locale = {
 		},
 	},
 	article: {
+		actions: {
+			title: "Article actions",
+		},
 		move: {
 			"to-workspace": "Move",
 			"create-new-catalog": "Create new catalog",
@@ -779,6 +790,12 @@ title: Unable to display the article
 				body: `[alert:error:Gramax couldn’t read the Markdown structure in the article file].\n\nFix the error or remove the structure by "Edit Markdown".\n\n[/alert]`,
 			},
 		},
+		searchPhrases: {
+			title: "Search keywords",
+			placeholder: "e.g. vacation request",
+			description:
+				"If the search is similar to any of these phrases, the article appears at the top of results. Matching is case-insensitive and works with partial words",
+		},
 	},
 	section: {
 		configure: {
@@ -787,6 +804,9 @@ title: Unable to display the article
 		},
 	},
 	catalog: {
+		actions: {
+			title: "Catalog actions",
+		},
 		"new-name": "New Catalog",
 		new: "Create new",
 		"new-2": "Create new catalog",
@@ -893,11 +913,11 @@ title: Unable to display the article
 		},
 		name: "Diagram",
 		names: {
-			c4: "C4 Diagram",
-			mermaid: "Mermaid Diagram",
-			puml: "PlantUml Diagram",
-			ts: "TS Diagram",
-			drawio: "Diagrams.net Diagram",
+			c4: "C4",
+			mermaid: "Mermaid",
+			puml: "PlantUml",
+			ts: "TS",
+			drawio: "Diagrams.net",
 		},
 		error: {
 			"render-failed": "Failed to render diagram",
@@ -953,6 +973,7 @@ title: Unable to display the article
 		validationErrors: {
 			emailRequired: "Email is required",
 			emailInvalidFormat: "Invalid email format",
+			edgeWhitespace: "Email contains whitespace. Please recreate the record.",
 			otpRequired: "Code is required",
 			otpNumbersOnly: "Code must contain only numbers",
 			otpLength: "Code must be 6 digits long",
@@ -1024,13 +1045,15 @@ title: Unable to display the article
 		"ai-search-error":
 			"The AI search function is unavailable due to technical problems. We recommend contacting the system administrator for additional information.",
 		"ai-search-error-title": "Technical problems with AI search",
-		"indexing-info": "Updating search index...",
+		"indexing-info": "Indexing...",
 		"hidden-results": "...{{count}} more",
-		"recommended": "Recommended",
+		recommended: "Recommended",
+		"property-filter-tooltip": "Property filter",
 	},
 	list: {
 		"no-results-found": "No results found",
-		"search-articles": "Link or search for articles",
+		"search-articles": "Enter link or search for articles",
+		"search-catalogs": "Enter link or search for catalogs",
 	},
 	versions: {
 		switch: "Switch version",
@@ -1384,6 +1407,10 @@ title: Unable to display the article
 				"not-approved": "All reviewers need to approve",
 				"not-author": "You are not the author of this merge request",
 			},
+			"delete-confirm": {
+				title: "Delete merge request?",
+				body: "The merge request will be deleted for all users after the changes are published",
+			},
 			confirm: {
 				title: "Merge branches?",
 				body: {
@@ -1443,6 +1470,7 @@ title: Unable to display the article
 		error: {
 			"page-conversion": "Error converting page",
 			"ext-not-supported": "Extension not supported:",
+			"source-required": "Source is required",
 			"space-required": "Space is required",
 			"cannot-import": {
 				title: "Failed to import element from ",
@@ -1461,6 +1489,8 @@ title: Unable to display the article
 			modified: "Modified",
 			deleted: "Deleted",
 		},
+		"previous-version": "Previous version",
+		discard: "Discard",
 	},
 	"unsupported-elements": {
 		confluence: {
@@ -1533,7 +1563,10 @@ title: Unable to display the article
 		"ordered-list": "Numbered list",
 		"task-list": "Task list",
 		note: "Note",
+		notes: "Notes",
 		heading: "Heading",
+		attachments: "Attachments",
+		tools: "Tools",
 		float: {
 			name: "Align",
 			left: "Align to left",
@@ -1556,6 +1589,12 @@ title: Unable to display the article
 		templates: {
 			"inline-property": "Property field",
 			"block-field": "Block field input",
+		},
+
+		link: {
+			"other-catalogs": "Other catalogs",
+			"current-catalog": "Current catalog",
+			catalogs: "Catalogs",
 		},
 
 		table: {
@@ -1715,6 +1754,8 @@ title: Unable to display the article
 				"loading-settings": "An error occurred while loading the settings",
 			},
 			pages: {
+				plugins: "Modules",
+				pluginDetail: "Module Details",
 				check: "Style guide",
 				workspace: "Workspace",
 				groups: "User groups",
@@ -1724,8 +1765,10 @@ title: Unable to display the article
 				guests: "External readers",
 				quiz: "Training",
 				modules: "Modules",
+				metrics: "Browsing history",
 			},
 			users: {
+				user: "User",
 				users: "Users",
 				"add-select": "Select users to add",
 				add: "Enter the user's email address",
@@ -1771,6 +1814,7 @@ title: Unable to display the article
 				errors: {
 					update: "Failed to update the training module",
 					"save-data": "Failed to save the data. Status:",
+					"database-unavailable": "The database service is unavailable",
 				},
 				filters: {
 					users: {
@@ -1794,8 +1838,16 @@ title: Unable to display the article
 					"created-at": "Completed at",
 				},
 			},
+			styleGuide: {
+				errors: {
+					update: "Failed to update style guide data",
+				},
+			},
 			editors: {
 				placeholder: "Find editors",
+				errors: {
+					update: "Failed to update editors data",
+				},
 			},
 			"client-access-keys": {
 				groups: "Groups",
@@ -1826,6 +1878,11 @@ title: Unable to display the article
 				},
 				groups: {
 					group: "Group",
+					"search-placeholder": "Search groups...",
+					"select-groups": "Select groups to add",
+					select: "Select groups",
+					"not-found": "Groups not found",
+					"error-search": "Search error",
 				},
 				branches: {
 					branches: "Branches",
@@ -1844,31 +1901,72 @@ title: Unable to display the article
 						description: "Configure permissions to the catalog",
 					},
 				},
+				errors: {
+					delete: "Failed to delete repository",
+					add: "Failed to add repository",
+				},
 			},
 			groups: {
+				group: "Group",
 				"add-group": "Add group",
 				"group-name": "Group name",
-				"group-name-description": "Enter the group name",
 				"group-name-placeholder": "Enter the group name",
 				"name-error": "Group name is required",
 				"group-name-exists": "Group with this name already exists",
+				errors: {
+					add: "Failed to add group",
+					delete: "Failed to delete groups",
+					rename: "Failed to rename group",
+				},
 			},
 			guests: {
+				"otp-enabled": "OTP Login",
+				"otp-description": "One-time password login via email for external readers to the documentation portal",
 				"general-settings": "General settings",
 				"session-duration-hours": "Session duration (hours)",
 				"whitelist-settings": "Whitelist settings",
+				"allow-any-email": "Allow any email",
 				"whitelist-enabled": "Use whitelist",
 				"whitelist-domains": "Whitelist domains",
+				"whitelist-domains-description":
+					"Specify email address domains allowed for external user login (e.g., example.com, company.org)",
 				"whitelist-domains-placeholder": "Search domains...",
 				"whitelist-domains-empty": "Whitelist domains cannot be empty",
-				"domain-not-allowed": "Domain not in whitelist. Whitelist is configured in the external readers tab",
+				"domain-not-allowed":
+					"Domain is not in the whitelist. Whitelist is configured in the external readers tab",
 				inactive: "User does not match the current whitelist domains and is not considered an external reader",
+				errors: {
+					update: "Failed to update external readers data",
+				},
+			},
+			mail: {
+				"sender-settings": "Sender settings",
+				"sender-address": "Sender address (From)",
+				"smtp-settings": "SMTP settings",
+				host: "Host",
+				port: "Port",
+				user: "User",
+				password: "Password",
+				"password-placeholder": "Enter password",
+				errors: {
+					update: "Failed to update mail data",
+				},
+			},
+			workspace: {
+				"workspace-name": "Workspace name",
+				"workspace-code": "Workspace code",
+				"source-url": "Source URL (GitLab)",
+				"source-type": "Source type",
+				errors: {
+					update: "Failed to update workspace data",
+				},
 			},
 			check: {
 				switch: {
 					on: "The check module is enabled",
 					off: "The check module is disabled",
 				},
+				"service-unavailable": "The style guide service is unavailable",
 				rule: "Rule",
 				"import-rules": "Import rules",
 				"no-rules": "No rules",
@@ -2041,8 +2139,6 @@ title: Unable to display the article
 	synchronization: "Synchronizing...",
 	theme: "Theme",
 	title: "Title",
-	searchPhrases: "Search keywords",
-	"searchPhrases-placeholder": "Add keyword...",
 	token: "token",
 	type: "Type",
 	unresolve: "Unresolved",
@@ -2173,7 +2269,7 @@ title: Unable to display the article
 	"git-status": "Git status",
 	"go-to-article": "Go to article",
 	"go-to": "Go to",
-	"icon-cone": "Icon code",
+	"icon-cone": "Find icon..",
 	"img-h": "Vertical image groups",
 	"img-v": "Horizontal image groups",
 	"in-article": "In the article",
@@ -2286,8 +2382,10 @@ title: Unable to display the article
 		name: "Properties",
 		add: "Add property",
 		all: "All",
+		"no-properties": "No properties",
 		empty: "(empty)",
 		"already-exist": "This property already exists",
+		find: "Find property",
 		"delete-property-confirm":
 			"Are you sure you want to delete this property? It will be removed from all articles.",
 		"select-all": "(select all)",
@@ -2339,6 +2437,12 @@ title: Unable to display the article
 			Array: "Array",
 			BlockMd: "Block of text",
 			InlineMd: "Inline Markdown",
+		},
+		options: {
+			docportalVisible: {
+				name: "Show to readers",
+				description: "Property will be visible and searchable on a documentation portal",
+			},
 		},
 		selected: "Selected",
 		"not-selected": "Not selected",
@@ -2400,8 +2504,11 @@ title: Unable to display the article
 	"no-snippets": "No snippets in the current catalog",
 	"snippet-no-usages": "Snippet is not used in any articles",
 	ai: {
+		"search-prompts": "Search prompts",
+		"no-prompts": "No prompts found",
 		"ai-prompts": "AI Prompts",
 		"ask-ai": "Ask AI anything",
+		generate: "Generate text",
 		generating: "Generating...",
 		transcribe: {
 			name: "Transcription",
@@ -2448,12 +2555,12 @@ title: Unable to display the article
 	"mark-as-read": "Mark as read",
 	"mark-as-read-popover": "Great, you can move on to the next article!",
 	"already-read": "Read",
-	"add-favorite": "Add to favorites",
-	"remove-favorite": "Remove from favorites",
-	favorites: "Favorites",
+	"add-favorite": "Add to favorite",
+	"remove-favorite": "Remove from favorite",
+	favorites: "Favorite",
 	home: "Home",
-	"no-favorites-in-catalog": "No favorites article in the current catalog",
-	"favorites-articles": "Favorites articles",
+	"no-favorites-in-catalog": "No favorite article in the current catalog",
+	"favorites-articles": "Favorite articles",
 	"inline-to-block-image": "Inline to block image",
 	"block-to-inline-image": "Block to inline image",
 	"save-file": "Save file",
@@ -2495,7 +2602,7 @@ title: Unable to display the article
 					description: "Start from scratch",
 				},
 				"download-exists": {
-					title: "Link GutHub or GitLab",
+					title: "Link GitHub or GitLab",
 					description: "Connect Gramax to your Git repository",
 				},
 				"import-exists": {
@@ -2538,6 +2645,21 @@ title: Unable to display the article
 	records: "records",
 	"already-added": "Already added",
 	"available-changes-sync": "Available changes for synchronization",
+	comments: {
+		diff: {
+			single: {
+				added: "Added comment",
+				deleted: "Deleted comment",
+				modified: "Modified comment",
+			},
+			multiple: {
+				title: "Comments changes",
+				added: "Added",
+				deleted: "Deleted",
+				modified: "Modified",
+			},
+		},
+	},
 	quiz: {
 		info: {
 			title: "Questions",
@@ -2569,6 +2691,114 @@ title: Unable to display the article
 	or: "or",
 	errors: {
 		"workspace-path-not-found": "Workspace with path {{path}} not found",
+	},
+	diagrams: "Diagrams",
+	plugins: {
+		messages: {
+			"load-error": "Failed to load {name} module",
+			"already-exists": "Module with ID {id} already exists",
+			"built-in-cannot-delete": "Built-in module cannot be deleted",
+		},
+		list: {
+			"no-plugins-title": "No modules configured",
+			"no-plugins-description":
+				"Upload module folders to extend Gramax functionality. Each module folder must contain a manifest.json file (will be stored as _metadata.json) and a JavaScript file.",
+			"add-button": "Add Module",
+			"upload-button": "Upload Module Folder",
+			saving: "Saving...",
+			save: "Save",
+			sync: "Synchronize",
+			"disabled-badge": "Disabled",
+			enabled: "Enabled",
+			disabled: "Disabled",
+		},
+		detail: {
+			"current-status": "Disabled",
+			delete: "Delete",
+			"not-found-title": "Module not found",
+			"not-found-description": "Please select a module from the sidebar",
+			fields: {
+				name: "Name",
+				id: "ID",
+				version: "Version",
+				author: "Author",
+				description: "Description",
+				status: "Status",
+			},
+			status: {
+				enable: "Включен",
+				disable: "Отключен",
+			},
+		},
+		"delete-modal": {
+			title: "Delete Module",
+			content: 'Are you sure you want to delete the module "{name}"?',
+			"batch-content": "Are you sure you want to delete {count} module(s)?",
+			description: "This action cannot be undone",
+			cancel: "Cancel",
+			confirm: "Delete",
+		},
+		"save-modal": {
+			title: "Save Changes",
+			content: "Do you want to save the changes?",
+			cancel: "Cancel",
+			confirm: "Save",
+		},
+	},
+	metrics: {
+		title: "Metrics",
+		"data-for": "Data for",
+		"failed-to-load": "Failed to load metrics data",
+		disabled: "The metrics module is disabled",
+		enabled: "The metrics module is enabled",
+		filters: {
+			date: {
+				today: "Today",
+				yesterday: "Yesterday",
+				"this-week": "This Week",
+				"last-7-days": "Last 7 Days",
+				"last-28-days": "Last 28 Days",
+				"this-month": "This Month",
+				"last-month": "Last Month",
+				"this-year": "This Year",
+				"custom-range": "Custom Range",
+				cancel: "Cancel",
+				apply: "Apply",
+			},
+			users: {
+				"users-filter": "Users filter",
+				"all-users": "All Users",
+				"users-selected": "users selected",
+				"search-users": "Search users...",
+				"no-users-found": "No users found",
+				"type-to-search": "Type to search users",
+				"clear-selection": "Clear selection",
+				anonymous: "Anonymous",
+				loading: "Loading...",
+			},
+			anonymous: {
+				all: "All users",
+				registered: "Registered only",
+				anonymous: "Anonymous only",
+			},
+		},
+		chart: {
+			visitors: "Visitors",
+			visits: "Visits",
+			views: "Views",
+			total: "Total",
+			daily: "Daily",
+			weekly: "Weekly",
+			monthly: "Monthly",
+		},
+		table: {
+			"catalog-name": "Catalog",
+			"parent-article": "Parent article",
+			article: "Article",
+			visitors: "Visitors",
+			visits: "Visits",
+			pageviews: "Pageviews",
+		},
 	},
 };
 

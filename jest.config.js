@@ -33,6 +33,7 @@ module.exports = {
 		"^@dynamicImports/(.*)$": "<rootDir>/core/dynamicImports/$1",
 		"^@ui-kit/(.*)$": "<rootDir>/core/ui-kit/components/$1",
 		"^@core/(.*)$": "<rootDir>/core/logic/$1",
+		"^@plugins/(.*)$": "<rootDir>/core/plugins/$1",
 		"^@core-ui/(.*)$": "<rootDir>/core/ui-logic/$1",
 		"^@ext/(.*)$": "<rootDir>/core/extensions/$1",
 		"^@app/(.*)$": "<rootDir>/app/$1",

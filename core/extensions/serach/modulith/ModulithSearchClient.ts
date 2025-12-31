@@ -18,6 +18,7 @@ export interface SearchBatchArgs {
 		query: string;
 		filter: SearchArticleFilter;
 	}[];
+	signal?: AbortSignal;
 }
 
 export interface SearchResult {

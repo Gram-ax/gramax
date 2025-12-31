@@ -111,7 +111,7 @@ describe("Repository", () => {
 			expect(rep.gvc.getBranch("feature")).toBeDefined();
 			expect(fs.existsSync(fr.firstPath + "/.gramax/mr/open.yaml")).toBeFalsy();
 
-			await rep.gvc.checkoutToBranch("feature");
+			await rep.gvc.checkoutToBranch(FileRepository.sourceData, "feature");
 
 			mr = await rep.mergeRequests.tryGetDraft();
 			expect(mr).toBeUndefined();
@@ -175,7 +175,7 @@ describe("Repository", () => {
 	});
 
 	test("throws an error when merging merge request with conflicts", async () => {
-		await rep.gvc.checkoutToBranch("master");
+		await rep.gvc.checkoutToBranch(FileRepository.sourceData, "master");
 		fs.writeFileSync(fr.firstPath + "/conflict_file", "change in master");
 		await rep.publish({
 			commitMessage: "master commit",
@@ -183,7 +183,7 @@ describe("Repository", () => {
 			filesToPublish: [path("conflict_file")],
 		});
 
-		await rep.gvc.checkoutToBranch("feature");
+		await rep.gvc.checkoutToBranch(FileRepository.sourceData, "feature");
 		fs.writeFileSync(fr.firstPath + "/conflict_file", "change in feature");
 		await rep.publish({
 			commitMessage: "feature commit",

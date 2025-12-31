@@ -231,19 +231,21 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 					/>
 				</form>
 			</Form>
-			<CreateStorage
-				isOpen={isCreateStorageOpen}
-				setIsOpen={setIsCreateStorageOpen}
-				onSubmit={onSourceDataCreate}
-				onClose={() => {
-					setInvalidSourceData(null);
-					onClose?.();
-				}}
-				title={invalidSourceData ? t("forms.add-storage.name3") : t("forms.add-storage.name2")}
-				data={invalidSourceData}
-				sourceType={invalidSourceData?.sourceType}
-				isReadonly={invalidSourceData?.isInvalid}
-			/>
+			{isCreateStorageOpen && (
+				<CreateStorage
+					isOpen={isCreateStorageOpen}
+					setIsOpen={setIsCreateStorageOpen}
+					onSubmit={onSourceDataCreate}
+					onClose={() => {
+						setInvalidSourceData(null);
+						onClose?.();
+					}}
+					title={invalidSourceData ? t("forms.add-storage.name3") : t("forms.add-storage.name2")}
+					data={invalidSourceData}
+					sourceType={invalidSourceData?.sourceType}
+					isReadonly={invalidSourceData?.isInvalid}
+				/>
+			)}
 		</>
 	);
 };

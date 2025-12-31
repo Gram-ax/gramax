@@ -6,14 +6,16 @@ class Url implements BaseLink {
 	pathname: string;
 	query?: { [name: string]: string };
 	hash?: string;
+	basePath?: string;
 
-	private constructor(link: BaseLink) {
+	private constructor(link: BaseLink & { basePath?: string }) {
 		this.pathname = link?.pathname ?? "";
 		this.query = link?.query ?? {};
 		this.hash = link?.hash ?? "";
+		this.basePath = link?.basePath ?? undefined;
 	}
 
-	static from(link: BaseLink) {
+	static from(link: BaseLink & { basePath?: string }) {
 		return new Url(link);
 	}
 
@@ -21,7 +23,7 @@ class Url implements BaseLink {
 		const pathname = PathUtils.join(basePath ?? "/", path ?? "/")
 			.replace(":/", "://")
 			.replace(/\\/g, "/");
-		return Url.from({ pathname, query });
+		return Url.from({ pathname, query, basePath });
 	}
 
 	static fromRouter(router: Router, link?: BaseLink) {
@@ -29,6 +31,7 @@ class Url implements BaseLink {
 			pathname: link?.pathname ?? router.path,
 			query: link?.query,
 			hash: link?.hash ?? router.path.split("#")[1],
+			basePath: router.basePath,
 		});
 	}
 

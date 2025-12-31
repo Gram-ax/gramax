@@ -6,7 +6,7 @@ import t from "@ext/localization/locale/translate";
 export const getImportModalFormSchema = (sourceDatas?: any) => {
 	return z
 		.object({
-			sourceKey: z.string(),
+			sourceKey: z.string({ message: t("import.error.source-required") }),
 			space: z.object({
 				value: z.string(),
 				label: z.string(),

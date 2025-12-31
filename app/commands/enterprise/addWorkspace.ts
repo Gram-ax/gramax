@@ -9,7 +9,7 @@ import UserSettings from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import Permission from "@ext/security/logic/Permission/Permission";
-import RelaxPermissionMap from "@ext/security/logic/PermissionMap/RelaxPermissionMap";
+import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
 import UserInfo from "@ext/security/logic/User/UserInfo";
 import Theme from "@ext/Theme/Theme";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
@@ -44,7 +44,7 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 
 		if (!userSettings.workspace) throw new DefaultError(t("enterprise.config-error"));
 
-		const path = wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.name)).toString();
+		const path = wm.defaultPath().parentDirectoryPath.join(new Path(userSettings.workspace.id)).toString();
 		const existWorkspace = wm.workspaces().find((workspace) => workspace.path === path);
 
 		if (existWorkspace && !existWorkspace.enterprise?.gesUrl) {
@@ -62,24 +62,26 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			path,
 			enterprise: {
 				...enterpriseConfig,
-				authMethods: userSettings.workspace.authMethods,
 				modules: userSettings.workspace.modules,
 				lastUpdateDate: Date.now(),
 			},
 			services: {
 				gitProxy: { url: null },
-				auth: { url: null },
+				auth: { url: `${gesUrl}/auth` },
 				review: { url: null },
 				diagramRenderer: { url: `${gesUrl}/diagram-renderer` },
 			},
 		};
 		delete (workspaceConfig as any).style;
+		delete (workspaceConfig as any).plugins;
+		delete (workspaceConfig as any).pdfTemplates;
+		delete (workspaceConfig as any).wordTemplates;
 
 		if (!existWorkspace) await this._commands.workspace.create.do({ config: workspaceConfig });
 		else await this._commands.workspace.edit.do({ data: { ...workspaceConfig } });
 
-		const workspacePermission = new RelaxPermissionMap({ [path]: new Permission([]) });
-		const catalogPermission = new RelaxPermissionMap({});
+		const workspacePermission = new StrictPermissionMap({ [path]: new Permission([]) });
+		const catalogPermission = new StrictPermissionMap({});
 		const sourceData = userSettings.source;
 		const userInfo: UserInfo = { mail: sourceData.userEmail, name: sourceData.userName, id: sourceData.userEmail };
 		const user = new EnterpriseUser(
@@ -149,6 +151,13 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			await this._commands.enterprise.modules.set.do({
 				workspacePath: path,
 				modules: userSettings.workspace.modules,
+			});
+		}
+
+		if (userSettings.workspace.plugins?.length) {
+			const assets = wm.getWorkspaceAssets(path);
+			await userSettings.workspace.plugins.forEachAsync(async (plugin) => {
+				await assets.plugins.addFromConfig(plugin);
 			});
 		}
 

@@ -10,6 +10,7 @@ use axum::middleware::Next;
 use axum::response::Redirect;
 use axum::response::Response;
 use axum::routing::get;
+use axum::Extension;
 use axum::Router;
 
 use clap::Parser;
@@ -69,7 +70,7 @@ pub struct Options {
   #[arg(long = "cookie-domain", env = "COOKIE_DOMAIN")]
   cookie_domain: Option<String>,
 
-  #[arg(long = "enable-health-probe", env = "ENABLE_HEALTH_PROBE", default_value = "false")]
+  #[arg(long = "enable-tech-endpoints", env = "ENABLE_TECH_ENDPOINTS", default_value = "false")]
   enable_health_probe: bool,
 
   #[clap(flatten)]
@@ -115,7 +116,15 @@ async fn main() {
     _ => router,
   };
 
-  let router = if opts.enable_health_probe { router.merge(healthprobe::healthprobe()) } else { router };
+  let router = if opts.enable_health_probe {
+    router
+      .layer(middleware::from_fn(health::prometheus_track_req))
+      .merge(health::healthprobe())
+      .merge(health::prometheus_metrics())
+      .layer(Extension(Arc::new(health::PrometheusMetrics::new())))
+  } else {
+    router
+  };
 
   let listener = tokio::net::TcpListener::bind(format!("{}:{}", opts.addr, opts.port)).await.unwrap();
   info!("listening on {} as {}", listener.local_addr().unwrap(), mode_str);

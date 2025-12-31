@@ -36,11 +36,13 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 	const [leftWidth, setLeftWidth] = useState(0);
 	const [height, setHeight] = useState(0);
 	const [wrapperSize, setWrapperSize] = useState(0);
-	const articleRef = !disableWrapper ? ArticleRefService.value : null;
+	const isShowMainLangContentPreview = useShowMainLangContentPreview();
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const isPin = SidebarsIsPinService.value.left;
 	const leftNavigation = SidebarsIsOpenService?.transitionEndIsLeftOpen;
-	const isShowMainLangContentPreview = useShowMainLangContentPreview();
+
+	let articleRef = ArticleRefService.value;
+	if (disableWrapper) articleRef = null;
 
 	const setWidth = useCallback(() => {
 		const scroll = scrollContainerRef.current;
@@ -93,7 +95,7 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 	useLayoutEffect(() => {
 		resizeWrapper();
 		setWidth();
-	}, [leftNavigation]);
+	}, [isPin, leftNavigation]);
 
 	const getWidth = useCallback((): CSSProperties => {
 		if (isShowMainLangContentPreview) return {};
@@ -154,7 +156,7 @@ export default styled(WidthWrapper)`
 	z-index: 1;
 
 	&:has(.scrollableContent > div[data-table-wrapper]) {
-		padding-bottom: ${PADDING_TOP_BOTTOM} - ${VERTICAL_TOP_OFFSET};
+		padding-bottom: calc(${PADDING_TOP_BOTTOM} - ${VERTICAL_TOP_OFFSET});
 		.scrollableContent > div[data-table-wrapper] {
 			padding-bottom: ${VERTICAL_TOP_OFFSET};
 		}

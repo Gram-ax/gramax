@@ -273,6 +273,7 @@ export class GitCommands {
 	}
 
 	async checkout(
+		data: GitSourceData,
 		ref: GitVersion | GitBranch | string,
 		{ force, caller }: { force?: boolean; caller?: Caller } = {},
 	): Promise<void> {
@@ -289,7 +290,7 @@ export class GitCommands {
 
 		await this._logWrapper("checkout", `Checkout to ref '${ref.toString()}'`, async () => {
 			try {
-				await this._impl.checkout(ref.toString(), force);
+				await this._impl.checkout(data, ref.toString(), force);
 			} catch (e) {
 				throw getGitError(e, { repositoryPath: this._repoPath.value }, caller ?? "checkout");
 			}
@@ -458,7 +459,7 @@ export class GitCommands {
 		});
 	}
 
-	async merge(data: SourceData, opts: MergeOptions): Promise<MergeResult> {
+	async merge(data: GitSourceData, opts: MergeOptions): Promise<MergeResult> {
 		assert(opts, "merge opts is required");
 		assert(opts.theirs, "opts.theirs is required");
 
@@ -468,7 +469,7 @@ export class GitCommands {
 			`Merging branch '${opts.theirs}' into current branch: '${head.toString()}'`,
 			async () => {
 				const mergeResult = await this._impl.merge(data, opts);
-				if (!mergeResult.length) await this.checkout(head, { force: true });
+				if (!mergeResult.length) await this.checkout(data, head, { force: true });
 				return mergeResult;
 			},
 		);
@@ -617,7 +618,7 @@ export class GitCommands {
 		});
 	}
 
-	async haveConflictsWithBranch(branch: GitBranch | string, data: SourceData): Promise<boolean> {
+	async haveConflictsWithBranch(branch: GitBranch | string, data: GitSourceData): Promise<boolean> {
 		return await this._logWrapper(
 			"haveConflicts",
 			`Checking if there are conflicts for ref: '${branch.toString()}'`,

@@ -1,9 +1,14 @@
-import type { StyleGuideSettings } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
 import { GroupValue } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { EditorsSettings } from "@ext/enterprise/components/admin/settings/editors/types/EditorsComponentTypes";
-import type { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups/types/GroupsComponentTypes";
+import { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups/types/GroupsComponentTypes";
 import { GuestsSettings } from "@ext/enterprise/components/admin/settings/guests/types/GuestsComponent";
 import type { MailSettings } from "@ext/enterprise/components/admin/settings/MailComponent";
+import type {
+	ChartDataPoint,
+	MetricsConfigSettings,
+	TableDataResponse,
+} from "@ext/enterprise/components/admin/settings/metrics/types";
+import { AnonymousFilter } from "@ext/enterprise/components/admin/settings/metrics/useMetricsFilters";
 import { QuizTableFilters } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
 import { QuizSettings } from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
 import {
@@ -15,8 +20,13 @@ import {
 	SearchedQuizTestResponse,
 } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
 import type { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import type { StyleGuideSettings } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
 import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
-import { RequestCursor, RequestData } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable";
+import {
+	RequestCursor,
+	RequestData,
+} from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
+import { PluginsSettings } from "@ext/enterprise/types/EnterpriseAdmin";
 import t from "@ext/localization/locale/translate";
 
 export interface searchUserInfo {
@@ -183,11 +193,146 @@ class EnterpriseService {
 		return this._getWithEtag<QuizSettings>(url, token, etag);
 	}
 
+	async getMetricsConfig(
+		token: string,
+		etag?: string,
+	): Promise<{ data: MetricsConfigSettings | null; etag: string | null; notModified: boolean }> {
+		const url = `${this._url}/enterprise/config/metrics-config/get`;
+		return this._getWithEtag<MetricsConfigSettings>(url, token, etag);
+	}
+
+	async getPluginsConfig(
+		token: string,
+		etag?: string,
+	): Promise<{ data: PluginsSettings | null; etag: string | null; notModified: boolean }> {
+		const url = `${this._url}/enterprise/config/plugins/get`;
+		return this._getWithEtag<PluginsSettings>(url, token, etag);
+	}
+
+	async getMetricsChartData(
+		token: string,
+		startDate: string,
+		endDate: string,
+		articleIds?: number[],
+		userEmails?: string[],
+		anonymousFilter?: AnonymousFilter,
+	): Promise<ChartDataPoint[] | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams({
+				startDate,
+				endDate,
+			});
+			if (articleIds && articleIds.length > 0) {
+				params.append("articleIds", articleIds.join(","));
+			}
+			if (userEmails && userEmails.length > 0) {
+				params.append("userEmails", userEmails.join(","));
+			}
+			if (anonymousFilter) {
+				params.append("anonymousFilter", anonymousFilter);
+			}
+			const url = `${this._url}/enterprise/modules/metrics/getChartData?${params.toString()}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			this.checkUnauthorized(response);
+			if (!response.ok) return null;
+			return await response.json();
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+
+	async getMetricsTableData(
+		token: string,
+		startDate: string,
+		endDate: string,
+		limit: number,
+		cursor?: number,
+		sortBy?: string,
+		sortOrder?: string,
+		userEmails?: string[],
+		anonymousFilter?: AnonymousFilter,
+	): Promise<TableDataResponse | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams({
+				startDate,
+				endDate,
+				limit: String(limit),
+			});
+			if (cursor !== undefined) params.set("cursor", String(cursor));
+			if (sortBy) params.set("sortBy", sortBy);
+			if (sortOrder) params.set("sortOrder", sortOrder);
+			if (userEmails && userEmails.length > 0) {
+				params.set("userEmails", userEmails.join(","));
+			}
+			if (anonymousFilter) {
+				params.set("anonymousFilter", anonymousFilter);
+			}
+
+			const url = `${this._url}/enterprise/modules/metrics/getTableData?${params}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			this.checkUnauthorized(response);
+			if (!response.ok) return null;
+			return await response.json();
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+
+	async getMetricsUsers(
+		token: string,
+		search?: string,
+		limit?: number,
+		cursor?: number,
+	): Promise<{ users: string[]; hasMore: boolean; nextCursor: number | null } | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams();
+			if (search) params.append("search", search);
+			if (limit !== undefined) params.append("limit", limit.toString());
+			if (cursor !== undefined) params.append("cursor", cursor.toString());
+			const url = `${this._url}/enterprise/modules/metrics/getMetricsUsers?${params.toString()}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			this.checkUnauthorized(response);
+			if (!response.ok) return null;
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+
 	async getResources(token: string, page: number): Promise<{ repos: string[]; total: number } | null> {
 		if (!this._url) return null;
 		try {
 			const headers = {
 				Authorization: `Bearer ${token}`,
+				credentials: "include",
 			};
 
 			const res = await fetch(`${this._url}/enterprise/git/get-repos?page=${page}`, {
@@ -247,7 +392,7 @@ class EnterpriseService {
 			});
 			this.checkUnauthorized(res);
 
-			if (!res.ok) throw new Error("Не удалось сохранить данные пространства. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.workspace.errors.update") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -255,7 +400,7 @@ class EnterpriseService {
 		}
 	}
 
-	async addGroup(token: string, group: { groupId: string; groupValue: GroupValue[] }) {
+	async addGroup(token: string, group: { groupId: string; groupValue: GroupValue[]; groupName?: string }) {
 		if (!this._url) return false;
 		try {
 			const headers = {
@@ -269,7 +414,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Не удалось добавить группу. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.groups.errors.add") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -291,7 +436,29 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Не удалось удалить группы. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.groups.errors.delete") + " " + res.status);
+			return this._updateGitProxy(token);
+		} catch (error) {
+			console.error(error);
+			throw error;
+		}
+	}
+
+	async renameGroup(token: string, groupId: string, newName: string) {
+		if (!this._url) return false;
+		try {
+			const headers = {
+				Authorization: `Bearer ${token}`,
+				"Content-Type": "application/json",
+			};
+			const res = await fetch(`${this._url}/enterprise/config/groups/rename`, {
+				method: "POST",
+				headers,
+				body: JSON.stringify({ groupId, newName }),
+				credentials: "include",
+			});
+			this.checkUnauthorized(res);
+			if (!res.ok) throw new Error(t("enterprise.admin.groups.errors.rename") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -313,7 +480,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Не удалось сохранить данные редакторов. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.editors.errors.update") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -335,7 +502,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Не удалось добавить репозиторий. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.resources.errors.add") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -357,7 +524,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Не удалось сохранить данные почтового клиента. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.mail.errors.update") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -379,7 +546,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Не удалось сохранить данные почтового клиента. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.mail.errors.update") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -401,7 +568,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Не удалось сохранить данные внешних читателей. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.guests.errors.update") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -423,7 +590,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Не удалось сохранить данные стайлгайдов. Статус: " + res.status);
+			if (!res.ok) throw new Error(t("enterprise.admin.styleGuide.errors.update") + " " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -446,6 +613,50 @@ class EnterpriseService {
 			});
 			this.checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.quiz.errors.save-data")} ${res.status}`);
+			return this._updateGitProxy(token);
+		} catch (error) {
+			console.error(error);
+			throw error;
+		}
+	}
+
+	async setMetricsConfig(token: string, metrics: MetricsConfigSettings) {
+		if (!this._url) return false;
+		try {
+			const headers = {
+				Authorization: `Bearer ${token}`,
+				"Content-Type": "application/json",
+			};
+			const res = await fetch(`${this._url}/enterprise/config/metrics-config/set`, {
+				method: "POST",
+				headers,
+				body: JSON.stringify(metrics),
+				credentials: "include",
+			});
+			this.checkUnauthorized(res);
+			if (!res.ok) throw new Error(`Failed to save metrics config. Status: ${res.status}`);
+			return this._updateGitProxy(token);
+		} catch (error) {
+			console.error(error);
+			throw error;
+		}
+	}
+
+	async setPlugins(token: string, plugins: PluginsSettings) {
+		if (!this._url) return false;
+		try {
+			const headers = {
+				Authorization: `Bearer ${token}`,
+				"Content-Type": "application/json",
+				credentials: "include",
+			};
+			const res = await fetch(`${this._url}/enterprise/config/plugins/set`, {
+				method: "POST",
+				headers,
+				body: JSON.stringify(plugins),
+			});
+			this.checkUnauthorized(res);
+			if (!res.ok) throw new Error("Failed to save plugins. Status: " + res.status);
 			return this._updateGitProxy(token);
 		} catch (error) {
 			console.error(error);
@@ -489,7 +700,7 @@ class EnterpriseService {
 		filters?: QuizTableFilters,
 	): Promise<RequestData<QuizTest>> {
 		try {
-			let url = `${this._url}/enterprise/quiz/answer/get-with-user?limit=${limit}`;
+			let url = `${this._url}/enterprise/modules/quiz/answer/get-with-user?limit=${limit}`;
 			if (filters.users && filters.users.length > 0) {
 				url += `&users=${encodeURIComponent(JSON.stringify(filters.users))}`;
 			}
@@ -514,7 +725,7 @@ class EnterpriseService {
 
 	async searchQuizTest(token: string, query: string): Promise<SearchedQuizTest[]> {
 		try {
-			let url = `${this._url}/enterprise/quiz/test/get`;
+			let url = `${this._url}/enterprise/modules/quiz/test/get`;
 			url += `?select=${encodeURIComponent(JSON.stringify(["title"]))}`;
 			if (query) url += `&query=${encodeURIComponent(query)}`;
 			url += `&distinct=true`;
@@ -537,7 +748,7 @@ class EnterpriseService {
 
 	async searchQuizAnsweredUsers(token: string, query: string): Promise<SearchedAnsweredUsers[]> {
 		try {
-			let url = `${this._url}/enterprise/quiz/answer/user/get`;
+			let url = `${this._url}/enterprise/modules/quiz/answer/user/get`;
 			url += `?select=${encodeURIComponent(JSON.stringify(["user_mail"]))}`;
 			if (query) url += `&query=${encodeURIComponent(query)}`;
 			url += `&distinct=true`;
@@ -560,7 +771,7 @@ class EnterpriseService {
 
 	async getQuizDetailedUserAnswers(token: string, id: number): Promise<QuizTestData> {
 		try {
-			let url = `${this._url}/enterprise/quiz/answer/get`;
+			let url = `${this._url}/enterprise/modules/quiz/answer/get`;
 			url += `?id=${encodeURIComponent(id)}`;
 			url += `&select=${encodeURIComponent(JSON.stringify(["answers", "qt.questions as questions"]))}`;
 

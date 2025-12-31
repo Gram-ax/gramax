@@ -6,6 +6,7 @@ import { ReactNode } from "react";
 import Icon from "../Atoms/Icon";
 import Link from "../Atoms/Link";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import isMobileService from "@core-ui/ContextServices/isMobileService";
 
 interface AnchorProps {
 	href: string;
@@ -27,6 +28,7 @@ const Anchor = (Props: AnchorProps) => {
 	const { setLink } = ArticleTooltipService.value;
 	const { isTauri } = usePlatform();
 	const target = isTauri || props.href?.startsWith("gramax://") ? "_self" : propTarget;
+	const isMobile = isMobileService.value;
 
 	if (!isAnchor && props.href != null && props.href.slice(basePathLength + 1, basePathLength + 4) != "api") {
 		const isExternal = props.href?.match(/^\w+:/);
@@ -38,7 +40,9 @@ const Anchor = (Props: AnchorProps) => {
 			return (
 				<Link
 					onClick={onClick}
-					onMouseEnter={(event) => setLink(event.target as HTMLElement, resourcePath, props.hash)}
+					onMouseEnter={
+						isMobile ? undefined : (event) => setLink(event.target as HTMLElement, resourcePath, props.hash, props.href)
+					}
 					href={Url.from({ pathname: !props.isPrint ? props.href + (props.hash ?? "") : pdfHref })}
 				>
 					{children}

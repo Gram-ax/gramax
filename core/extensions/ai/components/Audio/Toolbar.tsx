@@ -1,6 +1,4 @@
-import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import styled from "@emotion/styled";
-import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import Visualizer, { VisualizerProps } from "@ext/ai/components/Audio/Visualizer/Visualizer";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import { Editor } from "@tiptap/core";
@@ -16,6 +14,7 @@ import ToolbarWrapper from "@ext/markdown/core/edit/components/Menu/ToolbarWrapp
 import { AudioHistoryItem } from "@ext/ai/models/types";
 import Path from "@core/FileProvider/Path/Path";
 import { uniqueName } from "@core/utils/uniqueName";
+import { Toolbar } from "@ui-kit/Toolbar";
 
 const Wrapper = styled(ToolbarWrapper)`
 	width: 100%;
@@ -31,10 +30,6 @@ const Wrapper = styled(ToolbarWrapper)`
 			opacity: 1;
 		}
 	}
-
-	> div:first-of-type {
-		width: 100%;
-	}
 `;
 
 const GlobalWrapper = styled.div`
@@ -45,14 +40,14 @@ const GlobalWrapper = styled.div`
 	z-index: var(--z-index-popover);
 `;
 
-const Toolbar = memo((props: VisualizerProps) => {
+const AudioToolbar = memo((props: VisualizerProps) => {
 	return (
 		<Wrapper>
-			<ModalLayoutDark>
-				<ButtonsLayout>
+			<Toolbar>
+				<ToolbarWrapper className="w-full">
 					<Visualizer maxDurationMs={MAX_AUDIO_DURATION_MS} {...props} />
-				</ButtonsLayout>
-			</ModalLayoutDark>
+				</ToolbarWrapper>
+			</Toolbar>
 		</Wrapper>
 	);
 });
@@ -71,7 +66,7 @@ const GlobalAudioToolbar = () => {
 
 	return (
 		<GlobalWrapper>
-			<Toolbar
+			<AudioToolbar
 				sendDisabled
 				sendTooltipText={t("ai.transcribe.warningHomeSend")}
 				startTime={startTime.current}
@@ -141,7 +136,7 @@ const ArticleAudioToolbar = ({ editor }: { editor: Editor }) => {
 	);
 
 	return (
-		<Toolbar
+		<AudioToolbar
 			sendTooltipText={editor.storage.ai?.enabled ? t("ai.transcribe.name") : t("save-file")}
 			startTime={startTime.current}
 			onTimeChange={onTimeChange}

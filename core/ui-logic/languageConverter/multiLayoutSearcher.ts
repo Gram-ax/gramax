@@ -1,8 +1,25 @@
 import { StringRewriter } from "./StringRewriter";
 
-function multiLayoutSearcher<T>(searcher: (query: string) => T, sync: boolean): (query: string) => T;
-function multiLayoutSearcher<T>(searcher: (query: string) => Promise<T>): (query: string) => Promise<T>;
-function multiLayoutSearcher<T>(searcher: (query: string) => T | Promise<T>, sync?: boolean) {
+export interface ArgsBase {
+	sync?: false;
+	signal?: AbortSignal;
+}
+
+export interface AsyncArgs<T> extends ArgsBase {
+	searcher: (query: string) => Promise<T>;
+}
+
+export interface SyncArgs<T> extends Omit<ArgsBase, "sync"> {
+	sync: true;
+	searcher: (query: string) => T;
+}
+
+export type Args<T> = AsyncArgs<T> | SyncArgs<T>;
+
+function multiLayoutSearcher<T>(args: SyncArgs<T>): (typeof args)["searcher"];
+function multiLayoutSearcher<T>(args: AsyncArgs<T>): (typeof args)["searcher"];
+function multiLayoutSearcher<T>(args: SyncArgs<T> | AsyncArgs<T>): (typeof args)["searcher"];
+function multiLayoutSearcher<T>({ sync, searcher, signal }: SyncArgs<T> | AsyncArgs<T>) {
 	const stringRewriter = new StringRewriter();
 	const transformations = [
 		(query: string) => stringRewriter.changeTextLayout(query),
@@ -10,12 +27,12 @@ function multiLayoutSearcher<T>(searcher: (query: string) => T | Promise<T>, syn
 		(query: string) => stringRewriter.changeEnglishToRussianTransliteration(query),
 	];
 
-	if (sync)
+	if (sync === true)
 		return (query: string) => {
 			let result = searcher(query);
 
 			for (const transform of transformations) {
-				if (result && (!Array.isArray(result) || result.length > 0)) return result;
+				if (signal?.aborted || (result && (!Array.isArray(result) || result.length > 0))) return result;
 				const transformedQuery = transform(query);
 				result = searcher(transformedQuery);
 			}
@@ -27,7 +44,7 @@ function multiLayoutSearcher<T>(searcher: (query: string) => T | Promise<T>, syn
 		let result = await searcher(query);
 
 		for (const transform of transformations) {
-			if (result && (!Array.isArray(result) || result.length > 0)) return result;
+			if (signal?.aborted || (result && (!Array.isArray(result) || result.length > 0))) return result;
 			const transformedQuery = transform(query);
 			result = await searcher(transformedQuery);
 		}

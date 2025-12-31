@@ -34,7 +34,7 @@ const Ai = Extension.create<TiptapGramaxAiOptions>({
 	},
 
 	addProseMirrorPlugins() {
-		return [BlurSelection];
+		return [BlurSelection(this.editor)];
 	},
 });
 

@@ -1,6 +1,6 @@
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import renderGroup from "@ext/markdown/elements/view/render/components/Displays/Helpers/List/Group";
 import updateListData from "@ext/markdown/elements/view/render/logic/updateListData";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";

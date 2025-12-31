@@ -19,7 +19,6 @@ enum GitErrorCode {
 	MergeError = "MergeError",
 	HttpError = "HttpError",
 	FileNotFoundError = "FileNotFoundError",
-	LockFileHealthcheckFailed = "LockFileHealthcheckFailed",
 	CancelledOperation = "CancelledOperation",
 }
 

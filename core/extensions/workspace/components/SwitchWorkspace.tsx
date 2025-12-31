@@ -213,23 +213,6 @@ const SwitchWorkspace = () => {
 			)}
 			<DropdownMenuContent align="start">
 				<DropdownMenuGroup>
-					{!(isEnterprise && isBrowser) && (
-						<>
-							<DropdownMenuItem
-								data-qa="qa-clickable"
-								onClick={() =>
-									ModalToOpenService.setValue<ComponentProps<typeof CreateWorkspaceForm>>(
-										ModalToOpen.CreateWorkspaceForm,
-										{ onSubmit: () => SourceDataService.refresh() },
-									)
-								}
-							>
-								<Icon icon="plus" />
-								{t("workspace.add")}
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />
-						</>
-					)}
 					{workspaces.map((workspace) => {
 						if (isEnterprise && isBrowser && !workspace.enterprise?.gesUrl) return null;
 						const tooltip = formatTooltip(workspace.path, null, syncableWorkspaces);
@@ -245,6 +228,23 @@ const SwitchWorkspace = () => {
 							/>
 						);
 					})}
+					{!(isEnterprise && isBrowser) && (
+						<>
+							<DropdownMenuSeparator />
+							<DropdownMenuItem
+								data-qa="qa-clickable"
+								onClick={() =>
+									ModalToOpenService.setValue<ComponentProps<typeof CreateWorkspaceForm>>(
+										ModalToOpen.CreateWorkspaceForm,
+										{ onSubmit: () => SourceDataService.refresh() },
+									)
+								}
+							>
+								<Icon icon="plus" />
+								{t("workspace.add")}
+							</DropdownMenuItem>
+						</>
+					)}
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>

@@ -9,6 +9,7 @@ import { UserToolbarAddBtn } from "../../components/UserToolbarAddBtn";
 import { GroupValue } from "../../components/roles/Access";
 import { groupUserTableColumns } from "../config/GroupsUserTableConfig";
 import { GroupUser } from "../types/GroupsUserComponentTypes";
+import t from "@ext/localization/locale/translate";
 
 interface GroupsUserTableProps {
 	users: GroupValue[];
@@ -69,12 +70,15 @@ export const GroupsUserTable = ({ users, onChange }: GroupsUserTableProps) => {
 
 	return (
 		<>
-			<TableInfoBlock title="Пользователи" description={users.length} />
+			<label className="text-primary-fg flex h-4 min-w-0 items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+				<span>{t("enterprise.admin.users.users")}</span>
+				<span>{users.length}</span>
+			</label>
 
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
-						placeholder="Найти пользователей..."
+						placeholder={t("enterprise.admin.resources.users.search-placeholder")}
 						value={(usersTable.getColumn("value")?.getFilterValue() as string) ?? ""}
 						onChange={handleFilterChange}
 					/>

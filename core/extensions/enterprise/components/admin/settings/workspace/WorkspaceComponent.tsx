@@ -4,30 +4,27 @@ import { useWorkspaceSections } from "@ext/enterprise/components/admin/settings/
 import { useWorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSettings";
 import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
+import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
 import { useEffect } from "react";
+import { useTabGuard } from "../../hooks";
 import { FloatingAlert } from "../../ui-kit/FloatingAlert";
 import { Spinner } from "../../ui-kit/Spinner";
 import { StickyHeader } from "../../ui-kit/StickyHeader";
 import { TabErrorBlock } from "../../ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "../../ui-kit/TabInitialLoader";
 import { RoleId } from "../components/roles/Access";
+import { getGroupsWithNames } from "./components/access/components/group/utils/groupUtils";
 import { WorkspaceAccess } from "./components/access/WorkspaceAccess";
+import { PdfTemplates } from "./components/PdfTemplates";
 import { WorkspaceRepositories } from "./components/repositories/WorkspaceRepositories";
 import { WorkspaceSections } from "./components/sections/WorkspaceSections";
+import { WordTemplates } from "./components/WordTemplates";
 import { WorkspaceInfo } from "./components/WorkspaceInfo";
 import { WorkspaceStyling } from "./components/WorkspaceStyling";
-import { WordTemplates } from "./components/WordTemplates";
-import { AuthMethod, AuthOption } from "./types/WorkspaceComponent";
-import { PdfTemplates } from "@ext/enterprise/components/admin/settings/workspace/components/PdfTemplates";
 
 const ownerRole: RoleId = "workspaceOwner";
-
-const authOptions: AuthOption[] = [
-	{ label: "Только Single Sign-On (SSO)", value: [AuthMethod.SSO] },
-	{ label: "SSO и Почта (Внешние читатели)", value: [AuthMethod.SSO, AuthMethod.GUEST_MAIL] },
-];
 
 const WorkspaceComponent = () => {
 	const { settings, ensureWorkspaceLoaded, getTabError, isInitialLoading, isRefreshing } = useSettings();
@@ -39,7 +36,7 @@ const WorkspaceComponent = () => {
 	const isEqual = useCheck(workspaceSettings, localSettings);
 	const { hasSectionsOrderChanged, setOriginalSectionsOrder } = useWorkspaceSections(localSettings, setLocalSettings);
 
-	const selectGroups = [...Object.keys(settings?.groups ?? {})];
+	const selectGroups = getGroupsWithNames(settings?.groups);
 	const selectResources = settings?.resources?.map((resource) => resource.id) ?? [];
 
 	const sectionResources =
@@ -47,21 +44,29 @@ const WorkspaceComponent = () => {
 			?.map((resource) => resource.split("/").pop() || "")
 			.filter((id, index, self) => self.indexOf(id) === index) ?? [];
 
-	const handleAuthMethodChange = (selectedLabel: string) => {
-		const selectedOption = authOptions.find((opt) => opt.label === selectedLabel);
-		if (selectedOption) {
-			setLocalSettings((prev) => ({
-				...prev,
-				authMethods: selectedOption.value,
-			}));
-		}
-	};
-
 	useEffect(() => {
 		if (workspaceSettings) {
 			setOriginalSectionsOrder(Object.keys(workspaceSettings.sections || {}).join(","));
 		}
-	}, [workspaceSettings, setOriginalSectionsOrder]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [workspaceSettings]);
+
+	useTabGuard({
+		page: Page.WORKSPACE,
+		hasChanges: () => {
+			if (isInitialLoading("workspace") || !workspaceSettings) {
+				return false;
+			}
+			return !isEqual || hasSectionsOrderChanged();
+		},
+		onSave: handleSave,
+		onDiscard: () => {
+			if (workspaceSettings) {
+				setLocalSettings(workspaceSettings);
+				setOriginalSectionsOrder(Object.keys(workspaceSettings.sections || {}).join(","));
+			}
+		},
+	});
 
 	const tabError = getTabError("workspace");
 
@@ -74,7 +79,7 @@ const WorkspaceComponent = () => {
 	}
 
 	return (
-		<div>
+		<>
 			<StickyHeader
 				title={
 					<>
@@ -85,7 +90,7 @@ const WorkspaceComponent = () => {
 				actions={
 					<>
 						{isSaving ? (
-							<LoadingButtonTemplate text="Сохраняем..." />
+							<LoadingButtonTemplate text={`${t("save2")}...`} />
 						) : (
 							<Button
 								disabled={
@@ -96,19 +101,15 @@ const WorkspaceComponent = () => {
 								onClick={handleSave}
 							>
 								<Icon icon="save" />
-								Сохранить
+								{t("save")}
 							</Button>
 						)}
 					</>
 				}
 			/>
 			<FloatingAlert show={Boolean(saveError)} message={saveError} />
-			<div className="space-y-6">
-				<WorkspaceInfo
-					localSettings={localSettings}
-					onInputChange={handleInputChange}
-					onAuthMethodChange={handleAuthMethodChange}
-				/>
+			<div className="px-6 space-y-6">
+				<WorkspaceInfo localSettings={localSettings} onInputChange={handleInputChange} />
 
 				<WorkspaceAccess
 					localSettings={localSettings}
@@ -134,7 +135,7 @@ const WorkspaceComponent = () => {
 				<WordTemplates localSettings={localSettings} setLocalSettings={setLocalSettings} />
 				<PdfTemplates localSettings={localSettings} setLocalSettings={setLocalSettings} />
 			</div>
-		</div>
+		</>
 	);
 };
 

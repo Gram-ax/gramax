@@ -23,17 +23,18 @@ use serde::Deserialize;
 use serde::Serialize;
 
 #[derive(Serialize, Debug)]
-pub struct GitError {
-  pub message: String,
+pub struct ErrorInfo {
+  pub subset: i32,
   pub class: Option<u32>,
   pub code: Option<i32>,
+  pub message: String,
 }
 
-impl std::fmt::Display for GitError {
+impl std::fmt::Display for ErrorInfo {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    write!(f, "git error (")?;
+    write!(f, "git error (subset: {subset}", subset = self.subset)?;
     if let Some(class) = self.class {
-      write!(f, "class: {class}")?;
+      write!(f, ", class: {class}")?;
 
       if self.code.is_some() {
         write!(f, ", ")?;
@@ -49,34 +50,36 @@ impl std::fmt::Display for GitError {
   }
 }
 
-impl From<Error> for GitError {
+impl From<Error> for ErrorInfo {
   fn from(value: Error) -> Self {
     let code = value.code();
     let class = value.class();
-
+    let subset = value.subset();
     match value {
-      Error::Git(err) => GitError { message: err.message().into(), class, code },
-      Error::Healthcheck(err) => GitError { message: err.to_string(), class, code },
-      Error::FileLockHealthcheckFailed(err) => GitError { message: err.to_string(), class, code },
-      Error::Network { message, .. } => GitError { message: message.unwrap_or_default(), class, code },
-      value => GitError { message: value.to_string(), class, code },
+      Error::Git(err) => ErrorInfo { subset, message: err.message().into(), class, code },
+      Error::Healthcheck(err) => ErrorInfo { subset, message: err.to_string(), class, code },
+      Error::FileLockHealthcheckFailed(err) => ErrorInfo { subset, message: err.to_string(), class, code },
+      Error::Network { message, .. } => {
+        ErrorInfo { subset, message: message.unwrap_or_default(), class, code }
+      }
+      value => ErrorInfo { subset, message: value.to_string(), class, code },
     }
   }
 }
 
-impl From<crate::file_lock::FileLockError> for GitError {
+impl From<crate::file_lock::FileLockError> for ErrorInfo {
   fn from(value: crate::file_lock::FileLockError) -> Self {
-    GitError { message: value.to_string(), class: None, code: None }
+    ErrorInfo { subset: 11, message: value.to_string(), class: None, code: None }
   }
 }
 
-impl From<crate::error::GitError> for GitError {
+impl From<crate::error::GitError> for ErrorInfo {
   fn from(value: crate::error::GitError) -> Self {
     Error::Git(value).into()
   }
 }
 
-pub type Result<T> = std::result::Result<T, GitError>;
+pub type Result<T> = std::result::Result<T, ErrorInfo>;
 
 #[derive(Deserialize, Default, Debug)]
 #[serde(untagged)]
@@ -227,8 +230,8 @@ pub fn init_new(repo: &Path, creds: AccessTokenCreds) -> Result<()> {
 }
 
 #[tracing::instrument(fields(repo = %repo.short()), ret)]
-pub fn checkout(repo: &Path, ref_name: &str, force: bool) -> Result<()> {
-  Repo::run_write(repo, DummyCreds, "checkout", |repo| {
+pub fn checkout(repo: &Path, creds: AccessTokenCreds, ref_name: &str, force: bool) -> Result<()> {
+  Repo::run_write(repo, creds, "checkout", |repo| {
     Ok(repo.checkout(ref_name, force).healthcheck_if_odb_error(&repo)?)
   })
 }

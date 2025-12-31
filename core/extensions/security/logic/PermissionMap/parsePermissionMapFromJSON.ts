@@ -5,7 +5,6 @@ import IPermissionMap, {
 	PermissionMapJSONData,
 	PermissionMapType,
 } from "@ext/security/logic/PermissionMap/IPermissionMap";
-import RelaxPermissionMap from "@ext/security/logic/PermissionMap/RelaxPermissionMap";
 import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
 
 const parsePermissionMapFromJSON = (data: PermissionMapJSONData): IPermissionMap => {
@@ -18,7 +17,7 @@ const parsePermissionMapFromJSON = (data: PermissionMapJSONData): IPermissionMap
 		}),
 	);
 
-	if (data.type === PermissionMapType.relax) return new RelaxPermissionMap(permissions);
+	if (data.type === PermissionMapType.relax) return new StrictPermissionMap(permissions);
 	if (data.type === PermissionMapType.strict) return new StrictPermissionMap(permissions);
 	throw new DefaultError("Invalid permission map type");
 };

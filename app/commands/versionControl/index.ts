@@ -1,3 +1,4 @@
+import lfs from "@app/commands/versionControl/lfs";
 import statuses from "@app/commands/versionControl/statuses";
 import init from "../storage/init";
 import addAll from "./addAll";
@@ -29,6 +30,7 @@ const versionControl = {
 	getAllCommitAuthors,
 	addAll,
 	revision,
+	lfs,
 	mergeConflict: {
 		getMergeData,
 		abort,

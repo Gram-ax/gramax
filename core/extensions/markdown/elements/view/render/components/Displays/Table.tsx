@@ -3,7 +3,7 @@ import t from "@ext/localization/locale/translate";
 import Group from "@ext/markdown/elements/view/render/components/Displays/Helpers/Table/Group";
 import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import { useRef } from "react";
 import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";

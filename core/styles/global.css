@@ -10,6 +10,10 @@
 	}
 }
 
+body:has(.article-content) {
+	background-color: var(--color-article-bg);
+}
+
 span + i,
 i + span {
 	padding-left: var(--distance-i-span);

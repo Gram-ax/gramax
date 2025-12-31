@@ -1,15 +1,23 @@
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import { Icon } from "@ui-kit/Icon";
 
 const TabsMenuButton = ({ editor }: { editor: Editor }) => {
+	const tabs = ButtonStateService.useCurrentAction({ action: "tabs" });
+
 	return (
-		<Button
+		<ToolbarDropdownMenuItem
+			disabled={tabs.disabled}
+			active={tabs.isActive}
 			onClick={() => editor.chain().focus().setTabs().run()}
-			icon={"app-window"}
-			tooltipText={t("editor.tabs.name")}
-			nodeValues={{ action: "tabs" }}
-		/>
+		>
+			<div className="flex items-center gap-2 w-full">
+				<Icon icon="app-window" />
+				{t("editor.tabs.name")}
+			</div>
+		</ToolbarDropdownMenuItem>
 	);
 };
 

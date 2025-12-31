@@ -9,6 +9,7 @@ import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import { RwLock } from "@core/utils/rwlock";
 import { InboxProps } from "@ext/inbox/models/types";
+import { Question } from "@ext/markdown/elements/question/types";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
@@ -16,7 +17,6 @@ import { TocItem } from "../../../extensions/navigation/article/logic/createTocI
 import ResourceManager from "../../Resource/ResourceManager";
 import { Category } from "../Category/Category";
 import { Item, UpdateItemProps, type ItemEvents, type ItemProps } from "../Item/Item";
-import { Question } from "@ext/markdown/elements/question/types";
 
 export type ArticleEvents = ItemEvents;
 
@@ -48,7 +48,7 @@ export const ArticlePropsKeys = [
 	"template",
 	"customProperties",
 	"quiz",
-	"searchPhrases"
+	"searchPhrases",
 ] as const;
 
 export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
@@ -162,8 +162,8 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		});
 		if (this._props.title?.toString().trim()) delete this._props.external;
 
-		const stat = await this._fs.saveArticle(this._ref.path, this._content, this._props);
-		this._lastModified = stat.mtimeMs;
+		await this._fs.saveArticle(this._ref.path, this._content, this._props);
+		this._lastModified = new Date().getTime();
 		await this.events.emit("item-changed", { item: this, status: renamed ? FileStatus.new : FileStatus.modified });
 	}
 

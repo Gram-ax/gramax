@@ -1,9 +1,8 @@
-import { listTypes } from "@ext/markdown/elements/joinLists/joinLists";
 import getNodeByPos from "../../../elementsUtils/getNodeByPos";
 import isTypeOf from "../../../elementsUtils/isTypeOf";
 import KeyboardRule from "../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
 import KeyboardShortcut from "../../../elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
-import getDeepiestLastChild from "@ext/markdown/elementsUtils/getDeepiesLastChild";
+import { isNodeSelectable } from "@ext/markdown/elementsUtils/isNodeSelectable";
 
 const betweenNoteOrCut: KeyboardRule = ({ editor }) => {
 	const { state } = editor;
@@ -38,47 +37,29 @@ const headingAfterNode: KeyboardRule = ({ editor, nodePosition, node }): boolean
 	editor.chain().toggleHeading({ level: headingNode.attrs.level }).run();
 };
 
-const gotoEndOfList: KeyboardRule = ({ editor }) => {
-	const { state } = editor;
-	const { selection } = state;
-	if (!selection.empty) return;
-	if (selection.$from.textOffset !== 0) return;
+// Focus on before selectable block node if current node has content
+const focusOnPrevousBlockNode: KeyboardRule = ({ editor, node: currentNode }) => {
+	if (!currentNode.isTextblock && !currentNode.isText) return false;
 
-	const { node, position, parentNode } = getNodeByPos(
-		state.selection.anchor,
-		state.doc,
-		(node) => node.type.name == "paragraph",
-	);
-	if (!node) return;
-	if (selection.$anchor.pos !== position + 1) return;
+	const { state: editorState } = editor;
+	const { $anchor } = editorState.selection;
 
-	const parentNodeIsList = listTypes.includes(parentNode.type.name);
-	const parentNodeIsListItem = parentNode.type.name === "listItem";
-	if (parentNodeIsList || parentNodeIsListItem) return;
+	const previousNodePos = Math.max(0, $anchor.pos - 2);
+	const previousNode = editorState.doc.nodeAt(previousNodePos);
 
-	const { node: nodeBefore, position: nodeBeforePosition } = getNodeByPos(position - 1, state.doc, (node) =>
-		isTypeOf(node, listTypes),
-	);
-	if (!nodeBefore || !listTypes.includes(nodeBefore.type.name)) return;
-	const deepiestLastChild = getDeepiestLastChild(nodeBefore, nodeBeforePosition);
-	if (!deepiestLastChild?.node) return;
+	if (!previousNode) return false;
 
-	const insertPosition = Math.min(
-		Math.max(deepiestLastChild.position + deepiestLastChild.node.nodeSize, 0),
-		state.doc.content.size,
-	);
-	return editor
-		.chain()
-		.insertContentAt(insertPosition, node.content)
-		.deleteRange({ from: position, to: position + node.nodeSize })
-		.focus(insertPosition)
-		.run();
+	if (!isNodeSelectable(previousNode)) return false;
+
+	if (!currentNode.textContent.length) return false;
+
+	return editor.commands.setNodeSelection(previousNodePos);
 };
 
 const getBackspaceShortcuts = (): KeyboardShortcut => {
 	return {
 		key: "Backspace",
-		rules: [betweenNoteOrCut, headingAfterNode, gotoEndOfList],
+		rules: [betweenNoteOrCut, headingAfterNode, focusOnPrevousBlockNode],
 	};
 };
 

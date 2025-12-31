@@ -1,23 +1,24 @@
+import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
+import resolveModule from "@app/resolveModule/backend";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Path from "@core/FileProvider/Path/Path";
 import { Article, ArticleProps, Content } from "@core/FileStructue/Article/Article";
 import { getExtractHeader } from "@core/FileStructue/Article/parseContent";
 import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import mammothModule from "@dynamicImports/mammoth";
+import pdfParseModule from "@dynamicImports/pdf-parse";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { SearchArticle, SearchArticleArticleMetadata } from "@ext/serach/modulith/SearchArticle";
 import SearchArticleContentParser from "@ext/serach/modulith/parsing/SearchArticleContentParser";
 import SearchArticleContentParserHTML from "@ext/serach/modulith/parsing/SearchArticleContentParserHTML";
-import { Workspace } from "@ext/workspace/Workspace";
-import { AggregateProgress, ProgressCallback } from "@ics/modulith-utils";
-import pdfParseModule from "@dynamicImports/pdf-parse";
-import mammothModule from "@dynamicImports/mammoth";
-import type { TypedArray } from "pdfjs-dist/types/display/api";
-import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
-import resolveModule from "@app/resolveModule/backend";
 import { getLang } from "@ext/serach/modulith/utils/getLang";
+import { getValidCatalogItems } from "@ext/serach/modulith/utils/getValidCatalogItems";
+import { Workspace } from "@ext/workspace/Workspace";
+import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import { AggregateProgress, ProgressCallback } from "@ics/modulith-utils";
+import type { TypedArray } from "pdfjs-dist/types/display/api";
 
 export type CatalogNameWithSearchArticle = [string, SearchArticle[]];
 
@@ -54,7 +55,7 @@ export class SearchArticleParser {
 		catalog: ReadonlyCatalog,
 		progressCallback?: ProgressCallback,
 	): Promise<SearchArticle[]> {
-		const articles = catalog.getItems() as Article[];
+		const articles = getValidCatalogItems(catalog);
 		const searchArticlesByPath: Map<string, SearchArticle> = new Map();
 
 		const aggProgress = new AggregateProgress({
@@ -153,7 +154,9 @@ export class SearchArticleParser {
 			aggProgress.getProgressCallback(0),
 		);
 
-		if (resources.length > 0) {
+		if (resources.length === 0) {
+			aggProgress.setProgress(1, 1);
+		} else {
 			const resourcesProgress = new AggregateProgress({
 				progress: {
 					count: resources.length,

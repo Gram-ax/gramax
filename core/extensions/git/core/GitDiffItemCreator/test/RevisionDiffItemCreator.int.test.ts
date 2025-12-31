@@ -19,10 +19,10 @@ import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import util from "util";
+import { TextDecoder, TextEncoder } from "util";
 
-global.TextEncoder = util.TextEncoder;
-global.TextDecoder = util.TextDecoder;
+global.TextEncoder = TextEncoder as typeof global.TextEncoder;
+global.TextDecoder = TextDecoder as typeof global.TextDecoder;
 
 const mockUserData: SourceData = {
 	sourceType: SourceType.gitHub,
@@ -69,6 +69,7 @@ describe("GitDiffItemCreator ", () => {
 			await repTestUtils.clearOnlyResourceDeleteChanges(dfp, git);
 			await repTestUtils.clearResourceChanges(dfp, git);
 			await repTestUtils.clearComplexResourceChanges(dfp, git);
+			await repTestUtils.clearCommentsChanges(dfp, git);
 		});
 		test("without resource changes", async () => {
 			const { catalog, dfp, git, fs, sitePresenter, articleParser } = await getGitDiffItemCreatorData();
@@ -305,6 +306,39 @@ describe("GitDiffItemCreator ", () => {
 				expect(items).not.toContainEqual({
 					filePath: { oldPath: "file-with-resource-2.md", path: "file-with-resource-2.md" },
 					resources: [{ filePath: { oldPath: "imgs/2.png", path: "imgs/2.png" } }],
+				});
+			});
+			test("find unchanged article for only comment changes", async () => {
+				const { catalog, dfp, git, fs, sitePresenter, articleParser } = await getGitDiffItemCreatorData();
+				const oldRef = await git.getHeadCommit();
+				await repTestUtils.makeCommentsChanges(dfp);
+				await git.add(), await git.commit("", mockUserData);
+
+				const newRef = await git.getHeadCommit();
+				const { oldCatalog, newCatalog } = await getRefCatalogs(catalog, oldRef, newRef, fs);
+				const gitDiffItemCreator = new RevisionDiffItemCreator(
+					catalog,
+					sitePresenter,
+					fs,
+					articleParser,
+					{ type: "tree", old: oldRef.toString(), new: newRef.toString() },
+					oldCatalog,
+					newCatalog,
+				);
+				await catalog.update();
+
+				const res = await gitDiffItemCreator.getDiffItems();
+				const items = res.items.map((x) => ({
+					filePath: { path: x.filePath.path, oldPath: x.filePath.oldPath },
+					resources: x.resources.map((r) => ({
+						filePath: { path: r.filePath.path, oldPath: r.filePath.oldPath },
+					})),
+				}));
+				expect(items.length).toBe(1);
+				expect(res.resources.length).toBe(0);
+				expect(items).toContainEqual({
+					filePath: { path: "1.md", oldPath: "1.md" },
+					resources: [{ filePath: { path: "1.comments.yaml", oldPath: "1.comments.yaml" } }],
 				});
 			});
 		});

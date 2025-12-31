@@ -1,4 +1,4 @@
-import InlineCommentView from "@ext/markdown/elements/comment/edit/components/InlineCommentView";
+import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
 import Icon from "@ext/markdown/elements/icon/render/components/Icon";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { memo, ReactElement } from "react";

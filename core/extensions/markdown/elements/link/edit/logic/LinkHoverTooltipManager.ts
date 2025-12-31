@@ -14,6 +14,7 @@ export class LinkHoverTooltipManager {
 		resourcePath,
 		hash,
 		apiUrlCreator,
+		href,
 	}: {
 		linkElement: HTMLElement;
 		markData?: { from: number; to: number; mark: any };
@@ -21,6 +22,7 @@ export class LinkHoverTooltipManager {
 		resourcePath?: string;
 		hash?: string;
 		apiUrlCreator: ApiUrlCreator;
+		href?: string;
 	}) {
 		const tooltip = new LinkHoverTooltip(this.parentElement, apiUrlCreator, this.pageDataContext);
 
@@ -29,7 +31,7 @@ export class LinkHoverTooltipManager {
 		};
 
 		if (markData) tooltip.setMarkData(markData);
-		if (resourcePath) tooltip.setResourcePath(resourcePath, hash);
+		if (resourcePath) tooltip.setResourcePath(resourcePath, hash, href);
 		if (anchorPos) tooltip.updateAnchorPos(anchorPos);
 
 		tooltip.setComponent(linkElement);

@@ -4,13 +4,16 @@ import docx from "@dynamicImports/docx";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
+import getWordResourceManager from "@ext/wordExport/getWordResourceManager";
 
 export const drawioWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
 	try {
 		const { Paragraph, TextRun } = await docx();
+		const resourceManager = await getWordResourceManager(addOptions, wordRenderContext.parserContext);
+
 		const image = await WordImageExporter.getImageFromSvgPath(
 			new Path(tag.attributes.src),
-			wordRenderContext.parserContext.getResourceManager(),
+			resourceManager,
 			addOptions?.maxPictureWidth,
 		);
 		const paragraphs = [new Paragraph({ children: [image], style: WordFontStyles.picture })];

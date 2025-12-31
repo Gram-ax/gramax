@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import validateEmail from "@core/utils/validateEmail";
 import { ModalComponent } from "../../../../ui-kit/ModalComponent";
 import { SelectDisableItem } from "../../../components/SelectDisableItem";
 import { TriggerAddButtonTemplate } from "../../../components/TriggerAddButtonTemplate";
@@ -29,6 +30,8 @@ const createFormSchema = (inSelectInput: boolean, isExternal: boolean, existingU
 			  }, t("enterprise.admin.resources.users.already-exist"))
 			: z
 					.string()
+					.transform((user) => user.trim())
+					.refine((user) => validateEmail(user), t("enterprise-guest.validationErrors.emailInvalidFormat"))
 					.refine(
 						(user) => !existingUsers.includes(user),
 						t("enterprise.admin.resources.users.already-exist"),
@@ -84,7 +87,7 @@ export const UserAndRoleToolbarAddBtn = ({
 			return {
 				options: users.map((user) => ({
 					value: user.email,
-					label: `${user.email} (${user.name})`,
+					label: `${user.email} ${user.name ? `(${user.name})` : ""}`,
 					disabled: existingUsers.includes(user.email),
 				})),
 			};

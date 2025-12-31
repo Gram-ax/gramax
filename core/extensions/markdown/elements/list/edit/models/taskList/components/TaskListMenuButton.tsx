@@ -1,16 +1,20 @@
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 
 const TaskListMenuButton = ({ editor }: { editor: Editor }) => {
+	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "taskList" });
 	return (
-		<Button
+		<ToolbarToggleButton
 			onClick={() => editor.chain().focus().toggleTaskList().run()}
-			icon={"list-todo"}
 			tooltipText={t("editor.task-list")}
 			hotKey={"Mod-Shift-9"}
-			nodeValues={{ action: "taskList" }}
-		/>
+			disabled={disabled}
+			active={isActive}
+		>
+			<ToolbarIcon icon={"list-todo"} />
+		</ToolbarToggleButton>
 	);
 };
 

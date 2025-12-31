@@ -182,21 +182,11 @@ export default class FileStructure {
 		catalog.repo?.resetCachedStatus();
 	}
 
-	async saveArticle(path: Path, content: string, props: ArticleProps): Promise<FileInfo> {
+	async saveArticle(path: Path, content: string, props: ArticleProps): Promise<void> {
 		const mutable = { content, props };
 		await this.events.emit("item-serialize", { mutable });
 		const text = this.serialize({ props: mutable.props, content: mutable.content });
 		await this._fp.write(path, text);
-
-		let stat: FileInfo;
-		try {
-			return await this._fp.getStat(path);
-		} catch (e) {
-			console.error("got an error while getting stat", { path: path.value, error: e });
-			await new Promise((resolve) => setTimeout(resolve, 100));
-			stat = await this._fp.getStat(path);
-			return stat;
-		}
 	}
 
 	makeArticleByProps(

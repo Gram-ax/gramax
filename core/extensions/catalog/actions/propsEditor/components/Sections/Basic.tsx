@@ -1,19 +1,19 @@
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useFormSelectValues } from "@ext/catalog/actions/propsEditor/hooks/useFormSelectValues";
 import t from "@ext/localization/locale/translate";
 import isSystemProperty from "@ext/properties/logic/isSystemProperty";
+import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { feature } from "@ext/toggleFeatures/features";
 import { FormField } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
+import { usePreventAutoFocusToInput } from "@ui-kit/Modal/utils";
 import { MultiSelect } from "@ui-kit/MultiSelect";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import { TagInput } from "ics-ui-kit/components/tag-input";
+import { UseFormReturn } from "react-hook-form";
 import { FORM_DATA_QA, FORM_STYLES } from "../../consts/form";
 import type { FormProps } from "../../logic/createFormSchema";
-import { UseFormReturn } from "react-hook-form";
 import { FormData } from "../../logic/createFormSchema";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
-import { usePreventAutoFocusToInput } from "@ui-kit/Modal/utils";
-import { useFormSelectValues } from "@ext/catalog/actions/propsEditor/hooks/useFormSelectValues";
 
 export type BasicProps = {
 	formProps: FormProps;
@@ -119,6 +119,7 @@ export const EditBasicProps = ({ formProps, form }: BasicProps) => {
 					control={({ field }) => (
 						<MultiSelect
 							keepOpenOnSelect
+							searchPlaceholder={t("find2")}
 							value={field.value?.map((value) => ({
 								value,
 								label: value,

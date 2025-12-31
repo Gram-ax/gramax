@@ -1,8 +1,9 @@
 import { KeyPhraseArticleSearcher } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
 import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { ProgressCallback, DynamicAggregateProgress } from "@ics/modulith-utils";
+import { DynamicAggregateProgress, Lock, ProgressCallback } from "@ics/modulith-utils";
 
 export class WorkspaceState {
+	private readonly _indexingLock = new Lock();
 	private readonly _progressSubscribers = new Set<ProgressCallback>();
 	private readonly _indexedCatalogs = new Set<string>();
 	private readonly _doneProgresses = new Set<unknown>();
@@ -22,6 +23,10 @@ export class WorkspaceState {
 
 	get keyPhraseSearcher(): KeyPhraseArticleSearcher {
 		return this._keyPhraseSearcher;
+	}
+
+	lockIndexing(): Promise<() => void> {
+		return this._indexingLock.lock();
 	}
 
 	hasIndexedCatalog(catalogName: string): boolean {

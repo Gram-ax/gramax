@@ -2,13 +2,14 @@ import { MinimizedArticleStyled } from "@components/Article/MiniArticle";
 import Icon from "@components/Atoms/Icon";
 import Tooltip, { DEFAULT_TOOLTIP_SHOW_DELAY } from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
+import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
 import styled from "@emotion/styled";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
 import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+import CommentEditorProvider from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
-import addDecorations from "@ext/markdown/elements/diff/logic/addDecorations";
 import DiffExtension from "@ext/markdown/elements/diff/logic/DiffExtension";
 import { DiffLineType } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 import Document from "@tiptap/extension-document";
@@ -23,7 +24,8 @@ interface ProsemirrorDiffLineContentProps {
 	oldContent: JSONContent;
 	oldDecorations: Decoration[];
 	oldScope: TreeReadScope;
-	type: Exclude<DiffLineType, "added">;
+	type: Exclude<DiffLineType, "added" | "comment">;
+	articlePath: string;
 	onDiscard?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
@@ -32,26 +34,34 @@ const DiscardWrapper = styled.div`
 	align-items: center;
 	cursor: pointer;
 
-	color: var(--color-nav-item);
+	> i {
+		margin-bottom: 3px;
+	}
+
+	opacity: 0.6;
 	:hover {
-		color: var(--color-nav-item-selected);
+		opacity: 1;
 	}
 `;
 
-const Footer = styled.div`
+const Header = styled.div`
 	display: flex;
+	justify-content: space-between;
 	gap: 0.5em;
 	font-size: 0.7rem;
-	opacity: 0.5;
-	margin: 0 0.5rem;
+	margin: 0.75em 0.5rem 0 0.5rem;
+
+	font-weight: 400;
+`;
+
+const HeaderText = styled.span`
+	opacity: 0.6;
 `;
 
 const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
-	// We might need oldScope in future
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { oldContent, oldDecorations, onDiscard, oldScope, type } = props;
+	const { oldContent, oldDecorations, onDiscard, oldScope, type, articlePath } = props;
 
-	const extensions = useMemo(() => [...getExtensions(), Comment], []);
+	const extensions = useMemo(() => [...getExtensions(), Comment.configure({ appendCommentToBody: true })], []);
 
 	const editor = useEditor(
 		{
@@ -68,7 +78,7 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 
 	useEffect(() => {
 		if (!editor || editor.isDestroyed) return;
-		addDecorations(editor, DecorationSet.create(editor.state.doc, oldDecorations), diffDeletedTextPluginKey);
+		editor.commands.setMeta("updateDiffDecorators", DecorationSet.create(editor.state.doc, oldDecorations));
 	}, [editor, oldDecorations]);
 
 	const [tooltipVisible, setTooltipVisible] = useState(false);
@@ -86,7 +96,7 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 	};
 
 	const DiscardButton = (
-		<Tooltip content={t("git.discard.paragraph-tooltip")} distance={0} visible={tooltipVisible}>
+		<Tooltip content={t("git.discard.paragraph-tooltip")} distance={5} visible={tooltipVisible}>
 			<DiscardWrapper
 				onMouseEnter={() => setTooltipVisibleWrapper(true)}
 				onMouseLeave={() => setTooltipVisibleWrapper(false)}
@@ -96,24 +106,33 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 				}}
 			>
 				<Icon code="reply" />
+				<span>{t("diff.discard")}</span>
 			</DiscardWrapper>
 		</Tooltip>
 	);
 
 	return (
-		<div className={classNames("article", {}, ["tooltip-article"])}>
-			<div className="tooltip-size">
-				<MinimizedArticleStyled>
-					<div className={classNames("article-body", {}, ["popup-article"])}>
-						<EditorContent editor={editor} data-iseditable={false} />
-					</div>
-				</MinimizedArticleStyled>
+		<ArticleContextWrapper scope={oldScope} articlePath={articlePath}>
+			<div className={classNames("article", {}, ["tooltip-article"])}>
+				<Header>
+					<HeaderText>
+						{type === "modified"
+							? t("diff.previous-version").toUpperCase()
+							: t(`diff.type.${type}`).toUpperCase()}
+					</HeaderText>
+					{type === "modified" && DiscardButton}
+				</Header>
+				<div className="tooltip-size">
+					<MinimizedArticleStyled>
+						<div className={classNames("article-body", {}, ["popup-article"])}>
+							<CommentEditorProvider editor={editor}>
+								<EditorContent editor={editor} data-iseditable={false} />
+							</CommentEditorProvider>
+						</div>
+					</MinimizedArticleStyled>
+				</div>
 			</div>
-			<Footer>
-				<span>{t(`diff.type.${type}`)}</span>
-				{type === "modified" && DiscardButton}
-			</Footer>
-		</div>
+		</ArticleContextWrapper>
 	);
 };
 

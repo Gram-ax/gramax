@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 export interface StickyTableHeaderState {
-	tableStyles?: TableStyles;
-	headerRowStyles?: HeaderRowStyles;
+	tableStyles: TableStyles;
+	headerRowStyles: HeaderRowStyles;
 }
 
 type TableStyles = {
 	tableMarginTop?: number;
-	bottom?: number;
 };
 
 type HeaderRowStyles = {
@@ -36,6 +35,8 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 	const [headerRowStyles, setHeaderRowStyles] = useState<HeaderRowStyles>({});
 
 	const headerHeightRef = useRef<number>(0);
+	const prevTableStylesRef = useRef<TableStyles>({});
+	const prevHeaderRowStylesRef = useRef<HeaderRowStyles>({});
 
 	const verticalRef = useRef<HTMLElement>(null);
 	const horizontalRef = useRef<HTMLElement>(null);
@@ -86,7 +87,7 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 			if (horizontalRef.current) horizontalRef.current.scrollLeft = scrollLeft;
 			if (headerRow) headerRow.scrollLeft = scrollLeft;
 			if (controlsContainerHorizontal) controlsContainerHorizontal.scrollLeft = scrollLeft;
-			if (topShadowContainerRef) topShadowContainerRef.current.scrollLeft = scrollLeft;
+			if (topShadowContainerRef?.current) topShadowContainerRef.current.scrollLeft = scrollLeft;
 		},
 		[horizontalRef.current, headerRow, controlsContainerHorizontal, topShadowContainerRef?.current],
 	);
@@ -131,7 +132,7 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 		let nextHeader: HeaderRowStyles = {};
 		let nextTableStyles: TableStyles = {};
 
-		if (shouldStick && top >= tbodyTop) {
+		if (shouldStick && top >= tbodyTop && top > -headerRect.height - 1) {
 			headerHeightRef.current = headerRect.height;
 			const horizontal = horizontalRef.current;
 			let containerWidth = headerRect.width;
@@ -148,12 +149,20 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 				width: containerWidth,
 			};
 
-			nextTableStyles = { tableMarginTop: headerRect.height, bottom: rect.bottom };
+			nextTableStyles = { tableMarginTop: headerRect.height };
 		}
-		if (nextHeader.top !== headerRowStyles.top || nextHeader.width !== headerRowStyles.width)
+		if (
+			nextHeader.top !== prevHeaderRowStylesRef.current.top ||
+			nextHeader.width !== prevHeaderRowStylesRef.current.width
+		) {
+			prevHeaderRowStylesRef.current = nextHeader;
 			setHeaderRowStyles(nextHeader);
-		setTableStyles(nextTableStyles);
-	}, [tableRef, headerHeightRef, headerRowStyles, headerRow]);
+		}
+		if (nextTableStyles.tableMarginTop !== prevTableStylesRef.current.tableMarginTop) {
+			prevTableStylesRef.current = nextTableStyles;
+			setTableStyles(nextTableStyles);
+		}
+	}, [tableRef, headerHeightRef, headerRow]);
 
 	const scheduleUpdate = useCallback(() => {
 		if (rafIdRef.current != null) return;
@@ -166,8 +175,17 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 	useEffect(() => {
 		const table = tableRef?.current;
 		if (!table) {
-			setTableStyles({});
-			if (headerRowStyles.top || headerRowStyles.width) setHeaderRowStyles({});
+			if (prevTableStylesRef.current.tableMarginTop) {
+				const emptyStyles = {};
+				prevTableStylesRef.current = emptyStyles;
+				setTableStyles(emptyStyles);
+			}
+
+			if (prevHeaderRowStylesRef.current.top || prevHeaderRowStylesRef.current.width) {
+				const emptyHeaderStyles = {};
+				prevHeaderRowStylesRef.current = emptyHeaderStyles;
+				setHeaderRowStyles(emptyHeaderStyles);
+			}
 			return;
 		}
 		if (!headerRow) return;
@@ -233,7 +251,7 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 				rafIdRef.current = null;
 			}
 		};
-	}, [computeStyles, findScrollableParents, headerRowSelector, scheduleUpdate, tableRef, headerRow, headerRowStyles]);
+	}, [computeStyles, findScrollableParents, headerRowSelector, scheduleUpdate, tableRef, headerRow]);
 
 	return { tableStyles, headerRowStyles };
 };

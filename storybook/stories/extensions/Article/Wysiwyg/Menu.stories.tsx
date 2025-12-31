@@ -1,4 +1,4 @@
-import MainMenuSrc from "@ext/markdown/core/edit/components/Menu/Menus/Main";
+import MainMenuSrc from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import BlockDecorator from "../../../../styles/decorators/InlineDecorator";
 
 const MenuData = {

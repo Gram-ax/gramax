@@ -18,6 +18,7 @@ import getShareLinkData from "./share/getShareLinkData";
 import getShareTicket from "./share/getShareTicket";
 import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
+import getProps from "./getProps";
 
 const catalog = {
 	review: {
@@ -46,6 +47,7 @@ const catalog = {
 	updateProps,
 	language,
 	setSyntax,
+	getProps,
 };
 
 export default catalog;

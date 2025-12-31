@@ -1,11 +1,11 @@
 import useCheck from "@core-ui/hooks/useCheck";
-import { useScrollContainer } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
+import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
 import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
 import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
 import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
-import { StyledField } from "@ext/enterprise/components/admin/ui-kit/StyledField";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
@@ -16,11 +16,12 @@ import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
-import { Checkbox } from "@ui-kit/Checkbox";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
+import { Description } from "@ui-kit/Description";
 import { Field } from "@ui-kit/Field";
 import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
+import { Switch } from "ics-ui-kit/components/switch";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GuestsToolbarAddBtn } from "./components/GuestsToolbarAddBtn";
 import { guestsTableColumns } from "./config/GuestsTableConfig";
@@ -33,16 +34,17 @@ const defaultSettings: GuestsSettings = {
 };
 
 const GuestsComponent = () => {
-	const { settings, updateGuests, ensureGuestsLoaded, getTabError, isInitialLoading, isRefreshing } = useSettings();
+	const { settings, updateGuests, updateWorkspace, ensureGuestsLoaded, getTabError, isInitialLoading, isRefreshing } =
+		useSettings();
 	const guestsSettings = settings?.guests;
+	const otpEnabled = settings?.workspace?.modules?.guests ?? false;
 	const [localSettings, setLocalSettings] = useState<GuestsSettings>(guestsSettings || defaultSettings);
+	const [localOtpEnabled, setLocalOtpEnabled] = useState(otpEnabled);
 	const [isSaving, setIsSaving] = useState(false);
-	const [isScrolled, setIsScrolled] = useState(false);
-	const scrollContainer = useScrollContainer();
+	const { isScrolled } = useScrollShadow();
 	const [rowSelection, setRowSelection] = useState({});
-	const isEqual = useCheck(guestsSettings, localSettings);
+	const isEqual = useCheck(guestsSettings, localSettings) && otpEnabled === localOtpEnabled;
 	const [saveError, setSaveError] = useState<string | null>(null);
-	const [error, setError] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (guestsSettings) {
@@ -51,12 +53,8 @@ const GuestsComponent = () => {
 	}, [guestsSettings]);
 
 	useEffect(() => {
-		if (!scrollContainer) return;
-		const handleScroll = () => setIsScrolled(scrollContainer.scrollTop > 0);
-		scrollContainer.addEventListener("scroll", handleScroll);
-		handleScroll();
-		return () => scrollContainer.removeEventListener("scroll", handleScroll);
-	}, [scrollContainer]);
+		setLocalOtpEnabled(otpEnabled);
+	}, [otpEnabled]);
 
 	useEffect(() => {
 		if (!saveError) return;
@@ -64,14 +62,42 @@ const GuestsComponent = () => {
 		return () => clearTimeout(t);
 	}, [saveError]);
 
-	useEffect(() => {
-		if (!localSettings.whitelistEnabled) {
-			setError(null);
-			return;
+	const handleSave = useCallback(async () => {
+		setIsSaving(true);
+		try {
+			const otpEnabledChanged = otpEnabled !== localOtpEnabled;
+
+			if (otpEnabledChanged && settings?.workspace) {
+				const workspace = { ...settings.workspace };
+				workspace.modules = { ...workspace.modules, guests: localOtpEnabled };
+
+				await updateWorkspace(workspace);
+			}
+
+			await updateGuests(localSettings);
+		} catch (e: any) {
+			setSaveError(e?.message);
+		} finally {
+			setIsSaving(false);
 		}
-		if (localSettings.domains?.length !== 0) setError(null);
-		else setError(t("enterprise.admin.guests.whitelist-domains-empty"));
-	}, [localSettings.domains?.length, localSettings.whitelistEnabled]);
+	}, [localSettings, localOtpEnabled, otpEnabled, settings?.workspace, updateWorkspace, updateGuests]);
+
+	useTabGuard({
+		page: Page.GUESTS,
+		hasChanges: () => {
+			if (isInitialLoading("guests") || !guestsSettings) {
+				return false;
+			}
+			return !isEqual;
+		},
+		onSave: handleSave,
+		onDiscard: () => {
+			if (guestsSettings) {
+				setLocalSettings(guestsSettings);
+			}
+			setLocalOtpEnabled(otpEnabled);
+		},
+	});
 
 	const domainsData = useMemo(() => {
 		return (
@@ -128,17 +154,6 @@ const GuestsComponent = () => {
 		setRowSelection({});
 	}, [table]);
 
-	const handleSave = async () => {
-		setIsSaving(true);
-		try {
-			await updateGuests(localSettings);
-		} catch (e: any) {
-			setSaveError(e?.message);
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
 	const handleFilterChange = useCallback(
 		(value: string | null) => {
 			table.getColumn("domain")?.setFilterValue(value);
@@ -158,7 +173,7 @@ const GuestsComponent = () => {
 	}
 
 	return (
-		<div>
+		<>
 			<StickyHeader
 				title={
 					<>
@@ -171,7 +186,7 @@ const GuestsComponent = () => {
 						{isSaving ? (
 							<LoadingButtonTemplate text={`${t("save2")}...`} />
 						) : (
-							<Button disabled={isEqual || isSaving || !!error} onClick={handleSave}>
+							<Button disabled={isEqual || isSaving} onClick={handleSave}>
 								<Icon icon="save" />
 								{t("save")}
 							</Button>
@@ -180,80 +195,113 @@ const GuestsComponent = () => {
 				}
 			/>
 			<FloatingAlert show={Boolean(saveError)} message={saveError} />
-			<div className="space-y-6">
+
+			<div className="px-6 space-y-6">
 				<div>
 					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.guests.general-settings")}</h2>
-					<StyledField
-						title={t("enterprise.admin.guests.session-duration-hours")}
-						control={() => (
-							<Input
-								id="sessionDurationHours"
-								name="sessionDurationHours"
-								type="number"
-								value={localSettings.sessionDurationHours}
-								onChange={handleInputChange}
-								required
-								min="1"
-							/>
-						)}
-					/>
-				</div>
-
-				<div>
-					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.guests.whitelist-settings")}</h2>
-
 					<Field
-						title={t("enterprise.admin.guests.whitelist-enabled")}
+						title={t("enterprise.admin.guests.otp-enabled")}
 						className="items-center"
 						control={() => (
-							<Checkbox
-								id="whitelistEnabled"
-								checked={localSettings.whitelistEnabled}
-								onCheckedChange={(checked) =>
-									setLocalSettings((prev) => ({ ...prev, whitelistEnabled: checked as boolean }))
-								}
+							<Switch
+								size="sm"
+								id="otpEnabled"
+								checked={localOtpEnabled}
+								onCheckedChange={(checked) => {
+									setLocalOtpEnabled(checked as boolean);
+									if (checked) {
+										setLocalSettings((prev) => ({
+											...prev,
+											whitelistEnabled: true,
+										}));
+									}
+								}}
 							/>
 						)}
 					/>
+					<Description>{t("enterprise.admin.guests.otp-description")}</Description>
+				</div>
 
-					{localSettings.whitelistEnabled && (
-						<div className="py-4">
-							<TableInfoBlock
-								title={t("enterprise.admin.guests.whitelist-domains")}
-								description={
-									localSettings.domains?.length || (
-										<span className="text-red-500 text-sm">{error}</span>
-									)
-								}
+				{localOtpEnabled && (
+					<>
+						<div>
+							<Field
+								title={t("enterprise.admin.guests.session-duration-hours")}
+								className="items-center"
+								control={() => (
+									<Input
+										id="sessionDurationHours"
+										name="sessionDurationHours"
+										type="number"
+										value={localSettings.sessionDurationHours}
+										onChange={handleInputChange}
+										required
+										min="1"
+										className="w-24"
+									/>
+								)}
+							/>
+						</div>
+
+						<div>
+							<h2 className="text-xl font-medium mb-4">
+								{t("enterprise.admin.guests.whitelist-settings")}
+							</h2>
+
+							<Field
+								title={t("enterprise.admin.guests.whitelist-enabled")}
+								className="items-center"
+								control={() => (
+									<Switch
+										size="sm"
+										id="whitelistEnabled"
+										checked={localSettings.whitelistEnabled}
+										onCheckedChange={(checked) =>
+											setLocalSettings((prev) => ({
+												...prev,
+												whitelistEnabled: checked as boolean,
+											}))
+										}
+									/>
+								)}
 							/>
 
-							<TableToolbar
-								input={
-									<TableToolbarTextInput
-										placeholder={t("enterprise.admin.guests.whitelist-domains-placeholder")}
-										value={(table.getColumn("domain")?.getFilterValue() as string) ?? ""}
-										onChange={handleFilterChange}
-									/>
-								}
-							>
-								<AlertDeleteDialog
-									selectedCount={selectedCount}
-									hidden={!selectedCount}
-									onConfirm={handleDeleteSelectedDomains}
-								/>
-								<GuestsToolbarAddBtn
-									key="add-domain"
-									onAddDomain={handleAddDomain}
-									existingDomains={localSettings.domains || []}
-								/>
-							</TableToolbar>
+							{localSettings.whitelistEnabled && (
+								<div className="py-4">
+									<TableInfoBlock title={t("enterprise.admin.guests.whitelist-domains")} />
+									<Description>
+										{t("enterprise.admin.guests.whitelist-domains-description")}
+									</Description>
 
-							<TableComponent<Domain> table={table} columns={guestsTableColumns} />
+									<TableToolbar
+										input={
+											<TableToolbarTextInput
+												placeholder={t("enterprise.admin.guests.whitelist-domains-placeholder")}
+												value={(table.getColumn("domain")?.getFilterValue() as string) ?? ""}
+												onChange={handleFilterChange}
+											/>
+										}
+									>
+										<AlertDeleteDialog
+											selectedCount={selectedCount}
+											hidden={!selectedCount}
+											onConfirm={handleDeleteSelectedDomains}
+										/>
+										<GuestsToolbarAddBtn
+											key="add-domain"
+											onAddDomain={handleAddDomain}
+											existingDomains={localSettings.domains || []}
+										/>
+									</TableToolbar>
+
+									<TableComponent<Domain> table={table} columns={guestsTableColumns} />
+								</div>
+							)}
 						</div>
-					)}
-				</div>
+					</>
+				)}
 			</div>
-		</div>
+		</>
 	);
 };
 

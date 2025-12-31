@@ -10,6 +10,8 @@ import StaticSiteBuilder from "../../../../apps/gramax-cli/src/logic/StaticSiteB
 import { Command } from "../../../types/Command";
 import CloudUploadStatus from "@ext/static/logic/CloudUploadStatus";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
+import { CACHE_DIR, MODULITH_BASE } from "@ext/serach/modulith/createModulithService";
+import { DirectoryInfoBasic } from "@app/resolveModule/fscall/static";
 
 const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Command.create({
 	path: "catalog/cloud/upload",
@@ -31,7 +33,30 @@ const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Comma
 			if (!(await cloudApi.getServerState())) throw new DefaultError(t("cloud.error.failed-to-connect"));
 
 			const htmlTemplate = await cloudApi.getTemplateHtml();
-			const staticSiteBuilder = new StaticSiteBuilder(zipFileProvider, this._app, htmlTemplate);
+			const getCache = {
+				fp: () => {
+					const catceFileProvider = ZipFileProvider.createWithExistingZip(zipFileProvider.zip);
+					catceFileProvider.setRootPath(MODULITH_BASE.join(CACHE_DIR));
+					const articleStorageFileProvider = ZipFileProvider.createWithExistingZip(zipFileProvider.zip);
+					articleStorageFileProvider.setRootPath(MODULITH_BASE);
+					return { catceFileProvider, articleStorageFileProvider };
+				},
+				tree: () => {
+					zipFileProvider.setRootPath(MODULITH_BASE);
+					const files = zipFileProvider.currentFolder.file(new RegExp(/.*/));
+					const filePaths = files.map((f) => f.name);
+					const directoryTree = StaticSiteBuilder.buildDirectoryTreeFromPaths(filePaths)
+						?.children?.[0] as DirectoryInfoBasic;
+					zipFileProvider.setRootPath(new Path(""));
+					return directoryTree;
+				},
+			};
+			const staticSiteBuilder = new StaticSiteBuilder({
+				fp: zipFileProvider,
+				app: this._app,
+				html: htmlTemplate,
+				getCache,
+			});
 
 			const getCustomStyleCommand = this._commands.workspace.assets.getCustomStyle;
 			const customStyles = await getCustomStyleCommand.do({ workspacePath: workspace.path() });

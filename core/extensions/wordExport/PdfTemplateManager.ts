@@ -1,4 +1,3 @@
-import Path from "@core/FileProvider/Path/Path";
 import { Workspace } from "@ext/workspace/Workspace";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { Buffer } from "buffer";
@@ -14,7 +13,7 @@ class PdfTemplate {
 	}
 
 	getTemplate(name: string) {
-		return this._workspace.getAssets().getBuffer(Path.join(PDF_TEMPLATES_DIR, name));
+		return this._workspace.getAssets().pdfTemplates.getContent(name);
 	}
 }
 
@@ -32,27 +31,20 @@ export class PdfTemplateManager {
 	}
 
 	async addTemplates(workspace: Workspace, templates: Array<{ name: string; buffer: Buffer }>): Promise<void> {
-		for (const template of templates) {
-			await workspace.getAssets().write(Path.join(PDF_TEMPLATES_DIR, template.name), template.buffer);
-		}
-
+		await workspace.getAssets().pdfTemplates.add(templates);
 		await this._refreshTemplatesCache(workspace);
 	}
 
 	async removeTemplates(workspace: Workspace, templateNames: string[]): Promise<void> {
-		for (const name of templateNames) {
-			await workspace.getAssets().delete(Path.join(PDF_TEMPLATES_DIR, name));
-		}
-
+		await workspace.getAssets().pdfTemplates.delete(templateNames);
 		await this._refreshTemplatesCache(workspace);
 	}
 
 	public static isPdfTemplateName(templateName: string): boolean {
-		const lastDotIndex = templateName.lastIndexOf(".");
-		if (lastDotIndex === -1 || lastDotIndex === templateName.length - 1) return false;
-
-		const extension = templateName.substring(lastDotIndex + 1).toLowerCase();
-		return PDF_TEMPLATE_FORMATS.some((prefix) => extension.startsWith(prefix));
+		const dot = templateName.lastIndexOf(".");
+		if (dot === -1 || dot === templateName.length - 1) return false;
+		const ext = templateName.substring(dot + 1).toLowerCase();
+		return PDF_TEMPLATE_FORMATS.some((v) => ext.startsWith(v));
 	}
 
 	private _clearCache(workspace: Workspace): void {
@@ -62,9 +54,9 @@ export class PdfTemplateManager {
 	private async _getTemplates(workspace: Workspace) {
 		if (this._templates[workspace.path()]) return this._templates[workspace.path()];
 
-		const templates = (await workspace.getAssets().listFiles(PDF_TEMPLATES_DIR)) || [];
+		const templates = await workspace.getAssets().pdfTemplates.list();
 
-		this._templates[workspace.path()] = templates.filter(PdfTemplateManager.isPdfTemplateName);
+		this._templates[workspace.path()] = templates;
 		return this._templates[workspace.path()];
 	}
 

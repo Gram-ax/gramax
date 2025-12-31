@@ -22,6 +22,7 @@ import { GitBranch } from "../GitBranch/GitBranch";
 import { GitCommands } from "../GitCommands/GitCommands";
 import GitWatcher from "../GitWatcher/GitWatcher";
 import { GitStatus } from "../GitWatcher/model/GitStatus";
+import type GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 
 export type GitVersionControlEvents = Event<"files-changed", { items: GitStatus[] }>;
@@ -39,6 +40,7 @@ export default class GitVersionControl {
 	private _gitRepository: GitCommands;
 	private _events = createEventEmitter<GitVersionControlEvents>();
 	private _relativeToParentPath: Path;
+	private _cachedStatus: { index: GitStatus[]; workdir: GitStatus[] } = { index: null, workdir: null };
 
 	constructor(private _path: Path, private _fp: FileProvider, relativeToParentPath: Path = new Path()) {
 		this._relativeToParentPath = relativeToParentPath;
@@ -65,6 +67,14 @@ export default class GitVersionControl {
 
 	get events() {
 		return this._events;
+	}
+
+	getCachedStatus(type: "index" | "workdir") {
+		return this._cachedStatus[type];
+	}
+
+	resetCachedStatus() {
+		this._cachedStatus = { index: null, workdir: null };
 	}
 
 	getPath(): Path {
@@ -217,17 +227,17 @@ export default class GitVersionControl {
 		await this._gitRepository.setHead(refname);
 	}
 
-	async checkoutToBranch(branch: GitBranch | string, force?: boolean) {
+	async checkoutToBranch(data: GitSourceData, branch: GitBranch | string, force?: boolean) {
 		this._fp.stopWatch();
 		try {
-			await this._gitRepository.checkout(branch, { force });
+			await this._gitRepository.checkout(data, branch, { force });
 			this.update();
 		} finally {
 			this._fp?.startWatch();
 		}
 	}
 
-	async mergeBranch(data: SourceData, opts: MergeOptions): Promise<GitMergeResult[]> {
+	async mergeBranch(data: GitSourceData, opts: MergeOptions): Promise<GitMergeResult[]> {
 		this._fp.stopWatch();
 		try {
 			return gitMergeConverter(await this._gitRepository.merge(data, opts));
@@ -241,7 +251,13 @@ export default class GitVersionControl {
 	}
 
 	async getChanges(type: "index" | "workdir" = "workdir"): Promise<GitStatus[]> {
-		return this._gitRepository.status(type);
+		const res = await this._gitRepository.status(type);
+		if (type === "index") {
+			this._cachedStatus.index = res;
+		} else {
+			this._cachedStatus.workdir = res;
+		}
+		return res;
 	}
 
 	async getFileStatus(filePath: Path): Promise<GitStatus> {
@@ -284,7 +300,7 @@ export default class GitVersionControl {
 		return this._gitRepository.getCommitAuthors();
 	}
 
-	haveConflictsWithBranch(branch: GitBranch | string, data: SourceData): Promise<boolean> {
+	haveConflictsWithBranch(branch: GitBranch | string, data: GitSourceData): Promise<boolean> {
 		return this._gitRepository.haveConflictsWithBranch(branch, data);
 	}
 

@@ -11,6 +11,7 @@ import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
 import ParserContext, { BaseContext } from "./ParserContext";
+import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export default class TestContext extends BaseContext implements ParserContext {
 	private _linkManager: LinkResourceManager;
@@ -30,6 +31,10 @@ export default class TestContext extends BaseContext implements ParserContext {
 
 	getDiagramRendererServerUrl(): string {
 		return process.env.DIAGRAM_RENDERER_SERVICE_URL;
+	}
+
+	getWorkspaceManager(): WorkspaceManager {
+		return null;
 	}
 
 	getResourceManager(): ResourceManager {

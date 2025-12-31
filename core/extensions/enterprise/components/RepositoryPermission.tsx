@@ -3,7 +3,6 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
-import { AdminPageDataProvider } from "@ext/enterprise/components/admin/contexts/AdminPageDataContext";
 import { OpenProvider } from "@ext/enterprise/components/admin/contexts/OpenContext";
 import { SettingsProvider, useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
@@ -17,8 +16,9 @@ import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { FormFooter } from "@ui-kit/Form";
 import { Modal, ModalContent, ModalHeaderTemplate } from "@ui-kit/Modal";
 import { Lock } from "lucide-react";
-import { ComponentProps, useCallback, useEffect, useMemo, useState } from "react";
+import { ComponentProps, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import ResourceComponent from "./admin/settings/resources/components/Resource/ResourceComponent";
+import CatalogItem from "@components/Actions/CatalogItems/Base";
 
 const getItemId = (pathName: string, sourceName: string, catalogName: string) => {
 	const prefix = `${sourceName}/`;
@@ -58,17 +58,15 @@ export const RepositoryPermission = ({
 	return (
 		<Modal open={isOpen} onOpenChange={onOpenChange}>
 			<OpenProvider open={isOpen} setOpen={onOpenChange}>
-				<AdminPageDataProvider>
-					<SettingsProvider enterpriseService={enterpriseService} token={token}>
-						<RepositoryPermissionModalContent
-							pathName={pathName}
-							sourceName={sourceName}
-							catalogName={catalogName}
-							setIsOpen={setIsOpen}
-							onClose={onClose}
-						/>
-					</SettingsProvider>
-				</AdminPageDataProvider>
+				<SettingsProvider enterpriseService={enterpriseService} token={token}>
+					<RepositoryPermissionModalContent
+						pathName={pathName}
+						sourceName={sourceName}
+						catalogName={catalogName}
+						setIsOpen={setIsOpen}
+						onClose={onClose}
+					/>
+				</SettingsProvider>
 			</OpenProvider>
 		</Modal>
 	);
@@ -207,11 +205,13 @@ const RepositoryPermissionTrigger = ({
 	catalogName,
 	pathName,
 	sourceName,
+	children,
 }: {
 	gesUrl: string;
 	catalogName: string;
 	pathName: string;
 	sourceName: string;
+	children: ReactNode;
 }) => {
 	const onClick = () => {
 		ModalToOpenService.setValue<ComponentProps<typeof RepositoryPermission>>(ModalToOpen.RepositoryPermission, {
@@ -224,10 +224,16 @@ const RepositoryPermissionTrigger = ({
 	};
 
 	return (
-		<DropdownMenuItem onSelect={onClick}>
-			<Icon code="lock" />
-			{t("enterprise.admin.resources.repository-permission")}
-		</DropdownMenuItem>
+		<CatalogItem
+			renderLabel={(Component) => (
+				<Component onSelect={onClick}>
+					<Icon code="lock" />
+					{t("enterprise.admin.resources.repository-permission")}
+				</Component>
+			)}
+		>
+			{children}
+		</CatalogItem>
 	);
 };
 

@@ -37,6 +37,7 @@
 			"@dynamicImports/*": ["core/dynamicImports/*"],
 			"@ext/*": ["core/extensions/*"],
 			"@core/*": ["core/logic/*"],
+			"@plugins/*": ["core/plugins/*"],
 			"@core-ui/*": ["core/ui-logic/*"],
 			"@app/*": ["app/*"],
 			"@app-plugins/git": ["apps/tauri/plugins/plugin-gramax-git/webview-src"]
@@ -83,6 +84,7 @@
 		"storybook/storybook-static",
 		"services/**/Services/TSClassDiagram/files",
 		"apps/tauri/src-tauri",
-		"gx"
-	],
+		"gx",
+		"**/build"
+	]
 }

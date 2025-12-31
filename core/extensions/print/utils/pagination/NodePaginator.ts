@@ -1,11 +1,15 @@
 import Paginator from "@ext/print/utils/pagination/Paginator";
 
-abstract class NodePaginator<T extends HTMLElement = HTMLElement> extends Paginator<T> {
+abstract class NodePaginator<
+	T extends HTMLElement = HTMLElement,
+	N extends HTMLElement = HTMLElement,
+> extends Paginator<T, N> {
 	constructor(node: T, public parentPaginator: Paginator) {
 		super(node);
 	}
 
 	cleanHeadingElementsIfNeed() {
+		if (!this.lastChildNodeIsHeading()) return (this.headingElements = []);
 		if (this.currentContainer.childNodes.length !== this.headingElements.length) return;
 		let parent = this.parentPaginator;
 		while (parent) {

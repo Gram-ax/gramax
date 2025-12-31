@@ -101,7 +101,7 @@ const EditorsComponent = () => {
 	if (!editorSettings) return null;
 
 	return (
-		<div>
+		<div className="p-6">
 			<FloatingAlert show={Boolean(saveError)} message={saveError} />
 
 			<TableInfoBlock

@@ -10,6 +10,12 @@ export interface LevenshteinStringsDiffConfig {
 	canStringsBeCompared?: (oldString: string, newString: string) => boolean;
 }
 
+export type LevenshteinStringsDiffResult = {
+	deletedIdxes: number[];
+	addedIdxes: number[];
+	modified: { oldIdx: number; newIdx: number; diff: DiffHunk[] }[];
+};
+
 export default class LevenshteinStringsDiff {
 	private readonly _similarityThreshold: number;
 
@@ -24,11 +30,7 @@ export default class LevenshteinStringsDiff {
 		this._canStringsBeCompared = config?.canStringsBeCompared ?? this._defaultCanStringsBeCompared;
 	}
 
-	getDiff(): {
-		deletedIdxes: number[];
-		addedIdxes: number[];
-		modified: { oldIdx: number; newIdx: number; diff: DiffHunk[] }[];
-	} {
+	getDiff(): LevenshteinStringsDiffResult {
 		const similarityMatrix: number[][] = this._getEmptySimilarityMatrix();
 
 		const { addedIndices, removedIndices } = new LevenshteinStrings(this._oldStrings, this._newStrings).getDiff();

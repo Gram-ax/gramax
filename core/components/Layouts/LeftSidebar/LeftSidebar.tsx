@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { CSSProperties, ReactNode } from "react";
 import { DndProvider } from "react-dnd";
 import Scrollable from "../ScrollableElement";
@@ -24,7 +24,7 @@ const LeftSidebar = (props: LeftSidebarProps) => {
 	return (
 		<div className={className} style={style}>
 			{sidebarTop}
-			<DndProvider backend={(manager) => ModifiedBackend(backend(manager))} options={options}>
+			<DndProvider backend={backend} options={options}>
 				<Scrollable
 					style={style}
 					showTopBottomShadow={shadow}

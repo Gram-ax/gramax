@@ -1,6 +1,4 @@
-import Icon from "@components/Atoms/Icon";
-import useLucideIconLists, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
-import ListLayoutByUikit from "@components/List/ListLayoutByUikit";
+import useLucideIconLists, { useIconFilter } from "@components/Atoms/Icon/lucideIconList";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import type { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
@@ -22,6 +20,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Description } from "@ui-kit/Description";
 import { Loader } from "@ui-kit/Loader";
+import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
+import { Icon } from "@ui-kit/Icon";
 
 interface WorkspaceSettingsModalProps {
 	workspace: ClientWorkspaceConfig;
@@ -181,19 +181,32 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									<FormField
 										name="icon"
 										title={t("icon")}
-										control={({ field }) => (
-											<ListLayoutByUikit
-												placeholder={t("icon")}
-												openByDefault={false}
-												items={useLucideIconLists().lucideIconListForUikit}
-												filterItems={iconFilter([], true)}
-												item={toListItem({ code: field.value ?? "" })}
-												onItemClick={(value) => {
-													form.setValue("icon", value);
-													field.value = value;
-												}}
-											/>
-										)}
+										control={({ field }) => {
+											const iconFilter = useIconFilter();
+											return (
+												<LazySearchSelect
+													placeholder={t("icon")}
+													options={useLucideIconLists().lucideIconListForUikitOptions}
+													value={field.value}
+													filter={iconFilter}
+													renderOption={({ option, type }) => (
+														<>
+															<div className="flex items-center gap-2">
+																<Icon icon={option.value as string} />
+																{option.value}
+															</div>
+															{type === "list" && field.value === option.value && (
+																<Icon icon="check" className="ml-auto" />
+															)}
+														</>
+													)}
+													onChange={(value) => {
+														form.setValue("icon", `${value}`);
+														field.value = `${value}`;
+													}}
+												/>
+											);
+										}}
 										{...formProps}
 									/>
 									{askPath && (
@@ -270,7 +283,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 							<FormFooter
 								primaryButton={
 									<Button type="submit" variant="primary" disabled={!!isAiChecking || isAiSaving}>
-										{isAiSaving && <Icon code="loader-circle" isLoading />}
+										{isAiSaving && <Icon icon="loader-circle" />}
 										{t("save")}
 									</Button>
 								}

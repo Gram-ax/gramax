@@ -5,6 +5,7 @@ import { Button } from "@ui-kit/Button";
 import React from "react";
 import CreateArticle from "../../../../article/actions/CreateArticle";
 import { ItemLink } from "../../../NavigationLinks";
+import t from "@ext/localization/locale/translate";
 
 interface RightExtensionsProps {
 	item: ItemLink;
@@ -26,6 +27,7 @@ const RightExtensions: React.FC<RightExtensionsProps> = ({
 			<CreateArticle item={item} />
 			<NavigationDropdown
 				style={{ marginRight: "-4px" }}
+				tooltipText={t("article.actions.title")}
 				onOpen={onMenuOpen}
 				onClose={onMenuClose}
 				trigger={

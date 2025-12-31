@@ -74,6 +74,7 @@ class TransformerMsO {
 	private _changeAttrs = (html: string) => {
 		html.replaceAll("colspan", "colSpan");
 		html.replaceAll("rowspan", "rowSpan");
+		html.replaceAll("urn:schemas-microsoft-com", "");
 	};
 
 	private _removeTrash = (doc: Document) => {

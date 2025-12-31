@@ -3,8 +3,8 @@ import { createContext, MutableRefObject, ReactElement, useContext, useRef } fro
 const ArticleRefContext = createContext<MutableRefObject<HTMLDivElement>>(undefined);
 
 abstract class ArticleRefService {
-	static Provider({ children }: { children: ReactElement }): ReactElement {
-		const value = useRef<HTMLDivElement>();
+	static Provider({ children, value: initialValue }: { children: ReactElement; value?: HTMLDivElement }): ReactElement {
+		const value = useRef<HTMLDivElement>(initialValue);
 		return <ArticleRefContext.Provider value={value}>{children}</ArticleRefContext.Provider>;
 	}
 

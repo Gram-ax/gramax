@@ -1018,7 +1018,7 @@
 						"$$mdtype": "Tag",
 						"attributes": {
 							"hash": "#какой-то-там-заголовок",
-							"href": "MarkdownCatalog/category/emptyArticle",
+							"href": "/MarkdownCatalog/category/emptyArticle",
 							"isFile": false,
 							"resourcePath": "./emptyArticle.md"
 						},

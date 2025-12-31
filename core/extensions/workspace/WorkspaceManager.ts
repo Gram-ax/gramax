@@ -184,6 +184,7 @@ export default class WorkspaceManager {
 	}
 
 	getWorkspaceAssets(path: WorkspacePath): WorkspaceAssets | null {
+
 		if (!path || path === this._current?.path()) {
 			if (this.hasWorkspace()) return this._current.getAssets();
 			return null;

@@ -2,7 +2,9 @@
 
 use std::path::Path;
 use std::path::PathBuf;
+use std::rc::Rc;
 
+use napi::threadsafe_function::*;
 use serde::Serialize;
 
 use gramaxgit::commands as git;
@@ -10,18 +12,14 @@ use gramaxgit::prelude::*;
 
 use napi_async_macro::napi_async;
 
-use clone::*;
-
 use napi::bindgen_prelude::Buffer;
 use napi::Error;
-use napi::JsFunction;
 
 #[macro_use]
 extern crate napi_derive;
 
-mod clone;
-
 type Output = std::result::Result<String, Error>;
+type AsyncOutput = napi::bindgen_prelude::Result<String>;
 
 pub trait JsonExt {
   fn json(&self) -> Output;
@@ -162,13 +160,51 @@ pub fn format_merge_message(
   git::format_merge_message(Path::new(&repo_path), creds.into(), opts.into())
 }
 
+#[napi(object, use_nullable = true)]
+#[derive(Clone)]
+pub struct RawCloneOptions {
+  pub branch: Option<String>,
+  pub depth: Option<i32>,
+  pub url: String,
+  pub to: String,
+  pub is_bare: bool,
+  pub allow_non_empty_dir: bool,
+  pub cancel_token: u32,
+}
+
+impl From<RawCloneOptions> for CloneOptions {
+  fn from(val: RawCloneOptions) -> Self {
+    gramaxgit::actions::clone::CloneOptions {
+      allow_non_empty_dir: val.allow_non_empty_dir,
+      branch: val.branch,
+      depth: val.depth,
+      url: val.url,
+      to: val.to.into(),
+      is_bare: val.is_bare,
+      cancel_token: val.cancel_token as usize,
+    }
+  }
+}
+
 #[napi]
-pub fn clone(
+pub async fn clone(
   creds: AccessTokenCreds,
   opts: RawCloneOptions,
-  callback: JsFunction,
-) -> Result<napi::bindgen_prelude::AsyncTask<CloneTask>, napi::Error> {
-  CloneTask::create_task(creds, opts, callback)
+  callback: ThreadsafeFunction<String>,
+) -> napi::bindgen_prelude::Result<()> {
+  tracing::info!(thread = ?std::thread::current().id(), "CloneTask::compute");
+  git::clone(
+    creds.clone().into(),
+    opts.clone().into(),
+    Rc::new(|val| {
+      if let Ok(val) = serde_json::to_string(&val) {
+        callback.call(Ok(val), ThreadsafeFunctionCallMode::Blocking);
+      }
+    }),
+  )
+  .json()?;
+
+  Ok(())
 }
 
 #[napi(js_name = "cancel")]
@@ -227,9 +263,14 @@ pub fn set_head(repo_path: String, refname: String) -> Output {
   git::set_head(Path::new(&repo_path), &refname)
 }
 
-#[napi_async]
-pub fn checkout(repo_path: String, branch: String, create: bool) -> Output {
-  git::checkout(Path::new(&repo_path), &branch, create)
+#[napi]
+pub async fn checkout(
+  repo_path: String,
+  creds: AccessTokenCreds,
+  branch: String,
+  create: bool,
+) -> AsyncOutput {
+  git::checkout(Path::new(&repo_path), creds.into(), &branch, create).json()
 }
 
 #[napi_async]
@@ -263,14 +304,14 @@ impl From<RemoteOptions> for gramaxgit::actions::remote::RemoteOptions<'_> {
   }
 }
 
-#[napi_async]
-pub fn fetch(repo_path: String, creds: AccessTokenCreds, opts: RemoteOptions, lock: bool) -> Output {
-  git::fetch(Path::new(&repo_path), creds.into(), opts.into(), lock)
+#[napi]
+pub async fn fetch(repo_path: String, creds: AccessTokenCreds, opts: RemoteOptions, lock: bool) -> AsyncOutput {
+  git::fetch(Path::new(&repo_path), creds.into(), opts.into(), lock).json()
 }
 
-#[napi_async]
-pub fn push(repo_path: String, creds: AccessTokenCreds) -> Output {
-  git::push(Path::new(&repo_path), creds.clone().into())
+#[napi]
+pub async fn push(repo_path: String, creds: AccessTokenCreds) -> AsyncOutput {
+  git::push(Path::new(&repo_path), creds.clone().into()).json()
 }
 
 #[napi_async]

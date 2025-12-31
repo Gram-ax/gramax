@@ -57,19 +57,16 @@ export default function ResourceComponent({
 	}, [isAddingMode, resourceSettings]);
 
 	const loadRepoOptions = useCallback(
+		// eslint-disable-next-line @typescript-eslint/require-await
 		async ({ searchQuery }: LoadOptionsParams): Promise<LoadOptionsResult<SearchSelectOption>> => {
-			const filteredOptions = allGitResources
-				.filter(
-					(resource) =>
-						resourcesSettings.some((r) => r.id !== resource) &&
-						resource.toLowerCase().includes(searchQuery.toLowerCase()),
-				)
-				.map((resource) => ({
-					value: resource,
-					label: resource,
-				}));
+			const selected = new Set(resourcesSettings.map((r) => r.id));
+			const q = searchQuery.toLowerCase();
 
-			return { options: filteredOptions };
+			const filteredOptions = allGitResources.filter(
+				(resource) => !selected.has(resource) && resource.toLowerCase().includes(q),
+			);
+
+			return { options: filteredOptions.map((resource) => ({ value: resource, label: resource })) };
 		},
 		[resourcesSettings, allGitResources],
 	);

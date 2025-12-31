@@ -1,5 +1,6 @@
 import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
 import useWatch from "@core-ui/hooks/useWatch";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { DiffEntries, DiffEntriesLoadStage } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
 import ScrollableDiffEntriesLayout from "@ext/git/core/GitMergeRequest/components/Changes/ScrollableDiffEntriesLayout";
@@ -16,9 +17,15 @@ export type ChangesProps = {
 
 export const Changes = ({ targetRef, stage, setStage }: ChangesProps) => {
 	const [isCollapsed, setIsCollapsed] = useState(true);
-	const deleteScope = useMemo(() => ({ reference: targetRef }), [targetRef]);
-	const setArticleDiffView = useSetArticleDiffView(false, null, deleteScope);
 	const { changes, stage: newStage } = useDiffEntries();
+	const mergeBase = changes?.mergeBase;
+
+	const deleteScope = useMemo<TreeReadScope>(
+		() => (mergeBase ? { commit: mergeBase } : { reference: targetRef }),
+		[mergeBase, targetRef],
+	);
+
+	const setArticleDiffView = useSetArticleDiffView(false, null, deleteScope);
 
 	useEffect(() => {
 		if (!isCollapsed) setIsCollapsed(true);

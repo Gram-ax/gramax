@@ -37,7 +37,7 @@ const TableComponent = (props: NodeViewProps) => {
 		setParentElement(null);
 	}, [parentDom?.node]);
 
-	useAggregation(tableRef, node.content);
+	useAggregation(tableRef, [node.content, node.attrs?.header]);
 
 	const table = (
 		<TableWrapper>

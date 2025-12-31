@@ -15,9 +15,6 @@ export default mergeConfig(baseConfig(), {
 
 	build: {
 		rollupOptions: {
-			output: {
-				sourcemapBaseUrl: "https://dev.gram.ax",
-			},
 			input: {
 				index: path.resolve(__dirname, "index.html"),
 			},

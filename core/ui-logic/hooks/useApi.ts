@@ -31,8 +31,8 @@ export enum RequestStatus {
 	Error,
 }
 
-export type CallApiDefer<T, O> = (deferApiProps?: Partial<UseApiProps<T, O>>) => Promise<O> | void;
-export type CallApi<T> = () => Promise<T> | void;
+export type CallApiDefer<T, O> = (deferApiProps?: Partial<UseApiProps<T, O>>) => Promise<O> | O;
+export type CallApi<T> = () => Promise<T> | T;
 export type CreateUrl = (api: ApiUrlCreator) => Url | Promise<Url>;
 export type ResetApi = () => void;
 export type OnStart = () => Promise<void> | void;
@@ -48,6 +48,7 @@ export type SpecifyOrCreateApi = Url | CreateUrl;
  * @param {SpecifyOrCreateApi} url - Endpoint URL or callback to create URL using ApiUrlCreator
  * @param {UseApiOptions} [opts] - Request options
  * @param {ResponseParser} [parse] - Response parsing mode. Supports pre-defined modes (`json`, `text`, `blob`) or a custom callback
+ * @param {boolean} [auto] - If `true`, the request will be made automatically when the component mounts
  * @param {OnStart} [onStart] - Callback executed before request starts
  * @param {OnDone<O>} [onDone] - Callback executed on successful response with mapped ready-to-use data
  * @param {onFinally<O>} [onFinally] - Callback executed after request completion (success or error)
@@ -58,6 +59,7 @@ export type UseApiProps<T = unknown, O = T> = {
 	url: SpecifyOrCreateApi;
 	opts?: UseApiOptions;
 	parse?: ResponseParser;
+	auto?: boolean;
 	onStart?: OnStart;
 	onDone?: OnDone<O>;
 	onFinally?: onFinally<O>;
@@ -308,6 +310,10 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 		setError(null);
 		setStatus(RequestStatus.Init);
 	}, []);
+
+	useEffect(() => {
+		if (props.auto) void call();
+	}, [call, props.auto]);
 
 	return {
 		data,

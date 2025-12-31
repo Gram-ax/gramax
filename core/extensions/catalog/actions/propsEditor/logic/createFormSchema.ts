@@ -81,6 +81,7 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 				)
 				.nullable(),
 		),
+		lfs: z.optional(z.array(z.string()).nullable()),
 	});
 
 export type FormData = z.infer<ReturnType<typeof createFormSchema>>;

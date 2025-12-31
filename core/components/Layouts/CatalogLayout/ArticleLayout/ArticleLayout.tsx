@@ -110,6 +110,17 @@ export default styled(ArticleLayout)`
 		.article-content-wrapper {
 			padding: 3.5rem 2.125rem 0 1.25rem;
 		}
+
+		.article-content-wrapper {
+			height: fit-content;
+			min-height: 100dvh;
+			min-height: -webkit-fill-available;
+		}
+
+		.article-content {
+			height: unset;
+			min-height: fit-content;
+		}
 	}`
 			: `
 	flex: 1;

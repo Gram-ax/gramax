@@ -407,7 +407,12 @@ export default class SitePresenter {
 					}
 				}
 
-				if (findCatalogLinks.length === 0 && !sectionInfo?.sections) continue;
+				const childSections = sectionInfo?.sections
+					? getSections(level + 1, sectionInfo?.sections, sectionKeys)
+					: null;
+				const hasChildSections = !!childSections && Object.keys(childSections).length > 0;
+
+				if (findCatalogLinks.length === 0 && !hasChildSections) continue;
 
 				sections[sectionName] = {
 					catalogLinks: findCatalogLinks,
@@ -416,7 +421,7 @@ export default class SitePresenter {
 					view: sectionInfo?.view,
 					href: homeSections.getSectionHref(sectionKeys),
 					description: sectionInfo?.description,
-					sections: sectionInfo?.sections ? getSections(level + 1, sectionInfo?.sections, sectionKeys) : null,
+					sections: childSections,
 				};
 			}
 

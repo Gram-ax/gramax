@@ -1,3 +1,4 @@
+import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
@@ -7,14 +8,14 @@ import { getClientDomain } from "@core/utils/getClientDomain";
 import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
-import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import { ComponentProps, useCallback, useMemo } from "react";
+import { ComponentProps, ReactNode, useCallback, useMemo } from "react";
 
 const SHARE_SKIP_MODAL = "share.skip";
 
 interface ShareActionProps {
 	path: string;
 	isArticle: boolean;
+	children?: ReactNode;
 	variant?: "MenuItem" | "Button";
 }
 
@@ -28,7 +29,7 @@ const setShareSkipModal = (flag: boolean) => {
 	flag ? window.localStorage.setItem(SHARE_SKIP_MODAL, "1") : window.localStorage.removeItem(SHARE_SKIP_MODAL);
 };
 
-const ShareAction = ({ path, isArticle, variant = "MenuItem" }: ShareActionProps) => {
+const ShareAction = ({ path, isArticle, children, variant = "MenuItem" }: ShareActionProps) => {
 	const router = useRouter();
 	const shouldShowModal = useMemo(() => {
 		return shouldShowShareModal();
@@ -77,10 +78,16 @@ const ShareAction = ({ path, isArticle, variant = "MenuItem" }: ShareActionProps
 	}
 
 	return (
-		<DropdownMenuItem onSelect={onClickButton}>
-			<Icon code="link" />
-			{isArticle ? t("share.name.article") : t("share.name.catalog")}
-		</DropdownMenuItem>
+		<CatalogItem
+			renderLabel={(Component) => (
+				<Component onSelect={onClickButton}>
+					<Icon code="link" />
+					{isArticle ? t("share.name.article") : t("share.name.catalog")}
+				</Component>
+			)}
+		>
+			{children}
+		</CatalogItem>
 	);
 };
 

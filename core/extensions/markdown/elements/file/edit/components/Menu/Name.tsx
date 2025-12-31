@@ -1,10 +1,10 @@
+import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
-import { StyledButton } from "@ext/article/LinkCreator/components/SelectLinkItem";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import FilePreviewModal from "@ext/markdown/elements/file/edit/components/Preview/FilePreviewModal";
 import { ComponentProps } from "react";
@@ -24,6 +24,26 @@ interface NameProps {
 	downloadResource: () => void;
 	onError: () => void;
 }
+
+const StyledButton = styled(Button)`
+	.button .iconFrame {
+		padding: 4.5px 7px;
+		display: flex;
+	}
+
+	.button .iconFrame span {
+		white-space: nowrap;
+		overflow: hidden;
+		line-height: 1.2;
+		text-overflow: ellipsis;
+	}
+
+	.button .iconFrame i {
+		align-items: flex-start;
+		justify-content: center;
+		display: flex;
+	}
+`;
 
 const Name = ({ path, downloadResource, onError, openInSupportedApp }: NameProps) => {
 	const isFilePreview = FILE_EXTENSIONS.includes(path.extension);

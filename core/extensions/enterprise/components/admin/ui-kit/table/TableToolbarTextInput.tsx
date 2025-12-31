@@ -6,7 +6,6 @@ import styled from "@emotion/styled";
 const StyledTextInput = styled(TextInput)`
 	flex: 1;
 	min-width: 220px;
-	max-width: 200px;
 `;
 
 export const TableToolbarTextInput = ({ className, startIcon, placeholder, ...props }: TextInputProps) => {

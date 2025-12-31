@@ -5,7 +5,7 @@ import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrl
 import t from "@ext/localization/locale/translate";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 const LazySwaggerUI = lazy(() => import("./SwaggerUI"));
 
 interface OpenApiProps {

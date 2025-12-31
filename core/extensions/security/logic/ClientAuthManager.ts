@@ -29,6 +29,11 @@ export default class ClientAuthManager extends AuthManager {
 		return user;
 	}
 
+	setUsersEnterpriseInfo(user: EnterpriseUser, cookie: Cookie): void {
+		const enterprisePermissionInfo = user.getEnterpriseInfo();
+		cookie.set(this._PERMISSION_COOKIE_NAME, JSON.stringify(this._parseEnterpriseInfo(enterprisePermissionInfo)));
+	}
+
 	async assert() {}
 	async login() {}
 	logout(cookie: Cookie) {
@@ -55,11 +60,6 @@ export default class ClientAuthManager extends AuthManager {
 		if (!data) return null;
 		const parsed: EnterpriseInfoData = JSON.parse(data);
 		return this._formatEnterpriseInfo(parsed);
-	}
-
-	protected _setUsersEnterpriseInfo(user: EnterpriseUser, cookie: Cookie): void {
-		const enterprisePermissionInfo = user.getEnterpriseInfo();
-		cookie.set(this._PERMISSION_COOKIE_NAME, JSON.stringify(this._parseEnterpriseInfo(enterprisePermissionInfo)));
 	}
 
 	private _parseEnterpriseInfo(enterpriseInfo: EnterpriseInfo): EnterpriseInfoData {

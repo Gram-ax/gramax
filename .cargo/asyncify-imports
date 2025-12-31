@@ -1,3 +1,6 @@
-emscriptenhttp_do_get
-emscriptenhttp_do_read
-emscriptenhttp_do_post
+em_git_http_get
+em_git_http_post
+em_http_read
+em_http_write
+em_lfs_http_send
+em_lfs_http_read

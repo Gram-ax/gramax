@@ -47,9 +47,12 @@ const PlusActions = (props: PlusActionsProps) => {
 
 	const preOnMouseEnter = () => {
 		const table = tableRef.current;
+		const firstRow = table.querySelector(":scope > tbody > tr:first-of-type");
+		const top = firstRow.getBoundingClientRect().top;
+		const bottom = table.getBoundingClientRect().bottom;
 		const hoveredData = {
 			width: vertical ? `calc(${table.clientWidth}px)` : "5px",
-			height: vertical ? "5px" : `calc(${table.clientHeight}px)`,
+			height: vertical ? "5px" : `calc(${bottom - top}px)`,
 		};
 
 		setHoveredData(hoveredData);

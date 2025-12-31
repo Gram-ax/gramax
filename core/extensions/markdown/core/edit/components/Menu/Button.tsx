@@ -63,14 +63,14 @@ const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>
 		</div>
 	);
 
-	const ButtonWithTooltip = (
+	const ButtonWithTooltip = () => (
 		<Tooltip content={<ButtonTooltipContent tooltipText={tooltipText} hotKey={hotKey} />}>{ButtonContent}</Tooltip>
 	);
 
 	return (
 		<div data-qa="qa-edit-menu-button">
 			<StyledDiv ref={ref} data-qa={dataQa} {...otherProps}>
-				{tooltipText ? ButtonWithTooltip : ButtonContent}
+				{tooltipText ? ButtonWithTooltip() : ButtonContent}
 			</StyledDiv>
 		</div>
 	);

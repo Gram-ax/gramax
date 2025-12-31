@@ -6,6 +6,7 @@ use git2::*;
 
 use crate::cancel_token::CancelToken;
 use crate::creds::ActualCreds;
+use crate::ext::lfs::Lfs;
 use crate::refmut::RefOrMut;
 
 use crate::file_lock::*;
@@ -87,29 +88,15 @@ impl<C: ActualCreds> Clone<C> for Repo<'_, C> {
       .download_tags(AutotagOption::All)
       .add_credentials_headers(&creds);
 
-    let mut checkout_opts = CheckoutBuilder::new();
-    checkout_opts.force();
-
-    let mut last_checkout_callback = time_now() - CHUNK_TIME_SPAN;
-    checkout_opts.progress(|_, checkouted, total| {
-      if time_now() - last_checkout_callback < CHUNK_TIME_SPAN {
-        return;
-      }
-
-      last_checkout_callback = time_now();
-      callback(RemoteProgress::checkout_progress(cancel_token.id(), checkouted, total));
-    });
-
-    checkout_opts.notify_on(CheckoutNotificationType::all());
-    checkout_opts.notify(|_, _, _, _, _| !cancel_token.is_cancelled());
-
     if let Some(depth) = depth {
       fetch_opts.depth(depth);
     }
 
     let repo = {
+      let mut checkout_opts_none = CheckoutBuilder::new();
+      checkout_opts_none.dry_run();
       let mut builder = RepoBuilder::new();
-      builder.fetch_options(fetch_opts).bare(is_bare).with_checkout(checkout_opts);
+      builder.fetch_options(fetch_opts).bare(is_bare).with_checkout(checkout_opts_none);
       if let Some(branch) = branch {
         builder.branch(&branch);
       }
@@ -127,11 +114,43 @@ impl<C: ActualCreds> Clone<C> for Repo<'_, C> {
       builder.clone(url.as_ref(), to.as_path())?
     };
 
+    let mut last_checkout_callback = time_now() - CHUNK_TIME_SPAN;
+
+    let mut checkout_opts = CheckoutBuilder::new();
+    checkout_opts.force();
+
+    checkout_opts.progress(|_, checkouted, total| {
+      if time_now() - last_checkout_callback < CHUNK_TIME_SPAN {
+        return;
+      }
+
+      last_checkout_callback = time_now();
+      callback(RemoteProgress::checkout_progress(cancel_token.id(), checkouted, total));
+    });
+
+    checkout_opts.notify_on(CheckoutNotificationType::all());
+    checkout_opts.notify(|_, _, _, _, _| !cancel_token.is_cancelled());
+
+    let repo = Self(RefOrMut::Owned(repo), creds);
+
+    match repo.0.head().and_then(|h| h.peel_to_tree()) {
+      Ok(tree) => {
+        repo.pull_missing_lfs_objects(&tree, cancel_token.clone())?;
+
+        if !is_bare {
+          repo.0.checkout_tree(tree.as_object(), Some(&mut checkout_opts))?;
+        }
+      }
+      Err(e) => {
+        error!(target: TAG, "cloned repository has no head; skipping checkout and lfs pull; original error: {}", e);
+      }
+    }
+
+    drop(checkout_opts);
+
     if cancel_token.is_cancelled() {
       return Ok(());
     }
-
-    let repo = Self(RefOrMut::Owned(repo), creds);
 
     if !repo.can_push()? && repo.1.access_token().is_empty() {
       info!(target: TAG, "access token wasn't provided, deleting the remote `origin`");

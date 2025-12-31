@@ -18,7 +18,7 @@ import {
 	LazyInfinityTable,
 	RequestCursor,
 	RequestData,
-} from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable";
+} from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
 
 const columns: ColumnDef<QuizTest>[] = [
 	{

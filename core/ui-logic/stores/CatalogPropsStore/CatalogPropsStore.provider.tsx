@@ -43,6 +43,3 @@ export const useCatalogPropsStore = <T,>(
 	return useStoreWithEqualityFn(catalogStoreContext, selector, actualEqualityFn);
 };
 
-export const updateCatalogPropsStore = (mode: Partial<ClientCatalogProps>) => {
-	useContext(CatalogStoreContext).getState().update(mode);
-};

@@ -12,6 +12,7 @@ import t from "@ext/localization/locale/translate";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { useEffect } from "react";
 import Article from "../Article/Article";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 
 const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const { clear } = ResourceService.value;
@@ -49,4 +50,9 @@ export default styled(ArticlePage)`
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+
+	${cssMedia.narrow} {
+		height: fit-content;
+		min-height: 100dvh;
+	}
 `;

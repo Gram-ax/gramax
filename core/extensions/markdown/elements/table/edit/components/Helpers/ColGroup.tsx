@@ -45,7 +45,7 @@ const ColGroup = ({ content, parentElement, tableRef, initColInfo }: ColGroupPro
 	const getColInfoFromTable = (): ColInfo[] => {
 		if (!tableRef?.current) return [];
 
-		const firstRow = tableRef.current.querySelector("tr");
+		const firstRow = tableRef.current.querySelector("tbody > tr");
 		if (!firstRow) return [];
 
 		const cells = Array.from(firstRow.children) as HTMLElement[];
@@ -127,7 +127,18 @@ const ColGroup = ({ content, parentElement, tableRef, initColInfo }: ColGroupPro
 		return cols;
 	}, [colInfo, cellWidth]);
 
-	return <colgroup>{generatedCols}</colgroup>;
+	return (
+		<>
+			<colgroup>{generatedCols}</colgroup>
+			<thead style={{ userSelect: "none" }} contentEditable="false">
+				<tr style={{ visibility: "hidden" }}>
+					{generatedCols.map((_, i) => (
+						<td key={i} style={{ height: "0px", padding: "0", border: "none" }} contentEditable="false" />
+					))}
+				</tr>
+			</thead>
+		</>
+	);
 };
 
 export default memo(ColGroup);

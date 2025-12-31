@@ -1,4 +1,4 @@
-import { AddedDiffLine, DeletedDiffLine, ModifiedDiffLine } from "@ext/markdown/elements/diff/logic/model/DiffLine";
+import { AddedDiffLine, CommentDiffLine, DeletedDiffLine, ModifiedDiffLine } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 import { JSONContent } from "@tiptap/core";
 import { Decoration } from "prosemirror-view";
 
@@ -11,4 +11,4 @@ export type ProseMirrorModifiedDiffLine = ModifiedDiffLine & OldContent;
 
 export type ProseMirrorDeletedDiffLine = DeletedDiffLine & OldContent;
 
-export type ProseMirrorDiffLine = AddedDiffLine | ProseMirrorModifiedDiffLine | ProseMirrorDeletedDiffLine;
+export type ProseMirrorDiffLine = AddedDiffLine | ProseMirrorModifiedDiffLine | ProseMirrorDeletedDiffLine | CommentDiffLine;

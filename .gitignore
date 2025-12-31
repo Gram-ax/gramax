@@ -8,6 +8,8 @@ target
 .ci/github-private-key
 apps-build-artifacts
 
+apps/next/public
+
 # storybook
 /storybook/storybook-static
 
@@ -22,6 +24,10 @@ next-env.d.ts
 # target -> vite
 .build
 /apps/gramax-cli/build
+
+# plugins SDK (generated)
+/core/public/plugins/sdk.js
+/apps/next/public/plugins/sdk.js
 
 # target -> application
 /application/bin

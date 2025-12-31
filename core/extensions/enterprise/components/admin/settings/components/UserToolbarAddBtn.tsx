@@ -10,15 +10,22 @@ import { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import validateEmail from "@core/utils/validateEmail";
 import { ModalComponent } from "../../ui-kit/ModalComponent";
 import { SelectDisableItem } from "./SelectDisableItem";
 import { TriggerAddButtonTemplate } from "./TriggerAddButtonTemplate";
 
 const createFormSchema = (existingUsers: string[]) =>
 	z.object({
-		users: z.array(z.string()).refine((users) => {
-			return !users.some((user) => existingUsers.includes(user));
-		}, t("enterprise.admin.resources.users.already-exist")),
+		users: z
+			.array(z.string())
+			.transform((users) => users.map((user) => user.trim()))
+			.refine((users) => users.every((user) => validateEmail(user)), {
+				message: t("enterprise-guest.validationErrors.emailInvalidFormat"),
+			})
+			.refine((users) => !users.some((user) => existingUsers.includes(user)), {
+				message: t("enterprise.admin.resources.users.already-exist"),
+			}),
 	});
 
 type FormData = z.infer<ReturnType<typeof createFormSchema>>;
@@ -54,7 +61,7 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 			return {
 				options: users.map((user) => ({
 					value: user.email,
-					label: `${user.email} (${user.name})`,
+					label: `${user.email} ${user.name ? `(${user.name})` : ""}`,
 					disabled: existingUsers.includes(user.email),
 				})),
 			};

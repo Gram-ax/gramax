@@ -1,7 +1,4 @@
-import AstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
-import LevenshteinStringsDiff, {
-	LevenshteinStringsDiffConfig,
-} from "@ext/markdown/elements/diff/logic/levenshteinStrings/LevenshteinStringsDiff";
+import AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
 import {
 	AddedDiffLine,
 	DeletedDiffLine,
@@ -9,7 +6,6 @@ import {
 	ModifiedDiffLine,
 	Pos,
 } from "@ext/markdown/elements/diff/logic/model/DiffLine";
-import PositionMapper from "@ext/markdown/elements/diff/logic/PositionMapper";
 import { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 import { Decoration } from "prosemirror-view";
 
@@ -21,21 +17,22 @@ export type DiffRenderData = {
 };
 
 export default class DiffRenderDataHandler {
-	constructor(private _astDiffTransformer: AstDiffTransformer, private _config?: LevenshteinStringsDiffConfig) {}
+	constructor(private _astDiffDataHandler: AstDiffDataHandler) {}
 
 	getDiffRenderData() {
 		const addedDecorations: Decoration[] = [];
 		const removedDecorations: Decoration[] = [];
 		const diffLines: DiffLine[] = [];
 
-		const { oldStrings, newStrings } = this._astDiffTransformer.getStrings();
 
-		const diff = new LevenshteinStringsDiff(oldStrings, newStrings, this._config).getDiff();
-		const positionMapper = new PositionMapper(diff.deletedIdxes, diff.addedIdxes);
+		const diff = this._astDiffDataHandler.getDiff();
+		const positionMapper = this._astDiffDataHandler.getPositionMapper();
+		const astDiffTransformer = this._astDiffDataHandler.getAstDiffTransformer();
+		const { oldStrings, newStrings } = astDiffTransformer.getStrings();
 
 		diff.addedIdxes.forEach((idx) => {
 			if (newStrings[idx] === "") {
-				const addedBlockStartAndEnd = this._astDiffTransformer.getAstPos("new", idx, 0);
+				const addedBlockStartAndEnd = astDiffTransformer.getAstPos("new", idx, 0);
 				const diffLine: AddedDiffLine = {
 					type: "added",
 					pos: { from: addedBlockStartAndEnd, to: addedBlockStartAndEnd },
@@ -44,8 +41,8 @@ export default class DiffRenderDataHandler {
 				return;
 			}
 
-			const addedBlockStart = this._astDiffTransformer.getAstPos("new", idx, 0);
-			const addedBlockEnd = this._astDiffTransformer.getAstPos("new", idx, newStrings[idx].length - 1);
+			const addedBlockStart = astDiffTransformer.getAstPos("new", idx, 0);
+			const addedBlockEnd = astDiffTransformer.getAstPos("new", idx, newStrings[idx].length - 1);
 
 			const diffLine: AddedDiffLine = {
 				type: "added",
@@ -61,8 +58,8 @@ export default class DiffRenderDataHandler {
 			const prevNewParagraphPos = prevNewParagraphContent === "" ? 0 : prevNewParagraphContent.length - 1;
 
 			if (oldStrings[idx] === "") {
-				const deletedBlockStartAndEnd = this._astDiffTransformer.getAstPos("old", idx, 0);
-				const insertAfter = this._astDiffTransformer.getAstPos("new", prevNewParagraphIdx, prevNewParagraphPos);
+				const deletedBlockStartAndEnd = astDiffTransformer.getAstPos("old", idx, 0);
+				const insertAfter = astDiffTransformer.getAstPos("new", prevNewParagraphIdx, prevNewParagraphPos);
 
 				const diffLine: DeletedDiffLine = {
 					type: "deleted",
@@ -73,10 +70,10 @@ export default class DiffRenderDataHandler {
 				return;
 			}
 
-			const deletedBlockStart = this._astDiffTransformer.getAstPos("old", idx, 0);
-			const deletedBlockEnd = this._astDiffTransformer.getAstPos("old", idx, oldStrings[idx].length - 1);
+			const deletedBlockStart = astDiffTransformer.getAstPos("old", idx, 0);
+			const deletedBlockEnd = astDiffTransformer.getAstPos("old", idx, oldStrings[idx].length - 1);
 
-			const insertAfter = this._astDiffTransformer.getAstPos("new", prevNewParagraphIdx, prevNewParagraphPos);
+			const insertAfter = astDiffTransformer.getAstPos("new", prevNewParagraphIdx, prevNewParagraphPos);
 
 			const diffLine: DeletedDiffLine = {
 				type: "deleted",
@@ -87,19 +84,11 @@ export default class DiffRenderDataHandler {
 		});
 
 		diff.modified.forEach(({ oldIdx, newIdx, diff }) => {
-			const newAstModifiedBlockStart = this._astDiffTransformer.getAstPos("new", newIdx, 0);
-			const newAstModifiedBlockEnd = this._astDiffTransformer.getAstPos(
-				"new",
-				newIdx,
-				newStrings[newIdx].length - 1,
-			);
+			const newAstModifiedBlockStart = astDiffTransformer.getAstPos("new", newIdx, 0);
+			const newAstModifiedBlockEnd = astDiffTransformer.getAstPos("new", newIdx, newStrings[newIdx].length - 1);
 
-			const oldAstModifiedBlockStart = this._astDiffTransformer.getAstPos("old", oldIdx, 0);
-			const oldAstModifiedBlockEnd = this._astDiffTransformer.getAstPos(
-				"old",
-				oldIdx,
-				oldStrings[oldIdx].length - 1,
-			);
+			const oldAstModifiedBlockStart = astDiffTransformer.getAstPos("old", oldIdx, 0);
+			const oldAstModifiedBlockEnd = astDiffTransformer.getAstPos("old", oldIdx, oldStrings[oldIdx].length - 1);
 
 			const inlineAddedPartPositions: Pos[] = [];
 			const inlineDeletedPartPositions: Pos[] = [];
@@ -108,8 +97,8 @@ export default class DiffRenderDataHandler {
 				this._getAddedAndDeletedPartIdxes(diff);
 
 			inlineAddedParts.forEach(([from, to]) => {
-				const inlineAddedPosFrom = this._astDiffTransformer.getAstPos("new", newIdx, from);
-				const inlineAddedPosTo = this._astDiffTransformer.getAstPos("new", newIdx, to);
+				const inlineAddedPosFrom = astDiffTransformer.getAstPos("new", newIdx, from);
+				const inlineAddedPosTo = astDiffTransformer.getAstPos("new", newIdx, to);
 
 				inlineAddedPartPositions.push({ from: inlineAddedPosFrom, to: inlineAddedPosTo });
 				addedDecorations.push(
@@ -118,8 +107,8 @@ export default class DiffRenderDataHandler {
 			});
 
 			inlineDeletedParts.forEach(([from, to]) => {
-				const inlineDeletedPosStart = this._astDiffTransformer.getAstPos("old", oldIdx, from);
-				const inlineDeletedPosEnd = this._astDiffTransformer.getAstPos("old", oldIdx, to);
+				const inlineDeletedPosStart = astDiffTransformer.getAstPos("old", oldIdx, from);
+				const inlineDeletedPosEnd = astDiffTransformer.getAstPos("old", oldIdx, to);
 
 				inlineDeletedPartPositions.push({ from: inlineDeletedPosStart, to: inlineDeletedPosEnd });
 				removedDecorations.push(

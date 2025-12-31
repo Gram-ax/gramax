@@ -20,7 +20,7 @@ const StaticLink = forwardRef((props: BrowserLinkProps, ref: RefObject<HTMLAncho
 
 	const url = href ? Url.from(href) : null;
 	const router = useRouter();
-	const pathname = url?.pathname;
+	const pathname = url?.toString();
 	const finalPathname = router.base.endsWith("/") && pathname?.startsWith("/") ? pathname.substring(1) : pathname;
 
 	const hash = getHashIfSameDocument(finalPathname);

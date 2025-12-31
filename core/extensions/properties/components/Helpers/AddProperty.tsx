@@ -13,10 +13,7 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
 import PropertyItem from "@ext/properties/components/Helpers/PropertyItem";
-import {
-	useCatalogPropsStore,
-	updateCatalogPropsStore,
-} from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface AddPropertyProps {
 	properties: Property[] | PropertyValue[];
@@ -48,8 +45,6 @@ const AddProperty = (props: AddPropertyProps) => {
 			const newProps = getCatalogEditProps(catalogProps.data);
 			const index = newProps.properties.findIndex((obj) => obj.name === property.name);
 
-			ModalToOpenService.setValue(ModalToOpen.Loading);
-
 			if (index === -1) newProps.properties = [...newProps.properties, property];
 			else {
 				if (isDelete) {
@@ -79,7 +74,7 @@ const AddProperty = (props: AddPropertyProps) => {
 							? null
 							: await FetchService.fetch(
 									apiUrlCreator.removePropertyFromArticles(property.name, deletedValues),
-							  );
+								);
 
 						if (res?.ok && canAdd) {
 							const props = await res.json();
@@ -89,7 +84,6 @@ const AddProperty = (props: AddPropertyProps) => {
 				}
 			}
 
-			ModalToOpenService.resetValue();
 			FetchService.fetch(apiUrlCreator.updateCatalogProps(), JSON.stringify(newProps), MimeTypes.json);
 			catalogProps.update({ properties: newProps.properties });
 			setArticleProps({ ...articleProps, properties: combineProperties(properties, catalogProperties) });
@@ -109,13 +103,12 @@ const AddProperty = (props: AddPropertyProps) => {
 			ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
 				properties,
 				data: catalogProperties.get(id),
-				onSubmit: (property) => {
-					saveCatalogProperties(property);
+				onSubmit: async (property) => {
+					await saveCatalogProperties(property);
 					ModalToOpenService.resetValue();
 				},
-				onDelete: (isArchive: boolean) => {
-					console.log(isArchive);
-					saveCatalogProperties(catalogProperties.get(id), true, isArchive);
+				onDelete: async (isArchive: boolean) => {
+					await saveCatalogProperties(catalogProperties.get(id), true, isArchive);
 					ModalToOpenService.resetValue();
 				},
 				onClose: () => {

@@ -59,6 +59,7 @@ import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import { FloatExtension } from "@ext/markdown/elements/float/edit/model/extension";
+import { modifyEditorExtensions } from "@plugins/store";
 import Question from "@ext/markdown/elements/question/edit/models/question";
 import QuestionAnswer from "@ext/markdown/elements/answer/edit/models/answer";
 
@@ -68,49 +69,51 @@ export interface GetExtensionsPropsOptions {
 	isTemplateInstance?: boolean;
 }
 
-// All extensions for editor like article editor, template editor, etc.
-const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => [
-	...getSimpleExtensions(),
-	InlineHtmlTag,
-	BlockHtmlTag,
-	DocKeyboardShortcuts,
-	InlineCutComponent,
-	InlineMdComponent,
-	BlockMd,
-	VideoComponent,
-	NoteComponent,
-	ArticleSearch,
-	UnsupportedComponent,
-	LinkComponent,
-	ArrowsMove,
-	JoinLists,
-	ExtendedCodeBlockLowlight,
-	DragScroller,
-	Dropcursor,
-	Tabs,
-	Tab,
-	Suggestion,
-	Snippet,
-	CustomTableCell,
-	CustomTableRow,
-	TableKeyboardShortcuts,
-	CustomTable,
+const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => {
+	const extensions = [
+		...getSimpleExtensions(),
+		InlineHtmlTag,
+		BlockHtmlTag,
+		DocKeyboardShortcuts,
+		InlineCutComponent,
+		InlineMdComponent,
+		BlockMd,
+		VideoComponent,
+		NoteComponent,
+		ArticleSearch,
+		UnsupportedComponent,
+		LinkComponent,
+		ArrowsMove,
+		JoinLists,
+		ExtendedCodeBlockLowlight,
+		DragScroller,
+		Dropcursor,
+		Tabs,
+		Tab,
+		Suggestion,
+		Snippet,
+		CustomTableCell,
+		CustomTableRow,
+		TableKeyboardShortcuts,
+		CustomTable,
 
-	CopyMsO,
-	PasteMarkdown,
-	Heading,
-	Html,
-	View,
-	GapParagraph,
-	GramaxAi,
-	FloatExtension,
+		CopyMsO,
+		PasteMarkdown,
+		Heading,
+		Html,
+		View,
+		GapParagraph,
+		GramaxAi,
+		FloatExtension,
 
 	...(options?.includeQuestions ? [Question, QuestionAnswer] : []),
 
 	...(options?.includeResources ? getResourcesExtensions() : []),
 
-	...(options?.isTemplateInstance !== undefined ? getTemplateExtensions(!options.isTemplateInstance) : []),
-];
+		...(options?.isTemplateInstance !== undefined ? getTemplateExtensions(!options.isTemplateInstance) : []),
+	];
+	return modifyEditorExtensions(extensions);
+};
 
 // Base extensions for simple editor like comment editor
 export const getSimpleExtensions = (): Extensions => [

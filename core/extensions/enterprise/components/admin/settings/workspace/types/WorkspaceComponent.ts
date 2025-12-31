@@ -51,7 +51,6 @@ export type WorkspaceSettings = {
 		type: "GitLab";
 		repos: string[] | null;
 	};
-	authMethods: AuthMethod[];
 	sections: Record<string, WorkspaceSection>;
 	access?: Access;
 	style?: {
@@ -61,6 +60,11 @@ export type WorkspaceSettings = {
 	};
 	wordTemplates: ExportTemplate[];
 	pdfTemplates: ExportTemplate[];
+	modules?: {
+		quiz?: boolean;
+		guests?: boolean;
+		metrics?: boolean;
+	};
 };
 
 export type WorkspaceFormData = {

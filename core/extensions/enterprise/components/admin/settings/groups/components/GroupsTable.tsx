@@ -1,4 +1,4 @@
-import { useAdminPageData } from "@ext/enterprise/components/admin/contexts/AdminPageDataContext";
+import { useAdminNavigation } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
@@ -13,7 +13,6 @@ import { useCallback, useMemo, useState } from "react";
 import { TriggerAddButtonTemplate } from "../../components/TriggerAddButtonTemplate";
 import { groupTableColumns } from "../config/GroupsTableConfig";
 import { Group } from "../types/GroupsComponentTypes";
-import { shallow } from "zustand/shallow";
 
 interface GroupsTableProps {
 	onDelete: (groupIds: string[]) => Promise<void>;
@@ -22,14 +21,8 @@ interface GroupsTableProps {
 export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 	const { settings } = useSettings();
 	const groupSettings = settings?.groups;
-	const { setPage, setParams } = useAdminPageData(
-		(store) => ({
-			setPage: store.setPage,
-			setParams: store.setParams,
-		}),
-		shallow,
-	);
 
+	const { navigate } = useAdminNavigation(Page.USER_GROUPS);
 	const [groupsRowSelection, setGroupsRowSelection] = useState({});
 
 	const groupsInUse = useMemo(() => {
@@ -40,10 +33,10 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 
 	const groups = useMemo(() => {
 		if (!groupSettings) return [];
-		return Object.entries(groupSettings).map(([name]) => ({
-			id: name,
-			group: name,
-			disabled: groupsInUse?.includes(name),
+		return Object.entries(groupSettings).map(([groupId, groupData]) => ({
+			id: groupId,
+			group: groupData.name,
+			disabled: groupsInUse?.includes(groupId),
 		}));
 	}, [groupSettings, groupsInUse]);
 
@@ -65,7 +58,7 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 	const selectedGroupsCount = getSelectedCount();
 
 	const handleDeleteSelected = useCallback(async () => {
-		const groupsToDelete = getSelectedItems().map((group) => group.group);
+		const groupsToDelete = getSelectedItems().map((group) => group.id);
 
 		if (!groupSettings || !groupsToDelete.length) return;
 		await onDelete(groupsToDelete);
@@ -73,13 +66,11 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 	}, [getSelectedItems, groupSettings, onDelete]);
 
 	const handleAdd = useCallback(() => {
-		setPage(Page.USER_GROUPS);
-		setParams({ entityId: "new" });
+		navigate(Page.USER_GROUPS, { entityId: "new" });
 	}, []);
 
 	const handleEdit = useCallback((groupId: string) => {
-		setPage(Page.USER_GROUPS);
-		setParams({ entityId: groupId });
+		navigate(Page.USER_GROUPS, { entityId: groupId });
 	}, []);
 
 	const handleFilterChange = useCallback(
@@ -96,7 +87,7 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
-						placeholder="Найти группы..."
+						placeholder={`${t("enterprise.admin.resources.groups.search-placeholder")}...`}
 						value={(groupsTable.getColumn("group")?.getFilterValue() as string) ?? ""}
 						onChange={handleFilterChange}
 					/>
@@ -106,9 +97,8 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 					selectedCount={selectedGroupsCount}
 					onConfirm={handleDeleteSelected}
 					hidden={!selectedGroupsCount}
-					description={`${t("enterprise.admin.delete-alert")} ${selectedGroupsCount} ${
-						selectedGroupsCount === 1 ? t("record") : t("records")
-					}?`}
+					description={`${t("enterprise.admin.delete-alert")} ${selectedGroupsCount} ${selectedGroupsCount === 1 ? t("record") : t("records")
+						}?`}
 				/>
 				<TriggerAddButtonTemplate key="add-group" startIcon="plus" onClick={handleAdd} />
 			</TableToolbar>
@@ -116,7 +106,7 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 			<TableComponent<Group>
 				table={groupsTable}
 				columns={groupTableColumns}
-				onRowClick={(row) => handleEdit(row.original.group)}
+				onRowClick={(row) => handleEdit(row.original.id)}
 			/>
 		</>
 	);

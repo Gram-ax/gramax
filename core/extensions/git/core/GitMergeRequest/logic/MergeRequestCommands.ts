@@ -9,6 +9,7 @@ import type { MergeRequestCommandsModel } from "@ext/git/core/GitMergeRequest/mo
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type Repository from "@ext/git/core/Repository/Repository";
 import t from "@ext/localization/locale/translate";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import assert from "assert";
 
 const DISABLED_ERROR_MESSAGE = "merge requests are disabled";
@@ -30,7 +31,16 @@ export default class MergeRequestProvider {
 		if (this._disabled) return [];
 
 		if (cached && this._cachedMergeRequests?.length) return this._cachedMergeRequests;
-		this._cachedMergeRequests = await this._mergeRequests.list();
+
+		let mrs = await this._mergeRequests.list();
+		const currentSourceRef = await this._getSourceRef();
+		const hasCurrentSourceRefMr = mrs.some((mr) => mr.sourceBranchRef === currentSourceRef);
+		if (hasCurrentSourceRefMr && (await this._isMrDeletedInStatus())) {
+			mrs = mrs.filter((mr) => mr.sourceBranchRef !== currentSourceRef);
+		}
+
+		this._cachedMergeRequests = mrs;
+
 		return this._cachedMergeRequests;
 	}
 
@@ -50,6 +60,7 @@ export default class MergeRequestProvider {
 
 	async tryGetDraft(): Promise<MergeRequest | undefined> {
 		if (this._disabled) return;
+		if (await this._isMrDeletedInStatus()) return;
 
 		try {
 			return await this._mergeRequests.tryGetDraft();
@@ -76,6 +87,12 @@ export default class MergeRequestProvider {
 
 		mergeRequest.createdAt = new Date();
 		return this._createOrUpdateMergeRequest(data, mergeRequest);
+	}
+
+	async delete(): Promise<void> {
+		const openMrPath = this._repoPath.join(OPEN_MERGE_REQUEST_PATH);
+		if (!(await this._fp.exists(openMrPath))) return;
+		await this._fp.delete(openMrPath);
 	}
 
 	async setApproval(data: GitSourceData, approve: boolean) {
@@ -161,6 +178,20 @@ export default class MergeRequestProvider {
 		} finally {
 			this._repo.gvc.update();
 		}
+	}
+
+	private async _isMrDeletedInStatus() {
+		let status = this._repo.gvc.getCachedStatus("index") || (await this._repo.gvc.getChanges("index"));
+		const isDeletedInIndex = status.some(
+			(s) => s.status === FileStatus.delete && s.path.compare(OPEN_MERGE_REQUEST_PATH),
+		);
+		if (isDeletedInIndex) return true;
+
+		status = this._repo.gvc.getCachedStatus("workdir") || (await this._repo.gvc.getChanges("workdir"));
+		const isDeletedInWorkdir = status.some(
+			(s) => s.status === FileStatus.delete && s.path.compare(OPEN_MERGE_REQUEST_PATH),
+		);
+		return isDeletedInWorkdir;
 	}
 
 	private async _createOrUpdateMergeRequest(...args: Parameters<typeof this._mergeRequests.createOrUpdate>) {

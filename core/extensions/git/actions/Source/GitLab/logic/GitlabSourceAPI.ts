@@ -192,6 +192,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 						...(init?.headers ?? {}),
 						...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
 					},
+					// credentials: isEnterprise ? "include" : undefined, Will be used in future for GES Cloud
 				},
 			);
 			await this._validateResponse(res);

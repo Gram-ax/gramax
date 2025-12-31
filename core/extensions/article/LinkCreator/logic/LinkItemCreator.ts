@@ -6,9 +6,15 @@ import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import RuleProvider from "@ext/rules/RuleProvider";
 import Path from "../../../../logic/FileProvider/Path/Path";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 class LinkItemCreator {
 	constructor(private _ctx: Context, private _catalog: ReadonlyCatalog) {}
+
+	async getLinkItemByPath(path: Path) {
+		if (!this._catalog) return null;
+		return await this._getItemByPath(path);
+	}
 
 	async getLinkItems(articlePath: Path) {
 		if (!this._catalog) return [];
@@ -17,6 +23,12 @@ class LinkItemCreator {
 		if (!root) return [];
 		const itemTree = root.getFilteredItems(filters, this._catalog);
 		return await this._getAllItems(itemTree, itemTree, articlePath);
+	}
+
+	private async _getItemByPath(path: Path) {
+		const logicPath = RouterPathProvider.getLogicPath(path.value);
+		const item = this._catalog.findArticle(logicPath, []);
+		return item ? await this._toItemLink(item, [], path) : null;
 	}
 
 	private async _getAllItems(tree: Item[], leaf: Item[], articlePath: Path) {
@@ -44,14 +56,23 @@ class LinkItemCreator {
 		};
 	}
 
-	private _getBreadcrumb(itemsTree: Item[], categories: Category[], url: string) {
+	private _getBreadcrumb(itemsTree: Item[], categories: Category[], url: string): string[] | undefined {
 		for (const i of itemsTree) {
-			if (url.includes(i.logicPath)) {
-				if (!(i as Category)?.items || url === i.logicPath) {
+			const itemPath = i.logicPath.endsWith("/") ? i.logicPath.slice(0, -1) : i.logicPath;
+			const normalizedUrl = url.endsWith("/") ? url.slice(0, -1) : url;
+
+			const isExactMatch = normalizedUrl === itemPath;
+			const isPrefix = normalizedUrl.startsWith(itemPath + "/");
+
+			if (isExactMatch || isPrefix) {
+				if (!(i as Category)?.items || isExactMatch) {
 					return categories.map((c) => c.getTitle());
-				} else return this._getBreadcrumb((i as Category).items, [...categories, i as Category], url);
+				} else {
+					return this._getBreadcrumb((i as Category).items, [...categories, i as Category], normalizedUrl);
+				}
 			}
 		}
+		return undefined;
 	}
 }
 

@@ -36,6 +36,8 @@ tracing-subscriber = { workspace = true, features = [
   "local-time",
   "json",
 ] }
+tar = "^0.4.44"
+lzma-rs = "^0.3.0"
 semver = { version = "1.0.18", features = ["serde"] }
 strum = { version = "0.27.0", features = ["derive"] }
 rust-i18n = "3.0.1"
@@ -50,13 +52,12 @@ thiserror = { workspace = true }
 humansize = { workspace = true }
 sysinfo = { workspace = true }
 
+
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.59.0", features = [
   "Win32_System_LibraryLoader",
   "Win32_Foundation",
 ] }
-tar = "^0.4.44"
-lzma-rs = "^0.3.0"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos", target_os = "linux"))'.dependencies]
 tauri-plugin-updater = { workspace = true }

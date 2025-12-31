@@ -4,13 +4,13 @@ import t from "@ext/localization/locale/translate";
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 import Column from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/Column";
 import { CustomDragLayer } from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CustomDragLayer";
-import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { Property, ViewRenderGroup } from "@ext/properties/models";
 import { useCallback, useState } from "react";
 import { DndProvider } from "react-dnd";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 
 interface KanbanProps {
 	groupby: string[];
@@ -94,7 +94,7 @@ const Kanban = (props: KanbanProps) => {
 		);
 
 	return (
-		<DndProvider backend={(manager) => ModifiedBackend(backend(manager))} options={options}>
+		<DndProvider backend={backend} options={options}>
 			<div className="tree-root">
 				<WidthWrapper>
 					<div className={className} data-focusable="true">

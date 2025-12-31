@@ -11,6 +11,7 @@ import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import ParserContext, { BaseContext } from "./ParserContext";
+import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export default class ArticleContext extends BaseContext implements ParserContext {
 	private _linkManager: LinkResourceManager;
@@ -25,6 +26,7 @@ export default class ArticleContext extends BaseContext implements ParserContext
 		private _diagramRendererServerUrl: string,
 		private _tablesManager: TableDB,
 		private _getUserByMail: (mail: string) => Promise<UserInfo> | UserInfo,
+		private _wm: WorkspaceManager,
 		readonly fp: FileProvider,
 		readonly parser: MarkdownParser,
 		readonly formatter: MarkdownFormatter,
@@ -65,6 +67,10 @@ export default class ArticleContext extends BaseContext implements ParserContext
 		return this._article.ref.storageId;
 	}
 
+	getWorkspaceManager(): WorkspaceManager {
+		return this._wm;
+	}
+
 	getRootLogicPath() {
 		return new Path(this._catalog?.name);
 	}
@@ -103,6 +109,7 @@ export default class ArticleContext extends BaseContext implements ParserContext
 			this._diagramRendererServerUrl,
 			this._tablesManager,
 			this._getUserByMail,
+			this._wm,
 			this.fp,
 			this.parser,
 			this.formatter,

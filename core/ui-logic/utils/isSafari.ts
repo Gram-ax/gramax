@@ -1,8 +1,10 @@
 const isSafari = () => {
+	if (typeof window === "undefined") return false;
+
 	const IS_SAFARI =
-		typeof window !== "undefined" &&
-		/Safari/.test(navigator.userAgent) &&
-		navigator.vendor === "Apple Computer, Inc.";
+		window.navigator &&
+		/Safari/.test(window.navigator.userAgent) &&
+		window.navigator.vendor === "Apple Computer, Inc.";
 
 	return IS_SAFARI;
 };

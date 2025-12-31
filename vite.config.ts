@@ -10,7 +10,11 @@ import ViteSourceMapUploader from "./scripts/sourceMaps/ViteSourceMapUploader.mj
 const { getBuiltInVariables } = env;
 if (!process.env.VITE_ENVIRONMENT) process.env.VITE_ENVIRONMENT = "next";
 
-const isProduction = process.env.PRODUCTION === "true";
+const isProduction =
+	process.env.PRODUCTION === "true" &&
+	process.env.CI_COMMIT_BRANCH != "develop" &&
+	process.env.CI_PIPELINE_SOURCE != "merge_request_event";
+
 const ipv4 = networkInterfaces()?.en0?.[1]?.address ?? "localhost";
 
 // https://github.com/vitejs/vite/issues/15012
@@ -85,6 +89,7 @@ export default (): UserConfig => ({
 			"@components": path.resolve(__dirname, "core/components"),
 			"@ui-kit": path.resolve(__dirname, "core/ui-kit/components"),
 			"@core": path.resolve(__dirname, "core/logic"),
+			"@plugins": path.resolve(__dirname, "core/plugins"),
 			"@core-ui": path.resolve(__dirname, "core/ui-logic"),
 			"@dynamicImports": path.resolve(__dirname, "core/dynamicImports"),
 			"@ext": path.resolve(__dirname, "core/extensions"),
@@ -131,7 +136,7 @@ export default (): UserConfig => ({
 		rollupOptions: {
 			external: ["fsevents", "services"],
 		},
-		minify: true,
+		minify: isProduction,
 		sourcemap: isProduction,
 	},
 });

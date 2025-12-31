@@ -1,4 +1,5 @@
 import type { IParagraphOptions, IRunPropertiesOptions, ParagraphChild } from "docx";
+import type { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { FileChild } from "@ext/wordExport/types";
 import ParserContext from "../../markdown/core/Parser/ParserContext/ParserContext";
 import { RenderableTreeNode, Tag } from "../../markdown/core/render/logic/Markdoc";
@@ -44,7 +45,8 @@ export type AddOptionsWord = IRunPropertiesOptions &
 	TableMaxWidth &
 	MaxPictureWidth &
 	TableInsideListItem &
-	ListContinuationMarker;
+	ListContinuationMarker &
+	SnippetContentOptions;
 
 export type TextRunOptions = { readonly break?: number; removeWhiteSpace?: boolean };
 
@@ -82,4 +84,8 @@ export interface TableInsideListItem {
 export interface ListContinuationMarker {
 	listContinuation?: boolean;
 	listContinuationLevel?: number;
+}
+
+export interface SnippetContentOptions {
+	snippetId?: string;
 }

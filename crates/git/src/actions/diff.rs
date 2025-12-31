@@ -66,6 +66,7 @@ pub struct DiffTree2TreeInfo {
   pub has_changes: bool,
   pub added: usize,
   pub deleted: usize,
+  pub merge_base: Option<OidInfo>,
   pub files: Vec<DiffTree2TreeFile>,
 }
 
@@ -103,7 +104,7 @@ impl<C: Creds> Diff for Repo<'_, C> {
       diff.find_similar(Some(&mut find_opts))?;
     }
 
-    self.collect_diff_deltas(diff)
+    self.collect_diff_deltas(diff, merge_base)
   }
 }
 
@@ -205,7 +206,11 @@ impl<C: Creds> Repo<'_, C> {
     Ok(diff)
   }
 
-  fn collect_diff_deltas(&self, diff: git2::Diff<'_>) -> Result<DiffTree2TreeInfo> {
+  fn collect_diff_deltas(
+    &self,
+    diff: git2::Diff<'_>,
+    used_merge_base: Option<Oid>,
+  ) -> Result<DiffTree2TreeInfo> {
     let total_deletions = diff.stats()?.deletions();
     let total_additions = diff.stats()?.insertions();
 
@@ -249,6 +254,7 @@ impl<C: Creds> Repo<'_, C> {
       added: total_additions,
       deleted: total_deletions,
       files: files.take(),
+      merge_base: used_merge_base.as_ref().map(OidInfo::from),
     })
   }
 }

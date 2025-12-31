@@ -218,7 +218,7 @@ export const reset = (args: Args & { opts: ResetOptions }) => call<void>("reset"
 
 export const commit = (args: Args & CredsArgs & { opts: CommitOptions }) => call<void>("commit", args);
 
-export const checkout = (args: Args & { refName: string; force: boolean }) => call<void>("checkout", args);
+export const checkout = (args: Args & CredsArgs & { refName: string; force: boolean }) => call<void>("checkout", args);
 
 export const graphHeadUpstreamFiles = (args: Args & { searchIn: string }) =>
 	call<UpstreamCountFileChanges>("count_changed_files", args);

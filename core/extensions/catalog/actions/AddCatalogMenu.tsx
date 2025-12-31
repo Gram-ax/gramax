@@ -4,10 +4,10 @@ import { DropdownMenu, DropdownMenuContent } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { MenuItemRichTemplate } from "@ui-kit/MenuItem";
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuTriggerButton } from "@ui-kit/Dropdown";
+import { useButtonsHandlers } from "./logic/useButtonsHandlers";
+import type { ComponentProps } from "react";
 import IsReadOnlyHOC from "../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import CreateCatalog from "./CreateCatalog";
-import CanEditCatalogHOC from "@ext/enterprise/components/CanEditCatalogHOC";
-import { useButtonsHandlers } from "./logic/useButtonsHandlers";
 
 const itemClassName = "w-full flex items-center gap-2";
 const AddCatalogMenu = () => {
@@ -33,22 +33,20 @@ const AddCatalogMenu = () => {
 			)}
 			<DropdownMenuContent align="start">
 				<DropdownMenuGroup>
-					<CanEditCatalogHOC>
-						<IsReadOnlyHOC>
-							<DropdownMenuItem data-qa="qa-clickable">
-								<CreateCatalog
-									className={itemClassName}
-									trigger={
-										<MenuItemRichTemplate
-											icon={"plus"}
-											title={t("catalog.new-2")}
-											description={t("catalog.new-3")}
-										/>
-									}
-								/>
-							</DropdownMenuItem>
-						</IsReadOnlyHOC>
-					</CanEditCatalogHOC>
+					<IsReadOnlyHOC>
+						<DropdownMenuItem data-qa="qa-clickable">
+							<CreateCatalog
+								className={itemClassName}
+								trigger={
+									<MenuItemRichTemplate
+										icon={"plus"}
+										title={t("catalog.new-2")}
+										description={t("catalog.new-3")}
+									/>
+								}
+							/>
+						</DropdownMenuItem>
+					</IsReadOnlyHOC>
 
 					<DropdownMenuItem data-qa="qa-clickable" onSelect={onCloneClick}>
 						<MenuItemRichTemplate
@@ -58,17 +56,15 @@ const AddCatalogMenu = () => {
 						/>
 					</DropdownMenuItem>
 
-					<CanEditCatalogHOC>
-						<IsReadOnlyHOC>
-							<DropdownMenuItem data-qa="qa-clickable" onSelect={onImportClick}>
-								<MenuItemRichTemplate
-									icon={"import"}
-									title={t("catalog.import-2")}
-									description={t("catalog.import-3")}
-								/>
-							</DropdownMenuItem>
-						</IsReadOnlyHOC>
-					</CanEditCatalogHOC>
+					<IsReadOnlyHOC>
+						<DropdownMenuItem data-qa="qa-clickable" onSelect={onImportClick}>
+							<MenuItemRichTemplate
+								icon={"import"}
+								title={t("catalog.import-2")}
+								description={t("catalog.import-3")}
+							/>
+						</DropdownMenuItem>
+					</IsReadOnlyHOC>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>

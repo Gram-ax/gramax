@@ -26,13 +26,13 @@ export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
 		}
 
 		throw new LibGit2Error(
-			`git (${command}, ${data.res.class ?? "<unknown class>"}, ${data.res.code ?? "<unknown code>"})`,
+			`git (${command}, ${data.res.subset ?? "<unknown subset>"}, ${data.res.class ?? "<unknown class>"}, ${data.res.code ?? "<unknown code>"})`,
 			`${message?.trim()}\nArgs: ${JSON.stringify(args, null, 4)}`,
+			data.res.subset,
 			data.res.class,
 			data.res.code,
 			command,
-		);
-	}
+		);}
 	return data.res;
 };
 

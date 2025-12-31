@@ -1,6 +1,5 @@
 import resolveModule from "@app/resolveModule/frontend";
-import useLucideIconLists, { iconFilter, toListItem } from "@components/Atoms/Icon/lucideIconList";
-import ListLayoutByUikit from "@components/List/ListLayoutByUikit";
+import useLucideIconLists, { useIconFilter } from "@components/Atoms/Icon/lucideIconList";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import type { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
@@ -11,7 +10,9 @@ import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
+import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { FormEvent, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
@@ -106,19 +107,32 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									<FormField
 										name="icon"
 										title={t("icon")}
-										control={({ field }) => (
-											<ListLayoutByUikit
-												placeholder={t("icon")}
-												openByDefault={false}
-												items={useLucideIconLists().lucideIconListForUikit}
-												filterItems={iconFilter([], true)}
-												item={toListItem({ code: field.value ?? "" })}
-												onItemClick={(value) => {
-													form.setValue("icon", value);
-													field.value = value;
-												}}
-											/>
-										)}
+										control={({ field }) => {
+											const iconFilter = useIconFilter();
+											return (
+												<LazySearchSelect
+													placeholder={t("icon")}
+													options={useLucideIconLists().lucideIconListForUikitOptions}
+													value={field.value}
+													filter={iconFilter}
+													renderOption={({ option, type }) => (
+														<>
+															<div className="flex items-center gap-2">
+																<Icon icon={option.value as string} />
+																{option.value}
+															</div>
+															{type === "list" && field.value === option.value && (
+																<Icon icon="check" className="ml-auto" />
+															)}
+														</>
+													)}
+													onChange={(value) => {
+														form.setValue("icon", `${value}`);
+														field.value = `${value}`;
+													}}
+												/>
+											);
+										}}
 										{...formProps}
 									/>
 									{askPath && (

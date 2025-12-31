@@ -10,6 +10,8 @@ import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import Context from "@core/Context/Context";
 import { feature } from "@ext/toggleFeatures/features";
 
+export const STATIC_WORKSPACE_PATH = "/";
+
 class StaticRenderer {
 	private _articleDataService: ArticleDataService;
 
@@ -60,9 +62,9 @@ class StaticRenderer {
 	private _modifyContextForStaticGeneration(pageDataContext: PageDataContext) {
 		const { workspace, language } = pageDataContext;
 		pageDataContext.theme = null;
-		workspace.current = "/";
+		workspace.current = STATIC_WORKSPACE_PATH;
 		workspace.workspaces = [workspace.workspaces[0]];
-		workspace.workspaces[0].path = "/";
+		workspace.workspaces[0].path = STATIC_WORKSPACE_PATH;
 		language.ui = overriddenLanguage || null;
 		return pageDataContext;
 	}

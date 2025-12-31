@@ -4,11 +4,18 @@ import { ContentLanguage } from "@ext/localization/core/model/Language";
 
 export default class RouterPathProvider {
 	private static readonly _separator = "-";
+	private static readonly _readonlyPathPrefix = "/";
 
 	static getLogicPath(pathname: string) {
 		return this.isEditorPathname(pathname)
 			? new Path(this.parsePath(new Path(pathname)).itemLogicPath).value
+			: pathname.startsWith(this._readonlyPathPrefix)
+			? pathname.substring(1)
 			: pathname;
+	}
+
+	static getReadOnlyPathname(ligicPath: string) {
+		return `${this._readonlyPathPrefix}${ligicPath}`;
 	}
 
 	static parsePath(path: string[] | string | Path): PathnameData {

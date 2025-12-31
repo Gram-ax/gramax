@@ -10,9 +10,11 @@ void listen("remote-progress", (ev) => {
 
 const parseError = (err: any) => {
 	try {
-		return typeof err === "string" ? JSON.parse(err) : { message: err.message, class: err.class, code: err.code };
+		return typeof err === "string"
+			? JSON.parse(err)
+			: { message: err.message, subset: err.subset, class: err.class, code: err.code };
 	} catch (e) {
-		return { message: err, class: -1, code: -1 };
+		return { message: err, subset: -1, class: -1, code: -1 };
 	}
 };
 
@@ -28,8 +30,11 @@ export const call = async <O>(command: string, args?: any): Promise<O> => {
 			const err = await readRes.json();
 			if (args?.creds?.accessToken) args.creds.accessToken = "<redacted>";
 			throw new LibGit2Error(
-				`git (${command}, ${err.class ?? "<unknown class>"}, ${err.code ?? "<unknown code>"})`,
+				`git (${command}, ${err.subset ?? "<unknown subset>"}, ${err.class ?? "<unknown class>"}, ${
+					err.code ?? "<unknown code>"
+				})`,
 				`${err.message?.trim() || err}\nArgs:${JSON.stringify(args, null, 4)}`,
+				err.subset,
 				err.class,
 				err.code,
 				command,
@@ -41,8 +46,11 @@ export const call = async <O>(command: string, args?: any): Promise<O> => {
 		if ((args as CredsArgs)?.creds?.accessToken) (args as CredsArgs).creds.accessToken = "<redacted>";
 		const error = parseError(err);
 		throw new LibGit2Error(
-			`git (${command}, ${error.class ?? "<unknown class>"}, ${error.code ?? "<unknown code>"})`,
+			`git (${command}, ${error.subset ?? "<unknown subset>"}, ${error.class ?? "<unknown class>"}, ${
+				error.code ?? "<unknown code>"
+			})`,
 			`${error.message?.trim()}\nArgs: ${JSON.stringify(args, null, 4)}`,
+			error.subset,
 			error.class,
 			error.code,
 			command,

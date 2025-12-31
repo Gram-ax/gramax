@@ -6,8 +6,8 @@ const questionAnswerSchema = {
 	draggable: true,
 	isolating: true,
 	attrs: {
-		type: { default: "checkbox" },
 		questionId: { default: null },
+		type: { default: "checkbox" },
 		answerId: { default: null },
 		correct: { default: false },
 	},

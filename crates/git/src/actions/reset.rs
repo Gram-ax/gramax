@@ -3,6 +3,7 @@ use std::path::Path;
 
 use git2::build::CheckoutBuilder;
 use git2::*;
+use git2_lfs::ext::RepoLfsExt;
 use serde::Deserialize;
 
 use crate::error::Result;
@@ -121,7 +122,8 @@ impl<C: Creds> Reset for Repo<'_, C> {
           if !fs_path.parent().map(|p| p.exists()).unwrap_or(true) {
             std::fs::create_dir_all(fs_path.parent().unwrap())?;
           }
-          std::fs::write(fs_path, blob.content())?;
+          let content = self.0.get_lfs_blob_content(&blob)?;
+          std::fs::write(fs_path, content)?;
         }
         Err(err) if matches!((err.class(), err.code()), (ErrorClass::Tree, ErrorCode::NotFound)) => {
           try_remove_path(&fs_path)?;

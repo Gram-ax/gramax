@@ -1,22 +1,22 @@
 import { Editor } from "@tiptap/core";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { MicrophonePermission } from "@core-ui/hooks/useMicrophone";
-import Tooltip from "@components/Atoms/Tooltip";
 import t from "@ext/localization/locale/translate";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import { isActive } from "@core-ui/hooks/useAudioRecorder";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { useCallback, useMemo } from "react";
 
 const TranscribeButton = ({ editor }: { editor?: Editor }) => {
 	const { micState, micActions, recorderState, recorderActions } = AudioRecorderService.value;
 	const { isTauri } = usePlatform();
 
-	const startRecording = async () => {
+	const startRecording = useCallback(async () => {
 		const stream = await micActions.startRecording();
 		if (stream) recorderActions.startRecording(stream);
-	};
+	}, [micActions, recorderActions]);
 
-	const handleClick = async () => {
+	const handleClick = useCallback(async () => {
 		if (isActive(recorderState)) {
 			recorderActions.stopRecording();
 			micActions.stopRecording();
@@ -34,15 +34,18 @@ const TranscribeButton = ({ editor }: { editor?: Editor }) => {
 		}
 
 		if (micState.permission === MicrophonePermission.granted) await startRecording();
-	};
+	}, [micState, micActions, recorderActions, startRecording]);
 
-	const isDisabled =
-		!micState.supported ||
-		micState.permission === MicrophonePermission.denied ||
-		micState.loading ||
-		!editor?.isEditable;
+	const isDisabled = useMemo(() => {
+		return (
+			!micState.supported ||
+			micState.permission === MicrophonePermission.denied ||
+			micState.loading ||
+			!editor?.isEditable
+		);
+	}, [micState, editor]);
 
-	const getTooltipText = (): string => {
+	const tooltipText = useMemo((): string => {
 		if (isActive(recorderState)) return `${t("ai.transcribe.recording")}... (${t("ai.transcribe.reset")})`;
 		if (micState.permission === MicrophonePermission.denied)
 			return isTauri ? t("ai.transcribe.system-denied") : t("ai.transcribe.browser-denied");
@@ -52,18 +55,23 @@ const TranscribeButton = ({ editor }: { editor?: Editor }) => {
 		if (micState.permission === MicrophonePermission.granted) return t("ai.transcribe.click");
 
 		return t("editor.ai.transcribe");
-	};
+	}, [micState, recorderState, isTauri]);
 
-	const getIcon = () => {
+	const icon = useMemo(() => {
 		if (micState.permission === MicrophonePermission.denied) return "mic-off";
 		if (isActive(recorderState)) return "x";
 		return "mic";
-	};
+	}, [micState, recorderState]);
 
 	return (
-		<Tooltip content={getTooltipText()}>
-			<Button icon={getIcon()} disabled={isDisabled} onClick={handleClick} isActive={isActive(recorderState)} />
-		</Tooltip>
+		<ToolbarToggleButton
+			active={isActive(recorderState)}
+			disabled={isDisabled}
+			tooltipText={tooltipText}
+			onClick={handleClick}
+		>
+			<ToolbarIcon icon={icon} />
+		</ToolbarToggleButton>
 	);
 };
 

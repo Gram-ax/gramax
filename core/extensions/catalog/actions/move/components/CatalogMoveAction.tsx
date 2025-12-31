@@ -1,3 +1,4 @@
+import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { setCardLoading } from "@components/HomePage/CardParts/CardStore";
@@ -9,18 +10,22 @@ import { RequestStatus, useDeferApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import t from "@ext/localization/locale/translate";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
-import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useRef, type ComponentProps } from "react";
+import { useRef, type ComponentProps, type MutableRefObject, type ReactNode } from "react";
 import DuplicateCatalogDialog from "./DuplicateCatalogDialog";
-import SelectTargetWorkspace from "./SelectTargetWorkspace";
+export interface CatalogMoveActionRenderProps {
+	targetWorkspaceRef: MutableRefObject<ClientWorkspaceConfig | null>;
+	checkAndMove: (params: { url: (api: any) => string }) => void;
+}
 
 interface CatalogWorkspaceActionsProps {
 	catalogName: string;
 	onSuccess?: () => void;
+	children?: (props: CatalogMoveActionRenderProps) => ReactNode;
 }
 
-const CatalogMoveAction = ({ catalogName, onSuccess }: CatalogWorkspaceActionsProps) => {
+const CatalogMoveAction = ({ children, catalogName, onSuccess }: CatalogWorkspaceActionsProps) => {
 	const targetWorkspaceRef = useRef<ClientWorkspaceConfig | null>(null);
 
 	const { start: setCardLoadingDebounce, cancel: cancelCardLoadingDebounce } = useDebounce(
@@ -93,7 +98,7 @@ const CatalogMoveAction = ({ catalogName, onSuccess }: CatalogWorkspaceActionsPr
 	const isGes = !!currentWorkspace.enterprise?.gesUrl;
 	if (isGes) return null;
 
-	if (workspaces.length === 0) {
+	if (workspaces.length < 2) {
 		return (
 			<Tooltip>
 				<TooltipTrigger className="w-full" onClick={(ev) => ev.stopPropagation()}>
@@ -108,23 +113,16 @@ const CatalogMoveAction = ({ catalogName, onSuccess }: CatalogWorkspaceActionsPr
 	}
 
 	return (
-		<>
-			<DropdownMenuSub>
-				<DropdownMenuSubTrigger onClick={(ev) => ev.stopPropagation()} disabled={isLoading}>
+		<CatalogItem
+			renderLabel={(Component) => (
+				<Component onClick={(ev) => ev.stopPropagation()} disabled={isLoading}>
 					{isLoading ? <SpinnerLoader width={16} height={16} /> : <Icon code="arrow-right" />}
 					{t("catalog.move.to-workspace")}
-				</DropdownMenuSubTrigger>
-				<DropdownMenuSubContent>
-					<SelectTargetWorkspace
-						onClick={(workspace) => {
-							targetWorkspaceRef.current = workspace;
-							checkAndMove({ url: (api) => api.getCatalogNameAfterMove(catalogName, workspace.path) });
-						}}
-						excludeCurrent
-					/>
-				</DropdownMenuSubContent>
-			</DropdownMenuSub>
-		</>
+				</Component>
+			)}
+		>
+			{children?.({ targetWorkspaceRef, checkAndMove })}
+		</CatalogItem>
 	);
 };
 

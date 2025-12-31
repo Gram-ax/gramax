@@ -59,7 +59,7 @@ class CanvasAudioVisualizator {
 		const pointHeight = 2;
 		const maxPoints = Math.floor(width / pointSpacing);
 
-		this.ctx.fillStyle = this.getCanvasStyle("--color-text-secondary");
+		this.ctx.fillStyle = `hsl(${this.getCanvasStyle("--inverse-primary-fg")})`;
 		this.ctx.globalAlpha = 0.3;
 
 		for (let i = 0; i < maxPoints; i++) {
@@ -80,12 +80,12 @@ class CanvasAudioVisualizator {
 		const isLive = isRecording && !isPaused;
 
 		displayHistory.forEach((amplitude, index) => {
-			const x = index * pointSpacing;
+			const x = width - (index + 1) * pointSpacing;
 			const variation = Math.sin(index * 0.1 * waveSpeed) * 2;
 			const finalAmplitude = Math.max(4, amplitude + variation);
 			const pointHeight = Math.min(finalAmplitude, height * 0.8);
 
-			this.ctx.fillStyle = this.getCanvasStyle("--color-white");
+			this.ctx.fillStyle = `hsl(${this.getCanvasStyle("--inverse-primary-fg")})`;
 			this.ctx.globalAlpha = 0.9;
 
 			if (isLive && index >= displayHistory.length - 10) {
@@ -93,7 +93,7 @@ class CanvasAudioVisualizator {
 				const pulseScale = 1 + Math.sin(pulsePhase) * 0.3;
 				const glowHeight = pointHeight * pulseScale;
 
-				this.ctx.shadowColor = this.getCanvasStyle("--color-white");
+				this.ctx.shadowColor = `hsl(${this.getCanvasStyle("--inverse-primary-fg")})`;
 				this.ctx.shadowBlur = 3;
 				this.ctx.globalAlpha = 1;
 

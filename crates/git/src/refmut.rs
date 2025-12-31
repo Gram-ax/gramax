@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+#[allow(unused)]
 pub enum RefOrMut<'a, T> {
   Ref(&'a T),
   Mut(&'a mut T),

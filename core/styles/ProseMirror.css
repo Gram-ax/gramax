@@ -225,6 +225,7 @@
 	content: var(--content-file-plus);
 	vertical-align: text-bottom;
 	line-height: 1;
+	padding-right: 0.3rem;
 }
 
 /* temp styles below */
@@ -255,7 +256,7 @@
 .ProseMirror .blur-selection {
 	display: inline;
 	background-color: Highlight;
-	color: HighlightText;
+	color: inherit;
 	padding: 5px 0;
 	box-decoration-break: clone;
 }

@@ -6,7 +6,9 @@ interface TableToolbarProps {
 export const TableToolbar = ({ children, input }: TableToolbarProps) => {
 	return (
 		<div className="flex items-center gap-3 py-4">
-			{input}
+			{input && (
+				<div className="flex-1 min-w-0">{input}</div>
+			)}
 			<div className="flex items-center gap-3 flex-shrink-0 ml-auto">{children}</div>
 		</div>
 	);

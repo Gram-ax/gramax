@@ -125,6 +125,14 @@ menu:
       ru: 'Чат в Telegram'
       en: 'Join community chat on Telegram'
 
+    show-logs:
+      ru: 'Показать журнал событий'
+      en: 'Show Gramax Logs'
+
+    export-logs:
+      ru: 'Экспортировать журнал событий'
+      en: 'Export Gramax Logs'
+
 updates:
   you-have-actual-ver:
     title:

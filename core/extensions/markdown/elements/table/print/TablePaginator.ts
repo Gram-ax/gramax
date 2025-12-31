@@ -1,12 +1,18 @@
 import Paginator from "@ext/print/utils/pagination/Paginator";
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import { RowPaginator } from "@ext/markdown/elements/table/print/RowPaginator";
+import { RowGroupPaginator } from "@ext/markdown/elements/table/print/RowGroupPaginator";
 import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
+import type { TablePaginatorInterface } from "@ext/markdown/elements/table/print/TablePaginator.types";
 
-export class TablePaginator extends NodePaginator<HTMLDivElement> {
+export class TablePaginator
+	extends NodePaginator<HTMLDivElement, HTMLTableSectionElement>
+	implements TablePaginatorInterface
+{
 	private currentTableWrapper: HTMLDivElement;
 	private repeatThead: HTMLTableSectionElement;
 	private table: HTMLDivElement;
+	private _rowIndex: number;
 
 	constructor(tableWrapper: HTMLDivElement, parentPaginator: Paginator) {
 		super(tableWrapper, parentPaginator);
@@ -27,8 +33,34 @@ export class TablePaginator extends NodePaginator<HTMLDivElement> {
 		this.currentContainer = tbody;
 		this.addDimension();
 
-		for (const row of allRows) {
+		for (this._rowIndex = 0; this._rowIndex < allRows.length; this._rowIndex++) {
+			const row = allRows[this._rowIndex];
 			const rowHeight = Paginator.paginationInfo.nodeDimension.get(row).height;
+
+			if (RowGroupPaginator.hasRowspanCells(row)) {
+				const groupIndices = this.getRowspanGroupIndices(allRows, this._rowIndex);
+				const groupHeight = this.getGroupHeight(allRows, groupIndices);
+				const usableHeight = this.getUsableHeight();
+				const accumulated = Paginator.paginationInfo.accumulatedHeight.height;
+
+				if (groupHeight + accumulated > usableHeight) this.createPage();
+				if (groupHeight <= usableHeight) {
+					for (const index of groupIndices) {
+						const groupRow = allRows[index];
+						const groupRowHeight = Paginator.paginationInfo.nodeDimension.get(groupRow).height;
+						Paginator.paginationInfo.accumulatedHeight.height += groupRowHeight;
+						this.currentContainer.appendChild(groupRow);
+					}
+					this._rowIndex += groupIndices.length - 1;
+					continue;
+				}
+
+				const groupRows = groupIndices.map((idx) => allRows[idx]);
+				const groupPaginator = new RowGroupPaginator(groupRows, this);
+				await groupPaginator.paginateNode();
+				this._rowIndex += groupIndices.length - 1;
+				continue;
+			}
 
 			if (rowHeight + Paginator.paginationInfo.accumulatedHeight.height > this.getUsableHeight()) {
 				this.createPage();
@@ -74,14 +106,14 @@ export class TablePaginator extends NodePaginator<HTMLDivElement> {
 		return parseFloat(this.repeatThead?.dataset._height || "0");
 	}
 
-	private cloneTableShell() {
+	private cloneTableShell(withOutTableHeader?: boolean) {
 		const newTable = this.table.cloneNode(false) as HTMLDivElement;
 		for (const attr of Array.from(this.table.attributes)) newTable.setAttribute(attr.name, attr.value);
 
 		const colgroup = this.table.querySelector("colgroup");
 		if (colgroup) newTable.appendChild(colgroup.cloneNode(true));
 
-		if (this.repeatThead) newTable.appendChild(this.repeatThead.cloneNode(true));
+		if (this.repeatThead && !withOutTableHeader) newTable.appendChild(this.repeatThead.cloneNode(true));
 
 		const tbody = document.createElement("tbody");
 		newTable.appendChild(tbody);
@@ -155,5 +187,39 @@ export class TablePaginator extends NodePaginator<HTMLDivElement> {
 		});
 
 		return rows;
+	}
+	private getRowspanGroupIndices(allRows: HTMLTableRowElement[], startIndex: number): number[] {
+		const groupIndices = new Set<number>();
+		const processedRows = new Set<number>();
+
+		const collectGroup = (rowIndex: number) => {
+			if (processedRows.has(rowIndex) || rowIndex >= allRows.length) return;
+			processedRows.add(rowIndex);
+			groupIndices.add(rowIndex);
+
+			const row = allRows[rowIndex];
+
+			for (const cell of row.cells) {
+				if (cell.rowSpan > 1) {
+					const endIndex = rowIndex + cell.rowSpan - 1;
+					for (let i = rowIndex + 1; i <= endIndex && i < allRows.length; i++) {
+						if (!processedRows.has(i)) {
+							collectGroup(i);
+						}
+					}
+				}
+			}
+		};
+
+		collectGroup(startIndex);
+		return Array.from(groupIndices).sort((a, b) => a - b);
+	}
+
+	private getGroupHeight(allRows: HTMLTableRowElement[], groupIndices: number[]): number {
+		let totalHeight = 0;
+		for (const index of groupIndices) {
+			totalHeight += Paginator.paginationInfo.nodeDimension.get(allRows[index]).height;
+		}
+		return totalHeight;
 	}
 }

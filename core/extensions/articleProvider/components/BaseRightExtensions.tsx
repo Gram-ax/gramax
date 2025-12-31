@@ -73,7 +73,12 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 				</div>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">
-				<EditMarkdownTrigger loadContent={loadContent} saveContent={saveContent} />
+				<EditMarkdownTrigger
+					loadContent={loadContent}
+					saveContent={saveContent}
+					isCurrentItem
+					isTemplate={false}
+				/>
 				{items?.(id)}
 				<Delete
 					id={id}

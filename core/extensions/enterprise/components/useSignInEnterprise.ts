@@ -1,7 +1,6 @@
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import validateEmail from "@core/utils/validateEmail";
-import { AuthMethod } from "@ext/enterprise/types/UserSettings";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -20,7 +19,7 @@ export const useSignInEnterprise = ({ authUrl }: { authUrl: string }) => {
 	const [sendButtonCooldown, setSendButtonCooldown] = useState(0);
 
 	const workspace = WorkspaceService.current();
-	const onlySSO = !workspace?.enterprise?.authMethods?.includes(AuthMethod.GUEST_MAIL);
+	const onlySSO = !workspace?.enterprise?.modules?.guests;
 
 	const formSchema = z.object({
 		email: z
@@ -174,7 +173,7 @@ export const useSignInEnterprise = ({ authUrl }: { authUrl: string }) => {
 			if (value.length === OTP_LENGTH) {
 				const email = form.getValues("email");
 				if (email && !form.formState.errors.email) {
-					handleLogin(email, value);
+					void handleLogin(email, value);
 				}
 			}
 		},

@@ -1,3 +1,4 @@
+import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import useWatch from "@core-ui/hooks/useWatch";
@@ -6,6 +7,7 @@ import styled from "@emotion/styled";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
 import ProseMirrorDiffLineContent from "@ext/markdown/elements/diff/components/ProseMirrorDiffLineContent";
+import { generateCommentTooltip } from "@ext/markdown/elements/diff/logic/commentsDiff/generateCommentTooltip";
 import { DiffLineType } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 import { ProseMirrorDiffLine } from "@ext/markdown/elements/diff/logic/model/ProseMirrorDiffLine";
 import { useState } from "react";
@@ -16,6 +18,7 @@ interface DiffLineProps {
 	left: number | string;
 	diffLine: ProseMirrorDiffLine;
 	oldScope: TreeReadScope;
+	articlePath: string;
 	className?: string;
 	onDiscard?: () => void;
 }
@@ -24,25 +27,30 @@ const bgColors: Record<DiffLineType, string> = {
 	added: "var(--color-status-new)",
 	deleted: "var(--color-status-deleted)",
 	modified: "var(--color-status-modified)",
+	comment: "var(--color-text-accent)",
 };
 
 const DiffLineContainer = ({
 	children,
+	tooltipText,
 	type,
 	style,
+	tooltipOffset,
 	onClick,
 	className,
 }: {
 	children: React.ReactNode;
 	type: DiffLineType;
+	tooltipText: string;
 	style?: React.CSSProperties;
+	tooltipOffset?: [number, number];
 	className?: string;
 	onClick?: () => void;
 }) => {
 	const clickArea = "20px";
 
 	return (
-		<Tooltip content={t(`diff.type.${type}`)} offset={[-8, 8]}>
+		<Tooltip content={tooltipText} offset={tooltipOffset ?? [-8, 8]}>
 			<DiffLineContainerStyle
 				style={{ ...(style ?? {}), width: clickArea }}
 				diffLineType={type}
@@ -78,19 +86,47 @@ const DeletedTriangle = styled.div<{ height: number }>`
 `;
 
 const AddedOrModifiedLine = styled.div<{ type: Exclude<DiffLineType, "deleted"> }>`
-	width: 4px;
+	width: 3px;
 	height: inherit;
 
-	border-radius: 3px;
+	border-radius: 1px;
 	background-color: ${({ type }) => bgColors[type]};
 `;
 
-const DiffLine = ({ top, height, left, diffLine, oldScope, onDiscard, className }: DiffLineProps) => {
+const CommentIconWrapper = styled.div<{ height: number }>`
+	display: flex;
+	align-items: center;
+	height: ${({ height }) => height}px;
+`;
+
+const DiffLine = ({ top, height, left, diffLine, oldScope, articlePath, onDiscard, className }: DiffLineProps) => {
 	const { type } = diffLine;
+	const isComment = type === "comment";
 	const hasOldContent = (type === "modified" || type === "deleted") && diffLine.oldContent;
 	const [visible, setVisible] = useState(false);
+	const tooltipText = isComment ? generateCommentTooltip(diffLine.comments) : t(`diff.type.${type}`);
 
-	const diffElement = type === "deleted" ? <DeletedTriangle height={height} /> : <AddedOrModifiedLine type={type} />;
+	let diffElement: JSX.Element;
+	switch (type) {
+		case "deleted":
+			diffElement = <DeletedTriangle height={height} />;
+			break;
+		case "modified":
+		case "added":
+			diffElement = <AddedOrModifiedLine type={type} />;
+			break;
+		case "comment":
+			diffElement = (
+				<CommentIconWrapper height={height}>
+					<Icon
+						size="12px"
+						code="message-square"
+						svgStyle={{ color: "var(--color-text-accent)", fill: "var(--color-text-accent)" }}
+					/>
+				</CommentIconWrapper>
+			);
+			break;
+	}
 
 	useWatch(() => {
 		if (!hasOldContent) setVisible(false);
@@ -99,7 +135,12 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, onDiscard, className 
 	if (!hasOldContent)
 		return (
 			<div className={classNames(className, { "disable-hover": true })}>
-				<DiffLineContainer type={type} style={{ top, height, left }}>
+				<DiffLineContainer
+					tooltipOffset={isComment ? [-4, 8] : undefined}
+					type={type}
+					tooltipText={tooltipText}
+					style={{ top, height, left }}
+				>
 					{diffElement}
 				</DiffLineContainer>
 			</div>
@@ -109,14 +150,17 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, onDiscard, className 
 		<div className={className}>
 			<DiffLineContainer
 				type={type}
+				tooltipText={tooltipText}
 				style={{ top, height, left }}
 				onClick={() => setVisible(true)}
 				className="has-content"
 			>
 				<Tooltip
+					zIndex={49} // Because default tooltip has z-index 50
 					visible={visible}
 					content={
 						<ProseMirrorDiffLineContent
+							articlePath={articlePath}
 							type={diffLine.type}
 							oldContent={diffLine.oldContent}
 							oldDecorations={diffLine.oldDecorations}
@@ -131,7 +175,16 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, onDiscard, className 
 					arrow={false}
 					place="top-end"
 					interactive
-					onClickOutside={() => setVisible(false)}
+					onClickOutside={(_, event) => {
+						let el = event.target as HTMLElement;
+						while (el) {
+							const isCommentBlock = el.classList && el.classList.contains("comment-block");
+							if (isCommentBlock) return;
+							el = el.parentElement;
+						}
+
+						setVisible(false);
+					}}
 					contentClassName={classNames(
 						"diff-line-tooltip-content",
 						{ "has-content": !!diffLine.oldContent },

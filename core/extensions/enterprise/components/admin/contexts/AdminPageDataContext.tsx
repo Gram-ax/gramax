@@ -13,6 +13,19 @@ interface AdminPageParams {
 	repositoryId?: string;
 }
 
+const DEFAULT_PAGE_PARAMS: AdminPageParams = {
+	tabId: "",
+	entityId: "",
+	groupId: "",
+	repositoryId: "",
+};
+
+export type TabGuard = {
+	hasChanges: () => boolean;
+	onSave: () => void | Promise<void>;
+	onDiscard?: () => void | Promise<void>;
+};
+
 interface AdminPageDataProviderProps {
 	children: React.ReactNode;
 }
@@ -24,16 +37,26 @@ interface AdminPageDataStore {
 	setPage: (page: Page) => void;
 	setParams: (params: AdminPageParams) => void;
 	setModules: (modules: ModuleOptions) => void;
+	tabGuards: Partial<Record<Page, TabGuard>>;
+	setTabGuard: (page: Page, guard: TabGuard | null) => void;
 }
 
 const createAdminPageDataStore = () =>
 	create<AdminPageDataStore>((set, get) => ({
 		page: Page.WORKSPACE,
 		modules: { quiz: false, styleGuide: false },
-		params: { tabId: "", entityId: "", groupId: "", repositoryId: "" },
+		params: DEFAULT_PAGE_PARAMS,
 		setPage: (page) => set({ page }),
 		setParams: (params) => set({ params: { ...get().params, ...params } }),
 		setModules: (modules) => set({ modules }),
+		tabGuards: {},
+		setTabGuard: (page, guard) =>
+			set((prev) => {
+				const next = { ...prev.tabGuards };
+				if (guard) next[page] = guard;
+				else delete next[page];
+				return { ...prev, tabGuards: next };
+			}),
 	}));
 
 export type AdminPageDataStoreApi = ReturnType<typeof createAdminPageDataStore>;
@@ -59,7 +82,7 @@ const ChildrenOfProvider = ({ children }: AdminPageDataProviderProps) => {
 
 	useWatch(() => {
 		if (!setParams) return;
-		setParams({ tabId: "", entityId: "", groupId: "", repositoryId: "" });
+		setParams(DEFAULT_PAGE_PARAMS);
 	}, [page]);
 
 	return children;

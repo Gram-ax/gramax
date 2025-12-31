@@ -1,4 +1,5 @@
-import CatalogActions from "@components/Actions/CatalogActions";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import CatalogActions from "@components/Actions/CatalogActions/CatalogActions";
 import { TextSize } from "@components/Atoms/Button/Button";
 import NotificationIcon from "@components/Layouts/LeftNavigationTabs/NotificationIcon";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
@@ -18,19 +19,20 @@ import t from "@ext/localization/locale/translate";
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import TemplateService from "@ext/templates/components/TemplateService";
-import Search from "../../Actions/Modal/Search";
+import Search from "../../../extensions/serach/components/Search";
 import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import { useEffect } from "react";
 
 interface TopBarContentProps {
 	data: ArticlePageData;
 	isMacDesktop: boolean;
 	currentTab: LeftNavigationTab;
-	setCurrentTab: (tab: LeftNavigationTab) => void;
 	className?: string;
 }
 
-const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, className }: TopBarContentProps) => {
+const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarContentProps) => {
 	const { logo, cloudServiceUrl } = PageDataContextService.value.conf;
 	const logoImageUrl = logo.imageUrl;
 	const catalogName = useCatalogPropsStore((state) => state.data.name);
@@ -64,8 +66,12 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 		PromptService.removeAllItems();
 	};
 
+	useEffect(() => {
+		NavigationTabsService.setTop(LeftNavigationTab.None);
+	}, [catalogName]);
+
 	return (
-		<div className={className}>
+		<div className={className} key={catalogName}>
 			{showHomePageButton && (
 				<Link className="home" href={Url.fromRouter(useRouter(), { pathname: "/" })} dataQa="home-page-button">
 					<ButtonLink textSize={TextSize.L} iconCode="grip" />
@@ -79,7 +85,6 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 						tooltipText={t("inbox.notes")}
 						count={notes.length}
 						isMacDesktop={isMacDesktop}
-						setCurrentTab={setCurrentTab}
 						onCloseNotification={onCloseInbox}
 					/>
 				)}
@@ -89,7 +94,6 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 						tooltipText={t("favorites-articles")}
 						count={articles.length}
 						isMacDesktop={isMacDesktop}
-						setCurrentTab={setCurrentTab}
 					/>
 				)}
 				{currentTab === LeftNavigationTab.Template && (
@@ -98,7 +102,6 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 						tooltipText={t("template.name")}
 						iconCode="layout-template"
 						isMacDesktop={isMacDesktop}
-						setCurrentTab={setCurrentTab}
 						onCloseNotification={onCloseTemplate}
 					/>
 				)}
@@ -108,7 +111,6 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 						count={snippets.size}
 						tooltipText={t("snippets")}
 						isMacDesktop={isMacDesktop}
-						setCurrentTab={setCurrentTab}
 						onCloseNotification={onCloseSnippet}
 					/>
 				)}
@@ -118,17 +120,11 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, setCurrentTab, classNam
 						count={promptNotes.length}
 						tooltipText={t("ai.ai-prompts")}
 						isMacDesktop={isMacDesktop}
-						setCurrentTab={setCurrentTab}
 						onCloseNotification={onClosePrompt}
 					/>
 				)}
 				<Search isHomePage={false} />
-				<CatalogActions
-					isCatalogExist={isCatalogExist}
-					itemLinks={data.itemLinks}
-					currentTab={currentTab}
-					setCurrentTab={setCurrentTab}
-				/>
+				<CatalogActions isCatalogExist={isCatalogExist} itemLinks={data.itemLinks} currentTab={currentTab} />
 			</div>
 		</div>
 	);
@@ -150,5 +146,12 @@ export default styled(TopBarContent)`
 		gap: 0.5em;
 		align-items: center;
 		vertical-align: middle;
+	}
+
+	${cssMedia.narrow} {
+		.iconWrapper > * {
+			margin: -0.25em;
+			padding: 0.25em;
+		}
 	}
 `;

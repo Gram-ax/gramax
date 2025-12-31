@@ -27,14 +27,14 @@ ol[data-sonner-toaster] {
 	color: hsl(var(--primary-fg), 0.7);
 	text-decoration: underline;
 	text-underline-offset: 24%;
-	text-decoration-thickness: 0;
+	text-decoration-thickness: 1px;
 }
 
 [data-modal-root] a:hover {
 	color: hsl(var(--primary-fg));
 	text-decoration: underline;
 	text-underline-offset: 24%;
-	text-decoration-thickness: 0;
+	text-decoration-thickness: 1px;
 }
 
 [data-sign-in-enteprise-form] {

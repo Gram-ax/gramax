@@ -2,75 +2,58 @@ pub use git2::ErrorClass;
 pub use git2::ErrorCode;
 
 pub use git2::Error as GitError;
-
-use std::fmt::Display;
-use std::io;
 use std::path::Path;
 
 use crate::ext::walk::Walk;
 use crate::file_lock::FileLockError;
 use crate::prelude::*;
 
+use git2_lfs::Error as LfsError;
+
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Debug)]
+#[derive(thiserror::Error, Debug)]
 pub enum Error {
-  Git(git2::Error),
-  Healthcheck(crate::prelude::HealthcheckError),
-  Io(String),
-  Network { status: u16, message: Option<String> },
+  #[error("repository has no workdir")]
   NoWorkdir,
+
+  #[error("no files modified")]
   NoModifiedFiles,
-  AlreadyCloningWithSameId(String),
-  Yaml(serde_yml::Error),
-  FileLock(FileLockError),
-  FileLockHealthcheckFailed(HealthcheckError),
+
+  #[error("the provided string is not utf-8")]
   Utf8,
+
+  #[error("{0}")]
+  Healthcheck(#[from] HealthcheckError),
+
+  #[error("{0}")]
+  FileLock(#[from] FileLockError),
+
+  #[error("file lock healthcheck failed: {0}")]
+  FileLockHealthcheckFailed(HealthcheckError),
+
+  #[error("already cloning with same id: {0}")]
+  AlreadyCloningWithSameId(String),
+
+  #[error(transparent)]
+  Yaml(#[from] serde_yml::Error),
+
+  #[error(transparent)]
+  Lfs(#[from] git2_lfs::Error),
+
+  #[error(transparent)]
+  Git(#[from] git2::Error),
+
+  #[error("network error: {status} {message:?}")]
+  Network { status: u16, message: Option<String> },
+
+  #[error("io error: {0}")]
+  Io(String),
 }
 
-impl From<git2::Error> for Error {
-  fn from(value: git2::Error) -> Self {
-    Error::Git(value)
-  }
-}
-
-impl From<io::Error> for Error {
-  fn from(value: io::Error) -> Self {
-    Error::Io(format!("{value}"))
-  }
-}
-
-impl From<serde_yml::Error> for Error {
-  fn from(value: serde_yml::Error) -> Self {
-    Error::Yaml(value)
-  }
-}
-
-impl From<FileLockError> for Error {
-  fn from(value: FileLockError) -> Self {
-    Error::FileLock(value)
-  }
-}
-
-impl Display for Error {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    match self {
-      Error::Git(err) => {
-        writeln!(f, "{err:?}")
-      }
-      Error::Io(err) => writeln!(f, "{err}"),
-      Error::Network { status, message } => {
-        writeln!(f, "External network error: {} {}", status, message.as_ref().unwrap_or(&"".to_string()))
-      }
-      Error::NoModifiedFiles => writeln!(f, "No files modified"),
-      Error::NoWorkdir => writeln!(f, "Repository has no workdir"),
-      Error::Utf8 => writeln!(f, "String was not UTF8"),
-      Error::AlreadyCloningWithSameId(id) => writeln!(f, "Already cloning with same id: {id}"),
-      Error::Yaml(err) => writeln!(f, "YAML serialize/deserialize: {err}"),
-      Error::Healthcheck(err) => writeln!(f, "{err}"),
-      Error::FileLock(err) => writeln!(f, "{err:?}"),
-      Error::FileLockHealthcheckFailed(err) => writeln!(f, "{err:?}"),
-    }
+impl From<std::io::Error> for Error {
+  fn from(value: std::io::Error) -> Self {
+    Error::Io(value.to_string())
   }
 }
 
@@ -78,8 +61,16 @@ impl Error {
   pub fn code(&self) -> Option<i32> {
     match self {
       Error::Git(err) => Some(err.raw_code().abs()),
-      Error::Healthcheck(err) => err.inner.as_ref().map(|e| e.raw_code().abs()),
-      Error::FileLockHealthcheckFailed(err) => err.inner.as_ref().map(|e| e.raw_code().abs()),
+      Error::Lfs(err) => {
+        if let LfsError::Git2(err) = err {
+          Some(err.raw_code().abs())
+        } else {
+          None
+        }
+      }
+      Error::Healthcheck(err) | Error::FileLockHealthcheckFailed(err) => {
+        err.inner.as_ref().map(|e| e.raw_code().abs())
+      }
       Error::Network { status, .. } => Some(*status as i32),
       _ => None,
     }
@@ -88,30 +79,49 @@ impl Error {
   #[allow(clippy::unnecessary_cast)]
   pub fn class(&self) -> Option<u32> {
     match self {
-      Error::Io(_) => Some(1000),
-      Error::Healthcheck(e) => {
-        let has_bad_objects = e.bad_objects.as_ref().is_some_and(|o| !o.is_empty());
-        if has_bad_objects {
-          return Some(1001);
-        }
-
-        e.inner.as_ref().map(|e| e.raw_class() as u32)
-      }
-      Error::FileLockHealthcheckFailed(e) => {
-        let has_bad_objects = e.bad_objects.as_ref().is_some_and(|o| !o.is_empty());
-        if has_bad_objects {
-          return Some(1002);
-        }
-        e.inner.as_ref().map(|e| e.raw_class() as u32)
-      }
-      Error::FileLock(_) => Some(1003),
-      Error::NoWorkdir => Some(1004),
-      Error::NoModifiedFiles => Some(1005),
-      Error::AlreadyCloningWithSameId(_) => Some(1006),
-      Error::Yaml(_) => Some(1007),
-      Error::Utf8 => Some(1008),
-      Error::Network { status, .. } => Some(*status as u32),
       Error::Git(err) => Some(err.class() as u32),
+
+      Error::Lfs(err) => {
+        if let LfsError::Git2(err) = err {
+          Some(err.class() as u32)
+        } else {
+          None
+        }
+      }
+
+      Error::Healthcheck(e) | Error::FileLockHealthcheckFailed(e) => {
+        e.inner.as_ref().map(|e| e.raw_class() as u32)
+      }
+
+      _ => None,
+    }
+  }
+
+  pub fn subset(&self) -> i32 {
+    match self {
+      Error::Git(_) => 1,
+      Error::Lfs(_) => 2,
+
+      Error::Healthcheck(err) | Error::FileLockHealthcheckFailed(err) => {
+        let has_bad_objects = err.bad_objects.as_ref().is_some_and(|o| !o.is_empty());
+        if has_bad_objects {
+          3
+        } else {
+          1
+        }
+      }
+
+      Error::Utf8 => 4,
+
+      Error::Network { .. } => 5,
+
+      Error::Io(_) => 6,
+
+      Error::Yaml(_) => 7,
+      Error::AlreadyCloningWithSameId(_) => 8,
+      Error::NoWorkdir => 9,
+      Error::NoModifiedFiles => 10,
+      Error::FileLock(_) => 11,
     }
   }
 }

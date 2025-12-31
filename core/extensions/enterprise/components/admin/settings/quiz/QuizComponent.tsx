@@ -1,16 +1,18 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
+import { QuizTestsTable } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTestsTable";
+import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
 import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
+import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
-import { useEffect, useState } from "react";
-import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
-import { QuizTestsTable } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTestsTable";
-import { SwitchField } from "@ui-kit/Switch";
 import t from "@ext/localization/locale/translate";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { Button } from "@ui-kit/Button";
+import { SwitchField } from "@ui-kit/Switch";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { useEffect, useState } from "react";
 
 export interface QuizSettings {
 	enabled: boolean;
@@ -30,6 +32,7 @@ const QuizComponent = () => {
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveError, setSaveError] = useState<string>(null);
 	const [isHealthy, setIsHealthy] = useState(null);
+	const { isScrolled } = useScrollShadow();
 
 	useEffect(() => {
 		setLocalSettings(settings?.quiz || { enabled: false });
@@ -58,41 +61,46 @@ const QuizComponent = () => {
 	return (
 		<>
 			<div className="flex flex-col h-full space-y-6" style={{ height: "inherit" }}>
-				<div className="flex w-full justify-between items-center">
-					<h1 className="flex items-center text-2xl font-bold h-[40px] gap-2">
-						{getAdminPageTitle(Page.QUIZ)} <Spinner size="small" show={isRefreshing("quiz")} />
-						{isHealthy === false && (
-							<Tooltip>
-								<TooltipTrigger asChild>
-									<Button
-										className="p-0 h-auto"
-										startIcon="circle-alert"
-										variant="text"
-										status="error"
-										size="sm"
-									/>
-								</TooltipTrigger>
-								<TooltipContent>Сервис базы данных недоступен</TooltipContent>
-							</Tooltip>
-						)}
-					</h1>
-					<SwitchField
-						label={
-							localSettings.enabled
-								? t("enterprise.admin.quiz.switch.on")
-								: t("enterprise.admin.quiz.switch.off")
-						}
-						alignment="right"
-						className="gap-2"
-						disabled={isSaving}
-						checked={localSettings.enabled}
-						onCheckedChange={handleSave}
-					/>
-				</div>
+				<StickyHeader
+					title={
+						<>
+							{getAdminPageTitle(Page.QUIZ)} <Spinner size="small" show={isRefreshing("quiz")} />
+							{isHealthy === false && (
+								<Tooltip>
+									<TooltipTrigger asChild>
+										<Button
+											className="p-0 h-auto"
+											startIcon="circle-alert"
+											variant="text"
+											status="error"
+											size="sm"
+										/>
+									</TooltipTrigger>
+									<TooltipContent>{t("enterprise.admin.quiz.errors.database-unavailable")}</TooltipContent>
+								</Tooltip>
+							)}
+						</>
+					}
+					isScrolled={isScrolled}
+					actions={
+						<SwitchField
+							label={
+								localSettings.enabled
+									? t("enterprise.admin.quiz.switch.on")
+									: t("enterprise.admin.quiz.switch.off")
+							}
+							alignment="right"
+							className="gap-2"
+							disabled={isSaving || isHealthy === false}
+							checked={localSettings.enabled}
+							onCheckedChange={handleSave}
+						/>
+					}
+				/>
 				<FloatingAlert show={Boolean(saveError)} message={saveError} />
 
 				{localSettings.enabled && (
-					<div className="flex-1 min-h-0">
+					<div className="flex-1 min-h-0 px-6">
 						<QuizTestsTable isHealthy={isHealthy} />
 					</div>
 				)}

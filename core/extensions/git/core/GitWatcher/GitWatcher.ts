@@ -23,9 +23,11 @@ export default class GitWatcher {
 				old: oldVersion,
 				new: newVersion,
 			},
-			renames: true,
+			renames: false,
+			// because two branches might not have a merge base (orphan branches)
+			useMergeBase: false,
 		});
-    
+
 		await this._events.emit("update", diff);
 	}
 }

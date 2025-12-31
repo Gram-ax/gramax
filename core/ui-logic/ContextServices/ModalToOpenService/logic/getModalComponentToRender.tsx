@@ -3,7 +3,6 @@ import ActionConfirm from "@components/Atoms/ActionConfirm";
 import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
 import ModalLoading from "@components/ModalLoading";
-import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import EditMarkdown from "@ext/article/actions/EditMarkdown";
 import DuplicateArticleDialog from "@ext/article/actions/move/DuplicateArticleDialog";
 import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
@@ -44,6 +43,8 @@ import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import ModalToOpen from "../model/ModalsToOpen";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import DefaultModal from "../components/DefaultModal";
 import { AlertComment } from "@ext/markdown/elements/comment/edit/components/AlertComment";
 
 const getModalComponentToRender: {
@@ -113,6 +114,7 @@ const getModalComponentToRender: {
 
 	[ModalToOpen.GesAdmin]: Admin,
 
+	[ModalToOpen.DefaultModal]: DefaultModal,
 	[ModalToOpen.UnsavedChangesModal]: UnsavedChangesModal,
 	[ModalToOpen.UnsavedCommentModal]: AlertComment,
 

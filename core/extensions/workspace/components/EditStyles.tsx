@@ -19,7 +19,6 @@ interface EditStylesProps {
 const useModalDescription = () => {
 	const mainText = t("workspace.css-configuration-instruction") || "";
 	const linkText = t("workspace.instruction");
-	const { isTauri } = usePlatform();
 	const lang = LanguageService.currentUi();
 	const isRuLang = lang === "ru";
 
@@ -34,7 +33,7 @@ const useModalDescription = () => {
 						? "https://gram.ax/resources/docs/space/css-styles"
 						: "https://gram.ax/resources/docs/en/space/css-styles"
 				}
-				target={isTauri ? "_self" : "_blank"}
+				target={"_blank"}
 				linkTheme={LinkTheme.DEFAULT}
 			>
 				{linkText}

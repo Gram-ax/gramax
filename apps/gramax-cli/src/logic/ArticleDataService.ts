@@ -122,7 +122,9 @@ export class ArticleDataService {
 
 	private async _getCatalogProps(sitePresenter: SitePresenter, catalog: Catalog) {
 		const props = await this._getAnonymizedCatalogProps(sitePresenter, catalog);
-		props.link.pathname = RouterPathProvider.getLogicPath(props.link.pathname);
+		props.link.pathname = RouterPathProvider.getReadOnlyPathname(
+			RouterPathProvider.getLogicPath(props.link.pathname),
+		);
 		return props;
 	}
 

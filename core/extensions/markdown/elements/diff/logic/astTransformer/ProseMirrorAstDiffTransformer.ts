@@ -1,4 +1,4 @@
-import AstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
+import AstDiffTransformer, { AstComment } from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
 import {
 	AddedDiffLine,
 	DeletedDiffLine,
@@ -26,6 +26,9 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 	private _oldStrings: string[] = [];
 	private _newStrings: string[] = [];
 
+	private _oldParagraphComments: AstComment = {};
+	private _newParagraphComments: AstComment = {};
+
 	constructor(oldAst: Node, newAst: Node) {
 		super(oldAst, newAst);
 	}
@@ -34,10 +37,18 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 		if (this._oldStrings.length > 0 && this._newStrings.length > 0)
 			return { oldStrings: this._oldStrings, newStrings: this._newStrings };
 
-		this._descendants(this._oldAst, (node, pos) => this._astWalker(node, pos, this._oldStrings, this._oldMatrix));
-		this._descendants(this._newAst, (node, pos) => this._astWalker(node, pos, this._newStrings, this._newMatrix));
+		this._descendants(this._oldAst, (node, pos) =>
+			this._astWalker(node, pos, this._oldStrings, this._oldMatrix, this._oldParagraphComments),
+		);
+		this._descendants(this._newAst, (node, pos) =>
+			this._astWalker(node, pos, this._newStrings, this._newMatrix, this._newParagraphComments),
+		);
 
 		return { oldStrings: this._oldStrings, newStrings: this._newStrings };
+	}
+
+	getParagraphComments(): { oldParagraphComments: AstComment; newParagraphComments: AstComment } {
+		return { oldParagraphComments: this._oldParagraphComments, newParagraphComments: this._newParagraphComments };
 	}
 
 	getAstPos(findIn: "old" | "new", arrayIdx: number, charIdx: number): number {
@@ -122,8 +133,9 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 		return proseMirrorDiffLines;
 	}
 
-	private _astWalker(node: Node, pos: number, strings: string[], matrix: number[][]) {
+	private _astWalker(node: Node, pos: number, strings: string[], matrix: number[][], comments: AstComment) {
 		if (node.type.name === "paragraph" || node.type.name === "heading") {
+			const haveComments = this._haveParagraphComments(node);
 			const string = node.textContent;
 			if (!string) {
 				strings.push("");
@@ -133,12 +145,39 @@ export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {
 
 			strings.push(string);
 			const positions: number[] = [];
+
 			for (let i = 0; i < string.length; i++) {
-				positions.push(pos + 1 + i); // +1 because of paragraph and text nodes offset
+				const astPos = pos + 1 + i; // +1 because of paragraph and text nodes offset
+				positions.push(astPos);
+
+				if (haveComments) {
+					const nodeAtPos = node.nodeAt(i);
+					const isCommentPos = this._haveNodeComments(nodeAtPos);
+					if (isCommentPos) {
+						const id = nodeAtPos.marks.find((mark) => mark.type.name === "comment")?.attrs.id;
+						if (!comments[id]) comments[id] = { from: astPos, to: undefined };
+						comments[id].to = astPos;
+					}
+				}
 			}
 
 			matrix.push(positions);
 		}
+	}
+
+	private _haveParagraphComments(node: Node): boolean {
+		if (node.type.name !== "paragraph") return false;
+
+		for (let i = 0; i < node.childCount; i++) {
+			const n = node.child(i);
+			if (this._haveNodeComments(n)) return true;
+		}
+
+		return false;
+	}
+
+	private _haveNodeComments(node: Node): boolean {
+		return node.marks.some((mark) => mark.type.name === "comment");
 	}
 
 	private _descendants(node: Node, callback: (node: Node, pos: number, parentNode: Node) => void) {

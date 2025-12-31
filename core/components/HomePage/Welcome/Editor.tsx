@@ -12,7 +12,6 @@ import t from "@ext/localization/locale/translate";
 import { ContentDivider } from "@ui-kit/Divider";
 import { memo } from "react";
 import { Button, RichButton } from "@ui-kit/Button";
-import CanEditCatalogHOC from "@ext/enterprise/components/CanEditCatalogHOC";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import { cn } from "@core-ui/utils/cn";
@@ -166,20 +165,18 @@ export const EditorWelcome = () => {
 			</div>
 			{canAddCatalog && (
 				<div className="container">
-					<CanEditCatalogHOC>
-						<IsReadOnlyHOC>
-							<CreateCatalog
-								trigger={
-									<RichButton
-										icon={"plus"}
-										size={richButtonSize}
-										title={t("welcome.editor.options.create-blank.title")}
-										description={t("welcome.editor.options.create-blank.description")}
-									/>
-								}
-							/>
-						</IsReadOnlyHOC>
-					</CanEditCatalogHOC>
+					<IsReadOnlyHOC>
+						<CreateCatalog
+							trigger={
+								<RichButton
+									icon={"plus"}
+									size={richButtonSize}
+									title={t("catalog.new-2")}
+									description={t("catalog.new-3")}
+								/>
+							}
+						/>
+					</IsReadOnlyHOC>
 					<ContentDivider>
 						<div className="text-sm text-center font-normal text-muted">{t("or")}</div>
 					</ContentDivider>
@@ -190,17 +187,15 @@ export const EditorWelcome = () => {
 						description={t("welcome.editor.options.download-exists.description")}
 						onClick={onCloneClick}
 					/>
-					<CanEditCatalogHOC>
-						<IsReadOnlyHOC>
-							<RichButton
-								icon={"import"}
-								size={richButtonSize}
-								title={t("welcome.editor.options.import-exists.title")}
-								description={t("welcome.editor.options.import-exists.description")}
-								onClick={onImportClick}
-							/>
-						</IsReadOnlyHOC>
-					</CanEditCatalogHOC>
+					<IsReadOnlyHOC>
+						<RichButton
+							icon={"import"}
+							size={richButtonSize}
+							title={t("catalog.import-2")}
+							description={t("catalog.import-3")}
+							onClick={onImportClick}
+						/>
+					</IsReadOnlyHOC>
 				</div>
 			)}
 			{!hasWorkspace && <WorkspacePath />}

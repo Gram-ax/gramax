@@ -14,6 +14,8 @@ import EditorService, { BaseEditorContext } from "@ext/markdown/elementsUtils/Co
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import PropertyService from "@ext/properties/components/PropertyService";
 import { Editor } from "@tiptap/core";
+
+import { usePluginEvent } from "@plugins/api/events";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ContentEditor from "../../extensions/markdown/core/edit/components/ContentEditor";
 import getExtensions from "../../extensions/markdown/core/edit/logic/getExtensions";
@@ -21,7 +23,7 @@ import Renderer from "../../extensions/markdown/core/render/components/Renderer"
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
 import Header from "../../extensions/markdown/elements/heading/render/component/Header";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
-import { highlightSearchFragmentByUrl } from "./SearchHandler/ArticleSearchFragmentHander";
+import { highlightFragmentInDocportalByUrl } from "./SearchHandler/ArticleSearchFragmentHander";
 
 interface ArticleRendererProps {
 	data: ArticlePageData;
@@ -37,10 +39,12 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	const resourceService = ResourceService.value;
 	const workspace = Workspace.current();
 	const isGES = !!workspace?.enterprise?.gesUrl;
+	const gesModules = workspace?.enterprise?.modules;
 	const [actualData, setActualData] = useState(data);
 
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
+
 	const { value: articleProps, setArticleProps, setTocItems } = ArticlePropsService;
 	const propertyService = PropertyService.value;
 
@@ -67,7 +71,12 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	const onUpdate = (newData: ArticlePageData) => {
 		setActualData(newData);
 		setArticleProps(newData.articleProps);
+
 		resourceService.clear();
+
+		const editor = EditorService.getEditor();
+		// Clear history to avoid nodes with resources don't be error on undo/redo
+		if (editor) editor.chain().clearHistory().setContent(JSON.parse(newData.articleContentEdit)).run();
 	};
 
 	const updateContent = useCallback(async (editor: Editor) => {
@@ -147,7 +156,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		() =>
 			getExtensions({
 				includeResources: true,
-				includeQuestions: isGES,
+				includeQuestions: isGES && gesModules?.quiz,
 				...(actualData.articleProps.template && { isTemplateInstance: true }),
 			}),
 		[actualData.articleProps.ref.path, actualData.articleProps.template, isGES],
@@ -162,6 +171,8 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 					onTitleLoseFocus={onTitleNeedsUpdate}
 					onUpdate={onContentUpdate}
 					handlePaste={editorHandlePaste}
+					articlePropsRef={articlePropsRef}
+					apiUrlCreatorRef={apiUrlCreatorRef}
 				/>
 			</ArticleParent>
 		</ArticleUpdater>
@@ -185,9 +196,7 @@ export const ArticleReadRenderer = memo(({ data }: { data: ArticlePageData }) =>
 					JSON.parse(data.articleContentRender),
 					{ components: useMemo(getComponents, []) },
 					false,
-					() => {
-						highlightSearchFragmentByUrl(100, "docportal");
-					},
+					() => highlightFragmentInDocportalByUrl(100),
 				)}
 				<ArticleMat />
 			</>

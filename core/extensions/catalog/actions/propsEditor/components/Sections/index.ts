@@ -1,5 +1,5 @@
-export { EditBasicProps } from "./Basic";
 export { EditAppearanceProps as EditDisplayProps } from "./Appearance";
+export { EditBasicProps } from "./Basic";
 
 export const SettingsTabs = {
 	general: {
@@ -13,6 +13,10 @@ export const SettingsTabs = {
 	icons: {
 		icon: "images",
 		label: "icons",
+	},
+	lfs: {
+		icon: "package",
+		label: "lfs",
 	},
 };
 

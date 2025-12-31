@@ -2,8 +2,6 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import SvgContainer from "@ext/markdown/core/edit/components/Menu/SvgContainer";
 import { Editor } from "@tiptap/core";
 import { c4DiagramIcon } from "../../diagrams/c4Diagram/c4DiagramData";
 import { mermaidIcon } from "../../diagrams/mermaid/mermaidData";
@@ -12,6 +10,9 @@ import { tsDiagramIcon } from "../../diagrams/tsDiagram/tsDiagramData";
 import createDiagrams from "../../logic/createDiagrams";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { useMemo } from "react";
 
 interface DiagramsMenuButtonProps {
 	editor: Editor;
@@ -24,34 +25,39 @@ const DiagramsMenuButton = ({ editor, diagramName, fileName }: DiagramsMenuButto
 	const resourceService = ResourceService.value;
 	const pageDataContext = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
+	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "diagrams", attrs: { diagramName } });
 
-	let diagramIcon: JSX.Element;
-	let diagramTooltipText: string;
-	switch (diagramName) {
-		case DiagramType.mermaid:
-			diagramIcon = mermaidIcon;
-			diagramTooltipText = t("diagram.names.mermaid");
-			break;
-		case DiagramType["c4-diagram"]:
-			diagramIcon = c4DiagramIcon;
-			diagramTooltipText = t("diagram.names.c4");
-			break;
-		case DiagramType["plant-uml"]:
-			diagramIcon = plantUmlIcon;
-			diagramTooltipText = t("diagram.names.puml");
-			break;
-		case DiagramType["ts-diagram"]:
-			diagramIcon = tsDiagramIcon;
-			diagramTooltipText = t("diagram.names.ts");
-			break;
-	}
+	const { text, diagramIcon } = useMemo(() => {
+		let text: string;
+		let diagramIcon: JSX.Element;
+
+		switch (diagramName) {
+			case DiagramType.mermaid:
+				diagramIcon = mermaidIcon;
+				text = t("diagram.names.mermaid");
+				break;
+			case DiagramType["c4-diagram"]:
+				diagramIcon = c4DiagramIcon;
+				text = t("diagram.names.c4");
+				break;
+			case DiagramType["plant-uml"]:
+				diagramIcon = plantUmlIcon;
+				text = t("diagram.names.puml");
+				break;
+			case DiagramType["ts-diagram"]:
+				diagramIcon = tsDiagramIcon;
+				text = t("diagram.names.ts");
+				break;
+		}
+
+		return { text, diagramIcon };
+	}, [diagramName]);
 
 	return (
-		<Button
-			dataQa={`qa-edit-menu-${diagramName}`}
-			tooltipText={diagramTooltipText}
-			nodeValues={{ action: "diagrams", attrs: { diagramName } }}
-			onClick={() =>
+		<ToolbarDropdownMenuItem
+			disabled={disabled}
+			active={isActive}
+			onSelect={() =>
 				void createDiagrams(
 					editor,
 					fileName || articleProps?.fileName,
@@ -62,8 +68,11 @@ const DiagramsMenuButton = ({ editor, diagramName, fileName }: DiagramsMenuButto
 				)
 			}
 		>
-			<SvgContainer>{diagramIcon}</SvgContainer>
-		</Button>
+			<div className="flex flex-row items-center gap-2" data-qa={`qa-edit-menu-${diagramName}`}>
+				{diagramIcon}
+				{text}
+			</div>
+		</ToolbarDropdownMenuItem>
 	);
 };
 

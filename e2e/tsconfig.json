@@ -7,6 +7,10 @@
 		}
 	},
 
+	"compilerOptions": {
+		"moduleResolution": "node"
+	},
+
 	"include": ["**/*.ts", "**/*.d.ts"],
 
 	"extends": "../tsconfig.json"

@@ -35,6 +35,9 @@ export const useQuestionsStore = <T,>(
 };
 
 const ChildrenOfProvider = ({ children, path }: { children: ReactNode; path: string }) => {
+	const workspace = Workspace.current();
+	if (!workspace?.enterprise?.gesUrl) return children;
+
 	useIsAnsweredToTest([path]);
 	return children;
 };
@@ -42,8 +45,6 @@ const ChildrenOfProvider = ({ children, path }: { children: ReactNode; path: str
 export const QuestionsProvider = memo(({ children, questions, path }: QuestionsProviderProps) => {
 	const { isNext } = usePlatform();
 	if (!isNext) return children;
-	const workspace = Workspace.current();
-	if (!workspace?.enterprise?.gesUrl) return children;
 
 	const storeRef = useRef<QuestionsStoreApi>(null);
 	const localStorageRef = useRef<LocalQuestionsStorage>(new LocalQuestionsStorage(path));

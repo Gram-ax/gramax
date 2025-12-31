@@ -18,6 +18,8 @@ unit-tests:
   extends: .template.tests
   stage: test
   image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
+  tags:
+    - kubernetes01-gramax-5ghz
   rules:
     - !reference [.condition, tests, base, rules]
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
@@ -30,6 +32,9 @@ unit-tests:
     GIT_SERVER_TOKEN: $ENTERPRISE_GIT_SERVER_TOKEN
     GIT_PROJECT_PATH: $ENTERPRISE_GIT_PROJECT_PATH
     KEYCLOAK_CLIENT_SECRET: $E2E_KEYCLOAK_CLIENT_SECRET
+    KUBERNETES_MEMORY_REQUEST: "2Gi"
+    KUBERNETES_CPU_REQUEST: "2"
+    KUBERNETES_CPU_LIMIT: "5"
   before_script:
     - ./install-deps.sh --ci --node
     - echo '127.0.0.1 enterprise.gramax.local' >> /etc/hosts
@@ -54,6 +59,7 @@ unit-tests:
     - !reference [.template.cache, npm]
     - !reference [.template.cache, cargo]
 
+
 run-e2e:
   extends: .template.tests
   stage: test
@@ -69,6 +75,9 @@ run-e2e:
     PORT: 5173
     PRODUCTION: "false"
     GX_E2E_GITLAB_PUSH_REPO: test-push-$CI_COMMIT_SHORT_SHA
+    KUBERNETES_MEMORY_REQUEST: "3Gi"
+    KUBERNETES_CPU_REQUEST: "1.5"
+    KUBERNETES_CPU_LIMIT: "4"
   before_script:
     - ./install-deps.sh --ci
   script:
@@ -92,7 +101,7 @@ run-e2e:
 run-e2e-next:
   extends: run-e2e
   tags:
-    - kubernetes01-gramax
+    - kubernetes01-gramax-5ghz
   image: gitlab.ics-it.ru:4567/ics/doc-reader:playwright-$BRANCH
   variables:
     PORT: 5173
@@ -101,6 +110,9 @@ run-e2e-next:
     ROOT_PATH: ${PWD}/x
     PRODUCTION: "false"
     CARGO_HOME: "$CI_PROJECT_DIR/.cargo"
+    KUBERNETES_MEMORY_REQUEST: "4Gi"
+    KUBERNETES_CPU_REQUEST: "2"
+    KUBERNETES_CPU_LIMIT: "5"
   before_script:
     - ./install-deps.sh --ci --node
     - mkdir -p $ROOT_PATH
@@ -123,6 +135,9 @@ run-e2e-static:
     - !reference [.condition, tests, e2e, rules]
   variables:
     PORT: 5173
+    KUBERNETES_MEMORY_REQUEST: "4Gi"
+    KUBERNETES_CPU_REQUEST: "1.5"
+    KUBERNETES_CPU_LIMIT: "3"
   before_script:
     - ./install-deps.sh --ci
     - ./.ci/e2e/repo-info.sh

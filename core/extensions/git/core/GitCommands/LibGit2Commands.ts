@@ -132,8 +132,13 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		});
 	}
 
-	async checkout(ref: string, force?: boolean): Promise<void> {
-		await git.checkout({ repoPath: this._repoPath, refName: ref, force: force ?? false });
+	async checkout(data: GitSourceData, ref: string, force?: boolean): Promise<void> {
+		await git.checkout({
+			repoPath: this._repoPath,
+			creds: this._intoCreds(data),
+			refName: ref,
+			force: force ?? false,
+		});
 	}
 
 	async setHead(refname: string): Promise<void> {
@@ -172,6 +177,10 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 			oldPath: s.oldPath ? new Path(s.oldPath as unknown as string) : undefined,
 			path: new Path(s.path as unknown as string),
 		}));
+
+		if (typeof info.mergeBase === "string") {
+			info.mergeBase = new GitVersion(info.mergeBase);
+		}
 
 		return info;
 	}

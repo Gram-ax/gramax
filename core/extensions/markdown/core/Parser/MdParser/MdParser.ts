@@ -152,12 +152,12 @@ export default class MdParser {
 			group = this._screenLink(group);
 			const split = group.split(":");
 			if (split[0][0] === "/") {
-				const tagName = split[0].slice(1).toLowerCase();
+				const tagName = this._replaceNotLowerCase(split[0].slice(1).toLowerCase());
 				const tag = this._tags[tagName];
 				if (tag?.selfClosing === false) return this._parseClose(tagName);
 			}
-			const tag = this._tags[split[0].toLowerCase()];
-			return tag ? this._parse(split, tag) : str;
+			const tag = this._tags[this._replaceNotLowerCase(split[0].toLowerCase())];
+			return tag ? this._replaceNotLowerCase(this._parse(split, tag)) : str;
 		});
 	}
 
@@ -213,7 +213,7 @@ export default class MdParser {
 	}
 
 	private _parseClose(tagName: string): string {
-		return `{%/${tagName.toLowerCase()}%}`;
+		return `{%/${this._replaceNotLowerCase(tagName.toLowerCase())}%}`;
 	}
 
 	private _screenLink(content: string): string {
@@ -227,6 +227,10 @@ export default class MdParser {
 	private _createBlockCodeIgnoreRegExp(reg: string, ...additionalIgnore: string[]): RegExp {
 		const commonString = [this._findBlockCodeToIgnore, ...additionalIgnore, reg].join("|");
 		return new RegExp(commonString, "gm");
+	}
+
+	private _replaceNotLowerCase(content: string): string {
+		return content.replaceAll("questionanswer", "questionAnswer");
 	}
 
 	private _createIgnoreRegExp(reg: string, ...additionalIgnore: string[]): RegExp {

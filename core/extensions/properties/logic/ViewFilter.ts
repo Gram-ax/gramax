@@ -137,7 +137,6 @@ class ViewFilter extends ViewSorter {
 				);
 
 				const content = await this._parser.parse(prop.value?.[0], context);
-				console.log(content.renderTree);
 				newProps.push({ ...prop, value: [content.renderTree] });
 			}
 

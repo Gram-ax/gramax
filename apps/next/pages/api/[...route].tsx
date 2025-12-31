@@ -43,6 +43,10 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 		PersistentLogger.info(`executing command ${path}`, "cmd", { ...req.query });
 
 		const result = await withContext(ctx, async () => await command.do(params));
+		if (controller.signal.aborted) {
+			return;
+		}
+
 		await respond(app, req, res, command.kind, result);
 	});
 

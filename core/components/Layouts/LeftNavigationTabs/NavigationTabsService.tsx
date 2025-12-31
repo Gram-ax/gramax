@@ -1,5 +1,5 @@
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
-import React, { ReactElement, useContext, useState } from "react";
+import React, { ReactElement, SetStateAction, useContext, useState } from "react";
 
 type NavigationTabs = {
 	topTab: LeftNavigationTab;
@@ -33,11 +33,11 @@ class NavigationTabsService {
 		return useContext(NavigationTabsContext);
 	}
 
-	setTop(topTab: LeftNavigationTab) {
+	setTop(topTab: SetStateAction<LeftNavigationTab>) {
 		this._setTopTab(topTab);
 	}
 
-	setBottom(bottomTab: LeftNavigationTab) {
+	setBottom(bottomTab: SetStateAction<LeftNavigationTab>) {
 		this._setBottomTab(bottomTab);
 	}
 }

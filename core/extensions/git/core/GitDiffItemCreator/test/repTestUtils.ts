@@ -69,5 +69,14 @@ const repTestUtils = {
 	clearComplexResourceChanges: async (_dfp: DiskFileProvider, git: GitCommands) => {
 		await git.reset({ mode: "hard" });
 	},
+
+	makeCommentsChanges: async (dfp: DiskFileProvider) => {
+		const oldContent = await dfp.read(new Path("1.comments.yaml"));
+		const newContent = oldContent.replace("test comment", "new test comment");
+		await dfp.write(new Path("1.comments.yaml"), newContent);
+	},
+	clearCommentsChanges: async (_dfp: DiskFileProvider, git: GitCommands) => {
+		await git.reset({ mode: "hard" });
+	},
 };
 export default repTestUtils;

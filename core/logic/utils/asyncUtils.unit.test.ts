@@ -133,7 +133,7 @@ describe("asyncUtils", () => {
 			it("calls forEachConcurrent with correct parameters", async () => {
 				const spy = jest.spyOn(asyncUtils, "forEachConcurrent").mockResolvedValue(undefined);
 				await [1, 2].forEachAsync(jest.fn(), 7);
-				expect(spy).toHaveBeenCalledWith([1, 2], expect.any(Function), 7);
+				expect(spy).toHaveBeenCalledWith([1, 2], expect.any(Function), 7, undefined);
 				spy.mockRestore();
 			});
 		});

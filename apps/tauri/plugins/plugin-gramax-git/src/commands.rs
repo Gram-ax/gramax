@@ -103,8 +103,8 @@ pub(crate) fn init_new(repo_path: &Path, creds: AccessTokenCreds) -> Result<()> 
 }
 
 #[command(async)]
-pub(crate) fn checkout(repo_path: &Path, ref_name: &str, force: bool) -> Result<()> {
-  git::checkout(repo_path, ref_name, force)
+pub(crate) fn checkout(repo_path: &Path, creds: AccessTokenCreds, ref_name: &str, force: bool) -> Result<()> {
+  git::checkout(repo_path, creds, ref_name, force)
 }
 
 #[command(async)]

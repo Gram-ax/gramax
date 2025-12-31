@@ -1,19 +1,16 @@
-import { useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
 import styled from "@emotion/styled";
 import { ArticleLink, BaseLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import { forwardRef, MutableRefObject } from "react";
 import Breadcrumb from "./Breadcrumb";
 
-interface BreadcrumbProps {
+export interface LinksBreadcrumbProps {
 	itemLinks?: ItemLink[];
-	catalog?: { name: string; title: string };
-	readyData?: { titles: string[]; links: BaseLink[] };
+	readyData?: { titles: string[]; links: BaseLink[], onClicks?: (() => void)[] };
 	className?: string;
 }
 
-const LinksBreadcrumb = forwardRef((props: BreadcrumbProps, ref: MutableRefObject<HTMLDivElement>) => {
-	const { itemLinks, catalog, readyData, className } = props;
-	const { isExist, src } = useGetCatalogLogoSrc(catalog?.name);
+const LinksBreadcrumb = forwardRef((props: LinksBreadcrumbProps, ref: MutableRefObject<HTMLDivElement>) => {
+	const { itemLinks, readyData, className } = props;
 
 	let titles: string[] = [];
 	let lastIsIndexArticle = false;
@@ -49,25 +46,20 @@ const LinksBreadcrumb = forwardRef((props: BreadcrumbProps, ref: MutableRefObjec
 		categoryLinks = readyData.links;
 	}
 
-	if (!titles.length && !catalog) return <div />;
+	if (!titles.length) return <div />;
 	return (
 		<div
 			ref={ref}
 			className={className + " breadcrumb"}
-			style={catalog || (titles.length && categoryLinks.length) ? {} : { visibility: "hidden" }}
+			style={titles.length && categoryLinks.length ? {} : { visibility: "hidden" }}
 		>
-			{catalog && (
-				<a className="catalog-logo">
-					{isExist && <img src={src} alt={catalog.name} />}
-					<span className="title">{catalog.title}</span>
-				</a>
-			)}
 			<div className="article-breadcrumb">
 				{titles.length && categoryLinks.length ? (
 					<Breadcrumb
 						content={titles.map((t, i) => ({
 							text: t,
 							link: categoryLinks[i],
+							onClick: readyData?.onClicks?.[i]
 						}))}
 					/>
 				) : null}
@@ -80,26 +72,6 @@ export default styled(LinksBreadcrumb)`
 	min-width: 0;
 	display: flex;
 	align-items: center;
-
-	img {
-		width: 100%;
-		margin: 0px !important;
-		max-width: 25px !important;
-		max-height: 15px !important;
-		box-shadow: none !important;
-	}
-
-	.title {
-		font-size: 10px;
-		font-weight: 600;
-		margin-left: 0.2rem;
-		white-space: nowrap;
-	}
-
-	.catalog-logo {
-		display: flex;
-		align-items: center;
-	}
 
 	.article-breadcrumb {
 		max-width: 100%;

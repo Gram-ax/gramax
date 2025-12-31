@@ -3,6 +3,7 @@ export {
 	CommandInput,
 	CommandList,
 	CommandEmpty,
-	CommandGroup,
 	CommandItem,
+	CommandGroup,
+	CommandSeparator,
 } from "ics-ui-kit/components/command";

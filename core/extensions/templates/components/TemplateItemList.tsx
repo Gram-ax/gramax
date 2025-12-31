@@ -7,78 +7,98 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import t from "@ext/localization/locale/translate";
 import { TemplateContentWarningProps } from "@ext/templates/components/TemplateContentWarning";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
-import { useState } from "react";
-import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
+import { useCallback, useState } from "react";
+import {
+	DropdownMenuItem,
+	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+} from "@ui-kit/Dropdown";
+import TemplateService from "@ext/templates/components/TemplateService";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import { useApi } from "@core-ui/hooks/useApi";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import Icon from "@components/Atoms/Icon";
 
-const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
+const TemplateItemList = ({ itemRefPath, disabled }: { itemRefPath: string; disabled: boolean }) => {
 	const [list, setList] = useState<ProviderItemProps[]>([]);
 	const [isApiRequest, setIsApiRequest] = useState(false);
 
+	const { call: fetchTemplateItems } = useApi<ProviderItemProps[]>({
+		url: (api) => api.getArticleListInGramaxDir("template"),
+		onStart: () => {
+			setIsApiRequest(true);
+		},
+		onDone: (data) => {
+			setList(data);
+		},
+		onFinally: () => {
+			setIsApiRequest(false);
+		},
+	});
+
+	const { call: getArticleContent } = useApi<string>({
+		url: (api) => api.getArticleContent(itemRefPath),
+	});
+
+	const { call: getItemProps } = useApi<ClientArticleProps>({
+		url: (api) => api.getItemProps(itemRefPath),
+	});
+
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const fetchTemplateItems = async () => {
-		setIsApiRequest(true);
-		const url = apiUrlCreator.getArticleListInGramaxDir("template");
-		const res = await FetchService.fetch<ProviderItemProps[]>(url);
-
-		if (!res.ok) return setIsApiRequest(false);
-		const templates = await res.json();
-
-		setList(templates);
-		setIsApiRequest(false);
-	};
-
-	const setModalLoader = () => {
+	const setModalLoader = useCallback(() => {
 		ModalToOpenService.setValue(ModalToOpen.Loading);
-	};
+	}, []);
 
-	const setAsTemplate = async (item: ProviderItemProps) => {
-		setModalLoader();
-		const itemProps = apiUrlCreator.getItemProps(itemRefPath);
-		const res = await FetchService.fetch(itemProps);
-		const itemPropsData = await res.json();
-		if (!res.ok) return ModalToOpenService.resetValue();
+	const setAsTemplate = useCallback(
+		async (item: ProviderItemProps) => {
+			setModalLoader();
+			const itemProps = await getItemProps();
+			if (!itemProps) return ModalToOpenService.resetValue();
 
-		itemPropsData.template = item.id;
-		itemPropsData.title = itemPropsData.title !== t("article.no-name") ? itemPropsData.title : "";
+			itemProps.template = item.id;
+			itemProps.title = itemProps.title !== t("article.no-name") ? itemProps.title : "";
 
-		const setArticleContentUrl = apiUrlCreator.setArticleContent(itemRefPath);
-		await FetchService.fetch(setArticleContentUrl, "");
+			const setArticleContentUrl = apiUrlCreator.setArticleContent(itemRefPath);
+			await FetchService.fetch(setArticleContentUrl, "");
 
-		const url = apiUrlCreator.updateItemProps();
-		await FetchService.fetch(url, JSON.stringify(itemPropsData), MimeTypes.json);
+			const url = apiUrlCreator.updateItemProps();
+			await FetchService.fetch(url, JSON.stringify(itemProps), MimeTypes.json);
 
-		ModalToOpenService.resetValue();
-		await refreshPage();
-	};
+			ModalToOpenService.resetValue();
+			await refreshPage();
+		},
+		[itemRefPath, apiUrlCreator, getItemProps],
+	);
 
-	const onSelectHandler = async (item: ProviderItemProps) => {
-		setModalLoader();
+	const onSelectHandler = useCallback(
+		async (item: ProviderItemProps) => {
+			setModalLoader();
 
-		const url = apiUrlCreator.getArticleContent(itemRefPath);
-		const res = await FetchService.fetch(url);
+			const content = await getArticleContent();
+			const isHasContent = content?.length > 0;
 
-		if (!res.ok) return;
-		const content = await res.json();
-		const isHasContent = content.length > 0;
-
-		ModalToOpenService.resetValue();
-		if (isHasContent) {
-			ModalToOpenService.setValue<TemplateContentWarningProps>(ModalToOpen.TemplateContentWarning, {
-				initialIsOpen: true,
-				templateName: item.title,
-				action: () => {
-					setAsTemplate(item);
-				},
-				onClose: () => {
-					ModalToOpenService.resetValue();
-				},
-			});
-		} else {
-			setAsTemplate(item);
-		}
-	};
+			ModalToOpenService.resetValue();
+			if (isHasContent) {
+				ModalToOpenService.setValue<TemplateContentWarningProps>(ModalToOpen.TemplateContentWarning, {
+					initialIsOpen: true,
+					templateName: item.title,
+					action: () => {
+						setAsTemplate(item);
+					},
+					onClose: () => {
+						ModalToOpenService.resetValue();
+					},
+				});
+			} else {
+				setAsTemplate(item);
+			}
+		},
+		[getArticleContent],
+	);
 
 	const items = isApiRequest
 		? [
@@ -93,22 +113,36 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 				</DropdownMenuItem>
 		  ));
 
-	const onOpen = (open: boolean) => {
-		if (open) fetchTemplateItems();
-		else {
-			setList([]);
-			setIsApiRequest(true);
-		}
-	};
+	const onOpen = useCallback(
+		(open: boolean) => {
+			if (open) fetchTemplateItems();
+			else {
+				setList([]);
+				setIsApiRequest(true);
+			}
+		},
+		[fetchTemplateItems],
+	);
+
+	const onNewTemplate = useCallback(async () => {
+		NavigationTabsService.setTop(LeftNavigationTab.Template);
+		const newTemplate = await TemplateService.addNewSnippet(apiUrlCreator);
+		TemplateService.openItem(newTemplate);
+	}, [apiUrlCreator]);
 
 	return (
 		<DropdownMenuSub onOpenChange={onOpen}>
-			<DropdownMenuSubTrigger>
+			<DropdownMenuSubTrigger disabled={disabled}>
 				<Icon code="layout-template" />
 				{t("template.choose-template")}
 			</DropdownMenuSubTrigger>
 			<DropdownMenuSubContent>
 				{items.length ? items : <DropdownMenuItem disabled>{t("template.no-templates")}</DropdownMenuItem>}
+				<DropdownMenuSeparator />
+				<DropdownMenuItem onSelect={onNewTemplate}>
+					<Icon code="plus" />
+					{t("template.new-template")}
+				</DropdownMenuItem>
 			</DropdownMenuSubContent>
 		</DropdownMenuSub>
 	);

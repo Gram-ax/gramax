@@ -22,7 +22,7 @@ export const useCardError = (link: CatalogLink, error: DefaultError) => {
 const CardError = ({ link, error }: { link: CatalogLink; error: DefaultError }) => {
 	const { onClick } = useCardError(link, error);
 	return (
-		<div className="flex flex-row gap-2 text-status-error">
+		<div className="flex flex-row gap-2 text-status-error w-full">
 			<span style={{ fontSize: "11px" }}>{t("git.clone.error.title")}</span>
 			<ProgressIconButton
 				className="ml-auto text-status-error hover:text-status-error-hover"

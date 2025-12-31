@@ -4,9 +4,11 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import getPageTitle from "@core-ui/getPageTitle";
 import Query, { parserQuery } from "@core/Api/Query";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { usePluginEvent } from "@plugins/api/events";
+import { usePluginLoader } from "@plugins/hooks/usePluginLoader";
 import { Toaster } from "@ui-kit/Toast";
 import { useCallback, useEffect, useState } from "react";
 import { Router } from "wouter";
@@ -71,9 +73,19 @@ const AppContext = () => {
 		);
 	}
 
+	const { pluginsLoaded } = usePluginLoader({
+		basePath: data?.context?.conf?.basePath ?? "",
+		workspacePath: data?.context?.workspace.current,
+		gesUrl: data?.context?.conf?.enterprise?.gesUrl,
+		enabled: !!data,
+	});
+
 	useEffect(() => void refresh(), [refresh]);
 
-	if (!data)
+	usePluginEvent("app:open", data);
+	usePluginEvent("app:close");
+
+	if (!data || !pluginsLoaded)
 		return <ThemeService.Provider>{error ? <AppError error={error} /> : <AppLoader />}</ThemeService.Provider>;
 
 	return (

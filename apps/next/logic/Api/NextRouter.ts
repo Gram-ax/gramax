@@ -44,8 +44,6 @@ export default class NextRouter extends Router {
 	}
 
 	setUrl(url: Url): this {
-		//TODO: transform path???
-		//TODO: refresh page???
 		void this._router.push(url).catch(null);
 		return this;
 	}

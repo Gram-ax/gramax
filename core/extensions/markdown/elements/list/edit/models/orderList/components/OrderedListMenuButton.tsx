@@ -1,16 +1,20 @@
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 
 const OrderedListMenuButton = ({ editor }: { editor: Editor }) => {
+	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "orderedList" });
 	return (
-		<Button
+		<ToolbarToggleButton
 			onClick={() => editor.chain().focus().toggleOrderedList().run()}
-			icon={"list-ordered"}
 			tooltipText={t("editor.ordered-list")}
 			hotKey={"Mod-Shift-7"}
-			nodeValues={{ action: "orderedList" }}
-		/>
+			disabled={disabled}
+			active={isActive}
+		>
+			<ToolbarIcon icon={"list-ordered"} />
+		</ToolbarToggleButton>
 	);
 };
 

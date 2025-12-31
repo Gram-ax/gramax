@@ -1,4 +1,3 @@
-import Search from "@components/Actions/Modal/Search";
 import SingInOut from "@components/Actions/SingInOut";
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -13,7 +12,8 @@ import AddCatalogMenu from "@ext/catalog/actions/AddCatalogMenu";
 import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { configureWorkspacePermission, readPermission } from "@ext/security/logic/Permission/Permissions";
+import { configureWorkspacePermission, editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import Search from "@ext/serach/components/Search";
 import ThemeToggle from "@ext/Theme/components/ThemeToggle";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
@@ -57,7 +57,7 @@ const TopMenu = () => {
 	const workspacePath = WorkspaceService.current()?.path;
 
 	const canAddCatalog = PermissionService.useCheckPermission(
-		isNext ? configureWorkspacePermission : readPermission,
+		isNext ? configureWorkspacePermission : editCatalogPermission,
 		workspacePath,
 	);
 

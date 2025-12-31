@@ -1,8 +1,6 @@
 import { getConfig } from "@app/config/AppConfig";
-
-import { STORAGE_DIR_NAME } from "@app/config/const";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { DirectoryInfoBasic } from "@app/resolveModule/fscall/static";
+import { DirectoryInfoBasic, FileInfoBasic } from "@app/resolveModule/fscall/static";
 import Application from "@app/types/Application";
 import { joinTitles } from "@core-ui/getPageTitle";
 import Path from "@core/FileProvider/Path/Path";
@@ -13,9 +11,10 @@ import { HtmlData } from "./ArticleTypes";
 import { logStep, logStepWithErrorSuppression } from "./cli/utils/logger";
 import { InitialDataKeys, StaticConfig } from "./initialDataUtils/types";
 import StaticContentCopier, { CopyTemplatesFunction, StaticFileProvider } from "./StaticContentCopier";
-import StaticRenderer from "./StaticRenderer";
+import StaticRenderer, { STATIC_WORKSPACE_PATH } from "./StaticRenderer";
 import generateStaticSeo from "./StaticSeoGenerator";
 import { createModulithService } from "@ext/serach/modulith/createModulithService";
+import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 
 const htmlTags = {
 	base: "<!--base-tag-->",
@@ -41,15 +40,25 @@ interface StaticSiteGenerationOptions {
 	};
 }
 
+interface StaticSiteBuilderParams {
+	fp: StaticFileProvider;
+	app: Application;
+	html: string;
+	getCache: {
+		fp?: () => { catceFileProvider: DiskFileProvider; articleStorageFileProvider: DiskFileProvider };
+		tree: () => DirectoryInfoBasic | Promise<DirectoryInfoBasic>;
+	};
+}
+
 class StaticSiteBuilder {
-	constructor(private _fp: StaticFileProvider, private _app: Application, private _html: string) {}
+	constructor(private _params: StaticSiteBuilderParams) {}
 	static readonly readonlyDir = "../bundle";
 
-	async generate(catalog: Catalog, targetDir: Path, options: StaticSiteGenerationOptions = {}) {
+	async generate(catalog: Catalog, targetDir: Path, options: StaticSiteGenerationOptions) {
 		const { copyTemplate, customStyles, baseUrl } = options;
 		const catalogName = catalog.name;
 
-		const directoryCopier = new StaticContentCopier(this._fp, this._app);
+		const directoryCopier = new StaticContentCopier(this._params.fp, this._params.app);
 		await logStepWithErrorSuppression("Copying directory", () => directoryCopier.copyCatalog(catalog, targetDir));
 		const { directoryTree, wordTemplates, pdfTemplates } = await directoryCopier.copyWordTemplates(copyTemplate);
 
@@ -57,7 +66,9 @@ class StaticSiteBuilder {
 			"Rendering HTML pages",
 			async () => {
 				return {
-					rendered: await new StaticRenderer(this._app, { wordTemplates, pdfTemplates }).render(catalogName),
+					rendered: await new StaticRenderer(this._params.app, { wordTemplates, pdfTemplates }).render(
+						catalogName,
+					),
 					searchDirectoryTree: await this._createSearchIndexes(catalog, targetDir),
 				};
 			},
@@ -66,12 +77,12 @@ class StaticSiteBuilder {
 		directoryTree.children.push(searchDirectoryTree);
 
 		if (customStyles) {
-			await this._fp.write(targetDir.join(new Path([catalogName, CUSTOM_STYLE_FILENAME])), customStyles);
+			await this._params.fp.write(targetDir.join(new Path([catalogName, CUSTOM_STYLE_FILENAME])), customStyles);
 			const customStyleLinkTag = this._createCustomStyleLinkTag(catalogName);
-			this._html = this._html.replace(htmlTags.styles, customStyleLinkTag + "\n" + htmlTags.styles);
+			this._params.html = this._params.html.replace(htmlTags.styles, customStyleLinkTag + "\n" + htmlTags.styles);
 		}
 
-		await this._fp.write(
+		await this._params.fp.write(
 			targetDir.join(new Path([catalogName, "data.js"])),
 			`window.${InitialDataKeys.DIRECTORY} = ${JSON.stringify(directoryTree)}`,
 		);
@@ -87,17 +98,16 @@ class StaticSiteBuilder {
 	private _createSearchIndexes = async (catalog: Catalog, targetDir: Path) => {
 		const modulithService = await createModulithService({
 			basePath: targetDir,
-			parser: this._app.parser,
-			parserContextFactory: this._app.parserContextFactory,
-			wm: this._app.wm,
+			parser: this._params.app.parser,
+			parserContextFactory: this._params.app.parserContextFactory,
+			wm: this._params.app.wm,
 			parseResources: false,
+			fp: this._params.getCache.fp?.(),
 		});
 
-		await modulithService.updateCatalog(catalog.name);
-		const treeBase = targetDir.join(new Path(STORAGE_DIR_NAME));
+		await modulithService.updateCatalog(catalog.name, STATIC_WORKSPACE_PATH);
 
-		const tree = await this._readTree(STORAGE_DIR_NAME, treeBase);
-
+		const tree = await this._params.getCache.tree();
 		return tree;
 	};
 
@@ -107,7 +117,7 @@ class StaticSiteBuilder {
 		config.isReadOnly = true;
 		(config as StaticConfig).features = getRawEnabledFeatures();
 
-		const templateHtml = this._html
+		const templateHtml = this._params.html
 			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ` + (JSON.stringify(config) ?? "{}"))
 			.replace(htmlTags.fs, `<script src="${catalogName}/data.js"></script>`);
 
@@ -142,22 +152,22 @@ class StaticSiteBuilder {
 				.replace(htmlTags.styles, htmlData.htmlContent.styles ?? "");
 
 			const filePath = targetDir.join(logicPath);
-			await this._fp.mkdir(new Path(dirname(filePath.value)));
-			await this._fp.write(filePath, html);
+			await this._params.fp.mkdir(new Path(dirname(filePath.value)));
+			await this._params.fp.write(filePath, html);
 		};
 
 		if (!isBrowser)
-			await this._fp.write(targetDir.join(new Path("index.html")), this._getRedirectHTML(catalogName));
+			await this._params.fp.write(targetDir.join(new Path("index.html")), this._getRedirectHTML(catalogName));
 
 		for (const htmlData of htmlDatas) await generateHtmlFile(htmlData);
 	};
 
 	private async _writeSEOFiles(baseUrl: string, catalog: Catalog, targetDir: Path) {
 		const sanitizeBaseUrl = baseUrl.trim().replace(/\/+$/, "");
-		const workspace = this._app.wm.current();
+		const workspace = this._params.app.wm.current();
 		const SEOFiles = await generateStaticSeo(sanitizeBaseUrl, catalog, workspace);
 		await SEOFiles.mapAsync(async ({ content, name }) => {
-			await this._fp.write(targetDir.join(new Path(isBrowser ? [catalog.name, name] : name)), content);
+			await this._params.fp.write(targetDir.join(new Path(isBrowser ? [catalog.name, name] : name)), content);
 		});
 	}
 
@@ -181,37 +191,46 @@ class StaticSiteBuilder {
 		return `<link id="${CUSTOM_STYLE_LINK_ID}" rel="stylesheet" crossorigin href="${catalogName}/${CUSTOM_STYLE_FILENAME}">`;
 	}
 
-	private async _readTree(baseDirName: string, baseDirPath: Path): Promise<DirectoryInfoBasic> {
-		const resDir: DirectoryInfoBasic = {
+	static buildDirectoryTreeFromPaths(filePaths: string[]): DirectoryInfoBasic {
+		const root: DirectoryInfoBasic = {
+			name: "",
 			type: "dir",
-			name: baseDirName,
 			children: [],
 		};
 
-		const walkDir = async (dir: Path, dirInfo: DirectoryInfoBasic) => {
-			const items = await this._fp.getItems(dir);
-			await items.forEachAsync(async (x) => {
-				if (x.type === "dir") {
-					const subDirInfo: DirectoryInfoBasic = {
-						type: "dir",
-						name: x.name,
-						children: [],
+		for (const filePath of filePaths) {
+			const parts = filePath.split("/");
+			let current = root;
+
+			for (let i = 0; i < parts.length; i++) {
+				const part = parts[i];
+				const isLast = i === parts.length - 1;
+
+				if (isLast) {
+					const file: FileInfoBasic = {
+						name: part,
+						type: "file",
 					};
-
-					dirInfo.children.push(subDirInfo);
-					await walkDir(x.path, subDirInfo);
+					current.children.push(file);
 				} else {
-					dirInfo.children.push({
-						type: x.type,
-						name: x.name,
-					});
+					let dir = current.children.find(
+						(child) => child.type === "dir" && child.name === part,
+					) as DirectoryInfoBasic;
+
+					if (!dir) {
+						dir = {
+							name: part,
+							type: "dir",
+							children: [],
+						};
+						current.children.push(dir);
+					}
+					current = dir;
 				}
-			});
-		};
+			}
+		}
 
-		await walkDir(baseDirPath, resDir);
-
-		return resDir;
+		return root;
 	}
 }
 

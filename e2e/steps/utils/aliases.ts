@@ -20,8 +20,8 @@ const aliases = {
 	"кнопка выйти": '[role="menuitem"]:has(.lucide-log-out)',
 	"дропдаун аватара": '[data-qa="dropdown-menu-content"][role="menu"]',
 	"кнопка выход": '[data-qa="qa-clickable"] div:has-text("Выход")',
-	"кнопка входа": 'button:has(.lucide-log-in)',
-	"кнопка SSO": 'button:has(.lucide-building-2)',
+	"кнопка входа": "button:has(.lucide-log-in)",
+	"кнопка SSO": "button:has(.lucide-building-2)",
 	"слияние веток": ".picker",
 	"верхнюю часть конфликта": ".top-part-conflict",
 	"нижнюю часть конфликта": ".bottom-part-conflict",
@@ -42,6 +42,7 @@ const aliases = {
 	"действия блока": '[data-qa="qa-node-actions"]',
 	"действия опции": '[data-qa="option-menu"]',
 
+	"%storage-type%": "GitLab",
 	"%token%": process.env.GX_E2E_GITLAB_TOKEN,
 	"%url%": process.env.GX_E2E_GITLAB_URL,
 	"%group%": process.env.GX_E2E_GITLAB_GROUP,
@@ -115,7 +116,7 @@ const icons = {
 	"удалить столбец": `[data-qa="table-del-col"]`,
 	цитата: ".lucide-quote",
 	"файл с вопросиком": ".lucide-file-question-mark",
-	слои: ".lucide-layers"
+	слои: ".lucide-layers",
 };
 
 export type Aliases = { [key: string]: string };

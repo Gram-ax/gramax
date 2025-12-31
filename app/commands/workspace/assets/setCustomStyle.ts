@@ -1,7 +1,6 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
-import { PredefinedAssets } from "@ext/workspace/WorkspaceAssets";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 const setCustomStyle: Command<{ workspacePath?: WorkspacePath; style: string }, void> = Command.create({
@@ -11,7 +10,7 @@ const setCustomStyle: Command<{ workspacePath?: WorkspacePath; style: string }, 
 
 	async do({ workspacePath, style }) {
 		const assets = this._app.wm.getWorkspaceAssets(workspacePath);
-		await assets.write(PredefinedAssets.customStyle, style);
+		await assets.style.setContent(style);
 	},
 
 	params(ctx, q, body) {

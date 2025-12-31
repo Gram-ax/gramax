@@ -8,6 +8,7 @@ import LevNavItem from "../main/render/Item";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import { Button } from "@ui-kit/Button";
 import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
+import t from "@ext/localization/locale/translate";
 
 const LevNavWatchTree = React.memo(
 	({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
@@ -107,6 +108,7 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 				rightExtensions={
 					<NavigationDropdown
 						style={{ marginRight: "-3px" }}
+						tooltipText={t("article.actions.title")}
 						trigger={
 							<Button variant="text" size="xs" className="p-0 h-full">
 								<Icon code="ellipsis-vertical" />

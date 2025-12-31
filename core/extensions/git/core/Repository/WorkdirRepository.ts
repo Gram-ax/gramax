@@ -4,6 +4,7 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import GitAttributes from "@core/GitLfs/GitAttributes";
 import haveInternetAccess from "@core/utils/haveInternetAccess";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
@@ -66,6 +67,10 @@ export default class WorkdirRepository extends Repository {
 		return Promise.resolve({ hasCheckout: false });
 	}
 
+	async attributes(): Promise<GitAttributes> {
+		return await GitAttributes.parse(this, this._fp);
+	}
+
 	async publish(data: PublishOptions): Promise<void> {
 		const { data: sourceData, onPush, onlyPush, restoreIfFail } = data;
 
@@ -103,8 +108,8 @@ export default class WorkdirRepository extends Repository {
 	}
 
 	async status(cached = true): Promise<GitStatus[]> {
-		if (!this._cachedStatus || !cached) this._cachedStatus = await this.gvc.getChanges();
-		return this._cachedStatus;
+		if (cached) return this.gvc.getCachedStatus("workdir");
+		return await this.gvc.getChanges("workdir");
 	}
 
 	async sync({ data, onPull, onPush }: SyncOptions): Promise<SyncResult> {
@@ -146,7 +151,7 @@ export default class WorkdirRepository extends Repository {
 		await this._state.saveState(state);
 
 		if (haveInternet && !allBranches.includes(branch) && !data.isInvalid) await this.storage.fetch(data);
-		await this.gvc.checkoutToBranch(branch, force);
+		await this.gvc.checkoutToBranch(data as GitSourceData, branch, force);
 		onCheckout?.(branch);
 
 		const isBrowser = getExecutingEnvironment() === "browser";
@@ -159,7 +164,7 @@ export default class WorkdirRepository extends Repository {
 			try {
 				mergeFiles = await this._pull({ data, onPull });
 			} catch (e) {
-				await this.gvc.checkoutToBranch(oldBranch.toString());
+				await this.gvc.checkoutToBranch(data as GitSourceData, oldBranch.toString());
 				await this._state.resetState();
 				throw e;
 			}
@@ -193,7 +198,7 @@ export default class WorkdirRepository extends Repository {
 		const branchNameBefore = (await this.gvc.getCurrentBranch()).toString();
 		await this.checkout({ data, branch: targetBranch });
 
-		const mergeResult = await this.gvc.mergeBranch(data, {
+		const mergeResult = await this.gvc.mergeBranch(data as GitSourceData, {
 			theirs: branchNameBefore,
 			squash,
 			isMergeRequest,

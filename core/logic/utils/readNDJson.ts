@@ -1,5 +1,7 @@
+export type NDJsonReadStream = ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>;
+
 export async function* readNDJson<T>(
-	reader: ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>,
+	reader: NDJsonReadStream,
 ): AsyncGenerator<T, void, void> {
 	const decoder = new TextDecoder("utf-8");
 	let buffer = "";

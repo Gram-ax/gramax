@@ -1,20 +1,35 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { Article } from "@core/FileStructue/Article/Article";
 import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import { Item } from "@core/FileStructue/Item/Item";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
+import { PropertyValue } from "@ext/properties/models";
+import { KeyPhraseArticleSearcherItem } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
 import { ModulithSearchClient } from "@ext/serach/modulith/ModulithSearchClient";
-import { ArticleLanguage, SearchArticle, SearchArticleFilter } from "@ext/serach/modulith/SearchArticle";
 import { SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleParser";
+import {
+	ArticleLanguage,
+	SearchArticle,
+	SearchArticleFilter,
+	SearchArticleMetadata,
+} from "@ext/serach/modulith/SearchArticle";
+import { AsyncNotifier } from "@ext/serach/modulith/utils/AsyncNotifier";
+import { getLang } from "@ext/serach/modulith/utils/getLang";
+import { getValidCatalogItems } from "@ext/serach/modulith/utils/getValidCatalogItems";
 import { WorkspaceState } from "@ext/serach/modulith/WorkspaceState";
-import { ProgressItem, SearcherProgressGenerator, SearchResultItem, SearchResultMarkItem } from "@ext/serach/Searcher";
+import {
+	ProgressItem,
+	PropertyFilter,
+	SearcherProgressGenerator,
+	SearchResultItem,
+	SearchResultMarkItem,
+} from "@ext/serach/Searcher";
 import { Workspace } from "@ext/workspace/Workspace";
 import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { AggregateProgress, ProgressCallback } from "@ics/modulith-utils";
-import { PropertyValue } from "@ext/properties/models";
-import { Item } from "@core/FileStructue/Item/Item";
-import { Article } from "@core/FileStructue/Article/Article";
-import { KeyPhraseArticleSearcherItem } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
-import { getLang } from "@ext/serach/modulith/utils/getLang";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { AggregateProgress, FieldsToDotPaths, ProgressCallback } from "@ics/modulith-utils";
+
+const PROMISES_RESOLVED_MARK = Symbol();
 
 export interface ModulithServiceOptions {
 	client: ModulithSearchClient;
@@ -32,7 +47,6 @@ export class ModulithService {
 			const state = this._getOrCreateState(ws.path());
 			if (_options.immediateIndexing) {
 				void this._actualizeCatalog(state, change.catalog);
-				state.markIndexedCatalog(change.catalog.name);
 			} else {
 				state.resetIndexedCatalog(change.catalog.name);
 			}
@@ -43,7 +57,6 @@ export class ModulithService {
 			const state = this._getOrCreateState(ws.path());
 			if (_options.immediateIndexing) {
 				void this._actualizeCatalog(state, catalog);
-				state.markIndexedCatalog(catalog.name);
 			} else {
 				state.resetIndexedCatalog(catalog.name);
 			}
@@ -54,35 +67,24 @@ export class ModulithService {
 		}
 	}
 
-	async updateAllCatalogs(): Promise<void> {
+	async *updateIndex({ force, catalogName }: UpdateIndexArgs): SearcherProgressGenerator {
 		const curWs = this._options.wm.current();
 		const state = this._getOrCreateState(curWs.path());
-		const prid = state.addProgress();
-		const pc = state.getProgressCallback(prid);
-		const catalogNames = [...curWs.getAllCatalogs().keys()];
-
-		const aggProgress = new AggregateProgress({
-			progress: {
-				count: catalogNames.length,
-			},
-			onChange: (p) => pc(p),
-		});
+		const release = await state.lockIndexing();
 
 		try {
-			await catalogNames.forEachAsync(async (catalogName, i) => {
-				const catalog = await curWs.getContextlessCatalog(catalogName);
-				await this._actualizeCatalog(state, catalog, aggProgress.getProgressCallback(i));
-			});
+			const catalogNames = catalogName ? [catalogName] : [...curWs.getAllCatalogs().keys()];
+			yield* this._updateIndexImpl(state, curWs, catalogNames, force !== true);
 		} finally {
-			state.doneProgress(prid);
+			release();
 		}
 	}
 
-	async updateCatalog(catalogName: string) {
+	async updateCatalog(catalogName: string, overridePath?: string) {
 		const ws = this._options.wm.current();
 		const state = this._getOrCreateState(ws.path());
 		const catalog = await ws.getContextlessCatalog(catalogName);
-		await this._actualizeCatalog(state, catalog);
+		await this._actualizeCatalog(state, catalog, undefined, overridePath);
 	}
 
 	async *progress(): SearcherProgressGenerator {
@@ -96,22 +98,16 @@ export class ModulithService {
 			return;
 		}
 
+		const notifier = new AsyncNotifier();
+
 		let cur: ProgressItem = {
 			type: "progress",
 			progress: state.getTotalProgress(),
 		};
 
-		let resolveNext: (() => void) | null = null;
-
 		const handler = (p: number) => {
-			cur = {
-				type: "progress",
-				progress: p,
-			};
-			if (resolveNext) {
-				resolveNext();
-				resolveNext = null;
-			}
+			cur = { type: "progress", progress: p };
+			notifier.notify();
 		};
 
 		state.addProgressSubscriber(handler);
@@ -123,13 +119,7 @@ export class ModulithService {
 					cur = undefined;
 					yield oldCur;
 				} else {
-					await new Promise<void>(
-						(resolve) =>
-							(resolveNext = () => {
-								resolve();
-								resolveNext = null;
-							}),
-					);
+					await notifier.waitNext();
 				}
 			}
 		} finally {
@@ -137,7 +127,7 @@ export class ModulithService {
 		}
 	}
 
-	async searchBatch({ items }: SearchBatchArgs): Promise<SearchResult[][]> {
+	async searchBatch({ items, signal }: SearchBatchArgs): Promise<SearchResult[][]> {
 		const curWs = this._options.wm.current();
 		const state = this._getOrCreateState(curWs.path());
 
@@ -146,6 +136,7 @@ export class ModulithService {
 				state,
 				curWs,
 				items.flatMap((x) => x.catalogNames),
+				signal,
 			);
 		}
 
@@ -176,7 +167,7 @@ export class ModulithService {
 			catalog: ReadonlyCatalog,
 			article: Article,
 			lang: ArticleLanguage,
-		): Promise<Pick<SearchArticleResult, "breadcrumbs" | "pathname" | "properties">> => {
+		): Promise<Pick<SearchArticleResult, "breadcrumbs" | "url" | "properties">> => {
 			const rootCategory = resolveRootCategory(catalog, catalog.props, lang === "none" ? undefined : lang);
 
 			const breadcrumbs: SearchArticleResult["breadcrumbs"] = [];
@@ -184,7 +175,7 @@ export class ModulithService {
 			let parent = article.parent;
 			while (parent && parent !== rootCategory) {
 				breadcrumbs.unshift({
-					pathname: await getPathname(catalog, parent),
+					url: await getPathname(catalog, parent),
 					title: parent.getTitle(),
 				});
 
@@ -192,7 +183,7 @@ export class ModulithService {
 			}
 
 			return {
-				pathname: await getPathname(catalog, article),
+				url: await getPathname(catalog, article),
 				breadcrumbs,
 				properties: article.props.properties ?? [],
 			};
@@ -208,41 +199,42 @@ export class ModulithService {
 		};
 
 		const searchRes = await this._options.client.searchBatch({
+			signal,
 			items: items.map((x) => {
-				const filter: SearchArticleFilter = {
-					metadata: [
-						{
-							op: "in",
-							key: "catalogId",
-							list: x.catalogNames,
-						},
-					],
-				};
+				const metadataFilters: SearchArticleFilter["metadata"][] = [
+					{
+						op: "in",
+						key: "catalogId",
+						list: x.catalogNames,
+					},
+				];
 
 				if (x.articlesLanguage) {
-					filter.metadata.push({
+					metadataFilters.push({
 						op: "eq",
 						key: "lang",
 						value: x.articlesLanguage,
 					});
 				}
 
-				if (x.properties) {
-					x.properties.forEach((x) =>
-						filter.metadata.push({
-							op: "eq",
-							key: `properties.${x.key}`,
-							value: x.value,
-						}),
-					);
+				if (x.propertyFilter) {
+					metadataFilters.push(convertPropertyFilter(x.propertyFilter));
 				}
 
 				return {
 					query: x.query,
-					filter,
+					filter: {
+						metadata: {
+							op: "and",
+							filters: metadataFilters,
+						},
+					},
 				};
 			}),
 		});
+
+		// To prevent unnecessary execution of keyPhraseSearcher
+		if (signal?.aborted) return [];
 
 		const keyPhraseRes = items.map((x) => (x.query ? state.keyPhraseSearcher.search(x.query) : []));
 
@@ -250,6 +242,8 @@ export class ModulithService {
 		const maxSearchResult = 50;
 
 		for (let si = 0; si < searchRes.length; si++) {
+			if (signal?.aborted) break;
+
 			const searchBatch = searchRes[si];
 			const recsByLogicPath = new Map<string, KeyPhraseArticleSearcherItem>(
 				keyPhraseRes[si].map((x) => [x.article.logicPath, x]),
@@ -262,12 +256,12 @@ export class ModulithService {
 
 				const catalog = await getCatalog(item.article.metadata.catalogId);
 				const catalogTitle = catalog.props.title ?? catalog.name;
+				const catalogPathname = await catalog.getPathname();
 				if (item.article.metadata.type === "catalog") {
-					const pathname = await catalog.getPathname();
 					catalogs.push({
 						type: "catalog",
 						catalogName: item.article.metadata.catalogId,
-						pathname,
+						url: catalogPathname,
 						title: item.title,
 					});
 				} else if (item.article.metadata.type === "article") {
@@ -284,6 +278,7 @@ export class ModulithService {
 						catalog: {
 							name: item.article.metadata.catalogId,
 							title: catalogTitle,
+							url: catalogPathname,
 						},
 						...(await getArticleOtherFieldsByLogicPath(
 							catalog,
@@ -304,6 +299,7 @@ export class ModulithService {
 
 			const restRecArticles = await [...recsByLogicPath.values()].mapAsync<SearchResult>(async (x) => {
 				const catalogTitle = x.catalog.props.title ?? x.catalog.name;
+				const catalogPathname = await x.catalog.getPathname();
 				return {
 					type: "article",
 					isRecommended: true,
@@ -311,6 +307,7 @@ export class ModulithService {
 					catalog: {
 						name: x.catalog.name,
 						title: catalogTitle,
+						url: catalogPathname,
 					},
 					items: [],
 					title: [
@@ -337,28 +334,90 @@ export class ModulithService {
 		state: WorkspaceState,
 		ws: Workspace,
 		catalogNames: string[],
+		signal?: AbortSignal,
 	): Promise<void> {
-		const catalogsToIndex: string[] = [];
-
-		for (const catalogName of catalogNames) {
-			if (state.hasIndexedCatalog(catalogName)) continue;
-			catalogsToIndex.push(catalogName);
+		const release = await state.lockIndexing();
+		try {
+			if (signal?.aborted) return;
+			const gen = this._updateIndexImpl(state, ws, catalogNames, true);
+			// eslint-disable-next-line no-unused-vars
+			for await (const _ of gen) {
+			}
+		} finally {
+			release();
 		}
+	}
 
+	private async *_updateIndexImpl(
+		state: WorkspaceState,
+		ws: Workspace,
+		catalogNames: string[],
+		checkIndexed: boolean,
+	): SearcherProgressGenerator {
 		const prid = state.addProgress();
-		const aggProgress = new AggregateProgress({
-			progress: {
-				count: catalogsToIndex.length,
-			},
-			onChange: (p) => state.setProgress(prid, p),
-		});
 
 		try {
-			await catalogsToIndex.mapAsync(async (x, i) => {
-				const catalog = await ws.getContextlessCatalog(x);
-				await this._actualizeCatalog(state, catalog, aggProgress.getProgressCallback(i));
-				state.markIndexedCatalog(x);
-			}, 1);
+			const pc = state.getProgressCallback(prid);
+
+			if (checkIndexed === true) {
+				catalogNames = catalogNames.filter((x) => !state.hasIndexedCatalog(x));
+			}
+
+			if (catalogNames.length === 0) {
+				yield {
+					type: "done",
+				};
+
+				return;
+			}
+
+			const notifier = new AsyncNotifier();
+
+			let cur: ProgressItem = {
+				type: "progress",
+				progress: 0,
+			};
+
+			yield cur;
+
+			const handler = (p: number) => {
+				cur = { type: "progress", progress: p };
+				notifier.notify();
+			};
+
+			const aggProgress = new AggregateProgress({
+				progress: {
+					count: catalogNames.length,
+				},
+				onChange: (p) => {
+					pc(p);
+					handler(p);
+				},
+			});
+			const promises = catalogNames.forEachAsync(
+				async (catalogName, i) => {
+					const catalog = await ws.getContextlessCatalog(catalogName);
+					await this._actualizeCatalog(state, catalog, aggProgress.getProgressCallback(i));
+				},
+				5,
+				true,
+			);
+
+			let done = false;
+			while (!done) {
+				if (cur) {
+					const old = cur;
+					cur = undefined;
+					yield old;
+				}
+
+				const raceRes = await Promise.race([promises.then(() => PROMISES_RESOLVED_MARK), notifier.waitNext()]);
+				done = raceRes === PROMISES_RESOLVED_MARK;
+			}
+
+			yield {
+				type: "done",
+			};
 		} finally {
 			state.doneProgress(prid);
 		}
@@ -366,9 +425,15 @@ export class ModulithService {
 
 	private async _actualizeCatalog(
 		state: WorkspaceState,
-		catalog: ReadonlyCatalog,
+		catalog?: ReadonlyCatalog,
 		progressCallback?: ProgressCallback,
+		overridePath?: string,
 	): Promise<void> {
+		if (!catalog) {
+			progressCallback?.(1);
+			return;
+		}
+
 		const aggProgress = new AggregateProgress({
 			progress: {
 				weights: [90, 10],
@@ -377,27 +442,31 @@ export class ModulithService {
 		});
 
 		const articles = await this._options.sap.getSearchArticles(
-			state.path,
+			overridePath || state.path,
 			catalog,
 			aggProgress.getProgressCallback(0),
 		);
 
 		await this._updateArticles(articles, catalog.name, aggProgress.getProgressCallback(1));
-		const catalogArticles = catalog.getItems() as Article[];
+		const catalogArticles = getValidCatalogItems(catalog);
 		catalogArticles.forEach((x) =>
-			state.keyPhraseSearcher.updateArticle({ id: `${state.path}#${x.logicPath}`, article: x, catalog }),
+			state.keyPhraseSearcher.updateArticle({
+				id: `${overridePath || state.path}#${x.logicPath}`,
+				article: x,
+				catalog,
+			}),
 		);
+
+		state.markIndexedCatalog(catalog.name);
 	}
 
 	private async _updateArticles(articles: SearchArticle[], catalogName: string, progressCallback: ProgressCallback) {
 		const filter: SearchArticleFilter = {
-			metadata: [
-				{
-					op: "eq",
-					key: "catalogId",
-					value: catalogName,
-				},
-			],
+			metadata: {
+				op: "eq",
+				key: "catalogId",
+				value: catalogName,
+			},
 		};
 
 		await this._options.client.update({
@@ -427,9 +496,10 @@ export interface SearchBatchArgs {
 	items: {
 		query?: string;
 		catalogNames: string[];
-		properties?: { key: string; value: unknown }[];
+		propertyFilter?: PropertyFilter;
 		articlesLanguage?: ArticleLanguage;
 	}[];
+	signal?: AbortSignal;
 }
 
 export type SearchResult = SearchArticleResult | SearchCatalogResult;
@@ -441,9 +511,10 @@ export interface SearchArticleResult {
 	catalog: {
 		name: string;
 		title: string;
+		url: string;
 	};
-	pathname: string;
-	breadcrumbs: { title: string; pathname: string }[];
+	url: string;
+	breadcrumbs: { title: string; url: string }[];
 	properties: PropertyValue[];
 	title: SearchResultMarkItem[];
 	items: SearchResultItem[];
@@ -452,6 +523,60 @@ export interface SearchArticleResult {
 export interface SearchCatalogResult {
 	type: "catalog";
 	catalogName: string;
-	pathname: string;
+	url: string;
 	title: SearchResultMarkItem[];
+}
+
+export interface UpdateIndexArgs {
+	force?: boolean;
+	catalogName?: string;
+}
+
+function convertPropertyFilter(propertyFilter: PropertyFilter): SearchArticleFilter["metadata"] {
+	const op = propertyFilter.op;
+	switch (op) {
+		case "eq": {
+			return {
+				op: "eq",
+				key: getPropertyKeyName(propertyFilter.key),
+				value: propertyFilter.value,
+			};
+		}
+
+		case "contains": {
+			return {
+				op: "contains",
+				key: getPropertyKeyName(propertyFilter.key),
+				list: propertyFilter.list,
+			};
+		}
+
+		case "isEmpty": {
+			return {
+				op: "isEmpty",
+				key: getPropertyKeyName(propertyFilter.key),
+			};
+		}
+
+		case "and": {
+			return {
+				op: "and",
+				filters: propertyFilter.filters.map((x) => convertPropertyFilter(x)),
+			};
+		}
+
+		case "or": {
+			return {
+				op: "or",
+				filters: propertyFilter.filters.map((x) => convertPropertyFilter(x)),
+			};
+		}
+
+		default:
+			throw new Error(`Unexpected property filter operation ${op}`);
+	}
+}
+
+function getPropertyKeyName(property: string): FieldsToDotPaths<SearchArticleMetadata> {
+	return `properties.${property}`;
 }

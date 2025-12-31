@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"build": "vite build",
+		"build-sdk": "node ../../scripts/plugins/build-sdk.mjs",
+		"build": "npm run build-sdk && vite build",
 		"build:post-js": "bun build crates/gramax-wasm/js/post.ts --minify --outfile=crates/gramax-wasm/js/post.js",
 		"build:wasm": "bun run build:post-js && cargo +nightly build --target wasm32-unknown-emscripten --release -Zbuild-std --manifest-path crates/gramax-wasm/Cargo.toml && bun run ./postbuild.ts",
 		"start": "spa static -d dist -f index.html",

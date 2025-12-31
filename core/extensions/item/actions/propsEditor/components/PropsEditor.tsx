@@ -1,26 +1,26 @@
+import { NEW_ARTICLE_REGEX } from "@app/config/const";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import useWatch from "@core-ui/hooks/useWatch";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
+import Path from "@core/FileProvider/Path/Path";
+import { getClientDomain } from "@core/utils/getClientDomain";
+import { uniqueName } from "@core/utils/uniqueName";
+import styled from "@emotion/styled";
 import { UsePropsEditorActionsParams } from "@ext/item/actions/propsEditor/logic/usePropsEditorAcitions";
-import { Modal, ModalContent, ModalBody, ModalHeader, ModalTitle } from "@ui-kit/Modal";
-import { Button } from "@ui-kit/Button";
-import { Input, InputGroup, InputGroupInput, InputGroupText } from "@ui-kit/Input";
-import { Form, FormField, FormFooter, FormStack } from "@ui-kit/Form";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
-import { FC, useRef, useCallback, useState, useEffect, useMemo } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { uniqueName } from "@core/utils/uniqueName";
-import { transliterate } from "@core-ui/languageConverter/transliterate";
-import { NEW_ARTICLE_REGEX } from "@app/config/const";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import useWatch from "@core-ui/hooks/useWatch";
-import { Tooltip, TooltipContent, TooltipTrigger, useOverflowTooltip, TooltipArrow } from "@ui-kit/Tooltip";
-import { getClientDomain } from "@core/utils/getClientDomain";
-import Path from "@core/FileProvider/Path/Path";
-import styled from "@emotion/styled";
 import { QuizSettingsFields } from "@ext/quiz/components/QuizSettingsFields";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@ui-kit/Button";
+import { Form, FormField, FormFooter, FormStack } from "@ui-kit/Form";
+import { Input, InputGroup, InputGroupInput, InputGroupText } from "@ui-kit/Input";
+import { Modal, ModalBody, ModalContent, ModalHeader, ModalTitle } from "@ui-kit/Modal";
 import { TagInput } from "@ui-kit/TagInput";
+import { Tooltip, TooltipArrow, TooltipContent, TooltipTrigger, useOverflowTooltip } from "@ui-kit/Tooltip";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface PropsEditorProps extends Omit<UsePropsEditorActionsParams, "onExternalClose"> {
 	submit: SubmitHandler<{ title: string; fileName: string }>;
@@ -185,12 +185,15 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 
 								<FormField
 									name="searchPhrases"
-									title={t("searchPhrases")}
+									title={t("article.searchPhrases.title")}
+									description={t("article.searchPhrases.description")}
 									layout="vertical"
 									control={({ field }) => (
 										<TagInput
-											placeholder={t("searchPhrases-placeholder")}
-											onChange={(newValues) => field.onChange(newValues.length === 0 ? undefined : newValues)}
+											placeholder={t("article.searchPhrases.placeholder")}
+											onChange={(newValues) =>
+												field.onChange(newValues.length === 0 ? undefined : newValues)
+											}
 											{...field}
 										/>
 									)}

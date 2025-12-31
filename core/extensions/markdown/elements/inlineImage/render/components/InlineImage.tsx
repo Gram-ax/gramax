@@ -4,7 +4,7 @@ import t from "@ext/localization/locale/translate";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { ReactNode, useState } from "react";
 import styled from "@emotion/styled";
-import InlineCommentView from "@ext/markdown/elements/comment/edit/components/InlineCommentView";
+import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 
 interface InlineImageProps {

@@ -2,12 +2,12 @@ import { NodeDimensionsData } from "@ext/print/utils/pagination/NodeDimensions";
 import { throwIfAborted } from "./abort";
 import { ControlInfo, PaginationInfo, PrintPageInfo } from "@ext/print/utils/pagination/types";
 
-abstract class Paginator<T extends HTMLElement = HTMLElement> {
+abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElement = HTMLElement> {
 	static paginationInfo: PaginationInfo;
 	static printPageInfo: PrintPageInfo = {};
 	static controlInfo: ControlInfo;
 
-	public currentContainer: HTMLElement;
+	public currentContainer: N;
 	public headingElements: HTMLHeadingElement[] = [];
 
 	private _marginBottom: number;
@@ -76,6 +76,12 @@ abstract class Paginator<T extends HTMLElement = HTMLElement> {
 		const nodeDimension = Paginator.paginationInfo.nodeDimension;
 		const tablePadding = nodeDimension.get(this.node);
 		return tablePadding;
+	}
+
+	protected lastChildNodeIsHeading() {
+		const childNodes = this.currentContainer.childNodes;
+		if (childNodes.length === this.headingElements.length) return true;
+		return childNodes[childNodes.length - 1] === this.headingElements[this.headingElements.length - 1];
 	}
 
 	abstract paginateNode(): void | Promise<void>;

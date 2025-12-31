@@ -12,37 +12,53 @@ crate-type = ["staticlib", "rlib"]
 indexmap = { version = "^2.8" }
 itertools = { workspace = true }
 tracing = { workspace = true }
+thiserror = { workspace = true }
 serde = { workspace = true }
 serde_yml = { workspace = true }
 serde_json = { workspace = true }
+url = { workspace = true }
 chrono = { workspace = true, default-features = false, features = [
   "alloc",
   "std",
 ] }
+
+async-trait = "0.1.89"
+
+[target.'cfg(any(target_os = "macos", target_os = "linux", target_os = "windows", target_family = "android"))'.dependencies]
+tokio = { version = "1.46.1", features = ["rt-multi-thread", "macros"] }
+futures = { version = "0.3.31" }
 
 [target.'cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))'.dependencies]
 dirs = "^5.0.0"
 ssh2-config = { git = "https://github.com/pashokitsme/ssh2-config" }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "lib", default-features = false, features = [
+futures = { version = "0.3.31" }
+git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "filter", default-features = false, features = [
   "vendored-libgit2",
 ] }
+git2-lfs = { git = "https://github.com/pashokitsme/git2-lfs.git", default-features = false }
 
-[target.'cfg(any(target_os = "macos", target_os = "linux", target_os = "android"))'.dependencies]
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "lib", default-features = false, features = [
+[target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
+git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "filter", default-features = false, features = [
   "https",
   "ssh",
-  "vendored-openssl",
+  "use-openssl",
   "vendored-libgit2",
 ] }
+git2-lfs = { git = "https://github.com/pashokitsme/git2-lfs.git", features = [
+  "git2-vendored-openssl",
+  "git2-use-openssl",
+] }
 
-[target.'cfg(target_os = "windows")'.dependencies]
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "lib", default-features = false, features = [
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
+git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "filter", default-features = false, features = [
   "https",
   "ssh",
   "vendored-libgit2",
 ] }
+git2-lfs = { git = "https://github.com/pashokitsme/git2-lfs.git" }
+
 
 [dev-dependencies]
 test-utils = { path = "../test-utils", features = ["git"] }

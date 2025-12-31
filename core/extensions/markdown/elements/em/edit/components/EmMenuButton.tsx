@@ -1,16 +1,22 @@
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import { ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { Editor } from "@tiptap/core";
+import { ToolbarIcon } from "@ui-kit/Toolbar";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 
 const EmMenuButton = ({ editor }: { editor: Editor }) => {
+	const { disabled, isActive } = ButtonStateService.useCurrentAction({ mark: "em" });
+
 	return (
-		<Button
-			onClick={() => editor.chain().focus().toggleItalic().run()}
-			icon={"italic"}
+		<ToolbarToggleButton
 			tooltipText={t("editor.italic")}
 			hotKey={"Mod-I"}
-			nodeValues={{ mark: "em" }}
-		/>
+			onClick={() => editor.chain().focus().toggleItalic().run()}
+			disabled={disabled}
+			active={isActive}
+		>
+			<ToolbarIcon icon={"italic"} />
+		</ToolbarToggleButton>
 	);
 };
 

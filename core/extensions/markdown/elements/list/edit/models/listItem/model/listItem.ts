@@ -5,10 +5,19 @@ import { wrappingInputRule } from "@tiptap/core";
 import ListItem, { ListItemOptions } from "@tiptap/extension-list-item";
 import { TaskItem } from "@tiptap/extension-task-item";
 import taskListPlugin from "@ext/markdown/elements/list/edit/models/listItem/logic/taskListPlugin";
+import { handleDelete } from "@ext/markdown/elements/list/edit/logic/keymaps/handleDelete";
+import { handleBackspace } from "@ext/markdown/elements/list/edit/logic/keymaps/handleBackspace";
 
 export const CHECKED_ATTR = "checked";
 
 const taskItemInputRegex = /^\s*(\[([( |x])?\])\s$/;
+
+const listTypes = [
+	{
+		itemName: "listItem",
+		wrapperNames: ["orderedList", "bulletList"],
+	},
+];
 
 const CustomListItem = ListItem.extend<ListItemOptions>({
 	...getExtensionOptions({ schema: listItem, name: "listItem" }),
@@ -53,6 +62,66 @@ const CustomListItem = ListItem.extend<ListItemOptions>({
 			Enter: ({ editor }) => {
 				if (editor.isActive("code_block")) return;
 				return this.parent().Enter({ editor });
+			},
+			Delete: ({ editor }) => {
+				let handled = false;
+
+				listTypes.forEach(({ itemName }) => {
+					if (editor.state.schema.nodes[itemName] === undefined) {
+						return;
+					}
+
+					if (handleDelete(editor, itemName)) {
+						handled = true;
+					}
+				});
+
+				return handled;
+			},
+			"Mod-Delete": ({ editor }) => {
+				let handled = false;
+
+				listTypes.forEach(({ itemName }) => {
+					if (editor.state.schema.nodes[itemName] === undefined) {
+						return;
+					}
+
+					if (handleDelete(editor, itemName)) {
+						handled = true;
+					}
+				});
+
+				return handled;
+			},
+			Backspace: ({ editor }) => {
+				let handled = false;
+
+				listTypes.forEach(({ itemName, wrapperNames }) => {
+					if (editor.state.schema.nodes[itemName] === undefined) {
+						return;
+					}
+
+					if (handleBackspace(editor, itemName, wrapperNames)) {
+						handled = true;
+					}
+				});
+
+				return handled;
+			},
+			"Mod-Backspace": ({ editor }) => {
+				let handled = false;
+
+				listTypes.forEach(({ itemName, wrapperNames }) => {
+					if (editor.state.schema.nodes[itemName] === undefined) {
+						return;
+					}
+
+					if (handleBackspace(editor, itemName, wrapperNames)) {
+						handled = true;
+					}
+				});
+
+				return handled;
 			},
 		};
 	},

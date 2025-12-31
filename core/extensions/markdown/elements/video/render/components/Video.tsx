@@ -1,7 +1,7 @@
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import ErrorVideo from "@ext/markdown/elements/video/render/components/ErrorVideo";
 import { useEffect, useState } from "react";
 import RenderVideo from "./RenderVideo";
@@ -33,8 +33,8 @@ const Video = ({ path, title, noEm, className, commentId, isPrint }: VideoProps)
 
 	return (
 		<div className={className} data-type="video">
-			<Skeleton isLoaded={isError || isLoaded} width="100%">
-				<BlockCommentView commentId={commentId}>
+			<BlockCommentView commentId={commentId}>
+				<Skeleton isLoaded={isError || isLoaded} width="100%" height="100%" style={{ height: "100%" }}>
 					{isError ? (
 						<>
 							<ErrorVideo link={path} isLink isNoneError={!path} />
@@ -46,8 +46,8 @@ const Video = ({ path, title, noEm, className, commentId, isPrint }: VideoProps)
 							{title && !noEm && <em>{title}</em>}
 						</>
 					)}
-				</BlockCommentView>
-			</Skeleton>
+				</Skeleton>
+			</BlockCommentView>
 		</div>
 	);
 };

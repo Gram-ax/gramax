@@ -8,11 +8,11 @@ import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel"
 import ScopedPageData from "@ext/git/core/ScopedCatalogs/ScopedPageData";
 import assert from "assert";
 
-const getPageDataByArticleData: Command<
+const getScopedPageDataByArticleData: Command<
 	{ catalogName: string; ctx: Context; articlePath: string; scope?: TreeReadScope },
 	ArticlePageData
 > = Command.create({
-	path: "page/getPageDataByArticleData",
+	path: "page/getScopedPageDataByArticleData",
 
 	kind: ResponseKind.json,
 
@@ -46,4 +46,4 @@ const getPageDataByArticleData: Command<
 	},
 });
 
-export default getPageDataByArticleData;
+export default getScopedPageDataByArticleData;

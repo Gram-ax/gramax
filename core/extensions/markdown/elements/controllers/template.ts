@@ -21,7 +21,8 @@ function template(this: Extension) {
 		view: (view) => {
 			return {
 				update: () => {
-					this.options.editable && view.dom.setAttribute("is-template", "true");
+					if (this.options.editable) view.dom.setAttribute("is-template", "true");
+					else view.dom.removeAttribute("is-template");
 				},
 				destroy: () => {
 					this.options.editable && view.dom.removeAttribute("is-template");

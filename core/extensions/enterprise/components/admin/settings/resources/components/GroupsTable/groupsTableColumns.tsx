@@ -34,8 +34,9 @@ const groupsTableColumns: ColumnDef<ClientAccessGroup>[] = [
 		enableHiding: false,
 	},
 	{
-		accessorKey: "id",
+		accessorKey: "name",
 		header: t("enterprise.admin.resources.groups.group"),
+		cell: ({ row }) => row.original.name ?? row.original.id,
 	},
 	{
 		accessorKey: "role",

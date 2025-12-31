@@ -6,11 +6,16 @@ export enum SystemProperties {
 	hierarchy = "hierarchy",
 }
 
+export type PropertyOptions = {
+	docportalVisible?: boolean;
+}
+
 export interface Property {
 	name: PropertyID;
 	type: PropertyTypes;
 	style: Style;
 	icon?: string;
+	options?: PropertyOptions;
 	values?: string[];
 	value?: string[];
 }

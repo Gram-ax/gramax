@@ -2,6 +2,7 @@ import { AiServerConfig } from "@ext/ai/models/types";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import { PluginConfig } from "@plugins/types";
 
 export enum AuthMethod {
 	SSO = "sso",
@@ -25,15 +26,18 @@ interface WorkspaceStyle {
 export interface ModuleOptions {
 	quiz?: boolean;
 	styleGuide?: boolean;
+	guests?: boolean;
 }
 
 export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
 	source: WorkspaceSource;
 	style: WorkspaceStyle;
-	authMethods: AuthMethod[];
+	modules?: ModuleOptions;
+	plugins?: PluginConfig[];
 	wordTemplates?: ExportTemplate[];
 	pdfTemplates?: ExportTemplate[];
-	modules?: ModuleOptions;
+	/** @deprecated use modules.guests instead */
+	authMethods?: AuthMethod[];
 }
 
 interface UserSettings {

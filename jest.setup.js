@@ -40,3 +40,8 @@ if (!process.env.DEBUG_JEST) {
 delete process.env.GIT_PROXY_SERVICE_URL;
 
 jest.setTimeout(15000);
+
+jest.mock("ics-ui-kit/components/textarea", () => ({
+	Textarea: "textarea",
+	AutogrowTextarea: "textarea",
+}));

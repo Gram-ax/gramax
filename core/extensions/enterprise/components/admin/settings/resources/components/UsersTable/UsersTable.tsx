@@ -20,7 +20,7 @@ interface UsersTableProps {
 
 const UsersTable = ({ users, onChange, isExternal, repositoryId }: UsersTableProps) => {
 	const [rowSelection, setRowSelection] = useState({});
-	const { searchBranches, settings } = useSettings();
+	const { searchBranches } = useSettings();
 
 	const usersTableData: UsersTableColumn[] = useMemo(() => {
 		if (isExternal) return users.map((user) => ({ ...user }));
@@ -64,7 +64,7 @@ const UsersTable = ({ users, onChange, isExternal, repositoryId }: UsersTablePro
 		[users, onChange],
 	);
 
-	const columns = useMemo(() => getUsersTableColumns(isExternal, settings.guests), [isExternal, settings.guests]);
+	const columns = useMemo(() => getUsersTableColumns(isExternal), [isExternal]);
 
 	const usersTable = useReactTable({
 		data: usersTableData,

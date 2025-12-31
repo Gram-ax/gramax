@@ -47,7 +47,7 @@ const createImages = async (
 
 		let isInline = false;
 
-		if ($from.pos === $to.pos && $from.parent.isTextblock && $from.parent.childCount) isInline = true;
+		if ($from.parent.isTextblock && $from.parent.childCount) isInline = true;
 		if (newSize) {
 			attributes.width = newSize.width + "px";
 			attributes.height = newSize.height + "px";

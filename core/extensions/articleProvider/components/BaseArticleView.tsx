@@ -12,7 +12,7 @@ import { useState } from "react";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import CustomArticleEditor from "@ext/articleProvider/components/CustomArticleEditor";
 import { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
-import { MainMenuOptions } from "@ext/markdown/core/edit/components/Menu/Menus/Main";
+import { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import BaseArticleBreadcrumb from "@ext/articleProvider/components/BaseArticleBreadcrumb";
 
 interface BaseArticleViewProps {
@@ -22,7 +22,7 @@ interface BaseArticleViewProps {
 	onCloseClick: () => void;
 	extensions?: Extensions;
 	extensionsOptions?: GetExtensionsPropsOptions;
-	menuOptions?: MainMenuOptions;
+	menuOptions?: ToolbarMenuProps;
 }
 
 const ContainerWrapper = styled.div`

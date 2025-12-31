@@ -1,12 +1,12 @@
 import { CommentOptions, CommentStorage } from "@ext/markdown/elements/comment/edit/model/types";
 import {
+	ChangedRange,
 	Editor,
 	MarkConfig,
 	ParentConfig,
 	Range,
 	combineTransactionSteps,
 	getChangedRanges,
-	ChangedRange,
 } from "@tiptap/core";
 import { MarkType, Node } from "@tiptap/pm/model";
 import { EditorState, Plugin, PluginKey, Transaction } from "@tiptap/pm/state";
@@ -191,10 +191,6 @@ function StateWatcher(this: {
 		},
 		props: {
 			decorations: (state) => {
-				//temp
-				const isDiffEditor = this.editor.extensionStorage.diff;
-				if (isDiffEditor) return null;
-
 				const { hoverComment, openedComment, positions } = this.editor.storage.comment;
 				const decorations: Decoration[] = [];
 

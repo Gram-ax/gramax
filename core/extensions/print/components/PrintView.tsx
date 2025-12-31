@@ -146,9 +146,8 @@ export default styled(PrintView)`
 		}
 	}
 
-	table[data-header="row"] tbody tr:first-child td,
-	table[data-header="both"] tbody tr:first-child td {
-		font-weight: 300;
+	table[data-header] tbody tr td:not(.cell-header) {
+		font-weight: inherit;
 		color: var(--color-article-text);
 	}
 
@@ -246,6 +245,10 @@ export default styled(PrintView)`
 
 		.page {
 			border: none;
+
+			.page-bottom {
+				margin-top: -36px;
+			}
 		}
 
 		.render-body {

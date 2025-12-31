@@ -1,15 +1,23 @@
 import t from "@ext/localization/locale/translate";
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import { Editor } from "@tiptap/core";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import { Icon } from "@ui-kit/Icon";
 
 const VideoMenuButton = ({ editor }: { editor: Editor }) => {
+	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "video" });
 	return (
-		<Button
-			icon="video"
-			tooltipText={t("editor.video.name")}
-			nodeValues={{ action: "video" }}
-			onClick={() => editor.chain().focus().setVideo().run()}
-		/>
+		<ToolbarDropdownMenuItem
+			dataQa={`qa-edit-menu-video`}
+			disabled={disabled}
+			active={isActive}
+			onSelect={() => editor.chain().focus().setVideo().run()}
+		>
+			<div className="flex flex-row items-center gap-2 w-full">
+				<Icon icon="video" />
+				{t("editor.video.name")}
+			</div>
+		</ToolbarDropdownMenuItem>
 	);
 };
 

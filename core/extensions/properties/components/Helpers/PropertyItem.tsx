@@ -1,26 +1,54 @@
-import { CustomInputRenderer, getInputComponent } from "@ext/properties/components/Helpers/CustomInputRenderer";
-import { DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuItem } from "@ui-kit/Dropdown";
-import { MenuItemIconButton } from "@ui-kit/MenuItem";
-import { Button } from "@ui-kit/Button";
 import Icon from "@components/Atoms/Icon";
-import { isHasValue, Property } from "@ext/properties/models";
-import { useState } from "react";
 import t from "@ext/localization/locale/translate";
+import { CustomInputRenderer, getInputComponent } from "@ext/properties/components/Helpers/CustomInputRenderer";
 import getFormatValue from "@ext/properties/logic/getFormatValue";
+import { isHasValue, Property } from "@ext/properties/models";
+import { Button } from "@ui-kit/Button";
+import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
+import { MenuItemIconButton } from "@ui-kit/MenuItem";
+import { ReactNode, useState } from "react";
 
-interface PropertyItemProps {
+export interface GetItemComponentArgs {
+	key?: React.JSX.Element["key"];
+	item: {
+		property: Property;
+		value?: string;
+	};
+	children?: ReactNode;
+	disabled?: boolean;
+	onSelect?: (event: Event) => void;
+}
+
+export interface PropertyItemProps {
 	property: Property;
 	disabled: boolean;
 	onClick: (name: string, value?: string) => void;
 	onEditClick?: (name: string) => void;
+	getItemComponent?: (args: GetItemComponentArgs) => ReactNode;
 }
 
-const PropertyItem = ({ property, disabled, onClick, onEditClick }: PropertyItemProps) => {
+const PropertyItem = ({ property, disabled, onClick, onEditClick, getItemComponent }: PropertyItemProps) => {
+	getItemComponent ??= getDefaultItemComponent;
+
 	const [value, setValue] = useState<string>(property.value?.[0] ?? "");
 	const InputComponent = getInputComponent(property.type);
 
 	const isSubMenu = InputComponent || isHasValue[property.type];
-	const MenuItem = isSubMenu ? DropdownMenuSub : DropdownMenuItem;
+
+	const onSelect = (e: Event) => {
+		if (isSubMenu) return;
+		e.preventDefault();
+		onClick(property.name);
+	};
+
+	const onSubItemSelect = (value: string) => {
+		onClick(property.name, value);
+	};
+
+	const onAddClick = () => {
+		if (!value) return;
+		onClick(property.name, value);
+	};
 
 	const TriggerContent = (
 		<div className="flex items-center w-full justify-between gap-4">
@@ -43,38 +71,26 @@ const PropertyItem = ({ property, disabled, onClick, onEditClick }: PropertyItem
 		</div>
 	);
 
-	const onSelect = (e: Event) => {
-		if (isSubMenu) return;
-		e.preventDefault();
-		onClick(property.name);
-	};
-
-	const onSubItemSelect = (value: string) => {
-		onClick(property.name, value);
-	};
-
-	const onAddClick = () => {
-		if (!value) return;
-		onClick(property.name, value);
-	};
-
-	return (
-		<MenuItem key={property.name} onSelect={onSelect} disabled={disabled}>
+	const children = (
+		<>
 			{isSubMenu ? <DropdownMenuSubTrigger>{TriggerContent}</DropdownMenuSubTrigger> : TriggerContent}
 			{isSubMenu && (
 				<DropdownMenuSubContent>
 					{!InputComponent &&
-						property.values?.map((value) => (
-							<DropdownMenuItem
-								key={value}
-								onSelect={(e) => {
+						property.values?.map((value) =>
+							getItemComponent({
+								key: value,
+								item: {
+									property,
+									value,
+								},
+								children: [value],
+								onSelect: (e) => {
 									e.preventDefault();
 									onSubItemSelect(value);
-								}}
-							>
-								{value}
-							</DropdownMenuItem>
-						))}
+								},
+							}),
+						)}
 					{InputComponent && (
 						<div>
 							<CustomInputRenderer
@@ -96,8 +112,28 @@ const PropertyItem = ({ property, disabled, onClick, onEditClick }: PropertyItem
 					)}
 				</DropdownMenuSubContent>
 			)}
-		</MenuItem>
+		</>
 	);
+
+	if (!isSubMenu) {
+		return getItemComponent({
+			key: property.name,
+			item: {
+				property,
+			},
+			onSelect,
+			disabled,
+			children,
+		});
+	}
+
+	return <DropdownMenuSub key={property.name}>{children}</DropdownMenuSub>;
 };
 
 export default PropertyItem;
+
+const getDefaultItemComponent: PropertyItemProps["getItemComponent"] = ({ children, disabled, key, onSelect }) => (
+	<DropdownMenuItem key={key} disabled={disabled} onSelect={onSelect}>
+		{children}
+	</DropdownMenuItem>
+);

@@ -10,6 +10,9 @@ const OnDeleteMark = Extension.create({
 			new Plugin({
 				key: new PluginKey("OnDeleteMark"),
 				appendTransaction: (transactions, oldState, newState) => {
+					const isIgnored = transactions.some((tr) => tr.getMeta("ignoreDeleteMark"));
+					if (isIgnored) return null;
+
 					if (transactions.some((tr) => tr.docChanged)) {
 						let oldMarks = [],
 							newMarks = [];

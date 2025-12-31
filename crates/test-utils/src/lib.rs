@@ -15,7 +15,7 @@ pub use tempdir::TempDir;
 pub mod git;
 
 fn init_logger() {
-  let show_output = std::env::args().any(|arg| arg == "--show-output");
+  let show_output = std::env::args().any(|arg| arg == "--exact");
   if !show_output {
     return;
   }

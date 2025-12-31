@@ -131,8 +131,8 @@ pub fn push(repo_path: String, creds: AccessTokenCreds) -> Result<()> {
 }
 
 #[em_bindgen]
-pub fn checkout(repo_path: String, ref_name: String, force: bool) -> Result<()> {
-  git::checkout(Path::new(&repo_path), &ref_name, force)
+pub fn checkout(repo_path: String, creds: AccessTokenCreds, ref_name: String, force: bool) -> Result<()> {
+  git::checkout(Path::new(&repo_path), creds, &ref_name, force)
 }
 
 #[em_bindgen]
@@ -148,6 +148,7 @@ pub fn fetch(
 #[em_bindgen]
 pub fn clone(creds: AccessTokenCreds, opts: CloneOptions) -> Result<()> {
   register_clone_cancel_token(opts.cancel_token);
+
   git::clone(creds, opts, Rc::new(on_clone_progress)).or_http_error()
 }
 

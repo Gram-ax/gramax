@@ -61,7 +61,7 @@ describe("ViewFilter фильтрует по свойствам", () => {
 						articles: [
 							{
 								itemPath: "PropertyCatalog/aaa.md",
-								linkPath: "PropertyCatalog/aaa",
+								linkPath: "/PropertyCatalog/aaa",
 								otherProps: [
 									{
 										name: "Important",

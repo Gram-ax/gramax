@@ -3,15 +3,21 @@ import { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 
 export default interface Searcher {
 	progress: () => SearcherProgressGenerator;
-	resetAllCatalogs: () => Promise<void>;
+	updateIndex: (args: UpdateIndexArgs) => SearcherProgressGenerator;
 	searchAll: (args: SearchAllArgs) => Promise<SearchResult[]>;
 	search: (args: SearchArgs) => Promise<SearchResult[]>;
 }
 
+export interface UpdateIndexArgs {
+	force?: boolean;
+	catalogName?: string;
+}
+
 export interface SearchArgsBase {
 	query?: string;
-	properties?: { key: string, value: unknown }[];
+	propertyFilter?: PropertyFilter;
 	articlesLanguage?: ArticleLanguage;
+	signal?: AbortSignal;
 }
 
 export interface SearchAllArgs extends SearchArgsBase {
@@ -44,9 +50,10 @@ export interface SearchArticleResult {
 	catalog: {
 		name: string;
 		title: string;
+		url: string;
 	};
 	url: string;
-	breadcrumbs: { title: string; pathname: string }[];
+	breadcrumbs: { title: string; url: string }[];
 	properties: PropertyValue[];
 	title: SearchResultMarkItem[];
 	items: SearchResultItem[];
@@ -89,3 +96,37 @@ export interface SearchResultHighlightMarkItem {
 	type: "highlight";
 	text: string;
 }
+
+export interface EqPropertyFilter {
+	op: "eq";
+	key: string;
+	value: unknown;
+}
+
+export interface ContainsPropertyFilter {
+	op: "contains";
+	key: string;
+	list: unknown[];
+}
+
+export interface IsEmptyPropertyFilter {
+	op: "isEmpty";
+	key: string;
+}
+
+export interface AndPropertyFilter {
+	op: "and";
+	filters: PropertyFilter[];
+}
+
+export interface OrPropertyFilter {
+	op: "or";
+	filters: PropertyFilter[];
+}
+
+export type PropertyFilter =
+	| EqPropertyFilter
+	| ContainsPropertyFilter
+	| IsEmptyPropertyFilter
+	| AndPropertyFilter
+	| OrPropertyFilter;

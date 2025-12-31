@@ -14,6 +14,7 @@ pub mod commands;
 
 pub mod actions;
 mod cache;
+mod cancel_token;
 pub mod creds;
 pub mod error;
 pub mod ext;
@@ -24,7 +25,6 @@ mod remote_callback;
 pub mod remote_progress;
 pub mod repo;
 pub mod repo_ext;
-mod cancel_token;
 
 pub mod git2 {
   pub use git2::*;

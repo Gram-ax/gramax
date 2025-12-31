@@ -1,6 +1,7 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import { setComments } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { Dispatch, SetStateAction } from "react";
 
 let _flag: boolean;
@@ -33,6 +34,11 @@ export default abstract class ArticleUpdaterService {
 		const data = await ArticleUpdaterService._getUpdateDate(apiUrlCreator);
 		_setIsLoading(false);
 		if (data && data?.articleProps?.ref?.path == _data.articleProps.ref.path) _onUpdate(data);
+	}
+
+	public static forceUpdate() {
+		setComments({});
+		_onUpdate?.(_data);
 	}
 
 	public static setUpdateData(data: ArticlePageData) {

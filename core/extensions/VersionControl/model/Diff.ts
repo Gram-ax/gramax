@@ -40,4 +40,8 @@ export interface DiffItemResourceCollection {
 	resources: DiffResource[];
 }
 
+export type WithMergeBase<T> = T & {
+	mergeBase: string;
+};
+
 export type DiffItemOrResource = DiffItem | DiffResource;

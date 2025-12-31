@@ -2,42 +2,32 @@ import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 
 const ToolbarWrapper = styled.div`
-	border-radius: var(--radius-large);
-
-	> div > div {
-		flex-wrap: wrap;
-	}
-
 	pointer-events: auto;
 
 	@media only screen and (max-width: 1163px) {
 		.hidden {
 			display: none;
 		}
-
-		> div > div {
-			max-width: 331px;
-		}
 	}
 
-	${cssMedia.medium} {
-		.hidden {
-			display: block;
-		}
-
-		> div > div {
-			max-width: fit-content;
-		}
+	[role="article-toolbar"] {
+		flex-wrap: wrap;
 	}
 
 	${cssMedia.narrow} {
-		max-width: fit-content;
-
-		> div > div {
+		[role="article-toolbar"],
+		[role="article-inline-toolbar"] {
 			flex-wrap: nowrap;
-			max-width: 95vw;
-			overflow: scroll;
+			border-radius: 0;
 		}
+
+		[role="toolbar"] {
+			border-radius: 0;
+		}
+	}
+
+	@media print {
+		display: none !important;
 	}
 `;
 

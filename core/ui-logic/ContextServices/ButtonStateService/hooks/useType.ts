@@ -16,6 +16,7 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 	let headingLevel = null;
 	let noteType = null;
 	let diagramName = null;
+	let color = null;
 
 	const nodeStack = [];
 	let ignoreList = false;
@@ -46,6 +47,16 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 			diagramName = node.attrs?.diagramName;
 		},
 	};
+
+	state.doc.nodesBetween(from, to, (node) => {
+		if (node.type.name === "text" && node.marks?.length > 0) {
+			node.marks?.forEach((mark) => {
+				if (mark.type.name === "highlight") {
+					color = mark.attrs?.color;
+				}
+			});
+		}
+	});
 
 	while ($anchor) {
 		const name = $anchor.parent.type.name;
@@ -90,66 +101,68 @@ export const getNodeNameFromCursor = (state: Editor["state"]) => {
 		),
 		headingLevel,
 		diagramName,
+		color,
 	};
+};
+
+const getMarksAction = (editor: Editor) => {
+	const node = editor.state.selection.$from.node();
+	const marks = [];
+
+	if (node.type.name === "paragraph" || node.type.name === "heading") {
+		const { state } = editor;
+		const { from, to, empty } = state.selection;
+
+		const addActiveMarks = (marksAtCursor: readonly Mark[]) => {
+			marksAtCursor.forEach((mark) => {
+				const markName = mark.type.name as MarkType;
+				if (markList.includes(markName) && !marks.includes(markName)) {
+					marks.push(markName);
+				}
+			});
+		};
+
+		if (empty) {
+			const marksAtCursor = state.storedMarks || state.selection.$head.marks();
+			addActiveMarks(marksAtCursor);
+		} else {
+			state.doc.nodesBetween(from, to, (node) => addActiveMarks(node.marks));
+		}
+	}
+
+	return marks;
 };
 
 const useType = (editor: Editor) => {
 	const mirror = useRef<State>({
 		actions: [],
 		marks: [],
-		attrs: { level: null, notFirstInList: false, diagramName: null },
+		attrs: { level: null, diagramName: null, color: null },
 		selection: null,
 	});
 
 	const [state, setState] = useState<State>({
 		actions: [],
 		marks: [],
-		attrs: { level: null, notFirstInList: false, diagramName: null },
+		attrs: { level: null, diagramName: null, color: null },
 		selection: null,
 	});
 
-	const getMarksAction = () => {
-		const node = editor.state.selection.$from.node();
-		const marks = [];
-
-		if (node.type.name === "paragraph" || node.type.name === "heading") {
-			const { state } = editor;
-			const { from, to, empty } = state.selection;
-
-			const addActiveMarks = (marksAtCursor: readonly Mark[]) => {
-				marksAtCursor.forEach((mark) => {
-					const markName = mark.type.name as MarkType;
-					if (markList.includes(markName) && !marks.includes(markName)) {
-						marks.push(markName);
-					}
-				});
-			};
-
-			if (empty) {
-				const marksAtCursor = state.storedMarks || state.selection.$head.marks();
-				addActiveMarks(marksAtCursor);
-			} else {
-				state.doc.nodesBetween(from, to, (node) => addActiveMarks(node.marks));
-			}
-		}
-
-		return marks;
-	};
-
 	useWatch(() => {
-		const { actions, headingLevel, noteType, diagramName } = getNodeNameFromCursor(editor.state);
+		const { actions, headingLevel, noteType, diagramName, color } = getNodeNameFromCursor(editor.state);
 		if (headingLevel) mirror.current.attrs.level = headingLevel;
 		if (noteType) mirror.current.attrs.type = noteType;
 		if (diagramName) mirror.current.attrs.diagramName = diagramName;
+		mirror.current.attrs.color = color;
 
-		const marks = getMarksAction();
+		const marks = getMarksAction(editor);
 
 		const deepDifference =
 			state.marks.toString() !== marks.toString() ||
 			state.attrs?.level !== mirror.current.attrs?.level ||
-			state.attrs.notFirstInList !== mirror.current.attrs.notFirstInList ||
 			state.attrs.type !== mirror.current.attrs.type ||
-			state.attrs.diagramName !== mirror.current.attrs.diagramName;
+			state.attrs.diagramName !== mirror.current.attrs.diagramName ||
+			state.attrs.color !== mirror.current.attrs.color;
 
 		if (actions.toString() !== mirror.current.actions.toString() || deepDifference) {
 			mirror.current.actions = [...actions];
@@ -160,9 +173,9 @@ const useType = (editor: Editor) => {
 				marks: [...mirror.current.marks],
 				attrs: {
 					level: mirror.current.attrs?.level,
-					notFirstInList: mirror.current.attrs?.notFirstInList,
 					type: mirror.current.attrs?.type,
 					diagramName: mirror.current.attrs?.diagramName,
+					color: mirror.current.attrs?.color,
 				},
 				selection: editor.state.selection,
 			});

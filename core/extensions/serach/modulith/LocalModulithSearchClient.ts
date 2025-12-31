@@ -1,9 +1,11 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import {
 	ModulithSearchClient,
 	SearchBatchArgs,
 	SearchResult,
 	UpdateArgs,
 } from "@ext/serach/modulith/ModulithSearchClient";
+import { SearchArticleMetadata } from "@ext/serach/modulith/SearchArticle";
 import { SearchService } from "@ics/modulith-search-domain/search";
 
 const tenant = "local";
@@ -24,13 +26,26 @@ export class LocalModulithSearchClient implements ModulithSearchClient {
 		});
 	}
 
-	searchBatch(args: SearchBatchArgs): Promise<SearchResult[][]> {
-		return this._options.searchService.search({
+	async searchBatch({ items }: SearchBatchArgs): Promise<SearchResult[][]> {
+		const env = getExecutingEnvironment();
+		if (env === "browser" || env === "tauri") {
+			// TODO: searching in Worker
+			await new Promise((resolve) => setTimeout(resolve, 0));
+		}
+
+		const res = await this._options.searchService.search<SearchArticleMetadata>({
 			tenant,
-			items: args.items.map((x) => ({
+			items: items.map((x) => ({
 				searchText: x.query,
 				filter: x.filter,
 			})),
 		});
+
+		if (env === "browser" || env === "tauri") {
+			// TODO: searching in Worker
+			await new Promise((resolve) => setTimeout(resolve, 0));
+		}
+
+		return res;
 	}
 }

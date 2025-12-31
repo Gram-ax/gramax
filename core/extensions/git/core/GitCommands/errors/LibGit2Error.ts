@@ -6,20 +6,27 @@ export class LibGit2Error extends Error {
 	code?: GitErrorCode;
 	data?: { [key: string]: string };
 
-	constructor(name: string, message: string, klass: number, code: number, command?: string) {
+	constructor(name: string, message: string, subset: number, klass: number, code: number, command?: string) {
 		super(message);
 		this.name = name;
-		this.code = fromRaw(klass, code, message, command);
+		this.code = fromRaw(subset, klass, code, message, command);
 		this.data = makeData(this.code, code);
 	}
 }
 
-export const fromRaw = (klass: number, code: number, message: string, command?: string): GitErrorCode => {
+export const fromRaw = (
+	subset: number,
+	klass: number,
+	code: number,
+	message: string,
+	command?: string,
+): GitErrorCode => {
 	const eq = (targetKlass: number, targetCode: number) => targetKlass == klass && targetCode == code;
 
 	switch (true) {
-		case klass == 1001:
+		case subset == 3 && klass == undefined:
 			return GitErrorCode.HealthcheckFailed;
+
 		case eq(20, 11):
 		case eq(13, 20):
 		case eq(20, 13):
@@ -47,7 +54,10 @@ export const fromRaw = (klass: number, code: number, message: string, command?: 
 		case message.includes("unexpected http status code: 404") || code === 404:
 			return GitErrorCode.RemoteRepositoryNotFoundError;
 
-		case message.includes("too many redirects or authentication replays") || code === 401 || code === 403:
+		case code === 401 || code === 403:
+		case message.includes("too many redirects or authentication replays"):
+		case message.includes("unexpected http status code: 403"):
+		case message.includes("unexpected http status code: 401"):
 			return GitErrorCode.NotAuthorizedError;
 
 		case [413, 431, 422].some((c) => code == c || message.includes(`unexpected http status code: ${c}`)):
@@ -67,9 +77,6 @@ export const fromRaw = (klass: number, code: number, message: string, command?: 
 
 		case klass == 14 && message.includes("does not exist in the given tree"):
 			return GitErrorCode.FileNotFoundError;
-
-		case klass == 1002:
-			return GitErrorCode.LockFileHealthcheckFailed;
 
 		case command === "clone" &&
 			(message.includes("indexer callback") ||

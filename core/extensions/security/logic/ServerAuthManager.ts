@@ -68,6 +68,11 @@ export default class ServerAuthManager extends AuthManager {
 		return await this._ap.mailLoginOTP(req, res);
 	}
 
+
+	setUsersEnterpriseInfo(user: EnterpriseUser): void {
+		this._usersEnterprisePermissionInfo[user?.info?.mail ?? ""] = user.getEnterpriseInfo();
+	}
+
 	private async _getAnonymousUser(cookie: Cookie): Promise<User> {
 		if (!this._enterpriseConfig?.gesUrl) return new User();
 		const user = new EnterpriseUser(false, null, null, null, null, this._enterpriseConfig);
@@ -93,9 +98,6 @@ export default class ServerAuthManager extends AuthManager {
 		return this._usersEnterprisePermissionInfo[user?.info?.mail ?? ""];
 	}
 
-	protected _setUsersEnterpriseInfo(user: EnterpriseUser): void {
-		this._usersEnterprisePermissionInfo[user?.info?.mail ?? ""] = user.getEnterpriseInfo();
-	}
 
 	private _extractAuthorizationToken(headers: ApiRequest["headers"]): string {
 		const authorizationHeader = headers?.["authorization"];

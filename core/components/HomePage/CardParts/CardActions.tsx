@@ -5,6 +5,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import FavoriteProvider from "@ext/article/Favorite/logic/FavoriteProvider";
 import CatalogMoveAction from "@ext/catalog/actions/move/components/CatalogMoveAction";
+import SelectTargetWorkspace from "@ext/catalog/actions/move/components/SelectTargetWorkspace";
 import { useDeleteCatalog } from "@ext/catalog/actions/propsEditor/components/useDeleteCatalog";
 import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
@@ -58,7 +59,19 @@ const CardActions = ({ catalogLink }: CardActionsProps) => {
 				</DropdownMenuItem>
 				{isLogged && (
 					<>
-						<CatalogMoveAction catalogName={catalogLink.name} />
+						<CatalogMoveAction catalogName={catalogLink.name}>
+							{({ targetWorkspaceRef, checkAndMove }) => (
+								<SelectTargetWorkspace
+									onClick={(workspace) => {
+										targetWorkspaceRef.current = workspace;
+										checkAndMove({
+											url: (api) => api.getCatalogNameAfterMove(catalogLink.name, workspace.path),
+										});
+									}}
+									excludeCurrent
+								/>
+							)}
+						</CatalogMoveAction>
 						<DropdownMenuItem
 							type="danger"
 							onClick={async (e) => {

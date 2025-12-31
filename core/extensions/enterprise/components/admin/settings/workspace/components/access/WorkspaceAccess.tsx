@@ -1,13 +1,14 @@
 import { getRoleName, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import { GroupInfo } from "./components/group/types/GroupTypes";
 import { WorkspaceAccessGroup } from "./components/group/WorkspaceAccessGroup";
 import { WorkspaceAccessUser } from "./components/users/WorkspaceAccessUser";
-import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 
 interface WorkspaceAccessProps {
 	localSettings: WorkspaceSettings;
 	setLocalSettings: React.Dispatch<React.SetStateAction<WorkspaceSettings>>;
 	ownerRole: RoleId;
-	groups: string[];
+	groups: GroupInfo[];
 }
 
 export function WorkspaceAccess({ localSettings, setLocalSettings, ownerRole, groups }: WorkspaceAccessProps) {

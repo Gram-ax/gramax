@@ -6,7 +6,7 @@ const crateListItem: KeyboardRule = ({ editor, node, parentNode, nodePosition })
 	if (!parentNode || parentNode.type.name !== "listItem") return false;
 	if (node.isTextblock || !node.isBlock) return false;
 
-	const newListItemPos = Math.min(nodePosition + node.nodeSize, editor.state.doc.content.size - 1);
+	const newListItemPos = Math.min(nodePosition + node.nodeSize + 1, editor.state.doc.content.size - 1);
 	return editor.chain().insertContentAt(newListItemPos, "<li><p></p></li>").run();
 };
 

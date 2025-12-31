@@ -34,6 +34,7 @@ import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
+import { Loader } from "@ui-kit/Loader";
 
 interface ImportModalProps {
 	trigger?: ReactNode;
@@ -45,6 +46,7 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 	const [isCreateSourceOpen, setIsCreateSourceOpen] = useState(false);
 	const [invalidSourceData, setInvalidSourceData] = useState<SourceData>(null);
 	const [unsupportedElements, setUnsupportedElements] = useState<UnsupportedElements[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const sourceDatas = useFilteredSourceData();
 	const { isNext } = usePlatform();
@@ -96,13 +98,22 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 
 	const loadUnsupportedElements = useCallback(
 		async (sourceData: SourceData) => {
+			setIsLoading(true);
+
 			const storageData = getStorageDataByForm(sourceData, form.getValues());
 			const res = await FetchService.fetch<UnsupportedElements[]>(
 				apiUrlCreator.getUnsupportedElementsUrl(storageData.name, storageData.source.sourceType),
 				JSON.stringify(storageData),
 			);
-			if (!res.ok) return false;
+
+			if (!res.ok) {
+				setIsLoading(false);
+				return false;
+			}
+
 			const elements = await res.json();
+			setIsLoading(false);
+
 			if (!elements?.length) {
 				startCloneRepo({
 					storageData,
@@ -120,11 +131,11 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 	);
 
 	const onSubmit = useCallback(
-		async (e) => {
-			const elements = await loadUnsupportedElements(sourceData);
-			if (!elements) return;
+		(e) => {
+			form.handleSubmit(async () => {
+				const elements = await loadUnsupportedElements(sourceData);
+				if (!elements) return;
 
-			form.handleSubmit(() => {
 				startClone(sourceData);
 				onOpenChange(false);
 			})(e);
@@ -229,24 +240,39 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 										)}
 									</FormStack>
 								</ModalBody>
-								<FormFooter primaryButton={<Button>{t("catalog.import")}</Button>} />
+								<FormFooter
+									primaryButton={
+										<Button disabled={isLoading}>
+											{isLoading ? (
+												<>
+													<Loader size="sm" className="p-0 text-inverse-primary-fg" />
+													{t("loading")}
+												</>
+											) : (
+												t("catalog.import")
+											)}
+										</Button>
+									}
+								/>
 							</form>
 						</Form>
 					</OnNetworkApiErrorService.Provider>
 				</ModalContent>
 			</Modal>
-			<CreateSource
-				isOpen={isCreateSourceOpen}
-				setIsOpen={setIsCreateSourceOpen}
-				onSubmit={onSourceDataCreate}
-				onClose={() => {
-					setInvalidSourceData(null);
-					onOpenChange(false);
-				}}
-				data={invalidSourceData}
-				isReadonly={!!invalidSourceData}
-				sourceType={invalidSourceData?.sourceType}
-			/>
+			{isCreateSourceOpen && (
+				<CreateSource
+					isOpen={isCreateSourceOpen}
+					setIsOpen={setIsCreateSourceOpen}
+					onSubmit={onSourceDataCreate}
+					onClose={() => {
+						setInvalidSourceData(null);
+						onOpenChange(false);
+					}}
+					data={invalidSourceData}
+					isReadonly={!!invalidSourceData}
+					sourceType={invalidSourceData?.sourceType}
+				/>
+			)}
 			{unsupportedElements.length > 0 && (
 				<UnsupportedElementsModal
 					unsupportedNodes={unsupportedElements}

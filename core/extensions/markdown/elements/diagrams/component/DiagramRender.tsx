@@ -3,7 +3,6 @@ import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError
 import { ComponentProps, forwardRef, MutableRefObject } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import { classNames } from "@components/libs/classNames";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
@@ -19,7 +18,6 @@ interface DiagramProps {
 	title?: string;
 	downloadSrc?: string;
 	isFrozen?: boolean;
-	commentId?: string;
 }
 
 const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HTMLDivElement>) => {
@@ -33,7 +31,6 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 		title,
 		downloadSrc,
 		openEditor,
-		commentId,
 	} = props;
 
 	if (error) return <DiagramError error={error} diagramName={diagramName} />;
@@ -60,19 +57,17 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 	};
 
 	return (
-		<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
+		<div
+			className={classNames(`${className} diagram-image`, { "diagram-background": background })}
+			data-focusable="true"
+		>
 			<div
-				className={classNames(`${className} diagram-image`, { "diagram-background": background })}
-				data-focusable="true"
-			>
-				<div
-					ref={ref}
-					className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
-					onDoubleClick={onDoubleClick}
-					dangerouslySetInnerHTML={{ __html: data }}
-				/>
-			</div>
-		</BlockCommentView>
+				ref={ref}
+				className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
+				onDoubleClick={onDoubleClick}
+				dangerouslySetInnerHTML={{ __html: data }}
+			/>
+		</div>
 	);
 });
 

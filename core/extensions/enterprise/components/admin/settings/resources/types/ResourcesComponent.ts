@@ -14,7 +14,7 @@ export interface ResourcesSettings {
 }
 
 export type ClientAccessUser = GroupValue & { role: RoleId; disabled?: boolean };
-export type ClientAccessGroup = { id: string; role: RoleId; disabled?: boolean };
+export type ClientAccessGroup = { id: string; role: RoleId; disabled?: boolean; name?: string };
 
 export type ClientAccessKey = "users" | "groups" | "externalUsers";
 export interface ClientAccess {

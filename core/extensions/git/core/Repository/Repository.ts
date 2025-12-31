@@ -71,7 +71,6 @@ export type SyncResult = {
 export default abstract class Repository {
 	protected _mergeRequests: MergeRequestCommands;
 	protected _diffItemContent: DiffItemContent;
-	protected _cachedStatus: GitStatus[] = null;
 	protected _events = createEventEmitter<RepositoryEvents>();
 	private _scopedCatalogs = new ScopedCatalogs(this);
 
@@ -140,7 +139,7 @@ export default abstract class Repository {
 	}
 
 	resetCachedStatus() {
-		this._cachedStatus = null;
+		this.gvc?.resetCachedStatus();
 	}
 
 	async checkoutToDefaultBranch(data: SourceData, force: boolean): Promise<void> {

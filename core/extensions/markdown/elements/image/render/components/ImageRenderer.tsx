@@ -1,20 +1,19 @@
 import AlertError from "@components/AlertError";
 import GifImage from "@components/Atoms/Image/GifImage";
 import Image from "@components/Atoms/Image/Image";
-import Skeleton from "@components/Atoms/ImageSkeleton";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/BlockCommentView";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ImageResizer from "@ext/markdown/elements/image/edit/components/ImageResizer";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { ImageSkeleton } from "@ext/markdown/elements/image/render/components/ImageSkeleton";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import { cropImage } from "@ext/markdown/elements/image/render/logic/cropImage";
 import {
+	createContext,
 	CSSProperties,
 	forwardRef,
 	memo,
@@ -22,23 +21,30 @@ import {
 	ReactEventHandler,
 	RefObject,
 	useCallback,
+	useContext,
 	useEffect,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from "react";
 
-interface ImageRProps {
-	id: string;
-	title: string;
-	objects: ImageObject[];
-	src: string;
-	alt: string;
-	realSrc: string;
-	originalWidth: string;
-	isLoaded: boolean;
+interface ImageContextType {
 	imageContainerRef: RefObject<HTMLDivElement>;
-	commentId?: string;
+	mainContainerRef: RefObject<HTMLDivElement>;
+	imgRef: RefObject<HTMLImageElement>;
+	attrs: Record<string, any>;
+	isLoaded: boolean;
+}
+
+export const ImageContext = createContext<ImageContextType>({
+	imageContainerRef: null,
+	mainContainerRef: null,
+	imgRef: null,
+	attrs: null,
+	isLoaded: false,
+});
+
+interface ImageRProps {
+	src: string;
 	onLoad: (e) => void;
 	onError: (e) => void;
 	openEditor?: () => void;
@@ -50,47 +56,37 @@ const IMAGE_ACTIONS_OPTIONS = {
 };
 
 const ImageR = forwardRef<HTMLImageElement, ImageRProps>((props, ref) => {
+	const { src, onError, openEditor, onLoad } = props;
 	const {
-		id,
-		realSrc,
-		src,
-		imageContainerRef,
-		title,
-		alt,
-		objects,
-		onError,
-		openEditor,
-		onLoad,
-		originalWidth,
+		attrs: { id, title, alt, objects, width, src: realSrc },
 		isLoaded,
-		commentId,
-	} = props;
+		imageContainerRef,
+	} = useContext(ImageContext);
 
 	return (
 		<div className="image-container" data-focusable="true">
-			<BlockCommentView commentId={commentId}>
-				<Image
-					ref={ref}
-					id={id}
-					modalEdit={openEditor}
-					onLoad={onLoad}
-					modalTitle={title}
-					onError={onError}
-					src={src}
-					alt={alt}
-					objects={objects}
-					realSrc={realSrc}
-				/>
-			</BlockCommentView>
+			<Image
+				ref={ref}
+				id={id}
+				modalEdit={openEditor}
+				onLoad={onLoad}
+				modalTitle={title}
+				onError={onError}
+				src={src}
+				alt={alt}
+				objects={objects}
+				realSrc={realSrc}
+			/>
 			<div className="object-container">
-				<ObjectRenderer
-					isLoaded={isLoaded}
-					imageRef={ref as RefObject<HTMLImageElement>}
-					objects={objects}
-					editable={false}
-					parentRef={imageContainerRef}
-					originalWidth={originalWidth}
-				/>
+				{isLoaded && (
+					<ObjectRenderer
+						imageRef={ref as RefObject<HTMLImageElement>}
+						objects={objects}
+						editable={false}
+						parentRef={imageContainerRef}
+						originalWidth={width}
+					/>
+				)}
 			</div>
 		</div>
 	);
@@ -156,7 +152,6 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	const [error, setError] = useState<boolean>(false);
 	const [imageSrc, setImageSrc] = useState<string>(null);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
-	const [size, setSize] = useState<{ width: string; height: string }>(null);
 
 	const isGif = new Path(realSrc).extension == "gif";
 	const { useGetResource, getBuffer } = ResourceService.value;
@@ -164,25 +159,23 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	const mainContainerRef = useRef<HTMLDivElement>(null);
 	const imageContainerRef = useRef<HTMLDivElement>(null);
 	const imgRef = useRef<HTMLImageElement>(null);
-	const articleRef = ArticleRefService.value;
+	const initialLoadDoneRef = useRef<boolean>(false);
 
 	const onError = useCallback(() => {
-		if (!imageSrc) return;
 		setError(true);
-	}, [imageSrc]);
+	}, []);
 
 	const onLoad = useCallback(() => {
 		if (!imageSrc) return;
 		setIsLoaded(true);
 	}, [imageSrc]);
 
-	const setSrc = useCallback(
-		(newSrc: Blob) => {
-			if (imageSrc) URL.revokeObjectURL(imageSrc);
-			setImageSrc(URL.createObjectURL(newSrc));
-		},
-		[imageSrc],
-	);
+	const setSrc = useCallback((newSrc: Blob) => {
+		setImageSrc((prev) => {
+			if (prev) URL.revokeObjectURL(prev);
+			return URL.createObjectURL(newSrc);
+		});
+	}, []);
 
 	const cropImg = useCallback(
 		async (buffer: Buffer, crop: Crop) => {
@@ -190,7 +183,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 			const croppedBlob = await cropImage(container, crop, realSrc, buffer);
 			setSrc(croppedBlob);
 		},
-		[mainContainerRef.current, realSrc, setSrc],
+		[realSrc, setSrc],
 	);
 
 	const saveResize = useCallback(
@@ -199,23 +192,6 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		},
 		[updateAttributes],
 	);
-
-	useLayoutEffect(() => {
-		if (!width?.endsWith("px")) return;
-		const parentWidth =
-			mainContainerRef.current?.clientWidth ||
-			articleRef.current?.firstElementChild?.firstElementChild?.clientWidth;
-
-		if (!parentWidth) return;
-		const newWidth = (parseFloat(width) * (crop?.w || 100)) / 100;
-		const newHeight = (parseFloat(height) * (crop?.h || 100)) / 100;
-		const newSize = getAdjustedSize(newWidth, newHeight, parentWidth, scale);
-
-		setSize({
-			width: newSize.width + "px",
-			height: newSize.height + "px",
-		});
-	}, [width, height]);
 
 	useEffect(() => {
 		if (!isLoaded) return;
@@ -230,12 +206,14 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		const buffer = getBuffer(realSrc);
 		if (!buffer?.byteLength) return;
 		if (isLoaded) setIsLoaded(false);
+		initialLoadDoneRef.current = true;
 		void cropImg(buffer, crop);
 	}, []);
 
 	useGetResource(
 		async (buffer: Buffer) => {
 			if (!buffer || !buffer.byteLength) return setError(true);
+			if (initialLoadDoneRef.current) return;
 			if (isLoaded) setIsLoaded(false);
 
 			await cropImg(buffer, crop);
@@ -246,15 +224,16 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		isPrint,
 	);
 
-	if (error)
+	if (error) {
 		return (
 			<AlertError
 				title={t(`alert.${isGif ? "gif" : "image"}.unavailable`)}
 				error={{ message: t("alert.image.path") }}
 			/>
 		);
+	}
 
-	if (isGif)
+	if (isGif) {
 		return (
 			<BlockCommentView commentId={commentId}>
 				<GifImage
@@ -272,56 +251,67 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 				/>
 			</BlockCommentView>
 		);
+	}
 
 	return (
-		<div
-			className={className}
-			data-float={float ? float : undefined}
-			data-resize-container={float ? float : undefined}
+		<ImageContext.Provider
+			value={{
+				imageContainerRef,
+				mainContainerRef,
+				imgRef,
+				attrs: { id, width, height, crop, scale, title, alt, objects, src: realSrc },
+				isLoaded,
+			}}
 		>
-			<div ref={mainContainerRef} className="main-container">
-				<div className="resizer-container">
-					<HoverableActions
-						hoverElementRef={hoverElementRef}
-						isHovered={isHovered}
-						setIsHovered={setIsHovered}
-						actionsOptions={IMAGE_ACTIONS_OPTIONS}
-						rightActions={rightActions}
-					>
-						<div ref={imageContainerRef}>
-							<Skeleton width={size?.width} height={size?.height} isLoaded={error || isLoaded}>
-								<ImageR
-									isLoaded={isLoaded}
-									ref={imgRef}
-									id={id}
-									title={title}
-									src={imageSrc}
-									alt={alt}
-									originalWidth={width}
-									imageContainerRef={imageContainerRef}
-									objects={objects}
-									realSrc={realSrc}
-									onLoad={onLoad}
-									onError={onError}
-									openEditor={openEditor}
-									commentId={commentId}
-								/>
-							</Skeleton>
-						</div>
-					</HoverableActions>
-					{isLoaded && (
-						<ImageResizer
-							scale={scale}
-							selected={showResizer}
-							saveResize={saveResize}
-							imageRef={imgRef}
-							containerRef={mainContainerRef}
-						/>
-					)}
+			<div
+				className={className}
+				data-float={float ? float : undefined}
+				data-resize-container={float ? float : undefined}
+			>
+				<div ref={mainContainerRef} className="main-container">
+					<div className="resizer-container">
+						<HoverableActions
+							hoverElementRef={hoverElementRef}
+							isHovered={isHovered}
+							setIsHovered={setIsHovered}
+							actionsOptions={IMAGE_ACTIONS_OPTIONS}
+							rightActions={rightActions}
+						>
+							<div ref={imageContainerRef}>
+								<BlockCommentView commentId={commentId}>
+									<ImageSkeleton
+										width={width}
+										height={height}
+										crop={crop}
+										scale={scale}
+										isLoaded={error || isLoaded}
+										mainContainerRef={mainContainerRef}
+									>
+										<ImageR
+											ref={imgRef}
+											src={imageSrc}
+											onLoad={onLoad}
+											onError={onError}
+											openEditor={openEditor}
+										/>
+									</ImageSkeleton>
+								</BlockCommentView>
+							</div>
+						</HoverableActions>
+						{isLoaded && (
+							<ImageResizer
+								scale={scale}
+								selected={showResizer}
+								saveResize={saveResize}
+								imageRef={imgRef}
+								containerRef={mainContainerRef}
+							/>
+						)}
+					</div>
 				</div>
+				{title && !noEm && <em>{title}</em>}
 			</div>
-			{title && !noEm && <em>{title}</em>}
-		</div>
+		</ImageContext.Provider>
 	);
 });
 
@@ -353,10 +343,13 @@ export default styled(ImageRenderer)`
 	}
 
 	.image-container,
-	.block-comment-view,
 	.resizer-container,
 	.skeleton {
 		border-radius: var(--radius-small);
+	}
+
+	.block-comment-view {
+		border-radius: var(--radius-small) !important;
 	}
 
 	img {

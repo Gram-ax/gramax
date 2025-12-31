@@ -1,6 +1,5 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import { PredefinedAssets } from "@ext/workspace/WorkspaceAssets";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 const getCustomStyle: Command<{ workspacePath?: WorkspacePath }, string> = Command.create({
@@ -11,7 +10,8 @@ const getCustomStyle: Command<{ workspacePath?: WorkspacePath }, string> = Comma
 		const assets = this._app.wm.getWorkspaceAssets(workspacePath);
 		if (!assets) return "";
 
-		return assets.get(PredefinedAssets.customStyle);
+		const content = await assets.style.getContent();
+		return content ?? "";
 	},
 
 	params(ctx, q) {

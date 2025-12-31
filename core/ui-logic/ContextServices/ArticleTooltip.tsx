@@ -4,7 +4,7 @@ import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/
 import { createContext, useContext, useEffect, useRef } from "react";
 
 interface ArticleTooltipContext {
-	setLink: (link: HTMLElement, resourcePath: string, hash?: string) => void;
+	setLink: (link: HTMLElement, resourcePath: string, hash?: string, href?: string) => void;
 	removeLink: (resourcePath: string) => void;
 }
 
@@ -36,10 +36,16 @@ abstract class ArticleTooltipService {
 			};
 		}, []);
 
-		const setLinkHandler = (element: HTMLElement, resourcePath: string, hash?: string) => {
+		const setLinkHandler = (element: HTMLElement, resourcePath: string, hash?: string, href?: string) => {
 			if (typeof document === "undefined") return;
 
-			tooltipManager.current?.createTooltip({ linkElement: element, resourcePath, hash, apiUrlCreator });
+			tooltipManager.current?.createTooltip({
+				linkElement: element,
+				resourcePath,
+				hash,
+				apiUrlCreator,
+				href,
+			});
 		};
 
 		const removeLinkHandler = (resourcePath: string) => {

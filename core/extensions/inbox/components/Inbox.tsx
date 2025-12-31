@@ -7,7 +7,7 @@ import Note from "@ext/inbox/components/Note/Note";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import { InboxArticle, InboxDragDropData } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
-import ModifiedBackend, { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import { useCallback, useEffect, useMemo, useRef, RefObject } from "react";
 import { DndProvider } from "react-dnd";
 
@@ -112,7 +112,7 @@ const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 	return (
 		<div ref={ref}>
 			<ScrollableElement style={{ maxHeight: "40vh" }} dragScrolling={false}>
-				<DndProvider backend={(manager) => ModifiedBackend(backend(manager))} options={options}>
+				<DndProvider backend={backend} options={options}>
 					<div className="tree-root" style={{ height: sortedNotes.length === 0 ? "2em" : "auto" }}>
 						{sortedNotes.length === 0 && (
 							<div style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>

@@ -11,6 +11,7 @@ import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
 import { Question } from "@ext/markdown/elements/question/types";
+import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export default interface ParserContext {
 	getItemByPath(itemPath: Path): Item;
@@ -29,6 +30,7 @@ export default interface ParserContext {
 	getTablesManager(): TableDB;
 	getUserByMail(mail: string): Promise<UserInfo>;
 	createContext(article: Article): ParserContext;
+	getWorkspaceManager(): WorkspaceManager;
 	fp: FileProvider;
 	parser: MarkdownParser;
 	formatter: MarkdownFormatter;

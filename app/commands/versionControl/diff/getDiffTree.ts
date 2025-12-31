@@ -6,11 +6,12 @@ import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import DiffTreeCreator from "@ext/git/core/DiffTreeCreator/DiffTreeCreator";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { type DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import { WithMergeBase } from "@ext/VersionControl/model/Diff";
 import assert from "assert";
 
 const getDiffTree: Command<
 	{ catalogName: string; ctx: Context; oldScope: TreeReadScope; newScope?: TreeReadScope },
-	DiffTree
+	WithMergeBase<DiffTree>
 > = Command.create({
 	path: "versionControl/diff/getDiffTree",
 
@@ -37,7 +38,9 @@ const getDiffTree: Command<
 			newScope,
 		);
 
-		return diffTreeCreator.getDiffTree();
+		const diffTree = await diffTreeCreator.getDiffTree();
+
+		return { ...diffTree, mergeBase: diffTreeCreator.getMergeBase() };
 	},
 
 	params(ctx, q) {

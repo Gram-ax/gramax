@@ -1,8 +1,9 @@
+import { DiffAstComment } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
 import { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 
 export type Pos = { from: number; to: number };
 
-export type DiffLineType = "added" | "deleted" | "modified";
+export type DiffLineType = "added" | "deleted" | "modified" | "comment";
 
 interface AnyDiffLine {
 	type: DiffLineType;
@@ -28,4 +29,9 @@ export interface DeletedDiffLine extends AnyDiffLine {
 	insertAfter: number;
 }
 
-export type DiffLine = AddedDiffLine | ModifiedDiffLine | DeletedDiffLine;
+export interface CommentDiffLine extends AnyDiffLine {
+	type: "comment";
+	comments: DiffAstComment[];
+}
+
+export type DiffLine = AddedDiffLine | ModifiedDiffLine | DeletedDiffLine | CommentDiffLine;

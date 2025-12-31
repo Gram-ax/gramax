@@ -2,6 +2,7 @@ import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-ki
 import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
 import { ColumnDef } from "@ui-kit/DataTable";
 import { Group } from "../types/GroupTypes";
+import t from "@ext/localization/locale/translate";
 
 export const groupsTableColumns: ColumnDef<Group>[] = [
 	{
@@ -25,6 +26,6 @@ export const groupsTableColumns: ColumnDef<Group>[] = [
 	},
 	{
 		accessorKey: "group",
-		header: "Группа"
+		header: t("enterprise.admin.resources.groups.group")
 	}
 ];

@@ -2,6 +2,8 @@ import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
 import { ColumnDef } from "@ui-kit/DataTable";
 import { TABLE_SELECT_COLUMN_CODE } from "../../../ui-kit/table/TableComponent";
 import { Editor } from "../types/EditorsComponentTypes";
+import { InvalidEmailCell } from "@ext/enterprise/components/admin/settings/components/InvalidEmailCell";
+import t from "@ext/localization/locale/translate";
 
 export const editorsTableColumns: ColumnDef<Editor>[] = [
 	{
@@ -28,6 +30,7 @@ export const editorsTableColumns: ColumnDef<Editor>[] = [
 	},
 	{
 		accessorKey: "editor",
-		header: "Редактор",
+		header: t("enterprise.admin.roles.editor"),
+		cell: ({ row }) => <InvalidEmailCell value={row.original.editor} />,
 	},
 ];

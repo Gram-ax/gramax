@@ -2,6 +2,7 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type { DefaultLocale } from "@ext/localization/locale/translate";
 
 const locale: DefaultLocale = {
+	"open-menu": "Открыть меню",
 	forms: {
 		"catalog-edit-props": {
 			name: "Настройки каталога",
@@ -12,6 +13,7 @@ const locale: DefaultLocale = {
 				appearance: "Внешний вид",
 				icons: "Иконки",
 				extended: "Формат",
+				lfs: "Git LFS",
 			},
 			props: {
 				title: {
@@ -34,6 +36,11 @@ const locale: DefaultLocale = {
 					placeholder: "Укажите версии",
 					description:
 						"Список версий (веток или тегов), отображаемых в докпортале. Задаются в виде glob-паттернов, например v19.* или release-*",
+				},
+				lfs: {
+					name: "Файлы LFS",
+					placeholder: "Укажите паттерны файлов",
+					description: "Паттерны файлов для отслеживания через git lfs (например, *.jpg, *.png, *.zip)",
 				},
 				filterProperties: {
 					name: "Фильтрация",
@@ -444,11 +451,11 @@ const locale: DefaultLocale = {
 		"create-source": {
 			name: "Добавить новый источник",
 			description: "Укажите тип источника и введите необходимые данные",
-			"desktop-only": "Доступно только в десктопной версии приложения",
 			props: {
 				source: {
 					name: "Тип источника",
 					placeholder: "Выберите тип источника",
+					description: "Некоторые опции доступны только в десктопной версии приложения",
 				},
 			},
 		},
@@ -604,6 +611,7 @@ const locale: DefaultLocale = {
 		"edit-style": "Редактировать стили",
 		"editing-css": "Редактирование CSS-стилей",
 		"css-style": "CSS-стили",
+		plugin: "Добавить плагин",
 		"css-configuration-instruction": "Для настройки CSS-стилей приложения и портала воспользуйтесь {{instruction}}",
 		instruction: "инструкцией",
 		logo: "Логотип",
@@ -700,6 +708,9 @@ const locale: DefaultLocale = {
 		},
 	},
 	article: {
+		actions: {
+			title: "Действия со статьей",
+		},
 		create: {
 			title: "Создать статью",
 			body: "В левой навигации будут ваши разделы и статьи. Для начала создайте первую статью.",
@@ -779,6 +790,12 @@ title: Не удалось отобразить статью
 				body: `[alert:error:Gramax не смог обработать Markdown-конструкцию в файле статьи]\n\nИсправьте ошибку или удалите эту конструкцию в «Редактировать Markdown».\n\n[/alert]`,
 			},
 		},
+		searchPhrases: {
+			title: "Поисковые фразы",
+			placeholder: "Пример: оформление отпуска",
+			description:
+				"При вводе этих фраз в поиске статья появится первой. Поиск по нечеткому совпадению, регистр не учитывается",
+		},
 	},
 	section: {
 		configure: {
@@ -787,6 +804,9 @@ title: Не удалось отобразить статью
 		},
 	},
 	catalog: {
+		actions: {
+			title: "Действия с каталогом",
+		},
 		"new-name": "Новый каталог",
 		new: "Создать новый",
 		"new-2": "Создать новый каталог",
@@ -894,11 +914,11 @@ title: Не удалось отобразить статью
 		},
 		name: "Диаграмма",
 		names: {
-			c4: "C4 диаграмма",
-			mermaid: "Mermaid диаграмма",
-			puml: "PlantUml диаграмма",
-			ts: "TS диаграмма",
-			drawio: "Диаграмма diagrams.net",
+			c4: "C4",
+			mermaid: "Mermaid",
+			puml: "PlantUml",
+			ts: "TS",
+			drawio: "Diagrams.net",
 		},
 		error: {
 			"render-failed": "Не удалось отобразить диаграмму",
@@ -955,6 +975,7 @@ title: Не удалось отобразить статью
 		validationErrors: {
 			emailRequired: "Почта обязательна",
 			emailInvalidFormat: "Некорректный формат почты",
+			edgeWhitespace: "Email содержит пробелы. Пересоздайте запись.",
 			otpRequired: "Код обязателен",
 			formSubmitError: "Заполните все обязательные поля корректно",
 			otpNumbersOnly: "Код должен содержать только цифры",
@@ -1026,13 +1047,15 @@ title: Не удалось отобразить статью
 		"ai-search-error":
 			"Функция ИИ - поиска недоступна из - за технических неполадок. Рекомендуем обратиться к администратору системы за дополнительной информацией.",
 		"ai-search-error-title": "Технические проблемы с ИИ - поиском",
-		"indexing-info": "Обновление индекса...",
+		"indexing-info": "Индексация...",
 		"hidden-results": "...еще {{count}}",
 		recommended: "Рекомендовано",
+		"property-filter-tooltip": "Фильтр по свойствам",
 	},
 	list: {
 		"no-results-found": "Ничего не найдено",
-		"search-articles": "Ссылка или поиск по статьям",
+		"search-articles": "Введите ссылку или найдите статью",
+		"search-catalogs": "Введите ссылку или найдите каталог",
 	},
 	versions: {
 		switch: "Переключить версию",
@@ -1266,10 +1289,10 @@ title: Не удалось отобразить статью
 		},
 		discard: {
 			"seletected-confirm":
-				"Отменить выбранные изменения? Статьи вернутся в предыдущее состояние, а добавленные медиафайлы удалятся.",
-			"select-all-arrow-tooltip": "Отменить выбранные изменения",
-			"selected-file-arrow-tooltip": "Отменить изменения",
-			"paragraph-tooltip": "Отменить изменения",
+				"Откатить выбранные изменения? Статьи вернутся в предыдущее состояние, а все файлы и изображения удалятся.",
+			"select-all-arrow-tooltip": "Откатить выбранные изменения",
+			"selected-file-arrow-tooltip": "Откатить изменения",
+			"paragraph-tooltip": "Откатить изменения",
 		},
 		warning: {
 			"no-changes": {
@@ -1381,6 +1404,10 @@ title: Не удалось отобразить статью
 				"not-approved": "Нужно подтверждение всех утверждающих",
 				"not-author": "Вы не автор этого запроса слияния",
 			},
+			"delete-confirm": {
+				title: "Удалить запрос слияния?",
+				body: "Запрос на слияние будет удален для всех пользователей после публикации изменений",
+			},
 			confirm: {
 				title: "Слить ветки?",
 				body: {
@@ -1440,6 +1467,7 @@ title: Не удалось отобразить статью
 		error: {
 			"page-conversion": "Ошибка конвертации страницы",
 			"ext-not-supported": "Расширение не поддерживается:",
+			"source-required": "Источник является обязательным",
 			"space-required": "Пространство является обязательным",
 			"cannot-import": {
 				title: "Не удалось импортировать элемент из ",
@@ -1458,6 +1486,8 @@ title: Не удалось отобразить статью
 			modified: "Изменено",
 			deleted: "Удалено",
 		},
+		"previous-version": "Предыдущая версия",
+		discard: "Откатить",
 	},
 	"unsupported-elements": {
 		confluence: {
@@ -1549,11 +1579,19 @@ title: Не удалось отобразить статью
 			},
 		},
 		note: "Заметка",
+		notes: "Примечания",
 		heading: "Заголовок",
-
+		attachments: "Вложения",
+		tools: "Инструменты",
 		templates: {
 			"inline-property": "Поле свойства",
 			"block-field": "Блочное поле ввода",
+		},
+
+		link: {
+			"other-catalogs": "Другие каталоги",
+			"current-catalog": "Текущий каталог",
+			catalogs: "Каталоги",
 		},
 
 		table: {
@@ -1715,6 +1753,8 @@ title: Не удалось отобразить статью
 				"loading-settings": "Произошла ошибка при загрузке настроек",
 			},
 			pages: {
+				plugins: "Модули",
+				pluginDetail: "Детали модуля",
 				check: "Стайлгайд",
 				workspace: "Пространство",
 				groups: "Группы пользователей",
@@ -1724,8 +1764,10 @@ title: Не удалось отобразить статью
 				guests: "Внешние читатели",
 				quiz: "Обучение",
 				modules: "Модули",
+				metrics: "История посещений",
 			},
 			users: {
+				user: "Пользователь",
 				users: "Пользователи",
 				"add-select": "Выберите пользователей для добавления",
 				add: "Введите почту пользователя",
@@ -1771,6 +1813,7 @@ title: Не удалось отобразить статью
 				errors: {
 					update: "Не удалось обновить модуль обучения",
 					"save-data": "Не удалось сохранить данные. Статус: ",
+					"database-unavailable": "Сервис базы данных недоступен",
 				},
 				filters: {
 					users: {
@@ -1794,8 +1837,16 @@ title: Не удалось отобразить статью
 					"created-at": "Дата прохождения",
 				},
 			},
+			styleGuide: {
+				errors: {
+					update: "Не удалось обновить данные стайлгайдов",
+				},
+			},
 			editors: {
 				placeholder: "Найдите редактора",
+				errors: {
+					update: "Не удалось обновить данные редакторов",
+				},
 			},
 			"client-access-keys": {
 				groups: "Группы",
@@ -1826,6 +1877,11 @@ title: Не удалось отобразить статью
 				},
 				groups: {
 					group: "Группа",
+					"search-placeholder": "Найти группы",
+					"select-groups": "Выберите группы для добавления",
+					select: "Выберите группы",
+					"not-found": "Группы не найдены",
+					"error-search": "Ошибка поиска",
 				},
 				branches: {
 					branches: "Ветки",
@@ -1844,32 +1900,73 @@ title: Не удалось отобразить статью
 						description: "Настройте доступы к каталогу",
 					},
 				},
+				errors: {
+					delete: "Не удалось удалить репозиторий",
+					add: "Не удалось добавить репозиторий",
+				},
 			},
 			groups: {
+				group: "Группа",
 				"add-group": "Добавить группу",
 				"group-name": "Название группы",
-				"group-name-description": "Введите название группы",
 				"group-name-placeholder": "Введите название группы",
 				"name-error": "Название группы обязательно для заполнения",
 				"group-name-exists": "Группа с таким именем уже существует",
+				errors: {
+					add: "Не удалось добавить группу",
+					delete: "Не удалось удалить группы",
+					rename: "Не удалось переименовать группу",
+				},
 			},
 			guests: {
+				"otp-enabled": "Вход по одноразовому паролю",
+				"otp-description": "Вход по одноразовому паролю на почту для внешних читателей на портал документации",
 				"general-settings": "Общие настройки",
 				"session-duration-hours": "Продолжительность сеанса (часы)",
 				"whitelist-settings": "Настройки белого списка",
+				"allow-any-email": "Разрешить вход по любой почте",
 				"whitelist-enabled": "Использовать белый список",
 				"whitelist-domains": "Белый список доменов",
+				"whitelist-domains-description":
+					"Укажите домены почтовых адресов, разрешённые для входа внешних пользователей (например, example.com, company.org)",
 				"whitelist-domains-placeholder": "Найти домены...",
 				"whitelist-domains-empty": "Белый список доменов не может быть пустым",
-				"domain-not-allowed": "Домен не в белом списке. Белый список настроен во вкладке внешних читателях",
+				"domain-not-allowed":
+					"Домен не находится в белом списке. Белый список настроен во вкладке внешних читателях",
 				inactive:
 					"Пользователь не соответствует текущему белому списку доменов и не считается внешним читателем",
+				errors: {
+					update: "Не удалось обновить данные внешних читателей",
+				},
+			},
+			mail: {
+				"sender-settings": "Настройки отправителя",
+				"sender-address": "Адрес отправителя (From)",
+				"smtp-settings": "Настройки SMTP",
+				host: "Хост",
+				port: "Порт",
+				user: "Пользователь",
+				password: "Пароль",
+				"password-placeholder": "Введите пароль",
+				errors: {
+					update: "Не удалось обновить данные почтового клиента",
+				},
+			},
+			workspace: {
+				"workspace-name": "Имя рабочего пространства",
+				"workspace-code": "Код рабочего пространства",
+				"source-url": "URL источника (GitLab)",
+				"source-type": "Тип источника",
+				errors: {
+					update: "Не удалось обновить данные пространства",
+				},
 			},
 			check: {
 				switch: {
 					on: "Модуль проверки включен",
 					off: "Модуль проверки выключен",
 				},
+				"service-unavailable": "Сервис стайлгайда недоступен",
 				rule: "Правило",
 				"import-rules": "Импортировать правила",
 				"no-rules": "Нет правил проверки",
@@ -2041,8 +2138,6 @@ title: Не удалось отобразить статью
 	sync: "Синхронизировать",
 	synchronization: "Синхронизация...",
 	theme: "Тема",
-	searchPhrases: "Поисковые фразы",
-	"searchPhrases-placeholder": "Добавить фразу...",
 	title: "Заголовок",
 	token: "токен",
 	type: "Тип",
@@ -2177,7 +2272,7 @@ title: Не удалось отобразить статью
 	"git-status": "Git status",
 	"go-to-article": "Перейти к статье",
 	"go-to": "Перейти на",
-	"icon-cone": "Код иконки",
+	"icon-cone": "Найти иконки..",
 	"img-h": "Вертикальные группы картинок",
 	"img-v": "Горизонтальные группы картинок",
 	"in-article": "В статье",
@@ -2289,8 +2384,10 @@ title: Не удалось отобразить статью
 	properties: {
 		name: "Свойства",
 		all: "Все",
+		find: "Найти свойство",
 		add: "Добавить свойство",
 		empty: "(пусто)",
+		"no-properties": "Нет свойств",
 		"already-exist": "Такое свойство уже существует",
 		"select-all": "(выбрать все)",
 		"delete-property-confirm": "Вы уверены, что хотите удалить это свойство? Оно будет удалено со всех статей.",
@@ -2342,6 +2439,12 @@ title: Не удалось отобразить статью
 			Array: "Массив",
 			BlockMd: "Блок текста",
 			InlineMd: "Строка Markdown",
+		},
+		options: {
+			docportalVisible: {
+				name: "Показывать читателям",
+				description: "Свойство будет видно и доступно для поиска на портале документации",
+			},
 		},
 		selected: "Выбрано",
 		"not-selected": "Не выбрано",
@@ -2403,8 +2506,11 @@ title: Не удалось отобразить статью
 	"no-snippets": "В текущем каталоге нет сниппетов",
 	"snippet-no-usages": "Сниппет не используется ни в одной из статей",
 	ai: {
+		"search-prompts": "Поиск промптов",
+		"no-prompts": "Промпты не найдены",
 		"ai-prompts": "ИИ-промпты",
 		"ask-ai": "Спросить у ИИ что-либо",
+		generate: "Генерация текста",
 		generating: "Генерация...",
 		transcribe: {
 			name: "Транскрипция",
@@ -2541,6 +2647,21 @@ title: Не удалось отобразить статью
 	records: "записи",
 	"already-added": "Уже добавлен",
 	"available-changes-sync": "Доступны изменения для синхронизации",
+	comments: {
+		diff: {
+			single: {
+				added: "Добавлен комментарий",
+				deleted: "Удален комментарий",
+				modified: "Изменен комментарий",
+			},
+			multiple: {
+				title: "Изменение комментариев",
+				added: "Добавлен",
+				deleted: "Удален",
+				modified: "Изменен",
+			},
+		},
+	},
 	quiz: {
 		info: {
 			title: "Вопросы",
@@ -2572,6 +2693,114 @@ title: Не удалось отобразить статью
 	or: "или",
 	errors: {
 		"workspace-path-not-found": "Пространство с путем {{path}} не найдено",
+	},
+	diagrams: "Диаграммы",
+	plugins: {
+		messages: {
+			"load-error": "Не удалось загрузить модуль {name}",
+			"already-exists": "Модуль с таким ID {id} уже существует",
+			"built-in-cannot-delete": "Встроенный модуль нельзя удалить",
+		},
+		list: {
+			"no-plugins-title": "Модули не настроены",
+			"no-plugins-description":
+				"Загрузите папки с модулями для расширения функциональности Gramax. Каждая папка модуля должна содержать файл manifest.json (будет сохранен как _metadata.json) и файл JavaScript.",
+			"add-button": "Добавить модуль",
+			"upload-button": "Загрузить папку модуля",
+			saving: "Сохранение...",
+			sync: "Синхронизировать",
+			save: "Сохранить",
+			"disabled-badge": "Отключен",
+			enabled: "Включен",
+			disabled: "Отключен",
+		},
+		detail: {
+			"current-status": "Включен",
+			delete: "Удалить",
+			"not-found-title": "Модуль не найден",
+			"not-found-description": "Пожалуйста, выберите модуль из боковой панели",
+			fields: {
+				name: "Название",
+				id: "ID",
+				version: "Версия",
+				author: "Автор",
+				description: "Описание",
+				status: "Статус",
+			},
+			status: {
+				enable: "Включен",
+				disable: "Отключен",
+			},
+		},
+		"delete-modal": {
+			title: "Удалить модуль",
+			content: 'Вы уверены, что хотите удалить модуль "{name}"?',
+			"batch-content": "Вы уверены, что хотите удалить {count} модуль(ей)?",
+			description: "Это действие нельзя отменить",
+			cancel: "Отмена",
+			confirm: "Удалить",
+		},
+		"save-modal": {
+			title: "Сохранить изменения",
+			content: "Вы хотите сохранить изменения?",
+			cancel: "Отмена",
+			confirm: "Сохранить",
+		},
+	},
+	metrics: {
+		title: "Метрики",
+		"data-for": "Данные за",
+		"failed-to-load": "Не удалось загрузить данные метрик",
+		disabled: "Модуль метрик отключен",
+		enabled: "Модуль метрик включен",
+		filters: {
+			date: {
+				today: "Сегодня",
+				yesterday: "Вчера",
+				"this-week": "Эта неделя",
+				"last-7-days": "Последние 7 дней",
+				"last-28-days": "Последние 28 дней",
+				"this-month": "Этот месяц",
+				"last-month": "Прошлый месяц",
+				"this-year": "Этот год",
+				"custom-range": "Свой диапазон",
+				cancel: "Отмена",
+				apply: "Применить",
+			},
+			users: {
+				"users-filter": "Фильтр пользователей",
+				"all-users": "Все пользователи",
+				"users-selected": "выбрано",
+				"search-users": "Поиск пользователей...",
+				"no-users-found": "Пользователи не найдены",
+				"type-to-search": "Введите для поиска",
+				"clear-selection": "Сбросить выбор",
+				anonymous: "Анонимный",
+				loading: "Загрузка...",
+			},
+			anonymous: {
+				all: "Все пользователи",
+				registered: "Только зарегистрированные",
+				anonymous: "Только анонимные",
+			},
+		},
+		chart: {
+			visitors: "Посетители",
+			visits: "Визиты",
+			views: "Просмотры",
+			total: "Всего",
+			daily: "По дням",
+			weekly: "По неделям",
+			monthly: "По месяцам",
+		},
+		table: {
+			"catalog-name": "Каталог",
+			"parent-article": "Родительская статья",
+			article: "Статья",
+			visitors: "Посетители",
+			visits: "Визиты",
+			pageviews: "Просмотры",
+		},
 	},
 };
 

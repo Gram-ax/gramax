@@ -8,6 +8,7 @@ import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import SecurityRules from "@ext/security/logic/SecurityRules";
+import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 
 const getRenderContent: Command<
 	{ ctx: Context; articlePath: Path; catalogName: string; articleRelativePath: Path },
@@ -24,7 +25,16 @@ const getRenderContent: Command<
 
 		if (!articleRelativePath.value) return null;
 		const path = articlePath.parentDirectoryPath.join(articleRelativePath);
-		const catalog = await workspace.getCatalog(catalogName, ctx);
+		const currentCatalog = await workspace.getCatalog(catalogName, ctx);
+
+		const catalog = await workspace.getCatalog(
+			linkCreator.getCatalogNameFromPath(
+				articleRelativePath.value,
+				articlePath,
+				currentCatalog.getRootCategoryRef().path.parentDirectoryPath,
+			),
+			ctx,
+		);
 		if (!catalog) return null;
 		const article: Article = catalog.findItemByItemPath(path);
 		if (!article) return null;

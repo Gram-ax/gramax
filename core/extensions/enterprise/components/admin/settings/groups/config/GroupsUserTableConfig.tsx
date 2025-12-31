@@ -2,6 +2,8 @@ import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
 import { ColumnDef } from "@ui-kit/DataTable";
 import { GroupUser } from "../types/GroupsUserComponentTypes";
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
+import { InvalidEmailCell } from "@ext/enterprise/components/admin/settings/components/InvalidEmailCell";
+import t from "@ext/localization/locale/translate";
 
 export const groupUserTableColumns: ColumnDef<GroupUser>[] = [
 	{
@@ -21,10 +23,11 @@ export const groupUserTableColumns: ColumnDef<GroupUser>[] = [
 			/>
 		),
 		enableSorting: false,
-		enableHiding: false
+		enableHiding: false,
 	},
 	{
 		accessorKey: "value",
-		header: "Пользователь"
-	}
+		header: t("enterprise.admin.users.user"),
+		cell: ({ row }) => <InvalidEmailCell value={row.original.value} />,
+	},
 ];

@@ -27,7 +27,7 @@ const ArticleMat = memo(({ editor, className, style }: ArticleMatProps) => {
 					}
 					return true;
 				})
-				.focus("end")
+				.focus("end", { scrollIntoView: false })
 				.run();
 		} else {
 			editor?.commands.focus("end");

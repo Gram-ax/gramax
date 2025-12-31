@@ -1,5 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
+import useWatch from "@core-ui/hooks/useWatch";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import eventEmitter from "@core/utils/eventEmitter";
 import styled from "@emotion/styled";
@@ -9,20 +10,19 @@ import {
 	forwardRef,
 	MouseEventHandler,
 	MutableRefObject,
+	useCallback,
 	useEffect,
 	useImperativeHandle,
+	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
-	useMemo,
-	useCallback,
-	useLayoutEffect,
 } from "react";
 import { Placement } from "tippy.js";
 import Tooltip from "../Atoms/Tooltip";
 import { ButtonItem, ItemContent } from "./Item";
 import Items, { OnItemClick } from "./Items";
 import Search, { SearchElement } from "./Search";
-import useWatch from "@core-ui/hooks/useWatch";
 
 export interface ListLayoutElement {
 	searchRef: SearchElement;
@@ -102,7 +102,10 @@ const defaultFilterItems = (items: ItemContent[], input: string) => {
 		return result.length > 0 ? result : null;
 	};
 
-	return multiLayoutSearcher<ItemContent[]>(filterItems, true)(input);
+	return multiLayoutSearcher<ItemContent[]>({
+		sync: true,
+		searcher: filterItems,
+	})(input);
 };
 
 const getBreadcrumb = (item: ItemContent) => {

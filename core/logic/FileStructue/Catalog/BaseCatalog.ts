@@ -101,7 +101,7 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 
 	async getPathname(item?: Item<I>): Promise<string> {
 		return this._isReadOnly
-			? Promise.resolve(item ? item.logicPath : this._name)
+			? Promise.resolve(RouterPathProvider.getReadOnlyPathname(item ? item.logicPath : this._name))
 			: RouterPathProvider.getPathname(await this.getPathnameData(item)).value;
 	}
 
