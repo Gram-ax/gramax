@@ -2,18 +2,18 @@ import type { GetNameAfterMoveResult } from "@app/commands/article/getNameAfterM
 import { useDismissableToast } from "@components/Atoms/DismissableToast";
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import { useRouter } from "@core/Api/useRouter";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { RequestStatus, useDeferApi } from "@core-ui/hooks/useApi";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { useRouter } from "@core/Api/useRouter";
 import type DuplicateArticleDialog from "@ext/article/actions/move/DuplicateArticleDialog";
 import t from "@ext/localization/locale/translate";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
 import { Loader } from "@ui-kit/Loader";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useRef, type ComponentProps } from "react";
+import { type ComponentProps, useRef } from "react";
 import SelectTargetWorkspaceAndCatalog, { type SelectCatalogResult } from "./SelectWorkspaceAndCatalog";
 
 interface ArticleMoveActionProps {
@@ -143,8 +143,8 @@ const ArticleMoveAction = ({ articlePath, catalogName: sourceCatalogName }: Arti
 	return (
 		<>
 			<DropdownMenuSub>
-				<DropdownMenuSubTrigger onClick={(ev) => ev.stopPropagation()} disabled={isLoading}>
-					{isLoading ? <SpinnerLoader width={16} height={16} /> : <Icon code="arrow-right" />}
+				<DropdownMenuSubTrigger disabled={isLoading} onClick={(ev) => ev.stopPropagation()}>
+					{isLoading ? <SpinnerLoader height={16} width={16} /> : <Icon code="arrow-right" />}
 					{t("article.move.to-workspace")}
 				</DropdownMenuSubTrigger>
 				<DropdownMenuSubContent>

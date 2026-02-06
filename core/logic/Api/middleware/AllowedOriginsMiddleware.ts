@@ -1,8 +1,8 @@
-import Cors from "cors";
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
-import Middleware from "./Middleware";
 import { ErrorTitle } from "@ext/publicApi/ExceptionsResponse";
+import Cors from "cors";
+import Middleware from "./Middleware";
 
 export class AllowedOriginsMiddleware extends Middleware {
 	private _corsMiddleware: ReturnType<typeof Cors>;

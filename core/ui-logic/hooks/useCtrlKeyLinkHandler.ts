@@ -1,7 +1,7 @@
+import parseStorageUrl from "@core/utils/parseStorageUrl";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import parseStorageUrl from "@core/utils/parseStorageUrl";
 import { useEffect, useRef } from "react";
 
 export const useCtrlKeyLinkHandler = () => {

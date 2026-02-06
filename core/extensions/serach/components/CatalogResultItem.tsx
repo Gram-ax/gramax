@@ -26,6 +26,7 @@ export const CatalogResultItem = ({ catalog }: CatalogResultItemProps) => {
 				name: catalog.name,
 				title: getMarkElems(catalog.title),
 			}}
-			variant={catalogResultItemVariant} />
+			variant={catalogResultItemVariant}
+		/>
 	);
 };

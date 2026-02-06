@@ -6,7 +6,7 @@ import type { FormProps } from "@ext/catalog/actions/propsEditor/logic/createFor
 import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
 import t from "@ext/localization/locale/translate";
 import { useCreateWorkspaceActions } from "@ext/workspace/components/logic/useCreateWorkspaceActions";
-import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
@@ -14,7 +14,7 @@ import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
 import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
-import { FormEvent, useCallback, useMemo } from "react";
+import { type FormEvent, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -73,48 +73,49 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 
 	return (
 		<Modal
-			open={open}
 			onOpenChange={(v) => {
 				setOpen(v);
 				if (!v) onCloseHandler();
 			}}
+			open={open}
 		>
 			<ModalContent data-modal-root>
-				<ModalErrorHandler onError={() => {}} onClose={onCloseHandler}>
+				<ModalErrorHandler onClose={onCloseHandler} onError={() => {}}>
 					<Form asChild {...form}>
 						<form className="contents" onSubmit={formSubmit}>
 							<FormHeader
+								description={t("workspace.configure-your-workspace")}
 								icon={"settings"}
 								title={t("workspace.edit")}
-								description={t("workspace.configure-your-workspace")}
 							/>
 							<ModalBody>
 								<FormStack>
 									<FormField
-										name="name"
-										title={t("name")}
-										required
 										control={({ field }) => (
 											<Input
 												{...field}
 												autoFocus
-												placeholder={t("workspace.enter-name")}
 												data-qa={t("name")}
+												placeholder={t("workspace.enter-name")}
 											/>
 										)}
+										name="name"
+										required
+										title={t("name")}
 										{...formProps}
 									/>
 									<FormField
-										name="icon"
-										title={t("icon")}
 										control={({ field }) => {
 											const iconFilter = useIconFilter();
 											return (
 												<LazySearchSelect
-													placeholder={t("icon")}
-													options={useLucideIconLists().lucideIconListForUikitOptions}
-													value={field.value}
 													filter={iconFilter}
+													onChange={(value) => {
+														form.setValue("icon", `${value}`);
+														field.value = `${value}`;
+													}}
+													options={useLucideIconLists().lucideIconListForUikitOptions}
+													placeholder={t("icon")}
 													renderOption={({ option, type }) => (
 														<>
 															<div className="flex items-center gap-2">
@@ -122,36 +123,30 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 																{option.value}
 															</div>
 															{type === "list" && field.value === option.value && (
-																<Icon icon="check" className="ml-auto" />
+																<Icon className="ml-auto" icon="check" />
 															)}
 														</>
 													)}
-													onChange={(value) => {
-														form.setValue("icon", `${value}`);
-														field.value = `${value}`;
-													}}
+													value={field.value}
 												/>
 											);
 										}}
+										name="icon"
+										title={t("icon")}
 										{...formProps}
 									/>
 									{askPath && (
 										<FormField
-											name="path"
-											title={t("working-directory")}
-											required
 											control={({ field }) => (
 												<div className="flex gap-4">
 													<Input
 														{...field}
-														readOnly
-														placeholder={pathPlaceholder}
-														title={field.value}
 														data-qa={t("working-directory")}
+														placeholder={pathPlaceholder}
+														readOnly
+														title={field.value}
 													/>
 													<Button
-														type="button"
-														style={{ height: "auto", minWidth: "max-content" }}
 														onClick={async () => {
 															const module = await resolveModule(
 																"openDirectory" as any,
@@ -159,24 +154,29 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 															const dir = module || field.value;
 															field.onChange(dir);
 														}}
+														style={{ height: "auto", minWidth: "max-content" }}
+														type="button"
 													>
 														{t("open")}
 													</Button>
 												</div>
 											)}
+											name="path"
+											required
+											title={t("working-directory")}
 											{...formProps}
 										/>
 									)}
 								</FormStack>
 							</ModalBody>
 							<FormFooter
-								primaryButton={<Button type="submit" variant="primary" children={t("save")} />}
+								primaryButton={<Button children={t("save")} type="submit" variant="primary" />}
 								secondaryButton={
 									<Button
+										children={t("cancel")}
 										onClick={onCloseHandler}
 										type="button"
 										variant="text"
-										children={t("cancel")}
 									/>
 								}
 							/>

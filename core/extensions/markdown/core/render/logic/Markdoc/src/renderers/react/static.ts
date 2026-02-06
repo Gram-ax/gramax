@@ -1,5 +1,5 @@
-import { tagName } from "./shared";
 import type { RenderableTreeNode, RenderableTreeNodes } from "../../types";
+import { tagName } from "./shared";
 
 function renderArray(children: RenderableTreeNode[]): string {
 	return children.map(render).join(", ");

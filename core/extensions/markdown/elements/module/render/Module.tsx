@@ -4,7 +4,7 @@ import React from "react";
 export default function Module({ id }: { id: string }) {
 	return (
 		<span className="module">
-			<Icon style={{paddingRight: "4px"}} code="box" strokeWidth="2" />
+			<Icon code="box" strokeWidth="2" style={{ paddingRight: "4px" }} />
 			{id}
 		</span>
 	);

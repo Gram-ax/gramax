@@ -6,7 +6,7 @@ export type ArticlePageActionsProps = HTMLAttributes<HTMLDivElement>;
 
 const ArticlePageActions = (props: ArticlePageActionsProps) => {
 	return (
-		<div {...props} data-qa="app-actions">
+		<div {...props} data-qa="top-menu">
 			<ThemeToggle />
 		</div>
 	);

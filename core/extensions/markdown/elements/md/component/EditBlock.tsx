@@ -1,8 +1,8 @@
+import styled from "@emotion/styled";
 import EditMarkdown from "@ext/markdown/elements/md/component/EditMarkdown";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import Renderer from "../../../core/render/components/Renderer";
 import getComponents from "../../../core/render/components/getComponents/getComponents";
-import styled from "@emotion/styled";
+import Renderer from "../../../core/render/components/Renderer";
 
 const ScrollableElement = styled.div`
 	overflow-x: auto;

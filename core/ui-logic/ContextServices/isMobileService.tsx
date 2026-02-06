@@ -1,7 +1,7 @@
 import ContextService from "@core-ui/ContextServices/ContextService";
+import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useLayoutEffect, useState } from "react";
 import isMobileFunction from "../utils/IsMobile";
-import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 
 const IsMobileContext = createContext<boolean>(undefined);
 

@@ -31,12 +31,9 @@ const LeftNavigationLayout = styled(
 		return (
 			<div className={classNames(className, {}, [LEFT_NAV_CLASS])} onTransitionEnd={onTransitionEnd}>
 				<LeftSidebar
+					onContentMouseEnter={onMouseEnter}
+					onContentMouseLeave={onMouseLeave}
 					shadow={isOpen}
-					sidebarTop={
-						<div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onTouchEnd={onMouseEnter}>
-							{leftNavigationTop}
-						</div>
-					}
 					sidebarBottom={
 						<div
 							onMouseEnter={() => {
@@ -53,8 +50,11 @@ const LeftNavigationLayout = styled(
 							{leftNavigationBottom}
 						</div>
 					}
-					onContentMouseEnter={onMouseEnter}
-					onContentMouseLeave={onMouseLeave}
+					sidebarTop={
+						<div onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave} onTouchEnd={onMouseEnter}>
+							{leftNavigationTop}
+						</div>
+					}
 				>
 					{leftNavigationContent}
 				</LeftSidebar>

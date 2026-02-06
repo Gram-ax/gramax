@@ -22,18 +22,18 @@ type Output = std::result::Result<String, Error>;
 type AsyncOutput = napi::bindgen_prelude::Result<String>;
 
 pub trait JsonExt {
-  fn json(&self) -> Output;
+	fn json(&self) -> Output;
 }
 
 impl<T: Serialize, E: Serialize> JsonExt for Result<T, E> {
-  fn json(&self) -> Output {
-    match self {
-      Ok(ok) => serde_json::to_string(ok).map_err(|e| Error::from_reason(e.to_string())),
-      Err(err) => serde_json::to_string(err)
-        .map_err(|e| Error::from_reason(e.to_string()))
-        .and_then(|e| Err(Error::from_reason(e))),
-    }
-  }
+	fn json(&self) -> Output {
+		match self {
+			Ok(ok) => serde_json::to_string(ok).map_err(|e| Error::from_reason(e.to_string())),
+			Err(err) => serde_json::to_string(err)
+				.map_err(|e| Error::from_reason(e.to_string()))
+				.and_then(|e| Err(Error::from_reason(e))),
+		}
+	}
 }
 
 type Input = String;
@@ -41,544 +41,564 @@ type Input = String;
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct AccessTokenCreds {
-  pub author_name: String,
-  pub author_email: String,
-  pub access_token: String,
-  pub username: Option<String>,
-  pub protocol: Option<String>,
+	pub author_name: String,
+	pub author_email: String,
+	pub access_token: String,
+	pub username: Option<String>,
+	pub protocol: Option<String>,
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct CommitOptions {
-  pub message: String,
-  pub parent_refs: Option<Vec<String>>,
-  pub files: Option<Vec<String>>,
+	pub message: String,
+	pub parent_refs: Option<Vec<String>>,
+	pub files: Option<Vec<String>>,
 }
 
 impl From<CommitOptions> for gramaxgit::actions::commit::CommitOptions {
-  fn from(val: CommitOptions) -> Self {
-    gramaxgit::actions::commit::CommitOptions {
-      message: val.message,
-      parent_refs: val.parent_refs,
-      files: val.files.map(|files| files.into_iter().map(PathBuf::from).collect()),
-    }
-  }
+	fn from(val: CommitOptions) -> Self {
+		gramaxgit::actions::commit::CommitOptions {
+			message: val.message,
+			parent_refs: val.parent_refs,
+			files: val.files.map(|files| files.into_iter().map(PathBuf::from).collect()),
+		}
+	}
 }
 
 #[napi(string_enum)]
 pub enum TreeReadScopeObjectType {
-  Head,
-  Commit,
-  Reference,
+	Head,
+	Commit,
+	Reference,
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct TreeReadScope {
-  pub object_type: TreeReadScopeObjectType,
-  pub reference: Option<String>,
+	pub object_type: TreeReadScopeObjectType,
+	pub reference: Option<String>,
 }
 
 impl From<TreeReadScope> for gramaxgit::commands::TreeReadScope {
-  fn from(val: TreeReadScope) -> Self {
-    use gramaxgit::commands::TreeReadScope;
+	fn from(val: TreeReadScope) -> Self {
+		use gramaxgit::commands::TreeReadScope;
 
-    let name = val.reference.unwrap_or_default();
-    match val.object_type {
-      TreeReadScopeObjectType::Head => TreeReadScope::Head,
-      TreeReadScopeObjectType::Commit => TreeReadScope::Commit { commit: name },
-      TreeReadScopeObjectType::Reference => TreeReadScope::Reference { reference: name },
-    }
-  }
+		let name = val.reference.unwrap_or_default();
+		match val.object_type {
+			TreeReadScopeObjectType::Head => TreeReadScope::Head,
+			TreeReadScopeObjectType::Commit => TreeReadScope::Commit { commit: name },
+			TreeReadScopeObjectType::Reference => TreeReadScope::Reference { reference: name },
+		}
+	}
 }
 
 impl From<AccessTokenCreds> for gramaxgit::creds::AccessTokenCreds {
-  fn from(val: AccessTokenCreds) -> Self {
-    gramaxgit::creds::AccessTokenCreds::new(
-      &val.author_name,
-      &val.author_email,
-      &val.access_token,
-      val.username.as_deref(),
-      val.protocol.as_deref(),
-    )
-  }
+	fn from(val: AccessTokenCreds) -> Self {
+		gramaxgit::creds::AccessTokenCreds::new(
+			&val.author_name,
+			&val.author_email,
+			&val.access_token,
+			val.username.as_deref(),
+			val.protocol.as_deref(),
+		)
+	}
 }
 
 #[napi::module_init]
 fn init() {
-  use tracing_subscriber::layer::SubscriberExt;
-  use tracing_subscriber::util::SubscriberInitExt;
+	use tracing_subscriber::layer::SubscriberExt;
+	use tracing_subscriber::util::SubscriberInitExt;
 
-  let env = tracing_subscriber::EnvFilter::try_from_default_env()
-    .unwrap_or(tracing_subscriber::EnvFilter::new("info"));
-  tracing_subscriber::registry().with(tracing_subscriber::fmt::layer()).with(env).init();
+	let env = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or(tracing_subscriber::EnvFilter::new("info"));
+	tracing_subscriber::registry().with(tracing_subscriber::fmt::layer()).with(env).init();
 }
 
 #[napi_async]
 pub fn is_init(repo_path: String) -> Output {
-  git::is_init(Path::new(&repo_path))
+	git::is_init(Path::new(&repo_path))
 }
 
 #[napi_async]
 pub fn is_bare(repo_path: String) -> Output {
-  git::is_bare(Path::new(&repo_path))
+	git::is_bare(Path::new(&repo_path))
 }
 
 #[napi_async]
 pub fn init_new(path: String, creds: AccessTokenCreds) -> Output {
-  git::init_new(Path::new(&path), creds.into())
+	git::init_new(Path::new(&path), creds.into())
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct MergeMessageFormatOptions {
-  pub theirs: String,
-  pub squash: Option<bool>,
-  pub max_commits: Option<i32>,
-  pub is_merge_request: Option<bool>,
+	pub theirs: String,
+	pub squash: Option<bool>,
+	pub max_commits: Option<i32>,
+	pub is_merge_request: Option<bool>,
 }
 
 impl From<MergeMessageFormatOptions> for gramaxgit::actions::merge::MergeMessageFormatOptions {
-  fn from(val: MergeMessageFormatOptions) -> Self {
-    gramaxgit::actions::merge::MergeMessageFormatOptions {
-      theirs: val.theirs,
-      ours: None,
-      squash: val.squash.unwrap_or_default(),
-      max_commits: val.max_commits.map(|x| x as usize),
-      is_merge_request: val.is_merge_request.unwrap_or_default(),
-    }
-  }
+	fn from(val: MergeMessageFormatOptions) -> Self {
+		gramaxgit::actions::merge::MergeMessageFormatOptions {
+			theirs: val.theirs,
+			ours: None,
+			squash: val.squash.unwrap_or_default(),
+			max_commits: val.max_commits.map(|x| x as usize),
+			is_merge_request: val.is_merge_request.unwrap_or_default(),
+		}
+	}
 }
 
 #[napi_async]
-pub fn format_merge_message(
-  repo_path: String,
-  creds: AccessTokenCreds,
-  opts: MergeMessageFormatOptions,
-) -> Output {
-  git::format_merge_message(Path::new(&repo_path), creds.into(), opts.into())
+pub fn format_merge_message(repo_path: String, creds: AccessTokenCreds, opts: MergeMessageFormatOptions) -> Output {
+	git::format_merge_message(Path::new(&repo_path), creds.into(), opts.into())
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct RawCloneOptions {
-  pub branch: Option<String>,
-  pub depth: Option<i32>,
-  pub url: String,
-  pub to: String,
-  pub is_bare: bool,
-  pub allow_non_empty_dir: bool,
-  pub cancel_token: u32,
+	pub branch: Option<String>,
+	pub depth: Option<i32>,
+	pub url: String,
+	pub to: String,
+	pub is_bare: bool,
+	pub allow_non_empty_dir: bool,
+	pub skip_lfs_pull: bool,
+	pub cancel_token: u32,
 }
 
 impl From<RawCloneOptions> for CloneOptions {
-  fn from(val: RawCloneOptions) -> Self {
-    gramaxgit::actions::clone::CloneOptions {
-      allow_non_empty_dir: val.allow_non_empty_dir,
-      branch: val.branch,
-      depth: val.depth,
-      url: val.url,
-      to: val.to.into(),
-      is_bare: val.is_bare,
-      cancel_token: val.cancel_token as usize,
-    }
-  }
+	fn from(val: RawCloneOptions) -> Self {
+		gramaxgit::actions::clone::CloneOptions {
+			allow_non_empty_dir: val.allow_non_empty_dir,
+			branch: val.branch,
+			depth: val.depth,
+			url: val.url,
+			to: val.to.into(),
+			is_bare: val.is_bare,
+			cancel_token: val.cancel_token as usize,
+			skip_lfs_pull: val.skip_lfs_pull,
+		}
+	}
 }
 
 #[napi]
-pub async fn clone(
-  creds: AccessTokenCreds,
-  opts: RawCloneOptions,
-  callback: ThreadsafeFunction<String>,
-) -> napi::bindgen_prelude::Result<()> {
-  tracing::info!(thread = ?std::thread::current().id(), "CloneTask::compute");
-  git::clone(
-    creds.clone().into(),
-    opts.clone().into(),
-    Rc::new(|val| {
-      if let Ok(val) = serde_json::to_string(&val) {
-        callback.call(Ok(val), ThreadsafeFunctionCallMode::Blocking);
-      }
-    }),
-  )
-  .json()?;
+pub async fn clone(creds: AccessTokenCreds, opts: RawCloneOptions, callback: ThreadsafeFunction<String>) -> napi::bindgen_prelude::Result<()> {
+	tracing::info!(thread = ?std::thread::current().id(), "CloneTask::compute");
+	git::clone(
+		creds.clone().into(),
+		opts.clone().into(),
+		Rc::new(|val| {
+			if let Ok(val) = serde_json::to_string(&val) {
+				callback.call(Ok(val), ThreadsafeFunctionCallMode::Blocking);
+			}
+		}),
+	)
+	.json()?;
 
-  Ok(())
+	Ok(())
 }
 
 #[napi(js_name = "cancel")]
 pub fn cancel(id: i32) -> Output {
-  git::cancel(id as usize).json()
+	git::cancel(id as usize).json()
 }
 
 #[napi_async]
 pub fn status(repo_path: String, index: bool) -> Output {
-  git::status(Path::new(&repo_path), index)
+	git::status(Path::new(&repo_path), index)
 }
 
 #[napi_async]
 pub fn status_file(repo_path: String, path: String) -> Output {
-  git::status_file(Path::new(&repo_path), Path::new(&path))
+	git::status_file(Path::new(&repo_path), Path::new(&path))
 }
 
 #[napi_async]
 pub fn get_all_commit_authors(repo_path: String) -> Output {
-  git::get_all_commit_authors(Path::new(&repo_path))
+	git::get_all_commit_authors(Path::new(&repo_path))
 }
 
 #[napi_async]
 pub fn default_branch(repo_path: String, creds: AccessTokenCreds) -> Output {
-  git::default_branch(Path::new(&repo_path), creds.into())
+	git::default_branch(Path::new(&repo_path), creds.into())
 }
 
 #[napi_async]
 pub fn branch_list(repo_path: String) -> Output {
-  git::branch_list(Path::new(&repo_path))
+	git::branch_list(Path::new(&repo_path))
 }
 
 #[napi_async]
 pub fn branch_info(repo_path: String, name: Option<String>) -> Output {
-  git::branch_info(Path::new(&repo_path), name.as_deref())
+	git::branch_info(Path::new(&repo_path), name.as_deref())
 }
 
 #[napi_async]
 pub fn new_branch(repo_path: String, name: String) -> Output {
-  git::new_branch(Path::new(&repo_path), &name)
+	git::new_branch(Path::new(&repo_path), &name)
 }
 
 #[napi_async]
-pub fn delete_branch(
-  repo_path: String,
-  name: String,
-  remote: bool,
-  creds: Option<AccessTokenCreds>,
-) -> Output {
-  let creds = creds.map(|c| c.into());
-  git::delete_branch(Path::new(&repo_path), &name, remote, creds)
+pub fn delete_branch(repo_path: String, name: String, remote: bool, creds: Option<AccessTokenCreds>) -> Output {
+	let creds = creds.map(|c| c.into());
+	git::delete_branch(Path::new(&repo_path), &name, remote, creds)
 }
 
 #[napi_async]
 pub fn set_head(repo_path: String, refname: String) -> Output {
-  git::set_head(Path::new(&repo_path), &refname)
+	git::set_head(Path::new(&repo_path), &refname)
 }
 
 #[napi]
-pub async fn checkout(
-  repo_path: String,
-  creds: AccessTokenCreds,
-  branch: String,
-  create: bool,
-) -> AsyncOutput {
-  git::checkout(Path::new(&repo_path), creds.into(), &branch, create).json()
+pub async fn checkout(repo_path: String, creds: AccessTokenCreds, branch: String, create: bool) -> AsyncOutput {
+	git::checkout(Path::new(&repo_path), creds.into(), &branch, create).json()
 }
 
 #[napi_async]
 pub fn add_remote(repo_path: String, name: String, url: String) -> Output {
-  git::add_remote(Path::new(&repo_path), &name, &url)
+	git::add_remote(Path::new(&repo_path), &name, &url)
 }
 
 #[napi_async]
 pub fn has_remotes(repo_path: String) -> Output {
-  git::has_remotes(Path::new(&repo_path))
+	git::has_remotes(Path::new(&repo_path))
 }
 
 #[napi_async]
 pub fn get_remote(repo_path: String) -> Output {
-  git::get_remote(Path::new(&repo_path))
+	git::get_remote(Path::new(&repo_path))
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct RemoteOptions {
-  pub cancel_token: u32,
-  pub force: bool,
+	pub cancel_token: u32,
+	pub force: bool,
 }
 
 impl From<RemoteOptions> for gramaxgit::actions::remote::RemoteOptions<'_> {
-  fn from(val: RemoteOptions) -> Self {
-    gramaxgit::actions::remote::RemoteOptions {
-      cancel_token: (val.cancel_token as usize).into(),
-      force: val.force,
-    }
-  }
+	fn from(val: RemoteOptions) -> Self {
+		gramaxgit::actions::remote::RemoteOptions {
+			cancel_token: (val.cancel_token as usize).into(),
+			force: val.force,
+		}
+	}
 }
 
 #[napi]
 pub async fn fetch(repo_path: String, creds: AccessTokenCreds, opts: RemoteOptions, lock: bool) -> AsyncOutput {
-  git::fetch(Path::new(&repo_path), creds.into(), opts.into(), lock).json()
+	git::fetch(Path::new(&repo_path), creds.into(), opts.into(), lock).json()
 }
 
 #[napi]
 pub async fn push(repo_path: String, creds: AccessTokenCreds) -> AsyncOutput {
-  git::push(Path::new(&repo_path), creds.clone().into()).json()
+	git::push(Path::new(&repo_path), creds.clone().into()).json()
 }
 
 #[napi_async]
 pub fn file_history(repo_path: String, file_path: String, count: u32) -> Output {
-  git::file_history(Path::new(&repo_path), Path::new(&file_path), count as usize)
+	git::file_history(Path::new(&repo_path), Path::new(&file_path), count as usize)
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct CommitInfoOpts {
-  pub depth: u32,
-  pub simplify: bool,
+	pub depth: u32,
+	pub simplify: bool,
 }
 
 impl From<CommitInfoOpts> for gramaxgit::ext::history::CommitInfoOpts {
-  fn from(val: CommitInfoOpts) -> Self {
-    gramaxgit::ext::history::CommitInfoOpts { depth: val.depth as usize, simplify: val.simplify }
-  }
+	fn from(val: CommitInfoOpts) -> Self {
+		gramaxgit::ext::history::CommitInfoOpts {
+			depth: val.depth as usize,
+			simplify: val.simplify,
+		}
+	}
 }
 
 #[napi_async]
 pub fn get_commit_info(repo_path: String, oid: String, opts: CommitInfoOpts) -> Output {
-  git::get_commit_info(Path::new(&repo_path), &oid, opts.into())
+	git::get_commit_info(Path::new(&repo_path), &oid, opts.into())
 }
 
 #[napi_async]
 pub fn add(repo_path: String, paths: Vec<String>, force: bool) {
-  let paths: Vec<std::path::PathBuf> = paths.iter().map(std::path::PathBuf::from).collect();
-  git::add(Path::new(&repo_path), paths, force)
+	let paths: Vec<std::path::PathBuf> = paths.iter().map(std::path::PathBuf::from).collect();
+	git::add(Path::new(&repo_path), paths, force)
 }
 
 #[napi_async]
 pub fn commit(repo_path: String, creds: AccessTokenCreds, opts: CommitOptions) -> Output {
-  git::commit(Path::new(&repo_path), creds.into(), opts.into())
+	git::commit(Path::new(&repo_path), creds.into(), opts.into())
 }
 
 #[napi_async]
 pub fn diff(opts: Input) -> Output {
-  #[derive(serde::Deserialize)]
-  #[serde(rename_all = "camelCase")]
-  struct Options {
-    repo_path: String,
-    opts: DiffConfig,
-  }
+	#[derive(serde::Deserialize)]
+	#[serde(rename_all = "camelCase")]
+	struct Options {
+		repo_path: String,
+		opts: DiffConfig,
+	}
 
-  let opts = serde_json::from_str::<Options>(&opts).map_err(|e| Error::from_reason(e.to_string()))?;
-  git::diff(Path::new(&opts.repo_path), opts.opts)
+	let opts = serde_json::from_str::<Options>(&opts).map_err(|e| Error::from_reason(e.to_string()))?;
+	git::diff(Path::new(&opts.repo_path), opts.opts)
 }
 
 #[napi_async]
 pub fn restore(repo_path: String, staged: bool, paths: Vec<String>) -> Output {
-  let paths: Vec<std::path::PathBuf> = paths.into_iter().map(std::path::PathBuf::from).collect();
-  git::restore(Path::new(&repo_path), staged, paths)
+	let paths: Vec<std::path::PathBuf> = paths.into_iter().map(std::path::PathBuf::from).collect();
+	git::restore(Path::new(&repo_path), staged, paths)
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct ResetOptions {
-  pub head: Option<String>,
-  pub mode: ResetMode,
+	pub head: Option<String>,
+	pub mode: ResetMode,
 }
 
 #[napi(string_enum = "lowercase")]
 pub enum ResetMode {
-  Soft,
-  Mixed,
-  Hard,
+	Soft,
+	Mixed,
+	Hard,
 }
 
 impl From<ResetMode> for gramaxgit::actions::reset::ResetMode {
-  fn from(val: ResetMode) -> Self {
-    match val {
-      ResetMode::Soft => gramaxgit::actions::reset::ResetMode::Soft,
-      ResetMode::Mixed => gramaxgit::actions::reset::ResetMode::Mixed,
-      ResetMode::Hard => gramaxgit::actions::reset::ResetMode::Hard,
-    }
-  }
+	fn from(val: ResetMode) -> Self {
+		match val {
+			ResetMode::Soft => gramaxgit::actions::reset::ResetMode::Soft,
+			ResetMode::Mixed => gramaxgit::actions::reset::ResetMode::Mixed,
+			ResetMode::Hard => gramaxgit::actions::reset::ResetMode::Hard,
+		}
+	}
 }
 
 impl From<ResetOptions> for gramaxgit::actions::reset::ResetOptions {
-  fn from(val: ResetOptions) -> Self {
-    gramaxgit::actions::reset::ResetOptions { mode: val.mode.into(), head: val.head.map(OidInfo) }
-  }
+	fn from(val: ResetOptions) -> Self {
+		gramaxgit::actions::reset::ResetOptions {
+			mode: val.mode.into(),
+			head: val.head.map(OidInfo),
+		}
+	}
 }
 
 #[napi_async]
 pub fn reset(repo_path: String, opts: ResetOptions) -> Output {
-  git::reset(Path::new(&repo_path), opts.into())
+	git::reset(Path::new(&repo_path), opts.into())
 }
 
 #[napi_async]
 pub fn stash(repo_path: String, creds: AccessTokenCreds, message: Option<String>) -> Output {
-  git::stash(Path::new(&repo_path), message.as_deref(), creds.into())
+	git::stash(Path::new(&repo_path), message.as_deref(), creds.into())
 }
 
 #[napi_async]
 pub fn stash_apply(repo_path: String, oid: String) -> Output {
-  git::stash_apply(Path::new(&repo_path), &oid)
+	git::stash_apply(Path::new(&repo_path), &oid)
 }
 
 #[napi_async]
 pub fn stash_delete(repo_path: String, oid: String) -> Output {
-  git::stash_delete(Path::new(&repo_path), &oid)
+	git::stash_delete(Path::new(&repo_path), &oid)
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct MergeOptions {
-  pub theirs: String,
-  pub delete_after_merge: Option<bool>,
-  pub squash: Option<bool>,
-  pub is_merge_request: Option<bool>,
+	pub theirs: String,
+	pub delete_after_merge: Option<bool>,
+	pub squash: Option<bool>,
+	pub is_merge_request: Option<bool>,
 }
 
 impl From<MergeOptions> for gramaxgit::actions::merge::MergeOptions {
-  fn from(val: MergeOptions) -> Self {
-    gramaxgit::actions::merge::MergeOptions {
-      theirs: val.theirs,
-      delete_after_merge: val.delete_after_merge.unwrap_or_default(),
-      squash: val.squash.unwrap_or_default(),
-      is_merge_request: val.is_merge_request.unwrap_or_default(),
-    }
-  }
+	fn from(val: MergeOptions) -> Self {
+		gramaxgit::actions::merge::MergeOptions {
+			theirs: val.theirs,
+			delete_after_merge: val.delete_after_merge.unwrap_or_default(),
+			squash: val.squash.unwrap_or_default(),
+			is_merge_request: val.is_merge_request.unwrap_or_default(),
+		}
+	}
 }
 
 #[napi_async]
 pub fn merge(repo_path: String, creds: AccessTokenCreds, opts: MergeOptions) -> Output {
-  git::merge(Path::new(&repo_path), creds.into(), opts.into())
+	git::merge(Path::new(&repo_path), creds.into(), opts.into())
 }
 
 #[napi_async]
 pub fn count_changed_files(repo_path: String, search_in: String) -> Output {
-  git::count_changed_files(Path::new(&repo_path), Path::new(&search_in))
+	git::count_changed_files(Path::new(&repo_path), Path::new(&search_in))
 }
 
 #[napi_async]
 pub fn get_content(repo_path: String, path: String, oid: Option<String>) -> Output {
-  git::get_content(Path::new(&repo_path), Path::new(&path), oid.as_deref())
+	git::get_content(Path::new(&repo_path), Path::new(&path), oid.as_deref())
 }
 
 #[napi_async]
 pub fn get_parent(repo_path: String, oid: String) -> Output {
-  git::get_parent(Path::new(&repo_path), &oid)
+	git::get_parent(Path::new(&repo_path), &oid)
 }
 
 #[napi_async]
 pub fn git_read_dir(repo_path: String, scope: TreeReadScope, path: String) -> Output {
-  git::read_dir(Path::new(&repo_path), scope.into(), Path::new(&path))
+	git::read_dir(Path::new(&repo_path), scope.into(), Path::new(&path))
 }
 
 #[napi_async]
 pub fn git_file_stat(repo_path: String, scope: TreeReadScope, path: String) -> Output {
-  git::file_stat(Path::new(&repo_path), scope.into(), Path::new(&path))
+	git::file_stat(Path::new(&repo_path), scope.into(), Path::new(&path))
 }
 
 #[napi_async]
 pub fn git_file_exists(repo_path: String, scope: TreeReadScope, path: String) -> Output {
-  git::file_exists(Path::new(&repo_path), scope.into(), Path::new(&path))
+	git::file_exists(Path::new(&repo_path), scope.into(), Path::new(&path))
 }
 
 pub struct ReadFileTask {
-  repo_path: String,
-  scope: TreeReadScope,
-  path: String,
+	repo_path: String,
+	scope: TreeReadScope,
+	path: String,
 }
 
 impl napi::Task for ReadFileTask {
-  type Output = Vec<u8>;
-  type JsValue = Buffer;
+	type Output = Vec<u8>;
+	type JsValue = Buffer;
 
-  fn compute(&mut self) -> Result<Self::Output, Error> {
-    match git::read_file(Path::new(&self.repo_path), self.scope.clone().into(), Path::new(&self.path)) {
-      Ok(content) => Ok(content),
-      Err(err) => serde_json::to_string(&err)
-        .map_err(|e| Error::from_reason(e.to_string()))
-        .and_then(|e| Err(Error::from_reason(e))),
-    }
-  }
+	fn compute(&mut self) -> Result<Self::Output, Error> {
+		match git::read_file(Path::new(&self.repo_path), self.scope.clone().into(), Path::new(&self.path)) {
+			Ok(content) => Ok(content),
+			Err(err) => serde_json::to_string(&err)
+				.map_err(|e| Error::from_reason(e.to_string()))
+				.and_then(|e| Err(Error::from_reason(e))),
+		}
+	}
 
-  fn resolve(&mut self, _: napi::Env, output: Self::Output) -> Result<Self::JsValue, Error> {
-    Ok(output.into())
-  }
+	fn resolve(&mut self, _: napi::Env, output: Self::Output) -> Result<Self::JsValue, Error> {
+		Ok(output.into())
+	}
 
-  fn reject(&mut self, _: napi::Env, error: Error) -> Result<Self::JsValue, Error> {
-    Err(error)
-  }
+	fn reject(&mut self, _: napi::Env, error: Error) -> Result<Self::JsValue, Error> {
+		Err(error)
+	}
 }
 
 #[napi(js_name = "git_read_file")]
-pub fn git_read_file(
-  repo_path: String,
-  scope: TreeReadScope,
-  path: String,
-) -> Result<napi::bindgen_prelude::AsyncTask<ReadFileTask>, napi::Error> {
-  Ok(napi::bindgen_prelude::AsyncTask::new(ReadFileTask { repo_path, scope, path }))
+pub fn git_read_file(repo_path: String, scope: TreeReadScope, path: String) -> Result<napi::bindgen_prelude::AsyncTask<ReadFileTask>, napi::Error> {
+	Ok(napi::bindgen_prelude::AsyncTask::new(ReadFileTask { repo_path, scope, path }))
 }
 
 #[napi_async]
 pub fn git_read_dir_stats(repo_path: String, scope: TreeReadScope, path: String) -> Output {
-  git::read_dir_stats(Path::new(&repo_path), scope.into(), Path::new(&path))
+	git::read_dir_stats(Path::new(&repo_path), scope.into(), Path::new(&path))
 }
 
 #[napi_async]
 pub fn list_merge_requests(repo_path: String) -> Output {
-  git::list_merge_requests(Path::new(&repo_path))
+	git::list_merge_requests(Path::new(&repo_path))
 }
 
 #[napi_async]
 pub fn find_refs_by_globs(repo_path: String, pattern: Vec<String>) -> Output {
-  git::find_refs_by_globs(Path::new(&repo_path), &pattern)
+	git::find_refs_by_globs(Path::new(&repo_path), &pattern)
 }
 
 #[napi_async]
-pub fn create_or_update_merge_request(
-  repo_path: String,
-  merge_request: String,
-  creds: AccessTokenCreds,
-) -> Output {
-  let merge_request = serde_json::from_str::<CreateMergeRequest>(&merge_request)
-    .map_err(|e| Error::from_reason(e.to_string()))?;
-  git::create_or_update_merge_request(Path::new(&repo_path), merge_request, creds.into())
+pub fn create_or_update_merge_request(repo_path: String, merge_request: String, creds: AccessTokenCreds) -> Output {
+	let merge_request = serde_json::from_str::<CreateMergeRequest>(&merge_request).map_err(|e| Error::from_reason(e.to_string()))?;
+	git::create_or_update_merge_request(Path::new(&repo_path), merge_request, creds.into())
 }
 
 #[napi_async]
 pub fn get_draft_merge_request(repo_path: String) -> Output {
-  git::get_draft_merge_request(Path::new(&repo_path))
+	git::get_draft_merge_request(Path::new(&repo_path))
+}
+
+#[napi_async]
+pub fn pull_lfs_objects(repo_path: String, creds: AccessTokenCreds, paths: Vec<String>, checkout: bool, cancel_token: u32) -> Output {
+	git::pull_lfs_objects(
+		Path::new(&repo_path),
+		creds.into(),
+		paths.into_iter().map(PathBuf::from).collect(),
+		checkout,
+		(cancel_token as usize).into(),
+	)
+}
+
+#[napi_async]
+pub fn get_config_val(repo_path: String, name: String) -> Output {
+	git::get_config_val(Path::new(&repo_path), &name)
+}
+
+#[napi(object)]
+#[derive(Clone)]
+pub struct ConfigValue {
+	pub kind: String,
+	pub val: String,
+}
+
+impl From<ConfigValue> for gramaxgit::ConfigValue {
+	fn from(val: ConfigValue) -> Self {
+		match val.kind.as_str() {
+			"str" => gramaxgit::ConfigValue::Str(val.val),
+			"i32" => gramaxgit::ConfigValue::I32(val.val.parse::<i32>().unwrap()),
+			"i64" => gramaxgit::ConfigValue::I64(val.val.parse::<i64>().unwrap()),
+			"bool" => gramaxgit::ConfigValue::Bool(val.val.parse::<bool>().unwrap()),
+			_ => gramaxgit::ConfigValue::Str(val.val),
+		}
+	}
+}
+
+#[napi_async]
+pub fn set_config_val(repo_path: String, name: String, val: ConfigValue) -> Output {
+	git::set_config_val(Path::new(&repo_path), &name, val.into())
 }
 
 #[napi(js_name = "reset_repo")]
 pub fn reset_repo() -> Result<bool, Error> {
-  git::reset_repo();
-  Ok(true)
+	git::reset_repo();
+	Ok(true)
 }
 
 #[napi(js_name = "reset_file_lock")]
 pub fn reset_file_lock(repo_path: String) -> Result<bool, Error> {
-  git::reset_file_lock(Path::new(&repo_path));
-  Ok(true)
+	git::reset_file_lock(Path::new(&repo_path));
+	Ok(true)
 }
 
 #[napi(object, use_nullable = true)]
 #[derive(Clone)]
 pub struct GcOptions {
-  pub loose_objects_limit: Option<i32>,
-  pub pack_files_limit: Option<i32>,
+	pub loose_objects_limit: Option<i32>,
+	pub pack_files_limit: Option<i32>,
 }
 
 impl From<GcOptions> for gramaxgit::ext::gc::GcOptions {
-  fn from(val: GcOptions) -> Self {
-    gramaxgit::ext::gc::GcOptions {
-      loose_objects_limit: val.loose_objects_limit.map(|x| x as usize),
-      pack_files_limit: val.pack_files_limit.map(|x| x as usize),
-    }
-  }
+	fn from(val: GcOptions) -> Self {
+		gramaxgit::ext::gc::GcOptions {
+			loose_objects_limit: val.loose_objects_limit.map(|x| x as usize),
+			pack_files_limit: val.pack_files_limit.map(|x| x as usize),
+		}
+	}
 }
 
 #[napi_async]
 pub fn gc(repo_path: String, opts: GcOptions) -> Output {
-  git::gc(Path::new(&repo_path), opts.into())
+	git::gc(Path::new(&repo_path), opts.into())
 }
 
 #[napi_async]
 pub fn healthcheck(repo_path: String) -> Output {
-  git::healthcheck(Path::new(&repo_path))
+	git::healthcheck(Path::new(&repo_path))
 }
 
 #[napi(js_name = "get_all_cancel_tokens")]
 pub fn get_all_cancel_tokens() -> Output {
-  git::get_all_cancel_tokens().json()
+	git::get_all_cancel_tokens().json()
 }

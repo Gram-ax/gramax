@@ -1,10 +1,10 @@
 import EditInGramax from "@components/Actions/EditInGramax";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
 import ExportToDocxOrPdf from "@components/Actions/ExportToDocxOrPdf";
-import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ShowInExplorer from "@components/Actions/ShowInExplorer";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import { ItemLink } from "@ext/navigation/NavigationLinks";
 
 interface ExportIntegrationArticleActionsProps {
 	itemLink: ItemLink;
@@ -21,10 +21,10 @@ export const ExportIntegrationArticleActions = (props: ExportIntegrationArticleA
 	return (
 		<>
 			{!hasError && (
-				<ExportToDocxOrPdf isCategory={isCategory} fileName={item.fileName} itemRefPath={itemLink.ref.path} />
+				<ExportToDocxOrPdf fileName={item.fileName} isCategory={isCategory} itemRefPath={itemLink.ref.path} />
 			)}
 			<IsReadOnlyHOC>
-				<EditInGramax pathname={itemLink.pathname} articlePath={itemLink.ref.path} />
+				<EditInGramax articlePath={itemLink.ref.path} pathname={itemLink.pathname} />
 			</IsReadOnlyHOC>
 			<ShowInExplorer item={item} />
 		</>

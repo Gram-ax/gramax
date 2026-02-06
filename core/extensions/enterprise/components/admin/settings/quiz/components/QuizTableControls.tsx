@@ -42,14 +42,14 @@ const TestsSelect = memo((props: MultiSelectFilterProps<"tests">) => {
 	return (
 		<FilterMultiSelect
 			disabled={disabled}
+			emptyPlaceholder={t("enterprise.admin.quiz.filters.tests.empty")}
 			existingOptions={filter}
+			loadingPlaceholder={t("enterprise.admin.quiz.filters.tests.loading")}
+			loadOptions={loadOptions}
 			onAdd={onTestsChange}
 			onRemove={onTestsChange}
-			loadOptions={loadOptions}
-			trigger={t("enterprise.admin.quiz.filters.tests.name")}
 			searchPlaceholder={t("enterprise.admin.quiz.filters.tests.search")}
-			loadingPlaceholder={t("enterprise.admin.quiz.filters.tests.loading")}
-			emptyPlaceholder={t("enterprise.admin.quiz.filters.tests.empty")}
+			trigger={t("enterprise.admin.quiz.filters.tests.name")}
 		/>
 	);
 });
@@ -76,14 +76,14 @@ const UsersSelect = memo((props: MultiSelectFilterProps<"users">) => {
 	return (
 		<FilterMultiSelect
 			disabled={disabled}
+			emptyPlaceholder={t("enterprise.admin.quiz.filters.users.empty")}
 			existingOptions={filter}
+			loadingPlaceholder={t("enterprise.admin.quiz.filters.users.loading")}
+			loadOptions={loadOptions}
 			onAdd={onUsersChange}
 			onRemove={onUsersChange}
-			loadOptions={loadOptions}
-			trigger={t("enterprise.admin.quiz.filters.users.name")}
 			searchPlaceholder={t("enterprise.admin.quiz.filters.users.search")}
-			loadingPlaceholder={t("enterprise.admin.quiz.filters.users.loading")}
-			emptyPlaceholder={t("enterprise.admin.quiz.filters.users.empty")}
+			trigger={t("enterprise.admin.quiz.filters.users.name")}
 		/>
 	);
 });
@@ -93,14 +93,14 @@ export const TableControls = (props: TableControlProps) => {
 
 	return (
 		<div className="flex gap-2">
-			<UsersSelect filter={filters.users} setFilters={setFilters} disabled={disabled} />
-			<TestsSelect filter={filters.tests} setFilters={setFilters} disabled={disabled} />
+			<UsersSelect disabled={disabled} filter={filters.users} setFilters={setFilters} />
+			<TestsSelect disabled={disabled} filter={filters.tests} setFilters={setFilters} />
 			<Button
-				variant="outline"
-				startIcon="eraser"
 				className="ml-auto"
 				disabled={disabled}
 				onClick={() => setFilters({ users: [], tests: [] })}
+				startIcon="eraser"
+				variant="outline"
 			>
 				{t("clear")}
 			</Button>

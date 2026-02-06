@@ -1,6 +1,6 @@
 import Path from "@core/FileProvider/Path/Path";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import getPageDataByPathname, { PageDataType } from "@core/RouterPath/logic/getPageDataByPathname";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const mockLib = {

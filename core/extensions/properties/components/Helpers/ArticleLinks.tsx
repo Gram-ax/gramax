@@ -1,9 +1,9 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { Router } from "@core/Api/Router";
 import { useRouter } from "@core/Api/useRouter";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { Link } from "@ext/properties/logic/CatalogLinksProvider";
@@ -56,7 +56,7 @@ const DropdownLink = ({ fetch, title, router }: { fetch: () => Promise<Link[]>; 
 				) : null}
 				{isApiRequest && (
 					<DropdownMenuItem>
-						<SpinnerLoader width={14} height={14} />
+						<SpinnerLoader height={14} width={14} />
 						{t("loading")}
 					</DropdownMenuItem>
 				)}
@@ -94,8 +94,8 @@ const ArticleLinks = ({ itemRefPath }: { itemRefPath: string }) => {
 				{t("article.links.name")}
 			</DropdownMenuSubTrigger>
 			<DropdownMenuSubContent>
-				<DropdownLink fetch={getBacklinks} title={t("article.links.backlinks")} router={router} />
-				<DropdownLink fetch={getLinks} title={t("article.links.links")} router={router} />
+				<DropdownLink fetch={getBacklinks} router={router} title={t("article.links.backlinks")} />
+				<DropdownLink fetch={getLinks} router={router} title={t("article.links.links")} />
 			</DropdownMenuSubContent>
 		</DropdownMenuSub>
 	);

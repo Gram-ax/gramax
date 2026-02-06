@@ -1,28 +1,27 @@
-import "ics-ui-kit/styles.css";
-import "../../../core/styles/ProseMirror.css";
-import "../../../core/styles/admonition.css";
-import "../../../core/styles/article-alfabeta.css";
-import "../../../core/styles/article.css";
-import "../../../core/styles/global.css";
-import "../../../core/styles/swagger-ui-theme.css";
-
+import "../../../core/styles/main.css";
 import { createRoot } from "react-dom/client";
 import { AppDesktopGuard } from "./AppDesktopGuard";
 import * as debug from "./debug";
 
 declare global {
 	interface Window {
-		desktopOpened?: boolean;
-		resetIsFirstLoad?: () => void;
 		navigateTo?: (path: string) => void;
+		resetIsFirstLoad?: () => void;
+		desktopOpened?: boolean;
+		// biome-ignore lint/suspicious/noExplicitAny: idc
 		wasm: any;
+		// biome-ignore lint/suspicious/noExplicitAny: idc
+		debug: any;
 	}
 }
 
-(window as any).debug = debug;
-
+declare const __BUILD_ID__: number;
 const container = document.getElementById("root");
 
-const root = createRoot(container);
-
-root.render(<AppDesktopGuard />);
+if (container && Number(container.dataset.buildId) === __BUILD_ID__) {
+	window.debug = debug;
+	const root = createRoot(container);
+	root.render(<AppDesktopGuard />);
+} else {
+	console.warn("BUILD_ID mismatch; Skip using stale bundle", { html: global.BUILD_ID, bundle: __BUILD_ID__ });
+}

@@ -11,9 +11,9 @@ const ContentLanguageActions = ({ canSwitch, setIsLoading, targetCode }: Content
 	return (
 		<div>
 			<RemoveContentLanguage
+				disabled={!canSwitch}
 				key={`remove-content-language-${targetCode}`}
 				setIsLoading={setIsLoading}
-				disabled={!canSwitch}
 				targetCode={targetCode}
 			/>
 		</div>

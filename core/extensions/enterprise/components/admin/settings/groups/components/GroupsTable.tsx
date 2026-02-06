@@ -82,31 +82,32 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 
 	return (
 		<>
-			<TableInfoBlock title={getAdminPageTitle(Page.USER_GROUPS)} description={groups.length} />
+			<TableInfoBlock description={groups.length} title={getAdminPageTitle(Page.USER_GROUPS)} />
 
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
+						onChange={handleFilterChange}
 						placeholder={`${t("enterprise.admin.resources.groups.search-placeholder")}...`}
 						value={(groupsTable.getColumn("group")?.getFilterValue() as string) ?? ""}
-						onChange={handleFilterChange}
 					/>
 				}
 			>
 				<AlertDeleteDialog
-					selectedCount={selectedGroupsCount}
-					onConfirm={handleDeleteSelected}
+					description={`${t("enterprise.admin.delete-alert")} ${selectedGroupsCount} ${
+						selectedGroupsCount === 1 ? t("record") : t("records")
+					}?`}
 					hidden={!selectedGroupsCount}
-					description={`${t("enterprise.admin.delete-alert")} ${selectedGroupsCount} ${selectedGroupsCount === 1 ? t("record") : t("records")
-						}?`}
+					onConfirm={handleDeleteSelected}
+					selectedCount={selectedGroupsCount}
 				/>
-				<TriggerAddButtonTemplate key="add-group" startIcon="plus" onClick={handleAdd} />
+				<TriggerAddButtonTemplate key="add-group" onClick={handleAdd} startIcon="plus" />
 			</TableToolbar>
 
 			<TableComponent<Group>
-				table={groupsTable}
 				columns={groupTableColumns}
 				onRowClick={(row) => handleEdit(row.original.id)}
+				table={groupsTable}
 			/>
 		</>
 	);

@@ -1,11 +1,11 @@
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import { NodeViewContent, NodeViewProps } from "@tiptap/react";
 import styled from "@emotion/styled";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import { getComponentByType } from "@ext/markdown/elements/answer/edit/logic/getComponentByType";
-import { memo, useCallback } from "react";
-import { IconButton } from "@ui-kit/Button";
 import { AnswerContent, BaseAnswer } from "@ext/markdown/elements/answer/render/components/Answer";
 import { AnswerType } from "@ext/markdown/elements/answer/types";
+import { NodeViewContent, NodeViewProps } from "@tiptap/react";
+import { IconButton } from "@ui-kit/Button";
+import { memo, useCallback } from "react";
 
 interface AnswerProps<T extends AnswerType = AnswerType> {
 	correct: boolean;
@@ -27,12 +27,12 @@ const AnswerLeft = ({ type, correct, updateCorrect }: { type: any; correct: bool
 const AnswerRight = ({ deleteAnswer }: { deleteAnswer: () => void }) => {
 	return (
 		<IconButton
-			icon="trash"
-			size="sm"
-			contentEditable={false}
-			variant="text"
-			onClick={deleteAnswer}
 			className="ml-auto h-auto p-0 pr-0.5"
+			contentEditable={false}
+			icon="trash"
+			onClick={deleteAnswer}
+			size="sm"
+			variant="text"
 		/>
 	);
 };
@@ -41,7 +41,7 @@ const Answer = memo(({ correct, type, updateCorrect, deleteAnswer }: AnswerProps
 	return (
 		<BaseAnswer correct={!!correct}>
 			<AnswerContent>
-				<AnswerLeft type={type} correct={correct} updateCorrect={updateCorrect} />
+				<AnswerLeft correct={correct} type={type} updateCorrect={updateCorrect} />
 				<StyledContent className="w-full" />
 				<AnswerRight deleteAnswer={deleteAnswer} />
 			</AnswerContent>
@@ -71,7 +71,7 @@ const AnswerComponent = (props: NodeViewProps) => {
 
 	return (
 		<NodeViewContextableWrapper props={props}>
-			<Answer correct={correct} type={type} updateCorrect={updateCorrect} deleteAnswer={deleteAnswer} />
+			<Answer correct={correct} deleteAnswer={deleteAnswer} type={type} updateCorrect={updateCorrect} />
 		</NodeViewContextableWrapper>
 	);
 };

@@ -1,10 +1,10 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import createDrawio from "../logic/createDrawio";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import t from "@ext/localization/locale/translate";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import { Editor } from "@tiptap/core";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import createDrawio from "../logic/createDrawio";
 
 interface DrawioMenuButtonProps {
 	editor: Editor;
@@ -18,17 +18,17 @@ const DrawioMenuButton = ({ editor, fileName }: DrawioMenuButtonProps) => {
 
 	return (
 		<ToolbarDropdownMenuItem
-			disabled={disabled}
 			active={isActive}
+			disabled={disabled}
 			onSelect={() => createDrawio(editor, fileName || articleProps?.fileName, resourceService)}
 		>
 			<div className="flex flex-row items-center gap-2 mr-3">
 				<svg
 					data-qa="qa-edit-menu-diagrams.net"
-					width="16"
+					fill="none"
 					height="16"
 					viewBox="0 0 16 16"
-					fill="none"
+					width="16"
 					xmlns="http://www.w3.org/2000/svg"
 				>
 					<g clipPath="url(#clip0_2_16)">
@@ -48,10 +48,10 @@ const DrawioMenuButton = ({ editor, fileName }: DrawioMenuButtonProps) => {
 					<defs>
 						<clipPath id="clip0_2_16">
 							<rect
-								width="13.3333"
-								height="13.3333"
 								fill="white"
+								height="13.3333"
 								transform="translate(1.33333 1.33333)"
+								width="13.3333"
 							/>
 						</clipPath>
 					</defs>

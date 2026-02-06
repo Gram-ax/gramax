@@ -1,21 +1,20 @@
+import { DATA_QA_LIGHTBOX as LIGHTBOX_DATA_QA } from "@components/Atoms/Image/modalImage/MediaPreview";
+import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
+import { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
+import { updateColumnsOnResize } from "@ext/markdown/elements/table/edit/model/columnResizing/updateColumns";
 import { Attrs } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
-import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
-
 import {
+	cellAround,
+	columnResizingPluginKey,
 	Dragging,
 	ResizeState,
 	TableMap,
 	TableView,
-	cellAround,
-	columnResizingPluginKey,
 	tableNodeTypes,
 } from "prosemirror-tables";
+import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 
-import { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
-import { updateColumnsOnResize } from "@ext/markdown/elements/table/edit/model/columnResizing/updateColumns";
-import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
-import { DATA_QA_LIGHTBOX as LIGHTBOX_DATA_QA } from "@components/Atoms/Image/modalImage/MediaPreview";
 const navsSymbol = Symbol();
 
 type ColumnResizingOptions = {

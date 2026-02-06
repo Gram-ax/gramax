@@ -1,11 +1,11 @@
 import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/PermissionParser";
 import Permission from "@ext/security/logic/Permission/Permission";
-import IPermissionMap from "@ext/security/logic/PermissionMap/IPermissionMap";
+import type IPermissionMap from "@ext/security/logic/PermissionMap/IPermissionMap";
 import parsePermissionMapFromJSON from "@ext/security/logic/PermissionMap/parsePermissionMapFromJSON";
 import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
-import IPermission from "../Permission/IPermission";
-import UserInfo from "./UserInfo";
-import UserJSONData from "./UserJSONData";
+import type IPermission from "../Permission/IPermission";
+import type UserInfo from "./UserInfo";
+import type UserJSONData from "./UserJSONData";
 
 export type UserType = "base" | "enterprise" | "ticket";
 

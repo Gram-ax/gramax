@@ -1,8 +1,8 @@
 import { getResultByActionData } from "@core-ui/ContextServices/ButtonStateService/hooks/useCurrentAction";
 import { getNodeNameFromCursor } from "@core-ui/ContextServices/ButtonStateService/hooks/useType";
-import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
-import { mergeAttributes, Node, InputRule, callOrReturn } from "@tiptap/core";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
+import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
+import { callOrReturn, InputRule, mergeAttributes, Node } from "@tiptap/core";
 // import updateId from "@ext/markdown/elements/heading/edit/plugins/updateId";
 
 export type Level = 1 | 2 | 3 | 4 | 5 | 6;

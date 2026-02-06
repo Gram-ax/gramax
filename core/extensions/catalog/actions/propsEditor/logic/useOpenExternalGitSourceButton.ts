@@ -1,4 +1,5 @@
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import openNewTab from "@core-ui/utils/openNewTab";
 import { makeGitShareData } from "@ext/git/actions/Clone/logic/makeGitShareData";
 import getRepUrl from "@ext/git/core/GitPathnameHandler/clone/logic/getRepUrl";
@@ -6,7 +7,6 @@ import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { MouseEvent, useMemo } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
 	const { sourceName, linkPathname } = useCatalogPropsStore(

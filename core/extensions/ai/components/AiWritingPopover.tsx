@@ -1,12 +1,12 @@
-import { Editor } from "@tiptap/core";
-import { Dispatch, memo, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
-import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
-import { Popover, PopoverTrigger } from "@ui-kit/Popover";
-import { AiWritingPanel } from "@ext/ai/components/AiWritingPanel";
-import { ComponentVariantProvider } from "@ui-kit/Providers";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import { cn } from "@core-ui/utils/cn";
+import { AiWritingPanel } from "@ext/ai/components/AiWritingPanel";
 import { AnimatedPopoverContent } from "@ext/ai/components/Helpers/AnimatedPopoverContent";
+import type { Editor } from "@tiptap/core";
+import { Popover, PopoverTrigger } from "@ui-kit/Popover";
+import { ComponentVariantProvider } from "@ui-kit/Providers";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { type Dispatch, memo, type SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 
 interface AiWritingPopoverProps {
 	editor: Editor;
@@ -89,35 +89,44 @@ const AiWritingPopover = (props: AiWritingPopoverProps) => {
 
 			if (!open) editor.commands.focus();
 		},
-		[editor],
+		[editor, setIsOpen],
 	);
+
+	const closeHandler = useCallback(() => {
+		setIsOpen(false);
+	}, [setIsOpen]);
 
 	return (
 		<ComponentVariantProvider variant="inverse">
-			<Popover open={!disabled && isOpen} onOpenChange={onOpenChange}>
+			<Popover onOpenChange={onOpenChange} open={!disabled && isOpen}>
 				<PopoverTrigger asChild>
 					<div className={cn(disabled && "pointer-events-none")}>
 						<ToolbarToggleButton
-							ref={triggerRef}
-							tooltipText={triggerTooltipText}
 							active={isOpen}
 							disabled={disabled}
 							focusable
+							ref={triggerRef}
+							tooltipText={triggerTooltipText}
 						>
 							<ToolbarIcon icon={triggerIcon} />
 						</ToolbarToggleButton>
 					</div>
 				</PopoverTrigger>
 				<AnimatedPopoverContent
-					side="top"
-					portalContainer={toolbarElement}
 					align="start"
-					sideOffset={8}
 					alignOffset={options.offset}
-					style={{ width: options.width, pointerEvents: "all" }}
 					className={cn("p-0 bg-transparent border-none lg:shadow-hard-base", isMobile && "px-0.5")}
+					portalContainer={toolbarElement}
+					side="top"
+					sideOffset={8}
+					style={{ width: options.width, pointerEvents: "all" }}
 				>
-					<AiWritingPanel onSubmit={onSubmit} setOpen={setIsOpen} placeholder={contentPlaceholder} />
+					<AiWritingPanel
+						closeHandler={closeHandler}
+						onSubmit={onSubmit}
+						placeholder={contentPlaceholder}
+						setOpen={setIsOpen}
+					/>
 				</AnimatedPopoverContent>
 			</Popover>
 		</ComponentVariantProvider>

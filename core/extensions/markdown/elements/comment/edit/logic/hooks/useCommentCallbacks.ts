@@ -1,12 +1,12 @@
+import FetchService from "@core-ui/ApiServices/FetchService";
+import { CommentBlock } from "@core-ui/CommentBlock";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { addComment, deleteComment } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
+import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import UserInfo from "@ext/security/logic/User/UserInfo";
 import { Range } from "@tiptap/core";
 import { useCallback } from "react";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import { addComment, deleteComment } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import UserInfo from "@ext/security/logic/User/UserInfo";
-import { CommentBlock } from "@core-ui/CommentBlock";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 
 const useCommentCallbacks = (articlePathname: string) => {
 	const pageData = PageDataContextService.value;

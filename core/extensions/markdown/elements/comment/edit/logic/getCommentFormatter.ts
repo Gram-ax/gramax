@@ -1,6 +1,6 @@
 import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 import { MarkSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
+import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 
 const getCommentFormatter = (context?: ParserContext): MarkSerializerSpec => {
 	if (!context) return { open: () => "", close: () => "" };

@@ -10,7 +10,7 @@ const HeadersMenuGroup = ({ editor }: { editor?: Editor }) => {
 	const activeLevel = (isActive ? editor.getAttributes("heading")?.level : 0)?.toString();
 
 	return (
-		<ToolbarToggleGroup type="single" value={activeLevel} defaultValue={activeLevel} disabled={disabled}>
+		<ToolbarToggleGroup defaultValue={activeLevel} disabled={disabled} type="single" value={activeLevel}>
 			<HeadingMenuButton editor={editor} level={2} />
 			<HeadingMenuButton editor={editor} level={3} />
 			<HeadingMenuButton editor={editor} level={4} />

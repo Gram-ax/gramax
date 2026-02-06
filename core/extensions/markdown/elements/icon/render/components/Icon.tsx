@@ -15,7 +15,7 @@ const Icon = ({ code, svg, color, className }: IconProps) => {
 	return (
 		<i className={className} style={{ color: color }}>
 			<svg>
-				<image style={{ width: "1em", height: "1em" }} href={svgToBase64(svg)} />
+				<image href={svgToBase64(svg)} style={{ width: "1em", height: "1em" }} />
 			</svg>
 		</i>
 	);

@@ -1,17 +1,17 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import VersionedCloudApi from "@ext/static/logic/VersionedCloudApi";
+import { CACHE_DIR, MODULITH_BASE } from "@ext/serach/modulith/createModulithService";
+import CloudUploadStatus from "@ext/static/logic/CloudUploadStatus";
 import convertCatalogLink from "@ext/static/logic/convertCatalogLink";
+import VersionedCloudApi from "@ext/static/logic/VersionedCloudApi";
 import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
+import type { DirectoryInfoBasic } from "../../../../apps/gramax-cli/src/logic/initialDataUtils/types";
 import StaticSiteBuilder from "../../../../apps/gramax-cli/src/logic/StaticSiteBuilder";
 import { Command } from "../../../types/Command";
-import CloudUploadStatus from "@ext/static/logic/CloudUploadStatus";
-import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
-import { CACHE_DIR, MODULITH_BASE } from "@ext/serach/modulith/createModulithService";
-import { DirectoryInfoBasic } from "@app/resolveModule/fscall/static";
 
 const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Command.create({
 	path: "catalog/cloud/upload",

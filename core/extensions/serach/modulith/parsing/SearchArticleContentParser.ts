@@ -1,7 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
 import SearchArticleContentParserBase from "@ext/serach/modulith/parsing/SearchArticleContentParserBase";
-import { ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
-import { JSONContent } from "@tiptap/core";
+import type { ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
+import type { JSONContent } from "@tiptap/core";
 
 export default class SearchArticleContentParser extends SearchArticleContentParserBase {
 	constructor(
@@ -30,7 +30,7 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 		if (!item) return;
 
 		switch (item.type) {
-			case "paragraph":
+			case "paragraph": {
 				const buffer = [];
 
 				item.content?.forEach((x) => {
@@ -62,6 +62,7 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 					this._addText(buffer.join(""));
 				}
 				break;
+			}
 			case "heading":
 				this._addHeader(item.attrs.level, this._jsonToString(item));
 				break;
@@ -167,7 +168,7 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 
 	private _getText(item: JSONContent) {
 		return item.type === "inline-property" && item.attrs.bind
-			? this._getPropertyValue(item.attrs.bind) ?? item.text
+			? (this._getPropertyValue(item.attrs.bind) ?? item.text)
 			: item.text;
 	}
 }

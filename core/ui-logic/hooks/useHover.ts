@@ -1,5 +1,4 @@
-import { useEffect, useState, RefObject } from "react";
-
+import { RefObject, useEffect, useState } from "react";
 
 const useHover = <T extends HTMLElement = HTMLElement>(ref: RefObject<T>): boolean => {
 	const [isHovered, setIsHovered] = useState(false);

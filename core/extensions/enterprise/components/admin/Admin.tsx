@@ -1,8 +1,8 @@
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import {
 	AdminNavigationProvider,
-	useAdminNavigation,
 	type PluginDetailParams,
+	useAdminNavigation,
 } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { OpenProvider } from "@ext/enterprise/components/admin/contexts/OpenContext";
 import { ScrollContainerProvider } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
@@ -48,19 +48,19 @@ interface BaseProps {
 }
 
 const SidebarContainer = styled(SidebarProvider)`
-	height: 100%;
-	min-height: unset;
-	max-height: 100%;
-	overflow: hidden;
+  height: 100%;
+  min-height: unset;
+  max-height: 100%;
+  overflow: hidden;
 
-	ul {
-		list-style: none !important;
-	}
+  ul {
+    list-style: none !important;
+  }
 
-	li {
-		line-height: unset;
-		margin-bottom: unset;
-	}
+  li {
+    line-height: unset;
+    margin-bottom: unset;
+  }
 `;
 
 const PageRenderer = () => {
@@ -84,6 +84,7 @@ function MainContent() {
 		ensureQuizLoaded,
 		ensurePluginsLoaded,
 		ensureMetricsLoaded,
+		ensureSearchMetricsLoaded,
 	} = useSettings();
 
 	const { page, pageParams, navigate } = useAdminNavigation();
@@ -91,7 +92,7 @@ function MainContent() {
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 
 	const tryNavigate = useCallback(
-		async (nextPage: Page, params?: any) => {
+		async (nextPage: Page, params?: { selectedPluginId: string }) => {
 			if (nextPage === page) return;
 			const currentGuard = getGuard(page);
 			if (currentGuard?.hasChanges()) {
@@ -107,6 +108,7 @@ function MainContent() {
 		[page, getGuard, navigate, showUnsavedChangesModal],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: fix later
 	useEffect(() => {
 		const loadData = getPageDataLoader(page);
 
@@ -121,6 +123,7 @@ function MainContent() {
 			ensureQuizLoaded,
 			ensurePluginsLoaded,
 			ensureMetricsLoaded,
+			ensureSearchMetricsLoaded,
 		});
 	}, [page]);
 
@@ -128,7 +131,7 @@ function MainContent() {
 		return (
 			<div className="flex items-center justify-center h-screen">
 				<div className="w-full max-w-md">
-					<Alert status="error" focus="medium">
+					<Alert focus="medium" status="error">
 						<AlertDescription>{t("enterprise.admin.error.loading-settings")}</AlertDescription>
 					</Alert>
 				</div>
@@ -146,7 +149,7 @@ function MainContent() {
 
 	return (
 		<SidebarContainer>
-			<Sidebar collapsible="none" className="h-full">
+			<Sidebar className="h-full" collapsible="none">
 				<SidebarContent>
 					<SidebarGroup>
 						<SidebarGroupContent>
@@ -209,14 +212,53 @@ function MainContent() {
 									<CollapsibleTrigger asChild>
 										<SidebarMenuSubItem>
 											<SidebarMenuButton
+												isActive={page === Page.METRICS}
+												onClick={() => void tryNavigate(Page.METRICS)}
+											>
+												<Icon icon="chart-bar" />
+												<span>{getAdminPageTitle(Page.METRICS)}</span>
+												<Icon
+													className="ml-auto transition-transform group-data-[state=open]/sidebar-menu:rotate-90"
+													icon="chevron-right"
+												/>
+											</SidebarMenuButton>
+										</SidebarMenuSubItem>
+									</CollapsibleTrigger>
+									<CollapsibleContent>
+										<SidebarMenuSub>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton
+													isActive={page === Page.VIEW_METRICS}
+													onClick={() => void tryNavigate(Page.VIEW_METRICS)}
+												>
+													<Icon icon="eye" />
+													<span>{getAdminPageTitle(Page.VIEW_METRICS)}</span>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+											<SidebarMenuSubItem>
+												<SidebarMenuSubButton
+													isActive={page === Page.SEARCH_METRICS}
+													onClick={() => void tryNavigate(Page.SEARCH_METRICS)}
+												>
+													<Icon icon="search" />
+													<span>{getAdminPageTitle(Page.SEARCH_METRICS)}</span>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+										</SidebarMenuSub>
+									</CollapsibleContent>
+								</Collapsible>
+								<Collapsible className="group/sidebar-menu">
+									<CollapsibleTrigger asChild>
+										<SidebarMenuSubItem>
+											<SidebarMenuButton
 												isActive={page === Page.PLUGINS}
 												onClick={() => void tryNavigate(Page.PLUGINS)}
 											>
 												<Icon icon="package" />
 												<span>{t("enterprise.admin.pages.modules")}</span>
 												<Icon
-													icon="chevron-right"
 													className="ml-auto transition-transform group-data-[state=open]/sidebar-menu:rotate-90"
+													icon="chevron-right"
 												/>
 											</SidebarMenuButton>
 										</SidebarMenuSubItem>
@@ -234,7 +276,7 @@ function MainContent() {
 													const isActive = isBuiltIn
 														? page === navigateTo
 														: page === Page.PLUGIN_DETAIL &&
-														  (pageParams as PluginDetailParams)?.selectedPluginId ===
+															(pageParams as PluginDetailParams)?.selectedPluginId ===
 																plugin.metadata.id;
 
 													return (
@@ -316,14 +358,14 @@ const AdminModalContent = ({ enterpriseService, token, onRequestClose, guardedCl
 	return (
 		<ModalContent size="FS">
 			<ModalHeaderTemplate
-				title={t("enterprise.admin.settings-title")}
 				description={t("enterprise.admin.settings-description")}
 				icon={Settings}
+				title={t("enterprise.admin.settings-title")}
 			/>
 			<AdminNavigationProvider>
 				<GuardProvider>
 					<SettingsProvider enterpriseService={enterpriseService} token={token}>
-						<ModalCloseGuard onRequestClose={onRequestClose} guardedCloseRef={guardedCloseRef}>
+						<ModalCloseGuard guardedCloseRef={guardedCloseRef} onRequestClose={onRequestClose}>
 							<TabPage />
 						</ModalCloseGuard>
 					</SettingsProvider>
@@ -390,13 +432,13 @@ export const Admin = ({ onClose, gesUrl }: { onClose: () => void; gesUrl: string
 	);
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			<OpenProvider open={isOpen} setOpen={setIsOpen}>
 				<AdminModalContent
 					enterpriseService={enterpriseService}
-					token={token}
-					onRequestClose={handleRequestClose}
 					guardedCloseRef={guardedCloseRef}
+					onRequestClose={handleRequestClose}
+					token={token}
 				/>
 			</OpenProvider>
 		</Modal>

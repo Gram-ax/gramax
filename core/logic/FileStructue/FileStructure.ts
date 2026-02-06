@@ -1,19 +1,19 @@
 import { CATEGORY_ROOT_FILENAME, CATEGORY_ROOT_REGEXP, DOC_ROOT_FILENAME, DOC_ROOT_REGEXP } from "@app/config/const";
 import { createEventEmitter, type Event, type EventArgs } from "@core/Event/EventEmitter";
 import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
-import Path from "@core/FileProvider/Path/Path";
-import FileInfo from "@core/FileProvider/model/FileInfo";
+import type FileInfo from "@core/FileProvider/model/FileInfo";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
-import { ExcludedProps, type CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import { type CatalogProps, ExcludedProps } from "@core/FileStructue/Catalog/CatalogProps";
 import { Category, type CategoryProps } from "@core/FileStructue/Category/Category";
-import { Item } from "@core/FileStructue/Item/Item";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
+import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
 import assert from "assert";
 import matter from "gray-matter";
@@ -39,6 +39,7 @@ export type FSEvents = Event<
 	Event<"item-order-updated", EventArgs<CatalogEvents, "item-order-updated">> &
 	Event<"item-props-updated", EventArgs<CatalogEvents, "item-props-updated">>;
 
+// biome-ignore lint/suspicious/noExplicitAny: idc
 export type FSProps = { [key: string]: any };
 
 export type MarkdownProps = {
@@ -63,7 +64,10 @@ export const FS_EXCLUDE_CATALOG_NAMES = [
 export default class FileStructure {
 	private _events = createEventEmitter<FSEvents>();
 
-	constructor(private _fp: MountFileProvider, private _isReadOnly: boolean) {}
+	constructor(
+		private _fp: MountFileProvider,
+		private _isReadOnly: boolean,
+	) {}
 
 	static isCatalog(path: Path): boolean {
 		return DOC_ROOT_REGEXP.test(path.toString());
@@ -172,13 +176,14 @@ export default class FileStructure {
 
 	async saveCatalog(catalog: BaseCatalog): Promise<void> {
 		const props = catalog.props;
+		// biome-ignore lint/suspicious/noExplicitAny: idc
 		delete (props as any).link;
 
 		const propsToSave = { ...props };
 		ExcludedProps.forEach((key) => delete propsToSave[key]);
 
 		const text = this._serializeProps(propsToSave);
-		await this._fp.write(catalog.getRootCategoryPath().join(new Path(DOC_ROOT_FILENAME)), text);
+		await this._fp.write(catalog.getRootCategoryRef().path, text);
 		catalog.repo?.resetCachedStatus();
 	}
 
@@ -200,10 +205,7 @@ export default class FileStructure {
 		const articleCodeInCategory = parent.folderPath.subDirectory(path).stripDotsAndExtension;
 		const logicPath = Path.join(parent.logicPath, articleCodeInCategory);
 
-		props = props ?? {};
-
-		const article = this._createArticleByProps(props, parent, path, logicPath, content, lastModified, catalog);
-		return article;
+		return this._createArticleByProps(props ?? {}, parent, path, logicPath, content, lastModified, catalog);
 	}
 
 	async makeCategory(path: Path, parent: Category, catalog: Catalog, indexPath?: Path): Promise<Category> {
@@ -215,7 +217,7 @@ export default class FileStructure {
 		let md: matter.GrayMatterFile<string>;
 		try {
 			md = matter(content, {});
-			if (md.data && typeof md.data != "object") throw "Wrong format";
+			if (md.data && typeof md.data !== "object") throw "Wrong format";
 		} catch (e) {
 			console.error("Invalid matter in markdown", content, e);
 			return { props: {}, content: "" };
@@ -454,7 +456,7 @@ export default class FileStructure {
 			const stat = await this._fp.getStat(path).catch(() => undefined);
 			if (!stat) {
 				if (collectAll) continue;
-				else return;
+				return;
 			}
 
 			if (stat.isDirectory()) {
@@ -469,10 +471,10 @@ export default class FileStructure {
 	}
 
 	private async _parseYaml(path: Path): Promise<CatalogProps> {
-		let props;
+		let props: object;
 		try {
-			props = yaml.load(await this._fp.read(path)) ?? {};
-			if (typeof props != "object") throw "Wrong format";
+			props = (yaml.load(await this._fp.read(path)) as object) ?? {};
+			if (typeof props !== "object") throw "Wrong format";
 		} catch (e) {
 			console.error("yaml invalid", e);
 			props = {};
@@ -495,7 +497,7 @@ export default class FileStructure {
 	private _serializeProps(props: FSProps): string {
 		const p = Object.fromEntries(Object.entries(props).filter(([, v]) => !!v));
 		delete p.welcome;
-		if (p.lang == resolveLanguage()) delete p.lang;
+		if (p.lang === resolveLanguage()) delete p.lang;
 		return yaml.dump(p, { quotingType: '"' });
 	}
 }

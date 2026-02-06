@@ -1,6 +1,6 @@
 import type Context from "@core/Context/Context";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { Encoder } from "@ext/Encoder/Encoder";
+import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { AiServerConfig } from "../models/types";
 
 export class AiDataProvider {

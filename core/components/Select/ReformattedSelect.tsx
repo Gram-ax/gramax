@@ -9,23 +9,23 @@ const ReformattedSelect = <T extends { value: string; label: string; [key: strin
 	const { onFocus, className, chevronView, dataQa, ...otherProps } = props;
 
 	return (
-		<div className={className} onClickCapture={onFocus} data-qa={dataQa}>
+		<div className={className} data-qa={dataQa} onClickCapture={onFocus}>
 			<SelectRDS<T>
+				labelField="label"
 				multi
 				valueField="value"
-				labelField="label"
 				{...otherProps}
+				clearRenderer={() => null}
 				dropdownHandleRenderer={({ state }) =>
 					!props.options?.length && chevronView ? (
 						<div className="custom-icon" style={state.dropdown ? { marginTop: "-2px" } : {}}>
-							<Icon code={`chevron-${!state.dropdown ? "down" : "up"}`} viewBox="3 3 18 18" isAction />
+							<Icon code={`chevron-${!state.dropdown ? "down" : "up"}`} isAction viewBox="3 3 18 18" />
 						</div>
 					) : null
 				}
-				clearRenderer={() => null}
 				loadingRenderer={() => (
 					<div className="custom-icon">
-						<SpinnerLoader width={15} height={15} lineWidth={2} />
+						<SpinnerLoader height={15} lineWidth={2} width={15} />
 					</div>
 				)}
 				noDataRenderer={() => <></>}

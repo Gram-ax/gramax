@@ -1,12 +1,12 @@
 import { Icon } from "@ui-kit/Icon";
+import { MenuItemIconButton } from "@ui-kit/MenuItem/MenuItemIconButton";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import {
 	MenuItemText,
-	MenuItemInteractiveTemplate as UiKitMenuItemInteractiveTemplate,
+	type MenuItemInteractiveTemplate as UiKitMenuItemInteractiveTemplate,
 } from "ics-ui-kit/components/menu-item";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 import { Indicator } from "../Indicator";
-import { MenuItemIconButton } from "@ui-kit/MenuItem/MenuItemIconButton";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@ui-kit/Tooltip";
 
 type UiKitMenuItemInteractiveTemplateProps = ExtractComponentGeneric<typeof UiKitMenuItemInteractiveTemplate>;
 
@@ -26,8 +26,8 @@ const IndicatorComponent = (props: { className?: string; tooltip?: string }) => 
 
 	const IndicatorComponent = (
 		<Indicator
-			rounded
 			className={`${className} h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error left-[2.75rem] top-1`}
+			rounded
 		/>
 	);
 
@@ -60,8 +60,8 @@ export const MenuItemInteractiveTemplate = (props: MenuItemInteractiveTemplatePr
 	return (
 		<div className="flex flex-row items-center justify-between w-full" style={{ gap: "0.75rem" }}>
 			<div className="flex flex-row items-center w-full" style={{ gap: "0.5rem" }}>
-				<Icon icon="check" className={isSelected ? "visible" : "invisible"} />
-				<Icon className="icon" icon={icon} />
+				<Icon className={isSelected ? "visible" : "invisible"} icon="check" />
+				<Icon className="icon" icon={icon || "layers"} />
 				{indicator && <IndicatorComponent className={indicatorClassName} tooltip={indicatorTooltip} />}
 				<MenuItemText>{text} </MenuItemText>
 			</div>
@@ -72,10 +72,10 @@ export const MenuItemInteractiveTemplate = (props: MenuItemInteractiveTemplatePr
 							<TooltipTrigger asChild>
 								<span className="inline-flex">
 									<MenuItemIconButton
+										className={"cursor-not-allowed h-6 w-6"}
+										disabled={buttonIcon !== "loader"}
 										icon={buttonIcon}
 										onClick={undefined}
-										disabled={buttonIcon !== "loader"}
-										className={"cursor-not-allowed h-6 w-6"}
 									/>
 								</span>
 							</TooltipTrigger>
@@ -83,10 +83,10 @@ export const MenuItemInteractiveTemplate = (props: MenuItemInteractiveTemplatePr
 						</Tooltip>
 					) : (
 						<MenuItemIconButton
+							className="h-6 w-6"
+							disabled={false}
 							icon={buttonIcon}
 							onClick={buttonOnClick}
-							disabled={false}
-							className="h-6 w-6"
 						/>
 					))}
 			</div>

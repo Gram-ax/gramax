@@ -5,7 +5,7 @@ import LeftNavViewContentService, {
 const LeftNavViewContentContainer: LeftNavViewContentComponent = ({ itemLinks, closeNavigation }): JSX.Element => {
 	const LeftNavViewContentValue = LeftNavViewContentService.value;
 	if (!LeftNavViewContentValue) return null;
-	return <LeftNavViewContentValue itemLinks={itemLinks} closeNavigation={closeNavigation} />;
+	return <LeftNavViewContentValue closeNavigation={closeNavigation} itemLinks={itemLinks} />;
 };
 
 export default LeftNavViewContentContainer;

@@ -4,19 +4,17 @@ import type FileStructure from "@core/FileStructue/FileStructure";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type Hasher from "@core/Hash/Hasher";
-import LinkResourceManager from "@core/Link/LinkResourceManager";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import { RwLock } from "@core/utils/rwlock";
 import { InboxProps } from "@ext/inbox/models/types";
-import { Question } from "@ext/markdown/elements/question/types";
+import { ParsedContext } from "@ext/markdown/core/Parser/ParserContext/ParsedContext";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
 import { TocItem } from "../../../extensions/navigation/article/logic/createTocItems";
-import ResourceManager from "../../Resource/ResourceManager";
 import { Category } from "../Category/Category";
-import { Item, UpdateItemProps, type ItemEvents, type ItemProps } from "../Item/Item";
+import { Item, type ItemEvents, type ItemProps, UpdateItemProps } from "../Item/Item";
 
 export type ArticleEvents = ItemEvents;
 
@@ -148,7 +146,7 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	async hash(hash: Hasher, recursive = true) {
 		const hasher = await super.hash(hash);
 		hasher.hash(this._content);
-		if (recursive) await this.parsedContent.read((p) => p.resourceManager?.hash(hash));
+		if (recursive) await this.parsedContent.read((p) => p.parsedContext.getResourceManager().hash(hash));
 		return hasher;
 	}
 
@@ -204,9 +202,5 @@ export interface Content {
 	tocItems: TocItem[];
 	editTree: JSONContent;
 	renderTree: RenderableTreeNode;
-	snippets: Set<string>;
-	icons: Set<string>;
-	questions: Map<string, Question>;
-	linkManager: LinkResourceManager;
-	resourceManager: ResourceManager;
+	parsedContext: ParsedContext;
 }

@@ -1,5 +1,5 @@
-import { Mark } from "@tiptap/pm/model";
 import isURL from "@core-ui/utils/isURL";
+import { Mark } from "@tiptap/pm/model";
 
 export const getHref = (mark: Mark) => {
 	const { attrs } = mark;

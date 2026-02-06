@@ -38,8 +38,8 @@ const DeleteItem = (props: DeleteItemProps) => {
 		};
 
 		return (
-			<DropdownMenuItem type="danger" onSelect={onSelect}>
-				{isLoading ? <SpinnerLoader width={14} height={14} /> : <Icon code="trash" />}
+			<DropdownMenuItem onSelect={onSelect} type="danger">
+				{isLoading ? <SpinnerLoader height={14} width={14} /> : <Icon code="trash" />}
 				{text}
 			</DropdownMenuItem>
 		);

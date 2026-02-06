@@ -1,7 +1,7 @@
-import { Retry as UiKitRetry } from "ics-ui-kit/components/error-state";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { FC } from "react";
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
+import { Retry as UiKitRetry } from "ics-ui-kit/components/error-state";
+import { FC } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitRetryProps = ExtractComponentGeneric<typeof UiKitRetry>;
 

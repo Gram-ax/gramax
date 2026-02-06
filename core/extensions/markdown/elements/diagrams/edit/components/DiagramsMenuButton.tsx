@@ -1,18 +1,15 @@
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import DiagramType from "@core/components/Diagram/DiagramType";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import { c4DiagramIcon } from "../../diagrams/c4Diagram/c4DiagramData";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import type { Editor } from "@tiptap/core";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import { useMemo } from "react";
 import { mermaidIcon } from "../../diagrams/mermaid/mermaidData";
 import { plantUmlIcon } from "../../diagrams/plantUml/plantUmlData";
-import { tsDiagramIcon } from "../../diagrams/tsDiagram/tsDiagramData";
 import createDiagrams from "../../logic/createDiagrams";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
-import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import { useMemo } from "react";
 
 interface DiagramsMenuButtonProps {
 	editor: Editor;
@@ -21,7 +18,6 @@ interface DiagramsMenuButtonProps {
 }
 
 const DiagramsMenuButton = ({ editor, diagramName, fileName }: DiagramsMenuButtonProps) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const resourceService = ResourceService.value;
 	const pageDataContext = PageDataContextService.value;
 	const articleProps = ArticlePropsService.value;
@@ -36,17 +32,9 @@ const DiagramsMenuButton = ({ editor, diagramName, fileName }: DiagramsMenuButto
 				diagramIcon = mermaidIcon;
 				text = t("diagram.names.mermaid");
 				break;
-			case DiagramType["c4-diagram"]:
-				diagramIcon = c4DiagramIcon;
-				text = t("diagram.names.c4");
-				break;
 			case DiagramType["plant-uml"]:
 				diagramIcon = plantUmlIcon;
 				text = t("diagram.names.puml");
-				break;
-			case DiagramType["ts-diagram"]:
-				diagramIcon = tsDiagramIcon;
-				text = t("diagram.names.ts");
 				break;
 		}
 
@@ -55,13 +43,12 @@ const DiagramsMenuButton = ({ editor, diagramName, fileName }: DiagramsMenuButto
 
 	return (
 		<ToolbarDropdownMenuItem
-			disabled={disabled}
 			active={isActive}
+			disabled={disabled}
 			onSelect={() =>
 				void createDiagrams(
 					editor,
 					fileName || articleProps?.fileName,
-					apiUrlCreator,
 					resourceService,
 					diagramName,
 					pageDataContext,

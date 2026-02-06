@@ -1,8 +1,8 @@
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { CSSProperties, forwardRef } from "react";
+import { cn } from "@core-ui/utils/cn";
 import { DropdownMenuPrimitive, dropdownMenuContentStyles } from "ics-ui-kit/components/dropdown";
 import { useComponentVariant } from "ics-ui-kit/providers/component-variant-context";
-import { cn } from "@core-ui/utils/cn";
+import { CSSProperties, forwardRef } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 const PrimitiveDropdownMenuSubContent = DropdownMenuPrimitive.SubContent;
 

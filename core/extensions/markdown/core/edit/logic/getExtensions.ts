@@ -1,16 +1,13 @@
-import Br from "@ext/markdown/elements/br/edit/br";
-import ExtendedCodeBlockLowlight from "@ext/markdown/elements/codeBlockLowlight/edit/model/codeBlockLowlight";
-import ArticleSearch from "@ext/markdown/elements/find/edit/models/ArticleSearch";
-import { Extensions } from "@tiptap/react";
-import History from "@tiptap/extension-history";
-import Text from "@tiptap/extension-text";
 import GramaxAi from "@ext/ai/logic/GramaxAiExtension";
+import QuestionAnswer from "@ext/markdown/elements/answer/edit/models/answer";
 import DocKeyboardShortcuts from "@ext/markdown/elements/article/edit/DocKeyboardShortcuts";
 import DragScroller from "@ext/markdown/elements/article/edit/DragScroller";
 import BlockContentField from "@ext/markdown/elements/blockContentField/edit/models/blockField";
 import BlockProperty from "@ext/markdown/elements/blockProperty/edit/models/blockProperty";
+import Br from "@ext/markdown/elements/br/edit/br";
 import HardBreak from "@ext/markdown/elements/br/edit/hardBreak";
 import Code from "@ext/markdown/elements/code/edit/model/code";
+import ExtendedCodeBlockLowlight from "@ext/markdown/elements/codeBlockLowlight/edit/model/codeBlockLowlight";
 import Color from "@ext/markdown/elements/color/edit/model/color";
 import CopyMsO from "@ext/markdown/elements/copyMsO/copyMsO";
 import InlineCutComponent from "@ext/markdown/elements/cut/edit/model/inlineCut";
@@ -20,6 +17,8 @@ import Drawio from "@ext/markdown/elements/drawio/edit/model/drawio";
 import { Dropcursor } from "@ext/markdown/elements/dropCursor";
 import Em from "@ext/markdown/elements/em/edit/em";
 import File from "@ext/markdown/elements/file/edit/model/file";
+import ArticleSearch from "@ext/markdown/elements/find/edit/models/ArticleSearch";
+import { FloatExtension } from "@ext/markdown/elements/float/edit/model/extension";
 import GapParagraph from "@ext/markdown/elements/gapParagraph/plugin";
 import Heading from "@ext/markdown/elements/heading/edit/model/heading";
 import Highlight from "@ext/markdown/elements/highlight/edit/model/mark";
@@ -44,6 +43,7 @@ import NoteComponent from "@ext/markdown/elements/note/edit/model/note";
 import OpenApi from "@ext/markdown/elements/openApi/edit/models/openApi";
 import Paragraph from "@ext/markdown/elements/paragraph/edit/model/paragraph";
 import PasteMarkdown from "@ext/markdown/elements/pasteMarkdown/pasteMarkdown";
+import Question from "@ext/markdown/elements/question/edit/models/question";
 import Snippet from "@ext/markdown/elements/snippet/edit/model/snippet";
 import Strike from "@ext/markdown/elements/strikethrough/edit/strike";
 import Strong from "@ext/markdown/elements/strong/edit/strong";
@@ -58,10 +58,10 @@ import UnsupportedComponent from "@ext/markdown/elements/unsupported/edit/model/
 import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
-import { FloatExtension } from "@ext/markdown/elements/float/edit/model/extension";
 import { modifyEditorExtensions } from "@plugins/store";
-import Question from "@ext/markdown/elements/question/edit/models/question";
-import QuestionAnswer from "@ext/markdown/elements/answer/edit/models/answer";
+import History from "@tiptap/extension-history";
+import Text from "@tiptap/extension-text";
+import { Extensions } from "@tiptap/react";
 
 export interface GetExtensionsPropsOptions {
 	includeResources?: boolean;
@@ -106,9 +106,9 @@ const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => {
 		GramaxAi,
 		FloatExtension,
 
-	...(options?.includeQuestions ? [Question, QuestionAnswer] : []),
+		...(options?.includeQuestions ? [Question, QuestionAnswer] : []),
 
-	...(options?.includeResources ? getResourcesExtensions() : []),
+		...(options?.includeResources ? getResourcesExtensions() : []),
 
 		...(options?.isTemplateInstance !== undefined ? getTemplateExtensions(!options.isTemplateInstance) : []),
 	];

@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { AlertIcon as UiKitAlertIcon } from "ics-ui-kit/components/alert";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 import { FC } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitAlertIconProps = ExtractComponentGeneric<typeof UiKitAlertIcon>;
 

@@ -27,8 +27,6 @@
 
     Примеры:
       | тип      | селектор        | синтаксис | файл     | расширение | класс       |
-      | draw.io  | qa-drawio       | drawio    | drawio   | svg        | alert-error |
       | mermaid  | qa-diagram-data | mermaid   | mermaid  | svg        | alert-error |
-      | plantuml | qa-diagram-data | plant-uml | plantuml | svg        | alert-error |
       | openApi  | qa-open-api     | openapi   | openapi  | yaml       | error       |
       | openApi  | qa-open-api     | openapi   | openapi  | yaml       | alert-error |

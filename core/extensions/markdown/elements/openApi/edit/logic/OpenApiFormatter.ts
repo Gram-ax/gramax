@@ -1,6 +1,6 @@
+import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
-import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 
 const OpenApiFormatter =
 	(formatter: FormatterType): NodeSerializerSpec =>

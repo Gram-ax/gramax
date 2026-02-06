@@ -1,8 +1,8 @@
 import Path from "@core/FileProvider/Path/Path";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import getAttrs from "@ext/markdown/elements/diagrams/logic/getAttrs";
 
-function drawioToken(context?: ParserContext) {
+function drawioToken(context?: PrivateParserContext) {
 	return {
 		node: "drawio",
 		getAttrs: (tok) => {

@@ -1,4 +1,4 @@
-import { createContext, useContext, Dispatch, SetStateAction } from "react";
+import { createContext, Dispatch, SetStateAction, useContext } from "react";
 
 interface OpenContextType {
 	open: boolean;

@@ -1,12 +1,12 @@
-import t from "@ext/localization/locale/translate";
-import { Button } from "@ui-kit/Button";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
-import { useState } from "react";
+import styled from "@emotion/styled";
 import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHandler";
+import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import { JSONContent } from "@tiptap/core";
-import styled from "@emotion/styled";
+import { Button } from "@ui-kit/Button";
+import { FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { useState } from "react";
 
 const CodeWrapper = styled.div`
 	width: 100%;
@@ -24,17 +24,17 @@ const BugsnagMessageDetails = ({ getDetails }: { getDetails: () => Promise<JSONC
 	};
 
 	return (
-		<Modal open={open} onOpenChange={setOpen}>
+		<Modal onOpenChange={setOpen} open={open}>
 			<ModalTrigger asChild>
-				<Button variant="link" onClick={openModal} className="p-0">
+				<Button className="p-0" onClick={openModal} variant="link">
 					{t("more")}
 				</Button>
 			</ModalTrigger>
 			<ModalContent data-modal-root data-monaco-modal-normal-width>
-				<ModalErrorHandler onError={console.error} onClose={() => setOpen(false)}>
+				<ModalErrorHandler onClose={() => setOpen(false)} onError={console.error}>
 					<FormHeader
-						title={t("bug-report.tech-details")}
 						description={t("bug-report.tech-details-description")}
+						title={t("bug-report.tech-details")}
 					/>
 					<ModalBody>
 						<FormStack>
@@ -45,7 +45,7 @@ const BugsnagMessageDetails = ({ getDetails }: { getDetails: () => Promise<JSONC
 					</ModalBody>
 					<FormFooter
 						primaryButton={
-							<Button variant="primary" children={t("close")} onClick={() => setOpen(false)} />
+							<Button children={t("close")} onClick={() => setOpen(false)} variant="primary" />
 						}
 					/>
 				</ModalErrorHandler>

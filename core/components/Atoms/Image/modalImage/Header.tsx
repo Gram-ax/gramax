@@ -1,14 +1,14 @@
+import { ZOOM_COUNT } from "@components/Atoms/Image/modalImage/utils";
+import { classNames } from "@components/libs/classNames";
+import Path from "@core/FileProvider/Path/Path";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import downloadResource from "@core-ui/downloadResource";
-import Path from "@core/FileProvider/Path/Path";
-import { ReactElement } from "react";
 import styled from "@emotion/styled";
-import { ZOOM_COUNT } from "@components/Atoms/Image/modalImage/utils";
+import t from "@ext/localization/locale/translate";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { IconButton } from "@ui-kit/Button";
-import { classNames } from "@components/libs/classNames";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@ui-kit/Tooltip";
-import t from "@ext/localization/locale/translate";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
+import { ReactElement } from "react";
 
 interface HeaderProps {
 	onClose: (immediately?: boolean) => void;
@@ -39,24 +39,24 @@ const Header = (props: HeaderProps): ReactElement => {
 			<TooltipProvider>
 				{modalEdit && (
 					<TooltipElement content={t("edit2")}>
-						<IconButton variant="text" icon="pen" onClick={() => modalEdit()} />
+						<IconButton icon="pen" onClick={() => modalEdit()} variant="text" />
 					</TooltipElement>
 				)}
 				<TooltipElement content={t("zoom-in")}>
-					<IconButton variant="text" icon="zoom-in" onClick={() => zoomImage(-ZOOM_COUNT)} />
+					<IconButton icon="zoom-in" onClick={() => zoomImage(-ZOOM_COUNT)} variant="text" />
 				</TooltipElement>
 				<TooltipElement content={t("zoom-out")}>
-					<IconButton variant="text" icon="zoom-out" onClick={() => zoomImage(ZOOM_COUNT)} />
+					<IconButton icon="zoom-out" onClick={() => zoomImage(ZOOM_COUNT)} variant="text" />
 				</TooltipElement>
 				{downloadSrc && !rs.id && (
 					<TooltipElement content={t("download")}>
 						<a onClick={() => downloadResource(apiUrlCreator, new Path(downloadSrc))}>
-							<IconButton variant="text" icon="download" />
+							<IconButton icon="download" variant="text" />
 						</a>
 					</TooltipElement>
 				)}
 				<TooltipElement content={t("close")}>
-					<IconButton variant="text" icon="x" onMouseUp={() => onClose()} />
+					<IconButton icon="x" onMouseUp={() => onClose()} variant="text" />
 				</TooltipElement>
 			</TooltipProvider>
 		</div>

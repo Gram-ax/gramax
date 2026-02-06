@@ -10,7 +10,7 @@ export interface CatalogEditProps {
 	versions?: string[];
 	description?: string;
 	language?: ContentLanguage;
-	filterProperties?: string[];
+	filterProperty?: string;
 	style?: Style;
 	properties?: Property[];
 	// private?: string[];

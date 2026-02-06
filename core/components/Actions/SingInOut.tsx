@@ -1,11 +1,13 @@
 import Icon from "@components/Atoms/Icon";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useRouter } from "@core/Api/useRouter";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SignInEnterpriseModal from "@ext/enterprise/components/SignInEnterpriseModal";
 import SignInOutEnterprise from "@ext/enterprise/components/SignInOutEnterprise";
+import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
 import t from "@ext/localization/locale/translate";
-import { DropdownMenu, DropdownMenuContent } from "@ui-kit/Dropdown";
 import {
 	Avatar,
 	AvatarFallback,
@@ -15,15 +17,14 @@ import {
 	AvatarLabelTitle,
 } from "@ui-kit/Avatar";
 import {
+	DropdownMenu,
+	DropdownMenuContent,
 	DropdownMenuGroup,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTriggerButton,
 } from "@ui-kit/Dropdown";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { ComponentProps } from "react";
-import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
 
 interface UserAvatarProps {
 	logOutComponent: React.ReactNode;
@@ -45,7 +46,7 @@ export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) 
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTriggerButton variant="ghost" className="aspect-square rounded-full p-0">
+			<DropdownMenuTriggerButton className="aspect-square rounded-full p-0" variant="ghost">
 				<Avatar size="sm">
 					{/* <AvatarImage src="https://github.com/shadcn.png" /> */}
 					<AvatarFallback uniqueId={userInfo?.mail ?? ""}>{code}</AvatarFallback>
@@ -100,7 +101,7 @@ const SingInOut = () => {
 		return (
 			<UserAvatar
 				logOutComponent={
-					<a href={authUrl} className="flex items-center gap-2 w-full" data-qa="qa-clickable">
+					<a className="flex items-center gap-2 w-full" data-qa="qa-clickable" href={authUrl}>
 						<Icon code="log-out" />
 						{t("sing-out")}
 					</a>

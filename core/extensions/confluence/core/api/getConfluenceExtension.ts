@@ -4,11 +4,11 @@ const getConfluenceExtension = (title: string): { fileNameWithoutExtension: stri
 		? {
 				fileNameWithoutExtension: title.substring(0, lastDot),
 				extension: title.substring(lastDot + 1),
-		  }
+			}
 		: {
 				fileNameWithoutExtension: title,
 				extension: null,
-		  };
+			};
 };
 
 export default getConfluenceExtension;

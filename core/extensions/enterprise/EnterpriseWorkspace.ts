@@ -1,7 +1,7 @@
 import { XxHash } from "@core/Hash/Hasher";
 import { svgToBase64 } from "@core/utils/CustomLogoDriver";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
-import { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
+import type { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
 import { calcPluginsHash } from "@ext/enterprise/utils/calcPluginsHash";
 import { calcTemplatesHash } from "@ext/enterprise/utils/calcTemplatesHash";
 import Theme from "@ext/Theme/Theme";
@@ -9,7 +9,7 @@ import type { TemplateAsset } from "@ext/workspace/assets/TemplateAsset";
 import { Workspace } from "../workspace/Workspace";
 
 export class EnterpriseWorkspace extends Workspace {
-	private _updateInterval: number = 1000 * 5; // * 15; // 15 minutes
+	private _updateInterval: number = 1000 * 60 * 5; // 5 minutes
 	private _configHash: string = "";
 
 	async config(forceUpdate = false) {
@@ -19,12 +19,15 @@ export class EnterpriseWorkspace extends Workspace {
 
 	private async _updateConfig(forceUpdate = false) {
 		if (!forceUpdate) {
-			const timeDiff = Date.now() - (this._config.get("enterprise")?.refreshInterval ?? this._updateInterval);
+			const timeDiff = Date.now() - this._updateInterval;
 			if (Number(this._config.get("enterprise")?.lastUpdateDate) > timeDiff) return;
 		}
 
 		const gesUrl = this._config.get("enterprise")?.gesUrl || this._config.get("gesUrl");
-		this._config.set("enterprise", { ...this._config.get("enterprise"), lastUpdateDate: Date.now() });
+		this._config.set("enterprise", {
+			...this._config.get("enterprise"),
+			lastUpdateDate: Date.now(),
+		});
 		this._config.delete("gesUrl");
 
 		const [customCss, { light: lightIconData, dark: darkIconData }] = await Promise.all([
@@ -71,8 +74,19 @@ export class EnterpriseWorkspace extends Workspace {
 
 		this._configHash = baseHasher.finalize().toString();
 
-		const config = await new EnterpriseApi(gesUrl).getClientWorkspace(this._configHash);
-
+		const getConfigPromise = new EnterpriseApi(gesUrl).getClientWorkspace(this._configHash);
+		let config: EnterpriseWorkspaceConfig | undefined;
+		try {
+			config = await Promise.race([
+				getConfigPromise,
+				new Promise<undefined>((_, reject) =>
+					setTimeout(() => reject(new Error("Timeout waiting for EnterpriseApi.getClientWorkspace")), 10000),
+				),
+			]);
+		} catch (err) {
+			console.error("Failed to get Enterprise workspace config in 10 seconds:", err);
+			return;
+		}
 		if (!config) return;
 		this._config.set("name", config.name);
 		this._config.set("icon", config.icon);
@@ -99,8 +113,9 @@ export class EnterpriseWorkspace extends Workspace {
 			? await this._assets.logo.set(Theme.dark, svgToBase64(config.style.logoDark))
 			: await this._assets.logo.delete(Theme.dark);
 
-		await this._assets.plugins.sync(config.plugins);
-
+		if (config?.plugins && Array.isArray(config.plugins)) {
+			await this._assets.plugins.sync(config.plugins);
+		}
 		await this._updateTemplates(config);
 		await this._config.save();
 
@@ -125,29 +140,38 @@ export class EnterpriseWorkspace extends Workspace {
 			await templateAsset.delete(templatesToRemove);
 		}
 
-		// Add or update templates
-		await Promise.all(
-			newTemplates.map(async (template) => {
-				if (!template.bufferBase64) return;
+		newTemplates.forEachAsync(async (template) => {
+			if (!template.bufferBase64) return;
 
-				const existingContent = await templateAsset.getContent(template.title);
+			const existingContent = await templateAsset.getContent(template.title);
 
-				if (!existingContent) {
-					await templateAsset.add([
-						{ name: template.title, buffer: Buffer.from(template.bufferBase64, encoding) },
-					]);
-					return;
-				}
+			if (!existingContent) {
+				await templateAsset.add([
+					{
+						name: template.title,
+						buffer: Buffer.from(template.bufferBase64, encoding),
+					},
+				]);
+				return;
+			}
 
-				const newTemplateBuffer = Buffer.from(template.bufferBase64, encoding);
-				const existingHash = XxHash.hasher().hash(existingContent).finalize();
-				const newHash = XxHash.hasher().hash(newTemplateBuffer).finalize();
-				const needUpdate = existingHash !== newHash;
+			const newTemplateBuffer = Buffer.from(template.bufferBase64, encoding);
+			const existingHash = XxHash.hasher().hash(existingContent).finalize();
+			const newHash = XxHash.hasher().hash(newTemplateBuffer).finalize();
+			const needUpdate = existingHash !== newHash;
+			if (!existingContent) {
+				await templateAsset.add([
+					{
+						name: template.title,
+						buffer: Buffer.from(template.bufferBase64, encoding),
+					},
+				]);
+				return;
+			}
 
-				if (!needUpdate) return;
+			if (!needUpdate) return;
 
-				await templateAsset.add([{ name: template.title, buffer: newTemplateBuffer }]);
-			}),
-		);
+			await templateAsset.add([{ name: template.title, buffer: newTemplateBuffer }]);
+		});
 	}
 }

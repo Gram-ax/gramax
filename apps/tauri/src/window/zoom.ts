@@ -1,6 +1,6 @@
 import { isTauriMobile } from "@app/resolveModule/env";
 import { invoke } from "@tauri-apps/api/core";
-import { type Webview } from "@tauri-apps/api/webview";
+import type { Webview } from "@tauri-apps/api/webview";
 
 const ZOOM_FACTORS = [67.0, 75.0, 80.0, 90.0, 100.0, 110.0, 125.0, 150.0, 175.0, 200.0].map((n) => n / 100);
 

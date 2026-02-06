@@ -1,7 +1,7 @@
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
 import { Node, Schema, Tag } from "../../../../core/render/logic/Markdoc/index";
 
-export function icon(context: ParserContext): Schema {
+export function icon(context: PrivateParserContext): Schema {
 	return {
 		render: "Icon",
 		attributes: { code: { type: String }, color: { type: String } },

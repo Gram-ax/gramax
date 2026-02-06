@@ -6,7 +6,10 @@ import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider
 import type { Workspace } from "@ext/workspace/Workspace";
 
 export default class WorkspaceCheckIsCatalogCloning implements EventHandlerCollection {
-	constructor(private _workspace: Workspace, private _rp: RepositoryProvider) {}
+	constructor(
+		private _workspace: Workspace,
+		private _rp: RepositoryProvider,
+	) {}
 
 	mount(): void {
 		if (!(getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri")) return;

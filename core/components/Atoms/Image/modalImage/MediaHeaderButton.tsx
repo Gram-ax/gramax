@@ -1,7 +1,7 @@
-import { ReactElement, MouseEvent } from "react";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@ui-kit/Tooltip";
-import { IconButton } from "@ui-kit/Button";
 import styled from "@emotion/styled";
+import { IconButton } from "@ui-kit/Button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { MouseEvent, ReactElement } from "react";
 
 interface MediaHeaderButtonProps {
 	icon: string;
@@ -24,7 +24,7 @@ const MediaHeaderButtonUnstyled = (props: MediaHeaderButtonProps): ReactElement 
 
 	return (
 		<TooltipElement content={tooltipText}>
-			<IconButton variant="text" icon={icon} onClick={onClick} className={className} />
+			<IconButton className={className} icon={icon} onClick={onClick} variant="text" />
 		</TooltipElement>
 	);
 };

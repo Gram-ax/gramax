@@ -1,6 +1,6 @@
+import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
-import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 
 export class SnippetPaginator extends NodePaginator<HTMLDivElement> {
 	constructor(snippetElement: HTMLDivElement, parentPaginator: Paginator) {

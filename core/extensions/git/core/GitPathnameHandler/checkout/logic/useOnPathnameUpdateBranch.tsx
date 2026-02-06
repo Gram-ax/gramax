@@ -9,25 +9,35 @@ import { useEffect } from "react";
 const useOnPathnameUpdateBranch = () => {
 	const router = useRouter();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		const onUpdateBranch = (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
-			if (caller === OnBranchUpdateCaller.MergeRequest || caller === OnBranchUpdateCaller.Publish) return;
+			if (
+				caller === OnBranchUpdateCaller.MergeRequest ||
+				caller === OnBranchUpdateCaller.Publish ||
+				caller === OnBranchUpdateCaller.Init
+			)
+				return;
 
 			const routerPath = new Path(router.path + router.hash).removeExtraSymbols;
 			if (!RouterPathProvider.isEditorPathname(routerPath)) return;
 
-			const checkoutToNewCreatedBranch = caller === OnBranchUpdateCaller.CheckoutToNewCreatedBranch;
-			if (checkoutToNewCreatedBranch) return;
-
-			const fromInit = caller === OnBranchUpdateCaller.Init;
 			const pathnameData = RouterPathProvider.parsePath(routerPath);
 			const isLocal = RouterPathProvider.isLocal(pathnameData);
 			if (isLocal) return;
 
+			const isCheckoutToNewCreatedBranch = caller === OnBranchUpdateCaller.CheckoutToNewCreatedBranch;
+
 			const newPath = RouterPathProvider.updatePathnameData(
 				pathnameData,
-				fromInit ? { refname: branch?.name } : { refname: branch?.name, filePath: null, itemLogicPath: null },
+				isCheckoutToNewCreatedBranch
+					? { refname: branch?.name }
+					: { refname: branch?.name, filePath: null, itemLogicPath: null },
 			).value;
+
+			if (isCheckoutToNewCreatedBranch) {
+				router.setPreventNextPushRefresh(true);
+			}
 
 			router.pushPath(newPath);
 		};

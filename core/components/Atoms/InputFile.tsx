@@ -24,7 +24,7 @@ const InputFile = ({ children, onChange, onAbort, className }: InputFileProps) =
 
 	return (
 		<label className={className} htmlFor={uniqueId}>
-			<input type="file" id={uniqueId} onChange={onChange} ref={inputRef} />
+			<input id={uniqueId} onChange={onChange} ref={inputRef} type="file" />
 			{children}
 		</label>
 	);

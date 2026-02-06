@@ -29,10 +29,10 @@ const StatusWrapper = styled.div<{ borderColor?: string }>`
 export const MergeRequestIcon = () => {
 	return (
 		<Tooltip
-			delay={[1000, 0]}
 			appendTo={() => document.body}
-			place="right"
 			content={t("git.merge-requests.branch-tab-tooltip")}
+			delay={[1000, 0]}
+			place="right"
 		>
 			<StatusWrapper>
 				<span className="circle" />
@@ -45,12 +45,12 @@ export const MergeRequestIcon = () => {
 const LocalIconUnstyled = () => {
 	return (
 		<Icon
-			tooltipDelay={[1000, 0]}
-			tooltipAppendTo={() => document.body}
-			style={{ padding: 0, fill: "var(--color-article-text)" }}
 			code="crossed-cloud"
-			tooltipPlace="right"
+			style={{ padding: 0, fill: "var(--color-article-text)" }}
+			tooltipAppendTo={() => document.body}
 			tooltipContent={t("local")}
+			tooltipDelay={[1000, 0]}
+			tooltipPlace="right"
 		/>
 	);
 };

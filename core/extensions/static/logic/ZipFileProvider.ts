@@ -1,8 +1,8 @@
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import FileInfo from "@core/FileProvider/model/FileInfo";
-import Path from "@core/FileProvider/Path/Path";
+import type FileInfo from "@core/FileProvider/model/FileInfo";
+import type Path from "@core/FileProvider/Path/Path";
 import jszip from "@dynamicImports/jszip";
-import { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
+import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import type { default as JSZipType } from "jszip";
 
 class ZipFileProvider extends DiskFileProvider {

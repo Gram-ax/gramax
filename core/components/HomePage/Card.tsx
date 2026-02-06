@@ -12,9 +12,9 @@ import useRemoteProgress from "@ext/git/actions/Clone/logic/useRemoteProgress";
 import CatalogFetchNotification from "@ext/git/actions/Fetch/CatalogFetchNotification";
 import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
-import { OverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "@ui-kit/Card";
 import { ProgressBlockTemplate } from "@ui-kit/Progress";
+import { OverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useEffect, useState } from "react";
 import Link from "../Atoms/Link";
 
@@ -63,16 +63,16 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 
 	const card = (
 		<ActionCard
-			onKeyDown={null}
-			data-card="true"
 			className={classNames("h-[132px] relative", { [errorCardClassName]: isError }, [className])}
-			style={error ? undefined : resolvedStyle}
+			data-card="true"
 			onClick={() => {
 				if (error) return onClickError();
 				if (isNext || isStatic || isCloning) return;
 				onClick();
 				setCardLoading(link.name, true);
 			}}
+			onKeyDown={null}
+			style={error ? undefined : resolvedStyle}
 		>
 			<CardTitle>
 				<OverflowTooltip className="line-clamp-2">{link.title}</OverflowTooltip>
@@ -87,14 +87,14 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 				{!isLoading && !isError && !isCloning && <CatalogFetchNotification catalogLink={link} />}
 				{isLoading && !isCancel && (
 					<div className="w-full" style={{ marginBottom: "-4px" }}>
-						<ProgressBlockTemplate indeterminate size="sm" data-qa="loader" />
+						<ProgressBlockTemplate data-qa="loader" indeterminate size="sm" />
 					</div>
 				)}
 				{isCloning && (
-					<CardCloneProgress name={name} progress={progress} isCancel={isCancel} setIsCancel={setIsCancel} />
+					<CardCloneProgress isCancel={isCancel} name={name} progress={progress} setIsCancel={setIsCancel} />
 				)}
 				{!isCloning && !error && brokenCloneFailed && <CardBroken link={link} />}
-				{error && <CardError link={link} error={error} />}
+				{error && <CardError error={error} link={link} />}
 			</CardFooter>
 
 			{renderLogo && (

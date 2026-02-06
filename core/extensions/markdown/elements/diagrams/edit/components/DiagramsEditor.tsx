@@ -1,13 +1,12 @@
 import FileInput from "@components/Atoms/FileInput/FileInput";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { classNames } from "@components/libs/classNames";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import DiagramType from "@core/components/Diagram/DiagramType";
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
-import DiagramType from "@core/components/Diagram/DiagramType";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
@@ -17,18 +16,15 @@ import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 import { Editor } from "@tiptap/core";
-import { FC, Suspense, lazy, memo, useCallback, useEffect, useRef, useState } from "react";
+import { Button } from "@ui-kit/Button";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
 import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { Button } from "@ui-kit/Button";
-import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import { FC, lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 const LazySwaggerUI = lazy(() => import("@ext/markdown/elements/openApi/render/SwaggerUI"));
 
 const langs: { [type in DiagramType]: string } = {
 	Mermaid: "mermaid",
-	"Ts-diagram": "typescript",
-	"C4-diagram": "c4-model",
 	"Plant-uml": "plant-uml",
 };
 
@@ -63,7 +59,6 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	const [startContent, setStartContent] = useState(content ?? "");
 	const [contentState, setContentState] = useState(content ?? "");
 	const [contentEditState, setContentEditState] = useState(content ?? "");
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { getBuffer, setResource } = ResourceService.value;
 	const [error, setError] = useState(null);
 	const alertWrapperRef = useRef<HTMLDivElement>(null);
@@ -86,12 +81,6 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		editor.commands.updateAttributes("diagrams", { content: newContent });
 	};
 
-	const getAnyDiagrams = async (content: string, isC4Diagram: boolean) => {
-		const res = await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName as DiagramType), content);
-		if (!res.ok) return setError(await res.json());
-		return isC4Diagram ? await res.json() : await res.text();
-	};
-
 	const save = async () => {
 		if (src) saveSrc(contentEditState);
 		else saveContent(contentEditState);
@@ -101,10 +90,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		setIsOpen(false);
 
 		if (diagramName === "OpenApi") return;
-		const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
-			? await DIAGRAM_FUNCTIONS?.[diagramName](contentEditState, diagramsServiceUrl)
-			: await getAnyDiagrams(contentEditState, diagramName === DiagramType["c4-diagram"]);
-		const newSize = getNaturalSize(diagramData);
+		const newSize = getNaturalSize(await DIAGRAM_FUNCTIONS?.[diagramName](contentEditState, diagramsServiceUrl));
 		if (newSize) {
 			editor.commands.updateAttributes("diagrams", {
 				width: newSize.width + "px",
@@ -192,26 +178,26 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 
 	return (
 		<>
-			<Modal open={isOpen} onOpenChange={onOpenChange}>
+			<Modal onOpenChange={onOpenChange} open={isOpen}>
 				<ModalTrigger asChild>{trigger}</ModalTrigger>
-				<ModalContent data-modal-root data-diagram-editor-modal size="L" className="h-full">
-					<FormHeader icon="pen" title={t("edit-diagram")} description={t("edit-diagram-description")} />
+				<ModalContent className="h-full" data-diagram-editor-modal data-modal-root size="L">
+					<FormHeader description={t("edit-diagram-description")} icon="pen" title={t("edit-diagram")} />
 					<ModalBody className="h-full overflow-hidden">
 						<div className={className}>
 							<div className={classNames("window", { isMobile })}>
 								<div className={"left-item"}>
 									<FileInput
 										className={classNames("top", { "top-short": error })}
-										language={langs[diagramName]}
-										value={contentState?.toString() || ""}
-										onChange={setContentEditState}
 										height={monacoHeight}
+										language={langs[diagramName]}
+										onChange={setContentEditState}
 										uiKitTheme
+										value={contentState?.toString() || ""}
 									/>
 									{error && (
 										<div className={"bottom"} style={{ height: alertHeight }}>
 											<div ref={alertWrapperRef}>
-												<DiagramError error={error} diagramName={diagramName} />
+												<DiagramError diagramName={diagramName} error={error} />
 											</div>
 										</div>
 									)}
@@ -220,10 +206,10 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 								<div className={classNames("right-item", { hide: isMobile })} ref={rightItemRef}>
 									<div>
 										<OverloadDiagramRenderer
-											setError={setError}
-											error={error}
-											diagramName={diagramName as DiagramType}
 											content={pendedData}
+											diagramName={diagramName as DiagramType}
+											error={error}
+											setError={setError}
 										/>
 									</div>
 								</div>
@@ -236,9 +222,9 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 			{showWarning && (
 				<UnsavedChangesModal
 					isOpen={showWarning}
+					onDontSave={cancel}
 					onOpenChange={setShowWarning}
 					onSave={save}
-					onDontSave={cancel}
 				/>
 			)}
 		</>
@@ -257,11 +243,11 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 
 	if (!DIAGRAM_FUNCTIONS?.[diagramName]) {
 		return (
-			<div data-focusable="true" className={className + " article"}>
+			<div className={className + " article"} data-focusable="true">
 				<Suspense
 					fallback={
 						<div className="suspense">
-							<SpinnerLoader width={75} height={75} />
+							<SpinnerLoader height={75} width={75} />
 						</div>
 					}
 				>
@@ -272,7 +258,11 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 	}
 
 	useGetResource(
-		async (buffer: Buffer) => {
+		async (buffer, resourceError) => {
+			if (resourceError) {
+				setError(true);
+				return;
+			}
 			let err = null;
 			try {
 				const diagramData = await DIAGRAM_FUNCTIONS?.[diagramName](buffer.toString(), diagramsServiceUrl);
@@ -289,12 +279,12 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 
 	return (
 		<DiagramRender
+			className={className}
+			data={data}
+			diagramName={diagramName}
 			isFrozen={Boolean(error)}
 			ref={ref}
 			title={title}
-			className={className}
-			diagramName={diagramName}
-			data={data}
 		/>
 	);
 });

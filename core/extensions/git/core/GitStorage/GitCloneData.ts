@@ -13,6 +13,7 @@ interface GitCloneData {
 	allowNonEmptyDir?: boolean;
 	data?: GitStorageData;
 	isBare?: boolean;
+	skipLfsPull?: boolean;
 	onProgress?: (p: RemoteProgress) => void;
 }
 

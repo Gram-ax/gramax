@@ -1,5 +1,5 @@
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 import { collapseSpaces } from "@ext/confluence/core/server/logic/utils/collapseSpaces";
+import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 const text: HTMLNodeConverter = (textNode) => {
 	if (!textNode?.textContent) return;

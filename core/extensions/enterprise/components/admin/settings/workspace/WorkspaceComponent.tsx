@@ -81,12 +81,6 @@ const WorkspaceComponent = () => {
 	return (
 		<>
 			<StickyHeader
-				title={
-					<>
-						{getAdminPageTitle(Page.WORKSPACE)} <Spinner size="small" show={isRefreshing("workspace")} />
-					</>
-				}
-				isScrolled={isScrolled}
 				actions={
 					<>
 						{isSaving ? (
@@ -106,28 +100,34 @@ const WorkspaceComponent = () => {
 						)}
 					</>
 				}
+				isScrolled={isScrolled}
+				title={
+					<>
+						{getAdminPageTitle(Page.WORKSPACE)} <Spinner show={isRefreshing("workspace")} size="small" />
+					</>
+				}
 			/>
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 			<div className="px-6 space-y-6">
 				<WorkspaceInfo localSettings={localSettings} onInputChange={handleInputChange} />
 
 				<WorkspaceAccess
-					localSettings={localSettings}
-					setLocalSettings={setLocalSettings}
-					ownerRole={ownerRole}
 					groups={selectGroups}
+					localSettings={localSettings}
+					ownerRole={ownerRole}
+					setLocalSettings={setLocalSettings}
 				/>
 
 				<WorkspaceRepositories
 					localSettings={localSettings}
-					setLocalSettings={setLocalSettings}
 					selectResources={selectResources ?? []}
+					setLocalSettings={setLocalSettings}
 				/>
 
 				<WorkspaceSections
 					localSettings={localSettings}
-					setLocalSettings={setLocalSettings}
 					sectionResources={sectionResources ?? []}
+					setLocalSettings={setLocalSettings}
 				/>
 
 				<WorkspaceStyling localSettings={localSettings} setLocalSettings={setLocalSettings} />

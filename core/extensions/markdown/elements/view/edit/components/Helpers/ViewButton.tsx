@@ -23,7 +23,7 @@ const ViewButton = ({ icon, disabled = false, children, tooltipText, empty = fal
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild disabled={disabled}>
 				<div>
-					<ActionButton icon={icon} tooltipText={tooltipText} disabled={disabled} />
+					<ActionButton disabled={disabled} icon={icon} tooltipText={tooltipText} />
 				</div>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">

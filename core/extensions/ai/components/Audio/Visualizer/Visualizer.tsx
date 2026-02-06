@@ -1,15 +1,15 @@
-import styled from "@emotion/styled";
-import { useCallback, useEffect, useRef, useState } from "react";
-import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
-import CanvasVisualizator from "@ext/ai/components/Audio/Visualizer/CanvasVisualizator";
-import t from "@ext/localization/locale/translate";
-import Timer from "@ext/ai/components/Audio/Timer";
 import { isActive, isPaused } from "@core-ui/hooks/useAudioRecorder";
 import useWatch from "@core-ui/hooks/useWatch";
+import styled from "@emotion/styled";
+import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
+import Timer from "@ext/ai/components/Audio/Timer";
 import AudioHistory from "@ext/ai/components/Audio/Visualizer/AudioHistory";
-import { AudioHistoryItem } from "@ext/ai/models/types";
-import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import CanvasVisualizator from "@ext/ai/components/Audio/Visualizer/CanvasVisualizator";
 import { AiToolbarButton } from "@ext/ai/components/Helpers/AiToolbarButton";
+import { AudioHistoryItem } from "@ext/ai/models/types";
+import t from "@ext/localization/locale/translate";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface VisualizerProps {
 	startTime?: number;
@@ -236,8 +236,8 @@ const Visualizer = (props: VisualizerProps) => {
 		return (
 			<CanvasVisualizator
 				audioHistory={audioHistory}
-				isRecording={isActive(recorderState)}
 				isPaused={isPaused(recorderState)}
+				isRecording={isActive(recorderState)}
 				waveSpeed={waveSpeed}
 			/>
 		);
@@ -289,17 +289,17 @@ const Visualizer = (props: VisualizerProps) => {
 			<EqualizerContainer>{renderVisualization()}</EqualizerContainer>
 			<div className="flex items-center gap-2">
 				<Timer
-					maxDurationMs={maxDurationMs}
 					accumulatedTimeMs={accumulatedTimeMs}
-					paused={isPaused(recorderState)}
 					formatTime={formatTime}
+					maxDurationMs={maxDurationMs}
 					onTimeChange={handleTimeClick}
+					paused={isPaused(recorderState)}
 				/>
 				<AiToolbarButton
-					tooltipText={sendTooltipText}
 					disabled={sendDisabled}
-					onClick={onSendClick}
 					icon="check"
+					onClick={onSendClick}
+					tooltipText={sendTooltipText}
 				/>
 			</div>
 		</Container>

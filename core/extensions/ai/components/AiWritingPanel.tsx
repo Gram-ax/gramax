@@ -1,13 +1,22 @@
-import { useState, useRef, KeyboardEvent, useCallback, memo, Dispatch, SetStateAction, ChangeEvent } from "react";
-import t from "@ext/localization/locale/translate";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
-import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
 import { useApi } from "@core-ui/hooks/useApi";
-import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
-import { Toolbar, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
-import { AutogrowTextarea } from "@ui-kit/Textarea";
 import styled from "@emotion/styled";
 import { AiToolbarButton } from "@ext/ai/components/Helpers/AiToolbarButton";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
+import t from "@ext/localization/locale/translate";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
+import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
+import { AutogrowTextarea } from "@ui-kit/Textarea";
+import { Toolbar, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import {
+	type ChangeEvent,
+	type Dispatch,
+	type KeyboardEvent,
+	memo,
+	type SetStateAction,
+	useCallback,
+	useRef,
+	useState,
+} from "react";
 
 interface AiWritingPanelProps {
 	placeholder: string;
@@ -46,11 +55,11 @@ const PromptList = ({ onClick }: PromptListProps) => {
 	return (
 		<Popover onOpenChange={onOpenChange}>
 			<PopoverTrigger asChild>
-				<ToolbarToggleButton tooltipText={t("ai.ai-prompts")} className="flex-shrink-0" focusable>
+				<ToolbarToggleButton className="flex-shrink-0" focusable tooltipText={t("ai.ai-prompts")}>
 					<ToolbarIcon icon="list" />
 				</ToolbarToggleButton>
 			</PopoverTrigger>
-			<PopoverContent side="top" className="p-0 bg-transparent border-none">
+			<PopoverContent className="p-0 bg-transparent border-none" side="top">
 				<Command>
 					{list.length > 0 && <CommandInput placeholder={t("ai.search-prompts")} />}
 					<CommandList>
@@ -58,8 +67,8 @@ const PromptList = ({ onClick }: PromptListProps) => {
 						{list.map((prompt, idx) => (
 							<CommandItem
 								key={prompt.id}
-								value={prompt.title + idx}
 								onSelect={() => onClick(prompt.title)}
+								value={prompt.title + idx}
 							>
 								{prompt.title}
 							</CommandItem>
@@ -73,7 +82,7 @@ const PromptList = ({ onClick }: PromptListProps) => {
 
 export const AiWritingPanel = memo(({ closeHandler, onSubmit, placeholder }: AiWritingPanelProps) => {
 	const [disabled, setDisabled] = useState(true);
-	const inputRef = useRef<HTMLTextAreaElement>(null);
+	const value = useRef<string>("");
 
 	const onClick = useCallback(
 		(command: string) => {
@@ -84,11 +93,12 @@ export const AiWritingPanel = memo(({ closeHandler, onSubmit, placeholder }: AiW
 	);
 
 	const onClickSend = useCallback(() => {
-		if (!inputRef.current) return;
-		onClick(inputRef.current.value);
+		if (!value.current?.length) return;
+		onClick(value.current);
 	}, [onClick]);
 
 	const onInput = useCallback((e: ChangeEvent<HTMLTextAreaElement>) => {
+		value.current = e.target.value;
 		setDisabled(!e.target.value.length);
 	}, []);
 
@@ -106,19 +116,18 @@ export const AiWritingPanel = memo(({ closeHandler, onSubmit, placeholder }: AiW
 					<AutogrowTextarea
 						autoFocus
 						minRows={1}
-						ref={inputRef}
-						placeholder={placeholder}
-						onKeyDown={onEnter}
 						onInput={onInput}
+						onKeyDown={onEnter}
+						placeholder={placeholder}
 					/>
 				</StyledTextareaWrapper>
 				<PromptList onClick={onClick} />
 				<AiToolbarButton
-					tooltipText={t("send")}
-					icon="arrow-up"
 					className="flex-shrink-0"
 					disabled={disabled}
+					icon="arrow-up"
 					onClick={onClickSend}
+					tooltipText={t("send")}
 				/>
 			</div>
 		</Toolbar>

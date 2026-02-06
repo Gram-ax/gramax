@@ -41,6 +41,7 @@ export interface RawCloneOptions {
   to: string
   isBare: boolean
   allowNonEmptyDir: boolean
+  skipLfsPull: boolean
   cancelToken: number
 }
 export declare function clone(creds: AccessTokenCreds, opts: RawCloneOptions, callback: (err: Error | null, arg: string) => any): Promise<void>
@@ -106,6 +107,13 @@ export declare function list_merge_requests(repoPath: string): Promise<unknown>
 export declare function find_refs_by_globs(repoPath: string, pattern: Array<string>): Promise<unknown>
 export declare function create_or_update_merge_request(repoPath: string, mergeRequest: string, creds: AccessTokenCreds): Promise<unknown>
 export declare function get_draft_merge_request(repoPath: string): Promise<unknown>
+export declare function pull_lfs_objects(repoPath: string, creds: AccessTokenCreds, paths: Array<string>, checkout: boolean, cancelToken: number): Promise<unknown>
+export declare function get_config_val(repoPath: string, name: string): Promise<unknown>
+export interface ConfigValue {
+  kind: string
+  val: string
+}
+export declare function set_config_val(repoPath: string, name: string, val: ConfigValue): Promise<unknown>
 export declare function reset_repo(): boolean
 export declare function reset_file_lock(repoPath: string): boolean
 export interface GcOptions {

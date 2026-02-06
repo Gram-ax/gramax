@@ -1,6 +1,6 @@
 import { DropdownMenuSubContent as UiKitDropdownMenuSubContent } from "ics-ui-kit/components/dropdown";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { FC, forwardRef } from "react";
+import { type FC, forwardRef } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 interface UiKitDropdownMenuSubContentProps extends ExtractComponentGeneric<typeof UiKitDropdownMenuSubContent> {}
 
@@ -8,9 +8,10 @@ export const DropdownMenuSubContent: FC<UiKitDropdownMenuSubContentProps> = forw
 	return (
 		<UiKitDropdownMenuSubContent
 			{...props}
-			ref={ref}
 			data-dropdown-menu-sub-content
 			data-qa="dropdown-menu-content"
+			data-testid="sub-content"
+			ref={ref}
 		/>
 	);
 });

@@ -1,11 +1,10 @@
-import { ContentStack, ContentTable } from "pdfmake/interfaces";
-import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { pdfDiagramRenderer } from "@ext/markdown/elements/diagrams/pdf/pdfDiagramRenderer";
-import DiagramType from "@core/components/Diagram/DiagramType";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { COLOR_CONFIG } from "@ext/pdfExport/config";
+import DiagramType from "@core/components/Diagram/DiagramType";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { pdfDiagramRenderer } from "@ext/markdown/elements/diagrams/pdf/pdfDiagramRenderer";
+import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
+import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { ContentStack, ContentTable } from "pdfmake/interfaces";
 
 export async function mermaidHandler(
 	node: Tag,
@@ -20,7 +19,7 @@ export async function mermaidHandler(
 }
 
 async function createTable(node: Tag, context: pdfRenderContext): Promise<ContentTable> {
-	const textContent = await pdfDiagramRenderer.getDiagramContent(node, context.parserContext.getResourceManager());
+	const textContent = await pdfDiagramRenderer.getDiagramContent(node, context.resourceManager);
 
 	return {
 		table: {
@@ -60,7 +59,7 @@ async function renderDiagram(node: Tag, context: pdfRenderContext, options?: Nod
 	const { base64, size } = await pdfDiagramRenderer.renderSimpleDiagram(
 		node,
 		DiagramType["mermaid"],
-		context.parserContext.getResourceManager(),
+		context.resourceManager,
 		originalWidth,
 	);
 

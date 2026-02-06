@@ -1,6 +1,6 @@
 import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
 import assert from "assert";
-import { createContext, ReactNode, useCallback, useContext, useState } from "react";
+import { createContext, type ReactNode, useCallback, useContext, useState } from "react";
 
 export interface PluginDetailParams {
 	selectedPluginId: string;
@@ -27,6 +27,8 @@ export type PageParams = {
 	[Page.GUESTS]: undefined;
 	[Page.PLUGINS]: undefined;
 	[Page.METRICS]: undefined;
+	[Page.VIEW_METRICS]: undefined;
+	[Page.SEARCH_METRICS]: undefined;
 };
 
 const getDefaultPageParams = (): Partial<PageParams> => ({

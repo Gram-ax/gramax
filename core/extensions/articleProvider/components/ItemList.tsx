@@ -1,10 +1,10 @@
 import Item from "@components/Layouts/LeftNavigationTabs/Item";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
-import t from "@ext/localization/locale/translate";
-import { RefObject, useEffect, useRef, useMemo, ReactNode } from "react";
 import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import BaseRightExtensions from "./BaseRightExtensions";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import t from "@ext/localization/locale/translate";
+import { ReactNode, RefObject, useEffect, useMemo, useRef } from "react";
+import BaseRightExtensions from "./BaseRightExtensions";
 
 interface ItemListProps<T = ProviderItemProps> {
 	show: boolean;
@@ -49,26 +49,26 @@ const ItemList = <T extends ProviderItemProps>(props: ItemListProps<T>) => {
 	const itemList = useMemo(() => {
 		return items.map((item) => (
 			<Item
-				key={item.id}
 				id={item.id}
-				title={item.title.length ? item.title : t("article.no-name")}
 				isSelected={Array.isArray(selectedId) ? selectedId.includes(item.id) : selectedId === item.id}
-				rightActionsWidth="0.85em"
+				key={item.id}
 				onItemClick={onItemClick}
 				rightActions={
 					onMarkdownChange &&
 					onDelete && (
 						<BaseRightExtensions
+							confirmDeleteText={confirmDeleteText}
 							id={item.id}
-							providerType={providerType}
+							items={rightActions}
 							onDelete={onDelete}
 							onMarkdownChange={onMarkdownChange}
-							items={rightActions}
 							preDelete={preDelete}
-							confirmDeleteText={confirmDeleteText}
+							providerType={providerType}
 						/>
 					)
 				}
+				rightActionsWidth="0.85em"
+				title={item.title.length ? item.title : t("article.no-name")}
 			/>
 		));
 	}, [items, selectedId, onItemClick, providerType, rightActions, confirmDeleteText]);

@@ -1,7 +1,7 @@
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { forwardRef } from "react";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
+import { forwardRef } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type DropdownMenuItemProps = ExtractComponentGeneric<typeof DropdownMenuItem>;
 
@@ -17,7 +17,7 @@ export const ToolbarDropdownMenuItem = forwardRef<HTMLDivElement, ToolbarDropdow
 	return (
 		<DropdownMenuItem ref={ref} {...otherProps} data-qa={dataQa}>
 			{children}
-			{active ? <Icon icon="check" className="ml-auto" /> : <span className="ml-auto flex w-4 h-4" />}
+			{active ? <Icon className="ml-auto" icon="check" /> : <span className="ml-auto flex w-4 h-4" />}
 		</DropdownMenuItem>
 	);
 });

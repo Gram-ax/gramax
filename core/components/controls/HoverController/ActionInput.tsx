@@ -2,7 +2,7 @@ import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
-import { ChangeEvent, memo, MouseEvent, useCallback, useRef } from "react";
+import { ChangeEvent, MouseEvent, memo, useCallback, useRef } from "react";
 
 interface ActionInputProps {
 	icon: string;
@@ -35,11 +35,11 @@ const ActionInput = ({ icon, className, tooltipText, defaultValue, placeholder, 
 			<div className={className} onClick={onClick}>
 				<Icon code={icon} />
 				<Input
-					ref={inputRef}
 					defaultValue={defaultValue}
-					placeholder={placeholder}
 					onChange={onChange}
 					onClick={onInputClick}
+					placeholder={placeholder}
+					ref={inputRef}
 				/>
 			</div>
 		</Tooltip>

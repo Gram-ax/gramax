@@ -1,9 +1,9 @@
 export {
 	Stepper,
-	StepperItem,
-	StepperTrigger,
-	StepperIndicator,
-	StepperTitle,
-	StepperSeparator,
 	StepperDescription,
+	StepperIndicator,
+	StepperItem,
+	StepperSeparator,
+	StepperTitle,
+	StepperTrigger,
 } from "ics-ui-kit/components/stepper";

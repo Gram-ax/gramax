@@ -4,8 +4,8 @@ import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { Command } from "../../../types/Command";
 import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import { Command } from "../../../types/Command";
 
 const remove: Command<
 	{ src: Path; articlePath: Path; catalogName: string; ctx: Context; providerType: ArticleProviderType },
@@ -33,7 +33,7 @@ const remove: Command<
 
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 		await article.parsedContent.write(async (p) => {
-			await p.resourceManager.delete(src);
+			await p.parsedContext.getResourceManager()?.delete(src);
 			return p;
 		});
 	},

@@ -25,7 +25,7 @@ const FromWhere = (props: FromWhereProps) => {
 	return (
 		<Wrapper>
 			{fromComponent}
-			<LargeIcon strokeWidth={1.5} code="arrow-right" />
+			<LargeIcon code="arrow-right" strokeWidth={1.5} />
 			{whereComponent}
 		</Wrapper>
 	);

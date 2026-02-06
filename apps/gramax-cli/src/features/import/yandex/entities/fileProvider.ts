@@ -1,9 +1,7 @@
-import { existsSync, mkdirSync, writeFile, writeFileSync } from "fs";
+import { createWriteStream, existsSync, mkdirSync, writeFile, writeFileSync } from "fs";
 import { join } from "path";
-import { createWriteStream } from "fs";
-import { pipeline } from "stream";
+import { pipeline, Readable } from "stream";
 import { promisify } from "util";
-import { Readable } from "stream";
 import { InternalPath } from "../utils";
 
 const pipelineAsync = promisify(pipeline);

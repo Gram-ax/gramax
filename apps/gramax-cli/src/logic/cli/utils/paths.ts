@@ -1,6 +1,6 @@
-import CliUserError from "../../CliUserError";
 import { exists, stat } from "fs-extra";
 import { dirname, extname } from "path";
+import CliUserError from "../../CliUserError";
 
 export function setRootPath(path: string): void {
 	process.env.ROOT_PATH = dirname(path);

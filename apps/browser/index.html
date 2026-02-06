@@ -7,18 +7,15 @@
 			name="viewport"
 			content="width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1, interactive-widget=resizes-content, viewport-fit=cover"
 		/>
-
 		<%- criticalStyle %> <%- vars %> <%- themes %>
-		<script>
-			const global = {};
-		</script>
+		<script>const global = {};</script>
 		<script src="/env.js"></script>
 		<%- polyfill %>
 		<script defer type="module" src="./src/index.tsx"></script>
 	</head>
 	<%- tryOpenInDesktop %>
 	<body id="custom-style">
-		<div data-qa="app" id="root"></div>
+		<div data-qa="app" id="root" data-build-id="<%= htmlBuildId %>"></div>
 	</body>
 	<%- bodyDatasetInjector %>
 </html>

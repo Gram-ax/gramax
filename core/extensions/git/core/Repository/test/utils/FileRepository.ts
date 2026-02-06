@@ -1,3 +1,4 @@
+import { execSync } from "node:child_process";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
@@ -7,7 +8,6 @@ import BareRepository from "@ext/git/core/Repository/BareRepository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import fs from "fs";
-import { execSync } from "node:child_process";
 
 export default class FileRepository {
 	private path: string;

@@ -19,22 +19,22 @@ export const TableDB = ({ object, error, className }: TableDBProps) => {
 	const lang = LanguageService.currentUi();
 
 	if (error)
-		return <DiagramError error={error} title={t("diagram.error.tabledb-render-failed")} diagramName="Db-Table" />;
+		return <DiagramError diagramName="Db-Table" error={error} title={t("diagram.error.tabledb-render-failed")} />;
 
-	if (!object) return <SpinnerLoader width={75} height={75} />;
+	if (!object) return <SpinnerLoader height={75} width={75} />;
 	const [popup, setPopup] = useState(null);
 
 	const table = (t: string, refTable?: Table) => (
-		<code onClick={refTable ? () => setPopup(refTable) : null} className={refTable ? "refTable" : ""}>
+		<code className={refTable ? "refTable" : ""} onClick={refTable ? () => setPopup(refTable) : null}>
 			<Icon code="table" />
 			<span>{t}</span>
 		</code>
 	);
 
 	return (
-		<div className={className} data-type="dbtable" contentEditable={false}>
+		<div className={className} contentEditable={false} data-type="dbtable">
 			{popup ? (
-				<Popup defaultOpen onClose={() => setPopup(null)} lockScroll={false}>
+				<Popup defaultOpen lockScroll={false} onClose={() => setPopup(null)}>
 					<div className={className}>
 						<div className="scroll article">
 							<TableDB object={popup} />
@@ -74,7 +74,7 @@ export const TableDB = ({ object, error, className }: TableDBProps) => {
 										<code>
 											{field.code}
 											{!field.nullable && (
-												<span title="NOT NULL" className="required">
+												<span className="required" title="NOT NULL">
 													*
 												</span>
 											)}

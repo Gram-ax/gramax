@@ -1,14 +1,13 @@
-import { useMemo } from "react";
-import { ColumnDef, Row, useReactTable } from "@ui-kit/DataTable";
 import { closestCenter, DndContext } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { ColumnDef, Row, useReactTable, useSortableCatalogs } from "@ui-kit/DataTable";
+import { Table } from "@ui-kit/Table";
+import { useMemo } from "react";
 import { DraggableTableRow } from "./DraggableTableRow";
-import { TableHeaderComponent } from "./TableHeaderComponent";
 import { TableBodyComponent } from "./TableBodyComponent";
 import { TableCellComponent } from "./TableCellComponent";
-import { useSortableCatalogs } from "@ui-kit/DataTable";
-import { Table } from "@ui-kit/Table";
+import { TableHeaderComponent } from "./TableHeaderComponent";
 
 interface DraggableTableComponentProps<T> {
 	table: ReturnType<typeof useReactTable<T>>;
@@ -27,30 +26,30 @@ export function DraggableTableComponent<T>({ table, columns, onDragChange, rowKe
 
 	return (
 		<DndContext
-			sensors={sensors}
 			collisionDetection={closestCenter}
 			modifiers={[restrictToVerticalAxis]}
 			onDragEnd={handleDragEnd}
+			sensors={sensors}
 		>
 			<div className="overflow-hidden rounded-md border">
 				<Table>
 					<TableHeaderComponent table={table} />
 					<SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
 						<TableBodyComponent
-							table={table}
 							columns={columns}
 							renderRow={(row) => (
 								<DraggableTableRow<T>
 									key={row.id}
 									row={row as Row<any>}
-									state={row.getIsSelected() && "selected"}
 									rowKey={rowKey}
+									state={row.getIsSelected() && "selected"}
 								>
 									{row.getVisibleCells().map((cell, idx) => (
-										<TableCellComponent key={cell.id} cell={cell} idx={idx} />
+										<TableCellComponent cell={cell} idx={idx} key={cell.id} />
 									))}
 								</DraggableTableRow>
 							)}
+							table={table}
 						/>
 					</SortableContext>
 				</Table>

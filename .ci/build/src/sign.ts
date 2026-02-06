@@ -50,6 +50,6 @@ win.verify = async (exe: PathLike) => {
 	await fs.rm(`${exe}.sig.pem`);
 };
 
-export const containers = async (filePath: PathLike) => {
+export const containers = async (_filePath: PathLike) => {
 	throw new Error("Not implemented");
 };

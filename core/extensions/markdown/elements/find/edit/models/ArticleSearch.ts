@@ -1,6 +1,6 @@
 import ArticleSearchHotkeyView from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
-import { Extension } from "@tiptap/core";
 import { createSearchDecorations } from "@ext/markdown/elements/find/edit/logic/createSearchDecorations";
+import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
 
 const SearchView: { instance: Partial<ArticleSearchHotkeyView> } = {

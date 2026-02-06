@@ -1,22 +1,22 @@
-import t from "@ext/localization/locale/translate";
 import Icon from "@components/Atoms/Icon";
-import { Button } from "@ui-kit/Button";
-import PageDataContext from "@core-ui/ContextServices/PageDataContext";
-import { useState, useLayoutEffect } from "react";
-import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import Query, { parserQuery } from "@core/Api/Query";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import { TextInput } from "@ui-kit/Input";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
+import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
+import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
 import { ConfluenceInstance } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
+import t from "@ext/localization/locale/translate";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { Avatar, AvatarFallback, AvatarImage, getAvatarFallback } from "@ui-kit/Avatar";
-import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
+import { Button } from "@ui-kit/Button";
 import { Field } from "@ui-kit/Field";
+import { TextInput } from "@ui-kit/Input";
+import { useLayoutEffect, useState } from "react";
 
 const EditConfluenceCloudForm = ({ onSubmit }: { onSubmit: (data: ConfluenceCloudSourceData) => void }) => {
 	const { setPrimaryButton } = useSetFooterButton();
@@ -91,7 +91,7 @@ const EditConfluenceCloudForm = ({ onSubmit }: { onSubmit: (data: ConfluenceClou
 		};
 
 		const primaryButton = (
-			<Button type="button" disabled={!token} onClick={handleAddRepo}>
+			<Button disabled={!token} onClick={handleAddRepo} type="button">
 				{t("add")}
 			</Button>
 		);
@@ -106,29 +106,31 @@ const EditConfluenceCloudForm = ({ onSubmit }: { onSubmit: (data: ConfluenceClou
 	return (
 		<>
 			<Field
-				title={t("user")}
-				layout="vertical"
 				control={() =>
 					user ? (
 						<TextInput
+							className="font-medium"
+							readOnly
 							startIcon={
 								<Avatar size="xs">
 									<AvatarImage src={user.avatarUrl} />
-									<AvatarFallback uniqueId={user.email}>{getAvatarFallback(user.name)}</AvatarFallback>
+									<AvatarFallback uniqueId={user.email}>
+										{getAvatarFallback(user.name)}
+									</AvatarFallback>
 								</Avatar>
 							}
-							className="font-medium"
 							value={user.name}
-							readOnly
 						/>
 					) : (
-						<Button type="button" variant="outline" onClick={startAuth}>
-							<Icon code="confluence cloud" className="text-base" />
+						<Button onClick={startAuth} type="button" variant="outline">
+							<Icon className="text-base" code="confluence cloud" />
 							{t("log-in")}
 							Confluence Cloud
 						</Button>
 					)
 				}
+				layout="vertical"
+				title={t("user")}
 			/>
 		</>
 	);

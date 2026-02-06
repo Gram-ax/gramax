@@ -26,11 +26,11 @@ const UserUnstyled = (props: UserProps) => {
 				<div className="comment-content">
 					<div className="head">
 						<div className="user-data">
-							<Tooltip content={mail} interactive delay={tooltipDelay}>
+							<Tooltip content={mail} delay={tooltipDelay} interactive>
 								<div className="username">{name}</div>
 							</Tooltip>
 							<div className="date-container">
-								<Date date={date} className="date" tooltipDelay={tooltipDelay} />
+								<Date className="date" date={date} tooltipDelay={tooltipDelay} />
 								{dateAdd ? dateAdd : null}
 							</div>
 						</div>

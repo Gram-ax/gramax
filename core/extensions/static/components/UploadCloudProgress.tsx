@@ -1,12 +1,12 @@
-import t from "@ext/localization/locale/translate";
-import { UploadStatus } from "@ext/static/logic/CloudUploadStatus";
-import { Button } from "@ui-kit/Button";
-import useUploadProgress from "@ext/static/components/useUploadProgress";
+import Icon from "@components/Atoms/Icon";
+import { Bar, Wrapper } from "@components/Atoms/ProgressBar";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import t from "@ext/localization/locale/translate";
+import useUploadProgress from "@ext/static/components/useUploadProgress";
+import { UploadStatus } from "@ext/static/logic/CloudUploadStatus";
+import { Button } from "@ui-kit/Button";
 import { useState } from "react";
-import { Bar, Wrapper } from "@components/Atoms/ProgressBar";
-import Icon from "@components/Atoms/Icon";
 
 const resolveLabelText = (status: UploadStatus["status"]) => {
 	if (!status) return t("cloud.upload-modal.status.building");
@@ -37,7 +37,7 @@ const UploadButton = ({ actionText, onUpload }: { actionText: string; onUpload: 
 
 	if (startUploading)
 		return (
-			<Button variant="outline" disabled className="relative">
+			<Button className="relative" disabled variant="outline">
 				<Icon isLoading />
 				{resolveLabelText(status)}
 				<UploadCloudProgress progress={progress} />
@@ -45,7 +45,7 @@ const UploadButton = ({ actionText, onUpload }: { actionText: string; onUpload: 
 		);
 
 	return (
-		<Button variant="primary" onClick={onClick} startIcon="cloud-upload">
+		<Button onClick={onClick} startIcon="cloud-upload" variant="primary">
 			{actionText}
 		</Button>
 	);

@@ -11,7 +11,10 @@ class DragScroller {
 	private _articleElement: HTMLElement;
 	private _handlers: { name: string; handler: (event: Event) => void }[];
 
-	constructor(readonly editorView: EditorView, articleRef: MutableRefObject<HTMLDivElement>) {
+	constructor(
+		readonly editorView: EditorView,
+		articleRef: MutableRefObject<HTMLDivElement>,
+	) {
 		if (!articleRef?.current) return;
 		this._articleElement = articleRef.current;
 		this._handlers = ["dragover", "dragend", "dragleave", "drop"].map((name) => {

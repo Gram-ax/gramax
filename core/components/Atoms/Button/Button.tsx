@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CSSProperties, MouseEvent, MutableRefObject, ReactNode, forwardRef } from "react";
+import { CSSProperties, forwardRef, MouseEvent, MutableRefObject, ReactNode } from "react";
 import { ButtonStyle } from "./ButtonStyle";
 
 export interface ButtonProps {
@@ -51,10 +51,10 @@ const Button = forwardRef((props: ButtonProps, ref?: MutableRefObject<HTMLDivEle
 	} = props;
 
 	return (
-		<div data-qa="qa-clickable" data-qa-disabled={disabled || null} className={className} ref={ref}>
+		<div className={className} data-qa="qa-clickable" data-qa-disabled={disabled || null} ref={ref}>
 			<div
-				style={{ fontSize: TextKeys[textSize] + (isEmUnits ? "em" : "rem"), ...(style ?? {}) }}
 				className={classNames(buttonStyle, { fullWidth }, ["content"])}
+				style={{ fontSize: TextKeys[textSize] + (isEmUnits ? "em" : "rem"), ...(style ?? {}) }}
 				{...otherProps}
 			>
 				{children}

@@ -42,15 +42,15 @@ const Html = ({ content, className }: HtmlProps): ReactElement => {
 	return (
 		<div className={`${className ?? ""} focus-pointer-events`} data-focusable="true">
 			<iframe
-				ref={iframeRef}
 				data-hover-target="true"
-				title="embedded-html"
-				sandbox="allow-scripts allow-popups"
-				referrerPolicy="no-referrer"
 				frameBorder={0}
-				width="100%"
-				style={{ border: 0, height: 200 }}
+				ref={iframeRef}
+				referrerPolicy="no-referrer"
+				sandbox="allow-scripts allow-popups"
 				srcDoc={srcDoc}
+				style={{ border: 0, height: 200 }}
+				title="embedded-html"
+				width="100%"
 			/>
 		</div>
 	);

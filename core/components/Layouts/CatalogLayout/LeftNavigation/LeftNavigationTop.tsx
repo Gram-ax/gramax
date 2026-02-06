@@ -19,19 +19,11 @@ import TemplateTab from "@ext/templates/components/Tab/TemplateTab";
 import TemplateService from "@ext/templates/components/TemplateService";
 import { useMediaQuery } from "@react-hook/media-query";
 import { useEffect } from "react";
-import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
 
 const PADDING = "0.875rem";
-
-const TopBarContentWrapper = styled.div<{ isMacDesktop: boolean }>`
-	padding-top: ${(p) => (p.isMacDesktop ? "1.3rem" : "0")};
-	width: 100%;
-	gap: inherit;
-	display: flex;
-	align-items: center;
-`;
 
 const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; className?: string }) => {
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
@@ -48,9 +40,10 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 	};
 
 	useEffect(() => {
-		const onBranchChange = (_, caller: any) => {
+		const onBranchChange = (_, caller: OnBranchUpdateCaller) => {
 			NavigationTabsService.setTop(LeftNavigationTab.None);
-			if (caller === OnBranchUpdateCaller.Init) return;
+			if (caller === OnBranchUpdateCaller.Init || caller === OnBranchUpdateCaller.CheckoutToNewCreatedBranch)
+				return;
 			[SnippetService, TemplateService].forEach((context) => context.closeItem());
 		};
 
@@ -65,21 +58,21 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 		<>
 			<BarLayout
 				className={className}
-				padding={getPadding()}
 				height={isMacDesktop ? null : "var(--top-bar-height)"}
+				padding={getPadding()}
 			>
-				<TopBarContentWrapper isMacDesktop={isMacDesktop}>
+				<div className="top-bar-content-wrapper" style={{ paddingTop: isMacDesktop ? "1.3rem" : "0" }}>
 					{narrowMedia && (
 						<ButtonLink
-							textSize={TextSize.L}
 							iconCode={leftNavIsOpen ? "arrow-left-from-line" : "arrow-right-from-line"}
 							onClick={() => {
 								SidebarsIsOpenService.value = { left: !leftNavIsOpen };
 							}}
+							textSize={TextSize.L}
 						/>
 					)}
-					<TopBarContent isMacDesktop={isMacDesktop} currentTab={topTab} data={data} />
-				</TopBarContentWrapper>
+					<TopBarContent currentTab={topTab} data={data} isMacDesktop={isMacDesktop} />
+				</div>
 			</BarLayout>
 			{(isTauri || isBrowser) && !catalogNotFound && (
 				<>
@@ -97,6 +90,13 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 };
 
 export default styled(LeftNavigationTop)`
+	.top-bar-content-wrapper {
+		width: 100%;
+		gap: inherit;
+		display: flex;
+		align-items: center;
+	}
+
 	i {
 		width: 1em !important;
 	}

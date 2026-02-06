@@ -1,8 +1,8 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import StorageData from "@ext/storage/models/StorageData";
 import { Command } from "../../../types/Command";

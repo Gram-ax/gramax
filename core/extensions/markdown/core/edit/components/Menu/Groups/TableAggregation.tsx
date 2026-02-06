@@ -1,23 +1,23 @@
-import { Editor } from "@tiptap/core";
-import {
-	AggregationMethod,
-	aggregationMethodIcons,
-	methodsWithTooltip,
-} from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { memo, useState, useCallback } from "react";
+import { showPopover } from "@core-ui/showPopover";
+import t from "@ext/localization/locale/translate";
 import {
 	getAggregatedValue,
 	getFormattedValue,
 	getFormatter,
 } from "@ext/markdown/elements/table/edit/logic/aggregation";
-import t from "@ext/localization/locale/translate";
-import { CellSelection } from "prosemirror-tables";
-import { showPopover } from "@core-ui/showPopover";
-import { DropdownMenu, DropdownMenuItem, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ToolbarIcon, ToolbarTrigger } from "@ui-kit/Toolbar";
+import {
+	AggregationMethod,
+	aggregationMethodIcons,
+	methodsWithTooltip,
+} from "@ext/markdown/elements/table/edit/model/tableTypes";
+import { Editor } from "@tiptap/core";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
+import { ToolbarIcon, ToolbarTrigger } from "@ui-kit/Toolbar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { CellSelection } from "prosemirror-tables";
+import { memo, useCallback, useState } from "react";
 
 type AggregationData = string[];
 
@@ -67,7 +67,7 @@ const TableAggregation = memo(({ editor, disabled }: { editor: Editor; disabled:
 						<ToolbarIcon icon="chevron-down" />
 					</ToolbarTrigger>
 				</DropdownMenuTrigger>
-				<DropdownMenuContent side="bottom" sideOffset={8} align="start">
+				<DropdownMenuContent align="start" side="bottom" sideOffset={8}>
 					{Object.values(AggregationMethod).map((method, index) => (
 						<Tooltip key={method}>
 							<TooltipContent>

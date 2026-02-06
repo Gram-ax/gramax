@@ -12,8 +12,8 @@ const Formula = ({ content, className }: { content: string; className: string })
 	return (
 		<span
 			className={className}
-			style={changed ? { display: "inline-flex" } : undefined}
 			dangerouslySetInnerHTML={{ __html: newContent }}
+			style={changed ? { display: "inline-flex" } : undefined}
 		/>
 	);
 };

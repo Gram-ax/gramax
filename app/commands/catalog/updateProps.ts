@@ -2,9 +2,9 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
+import type Context from "@core/Context/Context";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { compareSyntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { Command } from "../../types/Command";
 

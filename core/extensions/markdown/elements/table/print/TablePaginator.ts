@@ -1,9 +1,9 @@
-import Paginator from "@ext/print/utils/pagination/Paginator";
-import { throwIfAborted } from "@ext/print/utils/pagination/abort";
-import { RowPaginator } from "@ext/markdown/elements/table/print/RowPaginator";
 import { RowGroupPaginator } from "@ext/markdown/elements/table/print/RowGroupPaginator";
-import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
+import { RowPaginator } from "@ext/markdown/elements/table/print/RowPaginator";
 import type { TablePaginatorInterface } from "@ext/markdown/elements/table/print/TablePaginator.types";
+import { throwIfAborted } from "@ext/print/utils/pagination/abort";
+import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
+import Paginator from "@ext/print/utils/pagination/Paginator";
 
 export class TablePaginator
 	extends NodePaginator<HTMLDivElement, HTMLTableSectionElement>
@@ -41,10 +41,10 @@ export class TablePaginator
 				const groupIndices = this.getRowspanGroupIndices(allRows, this._rowIndex);
 				const groupHeight = this.getGroupHeight(allRows, groupIndices);
 				const usableHeight = this.getUsableHeight();
-				const accumulated = Paginator.paginationInfo.accumulatedHeight.height;
 
-				if (groupHeight + accumulated > usableHeight) this.createPage();
-				if (groupHeight <= usableHeight) {
+				if (groupHeight + Paginator.paginationInfo.accumulatedHeight.height > usableHeight)
+					this.createPage(groupHeight);
+				if (groupHeight + Paginator.paginationInfo.accumulatedHeight.height <= usableHeight) {
 					for (const index of groupIndices) {
 						const groupRow = allRows[index];
 						const groupRowHeight = Paginator.paginationInfo.nodeDimension.get(groupRow).height;
@@ -63,8 +63,8 @@ export class TablePaginator
 			}
 
 			if (rowHeight + Paginator.paginationInfo.accumulatedHeight.height > this.getUsableHeight()) {
-				this.createPage();
-				if (rowHeight > this.getUsableHeight()) {
+				this.createPage(rowHeight);
+				if (rowHeight + Paginator.paginationInfo.accumulatedHeight.height > this.getUsableHeight()) {
 					const rowPaginator = new RowPaginator(row, this);
 					await rowPaginator.paginateNode();
 					continue;
@@ -79,13 +79,26 @@ export class TablePaginator
 		this.node.remove();
 	}
 
-	createPage() {
-		if (this.currentContainer.childNodes.length) {
+	createPage(height?: number) {
+		const isSplited = this.currentContainer.childNodes.length;
+		if (!isSplited) {
+			this.currentTableWrapper.remove();
+			if (
+				this.parentPaginator.hasOnlyHeadingElements() &&
+				this.getDimension().height + height > this.getUsableHeight()
+			) {
+				this.parentPaginator.currentContainer.appendChild(this.currentTableWrapper);
+				return;
+			}
+		}
+		this.cleanHeadingElementsIfNeed();
+
+		if (isSplited) {
 			const { table, tbody } = this.cloneTableShell();
 			this.currentContainer = tbody;
 			this.currentTableWrapper = this.node.cloneNode(false) as HTMLDivElement;
 			this.currentTableWrapper.appendChild(table);
-		} else this.currentTableWrapper.remove();
+		}
 
 		const parentPage = this.parentPaginator.createPage();
 		parentPage.appendChild(this.currentTableWrapper);
@@ -95,11 +108,15 @@ export class TablePaginator
 		return this.currentContainer;
 	}
 
-	addDimension() {
+	getDimension() {
 		const theadHeight = this.getTheadHeight();
 		const addDimension = { ...this.nodeDimension };
 		addDimension.height = theadHeight + addDimension.paddingH;
-		this.updateAccumulatedHeightDim(addDimension);
+		return addDimension;
+	}
+
+	addDimension() {
+		this.updateAccumulatedHeightDim(this.getDimension());
 	}
 
 	private getTheadHeight() {
@@ -132,10 +149,13 @@ export class TablePaginator
 		}
 
 		if (headerAttr === "row" || headerAttr === "both") {
-			const firstBodyRow = this.table.querySelector<HTMLTableRowElement>("tbody tr");
+			const usablePageHeight = Paginator.printPageInfo.usablePageHeight;
+			const rows = this.table.querySelectorAll<HTMLTableRowElement>("tbody tr");
+			const firstBodyRow = rows[0];
 			const isSimpleRow = Array.from(firstBodyRow.cells).every((cell) => !cell.rowSpan || cell.rowSpan === 1);
+			const height = nodeDimension.get(firstBodyRow).height;
 
-			if (firstBodyRow && isSimpleRow) {
+			if (firstBodyRow && isSimpleRow && rows.length > 1 && height < usablePageHeight / 2) {
 				const newThead = document.createElement("thead");
 				newThead.appendChild(firstBodyRow.cloneNode(true));
 				newThead.dataset._synthesized = "from-first-row";

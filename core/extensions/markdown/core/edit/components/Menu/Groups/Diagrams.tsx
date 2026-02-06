@@ -1,19 +1,20 @@
-import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import DiagramType from "@core/components/Diagram/DiagramType";
-import { Editor } from "@tiptap/core";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import t from "@ext/localization/locale/translate";
+import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import DiagramsMenuButton from "@ext/markdown/elements/diagrams/edit/components/DiagramsMenuButton";
 import DrawioMenuButton from "@ext/markdown/elements/drawio/edit/components/DrawioMenuButton";
 import OpenApiMenuButton from "@ext/markdown/elements/openApi/edit/components/OpenApiMenuButton";
-import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { useCallback, useMemo } from "react";
-import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
-import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarTrigger } from "@ui-kit/Toolbar";
-import t from "@ext/localization/locale/translate";
-import { ComponentVariantProvider } from "@ui-kit/Providers";
-import { cn } from "@core-ui/utils/cn";
 import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
+import type { Editor } from "@tiptap/core";
+import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
+import { ComponentVariantProvider } from "@ui-kit/Providers";
+import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarTrigger } from "@ui-kit/Toolbar";
+import { useCallback, useMemo } from "react";
 
 interface DiagramsMenuGroupProps {
 	editor?: Editor;
@@ -22,6 +23,7 @@ interface DiagramsMenuGroupProps {
 
 const DiagramsMenuGroup = ({ editor, fileName }: DiagramsMenuGroupProps) => {
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
+	const diagramRendererUrl = PageDataContextService.value.conf.diagramsServiceUrl;
 	const drawIo = ButtonStateService.useCurrentAction({ action: "drawio" });
 	const diagrams = ButtonStateService.useCurrentAction({ action: "diagrams" });
 	const openApi = ButtonStateService.useCurrentAction({ action: "openapi" });
@@ -33,12 +35,12 @@ const DiagramsMenuGroup = ({ editor, fileName }: DiagramsMenuGroupProps) => {
 		const formatterSupportedElements = getFormatterType(syntax).supportedElements;
 
 		return {
-			isDrawioSupported: formatterSupportedElements.includes("drawio"),
+			isDrawioSupported: formatterSupportedElements.includes("drawio") && diagramRendererUrl,
 			isMermaidSupported: formatterSupportedElements.includes("mermaid"),
-			isPlantUmlSupported: formatterSupportedElements.includes("plant-uml"),
+			isPlantUmlSupported: formatterSupportedElements.includes("plant-uml") && diagramRendererUrl,
 			isOpenApiSupported: formatterSupportedElements.includes("openApi"),
 		};
-	}, [syntax]);
+	}, [syntax, diagramRendererUrl]);
 
 	const onMouseLeave = useCallback(() => {
 		handleMouseLeave();
@@ -50,13 +52,13 @@ const DiagramsMenuGroup = ({ editor, fileName }: DiagramsMenuGroupProps) => {
 			if (!isMobile) return;
 			setIsOpen(open);
 		},
-		[isMobile],
+		[isMobile, setIsOpen],
 	);
 
 	const onInteractOutside = useCallback(() => {
 		if (isMobile) return;
 		setIsOpen(false);
-	}, [isMobile]);
+	}, [isMobile, setIsOpen]);
 
 	if (!isDrawioSupported && !isMermaidSupported && !isPlantUmlSupported && !isOpenApiSupported) {
 		return null;
@@ -68,15 +70,15 @@ const DiagramsMenuGroup = ({ editor, fileName }: DiagramsMenuGroupProps) => {
 	return (
 		<ComponentVariantProvider variant="inverse">
 			<div
+				className={cn(disabled && "pointer-events-none")}
 				onMouseEnter={handleMouseEnter}
 				onMouseLeave={onMouseLeave}
-				className={cn(disabled && "pointer-events-none")}
 			>
-				<DropdownMenu open={isOpen} onOpenChange={onOpenChange} modal={false}>
+				<DropdownMenu modal={false} onOpenChange={onOpenChange} open={isOpen}>
 					<DropdownMenuTrigger asChild>
 						<ToolbarTrigger
-							data-state={isActive ? "open" : "closed"}
 							data-open={isOpen ? "open" : "closed"}
+							data-state={isActive ? "open" : "closed"}
 							disabled={disabled}
 						>
 							<ToolbarIcon icon="diagrams" />
@@ -84,28 +86,24 @@ const DiagramsMenuGroup = ({ editor, fileName }: DiagramsMenuGroupProps) => {
 					</DropdownMenuTrigger>
 					<ToolbarDropdownMenuContent
 						align="start"
-						side="top"
-						contentClassName="lg:shadow-hard-base"
-						className={cn(!isMobile && "px-3 py-3 pb-2")}
 						alignOffset={!isMobile ? -19 : -5}
-						sideOffset={isMobile ? 10 : 0}
+						className={cn(!isMobile && "px-3 py-3 pb-2")}
+						contentClassName="lg:shadow-hard-base"
 						onInteractOutside={onInteractOutside}
+						side="top"
+						sideOffset={isMobile ? 10 : 0}
 					>
 						<DropdownMenuLabel className="font-normal text-inverse-muted">
 							{t("diagrams")}
 						</DropdownMenuLabel>
 						{isDrawioSupported && <DrawioMenuButton editor={editor} fileName={fileName} />}
 						{isMermaidSupported && (
-							<DiagramsMenuButton
-								editor={editor}
-								diagramName={DiagramType["mermaid"]}
-								fileName={fileName}
-							/>
+							<DiagramsMenuButton diagramName={DiagramType.mermaid} editor={editor} fileName={fileName} />
 						)}
 						{isPlantUmlSupported && (
 							<DiagramsMenuButton
-								editor={editor}
 								diagramName={DiagramType["plant-uml"]}
+								editor={editor}
 								fileName={fileName}
 							/>
 						)}

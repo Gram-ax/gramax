@@ -29,7 +29,7 @@ export const PropertyFilter = forwardRef<HTMLDivElement, PropertyFilterProps>(
 			});
 
 			return (
-				<DropdownMenuCheckboxItem key={key} disabled={disabled} onSelect={onSelect} checked={checked}>
+				<DropdownMenuCheckboxItem checked={checked} disabled={disabled} key={key} onSelect={onSelect}>
 					{children}
 				</DropdownMenuCheckboxItem>
 			);
@@ -48,14 +48,14 @@ export const PropertyFilter = forwardRef<HTMLDivElement, PropertyFilterProps>(
 							</DropdownMenuTrigger>
 						</TooltipTrigger>
 					</Tooltip>
-					<DropdownMenuContent ref={ref} align="start">
+					<DropdownMenuContent align="start" ref={ref}>
 						{properties.map((property) => (
 							<PropertyItem
 								disabled={false}
-								key={property.name}
-								property={property}
-								onClick={(name, value) => togglePropertyValue(name, value)}
 								getItemComponent={getPropertyItemComponent}
+								key={property.name}
+								onClick={(name, value) => togglePropertyValue(name, value)}
+								property={property}
 							/>
 						))}
 					</DropdownMenuContent>

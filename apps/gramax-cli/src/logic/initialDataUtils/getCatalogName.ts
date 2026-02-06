@@ -1,5 +1,5 @@
-import assert from "assert";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
+import assert from "assert";
 import { ExtendedWindow, InitialDataKeys } from "./types";
 
 export const getCatalogNameFromInitialData = (): string => {

@@ -1,9 +1,9 @@
-import { Markdown, Schema, SchemaType, Tag } from "../../../../render/logic/Markdoc";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import getFormatterType, {
 	getFormatterTypeByContext,
 } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import { Markdown, Schema, SchemaType, Tag } from "../../../../render/logic/Markdoc";
 
 export function getMarkdocFormatter(schema: Schema, context: ParserContext) {
 	if (schema.render == "Formula") {
@@ -22,10 +22,13 @@ export function getMarkdocFormatter(schema: Schema, context: ParserContext) {
 		if (onlyClose) return closeTag;
 		const selfClosing = schema.selfClosing ?? true;
 		const attrs = schema.attributes
-			? Object.keys(schema.attributes).reduce((acc, attr) => {
-					acc[attr] = tag.attributes[attr] || "";
-					return acc;
-			  }, {} as Record<string, any>)
+			? Object.keys(schema.attributes).reduce(
+					(acc, attr) => {
+						acc[attr] = tag.attributes[attr] || "";
+						return acc;
+					},
+					{} as Record<string, any>,
+				)
 			: {};
 		const openTag = currentFormatter.openTag(tagName, attrs, selfClosing);
 		if (onlyOpen) return openTag;

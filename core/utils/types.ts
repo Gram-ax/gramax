@@ -1,3 +1,1 @@
-export type MutableArray<T> = T extends readonly (infer U)[]
-  ? U[]
-  : T;
+export type MutableArray<T> = T extends readonly (infer U)[] ? U[] : T;

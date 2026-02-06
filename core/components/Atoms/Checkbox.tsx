@@ -89,12 +89,12 @@ const Checkbox = (props: CheckboxProps) => {
 				{borderAreaDiv}
 				<span className={classNames(className, {}, ["checkbox-layout"])}>
 					<input
-						ref={checkboxRef}
-						type="checkbox"
-						className="atom-checkbox"
 						checked={currentChecked}
+						className="atom-checkbox"
 						onChange={() => null}
 						readOnly={readOnly}
+						ref={checkboxRef}
+						type="checkbox"
 					/>
 				</span>
 			</span>
@@ -105,13 +105,13 @@ const Checkbox = (props: CheckboxProps) => {
 			<div onClick={interactive ? null : currentOnClick}>
 				{borderAreaDiv}
 				<input
-					disabled={disabled}
-					type="checkbox"
-					className="atom-checkbox"
 					checked={currentChecked}
-					ref={checkboxRef}
+					className="atom-checkbox"
+					disabled={disabled}
 					onChange={() => null}
 					readOnly={readOnly}
+					ref={checkboxRef}
+					type="checkbox"
 				/>
 				<span style={{ userSelect: interactive ? null : "none", overflow }}>{children}</span>
 			</div>

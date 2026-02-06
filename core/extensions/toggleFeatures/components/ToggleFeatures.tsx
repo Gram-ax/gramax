@@ -6,7 +6,7 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { configureWorkspacePermission } from "@ext/security/logic/Permission/Permissions";
-import { getFeatureList, setFeature, type Feature } from "@ext/toggleFeatures/features";
+import { type Feature, getFeatureList, setFeature } from "@ext/toggleFeatures/features";
 import { Badge } from "@ui-kit/Badge";
 import { Button } from "@ui-kit/Button";
 import { Divider } from "@ui-kit/Divider";
@@ -61,6 +61,19 @@ const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolea
 		<FeatureWrapper>
 			<StyledSwitchField
 				alignment="right"
+				checked={enabled}
+				className="w-full"
+				description={
+					<div className="text-xs">
+						<span>{desc}. </span>
+						{url && (
+							<Info href={url} rel="noreferrer" target="_blank">
+								{t("read-more")}
+							</Info>
+						)}
+					</div>
+				}
+				disabled={disabled}
 				label={
 					<>
 						<span>{title}</span>
@@ -68,25 +81,25 @@ const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolea
 							<Tooltip>
 								<TooltipTrigger tabIndex={-1}>
 									{feature.status === "in-dev" && (
-										<Badge status="error" size="sm" focus="low">
+										<Badge focus="low" size="sm" status="error">
 											In Dev
 										</Badge>
 									)}
 
 									{feature.status === "experimental" && (
-										<Badge status="warning" size="sm" focus="low">
+										<Badge focus="low" size="sm" status="warning">
 											Experimental
 										</Badge>
 									)}
 
 									{feature.status === "unstable" && (
-										<Badge status="info" size="sm" focus="low">
+										<Badge focus="low" size="sm" status="info">
 											Unstable
 										</Badge>
 									)}
 
 									{feature.status === "beta" && (
-										<Badge size="sm" focus="low">
+										<Badge focus="low" size="sm">
 											Beta
 										</Badge>
 									)}
@@ -96,21 +109,8 @@ const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolea
 						)}
 					</>
 				}
-				size="sm"
-				className="w-full"
-				disabled={disabled}
-				description={
-					<div className="text-xs">
-						<span>{desc}. </span>
-						{url && (
-							<Info href={url} target="_blank" rel="noreferrer">
-								{t("read-more")}
-							</Info>
-						)}
-					</div>
-				}
-				checked={enabled}
 				onCheckedChange={onClick}
+				size="sm"
 			/>
 		</FeatureWrapper>
 	);
@@ -145,9 +145,9 @@ const ToggleFeatures = () => {
 	if (features.length === 0) return <div></div>;
 
 	return (
-		<Popover onOpenChange={onOpenChange} modal>
+		<Popover modal onOpenChange={onOpenChange}>
 			<PopoverTrigger asChild>
-				<Button size="lg" variant="text" className="h-auto px-0 whitespace-nowrap" endIcon="chevron-down">
+				<Button className="h-auto px-0 whitespace-nowrap" endIcon="chevron-down" size="lg" variant="text">
 					{t("experimental-features.label")}
 				</Button>
 			</PopoverTrigger>
@@ -157,7 +157,7 @@ const ToggleFeatures = () => {
 				</div>
 				<Divider />
 				{features.map((feature) => (
-					<FeatureItem key={feature.name} feature={feature} disabled={isNext || isStatic} />
+					<FeatureItem disabled={isNext || isStatic} feature={feature} key={feature.name} />
 				))}
 			</StyledPopoverContent>
 		</Popover>

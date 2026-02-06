@@ -45,7 +45,7 @@ const getAllSyncableWorkspaces: Command<
 		return { workspaces: Object.fromEntries(res.entries()) };
 	},
 
-	params(ctx, q, body) {
+	params(ctx, _q, body) {
 		return { ctx, shouldFetch: body };
 	},
 });

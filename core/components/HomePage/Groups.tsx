@@ -1,6 +1,6 @@
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useRouter } from "@core/Api/useRouter";
 import { HomePageBreadcrumb, Section, Sections } from "@core/SitePresenter/SitePresenter";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import FavoriteCatalogLinkService from "@ext/article/Favorite/components/FavoriteCatalogLinkService";
 import t from "@ext/localization/locale/translate";
@@ -60,12 +60,12 @@ const SectionView = ({ section, setIsAnyCardLoading, group }: ViewGroupProps) =>
 			{sectionKeys.map((sectionKey, index) => {
 				const currentSection = section.sections[sectionKey];
 				return (
-					<div ref={group === sectionKey ? ref : null} key={sectionKey + index} className="scroll-conteiner">
+					<div className="scroll-conteiner" key={sectionKey + index} ref={group === sectionKey ? ref : null}>
 						<Group
-							setIsAnyCardLoading={setIsAnyCardLoading}
 							catalogLinks={currentSection.catalogLinks}
-							title={currentSection.title}
 							sections={currentSection.sections}
+							setIsAnyCardLoading={setIsAnyCardLoading}
+							title={currentSection.title}
 						/>
 					</div>
 				);
@@ -77,8 +77,8 @@ const SectionView = ({ section, setIsAnyCardLoading, group }: ViewGroupProps) =>
 			)}
 			{section.catalogLinks && (
 				<Group
-					sections={folderViews}
 					catalogLinks={section.catalogLinks}
+					sections={folderViews}
 					setIsAnyCardLoading={setIsAnyCardLoading}
 				/>
 			)}
@@ -94,8 +94,8 @@ const FolderView = ({ section, setIsAnyCardLoading }: ViewGroupProps) => {
 			)}
 			{section && (
 				<Group
-					sections={section.sections}
 					catalogLinks={section.catalogLinks}
+					sections={section.sections}
 					setIsAnyCardLoading={setIsAnyCardLoading}
 				/>
 			)}
@@ -141,12 +141,12 @@ const Groups = (props: GroupsProps) => {
 			<div className="mx-auto flex flex-col groups-container">
 				{!!favoriteCatalogLinks.length && isMainPage && (
 					<Group
-						title={t("favorites")}
 						catalogLinks={favoriteCatalogLinks}
 						setIsAnyCardLoading={setIsAnyCardLoading}
+						title={t("favorites")}
 					/>
 				)}
-				<ViewGroup section={section} setIsAnyCardLoading={setIsAnyCardLoading} group={group} />
+				<ViewGroup group={group} section={section} setIsAnyCardLoading={setIsAnyCardLoading} />
 			</div>
 		</div>
 	);

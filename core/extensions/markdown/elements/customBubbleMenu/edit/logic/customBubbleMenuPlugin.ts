@@ -1,7 +1,7 @@
-import { Editor, isNodeSelection, isTextSelection, posToDOMRect } from "@tiptap/core";
-import { EditorState, Plugin, PluginKey } from "@tiptap/pm/state";
-import { EditorView } from "@tiptap/pm/view";
-import tippy, { Instance, Props } from "tippy.js";
+import { type Editor, isNodeSelection, isTextSelection, posToDOMRect } from "@tiptap/core";
+import { type EditorState, Plugin, PluginKey } from "@tiptap/pm/state";
+import type { EditorView } from "@tiptap/pm/view";
+import tippy, { type Instance, type Props } from "tippy.js";
 
 export interface BubbleMenuPluginProps {
 	/**
@@ -152,6 +152,11 @@ export class CustomBubbleMenuView {
 	update(view: EditorView, oldState?: EditorState) {
 		const { state } = view;
 		const hasValidSelection = state.selection.from !== state.selection.to;
+
+		if (!view.editable && this.isVisible) {
+			this.hide();
+			return;
+		}
 
 		if (this.updateDelay > 0 && hasValidSelection) {
 			this.handleDebouncedUpdate(view, oldState);

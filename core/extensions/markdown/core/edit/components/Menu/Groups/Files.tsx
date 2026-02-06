@@ -1,19 +1,19 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import t from "@ext/localization/locale/translate";
+import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { FileMenuButtonDropdown } from "@ext/markdown/elements/file/edit/components/FileMenuButton";
+import IconMenuButton from "@ext/markdown/elements/icon/edit/components/IconMenuButton";
 import ImageMenuButton from "@ext/markdown/elements/image/edit/components/ImageMenuButton";
 import VideoMenuButton from "@ext/markdown/elements/video/edit/components/VideoMenuButton";
+import { useMediaQuery } from "@mui/material";
 import { Editor } from "@tiptap/core";
-import IconMenuButton from "@ext/markdown/elements/icon/edit/components/IconMenuButton";
-import { useCallback, useMemo, useRef } from "react";
-import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
 import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarTrigger } from "@ui-kit/Toolbar";
-import t from "@ext/localization/locale/translate";
-import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { cn } from "@core-ui/utils/cn";
+import { useCallback, useMemo, useRef } from "react";
 
 interface FilesMenuGroupProps {
 	editor?: Editor;
@@ -86,30 +86,30 @@ const FilesMenuGroup = ({ editor, fileName, isSmallEditor }: FilesMenuGroupProps
 	return (
 		<ComponentVariantProvider variant="inverse">
 			<div
-				tabIndex={-1}
+				className={cn(disabled && "pointer-events-none")}
 				onMouseEnter={handleMouseEnter}
 				onMouseLeave={onMouseLeave}
-				className={cn(disabled && "pointer-events-none")}
+				tabIndex={-1}
 			>
-				<DropdownMenu open={isOpen} onOpenChange={onOpenChange} modal={false}>
+				<DropdownMenu modal={false} onOpenChange={onOpenChange} open={isOpen}>
 					<DropdownMenuTrigger asChild>
 						<ToolbarTrigger
-							data-state={isActive ? "open" : "closed"}
 							data-open={isOpen ? "open" : "closed"}
+							data-state={isActive ? "open" : "closed"}
 							disabled={disabled}
 						>
 							<ToolbarIcon icon="file-video" />
 						</ToolbarTrigger>
 					</DropdownMenuTrigger>
 					<ToolbarDropdownMenuContent
-						contentClassName="lg:shadow-hard-base"
-						side="top"
 						align="start"
-						className={cn(!isMobile && "px-3 py-3 pb-2")}
 						alignOffset={!isMobile ? -19 : -5}
-						sideOffset={isMobile ? 10 : 0}
-						onInteractOutside={onInteractOutside}
+						className={cn(!isMobile && "px-3 py-3 pb-2")}
+						contentClassName="lg:shadow-hard-base"
 						onFocusOutside={onFocusOutside}
+						onInteractOutside={onInteractOutside}
+						side="top"
+						sideOffset={isMobile ? 10 : 0}
 					>
 						<DropdownMenuLabel className="font-normal text-inverse-muted">
 							{t("editor.attachments")}

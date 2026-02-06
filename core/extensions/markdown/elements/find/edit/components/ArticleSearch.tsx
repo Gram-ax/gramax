@@ -1,8 +1,9 @@
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
-import { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
-import { Editor } from "@tiptap/core";
-import { FC, useEffect, useRef, useState } from "react";
+import type { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
+import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import type { Editor } from "@tiptap/core";
+import { type FC, useEffect, useRef, useState } from "react";
 import FindReplaceModal from "./FindReplaceModal";
 
 declare module "@tiptap/core" {
@@ -25,11 +26,14 @@ interface ArticleSearchProps {
 const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 	const { editor, closeHandle, openHandle, className, isOpen, ...otherProps } = props;
 	const ref = useRef<HTMLDivElement>(null);
+	const searchState = EditorService.getData("search");
 	const [openKey, setOpenKey] = useState(0);
 	const [selectionText, setSelectionText] = useState("");
-	const [caseSensitive, setCaseSensitive] = useState(false);
-	const [wholeWord, setWholeWord] = useState(false);
-	const [initialFindText, setInitialFindText] = useState("");
+	const [caseSensitive, setCaseSensitive] = useState(searchState.caseSensitive);
+	const [wholeWord, setWholeWord] = useState(searchState.wholeWord);
+	const [initialFindText, setInitialFindText] = useState(searchState.findText);
+	const [replaceText, setReplaceText] = useState(searchState.replaceText);
+	const [replaceIsOpen, setReplaceIsOpen] = useState(searchState.replaceIsOpen);
 	const savedSelection = useRef(null);
 
 	const restoreSelection = () => {
@@ -45,6 +49,7 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 		savedSelection.current = editor?.view?.state?.selection || null;
 	}, [editor?.view?.state?.selection]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
 	useEffect(() => {
 		const keydownCallback = (event: KeyboardEvent) => {
 			const action: (e: KeyboardEvent) => void = {
@@ -77,22 +82,56 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 		return () => document.removeEventListener("keydown", keydownCallback);
 	}, [isOpen, closeHandle, openHandle, editor]);
 
+	const updateSearchState = (partial: Partial<typeof searchState>) => {
+		const current = EditorService.getData("search");
+		EditorService.setData("search", { ...current, ...partial });
+	};
+
+	const handleSetInitialFindText = (value: string) => {
+		setInitialFindText(value);
+		updateSearchState({ findText: value });
+	};
+
+	const handleSetCaseSensitive = (value: boolean) => {
+		setCaseSensitive(value);
+		updateSearchState({ caseSensitive: value });
+	};
+
+	const handleSetWholeWord = (value: boolean) => {
+		setWholeWord(value);
+		updateSearchState({ wholeWord: value });
+	};
+
+	const handleSetReplaceText = (value: string) => {
+		setReplaceText(value);
+		updateSearchState({ replaceText: value });
+	};
+
+	const handleSetReplaceIsOpen = (value: boolean) => {
+		setReplaceIsOpen(value);
+		updateSearchState({ replaceIsOpen: value });
+	};
+
 	if (!isOpen || !editor) return null;
 
 	return (
-		<div ref={ref} className={className}>
+		<div className={className} ref={ref}>
 			<FindReplaceModal
-				editor={editor}
-				onClose={closeHandle}
-				selectionText={selectionText}
-				openKey={openKey}
-				initialFindText={selectionText ? "" : initialFindText}
-				setInitialFindText={setInitialFindText}
 				caseSensitive={caseSensitive}
-				wholeWord={wholeWord}
-				setCaseSensitive={setCaseSensitive}
-				setWholeWord={setWholeWord}
+				editor={editor}
+				initialFindText={selectionText ? "" : initialFindText}
+				onClose={closeHandle}
+				openKey={openKey}
 				parentRef={ref}
+				replaceIsOpen={replaceIsOpen}
+				replaceText={replaceText}
+				selectionText={selectionText}
+				setCaseSensitive={handleSetCaseSensitive}
+				setInitialFindText={handleSetInitialFindText}
+				setReplaceIsOpen={handleSetReplaceIsOpen}
+				setReplaceText={handleSetReplaceText}
+				setWholeWord={handleSetWholeWord}
+				wholeWord={wholeWord}
 				{...otherProps}
 			/>
 		</div>

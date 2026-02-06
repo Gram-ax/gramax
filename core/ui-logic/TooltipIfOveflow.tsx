@@ -1,5 +1,5 @@
 import Tooltip from "@components/Atoms/Tooltip";
-import { ComponentProps, MutableRefObject, useEffect, useState } from "react";
+import { type ComponentProps, type MutableRefObject, useEffect, useState } from "react";
 
 const getIsOverflow = (element: HTMLElement) => {
 	if (!element) return false;

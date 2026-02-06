@@ -1,17 +1,21 @@
 import Icon from "@components/Atoms/Icon";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
 import AnnotationMenu from "@ext/markdown/elements/image/edit/components/ImageEditor/AnnotationMenu";
 import {
-	MINIMUM_SQUARE_SIZE,
 	calculateScale,
 	cropImage,
+	MINIMUM_SQUARE_SIZE,
 	restoreImage,
 } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
+import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import {
 	ComponentProps,
 	CSSProperties,
@@ -33,10 +37,6 @@ import {
 	SquareObject,
 } from "../../model/imageEditorTypes";
 import ImageCropper from "./ImageCropper";
-import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
-import UnsavedChangesModal from "@components/UnsavedChangesModal";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 
 const ImageEditor = (props: EditorProps & { className?: string; style?: CSSProperties }) => {
 	const { crop, src, objects, handleSave, handleToggle, className, style } = props;
@@ -546,51 +546,51 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 	return (
 		<>
 			<div
+				className={className}
 				id="image-editor-container"
-				ref={containerRef}
+				onClick={clearSelected}
 				onMouseDown={(event) =>
 					(event.target as HTMLDivElement)?.id === "image-editor-container" && closeEditor()
 				}
 				onMouseUp={handleMouseUp}
-				onClick={clearSelected}
-				className={className}
+				ref={containerRef}
 			>
 				<Icon className="x-mark" code="x" onClick={() => closeEditor()} />
 
 				<div
+					className="modal__container"
 					draggable="false"
 					onDragStart={(e) => e.preventDefault()}
 					onMouseDown={handleMouseDown}
 					onMouseMove={handleMouseMove}
-					className="modal__container"
 				>
 					<ImageCropper
 						crop={curCrop}
-						setCrop={setCrop}
-						handleUpdateArea={handleUpdateArea}
 						cropEnabled={cropEnabled}
+						handleUpdateArea={handleUpdateArea}
 						parentRef={imageContainerRef}
+						setCrop={setCrop}
 					/>
-					<div ref={imageContainerRef} className="modal__container__image">
+					<div className="modal__container__image" ref={imageContainerRef}>
 						<img
-							ref={imgRef}
-							onLoad={handleOnLoad}
+							alt=""
 							draggable="false"
 							onDragStart={(e) => e.preventDefault()}
+							onLoad={handleOnLoad}
+							ref={imgRef}
 							src={src}
 							style={style}
-							alt=""
 						/>
 						{isLoaded && (
 							<ObjectRenderer
-								percentToPx
-								objects={elements}
-								imageRef={imgRef}
-								parentRef={imageContainerRef}
-								editable={true}
-								onClick={selectElement}
-								selectedIndex={selectedIndex}
 								changeData={setElementData}
+								editable={true}
+								imageRef={imgRef}
+								objects={elements}
+								onClick={selectElement}
+								parentRef={imageContainerRef}
+								percentToPx
+								selectedIndex={selectedIndex}
 							/>
 						)}
 					</div>
@@ -600,14 +600,14 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 					<div className="toolbar__under">
 						{selectedIndex !== null && (
 							<AnnotationMenu
-								setIndex={changeIndex}
-								remove={removeObject}
-								curDirection={curDirection}
-								tooltipText={tooltipText}
-								setTooltipText={changeText}
-								index={selectedIndex}
 								changeDirection={changeDirection}
+								curDirection={curDirection}
+								index={selectedIndex}
 								maxIndex={elements.length}
+								remove={removeObject}
+								setIndex={changeIndex}
+								setTooltipText={changeText}
+								tooltipText={tooltipText}
 							/>
 						)}
 
@@ -615,8 +615,8 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 							<ModalLayoutDark>
 								<ButtonsLayout>
 									<>
-										<Button text={messages.apply} icon={"check"} onClick={toggleCropper} />
-										<Button text={messages.cancel} icon={"x"} onClick={resetCropper} />
+										<Button icon={"check"} onClick={toggleCropper} text={messages.apply} />
+										<Button icon={"x"} onClick={resetCropper} text={messages.cancel} />
 									</>
 								</ButtonsLayout>
 							</ModalLayoutDark>
@@ -625,30 +625,30 @@ const ImageEditor = (props: EditorProps & { className?: string; style?: CSSPrope
 						<ModalLayoutDark>
 							<ButtonsLayout>
 								<Button
-									tooltipText={messages.addAnnotation}
 									icon={"circle-arrow-out-up-left"}
 									onClick={() => createChildren(ImageObjectTypes.Annotation)}
+									tooltipText={messages.addAnnotation}
 								/>
 								<Button
-									tooltipText={messages.addSquare}
 									icon={"scan"}
 									onClick={() => createChildren(ImageObjectTypes.Square)}
+									tooltipText={messages.addSquare}
 								/>
 
 								<div className="divider" />
 								<Button
-									tooltipText={messages.cropImage}
 									icon={"crop"}
-									onClick={cropEnabled ? resetCropper : toggleCropper}
 									isActive={cropEnabled || (curCrop.w < 99 && curCrop.h < 99)}
+									onClick={cropEnabled ? resetCropper : toggleCropper}
+									tooltipText={messages.cropImage}
 								/>
 
 								<div className="divider" />
 								<Button
 									hidden={!src}
-									text={messages.saveAndExit}
 									icon={"save"}
 									onClick={() => saveData(true)}
+									text={messages.saveAndExit}
 								/>
 							</ButtonsLayout>
 						</ModalLayoutDark>

@@ -1,9 +1,9 @@
 import {
-	TOC_PAGE_ITEM_LINK_CLASS,
-	TOC_PAGE_ITEM_TITLE_CLASS,
 	TOC_PAGE_ITEM_DOTS_CLASS,
+	TOC_PAGE_ITEM_LINK_CLASS,
 	TOC_PAGE_ITEM_NUMBER_CLASS,
 	TOC_PAGE_ITEM_RIGHT_CLASS,
+	TOC_PAGE_ITEM_TITLE_CLASS,
 } from "@ext/print/utils/tocPage/consts";
 
 const layoutTocLine = (li: HTMLLIElement, numColumnWidthCh: number) => {

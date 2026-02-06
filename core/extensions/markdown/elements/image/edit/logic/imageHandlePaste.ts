@@ -1,6 +1,6 @@
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import createImages from "@ext/markdown/elements/image/edit/logic/createImages";
 import { EditorView } from "prosemirror-view";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 
 const imageHandlePaste = (
 	view: EditorView,

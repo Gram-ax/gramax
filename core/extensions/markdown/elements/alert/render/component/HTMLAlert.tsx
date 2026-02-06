@@ -1,6 +1,6 @@
+import { AlertType } from "@ext/markdown/elements/alert/render/component/Alert";
 import React from "react";
 import HTMLComponents from "../../../../core/render/components/getComponents/HTMLComponents";
-import { AlertType } from "@ext/markdown/elements/alert/render/component/Alert";
 
 export interface HTMLAlertProps {
 	type?: string;

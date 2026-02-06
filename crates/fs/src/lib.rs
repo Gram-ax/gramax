@@ -13,45 +13,45 @@ extern crate tracing;
 
 #[derive(Serialize, Debug)]
 pub struct FileInfo {
-  #[serde(rename = "type")]
-  file_kind: String,
-  size: u64,
-  #[serde(rename = "ctimeMs")]
-  created: u128,
-  #[serde(rename = "mtimeMs")]
-  modified: u128,
+	#[serde(rename = "type")]
+	file_kind: String,
+	size: u64,
+	#[serde(rename = "ctimeMs")]
+	created: u128,
+	#[serde(rename = "mtimeMs")]
+	modified: u128,
 }
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct DirStat {
-  pub name: String,
-  #[serde(flatten)]
-  pub stat: FileInfo,
+	pub name: String,
+	#[serde(flatten)]
+	pub stat: FileInfo,
 }
 
 impl FileInfo {
-  pub fn new(meta: Metadata) -> Result<Self> {
-    let kind = if meta.is_file() {
-      "file"
-    } else if meta.is_dir() {
-      "dir"
-    } else {
-      "symbolic"
-    };
+	pub fn new(meta: Metadata) -> Result<Self> {
+		let kind = if meta.is_file() {
+			"file"
+		} else if meta.is_dir() {
+			"dir"
+		} else {
+			"symbolic"
+		};
 
-    let info = FileInfo {
-      file_kind: kind.into(),
-      size: meta.len(),
-      created: meta
-        .created()
-        .unwrap_or(SystemTime::now())
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_millis(),
-      modified: meta.modified()?.duration_since(UNIX_EPOCH).unwrap_or_default().as_millis(),
-    };
+		let info = FileInfo {
+			file_kind: kind.into(),
+			size: meta.len(),
+			created: meta
+				.created()
+				.unwrap_or(SystemTime::now())
+				.duration_since(UNIX_EPOCH)
+				.unwrap_or_default()
+				.as_millis(),
+			modified: meta.modified()?.duration_since(UNIX_EPOCH).unwrap_or_default().as_millis(),
+		};
 
-    Ok(info)
-  }
+		Ok(info)
+	}
 }

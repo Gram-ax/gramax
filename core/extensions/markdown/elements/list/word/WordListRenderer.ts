@@ -1,9 +1,9 @@
-import type { IParagraphOptions } from "docx";
 import { FileChild } from "@ext/wordExport/types";
-import { WordSerializerState } from "../../../../wordExport/WordExportState";
-import { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
-import { Tag } from "../../../core/render/logic/Markdoc";
 import { JSONContent } from "@tiptap/core";
+import type { IParagraphOptions } from "docx";
+import { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
+import { WordSerializerState } from "../../../../wordExport/WordExportState";
+import { Tag } from "../../../core/render/logic/Markdoc";
 
 export class WordListRenderer {
 	static async renderList(

@@ -118,30 +118,30 @@ const UsersTable = ({ users, onChange, isExternal, repositoryId }: UsersTablePro
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
+						onChange={handleFilterChange}
 						placeholder={t("enterprise.admin.resources.users.search-placeholder")}
 						value={(usersTable.getColumn("value")?.getFilterValue() as string) ?? ""}
-						onChange={handleFilterChange}
 					/>
 				}
 			>
 				<AlertDeleteDialog
-					selectedCount={selectedUsersCount}
-					onConfirm={handleDeleteSelected}
-					hidden={!selectedUsersCount}
 					description={`${t("enterprise.admin.delete-alert")} ${selectedUsersCount} ${
 						selectedUsersCount === 1 ? t("record") : t("records")
 					}?`}
+					hidden={!selectedUsersCount}
+					onConfirm={handleDeleteSelected}
+					selectedCount={selectedUsersCount}
 				/>
 				<UserAndRoleToolbarAddBtn
+					disable={false}
+					existingUsers={users.map((user) => user.value)}
+					isExternal={isExternal}
 					key="add-user-role"
 					loadBranchesOptions={loadBranchesOptions}
-					isExternal={isExternal}
-					disable={false}
 					onAdd={handleAddUsers}
-					existingUsers={users.map((user) => user.value)}
 				/>
 			</TableToolbar>
-			<TableComponent<UsersTableColumn> table={usersTable} columns={columns} />
+			<TableComponent<UsersTableColumn> columns={columns} table={usersTable} />
 		</div>
 	);
 };

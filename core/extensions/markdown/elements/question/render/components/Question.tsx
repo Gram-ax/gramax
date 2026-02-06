@@ -2,7 +2,7 @@ import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
 import { QuestionType } from "@ext/markdown/elements/question/types";
-import { ReactNode, memo } from "react";
+import { memo, ReactNode } from "react";
 import { shallow } from "zustand/shallow";
 import { FocusState } from "../logic/QuestionsStore";
 
@@ -50,11 +50,11 @@ interface BaseQuestionProps {
 export const BaseQuestion = memo(({ children, required, focused, focusState }: BaseQuestionProps) => {
 	return (
 		<Wrapper
-			data-required={required}
 			className={classNames("question flex bg-primary-bg rounded-xl border border-secondary-border", {
 				"shadow-focus": focused && focusState !== "error",
 				"shadow-focus-error": focused && focusState === "error",
 			})}
+			data-required={required}
 		>
 			<div className="p-4" contentEditable={false}>
 				<div className="question-number flex items-center justify-center border text-secondary-fg shadow-soft-sm h-8 w-8 p-2 border-primary-border bg-secondary-bg-hover rounded-full font-medium" />
@@ -77,7 +77,7 @@ export const Question = ({ children, id, required }: BaseQuestionProps) => {
 
 	return (
 		<div className="mb-4 mt-4">
-			<BaseQuestion required={required} focused={isFocused} focusState={focusState}>
+			<BaseQuestion focused={isFocused} focusState={focusState} required={required}>
 				<div>
 					<div>{children}</div>
 				</div>

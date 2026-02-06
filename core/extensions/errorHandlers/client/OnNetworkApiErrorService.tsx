@@ -1,6 +1,6 @@
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
-import { ReactElement, createContext, useCallback, useContext } from "react";
+import { createContext, ReactElement, useCallback, useContext } from "react";
 
 export type OnNetworkApiErrorHandler = (error: NetworkApiError) => void;
 const OnNetworkApiErrorContext = createContext<OnNetworkApiErrorHandler>(undefined);

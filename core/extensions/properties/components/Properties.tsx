@@ -2,20 +2,20 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import { Property, PropertyTypes } from "@ext/properties/models";
-import { useCallback, useMemo, Dispatch, SetStateAction, useEffect } from "react";
-import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
-import combineProperties from "@ext/properties/logic/combineProperties";
-import PropertyComponent from "@ext/properties/components/Property";
+import { isMarkdownText } from "@ext/markdown/elements/pasteMarkdown/handlePasteMarkdown";
+import { ArticlePropertyWrapper } from "@ext/properties/components/ArticlePropertyWrapper";
 import AddProperty from "@ext/properties/components/Helpers/AddProperty";
+import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
+import PropertyComponent from "@ext/properties/components/Property";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
-import { isComplexProperty } from "@ext/templates/models/properties";
-import { isMarkdownText } from "@ext/markdown/elements/pasteMarkdown/handlePasteMarkdown";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import { IconButton } from "@ui-kit/Button";
-import { ArticlePropertyWrapper } from "@ext/properties/components/ArticlePropertyWrapper";
+import combineProperties from "@ext/properties/logic/combineProperties";
 import { shouldPropertyVisible } from "@ext/properties/logic/shouldPropertyVisible";
+import { Property, PropertyTypes } from "@ext/properties/models";
+import { isComplexProperty } from "@ext/templates/models/properties";
+import { IconButton } from "@ui-kit/Button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo } from "react";
 
 interface PropertiesProps {
 	properties: Property[];
@@ -104,13 +104,13 @@ const Properties = ({ properties, setProperties, hideList, isReadOnly }: Propert
 		return properties?.filter(filterProperties)?.map((property) => {
 			const button = (
 				<PropertyComponent
-					key={property.name}
-					type={property.type}
 					icon={property.icon}
-					value={property.value?.length && property.value[0].length ? property.value : property.name}
+					key={property.name}
 					name={property.name}
 					propertyStyle={property.style}
 					shouldShowValue={property.type !== PropertyTypes.flag}
+					type={property.type}
+					value={property.value?.length && property.value[0].length ? property.value : property.name}
 				/>
 			);
 
@@ -119,8 +119,8 @@ const Properties = ({ properties, setProperties, hideList, isReadOnly }: Propert
 			return (
 				<PropertyArticle
 					key={property.name}
-					property={property}
 					onSubmit={onSubmit}
+					property={property}
 					trigger={<div>{button}</div>}
 				/>
 			);
@@ -134,19 +134,19 @@ const Properties = ({ properties, setProperties, hideList, isReadOnly }: Propert
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<IconButton
-							variant="text"
-							size="xs"
-							icon="list-plus"
 							className="flex-shrink-0"
 							data-qa="qa-add-property"
+							icon="list-plus"
+							size="xs"
+							variant="text"
 						/>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="start">
 						<AddProperty
 							canAdd
-							properties={properties}
 							catalogProperties={catalogProperties}
 							onSubmit={updateHandler}
+							properties={properties}
 							setProperties={setProperties}
 						/>
 					</DropdownMenuContent>

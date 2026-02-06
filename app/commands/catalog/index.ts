@@ -7,6 +7,7 @@ import create from "./create";
 import getArticlesData from "./favorite/getArticlesData";
 import getBrotherFileNames from "./getBrotherFileNames";
 import getNameAfterMove from "./getNameAfterMove";
+import getProps from "./getProps";
 import links from "./links";
 import move from "./move";
 import remove from "./remove";
@@ -18,7 +19,6 @@ import getShareLinkData from "./share/getShareLinkData";
 import getShareTicket from "./share/getShareTicket";
 import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
-import getProps from "./getProps";
 
 const catalog = {
 	review: {

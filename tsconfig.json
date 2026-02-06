@@ -31,6 +31,7 @@
 		"moduleResolution": "bundler",
 
 		"paths": {
+			"@app/resolveModule": ["app/resolveModule/index.ts"],
 			"ics-ui-kit/*": ["node_modules/ics-ui-kit/dist/*"],
 			"@components/*": ["core/components/*"],
 			"@ui-kit/*": ["core/ui-kit/components/*"],
@@ -61,8 +62,6 @@
 		"./core/**/*",
 		"./apps/**/*",
 		"./services/**/*",
-		"./storybook/**/*",
-		"./storybook/.storybook/*",
 		"./e2e/**/*",
 		"./scripts/**/*",
 		"./**/*.config.ts"
@@ -81,7 +80,7 @@
 		".vite-cache",
 		"**/.vite-cache",
 		".git",
-		"storybook/storybook-static",
+		"./e2e-pw",
 		"services/**/Services/TSClassDiagram/files",
 		"apps/tauri/src-tauri",
 		"gx",

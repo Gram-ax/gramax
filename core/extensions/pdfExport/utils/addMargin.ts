@@ -39,16 +39,16 @@ export function addMargin(
 		prevIsObject && "attributes" in prevNode && prevNode.attributes
 			? prevNode.attributes
 			: prevIsObject && "attrs" in prevNode && prevNode.attrs
-			? prevNode.attrs
-			: null;
+				? prevNode.attrs
+				: null;
 	const currentIsObject = typeof currentNode === "object";
 	const prevName = prevIsObject && "name" in prevNode ? prevNode.name : (prevNode as JSONContent).type;
 	const currentAttributes =
 		currentIsObject && "attributes" in currentNode && currentNode.attributes
 			? currentNode.attributes
 			: currentIsObject && "attrs" in currentNode && currentNode.attrs
-			? currentNode.attrs
-			: null;
+				? currentNode.attrs
+				: null;
 
 	const currentMargin =
 		currentType === "Heading" && currentAttributes?.level

@@ -6,7 +6,10 @@ import type RuleCollection from "@ext/events/RuleCollection";
 import type Navigation from "@ext/navigation/catalog/main/logic/Navigation";
 
 export default class HiddenRules implements RuleCollection, EventHandlerCollection {
-	constructor(private _nav?: Navigation, private _customArticlePresenter?: CustomArticlePresenter) {}
+	constructor(
+		private _nav?: Navigation,
+		private _customArticlePresenter?: CustomArticlePresenter,
+	) {}
 
 	mount() {
 		this._nav.events.on("filter-item", ({ item }) => this._isItemHidden(item));

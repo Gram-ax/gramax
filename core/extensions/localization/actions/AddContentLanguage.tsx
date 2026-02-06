@@ -1,10 +1,10 @@
 import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type AddContentLanguageProps = {
 	setIsLoading: (flag: boolean) => void;

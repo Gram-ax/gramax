@@ -1,5 +1,5 @@
 import { toHtml } from "hast-util-to-html";
-import React from "react";	// for unit test
+import React from "react"; // for unit test
 
 export interface CodeLine {
 	key: string;
@@ -88,7 +88,7 @@ export const splitCodeIntoLines = (hastTree: any) => {
 
 	return lines.map((line, index) => (
 		<>
-			<span key={line.key} className="code-line" dangerouslySetInnerHTML={{ __html: line.html }} />
+			<span className="code-line" dangerouslySetInnerHTML={{ __html: line.html }} key={line.key} />
 			{index < lines.length - 1 && "\n"}
 		</>
 	));

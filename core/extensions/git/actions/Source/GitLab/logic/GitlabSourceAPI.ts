@@ -182,19 +182,16 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
 		await this._assertHasInternetAccess();
-		const isEnterprise = this._data.isEnterprise;
+		// const isEnterprise = this._data.isEnterprise;
 		try {
-			const res = await fetch(
-				`${this._data.protocol ?? "https"}://${this._data.domain}${isEnterprise ? "/api" : ""}/api/v4/${url}`,
-				{
-					...init,
-					headers: {
-						...(init?.headers ?? {}),
-						...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
-					},
-					// credentials: isEnterprise ? "include" : undefined, Will be used in future for GES Cloud
+			const res = await fetch(`${this._data.protocol ?? "https"}://${this._data.domain}/api/v4/${url}`, {
+				...init,
+				headers: {
+					...(init?.headers ?? {}),
+					...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
 				},
-			);
+				// credentials: isEnterprise ? "include" : undefined, Will be used in future for GES Cloud
+			});
 			await this._validateResponse(res);
 			return res;
 		} catch (e) {

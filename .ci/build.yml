@@ -1,36 +1,3 @@
-build-service:
-  extends: .template.docker.build.service
-  parallel:
-    matrix:
-      - SERVICE_NAME:
-          [
-            'auth',
-            'diagram-renderer',
-            'enterprise-git-proxy',
-            'git-proxy',
-            'enterprise',
-            'sso',
-            'cloud',
-          ]
-
-build-service-git-proxy-opensource:
-  extends: .template.docker.build.service
-  stage: build
-  rules:
-    - !reference [.condition, build, onlymaster, rules]
-  script:
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-    - apk add bash git
-    - . ./.ci/apps/init.sh --only-env
-    - docker build --rm
-      -f ./services/target/git-proxy/Dockerfile
-      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
-      --tag gramax/git-proxy:${VERSION_GIT_PROXY}
-      --tag gramax/git-proxy:latest
-      .
-    - docker push gramax/git-proxy:${VERSION_GIT_PROXY}
-    - docker push gramax/git-proxy:latest
-
 build-image:
   extends: .template.docker.build.image
   needs:
@@ -39,7 +6,7 @@ build-image:
   stage: build-images
   parallel:
     matrix:
-      - IMAGE_NAME: ['linux-tauri', 'playwright', 'dind-bun', 'build-dev']
+      - IMAGE_NAME: ['linux-tauri', 'playwright', 'dind-bun'] # TEMP: removed 'build-dev'
 
 build-image-dind-bun:
   extends: .template.docker.build.image
@@ -65,13 +32,6 @@ build-image-multiplatform:
     matrix:
       - IMAGE_NAME: ['base-image']
 
-build-assets-cloud:
-  extends: .template.docker.build
-  rules: !reference [.condition, build, onlymaster, rules]
-  variables:
-    SERVICE_NAME: 'assets-cloud'
-    DOCKERFILE_PATH: './services/target/cloud/Dockerfile.assets'
-
 build-web:
   extends: .template.docker.base
   stage: build
@@ -79,48 +39,66 @@ build-web:
   variables:
     SERVICE_NAME: 'web'
     DOCKERFILE_PATH: './apps/browser/Dockerfile'
+    KUBERNETES_MEMORY_REQUEST: '0.3Gi'
+    KUBERNETES_CPU_REQUEST: '0.8'
+    KUBERNETES_CPU_LIMIT: '1.2'
   script:
-    - docker build --rm -t $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
+    - |
+      if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then
+        TAG="${APP_VERSION}-dev"
+      fi
+      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+        TAG="${APP_VERSION}"
+      fi
+      echo $TAG
+    - docker build --rm
+      -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$TAG
+      -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
+      -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest-dev
+      -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:prod
+      -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:$TAG
+      -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:latest
+      -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:latest-dev
+      -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:prod
       -f $DOCKERFILE_PATH
       --metadata-file build-metadata.json
       --build-arg PRODUCTION=$PRODUCTION
       --build-arg BRANCH=$BRANCH
       --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
       .
-    - docker push $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
+        TAGS="$TAG latest prod"
+      elif [ "$CI_COMMIT_REF_NAME" = "develop" ]; then
+        TAGS="$TAG latest-dev"
+      fi
+
+      for t in $TAGS; do
+        docker push "$CI_REGISTRY_IMAGE/$SERVICE_NAME:$t"
+      done
+
+      docker logout gitlab.ics-it.ru:4567
+      docker login gitlab.ics-it.ru:4567 \
+        -u "$GX_USER" \
+        -p "$GX_TOKEN"
+
+      for t in $TAGS; do
+        docker push "gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:$t"
+      done
     - ./.ci/apps/sign.sh --container
 
-build-web-opensource:
-  extends: .template.docker.base
-  stage: build
-  rules:
-    - !reference [.condition, build, onlymaster, rules]
-  variables:
-    SERVICE_NAME: 'web'
-  script:
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-    - apk add bash git
-    - . ./.ci/apps/init.sh --only-env
-    - docker build --rm
-      -f ./apps/browser/Dockerfile
-      --build-arg BRANCH=$BRANCH
-      --build-arg PRODUCTION=$PRODUCTION
-      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
-      --tag gramax/editor:${VERSION_WEB}
-      --tag gramax/editor:latest
-      .
-    - docker push gramax/editor:${VERSION_WEB}
-    - docker push gramax/editor:latest
-
-build-next:
-  extends: .template.docker.build
+build-docportal:
+  extends: .template.docker.build.new.version
   rules: !reference [.condition, build, base, rules]
   variables:
     GIT_DEPTH: 2000
     # NEED_TO_SIGN: true
     UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'true'
-    SERVICE_NAME: 'next'
+    SERVICE_NAME: 'docportal'
     DOCKERFILE_PATH: './apps/next/next.Dockerfile'
+    KUBERNETES_MEMORY_REQUEST: '1Gi'
+    KUBERNETES_CPU_REQUEST: '1'
+    KUBERNETES_CPU_LIMIT: '2'
 
 build-blog:
   extends: .template.docker.build
@@ -144,7 +122,61 @@ build-partners:
     UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
     DOCKERFILE_PATH: './apps/next/next.Dockerfile'
 
-build-docportal:
+build-services:
+  extends: .template.docker.build.new.version.service
+  parallel:
+    matrix:
+      - SERVICE_NAME:
+          ['auth', 'git-proxy', 'enterprise', 'diagram-renderer', 'cloud']
+
+publish-cli:
+  tags:
+    - kubernetes01-gramax
+  stage: build
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
+  rules: !reference [.condition, build, onlymaster, rules]
+  when: manual
+  before_script:
+    - echo "//registry.npmjs.org/:_authToken=${NPM_PUBLISH_TOKEN}" > ~/.npmrc
+  script:
+    - npm whoami
+    - ./install-deps.sh --ci
+    - bun run --cwd ./apps/gramax-cli build
+    - cd ./apps/gramax-cli/dist
+    - npm version $(npm show gramax-cli version) --no-git-tag-version
+    - npm version patch --no-git-tag-version
+    - npm publish
+
+build-assets-cloud:
+  extends: .template.docker.build
+  rules: !reference [.condition, build, onlymaster, rules]
+  variables:
+    SERVICE_NAME: 'assets-cloud'
+    DOCKERFILE_PATH: './services/target/cloud/Dockerfile.assets'
+
+build-web-opensource:
+  extends: .template.docker.base
+  stage: build
+  rules:
+    - !reference [.condition, build, onlymaster, rules]
+  variables:
+    SERVICE_NAME: 'web'
+  script:
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - apk add bash git
+    - . ./.ci/apps/init.sh --only-env
+    - docker build --rm
+      -f ./apps/browser/Dockerfile
+      --build-arg BRANCH=$BRANCH
+      --build-arg PRODUCTION=$PRODUCTION
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      --tag gramax/editor:${VERSION_WEB}
+      --tag gramax/editor:latest
+      .
+    - docker push gramax/editor:${VERSION_WEB}
+    - docker push gramax/editor:latest
+
+build-docportal-opensource:
   extends: .template.docker.base
   rules:
     - !reference [.condition, build, onlymaster, rules]
@@ -171,27 +203,20 @@ build-docportal:
     - docker push gramax/docportal:${VERSION_DOCPORTAL}
     - docker push gramax/docportal:latest
 
-build-storybook:
-  extends: .template.docker.build
-  rules: !reference [.condition, build, storybook, rules]
-  variables:
-    SERVICE_NAME: storybook
-    DOCKERFILE_PATH: ./storybook/Dockerfile
-
-publish-cli:
-  tags:
-    - kubernetes01-gramax
+build-git-proxy-opensource:
+  extends: .template.docker.build.service
   stage: build
-  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
-  rules: !reference [.condition, build, onlymaster, rules]
-  when: manual
-  before_script:
-    - echo "//registry.npmjs.org/:_authToken=${NPM_PUBLISH_TOKEN}" > ~/.npmrc
+  rules:
+    - !reference [.condition, build, onlymaster, rules]
   script:
-    - npm whoami
-    - ./install-deps.sh --ci
-    - bun run --cwd ./apps/gramax-cli build
-    - cd ./apps/gramax-cli/dist
-    - npm version $(npm show gramax-cli version) --no-git-tag-version
-    - npm version patch --no-git-tag-version
-    - npm publish
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - apk add bash git
+    - . ./.ci/apps/init.sh --only-env
+    - docker build --rm
+      -f ./services/target/git-proxy/Dockerfile
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      --tag gramax/git-proxy:${VERSION_GIT_PROXY}
+      --tag gramax/git-proxy:latest
+      .
+    - docker push gramax/git-proxy:${VERSION_GIT_PROXY}
+    - docker push gramax/git-proxy:latest

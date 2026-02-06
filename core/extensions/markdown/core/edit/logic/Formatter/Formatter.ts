@@ -1,8 +1,9 @@
+import trimEndEmptyParagraphs from "@ext/markdown/core/edit/logic/Formatter/Utils/trimEndEmptyParagraphs";
 import MdParser from "@ext/markdown/core/Parser/MdParser/MdParser";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import trimEndEmptyParagraphs from "@ext/markdown/core/edit/logic/Formatter/Utils/trimEndEmptyParagraphs";
-import { Schema } from "@ext/markdown/core/render/logic/Markdoc";
+import { createPrivateParserContext } from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import getTagElementRenderModels from "@ext/markdown/core/render/logic/getRenderElements/getTagElementRenderModels";
+import { Schema } from "@ext/markdown/core/render/logic/Markdoc";
 import commentModifyFormatters from "@ext/markdown/elements/comment/edit/logic/commentModifyFormatters";
 import filesFormatterTransformer from "@ext/markdown/elements/file/edit/logic/filesFormatterTransformer";
 import { JSONContent } from "@tiptap/core";
@@ -25,7 +26,8 @@ class MarkdownFormatter {
 			getMarkFormatters(context),
 		);
 		const markdown = await markdownSerializer.serialize(Node.fromJSON(getSchema(), transformEditTree));
-		const tags: Record<string, Schema> = getTagElementRenderModels(context);
+		const privateContext = context ? createPrivateParserContext(context) : undefined;
+		const tags: Record<string, Schema> = getTagElementRenderModels(privateContext);
 		const mdParser = new MdParser({ tags });
 		return mdParser.backParse(markdown);
 	}

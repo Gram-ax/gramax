@@ -1,7 +1,7 @@
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
 import linkCreator from "../../render/logic/linkCreator";
 
-function linkToken(context?: ParserContext) {
+function linkToken(context?: PrivateParserContext) {
 	return {
 		mark: "link",
 		getAttrs: async (tok) => {

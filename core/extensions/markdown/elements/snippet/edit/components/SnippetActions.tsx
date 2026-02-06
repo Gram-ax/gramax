@@ -8,7 +8,7 @@ interface SnippetActionsProps {
 const SnippetActions = ({ onClickEdit }: SnippetActionsProps) => {
 	return (
 		<>
-			<ActionButton icon="pencil" tooltipText={t("edit2")} onClick={onClickEdit} />
+			<ActionButton icon="pencil" onClick={onClickEdit} tooltipText={t("edit2")} />
 		</>
 	);
 };

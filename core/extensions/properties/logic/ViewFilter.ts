@@ -1,18 +1,18 @@
+import Context from "@core/Context/Context";
 import { Article } from "@core/FileStructue/Article/Article";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
+import ViewSorter from "@ext/properties/logic/ViewSorter";
 import { Property, PropertyTypes, PropertyValue, SystemProperties, ViewRenderGroup } from "@ext/properties/models";
 import { Display } from "../models/display";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import Context from "@core/Context/Context";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import ViewSorter from "@ext/properties/logic/ViewSorter";
 
 export interface ProcessedArticle {
 	title: string;
@@ -164,13 +164,16 @@ class ViewFilter extends ViewSorter {
 			];
 		}
 
-		let groupedArticles = articles.reduce((acc, article) => {
-			const groupValue = article.groupValues[groupIndex];
-			const groupValueType = this._catalogPropMap.get(this._groupby[groupIndex])?.type;
-			const key = this._createKey(groupValue, groupValueType);
-			(acc[key] ??= []).push(article);
-			return acc;
-		}, {} as Record<string, ProcessedArticle[]>);
+		let groupedArticles = articles.reduce(
+			(acc, article) => {
+				const groupValue = article.groupValues[groupIndex];
+				const groupValueType = this._catalogPropMap.get(this._groupby[groupIndex])?.type;
+				const key = this._createKey(groupValue, groupValueType);
+				(acc[key] ??= []).push(article);
+				return acc;
+			},
+			{} as Record<string, ProcessedArticle[]>,
+		);
 
 		if (this._display === Display.Kanban) {
 			const groupProp = this._groupby?.[0];

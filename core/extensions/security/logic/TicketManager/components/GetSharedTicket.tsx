@@ -38,8 +38,8 @@ const GetSharedTicket = (props: GetSharedTicketProps) => {
 					<>
 						<h2>{t("share.name.catalog")}</h2>
 						<Checkbox
-							className="checkbox"
 							checked={showData}
+							className="checkbox"
 							onClick={() => {
 								setShowDate(!showData);
 							}}
@@ -49,10 +49,10 @@ const GetSharedTicket = (props: GetSharedTicketProps) => {
 						{!showData ? null : (
 							<StyledDiv>
 								<input
+									className={className}
+									onChange={(e) => setDate(e.target.value)}
 									type="date"
 									value={date}
-									onChange={(e) => setDate(e.target.value)}
-									className={className}
 								/>
 							</StyledDiv>
 						)}

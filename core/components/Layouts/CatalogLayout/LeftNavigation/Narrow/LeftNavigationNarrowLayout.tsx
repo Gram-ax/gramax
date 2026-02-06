@@ -1,7 +1,7 @@
+import { LEFT_NAV_CLASS } from "@app/config/const";
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import LeftSidebar from "../../../LeftSidebar/LeftSidebar";
-import { classNames } from "@components/libs/classNames";
-import { LEFT_NAV_CLASS } from "@app/config/const";
 
 const LeftNavigationNarrowLayout = styled(
 	({

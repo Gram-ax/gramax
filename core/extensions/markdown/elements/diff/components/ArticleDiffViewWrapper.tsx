@@ -1,8 +1,9 @@
+import Path from "@core/FileProvider/Path/Path";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import debounceFunction from "@core-ui/debounceFunction";
-import Path from "@core/FileProvider/Path/Path";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleDiffModeView from "@ext/markdown/elements/diff/components/ArticleDiffModeView";
@@ -11,7 +12,6 @@ import useFetchDiffData from "@ext/markdown/elements/diff/logic/hooks/useFetchDi
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { useEffect, useRef, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const DEBOUNCE_TIME = 200;
 const DEBOUNCE_SYMBOL = Symbol();
@@ -88,23 +88,19 @@ const ArticleDiffViewWrapper = (props: ArticleDiffViewWrapperProps) => {
 
 	return (
 		<ArticleDiffModeView
-			key={newPath}
-			filePath={sideBarData.data.filePath}
-			oldScope={oldScope}
-			newScope={scope}
-			oldRevision={null}
-			newRevision={null}
-			title={sideBarData.data.title}
-			oldEditTree={oldEditTree.current}
-			newEditTree={editTree.current}
-			oldContent={oldContent.current}
-			newContent={content.current}
-			changeType={sideBarData.data.status}
 			articlePath={newPath}
+			changeType={sideBarData.data.status}
+			filePath={sideBarData.data.filePath}
+			key={newPath}
+			newContent={content.current}
+			newEditTree={editTree.current}
+			newRevision={null}
+			newScope={scope}
 			oldArticlePath={oldPath === newPath ? undefined : oldPath}
-			onWysiwygUpdate={() => {
-				content.current = null;
-			}}
+			oldContent={oldContent.current}
+			oldEditTree={oldEditTree.current}
+			oldRevision={null}
+			oldScope={oldScope}
 			onMonacoUpdate={(content) => {
 				if (isReadOnly) return;
 				editTree.current = null;
@@ -122,7 +118,11 @@ const ArticleDiffViewWrapper = (props: ArticleDiffViewWrapperProps) => {
 				if (isReadOnly) return;
 				void tryGetNewData();
 			}}
+			onWysiwygUpdate={() => {
+				content.current = null;
+			}}
 			readOnly={isReadOnly}
+			title={sideBarData.data.title}
 		/>
 	);
 };

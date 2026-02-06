@@ -1,11 +1,11 @@
-import ContentEditable from "@components/Atoms/ContentEditable";
-import Icon from "@components/Atoms/Icon";
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
+import type TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import { IconButton } from "@ui-kit/Button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ReactElement, useState } from "react";
+import { type ReactElement, useState } from "react";
+import TabCase from "./TabCase";
 
 interface TabsProps {
 	isEdit?: boolean;
@@ -37,77 +37,49 @@ const Tabs = (props: TabsProps) => {
 
 	if (!childAttrs.length) return null;
 	return (
-		<div className={className} data-component="tabs">
-			{(childAttrs.length == 1 && !isEdit) || isPrint ? null : (
+		<div
+			className={classNames(className, { "print-single-tab": childAttrs.length === 1 && isPrint })}
+			data-component="tabs"
+		>
+			{(childAttrs.length === 1 && !isEdit) || isPrint ? null : (
 				<div className="switch" contentEditable="false" suppressContentEditableWarning>
 					<div className="cases flex flex-row gap-2 overflow-hidden min-w-0">
-						{childAttrs.map(({ name, icon, idx }, key) => {
-							return (
-								<div
-									key={idx}
-									onClick={() => setActiveIdx(idx)}
-									className={`case ${activeIdx == idx ? "active" : ""} ${idx}`}
-								>
-									{icon && <Icon code={icon} style={{ marginRight: "0.2em" }} />}
-									{isEdit ? (
-										<ContentEditable
-											value={name}
-											className="text"
-											deps={[childAttrs.length]}
-											onEnter={() => onTabEnter(idx)}
-											onChange={(v) => onNameUpdate(v, idx)}
-										/>
-									) : (
-										<span title={name} className="read text">
-											{name}
-										</span>
-									)}
-									{isEdit && (
-										<Tooltip>
-											<TooltipTrigger asChild>
-												<IconButton
-													key={key}
-													size="lg"
-													variant="text"
-													data-qa="qa-del-tab"
-													icon="x"
-													style={{ padding: "0", height: "auto" }}
-													className="tabs-action w-4 h-4"
-													onClick={(e) => {
-														onRemoveClick(idx);
-														setActiveIdx(0);
-														e.stopPropagation();
-													}}
-												/>
-											</TooltipTrigger>
-											<TooltipContent>
-												{childAttrs.length == 1
-													? t("editor.tabs.delete-last")
-													: t("editor.tabs.delete")}
-											</TooltipContent>
-										</Tooltip>
-									)}
-								</div>
-							);
-						})}
+						{childAttrs.map(({ name, icon, idx }, key) => (
+							<TabCase
+								activeIdx={activeIdx}
+								icon={icon}
+								idx={idx}
+								isEdit={isEdit}
+								key={key + idx}
+								name={name}
+								onClick={setActiveIdx}
+								onNameUpdate={onNameUpdate}
+								onRemoveClick={(tabIdx) => {
+									onRemoveClick?.(tabIdx);
+									setActiveIdx(0);
+								}}
+								onTabEnter={onTabEnter}
+								totalTabs={childAttrs.length}
+							/>
+						))}
 					</div>
 					{isEdit && (
 						<div className="flex flex-row gap-2">
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<IconButton
-										size="lg"
-										variant="text"
-										data-qa="qa-add-tab"
-										icon="plus"
-										disabled={childAttrs.length >= 5}
-										style={{ padding: "0", height: "auto" }}
 										className="tabs-action w-4 h-4"
+										data-qa="qa-add-tab"
+										disabled={childAttrs.length >= 5}
+										icon="plus"
 										onClick={(e) => {
 											onAddClick();
 											setActiveIdx((prev) => prev + 1);
 											e.stopPropagation();
 										}}
+										size="lg"
+										style={{ padding: "0", height: "auto" }}
+										variant="text"
 									/>
 								</TooltipTrigger>
 								<TooltipContent>{t("editor.tabs.add")}</TooltipContent>
@@ -115,16 +87,16 @@ const Tabs = (props: TabsProps) => {
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<IconButton
-										size="lg"
-										variant="text"
+										className="tabs-action w-4 h-4"
 										data-qa="qa-delete-tabs"
 										icon="trash"
-										style={{ padding: "0", height: "auto" }}
-										className="tabs-action w-4 h-4"
 										onClick={(e) => {
 											onDeleteClick();
 											e.stopPropagation();
 										}}
+										size="lg"
+										style={{ padding: "0", height: "auto" }}
+										variant="text"
 									/>
 								</TooltipTrigger>
 								<TooltipContent>{t("delete")}</TooltipContent>
@@ -156,8 +128,8 @@ export const tabsFoundElementBeforeHighlightHandler = (foundEl: HTMLElement) => 
 	);
 	if (!tabCaseClassName) return;
 
-	const tabCaseIndex = parseInt(tabCaseClassName.slice(2));
-	if (isNaN(tabCaseIndex)) return;
+	const tabCaseIndex = parseInt(tabCaseClassName.slice(2), 10);
+	if (Number.isNaN(tabCaseIndex)) return;
 
 	const neededTabActivator = tabsEl.querySelector<HTMLElement>(`.case:nth-of-type(${tabCaseIndex + 1})`);
 	if (!neededTabActivator) return;
@@ -183,47 +155,11 @@ export default styled(Tabs)`
 			padding-right: 1rem;
 			flex: 1;
 		}
+	}
 
+	&.print-single-tab {
 		.case {
-			gap: 0.1rem;
-			display: flex;
-			max-height: 34px;
-			font-weight: 400;
-			align-items: center;
-			cursor: ${(p) => (p.isEdit ? "text" : "pointer")};
-			max-width: ${(p) => `${100 / p.childAttrs.length}%`};
-
-			.read {
-				overflow: hidden;
-				text-overflow: ellipsis;
-				white-space: nowrap !important;
-				flex: 1;
-			}
-
-			.text {
-				border-bottom: 2px #ffffff0f solid;
-			}
-
-			.tabs-action {
-				flex-shrink: 0;
-				visibility: hidden;
-			}
-		}
-
-		.case:hover {
-			.text {
-				border-bottom: var(--color-text-secondary) solid 2px;
-			}
-
-			.tabs-action {
-				visibility: ${(p) => (p.isEdit ? "visible" : "hidden")};
-			}
-		}
-
-		.case.active {
-			.text {
-				border-bottom: var(--color-article-text) solid 2px;
-			}
+			display: none;
 		}
 	}
 

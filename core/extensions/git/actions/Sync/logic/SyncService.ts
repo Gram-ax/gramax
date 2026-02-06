@@ -1,7 +1,7 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import ClientSyncResult from "@ext/git/core/model/ClientSyncResult";
 

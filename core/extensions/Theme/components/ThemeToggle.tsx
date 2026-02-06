@@ -1,10 +1,12 @@
+import { topMenuItemClassName } from "@components/HomePage/TopMenu";
+import { classNames } from "@components/libs/classNames";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import Theme from "../Theme";
 import ThemeService from "./ThemeService";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
 const ThemeToggle = ({ isHomePage, className }: { isHomePage?: boolean; className?: string }) => {
 	const theme = ThemeService.value;
@@ -15,20 +17,22 @@ const ThemeToggle = ({ isHomePage, className }: { isHomePage?: boolean; classNam
 			<TooltipContent>{t("change-theme")}</TooltipContent>
 			<TooltipTrigger asChild>
 				<IconButton
+					className={classNames("p-2", {}, [topMenuItemClassName])}
+					data-testid="switch-theme"
+					icon={theme === Theme.dark ? "moon" : "sun"}
+					iconClassName="h-5 w-5 stroke-[1.6]"
+					onClick={() => ThemeService.toggleTheme(apiUrlCreator)}
 					size="lg"
 					variant="ghost"
-					iconClassName="h-5 w-5 stroke-[1.6]"
-					className="p-2"
-					icon={theme == Theme.dark ? "moon" : "sun"}
-					onClick={() => ThemeService.toggleTheme(apiUrlCreator)}
 				/>
 			</TooltipTrigger>
 		</Tooltip>
 	) : (
 		<ButtonLink
 			className={className}
+			data-testid="switch-theme"
+			iconCode={theme === Theme.dark ? "moon" : "sun"}
 			onClick={() => ThemeService.toggleTheme(apiUrlCreator)}
-			iconCode={theme == Theme.dark ? "moon" : "sun"}
 			text={t("theme")}
 		/>
 	);

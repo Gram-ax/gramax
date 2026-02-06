@@ -1,8 +1,8 @@
 import docx from "@dynamicImports/docx";
-import { TitleInfo, WordInlineChild } from "../../../../wordExport/options/WordTypes";
-import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
+import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { escapeLinkForPatcher } from "@ext/wordExport/utils/escapeLinkForPatcher";
+import type { TitleInfo, WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const linkWordLayout: WordInlineChild = async ({ state, tag, addOptions, wordRenderContext }) => {
 	const { ExternalHyperlink, InternalHyperlink } = await docx();
@@ -14,7 +14,7 @@ export const linkWordLayout: WordInlineChild = async ({ state, tag, addOptions, 
 						children: await state.renderInline(tag, { ...addOptions, style: WordFontStyles.link }),
 						anchor: generateBookmarkName(order, title, anchor),
 					}),
-			  ]
+				]
 			: await state.renderInline(tag, addOptions);
 	}
 

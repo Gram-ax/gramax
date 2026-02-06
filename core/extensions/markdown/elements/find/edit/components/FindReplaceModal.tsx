@@ -5,17 +5,17 @@ import Tooltip from "@components/Atoms/Tooltip";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
 import { isElementNearEdges } from "@ext/markdown/elements/find/edit/logic/elementNearEdges";
 import {
-	replaceSpecificHighlightedText,
 	replaceHighlightedText,
+	replaceSpecificHighlightedText,
 } from "@ext/markdown/elements/find/edit/logic/replaceText";
 import { searchPlugin } from "@ext/markdown/elements/find/edit/models/ArticleSearch";
-import React, { useState, useRef, useEffect, useCallback, ChangeEvent, RefObject, useLayoutEffect } from "react";
 import { Editor } from "@tiptap/core";
 import { EditorView } from "prosemirror-view";
-import t from "@ext/localization/locale/translate";
+import React, { ChangeEvent, RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface FindReplaceModalProps {
 	onClose: () => void;
@@ -25,10 +25,14 @@ interface FindReplaceModalProps {
 	setWholeWord: (value: boolean) => void;
 	setCaseSensitive: (value: boolean) => void;
 	setInitialFindText: (value: string) => void;
+	setReplaceText: (value: string) => void;
+	replaceIsOpen: boolean;
+	setReplaceIsOpen: (value: boolean) => void;
 	editor?: Editor;
 	className?: string;
 	selectionText?: string;
 	initialFindText?: string;
+	replaceText: string;
 	decorations: CustomDecorations[];
 	parentRef?: RefObject<HTMLDivElement>;
 }
@@ -45,13 +49,16 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		setWholeWord,
 		setInitialFindText,
 		initialFindText = "",
+		replaceText,
+		setReplaceText,
+		replaceIsOpen,
+		setReplaceIsOpen,
 		caseSensitive,
 		wholeWord,
 		parentRef,
 	} = props;
 
 	const [findText, setFindText] = useState("");
-	const [replaceText, setReplaceText] = useState("");
 	const [isActiveHighlight, setIsActiveHighlight] = useState(false);
 	const { start } = useDebounce(() => setIsActiveHighlight(true), 200);
 	const inputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +68,6 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 	const [inputWidth, setInputWidth] = useState(130);
 	const [counterWidth, setCounterWidth] = useState(20);
 	const [configIsOpen, setConfigIsOpen] = useState(false);
-	const [replaceIsOpen, setReplaceIsOpen] = useState(false);
 	const firstSearch = useRef(true);
 	const disableScroll = useRef(true);
 
@@ -269,81 +275,81 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		<div className={className}>
 			<div className="left-action">
 				<ButtonLink
-					textSize={TextSize.M}
-					iconFw={false}
 					className={"toggle-bottom-action"}
 					iconCode={`chevron-${replaceIsOpen ? "down" : "right"}`}
+					iconFw={false}
 					onClick={handleReplaceOpen}
+					textSize={TextSize.M}
 				/>
 				<div className={"divider"} />
 			</div>
 			<div className={"right-wrapper"}>
 				<div className={"right-action"}>
 					<Input
-						type={"text"}
-						placeholder={t("find2")}
-						value={findText}
-						onChange={handleOnChange}
 						className={"right-action-input"}
-						style={{ width: inputWidth }}
+						onChange={handleOnChange}
+						placeholder={t("find2")}
 						ref={inputRef}
+						style={{ width: inputWidth }}
+						type={"text"}
+						value={findText}
 					/>
 					<div className={"counter to-middle"} ref={counterRef} style={{ width: counterWidth }}>
 						{findText && <span>{counterText}</span>}
 					</div>
 					<div className="divider" />
 					<ButtonLink
-						textSize={TextSize.M}
-						iconFw={false}
 						className={"to-middle"}
-						onClick={handleUpElement}
 						iconCode={"chevron-up"}
+						iconFw={false}
+						onClick={handleUpElement}
+						textSize={TextSize.M}
 					/>
 					<ButtonLink
-						textSize={TextSize.M}
-						iconFw={false}
-						onClick={handleDownElement}
 						className={"to-middle"}
 						iconCode={"chevron-down"}
+						iconFw={false}
+						onClick={handleDownElement}
+						textSize={TextSize.M}
 					/>
 					<div className={"filter-item to-middle"}>
 						<Tooltip content={t("filter")}>
 							<ButtonLink
-								textSize={TextSize.M}
-								iconFw={false}
-								onClick={handleOpenConfig}
 								className={"to-middle"}
 								iconCode={"list-filter"}
+								iconFw={false}
+								onClick={handleOpenConfig}
+								textSize={TextSize.M}
 							/>
 						</Tooltip>
 
 						{(wholeWord || caseSensitive) && (
-							<div onClick={handleOpenConfig} className={"filter-counter"}>
+							<div className={"filter-counter"} onClick={handleOpenConfig}>
 								{[wholeWord, caseSensitive].filter(Boolean).length}
 							</div>
 						)}
 					</div>
 
 					<ButtonLink
-						onClick={onClose}
-						textSize={TextSize.M}
-						iconFw={false}
 						className={"to-middle"}
 						iconCode={"x"}
+						iconFw={false}
+						onClick={onClose}
+						textSize={TextSize.M}
 					/>
 				</div>
 				{configIsOpen && (
 					<div className={"right-action checkbox-view"}>
 						<Checkbox
-							className={"checkbox-item"}
 							checked={caseSensitive}
+							className={"checkbox-item"}
 							onClick={() => setCaseSensitive(!caseSensitive)}
 						>
 							<span>{t("caseSensitive")}</span>
 						</Checkbox>
 						<Checkbox
-							className={"checkbox-item"}
 							checked={wholeWord}
+							className={"checkbox-item"}
 							onClick={() => setWholeWord(!wholeWord)}
 						>
 							<span>{t("wholeWord")}</span>
@@ -353,30 +359,30 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 				{replaceIsOpen && (
 					<div className={"right-action replace-view"}>
 						<Input
-							type={"text"}
-							placeholder={t("replace")}
-							value={replaceText}
-							onChange={handleOnReplaceChange}
 							className={"right-replace-input"}
+							onChange={handleOnReplaceChange}
+							placeholder={t("replace")}
+							type={"text"}
+							value={replaceText}
 						/>
 						<div className="divider" />
 						<Tooltip content={t("replace")}>
 							<ButtonLink
-								textSize={TextSize.M}
-								iconFw={false}
 								className={"to-middle"}
-								onClick={handleReplace}
 								iconCode={"replace"}
+								iconFw={false}
+								onClick={handleReplace}
+								textSize={TextSize.M}
 							/>
 						</Tooltip>
 
 						<Tooltip content={t("replaceAll")}>
 							<ButtonLink
-								textSize={TextSize.M}
-								iconFw={false}
-								onClick={handleReplaceAll}
 								className={"to-middle"}
 								iconCode={"replace-all"}
+								iconFw={false}
+								onClick={handleReplaceAll}
+								textSize={TextSize.M}
 							/>
 						</Tooltip>
 					</div>

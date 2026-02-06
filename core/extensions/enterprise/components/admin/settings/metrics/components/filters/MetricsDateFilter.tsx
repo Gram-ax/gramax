@@ -2,11 +2,13 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import t from "@ext/localization/locale/translate";
 import { Calendar } from "@ui-kit/Calendar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuTriggerButton } from "@ui-kit/Dropdown";
+import { Icon } from "@ui-kit/Icon";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
+import styled from "@emotion/styled";
 import { enUS, ru } from "date-fns/locale";
-import { FC, useMemo, useState } from "react";
-import { getDateRangeForInterval, MetricsInterval, PresetInterval } from "../../utils";
+import { type FC, useMemo, useState } from "react";
+import { getDateRangeForInterval, type MetricsInterval, type PresetInterval } from "../../utils";
 
 interface MetricsDateFilterProps {
 	interval: MetricsInterval;
@@ -20,22 +22,33 @@ type PresetOption = {
 	label: string;
 };
 
+const presetOptions: PresetOption[] = [
+	{ key: "day", label: t("metrics.filters.date.today") },
+	{ key: "yesterday", label: t("metrics.filters.date.yesterday") },
+	{ key: "thisWeek", label: t("metrics.filters.date.this-week") },
+	{ key: "week", label: t("metrics.filters.date.last-7-days") },
+	{ key: "last28Days", label: t("metrics.filters.date.last-28-days") },
+	{ key: "month", label: t("metrics.filters.date.this-month") },
+	{ key: "lastMonth", label: t("metrics.filters.date.last-month") },
+	{ key: "year", label: t("metrics.filters.date.this-year") },
+];
+
+const StyledDropdownMenuTriggerButton = styled(DropdownMenuTriggerButton)`
+	&&,
+	&&:hover,
+	&&:active,
+	&&:focus,
+	&&[data-state="open"] {
+		background-color: var(--color-black);
+		color: var(--color-white);
+	}
+`;
+
 const MetricsDateFilter: FC<MetricsDateFilterProps> = ({ interval, disabled, dateRange, onChange }) => {
 	const [isOpen, setIsOpen] = useState(false);
 
 	const language = LanguageService.currentUi();
 	const calendarLocale = language === "ru" ? ru : enUS;
-
-	const presetOptions: PresetOption[] = [
-		{ key: "day", label: t("metrics.filters.date.today") },
-		{ key: "yesterday", label: t("metrics.filters.date.yesterday") },
-		{ key: "thisWeek", label: t("metrics.filters.date.this-week") },
-		{ key: "week", label: t("metrics.filters.date.last-7-days") },
-		{ key: "last28Days", label: t("metrics.filters.date.last-28-days") },
-		{ key: "month", label: t("metrics.filters.date.this-month") },
-		{ key: "lastMonth", label: t("metrics.filters.date.last-month") },
-		{ key: "year", label: t("metrics.filters.date.this-year") },
-	];
 
 	const currentDateRange = useMemo(
 		() => ({
@@ -59,32 +72,33 @@ const MetricsDateFilter: FC<MetricsDateFilterProps> = ({ interval, disabled, dat
 	};
 
 	const getDisplayValue = () => {
-		if (interval === "custom") {
-			return `${dayjs(currentDateRange.from).locale(language).format("MMM D")} - ${dayjs(currentDateRange.to)
-				.locale(language)
-				.format("MMM D, YYYY")}`;
-		}
-		const preset = presetOptions.find((p) => p.key === interval);
-		return preset?.label || t("metrics.filters.date.today");
+		const formatter = new Intl.DateTimeFormat(language, {
+			year: "numeric",
+			month: "short",
+			day: "numeric",
+		});
+		return formatter.formatRange(currentDateRange.from, currentDateRange.to);
 	};
 
 	return (
-		<DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+		<DropdownMenu onOpenChange={setIsOpen} open={isOpen}>
 			<DropdownMenuTrigger asChild>
-				<DropdownMenuTriggerButton variant="outline" disabled={disabled} className="min-w-[200px]">
+				<StyledDropdownMenuTriggerButton disabled={disabled} variant="outline">
+					<Icon icon="calendar" />
 					{getDisplayValue()}
-				</DropdownMenuTriggerButton>
+				</StyledDropdownMenuTriggerButton>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="p-0">
 				<div className="flex">
 					<div className="flex flex-col border-r min-w-[150px]">
 						{presetOptions.map((preset) => (
 							<button
-								key={preset.key}
-								onClick={() => handlePresetClick(preset.key)}
 								className={`px-4 py-2 text-left text-sm hover:bg-secondary-bg-hover transition-colors ${
 									interval === preset.key ? "bg-primary-bg-hover font-medium" : ""
 								}`}
+								key={preset.key}
+								onClick={() => handlePresetClick(preset.key)}
+								type="button"
 							>
 								{preset.label}
 							</button>
@@ -92,12 +106,12 @@ const MetricsDateFilter: FC<MetricsDateFilterProps> = ({ interval, disabled, dat
 					</div>
 					<div>
 						<Calendar
-							mode="range"
-							locale={calendarLocale}
-							selected={currentDateRange}
-							onSelect={handleCalendarChange}
 							className="rounded-md border-0"
 							disabled={{ after: new Date() }}
+							locale={calendarLocale}
+							mode="range"
+							onSelect={handleCalendarChange}
+							selected={currentDateRange}
 						/>
 					</div>
 				</div>

@@ -12,7 +12,7 @@ const Wrapper = styled.span`
 
 const Warning = styled.span`
 	margin-left: 2px;
-`
+`;
 
 const SyncLayout = styled(
 	({
@@ -38,13 +38,13 @@ const SyncLayout = styled(
 		return (
 			<span className={className} style={style}>
 				<StatusBarElement
-					onClick={onClick}
 					className="sync-icons"
+					disable={syncProccess}
+					iconClassName={"rotate-icon" + (syncProccess ? " rotate" : "")}
 					iconCode="refresh-cw"
 					iconStrokeWidth="1.6"
-					iconClassName={"rotate-icon" + (syncProccess ? " rotate" : "")}
+					onClick={onClick}
 					tooltipText={sourceInvalid ? err : ok}
-					disable={syncProccess}
 				>
 					<Wrapper>
 						{sourceInvalid && <Warning>!</Warning>}

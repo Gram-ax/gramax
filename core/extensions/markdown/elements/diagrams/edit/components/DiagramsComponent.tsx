@@ -1,14 +1,14 @@
+import BlockActionPanel from "@components/BlockActionPanel";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import DiagramActions from "@ext/markdown/elements/diagrams/edit/components/DiagramActions";
+import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
+import { resolveFloat } from "@ext/markdown/elements/float/edit/logic/resolveFloat";
 import { NodeViewProps } from "@tiptap/react";
 import { ReactElement, useRef, useState } from "react";
 import DiagramData from "../../component/DiagramData";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import BlockActionPanel from "@components/BlockActionPanel";
-import DiagramActions from "@ext/markdown/elements/diagrams/edit/components/DiagramActions";
-import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import { resolveFloat } from "@ext/markdown/elements/float/edit/logic/resolveFloat";
 
 const DIAGRAMS_ACTIONS_OPTIONS = {
 	comment: true,
@@ -59,39 +59,39 @@ const DiagramComponent = (props: NodeViewProps): ReactElement => {
 	};
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElement} props={props} data-float={float} data-drag-handle>
+		<NodeViewContextableWrapper data-drag-handle data-float={float} props={props} ref={hoverElement}>
 			<BlockActionPanel
-				isSignature={node.attrs?.title?.length > 0}
-				hoverElementRef={hoverElement}
-				updateAttributes={updateAttributes}
-				signatureText={node.attrs.title}
-				signatureRef={signatureRef}
 				actionsOptions={DIAGRAMS_ACTIONS_OPTIONS}
-				hasSignature={hasSignature}
-				setHasSignature={setHasSignature}
 				getPos={getPos}
+				hasSignature={hasSignature}
+				hoverElementRef={hoverElement}
+				isSignature={node.attrs?.title?.length > 0}
 				rightActions={
 					isEditable && (
 						<DiagramActions
 							editor={editor}
 							node={node}
 							openEditor={openEditor}
-							signatureRef={signatureRef}
 							setHasSignature={setHasSignature}
+							signatureRef={signatureRef}
 						/>
 					)
 				}
+				setHasSignature={setHasSignature}
+				signatureRef={signatureRef}
+				signatureText={node.attrs.title}
+				updateAttributes={updateAttributes}
 			>
 				<DiagramData
+					commentId={node.attrs.comment?.id}
+					content={node.attrs.content}
+					diagramName={node.attrs.diagramName}
+					height={node.attrs.height}
 					noEm={isEditable}
 					openEditor={openEditor}
-					title={node.attrs.title}
 					src={node.attrs.src}
-					content={node.attrs.content}
+					title={node.attrs.title}
 					width={node.attrs.width}
-					height={node.attrs.height}
-					diagramName={node.attrs.diagramName}
-					commentId={node.attrs.comment?.id}
 				/>
 			</BlockActionPanel>
 		</NodeViewContextableWrapper>

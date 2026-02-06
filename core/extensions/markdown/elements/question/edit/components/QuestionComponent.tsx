@@ -1,17 +1,17 @@
+import HoverableActions from "@components/controls/HoverController/HoverableActions";
+import generateUniqueID from "@core/utils/generateUniqueID";
+import t from "@ext/localization/locale/translate";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import QuestionActions from "@ext/markdown/elements/question/edit/components/QuestionActions";
+import { answerTypeByQuestionType } from "@ext/markdown/elements/question/edit/logic/answerTypeByQuestionType";
+import { BaseQuestion } from "@ext/markdown/elements/question/render/components/Question";
 import { NodeViewContent, NodeViewProps } from "@tiptap/react";
 import { Button } from "@ui-kit/Button";
 import { memo, useCallback, useRef, useState } from "react";
-import generateUniqueID from "@core/utils/generateUniqueID";
-import { answerTypeByQuestionType } from "@ext/markdown/elements/question/edit/logic/answerTypeByQuestionType";
-import { BaseQuestion } from "@ext/markdown/elements/question/render/components/Question";
-import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import QuestionActions from "@ext/markdown/elements/question/edit/components/QuestionActions";
-import t from "@ext/localization/locale/translate";
 
 const QuestionBottom = ({ addAnswer }: { addAnswer: () => void }) => {
 	return (
-		<Button variant="outline" startIcon="plus" className="ml-auto w-full" onPointerDown={addAnswer}>
+		<Button className="ml-auto w-full" onPointerDown={addAnswer} startIcon="plus" variant="outline">
 			{t("editor.question.answer.add")}
 		</Button>
 	);
@@ -48,15 +48,15 @@ const QuestionComponent = (props: NodeViewProps) => {
 	}, [editor, getPos, node.attrs.id, node.attrs.type]);
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
+		<NodeViewContextableWrapper props={props} ref={hoverElementRef}>
 			<div className="mb-4 mt-4">
 				<HoverableActions
 					hoverElementRef={hoverElementRef}
-					setIsHovered={setIsHovered}
 					isHovered={isHovered}
-					rightActions={<QuestionActions node={node} getPos={getPos} editor={editor} />}
+					rightActions={<QuestionActions editor={editor} getPos={getPos} node={node} />}
+					setIsHovered={setIsHovered}
 				>
-					<Question addAnswer={addAnswer} required={node.attrs.required} id={node.attrs.id} />
+					<Question addAnswer={addAnswer} id={node.attrs.id} required={node.attrs.required} />
 				</HoverableActions>
 			</div>
 		</NodeViewContextableWrapper>

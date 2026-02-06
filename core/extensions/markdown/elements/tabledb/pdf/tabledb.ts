@@ -1,5 +1,5 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { TableWithRefs } from "@core/components/tableDB/table";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { DbTableRenderer } from "@ext/markdown/elements/tabledb/pdf/DbTableRender";
 
 export async function tabledbHandler(node: Tag) {

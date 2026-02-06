@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import Context from "@core/Context/Context";
+import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import RuleProvider from "@ext/rules/RuleProvider";
 import { ArticleLanguage, isArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 import { PropertyFilter, SearchResult } from "@ext/serach/Searcher";
@@ -47,7 +47,7 @@ const searchCommand: Command<
 				? multiLayoutSearcher<SearchResult[]>({
 						searcher: search,
 						signal,
-				  })
+					})
 				: search;
 
 			return (await doSearch(query)) ?? [];
@@ -71,7 +71,7 @@ const searchCommand: Command<
 				? multiLayoutSearcher<SearchResult[]>({
 						searcher: search,
 						signal,
-				  })
+					})
 				: search;
 
 			return (await doSearch(query)) ?? [];

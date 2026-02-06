@@ -1,8 +1,8 @@
-import { AvatarFallback as UiKitAvatarFallback } from "ics-ui-kit/components/avatar";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { FC } from "react";
-import { getUniqueColor } from "@ui-kit/Avatar";
 import styled from "@emotion/styled";
+import { getUniqueColor } from "@ui-kit/Avatar";
+import { AvatarFallback as UiKitAvatarFallback } from "ics-ui-kit/components/avatar";
+import { FC } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitAvatarFallbackProps = ExtractComponentGeneric<typeof UiKitAvatarFallback>;
 

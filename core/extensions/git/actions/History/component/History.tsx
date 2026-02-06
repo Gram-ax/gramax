@@ -4,9 +4,9 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import LeftNavViewContent, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { useEffect, useState } from "react";
@@ -57,7 +57,7 @@ const History = (props: HistoryProps) => {
 	};
 
 	return (
-		<ModalLayout isOpen={isOpen} onClose={onCloseModal} contentWidth={data ? "L" : null}>
+		<ModalLayout contentWidth={data ? "L" : null} isOpen={isOpen} onClose={onCloseModal}>
 			<div className={className}>
 				{data ? (
 					<LeftNavViewContent
@@ -66,12 +66,12 @@ const History = (props: HistoryProps) => {
 								leftSidebar: (
 									<div className={className}>
 										<div style={{ padding: "1rem" }}>
-											<User name={model.author} date={model.date} />
+											<User date={model.date} name={model.author} />
 											<div className="file-path">
 												<DiffContent
-													showDiff={showDiff}
-													isCode={false}
 													changes={model.filePath.diff ?? [{ value: model.filePath.path }]}
+													isCode={false}
+													showDiff={showDiff}
 												/>
 											</div>
 										</div>
@@ -80,7 +80,7 @@ const History = (props: HistoryProps) => {
 								content: (
 									<div className={className}>
 										<div className="diff-content">
-											<DiffContent showDiff={showDiff} changes={model.content ?? []} />
+											<DiffContent changes={model.content ?? []} showDiff={showDiff} />
 										</div>
 									</div>
 								),

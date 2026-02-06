@@ -1,13 +1,13 @@
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { Icon } from "@ui-kit/Icon";
+import { Loader } from "@ui-kit/Loader";
 import { Toast, ToastAction } from "@ui-kit/Toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Loader } from "@ui-kit/Loader";
 import { useCallback, useMemo } from "react";
 import { updateCheck } from "../window/commands";
 import { ErrorIcon } from "./UpdateIcons";
-import useUpdateChecker, { UpdateAcceptance, UpdateStatus, type UpdaterErrorCode } from "./useUpdateChecker";
+import useUpdateChecker, { UpdateAcceptance, type UpdaterErrorCode, UpdateStatus } from "./useUpdateChecker";
 
 const Wrapper = styled.div`
 	position: absolute;
@@ -71,8 +71,8 @@ const UpdateChecker = () => {
 			<Wrapper>
 				<Toast
 					{...commonToastProps}
-					title={<span className="text-muted">{t("app.update.updating")}</span>}
 					primaryAction={<Loader size="md" />}
+					title={<span className="text-muted">{t("app.update.updating")}</span>}
 				/>
 			</Wrapper>
 		);
@@ -87,9 +87,7 @@ const UpdateChecker = () => {
 			<TooltipProvider>
 				<Wrapper>
 					<Toast
-						title={t("app.update.error")}
-						focus="low"
-						icon={<ErrorIcon fw code="alert-circle" />}
+						closeAction
 						description={
 							<span className="flex items-center gap-1">
 								{name}{" "}
@@ -106,15 +104,17 @@ const UpdateChecker = () => {
 								</Tooltip>
 							</span>
 						}
-						status="error"
-						size="lg"
-						closeAction
+						focus="low"
+						icon={<ErrorIcon code="alert-circle" fw />}
 						onClose={resetUpdate}
 						primaryAction={
 							<ToastAction onClick={retry}>
 								<span>{t("app.update.retry")}</span>
 							</ToastAction>
 						}
+						size="lg"
+						status="error"
+						title={t("app.update.error")}
 					/>
 				</Wrapper>
 			</TooltipProvider>
@@ -125,12 +125,12 @@ const UpdateChecker = () => {
 		<Wrapper>
 			<Toast
 				{...commonToastProps}
-				title={t("app.update.available")}
 				primaryAction={
 					<ToastAction onClick={() => (state.state === UpdateStatus.Ready ? install() : accept())}>
 						<Icon icon="refresh-ccw" size="sm" />
 					</ToastAction>
 				}
+				title={t("app.update.available")}
 			/>
 		</Wrapper>
 	);

@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: ?? */
+
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import ShowPublishBar from "@components/Layouts/StatusBar/Extensions/ShowPublishBar";
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
@@ -7,9 +9,10 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
 import ProtectedBranch from "@ext/catalog/actions/ProtectedBranch";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchTab from "@ext/git/actions/Branch/components/BranchTab";
@@ -19,13 +22,13 @@ import ShowRevisionsTab from "@ext/git/actions/Revisions/components/RevisionsTab
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import MergeRequestTab from "@ext/git/core/GitMergeRequest/components/MergeRequestTab";
 import ShowMergeRequest from "@ext/git/core/GitMergeRequest/components/ShowMergeRequest";
+import { useMergeRequestStore } from "@ext/git/core/GitMergeRequest/logic/store/MergeRequestStore";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import PublishTab from "@ext/git/core/GitPublish/PublishTab";
 import t from "@ext/localization/locale/translate";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import { useEffect, useRef, useState } from "react";
 import ConnectStorage from "../../../../../extensions/catalog/actions/ConnectStorage";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import Branch from "../../../../../extensions/git/actions/Branch/components/Branch";
 import Sync from "../../../../../extensions/git/actions/Sync/components/Sync";
 import StatusBar from "../../StatusBar";
@@ -62,14 +65,20 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 
 	const [branch, setBranch] = useState<GitBranchData>(null);
 	const [branchError, setBranchError] = useState<DefaultError>(null);
-	const [mergeRequestIsDraft, setMergeRequestIsDraft] = useState(false);
-	const [mergeRequest, setMergeRequest] = useState<MergeRequest>(null);
+	const { mergeRequestIsDraft, mergeRequest, setMergeRequestIsDraft, setMergeRequest } = useMergeRequestStore(
+		(state) => ({
+			mergeRequestIsDraft: state.isDraft,
+			mergeRequest: state.mergeRequest,
+			setMergeRequestIsDraft: state.setIsDraft,
+			setMergeRequest: state.setMergeRequest,
+		}),
+	);
 	const mergeRequestRef = useRef<MergeRequest>(null);
-	const { catalogName, repositoryError, resolvedFilterProperty } = useCatalogPropsStore(
+	const { catalogName, repositoryError, resolvedFilterPropertyValue } = useCatalogPropsStore(
 		(state) => ({
 			catalogName: state.data.name,
 			repositoryError: state.data.repositoryError,
-			resolvedFilterProperty: state.data.resolvedFilterProperty,
+			resolvedFilterPropertyValue: state.data.resolvedFilterPropertyValue,
 		}),
 		"shallow",
 	);
@@ -91,7 +100,7 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 		const mr = data || branch?.mergeRequest;
 
 		setMergeRequestIsDraft(!!data && !branch?.mergeRequest);
-		setMergeRequest(mr);
+		setMergeRequest(mr ?? null);
 
 		const mergeRequestWasBefore = !!mergeRequestRef.current;
 
@@ -104,6 +113,7 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 			NavigationTabsService.setBottom(LeftNavigationTab.MergeRequest);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: fixed in future
 	useEffect(() => {
 		const onUpdateBranch = (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
 			setupMergeRequestState(branch, caller);
@@ -123,8 +133,9 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 			BranchUpdaterService.removeListener(onUpdateBranch);
 			BranchUpdaterService.removeOnErrorListener(onError);
 		};
-	}, [isStorageConnected, isRepoError, catalogName]);
+	}, [isStorageConnected, isRepoError, isNext, catalogName]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		NavigationTabsService.setBottom(LeftNavigationTab.None);
 	}, [catalogName]);
@@ -132,9 +143,10 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 	const bar = () => {
 		if (!isStorageConnected) return [<ConnectStorage key={0} />];
 
-		if (isRepoError || branchError) {
+		if (isRepoError) {
 			return [
 				<RepositoryBroken
+					error={repositoryError}
 					key={0}
 					trigger={
 						<StatusBarElement
@@ -143,7 +155,6 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 							tooltipText={t("git.error.broken.tooltip")}
 						/>
 					}
-					error={isRepoError ? repositoryError : branchError}
 				/>,
 			];
 		}
@@ -170,43 +181,41 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 		// key to force re-render when catalog changes (for desktop)
 		<Wrapper key={catalogName}>
 			<MergeRequestTab
-				mergeRequest={mergeRequest}
 				isDraft={mergeRequestIsDraft}
+				mergeRequest={mergeRequest}
 				setShow={(show) =>
 					NavigationTabsService.setBottom(show ? LeftNavigationTab.MergeRequest : LeftNavigationTab.None)
 				}
 				show={bottomTab === LeftNavigationTab.MergeRequest}
 			/>
 			<BranchTab
-				show={bottomTab === LeftNavigationTab.Branch}
-				setShow={(show) =>
-					NavigationTabsService.setBottom(show ? LeftNavigationTab.Branch : LeftNavigationTab.None)
-				}
 				branch={branch}
 				onClose={() => NavigationTabsService.setBottom(LeftNavigationTab.None)}
 				onMergeRequestCreate={() => setupMergeRequestState(branch, OnBranchUpdateCaller.MergeRequest)}
+				setShow={(show) =>
+					NavigationTabsService.setBottom(show ? LeftNavigationTab.Branch : LeftNavigationTab.None)
+				}
+				show={bottomTab === LeftNavigationTab.Branch}
 			/>
 			<RevisionsTab
-				show={bottomTab === LeftNavigationTab.Revisions}
 				setShow={(show) =>
 					NavigationTabsService.setBottom(show ? LeftNavigationTab.Revisions : LeftNavigationTab.None)
 				}
+				show={bottomTab === LeftNavigationTab.Revisions}
 			/>
 			<PublishTab
-				show={bottomTab === LeftNavigationTab.Publish}
 				setShow={(show) =>
 					NavigationTabsService.setBottom(show ? LeftNavigationTab.Publish : LeftNavigationTab.None)
 				}
+				show={bottomTab === LeftNavigationTab.Publish}
 			/>
 			<StatusBar
-				padding={padding}
 				leftElements={
-					!isRepoError && isStorageConnected && !branchError && !resolvedFilterProperty
+					!isRepoError && isStorageConnected && !branchError && !resolvedFilterPropertyValue
 						? [
 								<Branch
-									key={LeftNavigationTab.Branch}
-									show={bottomTab === LeftNavigationTab.Branch}
 									branch={branch}
+									key={LeftNavigationTab.Branch}
 									onClick={() => {
 										const tab =
 											bottomTab === LeftNavigationTab.Branch
@@ -215,11 +224,12 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 
 										NavigationTabsService.setBottom(tab);
 									}}
+									show={bottomTab === LeftNavigationTab.Branch}
 								/>,
 								<ShowMergeRequest
+									isShow={bottomTab === LeftNavigationTab.MergeRequest}
 									key={LeftNavigationTab.MergeRequest}
 									mergeRequest={mergeRequest}
-									isShow={bottomTab === LeftNavigationTab.MergeRequest}
 									setShow={() => {
 										const tab =
 											bottomTab === LeftNavigationTab.MergeRequest
@@ -230,8 +240,8 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 									}}
 								/>,
 								<ShowRevisionsTab
-									key={LeftNavigationTab.Revisions}
 									isShow={bottomTab === LeftNavigationTab.Revisions}
+									key={LeftNavigationTab.Revisions}
 									setShow={() => {
 										const tab =
 											bottomTab === LeftNavigationTab.Revisions
@@ -241,9 +251,10 @@ const ArticleStatusBar = ({ padding }: { padding?: string }) => {
 										NavigationTabsService.setBottom(tab);
 									}}
 								/>,
-						  ]
+							]
 						: []
 				}
+				padding={padding}
 				rightElements={bar()}
 			/>
 		</Wrapper>

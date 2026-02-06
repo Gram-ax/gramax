@@ -1,6 +1,6 @@
-import t from "@ext/localization/locale/translate";
 import docx from "@dynamicImports/docx";
-import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import t from "@ext/localization/locale/translate";
+import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const seeWordLayout: WordBlockChild = async ({ tag, addOptions }) => {
 	const { InternalHyperlink, Paragraph, TextRun } = await docx();

@@ -1,13 +1,13 @@
-import styled from "@emotion/styled";
-import { forwardRef, MutableRefObject, ReactElement, useLayoutEffect, useRef, useState } from "react";
-import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import t from "@ext/localization/locale/translate";
 import Image from "@components/Atoms/Image/Image";
-import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
+import { forwardRef, MutableRefObject, ReactElement, useLayoutEffect, useRef, useState } from "react";
 
 interface DrawioProps {
 	id: string;
@@ -56,7 +56,10 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 	}, [width, height]);
 
 	useGetResource(
-		(buffer) => {
+		(buffer, resourceError) => {
+			if (resourceError) {
+				return setIsError(true);
+			}
 			if (!buffer || !buffer.byteLength) return setIsError(true);
 			setIsLoaded(false);
 			setSrc(new Blob([buffer], { type: resolveFileKind(buffer) }));
@@ -68,27 +71,27 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 	);
 
 	if (!src || isError)
-		return <DiagramError error={{ message: t("diagram.error.cannot-get-data") }} diagramName="diagrams.net" />;
+		return <DiagramError diagramName="diagrams.net" error={{ message: t("diagram.error.cannot-get-data") }} />;
 
 	return (
-		<div ref={parentRef} data-qa="qa-drawio">
+		<div data-qa="qa-drawio" ref={parentRef}>
 			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
-				<Skeleton isLoaded={isLoaded} width="100%" height={size?.height}>
+				<Skeleton height={size?.height} isLoaded={isLoaded} width="100%">
 					<div className={className} data-focusable="true">
 						<div className="drawio">
 							<Image
-								ref={ref}
 								id={id}
-								realSrc={src}
-								modalTitle={title}
-								src={imageSrc}
-								onLoad={onLoad}
 								modalEdit={openEditor}
 								modalStyle={{
 									backgroundColor: "var(--color-diagram-bg)",
 									borderRadius: "var(--radius-large)",
 									padding: "20px",
 								}}
+								modalTitle={title}
+								onLoad={onLoad}
+								realSrc={src}
+								ref={ref}
+								src={imageSrc}
 							/>
 						</div>
 					</div>

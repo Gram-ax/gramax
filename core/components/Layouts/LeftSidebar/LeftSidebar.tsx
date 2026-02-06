@@ -26,11 +26,11 @@ const LeftSidebar = (props: LeftSidebarProps) => {
 			{sidebarTop}
 			<DndProvider backend={backend} options={options}>
 				<Scrollable
-					style={style}
-					showTopBottomShadow={shadow}
 					boxShadowStyles={boxShadowStyles}
 					onMouseEnter={onContentMouseEnter}
 					onMouseLeave={onContentMouseLeave}
+					showTopBottomShadow={shadow}
+					style={style}
 				>
 					{children}
 				</Scrollable>

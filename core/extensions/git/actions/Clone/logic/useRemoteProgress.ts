@@ -1,7 +1,7 @@
+import { useRouter } from "@core/Api/useRouter";
 import { useApi } from "@core-ui/hooks/useApi";
 import useInterval from "@core-ui/hooks/useInterval";
 import useWatch from "@core-ui/hooks/useWatch";
-import { useRouter } from "@core/Api/useRouter";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { RemoteProgress, type RemoteProgressPercentage } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { useCallback, useEffect, useState } from "react";
@@ -22,6 +22,9 @@ const getPercent = (progress: RemoteProgress, firstReceived: number) => {
 	}
 	if (progress.type === "checkout") {
 		return Math.round((progress.data.checkouted / progress.data.total) * 100);
+	}
+	if (progress.type === "lfs") {
+		return Math.round((progress.data.bytesHandled / progress.data.totalBytes) * 100);
 	}
 };
 
@@ -48,7 +51,7 @@ const useRemoteProgress = (
 				? {
 						...data,
 						percentage: getPercent(data, firstReceived),
-				  }
+					}
 				: null;
 		},
 	});

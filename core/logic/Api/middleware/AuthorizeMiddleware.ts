@@ -1,9 +1,9 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Query from "@core/Api/Query";
+import type Query from "@core/Api/Query";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
-import Context from "../../Context/Context";
-import ApiRequest from "../ApiRequest";
-import ApiResponse from "../ApiResponse";
+import type Context from "../../Context/Context";
+import type ApiRequest from "../ApiRequest";
+import type ApiResponse from "../ApiResponse";
 import Middleware from "./Middleware";
 
 export class AuthorizeMiddleware extends Middleware {
@@ -13,12 +13,10 @@ export class AuthorizeMiddleware extends Middleware {
 
 	async Process(req: ApiRequest, res: ApiResponse): Promise<void> {
 		const isNext = getExecutingEnvironment() === "next";
+		const query = req.query as Query;
 		const ctx = isNext
-			? await this._app.contextFactory.from({ req, res, query: req.query })
-			: await this._app.contextFactory.fromBrowser({
-					language: resolveLanguage(),
-					query: req.query as Query,
-			  });
+			? await this._app.contextFactory.from({ req, res, query })
+			: await this._app.contextFactory.fromBrowser({ language: resolveLanguage(), query });
 		if (!ctx.user.isLogged) {
 			setUnauthorized(res);
 			return;

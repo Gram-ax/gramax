@@ -1,13 +1,13 @@
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import useHover from "@core-ui/hooks/useHover";
+import useWatch from "@core-ui/hooks/useWatch";
+import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
 import { NodeModel, RenderParams, useDragOver } from "@minoru/react-dnd-treeview";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
 import NavigationItem from "../../main/render/Item";
-import useWatch from "@core-ui/hooks/useWatch";
-import useHover from "@core-ui/hooks/useHover";
 import LeftExtensions from "./LeftExtensions";
 import RightExtensions from "./RightExtensions";
-import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
 
 interface NavItemProps {
 	node: NodeModel<ItemLink>;
@@ -88,11 +88,11 @@ const NavItem = React.memo(
 			() =>
 				shouldShowRightExtensions ? (
 					<RightExtensions
-						item={thisItem}
 						isCategory={isCategory}
-						setThisItem={setThisItem}
-						onMenuOpen={handleMenuOpen}
+						item={thisItem}
 						onMenuClose={handleMenuClose}
+						onMenuOpen={handleMenuOpen}
+						setThisItem={setThisItem}
 					/>
 				) : null,
 			[thisItem, isCategory, shouldShowRightExtensions, handleMenuOpen, handleMenuClose],
@@ -100,16 +100,16 @@ const NavItem = React.memo(
 
 		return (
 			<NavigationItem
-				level={depth}
+				isCategory={isCategory}
+				isDragStarted={!!draggedItemPath}
+				isDropTarget={isDropTarget}
+				isHover={thisItem.isCurrentLink}
 				isOpen={isOpen}
 				item={thisItem}
-				isHover={thisItem.isCurrentLink}
-				isCategory={isCategory}
-				onToggle={currentOnToggle}
-				isDropTarget={isDropTarget}
-				isDragStarted={!!draggedItemPath}
-				onClick={handleClick}
 				leftExtensions={leftExtensions}
+				level={depth}
+				onClick={handleClick}
+				onToggle={currentOnToggle}
 				rightExtensions={rightExtensions}
 				{...dragOverProps}
 			/>

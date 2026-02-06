@@ -1,9 +1,9 @@
 import docx from "@dynamicImports/docx";
-import { WordBlockChild, WordInlineChild } from "@ext/wordExport/options/WordTypes";
+import type { WordBlockChild, WordInlineChild } from "@ext/wordExport/options/WordTypes";
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import { buildInlineMathRun } from "./logic/buildInlineMathRun";
 import { latexToOmmlComponent } from "./logic/latexToOmml";
 import { normalizeLatex } from "./logic/normalizeLatex";
-import { buildInlineMathRun } from "./logic/buildInlineMathRun";
 
 export const formulaWordBlockLayout: WordBlockChild = async ({ tag }) => {
 	const { Paragraph, TextRun } = await docx();

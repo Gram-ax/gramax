@@ -4,29 +4,29 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
+import { useMediaQuery } from "@mui/material";
 import { Editor } from "@tiptap/core";
 import {
 	Command,
 	CommandEmpty,
+	CommandGroup,
 	CommandInput,
 	CommandItem,
 	CommandList,
-	CommandGroup,
 	CommandSeparator,
 } from "@ui-kit/Command";
 import { DropdownMenuSub, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
-import { ToolbarDropdownMenuSubContent } from "@ui-kit/Toolbar";
 import { Icon } from "@ui-kit/Icon";
 import { Loader } from "@ui-kit/Loader";
 import { MenuItemIconButton } from "@ui-kit/MenuItem";
+import { ToolbarDropdownMenuSubContent } from "@ui-kit/Toolbar";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
-import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { cn } from "@core-ui/utils/cn";
 
 interface SnippetsButtonProps {
 	editor: Editor;
@@ -96,11 +96,11 @@ const SnippetsButton = ({ editor }: SnippetsButtonProps) => {
 				</div>
 			</DropdownMenuSubTrigger>
 			<ToolbarDropdownMenuSubContent
+				alignOffset={!isMobile ? -18 : 0}
+				className={cn(!isMobile && "px-3 py-3 pl-2")}
+				contentClassName="p-0 lg:shadow-hard-base"
 				ref={listRef}
 				sideOffset={!isMobile ? 2 : 6}
-				alignOffset={!isMobile ? -18 : 0}
-				contentClassName="p-0 lg:shadow-hard-base"
-				className={cn(!isMobile && "px-3 py-3 pl-2")}
 				style={{
 					maxWidth: "calc(min(11rem, var(--radix-dropdown-menu-content-available-width, 100%)))",
 					height: listHeight,
@@ -121,9 +121,9 @@ const SnippetsButton = ({ editor }: SnippetsButtonProps) => {
 										<div className="flex flex-row items-center gap-2 overflow-hidden w-full">
 											<div className="truncate whitespace-nowrap">{snippet.title}</div>
 											<MenuItemIconButton
+												className="ml-auto flex-shrink-0"
 												icon="pen"
 												onClick={() => onEditClick(snippet)}
-												className="ml-auto flex-shrink-0"
 											/>
 										</div>
 									</CommandItem>

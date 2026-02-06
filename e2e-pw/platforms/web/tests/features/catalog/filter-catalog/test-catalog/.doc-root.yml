@@ -1,0 +1,19 @@
+title: New Catalog
+syntax: XML
+supportedLanguages: []
+properties:
+  - name: EnumProp
+    type: Enum
+    style: red
+    icon: a-arrow-down
+    values:
+      - One
+      - Two
+  - name: ManyProp
+    type: Many
+    values:
+      - One
+      - Two
+      - Three
+  - name: Flag
+    type: Flag

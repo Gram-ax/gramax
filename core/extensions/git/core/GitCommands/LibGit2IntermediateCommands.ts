@@ -1,9 +1,8 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import call from "@app/resolveModule/gitcall";
-import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
 import Path from "@core/FileProvider/Path/Path";
-import { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
-import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
+import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
+import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import type {
 	DiffConfig,
 	DiffTree2TreeInfo,
@@ -18,6 +17,7 @@ import type {
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import type { Signature } from "@ext/git/core/model/Signature";
+import type { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 
 export const progress = {};
 
@@ -89,6 +89,11 @@ export type RemoteOptions = {
 	force: boolean;
 };
 
+export type ConfigValue = {
+	kind: "str" | "i32" | "i64" | "bool";
+	val: string | number | boolean;
+};
+
 export const clone = async (
 	args: {
 		creds: Creds;
@@ -100,6 +105,7 @@ export const clone = async (
 			depth?: number;
 			allowNonEmptyDir?: boolean;
 			isBare?: boolean;
+			skipLfsPull?: boolean;
 		};
 	},
 	onProgress?: (progress: RemoteProgress) => void,
@@ -266,12 +272,19 @@ export const healthcheck = (args: Args) => call<void>("healthcheck", args);
 
 export const resetRepo = () => call<void>("reset_repo", { unused: null });
 
+export const pullLfsObjects = (args: CredsArgs & { paths: string[]; checkout: boolean; cancelToken: number }) =>
+	call<void>("pull_lfs_objects", args);
+
 export const resetFileLock = (args: Args) => call<void>("reset_file_lock", args);
 
 export const formatMergeMessage = (args: Args & CredsArgs & { opts: MergeMessageFormatOptions }) => {
 	args.opts = intoMergeMessageFormatOptions(args.opts);
 	return call<string>("format_merge_message", args);
 };
+
+export const getConfigVal = (args: Args & { name: string }) => call<string | null>("get_config_val", args);
+
+export const setConfigVal = (args: Args & { name: string; val: ConfigValue }) => call<void>("set_config_val", args);
 
 const intoGitBranchData = (data: any): GitBranchData & { lastCommitOid: string } => {
 	return {

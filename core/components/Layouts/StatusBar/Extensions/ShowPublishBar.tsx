@@ -23,16 +23,16 @@ const ShowPublishBar = ({ onClick, isShow }: { onClick: () => void; isShow: bool
 
 	return (
 		<StatusBarWrapper
-			tooltipArrow={leftNavIsOpen}
 			dataQa="qa-publish-trigger"
+			iconCode="custom-cloud-up"
+			iconStyle={{ fill: isShow ? "var(--color-primary)" : "white" }}
+			isShow={isShow}
 			onClick={() => {
 				onClick();
 				if (!leftNavIsOpen) SidebarsIsOpenService.value = { left: true };
 			}}
-			iconCode="custom-cloud-up"
+			tooltipArrow={leftNavIsOpen}
 			tooltipText={t("publish-changes")}
-			iconStyle={{ fill: isShow ? "var(--color-primary)" : "white" }}
-			isShow={isShow}
 		>
 			{total > 0 && (
 				<Counter>

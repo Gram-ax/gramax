@@ -1,5 +1,7 @@
-import { useFetchArticleHeaders, TitleItem } from "@core-ui/ContextServices/LinkTitleTooltip";
+import isMobileService from "@core-ui/ContextServices/isMobileService";
+import { TitleItem, useFetchArticleHeaders } from "@core-ui/ContextServices/LinkTitleTooltip";
 import LinkItem from "@ext/article/LinkCreator/models/LinkItem";
+import t from "@ext/localization/locale/translate";
 import {
 	DropdownMenu,
 	DropdownMenuItem,
@@ -7,12 +9,10 @@ import {
 	DropdownMenuTrigger,
 	useHoverDropdown,
 } from "@ui-kit/Dropdown";
-import t from "@ext/localization/locale/translate";
-import { useCallback, useEffect } from "react";
 import { Loader } from "@ui-kit/Loader";
 import { MenuItemIconButton } from "@ui-kit/MenuItem";
-import isMobileService from "@core-ui/ContextServices/isMobileService";
 import { ToolbarDropdownMenuContent } from "@ui-kit/Toolbar";
+import { useCallback, useEffect } from "react";
 
 interface LinkHeadingsProps {
 	linkItem: LinkItem;
@@ -50,34 +50,34 @@ export const LinkHeadings = ({ linkItem, onUpdate }: LinkHeadingsProps) => {
 	);
 
 	return (
-		<div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="ml-auto">
-			<DropdownMenu open={isOpen} onOpenChange={onOpenChange} modal={isMobile}>
-				<DropdownMenuTrigger onClick={(e) => e.stopPropagation()} asChild>
+		<div className="ml-auto" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+			<DropdownMenu modal={isMobile} onOpenChange={onOpenChange} open={isOpen}>
+				<DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
 					<div>
-						<MenuItemIconButton icon="chevron-right" size="xs" className="w-5 h-5" />
+						<MenuItemIconButton className="w-5 h-5" icon="chevron-right" size="xs" />
 					</div>
 				</DropdownMenuTrigger>
 				<ToolbarDropdownMenuContent
 					align="start"
-					side="right"
-					contentClassName="lg:shadow-hard-base"
 					className="p-2 px-3 -mt-2 cursor-default"
+					contentClassName="lg:shadow-hard-base"
 					onClick={(event) => event.stopPropagation()}
+					side="right"
 					style={{ maxHeight: "20rem", overflowY: "auto" }}
 				>
 					<DropdownMenuLabel className="text-xs font-normal text-inverse-muted">
 						{t("article-titles")}
 					</DropdownMenuLabel>
 					{!headers.length && (
-						<DropdownMenuItem disabled className="text-xs">
+						<DropdownMenuItem className="text-xs" disabled>
 							{t("article.links.no-links")}
 						</DropdownMenuItem>
 					)}
 					{!isLoading &&
 						headers.map((header) => (
 							<DropdownMenuItem
-								key={header.url}
 								className="text-xs"
+								key={header.url}
 								onSelect={() => handleHeaderClick(header)}
 							>
 								<span>{header.title}</span>

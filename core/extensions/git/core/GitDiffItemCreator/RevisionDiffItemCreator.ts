@@ -6,9 +6,9 @@ import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import SitePresenter from "@core/SitePresenter/SitePresenter";
 import {
+	type DiffCompareOptions,
 	DiffTree2TreeFile,
 	DiffTree2TreeInfo,
-	type DiffCompareOptions,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitDiffItemCreator from "@ext/git/core/GitDiffItemCreator/GitDiffItemCreator";
 import type { DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
@@ -55,8 +55,11 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 				const parsedContent = await article.parsedContent.read((p) => {
 					if (!p) return null;
 					return {
-						paths: [...p.resourceManager.resources, ...p.linkManager.resources],
-						resourceManager: p.resourceManager,
+						paths: [
+							...p.parsedContext.getResourceManager().resources,
+							...p.parsedContext.getLinkManager().resources,
+						],
+						resourceManager: p.parsedContext.getResourceManager(),
 					};
 				});
 
@@ -162,8 +165,11 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 		const parsedContent = await article.parsedContent.read((p) => {
 			if (!p) return null;
 			return {
-				paths: [...p.resourceManager.resources, ...p.linkManager.resources],
-				resourceManager: p.resourceManager,
+				paths: [
+					...p.parsedContext.getResourceManager().resources,
+					...p.parsedContext.getLinkManager().resources,
+				],
+				resourceManager: p.parsedContext.getResourceManager(),
 			};
 		});
 
@@ -183,6 +189,8 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 				path: new Path(probablyArticlePath),
 				oldPath: new Path(probablyArticlePath),
 				status: FileStatus.modified,
+				isLfs: false,
+				size: 0,
 			},
 			article,
 			this._newCatalog,
@@ -253,6 +261,8 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 			isChanged,
 			added: file?.added,
 			deleted: file?.deleted,
+			isLfs: file.isLfs,
+			size: file.size,
 		};
 	}
 
@@ -263,6 +273,8 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 			status: FileStatus.modified,
 			added: 0,
 			deleted: 0,
+			isLfs: false,
+			size: 0,
 		};
 	}
 

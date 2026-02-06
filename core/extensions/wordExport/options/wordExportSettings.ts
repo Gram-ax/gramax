@@ -1,6 +1,6 @@
-import UiLanguage from "@ext/localization/core/model/Language";
-import t from "@ext/localization/locale/translate";
 import docx from "@dynamicImports/docx";
+import type UiLanguage from "@ext/localization/core/model/Language";
+import t from "@ext/localization/locale/translate";
 
 export const NON_BREAKING_SPACE = "\u00A0";
 export const ICON_SIZE = 11;
@@ -46,7 +46,7 @@ export const wordFontTypes = {
 	bold: "Roboto",
 } as const;
 
-export const enum WordFontColors {
+export enum WordFontColors {
 	whoWhen = "d0d0d0",
 	dontNullableTypeTableDB = "d90000",
 }
@@ -90,7 +90,7 @@ export const HStyles = {
 	6: WordFontStyles.strong,
 };
 
-export const enum WordBlockType {
+export enum WordBlockType {
 	table = "Table",
 	fence = "Fence",
 	fenceTable = "FenceTable",

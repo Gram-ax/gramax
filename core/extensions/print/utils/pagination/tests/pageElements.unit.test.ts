@@ -1,6 +1,6 @@
-import { createPage, PAGE_CONTENT_CLASS, PAGE_CLASS } from "../pageElements";
 import PagePaginator from "../PagePaginator";
 import Paginator from "../Paginator";
+import { createPage, PAGE_CLASS, PAGE_CONTENT_CLASS } from "../pageElements";
 
 describe("pageElements", () => {
 	afterEach(() => {

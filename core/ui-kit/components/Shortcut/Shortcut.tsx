@@ -1,7 +1,7 @@
+import { useResolveShortcut } from "@core-ui/hooks/useResolveShortcut";
 import { cn } from "@core-ui/utils/cn";
 import { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
 import { Shortcut as UiKitShortcut } from "ics-ui-kit/components/shortcut";
-import { useResolveShortcut } from "@core-ui/hooks/useResolveShortcut";
 
 type UiKitShortcutProps = ExtractComponentGeneric<typeof UiKitShortcut>;
 

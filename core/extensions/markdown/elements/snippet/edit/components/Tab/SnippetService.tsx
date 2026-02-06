@@ -1,10 +1,10 @@
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
+import generateUniqueID from "@core/utils/generateUniqueID";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import generateUniqueID from "@core/utils/generateUniqueID";
 import { ProviderContextService, ProviderItemProps } from "@ext/articleProvider/models/types";
 import ArticleSnippet from "@ext/markdown/elements/snippet/edit/components/Article/ArticleSnippet";
 import { createContext, useContext, useState } from "react";

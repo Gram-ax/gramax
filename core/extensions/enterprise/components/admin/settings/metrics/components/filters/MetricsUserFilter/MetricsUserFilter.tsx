@@ -84,10 +84,10 @@ const MetricsUserFilter: FC<MetricsUserFilterProps> = ({
 	const showNoResultsState = !isLoading && unselectedUsers.length === 0 && searchQuery.trim();
 
 	return (
-		<DropdownMenu open={isOpen} onOpenChange={handleOpenChange}>
+		<DropdownMenu onOpenChange={handleOpenChange} open={isOpen}>
 			<DropdownMenuTrigger asChild>
 				<div className="relative">
-					<DropdownMenuTriggerButton variant="outline" disabled={disabled} className="h-9 w-9 p-0">
+					<DropdownMenuTriggerButton className="h-9 w-9 p-0" disabled={disabled} variant="outline">
 						<Filter className="h-4 w-4" />
 					</DropdownMenuTriggerButton>
 					{hasSelectedUsers && (
@@ -99,39 +99,39 @@ const MetricsUserFilter: FC<MetricsUserFilterProps> = ({
 				<div className="px-2 shrink-0" onKeyDown={(e) => e.stopPropagation()}>
 					<div className="relative">
 						<Icon
-							icon="search"
 							className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+							icon="search"
 						/>
 						<input
-							type="text"
-							placeholder={t("metrics.filters.users.search-users")}
-							value={searchQuery}
-							onChange={(e) => handleSearchChange(e.target.value)}
 							autoFocus
 							className="w-full pl-8 pr-3 py-2 text-sm bg-transparent border-0 outline-none focus:outline-none placeholder:text-muted-foreground"
+							onChange={(e) => handleSearchChange(e.target.value)}
+							placeholder={t("metrics.filters.users.search-users")}
+							type="text"
+							value={searchQuery}
 						/>
 					</div>
 				</div>
 				{hasSelectedUsers && (
 					<DropdownMenuItem
+						className="text-muted-foreground text-sm shrink-0"
 						onSelect={(e) => {
 							e.preventDefault();
 							onSelectionChange([]);
 						}}
-						className="text-muted-foreground text-sm shrink-0"
 					>
 						{t("metrics.filters.users.clear-selection")}
 					</DropdownMenuItem>
 				)}
 				<DropdownMenuSeparator className="shrink-0" />
-				<div ref={scrollContainerRef} className="overflow-y-auto flex-1" onScroll={handleScroll}>
+				<div className="overflow-y-auto flex-1" onScroll={handleScroll} ref={scrollContainerRef}>
 					{/* Selected users always at top */}
 					{unifiedList
 						.filter((item) => item.isSelected)
 						.map((item) => (
 							<DropdownMenuCheckboxItem
-								key={item.email}
 								checked={true}
+								key={item.email}
 								onSelect={(e) => {
 									e.preventDefault();
 									handleUserToggle(item.email);
@@ -157,8 +157,8 @@ const MetricsUserFilter: FC<MetricsUserFilterProps> = ({
 								.filter((item) => !item.isSelected)
 								.map((item) => (
 									<DropdownMenuCheckboxItem
-										key={item.email}
 										checked={false}
+										key={item.email}
 										onSelect={(e) => {
 											e.preventDefault();
 											handleUserToggle(item.email);

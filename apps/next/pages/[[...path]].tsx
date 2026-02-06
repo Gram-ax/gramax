@@ -1,7 +1,7 @@
 import HomePage from "@components/HomePage/HomePage";
-import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/ArticleViewContainer";
 import PageDataContext from "@core/Context/PageDataContext";
 import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/ArticleViewContainer";
 import Localizer from "@ext/localization/core/Localizer";
 import { withContext } from "apps/next/logic/Context/ContextHook";
 import { ApplyPageMiddleware } from "../logic/Api/ApplyMiddleware";

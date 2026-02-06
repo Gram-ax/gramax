@@ -1,5 +1,10 @@
-import { useCallback, useRef } from "react";
-import { PointerEvent as ReactPointerEvent, TouchEvent as ReactTouchEvent, MouseEvent as ReactMouseEvent } from "react";
+import {
+	MouseEvent as ReactMouseEvent,
+	PointerEvent as ReactPointerEvent,
+	TouchEvent as ReactTouchEvent,
+	useCallback,
+	useRef,
+} from "react";
 
 interface TouchHandlerConfig {
 	onStart?: (clientX: number, clientY: number) => void;

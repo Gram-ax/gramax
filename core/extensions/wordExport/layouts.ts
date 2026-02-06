@@ -1,28 +1,32 @@
 import { alfaWordLayout, betaWordLayout } from "@ext/markdown/elements/alfaBeta/word/alfabeta";
+import { blockPropertyWordLayout } from "@ext/markdown/elements/blockProperty/word/blockProperty";
 import { blockquoteWordLayout } from "@ext/markdown/elements/blockquote/word/blockquote";
 import { brWordLayout } from "@ext/markdown/elements/br/word/br";
 import { cmdWordLayout } from "@ext/markdown/elements/cmd/word/cmd";
 import { codeWordLayout } from "@ext/markdown/elements/code/word/code";
 import { fenceWordLayout } from "@ext/markdown/elements/codeBlockLowlight/word";
 import { colorWordLayout } from "@ext/markdown/elements/color/word/color";
+import { commentWordLayout } from "@ext/markdown/elements/comment/word/comment";
 import { cutBlockWordLayout } from "@ext/markdown/elements/cut/word/cutBlock";
 import { cutInlineWordLayout } from "@ext/markdown/elements/cut/word/cutInline";
 import { mermaidWordLayout } from "@ext/markdown/elements/diagrams/diagrams/mermaid/word/mermaid";
 import { drawioWordLayout } from "@ext/markdown/elements/drawio/word/drawio";
 import { emWordLayout } from "@ext/markdown/elements/em/word/em";
 import { headingWordLayout } from "@ext/markdown/elements/heading/word/heading";
+import { highlightWordLayout } from "@ext/markdown/elements/highlight/word/highlight";
 import { hrWordLayout } from "@ext/markdown/elements/hr/word/hr";
 import { iconWordLayout } from "@ext/markdown/elements/icon/render/word/icon";
 import { renderImageWordLayout } from "@ext/markdown/elements/image/word/image";
 import { includeWordLayout } from "@ext/markdown/elements/include/word/include";
+import { renderInlineImageWordLayout } from "@ext/markdown/elements/inlineImage/word/inlineImage";
 import { inlinePropertyWordLayout } from "@ext/markdown/elements/inlineProperty/word/inlineProperty";
 import { issueWordLayout } from "@ext/markdown/elements/issue/word/issue";
 import { kbdWordLayout } from "@ext/markdown/elements/kbd/word/kbd";
 import { linkWordLayout } from "@ext/markdown/elements/link/word/link";
 import { ulListWordLayout } from "@ext/markdown/elements/list/word/bulletList";
-import { taskListWordLayout } from "@ext/markdown/elements/list/word/taskList";
 import { listItemWordLayout } from "@ext/markdown/elements/list/word/listItem";
 import { orderListWordLayout } from "@ext/markdown/elements/list/word/orderListWordLayout";
+import { taskListWordLayout } from "@ext/markdown/elements/list/word/taskList";
 import { moduleWordLayout } from "@ext/markdown/elements/module/word/module";
 import { noteWordLayout } from "@ext/markdown/elements/note/word/note";
 import { paragraphWordLayout } from "@ext/markdown/elements/paragraph/word/paragraph";
@@ -36,18 +40,12 @@ import { termWordLayout } from "@ext/markdown/elements/term/word/term";
 import { viewWordLayout } from "@ext/markdown/elements/view/word/view";
 import { whenWordLayout, whoWordLayout } from "@ext/markdown/elements/whowhen/word/whoWhen";
 import { diagramdbWordLayout } from "../markdown/elements/diagramdb/word/diagramdb";
-import { c4DiagramWordLayout } from "../markdown/elements/diagrams/diagrams/c4Diagram/word/c4Diagram";
 import { plantUMLWordLayout } from "../markdown/elements/diagrams/diagrams/plantUml/word/plantUml";
-import { tsDiagramWordLayout } from "../markdown/elements/diagrams/diagrams/tsDiagram/word/tsDiagram";
-import { tabledbWordlayout } from "../markdown/elements/tabledb/word/tabledb";
-import { videoWordLayout } from "../markdown/elements/video/word/video";
-import { blockPropertyWordLayout } from "@ext/markdown/elements/blockProperty/word/blockProperty";
-import { renderInlineImageWordLayout } from "@ext/markdown/elements/inlineImage/word/inlineImage";
-import { highlightWordLayout } from "@ext/markdown/elements/highlight/word/highlight";
-import { commentWordLayout } from "@ext/markdown/elements/comment/word/comment";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
 import { formulaWordBlockLayout, formulaWordInlineLayout } from "../markdown/elements/formula/word/formula";
+import { tabledbWordlayout } from "../markdown/elements/tabledb/word/tabledb";
+import { videoWordLayout } from "../markdown/elements/video/word/video";
 
 export const inlineLayouts = {
 	strong: strongWordLayout,
@@ -99,8 +97,6 @@ export const blockLayouts = {
 	Image: renderImageWordLayout,
 	"Plant-uml": plantUMLWordLayout,
 	"Db-diagram": diagramdbWordLayout,
-	"Ts-diagram": tsDiagramWordLayout,
-	"C4-diagram": c4DiagramWordLayout,
 	"Db-table": tabledbWordlayout,
 	"block-property": blockPropertyWordLayout,
 	View: viewWordLayout,

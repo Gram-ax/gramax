@@ -1,7 +1,7 @@
-import getTrackedLfsPatterns from "./getTrackedLfsPatterns";
-import updateTrackedLfsPatterns from "./updateTrackedLfsPatterns";
+import getLfsOptions from "./getLfsOptions";
+import updateLfsOptions from "./updateLfsOptions";
 
 export default {
-	getTrackedLfsPatterns,
-	updateTrackedLfsPatterns,
+	getLfsOptions,
+	updateLfsOptions,
 };

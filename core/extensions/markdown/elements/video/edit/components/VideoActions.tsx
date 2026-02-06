@@ -27,13 +27,13 @@ const VideoActions = (props: VideoActionsProps): ReactElement => {
 	return (
 		<>
 			<ActionInput
-				icon="link"
 				defaultValue={node.attrs.path}
-				tooltipText={t("editor.video.link")}
+				icon="link"
 				onChange={onChange}
+				tooltipText={t("editor.video.link")}
 			/>
 			{node.attrs.path && (
-				<a href={node.attrs.path} target="_blank" rel="noreferrer">
+				<a href={node.attrs.path} rel="noreferrer" target="_blank">
 					<ActionButton icon="external-link" tooltipText={t("goto-original")} />
 				</a>
 			)}

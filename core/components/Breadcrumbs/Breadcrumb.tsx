@@ -30,11 +30,11 @@ const Breadcrumb = (props: BreadcrumbProps): ReactElement => {
 					<Fragment key={i}>
 						{!isMiddleDots && (
 							<>
-								<div className="link" onClick={c.onClick} key={i + "link"}>
+								<div className="link" key={i + "link"} onClick={c.onClick}>
 									{c.link ? <Link href={c.link}>{text}</Link> : text}
 								</div>
 								{isNotLast && content.length > 1 && (
-									<span key={i + "divider"} className="divider">
+									<span className="divider" key={i + "divider"}>
 										{"/"}
 									</span>
 								)}
@@ -42,10 +42,10 @@ const Breadcrumb = (props: BreadcrumbProps): ReactElement => {
 						)}
 						{isFirst && correctLength && middleDots && (
 							<>
-								<span key={i + "dots"} className="dots">
+								<span className="dots" key={i + "dots"}>
 									...
 								</span>
-								<span key={i + "divider-2"} className="divider">
+								<span className="divider" key={i + "divider-2"}>
 									{"/"}
 								</span>
 							</>

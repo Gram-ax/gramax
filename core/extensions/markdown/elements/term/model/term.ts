@@ -1,7 +1,7 @@
-import ParserContext from "../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
 import { Node, Schema, Tag } from "../../../core/render/logic/Markdoc/index";
 
-export function term(context: ParserContext): Schema {
+export function term(context: PrivateParserContext): Schema {
 	return {
 		render: "Term",
 		attributes: {
@@ -20,8 +20,8 @@ export function term(context: ParserContext): Schema {
 					typeof term == "string"
 						? await context.parser.parseRenderableTreeNode(term)
 						: term?.description
-						? await context.parser.parseRenderableTreeNode(term.description)
-						: null,
+							? await context.parser.parseRenderableTreeNode(term.description)
+							: null,
 			});
 		},
 	};

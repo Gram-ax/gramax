@@ -1,19 +1,20 @@
 import { SelectDisableItem } from "@ext/enterprise/components/admin/settings/components/SelectDisableItem";
 import { TriggerAddButtonTemplate } from "@ext/enterprise/components/admin/settings/components/TriggerAddButtonTemplate";
 import { ModalComponent } from "@ext/enterprise/components/admin/ui-kit/ModalComponent";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
 import { ButtonProps } from "@ui-kit/Button";
+import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { MultiSelect } from "@ui-kit/MultiSelect";
 import { SearchSelectOption } from "@ui-kit/SearchSelect";
-import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 
-const createFormSchema = () => z.object({
-	repositories: z.array(z.string())
-});
+const createFormSchema = () =>
+	z.object({
+		repositories: z.array(z.string()),
+	});
 
 type FormData = z.infer<ReturnType<typeof createFormSchema>>;
 
@@ -36,8 +37,8 @@ export const RepositoryToolbarAddBtn = ({
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			repositories: []
-		}
+			repositories: [],
+		},
 	});
 
 	const loadOptions = useCallback(
@@ -58,7 +59,7 @@ export const RepositoryToolbarAddBtn = ({
 	);
 
 	const handleRepositoriesChange = (options: SearchSelectOption[]) => {
-		const repositoryValues = options.map(option => String(option.value));
+		const repositoryValues = options.map((option) => String(option.value));
 		form.setValue("repositories", repositoryValues);
 	};
 
@@ -70,68 +71,72 @@ export const RepositoryToolbarAddBtn = ({
 		}
 	});
 
-	const cancelButtonProps = useMemo(() => ({ 
-		variant: "outline", 
-		onClick: () => {
-			form.reset();
-			setIsModalOpen(false);
-		}
-	} as ButtonProps), [form]);
-	
+	const cancelButtonProps = useMemo(
+		() =>
+			({
+				variant: "outline",
+				onClick: () => {
+					form.reset();
+					setIsModalOpen(false);
+				},
+			}) as ButtonProps,
+		[form],
+	);
+
 	const confirmButtonProps = useMemo(
 		() =>
 			({
 				type: "submit",
 				onClick: handleAddSelectedRepositories,
 				disabled: !form.watch("repositories").length || disable,
-			} as ButtonProps),
+			}) as ButtonProps,
 		[form, disable, handleAddSelectedRepositories],
 	);
 
 	return (
 		<ModalComponent
+			cancelButtonProps={cancelButtonProps}
+			cancelButtonText="Отмена"
+			confirmButtonProps={confirmButtonProps}
+			confirmButtonText="Добавить"
 			isOpen={isModalOpen}
-			onOpenChange={setIsModalOpen}
-			trigger={<TriggerAddButtonTemplate disabled={disable} />}
-			title="Выберите репозитории"
 			modalContent={
 				<Form asChild {...form}>
 					<form className="contents">
 						<FormStack>
 							<FormField
-								name="repositories"
-								title="Репозитории"
-								layout="vertical"
-								description="Выберите репозитории для добавления"
 								control={({ field }) => (
 									<MultiSelect
+										emptyText="Репозитории не найдены"
+										errorText="Ошибка поиска"
 										loadOptions={loadOptions}
-										value={field.value?.map(value => ({ value, label: value })) || []}
+										onChange={handleRepositoriesChange}
+										placeholder="Выберите репозитории"
 										renderOption={(props: RenderOptionProps<SearchSelectOption>) => {
 											if (props.type === "trigger") return;
 											return (
 												<SelectDisableItem
-													text={props.option.label}
 													isDisabled={props.option.disabled}
 													isSelected={props.isSelected}
+													text={props.option.label}
 												/>
 											);
 										}}
-										onChange={handleRepositoriesChange}
-										placeholder="Выберите репозитории"
-										emptyText="Репозитории не найдены"
-										errorText="Ошибка поиска"
+										value={field.value?.map((value) => ({ value, label: value })) || []}
 									/>
 								)}
+								description="Выберите репозитории для добавления"
+								layout="vertical"
+								name="repositories"
+								title="Репозитории"
 							/>
 						</FormStack>
 					</form>
 				</Form>
 			}
-			confirmButtonText="Добавить"
-			cancelButtonText="Отмена"
-			cancelButtonProps={cancelButtonProps}
-			confirmButtonProps={confirmButtonProps}
+			onOpenChange={setIsModalOpen}
+			title="Выберите репозитории"
+			trigger={<TriggerAddButtonTemplate disabled={disable} />}
 		/>
 	);
 };

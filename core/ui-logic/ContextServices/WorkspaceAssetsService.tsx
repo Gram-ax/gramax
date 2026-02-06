@@ -1,4 +1,5 @@
 import { GetPluginsResponse } from "@app/commands/workspace/assets/plugins/getPlugins";
+import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -8,7 +9,6 @@ import { CallApi, useApi } from "@core-ui/hooks/useApi";
 import useUpdateEffect from "@core-ui/hooks/useUpdateEffect";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
 import useTrigger from "@core-ui/triggers/useTrigger";
-import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import t from "@ext/localization/locale/translate";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";

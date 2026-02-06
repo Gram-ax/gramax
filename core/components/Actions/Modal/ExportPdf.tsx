@@ -1,22 +1,22 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import PrintView from "@ext/print/components/PrintView";
-import { PdfPrintParams } from "@ext/print/types";
+import { useExportPdf } from "@ext/print/components/useExportPdf";
+import type { PdfPrintParams } from "@ext/print/types";
+import { nextFrame } from "@ext/print/utils/pagination/scheduling";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { CheckboxField } from "@ui-kit/Checkbox";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Loader } from "@ui-kit/Loader";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
-import styled from "@emotion/styled";
-import { Loader } from "@ui-kit/Loader";
-import { Controller, useForm } from "react-hook-form";
 import { useRef } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useExportPdf } from "@ext/print/components/useExportPdf";
-import { nextFrame } from "@ext/print/utils/pagination/scheduling";
 
 interface ExportPdfProps {
 	onClose?: () => void;
@@ -102,15 +102,11 @@ const ExportPdf = (props: ExportPdfProps) => {
 			await nextFrame();
 			ArticleViewService.setBottomView(() => (
 				<PrintView
-					isCategory={isCategory}
-					catalogProps={catalogProps}
-					itemPath={itemRefPath}
 					apiUrlCreator={apiUrlCreator}
-					params={params}
-					onProgress={handleProgress}
-					onComplete={handleComplete}
-					onError={handleError}
+					catalogProps={catalogProps}
 					exportSignal={exportController.signal}
+					isCategory={isCategory}
+					itemPath={itemRefPath}
 					onCancelRef={(fn) => {
 						if (!fn) {
 							cancelTaskRef.current = null;
@@ -126,48 +122,52 @@ const ExportPdf = (props: ExportPdfProps) => {
 							fn();
 						};
 					}}
+					onComplete={handleComplete}
+					onError={handleError}
+					onProgress={handleProgress}
+					params={params}
 				/>
 			));
 		})(event);
 	};
 
 	return (
-		<StyledModal open={open} onOpenChange={onOpenChange}>
+		<StyledModal onOpenChange={onOpenChange} open={open}>
 			<ModalContent data-modal-root>
 				<Form asChild {...form}>
 					<form onSubmit={formSubmit}>
 						<FormHeader
-							icon="file-text"
-							title={t("export.pdf.form.title")}
 							description={
 								<div>
 									{t("export.pdf.form.description")}{" "}
 									<a
-										href="https://gram.ax/resources/docs/catalog/export-pdf"
-										target="_blank"
+										href="https://gram.ax/resources/docs/collaboration/export-docx-pdf/app"
 										rel="noreferrer"
+										target="_blank"
 									>
 										{t("more")}
 									</a>
 								</div>
 							}
+							icon="file-text"
+							title={t("export.pdf.form.title")}
 						/>
 						<ModalBody>
 							<FormStack>
 								{checkboxConfig.map((cfg) => (
 									<Controller
+										control={form.control}
 										key={cfg.name}
 										name={cfg.name}
-										control={form.control}
 										render={({ field: { value, onChange, name } }) => (
 											<CheckboxField
-												className="gap-2 items-start"
-												name={name}
 												checked={!!value}
-												onCheckedChange={(checked) => onChange(!!checked)}
-												label={cfg.label}
+												className="gap-2 items-start"
 												description={cfg.description}
 												disabled={isExporting}
+												label={cfg.label}
+												name={name}
+												onCheckedChange={(checked) => onChange(!!checked)}
 											/>
 										)}
 									/>
@@ -175,17 +175,16 @@ const ExportPdf = (props: ExportPdfProps) => {
 
 								{templates.length > 0 && (
 									<FormField
-										name="template"
-										layout="vertical"
-										title={t("export.pdf.form.template")}
-										description={t("export.pdf.form.templateDescription")}
 										control={({ field }) => (
 											<Select
-												value={field.value || undefined}
-												onValueChange={field.onChange}
 												disabled={isExporting}
+												onValueChange={field.onChange}
+												value={field.value || null}
 											>
-												<SelectTrigger type="button" onClear={() => field.onChange(null)}>
+												<SelectTrigger
+													onClear={field.value ? () => field.onChange(null) : undefined}
+													type="button"
+												>
 													<SelectValue placeholder={t("no-selected")} />
 												</SelectTrigger>
 												<SelectContent>
@@ -193,39 +192,54 @@ const ExportPdf = (props: ExportPdfProps) => {
 														<SelectItem
 															data-qa={"qa-clickable"}
 															key={idx + template}
-															children={template}
 															value={template}
-														/>
+														>
+															{template}
+														</SelectItem>
 													))}
 												</SelectContent>
 											</Select>
 										)}
+										description={
+											<div>
+												{t("export.pdf.form.templateDescription.body")}{" "}
+												<a
+													href="https://gram.ax/resources/docs/collaboration/export-docx-pdf/add-custom-template-docx/pdf"
+													rel="noreferrer"
+													target="_blank"
+												>
+													{t("export.pdf.form.templateDescription.more")}
+												</a>
+											</div>
+										}
+										layout="vertical"
+										name="template"
+										title={t("export.pdf.form.template")}
 									/>
 								)}
 							</FormStack>
 						</ModalBody>
-						<>
-							<FormFooter
-								leftContent={
-									isExporting ? (
-										<div className="flex flex-row items-center">
-											<Loader />
-											<span className="text-sm text-primary-fg">{progressLabel}</span>
-										</div>
-									) : undefined
-								}
-								primaryButton={
-									<Button type="submit" variant="primary" disabled={isExporting}>
-										{t("export.name")}
-									</Button>
-								}
-								secondaryButton={
-									<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-										{t("close")}
-									</Button>
-								}
-							/>
-						</>
+						<FormFooter
+							className="flex flex-col gap-4"
+							leftContent={
+								isExporting ? (
+									<div className="flex flex-row items-center">
+										<Loader className="pl-1" />
+										<span className="text-sm text-primary-fg">{progressLabel}</span>
+									</div>
+								) : undefined
+							}
+							primaryButton={
+								<Button disabled={isExporting} type="submit" variant="primary">
+									{t("export.name")}
+								</Button>
+							}
+							secondaryButton={
+								<Button onClick={() => onOpenChange(false)} type="button" variant="outline">
+									{t("close")}
+								</Button>
+							}
+						/>
 					</form>
 				</Form>
 			</ModalContent>

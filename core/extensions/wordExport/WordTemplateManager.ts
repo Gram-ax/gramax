@@ -6,7 +6,10 @@ export const WORD_TEMPLATES_DIR = "word";
 const WORD_TEMPLATE_FORMATS = ["doc", "dot"];
 
 class WordTemplate {
-	constructor(private _workspace: Workspace, private _templates: string[]) {}
+	constructor(
+		private _workspace: Workspace,
+		private _templates: string[],
+	) {}
 
 	getTemplates() {
 		return this._templates;

@@ -1,7 +1,7 @@
 import React from "react";
 
 const HTMLFormula = (props: { content: string }) => (
-	<span data-component="formula" dangerouslySetInnerHTML={{ __html: props.content }} />
+	<span dangerouslySetInnerHTML={{ __html: props.content }} data-component="formula" />
 );
 
 export default HTMLFormula;

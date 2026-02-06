@@ -1,11 +1,11 @@
 import Icon from "@components/Atoms/Icon";
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
 import styled from "@emotion/styled";
 import getArticleItemLink from "@ext/article/LinkCreator/logic/getArticleItemLink";
 import ItemMenu from "@ext/item/EditMenu";
@@ -43,8 +43,8 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 	const showArticleActions = !articleProps?.errorCode || articleProps?.errorCode === 500;
 
 	return (
-		<div ref={breadcrumbRef} className={className}>
-			<LinksBreadcrumb ref={linksRef} itemLinks={itemLinks} />
+		<div className={className} ref={breadcrumbRef}>
+			<LinksBreadcrumb itemLinks={itemLinks} ref={linksRef} />
 			{!isReadOnly && showArticleActions && (
 				<>
 					<div className="article-actions" data-qa="qa-article-actions">
@@ -53,14 +53,14 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 							style={{ marginRight: "-2px" }}
 							tooltipText={t("article.actions.title")}
 							trigger={
-								<Button variant="text" size="xs" className="p-0 h-full">
+								<Button className="p-0 h-full" size="xs" variant="text">
 									<Icon code="ellipsis-vertical" style={{ fontSize: "1.7em" }} />
 								</Button>
 							}
 						>
 							<ItemMenu
-								itemLink={itemLink}
 								isCategory={itemLink?.type === ItemType.category}
+								itemLink={itemLink}
 								setItemLink={setItemLink}
 							/>
 						</NavigationDropdown>
@@ -68,10 +68,10 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 				</>
 			)}
 			<Properties
-				properties={articleProperties}
-				setProperties={setArticleProperties}
 				hideList={isMobile}
 				isReadOnly={isReadOnly}
+				properties={articleProperties}
+				setProperties={setArticleProperties}
 			/>
 		</div>
 	);

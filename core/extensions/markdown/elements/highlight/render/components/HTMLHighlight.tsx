@@ -1,7 +1,7 @@
 import React from "react";
 
 const HTMLHighlight = (props: { color?: string; children?: React.ReactNode }) => (
-	<mark data-component="highlight" data-color={props.color}>
+	<mark data-color={props.color} data-component="highlight">
 		{props.children}
 	</mark>
 );

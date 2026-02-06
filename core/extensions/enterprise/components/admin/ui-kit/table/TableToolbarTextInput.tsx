@@ -1,7 +1,6 @@
-import { TextInput } from "@ui-kit/Input";
-import { Icon } from "@ui-kit/Icon";
-import { TextInputProps } from "@ui-kit/Input";
 import styled from "@emotion/styled";
+import { Icon } from "@ui-kit/Icon";
+import { TextInput, TextInputProps } from "@ui-kit/Input";
 
 const StyledTextInput = styled(TextInput)`
 	flex: 1;
@@ -12,8 +11,8 @@ export const TableToolbarTextInput = ({ className, startIcon, placeholder, ...pr
 	return (
 		<StyledTextInput
 			className={className}
-			startIcon={startIcon || <Icon icon="search" />}
 			placeholder={placeholder || "Поиск..."}
+			startIcon={startIcon || <Icon icon="search" />}
 			{...props}
 		/>
 	);

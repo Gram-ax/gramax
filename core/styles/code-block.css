@@ -1,13 +1,13 @@
 [data-theme] .hljs {
 	display: block;
-	overflow-x: auto;
 	padding: 0.5em;
+	overflow-x: auto;
 	color: #2f3337;
 	background: #f6f6f6;
 }
 [data-theme] .hljs-comment {
-	color: #656e77;
 	font-style: italic;
+	color: #656e77;
 }
 [data-theme] .hljs-keyword,
 [data-theme] .hljs-selector-tag,
@@ -68,10 +68,10 @@
 @media not print {
 	[data-theme="dark"] .hljs {
 		display: block;
-		overflow-x: auto;
 		padding: 0.5em;
-		background: #1e1e1e;
+		overflow-x: auto;
 		color: #dcdcdc;
+		background: #1e1e1e;
 	}
 	[data-theme="dark"] .hljs {
 		color: #ffffff;

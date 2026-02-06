@@ -3,7 +3,10 @@ import Path from "@core/FileProvider/Path/Path";
 import { FsProvider } from "@ics/modulith-search-infra";
 
 export class FileFsProvider implements FsProvider {
-	constructor(private readonly _fp: FileProvider, private readonly _base: Path = new Path()) {}
+	constructor(
+		private readonly _fp: FileProvider,
+		private readonly _base: Path = new Path(),
+	) {}
 
 	exists(path: string): Promise<boolean> {
 		const fullPath = this._getFullPath(path);

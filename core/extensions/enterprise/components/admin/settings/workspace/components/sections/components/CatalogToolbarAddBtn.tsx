@@ -1,15 +1,15 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
 import { ButtonProps } from "@ui-kit/Button";
+import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { MultiSelect } from "@ui-kit/MultiSelect";
 import { SearchSelectOption } from "@ui-kit/SearchSelect";
-import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
-import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ModalComponent } from "../../../../../ui-kit/ModalComponent";
-import { TriggerAddButtonTemplate } from "../../../../components/TriggerAddButtonTemplate";
 import { SelectDisableItem } from "../../../../components/SelectDisableItem";
+import { TriggerAddButtonTemplate } from "../../../../components/TriggerAddButtonTemplate";
 
 interface CatalogToolbarAddBtnProps {
 	onAdd: (catalogs: string[]) => void;
@@ -17,25 +17,27 @@ interface CatalogToolbarAddBtnProps {
 	catalogs: string[];
 }
 
-const createFormSchema = () => z.object({
-	selectedCatalogs: z
-		.array(z.object({
-			value: z.string(),
-			label: z.string(),
-			disabled: z.boolean().optional()
-		}))
-});
+const createFormSchema = () =>
+	z.object({
+		selectedCatalogs: z.array(
+			z.object({
+				value: z.string(),
+				label: z.string(),
+				disabled: z.boolean().optional(),
+			}),
+		),
+	});
 
 export const CatalogToolbarAddBtn = ({ onAdd, existingCatalogs = [], catalogs }: CatalogToolbarAddBtnProps) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	
+
 	const formSchema = createFormSchema();
-	
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			selectedCatalogs: []
-		}
+			selectedCatalogs: [],
+		},
 	});
 
 	const loadOptions = useCallback(
@@ -69,57 +71,57 @@ export const CatalogToolbarAddBtn = ({ onAdd, existingCatalogs = [], catalogs }:
 		() =>
 			({
 				onClick: form.handleSubmit(onSubmit),
-				disabled: !form.watch('selectedCatalogs').length
+				disabled: !form.watch("selectedCatalogs").length,
 			}) as ButtonProps,
-		[form, onSubmit]
+		[form, onSubmit],
 	);
 
 	return (
 		<ModalComponent
+			cancelButtonProps={cancelButtonProps}
+			cancelButtonText="Отмена"
+			confirmButtonProps={confirmButtonProps}
+			confirmButtonText="Добавить"
 			isOpen={isModalOpen}
-			onOpenChange={setIsModalOpen}
-			trigger={<TriggerAddButtonTemplate />}
-			title="Выберите каталоги"
 			modalContent={
 				<Form asChild {...form}>
 					<form className="contents">
 						<FormStack>
 							<FormField
-								name="selectedCatalogs"
-								title="Каталоги"
-								layout="vertical"
-								description="Выберите каталоги для добавления в список"
 								control={({ field }) => (
 									<MultiSelect
+										emptyText="Каталоги не найдены"
+										errorText="Ошибка поиска"
+										loadingText="Ищем каталоги..."
 										loadOptions={loadOptions}
+										onChange={field.onChange}
+										placeholder="Найдите каталоги"
 										renderOption={(props: RenderOptionProps<SearchSelectOption>) => {
 											if (props.type === "trigger") return;
 											return (
 												<SelectDisableItem
-													text={props.option.label}
 													isDisabled={props.option.disabled}
 													isSelected={props.isSelected}
+													text={props.option.label}
 												/>
 											);
 										}}
-										placeholder="Найдите каталоги"
 										searchPlaceholder="Введите название каталога"
-										loadingText="Ищем каталоги..."
-										emptyText="Каталоги не найдены"
-										errorText="Ошибка поиска"
 										value={field.value}
-										onChange={field.onChange}
 									/>
 								)}
+								description="Выберите каталоги для добавления в список"
+								layout="vertical"
+								name="selectedCatalogs"
+								title="Каталоги"
 							/>
 						</FormStack>
 					</form>
 				</Form>
 			}
-			confirmButtonText="Добавить"
-			cancelButtonText="Отмена"
-			cancelButtonProps={cancelButtonProps}
-			confirmButtonProps={confirmButtonProps}
+			onOpenChange={setIsModalOpen}
+			title="Выберите каталоги"
+			trigger={<TriggerAddButtonTemplate />}
 		/>
 	);
 };

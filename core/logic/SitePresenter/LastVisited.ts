@@ -10,7 +10,10 @@ const LAST_VISITED_COOKIE_NAME = "last-visited-articles";
 export default class LastVisited {
 	private _cached: LastVisitedDto;
 
-	constructor(private _ctx: Context, private _workspace: string) {}
+	constructor(
+		private _ctx: Context,
+		private _workspace: string,
+	) {}
 
 	getLastVisitedArticles(): LastVisitedDto {
 		if (this._cached) return this._cached;

@@ -1,109 +1,69 @@
 build-desktop-web:
-  stage: build
+  extends: .template.build.apps
   image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
   tags:
     - kubernetes01-gramax
-  rules: !reference [.condition, build, base, rules]
   variables:
-    GIT_DEPTH: 600
-    KUBERNETES_MEMORY_REQUEST: "4Gi"
-    KUBERNETES_CPU_REQUEST: "1.5"
-    KUBERNETES_CPU_LIMIT: "2"
+    KUBERNETES_MEMORY_REQUEST: '4Gi'
+    KUBERNETES_CPU_REQUEST: '1.5'
+    KUBERNETES_CPU_LIMIT: '2'
   script:
     - rm -r ./services
     - ./install-deps.sh --ci
     - ./gx build --web
   artifacts:
-    expire_in: 8h
-    when: on_success
     paths:
       - ./apps-build-artifacts
 
 build-desktop-windows:
-  stage: build
-  tags:
-    - shell-macos-arm64v8
-  rules: !reference [.condition, build, base, rules]
+  extends: .template.build.apps
   needs:
     - job: build-desktop-web
       artifacts: true
-  variables:
-    GIT_DEPTH: 600
+  tags:
+    - shell-macos-arm64v8
   script:
     - ./gx make-icons
     - ./gx build --windows-x86_64 --upload
-  artifacts:
-    expire_in: 8h
-    when: on_success
-    paths:
-      - ./apps-build-artifacts/windows-x86_64
 
 build-desktop-macos:
-  stage: build
-  tags:
-    - shell-macos-arm64v8
-  rules: !reference [.condition, build, base, rules]
+  extends: .template.build.apps
   needs:
     - job: build-desktop-web
       artifacts: true
-  variables:
-    GIT_DEPTH: 600
-    APPLE_SIGNING_IDENTITY: 'Developer ID Application: INTELLEKTUALNYE KORPORATIVNYE RESHENIYA, OOO (V9C959AY94)'
+  tags:
+    - shell-macos-arm64v8
   script:
     - ./gx make-icons
     - ./gx build --darwin-aarch64 --darwin-x86_64 --upload
-  artifacts:
-    expire_in: 8h
-    when: on_success
-    paths:
-      - ./apps-build-artifacts/darwin-aarch64
-      - ./apps-build-artifacts/darwin-x86_64
 
 build-desktop-linux:
-  stage: build
+  extends: .template.build.apps
   image: gitlab.ics-it.ru:4567/ics/doc-reader:linux-tauri-$BRANCH
-  tags:
-    - kubernetes01-gramax-5ghz
-  rules: !reference [.condition, build, base, rules]
   needs:
     - job: build-desktop-web
       artifacts: true
+  tags:
+    - kubernetes01-gramax-5ghz
   variables:
-    GIT_DEPTH: 600
-    CARGO_HOME: '$CI_PROJECT_DIR/.cargo'
     RUSTUP_PERMIT_COPY_RENAME: 1
-    KUBERNETES_MEMORY_REQUEST: "2.5Gi"
-    KUBERNETES_CPU_REQUEST: "2"
-    KUBERNETES_CPU_LIMIT: "5"
+    KUBERNETES_MEMORY_REQUEST: '2.5Gi'
+    KUBERNETES_CPU_REQUEST: '2'
+    KUBERNETES_CPU_LIMIT: '5'
   script:
     - ./gx make-icons
     - ./gx build --linux-x86_64 --upload
-  artifacts:
-    expire_in: 8h
-    when: on_success
-    paths:
-      - ./apps-build-artifacts/linux-x86_64
 
 build-mobile-android:
-  stage: build
+  extends: .template.build.apps
+  needs:
+    - job: build-desktop-web
+      artifacts: true
   tags:
     - shell-macos-arm64v8
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
-  needs:
-    - job: build-desktop-web
-      artifacts: true
-  variables:
-    GIT_DEPTH: 600
-    ANDROID_HOME: '/opt/homebrew/share/android-commandlinetools'
-    NDK_HOME: '/opt/homebrew/share/android-commandlinetools/ndk/25.2.9519653'
-    APPLE_SIGNING_IDENTITY: 'Developer ID Application: INTELLEKTUALNYE KORPORATIVNYE RESHENIYA, OOO (V9C959AY94)'
   script:
     - ./gx make-icons
     - ./gx build --android --upload
-  artifacts:
-    expire_in: 8h
-    when: on_success
-    paths:
-      - ./apps-build-artifacts/android

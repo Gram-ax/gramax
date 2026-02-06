@@ -40,11 +40,11 @@ const ViewRenderContent = memo(
 			<div>
 				<Component
 					{...otherProps}
-					isPrint={isPrint}
-					content={content}
-					updateArticle={updateArticle}
 					className={className}
 					commentId={commentId}
+					content={content}
+					isPrint={isPrint}
+					updateArticle={updateArticle}
 				/>
 			</div>
 		);

@@ -21,7 +21,7 @@ export const ErrorBody = ({ error }: { error: DefaultError }) => {
 				<span>{error.message}</span>
 			)}
 			{error.props?.showCause && error?.cause && (
-				<Note title={t("technical-details")} collapsed={true} type={NoteType.hotfixes}>
+				<Note collapsed={true} title={t("technical-details")} type={NoteType.hotfixes}>
 					<CodeBlock value={error.cause.stack} />
 				</Note>
 			)}
@@ -38,12 +38,12 @@ const DefaultErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof G
 
 	return (
 		<InfoModalForm
+			actionButton={isCommandError ? { text: t("refresh"), onClick: onActionClick } : undefined}
+			closeButton={error.title || error.isWarning ? { text: t("ok") } : null}
+			icon={getIcon(error)}
+			isWarning={error.isWarning}
 			onCancelClick={onCancelClick}
 			title={error.title ?? (error.isWarning ? t("warning") : t("error"))}
-			icon={getIcon(error)}
-			closeButton={error.title || error.isWarning ? { text: t("ok") } : null}
-			actionButton={isCommandError ? { text: t("refresh"), onClick: onActionClick } : undefined}
-			isWarning={error.isWarning}
 		>
 			<ErrorBody error={error} />
 		</InfoModalForm>

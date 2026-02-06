@@ -36,7 +36,6 @@ const getComponentNames = (): ComponentsNames => {
 		mermaid: "Mermaid",
 		include: "Include",
 		formula: "Formula",
-		"ts-diagram": "Ts-diagram",
 		video: "Video",
 		view: "View",
 		html: "Html",

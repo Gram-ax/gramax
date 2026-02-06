@@ -34,11 +34,12 @@ try {
 		case "upload":
 			await cmd.upload();
 			break;
-		default:
+		default: {
 			parsed ? console.error(`failed: unknown command: ${parsed}`) : console.error("failed: no command provided");
 			const msg = "available commands: build, sign, make-icons, upload, sign-ci-windows, version";
 			console.error(msg);
 			process.exit(1);
+		}
 	}
 } catch (error) {
 	let err: Error = error as Error;

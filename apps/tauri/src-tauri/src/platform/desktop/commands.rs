@@ -8,156 +8,161 @@ use tauri::*;
 
 #[command]
 pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>) -> Result<()> {
-  let url = window.url()?;
-  let query = url.query();
-  app.emit_to(window.label(), "on_window_close", query)?;
-  window.close()?;
-  Ok(())
+	let url = window.url()?;
+	let query = url.query();
+	app.emit_to(window.label(), "on_window_close", query)?;
+	window.close()?;
+	Ok(())
 }
 
 #[command]
 pub fn new_window<R: Runtime>(app: AppHandle<R>) -> Result<()> {
-  std::thread::spawn(move || {
-    MainWindowBuilder::default().build(&app).or_show_with_message(&t!("etc.error.build-window"))
-  });
+	std::thread::spawn(move || {
+		MainWindowBuilder::default()
+			.build(&app)
+			.or_show_with_message(&t!("etc.error.build-window"))
+	});
 
-  Ok(())
+	Ok(())
 }
 
 #[command]
 pub fn minimize_window<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
-  window.minimize()?;
-  Ok(())
+	window.minimize()?;
+	Ok(())
 }
 
 #[command(async)]
 pub fn open_directory() -> Option<PathBuf> {
-  rfd::FileDialog::new().pick_folder()
+	rfd::FileDialog::new().pick_folder()
 }
 
 #[command]
 pub fn open_in_explorer(path: &Path) -> Result<()> {
-  crate::open_path(path)?;
+	if plugin_gramax_git::utils::is_lfs_pointer(path)? {
+		return Err(anyhow::anyhow!("lfs-pointer").into());
+	}
 
-  Ok(())
+	crate::open_path(path)?;
+	Ok(())
 }
 
 #[cfg(target_os = "macos")]
 #[command]
 pub fn show_print<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
-  window.print()
+	window.print()
 }
 
 #[command]
 pub fn set_language<R: Runtime>(app: AppHandle<R>, language: &str) -> Result<()> {
-  if !["ru", "en"].contains(&language) {
-    let err = anyhow::anyhow!("invalid language provided; available `ru`, `en` but got: `{}`", language);
-    return Err(err.into());
-  }
+	if !["ru", "en"].contains(&language) {
+		let err = anyhow::anyhow!("invalid language provided; available `ru`, `en` but got: `{}`", language);
+		return Err(err.into());
+	}
 
-  rust_i18n::set_locale(language);
+	rust_i18n::set_locale(language);
 
-  #[cfg(not(target_os = "windows"))]
-  app.setup_menu()?;
+	#[cfg(not(target_os = "windows"))]
+	app.setup_menu()?;
 
-  #[cfg(target_os = "windows")]
-  {
-    for (_, wv) in app.webview_windows().iter() {
-      wv.setup_menu()?;
-    }
-  }
+	#[cfg(target_os = "windows")]
+	{
+		for (_, wv) in app.webview_windows().iter() {
+			wv.setup_menu()?;
+		}
+	}
 
-  app.emit("on_language_changed", language)?;
-  Ok(())
+	app.emit("on_language_changed", language)?;
+	Ok(())
 }
 
 #[command(async)]
 pub fn open_window_with_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Result<()> {
-  MainWindowBuilder::default().url(url.path()).build(&app)?;
-  Ok(())
+	MainWindowBuilder::default().url(url.path()).build(&app)?;
+	Ok(())
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 #[command]
 pub fn set_badge<R: Runtime>(window: WebviewWindow<R>, count: Option<i64>) -> Result<()> {
-  window.set_badge_count(count)?;
-  Ok(())
+	window.set_badge_count(count)?;
+	Ok(())
 }
 
 #[cfg(target_os = "windows")]
 #[command]
 pub fn set_badge<R: Runtime>(window: WebviewWindow<R>, count: Option<usize>) -> Result<()> {
-  super::init::Badges::set_badge(&window, count)?;
-  Ok(())
+	super::init::Badges::set_badge(&window, count)?;
+	Ok(())
 }
 
 #[cfg(target_os = "macos")]
 #[command]
 pub fn history_back_forward_go<R: Runtime>(window: WebviewWindow<R>, forward: bool) -> Result<()> {
-  window.with_webview(move |webview| unsafe {
-    let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
-    if forward {
-      webview.goForward();
-    } else {
-      webview.goBack();
-    }
-  })?;
-  Ok(())
+	window.with_webview(move |webview| unsafe {
+		let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
+		if forward {
+			webview.goForward();
+		} else {
+			webview.goBack();
+		}
+	})?;
+	Ok(())
 }
 
 #[cfg(target_os = "macos")]
 #[command]
 pub async fn history_back_forward_can_go<R: Runtime>(window: WebviewWindow<R>) -> Result<(bool, bool)> {
-  let (sender, receiver) = tokio::sync::oneshot::channel();
+	let (sender, receiver) = tokio::sync::oneshot::channel();
 
-  window.with_webview(move |webview| unsafe {
-    let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
-    let _ = sender.send((webview.canGoBack(), webview.canGoForward()));
-  })?;
+	window.with_webview(move |webview| unsafe {
+		let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
+		let _ = sender.send((webview.canGoBack(), webview.canGoForward()));
+	})?;
 
-  Ok(receiver.await.unwrap())
+	Ok(receiver.await.unwrap())
 }
 
 #[command]
 pub fn move_to_trash<R: Runtime>(window: Window<R>, path: &Path) -> std::result::Result<(), String> {
-  use std::sync::OnceLock;
-  use tauri_plugin_dialog::DialogExt;
-  use tauri_plugin_dialog::MessageDialogButtons;
+	use std::sync::OnceLock;
+	use tauri_plugin_dialog::DialogExt;
+	use tauri_plugin_dialog::MessageDialogButtons;
 
-  static DIALOG_DID_SHOWED: OnceLock<()> = OnceLock::new();
+	static DIALOG_DID_SHOWED: OnceLock<()> = OnceLock::new();
 
-  #[cfg(target_os = "macos")]
-  let trash_result = {
-    use trash::macos::TrashContextExtMacos;
-    let mut trash_ctx = trash::TrashContext::default();
-    trash_ctx.set_delete_method(trash::macos::DeleteMethod::NsFileManager);
-    trash_ctx.delete(path)
-  };
+	#[cfg(target_os = "macos")]
+	let trash_result = {
+		use trash::macos::TrashContextExtMacos;
+		let mut trash_ctx = trash::TrashContext::default();
+		trash_ctx.set_delete_method(trash::macos::DeleteMethod::NsFileManager);
+		trash_ctx.delete(path)
+	};
 
-  #[cfg(not(target_os = "macos"))]
-  let trash_result = trash::delete(path);
+	#[cfg(not(target_os = "macos"))]
+	let trash_result = trash::delete(path);
 
-  let Err(err) = trash_result else { return Ok(()) };
+	let Err(err) = trash_result else { return Ok(()) };
 
-  if DIALOG_DID_SHOWED.get().is_some() {
-    return Err(err.to_string());
-  }
+	if DIALOG_DID_SHOWED.get().is_some() {
+		return Err(err.to_string());
+	}
 
-  _ = DIALOG_DID_SHOWED.set(());
+	_ = DIALOG_DID_SHOWED.set(());
 
-  let message = match &err {
-    trash::Error::CouldNotAccess { target: _ } => t!("trash.no-permissions", path = path.display()),
-    err => t!("trash.fail", path = path.display(), err = err.to_string()),
-  };
+	let message = match &err {
+		trash::Error::CouldNotAccess { target: _ } => t!("trash.no-permissions", path = path.display()),
+		err => t!("trash.fail", path = path.display(), err = err.to_string()),
+	};
 
-  window
-    .dialog()
-    .message(message)
-    .title(t!("trash.title"))
-    .kind(tauri_plugin_dialog::MessageDialogKind::Error)
-    .parent(&window)
-    .buttons(MessageDialogButtons::Ok)
-    .show(|_| {});
+	window
+		.dialog()
+		.message(message)
+		.title(t!("trash.title"))
+		.kind(tauri_plugin_dialog::MessageDialogKind::Error)
+		.parent(&window)
+		.buttons(MessageDialogButtons::Ok)
+		.show(|_| {});
 
-  Err(err.to_string())
+	Err(err.to_string())
 }

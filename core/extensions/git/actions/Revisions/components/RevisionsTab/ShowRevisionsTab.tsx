@@ -14,13 +14,13 @@ const ShowRevisionsTab = (props: ShowRevisionsTabProps) => {
 
 	return (
 		<StatusBarWrapper
+			dataQa="qa-revisions-tab"
+			iconCode="history"
+			iconStrokeWidth="1.6"
+			iconStyle={isShow ? { color: "var(--color-primary)" } : { color: "white" }}
 			isShow={isShow}
 			onClick={() => setShow(!isShow)}
-			dataQa="qa-revisions-tab"
 			tooltipText={t("git.revisions.compare-button")}
-			iconCode="history"
-			iconStyle={isShow ? { color: "var(--color-primary)" } : { color: "white" }}
-			iconStrokeWidth="1.6"
 		/>
 	);
 };

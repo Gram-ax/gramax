@@ -6,6 +6,7 @@ export interface NodeDimensionsData {
 	marginBottom: number;
 	paddingH: number;
 	lineHeight?: number;
+	breakBefore?: string;
 }
 
 export interface AccumulatedHeight {
@@ -17,7 +18,7 @@ export class NodeDimensions {
 	constructor(private _dimensions: WeakMap<HTMLElement, NodeDimensionsData>) {}
 
 	static async init(source: HTMLElement, yieldTick: () => Promise<void>, throwIfAborted?: () => void) {
-		const nodeHeights = new WeakMap<HTMLElement, NodeDimensionsData>();
+		const nodeDimensions = new WeakMap<HTMLElement, NodeDimensionsData>();
 		const allNodes = Array.from(source.querySelectorAll("*"));
 		for (let i = 0; i < allNodes.length; i++) {
 			throwIfAborted();
@@ -25,12 +26,13 @@ export class NodeDimensions {
 			const node = allNodes[i] as HTMLElement;
 			const computedStyle = getComputedStyle(node);
 
-			nodeHeights.set(node, {
+			nodeDimensions.set(node, {
 				height: node.offsetHeight || node.getBoundingClientRect().height || 0,
 				marginTop: parseFloat(computedStyle.marginTop) || 0,
 				marginBottom: parseFloat(computedStyle.marginBottom) || 0,
 				paddingH: (parseFloat(computedStyle.paddingTop) || 0) + (parseFloat(computedStyle.paddingBottom) || 0),
-				lineHeight: this._getLineHeightInPixels(computedStyle) || 0,
+				lineHeight: NodeDimensions._getLineHeightInPixels(computedStyle) || 0,
+				breakBefore: computedStyle.breakBefore,
 			});
 
 			if ((i + 1) % 200 === 0) {
@@ -39,7 +41,7 @@ export class NodeDimensions {
 			}
 		}
 
-		return new NodeDimensions(nodeHeights);
+		return new NodeDimensions(nodeDimensions);
 	}
 
 	get(node: HTMLElement) {

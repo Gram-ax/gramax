@@ -1,17 +1,16 @@
-import { EnterpriseConfig } from "@app/config/AppConfig";
+import type { EnterpriseConfig } from "@app/config/AppConfig";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import t from "@ext/localization/locale/translate";
 import TokenValidationError from "@ext/publicApi/TokenValidationError";
 import TicketUser from "@ext/security/logic/TicketManager/TicketUser";
-import { Encoder } from "../../../Encoder/Encoder";
-import IPermission from "../Permission/IPermission";
+import type { Encoder } from "../../../Encoder/Encoder";
+import type IPermission from "../Permission/IPermission";
 import Permission from "../Permission/Permission";
 
 export class TicketManager {
 	constructor(
 		private _encoder: Encoder,
 		private _shareAccessToken: string,
-		private _enterpriseConfig?: EnterpriseConfig,
 	) {}
 
 	checkShareTicket(ticket: string) {
@@ -29,8 +28,8 @@ export class TicketManager {
 		return user;
 	}
 
-	checkUserTicket(ticket: string) {
-		return this._checkUserTicket(ticket);
+	checkUserTicket(ticket: string, enterpriseConfig: EnterpriseConfig) {
+		return this._checkUserTicket(ticket, enterpriseConfig);
 	}
 
 	getShareTicket(catalogName: string, permission: IPermission, date: Date): string {
@@ -58,14 +57,14 @@ export class TicketManager {
 		return;
 	}
 
-	private async _checkUserTicket(ticket: string): Promise<EnterpriseUser> {
+	private async _checkUserTicket(ticket: string, enterpriseConfig: EnterpriseConfig): Promise<EnterpriseUser> {
 		const datas = this._encoder.decode(this._shareAccessToken, ticket);
 		const { token, date } = this._parseUserSharedDatas(datas);
 
 		if (new Date(date).valueOf() < Date.now()) throw new TokenValidationError("Token has expired");
 
-		const user = new EnterpriseUser(true, null, null, null, null, this._enterpriseConfig, token);
-		return await user.updatePermissions(false);
+		const user = new EnterpriseUser(true, null, null, null, null, enterpriseConfig, token);
+		return await user.updatePermissions();
 	}
 
 	private _generateUserSharedDatas(user: EnterpriseUser, expiresAt: Date): string[] {

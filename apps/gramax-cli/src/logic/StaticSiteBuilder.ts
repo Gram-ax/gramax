@@ -1,20 +1,25 @@
 import { getConfig } from "@app/config/AppConfig";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { DirectoryInfoBasic, FileInfoBasic } from "@app/resolveModule/fscall/static";
-import Application from "@app/types/Application";
-import { joinTitles } from "@core-ui/getPageTitle";
+import type Application from "@app/types/Application";
+import type DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import { joinTitles } from "@core-ui/getPageTitle";
+import { createModulithService } from "@ext/serach/modulith/createModulithService";
 import { getRawEnabledFeatures } from "@ext/toggleFeatures/features";
+import crypto from "crypto-js";
 import { dirname } from "path";
-import { HtmlData } from "./ArticleTypes";
+import type { HtmlData } from "./ArticleTypes";
 import { logStep, logStepWithErrorSuppression } from "./cli/utils/logger";
-import { InitialDataKeys, StaticConfig } from "./initialDataUtils/types";
-import StaticContentCopier, { CopyTemplatesFunction, StaticFileProvider } from "./StaticContentCopier";
+import {
+	type DirectoryInfoBasic,
+	type FileInfoBasic,
+	InitialDataKeys,
+	type StaticConfig,
+} from "./initialDataUtils/types";
+import StaticContentCopier, { type CopyTemplatesFunction, type StaticFileProvider } from "./StaticContentCopier";
 import StaticRenderer, { STATIC_WORKSPACE_PATH } from "./StaticRenderer";
 import generateStaticSeo from "./StaticSeoGenerator";
-import { createModulithService } from "@ext/serach/modulith/createModulithService";
-import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 
 const htmlTags = {
 	base: "<!--base-tag-->",
@@ -54,12 +59,18 @@ class StaticSiteBuilder {
 	constructor(private _params: StaticSiteBuilderParams) {}
 	static readonly readonlyDir = "../bundle";
 
+	private _generateHash(content: string): string {
+		return crypto.MD5(content).toString().substring(0, 8);
+	}
+
 	async generate(catalog: Catalog, targetDir: Path, options: StaticSiteGenerationOptions) {
 		const { copyTemplate, customStyles, baseUrl } = options;
 		const catalogName = catalog.name;
 
 		const directoryCopier = new StaticContentCopier(this._params.fp, this._params.app);
-		await logStepWithErrorSuppression("Copying directory", () => directoryCopier.copyCatalog(catalog, targetDir));
+		const { zipFilename } = await logStepWithErrorSuppression("Copying directory", () =>
+			directoryCopier.copyCatalog(catalog, targetDir),
+		);
 		const { directoryTree, wordTemplates, pdfTemplates } = await directoryCopier.copyWordTemplates(copyTemplate);
 
 		const { rendered, searchDirectoryTree } = await logStepWithErrorSuppression(
@@ -79,16 +90,18 @@ class StaticSiteBuilder {
 		if (customStyles) {
 			await this._params.fp.write(targetDir.join(new Path([catalogName, CUSTOM_STYLE_FILENAME])), customStyles);
 			const customStyleLinkTag = this._createCustomStyleLinkTag(catalogName);
-			this._params.html = this._params.html.replace(htmlTags.styles, customStyleLinkTag + "\n" + htmlTags.styles);
+			this._params.html = this._params.html.replace(htmlTags.styles, `${customStyleLinkTag}\n${htmlTags.styles}`);
 		}
 
-		await this._params.fp.write(
-			targetDir.join(new Path([catalogName, "data.js"])),
-			`window.${InitialDataKeys.DIRECTORY} = ${JSON.stringify(directoryTree)}`,
-		);
+		const dataJsContent = `window.${InitialDataKeys.DIRECTORY} = ${JSON.stringify(directoryTree)};`;
+
+		const dataJsHash = this._generateHash(dataJsContent);
+		const dataJsFilename = `data.${dataJsHash}.js`;
+
+		await this._params.fp.write(targetDir.join(new Path([catalogName, dataJsFilename])), dataJsContent);
 
 		await logStep("Writing rendered HTML files", () =>
-			this._writingRenderedHtmlFiles(rendered, targetDir, catalogName),
+			this._writingRenderedHtmlFiles(rendered, targetDir, catalogName, dataJsFilename, zipFilename),
 		);
 
 		if (baseUrl)
@@ -111,15 +124,25 @@ class StaticSiteBuilder {
 		return tree;
 	};
 
-	private _writingRenderedHtmlFiles = async (htmlDatas: HtmlData[], targetDir: Path, catalogName: string) => {
+	private _writingRenderedHtmlFiles = async (
+		htmlDatas: HtmlData[],
+		targetDir: Path,
+		catalogName: string,
+		dataJsFilename: string,
+		zipFilename: string,
+	) => {
 		const config = getConfig();
 		config.isProduction = true;
 		config.isReadOnly = true;
 		(config as StaticConfig).features = getRawEnabledFeatures();
 
 		const templateHtml = this._params.html
-			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ` + (JSON.stringify(config) ?? "{}"))
-			.replace(htmlTags.fs, `<script src="${catalogName}/data.js"></script>`);
+			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ${JSON.stringify(config) ?? "{}"}`)
+			.replace(
+				htmlTags.fs,
+				`<script src="${catalogName}/${dataJsFilename}"></script>\n` +
+					`<script>window.${InitialDataKeys.ZIP_FILENAME} = "${zipFilename}";</script>`,
+			);
 
 		const generateHtmlFile = async (htmlData: HtmlData) => {
 			const is404Html = htmlData.initialData.data?.articlePageData?.articleProps?.errorCode === 404;

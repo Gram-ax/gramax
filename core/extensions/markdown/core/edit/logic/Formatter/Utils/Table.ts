@@ -1,7 +1,7 @@
 // import { CliPrettify } from "markdown-table-prettify";  "markdown-table-prettify": "^3.6.0",
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { Node } from "prosemirror-model";
-import { ProsemirrorMarkdownSerializer, getSchema } from "../../Prosemirror";
+import { getSchema, ProsemirrorMarkdownSerializer } from "../../Prosemirror";
 import getMarkFormatters from "../Formatters/getMarkFormatters";
 import getNodeFormatters from "../Formatters/getNodeFormatters";
 

@@ -2,16 +2,17 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { EventEmitter } from "@core/Event/EventEmitter";
 import type * as DFPIntermediateCommands from "@core/FileProvider/DiskFileProvider/DFPIntermediateCommands";
-import FileInfo from "@core/FileProvider/model/FileInfo";
-import FileProvider, { FileProviderEvents } from "@core/FileProvider/model/FileProvider";
+import type FileInfo from "@core/FileProvider/model/FileInfo";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
+import type { FileProviderEvents } from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
-import Watcher from "@ext/Watchers/model/Watcher";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
+import type Watcher from "@ext/Watchers/model/Watcher";
 import assert from "assert";
 import * as fs from "fs-extra";
 
-const isDesktop = getExecutingEnvironment() == "tauri";
+const isDesktop = getExecutingEnvironment() === "tauri";
 
 export type DiskFileProviderOptions = {
 	watcher?: Watcher;
@@ -65,7 +66,7 @@ export default class DiskFileProvider implements FileProvider {
 			const stats = await (fs as unknown as typeof DFPIntermediateCommands).readDirStats(this.toAbsolute(path));
 			return stats.map((stat) =>
 				Object.assign(stat, {
-					type: (stat.isFile() ? "file" : "dir") as any,
+					type: stat.isFile() ? "file" : "dir",
 					path: path.join(new Path(stat.name)),
 				} as FileInfo),
 			);
@@ -103,7 +104,7 @@ export default class DiskFileProvider implements FileProvider {
 		const stats = lstat ? await fs.lstat(this.toAbsolute(path)) : await fs.stat(this.toAbsolute(path));
 		if (!stats) return null;
 		return Object.assign(stats, {
-			type: (stats.isFile() ? "file" : "dir") as any,
+			type: stats.isFile() ? "file" : "dir",
 			path: path,
 			name: path.nameWithExtension,
 		} as FileInfo);
@@ -112,6 +113,7 @@ export default class DiskFileProvider implements FileProvider {
 	async delete(path: Path, preferTrash?: boolean) {
 		if (preferTrash && isDesktop) {
 			try {
+				// biome-ignore lint/suspicious/noExplicitAny: idc
 				return await (fs as any).moveToTrash(this.toAbsolute(path));
 			} catch {}
 		}
@@ -125,10 +127,11 @@ export default class DiskFileProvider implements FileProvider {
 		this._watcher?.stop();
 		try {
 			const absolutePath = this.toAbsolute(path);
-			if (await this.exists(path.parentDirectoryPath)) await fs.writeFile(absolutePath, data as any);
+			if (await this.exists(path.parentDirectoryPath))
+				await fs.writeFile(absolutePath, data as string | DataView);
 			else {
 				await fs.mkdir(this.toAbsolute(path.parentDirectoryPath), { recursive: true });
-				await fs.writeFile(absolutePath, data as any);
+				await fs.writeFile(absolutePath, data as string | DataView);
 			}
 			await DiskFileProvider.events.emit("write", { path, data });
 		} finally {
@@ -165,7 +168,7 @@ export default class DiskFileProvider implements FileProvider {
 		try {
 			return await fs.readFile(this.toAbsolute(path));
 		} catch (e) {
-			if (e.name == "ENOENT" || e.code == "ENOENT") return;
+			if (e.name === "ENOENT" || e.code === "ENOENT") return;
 			throw e;
 		}
 	}
@@ -216,28 +219,29 @@ export default class DiskFileProvider implements FileProvider {
 			await this.readdir(Path.empty);
 			return true;
 		} catch (e) {
-			if (e.name == "ENOENT" || e.code == "ENOENT") return false;
+			if (e.name === "ENOENT" || e.code === "ENOENT") return false;
 			throw new Error(`Root path ${this._rootPath.value} not exist`, e);
 		}
 	}
 
 	toAbsolute(path: Path): string {
+		let targetPath = path;
 		assert(this._mountPath || this._rootPath, "Mount path or root path are not set");
 
 		// If the root path is not empty and mount path is specified, we need to remove first component of path
 		// This is needed in cases when we using a virtual path, like 'catalog:tag'
 		// If we don't remove first component, we will get '/mnt/dir/catalog:tag/catalog/...'
-		if (this._mountPath && this._rootPath.value != Path.empty.value) {
+		if (this._mountPath && this._rootPath.value !== Path.empty.value) {
 			const index = path.value.indexOf("/");
-			path = index > 0 ? new Path(path.value.slice(index + 1)) : Path.empty;
+			targetPath = index > 0 ? new Path(path.value.slice(index + 1)) : Path.empty;
 		}
 
 		if (this._mountPath) {
-			if (this._rootPath) return this._mountPath.join(this._rootPath, path).value;
-			return this._mountPath.join(path).value;
+			if (this._rootPath) return this._mountPath.join(this._rootPath, targetPath).value;
+			return this._mountPath.join(targetPath).value;
 		}
 
-		return this._rootPath ? this._rootPath.join(path).value : path.value;
+		return this._rootPath ? this._rootPath.join(targetPath).value : targetPath.value;
 	}
 
 	private async _deleteFile(path: Path) {

@@ -8,10 +8,13 @@ const ALLOWED_TAURI_SOURCE_TYPES = [...ALLOWED_SOURCE_TYPES, SourceType.notion, 
 
 export const getAllowedSourceTypes = (isTauri: boolean) => {
 	const types = isTauri ? ALLOWED_TAURI_SOURCE_TYPES : ALLOWED_SOURCE_TYPES;
-	return types.reduce((acc, type) => {
-		acc[type] = type;
-		return acc;
-	}, {} as Record<SourceType, SourceType>);
+	return types.reduce(
+		(acc, type) => {
+			acc[type] = type;
+			return acc;
+		},
+		{} as Record<SourceType, SourceType>,
+	);
 };
 
 export const getAllSourceTypes = () => {

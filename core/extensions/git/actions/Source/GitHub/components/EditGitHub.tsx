@@ -1,21 +1,21 @@
-import t from "@ext/localization/locale/translate";
 import Icon from "@components/Atoms/Icon";
-import { Field } from "@ui-kit/Field";
-import { Button } from "@ui-kit/Button";
+import { parserQuery } from "@core/Api/Query";
 import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
-import { useState, useLayoutEffect } from "react";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
-import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
-import { parserQuery } from "@core/Api/Query";
-import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import styled from "@emotion/styled";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
+import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
+import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { Avatar, AvatarFallback, AvatarImage, getAvatarFallback } from "@ui-kit/Avatar";
+import { Button } from "@ui-kit/Button";
+import { Field } from "@ui-kit/Field";
 import { TextInput } from "@ui-kit/Input";
-import styled from "@emotion/styled";
+import { useLayoutEffect, useState } from "react";
 
 type Token = {
 	access_token: string;
@@ -105,7 +105,7 @@ const EditGitHub = ({ onSubmit, data: initialData }: EditGitHubProps) => {
 		};
 
 		const primaryButton = (
-			<Button type="button" disabled={!data} onClick={handleAddRepo}>
+			<Button disabled={!data} onClick={handleAddRepo} type="button">
 				{t("add")}
 			</Button>
 		);
@@ -120,29 +120,31 @@ const EditGitHub = ({ onSubmit, data: initialData }: EditGitHubProps) => {
 	return (
 		<>
 			<Field
-				title={t("user")}
-				layout="vertical"
 				control={() =>
 					data ? (
 						<TextInput
+							className="font-medium"
+							readOnly
 							startIcon={
 								<Avatar size="xs">
 									<AvatarImage src={data.avatarUrl} />
-									<AvatarFallback uniqueId={data.userEmail}>{getAvatarFallback(data.userName)}</AvatarFallback>
+									<AvatarFallback uniqueId={data.userEmail}>
+										{getAvatarFallback(data.userName)}
+									</AvatarFallback>
 								</Avatar>
 							}
-							className="font-medium"
 							value={data.userName}
-							readOnly
 						/>
 					) : (
-						<Button type="button" variant="outline" onClick={startAuth}>
-							<BoldIcon code="github" className="text-base" />
+						<Button onClick={startAuth} type="button" variant="outline">
+							<BoldIcon className="text-base" code="github" />
 							{t("log-in")}
 							GitHub
 						</Button>
 					)
 				}
+				layout="vertical"
+				title={t("user")}
 			/>
 		</>
 	);

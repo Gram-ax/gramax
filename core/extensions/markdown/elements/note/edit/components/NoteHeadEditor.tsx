@@ -40,14 +40,14 @@ const NoteHeadEditor = forwardRef((props: NoteHeadEditorProps, ref: RefObject<HT
 
 	return (
 		<Input
-			ref={ref}
-			onKeyUp={onKeyUp}
 			autoFocus={autoFocus}
-			placeholder={t("title")}
 			className="title-editor"
-			onChange={preChange}
 			defaultValue={defaultValue}
 			onBlur={onLoseFocus}
+			onChange={preChange}
+			onKeyUp={onKeyUp}
+			placeholder={t("title")}
+			ref={ref}
 		/>
 	);
 });

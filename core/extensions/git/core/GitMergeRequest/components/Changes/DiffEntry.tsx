@@ -1,6 +1,5 @@
 import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
-import CommentCountSrc from "@ext/markdown/elements/comment/edit/components/CommentCount";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import TooltipIfOveflow from "@core-ui/TooltipIfOveflow";
 import { css } from "@emotion/react";
@@ -14,10 +13,12 @@ import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overv
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
 import getUnscopedLogicPath from "@ext/git/core/GitMergeRequest/logic/getUnscopedLogicPath";
 import t from "@ext/localization/locale/translate";
+import { default as CommentCountSrc } from "@ext/markdown/elements/comment/edit/components/CommentCount";
 import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
-import { DiffItem } from "@ext/VersionControl/model/Diff";
+import type { DiffItem } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useCallback, useContext, useRef } from "react";
+import { useDiffExtendedMode } from "./stores/DiffExtendedModeStore";
 
 export type DiffEntryProps = {
 	entry: DiffTreeAnyItem;
@@ -104,6 +105,22 @@ const Highlight = styled.div<{ isActive: boolean; status: FileStatus; indent?: n
 		`}
 `;
 
+const LfsIcon = styled.span`
+	margin-left: 0.25rem;
+	padding-right: 0.25rem;
+	display: grid !important;
+	place-items: center;
+	color: var(--color-merge-request-text);
+`;
+
+const LfsIconText = styled.span`
+	font-size: 0.5em;
+	line-height: 1.2;
+	padding: 0.1rem !important;
+	border: 0.1px var(--color-merge-request-text) solid;
+	border-radius: 2px;
+`;
+
 const Indent = styled(Accent)<{ indent?: number; checkboxIndent?: boolean; isResource?: boolean }>`
 	margin-left: ${({ indent, checkboxIndent }) => (indent || 0) + 1.05 + (checkboxIndent ? 0.15 : 0)}rem;
 	margin-right: 1.65em;
@@ -124,13 +141,13 @@ const Indent = styled(Accent)<{ indent?: number; checkboxIndent?: boolean; isRes
 	white-space: nowrap;
 
 	> span {
-		display: inline;
 		padding-left: 0.2em;
 		max-width: 100%;
 	}
 
 	i {
 		padding-top: 0.05em;
+		margin-bottom: 0.15em;
 	}
 `;
 
@@ -178,6 +195,7 @@ const DiffEntry = ({
 }: DiffEntryProps) => {
 	const { selectedByPath } = useContext(SelectedDiffEntryContext);
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
+	const extendedMode = useDiffExtendedMode();
 
 	indent = Math.min(Math.max(indent || 0, 0), 10);
 
@@ -211,47 +229,54 @@ const DiffEntry = ({
 
 	const discardFileComponent = actionIcon ? (
 		<Icon
-			onClick={onActionClick}
 			className="action"
 			code={actionIcon}
+			onClick={onActionClick}
 			tooltipContent={t("git.discard.selected-file-arrow-tooltip")}
 		/>
 	) : null;
 
 	const indentLine = (
 		<IndentLine
-			gap="calc(1rem - 1px)"
 			color="var(--color-merge-request-outline)"
-			level={indent}
 			containerMarginLeft={`${(isCheckbox ? 0.15 : 0) + 1.18}rem`}
+			gap="calc(1rem - 1px)"
 			ignoreFirstLine={isCheckbox}
+			level={indent}
 		/>
 	);
 
 	if (entry.type === "resource") {
+		if (!extendedMode && indent > 1) return null;
+
 		return (
 			<Wrapper data-qa="qa-clickable">
 				<Highlight
-					status={entry.status}
-					onClick={() => onSelect(entry)}
 					isActive={selectedByPath === entry.filepath.new}
+					onClick={() => onSelect(entry)}
+					status={entry.status}
 				>
 					{isCheckbox && indent <= 1 && (
 						<CheckboxWrapper>
-							<Checkbox interactive checked={isFileSelected(entry)} onClick={onFileSelect} />
+							<Checkbox checked={isFileSelected(entry)} interactive onClick={onFileSelect} />
 						</CheckboxWrapper>
 					)}
 					{indentLine}
-					<Indent indent={indent} checkboxIndent={isCheckbox && indent === 0} isResource>
-						<TooltipIfOveflow content={entry.name} childrenRef={overflowElement} interactive>
+					<Indent checkboxIndent={isCheckbox && indent === 0} indent={indent} isResource>
+						<TooltipIfOveflow childrenRef={overflowElement} content={entry.name} interactive>
 							<TitleWrapper>
 								<Title indent={indent} ref={overflowElement}>
 									<Icon code={entry.icon} />
 									{entry.name}
 								</Title>
+								{entry.overview.isLfs && extendedMode && (
+									<LfsIcon>
+										<LfsIconText>LFS</LfsIconText>
+									</LfsIcon>
+								)}
 							</TitleWrapper>
 						</TooltipIfOveflow>
-						<Overview added={entry.overview.added} deleted={entry.overview.removed} />
+						<Overview {...entry.overview} />
 						{indent === 1 && discardFileComponent}
 					</Indent>
 				</Highlight>
@@ -270,19 +295,19 @@ const DiffEntry = ({
 			<>
 				<BreadcrumbWrapper>
 					{indentLine}
-					<Breadcrumbs marginLeft={indent + 1 + (isCheckbox ? 0.15 : 0)} breadcrumb={allBreadcrumbs} />
+					<Breadcrumbs breadcrumb={allBreadcrumbs} marginLeft={indent + 1 + (isCheckbox ? 0.15 : 0)} />
 				</BreadcrumbWrapper>
-				{itemChilds.map((inner, id) => (
+				{itemChilds.map((inner) => (
 					<DiffEntry
-						key={id}
-						entry={inner}
-						onSelect={onSelect}
-						indent={indent + Number(allBreadcrumbs.length > 0)}
-						selectFile={selectFile}
-						isFileSelected={isFileSelected}
-						onAction={onAction}
 						actionIcon={actionIcon}
+						entry={inner}
+						indent={indent + Number(allBreadcrumbs.length > 0)}
+						isFileSelected={isFileSelected}
+						key={inner.name}
+						onAction={onAction}
+						onSelect={onSelect}
 						renderCommentsCount={renderCommentsCount}
+						selectFile={selectFile}
 					/>
 				))}
 			</>
@@ -293,42 +318,43 @@ const DiffEntry = ({
 		<>
 			<Wrapper data-qa="qa-clickable">
 				<Highlight
-					status={entry.status}
-					onClick={() => onSelect(entry)}
 					isActive={selectedByPath === entry.filepath.new}
+					onClick={() => onSelect(entry)}
+					status={entry.status}
 				>
 					{isCheckbox && (
 						<CheckboxWrapper>
-							<Checkbox interactive checked={isFileSelected(entry)} onClick={onFileSelect} />
+							<Checkbox checked={isFileSelected(entry)} interactive onClick={onFileSelect} />
 						</CheckboxWrapper>
 					)}
 					{indentLine}
-					<Indent indent={indent} checkboxIndent={isCheckbox}>
+					<Indent checkboxIndent={isCheckbox} indent={indent}>
 						<TitleWrapper>
-							<TooltipIfOveflow content={entry.name} childrenRef={overflowElement} interactive>
+							<TooltipIfOveflow childrenRef={overflowElement} content={entry.name} interactive>
 								<Title indent={indent} ref={overflowElement}>
 									{entry.name}
 								</Title>
 							</TooltipIfOveflow>
+							{entry.overview.isLfs && extendedMode && <LfsIcon>LFS</LfsIcon>}
 							<CommentCount count={commentsCount} />
 						</TitleWrapper>
-						<Overview added={entry.overview.added} deleted={entry.overview.removed} />
+						<Overview {...entry.overview} />
 						{discardFileComponent}
 					</Indent>
 				</Highlight>
 			</Wrapper>
 			{entry.childs.length > 0 &&
-				entry.childs.map((inner, id) => (
+				entry.childs.map((inner) => (
 					<DiffEntry
-						key={id}
-						entry={inner}
-						onSelect={onSelect}
-						indent={indent + 1}
-						selectFile={selectFile}
-						isFileSelected={isFileSelected}
-						onAction={onAction}
 						actionIcon={actionIcon}
+						entry={inner}
+						indent={indent + 1}
+						isFileSelected={isFileSelected}
+						key={inner.logicpath}
+						onAction={onAction}
+						onSelect={onSelect}
 						renderCommentsCount={renderCommentsCount}
+						selectFile={selectFile}
 					/>
 				))}
 		</>

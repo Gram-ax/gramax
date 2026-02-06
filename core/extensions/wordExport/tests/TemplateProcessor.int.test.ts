@@ -1,7 +1,7 @@
-import TemplateProcessor from "../TemplateProcessor";
-import * as JSZip from "jszip";
+import { initBackendModules } from "@app/resolveModule/backend";
 import { DOMParser } from "@xmldom/xmldom";
-import { initModules } from "@app/resolveModule/backend";
+import * as JSZip from "jszip";
+import TemplateProcessor from "../TemplateProcessor";
 
 const createZip = (files: Record<string, string>) => {
 	const zip = new JSZip.default();
@@ -37,7 +37,7 @@ const numberingWithStyleLink = `
 
 describe("TemplateProcessor private methods", () => {
 	beforeAll(async () => {
-		await initModules();
+		await initBackendModules();
 	});
 
 	test("_fixNumIdInZip replaces placeholders and appends numbering", async () => {
@@ -109,22 +109,22 @@ describe("TemplateProcessor private methods", () => {
 		const processor = new TemplateProcessor(Buffer.from(""), [], { title: "Demo", lastModifiedBy: "Tester" });
 		await (processor as any)._updateDocumentPropertiesInZip(zip);
 
-	const updatedCore = await zip.file("docProps/core.xml").async("text");
-	expect(updatedCore).toContain("Demo");
-	expect(updatedCore).toContain("Tester");
-	expect(updatedCore).toContain("dcterms:created");
-});
-
-describe("TemplateProcessor helper methods", () => {
-	let processor: TemplateProcessor;
-
-	beforeAll(async () => {
-		await initModules();
-		processor = new TemplateProcessor(Buffer.from(""), []);
+		const updatedCore = await zip.file("docProps/core.xml").async("text");
+		expect(updatedCore).toContain("Demo");
+		expect(updatedCore).toContain("Tester");
+		expect(updatedCore).toContain("dcterms:created");
 	});
 
-	test("_collectTemplateAbstractNums picks style-linked definitions", () => {
-		const xml = `
+	describe("TemplateProcessor helper methods", () => {
+		let processor: TemplateProcessor;
+
+		beforeAll(async () => {
+			await initBackendModules();
+			processor = new TemplateProcessor(Buffer.from(""), []);
+		});
+
+		test("_collectTemplateAbstractNums picks style-linked definitions", () => {
+			const xml = `
       <w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
         <w:abstractNum w:abstractNumId="1">
           <w:styleLink w:val="ListParagraph"/>
@@ -134,81 +134,82 @@ describe("TemplateProcessor helper methods", () => {
         </w:abstractNum>
       </w:numbering>
     `;
-		const map = (processor as any)._collectTemplateAbstractNums(xml);
-		expect(map.get("ListParagraph")).toContain("abstractNumId=\"1\"");
-		expect(map.get("BulletList")).toContain("abstractNumId=\"2\"");
-	});
+			const map = (processor as any)._collectTemplateAbstractNums(xml);
+			expect(map.get("ListParagraph")).toContain('abstractNumId="1"');
+			expect(map.get("BulletList")).toContain('abstractNumId="2"');
+		});
 
-	test("_getMaxIdFromXml finds highest id", () => {
-		const xml = `<w:num w:numId="4"/><w:num w:numId="7"/>`;
-		const max = (processor as any)._getMaxIdFromXml(xml, /w:numId="(\d+)"/g);
-		expect(max).toBe(7);
-	});
+		test("_getMaxIdFromXml finds highest id", () => {
+			const xml = `<w:num w:numId="4"/><w:num w:numId="7"/>`;
+			const max = (processor as any)._getMaxIdFromXml(xml, /w:numId="(\d+)"/g);
+			expect(max).toBe(7);
+		});
 
-	test("_extractPlaceholders finds placeholder numbering ids", () => {
-		const xml = `
+		test("_extractPlaceholders finds placeholder numbering ids", () => {
+			const xml = `
       <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
         <w:p><w:pPr><w:numPr><w:numId w:val="{orderedList-0}"/></w:numPr></w:pPr></w:p>
         <w:p><w:pPr><w:numPr><w:numId w:val="5"/></w:numPr></w:pPr></w:p>
       </w:document>
     `;
-		const placeholders = (processor as any)._extractPlaceholders(xml);
-		expect(placeholders.has("{orderedList-0}")).toBe(true);
-		expect(placeholders.size).toBe(1);
-	});
-
-	test("_generateNumberingEntries produces replacements", () => {
-		const placeholders = new Set(["{orderedList-0}"]);
-		const templateMap = new Map([
-			["ListParagraph", "<w:abstractNum w:abstractNumId=\"1\"></w:abstractNum>"],
-			["OrderedList", "<w:abstractNum w:abstractNumId=\"2\"></w:abstractNum>"],
-		]);
-		const result = (processor as any)._generateNumberingEntries({
-			placeholders,
-			templateAbstractNums: templateMap,
-			startAbstractId: 10,
-			startNumId: 20,
+			const placeholders = (processor as any)._extractPlaceholders(xml);
+			expect(placeholders.has("{orderedList-0}")).toBe(true);
+			expect(placeholders.size).toBe(1);
 		});
-		expect(result.placeholderToNewId.get("{orderedList-0}")).toBe("20");
-		expect(result.newAbstractNumElements).toContain("abstractNumId=\"10\"");
-		expect(result.newNumElements).toContain("numId=\"20\"");
-	});
 
-	test("_replacePlaceholdersInDocXml swaps numbering ids", () => {
-		const doc = `<w:numId w:val="{orderedList-0}"/>`;
-		const replaced = (processor as any)._replacePlaceholdersInDocXml(
-			doc,
-			new Map([["{orderedList-0}", "42"]]),
-		);
-		expect(replaced).toContain(`w:val="42"`);
-	});
-
-	test("_appendNumberingElements injects abstract/num parts", () => {
-		const xml = `<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:num w:numId="1"/></w:numbering>`;
-		const appended = (processor as any)._appendNumberingElements(xml, "<w:abstractNum w:abstractNumId=\"9\"/>", "<w:num w:numId=\"9\"/>");
-		expect(appended).toContain("abstractNumId=\"9\"");
-		expect(appended).toContain("numId=\"9\"");
-	});
-
-	test("_updateSettingsXmlInZip ensures updateFields flag", async () => {
-		const zip = createZip({
-			"word/settings.xml": `<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"></w:settings>`,
+		test("_generateNumberingEntries produces replacements", () => {
+			const placeholders = new Set(["{orderedList-0}"]);
+			const templateMap = new Map([
+				["ListParagraph", '<w:abstractNum w:abstractNumId="1"></w:abstractNum>'],
+				["OrderedList", '<w:abstractNum w:abstractNumId="2"></w:abstractNum>'],
+			]);
+			const result = (processor as any)._generateNumberingEntries({
+				placeholders,
+				templateAbstractNums: templateMap,
+				startAbstractId: 10,
+				startNumId: 20,
+			});
+			expect(result.placeholderToNewId.get("{orderedList-0}")).toBe("20");
+			expect(result.newAbstractNumElements).toContain('abstractNumId="10"');
+			expect(result.newNumElements).toContain('numId="20"');
 		});
-		await (processor as any)._updateSettingsXmlInZip(zip);
-		const updated = await zip.file("word/settings.xml").async("text");
-		expect(updated).toContain("w:updateFields");
-	});
 
-	test("_updateContentTypesXmlInZip rewrites document content type", async () => {
-		const xml = `
+		test("_replacePlaceholdersInDocXml swaps numbering ids", () => {
+			const doc = `<w:numId w:val="{orderedList-0}"/>`;
+			const replaced = (processor as any)._replacePlaceholdersInDocXml(doc, new Map([["{orderedList-0}", "42"]]));
+			expect(replaced).toContain(`w:val="42"`);
+		});
+
+		test("_appendNumberingElements injects abstract/num parts", () => {
+			const xml = `<w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:num w:numId="1"/></w:numbering>`;
+			const appended = (processor as any)._appendNumberingElements(
+				xml,
+				'<w:abstractNum w:abstractNumId="9"/>',
+				'<w:num w:numId="9"/>',
+			);
+			expect(appended).toContain('abstractNumId="9"');
+			expect(appended).toContain('numId="9"');
+		});
+
+		test("_updateSettingsXmlInZip ensures updateFields flag", async () => {
+			const zip = createZip({
+				"word/settings.xml": `<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"></w:settings>`,
+			});
+			await (processor as any)._updateSettingsXmlInZip(zip);
+			const updated = await zip.file("word/settings.xml").async("text");
+			expect(updated).toContain("w:updateFields");
+		});
+
+		test("_updateContentTypesXmlInZip rewrites document content type", async () => {
+			const xml = `
       <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
         <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"/>
       </Types>
     `;
-		const zip = createZip({ "[Content_Types].xml": xml });
-		await (processor as any)._updateContentTypesXmlInZip(zip);
-		const updated = await zip.file("[Content_Types].xml").async("text");
-		expect(updated).toContain("document.main+xml");
+			const zip = createZip({ "[Content_Types].xml": xml });
+			await (processor as any)._updateContentTypesXmlInZip(zip);
+			const updated = await zip.file("[Content_Types].xml").async("text");
+			expect(updated).toContain("document.main+xml");
+		});
 	});
-});
 });

@@ -117,9 +117,9 @@ const ImageResizer = (props: ImageResizerProps): ReactElement => {
 		<div className={className}>
 			<div
 				className="resizer"
+				onMouseDown={onMouseDown}
 				onPointerDown={onPointerDown}
 				onTouchStart={onTouchStart}
-				onMouseDown={onMouseDown}
 			/>
 		</div>
 	);

@@ -2,11 +2,11 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import type { DiffTree, TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import PublishChangesProvider from "@ext/git/core/GitPublish/PublishChangesProvider";
 import { useCallback, useEffect, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type UsePublishDiffEntries = {
 	diffTree?: DiffTree;

@@ -80,14 +80,14 @@ const Note = (props: NoteProps): ReactElement => {
 				<div className="admonition-icon">
 					{clickable ? (
 						<Icon
-							style={{ cursor: "pointer", userSelect: "none" }}
 							code={expanded ? "chevron-down" : "chevron-right"}
+							style={{ cursor: "pointer", userSelect: "none" }}
 						/>
 					) : (
 						<Icon code={noteIcons[type]} strokeWidth="2" />
 					)}
 				</div>
-				<div contentEditable={false} suppressContentEditableWarning={true} className="titleWrapper">
+				<div className="titleWrapper" contentEditable={false} suppressContentEditableWarning={true}>
 					<div className={classNames("title", { clickable: clickable && !titleEditor })}>
 						{titleEditor?.(expanded) || title}
 					</div>

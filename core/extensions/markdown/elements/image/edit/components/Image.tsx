@@ -1,7 +1,7 @@
 import Caption from "@components/controls/Caption";
+import Path from "@core/FileProvider/Path/Path";
 import useWatch from "@core-ui/hooks/useWatch";
 import toggleSignature from "@core-ui/toggleSignature";
-import Path from "@core/FileProvider/Path/Path";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ImageActions from "@ext/markdown/elements/image/edit/components/ImageActions";
 import ImageEditor from "@ext/markdown/elements/image/edit/components/ImageEditor";
@@ -91,11 +91,11 @@ const Image = (props: ImageDataProps): ReactElement => {
 		const root = createRoot(element);
 		root.render(
 			<ImageEditor
-				src={newSrc}
 				crop={crop ?? { x: 0, y: 0, w: 100, h: 100 }}
-				objects={objects ?? []}
 				handleSave={handleSave}
 				handleToggle={handleToggle}
+				objects={objects ?? []}
+				src={newSrc}
 			/>,
 		);
 	}, [updateAttributes, crop, objects, resourceService.data, src]);
@@ -116,36 +116,36 @@ const Image = (props: ImageDataProps): ReactElement => {
 	return (
 		<>
 			<ImageRenderer
-				id={id}
-				title={title}
-				objects={objects}
-				src={src}
 				alt={alt}
-				width={width}
-				height={height}
 				commentId={commentId}
-				scale={scale}
 				crop={crop}
-				noEm
+				height={height}
 				hoverElementRef={hoverElementRef}
-				showResizer={showResizer}
+				id={id}
+				isHovered={isHovered}
+				noEm
+				objects={objects}
 				openEditor={handleEdit}
 				realSrc={src}
-				updateAttributes={updateAttributes}
-				isHovered={isHovered}
-				setIsHovered={setIsHovered}
 				rightActions={
-					isEditable && <ImageActions isGif={isGif} handleEdit={handleEdit} addSignature={addSignature} />
+					isEditable && <ImageActions addSignature={addSignature} handleEdit={handleEdit} isGif={isGif} />
 				}
+				scale={scale}
+				setIsHovered={setIsHovered}
+				showResizer={showResizer}
+				src={src}
+				title={title}
+				updateAttributes={updateAttributes}
+				width={width}
 			/>
 			<Caption
 				editor={editor}
+				getPos={getPos}
+				onLoseFocus={onLoseFocus}
+				onUpdate={onUpdate}
 				ref={signatureRef}
 				text={title}
-				onUpdate={onUpdate}
-				onLoseFocus={onLoseFocus}
 				visible={hasSignature}
-				getPos={getPos}
 			/>
 		</>
 	);

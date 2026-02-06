@@ -1,11 +1,15 @@
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useApi } from "@core-ui/hooks/useApi";
-import { TypedAnswer, AnswerType } from "@ext/markdown/elements/answer/types";
-import { QuestionStorage, useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
-import { Question, QuestionResult } from "@ext/markdown/elements/question/types";
-import { QuizResult, StoredQuizResult } from "@ext/quiz/models/types";
+import type { AnswerType, TypedAnswer } from "@ext/markdown/elements/answer/types";
+import {
+	type QuestionStorage,
+	useQuestionsStore,
+} from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
+import type { Question, QuestionResult } from "@ext/markdown/elements/question/types";
+import type { QuizResult, StoredQuizResult } from "@ext/quiz/models/types";
 import { toast } from "@ui-kit/Toast";
-import { DependencyList, useLayoutEffect } from "react";
+import { type DependencyList, useLayoutEffect } from "react";
 import { create } from "zustand";
 import { shallow } from "zustand/shallow";
 
@@ -74,7 +78,7 @@ export const createQuestionsStore = (questions: Record<string, StoredQuestion>, 
 
 			const newValue = !answer.value;
 			const isSelected = question.selectedAnswers.includes(answerId);
-			let newSelectedAnswers;
+			let newSelectedAnswers: string[];
 
 			if (isSelected) newSelectedAnswers = question.selectedAnswers.filter((id) => id !== answerId);
 			else if (question.type === "one" && newValue) newSelectedAnswers = [answerId];
@@ -196,6 +200,7 @@ export const useCheckAnswers = () => {
 
 export const useIsAnsweredToTest = (deps: DependencyList) => {
 	const workspace = Workspace.current();
+	const user = PageDataContext.value?.userInfo;
 
 	const { setState, restoreStoredAnswers } = useQuestionsStore(
 		(store) => ({
@@ -222,10 +227,11 @@ export const useIsAnsweredToTest = (deps: DependencyList) => {
 		},
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
-		if (!workspace?.enterprise?.modules?.quiz) return;
+		if (!workspace?.enterprise?.modules?.quiz || !user?.mail) return;
 		void isAnswered();
-	}, [workspace?.enterprise?.modules?.quiz, ...deps]);
+	}, [workspace?.enterprise?.modules?.quiz, user, ...deps]);
 
 	return isAnswered;
 };

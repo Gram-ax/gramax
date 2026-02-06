@@ -1,7 +1,7 @@
 import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import TableUtils from "@ext/markdown/core/edit/logic/Formatter/Utils/Table";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 
 const tableFormatter =
 	(formatter: FormatterType, context?: ParserContext): NodeSerializerSpec =>

@@ -1,15 +1,16 @@
+import { MinimizedArticleStyled } from "@components/Article/MiniArticle";
+import { cn } from "@core-ui/utils/cn";
+import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { getSimpleExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
+import { CommentFooter } from "@ext/markdown/elements/comment/edit/components/Popover/CommentFooter";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
-import { FocusPosition, isNodeEmpty, JSONContent } from "@tiptap/core";
+import { type FocusPosition, isNodeEmpty, type JSONContent } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
+import type { EditorView } from "@tiptap/pm/view";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import { memo, useCallback } from "react";
-import styled from "@emotion/styled";
-import { CommentFooter } from "@ext/markdown/elements/comment/edit/components/Popover/CommentFooter";
-import { EditorView } from "@tiptap/pm/view";
-import { MinimizedArticleStyled } from "@components/Article/MiniArticle";
 
 export interface CommentInputProps {
 	content?: JSONContent[];
@@ -36,7 +37,7 @@ const StyledEditorContent = styled(EditorContent)`
 		flex-grow: 1;
 	}
 
-	&:has(> div > *:nth-child(2)) {
+	&:has(> div > *:nth-last-of-type(2)) {
 		width: 100%;
 	}
 
@@ -74,7 +75,15 @@ export const CommentInput = memo((props: CommentInputProps) => {
 				...getSimpleExtensions(),
 				Comment,
 				Document,
-				Placeholder.configure({ placeholder: t("leave-comment") }),
+				Placeholder.configure({
+					placeholder: ({ editor, node }) => {
+						const isFirstParagraph =
+							editor.state.doc.firstChild.type.name === "paragraph" &&
+							editor.state.doc.firstChild === node;
+
+						if (isFirstParagraph) return t("leave-comment");
+					},
+				}),
 			],
 			editorProps: {
 				handleKeyDown: onKeyDown,
@@ -88,22 +97,27 @@ export const CommentInput = memo((props: CommentInputProps) => {
 	return (
 		<MinimizedArticleStyled>
 			<EditorContext.Provider value={{ editor }}>
-				<div className="flex items-center gap-2 w-full" style={{ minHeight: "1.5rem" }}>
+				<div
+					className={cn("flex items-center gap-2 w-full", !isNewComment && "flex-wrap")}
+					style={{ minHeight: "1.5rem" }}
+				>
 					<StyledEditorContent
-						editor={editor}
-						data-qa="editor"
+						className={cn(
+							"flex text-sm rounded-sm focus:border-secondary-border",
+							!isNewComment && "w-full",
+						)}
 						data-editable={editable}
+						data-qa="editor"
 						data-state={isNewComment ? "new" : "old"}
-						className="flex text-sm rounded-sm focus:border-secondary-border"
+						editor={editor}
 					/>
-					{editable && (
-						<CommentFooter
-							isNewComment={isNewComment}
-							onConfirm={onConfirm}
-							onCancel={onCancel}
-							editor={editor}
-						/>
-					)}
+					<CommentFooter
+						editable={editable}
+						editor={editor}
+						isNewComment={isNewComment}
+						onCancel={onCancel}
+						onConfirm={onConfirm}
+					/>
 				</div>
 			</EditorContext.Provider>
 		</MinimizedArticleStyled>

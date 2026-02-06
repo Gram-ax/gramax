@@ -1,5 +1,5 @@
-import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
+import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const mediaSingle: NodeConverter = async (mediaSingleNode, ctx) => {
 	const articleId = mediaSingleNode?.content[0]?.attrs?.collection?.replace("contentId-", "");

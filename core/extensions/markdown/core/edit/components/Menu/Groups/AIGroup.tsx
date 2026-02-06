@@ -1,5 +1,5 @@
-import { Editor } from "@tiptap/core";
 import TextGenerateButton from "@ext/ai/components/Buttons/TextGenerate";
+import { Editor } from "@tiptap/core";
 import { memo } from "react";
 
 const AIGroup = ({ editor }: { editor?: Editor }) => {

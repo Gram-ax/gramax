@@ -5,7 +5,10 @@ import { Item } from "@core/FileStructue/Item/Item";
 import { Workspace } from "@ext/workspace/Workspace";
 
 class SEOGenerator {
-	constructor(private _workspace: Workspace, private _filters: ItemFilter[] = []) {}
+	constructor(
+		private _workspace: Workspace,
+		private _filters: ItemFilter[] = [],
+	) {}
 
 	async generateSitemapIndex(baseUrl: string) {
 		const catalogEntries = this._workspace.getAllCatalogs();

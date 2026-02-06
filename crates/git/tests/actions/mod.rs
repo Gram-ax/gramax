@@ -1,12 +1,12 @@
+pub mod add;
 pub mod branch;
 pub mod commit;
 pub mod diff;
 pub mod merge;
+pub mod recover;
 pub mod refs;
 pub mod remote;
 pub mod reset;
 pub mod stash;
 pub mod status;
 pub mod tags;
-pub mod add;
-pub mod recover;

@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { Button as UiKitButton } from "ics-ui-kit/components/button";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 import { forwardRef } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitButtonProps = ExtractComponentGeneric<typeof UiKitButton>;
 
@@ -19,10 +19,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) =>
 	return (
 		shouldRender && (
 			<UiKitButton
-				ref={ref}
 				data-qa={"qa-clickable"}
-				startIcon={StartIcon as any}
 				endIcon={EndIcon as any}
+				ref={ref}
+				startIcon={StartIcon as any}
 				{...otherProps}
 			/>
 		)

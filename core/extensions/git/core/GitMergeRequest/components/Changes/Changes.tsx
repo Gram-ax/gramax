@@ -38,7 +38,7 @@ export const Changes = ({ targetRef, stage, setStage }: ChangesProps) => {
 	const DiffEntriesCached = useMemo(() => {
 		return changes ? (
 			<ScrollableDiffEntriesLayout>
-				<DiffEntries changes={changes.tree} setArticleDiffView={setArticleDiffView} renderCommentsCount />
+				<DiffEntries changes={changes.tree} renderCommentsCount setArticleDiffView={setArticleDiffView} />
 			</ScrollableDiffEntriesLayout>
 		) : null;
 	}, [changes]);
@@ -46,12 +46,12 @@ export const Changes = ({ targetRef, stage, setStage }: ChangesProps) => {
 	return (
 		<Section
 			chevron={false}
-			title={t("git.merge-requests.diff")}
-			isCollapsed={false}
-			isNotLoaded={!changes}
-			isLoading={stage === DiffEntriesLoadStage.Loading}
-			right={changes && <Overview showTotal fontSize="12px" {...(changes?.overview || {})} />}
 			headerStyles="padding-left: 1rem; padding-right: 1rem;"
+			isCollapsed={false}
+			isLoading={stage === DiffEntriesLoadStage.Loading}
+			isNotLoaded={!changes}
+			right={changes && <Overview fontSize="12px" showTotal {...(changes?.overview || {})} />}
+			title={t("git.merge-requests.diff")}
 		>
 			{DiffEntriesCached}
 		</Section>

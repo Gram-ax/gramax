@@ -3,10 +3,10 @@
  */
 
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
-import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
+import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../../logic/FileProvider/Path/Path";

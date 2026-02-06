@@ -1,9 +1,9 @@
+import { HEIGHT_TOLERANCE_PX } from "@ext/print/const";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import Paginator from "@ext/print/utils/pagination/Paginator";
 import { ControlInfo, PaginationInfo } from "@ext/print/utils/pagination/types";
-import { createPage } from "./pageElements";
-import { HEIGHT_TOLERANCE_PX } from "@ext/print/const";
 import assert from "assert";
+import { createPage } from "./pageElements";
 
 interface StaticParams {
 	paginationInfo: PaginationInfo;
@@ -45,7 +45,7 @@ class PagePaginator extends Paginator {
 	}
 
 	cleanHeadingElementsIfNeed() {
-		if (!this.lastChildNodeIsHeading()) this.headingElements = [];
+		if (!this.lastChildNodeIsHeading() || this.hasOnlyHeadingElements()) this.headingElements = [];
 	}
 
 	static setUsablePageWidth(page: HTMLElement) {

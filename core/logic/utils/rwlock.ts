@@ -5,7 +5,10 @@ export enum RwLockState {
 }
 
 export class RwLockContainer<T> {
-	constructor(private _data: T, private _lock: RwLock) {}
+	constructor(
+		private _data: T,
+		private _lock: RwLock,
+	) {}
 
 	state() {
 		return this._lock.state();

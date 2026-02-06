@@ -1,7 +1,7 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import ImageRenderer from "@ext/markdown/elements/image/render/components/ImageRenderer";
 import AnnotationList from "@ext/markdown/elements/image/print/AnnotationList";
+import ImageRenderer from "@ext/markdown/elements/image/render/components/ImageRenderer";
 import { ReactElement } from "react";
 
 interface ImageDataProps {

@@ -1,8 +1,9 @@
+import { getConfig } from "@app/config/AppConfig";
 import type { Event, OnErrorCallback } from "@bugsnag/js";
 import bugsnag from "@dynamicImports/bugsnag";
-import DefaultError from "../../errorHandlers/logic/DefaultError";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
-import { getConfig } from "@app/config/AppConfig";
+import DefaultError from "../../errorHandlers/logic/DefaultError";
+
 const ignoredErrors = [NetworkApiError, DefaultError];
 
 const sendBug = async (error: Error, onError?: OnErrorCallback, silentError = true): Promise<Event> => {

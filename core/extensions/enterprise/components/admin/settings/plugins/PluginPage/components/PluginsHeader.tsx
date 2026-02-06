@@ -24,15 +24,10 @@ export const PluginsHeader = ({
 }: PluginsHeaderProps) => {
 	return (
 		<StickyHeader
-			title={
-				<>
-					{getAdminPageTitle(Page.PLUGINS)} <Spinner size="small" show={isRefreshing} />
-				</>
-			}
 			actions={
 				<>
 					{selectedCount > 0 && (
-						<Button variant="outline" onClick={onDeleteSelected} disabled={loading}>
+						<Button disabled={loading} onClick={onDeleteSelected} variant="outline">
 							<Icon icon={loading ? "loader" : "trash"} />
 							{loading ? `${t("deleting")}...` : `${t("delete")} (${selectedCount})`}
 						</Button>
@@ -41,6 +36,11 @@ export const PluginsHeader = ({
 						<Plus size={16} />
 						{t("plugins.list.add-button")}
 					</Button>
+				</>
+			}
+			title={
+				<>
+					{getAdminPageTitle(Page.PLUGINS)} <Spinner show={isRefreshing} size="small" />
 				</>
 			}
 		/>

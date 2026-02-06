@@ -1,8 +1,39 @@
+import { Content } from "@core/FileStructue/Article/Article";
+import editTreeToRenderTree from "@ext/markdown/core/Parser/EditTreeToRenderTree";
+import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
+import PrivateParserContext, {
+	createPrivateParserContext,
+} from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import quizTokensTransformer from "@ext/markdown/elements/answer/edit/logic/quizTokensTransformer";
+import inlineNodeTransformers from "@ext/markdown/elements/comment/edit/logic/inlineNodeTransformers";
+import commentTokenTransformer from "@ext/markdown/elements/comment/logic/commentTokenTransformer";
+import cutTokenTransformer from "@ext/markdown/elements/cut/logic/cutTokenTransformer";
+import inlineCutNodeTransformer from "@ext/markdown/elements/cut/logic/inlineCutNodeTransformer";
+import diagramsNodeTransformer from "@ext/markdown/elements/diagrams/logic/transformer/diagramsNodeTransformer";
+import fileMarkTransformer from "@ext/markdown/elements/file/logic/fileMarkTransformer";
+import htmlTokenTransformer from "@ext/markdown/elements/html/logic/htmlTokenTransformer";
+import htmlTagNodeTransformer from "@ext/markdown/elements/htmlTag/logic/htmlTagNodeTransformer";
+import htmlTagTokenTransformer from "@ext/markdown/elements/htmlTag/logic/htmlTagTokenTransformer";
+import iconTokenTransformer from "@ext/markdown/elements/icon/logic/iconTokenTransformer";
+import imageTokenTransformer from "@ext/markdown/elements/image/logic/imageTokenTransformer";
+import inlineImageTokenTransformer from "@ext/markdown/elements/inlineImage/edit/logic/inlineImageTokenTransformer";
+import inlinePropertyTokenTransformer from "@ext/markdown/elements/inlineProperty/edit/logic/inlinePropertyTokenTransformer";
 import taskListNodeTransformer from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListNodeTransformer";
+import blockMdNodeTransformer from "@ext/markdown/elements/md/logic/blockMdNodeTransformer";
 import noteNodeTransformer from "@ext/markdown/elements/note/logic/noteNodeTransformer";
+import paragraphNodeTransformer from "@ext/markdown/elements/paragraph/logic/paragraphNodeTransformer";
+import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableTokenTransformer";
+import getTabsNodeTransformer from "@ext/markdown/elements/tabs/edit/logic/getTabsNodeTransformer";
 import unsupportedNodeTransformer from "@ext/markdown/elements/unsupported/logic/unsupportedNodeTransformer";
-import ParserContext from "./ParserContext/ParserContext";
-
+import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
+import { JSONContent } from "@tiptap/core";
+import { Node } from "prosemirror-model";
+import { ProsemirrorMarkdownParser, ProsemirrorTransformer } from "../edit/logic/Prosemirror";
+import { getSchema } from "../edit/logic/Prosemirror/schema";
+import { getTokens } from "../edit/logic/Prosemirror/tokens";
+import getComponentsHTML from "../render/components/getComponents/getComponentsHTML";
+import getNodeElementRenderModels from "../render/logic/getRenderElements/getNodeElementRenderModels";
+import getTagElementRenderModels from "../render/logic/getRenderElements/getTagElementRenderModels";
 import Markdoc, {
 	Config,
 	RenderableTreeNode,
@@ -12,43 +43,9 @@ import Markdoc, {
 	Token,
 	Tokenizer,
 } from "../render/logic/Markdoc";
-
-import getNodeElementRenderModels from "../render/logic/getRenderElements/getNodeElementRenderModels";
-import getTagElementRenderModels from "../render/logic/getRenderElements/getTagElementRenderModels";
-
-import { Content } from "@core/FileStructue/Article/Article";
-import getComponentsHTML from "../render/components/getComponents/getComponentsHTML";
 import MdParser from "./MdParser/MdParser";
-
-import { Node } from "prosemirror-model";
-import { ProsemirrorMarkdownParser, ProsemirrorTransformer } from "../edit/logic/Prosemirror";
-import { getSchema } from "../edit/logic/Prosemirror/schema";
-import { getTokens } from "../edit/logic/Prosemirror/tokens";
-
-import commentTokenTransformer from "@ext/markdown/elements/comment/logic/commentTokenTransformer";
-import cutTokenTransformer from "@ext/markdown/elements/cut/logic/cutTokenTransformer";
-import inlineCutNodeTransformer from "@ext/markdown/elements/cut/logic/inlineCutNodeTransformer";
-import diagramsNodeTransformer from "@ext/markdown/elements/diagrams/logic/transformer/diagramsNodeTransformer";
-import fileMarkTransformer from "@ext/markdown/elements/file/logic/fileMarkTransformer";
-import iconTokenTransformer from "@ext/markdown/elements/icon/logic/iconTokenTransformer";
-import imageTokenTransformer from "@ext/markdown/elements/image/logic/imageTokenTransformer";
-import blockMdNodeTransformer from "@ext/markdown/elements/md/logic/blockMdNodeTransformer";
-import paragraphNodeTransformer from "@ext/markdown/elements/paragraph/logic/paragraphNodeTransformer";
+import ParserContext from "./ParserContext/ParserContext";
 import preTransformTokens from "./Transformer/preTransformTokens";
-
-import editTreeToRenderTree from "@ext/markdown/core/Parser/EditTreeToRenderTree";
-import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
-import htmlTokenTransformer from "@ext/markdown/elements/html/logic/htmlTokenTransformer";
-import htmlTagNodeTransformer from "@ext/markdown/elements/htmlTag/logic/htmlTagNodeTransformer";
-import htmlTagTokenTransformer from "@ext/markdown/elements/htmlTag/logic/htmlTagTokenTransformer";
-import inlineImageTokenTransformer from "@ext/markdown/elements/inlineImage/edit/logic/inlineImageTokenTransformer";
-import inlinePropertyTokenTransformer from "@ext/markdown/elements/inlineProperty/edit/logic/inlinePropertyTokenTransformer";
-import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableTokenTransformer";
-import getTabsNodeTransformer from "@ext/markdown/elements/tabs/edit/logic/getTabsNodeTransformer";
-import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
-import { JSONContent } from "@tiptap/core";
-import inlineNodeTransformers from "@ext/markdown/elements/comment/edit/logic/inlineNodeTransformers";
-import quizTokensTransformer from "@ext/markdown/elements/answer/edit/logic/quizTokensTransformer";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
 
@@ -68,35 +65,34 @@ export type EditRenderableTreeNode = RenderableTreeNode | Node;
 export default class MarkdownParser {
 	public async parse(content: string, context?: ParserContext, requestUrl?: string): Promise<Content> {
 		try {
-			const schemes = this._getSchemes(context);
+			const privateContext: PrivateParserContext = context ? createPrivateParserContext(context) : undefined;
+
+			const schemes = this._getSchemes(privateContext);
 			const tokens = this._getTokens(content, schemes);
-			const editTree = await this._editParser(tokens, schemes, context);
+			const editTree = await this._editParser(tokens, schemes, privateContext);
 			const renderTree = editTreeToRenderTree(editTree, getSchema());
 			const tocItems = getTocItems(getLevelTocItemsByRenderableTree((renderTree as Tag)?.children ?? []));
 			return {
 				editTree,
 				renderTree,
-				getHtmlValue: new GetHtmlValue(async () => await this.parseToHtml(content, context, requestUrl)),
+				getHtmlValue: new GetHtmlValue(async () => await this.parseToHtml(content, privateContext, requestUrl)),
 				tocItems,
-				linkManager: context?.getLinkManager(),
-				resourceManager: context?.getResourceManager(),
-				snippets: context?.snippet,
-				icons: context?.icons,
-				questions: context?.questions,
+				parsedContext: privateContext,
 			};
 		} catch (e) {
 			throw new ParseError(e);
 		}
 	}
 
-	public async editParse(content: string, context?: ParserContext): Promise<JSONContent> {
+	public async editParse(content: string, context?: PrivateParserContext): Promise<JSONContent> {
 		const schemes = this._getSchemes(context);
 		const tokens = this._getTokens(content, schemes);
 		return this._editParser(tokens, schemes, context);
 	}
 
 	public async parseToHtml(content: string, context?: ParserContext, requestUrl?: string): Promise<string> {
-		return this.getHtml(await this.parseRenderableTreeNode(content, context), context, requestUrl);
+		const parsedContent = await this.parse(content, context);
+		return this.getHtml(parsedContent.renderTree, context, requestUrl);
 	}
 
 	public getHtml(renderTree: RenderableTreeNodes, context?: ParserContext, requestUrl?: string): string {
@@ -107,7 +103,7 @@ export default class MarkdownParser {
 
 	public async parseRenderableTreeNode(
 		content: string,
-		context?: ParserContext,
+		context?: PrivateParserContext,
 		parserOptions?: ParserOptions,
 	): Promise<RenderableTreeNodes> {
 		const schemes = this._getSchemes(context);
@@ -120,7 +116,7 @@ export default class MarkdownParser {
 		return this.getRenderMarkdownIt(content);
 	}
 
-	public getTokens(content: string, context: ParserContext): Token[] {
+	public getTokens(content: string, context: PrivateParserContext): Token[] {
 		const schemes = this._getSchemes(context);
 		return this._getTokens(content, schemes);
 	}
@@ -148,7 +144,7 @@ export default class MarkdownParser {
 		return node;
 	}
 
-	private _getSchemes(context?: ParserContext): Schemes {
+	private _getSchemes(context?: PrivateParserContext): Schemes {
 		const tags = getTagElementRenderModels(context);
 		const nodes = getNodeElementRenderModels(context);
 		return { tags, nodes };
@@ -168,7 +164,7 @@ export default class MarkdownParser {
 	private async _getRenderableTreeNode(
 		tokens: Token[],
 		schemes: Schemes,
-		context?: ParserContext,
+		context?: PrivateParserContext,
 	): Promise<RenderableTreeNode> {
 		const variables = context?.getProp("variables") ?? {};
 		const config: Config = { nodes: schemes.nodes, tags: schemes.tags, variables };
@@ -176,7 +172,7 @@ export default class MarkdownParser {
 		return Markdoc.transform(ast, config);
 	}
 
-	private async _editParser(tokens: Token[], schemes: Schemes, context?: ParserContext): Promise<JSONContent> {
+	private async _editParser(tokens: Token[], schemes: Schemes, context?: PrivateParserContext): Promise<JSONContent> {
 		const prosemirrorParser = new ProsemirrorMarkdownParser(getSchema(), this._getTokenizer(), getTokens(context));
 
 		const transformer = new ProsemirrorTransformer(

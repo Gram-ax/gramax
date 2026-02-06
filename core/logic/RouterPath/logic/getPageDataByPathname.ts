@@ -1,6 +1,6 @@
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import PathnameData from "@core/RouterPath/model/PathnameData";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import Storage from "@ext/storage/logic/Storage";

@@ -73,30 +73,30 @@ export function ResourcesTable({ items, disabled, onRowClick, onDeleteSelected, 
 
 	return (
 		<div>
-			<TableInfoBlock title={getAdminPageTitle(Page.RESOURCES)} description={tableData.length} />
+			<TableInfoBlock description={tableData.length} title={getAdminPageTitle(Page.RESOURCES)} />
 
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
+						onChange={handleFilterChange}
 						placeholder="Найти репозитории..."
 						value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-						onChange={handleFilterChange}
 					/>
 				}
 			>
 				<AlertDeleteDialog
-					loading={loading}
 					hidden={!selectedCount}
-					selectedCount={selectedCount}
+					loading={loading}
 					onConfirm={handleDeleteSelected}
+					selectedCount={selectedCount}
 				/>
-				<TriggerAddButtonTemplate key="add-repo" onClick={onAdd} disabled={disabled} />
+				<TriggerAddButtonTemplate disabled={disabled} key="add-repo" onClick={onAdd} />
 			</TableToolbar>
 
 			<TableComponent<ResourceItem>
-				table={table}
 				columns={resourcesTableColumns}
 				onRowClick={(row) => onRowClick(row.original.id)}
+				table={table}
 			/>
 		</div>
 	);

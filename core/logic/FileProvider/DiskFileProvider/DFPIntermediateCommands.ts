@@ -1,6 +1,6 @@
 import resolveModule from "@app/resolveModule/backend";
 import call from "@app/resolveModule/fscall";
-import FileInfo from "@core/FileProvider/model/FileInfo";
+import type FileInfo from "@core/FileProvider/model/FileInfo";
 import { Buffer } from "buffer";
 
 export const readdir = (path: string) => call<string[]>("read_dir", { path });

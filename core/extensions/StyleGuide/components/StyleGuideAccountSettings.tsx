@@ -11,9 +11,10 @@
 // import { StyleGuideChecker } from "@ics/gx-ai";
 import type { LlmApiKey } from "@ics/gx-ai/dist/llm/llm";
 import type { LlmProviderName } from "@ics/gx-ai/dist/llm/llmFactory";
+
 // import { useEffect, useState } from "react";
 
-type GroqLlmModel = any // @ics/gx-ai/dist/llm/groq/groqLlm
+type GroqLlmModel = any; // @ics/gx-ai/dist/llm/groq/groqLlm
 
 export interface AccountSettings {
 	provider: LlmProviderName;

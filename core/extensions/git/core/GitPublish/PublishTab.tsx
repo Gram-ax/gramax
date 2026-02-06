@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/correctness/useHookAtTopLevel: isNext is static */
+
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
@@ -15,6 +17,7 @@ import usePublishDiffEntries from "@ext/git/core/GitPublish/usePublishDiffEntrie
 import usePublishSelection from "@ext/git/core/GitPublish/usePublishSelectedFiles";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useEffect, useRef, useState } from "react";
+import DiffExtendedModeToggle from "../GitMergeRequest/components/Changes/DiffExtendedModeToggle";
 
 export type PublishTabProps = {
 	show: boolean;
@@ -111,48 +114,49 @@ const PublishTab = ({ show, setShow }: PublishTabProps) => {
 
 	return (
 		<TabWrapper
-			data-qa="qa-publish-tab"
-			ref={tabWrapperRef}
+			actions={<DiffExtendedModeToggle />}
 			contentHeight={contentHeight}
+			dataQa="qa-publish-tab"
+			onClose={close}
+			ref={tabWrapperRef}
 			show={show}
 			title={t("git.publish.name")}
-			onClose={close}
-			titleRightExtension={isLoading ? <SpinnerLoader width={12} height={12} lineWidth={1.5} /> : null}
+			titleRightExtension={isLoading ? <SpinnerLoader height={12} lineWidth={1.5} width={12} /> : null}
 		>
 			<>
 				<PublishChanges
-					show={show}
-					tabWrapperRef={tabWrapperRef}
+					canDiscard={canDiscard}
 					diffTree={diffTree}
-					overview={overview}
+					isFileSelected={(file) => file.type !== "node" && isSelected(file.filepath.new, file.filepath.old)}
 					isLoading={isDiffEntriesLoading}
 					isReady={isEntriesReady}
-					setContentHeight={setContentHeight}
-					canDiscard={canDiscard}
+					isSelectedAll={isSelectedAll}
 					onDiscard={async (paths) => {
 						setIsDiscarding(true);
 						await discard(paths?.filter(Boolean) || Array.from(selectedFiles), !paths);
 						setIsDiscarding(false);
 					}}
+					overview={overview}
+					selectAll={selectAll}
 					selectFile={(file, checked) => {
 						if (file.type === "node") return;
 						if (isSelectedAll) selectAll(checked);
 						selectFile(file.filepath.new, checked, file.filepath.old);
 					}}
-					selectAll={selectAll}
-					isSelectedAll={isSelectedAll}
-					isFileSelected={(file) => file.type !== "node" && isSelected(file.filepath.new, file.filepath.old)}
+					setContentHeight={setContentHeight}
+					show={show}
+					tabWrapperRef={tabWrapperRef}
 				/>
 				{hasChanges && (
 					<CommitMessage
-						commitMessageValue={message}
 						commitMessagePlaceholder={placeholder}
+						commitMessageValue={message}
 						disableCommitInput={isPublishing || !isEntriesReady || isDiscarding}
 						disablePublishButton={!canPublish || isDiscarding}
 						fileCount={selectedFiles.size}
-						onPublishClick={() => void publish()}
-						onCommitMessageChange={(msg) => setMessage(msg)}
 						isLoading={isPublishing}
+						onCommitMessageChange={(msg) => setMessage(msg)}
+						onPublishClick={() => void publish()}
 					/>
 				)}
 			</>

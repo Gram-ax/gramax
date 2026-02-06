@@ -1,4 +1,5 @@
 import { DiffFile, DiffFilePaths } from "@ext/VersionControl/model/Diff";
+
 interface SideBarResourceData extends Pick<DiffFile, "hunks"> {
 	isResource: true;
 	parentPath?: DiffFilePaths;

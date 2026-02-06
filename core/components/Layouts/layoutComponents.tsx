@@ -14,13 +14,13 @@ const RenderTitledLink = ({ link }: { link: TitledLink }): JSX.Element => {
 	return (
 		<a
 			className="layout_link"
-			href={link.url}
-			target={link.target ?? "_blank"}
-			rel="noreferrer"
 			data-qa="qa-clickable"
+			href={link.url}
+			rel="noreferrer"
+			target={link.target ?? "_blank"}
 		>
 			<ButtonLink iconCode={link.icon} text={link.title} />
-			{link.childrens && <RenderTitledLinks links={link.childrens} isChildren={true} />}
+			{link.childrens && <RenderTitledLinks isChildren={true} links={link.childrens} />}
 		</a>
 	);
 };
@@ -37,9 +37,9 @@ const RenderTitledLinks = ({ links, isCatalog, isChildren }: RenderTitledLinks):
 
 	return links.map((link, key) =>
 		!Object.keys(link).length ? (
-			<Divider key={key} className="divider" />
+			<Divider className="divider" key={key} />
 		) : (
-			<li key={key} onClick={link.onClick} data-qa={`${isCatalog ? "catalog" : "article"}-${link.icon}-button`}>
+			<li data-qa={`${isCatalog ? "catalog" : "article"}-${link.icon}-button`} key={key} onClick={link.onClick}>
 				<RenderTitledLink link={link} />
 			</li>
 		),

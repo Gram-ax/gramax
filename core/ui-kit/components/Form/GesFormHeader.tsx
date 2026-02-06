@@ -9,7 +9,7 @@ export interface GesFormHeaderProps<T> {
 	iconProps?: T;
 }
 
-const GesFormHeader = <T = NonNullable<unknown>,>({ icon, title, className, iconProps }: GesFormHeaderProps<T>) => {
+const GesFormHeader = <T = NonNullable<unknown>>({ icon, title, className, iconProps }: GesFormHeaderProps<T>) => {
 	const CustomerIcon = LucideIcon<T>(icon);
 
 	return (

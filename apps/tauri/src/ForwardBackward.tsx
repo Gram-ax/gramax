@@ -78,12 +78,12 @@ const ForwardBackward = () => {
 	}, []);
 
 	return (
-		<Wrapper leftPad={isFullscreen ? 0.7 : 5.3} fixedPad>
+		<Wrapper fixedPad leftPad={isFullscreen ? 0.7 : 5.3}>
 			<Tooltip content={t("backward")}>
-				<OpacityIcon onClick={() => navigate("backward")} code="arrow-left" disabled={!canGoBack} />
+				<OpacityIcon code="arrow-left" disabled={!canGoBack} onClick={() => navigate("backward")} />
 			</Tooltip>
 			<Tooltip content={t("forward")}>
-				<OpacityIcon onClick={() => navigate("forward")} code="arrow-right" disabled={!canGoForward} />
+				<OpacityIcon code="arrow-right" disabled={!canGoForward} onClick={() => navigate("forward")} />
 			</Tooltip>
 		</Wrapper>
 	);

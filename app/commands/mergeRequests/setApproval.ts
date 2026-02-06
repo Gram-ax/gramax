@@ -1,9 +1,9 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
+import type Context from "@core/Context/Context";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import assert from "assert";
 import { Command } from "../../types/Command";
-import type Context from "@core/Context/Context";
 
 const setApproval: Command<{ ctx: Context; catalogName: string; approve: boolean }, void> = Command.create({
 	path: "mergeRequests/setApproval",

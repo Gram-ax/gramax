@@ -304,7 +304,7 @@ export const getTableSizes = (table: HTMLElement): { cols: string[]; rows: strin
 		? Array.from(tableBody.children).slice(
 				0,
 				hasAggregatedRow ? tableBody.childElementCount - 1 : tableBody.childElementCount,
-		  )
+			)
 		: [];
 	const arrayCols = firstRow?.children ? Array.from(firstRow.children) : [];
 

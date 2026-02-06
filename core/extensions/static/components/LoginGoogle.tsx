@@ -1,18 +1,18 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
+import CloudStateService from "@core-ui/ContextServices/CloudState";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
+import CloudModalBody from "@ext/static/components/CloudModalBody";
 import CloudApi from "@ext/static/logic/CloudApi";
 import { Button } from "@ui-kit/Button";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
 import { useState } from "react";
-import CloudStateService from "@core-ui/ContextServices/CloudState";
-import CloudModalBody from "@ext/static/components/CloudModalBody";
 
 const GRAMAX_CLOUD_NAME = "Gramax Cloud";
 
@@ -74,9 +74,9 @@ const LoginGoogle = ({ onLogin }: LoginGoogleProps) => {
 	return (
 		<>
 			<FormHeader
-				title={t("cloud.login-modal.title")}
 				description={t("cloud.login-modal.description")}
 				icon="lock-keyhole"
+				title={t("cloud.login-modal.title")}
 			/>
 			<CloudModalBody>
 				<p>

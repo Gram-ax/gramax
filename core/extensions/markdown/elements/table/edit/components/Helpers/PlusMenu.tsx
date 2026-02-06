@@ -1,20 +1,19 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
-import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import AggregationPopup from "@ext/markdown/elements/table/edit/components/Helpers/AggregationPopup";
+import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import {
-	addRowDecoration,
 	addColumnDecoration,
+	addRowDecoration,
 	getFirstTdPosition,
 	getRowPosition,
+	workHeaderType,
 } from "@ext/markdown/elements/table/edit/logic/utils";
 import { AlignEnumTypes, TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { workHeaderType } from "@ext/markdown/elements/table/edit/logic/utils";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
-import { memo, useMemo, useRef } from "react";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -28,6 +27,7 @@ import {
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
+import { memo, useMemo, useRef } from "react";
 
 interface PlusMenuProps {
 	isHovered: boolean;
@@ -198,9 +198,9 @@ const PlusMenu = (props: PlusMenuProps) => {
 							<>
 								<TableHeaderCheckbox
 									headerType={TableHeaderTypes.ROW}
+									label={t("editor.table.row.title")}
 									node={node}
 									setHeader={setHeader}
-									label={t("editor.table.row.title")}
 								/>
 								<DropdownMenuSeparator />
 							</>
@@ -208,8 +208,8 @@ const PlusMenu = (props: PlusMenuProps) => {
 						<DropdownMenuItem
 							onMouseEnter={onMouseEnter}
 							onMouseLeave={onMouseLeave}
-							type="danger"
 							onSelect={rowDelete}
+							type="danger"
 						>
 							<Icon code="delete-row" />
 							{t("editor.table.row.delete")}
@@ -220,18 +220,18 @@ const PlusMenu = (props: PlusMenuProps) => {
 						{index === 0 && (
 							<TableHeaderCheckbox
 								headerType={TableHeaderTypes.COLUMN}
+								label={t("editor.table.column.title")}
 								node={node}
 								setHeader={setHeader}
-								label={t("editor.table.column.title")}
 							/>
 						)}
 						<AggregationPopup
-							editor={editor}
-							tableSheet={tableSheet}
-							node={node}
 							cell={cell}
-							index={index}
+							editor={editor}
 							getPos={getPos}
+							index={index}
+							node={node}
+							tableSheet={tableSheet}
 						/>
 						<DropdownMenuSub>
 							<DropdownMenuSubTrigger>
@@ -240,8 +240,8 @@ const PlusMenu = (props: PlusMenuProps) => {
 							</DropdownMenuSubTrigger>
 							<DropdownMenuSubContent>
 								<DropdownMenuRadioGroup
-									value={cell?.attrs?.align || AlignEnumTypes.LEFT}
 									onValueChange={(value) => setAlign(value as AlignEnumTypes)}
+									value={cell?.attrs?.align || AlignEnumTypes.LEFT}
 								>
 									<DropdownMenuRadioItem value={AlignEnumTypes.LEFT}>
 										<Icon code="align-left" />

@@ -1,9 +1,9 @@
 import t from "@ext/localization/locale/translate";
+import { toast } from "@ui-kit/Toast";
 import Path from "../logic/FileProvider/Path/Path";
 import ApiUrlCreator from "./ApiServices/ApiUrlCreator";
 import FetchService from "./ApiServices/FetchService";
 import MimeTypes from "./ApiServices/Types/MimeTypes";
-import { toast } from "@ui-kit/Toast";
 
 const sendError = () => {
 	toast(t("file-download-error-title"), {

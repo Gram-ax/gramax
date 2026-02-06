@@ -11,8 +11,8 @@ const RepositoryPermissionItem = ({ children }: RepositoryPermissionItemProps) =
 
 	return (
 		<RepositoryPermissionTrigger
-			gesUrl={gesUrl}
 			catalogName={catalogName}
+			gesUrl={gesUrl}
 			pathName={pathName}
 			sourceName={sourceName}
 		>

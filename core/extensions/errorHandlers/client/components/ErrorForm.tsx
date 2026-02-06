@@ -43,7 +43,7 @@ const InfoModalForm = (props: InfoModalFormProps) => {
 						data-qa={`qa-${isWarning ? "" : "error-"}info-modal`}
 						style={{ display: "flex", alignItems: "center" }}
 					>
-						{icon && <Icon style={{ color: icon.color }} code={icon.code} />}
+						{icon && <Icon code={icon.code} style={{ color: icon.color }} />}
 						<span className="min" dangerouslySetInnerHTML={{ __html: title }} />
 					</legend>
 					{children}
@@ -52,8 +52,8 @@ const InfoModalForm = (props: InfoModalFormProps) => {
 						<div className="buttons">
 							{onCancelClick && (
 								<Button
-									onClick={onCancelClick}
 									buttonStyle={actionButton ? ButtonStyle.underline : ButtonStyle.default}
+									onClick={onCancelClick}
 								>
 									{closeButton?.text ?? (actionButton ? cancelText : closeText)}
 								</Button>

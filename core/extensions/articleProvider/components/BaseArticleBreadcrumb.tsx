@@ -19,7 +19,7 @@ const BaseArticleBreadcrumb = ({ onCloseClick }: BaseArticleBreadcrumbProps) => 
 		<Wrapper>
 			<div />
 			<div>
-				<Icon code="x" tooltipContent={t("close")} onClick={onCloseClick} isAction />
+				<Icon code="x" isAction onClick={onCloseClick} tooltipContent={t("close")} />
 			</div>
 		</Wrapper>
 	);

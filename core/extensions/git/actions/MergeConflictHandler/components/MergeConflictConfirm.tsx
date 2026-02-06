@@ -62,11 +62,6 @@ const MergeConflictConfirm = ({
 			}}
 		>
 			<InfoModalForm
-				isWarning
-				icon={{ code: "alert-circle", color: "var(--color-admonition-note-br-h)" }}
-				onCancelClick={() => {
-					setIsOpen(false);
-				}}
 				actionButton={{
 					onClick: () => {
 						ModalToOpenService.setValue<ComponentProps<typeof MergeResolver>>(ModalToOpen.MergeResolver, {
@@ -75,6 +70,11 @@ const MergeConflictConfirm = ({
 						shouldAbort.current = false;
 					},
 					text: t("resolve-conflict"),
+				}}
+				icon={{ code: "alert-circle", color: "var(--color-admonition-note-br-h)" }}
+				isWarning
+				onCancelClick={() => {
+					setIsOpen(false);
 				}}
 				title={getTitle()}
 			>

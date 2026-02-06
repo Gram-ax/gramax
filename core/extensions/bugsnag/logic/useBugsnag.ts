@@ -1,15 +1,15 @@
-import { useCallback } from "react";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import { JSONContent } from "@tiptap/core";
+import PageDataContext from "@core/Context/PageDataContext";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import PersistentLogger from "@ext/loggers/PersistentLogger";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import parseContent from "@ext/bugsnag/logic/parseContent";
-import PageDataContext from "@core/Context/PageDataContext";
 import sendBug from "@ext/bugsnag/logic/sendBug";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
+import PersistentLogger from "@ext/loggers/PersistentLogger";
+import { JSONContent } from "@tiptap/core";
+import { useCallback } from "react";
 
 export const useBugsnag = (itemLogicPath: string) => {
 	const apiUrlCreator = ApiUrlCreator.value;

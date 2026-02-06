@@ -76,7 +76,7 @@ describe("PositionMapper", () => {
 
 			it("should handle very large position", () => {
 				const mapper = new PositionMapper([10, 20, 30], [5, 15, 25, 90]);
-				expect(mapper.mapOldToNew(100)).toBe(101); 
+				expect(mapper.mapOldToNew(100)).toBe(101);
 			});
 		});
 	});

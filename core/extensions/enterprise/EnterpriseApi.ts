@@ -1,12 +1,13 @@
-import {
+import type {
 	QuizAnswerCreate,
 	QuizTestCreate,
 } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
-import UserSettings, { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
+import type UserSettings from "@ext/enterprise/types/UserSettings";
+import type { EnterpriseWorkspaceConfig } from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import UserInfo from "@ext/security/logic/User/UserInfo";
-import { CheckChunk, CheckSuggestion } from "@ics/gx-vector-search";
+import type UserInfo from "@ext/security/logic/User/UserInfo";
+import type { CheckChunk, CheckSuggestion } from "@ics/gx-vector-search";
 import { EnterpriseAuthResult } from "./types/EnterpriseAuthResult";
 
 export type ResponseError = {
@@ -20,21 +21,30 @@ class EnterpriseApi {
 	async check() {
 		try {
 			if (!this._gesUrl.includes("http")) return false;
-			const res = await fetch(`${this._gesUrl}/enterprise/health-hwREfnmK`);
-			return res.ok;
+			const controller = new AbortController();
+			const timeoutId = setTimeout(() => controller.abort(), 5000);
+			let res: Response;
+			try {
+				res = await fetch(`${this._gesUrl}/enterprise/health-hwREfnmK`, { signal: controller.signal });
+			} catch {
+				return false;
+			} finally {
+				clearTimeout(timeoutId);
+			}
+			return res?.ok ?? false;
 		} catch {
 			return false;
 		}
 	}
 
-	async getUser(token: string, checkSsoToken = false) {
+	async getUser(token: string) {
 		if (!this._gesUrl) return;
 
 		try {
 			const headers = {
 				Authorization: `Bearer ${token ? token : "null"}`,
 			};
-			const res = await fetch(`${this._gesUrl}/enterprise/sso/get-user?&checkSsoToken=${checkSsoToken}`, {
+			const res = await fetch(`${this._gesUrl}/enterprise/sso/get-user`, {
 				headers,
 				credentials: "include",
 			});
@@ -77,16 +87,16 @@ class EnterpriseApi {
 		try {
 			const res = await fetch(url, { headers, credentials: "include" });
 			return res.status === 200 ? EnterpriseAuthResult.Permitted : EnterpriseAuthResult.Forbidden;
-		} catch (e) {
+		} catch {
 			return EnterpriseAuthResult.Error;
 		}
 	}
 
-	async getUsers(search: string): Promise<{ name: string; email: string }[]> {
+	async getUsers(search: string, token: string): Promise<{ name: string; email: string }[]> {
 		if (!search || !search.trim()) return [];
 		const res = await fetch(`${this._gesUrl}/sso/connectors/getUsers`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
 			body: JSON.stringify({ emailOrCn: search }),
 			credentials: "include",
 		});
@@ -109,7 +119,7 @@ class EnterpriseApi {
 				credentials: "include",
 			});
 			if (!res.ok) throw new Error();
-		} catch (e) {
+		} catch {
 			throw new DefaultError(
 				t("enterprise.logout.error-message"),
 				null,
@@ -143,7 +153,7 @@ class EnterpriseApi {
 		try {
 			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/health`, { credentials: "include" });
 			return res.ok;
-		} catch (e) {
+		} catch {
 			return false;
 		}
 	}
@@ -156,16 +166,10 @@ class EnterpriseApi {
 				body: JSON.stringify({ resourceId }),
 				credentials: "include",
 			});
-			if (res.status == 403) throw new DefaultError(t("enterprise.init-repo.forbidden"));
-			if (res.status == 409) throw new DefaultError(t("enterprise.init-repo.already-exists"));
+			if (res.status === 403) throw new DefaultError(t("enterprise.init-repo.forbidden"));
+			if (res.status === 409) throw new DefaultError(t("enterprise.init-repo.already-exists"));
 
-			const resProxy = await fetch(`${this._gesUrl}/update`, {
-				headers: { Authorization: `Bearer ${token}` },
-				credentials: "include",
-			});
-			if (res.status == 403) throw new DefaultError(t("enterprise.init-repo.forbidden"));
-
-			return res.ok && resProxy.ok;
+			return res.ok;
 		} catch (e) {
 			if (e instanceof DefaultError) throw e;
 			throw new DefaultError(t("enterprise.init-repo.error"), e, { showCause: true });
@@ -216,12 +220,7 @@ class EnterpriseApi {
 		if (res.status === 403) throw new DefaultError(t("enterprise.add-reviews.forbidden"));
 		if (res.status === 400) throw new DefaultError(t("enterprise.add-reviews.not-found"));
 
-		const gitRes = await fetch(`${this._gesUrl}/update`, {
-			headers: { Authorization: `Bearer ${token}` },
-			credentials: "include",
-		});
-
-		return gitRes.ok && res.ok && res.status === 200;
+		return res.ok && res.status === 200;
 	}
 
 	async getClientWorkspace(configHash?: string): Promise<EnterpriseWorkspaceConfig> {

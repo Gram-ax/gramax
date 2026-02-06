@@ -3,13 +3,16 @@ import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog
 import { Category } from "@core/FileStructue/Category/Category";
 import { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import RuleProvider from "@ext/rules/RuleProvider";
 import Path from "../../../../logic/FileProvider/Path/Path";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 class LinkItemCreator {
-	constructor(private _ctx: Context, private _catalog: ReadonlyCatalog) {}
+	constructor(
+		private _ctx: Context,
+		private _catalog: ReadonlyCatalog,
+	) {}
 
 	async getLinkItemByPath(path: Path) {
 		if (!this._catalog) return null;

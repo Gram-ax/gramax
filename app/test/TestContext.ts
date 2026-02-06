@@ -1,8 +1,8 @@
 import Context from "@core/Context/Context";
-import Theme from "@ext/Theme/Theme";
 import Cookie from "@ext/cookie/Cookie";
 import UiLanguage, { ContentLanguage } from "@ext/localization/core/model/Language";
 import User from "@ext/security/logic/User/User";
+import Theme from "@ext/Theme/Theme";
 
 class TestContext implements Context {
 	private readonly _user: User;

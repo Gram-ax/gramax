@@ -1,12 +1,13 @@
 import useLucideIconLists from "@components/Atoms/Icon/lucideIconList";
 import Style from "@components/HomePage/Cards/model/Style";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { Values } from "@ext/properties/components/Helpers/Values";
 import ActionWarning from "@ext/properties/components/Modals/ActionWarning";
 import PropertyService from "@ext/properties/components/PropertyService";
-import { Property, PropertyTypes, PropertyValue } from "@ext/properties/models";
+import { isPropertySuitableForArticle, type Property, PropertyTypes, type PropertyValue } from "@ext/properties/models";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, IconButton } from "@ui-kit/Button";
 import { ErrorState } from "@ui-kit/ErrorState";
@@ -15,12 +16,11 @@ import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
 import { FieldLabel } from "@ui-kit/Label";
 import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
+import { Loader } from "@ui-kit/Loader";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Loader } from "@ui-kit/Loader";
-import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -28,6 +28,7 @@ import { z } from "zod";
 export interface PropertyEditorProps<T = Property> {
 	data: Property;
 	properties: PropertyValue[];
+	onlyArticlePropertyTypes?: boolean;
 	onDelete?: (archive?: boolean) => Promise<void> | void;
 	onSubmit: (values: T) => Promise<void> | void;
 	onClose?: () => void;
@@ -76,13 +77,13 @@ const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps)
 				<BetweenContainer>
 					<span>{t("forms.catalog-create-props.props.values.name")}</span>
 					<IconButton
-						icon="plus"
-						variant="outline"
-						type="button"
-						onClick={addValue}
-						size="xs"
 						className="rounded-full"
 						data-qa="qa-add-value"
+						icon="plus"
+						onClick={addValue}
+						size="xs"
+						type="button"
+						variant="outline"
 					/>
 				</BetweenContainer>
 			</CustomFormFieldLabel>
@@ -94,7 +95,13 @@ const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps)
 	);
 };
 
-const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorProps) => {
+const PropertyEditor = ({
+	onSubmit,
+	onClose,
+	data,
+	onDelete,
+	onlyArticlePropertyTypes: onlyArticleProperties,
+}: PropertyEditorProps) => {
 	const [open, setOpen] = useState(true);
 	const [alertOpen, setAlertOpen] = useState(false);
 
@@ -104,6 +111,10 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 	const isNew = !data?.name;
 	const lucideIconListForUikitOptions = useLucideIconLists().lucideIconListForUikitOptions;
 	const { properties } = PropertyService.value;
+
+	const propertyTypes = onlyArticleProperties
+		? Object.values(PropertyTypes).filter(isPropertySuitableForArticle)
+		: Object.values(PropertyTypes);
 
 	const schema = z.object({
 		name: z
@@ -117,7 +128,7 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 			)
 			.refine((val) => !isNew || !properties.has(val), { message: t("properties.already-exist") })
 			.transform((val) => val.trim()),
-		type: z.enum(Object.values(PropertyTypes) as [string, ...string[]], {
+		type: z.enum(propertyTypes as [string, ...string[]], {
 			message: t("must-be-not-empty"),
 		}),
 		options: z
@@ -206,46 +217,42 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 
 	return (
 		<>
-			<Modal open={open} onOpenChange={onOpenChange}>
+			<Modal onOpenChange={onOpenChange} open={open}>
 				<ModalContent data-modal-root>
 					<Form asChild {...form}>
 						<form className="contents ui-kit" onSubmit={formSubmit}>
 							<FormHeader
-								icon="tag"
-								title={
-									isNew ? t("forms.catalog-create-props.name") : t("forms.catalog-create-props.name2")
-								}
 								description={
 									isNew
 										? t("forms.catalog-create-props.description")
 										: t("forms.catalog-create-props.description2")
 								}
+								icon="tag"
+								title={
+									isNew ? t("forms.catalog-create-props.name") : t("forms.catalog-create-props.name2")
+								}
 							/>
 							<ModalBody>
 								<FormStack>
 									<FormField
-										name="name"
-										required
-										readonly={!isNew}
-										title={t("forms.catalog-create-props.props.name.name")}
 										control={({ field }) => (
 											<Input
 												{...field}
-												readOnly={!!data?.name}
 												placeholder={t("forms.catalog-create-props.props.name.placeholder")}
+												readOnly={!!data?.name}
 											/>
 										)}
+										name="name"
+										readonly={!isNew}
+										required
+										title={t("forms.catalog-create-props.props.name.name")}
 									/>
 									<FormField
-										name="type"
-										required
-										readonly={!isNew}
-										title={t("forms.catalog-create-props.props.type.name")}
 										control={({ field }) => (
 											<Select
+												defaultValue={field.value || undefined}
 												disabled={!!data?.name}
 												onValueChange={field.onChange}
-												defaultValue={field.value || undefined}
 											>
 												<SelectTrigger
 													data-qa={t("forms.catalog-create-props.props.name.name")}
@@ -257,7 +264,7 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 													/>
 												</SelectTrigger>
 												<SelectContent>
-													{Object.values(PropertyTypes).map((type) => (
+													{propertyTypes.map((type) => (
 														<SelectItem key={type} value={type}>
 															{t(`properties.types.${type}`)}
 														</SelectItem>
@@ -265,17 +272,15 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 												</SelectContent>
 											</Select>
 										)}
+										name="type"
+										readonly={!isNew}
+										required
+										title={t("forms.catalog-create-props.props.type.name")}
 									/>
 									<FormField
-										name="icon"
-										title={t("forms.catalog-create-props.props.icon.name")}
-										description={t("forms.catalog-create-props.props.icon.description")}
 										control={({ field }) => (
 											<LazySearchSelect
 												{...field}
-												onChange={field.onChange}
-												pageSize={25}
-												value={field.value || undefined}
 												defaultValue={field.value || undefined}
 												filter={(value: string, search: string) => {
 													return multiLayoutSearcher<number>({
@@ -288,25 +293,28 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 														},
 													})(search);
 												}}
-												placeholder={t("forms.catalog-create-props.props.icon.placeholder")}
+												onChange={field.onChange}
 												options={lucideIconListForUikitOptions}
+												pageSize={25}
+												placeholder={t("forms.catalog-create-props.props.icon.placeholder")}
 												renderOption={({ option }) => (
 													<div className="flex items-center gap-2">
 														<Icon icon={option.value as string} />
 														{option.value}
 													</div>
 												)}
+												value={field.value || undefined}
 											/>
 										)}
+										description={t("forms.catalog-create-props.props.icon.description")}
+										name="icon"
+										title={t("forms.catalog-create-props.props.icon.name")}
 									/>
 									<FormField
-										name="style"
-										title={t("forms.catalog-create-props.props.style.name")}
-										description={t("forms.catalog-create-props.props.style.description")}
 										control={({ field }) => (
 											<Select
-												onValueChange={field.onChange}
 												defaultValue={field.value || undefined}
+												onValueChange={field.onChange}
 											>
 												<SelectTrigger
 													data-qa={t("forms.catalog-create-props.props.style.name")}
@@ -326,13 +334,16 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 												</SelectContent>
 											</Select>
 										)}
+										description={t("forms.catalog-create-props.props.style.description")}
+										name="style"
+										title={t("forms.catalog-create-props.props.style.name")}
 									/>
 									{(type === PropertyTypes.enum || type === PropertyTypes.many) && (
 										<FormFieldSet style={{ padding: "1rem" }}>
 											<FormFieldValues
-												values={form.watch("values")}
-												onChange={onChangeValues}
 												error={form.formState.errors.values?.message}
+												onChange={onChangeValues}
+												values={form.watch("values")}
 											/>
 										</FormFieldSet>
 									)}
@@ -342,14 +353,14 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 								leftContent={
 									<div className="flex items-center gap-2">
 										<SwitchField
-											size="sm"
-											label={t("properties.options.docportalVisible.name")}
 											checked={form.watch("options.docportalVisible")}
+											label={t("properties.options.docportalVisible.name")}
 											onCheckedChange={toggleDocportalVisible}
+											size="sm"
 										/>
 										<Tooltip>
 											<TooltipTrigger>
-												<Icon icon="info" size="md" className="text-primary-fg" />
+												<Icon className="text-primary-fg" icon="info" size="md" />
 											</TooltipTrigger>
 											<TooltipContent>
 												{t("properties.options.docportalVisible.description")}
@@ -358,7 +369,7 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 									</div>
 								}
 								primaryButton={
-									<Button type="submit" disabled={isSubmitLoading || isDeleteLoading}>
+									<Button disabled={isSubmitLoading || isDeleteLoading} type="submit">
 										<>
 											{isSubmitLoading && (
 												<>
@@ -373,16 +384,16 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 								secondaryButton={
 									data?.name && (
 										<ActionWarning
-											shouldShowWarning
-											isCatalog
 											action={onDeleteClick}
 											data={data}
 											editData={data}
+											isCatalog
+											shouldShowWarning
 										>
 											<Button
+												disabled={isDeleteLoading || isSubmitLoading}
 												type="button"
 												variant="outline"
-												disabled={isDeleteLoading || isSubmitLoading}
 											>
 												<>
 													{isDeleteLoading && (
@@ -405,9 +416,9 @@ const PropertyEditor = ({ onSubmit, onClose, data, onDelete }: PropertyEditorPro
 
 			<UnsavedChangesModal
 				isOpen={alertOpen}
+				onDontSave={onClose}
 				onOpenChange={setAlertOpen}
 				onSave={() => formSubmit(new Event("submit"))}
-				onDontSave={onClose}
 			/>
 		</>
 	);

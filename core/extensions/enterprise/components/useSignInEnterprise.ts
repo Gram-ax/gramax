@@ -1,6 +1,6 @@
+import validateEmail from "@core/utils/validateEmail";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import validateEmail from "@core/utils/validateEmail";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useMemo, useState } from "react";

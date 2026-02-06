@@ -6,15 +6,15 @@ import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import { MouseEvent, useMemo, useRef, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface ShareProps {
 	path: string;
@@ -67,7 +67,7 @@ const ShareModal = (props: ShareProps) => {
 								</>
 							) : null}
 						</span>
-						<div ref={copyBlockRef} className="form-group">
+						<div className="form-group" ref={copyBlockRef}>
 							<CodeBlock value={shareUrl} />
 						</div>
 						<div className="input-lable-description full-width">
@@ -91,14 +91,14 @@ const ShareModal = (props: ShareProps) => {
 							</Button>
 							<ButtonLink
 								buttonStyle={ButtonStyle.default}
-								textSize={TextSize.M}
+								iconCode="copy"
 								onClick={(e: MouseEvent) => {
 									onCopy?.(e);
 									setShouldSkipModal(skipModal);
 									onOpenChange(false);
 								}}
-								iconCode="copy"
 								text={`${t("copy")} ${t("link2").toLowerCase()}`}
+								textSize={TextSize.M}
 							/>
 						</div>
 					</fieldset>

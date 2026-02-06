@@ -14,8 +14,8 @@ const BreadcrumbCatalog = forwardRef((props: BreadcrumbCatalogProps, ref: Mutabl
 	const { isExist, src } = useGetCatalogLogoSrc(catalog?.name);
 
 	return (
-		<div ref={ref} className={className}>
-			{isExist && <img src={src} alt={catalog.name} />}
+		<div className={className} ref={ref}>
+			{isExist && <img alt={catalog.name} src={src} />}
 			<span className="title">{catalog.title}</span>
 		</div>
 	);

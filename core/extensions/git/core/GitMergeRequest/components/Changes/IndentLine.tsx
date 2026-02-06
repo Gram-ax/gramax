@@ -28,9 +28,9 @@ const IndentLine = ({ level, color, gap = "1rem", containerMarginLeft, ignoreFir
 	if (level < 1) return null;
 
 	return (
-		<LinesWrapper gap={gap} containerMarginLeft={containerMarginLeft}>
+		<LinesWrapper containerMarginLeft={containerMarginLeft} gap={gap}>
 			{[...Array(level).keys()].map((idx) => (
-				<Line key={idx} color={color} ignore={ignoreFirstLine && idx === 0} />
+				<Line color={color} ignore={ignoreFirstLine && idx === 0} key={idx} />
 			))}
 		</LinesWrapper>
 	);

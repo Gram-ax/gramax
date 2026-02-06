@@ -1,10 +1,10 @@
-import styled from "@emotion/styled";
-import t from "@ext/localization/locale/translate";
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalTitle } from "@ui-kit/Modal";
-import { Button } from "@ui-kit/Button";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import Icon from "@components/Atoms/Icon";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import styled from "@emotion/styled";
 import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
+import t from "@ext/localization/locale/translate";
+import { Button } from "@ui-kit/Button";
+import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalTitle } from "@ui-kit/Modal";
 
 interface CommonUnsupportedElementsModalProps {
 	open: boolean;
@@ -34,10 +34,10 @@ const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalPro
 	} = props;
 
 	return (
-		<Modal open={open} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={open}>
 			<ModalContent showCloseButton={false}>
 				<ModalHeader className="flex gap-4" style={{ border: "unset" }}>
-					<Icon code="circle-alert" className="text-status-warning text-2xl" />
+					<Icon className="text-status-warning text-2xl" code="circle-alert" />
 					<ModalTitle className="text-lg text-status-warning font-medium">{title}</ModalTitle>
 				</ModalHeader>
 				<ModalBody className="flex flex-row items-start gap-4 lg:py-6">
@@ -90,13 +90,13 @@ const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalPro
 					</div>
 				</ModalBody>
 				<ModalFooter className="flex gap-2 px-4 pb-4 lg:px-6 lg:pb-6" style={{ border: "unset" }}>
-					<Button className="ml-auto" variant="outline" onClick={() => onOpenChange(false)}>
+					<Button className="ml-auto" onClick={() => onOpenChange(false)} variant="outline">
 						{t("cancel")}
 					</Button>
-					<Button status="warning" onClick={onContinue}>
+					<Button onClick={onContinue} status="warning">
 						{isLoading ? (
 							<>
-								<SpinnerLoader width={16} height={16} />
+								<SpinnerLoader height={16} width={16} />
 								{t("loading")}
 							</>
 						) : (

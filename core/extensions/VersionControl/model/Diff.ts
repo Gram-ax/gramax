@@ -19,6 +19,8 @@ export interface DiffFile {
 	hunks?: DiffHunk[];
 	added?: number;
 	deleted?: number;
+	isLfs: boolean;
+	size: number;
 }
 
 export interface DiffResource extends DiffFile {

@@ -19,12 +19,13 @@ export const ModalContent: FC<ModalContentTemplateProps> = styled((props) => {
 	return (
 		<UiKitModalContent
 			{...otherProps}
-			data-qa="modal-content"
 			className={classNames(className, {
 				"size-l": size === "L",
 				"size-M": size === "M",
 				"size-FS": size === "FS",
 			})}
+			data-qa="modal-content"
+			data-testid="modal"
 		/>
 	);
 })`

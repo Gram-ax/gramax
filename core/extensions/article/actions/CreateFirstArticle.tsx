@@ -1,11 +1,11 @@
 import Button from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon from "@components/Atoms/Icon";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 import { useRouter } from "../../../logic/Api/useRouter";
@@ -37,8 +37,8 @@ const CreateFirstArticle = (props: CreateArticleProps) => {
 	if (isReadOnly) return null;
 
 	return (
-		<Button className={className} buttonStyle={ButtonStyle.default} onClick={onClickHandler}>
-			<Icon code="plus" viewBox="3 3 18 18" isLoading={isLoading} />
+		<Button buttonStyle={ButtonStyle.default} className={className} onClick={onClickHandler}>
+			<Icon code="plus" isLoading={isLoading} viewBox="3 3 18 18" />
 			<span>{t("article.create.title")}</span>
 		</Button>
 	);

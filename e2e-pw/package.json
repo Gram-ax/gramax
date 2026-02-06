@@ -1,0 +1,38 @@
+{
+	"name": "e2e-pw",
+	"module": "index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"codegen": "playwright codegen",
+		"read-dir": "bun run read-dir-to-tree.ts",
+		"show-trace": "playwright show-trace",
+
+		"ui": "playwright test --ui",
+		"ui:dev": "ROOT_PATH=$(pwd)/docportal-test-data PLAYWRIGHT_DEV=true playwright test --ui",
+
+		"web:dev": "PORT=6001 bun run --cwd ../apps/browser dev",
+		"web:build": "bun run --cwd ../apps/browser build",
+		"web:ci": "PLAYWRIGHT_CI=true playwright test --project web",
+		"web:start": "IP=127.0.0.1 PORT=6001 bun run --cwd ../apps/browser start",
+
+		"static:build": "echo 'not supported yet' && exit 1",
+		"static:ci": "PLAYWRIGHT_CI=true playwright test --project static",
+		"static:start": "PORT=6002 echo 'not supported yet' && exit 1",
+
+		"docportal:build": "bun run --cwd ../apps/next build",
+		"docportal:build-git": "bun run --cwd ../apps/next/crates/next-gramax-git build",
+		"docportal:ci": "ROOT_PATH=$(pwd)/docportal-test-data PLAYWRIGHT_CI=true playwright test --project docportal-prepare --project docportal",
+		"docportal:start": "rm -rf ./docportal-test-data && mkdir -p ./docportal-test-data && PORT=6003 ROOT_PATH=$(pwd)/docportal-test-data ADMIN_PASSWORD=${ADMIN_PASSWORD:-1} ADMIN_LOGIN=${ADMIN_LOGIN:-1} bun run --cwd ../apps/next start"
+	},
+	"devDependencies": {
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"@playwright/test": "=1.57.0",
+		"playwright": "=1.57.0"
+	}
+}

@@ -1,11 +1,11 @@
 import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
-import { Editor } from "@tiptap/react";
 import { CustomBubbleMenu } from "@ext/markdown/elements/customBubbleMenu/edit/components/CustomBubbleMenu";
+import { Editor } from "@tiptap/react";
 import { CellSelection, isInTable } from "prosemirror-tables";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import "tippy.js/animations/shift-toward.css";
-import { useMediaQuery } from "@mui/material";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import { useMediaQuery } from "@mui/material";
 
 export interface InlineToolbarOptions {
 	isInTable: boolean;
@@ -105,7 +105,7 @@ export const InlineToolbar = memo(({ editor }: { editor: Editor }) => {
 			}}
 		>
 			<div className="lg:shadow-hard-base rounded-lg">
-				<InlineEditPanel editor={editor} closeHandler={closeHandler} {...options} />
+				<InlineEditPanel closeHandler={closeHandler} editor={editor} {...options} />
 			</div>
 		</CustomBubbleMenu>
 	);

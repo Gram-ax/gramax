@@ -18,7 +18,7 @@ export const InvalidEmailCell = ({ value, maxWidthClassName = "max-w-[260px]" }:
 		: t("enterprise-guest.validationErrors.emailInvalidFormat");
 
 	if (!isInvalid) {
-		return <TextOverflowTooltip className={maxWidthClassName}>{value}</TextOverflowTooltip>;
+		return <span className={maxWidthClassName}>{value}</span>;
 	}
 
 	return (
@@ -27,7 +27,7 @@ export const InvalidEmailCell = ({ value, maxWidthClassName = "max-w-[260px]" }:
 				<TooltipTrigger asChild>
 					<span className="inline-flex items-center gap-2 text-destructive">
 						<TextOverflowTooltip className={maxWidthClassName}>{value}</TextOverflowTooltip>
-						<Icon icon="alert-triangle" className="shrink-0 h-4 w-4" />
+						<Icon className="shrink-0 h-4 w-4" icon="alert-triangle" />
 					</span>
 				</TooltipTrigger>
 				<TooltipContent>{errorText}</TooltipContent>

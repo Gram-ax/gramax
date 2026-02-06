@@ -1,32 +1,30 @@
 import Divider from "@components/Atoms/Divider";
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
+import DiagramType from "@core/components/Diagram/DiagramType";
+import Path from "@core/FileProvider/Path/Path";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
-import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
-import CatalogContextWrapper from "@core-ui/ScopedContextWrapper/CatalogContextWrapper";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
+import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
+import CatalogContextWrapper from "@core-ui/ScopedContextWrapper/CatalogContextWrapper";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import Path from "@core/FileProvider/Path/Path";
-import DiagramType from "@core/components/Diagram/DiagramType";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
-import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import DiagramData from "@ext/markdown/elements/diagrams/component/DiagramData";
 import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
 import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import Image from "@ext/markdown/elements/image/render/components/Image";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
+import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 export const IMG_FILE_TYPES = ["png", "jpg", "jpeg", "bmp", "svg", "gif", "webp", "avif", "tiff", "heif", "ico", "pdf"];
 export const DIAGRAM_FILE_TYPES = {
 	mermaid: DiagramType.mermaid,
 	puml: DiagramType["plant-uml"],
-	ts: DiagramType["ts-diagram"],
-	dsl: DiagramType["c4-diagram"],
 };
 
 interface DiffResourceScopesWrapperProps {
@@ -55,11 +53,11 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 		const isDeleted = status === FileStatus.delete;
 
 		return (
-			<StatusWrapper status={status} isImg={isImg}>
+			<StatusWrapper isImg={isImg} status={status}>
 				<ScopeWrapper
-					scope={isDeleted ? oldScope : newScope}
-					hasParentPath={hasParentPath}
 					articlePath={isDeleted ? oldArticlePath : newArticlePath}
+					hasParentPath={hasParentPath}
+					scope={isDeleted ? oldScope : newScope}
 				>
 					{children}
 				</ScopeWrapper>
@@ -69,14 +67,14 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 
 	return (
 		<div>
-			<StatusWrapper status={FileStatus.delete} isImg={isImg}>
-				<ScopeWrapper scope={oldScope} hasParentPath={hasParentPath} articlePath={oldArticlePath}>
+			<StatusWrapper isImg={isImg} status={FileStatus.delete}>
+				<ScopeWrapper articlePath={oldArticlePath} hasParentPath={hasParentPath} scope={oldScope}>
 					{oldChildren}
 				</ScopeWrapper>
 			</StatusWrapper>
 			<Divider style={{ marginBottom: "0.5rem", marginTop: "0.5rem" }} />
-			<StatusWrapper status={FileStatus.new} isImg={isImg}>
-				<ScopeWrapper hasParentPath={hasParentPath} articlePath={newArticlePath} scope={newScope}>
+			<StatusWrapper isImg={isImg} status={FileStatus.new}>
+				<ScopeWrapper articlePath={newArticlePath} hasParentPath={hasParentPath} scope={newScope}>
 					{children}
 				</ScopeWrapper>
 			</StatusWrapper>
@@ -130,40 +128,40 @@ const ExactResourceViewWithContent = (props: UseResourceArticleViewType) => {
 	if (type === "image") {
 		element = (
 			<Image
-				src={parentPath?.path ? src : filePath.path}
-				marginBottom={"0px"}
 				hasParentPath={!!parentPath?.path}
+				marginBottom={"0px"}
+				src={parentPath?.path ? src : filePath.path}
 			/>
 		);
 		oldElement = isDeleteOrAdded ? null : (
 			<Image
-				src={parentPath?.oldPath ? oldSrc : filePath.oldPath}
-				marginBottom={"0px"}
 				hasParentPath={!!parentPath?.oldPath}
+				marginBottom={"0px"}
+				src={parentPath?.oldPath ? oldSrc : filePath.oldPath}
 			/>
 		);
 	} else if (type === "diagram") {
-		element = <DiagramData src={src} diagramName={maybeDiagramType} />;
-		oldElement = isDeleteOrAdded ? null : <DiagramData src={oldSrc} diagramName={maybeDiagramType} />;
+		element = <DiagramData diagramName={maybeDiagramType} src={src} />;
+		oldElement = isDeleteOrAdded ? null : <DiagramData diagramName={maybeDiagramType} src={oldSrc} />;
 	}
 
 	return (
 		<ResourceDiffView
-			type={type}
-			newContent={newContent}
-			oldContent={oldContent}
 			filePath={filePath}
 			key={filePath.path}
+			newContent={newContent}
+			oldContent={oldContent}
+			type={type}
 		>
 			{element && (
 				<Center className="article" key={id}>
 					<DiffResourceScopesWrapper
-						type={type}
-						parentPath={parentPath}
-						oldScope={oldScope}
 						newScope={newScope}
-						status={status}
 						oldChildren={oldElement}
+						oldScope={oldScope}
+						parentPath={parentPath}
+						status={status}
+						type={type}
 					>
 						{element}
 					</DiffResourceScopesWrapper>
@@ -270,20 +268,20 @@ const ResourceDiffView = ({
 		if (isWysiwyg) return children;
 		return (
 			<DiffFileInput
-				modified={newContent}
-				original={oldContent}
-				height={"100vh"}
 				containerStyles={{ padding: "0" }}
+				height={"100vh"}
+				modified={newContent}
+				onMount={(editor) => {
+					// https://github.com/microsoft/monaco-editor/issues/4448
+					editor.getOriginalEditor().updateOptions({ glyphMargin: false });
+				}}
 				options={{
 					readOnly: true,
 					renderSideBySide: diffView === "double-panel",
 					useInlineViewWhenSpaceIsLimited: false,
 					glyphMargin: false,
 				}}
-				onMount={(editor) => {
-					// https://github.com/microsoft/monaco-editor/issues/4448
-					editor.getOriginalEditor().updateOptions({ glyphMargin: false });
-				}}
+				original={oldContent}
 			/>
 		);
 	};
@@ -292,17 +290,17 @@ const ResourceDiffView = ({
 		<>
 			{resourceView()}
 			<RenderDiffBottomBarInBody
-				showDiffViewChanger={hasContent}
-				filePath={filePath}
-				title={null}
-				oldRevision={null}
-				newRevision={null}
 				diffViewMode={diffView}
+				filePath={filePath}
+				hasWysiwyg={type !== "text"}
+				newRevision={null}
+				oldRevision={null}
 				onDiffViewPick={(mode) => {
 					setDiffView(mode);
 					updateDiffViewMode(mode);
 				}}
-				hasWysiwyg={type !== "text"}
+				showDiffViewChanger={hasContent}
+				title={null}
 			/>
 		</>
 	);

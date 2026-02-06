@@ -1,4 +1,8 @@
-import { WorkspaceFormData, WorkspaceSettings, WorkspaceView } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import {
+	WorkspaceFormData,
+	WorkspaceSettings,
+	WorkspaceView,
+} from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import { useCallback, useState } from "react";
 
 export function useWorkspaceSections(

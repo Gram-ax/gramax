@@ -1,21 +1,21 @@
 import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import t from "@ext/localization/locale/translate";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import {
 	AlertDialog,
-	AlertDialogContent,
 	AlertDialogCancel,
+	AlertDialogContent,
 	AlertDialogDescription,
-	AlertDialogTitle,
 	AlertDialogHeader,
-	AlertDialogTrigger,
 	AlertDialogIcon,
+	AlertDialogTitle,
+	AlertDialogTrigger,
 } from "@ui-kit/AlertDialog";
 import { Button } from "@ui-kit/Button";
-import { cloneElement, useState } from "react";
-import type { MouseEvent as ReactMouseEvent } from "react";
 import { CheckboxField } from "@ui-kit/Checkbox";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import type { MouseEvent as ReactMouseEvent } from "react";
+import { cloneElement, useState } from "react";
 
 const DO_NOT_SHOW_AGAIN = "languages.skip-warn";
 
@@ -69,7 +69,7 @@ const OtherLanguagesPresentWarning = ({
 	};
 
 	return (
-		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
 			<AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
 			<AlertDialogContent status="warning">
 				<AlertDialogHeader>
@@ -83,18 +83,18 @@ const OtherLanguagesPresentWarning = ({
 				</AlertDialogHeader>
 				<Footer>
 					<div onClick={() => setDoNotShowAgain(!doNotShowAgain)}>
-						<CheckboxField label={t("do-not-show-again")} checked={doNotShowAgain} />
+						<CheckboxField checked={doNotShowAgain} label={t("do-not-show-again")} />
 					</div>
 					<div className="flex items-center gap-2">
-						<AlertDialogCancel type="button" onClick={() => onOpenChange(false)}>
+						<AlertDialogCancel onClick={() => onOpenChange(false)} type="button">
 							{t("cancel")}
 						</AlertDialogCancel>
 						<Button
-							type="button"
 							onClick={(e) => {
 								onConfirm?.(e);
 								onOpenChange(false);
 							}}
+							type="button"
 							variant="outline"
 						>
 							{t("continue")}

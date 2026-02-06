@@ -1,6 +1,6 @@
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 
-export const questionAnswerToken = (context?: ParserContext) => ({
+export const questionAnswerToken = (context?: PrivateParserContext) => ({
 	block: "questionAnswer",
 	getAttrs: (tok) => {
 		const answer = {

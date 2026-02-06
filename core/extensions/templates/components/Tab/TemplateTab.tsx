@@ -1,14 +1,14 @@
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
+import generateUniqueID from "@core/utils/generateUniqueID";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import generateUniqueID from "@core/utils/generateUniqueID";
 import ItemList from "@ext/articleProvider/components/ItemList";
+import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import TemplateService from "@ext/templates/components/TemplateService";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@ui-kit/Button";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface TemplateTabProps {
 	show: boolean;
@@ -92,29 +92,29 @@ const TemplateTab = ({ show }: TemplateTabProps) => {
 
 	return (
 		<TabWrapper
-			ref={tabWrapperRef}
+			contentHeight={height}
 			isTop
+			ref={tabWrapperRef}
 			show={show}
 			title=""
-			contentHeight={height}
 			titleRightExtension={
-				<Button startIcon="plus" onClick={addNewNote} size="sm" variant="text" className="p-0 h-auto">
+				<Button className="p-0 h-auto" onClick={addNewNote} size="sm" startIcon="plus" variant="text">
 					{t("template.new-template")}
 				</Button>
 			}
 		>
 			<ItemList
-				tabWrapperRef={tabWrapperRef}
-				show={show}
-				setContentHeight={setHeight}
-				noItemsText={t("template.no-templates")}
-				items={Array.from(templates.values())}
-				selectedItemId={selectedID}
-				providerType="template"
-				onItemClick={onItemClick}
-				onDelete={onDelete}
-				onMarkdownChange={onMarkdownChange}
 				confirmDeleteText={t("confirm-templates-delete")}
+				items={Array.from(templates.values())}
+				noItemsText={t("template.no-templates")}
+				onDelete={onDelete}
+				onItemClick={onItemClick}
+				onMarkdownChange={onMarkdownChange}
+				providerType="template"
+				selectedItemId={selectedID}
+				setContentHeight={setHeight}
+				show={show}
+				tabWrapperRef={tabWrapperRef}
 			/>
 		</TabWrapper>
 	);

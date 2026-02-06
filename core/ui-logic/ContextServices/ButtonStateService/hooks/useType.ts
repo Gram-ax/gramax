@@ -1,9 +1,9 @@
 import useWatch from "@core-ui/hooks/useWatch";
 import { Editor } from "@tiptap/core";
 import { Mark } from "@tiptap/pm/model";
+import { Selection } from "@tiptap/pm/state";
 import { useRef, useState } from "react";
 import { Attrs, Mark as MarkType, NodeType } from "./types";
-import { Selection } from "@tiptap/pm/state";
 
 const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment", "s"];
 

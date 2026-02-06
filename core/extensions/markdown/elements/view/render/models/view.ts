@@ -1,6 +1,6 @@
 import { Schema, SchemaType } from "@ext/markdown/core/render/logic/Markdoc";
-import Tag from "../../../../core/render/logic/Markdoc/src/ast/tag";
 import AttributeFormatter from "@ext/markdown/elements/view/render/logic/attributesFormatter";
+import Tag from "../../../../core/render/logic/Markdoc/src/ast/tag";
 
 export const view: Schema = {
 	render: "View",

@@ -1,12 +1,12 @@
-import PureLink, { LinkTheme } from "@components/Atoms/PureLink";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { Button } from "@ui-kit/Button";
 import FileInput from "@components/Atoms/FileInput/FileInput";
-import t from "@ext/localization/locale/translate";
-import { FormHeader, FormFooter, FormStack } from "@ui-kit/Form";
-import { useCallback, useState, ReactElement } from "react";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import PureLink, { LinkTheme } from "@components/Atoms/PureLink";
 import LanguageService from "@core-ui/ContextServices/Language";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import t from "@ext/localization/locale/translate";
+import { Button } from "@ui-kit/Button";
+import { FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { ReactElement, useCallback, useState } from "react";
 
 interface EditStylesProps {
 	children: ReactElement;
@@ -33,8 +33,8 @@ const useModalDescription = () => {
 						? "https://gram.ax/resources/docs/space/css-styles"
 						: "https://gram.ax/resources/docs/en/space/css-styles"
 				}
-				target={"_blank"}
 				linkTheme={LinkTheme.DEFAULT}
+				target={"_blank"}
 			>
 				{linkText}
 			</PureLink>
@@ -63,25 +63,25 @@ const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss }: Edit
 	}, []);
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			{children && <ModalTrigger asChild>{children}</ModalTrigger>}
 			<ModalContent className={"monaco-form-old-width"} data-modal-root size="L">
-				<FormHeader title={t("workspace.editing-css")} description={description as any} icon={"palette"} />
+				<FormHeader description={description as any} icon={"palette"} title={t("workspace.editing-css")} />
 				<ModalBody>
 					<FormStack className="h-full">
 						<FileInput
-							style={{ padding: undefined }}
-							language={"css"}
-							value={customCss}
-							onChange={setCustomCss}
 							height={"100%"}
+							language={"css"}
+							onChange={setCustomCss}
+							style={{ padding: undefined }}
 							uiKitTheme
+							value={customCss}
 						/>
 					</FormStack>
 				</ModalBody>
 				<FormFooter
-					primaryButton={<Button variant="primary" onClick={closeEditor} children={t("continue")} />}
-					secondaryButton={<Button onClick={cancelEdit} variant="text" children={t("cancel")} />}
+					primaryButton={<Button children={t("continue")} onClick={closeEditor} variant="primary" />}
+					secondaryButton={<Button children={t("cancel")} onClick={cancelEdit} variant="text" />}
 				/>
 			</ModalContent>
 		</Modal>

@@ -1,20 +1,20 @@
-import styled from "@emotion/styled";
-import Visualizer, { VisualizerProps } from "@ext/ai/components/Audio/Visualizer/Visualizer";
-import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
-import { Editor } from "@tiptap/core";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import { memo, useCallback } from "react";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import createNameForFile from "@ext/ai/logic/helpers/createNameForFile";
-import createFile from "@ext/markdown/elements/file/edit/logic/createFile";
-import { MAX_AUDIO_DURATION_MS, MAX_AUDIO_HISTORY_ITEMS } from "@ext/ai/models/consts";
-import t from "@ext/localization/locale/translate";
-import { isActive } from "@core-ui/hooks/useAudioRecorder";
-import ToolbarWrapper from "@ext/markdown/core/edit/components/Menu/ToolbarWrapper";
-import { AudioHistoryItem } from "@ext/ai/models/types";
 import Path from "@core/FileProvider/Path/Path";
 import { uniqueName } from "@core/utils/uniqueName";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import { isActive } from "@core-ui/hooks/useAudioRecorder";
+import styled from "@emotion/styled";
+import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
+import Visualizer, { VisualizerProps } from "@ext/ai/components/Audio/Visualizer/Visualizer";
+import createNameForFile from "@ext/ai/logic/helpers/createNameForFile";
+import { MAX_AUDIO_DURATION_MS, MAX_AUDIO_HISTORY_ITEMS } from "@ext/ai/models/consts";
+import { AudioHistoryItem } from "@ext/ai/models/types";
+import t from "@ext/localization/locale/translate";
+import ToolbarWrapper from "@ext/markdown/core/edit/components/Menu/ToolbarWrapper";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import createFile from "@ext/markdown/elements/file/edit/logic/createFile";
+import { Editor } from "@tiptap/core";
 import { Toolbar } from "@ui-kit/Toolbar";
+import { memo, useCallback } from "react";
 
 const Wrapper = styled(ToolbarWrapper)`
 	width: 100%;
@@ -67,11 +67,11 @@ const GlobalAudioToolbar = () => {
 	return (
 		<GlobalWrapper>
 			<AudioToolbar
+				onReset={onReset}
+				onTimeChange={onTimeChange}
 				sendDisabled
 				sendTooltipText={t("ai.transcribe.warningHomeSend")}
 				startTime={startTime.current}
-				onTimeChange={onTimeChange}
-				onReset={onReset}
 			/>
 		</GlobalWrapper>
 	);
@@ -137,12 +137,12 @@ const ArticleAudioToolbar = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<AudioToolbar
-			sendTooltipText={editor.storage.ai?.enabled ? t("ai.transcribe.name") : t("save-file")}
-			startTime={startTime.current}
-			onTimeChange={onTimeChange}
+			onFileClick={onFileClick}
 			onReset={onReset}
 			onSend={onSend}
-			onFileClick={onFileClick}
+			onTimeChange={onTimeChange}
+			sendTooltipText={editor.storage.ai?.enabled ? t("ai.transcribe.name") : t("save-file")}
+			startTime={startTime.current}
 		/>
 	);
 };

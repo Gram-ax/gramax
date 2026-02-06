@@ -1,15 +1,15 @@
 import useIsFileNew from "@components/Actions/useIsFileNew";
-import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseCheckStyleGuide";
-import History from "../../git/actions/History/component/HistoryTrigger";
-import EditMarkdownTrigger from "@ext/article/actions/EditMarkdownTrigger";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import Method from "@core-ui/ApiServices/Types/Method";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import Method from "@core-ui/ApiServices/Types/Method";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import EditMarkdownTrigger from "@ext/article/actions/EditMarkdownTrigger";
+import EnterpriseCheckStyleGuide from "@ext/enterprise/components/EnterpriseCheckStyleGuide";
 import { useCallback } from "react";
+import History from "../../git/actions/History/component/HistoryTrigger";
 
 interface ToolsArticleActionsProps {
 	item: ClientArticleProps;
@@ -49,12 +49,12 @@ const ToolsArticleActions = (props: ToolsArticleActionsProps) => {
 	return (
 		<>
 			<IsReadOnlyHOC>
-				<History key="history" item={item} isFileNew={isFileNew} />
+				<History isFileNew={isFileNew} item={item} key="history" />
 				<EditMarkdownTrigger
-					loadContent={loadContent}
-					saveContent={saveContent}
 					isCurrentItem={isCurrentItem}
 					isTemplate={isTemplate}
+					loadContent={loadContent}
+					saveContent={saveContent}
 				/>
 			</IsReadOnlyHOC>
 			{!item.errorCode && isCurrentItem && <EnterpriseCheckStyleGuide />}

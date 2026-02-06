@@ -32,10 +32,10 @@ const Error = (props: ErrorProps): ReactElement => {
 				</pre>
 			) : (
 				<span
+					className="expand error"
 					onClick={() => {
 						setExpanded(true);
 					}}
-					className="expand error"
 				>
 					{t("error-expand")}
 				</span>

@@ -65,16 +65,16 @@ const SelectAll = ({ isSelectedAll, onSelectAll, onDiscard, canDiscard, overview
 			}}
 		>
 			<CheckboxWrapper>
-				<Checkbox interactive checked={isSelectedAll} />
+				<Checkbox checked={isSelectedAll} interactive />
 				<span>{t("properties.select-all")}</span>
 			</CheckboxWrapper>
 			<div>
 				{overview}
 				{canDiscard && (
 					<Icon
-						onClick={onDiscard}
-						code="reply-all"
 						className="action"
+						code="reply-all"
+						onClick={onDiscard}
 						tooltipContent={t("git.discard.select-all-arrow-tooltip")}
 					/>
 				)}

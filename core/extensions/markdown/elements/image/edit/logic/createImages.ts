@@ -1,9 +1,9 @@
-import { EditorView } from "prosemirror-view";
-import { Selection, Transaction } from "@tiptap/pm/state";
-import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { Attrs, ResolvedPos } from "@tiptap/pm/model";
+import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import { MAX_INLINE_IMAGE_HEIGHT } from "@ext/markdown/elements/inlineImage/edit/models/node";
+import { Attrs, ResolvedPos } from "@tiptap/pm/model";
+import { Selection, Transaction } from "@tiptap/pm/state";
+import { EditorView } from "prosemirror-view";
 
 const createBlockImage = (view: EditorView, $from: ResolvedPos, attributes: Attrs): Transaction => {
 	const tr = view.state.tr;

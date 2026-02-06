@@ -1,6 +1,7 @@
 /* global process */
 import child_process from "child_process";
 import * as fs from "fs";
+import * as path from "path";
 const { execSync } = child_process;
 
 const env = {
@@ -57,4 +58,17 @@ const setBuildVersion = (platform) => {
 	process.env.BUILD_VERSION = `${currentDate}-${platform}.${commitCount}`.replaceAll("\n", "");
 };
 
-export default { getBuiltInVariables, setVersion, setBuildVersion, generateVersion };
+const dynamicModules = () => ({
+	"@app/resolveModule/frontend": path.resolve(
+		__dirname,
+		"../app/resolveModule/frontend/",
+		process.env.VITE_ENVIRONMENT,
+	),
+	"@app/resolveModule/backend": path.resolve(
+		__dirname,
+		"../app/resolveModule/backend/",
+		process.env.VITE_ENVIRONMENT,
+	),
+});
+
+export default { getBuiltInVariables, dynamicModules, setVersion, setBuildVersion, generateVersion };

@@ -1,9 +1,9 @@
 #!/usr/bin/env -S node --no-warnings
+import fs from "fs";
 import http from "http";
 import path from "path";
-import fs from "fs";
-import sirv from "sirv";
 import { chromium } from "playwright";
+import sirv from "sirv";
 
 async function startStaticServer(entryPath) {
 	const root = path.resolve(entryPath);

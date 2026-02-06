@@ -1,20 +1,20 @@
+import type { Environment } from "@app/resolveModule/env";
+import type PageDataContext from "@core/Context/PageDataContext";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import PageDataContext from "@core/Context/PageDataContext";
-import { Editor } from "@tiptap/core";
-import { Mark } from "@tiptap/pm/model";
-import { EditorState } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
-import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
+import PlatformService from "@core-ui/ContextServices/PlatformService";
+import Workspace from "@core-ui/ContextServices/Workspace";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import type { Editor } from "@tiptap/core";
+import type { Mark } from "@tiptap/pm/model";
+import type { EditorState } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
+import type ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "../../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import getFirstPatentByName from "../../../../../../ui-logic/utils/getFirstPatentByName";
 import getFocusMark from "../../../../elementsUtils/getFocusMark";
 import getMarkPosition from "../../../../elementsUtils/getMarkPosition";
 import BaseMark from "../../../../elementsUtils/prosemirrorPlugins/BaseMark";
 import FileMenu from "../components/FileMenu";
-import { Environment } from "@app/resolveModule/env";
-import PlatformService from "@core-ui/ContextServices/PlatformService";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import Workspace from "@core-ui/ContextServices/Workspace";
 
 class FileFocusTooltip extends BaseMark {
 	constructor(
@@ -52,9 +52,9 @@ class FileFocusTooltip extends BaseMark {
 						<PlatformService.Provider value={this._platform}>
 							<ResourceService.Provider>
 								<FileMenu
-									resourcePath={mark.attrs.resourcePath}
-									onDelete={() => this._delete(markPosition)}
 									aiEnabled={aiEnabled}
+									onDelete={() => this._delete(markPosition)}
+									resourcePath={mark.attrs.resourcePath}
 								/>
 							</ResourceService.Provider>
 						</PlatformService.Provider>

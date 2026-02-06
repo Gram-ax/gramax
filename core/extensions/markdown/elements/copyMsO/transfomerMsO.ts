@@ -1,7 +1,7 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
 import Path from "@core/FileProvider/Path/Path";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import isVideoSupported from "@ext/markdown/elements/video/logic/isVideoSupported";
 import { EditorView } from "prosemirror-view";

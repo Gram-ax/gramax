@@ -1,5 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+apps/.storage
 .vite-cache
 gramax-wasm.worker.js
 bun.lockb
@@ -7,11 +8,9 @@ Cargo.lock
 target
 .ci/github-private-key
 apps-build-artifacts
+app/test/docs/.storage
 
 apps/next/public
-
-# storybook
-/storybook/storybook-static
 
 # e2e
 /e2e/report

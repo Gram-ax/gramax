@@ -3,7 +3,7 @@ Bob -> Alice : hello
 @enduml`;
 
 export const plantUmlIcon = (
-	<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+	<svg fill="none" height="16" viewBox="0 0 16 16" width="16" xmlns="http://www.w3.org/2000/svg">
 		<path d="M10.1525 8.936L13.58 11.209L10.86 12.7465L7.4305 10.4995L10.1525 8.936Z" fill="#1C0A42" />
 		<path
 			d="M10.858 12.8095L10.8305 12.7915L7.328 10.4965L10.1545 8.873L13.6825 11.213L10.858 12.8095ZM7.533 10.503L10.862 12.684L13.4775 11.2055L10.15 9L7.533 10.503Z"
@@ -87,45 +87,45 @@ export const plantUmlIcon = (
 		/>
 		<defs>
 			<linearGradient
+				gradientUnits="userSpaceOnUse"
 				id="paint0_linear_11_41"
 				x1="13.1132"
-				y1="6.68057"
 				x2="14.4413"
+				y1="6.68057"
 				y2="6.18635"
-				gradientUnits="userSpaceOnUse"
 			>
 				<stop stopColor="#767676" />
 				<stop offset="1" />
 			</linearGradient>
 			<linearGradient
+				gradientUnits="userSpaceOnUse"
 				id="paint1_linear_11_41"
 				x1="1.47902"
-				y1="11.2289"
 				x2="2.08076"
+				y1="11.2289"
 				y2="14.2363"
-				gradientUnits="userSpaceOnUse"
 			>
 				<stop stopColor="#0079B9" />
 				<stop offset="1" />
 			</linearGradient>
 			<linearGradient
+				gradientUnits="userSpaceOnUse"
 				id="paint2_linear_11_41"
 				x1="12.4067"
-				y1="8.24182"
 				x2="13.2232"
+				y1="8.24182"
 				y2="10.3849"
-				gradientUnits="userSpaceOnUse"
 			>
 				<stop stopColor="#0079B9" />
 				<stop offset="1" />
 			</linearGradient>
 			<linearGradient
+				gradientUnits="userSpaceOnUse"
 				id="paint3_linear_11_41"
 				x1="6.178"
-				y1="13.134"
 				x2="7.0055"
+				y1="13.134"
 				y2="13.134"
-				gradientUnits="userSpaceOnUse"
 			>
 				<stop stopColor="#595959" />
 				<stop offset="0.087" stopColor="#6E6E6E" />
@@ -136,12 +136,12 @@ export const plantUmlIcon = (
 				<stop offset="1" stopColor="#C2C2C2" />
 			</linearGradient>
 			<linearGradient
+				gradientUnits="userSpaceOnUse"
 				id="paint4_linear_11_41"
 				x1="9.1455"
-				y1="13.0855"
 				x2="9.973"
+				y1="13.0855"
 				y2="13.0855"
-				gradientUnits="userSpaceOnUse"
 			>
 				<stop stopColor="#595959" />
 				<stop offset="0.087" stopColor="#6E6E6E" />
@@ -152,12 +152,12 @@ export const plantUmlIcon = (
 				<stop offset="1" stopColor="#C2C2C2" />
 			</linearGradient>
 			<linearGradient
+				gradientUnits="userSpaceOnUse"
 				id="paint5_linear_11_41"
 				x1="12.22"
-				y1="13.0855"
 				x2="13.048"
+				y1="13.0855"
 				y2="13.0855"
-				gradientUnits="userSpaceOnUse"
 			>
 				<stop stopColor="#595959" />
 				<stop offset="0.087" stopColor="#6E6E6E" />

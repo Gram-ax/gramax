@@ -10,14 +10,13 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import AddCatalogMenu from "@ext/catalog/actions/AddCatalogMenu";
 import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { configureWorkspacePermission, editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import { configureWorkspacePermission, editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
 import Search from "@ext/serach/components/Search";
 import ThemeToggle from "@ext/Theme/components/ThemeToggle";
 import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import ThemeService from "../../extensions/Theme/components/ThemeService";
-import useUrlImage from "../Atoms/Image/useUrlImage";
 
 export type HomePageActionsProps = { catalogLinks: CatalogLink[]; pin?: boolean };
 
@@ -33,9 +32,9 @@ const Logo = ({ className }: { className?: string }) => {
 	return (
 		<div className={classNames(className, { "logo-desktop-padding": isMacDesktop })}>
 			<img
-				src={homeLogo ? homeLogo : useUrlImage(apiUrlCreator.getLogo(theme, isMobile))}
-				className={classNames("home-icon")}
 				alt={`logo-${theme}`}
+				className={classNames("home-icon")}
+				src={homeLogo ? homeLogo : apiUrlCreator.getLogo(theme, isMobile).toString()}
 			/>
 		</div>
 	);
@@ -49,6 +48,8 @@ const StyledLogo = styled(Logo)`
 	height: 2.25rem;
 `;
 
+export const topMenuItemClassName = "hover:bg-alpha-high-97 menu-open";
+
 const TopMenu = () => {
 	const { isTauri } = usePlatform();
 	const isMacDesktop = IsMacService.value && isTauri;
@@ -56,15 +57,16 @@ const TopMenu = () => {
 	const hasWorkspace = WorkspaceService.hasActive() && !PageDataContextService.value.isGesUnauthorized;
 	const workspacePath = WorkspaceService.current()?.path;
 
-	const canAddCatalog = PermissionService.useCheckPermission(
-		isNext ? configureWorkspacePermission : editCatalogPermission,
-		workspacePath,
-	);
+	const nextCanAddCatalog = PermissionService.useCheckPermission(configureWorkspacePermission, workspacePath);
+	const anyCatalogCanAddCatalog = PermissionService.useCheckAnyCatalogPermission(editCatalogContentPermission);
+	const canAddCatalog = isNext ? nextCanAddCatalog : anyCatalogCanAddCatalog;
 
 	return (
 		<div
-			data-qa="app-actions"
 			className={`w-full bg-alpha-40 top-0 ${isMacDesktop ? "pt-4" : ""}`}
+			data-qa="top-menu"
+			data-testid="top-menu"
+			role="menubar"
 			style={{ backdropFilter: "blur(24px)", position: "sticky", zIndex: "var(--z-index-top-menu)" }}
 		>
 			<div className="top-menu">
@@ -90,4 +92,8 @@ const TopMenu = () => {
 	);
 };
 
-export default TopMenu;
+export default styled(TopMenu)`
+	.menu-open[data-state="open"] {
+		background-color: hsl(var(--alpha-high-05));
+	}
+`;

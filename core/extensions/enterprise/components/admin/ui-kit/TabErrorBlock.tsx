@@ -1,5 +1,5 @@
-import { Alert, AlertButton, AlertDescription, AlertIcon, AlertTitle } from "@ui-kit/Alert";
 import t from "@ext/localization/locale/translate";
+import { Alert, AlertButton, AlertDescription, AlertIcon, AlertTitle } from "@ui-kit/Alert";
 
 interface TabErrorBlockProps {
 	title?: string;
@@ -11,7 +11,7 @@ interface TabErrorBlockProps {
 export function TabErrorBlock({ title = t("error"), message, onRetry, className }: TabErrorBlockProps) {
 	return (
 		<div className={className ?? "p-6"}>
-			<Alert status="error" focus="high">
+			<Alert focus="high" status="error">
 				<AlertIcon icon="alert-circle" />
 				<AlertTitle>{title}</AlertTitle>
 				<AlertDescription>{message}</AlertDescription>

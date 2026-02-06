@@ -1,7 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
-import { ExcludedProps, type CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import { type CatalogProps, ExcludedProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import type { Item, ItemProps } from "@core/FileStructue/Item/Item";

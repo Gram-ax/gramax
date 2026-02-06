@@ -19,9 +19,9 @@ export const resourcesTableColumns: ColumnDef<ResourceItem>[] = [
 
 			return (
 				<Checkbox
+					aria-label="Select all"
 					checked={(allSelectableSelected || (someSelectableSelected && "indeterminate")) as CheckedState}
 					onCheckedChange={handleSelectAll}
-					aria-label="Select all"
 				/>
 			);
 		},
@@ -53,7 +53,7 @@ export const resourcesTableColumns: ColumnDef<ResourceItem>[] = [
 	},
 	{
 		id: TABLE_EDIT_COLUMN_CODE,
-		cell: () => <Icon icon="pen" className="text-muted" />,
+		cell: () => <Icon className="text-muted" icon="pen" />,
 		enableSorting: false,
 		enableHiding: false,
 	},

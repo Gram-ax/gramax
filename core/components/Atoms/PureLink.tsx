@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { HTMLAttributes, forwardRef, MutableRefObject } from "react";
+import { forwardRef, HTMLAttributes, MutableRefObject } from "react";
 
 export enum LinkTheme {
 	INHERIT = "inherit",
@@ -19,7 +19,7 @@ const PureLink = forwardRef((props: PureLinkProps, ref: MutableRefObject<HTMLAnc
 	const { target = "_blank", linkTheme, rel = "noreferrer", children, className, ...otherProps } = props;
 
 	return (
-		<a target={target} ref={ref} rel={rel} className={classNames(className, {}, [linkTheme])} {...otherProps}>
+		<a className={classNames(className, {}, [linkTheme])} ref={ref} rel={rel} target={target} {...otherProps}>
 			{children}
 		</a>
 	);

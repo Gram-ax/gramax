@@ -1,9 +1,9 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import { Property, SystemProperties } from "@ext/properties/models";
-import { createContext, ReactElement, useContext, useState, useEffect, Dispatch, SetStateAction } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useState } from "react";
 
 export type PropertyService = {
 	properties: Map<string, Property>;
@@ -36,7 +36,7 @@ class PropertyServiceProvider {
 						catalogProperties
 							.filter((prop) => !SystemProperties[prop.name])
 							.map((prop) => [prop.name, prop]),
-				  )
+					)
 				: new Map();
 
 			setProperties(map);

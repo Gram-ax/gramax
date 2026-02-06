@@ -47,7 +47,7 @@ const DefaultModal = ({
 	};
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			<ModalContent>
 				<ModalHeader className="lg:pb-1 pb-1">
 					<ModalTitle className={modalStatusSettings[status].className}>{title}</ModalTitle>

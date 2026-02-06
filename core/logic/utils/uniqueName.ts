@@ -35,10 +35,10 @@ export const unique = <T>(
 	includes: (name: T) => boolean,
 	next: (name: T, idx: number) => T,
 ): [T, number] => {
-  const maxIter = 100;
+	const maxIter = 100;
 	let idx = UNIQUE_NAME_START_IDX;
 	while (includes(initial)) {
-    assert(idx < maxIter, "Unique name iteration limit exceeded");
+		assert(idx < maxIter, "Unique name iteration limit exceeded");
 		initial = next(initial, idx++);
 	}
 

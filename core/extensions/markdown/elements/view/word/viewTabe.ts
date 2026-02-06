@@ -1,16 +1,16 @@
+import docx from "@dynamicImports/docx";
 import t from "@ext/localization/locale/translate";
 import { extractNameAndAnchor } from "@ext/markdown/elements/link/word/link";
-import { ViewRenderData, ViewRenderGroup } from "@ext/properties/models";
+import type { ViewRenderData, ViewRenderGroup } from "@ext/properties/models";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
+import type { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import {
-	WordBlockType,
 	getWordBordersType,
+	WordBlockType,
 	WordFontStyles,
 	wordMarginsType,
 } from "@ext/wordExport/options/wordExportSettings";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import docx from "@dynamicImports/docx";
-import type { TableRow, TableCell } from "docx";
+import type { TableCell, TableRow } from "docx";
 
 export const getTableWithoutGrouping = async (data: ViewRenderGroup[], titlesMap: Map<string, TitleInfo>) => {
 	const { Table, TableRow, TableCell, Paragraph, TextRun } = await docx();
@@ -91,16 +91,15 @@ const processGroupForTable = async (
 				.map((value, index) => {
 					if (articleIndex > 0 && rowValues[index] === currentGroupValues[index]) {
 						return null;
-					} else {
-						return new TableCell({
-							children: [
-								new Paragraph({
-									children: [new TextRun({ text: value || "", style: WordFontStyles.normal })],
-								}),
-							],
-							rowSpan: group.articles.length,
-						});
 					}
+					return new TableCell({
+						children: [
+							new Paragraph({
+								children: [new TextRun({ text: value || "", style: WordFontStyles.normal })],
+							}),
+						],
+						rowSpan: group.articles.length,
+					});
 				})
 				.filter((cell) => cell !== null);
 
@@ -174,11 +173,11 @@ export const getViewArticleItem = async (article: ViewRenderData, titlesMap: Map
 								style: WordFontStyles.link,
 							}),
 						],
-				  })
+					})
 				: new TextRun({
 						text: safeTitle,
 						style: WordFontStyles.normal,
-				  }),
+					}),
 		],
 	});
 

@@ -23,14 +23,13 @@ const getInfoRefs = async (url: string, gitProxyUrl: string) => {
 	if (getExecutingEnvironment() === "tauri") {
 		const makeRequest = resolveModule("httpFetch");
 		return await makeRequest({ url, headers: { "x-protocol": protocol } });
-	} else {
-		const corsProxy = gitProxyUrl;
-		if (!corsProxy) return false;
-
-		const proxiedUrl = corsProxy + "/" + href;
-		const res = await fetch(new URL(proxiedUrl), { headers: { "x-protocol": protocol } });
-		return { status: res.status, contentType: res.headers.get("content-type") };
 	}
+	const corsProxy = gitProxyUrl;
+	if (!corsProxy) return false;
+
+	const proxiedUrl = corsProxy + "/" + href;
+	const res = await fetch(new URL(proxiedUrl), { headers: { "x-protocol": protocol } });
+	return { status: res.status, contentType: res.headers.get("content-type") };
 };
 
 export default isUrlPointsToRepo;

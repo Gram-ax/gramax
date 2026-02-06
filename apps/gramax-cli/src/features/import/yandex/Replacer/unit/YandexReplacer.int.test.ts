@@ -1,8 +1,8 @@
 import GXCore from "../../GXCore";
 import ResourceReplacer from "../resourceReplacer";
-import data from "./replacerTestData/replacerTestData.json";
-import finishData from "./replacerTestData/afterReplacerTestData.json";
 import finishRawData from "./replacerTestData/afterReplacerRawTestData.json";
+import finishData from "./replacerTestData/afterReplacerTestData.json";
+import data from "./replacerTestData/replacerTestData.json";
 
 describe("Replacer", () => {
 	describe("трансформирует в формат", () => {

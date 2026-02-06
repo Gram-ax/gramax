@@ -4,10 +4,10 @@ import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
 import { useNodeViewContext } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import { NodeSelection } from "@tiptap/pm/state";
-import { ReactNode, useCallback, useMemo } from "react";
 import FloatActions from "@ext/markdown/elements/float/edit/components/FloatActions";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { NodeSelection } from "@tiptap/pm/state";
+import { ReactNode, useCallback, useMemo } from "react";
 
 export interface UseDefaultActionsOptions {
 	// Button for adding a comment to the node. Need to add node type in Comment extension.
@@ -50,13 +50,13 @@ const useDefaultActions = (right: ReactNode, left: ReactNode, options: UseDefaul
 	const memoRight = useMemo(
 		() => (
 			<>
-				{float && <FloatActions node={node} editor={editor} getPos={getPos} />}
+				{float && <FloatActions editor={editor} getPos={getPos} node={node} />}
 				{right}
 				{comment && !disabledComment && (
 					<ActionButton
 						icon={hasComment ? "message-square-text" : "message-square"}
-						tooltipText={hasComment ? t("show-comment") : t("leave-comment")}
 						onClick={handleAddComment}
+						tooltipText={hasComment ? t("show-comment") : t("leave-comment")}
 					/>
 				)}
 				{deleteAction && <ActionButton icon="trash" onClick={handleDelete} tooltipText={t("delete")} />}

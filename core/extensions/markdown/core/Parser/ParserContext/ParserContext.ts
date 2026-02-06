@@ -1,22 +1,18 @@
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import LinkResourceManager from "@core/Link/LinkResourceManager";
-import Path from "../../../../../logic/FileProvider/Path/Path";
+import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import { TableDB } from "../../../../../logic/components/tableDB/table";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
+import Path from "../../../../../logic/FileProvider/Path/Path";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
 import { Item } from "../../../../../logic/FileStructue/Item/Item";
-import ResourceManager from "../../../../../logic/Resource/ResourceManager";
-import { TableDB } from "../../../../../logic/components/tableDB/table";
 import UiLanguage from "../../../../localization/core/model/Language";
 import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
-import { Question } from "@ext/markdown/elements/question/types";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export default interface ParserContext {
 	getItemByPath(itemPath: Path): Item;
-	getResourceManager(): ResourceManager;
-	getLinkManager(): LinkResourceManager;
 	getRootLogicPath(): Path;
 	getArticle(): Article;
 	getCatalog(): ReadonlyCatalog;
@@ -31,32 +27,102 @@ export default interface ParserContext {
 	getUserByMail(mail: string): Promise<UserInfo>;
 	createContext(article: Article): ParserContext;
 	getWorkspaceManager(): WorkspaceManager;
+	getRepositoryProvider(): RepositoryProvider;
 	fp: FileProvider;
 	parser: MarkdownParser;
 	formatter: MarkdownFormatter;
-	snippet: Set<string>;
-	icons: Set<string>;
-	questions: Map<string, Question>;
 }
 
-export abstract class BaseContext {
-	private _snippet = new Set<string>();
-	private _questions = new Map<string, Question>();
-	private _icons = new Set<string>();
+export class ArticleParserContext implements ParserContext {
+	constructor(
+		private _article: Article,
+		private _catalog: ReadonlyCatalog,
+		private _basePath: Path,
+		private _language: UiLanguage,
+		private _isLogged: boolean,
+		private _diagramRendererServerUrl: string,
+		private _tablesManager: TableDB,
+		private _getUserByMail: (mail: string) => Promise<UserInfo> | UserInfo,
+		private _wm: WorkspaceManager,
+		private _rp: RepositoryProvider,
+		readonly fp: FileProvider,
+		readonly parser: MarkdownParser,
+		readonly formatter: MarkdownFormatter,
+	) {}
 
-	get snippet() {
-		return this._snippet;
+	getDiagramRendererServerUrl(): string {
+		return this._diagramRendererServerUrl;
 	}
 
-	get questions() {
-		return this._questions;
+	getItemByPath(itemPath: Path): Item {
+		return this._catalog.findItemByItemPath(itemPath);
 	}
 
-	get icons() {
-		return this._icons;
+	getArticle() {
+		return this._article;
 	}
 
-	abstract getArticle(): Article;
+	getCatalog() {
+		return this._catalog;
+	}
+
+	getStorageId() {
+		return this._article.ref.storageId;
+	}
+
+	getRootLogicPath() {
+		return new Path(this._catalog?.name);
+	}
+
+	getRootPath() {
+		return this._catalog?.getRootCategoryPath();
+	}
+
+	getBasePath() {
+		return this._basePath;
+	}
+
+	getIsLogged() {
+		return this._isLogged;
+	}
+
+	getLanguage() {
+		return this._language;
+	}
+
+	getTablesManager(): TableDB {
+		return this._tablesManager;
+	}
+
+	async getUserByMail(mail: string): Promise<UserInfo> {
+		return await this._getUserByMail(mail);
+	}
+
+	getWorkspaceManager(): WorkspaceManager {
+		return this._wm;
+	}
+
+	getRepositoryProvider(): RepositoryProvider {
+		return this._rp;
+	}
+
+	createContext(article: Article) {
+		return new ArticleParserContext(
+			article,
+			this._catalog,
+			this._basePath,
+			this._language,
+			this._isLogged,
+			this._diagramRendererServerUrl,
+			this._tablesManager,
+			this._getUserByMail,
+			this._wm,
+			this._rp,
+			this.fp,
+			this.parser,
+			this.formatter,
+		);
+	}
 
 	getProp(propName: string): any {
 		const variables = {};

@@ -1,6 +1,6 @@
 import { getLangImportFuncByName } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
-import { createLowlight } from "lowlight";
 import noneLang from "@ext/markdown/elements/codeBlockLowlight/edit/logic/langs/none";
+import { createLowlight } from "lowlight";
 
 export const lowlight = createLowlight({ none: noneLang });
 

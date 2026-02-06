@@ -1,8 +1,8 @@
+import { createEventEmitter, Event, EventEmitter } from "@core/Event/EventEmitter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { CommentBlock } from "@core-ui/CommentBlock";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import CommentView from "@ext/markdown/elements/comment/edit/components/View/CommentView";
-import { createEventEmitter, Event, EventEmitter } from "@core/Event/EventEmitter";
 import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
 import { Editor, Range } from "@tiptap/core";
 import { createContext, memo, useCallback, useEffect, useState } from "react";
@@ -64,10 +64,10 @@ const CommentEditorProvider = (props: CommentEditorProviderProps): JSX.Element =
 			<CommentEditorEventsContext.Provider value={events}>
 				<CommentView
 					commentId={editor.storage?.comment?.openedComment?.id}
+					deleteComment={deleteComment}
 					editor={editor}
 					loadComment={loadComment}
 					saveComment={saveComment}
-					deleteComment={deleteComment}
 				/>
 				{children}
 			</CommentEditorEventsContext.Provider>

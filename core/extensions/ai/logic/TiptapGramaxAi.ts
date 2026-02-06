@@ -5,7 +5,10 @@ import { DOMSerializer, Fragment, Schema } from "@tiptap/pm/model";
 import assert from "assert";
 
 class TiptapGramaxAi {
-	constructor(private readonly _apiUrlCreator: ApiUrlCreator, private readonly _schema: Schema) {}
+	constructor(
+		private readonly _apiUrlCreator: ApiUrlCreator,
+		private readonly _schema: Schema,
+	) {}
 
 	public async prettify(fragment: Fragment, command: string): Promise<string> {
 		assert(fragment.childCount > 0, "fragment must have at least one child");

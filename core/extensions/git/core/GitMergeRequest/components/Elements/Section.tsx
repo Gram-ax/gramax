@@ -66,13 +66,13 @@ const Section = (props: SectionProps) => {
 
 	return (
 		<Wrapper>
-			<Header styles={headerStyles} chevron={chevron}>
+			<Header chevron={chevron} styles={headerStyles}>
 				{chevron && <ShiftedIcon code={isCollapsed || isNotLoaded ? "chevron-right" : "chevron-down"} />}
 				<ButtonLink
-					onClick={onHeaderClick}
 					iconStyle={{ fontSize: "1rem", marginLeft: "-0.4rem", marginRight: "-0.3rem" }}
+					onClick={onHeaderClick}
+					rightActions={[isLoading && <SpinnerLoader height={12} key={1} lineWidth={1.5} width={12} />]}
 					text={title}
-					rightActions={[isLoading && <SpinnerLoader key={1} width={12} height={12} lineWidth={1.5} />]}
 				/>
 				{right}
 			</Header>

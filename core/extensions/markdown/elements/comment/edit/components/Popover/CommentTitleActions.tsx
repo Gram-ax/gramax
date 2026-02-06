@@ -17,17 +17,16 @@ export const CommentTitleActions = (props: CommentTitleActionsProps) => {
 	if (!showActions) return null;
 
 	return (
-		<div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
+		<div className="flex items-center gap-0.5 ml-auto flex-shrink-0" style={{ marginRight: "-0.5rem" }}>
 			{isCurrentUser && (
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<IconButton
+							className="h-auto w-5 h-5 p-0"
 							icon="ellipsis-vertical"
-							variant="ghost"
+							iconClassName="h-4 w-4"
 							size="xs"
-							className="h-auto"
-							iconClassName="h-3 w-3"
-							style={{ marginRight: "-0.2rem" }}
+							variant="text"
 						/>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="start">
@@ -36,7 +35,7 @@ export const CommentTitleActions = (props: CommentTitleActionsProps) => {
 							{t("edit2")}
 						</DropdownMenuItem>
 						{onClickDelete && (
-							<DropdownMenuItem type="danger" onSelect={onClickDelete}>
+							<DropdownMenuItem onSelect={onClickDelete} type="danger">
 								<Icon icon="trash" />
 								{t("delete")}
 							</DropdownMenuItem>

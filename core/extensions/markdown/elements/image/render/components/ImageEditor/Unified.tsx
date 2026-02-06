@@ -1,8 +1,8 @@
+import useWatch from "@core-ui/hooks/useWatch";
+import { ImageObject, ImageObjectTypes } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import Annotation from "@ext/markdown/elements/image/render/components/ImageEditor/Annotation";
 import Square from "@ext/markdown/elements/image/render/components/ImageEditor/Square";
-import { ImageObject, ImageObjectTypes } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { CSSProperties, RefObject, useState } from "react";
-import useWatch from "@core-ui/hooks/useWatch";
 
 interface UnifiedComponentProps extends ImageObject {
 	index: number;
@@ -32,11 +32,11 @@ const UnifiedComponent = (props: UnifiedComponentProps) => {
 	return Component ? (
 		<Component
 			editable={editable}
-			selected={isSelected}
+			index={index}
 			parentRef={parentRef}
+			selected={isSelected}
 			style={style}
 			type={type}
-			index={index}
 			{...otherProps}
 		/>
 	) : null;

@@ -1,7 +1,7 @@
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import type { HomePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { GlobalAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
 import FavoriteCatalogLinkService from "@ext/article/Favorite/components/FavoriteCatalogLinkService";
@@ -17,8 +17,8 @@ import TopMenu from "./TopMenu";
 const HomePage = ({ data, className }: { data: HomePageData; className?: string }) => {
 	const { isStatic, isStaticCli, isNext } = usePlatform();
 	const catalogCount = data.catalogsLinks.length;
-	const { gesUrl, isCloud } = PageDataContextService.value.conf.enterprise;
-	const authUrl = getGesSignInUrl(gesUrl, true, isCloud);
+	const { gesUrl } = PageDataContextService.value.conf.enterprise;
+	const authUrl = getGesSignInUrl(gesUrl, true);
 	const isGesUnauthorized = PageDataContextService.value.isGesUnauthorized;
 	const breakpoint = useBreakpoint();
 	const signInEnterpriseProps = useSignInEnterprise({ authUrl });
@@ -26,8 +26,8 @@ const HomePage = ({ data, className }: { data: HomePageData; className?: string 
 	return (
 		<div className={`${className} breakpoint-${breakpoint} bg-primary-bg flex flex-col`}>
 			<ScrollShadowContainer
-				wrapperClassName="flex flex-col shadow-scroll h-full"
 				shadowTopClassName="top-shadow"
+				wrapperClassName="flex flex-col shadow-scroll h-full"
 			>
 				<TopMenu />
 				{isGesUnauthorized ? (
@@ -37,10 +37,10 @@ const HomePage = ({ data, className }: { data: HomePageData; className?: string 
 				) : catalogCount ? (
 					<FavoriteCatalogLinkService.Init value={data.catalogsLinks}>
 						<Groups
-							className="groups"
-							section={data.section}
 							breadcrumb={data.breadcrumb}
+							className="groups"
 							group={data.group}
+							section={data.section}
 						/>
 					</FavoriteCatalogLinkService.Init>
 				) : (

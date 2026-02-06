@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { Icon as UiKitIcon } from "ics-ui-kit/components/icon";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 import { forwardRef } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitIconProps = ExtractComponentGeneric<typeof UiKitIcon>;
 
@@ -14,5 +14,5 @@ export const Icon = forwardRef<SVGSVGElement, IconProps>((props, ref) => {
 	const Icon = icon && typeof icon === "string" && LucideIcon(icon);
 	if (!Icon) return null;
 
-	return <UiKitIcon ref={ref} icon={Icon as any} {...otherProps} />;
+	return <UiKitIcon icon={Icon as any} ref={ref} {...otherProps} />;
 });

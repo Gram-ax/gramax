@@ -1,5 +1,8 @@
 export class LevenshteinStrings {
-	constructor(private oldStrings: string[], private newStrings: string[]) {}
+	constructor(
+		private oldStrings: string[],
+		private newStrings: string[],
+	) {}
 
 	public getDiff(): { addedIndices: number[]; removedIndices: number[] } {
 		const m = this.oldStrings.length;

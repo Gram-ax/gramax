@@ -1,5 +1,5 @@
-import { WorkspaceSettings, ExportTemplate } from "../types/WorkspaceComponent";
 import { useRef, useState } from "react";
+import { ExportTemplate, WorkspaceSettings } from "../types/WorkspaceComponent";
 
 type TemplateType = "word" | "pdf";
 
@@ -30,7 +30,7 @@ export function useTemplateManagement({
 	const [newTemplateTitle, setNewTemplateTitle] = useState("");
 
 	const getTemplates = (): ExportTemplate[] => {
-		return templateType === "word" ? localSettings.wordTemplates ?? [] : localSettings.pdfTemplates ?? [];
+		return templateType === "word" ? (localSettings.wordTemplates ?? []) : (localSettings.pdfTemplates ?? []);
 	};
 
 	const setTemplates = (templates: ExportTemplate[]) => {

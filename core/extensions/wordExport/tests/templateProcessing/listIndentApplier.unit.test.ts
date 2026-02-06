@@ -1,14 +1,14 @@
+import { initBackendModules } from "@app/resolveModule/backend";
 import { DOMParser } from "@xmldom/xmldom";
-import { initModules } from "@app/resolveModule/backend";
-import { TemplateStylesInfo } from "../../templateProcessing/types";
 import { applyTemplateListIndents } from "../../templateProcessing/listIndentApplier";
+import type { TemplateStylesInfo } from "../../templateProcessing/types";
 import { LIST_CONTINUATION_BOOKMARK, LIST_CONTINUATION_CAPTION } from "../../utils/listContinuation";
 
 describe("templateProcessing/listIndentApplier", () => {
 	const parser = new DOMParser();
 
 	beforeAll(async () => {
-		await initModules();
+		await initBackendModules();
 	});
 
 	const templateStyles: TemplateStylesInfo = {
@@ -81,7 +81,12 @@ describe("templateProcessing/listIndentApplier", () => {
 		const doc = parser.parseFromString(docXml, "application/xml");
 		const numbering = parser.parseFromString(numberingXml, "application/xml");
 
-		applyTemplateListIndents(doc as unknown as Document, numbering as unknown as Document, templateStyles, normalized);
+		applyTemplateListIndents(
+			doc as unknown as Document,
+			numbering as unknown as Document,
+			templateStyles,
+			normalized,
+		);
 
 		const paragraphs = doc.getElementsByTagName("w:p");
 		const continuationP = paragraphs[1];
@@ -135,7 +140,12 @@ describe("templateProcessing/listIndentApplier", () => {
 		const doc = parser.parseFromString(docXml, "application/xml");
 		const numbering = parser.parseFromString(numberingXml, "application/xml");
 
-		applyTemplateListIndents(doc as unknown as Document, numbering as unknown as Document, templateStyles, normalized);
+		applyTemplateListIndents(
+			doc as unknown as Document,
+			numbering as unknown as Document,
+			templateStyles,
+			normalized,
+		);
 
 		const table = doc.getElementsByTagName("w:tbl")[0];
 		const tblInd = table.getElementsByTagName("w:tblInd")[0];
@@ -185,7 +195,12 @@ describe("templateProcessing/listIndentApplier", () => {
 		const doc = parser.parseFromString(docXml, "application/xml");
 		const numbering = parser.parseFromString(numberingXml, "application/xml");
 
-		applyTemplateListIndents(doc as unknown as Document, numbering as unknown as Document, templateStyles, normalized);
+		applyTemplateListIndents(
+			doc as unknown as Document,
+			numbering as unknown as Document,
+			templateStyles,
+			normalized,
+		);
 
 		const getParagraphByText = (needle: string) =>
 			Array.from(doc.getElementsByTagName("w:p")).find((p) =>
@@ -248,7 +263,12 @@ describe("templateProcessing/listIndentApplier", () => {
 		const doc = parser.parseFromString(docXml, "application/xml");
 		const numbering = parser.parseFromString(numberingXml, "application/xml");
 
-		applyTemplateListIndents(doc as unknown as Document, numbering as unknown as Document, templateStyles, normalized);
+		applyTemplateListIndents(
+			doc as unknown as Document,
+			numbering as unknown as Document,
+			templateStyles,
+			normalized,
+		);
 
 		const pictureParagraph = Array.from(doc.getElementsByTagName("w:p")).find((p) =>
 			Array.from(p.getElementsByTagName("w:t"))
@@ -303,7 +323,12 @@ describe("templateProcessing/listIndentApplier", () => {
 		const doc = parser.parseFromString(docXml, "application/xml");
 		const numbering = parser.parseFromString(numberingXml, "application/xml");
 
-		applyTemplateListIndents(doc as unknown as Document, numbering as unknown as Document, templateStyles, normalized);
+		applyTemplateListIndents(
+			doc as unknown as Document,
+			numbering as unknown as Document,
+			templateStyles,
+			normalized,
+		);
 
 		const afterTable = Array.from(doc.getElementsByTagName("w:p")).find((p) =>
 			Array.from(p.getElementsByTagName("w:t"))
@@ -354,7 +379,12 @@ describe("templateProcessing/listIndentApplier", () => {
 		const doc = parser.parseFromString(docXml, "application/xml");
 		const numbering = parser.parseFromString(numberingXml, "application/xml");
 
-		applyTemplateListIndents(doc as unknown as Document, numbering as unknown as Document, templateStyles, normalized);
+		applyTemplateListIndents(
+			doc as unknown as Document,
+			numbering as unknown as Document,
+			templateStyles,
+			normalized,
+		);
 
 		const caption = Array.from(doc.getElementsByTagName("w:p")).find((p) =>
 			Array.from(p.getElementsByTagName("w:t"))
@@ -406,7 +436,12 @@ describe("templateProcessing/listIndentApplier", () => {
 
 		const doc = parser.parseFromString(docXml, "application/xml");
 		const numbering = parser.parseFromString(numberingXml, "application/xml");
-		applyTemplateListIndents(doc as unknown as Document, numbering as unknown as Document, templateStyles, normalized);
+		applyTemplateListIndents(
+			doc as unknown as Document,
+			numbering as unknown as Document,
+			templateStyles,
+			normalized,
+		);
 
 		const table = doc.getElementsByTagName("w:tbl")[0];
 		const tblInd = table.getElementsByTagName("w:tblInd")[0];
@@ -452,7 +487,12 @@ describe("templateProcessing/listIndentApplier", () => {
 		const doc = parser.parseFromString(docXml, "application/xml");
 		const numbering = parser.parseFromString(numberingXml, "application/xml");
 
-		applyTemplateListIndents(doc as unknown as Document, numbering as unknown as Document, templateStyles, normalized);
+		applyTemplateListIndents(
+			doc as unknown as Document,
+			numbering as unknown as Document,
+			templateStyles,
+			normalized,
+		);
 
 		const tables = doc.getElementsByTagName("w:tbl");
 		expect(tables[0].getElementsByTagName("w:tblInd")[0].getAttribute("w:w")).toBe("720");

@@ -1,4 +1,4 @@
-import { Environment, getExecutingEnvironment } from "@app/resolveModule/env";
+import { type Environment, getExecutingEnvironment } from "@app/resolveModule/env";
 import { PlatformEnvironments } from "@plugins/api/sdk";
 
 const environmentToPlatformMap: Partial<Record<Environment, keyof typeof PlatformEnvironments>> = {

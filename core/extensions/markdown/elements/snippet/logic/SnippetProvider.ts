@@ -1,18 +1,17 @@
-import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileProvider from "@core/FileProvider/model/FileProvider";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import FileStructure from "@core/FileStructue/FileStructure";
-import Path from "@core/FileProvider/Path/Path";
 import { SNIPPETS_DIRECTORY } from "@app/config/const";
-import { JSONContent } from "@tiptap/core";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Context from "@core/Context/Context";
+import FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import FileStructure from "@core/FileStructue/FileStructure";
+import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
 import { ItemID } from "@ext/articleProvider/models/types";
-import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { JSONContent } from "@tiptap/core";
 
 declare module "@ext/articleProvider/logic/ArticleProvider" {
 	export enum ArticleProviders {
@@ -34,7 +33,7 @@ export default class SnippetProvider extends ArticleProvider {
 		const result = [];
 		for (const item of this._catalog.getContentItems()) {
 			await item.parsedContent.read((p) => {
-				if (p?.snippets.has(snippetId)) result.push(item);
+				if (p?.parsedContext.snippet.has(snippetId)) result.push(item);
 			});
 		}
 

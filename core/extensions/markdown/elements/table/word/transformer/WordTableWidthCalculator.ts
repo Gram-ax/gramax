@@ -1,6 +1,6 @@
-import { JSONContent } from "@tiptap/core";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { STANDARD_PAGE_WIDTH } from "@ext/wordExport/options/wordExportSettings";
+import { JSONContent } from "@tiptap/core";
 
 export const TWIPS_PER_PIXEL = 15;
 
@@ -25,12 +25,9 @@ export const buildTableWidthContext = (table: TableNode, maxTableWidth?: number)
 	const columnsCount = Math.max(getColumnsCount(table), 1);
 	const defaultColumnWidth = Math.floor(targetWidth / columnsCount);
 	const columnUnits = collectColumnWidthUnits(table, columnsCount);
-	const baseColumnWidths = columnUnits.map((unit) =>
-		unit > 0 ? unit * TWIPS_PER_PIXEL : defaultColumnWidth,
-	);
+	const baseColumnWidths = columnUnits.map((unit) => (unit > 0 ? unit * TWIPS_PER_PIXEL : defaultColumnWidth));
 	const sumColumnWidthTwips = baseColumnWidths.reduce((sum, width) => sum + width, 0);
-	const contractionCoefficient =
-		sumColumnWidthTwips > targetWidth ? targetWidth / sumColumnWidthTwips : 1;
+	const contractionCoefficient = sumColumnWidthTwips > targetWidth ? targetWidth / sumColumnWidthTwips : 1;
 
 	return {
 		columnsCount,
@@ -62,10 +59,7 @@ export const calculateCellBaseWidthTwips = (
 	const hasExplicitWidth = normalizedColwidth.some((value) => value > 0);
 
 	if (hasExplicitWidth) {
-		return normalizedColwidth.reduce(
-			(sum, value) => sum + value * TWIPS_PER_PIXEL,
-			0,
-		);
+		return normalizedColwidth.reduce((sum, value) => sum + value * TWIPS_PER_PIXEL, 0);
 	}
 
 	return span * context.defaultColumnWidth;

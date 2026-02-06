@@ -3,11 +3,11 @@ import styled from "@emotion/styled";
 import {
 	forwardRef,
 	MouseEventHandler,
-	RefObject,
-	ReactNode,
-	useRef,
 	MouseEvent as ReactMouseEvent,
+	ReactNode,
+	RefObject,
 	useCallback,
+	useRef,
 } from "react";
 
 interface BoxResizeWrapperProps {
@@ -40,8 +40,8 @@ const applyConstraints = (value: number, min: number, max: number): number => {
 const Handle = ({ direction, onMouseDown }: HandleProps) => {
 	return (
 		<div
-			data-resize-direction={direction}
 			className={`resize-handle resize-handle-${direction}`}
+			data-resize-direction={direction}
 			onMouseDown={onMouseDown}
 		/>
 	);
@@ -140,7 +140,7 @@ const BoxResizeWrapper = forwardRef((props: BoxResizeWrapperProps, ref: RefObjec
 	);
 
 	return (
-		<div ref={newRef} className={classNames(className, undefined, ["resize-wrapper"])}>
+		<div className={classNames(className, undefined, ["resize-wrapper"])} ref={newRef}>
 			<div className="resize-handles">
 				<Handle direction={ResizeDirection.TOP_LEFT} onMouseDown={onMouseDown} />
 				<Handle direction={ResizeDirection.TOP_RIGHT} onMouseDown={onMouseDown} />

@@ -94,16 +94,16 @@ const PropertyItem = ({ property, disabled, onClick, onEditClick, getItemCompone
 					{InputComponent && (
 						<div>
 							<CustomInputRenderer
+								onChange={(value) => setValue(getFormatValue(value))}
 								type={property.type}
 								value={property.value?.[0]}
-								onChange={(value) => setValue(getFormatValue(value))}
 							/>
 							<Button
-								disabled={!value?.length}
-								variant="ghost"
-								size="xs"
 								className="w-full mt-2"
+								disabled={!value?.length}
 								onClick={onAddClick}
+								size="xs"
+								variant="ghost"
 							>
 								<Icon code="check" />
 								{t("add")}
@@ -133,7 +133,7 @@ const PropertyItem = ({ property, disabled, onClick, onEditClick, getItemCompone
 export default PropertyItem;
 
 const getDefaultItemComponent: PropertyItemProps["getItemComponent"] = ({ children, disabled, key, onSelect }) => (
-	<DropdownMenuItem key={key} disabled={disabled} onSelect={onSelect}>
+	<DropdownMenuItem disabled={disabled} key={key} onSelect={onSelect}>
 		{children}
 	</DropdownMenuItem>
 );

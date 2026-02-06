@@ -1,5 +1,5 @@
-import { Node } from "prosemirror-model";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import { Node } from "prosemirror-model";
 
 const deleteImages = async (nodes: Node[], resourceService: ResourceServiceType) => {
 	for (const node of nodes) {

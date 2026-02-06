@@ -18,13 +18,13 @@ function Path({
 	return (
 		<path
 			className={className}
-			style={Object.assign({}, style, getDashStyle({ pathRadius, dashRatio, counterClockwise }))}
 			d={getPathDescription({
 				pathRadius,
 				counterClockwise,
 			})}
-			strokeWidth={strokeWidth}
 			fillOpacity={0}
+			strokeWidth={strokeWidth}
+			style={Object.assign({}, style, getDashStyle({ pathRadius, dashRatio, counterClockwise }))}
 		/>
 	);
 }

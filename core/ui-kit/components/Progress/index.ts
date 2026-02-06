@@ -1,1 +1,1 @@
-export { ProgressBlockTemplate, Progress } from "ics-ui-kit/components/progress";
+export { Progress, ProgressBlockTemplate } from "ics-ui-kit/components/progress";

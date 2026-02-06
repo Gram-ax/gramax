@@ -1,21 +1,21 @@
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
+import Path from "@core/FileProvider/Path/Path";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
-import Path from "@core/FileProvider/Path/Path";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import { DiffModeView } from "@ext/markdown/elements/diff/components/DiffModeView";
 import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
+import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import { EditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { JSONContent } from "@tiptap/core";
 import { useEffect, useLayoutEffect, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 interface ArticleDiffModeViewProps {
 	oldEditTree: JSONContent;
@@ -112,28 +112,31 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 			{isWysiwyg && hasEditTree && (
 				<div className="article-body" style={{ height: "inherit" }}>
 					<DiffModeView
-						filePath={filePath}
-						oldScope={oldScope}
-						newScope={newScope}
-						readOnly={readOnly}
-						key={articlePath}
-						oldContent={oldEditTree}
-						newContent={newEditTree}
-						changeType={changeType}
 						articlePath={articlePath}
+						changeType={changeType}
+						filePath={filePath}
+						key={articlePath}
+						newContent={newEditTree}
+						newScope={newScope}
 						oldArticlePath={oldArticlePath}
+						oldContent={oldEditTree}
+						oldScope={oldScope}
 						onUpdate={onWysiwygUpdate}
+						readOnly={readOnly}
 					/>
 				</div>
 			)}
 			{(diffView === "single-panel" || diffView === "double-panel") && (
 				<DiffFileInput
-					modified={newContent}
-					original={oldContent}
-					height={"100vh"}
 					containerStyles={{ padding: "0" }}
+					height={"100vh"}
+					modified={newContent}
 					onChange={(value) => {
 						onMonacoUpdate?.(value);
+					}}
+					onMount={(editor) => {
+						// https://github.com/microsoft/monaco-editor/issues/4448
+						editor.getOriginalEditor().updateOptions({ glyphMargin: false });
 					}}
 					options={{
 						readOnly: isDeleted || readOnly,
@@ -142,21 +145,18 @@ const ArticleDiffModeView = (props: ArticleDiffModeViewProps) => {
 						renderOverviewRuler: false,
 						glyphMargin: false,
 					}}
-					onMount={(editor) => {
-						// https://github.com/microsoft/monaco-editor/issues/4448
-						editor.getOriginalEditor().updateOptions({ glyphMargin: false });
-					}}
+					original={oldContent}
 				/>
 			)}
 			<RenderDiffBottomBarInBody
 				// title={title}
-				oldRevision={oldRevision}
-				newRevision={newRevision}
-				filePath={filePath}
-				type={changeType}
 				diffViewMode={diffView}
-				onDiffViewPick={setViewModeWrapper}
+				filePath={filePath}
 				hasWysiwyg={hasEditTree}
+				newRevision={newRevision}
+				oldRevision={oldRevision}
+				onDiffViewPick={setViewModeWrapper}
+				type={changeType}
 			/>
 		</div>
 	);

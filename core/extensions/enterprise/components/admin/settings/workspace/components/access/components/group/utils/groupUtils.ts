@@ -1,7 +1,9 @@
 import { defaultGroupKeys } from "@ext/enterprise/types/EnterpriseAdmin";
 import { GroupInfo } from "../types/GroupTypes";
 
-export function getGroupsWithNames(groupsSettings: Record<string, { name: string; members: any[] }> | undefined): GroupInfo[] {
+export function getGroupsWithNames(
+	groupsSettings: Record<string, { name: string; members: any[] }> | undefined,
+): GroupInfo[] {
 	if (!groupsSettings) return [];
 
 	const customGroups = Object.entries(groupsSettings).map(([id, data]) => ({
@@ -9,7 +11,7 @@ export function getGroupsWithNames(groupsSettings: Record<string, { name: string
 		name: data.name,
 	}));
 
-	const defaultGroups = defaultGroupKeys.map(key => ({
+	const defaultGroups = defaultGroupKeys.map((key) => ({
 		id: key,
 		name: key,
 	}));
@@ -19,7 +21,7 @@ export function getGroupsWithNames(groupsSettings: Record<string, { name: string
 
 export function getGroupNameById(
 	groupId: string,
-	groupsSettings: Record<string, { name: string; members: any[] }> | undefined
+	groupsSettings: Record<string, { name: string; members: any[] }> | undefined,
 ): string {
 	if (defaultGroupKeys.includes(groupId)) return groupId;
 	return groupsSettings?.[groupId]?.name ?? groupId;

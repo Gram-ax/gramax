@@ -1,9 +1,9 @@
-import { readFile, exists } from "fs-extra";
-import { parse } from "yaml";
 import { AppConfig } from "@app/config/AppConfig";
-import { logStep } from "./logger";
+import { exists, readFile } from "fs-extra";
+import { parse } from "yaml";
 import ChalkLogger from "../../../utils/ChalkLogger";
 import CliUserError from "../../CliUserError";
+import { logStep } from "./logger";
 
 type AppBuildConfig = Pick<AppConfig, "logo" | "metrics" | "forceUiLangSync">;
 

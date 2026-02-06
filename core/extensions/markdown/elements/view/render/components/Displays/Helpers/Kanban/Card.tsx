@@ -1,11 +1,11 @@
-import { ViewRenderData } from "@ext/properties/models";
-import { useDrag } from "react-dnd";
-import { CSSProperties, MouseEvent, useEffect, useMemo, useRef } from "react";
-import { getEmptyImage } from "react-dnd-html5-backend";
-import CardPreview from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CardPreview";
-import { DragItems } from "@ext/properties/models/kanban";
-import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import { useRouter } from "@core/Api/useRouter";
+import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
+import CardPreview from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CardPreview";
+import { ViewRenderData } from "@ext/properties/models";
+import { DragItems } from "@ext/properties/models/kanban";
+import { CSSProperties, MouseEvent, useEffect, useMemo, useRef } from "react";
+import { useDrag } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
 
 const getStyles = (isDragging: boolean): CSSProperties => {
 	return {
@@ -63,18 +63,18 @@ const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, dis
 
 	return (
 		<CardPreview
-			title={title}
-			otherProps={otherProps}
 			isReadOnly={disabled}
-			onSubmit={onSubmit}
-			removeLink={removeLinkHandler}
-			onMouseEnter={onMouseEnter}
 			onDoubleClick={onDoubleClick}
-			style={styles}
+			onMouseEnter={onMouseEnter}
+			onSubmit={onSubmit}
+			otherProps={otherProps}
 			ref={(el) => {
 				drag(el);
 				cardRef.current = el;
 			}}
+			removeLink={removeLinkHandler}
+			style={styles}
+			title={title}
 		/>
 	);
 };

@@ -2,16 +2,19 @@ import { STORAGE_DIR_NAME } from "@app/config/const";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import Cache from "@ext/Cache";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { AggregateModulithSearchClient } from "@ext/serach/modulith/AggregateModulithSearchClient";
-import { FileFsProvider } from "@ext/serach/modulith/local/FileFsProvider";
 import { LocalModulithSearchClient } from "@ext/serach/modulith/LocalModulithSearchClient";
-import { ModulithSearchClient } from "@ext/serach/modulith/ModulithSearchClient";
+import { FileFsProvider } from "@ext/serach/modulith/local/FileFsProvider";
+import type { ModulithSearchClient } from "@ext/serach/modulith/ModulithSearchClient";
 import { ModulithService } from "@ext/serach/modulith/ModulithService";
 import { SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleParser";
-import { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import type { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import { FsArticleStorageProvider, FsSimpleArticleStorage } from "@ics/modulith-search-infra/article";
+import type { ChunkStore } from "@ics/modulith-search-infra/chunking";
+import { DefaultSearchService, SearchStore } from "@ics/modulith-search-infra/search";
 import { FuseSearcher } from "@ics/modulith-search-infra-fuse";
 import {
 	CachedMemoryArticleRepo,
@@ -19,9 +22,6 @@ import {
 	CachedMemoryEmbLinkRepo,
 	CachedMemoryTenantRepo,
 } from "@ics/modulith-search-infra-memory";
-import { FsArticleStorage, FsArticleStorageProvider } from "@ics/modulith-search-infra/article";
-import { ChunkStore } from "@ics/modulith-search-infra/chunking";
-import { DefaultSearchService, SearchStore } from "@ics/modulith-search-infra/search";
 import { NullLogger } from "@ics/modulith-utils";
 
 export interface CreateModulithServiceArgs {
@@ -43,6 +43,7 @@ export async function createModulithService({
 	parser,
 	parserContextFactory,
 	remoteClient,
+	// biome-ignore lint/correctness/noUnusedFunctionParameters: fix later
 	parseResources,
 	fp,
 }: CreateModulithServiceArgs): Promise<ModulithService> {
@@ -99,7 +100,7 @@ export async function createModulithService({
 		modulithClient = new AggregateModulithSearchClient(modulithClient, remoteClient);
 	}
 
-	const sap = new SearchArticleParser(parser, parserContextFactory, parseResources);
+	const sap = new SearchArticleParser(parser, parserContextFactory, /*parseResources*/ false);
 	const service = new ModulithService({
 		client: modulithClient,
 		wm,
@@ -114,7 +115,7 @@ async function createArticleStorageProvider(fp: DiskFileProvider) {
 	const create = async () =>
 		await FsArticleStorageProvider.create({
 			fsProvider: new FileFsProvider(fp),
-			storageFactory: (fs) => FsArticleStorage.create(fs),
+			storageFactory: (fs) => FsSimpleArticleStorage.create(fs),
 		});
 
 	try {

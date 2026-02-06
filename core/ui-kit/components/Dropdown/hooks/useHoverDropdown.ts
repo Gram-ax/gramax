@@ -1,6 +1,6 @@
-import { useState, useRef, useCallback, useEffect } from "react";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import { useCallbackRef } from "@core-ui/hooks/useCallbackRef";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseHoverDropdownOptions {
 	preventClose?: () => boolean;

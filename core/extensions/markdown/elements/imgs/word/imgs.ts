@@ -1,7 +1,7 @@
 import docx from "@dynamicImports/docx";
-import Path from "../../../../../logic/FileProvider/Path/Path";
-import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
+import Path from "../../../../../logic/FileProvider/Path/Path";
+import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const imagesWordLayout: WordBlockChild = async ({ tag, wordRenderContext }) => {
 	const { Paragraph, TextRun } = await docx();
@@ -9,7 +9,7 @@ export const imagesWordLayout: WordBlockChild = async ({ tag, wordRenderContext 
 		(tag.attributes.images as string[]).map((image) =>
 			WordImageExporter.getImageByPath(
 				new Path(image),
-				wordRenderContext.parserContext.getResourceManager(),
+				wordRenderContext.resourceManager,
 				tag.attributes.postfix === "h" ? 600 / tag.attributes.images.length : undefined,
 			),
 		),
@@ -18,7 +18,7 @@ export const imagesWordLayout: WordBlockChild = async ({ tag, wordRenderContext 
 
 	return [
 		new Paragraph({
-			children: images.map((image) => [image, ...lineBreak]).flat(),
+			children: images.flatMap((image) => [image, ...lineBreak]),
 		}),
 	];
 };

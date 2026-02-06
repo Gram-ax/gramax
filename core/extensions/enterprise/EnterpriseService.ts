@@ -1,17 +1,22 @@
-import { GroupValue } from "@ext/enterprise/components/admin/settings/components/roles/Access";
-import { EditorsSettings } from "@ext/enterprise/components/admin/settings/editors/types/EditorsComponentTypes";
-import { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups/types/GroupsComponentTypes";
-import { GuestsSettings } from "@ext/enterprise/components/admin/settings/guests/types/GuestsComponent";
+/** biome-ignore-all lint/suspicious/noDocumentCookie: <Next.js support> */
+import type { GroupValue } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import type { EditorsSettings } from "@ext/enterprise/components/admin/settings/editors/types/EditorsComponentTypes";
+import type { GroupsSettings } from "@ext/enterprise/components/admin/settings/groups/types/GroupsComponentTypes";
+import type { GuestsSettings } from "@ext/enterprise/components/admin/settings/guests/types/GuestsComponent";
 import type { MailSettings } from "@ext/enterprise/components/admin/settings/MailComponent";
+import type { AnonymousFilter } from "@ext/enterprise/components/admin/settings/metrics/filters";
+import type { ArticleRatingRow } from "@ext/enterprise/components/admin/settings/metrics/search/ratings/ArticleRatingsTableConfig";
+import type { SearchMetricsTableRow } from "@ext/enterprise/components/admin/settings/metrics/search/table/SearchMetricsTableConfig";
 import type {
 	ChartDataPoint,
 	MetricsConfigSettings,
+	SearchChartDataPoint,
+	SearchQueryDetailRow,
 	TableDataResponse,
 } from "@ext/enterprise/components/admin/settings/metrics/types";
-import { AnonymousFilter } from "@ext/enterprise/components/admin/settings/metrics/useMetricsFilters";
-import { QuizTableFilters } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
-import { QuizSettings } from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
-import {
+import type { QuizTableFilters } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
+import type { QuizSettings } from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
+import type {
 	QuizTest,
 	QuizTestData,
 	SearchedAnsweredUsers,
@@ -21,12 +26,12 @@ import {
 } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
 import type { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
 import type { StyleGuideSettings } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
-import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
-import {
+import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import type {
 	RequestCursor,
 	RequestData,
 } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
-import { PluginsSettings } from "@ext/enterprise/types/EnterpriseAdmin";
+import type { PluginsSettings } from "@ext/enterprise/types/EnterpriseAdmin";
 import t from "@ext/localization/locale/translate";
 
 export interface searchUserInfo {
@@ -37,9 +42,13 @@ export interface searchUserInfo {
 class EnterpriseService {
 	constructor(private _url: string) {}
 
+	getGesUrl(): string {
+		return this._url;
+	}
+
 	private clearUserCookie(): void {
-		document.cookie = "userInfo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
-		document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/";
+		document.cookie = "userInfo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+		document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 	}
 
 	private checkUnauthorized(response: Response): void {
@@ -63,7 +72,7 @@ class EnterpriseService {
 		});
 
 		if (!res.ok) {
-			throw new Error("Не удалось завершить сессию. Статус: " + res.status);
+			throw new Error(`Не удалось завершить сессию. Статус: ${res.status}`);
 		}
 
 		this.clearUserCookie();
@@ -105,7 +114,7 @@ class EnterpriseService {
 
 			const res = await fetch(url, { headers, credentials: "include" });
 
-			this.checkUnauthorized(res);
+			await this.checkUnauthorized(res);
 
 			if (res.status === 304) {
 				return { data: null, etag: etag ?? null, notModified: true };
@@ -132,7 +141,11 @@ class EnterpriseService {
 	async getWorkspaceConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: WorkspaceSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: WorkspaceSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/workspace/get`;
 		return this._getWithEtag<WorkspaceSettings>(url, token, etag);
 	}
@@ -140,7 +153,11 @@ class EnterpriseService {
 	async getGroupsConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: GroupsSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: GroupsSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/groups/get`;
 		return this._getWithEtag<GroupsSettings>(url, token, etag);
 	}
@@ -148,7 +165,11 @@ class EnterpriseService {
 	async getEditorsConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: EditorsSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: EditorsSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/editors/get`;
 		return this._getWithEtag<EditorsSettings>(url, token, etag);
 	}
@@ -156,7 +177,11 @@ class EnterpriseService {
 	async getResourcesConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: ResourcesSettings[] | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: ResourcesSettings[] | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/resources/get`;
 		return this._getWithEtag<ResourcesSettings[]>(url, token, etag);
 	}
@@ -164,7 +189,11 @@ class EnterpriseService {
 	async getMailConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: MailSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: MailSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/mail/get`;
 		return this._getWithEtag<MailSettings>(url, token, etag);
 	}
@@ -172,7 +201,11 @@ class EnterpriseService {
 	async getGuestsConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: GuestsSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: GuestsSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/guests/get`;
 		return this._getWithEtag<GuestsSettings>(url, token, etag);
 	}
@@ -180,7 +213,11 @@ class EnterpriseService {
 	async getStyleGuideConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: StyleGuideSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: StyleGuideSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/style-guide/get`;
 		return this._getWithEtag<StyleGuideSettings>(url, token, etag);
 	}
@@ -188,7 +225,11 @@ class EnterpriseService {
 	async getQuizConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: QuizSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: QuizSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/quiz/get`;
 		return this._getWithEtag<QuizSettings>(url, token, etag);
 	}
@@ -196,7 +237,11 @@ class EnterpriseService {
 	async getMetricsConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: MetricsConfigSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: MetricsConfigSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/metrics-config/get`;
 		return this._getWithEtag<MetricsConfigSettings>(url, token, etag);
 	}
@@ -204,7 +249,11 @@ class EnterpriseService {
 	async getPluginsConfig(
 		token: string,
 		etag?: string,
-	): Promise<{ data: PluginsSettings | null; etag: string | null; notModified: boolean }> {
+	): Promise<{
+		data: PluginsSettings | null;
+		etag: string | null;
+		notModified: boolean;
+	}> {
 		const url = `${this._url}/enterprise/config/plugins/get`;
 		return this._getWithEtag<PluginsSettings>(url, token, etag);
 	}
@@ -241,7 +290,160 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			this.checkUnauthorized(response);
+			await this.checkUnauthorized(response);
+			if (!response.ok) return null;
+			return await response.json();
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+	async getSearchMetricsTableData(
+		token: string,
+		startDate: string,
+		endDate: string,
+		cursor?: string,
+		sortBy?: string,
+		sortOrder?: string,
+		limit?: number,
+	): Promise<{
+		data: SearchMetricsTableRow[];
+		hasMore: boolean;
+		nextCursor: string | null;
+	} | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams({
+				startDate,
+				endDate,
+				...(cursor && { cursor }),
+				...(sortBy && { sortBy }),
+				...(sortOrder && { sortOrder }),
+				limit: limit?.toString(),
+			});
+			const url = `${this._url}/enterprise/modules/metrics/getSearchTableData?${params.toString()}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			await this.checkUnauthorized(response);
+			if (!response.ok) return null;
+			return await response.json();
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+	async getSearchQueryDetails(
+		token: string,
+		query: string,
+		startDate: string,
+		endDate: string,
+		cursor?: string,
+		sortBy?: string,
+		sortOrder?: string,
+		limit?: number,
+	): Promise<{
+		data: SearchQueryDetailRow[];
+		nextCursor: string | null;
+		hasMore: boolean;
+	} | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams({
+				query,
+				startDate,
+				endDate,
+			});
+			if (cursor) params.append("cursor", cursor);
+			if (sortBy) params.append("sortBy", sortBy);
+			if (sortOrder) params.append("sortOrder", sortOrder);
+			if (limit) params.append("limit", limit.toString());
+			const url = `${this._url}/enterprise/modules/metrics/getSearchQueryDetails?${params.toString()}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			await this.checkUnauthorized(response);
+			if (!response.ok) return null;
+			return await response.json();
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+
+	async getArticleRatings(
+		token: string,
+		startDate: string,
+		endDate: string,
+		cursor?: string,
+		sortBy?: string,
+		sortOrder?: string,
+		limit?: number,
+	): Promise<{
+		data: ArticleRatingRow[];
+		hasMore: boolean;
+		nextCursor: string | null;
+	} | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams({
+				startDate,
+				endDate,
+			});
+			if (cursor) params.append("cursor", cursor);
+			if (sortBy) params.append("sortBy", sortBy);
+			if (sortOrder) params.append("sortOrder", sortOrder);
+			if (limit) params.append("limit", limit.toString());
+
+			const url = `${this._url}/enterprise/modules/metrics/getArticleRatings?${params.toString()}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			await this.checkUnauthorized(response);
+			if (!response.ok) return null;
+			return await response.json();
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+
+	async getSearchMetricsChartData(
+		token: string,
+		startDate: string,
+		endDate: string,
+	): Promise<SearchChartDataPoint[] | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams({
+				startDate,
+				endDate,
+			});
+			const url = `${this._url}/enterprise/modules/metrics/getSearchChartData?${params.toString()}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			await this.checkUnauthorized(response);
 			if (!response.ok) return null;
 			return await response.json();
 		} catch (error) {
@@ -287,7 +489,7 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			this.checkUnauthorized(response);
+			await this.checkUnauthorized(response);
 			if (!response.ok) return null;
 			return await response.json();
 		} catch (error) {
@@ -301,7 +503,11 @@ class EnterpriseService {
 		search?: string,
 		limit?: number,
 		cursor?: number,
-	): Promise<{ users: string[]; hasMore: boolean; nextCursor: number | null } | null> {
+	): Promise<{
+		users: string[];
+		hasMore: boolean;
+		nextCursor: number | null;
+	} | null> {
 		if (!this._url) return null;
 		try {
 			const params = new URLSearchParams();
@@ -317,7 +523,7 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			this.checkUnauthorized(response);
+			await this.checkUnauthorized(response);
 			if (!response.ok) return null;
 			const data = await response.json();
 			return data;
@@ -340,7 +546,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 
-			this.checkUnauthorized(res);
+			await this.checkUnauthorized(res);
 
 			if (!res.ok) {
 				return null;
@@ -367,7 +573,7 @@ class EnterpriseService {
 				},
 			);
 
-			this.checkUnauthorized(res);
+			await this.checkUnauthorized(res);
 
 			return res.ok ? await res.json() : [];
 		} catch (error) {
@@ -390,10 +596,10 @@ class EnterpriseService {
 				body: JSON.stringify(workspace),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			await this.checkUnauthorized(res);
 
-			if (!res.ok) throw new Error(t("enterprise.admin.workspace.errors.update") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.workspace.errors.update")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -414,8 +620,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.groups.errors.add") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.add")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -436,8 +642,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.groups.errors.delete") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.delete")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -458,8 +664,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.groups.errors.rename") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.rename")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -480,8 +686,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.editors.errors.update") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.editors.errors.update")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -502,8 +708,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.resources.errors.add") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.resources.errors.add")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -524,8 +730,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.mail.errors.update") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.mail.errors.update")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -546,8 +752,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.mail.errors.update") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.mail.errors.update")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -568,8 +774,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.guests.errors.update") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.guests.errors.update")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -590,8 +796,8 @@ class EnterpriseService {
 				credentials: "include",
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error(t("enterprise.admin.styleGuide.errors.update") + " " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`${t("enterprise.admin.styleGuide.errors.update")} ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -611,9 +817,9 @@ class EnterpriseService {
 				body: JSON.stringify(quiz),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			await this.checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.quiz.errors.save-data")} ${res.status}`);
-			return this._updateGitProxy(token);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -633,9 +839,9 @@ class EnterpriseService {
 				body: JSON.stringify(metrics),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			await this.checkUnauthorized(res);
 			if (!res.ok) throw new Error(`Failed to save metrics config. Status: ${res.status}`);
-			return this._updateGitProxy(token);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
@@ -656,29 +862,11 @@ class EnterpriseService {
 				body: JSON.stringify(plugins),
 			});
 			this.checkUnauthorized(res);
-			if (!res.ok) throw new Error("Failed to save plugins. Status: " + res.status);
-			return this._updateGitProxy(token);
+			if (!res.ok) throw new Error(`Failed to save plugins. Status: ${res.status}`);
+			return true;
 		} catch (error) {
 			console.error(error);
 			throw error;
-		}
-	}
-
-	private async _updateGitProxy(token: string) {
-		if (!this._url) return false;
-		try {
-			const headers = {
-				Authorization: `Bearer ${token}`,
-			};
-			const gitRes = await fetch(`${this._url}/update`, {
-				method: "POST",
-				headers,
-				credentials: "include",
-			});
-			return gitRes.ok;
-		} catch (error) {
-			console.error(error);
-			return false;
 		}
 	}
 
@@ -686,7 +874,7 @@ class EnterpriseService {
 		if (!this._url) return false;
 		try {
 			const res = await fetch(`${this._url}/sso/connectors/enabled`, { credentials: "include" });
-			return res.ok ? true : false;
+			return res.ok;
 		} catch (error) {
 			console.error(error);
 			return false;
@@ -785,19 +973,23 @@ class EnterpriseService {
 
 			const json = await res.json();
 
-			return { answers: json.data?.[0].answers, questions: json.data?.[0].questions };
+			return {
+				answers: json.data?.[0].answers,
+				questions: json.data?.[0].questions,
+			};
 		} catch (error) {
 			console.error(error);
 			return { answers: null, questions: null };
 		}
 	}
 
-	async getUsers(query: string): Promise<searchUserInfo[]> {
+	async getUsers(query: string, token: string): Promise<searchUserInfo[]> {
 		try {
 			const res = await fetch(`${this._url}/sso/connectors/getUsers`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
 				},
 				body: JSON.stringify({ emailOrCn: query }),
 				credentials: "include",

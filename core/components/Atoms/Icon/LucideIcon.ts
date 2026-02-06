@@ -1,4 +1,4 @@
-import customIcons, { CustomIcon } from "@components/Atoms/Icon/customIcons";
+import customIcons, { type CustomIcon } from "@components/Atoms/Icon/customIcons";
 import preloadedIcons from "@components/Atoms/Icon/preloadedIcons";
 import lucideIcons, { useLucideModule } from "@dynamicImports/lucide-icons";
 import type { LucideIcon as LucideIconType } from "lucide-react";

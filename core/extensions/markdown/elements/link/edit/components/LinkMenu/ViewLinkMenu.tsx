@@ -1,15 +1,15 @@
+import GoToArticle from "@components/Actions/GoToArticle";
+import parseStorageUrl from "@core/utils/parseStorageUrl";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
-import GoToArticle from "@components/Actions/GoToArticle";
-import { ComponentProps, HTMLAttributes, memo, useState } from "react";
-import { Toolbar, ToolbarText, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
-import t from "@ext/localization/locale/translate";
-import { LinkMenuMode } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
-import { useMediaQuery } from "@mui/material";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import parseStorageUrl from "@core/utils/parseStorageUrl";
+import t from "@ext/localization/locale/translate";
+import type { LinkMenuMode } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
+import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
+import { useMediaQuery } from "@mui/material";
+import { Toolbar, ToolbarIcon, ToolbarText, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { type ComponentProps, type HTMLAttributes, memo, useState } from "react";
 
 interface ButtonViewProps {
 	href: string;
@@ -41,9 +41,14 @@ const CopyButton = (props: HTMLAttributes<HTMLButtonElement> & { href: string })
 	const [isCopied, setIsCopied] = useState(false);
 
 	const onClickHandler = () => {
-		const parsedUrl = parseStorageUrl(href);
-		const isArticle = parsedUrl.domain && parsedUrl.domain !== "...";
-		const linkToCopy = isArticle ? href : `${window.location.origin}${href}`;
+		let linkToCopy: string;
+
+		if (URL.canParse(href)) linkToCopy = new URL(href).href;
+		else {
+			const parsedUrl = parseStorageUrl(href);
+			const isArticle = parsedUrl.domain && parsedUrl.domain !== "...";
+			linkToCopy = isArticle ? href : `${window.location.origin}${href}`;
+		}
 
 		navigator.clipboard.writeText(linkToCopy);
 		setIsCopied(true);
@@ -51,9 +56,9 @@ const CopyButton = (props: HTMLAttributes<HTMLButtonElement> & { href: string })
 
 	return (
 		<TooltipToolbarButton
-			tooltipText={isCopied ? t("copied") + "!" : t("copy")}
-			onMouseLeave={() => setIsCopied(false)}
 			onClick={onClickHandler}
+			onMouseLeave={() => setIsCopied(false)}
+			tooltipText={isCopied ? `${t("copied")}!` : t("copy")}
 		>
 			<ToolbarIcon icon={isCopied ? "check" : "copy"} />
 		</TooltipToolbarButton>
@@ -76,7 +81,7 @@ const ButtonView = ({ href, icon, itemName, isExternalLink }: ButtonViewProps) =
 	const toolbarButton = (
 		<Container>
 			<ToolbarToggleButton className="text-left flex-1 min-w-0 overflow-hidden justify-start" focusable>
-				<ToolbarIcon icon={icon} className="flex-shrink-0" />
+				<ToolbarIcon className="flex-shrink-0" icon={icon} />
 				<ToolbarText className="truncate min-w-0 text-xs">{itemName}</ToolbarText>
 			</ToolbarToggleButton>
 		</Container>
@@ -84,20 +89,20 @@ const ButtonView = ({ href, icon, itemName, isExternalLink }: ButtonViewProps) =
 
 	return target === "_blank" || isHashLink ? (
 		<a
-			target={target}
-			rel="noopener noreferrer"
 			className="flex flex-1 min-w-0 overflow-hidden"
 			href={isHashLink ? hashHatch?.[2] : href}
+			rel="noopener noreferrer"
+			target={target}
 		>
 			{toolbarButton}
 		</a>
 	) : (
 		<GoToArticle
+			className="flex flex-1 min-w-0 overflow-hidden"
 			containerClassName="flex-1 min-w-0"
 			href={href}
-			trigger={toolbarButton}
-			className="flex flex-1 min-w-0 overflow-hidden"
 			style={{ textDecorationLine: "none" }}
+			trigger={toolbarButton}
 		/>
 	);
 };
@@ -108,16 +113,16 @@ export const ViewLinkMenu = memo(({ href, icon, onDelete, setMode, itemName, isE
 	return (
 		<div className="rounded-lg lg:shadow-hard-base">
 			<Toolbar
-				role="link-toolbar"
 				className="flex overflow-hidden"
+				role="link-toolbar"
 				style={{ width: isMobile ? "100%" : "18.75rem" }}
 			>
-				<ButtonView href={href} icon={icon} itemName={itemName} isExternalLink={isExternalLink} />
-				<TooltipToolbarButton tooltipText={t("edit2")} onClick={() => setMode("edit")}>
+				<ButtonView href={href} icon={icon} isExternalLink={isExternalLink} itemName={itemName} />
+				<TooltipToolbarButton onClick={() => setMode("edit")} tooltipText={t("edit2")}>
 					<ToolbarIcon icon="pencil" />
 				</TooltipToolbarButton>
 				<CopyButton href={href} />
-				<TooltipToolbarButton tooltipText={t("remove-link")} onClick={() => onDelete()}>
+				<TooltipToolbarButton onClick={() => onDelete()} tooltipText={t("remove-link")}>
 					<ToolbarIcon icon="unlink" />
 				</TooltipToolbarButton>
 			</Toolbar>

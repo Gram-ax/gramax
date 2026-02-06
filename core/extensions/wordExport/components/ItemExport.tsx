@@ -1,7 +1,8 @@
-import ExportPdf from "@components/Actions/Modal/ExportPdf";
+import type ExportPdf from "@components/Actions/Modal/ExportPdf";
 import { useDismissableToast } from "@components/Atoms/DismissableToast";
 import Icon from "@components/Atoms/Icon";
 import PureLink from "@components/Atoms/PureLink";
+import { CancelableFunction } from "@core/utils/CancelableFunction";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -10,11 +11,10 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { downloadFile } from "@core-ui/downloadResource";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { CancelableFunction } from "@core/utils/CancelableFunction";
-import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsupportedElementsModal";
-import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import type CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsupportedElementsModal";
+import type { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
-import { feature } from "@ext/toggleFeatures/features";
 import { Button } from "@ui-kit/Button";
 import {
 	DropdownMenuItem,
@@ -24,33 +24,37 @@ import {
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 } from "@ui-kit/Dropdown";
-import { ComponentProps, useMemo, useRef } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { Loader } from "@ui-kit/Loader";
+import { type ComponentProps, useCallback, useMemo, useRef } from "react";
 
 interface ItemExportProps {
 	fileName: string;
-	exportFormat: ExportFormat;
 	itemRefPath?: string;
 	isCategory?: boolean;
 	isLoading?: boolean;
+}
+
+interface ExportProps extends ItemExportProps {
+	exportFormat: ExportFormat;
 }
 
 export enum ExportFormat {
 	pdf = "pdf",
 	docx = "docx",
 	"beta-pdf" = "beta-pdf",
+	"legacy-pdf" = "legacy-pdf",
 }
 
-const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat, isLoading }: ItemExportProps) => {
+const WordExport = ({ fileName, itemRefPath, isCategory, isLoading }: ItemExportProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isNext, isStatic, isTauri } = usePlatform();
 
 	const templates = PageDataContextService.value.wordTemplates;
+
 	const domain = PageDataContextService.value.domain;
 
 	const { dismiss, show } = useDismissableToast({
-		title: t(exportFormat === ExportFormat.pdf ? "export.pdf.process" : "export.docx.process"),
+		title: t("export.docx.process"),
 		closeAction: false,
 		focus: "medium",
 		size: "sm",
@@ -63,96 +67,90 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat, isLoading
 	const cancelableFunction = useMemo(
 		() => (template?: string) =>
 			new CancelableFunction<void>(async (signal) => {
-				const res =
-					exportFormat === ExportFormat.pdf
-						? await FetchService.fetch(apiUrlCreator.getPdfSaveUrl(isCategory, itemRefPath))
-						: await FetchService.fetch(apiUrlCreator.getWordSaveUrl(isCategory, itemRefPath, template));
+				const res = await FetchService.fetch(apiUrlCreator.getWordSaveUrl(isCategory, itemRefPath, template));
 				if (!res.ok || signal.aborted) return;
-				downloadFile(
-					isNext || isStatic ? await res.buffer() : res.body,
-					exportFormat === ExportFormat.docx ? MimeTypes.docx : MimeTypes.pdf,
-					fileName,
-				);
+				downloadFile(isNext || isStatic ? await res.buffer() : res.body, MimeTypes.docx, fileName);
 			}),
-		[fileName],
+		[fileName, apiUrlCreator, isCategory, itemRefPath, isNext, isStatic],
 	);
 
-	const startDownload = (template?: string) => {
-		show();
+	const startDownload = useCallback(
+		(template?: string) => {
+			show();
 
-		const cf = cancelableFunction(template);
-		currentCancelableRef.current = cf;
-		cf.start().finally(() => {
-			ModalToOpenService.resetValue();
-			dismiss?.current();
-		});
-	};
+			const cf = cancelableFunction(template);
+			currentCancelableRef.current = cf;
+			cf.start().finally(() => {
+				ModalToOpenService.resetValue();
+				dismiss?.current();
+			});
+		},
+		[cancelableFunction, dismiss, show],
+	);
 
-	const getErrorElementsUrl = (format: ExportFormat, isCategory: boolean, itemPath: string) => {
-		return apiUrlCreator.getErrorWordElementsUrl(isCategory, itemPath, format);
-	};
-
-	const renderArticleLink = ({ title, link }: { title: string; link: string }) => {
-		return !isTauri ? (
-			<PureLink href={domain + "/" + link}>
-				<Button variant="link" status="default" className="p-0" style={{ height: "auto", textAlign: "left" }}>
-					{title}
-				</Button>
-			</PureLink>
-		) : (
-			<p style={{ margin: "0" }}>{title}</p>
-		);
-	};
-
-	const onOpen = async (template?: string) => {
-		const url = getErrorElementsUrl(exportFormat, isCategory, itemRefPath);
-		const res = await FetchService.fetch<UnsupportedElements[]>(url);
-		const errorWordElements = await res.json();
-
-		if (errorWordElements.length > 0) {
-			return ModalToOpenService.setValue<ComponentProps<typeof CommonUnsupportedElementsModal>>(
-				ModalToOpen.UnsupportedElements,
-				{
-					open: true,
-					onOpenChange: (open) => !open && ModalToOpenService.resetValue(),
-					renderArticleLink,
-					isLoading: isLoading,
-					unsupportedElements: errorWordElements,
-					onContinue: () => startDownload(template),
-					title: t("unsupported-elements-title"),
-					description: `${
-						exportFormat === ExportFormat.pdf
-							? t("unsupported-elements-warning1-pdf")
-							: t("unsupported-elements-warning1")
-					} ${t("unsupported-elements-warning3")}`,
-					firstColumnTitle: t("article2"),
-				},
+	const renderArticleLink = useCallback(
+		(props: { title: string; link: string }): JSX.Element => {
+			const { title, link } = props;
+			return !isTauri ? (
+				<PureLink href={`${domain}/${link}`}>
+					<Button
+						className="p-0"
+						status="default"
+						style={{ height: "auto", textAlign: "left" }}
+						variant="link"
+					>
+						{title}
+					</Button>
+				</PureLink>
+			) : (
+				<p style={{ margin: "0" }}>{title}</p>
 			);
-		}
+		},
+		[domain, isTauri],
+	);
 
-		startDownload(template);
-	};
+	const onOpen = useCallback(
+		async (template?: string) => {
+			const url = apiUrlCreator.getErrorWordElementsUrl(isCategory, itemRefPath);
+			const res = await FetchService.fetch<UnsupportedElements[]>(url);
+			const errorWordElements = await res.json();
 
-	const getExportText = () => {
+			if (errorWordElements.length > 0) {
+				return ModalToOpenService.setValue<ComponentProps<typeof CommonUnsupportedElementsModal>>(
+					ModalToOpen.UnsupportedElements,
+					{
+						open: true,
+						onOpenChange: (open) => !open && ModalToOpenService.resetValue(),
+						renderArticleLink,
+						isLoading: isLoading,
+						unsupportedElements: errorWordElements,
+						onContinue: () => startDownload(template),
+						title: t("unsupported-elements-title"),
+						description: `${t("unsupported-elements-warning1")} ${t("unsupported-elements-warning3")}`,
+						firstColumnTitle: t("article2"),
+					},
+				);
+			}
+
+			startDownload(template);
+		},
+		[apiUrlCreator, isCategory, itemRefPath, renderArticleLink, isLoading, startDownload],
+	);
+
+	const exportText: string = useMemo(() => {
 		if (itemRefPath) {
-			return isCategory
-				? exportFormat === ExportFormat.pdf
-					? t("export.pdf.category")
-					: t("export.docx.category")
-				: exportFormat === ExportFormat.pdf
-				? t("export.pdf.article")
-				: t("export.docx.article");
+			return isCategory ? t("export.docx.category") : t("export.docx.article");
 		}
-		return exportFormat === ExportFormat.pdf ? t("export.pdf.catalog") : t("export.docx.catalog");
-	};
+		return t("export.docx.catalog");
+	}, [itemRefPath, isCategory]);
 
 	const renderExportButton = useMemo(() => {
-		if (exportFormat === ExportFormat.docx && templates.length > 0) {
+		if (templates.length > 0) {
 			return (
 				<DropdownMenuSub>
 					<DropdownMenuSubTrigger>
 						<Icon code="file-text" />
-						{getExportText()}
+						{exportText}
 					</DropdownMenuSubTrigger>
 					<DropdownMenuSubContent>
 						<DropdownMenuLabel>{t("word.template.templates")}</DropdownMenuLabel>
@@ -176,10 +174,10 @@ const ItemExport = ({ fileName, itemRefPath, isCategory, exportFormat, isLoading
 		return (
 			<DropdownMenuItem onSelect={() => void onOpen()}>
 				<Icon code="file-text" />
-				{getExportText()}
+				{exportText}
 			</DropdownMenuItem>
 		);
-	}, [exportFormat, getExportText, templates]);
+	}, [exportText, templates, onOpen]);
 
 	return renderExportButton;
 };
@@ -208,9 +206,9 @@ const PdfExportButton = ({ itemRefPath, isCategory }: { itemRefPath?: string; is
 	);
 };
 
-export default (props: ItemExportProps) => {
-	if (props.exportFormat === ExportFormat.pdf && feature("export-pdf")) {
-		return <PdfExportButton itemRefPath={props.itemRefPath} isCategory={props.isCategory} />;
+export default (props: ExportProps) => {
+	if (props.exportFormat === ExportFormat.pdf) {
+		return <PdfExportButton isCategory={props.isCategory} itemRefPath={props.itemRefPath} />;
 	}
-	return <ItemExport {...props} />;
+	return <WordExport {...props} />;
 };

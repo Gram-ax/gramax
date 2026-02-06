@@ -1,7 +1,7 @@
-import { Editor } from "@tiptap/core";
-import initDrawioDiagram from "./initDrawioDiagram";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
+import { Editor } from "@tiptap/core";
+import initDrawioDiagram from "./initDrawioDiagram";
 
 const createDrawio = async (
 	editor: Editor,

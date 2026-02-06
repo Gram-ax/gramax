@@ -1,21 +1,23 @@
 import fs from "fs";
 import { networkInterfaces } from "os";
 import * as path from "path";
-import { Plugin, UserConfig, searchForWorkspaceRoot } from "vite";
+import { type Plugin, searchForWorkspaceRoot, type UserConfig } from "vite";
 import { createHtmlPlugin } from "vite-plugin-html";
 import { nodePolyfills as polyfills } from "vite-plugin-node-polyfills";
 import env from "./scripts/compileTimeEnv.mjs";
 import ViteSourceMapUploader from "./scripts/sourceMaps/ViteSourceMapUploader.mjs";
 
-const { getBuiltInVariables } = env;
+const { getBuiltInVariables, dynamicModules } = env;
 if (!process.env.VITE_ENVIRONMENT) process.env.VITE_ENVIRONMENT = "next";
 
 const isProduction =
 	process.env.PRODUCTION === "true" &&
-	process.env.CI_COMMIT_BRANCH != "develop" &&
-	process.env.CI_PIPELINE_SOURCE != "merge_request_event";
+	process.env.CI_COMMIT_BRANCH !== "develop" &&
+	process.env.CI_PIPELINE_SOURCE !== "merge_request_event";
 
 const ipv4 = networkInterfaces()?.en0?.[1]?.address ?? "localhost";
+
+const BUILD_ID = Date.now();
 
 // https://github.com/vitejs/vite/issues/15012
 const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
@@ -28,7 +30,7 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
 					onwarn(warning, defaultHandler) {
 						if (warning.code) {
 							const muted = warningsToIgnore.find(
-								([code, message]) => code == warning.code && warning.message.includes(message),
+								([code, message]) => code === warning.code && warning.message.includes(message),
 							);
 							if (muted) return;
 						}
@@ -74,6 +76,7 @@ export default (): UserConfig => ({
 					ensureCustomStyleLast: `<script>${readFileAsString(
 						"scripts/static/ensureCustomStyleLast.js",
 					)}</script>`,
+					htmlBuildId: BUILD_ID,
 				},
 			},
 
@@ -86,6 +89,7 @@ export default (): UserConfig => ({
 
 	resolve: {
 		alias: {
+			...dynamicModules(),
 			"@components": path.resolve(__dirname, "core/components"),
 			"@ui-kit": path.resolve(__dirname, "core/ui-kit/components"),
 			"@core": path.resolve(__dirname, "core/logic"),
@@ -102,7 +106,7 @@ export default (): UserConfig => ({
 		sourcemapIgnoreList: (path) => path.includes("node_modules"),
 		open: false,
 		host: "localhost",
-		port: 5173,
+		port: Number(process.env.PORT) || 5173,
 		strictPort: true,
 		hmr: {
 			protocol: "ws",
@@ -119,6 +123,7 @@ export default (): UserConfig => ({
 		"process.builtIn": getBuiltInVariables(),
 		"process.env.NODE_DEBUG": false,
 		"process.env.VITE_ENVIRONMENT": JSON.stringify(process.env.VITE_ENVIRONMENT),
+		__BUILD_ID__: BUILD_ID,
 	},
 	publicDir: "./core/public",
 	envPrefix: ["VITE", "TAURI", "GX"],

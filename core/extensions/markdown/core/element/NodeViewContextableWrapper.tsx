@@ -1,4 +1,4 @@
-import { NodeViewWrapper, NodeViewProps } from "@tiptap/react";
+import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { createContext, ElementType, forwardRef, HTMLAttributes, ReactNode, RefObject, useContext } from "react";
 
 const NodeViewContext = createContext<NodeViewProps>({
@@ -32,7 +32,7 @@ export const useNodeViewContext = () => {
 export const NodeViewContextableWrapper = forwardRef(
 	({ children, props, as, ...rest }: NodeViewContextableWrapperProps, ref: RefObject<HTMLElement>) => {
 		return (
-			<NodeViewWrapper {...rest} ref={ref} as={as}>
+			<NodeViewWrapper {...rest} as={as} ref={ref}>
 				<NodeViewContext.Provider value={props}>{children}</NodeViewContext.Provider>
 			</NodeViewWrapper>
 		);

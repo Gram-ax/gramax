@@ -1,16 +1,16 @@
 import { DATA_QA_LIGHTBOX } from "@components/Atoms/Image/modalImage/MediaPreview";
 import { classNames } from "@components/libs/classNames";
+import type Path from "@core/FileProvider/Path/Path";
 import styled from "@emotion/styled";
+import { FilePreview, type FilePreviewProps } from "@ext/markdown/elements/file/edit/components/Preview/FilePreview";
 import { Overlay } from "@ui-kit/Overlay";
-import { MouseEventHandler, ReactElement, useCallback, useEffect, useState } from "react";
+import { type MouseEventHandler, type ReactElement, useCallback, useEffect, useState } from "react";
 import { PreviewModalHeader } from "./PreviewModalHeader";
-import { FilePreview, FilePreviewProps } from "@ext/markdown/elements/file/edit/components/Preview/FilePreview";
-import Path from "@core/FileProvider/Path/Path";
 
 interface PreviewModalProps extends FilePreviewProps {
 	path: Path;
 	className?: string;
-	openInSupportedApp: () => void;
+	openInSupportedApp?: () => void;
 	onClose: () => void;
 	onError?: (error: unknown) => void;
 }
@@ -49,7 +49,7 @@ const PreviewModal = (props: PreviewModalProps): ReactElement => {
 		return () => {
 			window.removeEventListener("keydown", onKeyDown);
 		};
-	}, []);
+	}, [onKeyDown]);
 
 	const onError = useCallback(
 		(error: unknown) => {
@@ -60,13 +60,13 @@ const PreviewModal = (props: PreviewModalProps): ReactElement => {
 	);
 
 	return (
-		<div data-qa={DATA_QA_LIGHTBOX} className={className} onClick={onClick}>
+		<div className={className} data-qa={DATA_QA_LIGHTBOX} onClick={onClick}>
 			<div className={classNames("animated-container", { "data-open": !isClosing, "data-closed": isClosing })}>
 				<Overlay
-					data-state={isClosing ? "closed" : "open"}
 					className={classNames("modal-background", {}, ["data-close"])}
+					data-state={isClosing ? "closed" : "open"}
 				/>
-				<PreviewModalHeader closeModal={closeModal} path={path} openInSupportedApp={openInSupportedApp} />
+				<PreviewModalHeader closeModal={closeModal} openInSupportedApp={openInSupportedApp} path={path} />
 				<div className="file-preview-modal">
 					<FilePreview file={file} onError={onError} />
 				</div>

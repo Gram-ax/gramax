@@ -1,6 +1,6 @@
+import { useRouter } from "@core/Api/useRouter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { useRouter } from "@core/Api/useRouter";
 import initEnterprise from "@ext/enterprise/utils/initEnterprise";
 import { useEffect } from "react";
 

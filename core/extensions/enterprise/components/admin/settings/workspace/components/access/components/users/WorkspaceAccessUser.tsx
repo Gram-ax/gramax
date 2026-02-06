@@ -1,5 +1,5 @@
-import { UserToolbarAddBtn } from "@ext/enterprise/components/admin/settings/components/UserToolbarAddBtn";
 import { AccessEntry, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import { UserToolbarAddBtn } from "@ext/enterprise/components/admin/settings/components/UserToolbarAddBtn";
 import { useWorkspaceAccess } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceAccess";
 import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
@@ -85,21 +85,21 @@ export function WorkspaceAccessUser({ localSettings, setLocalSettings, ownerRole
 							users: currentAccess.users.filter((user) => !selectedUserIds.includes(user.value)),
 						} as AccessEntry,
 					},
-				} as WorkspaceSettings),
+				}) as WorkspaceSettings,
 		);
 		setUsersRowSelection({});
 	}, [setLocalSettings, usersTable, currentAccess, ownerRole]);
 
 	return (
 		<div>
-			<TableInfoBlock title="Пользователи" description={currentAccess.users.length} />
+			<TableInfoBlock description={currentAccess.users.length} title="Пользователи" />
 
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
+						onChange={handleFilterChange}
 						placeholder="Найти пользователей..."
 						value={(usersTable.getColumn("user")?.getFilterValue() as string) ?? ""}
-						onChange={handleFilterChange}
 					/>
 				}
 			>
@@ -109,14 +109,14 @@ export function WorkspaceAccessUser({ localSettings, setLocalSettings, ownerRole
 					selectedCount={usersSelectedCount}
 				/>
 				<UserToolbarAddBtn
-					key="add-user"
 					disable={false}
-					onAdd={handleAddUsers}
 					existingUsers={currentAccess.users.map((user) => user.value)}
+					key="add-user"
+					onAdd={handleAddUsers}
 				/>
 			</TableToolbar>
 
-			<TableComponent<User> table={usersTable} columns={usersTableColumns} />
+			<TableComponent<User> columns={usersTableColumns} table={usersTable} />
 		</div>
 	);
 }

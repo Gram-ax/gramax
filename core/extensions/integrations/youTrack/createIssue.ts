@@ -3,12 +3,12 @@ import resolveModule from "@app/resolveModule/frontend";
 
 const createIssue = async (version: string, hash?: string) => {
 	const uri = `https://support.ics-it.ru/newIssue?project=DRS&description=
-  
+
 
   ---
 Информация о пользователе:
 - Версия: \`${version}\`
-- Платформа: \`${getExecutingEnvironment()}\` 
+- Платформа: \`${getExecutingEnvironment()}\`
 - UserAgent: \`${window.navigator.userAgent}\`
 ${
 	hash

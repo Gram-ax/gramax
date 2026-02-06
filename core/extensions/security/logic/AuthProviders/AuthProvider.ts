@@ -1,7 +1,7 @@
-import ApiRequest from "../../../../logic/Api/ApiRequest";
-import ApiResponse from "../../../../logic/Api/ApiResponse";
-import Cookie from "../../../cookie/Cookie";
-import User from "../User/User";
+import type ApiRequest from "../../../../logic/Api/ApiRequest";
+import type ApiResponse from "../../../../logic/Api/ApiResponse";
+import type Cookie from "../../../cookie/Cookie";
+import type User from "../User/User";
 
 export interface AuthProvider {
 	login(req: ApiRequest, res: ApiResponse): Promise<void> | void;

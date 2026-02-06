@@ -1,0 +1,50 @@
+{
+	"compilerOptions": {
+		// Environment setup & latest features
+		"lib": ["ESNext"],
+		"target": "ESNext",
+		"module": "Preserve",
+		"moduleDetection": "force",
+
+		"jsx": "react-jsx",
+		"allowJs": true,
+
+		// Bundler mode
+		"moduleResolution": "bundler",
+		"allowImportingTsExtensions": true,
+		"verbatimModuleSyntax": true,
+		"noEmit": true,
+
+		// Best practices
+		"strict": true,
+		"skipLibCheck": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedIndexedAccess": true,
+		"noImplicitOverride": true,
+
+		// Some stricter flags (disabled by default)
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"noPropertyAccessFromIndexSignature": false,
+
+		"paths": {
+			"@gramax/*": ["../*"],
+			"@shared-pom/*": ["./shared-pom/atoms/*", "./shared-pom/*"],
+			"@web/*": ["./platforms/web/*"],
+			"@static/*": ["./platforms/static/*"],
+			"@docportal/*": ["./platforms/docportal/*"],
+			"@utils/*": ["./utils/*"],
+
+			"ics-ui-kit/*": ["../node_modules/ics-ui-kit/dist/*"],
+			"@components/*": ["../core/components/*"],
+			"@ui-kit/*": ["../core/ui-kit/components/*"],
+			"@dynamicImports/*": ["../core/dynamicImports/*"],
+			"@ext/*": ["../core/extensions/*"],
+			"@core/*": ["../core/logic/*"],
+			"@plugins/*": ["../core/plugins/*"],
+			"@core-ui/*": ["../core/ui-logic/*"],
+			"@app/*": ["../app/*"],
+			"@app-plugins/git": ["../apps/tauri/plugins/plugin-gramax-git/webview-src"]
+		}
+	}
+}

@@ -10,18 +10,17 @@ import { useWorkspaceAi } from "@ext/workspace/components/useWorkspaceAi";
 import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
+import { Description } from "@ui-kit/Description";
 import { Divider } from "@ui-kit/Divider";
 import { Form, FormField, FormFooter, FormHeader, FormSectionTitle, FormStack } from "@ui-kit/Form";
-import { Input } from "@ui-kit/Input";
+import { Icon } from "@ui-kit/Icon";
+import { Input, TextInput } from "@ui-kit/Input";
+import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
+import { Loader } from "@ui-kit/Loader";
 import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
-import { TextInput } from "@ui-kit/Input";
 import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Description } from "@ui-kit/Description";
-import { Loader } from "@ui-kit/Loader";
-import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
-import { Icon } from "@ui-kit/Icon";
 
 interface WorkspaceSettingsModalProps {
 	workspace: ClientWorkspaceConfig;
@@ -152,43 +151,44 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 	}, []);
 
 	return (
-		<Modal open={open} onOpenChange={onOpenChangeHandler}>
+		<Modal onOpenChange={onOpenChangeHandler} open={open}>
 			<ModalContent data-modal-root>
-				<ModalErrorHandler onError={() => {}} onClose={onCloseHandler}>
+				<ModalErrorHandler onClose={onCloseHandler} onError={() => {}}>
 					<Form asChild {...form}>
 						<form className="contents" onSubmit={formSubmit}>
 							<FormHeader
+								description={t("workspace.configure-your-workspace")}
 								icon={"settings"}
 								title={t("workspace.edit")}
-								description={t("workspace.configure-your-workspace")}
 							/>
 							<ModalBody>
 								<FormStack>
 									<FormField
-										name="name"
-										title={t("name")}
-										required
 										control={({ field }) => (
 											<Input
 												{...field}
 												autoFocus
-												placeholder={t("workspace.enter-name")}
 												data-qa={t("name")}
+												placeholder={t("workspace.enter-name")}
 											/>
 										)}
+										name="name"
+										required
+										title={t("name")}
 										{...formProps}
 									/>
 									<FormField
-										name="icon"
-										title={t("icon")}
 										control={({ field }) => {
 											const iconFilter = useIconFilter();
 											return (
 												<LazySearchSelect
-													placeholder={t("icon")}
-													options={useLucideIconLists().lucideIconListForUikitOptions}
-													value={field.value}
 													filter={iconFilter}
+													onChange={(value) => {
+														form.setValue("icon", `${value}`);
+														field.value = `${value}`;
+													}}
+													options={useLucideIconLists().lucideIconListForUikitOptions}
+													placeholder={t("icon")}
 													renderOption={({ option, type }) => (
 														<>
 															<div className="flex items-center gap-2">
@@ -196,33 +196,32 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 																{option.value}
 															</div>
 															{type === "list" && field.value === option.value && (
-																<Icon icon="check" className="ml-auto" />
+																<Icon className="ml-auto" icon="check" />
 															)}
 														</>
 													)}
-													onChange={(value) => {
-														form.setValue("icon", `${value}`);
-														field.value = `${value}`;
-													}}
+													value={field.value}
 												/>
 											);
 										}}
+										name="icon"
+										title={t("icon")}
 										{...formProps}
 									/>
 									{askPath && (
 										<FormField
-											name="path"
-											title={t("working-directory")}
-											required
 											control={({ field }) => (
 												<Input
 													{...field}
-													readOnly
-													placeholder={pathPlaceholder}
-													title={field.value}
 													data-qa={t("working-directory")}
+													placeholder={pathPlaceholder}
+													readOnly
+													title={field.value}
 												/>
 											)}
+											name="path"
+											required
+											title={t("working-directory")}
 											{...formProps}
 										/>
 									)}
@@ -242,60 +241,60 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									<Divider />
 									<FormSectionTitle children={t("workspace.set-ai-server")} />
 									<Description
-										style={{ marginTop: "0.25rem" }}
 										className="font-sans text-sm font-normal tracking-tight text-muted"
+										style={{ marginTop: "0.25rem" }}
 									>
 										{t("workspace.set-ai-server-description")}
 										<a
 											href="https://gram.ax/resources/docs/space/ai-open-source"
-											target="_blank"
 											rel="noreferrer"
+											target="_blank"
 										>
-											<Button variant="link" type="button" className="h-auto pt-0 pb-0 px-2">
+											<Button className="h-auto pt-0 pb-0 px-2" type="button" variant="link">
 												{t("more")}
 											</Button>
 										</a>
 									</Description>
 									<FormField
-										name="ai.apiUrl"
-										title={t("workspace.ai-server-url")}
-										description={t("workspace.ai-server-url-description")}
 										control={({ field }) => (
 											<TextInput
 												{...field}
+												endIcon={isAiChecking && <Loader size="md" style={{ padding: 0 }} />}
 												placeholder="https://your-ai-server.com"
-												endIcon={isAiChecking && <Loader style={{ padding: 0 }} size="md" />}
 											/>
 										)}
+										description={t("workspace.ai-server-url-description")}
+										name="ai.apiUrl"
+										title={t("workspace.ai-server-url")}
 										{...formProps}
 									/>
 									<FormField
+										control={({ field }) => (
+											<TextInput {...field} placeholder="your-server-token" type="password" />
+										)}
+										description={t("workspace.ai-server-token-description")}
 										name="ai.token"
 										title={t("workspace.ai-server-token")}
-										description={t("workspace.ai-server-token-description")}
-										control={({ field }) => (
-											<TextInput {...field} type="password" placeholder="your-server-token" />
-										)}
 										{...formProps}
 									/>
 								</FormStack>
 							</ModalBody>
 							<FormFooter
-								primaryButton={
-									<Button type="submit" variant="primary" disabled={!!isAiChecking || isAiSaving}>
-										{isAiSaving && <Icon icon="loader-circle" />}
-										{t("save")}
-									</Button>
-								}
 								leftContent={
 									<>
 										<Button
+											children={t("delete")}
 											onClick={() => removeWorkspace(onCloseHandler)}
 											type="button"
 											variant="text"
-											children={t("delete")}
 										/>
 									</>
+								}
+								primaryButton={
+									<Button disabled={!!isAiChecking || isAiSaving} type="submit" variant="primary">
+										{isAiSaving && <Icon icon="loader-circle" />}
+										{t("save")}
+									</Button>
 								}
 							/>
 						</form>

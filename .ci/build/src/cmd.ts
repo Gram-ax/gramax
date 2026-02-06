@@ -90,13 +90,13 @@ export const build = async () => {
 		process.exit(1);
 	}
 
-	if (args.values["web"]) await b.web(config);
+	if (args.values.web) await b.web(config);
 	if (args.values["darwin-aarch64"]) await b.macOsArm64(config);
 	if (args.values["darwin-x86_64"]) await b.macOsIntel(config);
 	if (args.values["windows-x86_64"]) await b.windows(config);
 	if (args.values["linux-x86_64"]) await b.linux(config);
-	if (args.values["android"]) await b.android(config);
-	if (args.values["ios"]) await b.ios(config);
+	if (args.values.android) await b.android(config);
+	if (args.values.ios) await b.ios(config);
 
 	if (args.values.upload) await u.upload(channel(), version());
 };

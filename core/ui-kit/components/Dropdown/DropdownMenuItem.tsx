@@ -1,7 +1,7 @@
-import { DropdownMenuItem as UiKitDropdownMenuItem } from "ics-ui-kit/components/dropdown";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { FC } from "react";
 import styled from "@emotion/styled";
+import { DropdownMenuItem as UiKitDropdownMenuItem } from "ics-ui-kit/components/dropdown";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type DropdownMenuItemType = "default" | "danger";
 
@@ -12,10 +12,11 @@ interface UiKitDropdownMenuItemProps extends ExtractComponentGeneric<typeof UiKi
 const BaseDropdownMenuItem: FC<UiKitDropdownMenuItemProps> = (props) => {
 	return (
 		<UiKitDropdownMenuItem
-			{...props}  
-			data-qa="qa-clickable"
+			{...props}
 			data-dropdown-item-type={props.type}
 			data-dropdown-menu-item
+			data-qa="qa-clickable"
+			data-testid="dropdown-item"
 		/>
 	);
 };

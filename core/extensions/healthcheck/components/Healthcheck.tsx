@@ -1,15 +1,15 @@
 import resolveModule from "@app/resolveModule/frontend";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import styled from "@emotion/styled";
-import { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
+import type { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
 import t from "@ext/localization/locale/translate";
-import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
+import type { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import { useEffect, useState } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
 import Icon from "../../../components/Atoms/Icon";
@@ -61,11 +61,11 @@ const Healthcheck = ({ itemLinks, className, onClose }: HealthcheckProps) => {
 					Object.values(CatalogErrorGroups).map((errorGroups, key) => {
 						return (
 							<ResourceErrorComponent
-								key={key}
-								errorGroup={errorGroups}
 								data={data[errorGroups.type] ?? []}
-								itemLinks={itemLinks}
+								errorGroup={errorGroups}
 								goToArticleOnClick={() => onOpenChange(false)}
+								itemLinks={itemLinks}
+								key={key}
 							/>
 						);
 					})
@@ -79,9 +79,9 @@ const Healthcheck = ({ itemLinks, className, onClose }: HealthcheckProps) => {
 
 const getIcons = (isError) =>
 	isError ? (
-		<Icon code="x" style={{ color: "red", marginRight: "0.5rem" }} strokeWidth="2.5" />
+		<Icon code="x" strokeWidth="2.5" style={{ color: "red", marginRight: "0.5rem" }} />
 	) : (
-		<Icon code="check" style={{ color: "green", marginRight: "0.5rem" }} strokeWidth="2.5" />
+		<Icon code="check" strokeWidth="2.5" style={{ color: "green", marginRight: "0.5rem" }} />
 	);
 
 interface ResourceErrorComponentProps {
@@ -153,14 +153,14 @@ const ResourceErrorComponent = ({ errorGroup, data, itemLinks, goToArticleOnClic
 					<tbody>
 						{resourceErrors.map((resourceError, idx) => {
 							return (
-								<tr key={idx} className="link">
+								<tr className="link" key={idx}>
 									<td>
 										<div className="article-name">
 											<Breadcrumb readyData={articleBreadcrumbDatas[resourceError.logicPath]} />
 											<GoToArticle
-												trigger={resourceError.title}
 												href={resourceError.logicPath}
 												onClick={goToArticleOnClick}
+												trigger={resourceError.title}
 											/>
 										</div>
 									</td>
@@ -175,7 +175,6 @@ const ResourceErrorComponent = ({ errorGroup, data, itemLinks, goToArticleOnClic
 										<IsReadOnlyHOC>
 											<div>
 												<a
-													target="_blank"
 													onClick={(ev) => {
 														if (isTauri) {
 															ev.preventDefault();
@@ -185,14 +184,15 @@ const ResourceErrorComponent = ({ errorGroup, data, itemLinks, goToArticleOnClic
 															);
 														}
 													}}
+													target="_blank"
 													{...(!isTauri && {
 														href: resourceError.editorLink,
 													})}
 													rel="noreferrer"
 												>
 													<Tooltip
-														distance={5}
 														content={<span>{`${t("open-in-new-window")}`}</span>}
+														distance={5}
 													>
 														<span>
 															<Icon code="external-link" isAction={true} />

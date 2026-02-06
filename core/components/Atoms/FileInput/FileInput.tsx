@@ -1,13 +1,13 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { FileInputProps } from "@components/Atoms/FileInput/FileInputProps";
+import type { FileInputProps } from "@components/Atoms/FileInput/FileInputProps";
 import getCodeLensDefaultText from "@components/Atoms/FileInput/getCodeLenseDefaultText";
 import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInputDefaultLanguage";
 import MergeConflictStyles from "@ext/git/actions/MergeConflictHandler/Monaco/components/MergeConflictStyles";
 import FileInputMergeConflict from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
 import t from "@ext/localization/locale/translate";
-import { CSSProperties, useLayoutEffect, useRef } from "react";
-import Theme from "../../../extensions/Theme/Theme";
+import { type CSSProperties, useLayoutEffect, useRef } from "react";
 import ThemeService from "../../../extensions/Theme/components/ThemeService";
+import Theme from "../../../extensions/Theme/Theme";
 
 const DEFAULT_LANGAUGE = getFileInputDefaultLanguage();
 
@@ -44,22 +44,14 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 			<div ref={ref} style={{ height: "100%" }}>
 				<MergeConflictStyles style={{ height: "100%" }}>
 					<FileInput
-						height="100%"
-						language={language}
 						defaultLanguage={DEFAULT_LANGAUGE}
 						defaultValue={value}
+						height="100%"
+						language={language}
 						onChange={(value, e) => {
 							fileInputMergeConflict.current?.onChange();
 							onChange?.(value, e, fileInputMergeConflict.current);
 						}}
-						options={{
-							unusualLineTerminators: "off",
-							readOnlyMessage: { value: t("cant-edit-this-line") },
-							unicodeHighlight: { ambiguousCharacters: false },
-							wordWrap: "on",
-							...options,
-						}}
-						theme={theme == Theme.dark ? monacoDarkTheme : "light"}
 						onMount={(editor, monaco) => {
 							if (readOnly) {
 								onMount?.(editor, monaco, null);
@@ -74,6 +66,14 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 							);
 							onMount?.(editor, monaco, fileInputMergeConflict.current);
 						}}
+						options={{
+							unusualLineTerminators: "off",
+							readOnlyMessage: { value: t("cant-edit-this-line") },
+							unicodeHighlight: { ambiguousCharacters: false },
+							wordWrap: "on",
+							...options,
+						}}
+						theme={theme == Theme.dark ? monacoDarkTheme : "light"}
 						{...otherProps}
 					/>
 				</MergeConflictStyles>

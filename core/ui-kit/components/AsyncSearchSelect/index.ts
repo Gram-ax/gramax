@@ -3,4 +3,4 @@ export type {
 	LoadOptionsResult,
 } from "ics-ui-kit/components/search-select/async-search-select/types";
 
-export { AsyncSearchSelect, type RenderOptionProps, type AsyncSearchSelectOption } from "./AsyncSearchSelect";
+export { AsyncSearchSelect, type AsyncSearchSelectOption, type RenderOptionProps } from "./AsyncSearchSelect";

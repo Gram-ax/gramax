@@ -11,9 +11,7 @@ const EditMarkdown = ({ visible, children }: EditMarkdownProps) => {
 	const zIndex = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--z-index-base"), 10);
 	return (
 		<Tooltip
-			zIndex={zIndex}
 			appendTo={"parent"}
-			visible={visible}
 			content={
 				<span>
 					{t("click")}
@@ -21,6 +19,8 @@ const EditMarkdown = ({ visible, children }: EditMarkdownProps) => {
 					{t("to-make-changes")}
 				</span>
 			}
+			visible={visible}
+			zIndex={zIndex}
 		>
 			{children}
 		</Tooltip>

@@ -1,27 +1,27 @@
-import { ServicesConfig, type MetricsConfig } from "@app/config/AppConfig";
-import { ContextFactory } from "@core/Context/ContextFactory";
-import Path from "@core/FileProvider/Path/Path";
-import Hash from "@core/Hash/HashItemProvider";
+import type { MetricsConfig, ServicesConfig } from "@app/config/AppConfig";
+import type { ContextFactory } from "@core/Context/ContextFactory";
+import type { TableDB } from "@core/components/tableDB/table";
+import type VideoUrlRepository from "@core/components/video/videoUrlRepository";
+import type Path from "@core/FileProvider/Path/Path";
+import type Hash from "@core/Hash/HashItemProvider";
 import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
-import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
-import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
-import { TableDB } from "@core/components/tableDB/table";
-import VideoUrlRepository from "@core/components/video/videoUrlRepository";
-import ThemeManager from "@ext/Theme/ThemeManager";
-import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
-import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
-import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import HtmlParser from "@ext/html/HtmlParser";
-import Logger from "@ext/loggers/Logger";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import AuthManager from "@ext/security/logic/AuthManager";
-import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import SearcherManager from "@ext/serach/SearcherManager";
+import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import type SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
+import type { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
+import type EnterpriseManager from "@ext/enterprise/EnterpriseManager";
+import type GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type HtmlParser from "@ext/html/HtmlParser";
+import type Logger from "@ext/loggers/Logger";
+import type MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type AuthManager from "@ext/security/logic/AuthManager";
+import type { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
+import type SearcherManager from "@ext/serach/SearcherManager";
+import type ThemeManager from "@ext/Theme/ThemeManager";
+import type { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
+import type { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
-import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 
 interface Application {
 	wm: WorkspaceManager;
@@ -71,18 +71,6 @@ interface Application {
 		allowedOrigins?: string[];
 
 		portalAi: { enabled: boolean };
-
-		search: {
-			elastic:
-				| { enabled: false }
-				| {
-						enabled: true;
-						apiUrl: string;
-						instanceName: string;
-						username: string;
-						password: string;
-				  };
-		};
 
 		forceUiLangSync: boolean;
 	};

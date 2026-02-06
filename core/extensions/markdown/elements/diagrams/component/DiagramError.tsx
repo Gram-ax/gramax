@@ -16,7 +16,7 @@ const DiagramError = ({ error, title, diagramName }: DiagramErrorProps) => {
 			error.stack = error.cause.cause;
 		}
 	}
-	return <AlertError title={alertTitle} error={error} />;
+	return <AlertError error={error} title={alertTitle} />;
 };
 
 export default DiagramError;

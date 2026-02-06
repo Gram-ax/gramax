@@ -6,4 +6,4 @@ const createAwaiter = (timeout: number = 20, callback: () => boolean) => {
 	}, timeout);
 };
 
-export default createAwaiter
+export default createAwaiter;

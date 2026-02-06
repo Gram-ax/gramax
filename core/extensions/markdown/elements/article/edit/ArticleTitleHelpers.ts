@@ -1,5 +1,5 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { Extension } from "@tiptap/core";
 import { AddMarkStep } from "@tiptap/pm/transform";
 import { Plugin, PluginKey } from "prosemirror-state";
@@ -39,8 +39,10 @@ const ArticleTitleHelpers = Extension.create<{
 					const returnedValue = someTransactionChangedDoc ? newTr : null;
 
 					const hasBlurTransaction = transactions.some((transaction) => transaction.getMeta("blur"));
-					if (oldSelection.$anchor.parent !== oldState.doc.firstChild && !hasBlurTransaction) return returnedValue;
-					if (newSelection.$anchor.parent === newState.doc.firstChild && !hasBlurTransaction) return returnedValue;
+					if (oldSelection.$anchor.parent !== oldState.doc.firstChild && !hasBlurTransaction)
+						return returnedValue;
+					if (newSelection.$anchor.parent === newState.doc.firstChild && !hasBlurTransaction)
+						return returnedValue;
 					if (!this.options.onTitleLoseFocus) return returnedValue;
 
 					this.options.onTitleLoseFocus({

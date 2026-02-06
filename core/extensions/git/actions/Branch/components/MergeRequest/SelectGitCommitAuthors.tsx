@@ -21,14 +21,12 @@ const SelectGitCommitAuthors = ({ shouldFetch, approvers, onChange }: SelectGitC
 	const { authors } = useGitCommitAuthors(shouldFetch);
 	return (
 		<ReformattedSelect
-			create
 			backspaceDelete
+			create
 			createNewLabel={`${t("git.merge.add-user")} {search}`}
-			required
-			values={approvers?.map((approver) => ({
-				value: AuthorInfoCodec.serialize(approver),
-				label: AuthorInfoCodec.serialize(approver),
-			}))}
+			dropdownHeight="200px"
+			loading={authors?.length === 0}
+			onChange={onChange}
 			options={authors?.map((author) => ({
 				value: AuthorInfoCodec.serialize(author),
 				label: AuthorInfoCodec.serialize(author),
@@ -36,9 +34,11 @@ const SelectGitCommitAuthors = ({ shouldFetch, approvers, onChange }: SelectGitC
 				email: author.email,
 			}))}
 			placeholder=""
-			onChange={onChange}
-			loading={authors?.length === 0}
-			dropdownHeight="200px"
+			required
+			values={approvers?.map((approver) => ({
+				value: AuthorInfoCodec.serialize(approver),
+				label: AuthorInfoCodec.serialize(approver),
+			}))}
 		/>
 	);
 };

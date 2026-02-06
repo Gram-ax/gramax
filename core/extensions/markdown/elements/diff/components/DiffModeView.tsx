@@ -1,5 +1,8 @@
 import ArticleExtensions from "@components/Article/ArticleExtensions";
 import ArticleWithPreviewArticle from "@components/ArticlePage/ArticleWithPreviewArticle";
+import { useRouter } from "@core/Api/useRouter";
+import Path from "@core/FileProvider/Path/Path";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
@@ -9,9 +12,6 @@ import { useDebounce } from "@core-ui/hooks/useDebounce";
 import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
 import useGetArticleContextData from "@core-ui/ScopedContextWrapper/useGetArticleContextData";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { useRouter } from "@core/Api/useRouter";
-import Path from "@core/FileProvider/Path/Path";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import Menu from "@ext/markdown/core/edit/components/Menu/Menu";
@@ -122,7 +122,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	}, []);
 
 	const UpdatedDiffExtension = ExtensionContextUpdater.useExtendExtensionsWithContext([
-		DiffExtension.configure({ isPin, oldScope, newScope, articlePath: Path.join(catalogProps.name, articlePath) }),
+		DiffExtension.configure({ isPin, oldScope, newScope, articlePath: oldContextArticlePath }),
 	])[0] as typeof DiffExtension;
 
 	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
@@ -192,12 +192,12 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 						UpdatedDiffExtension.configure({ isOldEditor: true }),
 						Comment.configure({ appendCommentToBody: true }),
 						...(isTemplateInstance ? getTemplateExtensions(false) : []),
-				  ]
+					]
 				: [
 						...getExtensions({ isTemplateInstance, includeResources: true, includeQuestions: isGES }),
 						Comment.configure({ appendCommentToBody: true }),
 						Document.extend({ content: `paragraph ${ElementGroups.block}+` }),
-				  ],
+					],
 			editable: false,
 			content: extensions ? oldContent : undefined,
 		},
@@ -216,13 +216,13 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	}, [diffViewMode]);
 
 	const mainArticleWrapper = isDelete ? (
-		<ArticleContextWrapper scope={oldScope} articlePath={oldContextArticlePath}>
+		<ArticleContextWrapper articlePath={oldContextArticlePath} scope={oldScope}>
 			<EditorContext.Provider value={{ editor: oldContentEditor }}>
 				<CommentEditorProvider editor={oldContentEditor}>
 					<div>
 						<InlineToolbar editor={oldContentEditor} />
 						<InlineLinkMenu editor={oldContentEditor} />
-						<EditorContent editor={oldContentEditor} data-qa="article-editor" data-iseditable={false} />
+						<EditorContent data-iseditable={false} data-qa="article-editor" editor={oldContentEditor} />
 					</div>
 				</CommentEditorProvider>
 			</EditorContext.Provider>
@@ -231,12 +231,12 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		<CommentEditorProvider editor={newEditor}>
 			<EditorContext.Provider value={{ editor: newEditor }}>
 				<NewEditorWithDiff
-					newEditor={newEditor}
-					oldEditor={oldContentEditor}
-					readOnly={readOnly}
 					isUseDiff={hasChanges && !isOldArticleContextDataLoading}
 					newApiUrlCreator={apiUrlCreator}
+					newEditor={newEditor}
 					oldApiUrlCreator={oldDiffArticleApiUrlCreator}
+					oldEditor={oldContentEditor}
+					readOnly={readOnly}
 				/>
 			</EditorContext.Provider>
 		</CommentEditorProvider>
@@ -249,16 +249,16 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 				previewArticle={
 					hasChanges &&
 					diffViewMode !== "wysiwyg-single" && (
-						<ArticleContextWrapper scope={oldScope} articlePath={oldContextArticlePath}>
+						<ArticleContextWrapper articlePath={oldContextArticlePath} scope={oldScope}>
 							<EditorContext.Provider value={{ editor: oldContentEditor }}>
 								<CommentEditorProvider editor={oldContentEditor}>
 									<div style={{ marginLeft: "0.5rem" }}>
 										<InlineToolbar editor={oldContentEditor} />
 										<InlineLinkMenu editor={oldContentEditor} />
 										<EditorContent
-											editor={oldContentEditor}
-											data-qa="article-editor"
 											data-iseditable={false}
+											data-qa="article-editor"
+											editor={oldContentEditor}
 										/>
 									</div>
 								</CommentEditorProvider>
@@ -275,7 +275,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 					<Menu editor={newEditor} id={"ContentEditorId"} key={"diff-mode-extensions"}>
 						<Toolbar editor={newEditor} />
 					</Menu>
-					<ArticleExtensions id={"ContentEditorId"} bottom={`${diffBottomBarHeight + 4}px`} />
+					<ArticleExtensions bottom={`${diffBottomBarHeight + 4}px`} id={"ContentEditorId"} />
 				</>
 			)}
 		</>
@@ -304,7 +304,7 @@ const NewEditorWithDiff = (props: NewEditorWithDiffProps) => {
 		<div>
 			<InlineToolbar editor={newEditor} />
 			<InlineLinkMenu editor={newEditor} />
-			<EditorContent editor={newEditor} data-qa="article-editor" data-iseditable={!readOnly} />
+			<EditorContent data-iseditable={!readOnly} data-qa="article-editor" editor={newEditor} />
 		</div>
 	);
 };
@@ -316,9 +316,9 @@ export const DiffModeView = (props: DiffModeViewProps & { filePath: DiffFilePath
 
 	return (
 		<ArticleContextWrapper
-			scope={scope}
 			articlePath={Path.join(catalogName, articlePath)}
 			loader={<LoadingWithDiffBottomBar filePath={filePath} />}
+			scope={scope}
 		>
 			<DiffModeViewInternal {...props} />
 		</ArticleContextWrapper>

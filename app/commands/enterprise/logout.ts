@@ -1,12 +1,12 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
-import Context from "@core/Context/Context";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { Command } from "../../types/Command";
+import type Context from "@core/Context/Context";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import { Command } from "../../types/Command";
 
 const logout: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.create({
 	path: "enterprise/logout",

@@ -1,17 +1,17 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { JSONContent } from "@tiptap/core";
-import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
+import docx from "@dynamicImports/docx";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { createParagraph } from "@ext/wordExport/createParagraph";
+import type { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import {
+	getWordBordersType,
 	STANDARD_PAGE_WIDTH,
 	WordBlockType,
-	getWordBordersType,
 	WordFontStyles,
 	wordMarginsType,
 } from "@ext/wordExport/options/wordExportSettings";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
-import { createParagraph } from "@ext/wordExport/createParagraph";
-import docx from "@dynamicImports/docx";
 import { markTableAsListContinuation } from "@ext/wordExport/utils/listContinuation";
+import type { JSONContent } from "@tiptap/core";
 
 const INNER_BLOCK_WIDTH_DIFFERENCE = 310;
 

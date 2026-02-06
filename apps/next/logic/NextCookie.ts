@@ -4,7 +4,11 @@ import Cookie from "@ext/cookie/Cookie";
 import { parseCookies, setCookie } from "nookies";
 
 export default class NextCookie extends Cookie {
-	constructor(secret: string, private _req: ApiRequest, private _res: ApiResponse) {
+	constructor(
+		secret: string,
+		private _req: ApiRequest,
+		private _res: ApiResponse,
+	) {
 		super(secret);
 	}
 

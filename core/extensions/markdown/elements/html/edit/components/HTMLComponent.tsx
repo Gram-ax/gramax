@@ -1,12 +1,12 @@
 import BlockActionPanel from "@components/BlockActionPanel";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import HTMLActions from "@ext/markdown/elements/html/edit/components/HTMLActions";
 import HTML from "@ext/markdown/elements/html/render/components/HTML";
 import { NodeViewProps } from "@tiptap/core";
 import { ReactElement, useRef } from "react";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 
 const HTMLComponent = (props: NodeViewProps): ReactElement => {
 	const { node, getPos, editor, updateAttributes } = props;
@@ -22,15 +22,15 @@ const HTMLComponent = (props: NodeViewProps): ReactElement => {
 	};
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElement} props={props} as={"div"} data-qa="qa-html">
+		<NodeViewContextableWrapper as={"div"} data-qa="qa-html" props={props} ref={hoverElement}>
 			<BlockActionPanel
-				updateAttributes={updateAttributes}
-				hoverElementRef={hoverElement}
 				actionsOptions={{
 					comment: true,
 				}}
 				getPos={getPos}
+				hoverElementRef={hoverElement}
 				rightActions={isEditable && <HTMLActions openEditor={openEditor} />}
+				updateAttributes={updateAttributes}
 			>
 				<BlockCommentView commentId={node.attrs?.comment?.id}>
 					<HTML content={node.attrs.content} />

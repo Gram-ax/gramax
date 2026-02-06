@@ -3,6 +3,7 @@ import ActionConfirm from "@components/Atoms/ActionConfirm";
 import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
 import ModalLoading from "@components/ModalLoading";
+import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import EditMarkdown from "@ext/article/actions/EditMarkdown";
 import DuplicateArticleDialog from "@ext/article/actions/move/DuplicateArticleDialog";
 import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
@@ -28,6 +29,7 @@ import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsuppo
 import ImportModal from "@ext/import/components/ImportModal";
 import PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
+import { AlertComment } from "@ext/markdown/elements/comment/edit/components/AlertComment";
 import DiagramsEditor from "@ext/markdown/elements/diagrams/edit/components/DiagramsEditor";
 import FilePreviewModal from "@ext/markdown/elements/file/edit/components/Preview/FilePreviewModal";
 import HTMLEditor from "@ext/markdown/elements/html/edit/components/HTMLEditButton";
@@ -42,10 +44,8 @@ import EditWorkspaceForm from "@ext/workspace/components/EditWorkspaceForm";
 import { ReactNode } from "react";
 import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
-import ModalToOpen from "../model/ModalsToOpen";
-import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import DefaultModal from "../components/DefaultModal";
-import { AlertComment } from "@ext/markdown/elements/comment/edit/components/AlertComment";
+import ModalToOpen from "../model/ModalsToOpen";
 
 const getModalComponentToRender: {
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;

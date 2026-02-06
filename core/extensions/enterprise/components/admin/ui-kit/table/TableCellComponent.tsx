@@ -1,6 +1,6 @@
-import { TableCell } from "@ui-kit/Table";
-import { Cell, flexRender } from "@ui-kit/DataTable";
 import { cn } from "@core-ui/utils/cn";
+import { Cell, flexRender } from "@ui-kit/DataTable";
+import { TableCell } from "@ui-kit/Table";
 import { columnTdClassName, TABLE_COLUMN_CODE_DEFAULT } from "./TableComponent";
 
 type TableCellComponentProps<T> = {

@@ -27,7 +27,7 @@ const DownloadZip = () => {
 		<DropdownMenuItem onSelect={download}>
 			{isDownloading ? (
 				<>
-					<SpinnerLoader width={14} height={14} />
+					<SpinnerLoader height={14} width={14} />
 					{t("loading")}
 				</>
 			) : (

@@ -1,7 +1,7 @@
-import { globalAttributes } from "./transformer";
 import Ast from "./ast/index";
+import { globalAttributes } from "./transformer";
 
-import type { Node, Function, Config, SchemaAttribute, ValidationError, Value } from "./types";
+import type { Config, Function, Node, SchemaAttribute, ValidationError, Value } from "./types";
 
 const TypeMappings = {
 	String: String,
@@ -21,8 +21,8 @@ export function validateType(type: TypeParam, value: Value, config: Config): boo
 		return !schema?.returns
 			? true
 			: Array.isArray(schema.returns)
-			? schema.returns.find((t) => t === type) !== undefined
-			: schema.returns === type;
+				? schema.returns.find((t) => t === type) !== undefined
+				: schema.returns === type;
 	}
 
 	if (Ast.isAst(value)) return true;

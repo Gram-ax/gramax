@@ -1,10 +1,11 @@
-import { EnterpriseConfig, type MetricsConfig } from "@app/config/AppConfig";
-import ShareData from "@ext/catalog/actions/share/model/ShareData";
+import type { EnterpriseConfig, MetricsConfig } from "@app/config/AppConfig";
+import type ShareData from "@ext/catalog/actions/share/model/ShareData";
 import type { features } from "@ext/toggleFeatures/features";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import Theme from "../../extensions/Theme/Theme";
-import UiLanguage, { type ContentLanguage } from "../../extensions/localization/core/model/Language";
-import UserInfo from "../../extensions/security/logic/User/UserInfo";
+import type UiLanguage from "../../extensions/localization/core/model/Language";
+import type { ContentLanguage } from "../../extensions/localization/core/model/Language";
+import type UserInfo from "../../extensions/security/logic/User/UserInfo";
+import type Theme from "../../extensions/Theme/Theme";
 
 interface PageDataContext {
 	language: {
@@ -41,9 +42,6 @@ interface PageDataContext {
 			imageUrl: string;
 			linkUrl: string;
 			linkTitle: string;
-		};
-		search?: {
-			elastic: { enabled: boolean };
 		};
 		ai: {
 			enabled: boolean;

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
-import { Column as ColumnType, DragItems } from "@ext/properties/models/kanban";
 import Card from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/Card";
+import { Column as ColumnType, DragItems } from "@ext/properties/models/kanban";
 import { useDrop } from "react-dnd";
 
 interface ColumnProps extends ColumnType {
@@ -39,10 +39,10 @@ const Column = ({ id, name, cards, className, onCardDrop, disabled, updateProper
 			<div className="column-cards">
 				{cards?.map((card, index) => (
 					<Card
-						key={card.itemPath}
-						disabled={disabled}
-						columnID={id}
 						cardID={index}
+						columnID={id}
+						disabled={disabled}
+						key={card.itemPath}
 						updateProperty={updateProperty}
 						{...card}
 					/>

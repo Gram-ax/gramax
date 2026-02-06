@@ -1,0 +1,8 @@
+# Use `git config blame.ignorerevsfile .git-blame-ignore-revs`
+
+a753bb1a3af62c3bf462b471dee0635d3c86d8d0 # format all project (merge commit) / 11.10.23
+ee78e7af9ad3a3d204d76783419d78a761838ab0 # format all project / 11.10.23
+
+c3aa24cf544f237367a2041d8119b4664837af7b # biome / 14.01.26
+bceae4a8927afe86267e5c002666aa7fe6df7c89 # add biome / 15.01.26
+b64133b947b00c4d2d3b3700bef47170d1508361 # rustfmt / 19.01.26

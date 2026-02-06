@@ -1,10 +1,10 @@
 import { parse } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import ParserContext from "../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
 import { Config, Node, Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
 import linkCreator from "../../link/render/logic/linkCreator";
 
-export function image(context: ParserContext): Schema {
+export function image(context: PrivateParserContext): Schema {
 	return {
 		render: "Image",
 		attributes: {

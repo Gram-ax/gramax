@@ -1,14 +1,14 @@
-import { Row } from "@ui-kit/DataTable";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSSProperties } from "react";
-import { TableRow } from "@ui-kit/Table";
 import { CSS } from "@dnd-kit/utilities";
+import { Row } from "@ui-kit/DataTable";
+import { TableRow } from "@ui-kit/Table";
+import { CSSProperties } from "react";
 
 export function DraggableTableRow<T>({
 	row,
 	children,
 	state,
-	rowKey
+	rowKey,
 }: {
 	row: Row<T>;
 	children: React.ReactNode;
@@ -16,18 +16,18 @@ export function DraggableTableRow<T>({
 	rowKey: keyof T;
 }) {
 	const { transform, setNodeRef, isDragging } = useSortable({
-		id: row.original[rowKey] as string
+		id: row.original[rowKey] as string,
 	});
 
 	const style: CSSProperties = {
 		transform: CSS.Transform.toString(transform),
 		opacity: isDragging ? 0.8 : 1,
 		zIndex: isDragging ? 1 : 0,
-		position: "relative"
+		position: "relative",
 	};
 
 	return (
-		<TableRow ref={setNodeRef} style={style} data-state={state}>
+		<TableRow data-state={state} ref={setNodeRef} style={style}>
 			{children}
 		</TableRow>
 	);

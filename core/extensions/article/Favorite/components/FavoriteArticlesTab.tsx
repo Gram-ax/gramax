@@ -1,15 +1,15 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
+import { useRouter } from "@core/Api/useRouter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import Workspace from "@core-ui/ContextServices/Workspace";
-import { useRouter } from "@core/Api/useRouter";
-import ItemList from "@ext/articleProvider/components/ItemList";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import { FavoriteArticleData } from "@ext/article/Favorite/models/types";
+import ItemList from "@ext/articleProvider/components/ItemList";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const FavoriteArticlesTab = ({ show }: { show: boolean }) => {
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
@@ -57,18 +57,18 @@ const FavoriteArticlesTab = ({ show }: { show: boolean }) => {
 	);
 
 	return (
-		<TabWrapper ref={tabWrapperRef} isTop show={show} title={t("favorites-articles")} contentHeight={height}>
+		<TabWrapper contentHeight={height} isTop ref={tabWrapperRef} show={show} title={t("favorites-articles")}>
 			{isLoading ? (
 				<SpinnerLoader fullScreen height={height - 60} width={height - 60} />
 			) : (
 				<ItemList
-					show={show}
 					items={items}
-					tabWrapperRef={tabWrapperRef}
-					setContentHeight={setHeight}
-					selectedItemId={null}
-					onItemClick={onItemClick}
 					noItemsText={t("no-favorites-in-catalog")}
+					onItemClick={onItemClick}
+					selectedItemId={null}
+					setContentHeight={setHeight}
+					show={show}
+					tabWrapperRef={tabWrapperRef}
 				/>
 			)}
 		</TabWrapper>

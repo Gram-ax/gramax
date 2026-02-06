@@ -1,14 +1,14 @@
 import t from "@ext/localization/locale/translate";
 import {
 	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
 	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogIcon,
 	AlertDialogTitle,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogCancel,
-	AlertDialogAction,
 } from "@ui-kit/AlertDialog";
 
 interface UnsavedChangesProps {
@@ -20,7 +20,7 @@ interface UnsavedChangesProps {
 
 const UnsavedChangesModal = ({ isOpen, onOpenChange, onSave, onDontSave }: UnsavedChangesProps) => {
 	return (
-		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
 			<AlertDialogContent status="warning">
 				<AlertDialogHeader>
 					<AlertDialogIcon icon="alert-circle" />
@@ -30,21 +30,21 @@ const UnsavedChangesModal = ({ isOpen, onOpenChange, onSave, onDontSave }: Unsav
 				<AlertDialogFooter>
 					<AlertDialogCancel onClick={() => onOpenChange(false)}>{t("cancel")}</AlertDialogCancel>
 					<AlertDialogAction
-						type="button"
-						variant="text"
 						onClick={() => {
 							onOpenChange(false);
 							onDontSave();
 						}}
+						type="button"
+						variant="text"
 					>
 						{t("dont-save")}
 					</AlertDialogAction>
 					<AlertDialogAction
-						type="button"
 						onClick={() => {
 							onOpenChange(false);
 							onSave();
 						}}
+						type="button"
 					>
 						{t("save-changes")}
 					</AlertDialogAction>

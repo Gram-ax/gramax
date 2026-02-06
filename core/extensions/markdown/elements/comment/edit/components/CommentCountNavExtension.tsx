@@ -1,7 +1,7 @@
-import VersionControlCommentCountSrc from "@ext/markdown/elements/comment/edit/components/CommentCount";
-import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
+import VersionControlCommentCountSrc from "@ext/markdown/elements/comment/edit/components/CommentCount";
+import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { ItemLink } from "../../../../../navigation/NavigationLinks";
 
 const VersionControlCommentCount = styled(VersionControlCommentCountSrc)`

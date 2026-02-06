@@ -1,4 +1,4 @@
-import { SystemState, SystemStateTitle, SystemStateCode, SystemStateDescription } from "@ui-kit/SystemState";
+import { SystemState, SystemStateCode, SystemStateDescription, SystemStateTitle } from "@ui-kit/SystemState";
 
 const NotFoundPage = () => {
 	return (

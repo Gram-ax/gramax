@@ -1,5 +1,5 @@
-import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { useEffect, useRef } from "react";
 
 const useScrollToArticleAnchor = (data: ArticlePageData) => {

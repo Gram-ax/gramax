@@ -1,15 +1,16 @@
 import Icon from "@components/Atoms/Icon";
+import Link from "@components/Atoms/Link";
 import { classNames } from "@components/libs/classNames";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import { isInDropdown } from "@ui-kit/Dropdown";
 import { HTMLAttributes } from "react";
 import { CategoryLink, ItemLink } from "../../../NavigationLinks";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import Link from "@components/Atoms/Link";
-import { isInDropdown } from "@ui-kit/Dropdown";
+
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 interface LevNavItemProps extends HTMLAttributes<HTMLDivElement> {
@@ -62,15 +63,15 @@ const Item = ({
 		>
 			{isCategory && (
 				<Icon
-					code={isOpen ? "chevron-down" : "chevron-right"}
-					viewBox="3 3 18 18"
-					isAction
 					className="angle left-extensions"
+					code={isOpen ? "chevron-down" : "chevron-right"}
+					isAction
 					onClick={(e) => {
 						e.stopPropagation();
 						onToggle();
 					}}
 					onClickCapture={(e) => e.preventDefault()}
+					viewBox="3 3 18 18"
 				/>
 			)}
 			<div className="text" data-qa="qa-clickable">
@@ -237,7 +238,7 @@ const LevNavItem = (props: LevNavItemProps) => {
 	const status = GitIndexService.getStatusByPath(item?.ref?.path);
 
 	if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) {
-		return <StyledItem {...props} currentTitle={currentTitle} status={status} title={title} isActive={true} />;
+		return <StyledItem {...props} currentTitle={currentTitle} isActive={true} status={status} title={title} />;
 	}
 
 	return (

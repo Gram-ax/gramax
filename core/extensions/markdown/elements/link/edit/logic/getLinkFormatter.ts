@@ -1,5 +1,5 @@
-import isURL from "@core-ui/utils/isURL";
 import Path from "@core/FileProvider/Path/Path";
+import isURL from "@core-ui/utils/isURL";
 import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
@@ -33,9 +33,9 @@ const getLinkFormatter = (context?: ParserContext): MarkSerializerSpec => {
 
 			const link: string =
 				isFile || isUrl
-					? resourcePath?.value ?? ""
+					? (resourcePath?.value ?? "")
 					: ((isGFM ? resourcePath : resourcePath?.stripExtension) ?? mark.attrs.href) +
-					  (mark.attrs.hash ?? "");
+						(mark.attrs.hash ?? "");
 			return isPlainURL(mark, parent, index, -1)
 				? ">"
 				: `](${link.includes(" ") ? `<${link.replaceAll("<", "\\<").replaceAll(">", "\\>")}>` : link})`;

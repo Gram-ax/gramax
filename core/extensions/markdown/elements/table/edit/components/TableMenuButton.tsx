@@ -1,7 +1,7 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import { BlockPlusAndSubNodes, ListGroupAndItem } from "@ext/markdown/logic/insertableNodeGroups";
 import t from "@ext/localization/locale/translate";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
+import { BlockPlusAndSubNodes, ListGroupAndItem } from "@ext/markdown/logic/insertableNodeGroups";
 import { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 
@@ -10,7 +10,8 @@ const TableMenuButton = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<ToolbarToggleButton
-			tooltipText={t("editor.table.name")}
+			active={isActive}
+			disabled={isActive ? true : disabled}
 			onClick={() => {
 				if (!readyToPlace(editor.state, "table", [...BlockPlusAndSubNodes, ...ListGroupAndItem])) return false;
 
@@ -20,8 +21,7 @@ const TableMenuButton = ({ editor }: { editor: Editor }) => {
 					.focus(editor.state.selection.anchor + 3)
 					.run();
 			}}
-			disabled={isActive ? true : disabled}
-			active={isActive}
+			tooltipText={t("editor.table.name")}
 		>
 			<ToolbarIcon icon="table" />
 		</ToolbarToggleButton>

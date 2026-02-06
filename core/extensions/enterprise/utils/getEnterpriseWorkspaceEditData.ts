@@ -1,7 +1,7 @@
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { EnterpriseWorkspaceEditData } from "@ext/enterprise/components/useEditEnterpriseWorkspace";
-import t from "@ext/localization/locale/translate";
 import { EnterpriseAuthResult } from "@ext/enterprise/types/EnterpriseAuthResult";
+import t from "@ext/localization/locale/translate";
 
 export function getEnterpriseWorkspaceEditData(
 	status: EnterpriseAuthResult,

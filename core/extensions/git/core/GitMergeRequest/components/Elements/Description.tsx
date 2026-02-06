@@ -32,7 +32,7 @@ const Description = ({ content }: { content: string }) => {
 	const Content = useMemo(() => <LargeContent>{content}</LargeContent>, [content]);
 
 	return (
-		<Tooltip offset={[0, 20]} interactive placement="right" content={content.length >= 78 ? Content : null}>
+		<Tooltip content={content.length >= 78 ? Content : null} interactive offset={[0, 20]} placement="right">
 			<Wrapper>
 				<span>{t("description")}:</span>
 				<Accent>{content}</Accent>

@@ -1,15 +1,15 @@
 import { resolve } from "path";
+import Article from "../../../features/import/yandex/entities/article";
 import { getNavigation } from "../../../features/import/yandex/entities/navigation";
 import FetchActions from "../../../features/import/yandex/FetchActions";
 import GXCore from "../../../features/import/yandex/GXCore";
-import Article from "../../../features/import/yandex/entities/article";
 import { InternalPath } from "../../../features/import/yandex/utils";
 import ChalkLogger from "../../../utils/ChalkLogger";
 import { CONFIG_NAME } from "../../../utils/predefinedValues";
-import { loadConfig } from "../utils/config";
-import { ImportYandexOptions } from "./command";
-import { logStep } from "../utils/logger";
 import CliUserError from "../../CliUserError";
+import { loadConfig } from "../utils/config";
+import { logStep } from "../utils/logger";
+import { ImportYandexOptions } from "./command";
 
 export const importYandexCommandFunction = async (options: ImportYandexOptions) => {
 	const { raw, config: pathToConfig, destination: pathToDistDir } = options;

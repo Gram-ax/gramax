@@ -1,8 +1,8 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import validateEmail from "@core/utils/validateEmail";
 import useWatch from "@core-ui/hooks/useWatch";
 import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
-import validateEmail from "@core/utils/validateEmail";
 import styled from "@emotion/styled";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import SelectGES from "@ext/git/actions/Branch/components/MergeRequest/SelectGES";
@@ -88,13 +88,11 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 	}, [isOpen]);
 
 	return (
-		<Modal open={isOpen} onOpenChange={setIsOpen}>
+		<Modal onOpenChange={setIsOpen} open={isOpen}>
 			<ModalContent data-modal-root size="M">
 				<Form asChild {...form}>
 					<form className="contents ui-kit" onSubmit={formSubmit}>
 						<FormHeader
-							icon={"git-pull-request-arrow"}
-							title={t("git.merge-requests.create")}
 							description={
 								<div className="flex items-center gap-1">
 									<span>{t("git.merge.branches")}</span>
@@ -105,18 +103,16 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 									<FormattedBranch name={targetBranchRef} />
 								</div>
 							}
+							icon={"git-pull-request-arrow"}
+							title={t("git.merge-requests.create")}
 						/>
 						<ModalBody>
 							<FormStack>
 								<FormField
-									name="approvers"
-									required
-									title={t("git.merge-requests.approvers")}
 									control={({ field }) => (
 										<>
 											{useGesUsersSelect ? (
 												<SelectGES
-													preventSearchAndStartLoading={preventSearchAndStartLoading}
 													approvers={field.value}
 													onChange={(reviewers) => {
 														field.onChange(
@@ -126,11 +122,11 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 															})),
 														);
 													}}
+													preventSearchAndStartLoading={preventSearchAndStartLoading}
 												/>
 											) : (
 												<SelectGitCommitAuthors
 													approvers={field.value}
-													shouldFetch={isOpen}
 													onChange={(reviewers) => {
 														const additionalReviewers = reviewers.filter((reviewer) =>
 															validateEmail(reviewer.value),
@@ -154,55 +150,59 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 
 														field.onChange(res);
 													}}
+													shouldFetch={isOpen}
 												/>
 											)}
 										</>
 									)}
 									labelClassName={"w-44"}
+									name="approvers"
+									required
+									title={t("git.merge-requests.approvers")}
 								/>
 								<FormField
-									name="description"
-									title={t("description")}
 									control={({ field }) => (
 										<Textarea
 											{...field}
-											rows={5}
 											placeholder={`${t("write")} ${t("description").toLowerCase()}`}
+											rows={5}
 										/>
 									)}
+									name="description"
+									title={t("description")}
 								/>
 								<FormField
-									name="options"
-									title={t("other")}
-									labelClassName="items-start"
 									control={({ field }) => (
 										<OptionsContainer>
 											<CheckboxField
-												className="gap-2"
 												checked={field.value?.deleteAfterMerge}
+												className="gap-2"
+												label={t("git.merge.delete-branch-after-merge")}
 												onCheckedChange={(value) =>
 													field.onChange({ ...field.value, deleteAfterMerge: value })
 												}
-												label={t("git.merge.delete-branch-after-merge")}
 											/>
 											<CheckboxField
-												className="gap-2"
 												checked={field.value?.squash}
+												className="gap-2"
 												description={t("git.merge.squash-tooltip")}
+												label={t("git.merge.squash")}
 												onCheckedChange={(value) =>
 													field.onChange({ ...field.value, squash: value })
 												}
-												label={t("git.merge.squash")}
 											/>
 										</OptionsContainer>
 									)}
+									labelClassName="items-start"
+									name="options"
+									title={t("other")}
 								/>
 							</FormStack>
 						</ModalBody>
 						<FormFooter
 							primaryButton={
 								<Button disabled={isLoading} type="submit">
-									{isLoading && <SpinnerLoader width={16} height={16} />}
+									{isLoading && <SpinnerLoader height={16} width={16} />}
 									{isLoading ? t("loading") : t("git.merge-requests.create-request")}
 								</Button>
 							}

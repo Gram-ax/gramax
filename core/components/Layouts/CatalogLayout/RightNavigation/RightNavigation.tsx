@@ -12,11 +12,11 @@ import SwitchFilteredCatalog from "@ext/CatalogPropertyFilter/SwitchFilteredCata
 import SwitchContentLanguage from "@ext/localization/actions/SwitchContentLanguage";
 import t from "@ext/localization/locale/translate";
 import TableOfContents from "@ext/navigation/article/render/TableOfContents";
+import { QuizNavigationInfo } from "@ext/quiz/components/QuizNavigationInfo";
 import PublishStatusPanel from "@ext/static/components/PublishStatusPanel";
 import SwitchVersion from "@ext/versioning/components/SwitchVersion";
 import { useRef } from "react";
 import Links from "../../layoutComponents";
-import { QuizNavigationInfo } from "@ext/quiz/components/QuizNavigationInfo";
 
 const RightNavigation = ({ className }: { className?: string }): JSX.Element => {
 	const ref = useRef<HTMLDivElement>(null);
@@ -28,8 +28,8 @@ const RightNavigation = ({ className }: { className?: string }): JSX.Element => 
 
 	return (
 		<div
-			ref={ref}
 			className={"article-right-sidebar"}
+			ref={ref}
 			style={{ display: "flex", flexDirection: "column", flexGrow: "1" }}
 		>
 			<aside className={className}>
@@ -60,8 +60,8 @@ const RightNavigation = ({ className }: { className?: string }): JSX.Element => 
 						<IconLink
 							className={"gramax-link-text"}
 							href={"https://gram.ax/"}
-							text={t("created-in-gramax")}
 							isExternal
+							text={t("created-in-gramax")}
 						/>
 					</Button>
 				</div>

@@ -3,7 +3,11 @@ import { getArticleId } from "@ext/publicApi/TransformData";
 
 export default class PublicApiUrlCreator {
 	private _articleId: string;
-	constructor(private _catalogName: string, articlePath: string, private _basePath: string) {
+	constructor(
+		private _catalogName: string,
+		articlePath: string,
+		private _basePath: string,
+	) {
 		this._articleId = encodeURIComponent(getArticleId(_catalogName, articlePath));
 	}
 

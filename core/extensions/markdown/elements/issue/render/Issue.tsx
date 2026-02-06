@@ -3,7 +3,7 @@ import getIssueLink from "../logic/getIssueLink";
 
 export default function Kbd({ id }: { id: string }) {
 	return (
-		<Anchor className="issueLink" href={getIssueLink(id)} data-id={id}>
+		<Anchor className="issueLink" data-id={id} href={getIssueLink(id)}>
 			{id}
 		</Anchor>
 	);

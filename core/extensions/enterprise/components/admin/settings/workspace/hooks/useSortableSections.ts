@@ -5,17 +5,17 @@ import { WorkspaceSection } from "../types/WorkspaceComponent";
 
 export function useSortableSections(
 	sections: Record<string, WorkspaceSection>,
-	setSections: (sections: Record<string, WorkspaceSection>) => void
+	setSections: (sections: Record<string, WorkspaceSection>) => void,
 ) {
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
 			activationConstraint: {
-				distance: 8
-			}
+				distance: 8,
+			},
 		}),
 		useSensor(KeyboardSensor, {
-			coordinateGetter: sortableKeyboardCoordinates
-		})
+			coordinateGetter: sortableKeyboardCoordinates,
+		}),
 	);
 
 	const handleDragEnd = useCallback(
@@ -40,11 +40,11 @@ export function useSortableSections(
 				}
 			}
 		},
-		[sections, setSections]
+		[sections, setSections],
 	);
 
 	return {
 		sensors,
-		handleDragEnd
+		handleDragEnd,
 	};
 }

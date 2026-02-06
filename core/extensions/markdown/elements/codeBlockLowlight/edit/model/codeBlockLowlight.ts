@@ -1,15 +1,15 @@
+import CodeBlockComponent from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockComponent";
+import getBackspaceShortcuts from "@ext/markdown/elements/codeBlockLowlight/edit/logic/keys/Backspace";
 import getShiftTabShortcuts from "@ext/markdown/elements/codeBlockLowlight/edit/logic/keys/ShiftTab";
 import getTabShortcuts from "@ext/markdown/elements/codeBlockLowlight/edit/logic/keys/Tab";
 import lowlight from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
+import { LowlightPlugin } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightPlugin";
 import code_block from "@ext/markdown/elements/codeBlockLowlight/edit/model/schema";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { TextSelection } from "prosemirror-state";
 import CodeBlockLowlight, { CodeBlockLowlightOptions } from "@tiptap/extension-code-block-lowlight";
-import getBackspaceShortcuts from "@ext/markdown/elements/codeBlockLowlight/edit/logic/keys/Backspace";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import CodeBlockComponent from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockComponent";
-import { LowlightPlugin } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightPlugin";
+import { TextSelection } from "prosemirror-state";
 
 interface CodeBlockOptions extends CodeBlockLowlightOptions {
 	monochromeClassName: string;

@@ -1,13 +1,29 @@
-import { getImportModalFormSchema, ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useWatch from "@core-ui/hooks/useWatch";
+import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
+import { getStorageDataByForm } from "@ext/git/actions/Clone/logic/getStorageDataByForm";
+import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
+import CreateSource from "@ext/import/components/CreateSource";
+import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
 import { useFilteredSourceData } from "@ext/import/logic/useFilteredSourceData";
+import { importModalFields } from "@ext/import/model/ImportModalFields";
+import { getImportModalFormSchema, ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
+import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
+import SourceOption from "@ext/storage/components/SourceOption";
+import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
+import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Loader } from "@ui-kit/Loader";
+import { MenuItem, MenuItemAction } from "@ui-kit/MenuItem";
 import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { ReactNode, useCallback, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import {
 	Select,
 	SelectContent,
@@ -17,24 +33,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@ui-kit/Select";
-import { MenuItem, MenuItemAction } from "@ui-kit/MenuItem";
-import CreateSource from "@ext/import/components/CreateSource";
-import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import { importModalFields } from "@ext/import/model/ImportModalFields";
-import { getStorageDataByForm } from "@ext/git/actions/Clone/logic/getStorageDataByForm";
-import useWatch from "@core-ui/hooks/useWatch";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import SourceOption from "@ext/storage/components/SourceOption";
-import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
-import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
-import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
-import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
-import { Loader } from "@ui-kit/Loader";
+import { ReactNode, useCallback, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 
 interface ImportModalProps {
 	trigger?: ReactNode;
@@ -166,13 +166,13 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 
 	return (
 		<>
-			<Modal open={isOpen} onOpenChange={onOpenChange}>
+			<Modal onOpenChange={onOpenChange} open={isOpen}>
 				{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
 				<ModalContent>
 					<FormHeader
+						description={t("import.modal.description")}
 						icon="cloud-download"
 						title={t("import.modal.title")}
-						description={t("import.modal.description")}
 					/>
 					<OnNetworkApiErrorService.Provider callback={() => onOpenChange(false)}>
 						<Form asChild {...form}>
@@ -180,8 +180,6 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 								<ModalBody>
 									<FormStack>
 										<FormField
-											title={t("import.modal.props.source.name")}
-											name="sourceKey"
 											control={({ field }) => (
 												<Select {...field} onValueChange={(val) => val && field.onChange(val)}>
 													<SelectTrigger>
@@ -196,33 +194,33 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 																return (
 																	<SourceOption
 																		key={storageKey}
-																		storageKey={storageKey}
-																		source={d}
 																		onDelete={() => {
 																			if (sourceKey === storageKey) form.reset();
-																		}}
-																		onInvalid={() => {
-																			setIsCreateSourceOpen(true);
-																			setInvalidSourceData(d);
 																		}}
 																		onEdit={() => {
 																			setIsCreateSourceOpen(true);
 																			setInvalidSourceData(d);
 																		}}
+																		onInvalid={() => {
+																			setIsCreateSourceOpen(true);
+																			setInvalidSourceData(d);
+																		}}
+																		source={d}
+																		storageKey={storageKey}
 																	/>
 																);
 															})}
 														</SelectGroup>
 														{sourceDatas.length > 0 && <SelectSeparator />}
 														<SelectOption
-															value="add-new-source"
 															asChild
-															role="button"
 															onPointerDown={(e) => {
 																e.stopPropagation();
 																e.preventDefault();
 																setIsCreateSourceOpen(true);
 															}}
+															role="button"
+															value="add-new-source"
 														>
 															<MenuItem>
 																<MenuItemAction
@@ -234,9 +232,11 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 													</SelectContent>
 												</Select>
 											)}
+											name="sourceKey"
+											title={t("import.modal.props.source.name")}
 										/>
 										{sourceData && ModalFields && (
-											<ModalFields sourceData={sourceData} form={form} />
+											<ModalFields form={form} sourceData={sourceData} />
 										)}
 									</FormStack>
 								</ModalBody>
@@ -245,7 +245,7 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 										<Button disabled={isLoading}>
 											{isLoading ? (
 												<>
-													<Loader size="sm" className="p-0 text-inverse-primary-fg" />
+													<Loader className="p-0 text-inverse-primary-fg" size="sm" />
 													{t("loading")}
 												</>
 											) : (
@@ -261,24 +261,24 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 			</Modal>
 			{isCreateSourceOpen && (
 				<CreateSource
+					data={invalidSourceData}
 					isOpen={isCreateSourceOpen}
-					setIsOpen={setIsCreateSourceOpen}
-					onSubmit={onSourceDataCreate}
+					isReadonly={!!invalidSourceData}
 					onClose={() => {
 						setInvalidSourceData(null);
 						onOpenChange(false);
 					}}
-					data={invalidSourceData}
-					isReadonly={!!invalidSourceData}
+					onSubmit={onSourceDataCreate}
+					setIsOpen={setIsCreateSourceOpen}
 					sourceType={invalidSourceData?.sourceType}
 				/>
 			)}
 			{unsupportedElements.length > 0 && (
 				<UnsupportedElementsModal
-					unsupportedNodes={unsupportedElements}
-					startClone={() => startClone(sourceData)}
 					onCancelClick={() => setUnsupportedElements([])}
 					sourceType={sourceData?.sourceType}
+					startClone={() => startClone(sourceData)}
+					unsupportedNodes={unsupportedElements}
 				/>
 			)}
 		</>

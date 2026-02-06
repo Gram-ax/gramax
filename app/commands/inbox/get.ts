@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
-import { Command } from "../../types/Command";
 import { InboxArticle } from "@ext/inbox/models/types";
+import { Command } from "../../types/Command";
 
 const get: Command<{ catalogName: string; userMail: string; ctx: Context }, InboxArticle[]> = Command.create({
 	path: "inbox/get",

@@ -1,7 +1,7 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { BASE_CONFIG } from "@ext/pdfExport/config";
-import { ContentText } from "pdfmake/interfaces";
 import { parseInlineContent } from "@ext/pdfExport/utils/parseInlineContent";
+import { ContentText } from "pdfmake/interfaces";
 
 export const cutInlineHandler = async (node: Tag): Promise<ContentText[]> => {
 	const contentPromises = parseInlineContent(node);

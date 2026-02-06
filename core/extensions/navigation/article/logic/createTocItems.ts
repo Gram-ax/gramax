@@ -1,7 +1,7 @@
+import { JSONContent } from "@tiptap/core";
 import { Node } from "prosemirror-model";
 import { RenderableTreeNode } from "../../../markdown/core/render/logic/Markdoc";
 import getChildTextId from "../../../markdown/elements/heading/logic/getChildTextId";
-import { JSONContent } from "@tiptap/core";
 
 export interface TocItem {
 	url: string;

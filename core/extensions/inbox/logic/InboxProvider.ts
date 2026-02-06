@@ -1,18 +1,17 @@
 import { INBOX_DIRECTORY } from "@app/config/const";
-import FileProvider from "@core/FileProvider/model/FileProvider";
-import { ArticleProps } from "@core/FileStructue/Article/Article";
-import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import { InboxArticle, InboxProps } from "@ext/inbox/models/types";
-import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
-import FileStructure from "@core/FileStructue/FileStructure";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Context from "@core/Context/Context";
-import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import assert from "assert";
+import FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
+import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import FileStructure from "@core/FileStructue/FileStructure";
 import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
+import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
+import { InboxArticle, InboxProps } from "@ext/inbox/models/types";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import assert from "assert";
 
 declare module "@ext/articleProvider/logic/ArticleProvider" {
 	export enum ArticleProviders {

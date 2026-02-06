@@ -1,13 +1,13 @@
 import docx from "@dynamicImports/docx";
-import type { Paragraph } from "docx";
-import { getBulletSymbol } from "@ext/wordExport/options/wordDocumentStyles";
-import { extractNameAndAnchor } from "@ext/markdown/elements/link/word/link";
-import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import { ViewRenderGroup } from "@ext/properties/models";
 import t from "@ext/localization/locale/translate";
+import { extractNameAndAnchor } from "@ext/markdown/elements/link/word/link";
+import type { ViewRenderGroup } from "@ext/properties/models";
+import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
 import { getMmToTw } from "@ext/wordExport/lists/consts";
+import type { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import { getBulletSymbol } from "@ext/wordExport/options/wordDocumentStyles";
+import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import type { Paragraph } from "docx";
 
 export const viewList = async (data: ViewRenderGroup[], titlesMap: Map<string, TitleInfo>) => {
 	const results = await Promise.all(data.map((group) => processGroup(group, titlesMap)));
@@ -72,7 +72,7 @@ const processGroup = async (group: ViewRenderGroup, titlesMap: Map<string, Title
 											style: WordFontStyles.link,
 										}),
 									],
-							  })
+								})
 							: new TextRun({ text: safeTitle, size: 24 }),
 					],
 					indent: {

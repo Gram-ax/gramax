@@ -1,9 +1,9 @@
-import { AnyExtension } from "@tiptap/core";
-import { MarkSpec, NodeSpec } from "@tiptap/pm/model";
 import type { Extension, ExtensionButtonProps, FormatterType } from "@gramax/sdk/editor";
 import type { PluginEventMap } from "@gramax/sdk/events";
 import { MenuModifier } from "@gramax/sdk/ui";
 import type { PlatformEnvironmentKey } from "@plugins/api/sdk/utilities";
+import { AnyExtension } from "@tiptap/core";
+import { MarkSpec, NodeSpec } from "@tiptap/pm/model";
 
 import { ReactElement } from "react";
 

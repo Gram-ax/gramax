@@ -105,7 +105,7 @@ export const BranchLayout = (props: BranchLayoutProps) => {
 				{hasMergeRequest && <MergeRequestIcon />}
 			</div>
 			<div className="branch-info">
-				<InlineUser name={author} mail={authorMail} date={date} />
+				<InlineUser date={date} mail={authorMail} name={author} />
 			</div>
 		</TitleWrapper>
 	);
@@ -137,33 +137,33 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 
 	return (
 		<Tooltip
-			delay={disable ? undefined : [500, 0]}
 			content={disable ? <DisableTooltipContent branch={title} /> : t("switch-branch")}
+			delay={disable ? undefined : [500, 0]}
 		>
-			<div data-qa="qa-clickable" className={className}>
+			<div className={className} data-qa="qa-clickable">
 				<div data-qa="qa-switch-branch" onClick={onBranchSwitch}>
 					<Sidebar
 						disable={disable}
-						titleComponent={
-							<BranchLayout
-								title={title}
-								author={data?.lastCommitAuthor}
-								authorMail={data?.lastCommitAuthorMail}
-								date={data?.lastCommitModify}
-								branchStatus={branchStatus}
-								hasMergeRequest={hasMergeRequest}
-							/>
-						}
 						rightActions={
 							!isNext && [
 								<BranchMenu
-									refreshList={refreshList}
-									key={1}
 									branchName={title}
-									onMergeRequestCreate={onMergeRequestCreate}
 									currentBranchName={currentBranchName}
+									key={1}
+									onMergeRequestCreate={onMergeRequestCreate}
+									refreshList={refreshList}
 								/>,
 							]
+						}
+						titleComponent={
+							<BranchLayout
+								author={data?.lastCommitAuthor}
+								authorMail={data?.lastCommitAuthorMail}
+								branchStatus={branchStatus}
+								date={data?.lastCommitModify}
+								hasMergeRequest={hasMergeRequest}
+								title={title}
+							/>
 						}
 					/>
 				</div>

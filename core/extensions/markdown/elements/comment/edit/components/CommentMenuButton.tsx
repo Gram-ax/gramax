@@ -1,10 +1,10 @@
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
+import { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { memo, useCallback, useEffect, useState } from "react";
 
@@ -42,8 +42,8 @@ const CommentMenuButton = memo(({ editor }: { editor: Editor }) => {
 
 	return (
 		<ToolbarToggleButton
-			disabled={isButtonDisabled}
 			active={isActive}
+			disabled={isButtonDisabled}
 			onClick={onClickHandler}
 			tooltipText={(!pageDataContext.userInfo || !isStorageConnected || !isButtonDisabled) && t(tooltipText)}
 		>

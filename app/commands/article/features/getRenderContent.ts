@@ -7,8 +7,8 @@ import parseContent from "@core/FileStructue/Article/parseContent";
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import SecurityRules from "@ext/security/logic/SecurityRules";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
+import SecurityRules from "@ext/security/logic/SecurityRules";
 
 const getRenderContent: Command<
 	{ ctx: Context; articlePath: Path; catalogName: string; articleRelativePath: Path },

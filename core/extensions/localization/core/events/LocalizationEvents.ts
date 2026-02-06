@@ -1,14 +1,14 @@
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
-import { ItemFilter, type Catalog } from "@core/FileStructue/Catalog/Catalog";
+import { type Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import type RuleCollection from "@ext/events/RuleCollection";
-import Navigation from "../../../navigation/catalog/main/logic/Navigation";
-import { ContentLanguage } from "../model/Language";
 import { isExactLanguageMatch, isSupportedCategoryLanguage } from "@ext/localization/core/catalogExt";
 import { ItemFilterOptions } from "@ext/rules/RuleCollection";
+import Navigation from "../../../navigation/catalog/main/logic/Navigation";
+import { ContentLanguage } from "../model/Language";
 
 export default class LocalizationRules implements RuleCollection, EventHandlerCollection {
 	constructor(

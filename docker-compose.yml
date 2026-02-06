@@ -38,20 +38,6 @@ services:
     ports: [9000:80]
     <<: *common-settings
 
-    storybook:
-        build:
-            dockerfile: ./storybook/Dockerfile
-            args:
-                <<: *common-args
-        container_name: gramax-storybook
-        restart: unless-stopped
-        depends_on:
-            - api-gateway
-        environment:
-            - PORT=80
-        ports: [9001:80]
-        <<: *common-settings
-
     git-proxy:
         build:
             dockerfile: ./services/target/git-proxy/Dockerfile

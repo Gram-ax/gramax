@@ -1,13 +1,13 @@
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
+import { useRouter } from "@core/Api/useRouter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import SnippetsList from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetsList";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "@core/Api/useRouter";
 import { Button } from "@ui-kit/Button";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface SnippetsTabProps {
 	show: boolean;
@@ -47,24 +47,24 @@ const SnippetsTab = ({ show }: SnippetsTabProps) => {
 
 	return (
 		<TabWrapper
-			ref={tabWrapperRef}
+			contentHeight={height}
 			isTop
+			ref={tabWrapperRef}
 			show={show}
 			title=""
-			contentHeight={height}
 			titleRightExtension={
-				<Button startIcon="plus" onClick={addNewSnippet} size="sm" variant="text" className="p-0 h-auto">
+				<Button className="p-0 h-auto" onClick={addNewSnippet} size="sm" startIcon="plus" variant="text">
 					{t("new-snippet")}
 				</Button>
 			}
 		>
 			<SnippetsList
+				apiUrlCreator={apiUrlCreator}
+				selectedID={selectedID}
+				setHeight={setHeight}
 				show={show}
 				snippets={snippets}
-				selectedID={selectedID}
-				apiUrlCreator={apiUrlCreator}
 				tabWrapperRef={tabWrapperRef}
-				setHeight={setHeight}
 			/>
 		</TabWrapper>
 	);

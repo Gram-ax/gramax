@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
-import { Command } from "../../../types/Command";
 import { AiServerConfig } from "@ext/ai/models/types";
+import { Command } from "../../../types/Command";
 
 const getAiData: Command<{ ctx: Context; workspacePath: string }, AiServerConfig> = Command.create({
 	path: "ai/server/getData",

@@ -1,11 +1,11 @@
-import { Table } from "@ui-kit/DataTable";
-import { QuizTestData, QuizTest } from "../types/QuizComponentTypes";
-import { memo, useEffect, useMemo, useState } from "react";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { SheetComponent } from "@ext/enterprise/components/admin/ui-kit/SheetComponent";
 import { QuestionsList } from "@ext/enterprise/components/admin/settings/quiz/components/QuizQuestionsList";
-import { Loader } from "@ui-kit/Loader";
+import { SheetComponent } from "@ext/enterprise/components/admin/ui-kit/SheetComponent";
 import t from "@ext/localization/locale/translate";
+import { Table } from "@ui-kit/DataTable";
+import { Loader } from "@ui-kit/Loader";
+import { memo, useEffect, useMemo, useState } from "react";
+import { QuizTest, QuizTestData } from "../types/QuizComponentTypes";
 
 interface TestInfoProps {
 	table: Table<QuizTest>;
@@ -47,13 +47,13 @@ export const TestInfo = memo(({ table: parentTable, isOpen, onClose }: TestInfoP
 		<SheetComponent
 			isOpen={isOpen}
 			onOpenChange={onOpenChange}
-			title={title}
 			sheetContent={
 				<>
 					<h4 className="text-xl font-medium">{row?.original?.test_title}</h4>
 					{isLoading ? <Loader size="xl">{t("loading")}</Loader> : <QuestionsList data={data} />}
 				</>
 			}
+			title={title}
 		/>
 	);
 });

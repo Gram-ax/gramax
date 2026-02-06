@@ -1,10 +1,10 @@
 import Sidebar from "@components/Layouts/Sidebar";
-import { ListItem } from "@components/List/Item";
+import type { ListItem } from "@components/List/Item";
 import { filter } from "@components/List/ListLayout";
 import camelToKebabCase from "@core-ui/camelToKebabCase";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import { useLucideModule } from "@dynamicImports/lucide-icons";
-import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
+import type { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import Icon from "@ext/markdown/elements/icon/render/components/Icon";
 import { useCallback, useMemo } from "react";
 import { useIconCategories } from "./IconDataStore";
@@ -19,8 +19,7 @@ export const toListItem = ({ code, svg, category }: IconListProps, inverse?: boo
 		element: (
 			<div style={{ width: "100%", padding: "5px 10px" }}>
 				<Sidebar
-					leftActions={[<Icon key={0} code={code} svg={svg} />]}
-					title={code}
+					leftActions={[<Icon code={code} key={0} svg={svg} />]}
 					rightActions={[
 						category && (
 							<span
@@ -38,6 +37,7 @@ export const toListItem = ({ code, svg, category }: IconListProps, inverse?: boo
 							</span>
 						),
 					]}
+					title={code}
 				/>
 			</div>
 		),
@@ -47,7 +47,7 @@ export const toListItem = ({ code, svg, category }: IconListProps, inverse?: boo
 export const toListItemByUikit = ({ code, svg, category }: IconListProps, inverse?: boolean): ListItem => {
 	return {
 		labelField: code,
-		element: <Sidebar leftActions={[<Icon key={0} code={code} svg={svg} />]} title={code} />,
+		element: <Sidebar leftActions={[<Icon code={code} key={0} svg={svg} />]} title={code} />,
 	};
 };
 

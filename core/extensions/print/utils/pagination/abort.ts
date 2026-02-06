@@ -9,8 +9,7 @@ export const throwIfAborted = (signal?: AbortSignal): void => {
 	if (!signal) return;
 	if (signal.aborted) {
 		const reason = signal.reason;
-		const message =
-			typeof reason === "string" ? reason : reason instanceof Error ? reason.message : undefined;
+		const message = typeof reason === "string" ? reason : reason instanceof Error ? reason.message : undefined;
 		throw new PaginationAbortError(message);
 	}
 };

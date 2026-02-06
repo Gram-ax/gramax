@@ -13,12 +13,12 @@ export const IndexingProgress = ({ progress }: IndexingProgressProps) => {
 			<div className="search-form-divider"></div>
 			<div className="search-form-indexing-progress">
 				<ProgressBlockTemplate
-					max={1}
-					value={progress}
 					description={`${(progress * 100).toFixed(0)}%`}
-					title={t("search.indexing-info")}
 					icon={LucideIconComponent("loader") as LucideIcon}
+					max={1}
 					size="sm"
+					title={t("search.indexing-info")}
+					value={progress}
 				/>
 			</div>
 		</>

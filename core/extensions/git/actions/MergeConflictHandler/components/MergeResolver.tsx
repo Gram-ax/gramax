@@ -42,22 +42,20 @@ const MergeResolver = ({ mergeData }: { mergeData: MergeData }) => {
 	return (
 		<>
 			<ModalLayout
-				preventClose
 				contentWidth={loading ? null : "L"}
+				isOpen={isOpen}
 				onClose={async (closeModal) => {
 					closeModalRef.current = closeModal;
 					if (!isMerged.current) return setIsConfirmOpen(true);
 					closeModalRef.current();
 					await onClose();
 				}}
-				isOpen={isOpen}
+				preventClose
 			>
 				{loading ? (
 					spinnerLoader
 				) : (
 					<MergeConflictHandler
-						reverseMerge={mergeData.reverseMerge}
-						rawFiles={mergeData.mergeFiles}
 						onMerge={async (mergedFiles) => {
 							setLoading(true);
 							await FetchService.fetch(
@@ -69,19 +67,17 @@ const MergeResolver = ({ mergeData }: { mergeData: MergeData }) => {
 							setLoading(false);
 							setIsOpen(false);
 						}}
+						rawFiles={mergeData.mergeFiles}
+						reverseMerge={mergeData.reverseMerge}
 					/>
 				)}
 			</ModalLayout>
 			<ModalLayout
 				isOpen={isConfirmOpen}
-				onOpen={() => setIsConfirmOpen(true)}
 				onClose={() => setIsConfirmOpen(false)}
+				onOpen={() => setIsConfirmOpen(true)}
 			>
 				<InfoModalForm
-					icon={{ code: "circle-alert", color: "rgb(255 187 1)" }}
-					title={t(`git.merge.conflict.abort-confirm.title.${localizeKey}`)}
-					isWarning={true}
-					onCancelClick={() => setIsConfirmOpen(false)}
 					actionButton={{
 						onClick: async () => {
 							setIsConfirmOpen(false);
@@ -97,6 +93,10 @@ const MergeResolver = ({ mergeData }: { mergeData: MergeData }) => {
 						text: t(`git.merge.conflict.abort-confirm.action-button.${localizeKey}`),
 					}}
 					closeButton={{ text: t("git.merge.conflict.abort-confirm.cancel-button") }}
+					icon={{ code: "circle-alert", color: "rgb(255 187 1)" }}
+					isWarning={true}
+					onCancelClick={() => setIsConfirmOpen(false)}
+					title={t(`git.merge.conflict.abort-confirm.title.${localizeKey}`)}
 				>
 					<span>{t(`git.merge.conflict.abort-confirm.body.${localizeKey}`)}</span>
 				</InfoModalForm>

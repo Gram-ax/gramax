@@ -1,6 +1,6 @@
-import ArticleLinks from "../../properties/components/Helpers/ArticleLinks";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
+import { ItemLink } from "@ext/navigation/NavigationLinks";
+import ArticleLinks from "../../properties/components/Helpers/ArticleLinks";
 
 interface LinksArticleActionsProps {
 	itemLink: ItemLink;
@@ -12,7 +12,7 @@ export const LinksArticleActions = (props: LinksArticleActionsProps) => {
 
 	return (
 		<>
-			<ShareAction path={itemLink.pathname} isArticle />
+			<ShareAction isArticle path={itemLink.pathname} />
 			<ArticleLinks itemRefPath={itemLink.ref.path} />
 		</>
 	);

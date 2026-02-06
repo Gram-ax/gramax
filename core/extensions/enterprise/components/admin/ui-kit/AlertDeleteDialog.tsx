@@ -52,7 +52,7 @@ export const AlertDeleteDialog = ({
 					{t("delete")} ({selectedCount})
 				</Button>
 			</AlertDialogTrigger>
-			<AlertDialogContent status="error" focus="medium">
+			<AlertDialogContent focus="medium" status="error">
 				<AlertDialogHeader>
 					<AlertDialogIcon icon="info" />
 					<AlertDialogTitle>{t("confirmation.delete.title")}</AlertDialogTitle>
@@ -60,12 +60,12 @@ export const AlertDeleteDialog = ({
 				</AlertDialogHeader>
 				<AlertDialogFooter>
 					<AlertDialogPrimitiveCancel asChild>
-						<Button variant="outline" type="button">
+						<Button type="button" variant="outline">
 							{t("cancel")}
 						</Button>
 					</AlertDialogPrimitiveCancel>
 					<AlertDialogPrimitiveAction asChild>
-						<Button status="error" type="button" onClick={onConfirm}>
+						<Button onClick={onConfirm} status="error" type="button">
 							{t("delete")}
 						</Button>
 					</AlertDialogPrimitiveAction>

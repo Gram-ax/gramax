@@ -1,12 +1,11 @@
-import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import { WORD_BOOKMARK_MAX as MAX } from "@ext/wordExport/generateBookmarkName";
 import { XxHash } from "@core/Hash/Hasher";
+import { generateBookmarkName, WORD_BOOKMARK_MAX as MAX } from "@ext/wordExport/generateBookmarkName";
 
 const HASH_RE = /_[a-z0-9]{5}$/;
 
 describe("generateBookmarkName", () => {
 	beforeAll(async () => await XxHash.init());
-	
+
 	test("generates bookmark with id", () => {
 		const order = "1.";
 		const title = "Test Title";

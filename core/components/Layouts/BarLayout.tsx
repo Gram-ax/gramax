@@ -33,8 +33,8 @@ const BarLayout = styled(
 				!p.padding
 					? ""
 					: typeof p.padding === "string"
-					? `padding: ${p.padding}`
-					: `
+						? `padding: ${p.padding}`
+						: `
 						${p.padding.top ? `padding-top: ${p.padding.top};` : ""}
 						${p.padding.right ? `padding-right: ${p.padding.right};` : ""}
 						${p.padding.bottom ? `padding-bottom: ${p.padding.bottom};` : ""}

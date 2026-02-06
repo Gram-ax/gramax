@@ -1,17 +1,17 @@
+import { getConfig } from "@app/config/AppConfig";
 import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
-import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
-import { logStepWithErrorSuppression, CustomSuccessLog } from "../utils/logger";
-import { basename, resolve } from "path";
-import { getConfig } from "@app/config/AppConfig";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
+import chalk from "chalk";
+import { basename, resolve } from "path";
+import ChalkLogger from "../../../utils/ChalkLogger";
+import { CustomSuccessLog, logStepWithErrorSuppression } from "../utils/logger";
+import { checkExistsPath, getPathWithExtension, setRootPath } from "../utils/paths";
 import { ChalkFileLogger } from "./ChalkFileLogger";
 import { CheckOptions, defaultCheckName } from "./command";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import chalk from "chalk";
-import ChalkLogger from "../../../utils/ChalkLogger";
-import { checkExistsPath, getPathWithExtension, setRootPath } from "../utils/paths";
 
 type errorsType = Record<keyof typeof CatalogErrorGroups, string[]>;
 

@@ -1,39 +1,31 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { createRoot } from "react-dom/client";
-import { Router } from "wouter";
-
-import Gramax, { GramaxData } from "../../../browser/src/Gramax";
-import AppError from "../../../browser/src/components/Atoms/AppError";
-import useLocation from "../../../browser/src/logic/Api/useLocation";
-import { InitialData } from "../logic/ArticleTypes";
-import { getCatalogNameFromInitialData } from "../logic/initialDataUtils/getCatalogName";
-import { ExtendedWindow, InitialDataKeys } from "../../src/logic/initialDataUtils/types";
-
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
-import { AppConfig } from "@app/config/AppConfig";
-import { initModules } from "@app/resolveModule/frontend";
-import Application from "@app/types/Application";
-import getPageTitle from "@core-ui/getPageTitle";
-import Query, { parserQuery } from "@core/Api/Query";
+import type { AppConfig } from "@app/config/AppConfig";
+import { initFrontendModules } from "@app/resolveModule/frontend";
+import type Application from "@app/types/Application";
+import type Query from "@core/Api/Query";
+import { parserQuery } from "@core/Api/Query";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
-import { HomePageData } from "@core/SitePresenter/SitePresenter";
-
-import ThemeService from "@ext/Theme/components/ThemeService";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
+import getPageTitle from "@core-ui/getPageTitle";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import ThemeService from "@ext/Theme/components/ThemeService";
 import { setFeatureList } from "@ext/toggleFeatures/features";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { Router } from "wouter";
+import AppError from "../../../browser/src/components/Atoms/AppError";
+import Gramax, { type GramaxData } from "../../../browser/src/Gramax";
+import useLocation from "../../../browser/src/logic/Api/useLocation";
+import { type ExtendedWindow, InitialDataKeys } from "../../src/logic/initialDataUtils/types";
+import type { InitialData } from "../logic/ArticleTypes";
+import { getCatalogNameFromInitialData } from "../logic/initialDataUtils/getCatalogName";
 
-import "ics-ui-kit/styles.css";
-import "../../../../core/styles/ProseMirror.css";
-import "../../../../core/styles/admonition.css";
-import "../../../../core/styles/article-alfabeta.css";
-import "../../../../core/styles/article.css";
+import "../../../../core/styles/main.css";
 import "../../../../core/styles/chain-icon.css";
-import "../../../../core/styles/global.css";
-import "../../../../core/styles/swagger-ui-theme.css";
 
 if (window.location.hash && window.location.pathname.length > 1 && window.location.pathname.endsWith("/")) {
 	const newPath = window.location.pathname.slice(0, -1);
@@ -103,7 +95,7 @@ const Component = () => {
 					articleContentEdit: "",
 					...initialData.data.articlePageData,
 					catalogProps: initialData.data.catalogProps,
-			  }
+				}
 			: (initialData.data as any as HomePageData),
 		context: initialData.context,
 	});
@@ -140,12 +132,12 @@ const Component = () => {
 		);
 
 	return (
-		<Router hook={() => [data.path, setLocation]} base={(global.config as AppConfig).paths.base.value}>
-			<Gramax data={data} refresh={refresh} setData={() => {}} platform="static" />
+		<Router base={(global.config as AppConfig).paths.base.value} hook={() => [data.path, setLocation]}>
+			<Gramax data={data} platform="static" refresh={refresh} setData={() => {}} />
 		</Router>
 	);
 };
 
 const root = createRoot(document.getElementById("root"));
 
-initModules().then(() => root.render(<Component />));
+initFrontendModules().then(() => root.render(<Component />));

@@ -1,8 +1,8 @@
 import docx from "@dynamicImports/docx";
-import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
-import { HStyles, getHeadingStyles } from "@ext/wordExport/options/wordExportSettings";
 import { ExportType } from "@ext/wordExport/ExportType";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
+import { getHeadingStyles, HStyles } from "@ext/wordExport/options/wordExportSettings";
+import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const headingWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
 	const { Paragraph, BookmarkStart, BookmarkEnd } = await docx();

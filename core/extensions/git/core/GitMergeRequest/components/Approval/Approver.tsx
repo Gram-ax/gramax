@@ -31,12 +31,12 @@ const Approver = ({ approver, comments }: { approver: ApprovalSignature; comment
 	const { setApprove, canSetApprove } = useApproval({ approver });
 
 	return (
-		<Wrapper you={canSetApprove} onClick={canSetApprove ? () => setApprove(!approver.approvedAt) : null}>
+		<Wrapper onClick={canSetApprove ? () => setApprove(!approver.approvedAt) : null} you={canSetApprove}>
 			<Part>
 				<Author author={approver} comments={comments} you={canSetApprove} />
 			</Part>
 			<Part>
-				<ApproveCheckbox status={approver.approvedAt ? "approved" : "unapproved"} since={approver.approvedAt} />
+				<ApproveCheckbox since={approver.approvedAt} status={approver.approvedAt ? "approved" : "unapproved"} />
 			</Part>
 		</Wrapper>
 	);

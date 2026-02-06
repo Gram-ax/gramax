@@ -1,9 +1,9 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Path from "@core/FileProvider/Path/Path";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import HashItemRef from "@core/Hash/HashItems/HashItemRef";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Theme from "@ext/Theme/Theme";
 
 const getLogo: Command<
@@ -18,7 +18,9 @@ const getLogo: Command<
 		const workspace = this._app.wm.current();
 		const catalog = await workspace.getBaseCatalog(catalogName);
 		if (!catalog) return;
-		const themeLogo = force ? catalog.props[`logo_${theme}`] : catalog.props[`logo_${theme}`] ?? catalog.props.logo;
+		const themeLogo = force
+			? catalog.props[`logo_${theme}`]
+			: (catalog.props[`logo_${theme}`] ?? catalog.props.logo);
 		const logoPath = Theme[theme] === Theme.light ? catalog.props.logo : themeLogo;
 		if (!logoPath) return;
 

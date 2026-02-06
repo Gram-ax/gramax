@@ -12,6 +12,7 @@ export type PageDataLoader = {
 		ensureQuizLoaded: () => Promise<void>;
 		ensurePluginsLoaded: () => Promise<void>;
 		ensureMetricsLoaded: () => Promise<void>;
+		ensureSearchMetricsLoaded: () => Promise<void>;
 	}) => Promise<void>;
 };
 
@@ -22,8 +23,18 @@ export const pageDataLoaders: PageDataLoader = {
 	[Page.EDITORS]: async ({ ensureEditorsLoaded }) => {
 		await ensureEditorsLoaded();
 	},
-	[Page.RESOURCES]: async ({ ensureWorkspaceLoaded, ensureGroupsLoaded, ensureGuestsLoaded, ensureResourcesLoaded }) => {
-		await Promise.all([ensureWorkspaceLoaded(), ensureGroupsLoaded(), ensureGuestsLoaded(), ensureResourcesLoaded()]);
+	[Page.RESOURCES]: async ({
+		ensureWorkspaceLoaded,
+		ensureGroupsLoaded,
+		ensureGuestsLoaded,
+		ensureResourcesLoaded,
+	}) => {
+		await Promise.all([
+			ensureWorkspaceLoaded(),
+			ensureGroupsLoaded(),
+			ensureGuestsLoaded(),
+			ensureResourcesLoaded(),
+		]);
 	},
 	[Page.USER_GROUPS]: async ({ ensureResourcesLoaded, ensureGroupsLoaded }) => {
 		await Promise.all([ensureResourcesLoaded(), ensureGroupsLoaded()]);
@@ -31,8 +42,8 @@ export const pageDataLoaders: PageDataLoader = {
 	[Page.STYLEGUIDE]: async ({ ensureStyleGuideLoaded }) => {
 		await ensureStyleGuideLoaded();
 	},
-	[Page.PLUGINS]: async ({ ensurePluginsLoaded, ensureStyleGuideLoaded, ensureQuizLoaded, ensureMetricsLoaded }) => {
-		await Promise.all([ensurePluginsLoaded(), ensureStyleGuideLoaded(), ensureQuizLoaded(), ensureMetricsLoaded()]);
+	[Page.PLUGINS]: async ({ ensurePluginsLoaded, ensureStyleGuideLoaded, ensureQuizLoaded }) => {
+		await Promise.all([ensurePluginsLoaded(), ensureStyleGuideLoaded(), ensureQuizLoaded()]);
 	},
 	[Page.PLUGIN_DETAIL]: async ({ ensurePluginsLoaded }) => {
 		await ensurePluginsLoaded();
@@ -48,6 +59,12 @@ export const pageDataLoaders: PageDataLoader = {
 	},
 	[Page.METRICS]: async ({ ensureMetricsLoaded }) => {
 		await ensureMetricsLoaded();
+	},
+	[Page.VIEW_METRICS]: async ({ ensureMetricsLoaded }) => {
+		await ensureMetricsLoaded();
+	},
+	[Page.SEARCH_METRICS]: async ({ ensureMetricsLoaded, ensureSearchMetricsLoaded }) => {
+		await Promise.all([ensureMetricsLoaded(), ensureSearchMetricsLoaded()]);
 	},
 };
 

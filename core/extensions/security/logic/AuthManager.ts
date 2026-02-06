@@ -1,17 +1,20 @@
-import { EnterpriseConfig } from "@app/config/AppConfig";
-import EnterpriseUser, { EnterpriseInfo } from "@ext/enterprise/EnterpriseUser";
-import EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
-import ApiRequest from "../../../logic/Api/ApiRequest";
-import ApiResponse from "../../../logic/Api/ApiResponse";
-import Cookie from "../../cookie/Cookie";
-import User from "./User/User";
+import type { EnterpriseConfig } from "@app/config/AppConfig";
+// import type EnterpriseUser from "@ext/enterprise/EnterpriseUser";
+import type ApiRequest from "../../../logic/Api/ApiRequest";
+import type ApiResponse from "../../../logic/Api/ApiResponse";
+import type Cookie from "../../cookie/Cookie";
+import type User from "./User/User";
+
+type Query = {
+	[key: string]: string | string[];
+};
 
 export default abstract class AuthManager {
 	protected readonly _COOKIE_USER = "user";
 
 	constructor(protected _enterpriseConfig: EnterpriseConfig) {}
 
-	abstract getUser(cookie: Cookie, query: any, headers?: ApiRequest["headers"]): Promise<User>;
+	abstract getUser(cookie: Cookie, query: Query, headers?: ApiRequest["headers"]): Promise<User>;
 	abstract assert(
 		req: ApiRequest,
 		res: ApiResponse,
@@ -26,23 +29,4 @@ export default abstract class AuthManager {
 	setUser(cookie: Cookie, user: User, expires?: number): void {
 		cookie.set(this._COOKIE_USER, JSON.stringify(user.toJSON()), expires);
 	}
-
-	abstract setUsersEnterpriseInfo(user: EnterpriseUser, cookie: Cookie): void;
-
-	protected async _updateEnterpriseUser(cookie: Cookie, user: EnterpriseUser): Promise<void> {
-		const updatedUser = await user.updatePermissions(true);
-		if (!updatedUser) return;
-		if (updatedUser instanceof EnterpriseUser) this.setUsersEnterpriseInfo(updatedUser, cookie);
-		this.setUser(cookie, updatedUser);
-	}
-
-	protected async _getEnterpriseUser(cookie: Cookie, json: EnterpriseUserJSONData): Promise<EnterpriseUser> {
-		const user = EnterpriseUser.initInJSON(json, this._enterpriseConfig);
-		const info = this._getUsersEnterpriseInfo(user, cookie);
-		if (info) user.setEnterpriseInfo(info);
-		await this._updateEnterpriseUser(cookie, user);
-		return user;
-	}
-
-	protected abstract _getUsersEnterpriseInfo(user: EnterpriseUser, cookie: Cookie): EnterpriseInfo;
 }

@@ -15,12 +15,12 @@ export const TableHeaderComponent = <T,>({ table }: TableHeaderComponentProps<T>
 					{headerGroup.headers.map((header, idx) => {
 						return (
 							<TableHead
-								key={header.id}
 								className={cn(
 									columnThClassName[header.column.id as keyof typeof columnThClassName] ||
 										columnThClassName[TABLE_COLUMN_CODE_DEFAULT],
 									idx === 0 ? " pl-3" : "",
 								)}
+								key={header.id}
 							>
 								{header.isPlaceholder
 									? null

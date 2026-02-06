@@ -1,20 +1,22 @@
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
+import type Query from "@core/Api/Query";
+import { parserQuery } from "@core/Api/Query";
+import { Router as BaseRouter } from "@core/Api/Router";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import LanguageService from "@core-ui/ContextServices/Language";
 import getPageTitle from "@core-ui/getPageTitle";
-import Query, { parserQuery } from "@core/Api/Query";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import ThemeService from "@ext/Theme/components/ThemeService";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { usePluginEvent } from "@plugins/api/events";
 import { usePluginLoader } from "@plugins/hooks/usePluginLoader";
 import { Toaster } from "@ui-kit/Toast";
 import { useCallback, useEffect, useState } from "react";
 import { Router } from "wouter";
-import Gramax, { GramaxData } from "./Gramax";
 import AppError from "./components/Atoms/AppError";
 import AppLoader from "./components/Atoms/AppLoader";
+import Gramax, { type GramaxData } from "./Gramax";
 import useLocation from "./logic/Api/useLocation";
 
 const getData = async (route: string, query: Query) => {
@@ -38,6 +40,14 @@ const filterOutPageData = (data: ArticlePageData, setLocation: (path: string) =>
 	return false;
 };
 
+const getIsPreventNextPushRefresh = () => {
+	if (BaseRouter.preventNextPushRefresh) {
+		BaseRouter.preventNextPushRefresh = false;
+		return true;
+	}
+	return false;
+};
+
 const AppContext = () => {
 	const [path, setLocation, query] = useLocation();
 	const [data, setData] = useState<GramaxData>();
@@ -47,24 +57,27 @@ const AppContext = () => {
 		window.onNavigate?.(path);
 		try {
 			const data = await getData(path, parserQuery(query));
-			if (filterOutPageData(data?.data as ArticlePageData, setLocation)) return;
+
+			if (getIsPreventNextPushRefresh() || filterOutPageData(data?.data as ArticlePageData, setLocation)) return;
+
 			setData({ path, ...data });
 
-			if (data) document.title = getPageTitle(data.context.isArticle, data.data as any);
+			if (data) document.title = getPageTitle(data.context.isArticle, data.data as ArticlePageData);
 		} catch (err) {
-			console.error(err);
+			console.error("failed to get page data", err);
 			setError(err);
 		}
-	}, [path, query]);
+	}, [path, setLocation, query]);
 
 	if (typeof window !== "undefined") {
+		// biome-ignore lint/correctness/useHookAtTopLevel: its ok
 		window.navigateTo = useCallback(
 			(url: string) => {
 				window.resetIsFirstLoad();
-				if (url == path) {
+				if (url === path) {
 					refresh();
 				} else {
-					setData(null);
+					setData(undefined);
 					window.resetIsFirstLoad();
 					setLocation(url);
 				}

@@ -36,15 +36,15 @@ const ArticleComponent = (props: ArticleComponentProps) => {
 
 	return (
 		<ArticleLayout
+			additionalStyles={additionalStyles}
 			article={article}
-			isRightNavPin={isSidebarRightPin}
 			isRightNavOpen={isSidebarRightOpen}
+			isRightNavPin={isSidebarRightPin}
 			narrowMedia={useMediaQuery(cssMedia.JSmedium)}
 			onArticleMouseEnter={onArticleMouseEnterHandler}
 			onRightNavTransitionEnd={onRightNavTransitionEndHandler}
 			rightNav={rightNav}
 			useArticleDefaultStyles={useArticleDefaultStyles}
-			additionalStyles={additionalStyles}
 		/>
 	);
 };

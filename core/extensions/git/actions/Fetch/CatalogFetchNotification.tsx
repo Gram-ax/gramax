@@ -34,7 +34,7 @@ const CatalogFetchNotification = ({ catalogLink }: { catalogLink: CatalogLink })
 				<TooltipContent>{syncCount.errorMessage}</TooltipContent>
 				<TooltipTrigger asChild>
 					<ErrorState className="justify-start p-0 font-normal text-xs gap-1.5">
-						<Icon icon="alert-circle" className="w-3.5 h-3.5" />
+						<Icon className="w-3.5 h-3.5" icon="alert-circle" />
 					</ErrorState>
 				</TooltipTrigger>
 			</Tooltip>
@@ -68,15 +68,15 @@ const CatalogFetchNotification = ({ catalogLink }: { catalogLink: CatalogLink })
 					text={pullTooltip}
 					trigger={
 						<Badge
-							size="sm"
 							className="gap-0 p-1 pr-1.5"
+							size="sm"
 							style={{
 								paddingLeft: "3px",
 								paddingRight: "5px",
 								marginLeft: hasObviousChanges ? "-4px" : undefined,
 							}}
 						>
-							<Icon icon="arrow-down" className="text-secondary-fg" size="sm" />
+							<Icon className="text-secondary-fg" icon="arrow-down" size="sm" />
 							{pullCount}
 						</Badge>
 					}
@@ -87,12 +87,12 @@ const CatalogFetchNotification = ({ catalogLink }: { catalogLink: CatalogLink })
 					text={pushTooltip}
 					trigger={
 						<Badge
-							size="sm"
-							focus="high"
 							className="gap-0 p-1 pr-1.5"
+							focus="high"
+							size="sm"
 							style={{ paddingLeft: "3px", paddingRight: "5px", zIndex: 1 }}
 						>
-							<Icon icon="arrow-up" size="sm" className="text-primary-bg" />
+							<Icon className="text-primary-bg" icon="arrow-up" size="sm" />
 							{pushCount}
 						</Badge>
 					}

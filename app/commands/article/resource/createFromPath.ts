@@ -32,8 +32,8 @@ const createFromPath: Command<
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 
 		await article.parsedContent.write(async (p) => {
-			const hashItem = new HashResourceManager(newName, p.resourceManager);
-			await p.resourceManager.setContent(newName, data);
+			const hashItem = new HashResourceManager(newName, p.parsedContext.getResourceManager(), ctx);
+			await p.parsedContext.getResourceManager()?.setContent(newName, data);
 			hashes.deleteHash(hashItem);
 
 			return p;

@@ -1,7 +1,7 @@
+import { useApi } from "@core-ui/hooks/useApi";
 import LinkItem from "@ext/article/LinkCreator/models/LinkItem";
 import { LevelTocItem } from "@ext/navigation/article/logic/createTocItems";
 import { useState } from "react";
-import { useApi } from "@core-ui/hooks/useApi";
 
 export type TitleItem = {
 	url: string;

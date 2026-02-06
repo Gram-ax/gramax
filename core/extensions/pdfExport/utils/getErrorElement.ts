@@ -1,7 +1,7 @@
-import { ContentTable } from "pdfmake/interfaces";
-import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
-import { BASE_CONFIG } from "@ext/pdfExport/config";
 import t from "@ext/localization/locale/translate";
+import { BASE_CONFIG } from "@ext/pdfExport/config";
+import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
+import { ContentTable } from "pdfmake/interfaces";
 
 export async function errorCase(): Promise<ContentTable> {
 	const icon = await getSvgIconFromString("circle-alert", "#ba1c1c");

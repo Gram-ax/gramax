@@ -5,7 +5,7 @@ import Breadcrumb from "./Breadcrumb";
 
 export interface LinksBreadcrumbProps {
 	itemLinks?: ItemLink[];
-	readyData?: { titles: string[]; links: BaseLink[], onClicks?: (() => void)[] };
+	readyData?: { titles: string[]; links: BaseLink[]; onClicks?: (() => void)[] };
 	className?: string;
 }
 
@@ -49,8 +49,8 @@ const LinksBreadcrumb = forwardRef((props: LinksBreadcrumbProps, ref: MutableRef
 	if (!titles.length) return <div />;
 	return (
 		<div
-			ref={ref}
 			className={className + " breadcrumb"}
+			ref={ref}
 			style={titles.length && categoryLinks.length ? {} : { visibility: "hidden" }}
 		>
 			<div className="article-breadcrumb">
@@ -59,7 +59,7 @@ const LinksBreadcrumb = forwardRef((props: LinksBreadcrumbProps, ref: MutableRef
 						content={titles.map((t, i) => ({
 							text: t,
 							link: categoryLinks[i],
-							onClick: readyData?.onClicks?.[i]
+							onClick: readyData?.onClicks?.[i],
 						}))}
 					/>
 				) : null}

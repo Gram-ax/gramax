@@ -17,13 +17,13 @@ import type BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import t from "@ext/localization/locale/translate";
 import NotionStorage from "@ext/notion/logic/NotionStorage";
 import type NotionStorageData from "@ext/notion/model/NotionStorageData";
-import SharedCloneProgressManager, { SharedCloneProgress } from "@ext/storage/logic/SharedCloneProgress";
+import SharedCloneProgressManager, { type SharedCloneProgress } from "@ext/storage/logic/SharedCloneProgress";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import type StorageData from "@ext/storage/models/StorageData";
 import type { Workspace } from "@ext/workspace/Workspace";
 import assert from "assert";
-import Storage from "./Storage";
+import type Storage from "./Storage";
 
 export type OnCloneFinish = (path: Path, isCancelled: boolean) => Promise<boolean> | boolean;
 
@@ -34,6 +34,7 @@ export type CloneOptions = {
 	onFinish: OnCloneFinish;
 	isBare?: boolean;
 	allowNonEmptyDir?: boolean;
+	skipLfsPull?: boolean;
 };
 
 export type GitStorageCloneResult = {
@@ -216,7 +217,7 @@ export default class StorageProvider {
 		progress: SharedCloneProgress,
 		opts: CloneOptions,
 	): Promise<GitStorageCloneResult> {
-		const { data, out, branch, isBare } = opts;
+		const { data, out, branch, isBare, skipLfsPull } = opts;
 
 		const absoluteOut = fs.fp.default().rootPath.join(out);
 
@@ -236,6 +237,7 @@ export default class StorageProvider {
 				source: data.source as GitSourceData,
 				cancelToken,
 				isBare,
+				skipLfsPull,
 				onProgress: progress.setProgress.bind(progress),
 			});
 		} catch (e) {

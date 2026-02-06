@@ -1,12 +1,12 @@
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import LogoUploader from "@ext/workspace/components/LogoUploader";
 import { FormField } from "@ui-kit/Form";
-import { useMemo, useCallback } from "react";
-import type { FormData, FormProps } from "../logic/createFormSchema";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { useCallback, useMemo } from "react";
 import { UseFormReturn } from "react-hook-form";
+import type { FormData, FormProps } from "../logic/createFormSchema";
 
 interface UploadCatalogLogoProps {
 	form: UseFormReturn<FormData>;
@@ -59,35 +59,35 @@ const UploadCatalogLogo = ({ formProps, form }: UploadCatalogLogoProps) => {
 	return (
 		<>
 			<FormField
-				name="logo.light"
-				title={t("file-input.logo-light")}
-				description={t("file-input.both-themes-if-no-dark")}
 				control={({ fieldState }) => (
 					<LogoUploader
-						deleteResource={deleteLightLogo}
-						updateResource={updateLightLogo}
 						defaultFileInfo={defaultLightFileInfo}
-						onChange={() => onChange("logo.light")}
+						deleteResource={deleteLightLogo}
 						error={fieldState.error?.message}
+						onChange={() => onChange("logo.light")}
 						onError={(error) => onError("logo.light", error)}
+						updateResource={updateLightLogo}
 					/>
 				)}
+				description={t("file-input.both-themes-if-no-dark")}
+				name="logo.light"
+				title={t("file-input.logo-light")}
 				{...formProps}
 			/>
 			<FormField
-				name="logo.dark"
-				title={t("file-input.logo-dark")}
-				description={t("file-input.dark-theme-only")}
 				control={({ fieldState }) => (
 					<LogoUploader
-						deleteResource={deleteDarkLogo}
-						updateResource={updateDarkLogo}
 						defaultFileInfo={defaultDarkFileInfo}
-						onChange={() => onChange("logo.dark")}
+						deleteResource={deleteDarkLogo}
 						error={fieldState.error?.message}
+						onChange={() => onChange("logo.dark")}
 						onError={(error) => onError("logo.dark", error)}
+						updateResource={updateDarkLogo}
 					/>
 				)}
+				description={t("file-input.dark-theme-only")}
+				name="logo.dark"
+				title={t("file-input.logo-dark")}
 				{...formProps}
 			/>
 		</>

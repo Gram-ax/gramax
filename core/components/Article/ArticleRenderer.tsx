@@ -1,27 +1,25 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
+import { useRouter } from "@core/Api/useRouter";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
-import { useRouter } from "@core/Api/useRouter";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
+import Renderer from "@ext/markdown/core/render/components/Renderer";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import EditorService, { BaseEditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import EditorService, { type BaseEditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import PropertyService from "@ext/properties/components/PropertyService";
-import { Editor } from "@tiptap/core";
-
-import { usePluginEvent } from "@plugins/api/events";
+import type { Editor } from "@tiptap/core";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ContentEditor from "../../extensions/markdown/core/edit/components/ContentEditor";
 import getExtensions from "../../extensions/markdown/core/edit/logic/getExtensions";
-import Renderer from "../../extensions/markdown/core/render/components/Renderer";
 import getComponents from "../../extensions/markdown/core/render/components/getComponents/getComponents";
-import Header from "../../extensions/markdown/elements/heading/render/component/Header";
+import Header from "../../extensions/markdown/elements/heading/render/components/Header";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
 import { highlightFragmentInDocportalByUrl } from "./SearchHandler/ArticleSearchFragmentHander";
 
@@ -166,13 +164,13 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		<ArticleUpdater data={actualData} onUpdate={onUpdate}>
 			<ArticleParent>
 				<ContentEditor
+					apiUrlCreatorRef={apiUrlCreatorRef}
+					articlePropsRef={articlePropsRef}
 					content={actualData.articleContentEdit}
 					extensions={extensions}
+					handlePaste={editorHandlePaste}
 					onTitleLoseFocus={onTitleNeedsUpdate}
 					onUpdate={onContentUpdate}
-					handlePaste={editorHandlePaste}
-					articlePropsRef={articlePropsRef}
-					apiUrlCreatorRef={apiUrlCreatorRef}
 				/>
 			</ArticleParent>
 		</ArticleUpdater>
@@ -184,11 +182,11 @@ export const ArticleReadRenderer = memo(({ data }: { data: ArticlePageData }) =>
 	return (
 		<ArticleParent>
 			<>
-				<Header level={1} className={"article-title"} dataQa={"article-title"}>
+				<Header className={"article-title"} dataQa={"article-title"} level={1}>
 					{articleProps.title}
 				</Header>
 				{!articleProps.description ? null : (
-					<Header level={2} className={"article-description"} dataQa={"article-description"}>
+					<Header className={"article-description"} dataQa={"article-description"} level={2}>
 						{articleProps.description}
 					</Header>
 				)}

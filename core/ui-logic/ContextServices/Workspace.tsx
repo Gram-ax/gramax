@@ -1,9 +1,9 @@
 import { PageProps } from "@components/ContextProviders";
+import Path from "@core/FileProvider/Path/Path";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ContextService from "@core-ui/ContextServices/ContextService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import Path from "@core/FileProvider/Path/Path";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { createContext, ReactElement, useContext, useMemo } from "react";
 

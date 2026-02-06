@@ -1,12 +1,12 @@
-import { Editor, Extensions, JSONContent } from "@tiptap/core";
-import getExtensions, { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
-import ElementGroups from "@ext/markdown/core/element/ElementGroups";
-import Document from "@tiptap/extension-document";
-import { useMemo } from "react";
+import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
 import Main, { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import getExtensions, { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
+import { Editor, Extensions, JSONContent } from "@tiptap/core";
+import Document from "@tiptap/extension-document";
+import { useMemo } from "react";
 
 interface TemplateEditorProps {
 	title: string;
@@ -46,13 +46,13 @@ const CustomArticleEditor = (props: TemplateEditorProps) => {
 
 	return (
 		<SmallEditor
-			props={{ title, content }}
-			content={content}
-			id={id}
 			articleType={providerType}
+			content={content}
 			extensions={extensions}
-			updateCallback={onUpdate}
+			id={id}
 			options={{ menu: (editor: Editor) => <Main editor={editor} includeResources={false} {...menuOptions} /> }}
+			props={{ title, content }}
+			updateCallback={onUpdate}
 		/>
 	);
 };

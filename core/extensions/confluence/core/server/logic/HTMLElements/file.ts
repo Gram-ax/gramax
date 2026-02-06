@@ -14,7 +14,7 @@ const file: HTMLNodeConverter = async (fileNode, ctx) => {
 	const pageData = pageTitle
 		? await new ConfluenceServerAPI(ctx.data as ConfluenceServerSourceData).getPageData(pageTitle)
 		: null;
-		
+
 	const resourceName = await ctx.save(fileName, pageData?.id);
 	if (!resourceName) return convertHTMLUnsupportedNode(fileNode, ctx.confluencePageUrl);
 	return {

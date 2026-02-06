@@ -1,8 +1,8 @@
-import useRemoveSource from "@ext/storage/components/useRemoveSource";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import t from "@ext/localization/locale/translate";
-import getStorageIconByData from "@ext/storage/logic/SourceDataProvider/logic/getStorageIconByData";
 import CustomSelectOption from "@ext/git/actions/Clone/components/SelectOption";
+import t from "@ext/localization/locale/translate";
+import useRemoveSource from "@ext/storage/components/useRemoveSource";
+import getStorageIconByData from "@ext/storage/logic/SourceDataProvider/logic/getStorageIconByData";
+import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 interface SourceOptionProps {
 	storageKey: string;
@@ -22,9 +22,9 @@ const SourceOption = ({ storageKey, source, onDelete, onInvalid, onEdit }: Sourc
 
 		const message = usage?.length
 			? t("git.source.remove-alert") +
-			  " " +
-			  t("git.source.remove-alert-usage") +
-			  usage.map((u) => ` - ${u}`).join("\n")
+				" " +
+				t("git.source.remove-alert-usage") +
+				usage.map((u) => ` - ${u}`).join("\n")
 			: t("git.source.remove-alert");
 
 		if (await confirm(message)) {
@@ -35,18 +35,18 @@ const SourceOption = ({ storageKey, source, onDelete, onInvalid, onEdit }: Sourc
 
 	return (
 		<CustomSelectOption
+			icon={getStorageIconByData(source)}
 			invalid={source.isInvalid}
 			key={storageKey}
-			value={storageKey}
 			label={storageKey}
-			icon={getStorageIconByData(source)}
-			onEdit={onEdit}
-			onDelete={onDeleteClick}
 			onClickInvalid={(e) => {
 				e.stopPropagation();
 				e.preventDefault();
 				onInvalid?.(source);
 			}}
+			onDelete={onDeleteClick}
+			onEdit={onEdit}
+			value={storageKey}
 		/>
 	);
 };

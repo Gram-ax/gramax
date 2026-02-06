@@ -29,15 +29,15 @@ const AppError = ({ error, ...props }: { error: DefaultError } & HTMLAttributes<
 		<div {...props}>
 			<div className="container">
 				<InfoModalForm
-					title={t(errorInfo.title)}
 					icon={{ code: "circle-x", color: "var(--color-danger)" }}
-					onCancelClick={null}
 					noButtons={true}
+					onCancelClick={null}
+					title={t(errorInfo.title)}
 				>
 					{errorInfo.desc ? (
 						<div dangerouslySetInnerHTML={{ __html: t(errorInfo.desc) }}></div>
 					) : (
-						error?.message ?? t("app.error.unknown-error")
+						(error?.message ?? t("app.error.unknown-error"))
 					)}
 				</InfoModalForm>
 			</div>

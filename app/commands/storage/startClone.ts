@@ -16,6 +16,7 @@ const startClone: Command<
 		isBare?: boolean;
 		redirectOnClone?: string;
 		deleteIfExists?: boolean;
+		skipLfsPull?: boolean;
 	},
 	{ alreadyExist: boolean }
 > = Command.create({
@@ -25,7 +26,7 @@ const startClone: Command<
 
 	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
-	async do({ ctx, path, data, branch, isBare, redirectOnClone, deleteIfExists }) {
+	async do({ ctx, path, data, branch, isBare, skipLfsPull, redirectOnClone, deleteIfExists }) {
 		const workspace = await this._app.wm.currentOrDefault();
 		const { rp } = this._app;
 
@@ -50,7 +51,7 @@ const startClone: Command<
 
 		workspace.addCatalogEntry(entry);
 
-		void rp.clone(fs, path, data, isBare, branch, async (_, isCancelled) => {
+		void rp.clone(fs, path, data, isBare, branch, skipLfsPull, async (_, isCancelled) => {
 			const workspace = this._app.wm.current(); // at this point workspace can be changed
 
 			const exist = await fs.fp.exists(path);
@@ -79,6 +80,7 @@ const startClone: Command<
 			isBare: q.isBare ? q.isBare === "true" : false,
 			redirectOnClone: q.redirectOnClone,
 			deleteIfExists: q.deleteIfExists ? q.deleteIfExists === "true" : false,
+			skipLfsPull: q.skipLfsPull ? q.skipLfsPull === "true" : false,
 		};
 	},
 });

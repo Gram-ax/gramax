@@ -16,7 +16,7 @@ const StyledDiv = styled.div`
 const LoaderText = ({ text }: { text: string }) => {
 	return (
 		<StyledDiv>
-			<SpinnerLoader width={14} height={14} />
+			<SpinnerLoader height={14} width={14} />
 			<span>{text}</span>
 		</StyledDiv>
 	);

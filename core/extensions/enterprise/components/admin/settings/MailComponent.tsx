@@ -118,12 +118,6 @@ const MailComponent = () => {
 	return (
 		<>
 			<StickyHeader
-				title={
-					<>
-						{getAdminPageTitle(Page.MAIL)} <Spinner size="small" show={isRefreshing("mail")} />
-					</>
-				}
-				isScrolled={isScrolled}
 				actions={
 					<>
 						{isSaving ? (
@@ -136,24 +130,30 @@ const MailComponent = () => {
 						)}
 					</>
 				}
+				isScrolled={isScrolled}
+				title={
+					<>
+						{getAdminPageTitle(Page.MAIL)} <Spinner show={isRefreshing("mail")} size="small" />
+					</>
+				}
 			/>
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
 			<div className="px-6 space-y-6">
 				<div>
 					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.mail.sender-settings")}</h2>
 
 					<StyledField
-						title={t("enterprise.admin.mail.sender-address")}
 						control={() => (
 							<Input
 								id="sender"
-								placeholder="example@example.com"
 								name="sender"
-								value={localSettings.sender}
 								onChange={handleInputChange}
+								placeholder="example@example.com"
+								value={localSettings.sender}
 							/>
 						)}
+						title={t("enterprise.admin.mail.sender-address")}
 					/>
 				</div>
 
@@ -161,57 +161,57 @@ const MailComponent = () => {
 					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.mail.smtp-settings")}</h2>
 					<div className="space-y-4">
 						<StyledField
-							title={t("enterprise.admin.mail.host")}
 							control={() => (
 								<Input
 									id="smtp.host"
-									placeholder="smtp.example.com"
 									name="smtp.host"
-									value={localSettings.smtp.host}
 									onChange={handleInputChange}
+									placeholder="smtp.example.com"
+									value={localSettings.smtp.host}
 								/>
 							)}
+							title={t("enterprise.admin.mail.host")}
 						/>
 
 						<StyledField
-							title={t("enterprise.admin.mail.port")}
 							control={() => (
 								<Input
 									id="smtp.port"
-									placeholder="587"
 									name="smtp.port"
+									onChange={handleInputChange}
+									placeholder="587"
 									type="number"
 									value={localSettings.smtp.port}
-									onChange={handleInputChange}
 								/>
 							)}
+							title={t("enterprise.admin.mail.port")}
 						/>
 
 						<StyledField
-							title={t("enterprise.admin.mail.user")}
 							control={() => (
 								<Input
 									id="smtp.user"
-									placeholder="example@example.com"
 									name="smtp.user"
-									value={localSettings.smtp.user}
 									onChange={handleInputChange}
+									placeholder="example@example.com"
+									value={localSettings.smtp.user}
 								/>
 							)}
+							title={t("enterprise.admin.mail.user")}
 						/>
 
 						<StyledField
-							title={t("enterprise.admin.mail.password")}
 							control={() => (
 								<Input
 									id="smtp.password"
-									placeholder={t("enterprise.admin.mail.password-placeholder")}
 									name="smtp.password"
+									onChange={handleInputChange}
+									placeholder={t("enterprise.admin.mail.password-placeholder")}
 									type="password"
 									value={localSettings.smtp.password}
-									onChange={handleInputChange}
 								/>
 							)}
+							title={t("enterprise.admin.mail.password")}
 						/>
 					</div>
 				</div>

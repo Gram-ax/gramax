@@ -3,9 +3,9 @@ import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourc
 import {
 	CheckAuthResponse,
 	CheckResponse,
-	TranscribeResponse,
 	RequestOptions,
 	TranscribeRequest,
+	TranscribeResponse,
 } from "@ics/gx-vector-search";
 
 export type AiPrettifyOptions = {

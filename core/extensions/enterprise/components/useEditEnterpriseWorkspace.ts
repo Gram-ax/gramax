@@ -1,8 +1,8 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import { EnterpriseAuthResult } from "@ext/enterprise/types/EnterpriseAuthResult";
+import { getEnterpriseWorkspaceEditData } from "@ext/enterprise/utils/getEnterpriseWorkspaceEditData";
 import { useEffect, useState } from "react";
 import { fetchEnterpriseWorkspaceEdit } from "./fetchEnterpriseWorkspaceEdit";
-import { getEnterpriseWorkspaceEditData } from "@ext/enterprise/utils/getEnterpriseWorkspaceEditData";
-import { EnterpriseAuthResult } from "@ext/enterprise/types/EnterpriseAuthResult";
 
 export type EnterpriseWorkspaceEditData = {
 	permitted: boolean;

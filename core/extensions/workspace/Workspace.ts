@@ -1,7 +1,7 @@
 import type Context from "@core/Context/Context";
-import { createEventEmitter, Event, type EventArgs } from "@core/Event/EventEmitter";
-import Path from "@core/FileProvider/Path/Path";
+import { createEventEmitter, type Event, type EventArgs } from "@core/Event/EventEmitter";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
@@ -11,12 +11,12 @@ import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog
 import FileStructure from "@core/FileStructue/FileStructure";
 import ItemExtensions from "@core/FileStructue/Item/ItemExtensions";
 import type YamlFileConfig from "@core/utils/YamlFileConfig";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
-import { WorkspaceConfig, type WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import WorkspaceEventHandlers from "@ext/workspace/events/WorkspaceEventHandlers";
+import type WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
+import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"remove-catalog", { name: string }> &
@@ -60,8 +60,9 @@ export class Workspace {
 		const mutableEntries = { entries };
 		await workspace._events.emit("on-entries-read", { mutableEntries });
 
-		fs.fp.watch(workspace._onItemChanged.bind(this));
+		fs.fp.watch(workspace._onItemChanged.bind(Workspace));
 		await workspace._initRepositories(mutableEntries.entries, fs.fp);
+
 		return workspace;
 	}
 
@@ -104,7 +105,11 @@ export class Workspace {
 		const { name: n, metadata } = BaseCatalog.parseName(name);
 		const entry = this._entries.get(n);
 		const mutableEntry = { entry };
-		await this._events.emit("on-catalog-entry-resolve", { mutableEntry, name, metadata });
+		await this._events.emit("on-catalog-entry-resolve", {
+			mutableEntry,
+			name,
+			metadata,
+		});
 		return mutableEntry.entry;
 	}
 
@@ -214,7 +219,7 @@ export class Workspace {
 		const catalogDirIsRemoved = ref.path.compare(new Path(catalogName));
 		const catalogRootFileIsRemoved = FileStructure.isCatalog(ref.path);
 
-		const catalogIsRemoved = (catalogDirIsRemoved || catalogRootFileIsRemoved) && status == FileStatus.delete;
+		const catalogIsRemoved = (catalogDirIsRemoved || catalogRootFileIsRemoved) && status === FileStatus.delete;
 		if (catalogIsRemoved && this._entries.has(catalogName)) this._entries.delete(catalogName);
 		return catalogIsRemoved;
 	}

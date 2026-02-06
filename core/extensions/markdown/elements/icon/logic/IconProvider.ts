@@ -1,5 +1,5 @@
-import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import { uniqueName } from "@core/utils/uniqueName";
@@ -12,7 +12,11 @@ export default class IconProvider {
 	private _iconsPath: Path;
 	private _cachedIcons = new Map<string, string>();
 
-	constructor(private _fp: FileProvider, private _fs: FileStructure, private _catalog: Catalog) {
+	constructor(
+		private _fp: FileProvider,
+		private _fs: FileStructure,
+		private _catalog: Catalog,
+	) {
 		this._iconsPath = new Path([this._catalog.getRootCategoryPath().value, ICONS_FOLDER]);
 	}
 

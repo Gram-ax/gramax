@@ -1,14 +1,14 @@
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import isSafari from "@core-ui/utils/isSafari";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import NavigationEventsService from "@ext/navigation/NavigationEvents";
 import { useCallback, useEffect } from "react";
 import { PAGE_HEIGHT_PDF, PAGE_WIDTH_PDF } from "../const";
 import { PdfExportProgress, PdfPrintParams } from "../types";
-import PrintPages from "./PrintPages";
 import { usePaginationTask } from "./hooks/usePaginationTask";
+import PrintPages from "./PrintPages";
 
 type PrintViewProps = {
 	itemPath?: string;
@@ -79,14 +79,14 @@ const PrintView = ({
 	return (
 		<div className={`article-body ${className}`}>
 			<PrintPages
-				itemPath={itemPath}
-				isCategory={isCategory}
-				catalogProps={catalogProps}
 				apiUrlCreator={apiUrlCreator}
-				params={params}
+				catalogProps={catalogProps}
+				isCategory={isCategory}
+				itemPath={itemPath}
+				onCancelPagination={cancel}
 				onProgress={onProgress}
 				onStartPagination={start}
-				onCancelPagination={cancel}
+				params={params}
 			/>
 		</div>
 	);
@@ -100,16 +100,6 @@ export default styled(PrintView)`
 	&,
 	.print-body {
 		min-width: ${PAGE_WIDTH_PDF}px !important;
-	}
-
-	h1,
-	h2,
-	h3,
-	h4,
-	h5,
-	h6,
-	.page:first-child {
-		page-break-before: unset !important;
 	}
 
 	.page {
@@ -142,6 +132,10 @@ export default styled(PrintView)`
 				&.task-item > label {
 					display: none;
 				}
+			}
+
+			h1 {
+				break-before: page;
 			}
 		}
 	}
@@ -237,6 +231,10 @@ export default styled(PrintView)`
 		visibility: visible;
 		height: auto !important;
 		overflow: visible !important;
+
+		* {
+			break-before: unset !important;
+		}
 
 		@page {
 			margin: 0;

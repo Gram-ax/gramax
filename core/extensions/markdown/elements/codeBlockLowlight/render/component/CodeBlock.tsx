@@ -84,10 +84,10 @@ const CodeBlock = (props: CodeBlockProps) => {
 
 	return (
 		<NewStyledCodeBlock
-			style={style}
+			isPrint={isPrint}
 			onMouseEnter={onMouseEnterHandler}
 			onMouseLeave={onMouseLeaveHandler}
-			isPrint={isPrint}
+			style={style}
 		>
 			{coppedIsExpanded && (
 				<Tooltip content={!copped ? clickToCopyText : copiedText}>

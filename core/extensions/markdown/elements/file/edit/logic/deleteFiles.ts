@@ -1,5 +1,5 @@
-import { Mark } from "@tiptap/pm/model";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import { Mark } from "@tiptap/pm/model";
 
 const deleteFiles = async (marks: Mark[], resourceService: ResourceServiceType) => {
 	for (const mark of marks) {

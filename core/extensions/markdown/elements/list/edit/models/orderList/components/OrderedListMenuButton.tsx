@@ -7,11 +7,11 @@ const OrderedListMenuButton = ({ editor }: { editor: Editor }) => {
 	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "orderedList" });
 	return (
 		<ToolbarToggleButton
+			active={isActive}
+			disabled={disabled}
+			hotKey={"Mod-Shift-7"}
 			onClick={() => editor.chain().focus().toggleOrderedList().run()}
 			tooltipText={t("editor.ordered-list")}
-			hotKey={"Mod-Shift-7"}
-			disabled={disabled}
-			active={isActive}
 		>
 			<ToolbarIcon icon={"list-ordered"} />
 		</ToolbarToggleButton>

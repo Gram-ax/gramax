@@ -1,0 +1,12 @@
+@import url("https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css");
+@import url("https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,500,700&display=swap&subset=cyrillic");
+@import url("https://fonts.googleapis.com/css?family=Roboto+Mono:300,400&display=swap&subset=cyrillic");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@900&display=swap");
+
+@import "ics-ui-kit/styles.css";
+@import "./ProseMirror.css";
+@import "./admonition.css";
+@import "./article-alfabeta.css";
+@import "./article.css";
+@import "./global.css";
+@import "./swagger-ui-theme.css";

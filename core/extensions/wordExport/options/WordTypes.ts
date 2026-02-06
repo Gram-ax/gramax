@@ -1,19 +1,24 @@
-import type { IParagraphOptions, IRunPropertiesOptions, ParagraphChild } from "docx";
-import type { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import LinkResourceManager from "@core/Link/LinkResourceManager";
+import ResourceManager from "@core/Resource/ResourceManager";
+import UiLanguage from "@ext/localization/core/model/Language";
+import { ExportType } from "@ext/wordExport/ExportType";
 import { FileChild } from "@ext/wordExport/types";
+import { JSONContent } from "@tiptap/core";
+import type { IParagraphOptions, IRunPropertiesOptions, ParagraphChild } from "docx";
 import ParserContext from "../../markdown/core/Parser/ParserContext/ParserContext";
 import { RenderableTreeNode, Tag } from "../../markdown/core/render/logic/Markdoc";
 import { WordSerializerState } from "../WordExportState";
-import { ExportType } from "@ext/wordExport/ExportType";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import { JSONContent } from "@tiptap/core";
 
 export type WordBlockChildren = Record<string, WordBlockChild>;
 
 export type WordRenderContext = {
 	parserContext?: ParserContext;
+	resourceManager?: ResourceManager;
+	linkResourceManager?: LinkResourceManager;
+	language: UiLanguage;
 	exportType?: ExportType;
 	titlesMap: Map<string, TitleInfo>;
 	articleName: string;

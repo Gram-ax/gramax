@@ -1,9 +1,9 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import Workspace from "@core-ui/ContextServices/Workspace";
 import t from "@ext/localization/locale/translate";
 import { Editor } from "@tiptap/core";
-import Workspace from "@core-ui/ContextServices/Workspace";
-import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
 import { Icon } from "@ui-kit/Icon";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
 
 interface QuestionMenuButtonProps {
 	editor: Editor;
@@ -16,6 +16,8 @@ const QuestionMenuButton = ({ editor }: QuestionMenuButtonProps) => {
 
 	return (
 		<ToolbarDropdownMenuItem
+			active={isActive}
+			disabled={disabled}
 			onClick={() =>
 				editor
 					.chain()
@@ -23,8 +25,6 @@ const QuestionMenuButton = ({ editor }: QuestionMenuButtonProps) => {
 					.setQuestion({ options: { type: "one" } })
 					.run()
 			}
-			active={isActive}
-			disabled={disabled}
 		>
 			<div className="flex items-center gap-2">
 				<Icon icon="file-question-mark" />

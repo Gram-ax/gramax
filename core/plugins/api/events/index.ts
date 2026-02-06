@@ -1,18 +1,32 @@
-import PageDataContext from "@core/Context/PageDataContext";
+import type PageDataContext from "@core/Context/PageDataContext";
 import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
-import type { PluginEventMap, PluginEventName } from "@gramax/sdk/events";
+import type {
+	PluginEventMap,
+	PluginEventName,
+	SearchClickPayload,
+	SearchResultsPayload,
+	SearchStartPayload,
+} from "@gramax/sdk/events";
 import { ServiceKey } from "@plugins/core/PluginContainer";
 import { getPluginIsReady } from "@plugins/store";
 import { PluginStore } from "@plugins/store/PluginStore";
-import React, { useEffect, useRef } from "react";
+import type React from "react";
+import { useEffect, useRef } from "react";
 
 type EventPayload<E extends PluginEventName> = Parameters<PluginEventMap[E]>[0];
 
 type EventInputMap = {
-	"app:open": { data: HomePageData | ArticlePageData; context: PageDataContext; path: string };
-	"app:close": void;
+	"app:open": {
+		data: HomePageData | ArticlePageData;
+		context: PageDataContext;
+		path: string;
+	};
+	"app:close": undefined;
 	"article:open": { data: ArticlePageData };
-	"article:close": void;
+	"article:close": undefined;
+	"search:start": SearchStartPayload;
+	"search:click": SearchClickPayload;
+	"search:results": SearchResultsPayload;
 };
 
 type EventInput<E extends PluginEventName> = EventInputMap[E];
@@ -20,6 +34,7 @@ type EventInput<E extends PluginEventName> = EventInputMap[E];
 export const emitPluginEvent = async <E extends PluginEventName>(
 	event: E,
 	payload?: EventPayload<E>,
+	// biome-ignore lint/suspicious/noConfusingVoidType: for compatibility with old event interface
 ): Promise<void | boolean> => {
 	const state = PluginStore.getState();
 	if (!state.pluginsReady || !state.manager) return;
@@ -32,7 +47,7 @@ type EventHandler<TInput = void, TPayload = void> = {
 		emit: (payload?: TPayload) => void,
 		input?: TInput,
 		firedRef?: React.MutableRefObject<boolean>,
-	) => void | (() => void);
+	) => undefined | (() => void);
 };
 
 type EventHandlers = {
@@ -74,7 +89,7 @@ const eventHandlers: Partial<EventHandlers> = {
 	},
 	"article:open": {
 		setup: (emit, rawData, firedRef) => {
-			if (rawData === undefined) return;
+			if (rawData === undefined) () => {};
 
 			firedRef.current = false;
 
@@ -93,10 +108,11 @@ const eventHandlers: Partial<EventHandlers> = {
 				emit(payload);
 				return;
 			}
+			return () => {};
 		},
 	},
 	"article:close": {
-		setup: () => {},
+		setup: () => () => {},
 	},
 };
 

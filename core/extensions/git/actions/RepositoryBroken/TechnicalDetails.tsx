@@ -42,7 +42,7 @@ export const TechnicalDetails = ({ children, error, ...props }: TechnicalDetails
 	return (
 		<Modal>
 			<ModalTrigger asChild>
-				<StyledButton variant="link" size="xl" className="underline" {...props}>
+				<StyledButton className="underline" size="xl" variant="link" {...props}>
 					{children}
 				</StyledButton>
 			</ModalTrigger>
@@ -51,7 +51,7 @@ export const TechnicalDetails = ({ children, error, ...props }: TechnicalDetails
 					<ModalTitle>{t("technical-details")}</ModalTitle>
 					<ModalDescription />
 				</ModalHeader>
-				<ModalBody style={{ padding: "0 0 1rem 0" }}>
+				<ModalBody className="text-primary-fg" style={{ padding: "0 0 1rem 0" }}>
 					<CodeBlock value={error?.message || "no message"} />
 				</ModalBody>
 				<ModalFooter className="flex justify-end">

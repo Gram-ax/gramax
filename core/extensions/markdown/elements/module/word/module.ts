@@ -1,7 +1,7 @@
 import { getIconFromString } from "@ext/markdown/elements/icon/render/word/icon";
-import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
+import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const moduleWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
 	return [

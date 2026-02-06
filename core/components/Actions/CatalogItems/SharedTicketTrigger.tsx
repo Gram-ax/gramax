@@ -1,16 +1,16 @@
+import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
-import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import t from "@ext/localization/locale/translate";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import { ComponentProps, ReactNode, useEffect, useState } from "react";
-import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
-import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import Workspace from "@core-ui/ContextServices/Workspace";
-import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import t from "@ext/localization/locale/translate";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
-import CatalogItem from "@components/Actions/CatalogItems/Base";
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import { ComponentProps, ReactNode, useEffect, useState } from "react";
 
 interface SharedTicketTriggerProps {
 	children?: ReactNode;
@@ -47,7 +47,7 @@ const SharedTicketTrigger = ({ children }: SharedTicketTriggerProps) => {
 	return (
 		<CatalogItem
 			renderLabel={(Component) => (
-				<Component onSelect={onSelect} disabled={status !== RequestStatus.Ready}>
+				<Component disabled={status !== RequestStatus.Ready} onSelect={onSelect}>
 					<Icon code="external-link" />
 					{t("share.name.catalog")}
 				</Component>

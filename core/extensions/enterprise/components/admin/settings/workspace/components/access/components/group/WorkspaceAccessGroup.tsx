@@ -93,14 +93,17 @@ export function WorkspaceAccessGroup({
 
 	return (
 		<div>
-			<TableInfoBlock title={t("enterprise.admin.resources.groups.group")} description={currentAccess.gxGroups.length} />
+			<TableInfoBlock
+				description={currentAccess.gxGroups.length}
+				title={t("enterprise.admin.resources.groups.group")}
+			/>
 
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
+						onChange={handleFilterChange}
 						placeholder={`${t("enterprise.admin.resources.groups.search-placeholder")}...`}
 						value={(groupsTable.getColumn("group")?.getFilterValue() as string) ?? ""}
-						onChange={handleFilterChange}
 					/>
 				}
 			>
@@ -110,15 +113,15 @@ export function WorkspaceAccessGroup({
 					selectedCount={groupsSelectedCount}
 				/>
 				<GroupToolbarAddBtn
-					key="add-group"
 					disable={groups.length === 0}
-					onAdd={handleAddGroups}
-					groups={groups}
 					existingGroups={currentAccess.gxGroups}
+					groups={groups}
+					key="add-group"
+					onAdd={handleAddGroups}
 				/>
 			</TableToolbar>
 
-			<TableComponent<Group> table={groupsTable} columns={groupsTableColumns} />
+			<TableComponent<Group> columns={groupsTableColumns} table={groupsTable} />
 		</div>
 	);
 }

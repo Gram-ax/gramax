@@ -1,7 +1,6 @@
 import styled from "@emotion/styled";
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
-import { tString } from "@ext/localization/locale/translate";
-import t from "@ext/localization/locale/translate";
+import t, { tString } from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
 import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
 import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
@@ -49,9 +48,9 @@ export const getPluginsTableColumns = ({
 
 			return (
 				<Checkbox
+					aria-label="Select all"
 					checked={(allSelectableSelected || (someSelectableSelected && "indeterminate")) as CheckedState}
 					onCheckedChange={handleSelectAll}
-					aria-label="Select all"
 				/>
 			);
 		},
@@ -105,24 +104,24 @@ export const getPluginsTableColumns = ({
 			return (
 				<div className="flex h-8 items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
 					<Switch
-						size="sm"
 						checked={!plugin.disabled && !plugin.deleted}
 						disabled={plugin.deleted}
 						onCheckedChange={() => onToggleState(plugin.id, plugin.disabled)}
+						size="sm"
 					/>
 					{plugin.deleted ? (
 						<IconButton
-							variant="ghost"
-							size="sm"
 							icon="rotate-ccw"
 							onClick={() => onDelete(plugin.id, plugin.name)}
+							size="sm"
+							variant="ghost"
 						/>
 					) : !plugin.isBuiltIn ? (
 						<DeleteButton
-							variant="ghost"
-							size="sm"
 							icon="trash"
 							onClick={() => onDelete(plugin.id, plugin.name)}
+							size="sm"
+							variant="ghost"
 						/>
 					) : (
 						<div className="h-8 w-8" />

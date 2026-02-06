@@ -87,7 +87,7 @@ const getItems = (
 	if (!revisions.length) return [{ element: <RequestValueNotFound />, labelField: "", disable: true }];
 
 	const loadingListItem: ItemContent = {
-		element: <SpinnerLoaderStyled width={48} height={48} fullScreen />,
+		element: <SpinnerLoaderStyled fullScreen height={48} width={48} />,
 		labelField: "",
 		disable: true,
 	};
@@ -97,11 +97,11 @@ const getItems = (
 			element: (
 				<RevisionWrapper isCurrent={revision.oid === currentRevision}>
 					<User
-						tooltipDelay={500}
-						name={revision.author.name}
-						mail={revision.author.email}
 						date={revision.timestamp}
 						dateAdd={<span className="oid">{getShortOid(revision.oid)}</span>}
+						mail={revision.author.email}
+						name={revision.author.name}
+						tooltipDelay={500}
 					/>
 				</RevisionWrapper>
 			),
@@ -181,46 +181,46 @@ const RevisionsListLayout = (props: RevisionsListLayoutProps) => {
 	return (
 		<div>
 			<Tooltip
-				place="bottom"
-				visible={isOpen}
 				arrow={false}
-				customStyle
-				interactive
-				trigger="click"
-				distance={0}
 				content={
 					<ItemsWrapper
-						ref={revisionsRef}
 						hasScroll={currentHasScroll}
 						isLoading={isLoading}
+						ref={revisionsRef}
 						shouldLoadMoreAtScrollEnd={shouldLoadMoreAtScrollEnd}
 					>
 						<ItemsByUikit
+							blurInInput={() => {}}
 							endReached={() => {
 								if (shouldLoadMoreAtScrollEnd) requestMore?.(revisions[revisions.length - 1].oid);
 							}}
-							isOpen
-							value={isPlaceholder ? "" : getShortOid(currentRevision)}
-							useVirtuoso
-							setIsOpen={() => {}}
-							blurInInput={() => {}}
 							filteredWidth={100}
-							maxItems={7}
 							isLoadingData={isLoading}
-							onItemClick={onItemClick}
+							isOpen
 							items={items}
+							maxItems={7}
+							onItemClick={onItemClick}
+							setIsOpen={() => {}}
+							useVirtuoso
+							value={isPlaceholder ? "" : getShortOid(currentRevision)}
 						/>
 					</ItemsWrapper>
 				}
+				customStyle
+				distance={0}
+				interactive
+				place="bottom"
+				trigger="click"
+				visible={isOpen}
 			>
 				<FormattedBranchWrapper
-					ref={currentRevisionRef}
-					onClick={() => setIsOpen((v) => !v)}
 					isPlaceholder={isPlaceholder}
+					onClick={() => setIsOpen((v) => !v)}
+					ref={currentRevisionRef}
 				>
 					<FormattedBranch
-						name={isPlaceholder ? placeholder : getShortOid(currentRevision)}
 						changeColorOnHover
+						name={isPlaceholder ? placeholder : getShortOid(currentRevision)}
 					/>
 				</FormattedBranchWrapper>
 			</Tooltip>

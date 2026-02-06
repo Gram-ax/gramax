@@ -1,8 +1,8 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
-import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import type { PluginFiles } from "@ext/workspace/assets/PluginsAsset";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 export interface AddPluginCommand {
 	workspacePath?: WorkspacePath;

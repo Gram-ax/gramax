@@ -9,7 +9,11 @@ const CLICKABLE_SELECTOR =
 	'[data-qa="qa-clickable"], label:has(> button[role="checkbox"]), button, [role="menuitemradio"], [role="menuitem"], [cmdk-item], [data-radix-collection-item]';
 
 export default class SearcherContext {
-	constructor(private _alias: ReplaceAlias, private _aliases: Aliases, private _info: PageInfo) {}
+	constructor(
+		private _alias: ReplaceAlias,
+		private _aliases: Aliases,
+		private _info: PageInfo,
+	) {}
 
 	current() {
 		return this._info.scope;

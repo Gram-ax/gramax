@@ -1,9 +1,9 @@
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import { Article } from "../../../../../logic/FileStructue/Article/Article";
-import ParserContext from "../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
 import { Node, Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
 
-export function include(context: ParserContext): Schema {
+export function include(context: PrivateParserContext): Schema {
 	return {
 		render: "Include",
 		attributes: {
@@ -29,16 +29,9 @@ export function include(context: ParserContext): Schema {
 			}
 
 			const header = article?.getTitle() ? `${gratings} ${article.getTitle()}\r\n\r\n` : "";
-			return new Tag(
-				"Include",
-				{ path: article.ref.path.value },
-				(
-					(await context.parser.parseRenderableTreeNode(
-						header + (article?.content ?? ""),
-						context.createContext(article),
-					)) as Tag
-				).children,
-			);
+			const content = await context.parser.parse(header + (article?.content ?? ""), context);
+
+			return new Tag("Include", { path: article.ref.path.value }, (content.renderTree as Tag).children);
 		},
 	};
 }

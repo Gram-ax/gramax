@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { EditorState } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
 import { dropPoint } from "prosemirror-transform";
+import { EditorView } from "prosemirror-view";
 
 interface DropCursorOptions {
 	color?: string | false;
@@ -18,7 +18,10 @@ export class DropCursorView {
 	timeout: NodeJS.Timeout = null;
 	handlers: { name: string; handler: (event: Event) => void }[];
 
-	constructor(readonly editorView: EditorView, options: DropCursorOptions) {
+	constructor(
+		readonly editorView: EditorView,
+		options: DropCursorOptions,
+	) {
 		this.width = options.width ?? 1;
 		this.color = options.color === false ? undefined : options.color || "black";
 		this.class = options.class;

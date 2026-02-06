@@ -1,6 +1,6 @@
 import FormSkeleton from "@components/Atoms/FormSkeleton";
-import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
+import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import styled from "@emotion/styled";
 import { useCatalogPropsEditorActions } from "@ext/catalog/actions/propsEditor/logic/useCatalogPropsEditorActions";
 import { useOpenExternalGitSourceButton } from "@ext/catalog/actions/propsEditor/logic/useOpenExternalGitSourceButton";
@@ -59,7 +59,7 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 
 	const formSchema = useMemo(
 		() => createFormSchema({ allCatalogNames, validateEncodingSymbolsUrl }),
-		[allCatalogNames, validateEncodingSymbolsUrl],
+		[allCatalogNames],
 	);
 
 	const form = useForm<FormData>({
@@ -99,19 +99,19 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 	);
 
 	return (
-		<Modal open={open} onOpenChange={setOpen}>
+		<Modal onOpenChange={setOpen} open={open}>
 			<ModalContent
 				data-modal-root
 				{...modalContentProps}
-				size="M"
 				className="overflow-hidden p-0"
+				size="M"
 				style={{ height: "calc(100vh - 2rem)" }}
 			>
-				<ModalErrorHandler onError={() => {}} onClose={() => setOpen(false)}>
+				<ModalErrorHandler onClose={() => setOpen(false)} onError={() => {}}>
 					<FormHeader
+						description={t("forms.catalog-edit-props.description")}
 						icon="settings"
 						title={t("forms.catalog-edit-props.name")}
-						description={t("forms.catalog-edit-props.description")}
 					/>
 					<SidebarContainer>
 						<Sidebar collapsible="none">
@@ -138,7 +138,7 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 							</SidebarContent>
 						</Sidebar>
 						<main className="flex flex-1 flex-col overflow-hidden min-h-0">
-							<FormSkeleton isLoading={isFormLoading} form={form}>
+							<FormSkeleton form={form} isLoading={isFormLoading}>
 								<div className="flex flex-col h-full min-h-0">
 									<Form asChild {...form}>
 										<form className="flex flex-col h-full min-h-0" onSubmit={formSubmit}>
@@ -146,15 +146,15 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 												<FormStack>
 													<SectionComponent
 														activeTab={activeTab}
-														formProps={formProps}
 														form={form}
+														formProps={formProps}
 													/>
 												</FormStack>
 											</ModalBody>
 											<FormFooter
 												className="flex-shrink-0"
 												primaryButton={
-													<Button type="submit" variant="primary" disabled={isLoading}>
+													<Button disabled={isLoading} type="submit" variant="primary">
 														{isLoading && <Loader size="sm" />}
 														{t("save")}
 													</Button>

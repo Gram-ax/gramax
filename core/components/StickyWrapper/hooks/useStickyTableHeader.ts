@@ -35,6 +35,7 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 	const [headerRowStyles, setHeaderRowStyles] = useState<HeaderRowStyles>({});
 
 	const headerHeightRef = useRef<number>(0);
+	const borderHeightRef = useRef<number>(0);
 	const prevTableStylesRef = useRef<TableStyles>({});
 	const prevHeaderRowStylesRef = useRef<HeaderRowStyles>({});
 
@@ -102,6 +103,12 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 		setScrollLeft(headerRow.scrollLeft);
 	}, [headerRow, setScrollLeft]);
 
+	const computeBorderHeight = useCallback(() => {
+		if (!headerRow?.firstElementChild) return;
+		const cellStyles = window.getComputedStyle(headerRow.firstElementChild);
+		borderHeightRef.current = parseFloat(cellStyles.borderTopWidth) + parseFloat(cellStyles.borderBottomWidth);
+	}, [headerRow]);
+
 	const computeStyles = useCallback(() => {
 		const table = tableRef?.current;
 		if (!table || !headerRow || !verticalRef.current) return;
@@ -112,9 +119,14 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 		const headerRect = headerRow.getBoundingClientRect();
 		const tbodyTop = rect.top - headerHeightRef.current;
 
+		const sticked = !!headerHeightRef.current;
+		const borderHeight = sticked ? borderHeightRef.current : 0;
+
+		const headerRectHeight = headerRect.height - borderHeight;
 		const shouldStick =
 			rect.top - headerHeightRef.current <= verticalRect.top + TOP_PADDING &&
-			headerRect.height <= verticalRef.current.clientHeight / 2;
+			headerRectHeight <= verticalRef.current.clientHeight / 2;
+
 		headerHeightRef.current = 0;
 
 		const lastRows = table.querySelectorAll<HTMLTableRowElement>(lastRowSelector);
@@ -125,15 +137,15 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 			Math.max(
 				lastRowRect.bottom - verticalRect.top - verticalRef.current.clientHeight / 2,
 				firstRowRect.top - verticalRect.top,
-			) - headerRect.height,
+			) - headerRectHeight,
 			TOP_PADDING,
 		);
 
 		let nextHeader: HeaderRowStyles = {};
 		let nextTableStyles: TableStyles = {};
 
-		if (shouldStick && top >= tbodyTop && top > -headerRect.height - 1) {
-			headerHeightRef.current = headerRect.height;
+		if (shouldStick && top >= tbodyTop && top > -headerRectHeight - 1) {
+			headerHeightRef.current = headerRectHeight;
 			const horizontal = horizontalRef.current;
 			let containerWidth = headerRect.width;
 
@@ -190,6 +202,7 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 		}
 		if (!headerRow) return;
 
+		computeBorderHeight();
 		findScrollableParents();
 		computeStyles();
 

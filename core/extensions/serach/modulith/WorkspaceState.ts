@@ -15,7 +15,7 @@ export class WorkspaceState {
 	});
 	private readonly _keyPhraseSearcher = new KeyPhraseArticleSearcher();
 
-	constructor(private readonly _path: WorkspacePath) { }
+	constructor(private readonly _path: WorkspacePath) {}
 
 	get path(): WorkspacePath {
 		return this._path;

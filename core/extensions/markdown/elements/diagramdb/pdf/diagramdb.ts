@@ -1,5 +1,5 @@
-import DbDiagram from "@core-ui/DbDiagram";
 import Path from "@core/FileProvider/Path/Path";
+import DbDiagram from "@core-ui/DbDiagram";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { PDFImageExporter } from "@ext/markdown/elements/image/pdf/PdfImageProcessor";
@@ -21,14 +21,9 @@ export async function diagramdbHandler(
 	originalWidth = Math.min(originalWidth, MAX_WIDTH);
 
 	const diagram = new DbDiagram(context.parserContext.getTablesManager(), context.parserContext.fp);
-	const path = context.parserContext.getResourceManager().getAbsolutePath(new Path(node.attributes.src));
+	const path = context.resourceManager.getAbsolutePath(new Path(node.attributes.src));
 	const diagramRef = context.parserContext.fp.getItemRef(path);
-	await diagram.addDiagram(
-		diagramRef,
-		node.attributes.tags,
-		resolveLanguage(),
-		context.parserContext.getResourceManager().rootPath,
-	);
+	await diagram.addDiagram(diagramRef, node.attributes.tags, resolveLanguage(), context.resourceManager.rootPath);
 
 	const { base64, size } = await PDFImageExporter.getImageFromDiagramString(diagram.draw(), false, originalWidth);
 

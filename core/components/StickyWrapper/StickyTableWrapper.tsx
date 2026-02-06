@@ -1,21 +1,21 @@
-import React, { useMemo, useRef } from "react";
-import styled from "@emotion/styled";
-import { css } from "@emotion/react";
-import WidthWrapper, { WidthWrapperProps } from "@components/WidthWrapper/WidthWrapper";
 import useStickyTableHeader, {
-	StickyTableHeaderState,
+	type StickyTableHeaderState,
 	TOP_PADDING,
 } from "@components/StickyWrapper/hooks/useStickyTableHeader";
-import { PADDING_LEFT_RIGHT, PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/component/TableWrapper";
+import WidthWrapper, { type WidthWrapperProps } from "@components/WidthWrapper/WidthWrapper";
+import useWatch from "@core-ui/hooks/useWatch";
+import { css } from "@emotion/react";
+import styled from "@emotion/styled";
 import {
+	CONTROLS_CONTAINER_VERTICAL_TOP,
 	HELPERS_LEFT,
 	HELPERS_TOP,
-	CONTROLS_CONTAINER_VERTICAL_TOP,
 	VERTICAL_TOP_OFFSET,
 } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
-import useWatch from "@core-ui/hooks/useWatch";
-import ThemeService from "@ext/Theme/components/ThemeService";
 import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import { PADDING_LEFT_RIGHT, PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/component/TableWrapper";
+import ThemeService from "@ext/Theme/components/ThemeService";
+import { useMemo, useRef } from "react";
 
 type TotalWidths = {
 	computedWidth: number;
@@ -451,7 +451,6 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 		return newWidths;
 	}, [firstRowCells, emptyColWidth]);
 
-
 	const gridColumnsRef = useRef<GridColumns>({});
 	const gridColumns = useMemo(() => {
 		const gridColumns: string[] = [];
@@ -491,7 +490,11 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 			gridColumns.push(size !== -1 ? `${size}px` : `max-content`);
 			totalWidths.push(totalWidth);
 		}
-		gridColumnsRef.current = { totalWidths, gridTemplateColumns: gridColumns.join(" "), gridColWidths };
+		gridColumnsRef.current = {
+			totalWidths,
+			gridTemplateColumns: gridColumns.join(" "),
+			gridColWidths,
+		};
 		return gridColumnsRef.current;
 	}, [colWidths, firstRowCellsWidths]);
 
@@ -556,18 +559,17 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 	);
 	return (
 		<StickyWrapper
-			ref={stickyTableWrapperRef}
-			data-sticky-wrapper=""
-			firstColumnWidth={colWidths?.[0]?.computedWidth}
 			bgColor={bgColor}
 			clientWidth={clientWidth}
+			data-sticky-wrapper=""
+			firstColumnWidth={colWidths?.[0]?.computedWidth}
 			gridColumns={gridColumns}
+			ref={stickyTableWrapperRef}
 			stickyColumnCSS={stickyColumnCSS}
 			{...styckyStyles}
 		>
 			<WidthWrapper
 				{...props}
-				children={children}
 				additional={
 					styckyStyles.tableStyles.tableMarginTop ? (
 						<>
@@ -575,6 +577,7 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 						</>
 					) : null
 				}
+				children={children}
 			/>
 		</StickyWrapper>
 	);

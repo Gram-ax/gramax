@@ -1,40 +1,31 @@
-import "ics-ui-kit/styles.css";
-import "../../../core/styles/ProseMirror.css";
-import "../../../core/styles/admonition.css";
-import "../../../core/styles/article-alfabeta.css";
-import "../../../core/styles/article.css";
+import "../../../core/styles/main.css";
 import "../../../core/styles/chain-icon.css";
-import "../../../core/styles/global.css";
-import "../../../core/styles/swagger-ui-theme.css";
 
+import { initFrontendModules } from "@app/resolveModule/frontend";
 import ContextProviders from "@components/ContextProviders";
 import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
 import OpenGraph from "@components/OpenGraph";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { ArticlePageData, HomePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import Language from "@core-ui/ContextServices/Language";
 import getPageTitle from "@core-ui/getPageTitle";
 import { defaultRefreshPage } from "@core-ui/utils/initGlobalFuncs";
-import PageDataContext from "@core/Context/PageDataContext";
-import { ArticlePageData, HomePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
+import { setFeatureList } from "@ext/toggleFeatures/features";
+import { usePluginEvent } from "@plugins/api/events";
+import { usePluginLoader } from "@plugins/hooks/usePluginLoader";
+import { Toaster } from "@ui-kit/Toast";
+import { TooltipProvider } from "@ui-kit/Tooltip";
 import Error from "next/error";
 import Head from "next/head";
-
-import { initModules } from "@app/resolveModule/frontend";
-
-import { setFeatureList } from "@ext/toggleFeatures/features";
-import { PluginConfig } from "@plugins/index";
-import { usePluginLoader } from "@plugins/hooks/usePluginLoader";
-import { toast, Toaster } from "@ui-kit/Toast";
-import { TooltipProvider } from "@ui-kit/Tooltip";
-import { useEffect, useLayoutEffect, useState } from "react";
-import { usePluginEvent } from "@plugins/api/events";
 import { useRouter } from "next/router";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 const useInitModules = () => {
 	const [isInit, setIsInit] = useState(false);
 
 	useLayoutEffect(() => {
-		initModules()
+		initFrontendModules()
 			.then(() => setIsInit(true))
 			.catch((e) => {
 				console.error(e);
@@ -84,13 +75,13 @@ export default function App({
 		<>
 			<Head>
 				<title>{getPageTitle(isArticle, pageProps.data)}</title>
-				<link rel="icon" href={iconPath} />
+				<link href={iconPath} rel="icon" />
 				{isArticle && <OpenGraph openGraphData={pageProps.openGraphData} />}
 			</Head>
 			<Language.Init>
 				<TooltipProvider>
 					<Toaster />
-					<ContextProviders pageProps={pageProps} refreshPage={defaultRefreshPage} platform="next">
+					<ContextProviders pageProps={pageProps} platform="next" refreshPage={defaultRefreshPage}>
 						<ErrorBoundary context={pageProps.context}>
 							{isArticle ? (
 								<>

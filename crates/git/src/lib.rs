@@ -27,13 +27,17 @@ pub mod repo;
 pub mod repo_ext;
 
 pub mod git2 {
-  pub use git2::*;
+	pub use git2::*;
+}
+
+pub mod lfs {
+	pub use git2_lfs::*;
 }
 
 pub(crate) type Result<T> = std::result::Result<T, error::Error>;
 
 pub trait ShortInfo<'i, T: serde::Serialize> {
-  fn short_info(&'i self) -> Result<T>;
+	fn short_info(&'i self) -> Result<T>;
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
@@ -41,120 +45,133 @@ pub trait ShortInfo<'i, T: serde::Serialize> {
 pub struct OidInfo(pub String);
 
 impl Deref for OidInfo {
-  type Target = String;
+	type Target = String;
 
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
 }
 
 impl TryFrom<OidInfo> for ::git2::Oid {
-  type Error = ::git2::Error;
+	type Error = ::git2::Error;
 
-  fn try_from(value: OidInfo) -> std::result::Result<Self, Self::Error> {
-    ::git2::Oid::from_str(&value.0).map_err(|_| ::git2::Error::from_str("invalid oid"))
-  }
+	fn try_from(value: OidInfo) -> std::result::Result<Self, Self::Error> {
+		::git2::Oid::from_str(&value.0).map_err(|_| ::git2::Error::from_str("invalid oid"))
+	}
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SignatureInfo {
-  pub name: String,
-  pub email: String,
+	pub name: String,
+	pub email: String,
 }
 
 impl<'s> From<&'s ::git2::Signature<'s>> for SignatureInfo {
-  fn from(value: &'s ::git2::Signature<'s>) -> Self {
-    SignatureInfo {
-      name: value.name().unwrap_or("<invalid-utf8>").into(),
-      email: value.email().unwrap_or("<invalid-utf8>").into(),
-    }
-  }
+	fn from(value: &'s ::git2::Signature<'s>) -> Self {
+		SignatureInfo {
+			name: value.name().unwrap_or("<invalid-utf8>").into(),
+			email: value.email().unwrap_or("<invalid-utf8>").into(),
+		}
+	}
 }
 
 impl std::hash::Hash for SignatureInfo {
-  fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-    self.email.hash(state);
-  }
+	fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+		self.email.hash(state);
+	}
 }
 
 impl ShortInfo<'_, SignatureInfo> for ::git2::Signature<'_> {
-  fn short_info(&'_ self) -> Result<SignatureInfo> {
-    Ok(SignatureInfo::from(self))
-  }
+	fn short_info(&'_ self) -> Result<SignatureInfo> {
+		Ok(SignatureInfo::from(self))
+	}
 }
 
 impl Borrow<str> for SignatureInfo {
-  fn borrow(&self) -> &str {
-    &self.email
-  }
+	fn borrow(&self) -> &str {
+		&self.email
+	}
 }
 
 impl<'s> From<&'s ::git2::Oid> for OidInfo {
-  fn from(value: &'s ::git2::Oid) -> Self {
-    OidInfo(value.to_string())
-  }
+	fn from(value: &'s ::git2::Oid) -> Self {
+		OidInfo(value.to_string())
+	}
 }
 
 impl<'s> ShortInfo<'s, OidInfo> for ::git2::Oid {
-  fn short_info(&'s self) -> Result<OidInfo> {
-    Ok(OidInfo::from(self))
-  }
+	fn short_info(&'s self) -> Result<OidInfo> {
+		Ok(OidInfo::from(self))
+	}
 }
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct SinglelineSignature {
-  pub name: String,
-  pub email: String,
+	pub name: String,
+	pub email: String,
 }
 
 impl<'s> From<&'s ::git2::Signature<'s>> for SinglelineSignature {
-  fn from(value: &'s ::git2::Signature<'s>) -> Self {
-    SinglelineSignature {
-      name: value.name().unwrap_or("<invalid-utf8>").into(),
-      email: value.email().unwrap_or("<invalid-utf8>").into(),
-    }
-  }
+	fn from(value: &'s ::git2::Signature<'s>) -> Self {
+		SinglelineSignature {
+			name: value.name().unwrap_or("<invalid-utf8>").into(),
+			email: value.email().unwrap_or("<invalid-utf8>").into(),
+		}
+	}
 }
 
 impl<'s> ShortInfo<'s, SinglelineSignature> for ::git2::Signature<'s> {
-  fn short_info(&'s self) -> Result<SinglelineSignature> {
-    Ok(SinglelineSignature::from(self))
-  }
+	fn short_info(&'s self) -> Result<SinglelineSignature> {
+		Ok(SinglelineSignature::from(self))
+	}
 }
 
 struct SinglelineSignatureVisitor;
 
 impl serde::de::Visitor<'_> for SinglelineSignatureVisitor {
-  type Value = SinglelineSignature;
+	type Value = SinglelineSignature;
 
-  fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-    formatter.write_str("string in the format of `name <email>`")
-  }
+	fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+		formatter.write_str("string in the format of `name <email>`")
+	}
 
-  fn visit_str<E: serde::de::Error>(self, v: &str) -> std::result::Result<Self::Value, E> {
-    let open_bracket_index = v.find('<').ok_or(E::custom("invalid signature, missing `<`"))?;
-    let close_bracket_index = v.find('>').ok_or(E::custom("invalid signature, missing `>`"))?;
-    if open_bracket_index >= close_bracket_index {
-      return Err(E::custom("invalid signature, expected `name <email>`"));
-    }
+	fn visit_str<E: serde::de::Error>(self, v: &str) -> std::result::Result<Self::Value, E> {
+		let open_bracket_index = v.find('<').ok_or(E::custom("invalid signature, missing `<`"))?;
+		let close_bracket_index = v.find('>').ok_or(E::custom("invalid signature, missing `>`"))?;
+		if open_bracket_index >= close_bracket_index {
+			return Err(E::custom("invalid signature, expected `name <email>`"));
+		}
 
-    let name = &v[..open_bracket_index].trim();
-    let email = &v[open_bracket_index + 1..close_bracket_index].trim();
-    Ok(SinglelineSignature { name: name.to_string(), email: email.to_string() })
-  }
+		let name = &v[..open_bracket_index].trim();
+		let email = &v[open_bracket_index + 1..close_bracket_index].trim();
+		Ok(SinglelineSignature {
+			name: name.to_string(),
+			email: email.to_string(),
+		})
+	}
 }
 
 impl serde::Serialize for SinglelineSignature {
-  fn serialize<S: serde::Serializer>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> {
-    serializer.serialize_str(&format!("{} <{}>", self.name, self.email))
-  }
+	fn serialize<S: serde::Serializer>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> {
+		serializer.serialize_str(&format!("{} <{}>", self.name, self.email))
+	}
 }
 
 impl<'de> serde::Deserialize<'de> for SinglelineSignature {
-  fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
-    deserializer.deserialize_str(SinglelineSignatureVisitor)
-  }
+	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
+		deserializer.deserialize_str(SinglelineSignatureVisitor)
+	}
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Debug)]
+#[serde(rename_all = "camelCase")]
+#[serde(tag = "kind", content = "val")]
+pub enum ConfigValue {
+	Str(String),
+	I32(i32),
+	I64(i64),
+	Bool(bool),
 }
 
 pub struct ShortPath<'a>(pub &'a Path);
@@ -163,102 +180,102 @@ pub struct ShortPath<'a>(pub &'a Path);
 pub struct ShortPathBuf(pub PathBuf);
 
 impl<'a> From<&'a Path> for ShortPath<'a> {
-  fn from(p: &'a Path) -> Self {
-    ShortPath(p)
-  }
+	fn from(p: &'a Path) -> Self {
+		ShortPath(p)
+	}
 }
 
 impl From<PathBuf> for ShortPathBuf {
-  fn from(p: PathBuf) -> Self {
-    ShortPathBuf(p)
-  }
+	fn from(p: PathBuf) -> Self {
+		ShortPathBuf(p)
+	}
 }
 
 impl<'a> AsRef<Path> for ShortPath<'a> {
-  fn as_ref(&self) -> &Path {
-    self.0
-  }
+	fn as_ref(&self) -> &Path {
+		self.0
+	}
 }
 
 impl AsRef<Path> for ShortPathBuf {
-  fn as_ref(&self) -> &Path {
-    &self.0
-  }
+	fn as_ref(&self) -> &Path {
+		&self.0
+	}
 }
 
 impl Deref for ShortPathBuf {
-  type Target = Path;
-  fn deref(&self) -> &Self::Target {
-    self.0.as_path()
-  }
+	type Target = Path;
+	fn deref(&self) -> &Self::Target {
+		self.0.as_path()
+	}
 }
 
 fn last_two_components(path: &Path) -> Cow<'_, str> {
-  let comps: Vec<Component<'_>> = path.components().collect();
-  if comps.is_empty() {
-    return Cow::Borrowed("");
-  }
+	let comps: Vec<Component<'_>> = path.components().collect();
+	if comps.is_empty() {
+		return Cow::Borrowed("");
+	}
 
-  let take_n = comps.iter().rev().filter(|c| matches!(c, Component::Normal(_))).take(2);
-  let mut parts: Vec<String> = take_n.map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
-  parts.reverse();
-  if parts.is_empty() {
-    return Cow::Owned(path.display().to_string());
-  }
+	let take_n = comps.iter().rev().filter(|c| matches!(c, Component::Normal(_))).take(2);
+	let mut parts: Vec<String> = take_n.map(|c| c.as_os_str().to_string_lossy().into_owned()).collect();
+	parts.reverse();
+	if parts.is_empty() {
+		return Cow::Owned(path.display().to_string());
+	}
 
-  Cow::Owned(parts.join("/"))
+	Cow::Owned(parts.join("/"))
 }
 
 impl<'a> fmt::Debug for ShortPath<'a> {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", last_two_components(self.0))
-  }
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "{}", last_two_components(self.0))
+	}
 }
 
 impl fmt::Debug for ShortPathBuf {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", last_two_components(&self.0))
-  }
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "{}", last_two_components(&self.0))
+	}
 }
 
 impl<'a> fmt::Display for ShortPath<'a> {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", last_two_components(self.0))
-  }
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "{}", last_two_components(self.0))
+	}
 }
 
 impl fmt::Display for ShortPathBuf {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", last_two_components(&self.0))
-  }
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "{}", last_two_components(&self.0))
+	}
 }
 
 pub trait ShortPathExt {
-  fn short(&self) -> ShortPath<'_>;
+	fn short(&self) -> ShortPath<'_>;
 }
 
 impl ShortPathExt for Path {
-  fn short(&self) -> ShortPath<'_> {
-    ShortPath(self)
-  }
+	fn short(&self) -> ShortPath<'_> {
+		ShortPath(self)
+	}
 }
 
 impl ShortPathExt for PathBuf {
-  fn short(&self) -> ShortPath<'_> {
-    ShortPath(self.as_path())
-  }
+	fn short(&self) -> ShortPath<'_> {
+		ShortPath(self.as_path())
+	}
 }
 
 #[cfg(target_family = "wasm")]
 pub(crate) fn time_now() -> Duration {
-  extern "C" {
-    fn emscripten_get_now() -> f64;
-  }
-  Duration::from_millis(unsafe { emscripten_get_now() as u64 })
+	extern "C" {
+		fn emscripten_get_now() -> f64;
+	}
+	Duration::from_millis(unsafe { emscripten_get_now() as u64 })
 }
 
 #[cfg(not(target_family = "wasm"))]
 pub(crate) fn time_now() -> Duration {
-  use std::time::SystemTime;
-  SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap()
+	use std::time::SystemTime;
+	SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap()
 }

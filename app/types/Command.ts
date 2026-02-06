@@ -1,6 +1,6 @@
-import Query from "@core/Api/Query";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import Middleware from "@core/Api/middleware/Middleware";
+import Query from "@core/Api/Query";
 import Context from "@core/Context/Context";
 import { CommandTree } from "../commands";
 import Application from "./Application";

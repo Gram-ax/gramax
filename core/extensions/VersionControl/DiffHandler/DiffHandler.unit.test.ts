@@ -128,7 +128,7 @@ describe("DiffHandler", () => {
 			test("mixed cyrillic and latin characters", () => {
 				const text1 = "hello мир";
 				const text2 = "hello мир!";
-				expect(getLevenshteinMatching(text1, text2)).toBeCloseTo(0.90);
+				expect(getLevenshteinMatching(text1, text2)).toBeCloseTo(0.9);
 			});
 
 			test("words with similar spelling", () => {

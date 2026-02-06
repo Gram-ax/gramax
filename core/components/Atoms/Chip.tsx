@@ -20,11 +20,11 @@ const Chip = forwardRef<HTMLDivElement, ChipProps>((props, ref) => {
 	const { icon, name, className, onClick, index = -1, disabled = false, style, dataQa, focused } = props;
 	return (
 		<div
-			ref={ref}
 			className={classNames(className, { disabled, focused })}
-			onClick={() => onClick?.(index)}
-			style={style}
 			data-qa={dataQa}
+			onClick={() => onClick?.(index)}
+			ref={ref}
+			style={style}
 		>
 			{name}
 			{icon && <Icon code={icon} />}

@@ -1,22 +1,21 @@
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import type Context from "@core/Context/Context";
-import { createEventEmitter, UnsubscribeToken, type HasEvents } from "@core/Event/EventEmitter";
-import ArticleParser from "@core/FileStructue/Article/ArticleParser";
+import { createEventEmitter, type HasEvents, type UnsubscribeToken } from "@core/Event/EventEmitter";
+import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import BaseCatalog, { type BaseCatalogInitProps } from "@core/FileStructue/Catalog/BaseCatalog";
 import type CatalogEvents from "@core/FileStructue/Catalog/CatalogEvents";
 import { CatalogItemSearcher } from "@core/FileStructue/Catalog/CatalogItemSearcher";
-import { type CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import ContextualCatalogEventHandlers from "@core/FileStructue/Catalog/ContextualCatalogEvents";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
 import itemRefUtils from "@core/utils/itemRefUtils";
 import { uniqueName } from "@core/utils/uniqueName";
-import { ItemStatus, type ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import PromptProvider from "@ext/ai/logic/PromptProvider";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
+import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import type Repository from "@ext/git/core/Repository/Repository";
 import InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
@@ -27,15 +26,16 @@ import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvide
 import CatalogLinksProvider from "@ext/properties/logic/CatalogLinksProvider";
 import Permission from "@ext/security/logic/Permission/Permission";
 import TemplateProvider from "@ext/templates/logic/TemplateProvider";
+import type { ItemRefStatus, ItemStatus } from "@ext/Watchers/model/ItemStatus";
 import assert from "assert";
+import type IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import { FileStatus } from "../../../extensions/Watchers/model/FileStatus";
-import IPermission from "../../../extensions/security/logic/Permission/IPermission";
+import type FileProvider from "../../FileProvider/model/FileProvider";
 import Path from "../../FileProvider/Path/Path";
-import FileProvider from "../../FileProvider/model/FileProvider";
-import { Article } from "../Article/Article";
-import { Category } from "../Category/Category";
-import { Item, UpdateItemProps } from "../Item/Item";
-import { ItemRef } from "../Item/ItemRef";
+import type { Article } from "../Article/Article";
+import type { Category } from "../Category/Category";
+import type { Item, UpdateItemProps } from "../Item/Item";
+import type { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
 
 export type ItemFilter = ((item: Item, catalog: ReadonlyCatalog) => boolean) & {
@@ -208,10 +208,10 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		silent?: boolean,
 	): Promise<Article> {
 		const parentItem = parentRef
-			? this.findItemByItemRef<Category>(parentRef) ?? this._resolveRootCategory()
+			? (this.findItemByItemRef<Category>(parentRef) ?? this._resolveRootCategory())
 			: this._resolveRootCategory();
 
-		if (parentItem.type == ItemType.article) {
+		if (parentItem.type === ItemType.article) {
 			const category = await this.createCategoryByArticle(makeResourceUpdater, parentItem as Article);
 			if (!silent) await this.events.emit("item-created", { catalog: this, makeResourceUpdater, parentRef });
 			return await this.createArticle(makeResourceUpdater, markdown, category.ref, true);
@@ -239,10 +239,10 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 	async createCategory(name: string, parentRef?: ItemRef): Promise<Category> {
 		const parentItem = parentRef
-			? this.findItemByItemRef<Category>(parentRef) ?? this._resolveRootCategory()
+			? (this.findItemByItemRef<Category>(parentRef) ?? this._resolveRootCategory())
 			: this._resolveRootCategory();
 
-		if (parentItem.type == ItemType.article)
+		if (parentItem.type === ItemType.article)
 			throw new Error(`Cannot create category: parent item is article; ref: ${parentItem.ref.path.value}`);
 
 		const category = await this._fs.createCategory(
@@ -356,13 +356,15 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	}
 
 	getCategories(filters?: CategoryFilter[]): Category[] {
+		// biome-ignore lint/style/noParameterAssign: idc
 		if (!filters) filters = [];
-		filters.push((item: Item) => item.type == ItemType.category);
+		filters.push((item: Item) => item.type === ItemType.category);
 		const root = this._resolveRootCategory();
 		return [root, ...(this._getItems(root, filters) as Category[])];
 	}
 
 	getContentItems(filters?: ArticleFilter[]): Article[] {
+		// biome-ignore lint/style/noParameterAssign: idc
 		if (!filters) filters = [];
 		filters.push((article: Article) => !!article.content);
 		return this._getItems(this._resolveRootCategory(), filters) as Article[];
@@ -378,7 +380,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		const item = this.findItemByItemRef<Article>(from);
 		assert(item, `Item '${from.path.value}' wasn't found in catalog ${this.basePath.value}`);
 
-		if (item.type == ItemType.category)
+		if (item.type === ItemType.category)
 			await this._moveCategoryItems(<Category>item, to, makeResourceUpdater, innerRefs);
 
 		const movedItem = await this._moveArticleItem(item, to);
@@ -411,7 +413,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 		const index = parentArticle.parent.items.findIndex((i) => i.ref.path.compare(parentArticle.ref.path));
 		await this._deleteItem(parentArticle.ref);
-		if (index === -1 || parentArticle.type == ItemType.category) return parentArticle as Category;
+		if (index === -1 || parentArticle.type === ItemType.category) return parentArticle as Category;
 
 		const category = await this._fs.createCategory(path, parentArticle.parent, parentArticle, this);
 
@@ -435,7 +437,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			this.getItems().map(async (article) => {
 				try {
 					await parseContent(article, this, ctx, parser, parserContextFactory);
-				} catch (error) {}
+				} catch {}
 			}),
 		);
 	}
@@ -463,7 +465,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		}
 
 		const movedItem =
-			item.type == ItemType.category
+			item.type === ItemType.category
 				? await this._fs.makeCategory(to.path.parentDirectoryPath, this._rootCategory, this, to.path)
 				: await this._fs.createArticle(to.path, this._rootCategory, null, this);
 
@@ -497,26 +499,26 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		if (!item) return;
 
 		const index = item.parent.items.findIndex((i) => i.ref.path.compare(item?.ref?.path));
-		if (index == -1) return;
+		if (index === -1) return;
 		item.parent.items.splice(index, 1);
 
 		if (await this._fp.exists(item.ref.path)) {
 			if (item.content && parser) {
 				await parser.parse(item, this);
 				await item.parsedContent.write(async (p) => {
-					await p.resourceManager.deleteAll();
+					await p.parsedContext.getResourceManager().deleteAll();
 					return p;
 				});
 			}
 
-			if (item.type == ItemType.category) {
+			if (item.type === ItemType.category) {
 				const items = this._getItems(item as Category);
 				if (parser) {
 					await Promise.all(
 						items.map(async (item: Article) => {
 							await parser.parse(item, this);
 							await item.parsedContent.write(async (p) => {
-								await p.resourceManager.deleteAll();
+								await p.parsedContext.getResourceManager().deleteAll();
 								return p;
 							});
 						}),
@@ -560,10 +562,10 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 	private _getItems(category: Category, filters?: ItemFilter[]): Item[] {
 		const items: Item[] = [];
-		const filter = (i: Item) => filters && filters.every((f) => f(i, this));
+		const filter = (i: Item) => filters?.every((f) => f(i, this));
 		category.items.forEach((i) => {
 			if (filter(i)) items.push(i);
-			if (i.type == ItemType.category) items.push(...this._getItems(i as Category, filters));
+			if (i.type === ItemType.category) items.push(...this._getItems(i as Category, filters));
 		});
 
 		return items;

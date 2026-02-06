@@ -1,14 +1,14 @@
-import t from "@ext/localization/locale/translate";
-import type { ISectionOptions } from "docx";
 import docx from "@dynamicImports/docx";
-import type JSZip from "jszip";
 import jszip from "@dynamicImports/jszip";
-import assert from "assert";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { readTemplateStyles, normalizeStyleMapping } from "./templateProcessing/stylesReader";
-import { TemplateStylesInfo } from "./templateProcessing/types";
-import { applyTemplateListIndents } from "./templateProcessing/listIndentApplier";
+import t from "@ext/localization/locale/translate";
+import assert from "assert";
+import type { ISectionOptions } from "docx";
+import type JSZip from "jszip";
 import { fitIndentedContentWidth } from "./templateProcessing/contentScaler";
+import { applyTemplateListIndents } from "./templateProcessing/listIndentApplier";
+import { normalizeStyleMapping, readTemplateStyles } from "./templateProcessing/stylesReader";
+import type { TemplateStylesInfo } from "./templateProcessing/types";
 import { parseXml, printXml } from "./templateProcessing/xmlUtils";
 
 export const CONTENT_PLACEHOLDER = "gramax_content";

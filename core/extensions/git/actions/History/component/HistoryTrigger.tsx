@@ -1,12 +1,12 @@
+import Icon from "@components/Atoms/Icon";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import t from "@ext/localization/locale/translate";
-import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
-import { ComponentProps } from "react";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import Icon from "@components/Atoms/Icon";
 import Modal from "@ext/git/actions/History/component/History";
+import t from "@ext/localization/locale/translate";
+import useHasRemoteStorage from "@ext/storage/logic/utils/useHasRemoteStorage";
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import { ComponentProps } from "react";
 
 interface HistoryProps {
 	item: ClientArticleProps;
@@ -29,7 +29,7 @@ const HistoryTrigger = (props: HistoryProps) => {
 	};
 
 	return (
-		<DropdownMenuItem onSelect={onClick} disabled={disabled}>
+		<DropdownMenuItem disabled={disabled} onSelect={onClick}>
 			<Icon code="history" />
 			{t("git.history.button")}
 		</DropdownMenuItem>

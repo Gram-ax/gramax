@@ -1,4 +1,4 @@
-import type { AstType, Config, Function as AstFunction, Scalar } from "../types";
+import type { Function as AstFunction, AstType, Config, Scalar } from "../types";
 
 export function isAst(value?: any): value is AstType {
 	return !!value?.$$mdtype;

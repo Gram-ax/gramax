@@ -49,23 +49,23 @@ const DiffViewPicker = (props: DiffViewPickerProps) => {
 				<div className="divider" />
 				{hasWysiwyg && (
 					<Button
+						icon="code-xml"
+						isActive={isSourceText}
 						onClick={() => {
 							const newIsSourceText = !isSourceText;
 							onDiffViewPick(getDiffViewMode(isDoublePanel, newIsSourceText));
 						}}
-						icon="code-xml"
 						tooltipText={t("diff.source-text")}
-						isActive={isSourceText}
 					/>
 				)}
 				<Button
+					icon="columns-2"
+					isActive={isDoublePanel}
 					onClick={() => {
 						const newIsDoublePanel = !isDoublePanel;
 						onDiffViewPick(getDiffViewMode(newIsDoublePanel, isSourceText));
 					}}
-					icon="columns-2"
 					tooltipText={t("diff.double-panel")}
-					isActive={isDoublePanel}
 				/>
 			</ButtonLayout>
 		</Wrapper>

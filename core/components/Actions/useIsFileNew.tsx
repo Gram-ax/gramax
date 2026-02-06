@@ -1,7 +1,7 @@
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";

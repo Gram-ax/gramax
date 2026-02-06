@@ -14,15 +14,15 @@ const Branch = ({ branch, show, onClick }: BranchProps) => {
 
 	return (
 		<StatusBarWrapper
+			additionalStyles={{ overflow: "hidden" }}
 			dataQa="qa-branch"
-			tooltipText={t("git.branch.management")}
 			iconCode="git-branch"
 			iconStyle={{ color: show ? "var(--color-primary)" : "white" }}
-			onClick={onClick}
 			isShow={show}
-			additionalStyles={{ overflow: "hidden" }}
+			onClick={onClick}
+			tooltipText={t("git.branch.management")}
 		>
-			<span>{branchName ? branchName : <SpinnerLoader width={12} height={12} />}</span>
+			<span>{branchName ? branchName : <SpinnerLoader height={12} width={12} />}</span>
 		</StatusBarWrapper>
 	);
 };

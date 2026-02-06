@@ -27,18 +27,18 @@ const Wrapper = styled.div<{ show?: boolean }>`
 
 const ShowMergeRequest = ({ className, mergeRequest, isShow, setShow }: ShowMergeRequestProps) => {
 	if (!mergeRequest) return null;
-  
+
 	const approvedCount = mergeRequest.approvers.filter((a) => !!a.approvedAt).length;
 	const approvedTotal = mergeRequest.approvers.length;
 	return (
 		<Wrapper show={isShow}>
 			<StatusBarElement
 				className={classNames(className, { "is-active": isShow })}
-				onClick={() => setShow(!isShow)}
 				data-qa="qa-clickable"
 				iconCode="git-pull-request-arrow"
-				iconStyle={isShow ? { color: "var(--color-primary)" } : null}
 				iconStrokeWidth="1.6"
+				iconStyle={isShow ? { color: "var(--color-primary)" } : null}
+				onClick={() => setShow(!isShow)}
 			>
 				<Tooltip
 					content={t("git.merge-requests.approvedCountTooltip")

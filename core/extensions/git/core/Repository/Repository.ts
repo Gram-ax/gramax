@@ -5,16 +5,17 @@ import type Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type { GcOptions } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import DiffItemContent from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
+import type DiffItemContent from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
 import MergeRequestCommands from "@ext/git/core/GitMergeRequest/logic/MergeRequestCommands";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
-import GitStash from "@ext/git/core/model/GitStash";
-import { GitVersion } from "@ext/git/core/model/GitVersion";
+import type GitStash from "@ext/git/core/model/GitStash";
+import type { GitVersion } from "@ext/git/core/model/GitVersion";
 import type RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
 import ScopedCatalogs from "@ext/git/core/ScopedCatalogs/ScopedCatalogs";
+import t from "@ext/localization/locale/translate";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import Storage from "@ext/storage/logic/Storage";
+import type Storage from "@ext/storage/logic/Storage";
 
 export type Credentials = { data: SourceData };
 
@@ -144,7 +145,7 @@ export default abstract class Repository {
 
 	async checkoutToDefaultBranch(data: SourceData, force: boolean): Promise<void> {
 		const defaultBranch = await this.storage.getDefaultBranch(data);
-		if (!defaultBranch) throw new DefaultError("Can't find default branch to checkout");
+		if (!defaultBranch) throw new DefaultError(t("git.branch.error.not-found.default"));
 		await this.checkout({ data, branch: defaultBranch.toString(), force });
 	}
 

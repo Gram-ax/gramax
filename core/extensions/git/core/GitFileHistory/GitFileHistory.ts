@@ -1,6 +1,6 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
+import Path from "../../../../logic/FileProvider/Path/Path";
 import { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
 import { getDiff } from "../../../VersionControl/DiffHandler/DiffHandler";
 import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
@@ -14,7 +14,10 @@ export default class GitFileHistory {
 	private _relativeFilePath: Path;
 	private _filePath: Path;
 
-	constructor(private _catalog: Catalog, private _fp: FileProvider) {}
+	constructor(
+		private _catalog: Catalog,
+		private _fp: FileProvider,
+	) {}
 
 	async getArticleHistoryInfo(itemRef: ItemRef): Promise<ArticleHistoryViewModel[]> {
 		this._filePath = this._catalog.getRepositoryRelativePath(itemRef);

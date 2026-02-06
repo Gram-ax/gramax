@@ -20,11 +20,11 @@ const CheckboxComponent = memo((props: BaseComponentProps<"checkbox">): JSX.Elem
 	return (
 		<Checkbox
 			checked={value}
-			onClick={onClick}
-			disabled={disabled}
 			contentEditable={false}
-			style={styles}
 			data-selected={value}
+			disabled={disabled}
+			onClick={onClick}
+			style={styles}
 		/>
 	);
 });
@@ -35,11 +35,11 @@ const RadioComponent = memo((props: BaseComponentProps<"radio">): JSX.Element =>
 	return (
 		<RadioGroup>
 			<RadioGroupItem
-				value="1"
 				checked={value}
+				data-selected={value}
 				disabled={disabled}
 				onPointerDown={onClick}
-				data-selected={value}
+				value="1"
 			/>
 		</RadioGroup>
 	);

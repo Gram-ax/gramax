@@ -1,13 +1,13 @@
-import { Editor, posToDOMRect } from "@tiptap/react";
-import { useCallback } from "react";
-import { ComponentVariantProvider } from "@ui-kit/Providers";
-import { getMarkStartPos } from "@ext/markdown/elementsUtils/getMarkStartPos";
-import { getMarkEndPos } from "@ext/markdown/elementsUtils/getMarkEndPos";
 import { useEscapeKeydown } from "@core-ui/hooks/useEscapeKeyDown";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import { useLinkMenuState } from "@ext/markdown/elements/link/edit/hooks/useLinkMenuState";
+import { getMarkEndPos } from "@ext/markdown/elementsUtils/getMarkEndPos";
+import { getMarkStartPos } from "@ext/markdown/elementsUtils/getMarkStartPos";
 import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
+import { Editor, posToDOMRect } from "@tiptap/react";
+import { ComponentVariantProvider } from "@ui-kit/Providers";
+import { useCallback } from "react";
 import "tippy.js/animations/shift-toward.css";
 import { CustomBubbleMenu } from "@ext/markdown/elements/customBubbleMenu/edit/components/CustomBubbleMenu";
 
@@ -61,8 +61,8 @@ export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<CustomBubbleMenu
-			pluginKey="new-link-menu"
 			editor={editor}
+			pluginKey="new-link-menu"
 			shouldShow={shouldShow}
 			tippyOptions={{
 				maxWidth: "unset",
@@ -101,7 +101,7 @@ export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
 		>
 			{!isMobile && (
 				<ComponentVariantProvider variant="inverse">
-					{mark && isOpen && <LinkMenu mark={mark} onUpdate={onUpdate} onDelete={handleDelete} />}
+					{mark && isOpen && <LinkMenu mark={mark} onDelete={handleDelete} onUpdate={onUpdate} />}
 				</ComponentVariantProvider>
 			)}
 		</CustomBubbleMenu>

@@ -1,6 +1,6 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import ApiRequest from "../ApiRequest";
-import ApiResponse from "../ApiResponse";
+import type ApiRequest from "../ApiRequest";
+import type ApiResponse from "../ApiResponse";
 import Middleware from "./Middleware";
 
 const onUnload = (ev) => ev.preventDefault();

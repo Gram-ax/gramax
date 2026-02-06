@@ -13,5 +13,5 @@ export const Badge = ({ startIcon, endIcon, ...otherProps }: BadgeProps) => {
 	const StartIcon = startIcon && LucideIcon(startIcon);
 	const EndIcon = endIcon && LucideIcon(endIcon);
 
-	return <UiKitBadge startIcon={StartIcon as any} endIcon={EndIcon as any} {...otherProps} />;
+	return <UiKitBadge endIcon={EndIcon as any} startIcon={StartIcon as any} {...otherProps} />;
 };

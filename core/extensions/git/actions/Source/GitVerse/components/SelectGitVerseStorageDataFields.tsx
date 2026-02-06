@@ -41,15 +41,15 @@ const SelectGitVerseStorageDataFields = (props: SelectGitVerseStorageDataFieldsP
 	}, []);
 
 	// don't render avatar for GitVerse because of CORS in browser
-	if (mode === Mode.init) return <ReadOnlyUserField user={user} renderAvatar={false} />;
+	if (mode === Mode.init) return <ReadOnlyUserField renderAvatar={false} user={user} />;
 
 	return (
 		<FormField
-			title={t("repository")}
-			name="repository"
 			control={({ field }) => (
-				<CloneFields {...field} form={form} source={source} gitPaginatedProjectList={gitPaginatedProjectList} />
+				<CloneFields {...field} form={form} gitPaginatedProjectList={gitPaginatedProjectList} source={source} />
 			)}
+			name="repository"
+			title={t("repository")}
 		/>
 	);
 };

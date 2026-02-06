@@ -1,6 +1,6 @@
+import { NoteType, noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import React from "react";
 import HTMLComponents from "../../../../core/render/components/getComponents/HTMLComponents";
-import { noteIcons, NoteType } from "@ext/markdown/elements/note/render/component/Note";
 
 interface HTMLNoteProps {
 	type?: string;
@@ -12,10 +12,10 @@ const HTMLNote = (html: HTMLComponents) => {
 	return (props: HTMLNoteProps) => {
 		const { type = NoteType.note, title, children } = props;
 		return (
-			<div data-component="note">
+			<div data-component="note" data-type={type}>
 				<div className="admonition-heading">
 					<div className="admonition-icon">{html.renderIcon({ code: noteIcons[type] })}</div>
-					<div contentEditable={false} suppressContentEditableWarning={true} className="titleWrapper">
+					<div className="titleWrapper" contentEditable={false} suppressContentEditableWarning={true}>
 						{title}
 					</div>
 				</div>

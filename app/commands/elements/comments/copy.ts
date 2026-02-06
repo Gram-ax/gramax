@@ -1,11 +1,11 @@
 import { ResponseKind } from "@app/types/ResponseKind";
+import Context from "@core/Context/Context";
+import { Article } from "@core/FileStructue/Article/Article";
+import assert from "assert";
 import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "../../../../core/logic/Api/middleware/DesktopModeMiddleware";
 import Path from "../../../../core/logic/FileProvider/Path/Path";
 import { Command } from "../../../types/Command";
-import Context from "@core/Context/Context";
-import { Article } from "@core/FileStructue/Article/Article";
-import assert from "assert";
 
 const copyComment: Command<
 	{ ctx: Context; catalogName: string; articlePath: Path; commentId: string; copyPath: Path },

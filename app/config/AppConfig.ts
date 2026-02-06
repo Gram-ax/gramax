@@ -1,4 +1,4 @@
-import { EnvironmentVariable } from "@app/config/env";
+import type { EnvironmentVariable } from "@app/config/env";
 import Path from "@core/FileProvider/Path/Path";
 import type { WorkspaceManagerConfig } from "@ext/workspace/WorkspaceManager";
 import { env, getExecutingEnvironment } from "../resolveModule/env";
@@ -67,21 +67,11 @@ export type AppConfig = {
 		instanceName: string;
 	};
 
-	search: {
-		elastic: {
-			enabled: boolean;
-			apiUrl: string;
-			instanceName: string;
-			username: string;
-			password: string;
-		};
-	};
-
 	forceUiLangSync: boolean;
 };
 
 const getNumber = (value: string) => {
-	const int = parseInt(value);
+	const int = parseInt(value, 10);
 	return Number.isNaN(int) ? undefined : int;
 };
 
@@ -106,7 +96,7 @@ const getServices = (): ServicesConfig => {
 };
 
 const getPaths = (): AppConfigPaths => {
-	if (getExecutingEnvironment() == "browser") {
+	if (getExecutingEnvironment() === "browser") {
 		return {
 			base: Path.empty,
 			root: new Path("/mnt/docs"),
@@ -144,10 +134,6 @@ export const getConfig = (): AppConfig => {
 		throw new Error(`Environment variable(s) must have value: [${requiredEnvVars.join(", ")}]`);
 	}
 
-	const elasticApiUrl = env("ELASTIC_SEARCH_API_URL");
-	const elasticInstanceName = env("ELASTIC_SEARCH_INSTANCE_NAME");
-	const elasticEnabled = Boolean(elasticApiUrl && elasticInstanceName);
-
 	global.config = {
 		paths: getPaths(),
 		services: getServices(),
@@ -163,21 +149,11 @@ export const getConfig = (): AppConfig => {
 			token: aiToken,
 		},
 
-		search: {
-			elastic: {
-				enabled: elasticEnabled,
-				apiUrl: elasticApiUrl,
-				instanceName: elasticInstanceName,
-				username: env("ELASTIC_SEARCH_USERNAME"),
-				password: env("ELASTIC_SEARCH_PASSWORD"),
-			},
-		},
-
 		version: env("GRAMAX_VERSION") || null,
 		buildVersion: env("BUILD_VERSION") || null,
 
 		isProduction: env("PRODUCTION") === "true",
-		isRelease: (env("BRANCH") || "develop") == "master",
+		isRelease: (env("BRANCH") || "develop") === "master",
 		disableSeo: env("DISABLE_SEO") === "true",
 
 		bugsnagApiKey: env("BUGSNAG_API_KEY") || null,

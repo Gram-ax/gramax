@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noTemplateCurlyInString: expected */
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 const locale = {
@@ -37,14 +38,19 @@ const locale = {
 						"List of versions (branches or tags) to be shown in the doc portal. Specified as glob patterns, e.g., v19.* or release-*",
 				},
 				lfs: {
-					name: "Tracked LFS files",
-					placeholder: "Enter path patterns",
-					description: "Path patterns for git lfs to track (e.g., *.jpg, *.png, *.zip)",
+					patterns: {
+						name: "Tracked LFS files",
+						placeholder: "Enter path patterns",
+						description: "Path patterns for git lfs to track (e.g., *.jpg, *.png, *.zip)",
+
+						"default-tooltip": "Set commonly used file path patterns",
+					},
 				},
-				filterProperties: {
-					name: "Filter Properties",
-					placeholder: "Specify the filter properties",
-					description: "List of properties to use for filtering the catalog",
+				filterProperty: {
+					name: "Filter Property",
+					placeholder: "Select a property for filtering",
+					description: "Select a flag or enum property to use for filtering the catalog",
+					none: "No filter",
 				},
 				language: {
 					name: "Main language",
@@ -427,6 +433,13 @@ const locale = {
 				repository: {
 					name: "Repository",
 				},
+				lfs: {
+					lazy: {
+						name: "Auto download LFS files",
+						description:
+							"Download all LFS files when syncing the catalog instead of downloading them when opening an article",
+					},
+				},
 			},
 			errors: {
 				sourceKey: "Source is required",
@@ -496,7 +509,7 @@ const locale = {
 				"Missing <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated'>cross-origin isolation</a> or HTTPS connection which is required to run application",
 			"command-failed": {
 				title: "Something went wrong",
-				body: `<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — <a href="https://t.me/gramax_assist_bot target='${
+				body: `<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — <a href="https://t.me/gramax_assist_bot" target='${
 					getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
 				}'>contact support</a>.</p>`,
 			},
@@ -814,7 +827,7 @@ title: Unable to display the article
 		clone: "Load",
 		"clone-2": "Load existing",
 		"clone-3": "Clone via Link",
-		"clone-4": "If it already exists in the storage",
+		"clone-4": "From GitHub, GitLab or other storage",
 		import: "Import",
 		"import-2": "Import from another system",
 		"import-3": "From Confluence or Notion",
@@ -913,15 +926,14 @@ title: Unable to display the article
 		},
 		name: "Diagram",
 		names: {
-			c4: "C4",
 			mermaid: "Mermaid",
 			puml: "PlantUml",
-			ts: "TS",
 			drawio: "Diagrams.net",
 		},
 		error: {
 			"render-failed": "Failed to render diagram",
 			"cannot-get-data": "Check if the path is correct and if the diagram file is in the repository.",
+			"no-diagram-renderer": "Diagram renderer module is not enabled",
 			"no-internet": "Check your internet connection.",
 			"invalid-syntax": "Check the diagram syntax.",
 			"wrong-name": "Incorrect diagram name",
@@ -1067,6 +1079,8 @@ title: Unable to display the article
 	filterProperties: {
 		switch: "Filter",
 		unfilter: "No filter",
+		hasProperty: "Has property",
+		value: "Value",
 	},
 	git: {
 		source: {
@@ -1107,9 +1121,10 @@ title: Unable to display the article
 				bs: "{bs} B/s",
 				kbs: "{kbs} KB/s",
 				mbs: "{mbs} MB/s",
-				b: "{} B",
-				kb: "{} KB",
-				mb: "{} MB",
+				b: "B",
+				kb: "KB",
+				mb: "MB",
+				gb: "GB",
 				"eta-s": ", ETA {s}s",
 				"eta-m": ", ETA {m}m {s}s",
 				"eta-h": ", ETA {h}h {m}m {s}s",
@@ -1117,6 +1132,7 @@ title: Unable to display the article
 
 			"receiving-objects": "Received {received} objects of {total} (indexed {indexed})",
 			"indexing-deltas": "Indexed {indexed} deltas of {total}",
+			lfs: "Downloaded {handledObjects} of {totalObjects} LFS objects ({bytesHandled} / {totalBytes})",
 			checkout: "Checkout {checkouted} files of {total}",
 			"repo-link": "Repository link",
 			"public-clone": "Clone via Link",
@@ -1177,6 +1193,7 @@ title: Unable to display the article
 				"not-found": {
 					local: "Could not determine the current branch",
 					remote: "Failed to find remote branch for local branch <code>{{branch}}</code>",
+					default: "Can't find default branch to checkout",
 				},
 				"not-found-reload": "Could not determine the current branch. Reload the page",
 				"already-exist": "Unable to create new branch. Branch <code>{{branch}}</code> already exists",
@@ -1259,6 +1276,8 @@ title: Unable to display the article
 				"conflict-occured": "Could not automatically resolve merge conflict",
 				"conflicts-not-found": "Failed to get conflicting files",
 				"catalog-conflict-state": "Resolve the conflict",
+				"merge-request-exists": "Cannot create a merge request because it already exists",
+				"merge-request-instant-merge": "Cannot merge branches because a merge request already exists",
 			},
 		},
 		publish: {
@@ -1362,9 +1381,9 @@ title: Unable to display the article
 				message: `You are trying to push a large file or too many changes at once. Try publishing changes by parts`,
 			},
 			network: {
-				title: "No internet",
+				title: "Unable to connect to the server",
 				message:
-					"Publishing, synchronizing, changing branches, and other operations with Git storage require internet. Reconnect and try again.",
+					"Publishing, synchronizing, changing branches, and other operations with Git storage require internet. Reconnect and try again. If the problem persists, the server may be temporarily unavailable.",
 			},
 			http: {
 				title: "Error when requesting Git storage",
@@ -1375,6 +1394,8 @@ title: Unable to display the article
 			"branch-tab-tooltip": "This branch has a merge request",
 			"branch-tab-badge": "MR",
 			diff: "Changes",
+			"advanced-mode": "Advanced mode",
+			"advanced-mode-description": "Detailed info about added/deleted lines and article resources",
 			approvedCountTooltip: "{{approvedCount}} of {{approvedTotal}} approvals",
 			changes: "Changes",
 			back: "Back",
@@ -1441,6 +1462,11 @@ title: Unable to display the article
 			error: {
 				"unable-to-connect": "Unable to connect to git server",
 			},
+		},
+		lfs: {
+			"auto-download-toggle": "Auto-download LFS",
+			"file-is-pointer-2": "This file is stored in Git LFS and needs to be fetched, try syncing the catalog",
+			"file-is-pointer": "This file is stored in Git LFS and needs to be fetched first. Try syncing the catalog",
 		},
 	},
 	confluence: {
@@ -1752,6 +1778,7 @@ title: Unable to display the article
 			"settings-description": "Set the space parameters",
 			error: {
 				"loading-settings": "An error occurred while loading the settings",
+				"database-unavailable": "The database service is unavailable",
 			},
 			pages: {
 				plugins: "Modules",
@@ -1765,7 +1792,9 @@ title: Unable to display the article
 				guests: "External readers",
 				quiz: "Training",
 				modules: "Modules",
-				metrics: "Browsing history",
+				metrics: "Metrics",
+				viewMetrics: "Browsing history",
+				searchMetrics: "Search queries",
 			},
 			users: {
 				user: "User",
@@ -1814,7 +1843,6 @@ title: Unable to display the article
 				errors: {
 					update: "Failed to update the training module",
 					"save-data": "Failed to save the data. Status:",
-					"database-unavailable": "The database service is unavailable",
 				},
 				filters: {
 					users: {
@@ -1978,8 +2006,8 @@ title: Unable to display the article
 	},
 	network: {
 		error: {
-			title: "No internet",
-			body: "Reconnect and try again.",
+			title: "Unable to connect to the server",
+			body: "Check your internet connection and try again. If the problem persists, the server may be temporarily unavailable.",
 		},
 	},
 	"experimental-features": {
@@ -2023,8 +2051,12 @@ title: Unable to display the article
 				titleNumber: "Title numbers",
 				titleNumberDescription: "Add numbers for headings.",
 				template: "Custom template",
-				templateDescription:
-					"Use custom CSS styles to format the PDF. Learn more about creating templates in the project documentation.",
+				templateDescription: {
+					body: "Use custom CSS styles to format the PDF.",
+					more: "Learn more about creating templates in the project documentation.",
+				},
+				footerDescription:
+					"After exporting, the browser’s print dialog will open.\nSelect A4, and in the “Printer/Destination” field choose Save as PDF.",
 			},
 
 			error: {
@@ -2366,7 +2398,6 @@ title: Unable to display the article
 	"unsaved-changes": "Save changes?",
 	"unsupported-elements-title": "Unsupported elements",
 	"unsupported-elements-warning1": "DOCX does not support some elements of Gramax.",
-	"unsupported-elements-warning1-pdf": "PDF does not support some elements of Gramax.",
 	"unsupported-elements-warning2": "List of articles with unsupported elements",
 	"unsupported-elements-warning3": "The file will be saved without them.",
 	"update-branches": "Update branches list",
@@ -2513,7 +2544,7 @@ title: Unable to display the article
 		transcribe: {
 			name: "Transcription",
 			description: "Recognize speech from a media file",
-			click: "Click to record",
+			click: "Record",
 			access: "Click to request access to the microphone",
 			"browser-denied": "Microphone access is denied. Allow access in browser settings",
 			"system-denied": "Microphone access is denied. Allow access in system settings",
@@ -2751,6 +2782,7 @@ title: Unable to display the article
 		"failed-to-load": "Failed to load metrics data",
 		disabled: "The metrics module is disabled",
 		enabled: "The metrics module is enabled",
+		"no-data-available": "No data available",
 		filters: {
 			date: {
 				today: "Today",
@@ -2790,6 +2822,19 @@ title: Unable to display the article
 			daily: "Daily",
 			weekly: "Weekly",
 			monthly: "Monthly",
+			"daily-breakdown": "Daily breakdown",
+			"weekly-breakdown": "Weekly breakdown",
+			"monthly-breakdown": "Monthly breakdown",
+			totalSearches: "Total Searches",
+			avgCTR: "Avg CTR",
+			noClickRate: "No-Click Rate",
+			refinementRate: "Refinement Rate",
+		},
+		searchChart: {
+			title: "Search metrics overview",
+		},
+		viewChart: {
+			title: "View history overview",
 		},
 		table: {
 			"catalog-name": "Catalog",
@@ -2798,6 +2843,35 @@ title: Unable to display the article
 			visitors: "Visitors",
 			visits: "Visits",
 			pageviews: "Pageviews",
+			"search-query": "Search Query",
+			"search-count": "Search Count",
+			"unique-visitors": "Unique users",
+			"ctr-percent": "CTR",
+			"most-clicked-item": "Most Clicked Item",
+			"avg-click-position": "Avg Click Position",
+			"refinement-rate-percent": "Refinement Rate",
+			catalog: "Catalog",
+			pinned: "Pinned",
+			yes: "Yes",
+			no: "No",
+			clicks: "Clicks",
+			"avg-position": "Avg Position",
+			searches: "Searches",
+			"refinement-percent": "Refinement (%)",
+			tooltips: {
+				"ctr-percent":
+					"Click-Through Rate - the percentage of searches that resulted in a click on a search result",
+				"avg-click-position":
+					"The average position in search results where users clicked. Lower numbers indicate users found relevant results higher in the list",
+				"refinement-rate-percent":
+					"The percentage of searches where users modified their query to refine their search",
+				"no-click-rate": "The percentage of searches where users did not click on any search result",
+			},
+		},
+		search: {
+			"statistics-title": "Search Queries Statistics",
+			"query-details-title": "Query Details",
+			"article-ratings-title": "Article Ratings by Search",
 		},
 	},
 };

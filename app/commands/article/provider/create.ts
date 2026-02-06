@@ -1,10 +1,10 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import ArticleProps from "@core-ui/ContextServices/ArticleProps";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
+import ArticleProps from "@core-ui/ContextServices/ArticleProps";
 import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import { JSONContent } from "@tiptap/core";
 

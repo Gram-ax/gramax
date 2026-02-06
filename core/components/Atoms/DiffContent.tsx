@@ -32,11 +32,11 @@ const DiffContent = (
 		<div className={className} ref={ref}>
 			{content.map((c, idx) => {
 				return isCode ? (
-					<Code className={showDiff ? c.type ?? "common" : "common"} key={idx}>
+					<Code className={showDiff ? (c.type ?? "common") : "common"} key={idx}>
 						{c.value}
 					</Code>
 				) : (
-					<span className={showDiff ? c.type ?? "common" : "common"} key={idx}>
+					<span className={showDiff ? (c.type ?? "common") : "common"} key={idx}>
 						{c.value}
 					</span>
 				);

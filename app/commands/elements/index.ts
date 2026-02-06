@@ -1,9 +1,9 @@
-import icon from "./icon";
+import answers from "./answers";
 import comments from "./comments";
 import diagram from "./diagram";
+import icon from "./icon";
 import snippet from "./snippet";
 import getUrl from "./video/getUrl";
-import answers from "./answers";
 
 const elements = {
 	answers,

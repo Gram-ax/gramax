@@ -1,6 +1,6 @@
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
-import { useEffect, useRef, ReactNode } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 export enum AlertType {
 	warning = "warning",
@@ -25,12 +25,12 @@ const Alert = styled((props: AlertProps) => {
 	}, []);
 
 	return (
-		<div ref={alertRef} data-focusable="true" className={`${className} admonition alert-${type} admonition-column`}>
+		<div className={`${className} admonition alert-${type} admonition-column`} data-focusable="true" ref={alertRef}>
 			<div className={"admonition-heading"}>
 				<div className="admonition-icon">
 					<Icon code={"circle-alert"} strokeWidth="2" />
 				</div>
-				<div suppressContentEditableWarning={true} className={"titleWrapper"}>
+				<div className={"titleWrapper"} suppressContentEditableWarning={true}>
 					<div className={"title"}>{title}</div>
 				</div>
 			</div>

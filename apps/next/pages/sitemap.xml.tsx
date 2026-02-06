@@ -1,4 +1,5 @@
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
+import type Query from "@core/Api/Query";
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
 import SEOGenerator from "@core/Sitemap/SEOGenerator";
 import SecurityRules from "@ext/security/logic/SecurityRules";
@@ -10,8 +11,8 @@ const Sitemap = () => {
 
 export async function getServerSideProps({ req, res }) {
 	await ApplyApiMiddleware(
-		async function (req, res: any) {
-			const ctx = await this.app.contextFactory.from({ req, res, query: req.query });
+		async function (req, res) {
+			const ctx = await this.app.contextFactory.from({ req, res, query: req.query as Query });
 			const filters = [new HiddenRules().getItemFilter(), new SecurityRules(ctx.user).getItemFilter()];
 			const basePath = this.app.conf.basePath ?? "";
 			const workspace = this.app.wm.current();
@@ -20,8 +21,7 @@ export async function getServerSideProps({ req, res }) {
 			);
 			res.setHeader("Content-Type", "application/xml; charset=utf-8");
 			res.setHeader("Access-Control-Allow-Origin", "*");
-			res.write(sitemapIndex);
-			res.end();
+			res.send(sitemapIndex);
 		},
 		[new MainMiddleware()],
 	)(req, res);

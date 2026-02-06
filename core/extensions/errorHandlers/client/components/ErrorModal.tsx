@@ -22,13 +22,13 @@ const ErrorModal = ({ error, setError }: { error: DefaultError; setError: Dispat
 	return (
 		<ModalLayout
 			isOpen={isOpen}
-			onOpen={async () => {
-				setIsOpen(true);
-				if (ErrorConfirmService.onModalOpen) await ErrorConfirmService.onModalOpen();
-			}}
 			onClose={async (close) => {
 				if (ErrorConfirmService.onModalClose) await ErrorConfirmService.onModalClose();
 				onClose(close);
+			}}
+			onOpen={async () => {
+				setIsOpen(true);
+				if (ErrorConfirmService.onModalOpen) await ErrorConfirmService.onModalOpen();
 			}}
 		>
 			<GetErrorComponent error={error} onCancelClick={onClose} />

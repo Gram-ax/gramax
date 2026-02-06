@@ -1,22 +1,22 @@
 import docx from "@dynamicImports/docx";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { aggregateTable, setCellAlignment } from "@ext/markdown/elements/table/edit/logic/exportUtils";
-import { AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { WordBlockType, getWordBordersType, wordMarginsType } from "@ext/wordExport/options/wordExportSettings";
-import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
-import { FileChild } from "@ext/wordExport/types";
+import type { AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import type { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
+import { getWordBordersType, WordBlockType, wordMarginsType } from "@ext/wordExport/options/wordExportSettings";
+import type { FileChild } from "@ext/wordExport/types";
 import { markTableAsListContinuation } from "@ext/wordExport/utils/listContinuation";
-import { WordSerializerState } from "@ext/wordExport/WordExportState";
-import { JSONContent } from "@tiptap/core";
-import { ITableRowPropertiesOptions, TableCell, TableRow } from "docx";
+import type { WordSerializerState } from "@ext/wordExport/WordExportState";
+import type { JSONContent } from "@tiptap/core";
+import type { ITableRowPropertiesOptions, TableCell, TableRow } from "docx";
 import { tableLayout } from "./getTableChilds";
-import { TableAddOptionsWord, WordTableChildren } from "./WordTableExportTypes";
+import type { TableAddOptionsWord, WordTableChildren } from "./WordTableExportTypes";
 import {
-	TWIPS_PER_PIXEL,
-	TableWidthContext,
 	buildTableWidthContext,
 	calculateCellBaseWidthTwips,
 	getColumnWidthsTwips,
+	type TableWidthContext,
+	TWIPS_PER_PIXEL,
 } from "./WordTableWidthCalculator";
 
 type TableRenderEnvironment = {
@@ -30,7 +30,10 @@ export class WordTableExport {
 	private _tableConfig: WordTableChildren = tableLayout;
 	private _environment?: TableRenderEnvironment;
 
-	constructor(private _wordSerializerState: WordSerializerState, environment?: TableRenderEnvironment) {
+	constructor(
+		private _wordSerializerState: WordSerializerState,
+		environment?: TableRenderEnvironment,
+	) {
 		this._environment = environment;
 	}
 

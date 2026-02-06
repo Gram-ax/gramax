@@ -4,10 +4,10 @@ jest.mock("../../tocPage/initTocPageContent", () => ({
 	initTocPageContent: jest.fn(),
 }));
 
-import { initTocPageContent } from "../../tocPage/initTocPageContent";
 import paginateIntoPages from "@ext/print/utils/paginateIntoPages";
-import { TITLE_PAGE_CLASS } from "@ext/print/utils/pagination/titlePage";
 import { PaginationAbortError } from "@ext/print/utils/pagination/abort";
+import { TITLE_PAGE_CLASS } from "@ext/print/utils/pagination/titlePage";
+import { initTocPageContent } from "../../tocPage/initTocPageContent";
 
 describe("paginateIntoPages integration", () => {
 	beforeEach(() => {

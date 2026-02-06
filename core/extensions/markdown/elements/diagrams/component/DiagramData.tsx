@@ -1,17 +1,14 @@
 import Skeleton from "@components/Atoms/ImageSkeleton";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
+import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
-import C4Render from "./C4Render";
 import DiagramRender from "./DiagramRender";
-import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 
 const DIAGRAM_FUNCTIONS = {
 	[DiagramType.mermaid]: getMermaidDiagram,
@@ -34,8 +31,6 @@ interface DiagramDataProps {
 
 const DiagramData = (props: DiagramDataProps) => {
 	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId, float, isPrint } = props;
-	const isC4Diagram = diagramName == DiagramType["c4-diagram"];
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
 	const { useGetResource, getBuffer } = ResourceService.value;
 
@@ -45,12 +40,6 @@ const DiagramData = (props: DiagramDataProps) => {
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [error, setError] = useState(null);
 	const [size, setSize] = useState<{ width: string; height: string }>(null);
-
-	const getAnyDiagrams = async (content: string) => {
-		const res = await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName), content);
-		if (!res.ok) return setError(await res.json());
-		return isC4Diagram ? await res.json() : await res.text();
-	};
 
 	useEffect(() => {
 		const buffer = getBuffer(src);
@@ -73,14 +62,17 @@ const DiagramData = (props: DiagramDataProps) => {
 	}, [width, height]);
 
 	useGetResource(
-		async (buffer: Buffer) => {
+		async (buffer, resourceError) => {
 			ErrorConfirmService.stop();
 			try {
+				if (resourceError) {
+					setError(resourceError);
+					setIsLoaded(true);
+					ErrorConfirmService.start();
+					return;
+				}
 				setError(null);
-				const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
-					? await DIAGRAM_FUNCTIONS?.[diagramName](buffer?.toString(), diagramsServiceUrl)
-					: await getAnyDiagrams(buffer?.toString());
-				setData(diagramData);
+				setData(await DIAGRAM_FUNCTIONS?.[diagramName](buffer?.toString(), diagramsServiceUrl));
 			} catch (err) {
 				setError(err);
 			}
@@ -95,22 +87,18 @@ const DiagramData = (props: DiagramDataProps) => {
 	);
 
 	return (
-		<div ref={parentRef} data-qa="qa-diagram-data" data-float={float}>
+		<div data-float={float} data-qa="qa-diagram-data" ref={parentRef}>
 			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
-				<Skeleton isLoaded={isLoaded} width={size?.width} height={size?.height}>
-					{isC4Diagram ? (
-						<C4Render data={data} error={error} />
-					) : (
-						<DiagramRender
-							openEditor={openEditor}
-							ref={ref}
-							downloadSrc={src}
-							title={title}
-							diagramName={diagramName}
-							data={data}
-							error={error}
-						/>
-					)}
+				<Skeleton height={size?.height} isLoaded={isLoaded} width={size?.width}>
+					<DiagramRender
+						data={data}
+						diagramName={diagramName}
+						downloadSrc={src}
+						error={error}
+						openEditor={openEditor}
+						ref={ref}
+						title={title}
+					/>
 				</Skeleton>
 			</BlockCommentView>
 			{title && !error && !noEm && <em>{title}</em>}

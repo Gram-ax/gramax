@@ -1,11 +1,11 @@
 import getCloudConvertors from "@ext/confluence/core/cloud/logic/getCloudConvertors";
-import getServerConvertors from "@ext/confluence/core/server/logic/getServerConvertors";
 import CONFLUENCE_EXTENSION_TYPES from "@ext/confluence/core/cloud/model/confluenceExtensionTypes";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
 import { ConfluenceArticle, ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
+import getServerConvertors from "@ext/confluence/core/server/logic/getServerConvertors";
 import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
-import { JSONContent } from "@tiptap/core";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import { JSONContent } from "@tiptap/core";
 
 const unsupportedElements: Map<string, UnsupportedElements> = new Map();
 

@@ -1,11 +1,11 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import styled from "@emotion/styled";
-import t from "@ext/localization/locale/translate";
-import { MutableRefObject, forwardRef, useEffect, useRef } from "react";
-import { TocItem } from "../logic/createTocItems";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useGetHref from "@core-ui/useGetHref";
+import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
+import { forwardRef, MutableRefObject, useEffect, useRef } from "react";
+import { TocItem } from "../logic/createTocItems";
 
 const SCROLLSPY_OFFSET = 50;
 type Pair = { hEl: HTMLElement; aEl: HTMLElement };
@@ -90,9 +90,9 @@ const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 					{!x.items?.length ? (
 						<a
 							className={`lvl-${level}`}
-							href={useGetHref(x.url)}
 							dangerouslySetInnerHTML={{ __html: x.title }}
 							data-qa={`article-navigation-link-level-${level}`}
+							href={useGetHref(x.url)}
 						/>
 					) : (
 						<CategoryTree item={x} level={level} />
@@ -123,7 +123,7 @@ const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 							style={{ fontWeight: 300, verticalAlign: "baseline" }}
 						/>
 					</div> */}
-				<a className={`lvl-${level}`} href={href} data-qa={`article-navigation-level-${level}-link`}>
+				<a className={`lvl-${level}`} data-qa={`article-navigation-level-${level}-link`} href={href}>
 					{item.title}
 				</a>
 			</li>
@@ -140,10 +140,10 @@ const TableOfContents = styled(({ className }: { className?: string }) => {
 
 	return (
 		<Scrollspy
-			ref={articleElement}
-			className={className}
-			activeClassName="active"
 			activeClassEl={(x) => x.parentNode as HTMLElement}
+			activeClassName="active"
+			className={className}
+			ref={articleElement}
 		>
 			<>
 				<div

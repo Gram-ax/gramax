@@ -1,16 +1,16 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import { Editor } from "@tiptap/core";
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import NoteMenuButton from "@ext/markdown/elements/note/edit/components/NoteMenuButton";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
-import { ComponentVariantProvider } from "@ui-kit/Providers";
-import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
-import t from "@ext/localization/locale/translate";
-import styled from "@emotion/styled";
-import { useCallback } from "react";
-import { cn } from "@core-ui/utils/cn";
 import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
+import { Editor } from "@tiptap/core";
+import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
+import { ComponentVariantProvider } from "@ui-kit/Providers";
+import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { useCallback } from "react";
 
 const StyledToolbarIcon = styled(ToolbarIcon)`
 	transform: scale(1, -1);
@@ -44,12 +44,12 @@ const NotesMenuGroup = ({ editor }: { editor?: Editor }) => {
 	return (
 		<ComponentVariantProvider variant="inverse">
 			<div
-				tabIndex={-1}
+				className={cn(disabled && "pointer-events-none")}
 				onMouseEnter={handleMouseEnter}
 				onMouseLeave={onMouseLeave}
-				className={cn(disabled && "pointer-events-none")}
+				tabIndex={-1}
 			>
-				<DropdownMenu open={isOpen} onOpenChange={onOpenChange} modal={false}>
+				<DropdownMenu modal={false} onOpenChange={onOpenChange} open={isOpen}>
 					<DropdownMenuTrigger asChild>
 						<ToolbarToggleButton
 							active={note.isActive}
@@ -62,11 +62,11 @@ const NotesMenuGroup = ({ editor }: { editor?: Editor }) => {
 					</DropdownMenuTrigger>
 					<ToolbarDropdownMenuContent
 						align="start"
-						side="top"
-						contentClassName="lg:shadow-hard-base"
-						className={cn(!isMobile && "px-3 py-3 pb-2")}
 						alignOffset={!isMobile ? -19 : -5}
+						className={cn(!isMobile && "px-3 py-3 pb-2")}
+						contentClassName="lg:shadow-hard-base"
 						onInteractOutside={onInteractOutside}
+						side="top"
 					>
 						<DropdownMenuLabel className="font-normal text-inverse-muted">
 							{t("editor.notes")}

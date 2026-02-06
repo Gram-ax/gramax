@@ -1,9 +1,9 @@
 import Input from "@components/Atoms/Input";
+import Path from "@core/FileProvider/Path/Path";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import Path from "@core/FileProvider/Path/Path";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import isUrlPointsToRepo from "@ext/git/actions/Clone/logic/isUrlPointsToRepo";
 import type { PublicGitStorageData } from "@ext/git/core/model/GitStorageData";
@@ -111,13 +111,13 @@ const PublicClone = ({ setStorageData }: PublicCloneProps) => {
 					<div className="input-lable">
 						<Input
 							dataQa={t("git.clone.public.link-placeholder")}
-							placeholder={t("git.clone.public.link-placeholder")}
+							errorText={urlError || nameError || null}
 							isCode
-							value={url}
 							onChange={(e) => onLinkChange(e.target.value)}
 							onFocus={() => setFocusedField("url")}
-							errorText={urlError || nameError || null}
+							placeholder={t("git.clone.public.link-placeholder")}
 							showErrorText={focusedField === "url"}
+							value={url}
 						/>
 					</div>
 				</div>

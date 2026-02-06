@@ -1,6 +1,6 @@
 import resolveModule from "@app/resolveModule/backend";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { MAX_HEIGHT, MAX_WIDTH } from "@ext/wordExport/options/wordExportSettings";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 export class ImageDimensionsFinder {
 	static getImageSizeFromImageData(imageBuffer: Buffer, maxWidth?: number, maxHeight?: number) {

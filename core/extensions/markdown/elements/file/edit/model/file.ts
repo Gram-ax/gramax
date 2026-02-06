@@ -24,6 +24,10 @@ export const File = Mark.create({
 		return { HTMLAttributes: {} };
 	},
 
+	inclusive() {
+		return false;
+	},
+
 	addAttributes() {
 		return {
 			href: { default: null },

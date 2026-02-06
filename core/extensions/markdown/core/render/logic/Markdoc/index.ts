@@ -1,3 +1,4 @@
+import MarkdownIt from "markdown-it";
 import Ast from "./src/ast/index";
 import Node from "./src/ast/node";
 import Tag from "./src/ast/tag";
@@ -10,10 +11,8 @@ import tags from "./src/tags/index";
 import Tokenizer from "./src/tokenizer";
 import transformer from "./src/transformer";
 import transforms from "./src/transforms/index";
-import validator from "./src/validator";
-
-import MarkdownIt from "markdown-it";
 import type { Config, RenderableTreeNode, Token, ValidateError } from "./src/types";
+import validator from "./src/validator";
 
 export * from "./src/types";
 

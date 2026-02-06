@@ -1,5 +1,5 @@
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { JSONContent } from "@tiptap/core";
-import ParserContext from "../../../Parser/ParserContext/ParserContext";
 
 type NodeTransformerFunc = (
 	node: JSONContent,

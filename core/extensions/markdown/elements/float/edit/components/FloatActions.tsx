@@ -7,8 +7,8 @@ import { Editor } from "@tiptap/react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuRadioItem,
 	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
 
@@ -25,7 +25,7 @@ const FloatActions = ({ node, editor, getPos }: { node: Node; editor: Editor; ge
 				<ActionButton icon={FLOAT_ALIGN_ICONS[float]} tooltipText={t("editor.float.name")} />
 			</DropdownMenuTrigger>
 			<DropdownMenuContent>
-				<DropdownMenuRadioGroup value={float} onValueChange={setFloat}>
+				<DropdownMenuRadioGroup onValueChange={setFloat} value={float}>
 					<DropdownMenuRadioItem value="left">{t(`editor.float.left`)}</DropdownMenuRadioItem>
 					<DropdownMenuRadioItem value="center">{t(`editor.float.center`)}</DropdownMenuRadioItem>
 					<DropdownMenuRadioItem value="right">{t(`editor.float.right`)}</DropdownMenuRadioItem>

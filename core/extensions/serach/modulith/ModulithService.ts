@@ -1,13 +1,13 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { Article } from "@core/FileStructue/Article/Article";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { Item } from "@core/FileStructue/Item/Item";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
-import { PropertyValue } from "@ext/properties/models";
-import { KeyPhraseArticleSearcherItem } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
-import { ModulithSearchClient } from "@ext/serach/modulith/ModulithSearchClient";
-import { SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleParser";
-import {
+import type { PropertyValue } from "@ext/properties/models";
+import type { KeyPhraseArticleSearcherItem } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
+import type { ModulithSearchClient } from "@ext/serach/modulith/ModulithSearchClient";
+import type { SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleParser";
+import type {
 	ArticleLanguage,
 	SearchArticle,
 	SearchArticleFilter,
@@ -17,17 +17,17 @@ import { AsyncNotifier } from "@ext/serach/modulith/utils/AsyncNotifier";
 import { getLang } from "@ext/serach/modulith/utils/getLang";
 import { getValidCatalogItems } from "@ext/serach/modulith/utils/getValidCatalogItems";
 import { WorkspaceState } from "@ext/serach/modulith/WorkspaceState";
-import {
+import type {
 	ProgressItem,
 	PropertyFilter,
 	SearcherProgressGenerator,
 	SearchResultItem,
 	SearchResultMarkItem,
 } from "@ext/serach/Searcher";
-import { Workspace } from "@ext/workspace/Workspace";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { AggregateProgress, FieldsToDotPaths, ProgressCallback } from "@ics/modulith-utils";
+import type { Workspace } from "@ext/workspace/Workspace";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import { AggregateProgress, type FieldsToDotPaths, type ProgressCallback } from "@ics/modulith-utils";
 
 const PROMISES_RESOLVED_MARK = Symbol();
 

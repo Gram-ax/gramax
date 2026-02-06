@@ -102,44 +102,44 @@ const EditorsComponent = () => {
 
 	return (
 		<div className="p-6">
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
 			<TableInfoBlock
-				title={getAdminPageTitle(Page.EDITORS)}
 				description={
 					<span>
 						{localEditors.length}
 						{editorSettings.count ? `/${editorSettings.count}` : ""}
 					</span>
 				}
+				title={getAdminPageTitle(Page.EDITORS)}
 			/>
 
 			<div>
 				<TableToolbar
 					input={
 						<TableToolbarTextInput
+							onChange={handleFilterChange}
 							placeholder={t("enterprise.admin.editors.placeholder")}
 							value={(table.getColumn("editor")?.getFilterValue() as string) ?? ""}
-							onChange={handleFilterChange}
 						/>
 					}
 				>
 					<AlertDeleteDialog
+						hidden={!selectedCount}
 						onConfirm={deleteSelected}
 						selectedCount={selectedCount}
-						hidden={!selectedCount}
 					/>
 
 					<UserToolbarAddBtn
-						key="add-editor"
 						disable={localEditors.length >= editorSettings.count}
-						onAdd={handleAddEditors}
 						existingUsers={localEditors}
+						key="add-editor"
 						limit={editorSettings.count}
+						onAdd={handleAddEditors}
 					/>
 				</TableToolbar>
 
-				<TableComponent<Editor> table={table} columns={editorsTableColumns} />
+				<TableComponent<Editor> columns={editorsTableColumns} table={table} />
 			</div>
 		</div>
 	);

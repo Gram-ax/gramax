@@ -46,27 +46,27 @@ const DbDiagram = styled(
 			load(src, tags, primary);
 		}, [src, tags, primary]);
 
-		if (error || (data && !data?.tables)) return <DiagramError error={error ?? data} diagramName="Db-Diagram" />;
+		if (error || (data && !data?.tables)) return <DiagramError diagramName="Db-Diagram" error={error ?? data} />;
 
 		return !data ? (
-			<div data-type="dbdiagram" contentEditable={false} />
+			<div contentEditable={false} data-type="dbdiagram" />
 		) : (
-			<div className={className} data-type="dbdiagram" contentEditable={false}>
+			<div className={className} contentEditable={false} data-type="dbdiagram">
 				<div className="svg">
 					{popup ? (
-						<Popup defaultOpen onClose={() => setPopup(null)} lockScroll={false}>
+						<Popup defaultOpen lockScroll={false} onClose={() => setPopup(null)}>
 							<div className={className}>
 								<div className="scroll article">
-									<TableDB object={popup} className="" />
+									<TableDB className="" object={popup} />
 								</div>
 							</div>
 						</Popup>
 					) : null}
 					<svg
-						viewBox={`0 0 ${data.width + 100} ${data.height + 100}`}
-						fill="none"
-						xmlns="http://www.w3.org/2000/svg"
 						className={hover ? "highlight" : ""}
+						fill="none"
+						viewBox={`0 0 ${data.width + 100} ${data.height + 100}`}
+						xmlns="http://www.w3.org/2000/svg"
 					>
 						{data.links?.map((l, idx) => {
 							let highlight = false;
@@ -79,25 +79,25 @@ const DbDiagram = styled(
 								}
 							return (
 								<a
+									className={highlight ? "highlight" : ""}
 									dangerouslySetInnerHTML={{ __html: l.link }}
 									key={idx}
-									className={highlight ? "highlight" : ""}
-									onMouseOver={() => {
-										if (!focus)
-											setHover([{ idx, table1Name: l.table1Name, table2Name: l.table2Name }]);
-									}}
-									onMouseOut={() => {
-										if (!focus) setHover(null);
-									}}
-									tabIndex={0}
-									onFocus={() => {
-										setFocus(true);
-										setHover([{ idx, table1Name: l.table1Name, table2Name: l.table2Name }]);
-									}}
 									onBlur={() => {
 										setFocus(false);
 										setHover(null);
 									}}
+									onFocus={() => {
+										setFocus(true);
+										setHover([{ idx, table1Name: l.table1Name, table2Name: l.table2Name }]);
+									}}
+									onMouseOut={() => {
+										if (!focus) setHover(null);
+									}}
+									onMouseOver={() => {
+										if (!focus)
+											setHover([{ idx, table1Name: l.table1Name, table2Name: l.table2Name }]);
+									}}
+									tabIndex={0}
 								/>
 							);
 						})}
@@ -112,30 +112,12 @@ const DbDiagram = styled(
 								}
 							return (
 								<a
-									key={idx}
 									className={highlight ? "highlight" : ""}
-									onMouseOver={() => {
-										if (!focus)
-											setHover(
-												data.links
-													?.map((l, idx) => {
-														return {
-															idx,
-															table1Name: l.table1Name,
-															table2Name: l.table2Name,
-														};
-													})
-													.filter(
-														(l) =>
-															l.table1Name == table.table.code ||
-															l.table2Name == table.table.code,
-													),
-											);
+									key={idx}
+									onBlur={() => {
+										setFocus(false);
+										setHover(null);
 									}}
-									onMouseOut={() => {
-										if (!focus) setHover(null);
-									}}
-									tabIndex={0}
 									onFocus={() => {
 										setFocus(true);
 										setHover(
@@ -154,15 +136,33 @@ const DbDiagram = styled(
 												),
 										);
 									}}
-									onBlur={() => {
-										setFocus(false);
-										setHover(null);
+									onMouseOut={() => {
+										if (!focus) setHover(null);
 									}}
+									onMouseOver={() => {
+										if (!focus)
+											setHover(
+												data.links
+													?.map((l, idx) => {
+														return {
+															idx,
+															table1Name: l.table1Name,
+															table2Name: l.table2Name,
+														};
+													})
+													.filter(
+														(l) =>
+															l.table1Name == table.table.code ||
+															l.table2Name == table.table.code,
+													),
+											);
+									}}
+									tabIndex={0}
 								>
 									<g
+										className="titleBlock"
 										dangerouslySetInnerHTML={{ __html: table.title }}
 										onClick={() => setPopup(table.table)}
-										className="titleBlock"
 									/>
 									{table.fields?.map((field, idx) => (
 										<g dangerouslySetInnerHTML={{ __html: field }} key={idx} />

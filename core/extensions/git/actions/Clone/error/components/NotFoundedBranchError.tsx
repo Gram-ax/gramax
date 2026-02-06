@@ -10,9 +10,9 @@ const NotFoundedBranchError = ({
 }) => {
 	return (
 		<InfoModalForm
+			closeButton={{ text: t("ok") }}
 			onCancelClick={onCancelClick}
 			title={`${t("branch")} ${notFoundedBranch} ${t("not-found2").toLowerCase()}`}
-			closeButton={{ text: t("ok") }}
 		>
 			<div className="article">
 				<span>{t("clone-branch-not-found")}</span>

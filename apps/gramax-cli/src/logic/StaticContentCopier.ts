@@ -1,17 +1,29 @@
-import { DirectoryInfoBasic } from "@app/resolveModule/fscall/static";
-import Application from "@app/types/Application";
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type Application from "@app/types/Application";
+import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import CliUserError from "./CliUserError";
+import type { Article, ArticleProps } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
-import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import assert from "assert";
-import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
+import crypto from "crypto-js";
+import CliUserError from "./CliUserError";
+import type { DirectoryInfoBasic } from "./initialDataUtils/types";
 
 export type StaticFileProvider = Pick<FileProvider, "write" | "copy" | "mkdir" | "getItems">;
 type CopyFileFunction = (from: Path, to: Path, fp?: StaticFileProvider) => Promise<void>;
 export type CopyTemplatesFunction = (copyFile: CopyFileFunction) => Promise<string[]>;
+
+/**
+ * Sorts arrays for deterministic order to ensure consistent file hashes and cache-busting.
+ * This prevents different build outputs for identical content due to iteration order variations.
+ */
+function sortForDeterministicOrder<T extends { ref?: { path: { value: string } } } | { value: string }>(
+	items: T[],
+	getSortKey: (item: T) => string,
+): T[] {
+	return [...items].sort((a, b) => getSortKey(a).localeCompare(getSortKey(b)));
+}
 
 interface DirectoryHelpers {
 	copyFile: CopyFileFunction;
@@ -20,7 +32,10 @@ interface DirectoryHelpers {
 }
 
 class StaticContentCopier {
-	constructor(private _fp: StaticFileProvider, private _app: Application) {}
+	constructor(
+		private _fp: StaticFileProvider,
+		private _app: Application,
+	) {}
 
 	private _initialized = true;
 	private _wmPath!: string;
@@ -36,12 +51,12 @@ class StaticContentCopier {
 		const catalogItems = await this._parseAndValidateCatalogItems();
 
 		await this._copyRootDirectoryAndLogos();
-		await this._createArticlesZip();
+		const zipFilename = await this._createArticlesZip();
 		await this._copySnippets();
 		await this._copyIcons();
 		await this._copyCatalogItemResources(catalogItems);
 
-		return this._directoryTree;
+		return { zipFilename };
 	}
 
 	async copyWordTemplates(copyTemplate?: {
@@ -136,12 +151,19 @@ class StaticContentCopier {
 	private async _createArticlesZip() {
 		const zipFileProvider = await ZipFileProvider.create();
 
-		await this._catalog.getItems().forEachAsync(async (item) => {
+		const items = sortForDeterministicOrder(this._catalog.getItems(), (item) => item.ref.path.value);
+
+		for (const item of items) {
 			const itemPath = item.ref.path;
 			const targetArticlePath = new Path(this._catalog.name).join(
 				new Path(itemPath.value.replace(this._folderPath, "")),
 			);
 			await this._helpers.copyFileFromWorkspace(itemPath, targetArticlePath, zipFileProvider);
+		}
+
+		const fixedDate = new Date(2000, 0, 1); // 2000-01-01
+		zipFileProvider.zip.forEach((_, file) => {
+			file.date = fixedDate;
 		});
 
 		const buffer = await zipFileProvider.zip.generateAsync({
@@ -149,42 +171,58 @@ class StaticContentCopier {
 			compression: "DEFLATE",
 			compressionOptions: { level: 9 },
 		});
-		await this._fp.write(this._targetDir.join(new Path([this._catalog.name, ".zip"])), buffer);
+
+		const zipHash = crypto.MD5(buffer.toString("hex")).toString().substring(0, 8);
+		const zipFilename = `${zipHash}.zip`;
+
+		await this._fp.write(this._targetDir.join(new Path([this._catalog.name, zipFilename])), buffer);
+
+		return zipFilename;
 	}
 
 	private async _copySnippets() {
 		const snippets = await this._catalog.customProviders.snippetProvider.getItems<Article<ArticleProps>>(true);
-		await snippets.forEachAsync(async (snippet) => {
+		const sortedSnippets = sortForDeterministicOrder(snippets, (snippet) => snippet.ref.path.value);
+
+		for (const snippet of sortedSnippets) {
 			const path = snippet.ref.path;
 			const targetPath = new Path(this._catalog.name).join(new Path(path.value.replace(this._folderPath, "")));
 			await this._helpers.copyFileFromWorkspace(path, targetPath);
 
 			await this._copyItemResources(snippet);
-		});
+		}
 	}
 
 	private async _copyIcons() {
-		await this._catalog.customProviders.iconProvider.getIconsPaths().forEachAsync(async (path) => {
+		const iconPaths = this._catalog.customProviders.iconProvider.getIconsPaths();
+		const sortedIconPaths = sortForDeterministicOrder(iconPaths, (path) => path.value);
+
+		for (const path of sortedIconPaths) {
 			const targetPath = new Path(this._catalog.name).join(new Path(path.value.replace(this._folderPath, "")));
 			await this._helpers.copyFileFromWorkspace(path, targetPath);
-		});
+		}
 	}
 
 	private async _copyCatalogItemResources(items: Article[]) {
-		await items.forEachAsync(this._copyItemResources.bind(this));
+		const sortedItems = sortForDeterministicOrder(items, (item) => item.ref.path.value);
+		for (const item of sortedItems) {
+			await this._copyItemResources(item);
+		}
 	}
 
 	private async _copyItemResources(item: Article) {
 		const resources = await item.parsedContent.read();
 		if (!resources) return;
-		const rm = resources.resourceManager;
-		await rm.resources.forEachAsync(async (r) => {
+		const rm = resources.parsedContext.getResourceManager();
+		const sortedResources = sortForDeterministicOrder(rm.resources, (resource) => resource.value);
+
+		for (const r of sortedResources) {
 			const absolutePath = rm.getAbsolutePath(new Path(decodeURIComponent(r.value)));
 			const targetPath = new Path(this._catalog.name).join(
 				new Path(absolutePath.value.replace(this._folderPath, "")),
 			);
 			await this._helpers.copyFileFromWorkspace(absolutePath, targetPath);
-		});
+		}
 	}
 }
 

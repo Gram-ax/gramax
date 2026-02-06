@@ -1,5 +1,5 @@
-import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 
 const table = {
 	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,

@@ -1,13 +1,13 @@
 import generateUniqueID from "@core/utils/generateUniqueID";
+import { editName } from "@ext/markdown/elements/question/consts";
 import QuestionComponent from "@ext/markdown/elements/question/edit/components/QuestionComponent";
+import { answerTypeByQuestionType } from "@ext/markdown/elements/question/edit/logic/answerTypeByQuestionType";
+import QuestionStateUpdater from "@ext/markdown/elements/question/edit/logic/questionStateUpdater";
 import questionSchema from "@ext/markdown/elements/question/edit/models/questionSchema";
 import { QuestionType } from "@ext/markdown/elements/question/types";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { editName } from "@ext/markdown/elements/question/consts";
-import { answerTypeByQuestionType } from "@ext/markdown/elements/question/edit/logic/answerTypeByQuestionType";
-import QuestionStateUpdater from "@ext/markdown/elements/question/edit/logic/questionStateUpdater";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {

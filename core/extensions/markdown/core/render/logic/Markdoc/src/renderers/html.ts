@@ -1,11 +1,12 @@
+import { JSONContent } from "@tiptap/core";
 import MarkdownIt from "markdown-it";
 import React from "react";
+import { flushSync } from "react-dom";
+import { createRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import Renderer from "../../../../components/Renderer";
 import type { RenderableTreeNodes, Tag } from "../types";
-import { JSONContent } from "@tiptap/core";
-import { createRoot } from "react-dom/client";
-import { flushSync } from "react-dom";
+
 const { escapeHtml } = MarkdownIt().utils;
 const isBrowser = typeof window !== "undefined";
 

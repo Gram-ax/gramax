@@ -8,7 +8,7 @@ interface ExportMenuItemProps {
 const ExportMenuItem = ({ exportFormat }: ExportMenuItemProps) => {
 	const { catalogName } = useCatalogActionsContext();
 
-	return <ItemExport fileName={catalogName} exportFormat={exportFormat} />;
+	return <ItemExport exportFormat={exportFormat} fileName={catalogName} />;
 };
 
 export default ExportMenuItem;

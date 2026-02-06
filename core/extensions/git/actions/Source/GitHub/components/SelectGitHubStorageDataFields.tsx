@@ -1,29 +1,29 @@
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
 import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import t from "@ext/localization/locale/translate";
 import User2 from "@ext/security/components/User/User2";
+import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import { FormField } from "@ui-kit/Form";
+import { MenuItem, MenuItemAction } from "@ui-kit/MenuItem";
+import {
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectItem,
+	SelectOption,
+	SelectSeparator,
+	SelectTrigger,
+	SelectValue,
+} from "@ui-kit/Select";
 import { useMemo, useRef, useState } from "react";
+import { UseFormReturn } from "react-hook-form";
 import parseStorageUrl from "../../../../../../logic/utils/parseStorageUrl";
 import CloneFields from "../../components/CloneFields";
 import { useMakeSourceApi } from "../../makeSourceApi";
 import GithubSourceAPI from "../logic/GithubSourceAPI";
-import { FormField } from "@ui-kit/Form";
-import { UseFormReturn } from "react-hook-form";
-import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
-import {
-	Select,
-	SelectContent,
-	SelectTrigger,
-	SelectValue,
-	SelectSeparator,
-	SelectGroup,
-	SelectOption,
-	SelectItem,
-} from "@ui-kit/Select";
-import { MenuItem, MenuItemAction } from "@ui-kit/MenuItem";
-import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 
 type SelectOptionType = {
 	label: string;
@@ -112,14 +112,12 @@ const SelectGitHubStorageDataFields = ({ form, source, mode }: SelectProps) => {
 	return (
 		<>
 			<FormField
-				title={t("account")}
-				name="user"
 				control={({ field }) => (
 					<Select
 						{...field}
-						value={field?.value?.value || undefined}
-						onValueChange={(val) => val && onSelectUser(val)}
 						onOpenChange={onOpenChange}
+						onValueChange={(val) => val && onSelectUser(val)}
+						value={field?.value?.value || undefined}
 					>
 						<SelectTrigger>
 							<SelectValue placeholder={t("forms.clone-repo.props.storage.placeholder")} />
@@ -127,9 +125,9 @@ const SelectGitHubStorageDataFields = ({ form, source, mode }: SelectProps) => {
 						<SelectContent>
 							<SelectGroup>
 								{isLoading && (
-									<SelectItem value="loading" disabled>
+									<SelectItem disabled value="loading">
 										<span className="flex flex-row items-center gap-1.5">
-											<SpinnerLoader width={16} height={16} />
+											<SpinnerLoader height={16} width={16} />
 											{t("loading")}
 										</span>
 									</SelectItem>
@@ -139,17 +137,17 @@ const SelectGitHubStorageDataFields = ({ form, source, mode }: SelectProps) => {
 										const account = d.value;
 										return (
 											<SelectItem key={account} value={account}>
-												<CustomSelectOption label={account} avatarUrl={d.avatarUrl} />
+												<CustomSelectOption avatarUrl={d.avatarUrl} label={account} />
 											</SelectItem>
 										);
 									})}
 							</SelectGroup>
 							{(isLoading || options.length > 0) && <SelectSeparator />}
 							<SelectOption
-								value="add-new-account"
 								asChild
-								role="button"
 								onPointerDown={() => authorizeNewAccount()}
+								role="button"
+								value="add-new-account"
 							>
 								<MenuItem>
 									<MenuItemAction icon="plus" text={t("add-account")} />
@@ -158,21 +156,23 @@ const SelectGitHubStorageDataFields = ({ form, source, mode }: SelectProps) => {
 						</SelectContent>
 					</Select>
 				)}
+				name="user"
+				title={t("account")}
 			/>
 			{user?.name && mode === "clone" && (
 				<FormField
-					title={t("repository")}
-					name="repository"
 					control={({ field }) => (
 						<CloneFields
 							{...field}
-							form={form}
 							deps={deps}
+							form={form}
+							gitPaginatedProjectList={gitPaginatedProjectList}
 							repositoryFilter={(repository) => repository.path.startsWith(user?.name)}
 							source={source}
-							gitPaginatedProjectList={gitPaginatedProjectList}
 						/>
 					)}
+					name="repository"
+					title={t("repository")}
 				/>
 			)}
 		</>

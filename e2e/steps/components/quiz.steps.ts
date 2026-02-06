@@ -1,6 +1,6 @@
 import { When } from "@cucumber/cucumber";
-import E2EWorld from "../../models/World";
 import { expect } from "playwright/test";
+import E2EWorld from "../../models/World";
 import { replaceMultiple, sleep } from "../utils/utils";
 
 const QUESTION_SELECTOR = "div.question";

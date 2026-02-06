@@ -1,16 +1,16 @@
-import t from "@ext/localization/locale/translate";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@ui-kit/Dropdown";
-import styled from "@emotion/styled";
-import Icon from "@components/Atoms/Icon";
 import Divider from "@components/Atoms/Divider";
+import Icon from "@components/Atoms/Icon";
 import Anchor from "@components/controls/Anchor";
+import { classNames } from "@components/libs/classNames";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import CloudStateService from "@core-ui/ContextServices/CloudState";
-import { useState } from "react";
-import { classNames } from "@components/libs/classNames";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import openCloudModal from "@ext/static/components/openCloudModal";
 import useGetCatalogCloudUrl from "@ext/static/utils/cloudUrl";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { useState } from "react";
 
 const PublishStatusPanel = ({ className }: { className?: string }) => {
 	if (!CloudStateService.value) return;
@@ -33,7 +33,7 @@ const PublishStatusPanel = ({ className }: { className?: string }) => {
 		<>
 			<Divider />
 			<div className={classNames(className, { modalOpen })}>
-				<Anchor className="anchor" href={url} data-qa="qa-clickable">
+				<Anchor className="anchor" data-qa="qa-clickable" href={url}>
 					<ButtonLink iconCode="cloud-upload" text={t("cloud.publish-status-panel.published")} />
 				</Anchor>
 				<div className="right">

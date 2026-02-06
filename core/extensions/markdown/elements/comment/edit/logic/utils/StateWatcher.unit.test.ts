@@ -1,9 +1,9 @@
-import { Editor } from "@tiptap/core";
-import Document from "@tiptap/extension-document";
-import Paragraph from "@ext/markdown/elements/paragraph/edit/model/paragraph";
-import Text from "@tiptap/extension-text";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import Drawio from "@ext/markdown/elements/drawio/edit/model/drawio";
+import Paragraph from "@ext/markdown/elements/paragraph/edit/model/paragraph";
+import { Editor } from "@tiptap/core";
+import Document from "@tiptap/extension-document";
+import Text from "@tiptap/extension-text";
 
 describe("Comment State Watcher", () => {
 	let editor: Editor;

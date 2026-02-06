@@ -9,8 +9,8 @@ import SelectTargetWorkspace from "@ext/catalog/actions/move/components/SelectTa
 import { useDeleteCatalog } from "@ext/catalog/actions/propsEditor/components/useDeleteCatalog";
 import t from "@ext/localization/locale/translate";
 import { CatalogLink } from "@ext/navigation/NavigationLinks";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { CardMenuTrigger } from "@ui-kit/Card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { useCallback } from "react";
 
 interface CardActionsProps {
@@ -62,23 +62,23 @@ const CardActions = ({ catalogLink }: CardActionsProps) => {
 						<CatalogMoveAction catalogName={catalogLink.name}>
 							{({ targetWorkspaceRef, checkAndMove }) => (
 								<SelectTargetWorkspace
+									excludeCurrent
 									onClick={(workspace) => {
 										targetWorkspaceRef.current = workspace;
 										checkAndMove({
 											url: (api) => api.getCatalogNameAfterMove(catalogLink.name, workspace.path),
 										});
 									}}
-									excludeCurrent
 								/>
 							)}
 						</CatalogMoveAction>
 						<DropdownMenuItem
-							type="danger"
 							onClick={async (e) => {
 								e.stopPropagation();
 								if (!(await confirm(t("catalog.delete.name") + "?"))) return;
 								await deleteCatalog();
 							}}
+							type="danger"
 						>
 							<Icon code="trash" />
 							{t("catalog.delete.name")}

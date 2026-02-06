@@ -143,18 +143,45 @@ const StyleGuideComponent = () => {
 	const Title = (
 		<>
 			<StickyHeader
+				actions={
+					<>
+						{localSettings.lgt.rules.length > 0 && (
+							<>
+								<StyleGuideComponentImportButton setLocalSettings={setLocalSettings} />
+								<StyleGuideComponentSaveButton
+									handleSave={handleSave}
+									isEqual={isEqual}
+									isSaving={isSaving}
+								/>
+							</>
+						)}
+						<SwitchField
+							alignment="right"
+							checked={localSettings.enabled}
+							className="gap-2"
+							disabled={isSaving || isHealthy === false}
+							label={
+								localSettings.enabled
+									? t("enterprise.admin.check.switch.on")
+									: t("enterprise.admin.check.switch.off")
+							}
+							onCheckedChange={handleToggle}
+						/>
+					</>
+				}
+				isScrolled={isScrolled}
 				title={
 					<>
-						{getAdminPageTitle(Page.STYLEGUIDE)} <Spinner size="small" show={isRefreshing("styleGuide")} />
+						{getAdminPageTitle(Page.STYLEGUIDE)} <Spinner show={isRefreshing("styleGuide")} size="small" />
 						{isHealthy === false && (
 							<Tooltip>
 								<TooltipTrigger asChild>
 									<Button
 										className="p-0 h-auto"
-										startIcon="circle-alert"
-										variant="text"
-										status="error"
 										size="sm"
+										startIcon="circle-alert"
+										status="error"
+										variant="text"
 									/>
 								</TooltipTrigger>
 								<TooltipContent>{t("enterprise.admin.check.service-unavailable")}</TooltipContent>
@@ -162,35 +189,8 @@ const StyleGuideComponent = () => {
 						)}
 					</>
 				}
-				isScrolled={isScrolled}
-				actions={
-					<>
-						{localSettings.lgt.rules.length > 0 && (
-							<>
-								<StyleGuideComponentImportButton setLocalSettings={setLocalSettings} />
-								<StyleGuideComponentSaveButton
-									isSaving={isSaving}
-									handleSave={handleSave}
-									isEqual={isEqual}
-								/>
-							</>
-						)}
-						<SwitchField
-							label={
-								localSettings.enabled
-									? t("enterprise.admin.check.switch.on")
-									: t("enterprise.admin.check.switch.off")
-							}
-							alignment="right"
-							className="gap-2"
-							disabled={isSaving || isHealthy === false}
-							checked={localSettings.enabled}
-							onCheckedChange={handleToggle}
-						/>
-					</>
-				}
 			/>
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 		</>
 	);
 
@@ -207,9 +207,9 @@ const StyleGuideComponent = () => {
 						<PageStateButtonGroup>
 							<StyleGuideComponentImportButton setLocalSettings={setLocalSettings} />
 							<StyleGuideComponentSaveButton
-								isSaving={isSaving}
 								handleSave={handleSave}
 								isEqual={isEqual}
+								isSaving={isSaving}
 							/>
 						</PageStateButtonGroup>
 					</PageState>
@@ -217,7 +217,7 @@ const StyleGuideComponent = () => {
 
 				{localSettings.lgt.rules.length > 0 && (
 					<SidebarProvider className="min-h-auto">
-						<Sidebar collapsible="none" className="min-w-[400px] rounded-md">
+						<Sidebar className="min-w-[400px] rounded-md" collapsible="none">
 							<SidebarContent>
 								<SidebarGroup>
 									<SidebarGroupContent>
@@ -250,8 +250,8 @@ const StyleGuideComponent = () => {
 
 									<AutogrowTextarea
 										className="font-mono mt-2 max-h-96"
-										value={localSettings.lgt.rules[currentIndex].xml}
 										readOnly
+										value={localSettings.lgt.rules[currentIndex].xml}
 									/>
 									{localSettings.lgt.rules[currentIndex]?.forTypes?.length > 0 && (
 										<div className="space-y-2 mt-6">

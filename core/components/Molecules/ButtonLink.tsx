@@ -3,7 +3,7 @@ import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CSSProperties, MutableRefObject, ReactNode, forwardRef } from "react";
+import { CSSProperties, forwardRef, MutableRefObject, ReactNode } from "react";
 import { Placement } from "tippy.js";
 
 export interface ButtonLinkProps extends Omit<ButtonProps, "children"> {
@@ -46,23 +46,23 @@ const ButtonLink = forwardRef((props: ButtonLinkProps, ref?: MutableRefObject<HT
 
 	return (
 		<div
+			className={classNames(className, { fullWidth }, ["buttonLink"])}
 			data-qa={dataQa}
-			ref={ref}
+			onClick={disabled ? null : onClick}
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
-			onClick={disabled ? null : onClick}
-			className={classNames(className, { fullWidth }, ["buttonLink"])}
+			ref={ref}
 		>
-			<Button disabled={disabled} buttonStyle={ButtonStyle.transparent} textSize={textSize} {...otherProps}>
+			<Button buttonStyle={ButtonStyle.transparent} disabled={disabled} textSize={textSize} {...otherProps}>
 				{iconCode && (
 					<Icon
-						style={{ fontSize: unionFontSize ? TextKeys[textSize] + "rem" : undefined, ...iconStyle }}
-						fw={iconFw}
 						code={iconCode}
-						viewBox={iconViewBox}
+						fw={iconFw}
 						isLoading={iconIsLoading}
+						style={{ fontSize: unionFontSize ? TextKeys[textSize] + "rem" : undefined, ...iconStyle }}
 						tooltipContent={iconContent}
 						tooltipPlace={iconPlace}
+						viewBox={iconViewBox}
 					/>
 				)}
 				{text && (

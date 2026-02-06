@@ -1,15 +1,15 @@
-import t from "@ext/localization/locale/translate";
 import Icon from "@components/Atoms/Icon";
-import { Field } from "@ui-kit/Field";
-import { Button } from "@ui-kit/Button";
+import Query, { parserQuery } from "@core/Api/Query";
 import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
-import { useState, useLayoutEffect } from "react";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
-import Query, { parserQuery } from "@core/Api/Query";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import { TextInput } from "@ui-kit/Input";
+import t from "@ext/localization/locale/translate";
 import NotionSourceData from "@ext/notion/model/NotionSourceData";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import { Button } from "@ui-kit/Button";
+import { Field } from "@ui-kit/Field";
+import { TextInput } from "@ui-kit/Input";
+import { useLayoutEffect, useState } from "react";
 
 const EditNotion = ({ onSubmit }: { onSubmit: (data: NotionSourceData) => void }) => {
 	const { setPrimaryButton } = useSetFooterButton();
@@ -46,7 +46,7 @@ const EditNotion = ({ onSubmit }: { onSubmit: (data: NotionSourceData) => void }
 		};
 
 		const primaryButton = (
-			<Button type="button" disabled={!data} onClick={handleAddRepo}>
+			<Button disabled={!data} onClick={handleAddRepo} type="button">
 				{t("add")}
 			</Button>
 		);
@@ -61,19 +61,19 @@ const EditNotion = ({ onSubmit }: { onSubmit: (data: NotionSourceData) => void }
 	return (
 		<>
 			<Field
-				title={t("user")}
-				layout="vertical"
 				control={() =>
 					data ? (
-						<TextInput className="font-medium" value={data.userName} readOnly />
+						<TextInput className="font-medium" readOnly value={data.userName} />
 					) : (
-						<Button type="button" variant="outline" onClick={startAuth}>
-							<Icon code="notion" className="text-base" />
+						<Button onClick={startAuth} type="button" variant="outline">
+							<Icon className="text-base" code="notion" />
 							{t("log-in")}
 							Notion
 						</Button>
 					)
 				}
+				layout="vertical"
+				title={t("user")}
 			/>
 		</>
 	);

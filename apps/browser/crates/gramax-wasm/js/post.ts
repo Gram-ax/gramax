@@ -85,8 +85,8 @@ Object.assign(Module, {
 		xhr.open(method, url, true);
 
 		const headers = {
-      'Content-Type': 'application/vnd.git-lfs+json, charset=utf-8',
-    };
+			"Content-Type": "application/vnd.git-lfs+json, charset=utf-8",
+		};
 
 		if (token) headers["x-private-token"] = token;
 		if (gitServerUsername) headers["x-git-username"] = gitServerUsername;
@@ -117,19 +117,19 @@ Object.assign(Module, {
 		const result = new Promise((resolve) => {
 			const connection = self.emscriptenhttpconnections[connId];
 
-      if (!connection) return resolve(-1);
-      const xhr = connection.xhr;
-      const url = connection.url;
+			if (!connection) return resolve(-1);
+			const xhr = connection.xhr;
+			const url = connection.url;
 
 			for (const [header, value] of Object.entries(connection.headers)) {
 				xhr.setRequestHeader(header, value);
 			}
 
-			xhr.onload = async function (load) {
+			xhr.onload = async function () {
 				const set = await trySetLastHttpError(xhr.status, xhr.response);
 				resolve(set ? -xhr.status : connId);
 			};
-			xhr.onerror = async function (err) {
+			xhr.onerror = async function () {
 				await trySetLastHttpError(xhr.status, xhr.response, url);
 				resolve(-xhr.status);
 			};
@@ -201,11 +201,11 @@ Object.assign(Module, {
 			});
 
 			if (method === "GET") {
-				xhr.onload = async function (load) {
+				xhr.onload = async function () {
 					await trySetLastHttpError(xhr.status, xhr.response);
 					resolve(connId);
 				};
-				xhr.onerror = async function (err) {
+				xhr.onerror = async function () {
 					await trySetLastHttpError(xhr.status, xhr.response, url);
 					resolve(connId);
 				};
@@ -254,14 +254,14 @@ Object.assign(Module, {
 		const result = new Promise((resolve) => {
 			const connection = self.emscriptenhttpconnections[connectionNo];
 			if (connection.content) {
-				connection.xhr.onload = async function (load) {
+				connection.xhr.onload = async function () {
 					const set = await trySetLastHttpError(connection.xhr.status, connection.xhr.response);
 					resolve(set ? -connection.xhr.status : handleResponse(buffer, buffersize));
 				};
 				connection.xhr.onabort = function () {
 					resolve(-999);
 				};
-				connection.xhr.onerror = function (err) {
+				connection.xhr.onerror = function () {
 					void trySetLastHttpError(connection.xhr.status, connection.xhr.response);
 					resolve(-connection.xhr.status);
 				};

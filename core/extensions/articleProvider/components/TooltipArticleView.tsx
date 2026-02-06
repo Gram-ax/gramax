@@ -1,22 +1,22 @@
 import { MinimizedArticleStyled } from "@components/Article/MiniArticle";
 import BoxResizeWrapper from "@components/Atoms/BoxResizeWrapper";
 import DragWrapper from "@components/Atoms/DragWrapper";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
-import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
+import TopBarControllers from "@ext/articleProvider/components/TopBarControllers";
+import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import { PopoverPosition, PopoverRect } from "@ext/articleProvider/logic/Popover";
+import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
 import getExtensions, { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
+import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import Document from "@tiptap/extension-document";
 import { Extensions, JSONContent } from "@tiptap/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
-import TopBarControllers from "@ext/articleProvider/components/TopBarControllers";
-import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 
 type ItemProps = ProviderItemProps & {
 	props: Record<string, any>;
@@ -123,16 +123,16 @@ const TooltipContent = ({ item, articleType, extensions, onUpdate, onClose, opti
 						<SpinnerLoader />
 					) : (
 						<SmallEditor
+							articleType={articleType}
+							content={content}
+							extensions={getTooltipExtensions(extensions, options)}
+							id={item.id}
 							props={{
 								title: item.title,
 								...(item.props || {}),
 								content,
 							}}
-							content={content}
-							id={item.id}
-							extensions={getTooltipExtensions(extensions, options)}
 							updateCallback={updateCallback}
-							articleType={articleType}
 						/>
 					)}
 				</MinimizedArticleStyled>
@@ -224,22 +224,22 @@ const TooltipArticleView = (props: TooltipEditorProps) => {
 					maxHeight: newHeight,
 				}}
 			>
-				<DragWrapper ref={wrapperRef} onDragEnd={onDragEnd}>
+				<DragWrapper onDragEnd={onDragEnd} ref={wrapperRef}>
 					<BoxResizeWrapper
-						ref={wrapperRef}
-						maxWidth={window.innerWidth * 0.5}
 						maxHeight={window.innerHeight * 0.8}
-						minWidth={window.innerWidth * 0.1}
+						maxWidth={window.innerWidth * 0.5}
 						minHeight={window.innerHeight * 0.06}
-						onResizeStart={onResizeStart}
+						minWidth={window.innerWidth * 0.1}
 						onResizeEnd={onResizeEnd}
+						onResizeStart={onResizeStart}
+						ref={wrapperRef}
 					>
 						<TooltipContent
-							item={item}
 							articleType={articleType}
-							onUpdate={onUpdate}
-							onClose={onClose}
 							extensions={extensions}
+							item={item}
+							onClose={onClose}
+							onUpdate={onUpdate}
 							options={options}
 						/>
 					</BoxResizeWrapper>

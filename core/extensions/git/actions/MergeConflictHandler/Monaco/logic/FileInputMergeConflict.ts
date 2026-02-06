@@ -128,7 +128,7 @@ export default class FileInputMergeConflict {
 								: {
 										content: ` (${this._codeLensText.currentTextAfter})`,
 										inlineClassName: `vscode-merge-after-text-${this._theme}`,
-								  },
+									},
 						},
 						range: d.current.header,
 					},
@@ -137,7 +137,7 @@ export default class FileInputMergeConflict {
 						: {
 								options: { isWholeLine: true, className: "vscode-merge-current content-opacity" },
 								range: d.current.decoratorContent,
-						  },
+							},
 
 					...d.commonAncestors.flatMap((a) => [
 						{
@@ -154,7 +154,7 @@ export default class FileInputMergeConflict {
 						: {
 								options: { isWholeLine: true, className: "vscode-merge-incoming content-opacity" },
 								range: d.incoming.decoratorContent,
-						  },
+							},
 					{
 						options: {
 							isWholeLine: true,
@@ -165,7 +165,7 @@ export default class FileInputMergeConflict {
 								: {
 										content: ` (${this._codeLensText.incomingTextAfter})`,
 										inlineClassName: `vscode-merge-after-text-${this._theme}`,
-								  },
+									},
 						},
 						range: d.incoming.header,
 					},

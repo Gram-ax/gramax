@@ -1,15 +1,15 @@
-import { Environment, getExecutingEnvironment } from "@app/resolveModule/env";
+import { type Environment, getExecutingEnvironment } from "@app/resolveModule/env";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import type RuleCollection from "@ext/events/RuleCollection";
-import Navigation from "@ext/navigation/catalog/main/logic/Navigation";
+import type Navigation from "@ext/navigation/catalog/main/logic/Navigation";
 import { configureWorkspacePermission, readPermission } from "@ext/security/logic/Permission/Permissions";
-import { Item } from "../../../logic/FileStructue/Item/Item";
-import IPermission from "./Permission/IPermission";
+import type { Item } from "../../../logic/FileStructue/Item/Item";
+import type IPermission from "./Permission/IPermission";
 import Permission from "./Permission/Permission";
-import User from "./User/User";
+import type User from "./User/User";
 
 export default class SecurityRules implements RuleCollection, EventHandlerCollection {
 	private _environment: Environment;

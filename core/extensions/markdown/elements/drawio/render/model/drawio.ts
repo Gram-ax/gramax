@@ -1,11 +1,16 @@
 import Path from "../../../../../../logic/FileProvider/Path/Path";
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
 import { Node, RenderableTreeNodes, Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
 
-export function drawio(context: ParserContext): Schema {
+export function drawio(context: PrivateParserContext): Schema {
 	return {
 		render: "Drawio",
-		attributes: { path: { type: String }, title: { type: String }, width: { type: String }, height: { type: String } },
+		attributes: {
+			path: { type: String },
+			title: { type: String },
+			width: { type: String },
+			height: { type: String },
+		},
 		type: SchemaType.block,
 		transform: (node: Node): RenderableTreeNodes => {
 			context.getResourceManager().set(new Path(node.attributes.path));

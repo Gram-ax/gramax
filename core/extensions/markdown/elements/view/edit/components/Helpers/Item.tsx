@@ -1,4 +1,5 @@
 import t from "@ext/localization/locale/translate";
+import { Mode } from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
 import PropertyButtons from "@ext/properties/components/Helpers/PropertyButtons";
 import { Checkbox } from "@ui-kit/Checkbox";
 import {
@@ -10,7 +11,6 @@ import {
 	DropdownMenuSubTrigger,
 } from "@ui-kit/Dropdown";
 import { MouseEvent, ReactNode, useMemo } from "react";
-import { Mode } from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
 
 interface ItemProps {
 	name: string;
@@ -82,20 +82,20 @@ const Item = ({ values, onClick, renderer, trigger, selected, value, name, mode,
 						<DropdownMenuCheckboxItem checked={getCheckedState(values, value)} onSelect={onCheckAll}>
 							{t("properties.select-all")}
 						</DropdownMenuCheckboxItem>
-						<DropdownMenuCheckboxItem onSelect={onEmptyClick} checked={!value?.includes("none")}>
+						<DropdownMenuCheckboxItem checked={!value?.includes("none")} onSelect={onEmptyClick}>
 							{t("properties.empty")}
 						</DropdownMenuCheckboxItem>
 						{buttons}
 						<PropertyButtons
 							name={name}
-							values={values}
-							type={mode === "single" ? "radio" : "checkbox"}
-							value={value}
 							onChange={onClick}
 							options={{
 								closeOnSelect: true,
 								invertChecked: true,
 							}}
+							type={mode === "single" ? "radio" : "checkbox"}
+							value={value}
+							values={values}
 						/>
 					</>
 				)}

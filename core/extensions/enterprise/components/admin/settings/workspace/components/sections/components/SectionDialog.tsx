@@ -288,54 +288,57 @@ export function SectionDialog({
 	return (
 		<>
 			<SheetComponent
+				cancelButton={
+					<Button onClick={onClose} variant="outline">
+						Отмена
+					</Button>
+				}
+				confirmButton={
+					<Button onClick={rhfForm.handleSubmit(onSubmit)}>{editingKey ? "Ок" : "Добавить"}</Button>
+				}
 				isOpen={open}
 				onOpenChange={handleSheetClose}
-				title={editingKey ? "Редактировать секцию" : "Добавить секцию"}
 				sheetContent={
 					<Form asChild {...rhfForm}>
 						<form className="contents">
 							<FormStack>
 								<FormField
-									name="key"
-									title="Ключ"
-									layout="vertical"
-									required
 									control={({ field }) => <Input placeholder="Введите ключ" {...field} />}
-								/>
-
-								<FormField
-									name="title"
-									title="Название"
 									layout="vertical"
+									name="key"
 									required
-									control={({ field }) => <Input placeholder="Введите название" {...field} />}
+									title="Ключ"
 								/>
 
 								<FormField
-									name="icon"
-									title="Иконка"
+									control={({ field }) => <Input placeholder="Введите название" {...field} />}
 									layout="vertical"
-									description="Введите название иконки Lucide в kebab-case формате (например: folder-open, settings, user-check)"
+									name="title"
+									required
+									title="Название"
+								/>
+
+								<FormField
 									control={({ field }) => (
 										<div className="flex items-center gap-2">
 											<Input
-												placeholder="folder-open, settings, user-check"
 												className="flex-1"
+												placeholder="folder-open, settings, user-check"
 												{...field}
 											/>
 										</div>
 									)}
+									description="Введите название иконки Lucide в kebab-case формате (например: folder-open, settings, user-check)"
+									layout="vertical"
+									name="icon"
+									title="Иконка"
 								/>
 
 								<FormField
-									name="view"
-									title="Вид"
-									layout="vertical"
 									control={({ field }) => (
 										<AsyncSearchSelect
+											emptyText="Виды не найдены"
 											loadOptions={loadViewOptions}
-											value={field.value || undefined}
-											placeholder="Выберите отображение"
 											onChange={(option: SearchSelectOption | null) => {
 												field.onChange(option);
 												setForm({
@@ -345,27 +348,31 @@ export function SectionDialog({
 														WorkspaceView.FOLDER,
 												});
 											}}
+											placeholder="Выберите отображение"
 											searchPlaceholder="Поиск вида..."
-											emptyText="Виды не найдены"
+											value={field.value || undefined}
 										/>
 									)}
+									layout="vertical"
+									name="view"
+									title="Вид"
 								/>
 
 								<FormField
-									name="description"
-									title="Описание"
-									layout="vertical"
 									control={({ field }) => (
 										<AutogrowTextarea placeholder="Введите описание секции" {...field} />
 									)}
+									layout="vertical"
+									name="description"
+									title="Описание"
 								/>
 
 								<div>
 									<TableInfoBlock
-										title="Каталоги"
 										description={selectedCatalogs.length}
-										titleClassName="text-sm"
 										descriptionClassName="text-sm"
+										title="Каталоги"
+										titleClassName="text-sm"
 									/>
 
 									<Description>Добавляйте каталоги и настраивайте их порядок в секции</Description>
@@ -374,32 +381,32 @@ export function SectionDialog({
 										<TableToolbar
 											input={
 												<TableToolbarTextInput
+													onChange={handleFilterChange}
 													placeholder="Найти каталог..."
 													value={
 														(table.getColumn("catalog")?.getFilterValue() as string) ?? ""
 													}
-													onChange={handleFilterChange}
 												/>
 											}
 										>
 											<AlertDeleteDialog
+												hidden={!selectedCount}
 												onConfirm={handleDeleteSelected}
 												selectedCount={selectedCount}
-												hidden={!selectedCount}
 											/>
 
 											<CatalogToolbarAddBtn
-												onAdd={handleAddCatalogs}
-												existingCatalogs={selectedCatalogs}
 												catalogs={sectionResources}
+												existingCatalogs={selectedCatalogs}
+												onAdd={handleAddCatalogs}
 											/>
 										</TableToolbar>
 
 										<DraggableTableComponent<Catalog>
-											rowKey="id"
-											table={table}
 											columns={catalogsTableColumns}
 											onDragChange={setSelectedCatalogs}
+											rowKey="id"
+											table={table}
 										/>
 									</div>
 								</div>
@@ -407,17 +414,10 @@ export function SectionDialog({
 						</form>
 					</Form>
 				}
-				confirmButton={
-					<Button onClick={rhfForm.handleSubmit(onSubmit)}>{editingKey ? "Ок" : "Добавить"}</Button>
-				}
-				cancelButton={
-					<Button variant="outline" onClick={onClose}>
-						Отмена
-					</Button>
-				}
+				title={editingKey ? "Редактировать секцию" : "Добавить секцию"}
 			/>
 
-			<AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+			<AlertDialog onOpenChange={setShowConfirmDialog} open={showConfirmDialog}>
 				<StyledAlertDialogContent>
 					<AlertDialogHeader>
 						<AlertDialogTitle>У вас есть несохраненные изменения</AlertDialogTitle>

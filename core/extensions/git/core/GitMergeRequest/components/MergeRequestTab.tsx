@@ -19,8 +19,9 @@ import { Creator, Description, MergeRequestFromWhere, Status } from "@ext/git/co
 import MergeButton from "@ext/git/core/GitMergeRequest/components/MergeButton";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
-import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
 import { useEffect, useMemo, useRef, useState } from "react";
+import DiffExtendedModeToggle from "./Changes/DiffExtendedModeToggle";
 
 export type MergeRequestProps = {
 	className?: string;
@@ -118,14 +119,14 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 			<>
 				<TopWrapper>
 					<MergeRequestFromWhere from={mergeRequest.sourceBranchRef} where={mergeRequest.targetBranchRef} />
-					<Creator from={mergeRequest.creator} created={mergeRequest.createdAt} />
+					<Creator created={mergeRequest.createdAt} from={mergeRequest.creator} />
 					<Description content={mergeRequest.description} />
 				</TopWrapper>
-				<Changes targetRef={mergeRequest.targetBranchRef} stage={stage} setStage={setStage} />
+				<Changes setStage={setStage} stage={stage} targetRef={mergeRequest.targetBranchRef} />
 				<BottomWrapper>
 					<Approvers approvers={mergeRequest.approvers} />
 					<ButtonArea>
-						<MergeButton status={status} mergeRequest={mergeRequest} hasConflicts={false} />
+						<MergeButton hasConflicts={false} mergeRequest={mergeRequest} status={status} />
 					</ButtonArea>
 				</BottomWrapper>
 			</>
@@ -134,20 +135,22 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 
 	return mergeRequest ? (
 		<TabWrapper
-			ref={tabWrapperRef}
-			show={show}
-			title={t("git.merge-requests.name")}
-			titleRightExtension={<Status status={status} />}
-			onClose={close}
-			contentHeight={contentHeight}
 			actions={
 				<>
+					<DiffExtendedModeToggle />
+					<DropdownMenuSeparator />
 					<DropdownMenuItem onSelect={() => setIsDeleteMergeRequestModalOpen(true)} type="danger">
 						<Icon code="trash" />
 						{t("delete")}
 					</DropdownMenuItem>
 				</>
 			}
+			contentHeight={contentHeight}
+			onClose={close}
+			ref={tabWrapperRef}
+			show={show}
+			title={t("git.merge-requests.name")}
+			titleRightExtension={<Status status={status} />}
 		>
 			{cached}
 		</TabWrapper>

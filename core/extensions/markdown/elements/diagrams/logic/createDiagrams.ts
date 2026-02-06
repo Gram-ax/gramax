@@ -1,37 +1,21 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { Editor } from "@tiptap/core";
-import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
-import { startC4DiagramText } from "../diagrams/c4Diagram/c4DiagramData";
-import { startMermaid } from "../diagrams/mermaid/mermaidData";
-import { startPlantUmlText } from "../diagrams/plantUml/plantUmlData";
-import { startTsDiagram } from "../diagrams/tsDiagram/tsDiagramData";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 import PageDataContext from "@core/Context/PageDataContext";
+import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
-import FetchService from "@core-ui/ApiServices/FetchService";
+import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
+import { Editor } from "@tiptap/core";
+import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
+import { startMermaid } from "../diagrams/mermaid/mermaidData";
+import { startPlantUmlText } from "../diagrams/plantUml/plantUmlData";
 
 const DIAGRAM_FUNCTIONS = {
 	[DiagramType.mermaid]: getMermaidDiagram,
 	[DiagramType["plant-uml"]]: getPlantUmlDiagram,
 };
 
-const getAnyDiagrams = async (
-	content: string,
-	apiUrlCreator: ApiUrlCreator,
-	diagramName: DiagramType,
-	isC4Diagram: boolean,
-) => {
-	const res = await FetchService.fetch(apiUrlCreator.getDiagramByContentUrl(diagramName), content);
-	if (!res.ok) return;
-	return isC4Diagram ? await res.json() : await res.text();
-};
-
 const createDiagrams = async (
 	editor: Editor,
 	fileName: string,
-	apiUrlCreator: ApiUrlCreator,
 	resourceService: ResourceServiceType,
 	diagramName: DiagramType,
 	pageDataContext: PageDataContext,
@@ -43,17 +27,9 @@ const createDiagrams = async (
 			extension = "mermaid";
 			file = startMermaid;
 			break;
-		case DiagramType["c4-diagram"]:
-			extension = "dsl";
-			file = startC4DiagramText;
-			break;
 		case DiagramType["plant-uml"]:
 			extension = "puml";
 			file = startPlantUmlText;
-			break;
-		case DiagramType["ts-diagram"]:
-			extension = "ts";
-			file = startTsDiagram;
 			break;
 	}
 
@@ -67,10 +43,9 @@ const createDiagrams = async (
 		diagramName,
 	};
 	try {
-		const diagramData = DIAGRAM_FUNCTIONS?.[diagramName]
-			? await DIAGRAM_FUNCTIONS?.[diagramName](file, pageDataContext.conf.diagramsServiceUrl)
-			: await getAnyDiagrams(file, apiUrlCreator, diagramName, diagramName === DiagramType["c4-diagram"]);
-		const newSize = getNaturalSize(diagramData);
+		const newSize = getNaturalSize(
+			await DIAGRAM_FUNCTIONS?.[diagramName](file, pageDataContext.conf.diagramsServiceUrl),
+		);
 
 		if (newSize) {
 			attributes.width = newSize.width + "px";

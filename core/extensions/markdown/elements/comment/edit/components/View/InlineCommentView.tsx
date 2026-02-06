@@ -1,7 +1,9 @@
-import { CSSProperties, HTMLAttributes, memo, ReactNode, useCallback } from "react";
-import { useCurrentEditor } from "@tiptap/react";
 import { classNames } from "@components/libs/classNames";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import getNearestNodeWithSameCommentId from "@ext/markdown/elements/comment/edit/logic/utils/getNearestNodeWithSameCommentId";
+import { useMediaQuery } from "@mui/material";
+import { useCurrentEditor } from "@tiptap/react";
+import { type CSSProperties, type HTMLAttributes, memo, type ReactNode, useCallback } from "react";
 
 interface InlineCommentViewProps extends HTMLAttributes<HTMLSpanElement> {
 	children: ReactNode;
@@ -12,6 +14,7 @@ interface InlineCommentViewProps extends HTMLAttributes<HTMLSpanElement> {
 
 const InlineCommentView = ({ children, commentId, style, className, ...props }: InlineCommentViewProps) => {
 	const { editor } = useCurrentEditor();
+	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 
 	const onMouseEnter = useCallback(() => {
 		if (!commentId || !editor) return;
@@ -36,9 +39,9 @@ const InlineCommentView = ({ children, commentId, style, className, ...props }: 
 			data-comment={commentId ? "true" : "false"}
 			data-comment-id={commentId}
 			data-comment-inline={commentId ? "true" : "false"}
-			onMouseEnter={onMouseEnter}
-			onMouseLeave={onMouseLeave}
 			onClick={onClick}
+			onMouseEnter={isMobile ? undefined : onMouseEnter}
+			onMouseLeave={isMobile ? undefined : onMouseLeave}
 			style={style}
 			{...props}
 		>

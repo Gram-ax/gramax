@@ -1,12 +1,12 @@
-import { imageWordLayout } from "@ext/markdown/elements/image/word/image";
-import { STANDARD_PAGE_WIDTH, WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import docx from "@dynamicImports/docx";
-import { getBlockChildren } from "../../../../wordExport/getBlockChildren";
-import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
-import { Tag } from "../../../core/render/logic/Markdoc";
-import { JSONContent } from "@tiptap/core";
-import { LIST_LEFT_INDENT_MM, getMmToTw, IMG_WIDTH_COEFF } from "@ext/wordExport/lists/consts";
+import { imageWordLayout } from "@ext/markdown/elements/image/word/image";
+import { getMmToTw, IMG_WIDTH_COEFF, LIST_LEFT_INDENT_MM } from "@ext/wordExport/lists/consts";
+import { STANDARD_PAGE_WIDTH, WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { wrapWithListContinuationBookmark } from "@ext/wordExport/utils/listContinuation";
+import type { JSONContent } from "@tiptap/core";
+import { getBlockChildren } from "../../../../wordExport/getBlockChildren";
+import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import type { Tag } from "../../../core/render/logic/Markdoc";
 
 const calcMaxPictureWidth = async (availableTw: number, leftIndentTw: number) =>
 	Math.floor(Math.max(availableTw - leftIndentTw, (await getMmToTw())(10)) / IMG_WIDTH_COEFF);
@@ -132,6 +132,7 @@ export const listItemWordLayout: WordBlockChild = async ({ state, tag, addOption
 					indent: contentIndentTw,
 				},
 				wordRenderContext.parserContext,
+				wordRenderContext.resourceManager,
 			);
 			listElements.push(...(Array.isArray(figure) ? figure : [figure]));
 			continue;

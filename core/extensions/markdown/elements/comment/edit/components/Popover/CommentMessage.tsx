@@ -1,14 +1,14 @@
-import { CommentDateTime, CommentUser } from "@core-ui/CommentBlock";
-import { Avatar, AvatarFallback, getAvatarFallback } from "@ui-kit/Avatar";
-import { FocusPosition, JSONContent } from "@tiptap/core";
-import { Label } from "@ui-kit/Label";
-import { CommentInput } from "@ext/markdown/elements/comment/edit/components/Popover/CommentInput";
-import { StepperIndicator, StepperItem, StepperTitle, StepperTrigger } from "@ui-kit/Stepper";
-import { cn } from "@core-ui/utils/cn";
-import { HTMLAttributes, memo, useCallback, useState } from "react";
 import Date from "@components/Atoms/Date";
+import type { CommentDateTime, CommentUser } from "@core-ui/CommentBlock";
+import { cn } from "@core-ui/utils/cn";
+import { CommentInput } from "@ext/markdown/elements/comment/edit/components/Popover/CommentInput";
 import { CommentTitleActions } from "@ext/markdown/elements/comment/edit/components/Popover/CommentTitleActions";
+import type { FocusPosition, JSONContent } from "@tiptap/core";
+import { Avatar, AvatarFallback, getAvatarFallback } from "@ui-kit/Avatar";
+import { Label } from "@ui-kit/Label";
+import { StepperIndicator, StepperItem, StepperTitle, StepperTrigger } from "@ui-kit/Stepper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { type HTMLAttributes, memo, useCallback, useState } from "react";
 
 interface CommentMessageProps extends Omit<HTMLAttributes<HTMLDivElement>, "content"> {
 	index: number;
@@ -20,6 +20,7 @@ interface CommentMessageProps extends Omit<HTMLAttributes<HTMLDivElement>, "cont
 	last?: boolean;
 	autofocus?: FocusPosition;
 	showName?: boolean;
+	showAvatar?: boolean;
 	onConfirm: (index: number, content: JSONContent[], hide: boolean) => void;
 	onDelete?: (index: number) => void;
 }
@@ -32,9 +33,9 @@ export const CommentMessage = memo((props: CommentMessageProps) => {
 		content,
 		date,
 		editable = false,
-		last = false,
 		autofocus = false,
 		showName = true,
+		showAvatar = true,
 		onConfirm,
 		className,
 		onDelete,
@@ -56,47 +57,57 @@ export const CommentMessage = memo((props: CommentMessageProps) => {
 	}, []);
 
 	return (
-		<StepperItem step={index} className={cn("not-last:flex-1 relative items-start", className)} {...otherProps}>
+		<StepperItem className={cn("not-last:flex-1 relative items-start", className)} step={index} {...otherProps}>
 			<StepperTrigger asChild>
-				<div className={cn("flex items-center rounded gap-1 w-full", !last && "mb-4")}>
-					<StepperIndicator
-						asChild
-						style={{ backgroundColor: "hsl(var(--secondary-border))", alignSelf: "baseline" }}
-					>
-						<Avatar size="xs" className="border-none">
-							<AvatarFallback uniqueId={user.mail}>{getAvatarFallback(user.name)}</AvatarFallback>
-						</Avatar>
-					</StepperIndicator>
+				<div
+					className={cn(
+						"flex items-center rounded gap-1 w-full",
+						!showName && !showAvatar ? "pl-2.5 py-2 pr-2" : "p-3",
+					)}
+				>
+					{showAvatar && (
+						<StepperIndicator
+							asChild
+							className="w-7 h-7"
+							style={{ backgroundColor: "hsl(var(--secondary-border))", alignSelf: "baseline" }}
+						>
+							<Avatar className="border-none w-7 h-7" size="sm">
+								<AvatarFallback uniqueId={user.mail}>{getAvatarFallback(user.name)}</AvatarFallback>
+							</Avatar>
+						</StepperIndicator>
+					)}
 					<div
-						className={cn("flex flex-col pl-2 text-left w-full min-w-0")}
+						className={cn("flex flex-col pl-1 text-left w-full min-w-0 gap-2")}
 						style={{ marginTop: "-1px", alignSelf: "baseline" }}
 					>
 						{showName && (
 							<StepperTitle className="flex items-center gap-2 h-6" style={{ margin: 0 }}>
 								<Tooltip>
 									<TooltipTrigger asChild>
-										<Label className="whitespace-nowrap truncate">{user.name}</Label>
+										<Label className="whitespace-nowrap truncate text-primary-fg">
+											{user.name}
+										</Label>
 									</TooltipTrigger>
 									<TooltipContent>{user.mail}</TooltipContent>
 								</Tooltip>
 								<Date
-									date={date}
 									className="text-xs text-muted font-normal whitespace-nowrap truncate flex-shrink-0"
+									date={date}
 								/>
 								<CommentTitleActions
 									isCurrentUser={isCurrentUser}
-									onClickEdit={() => setIsEditing(true)}
 									onClickDelete={onDelete ? () => onDelete?.(index) : undefined}
+									onClickEdit={() => setIsEditing(true)}
 								/>
 							</StepperTitle>
 						)}
 						<CommentInput
-							isNewComment={!content}
+							autofocus={autofocus || isOldContent}
 							content={content}
 							editable={isEditing}
-							autofocus={autofocus || isOldContent}
-							onConfirm={onConfirmComment}
+							isNewComment={!content}
 							onCancel={isOldContent && onCancelComment}
+							onConfirm={onConfirmComment}
 						/>
 					</div>
 				</div>

@@ -1,7 +1,7 @@
 import { ParseSpec } from "../../../../core/edit/logic/Prosemirror/from_markdown";
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
 
-function commentToken(context?: ParserContext): ParseSpec {
+function commentToken(context?: PrivateParserContext): ParseSpec {
 	return {
 		mark: "comment",
 		getAttrs: (tok) => {

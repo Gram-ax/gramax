@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
-import PureLink, { PureLinkProps, LinkTheme } from "@components/Atoms/PureLink";
-import React from "react";
+import PureLink, { LinkTheme, PureLinkProps } from "@components/Atoms/PureLink";
 import styled from "@emotion/styled";
+import React from "react";
 
 interface IconLinkProps extends PureLinkProps {
 	afterIconCode?: string;
@@ -14,9 +14,9 @@ const IconLink = (props: IconLinkProps) => {
 
 	return (
 		<PureLink className={className} linkTheme={LinkTheme.INHERIT} {...pureLinkProps}>
-			{afterIconCode && <Icon fw code={afterIconCode} />}
+			{afterIconCode && <Icon code={afterIconCode} fw />}
 			<span className={"icon-link-text"}>{text}</span>
-			<span>{isExternal && <Icon code={"external-link"} className={"link-icon"} />}</span>
+			<span>{isExternal && <Icon className={"link-icon"} code={"external-link"} />}</span>
 		</PureLink>
 	);
 };

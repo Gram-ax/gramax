@@ -4,7 +4,6 @@ import { project } from "../util";
 import { Builder } from "./builder";
 
 export class WebBuilder extends Builder {
-
 	override get isSigningSupported(): boolean {
 		return false;
 	}

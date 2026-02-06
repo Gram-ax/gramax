@@ -1,12 +1,12 @@
-import resolveModule from "@app/resolveModule/frontend";
+import resolveFrontendModule from "@app/resolveModule/frontend";
 import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
+import Path from "@core/FileProvider/Path/Path";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import Path from "@core/FileProvider/Path/Path";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import t from "@ext/localization/locale/translate";
 
 interface ShowInExplorerProps {
@@ -31,7 +31,7 @@ export default ({ item, children }: ShowInExplorerProps) => {
 	return (
 		<CatalogItem
 			renderLabel={(Component) => (
-				<Component onSelect={() => resolveModule("openInExplorer")?.(path)}>
+				<Component onSelect={() => resolveFrontendModule("openInExplorer")?.(path)}>
 					<Icon code="folder-open" />
 					{isMac ? t("open-in.finder") : t("open-in.explorer")}
 				</Component>

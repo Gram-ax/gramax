@@ -1,1 +1,1 @@
-export { Label, FieldLabel } from "ics-ui-kit/components/label";
+export { FieldLabel, Label } from "ics-ui-kit/components/label";

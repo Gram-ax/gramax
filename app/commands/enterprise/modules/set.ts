@@ -1,5 +1,5 @@
-import { ResponseKind } from "@app/types/ResponseKind";
 import { Command } from "@app/types/Command";
+import { ResponseKind } from "@app/types/ResponseKind";
 import { ModuleOptions } from "@ext/enterprise/types/UserSettings";
 import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 

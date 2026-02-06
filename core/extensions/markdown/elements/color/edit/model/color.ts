@@ -1,9 +1,9 @@
-import { Mark } from "@tiptap/core";
-import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import schema from "./colorSchema";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
-import space from "@ext/markdown/logic/keys/marks/space";
+import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import arrowRight from "@ext/markdown/logic/keys/marks/arrowRight";
+import space from "@ext/markdown/logic/keys/marks/space";
+import { Mark } from "@tiptap/core";
+import schema from "./colorSchema";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {

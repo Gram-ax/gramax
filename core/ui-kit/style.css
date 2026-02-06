@@ -3,8 +3,8 @@ ol[data-sonner-toaster] {
 }
 
 [data-raidx-select-item] {
-	cursor: pointer !important;
 	font-weight: 400;
+	cursor: pointer !important;
 }
 
 [data-radix-select-trigger] {
@@ -26,15 +26,15 @@ ol[data-sonner-toaster] {
 [data-modal-root] a {
 	color: hsl(var(--primary-fg), 0.7);
 	text-decoration: underline;
-	text-underline-offset: 24%;
 	text-decoration-thickness: 1px;
+	text-underline-offset: 24%;
 }
 
 [data-modal-root] a:hover {
 	color: hsl(var(--primary-fg));
 	text-decoration: underline;
-	text-underline-offset: 24%;
 	text-decoration-thickness: 1px;
+	text-underline-offset: 24%;
 }
 
 [data-sign-in-enteprise-form] {
@@ -65,8 +65,8 @@ ol[data-sonner-toaster] {
 
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-	-webkit-appearance: none;
 	margin: 0;
+	-webkit-appearance: none;
 }
 
 input[type="number"] {

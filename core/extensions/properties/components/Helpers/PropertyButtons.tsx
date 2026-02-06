@@ -1,5 +1,5 @@
-import { DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
 import t, { hasTranslation, TranslationKey } from "@ext/localization/locale/translate";
+import { DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
 
 type InputType = "radio" | "checkbox";
 
@@ -33,12 +33,12 @@ const getInput = (type: InputType, checked: boolean, props: PropertyButtonProps)
 		case "checkbox":
 			return (
 				<DropdownMenuCheckboxItem
-					key={props.value}
 					checked={props.options?.invertChecked ? !checked : checked}
+					key={props.value}
+					onCheckedChange={() => props.onChange(props.value)}
 					onSelect={(event) => {
 						if (props.options?.closeOnSelect) event.preventDefault();
 					}}
-					onCheckedChange={() => props.onChange(props.value)}
 				>
 					{hasTranslation(translationKey) ? t(translationKey) : props.value}
 				</DropdownMenuCheckboxItem>
@@ -65,12 +65,12 @@ const PropertyButtons = (props: PropertyButtonsProps) => {
 	if (type === "radio") {
 		return (
 			<DropdownMenuRadioGroup
-				value={props.value?.[0]}
-				onValueChange={props.onChange}
 				indicatorIconPosition="start"
 				onSelect={(event) => {
 					if (props.options?.closeOnSelect) event.preventDefault();
 				}}
+				onValueChange={props.onChange}
+				value={props.value?.[0]}
 			>
 				{buttons}
 			</DropdownMenuRadioGroup>

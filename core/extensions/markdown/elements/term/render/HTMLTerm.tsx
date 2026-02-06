@@ -10,8 +10,8 @@ export interface HTMLTermProps {
 const HTMLTerm = (props: HTMLTermProps) => (
 	<span
 		data-component="term"
-		data-title={props.title}
 		data-summary={props.summary}
+		data-title={props.title}
 		{...(props.children ? { "data-children": JSON.stringify(props.children) } : {})}
 		data-url={props.url}
 	>

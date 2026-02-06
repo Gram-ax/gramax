@@ -1,5 +1,5 @@
-import { useCallback, useState } from "react";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { useCallback, useState } from "react";
 
 export type UseDownloadAsZipProps = {
 	onStart?: () => void;

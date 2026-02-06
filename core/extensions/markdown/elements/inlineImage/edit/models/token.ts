@@ -1,8 +1,8 @@
 import Path from "@core/FileProvider/Path/Path";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 
-const inlineImageToken = (context: ParserContext) => {
+const inlineImageToken = (context: PrivateParserContext) => {
 	return {
 		node: "inlineImage",
 		getAttrs: (tok) => {

@@ -1,10 +1,10 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { BASE_CONFIG, NOTE_COLOR_CONFIG } from "@ext/pdfExport/config";
-import { parseNodeToPDFContent, pdfRenderContext, NodeOptions } from "@ext/pdfExport/parseNodesPDF";
 import { noteIcons } from "@ext/markdown/elements/note/render/component/Note";
+import { BASE_CONFIG, NOTE_COLOR_CONFIG } from "@ext/pdfExport/config";
+import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
-import { ContentTable, Content, TableCell } from "pdfmake/interfaces";
 import { JSONContent } from "@tiptap/core";
+import { Content, ContentTable, TableCell } from "pdfmake/interfaces";
 
 const OUTER = BASE_CONFIG.FONT_SIZE * 0.75;
 const INNER = OUTER;
@@ -33,10 +33,10 @@ export async function noteHandler(
 					fontSize: BASE_CONFIG.FONT_SIZE * 0.75,
 					bold: true,
 					color: borderColor,
-			  }
+				}
 			: typeof contentArray[0] === "object"
-			? contentArray[0]
-			: { text: "", fontSize: BASE_CONFIG.FONT_SIZE };
+				? contentArray[0]
+				: { text: "", fontSize: BASE_CONFIG.FONT_SIZE };
 
 	const rows: TableCell[][] = [];
 

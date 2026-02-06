@@ -1,83 +1,130 @@
-import Icon from "@components/Atoms/Icon";
+/** biome-ignore-all lint/correctness/useHookAtTopLevel: feature is a constant */
 import TruncatedText from "@components/Atoms/TruncatedText";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import useWatch from "@core-ui/hooks/useWatch";
 import { useRouter } from "@core/Api/useRouter";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useWatch from "@core-ui/hooks/useWatch";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import t from "@ext/localization/locale/translate";
+import { enumTypes, PropertyTypes } from "@ext/properties/models";
 import { feature } from "@ext/toggleFeatures/features";
 import { addScopeToPath } from "@ext/versioning/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuGroup,
+	DropdownMenuLabel,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+} from "@ui-kit/Dropdown";
+import { Icon } from "@ui-kit/Icon";
 import { useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const SwitchFilteredCatalog = () => {
 	if (!feature("filtered-catalog")) return null;
 
-	const { filterProperties, resolvedFilterProperty, name } = useCatalogPropsStore(
+	const { selectedProperty, resolvedFilterPropertyValue, name } = useCatalogPropsStore(
 		(state) => ({
-			filterProperties: state.data?.filterProperties,
-			resolvedFilterProperty: state.data?.resolvedFilterProperty,
+			selectedProperty: state.data?.properties?.find((p) => p.name === state.data?.filterProperty),
+			resolvedFilterPropertyValue: state.data?.resolvedFilterPropertyValue,
 			name: state.data?.name,
 		}),
 		"shallow",
 	);
+
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
-
 	const { isTauri, isBrowser } = usePlatform();
 
-	useWatch(() => setIsLoading(false), [filterProperties, resolvedFilterProperty, name]);
+	useWatch(() => setIsLoading(false), [selectedProperty, resolvedFilterPropertyValue, name]);
 
-	if (!filterProperties?.length) return null;
+	if (!selectedProperty) return null;
 
-	const isActual = !resolvedFilterProperty;
+	const getFilterDisplayText = (): string => {
+		if (!resolvedFilterPropertyValue) {
+			return t("filterProperties.switch");
+		}
 
-	const onSwitch = (propertyName?: string) => {
-		if (propertyName == resolvedFilterProperty) return;
+		if (resolvedFilterPropertyValue === "any") {
+			return `${t("filterProperties.hasProperty")}: ${selectedProperty.name}`;
+		}
+
+		return resolvedFilterPropertyValue;
+	};
+
+	const onSwitch = (filterValue?: string) => {
+		if (filterValue === resolvedFilterPropertyValue) return;
 
 		setIsLoading(true);
 
 		if (!isTauri && !isBrowser) {
-			router.pushPath(addScopeToPath(router.path, propertyName));
+			router.pushPath(addScopeToPath(router.path, filterValue));
 			return;
 		}
 
 		const data = RouterPathProvider.parsePath(router.path);
 		const newPath = RouterPathProvider.getPathname({
 			...data,
-			catalogName: addScopeToPath(name, propertyName),
+			catalogName: addScopeToPath(name, filterValue),
 		});
 		router.pushPath(newPath.value);
 	};
+
+	const isEnumOrMany = enumTypes.includes(selectedProperty.type);
+	const isFlag = selectedProperty.type === PropertyTypes.flag;
+
+	const availableValues = selectedProperty.values || [];
 
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<ButtonLink
-					iconIsLoading={isLoading}
-					iconCode={"funnel"}
+					iconCode="funnel"
 					iconFw
-					text={
-						<TruncatedText maxWidth={180}>
-							{isActual ? t("filterProperties.switch") : resolvedFilterProperty}
-						</TruncatedText>
-					}
-					rightActions={[<Icon key={0} code="chevron-down" />]}
+					iconIsLoading={isLoading}
+					rightActions={[<Icon icon="chevron-down" key={0} />]}
+					text={<TruncatedText maxWidth={180}>{getFilterDisplayText()}</TruncatedText>}
 				/>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start">
-				<DropdownMenuRadioGroup value={resolvedFilterProperty || null} onValueChange={onSwitch}>
-					<DropdownMenuRadioItem value={null}>
-						<TruncatedText maxWidth={180}>{t("filterProperties.unfilter")}</TruncatedText>
-					</DropdownMenuRadioItem>
-					{filterProperties?.map((property) => (
-						<DropdownMenuRadioItem value={property} key={property}>
-							<TruncatedText maxWidth={180}>{property}</TruncatedText>
+			<DropdownMenuContent align="start" className="min-w-60">
+				<DropdownMenuRadioGroup onValueChange={onSwitch} value={resolvedFilterPropertyValue || ""}>
+					<DropdownMenuGroup>
+						<DropdownMenuLabel className="text-xs font-normal text-muted">
+							{selectedProperty.name}
+						</DropdownMenuLabel>
+
+						<DropdownMenuRadioItem value="">
+							<TruncatedText maxWidth={180}>{t("filterProperties.unfilter")}</TruncatedText>
 						</DropdownMenuRadioItem>
-					))}
+
+						{isEnumOrMany && availableValues.length > 0 && (
+							<>
+								<DropdownMenuSeparator />
+								<DropdownMenuLabel className="text-xs font-normal text-muted">
+									{t("filterProperties.value")}
+								</DropdownMenuLabel>
+								{availableValues.map((value) => (
+									<DropdownMenuRadioItem key={value} value={value}>
+										<TruncatedText maxWidth={180}>{value}</TruncatedText>
+									</DropdownMenuRadioItem>
+								))}
+							</>
+						)}
+
+						{isFlag && (
+							<>
+								<DropdownMenuSeparator />
+								<DropdownMenuRadioItem value={selectedProperty.name}>
+									<TruncatedText
+										maxWidth={180}
+									>{`${t("filterProperties.hasProperty")}: ${selectedProperty.name}`}</TruncatedText>
+								</DropdownMenuRadioItem>
+							</>
+						)}
+					</DropdownMenuGroup>
 				</DropdownMenuRadioGroup>
 			</DropdownMenuContent>
 		</DropdownMenu>

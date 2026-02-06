@@ -1,11 +1,11 @@
 import { existsSync, readdirSync, rmSync, statSync } from "fs";
 import { join, resolve } from "path";
-import { defineConfig, mergeConfig, Plugin, UserConfig } from "vite";
+import { defineConfig, mergeConfig, type Plugin, type UserConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import env from "../../scripts/compileTimeEnv.mjs";
 import browserConfig from "../browser/vite.config";
 
-const { setVersion, setBuildVersion } = env;
+const { setVersion, setBuildVersion, dynamicModules } = env;
 
 setVersion("static");
 setBuildVersion("static");
@@ -26,6 +26,9 @@ export default defineConfig(({ isSsrBuild }) => {
 	}
 
 	return mergeConfig(browserConfig, {
+		resolve: {
+			alias: dynamicModules(),
+		},
 		base: "",
 		ssr: {
 			noExternal: /^(?!shelljs$|graceful-fs$)/,
@@ -51,7 +54,7 @@ export default defineConfig(({ isSsrBuild }) => {
 								const protectedFolderPath = resolve(distPath, protectedFolderName);
 
 								try {
-									if (!existsSync(distPath)) return;	
+									if (!existsSync(distPath)) return;
 									const filesAndFolders = readdirSync(distPath);
 									filesAndFolders.forEach((item) => {
 										const itemPath = join(distPath, item);
@@ -77,7 +80,7 @@ export default defineConfig(({ isSsrBuild }) => {
 								},
 							],
 						}),
-				  ]
+					]
 				: []),
 		],
 		define: {

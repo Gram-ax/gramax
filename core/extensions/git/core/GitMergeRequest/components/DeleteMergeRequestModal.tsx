@@ -21,8 +21,8 @@ const useOpenDeleteMergeRequestModal = (props: DeleteMergeRequestModalProps) => 
 			initialIsOpen: true,
 			onConfirm,
 			onClose: () => {
-                onClose?.();
-                ModalToOpenService.resetValue();
+				onClose?.();
+				ModalToOpenService.resetValue();
 			},
 		});
 	}, [isOpen]);

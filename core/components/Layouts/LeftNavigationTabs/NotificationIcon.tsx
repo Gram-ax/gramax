@@ -33,8 +33,8 @@ const NotificationIcon = (props: NotificationIconProps) => {
 				<div className="notification-icon">
 					<Notification
 						size={10}
-						wrapperStyle={{ background: "var(--color-tooltip-background)" }}
 						style={{ color: "var(--color-tooltip-text)" }}
+						wrapperStyle={{ background: "var(--color-tooltip-background)" }}
 					>
 						{count}
 					</Notification>

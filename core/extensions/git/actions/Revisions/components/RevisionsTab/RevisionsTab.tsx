@@ -10,18 +10,19 @@ import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import BranchUpdaterService, {
-	OnBranchUpdateListener,
+	type OnBranchUpdateListener,
 } from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import RevisionsWhomWhere from "@ext/git/actions/Revisions/components/RevisionsTab/RevisionsWhomWhere";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
-import { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import { DiffEntries } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
+import DiffExtendedModeToggle from "@ext/git/core/GitMergeRequest/components/Changes/DiffExtendedModeToggle";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
 import ScrollableDiffEntriesLayout from "@ext/git/core/GitMergeRequest/components/Changes/ScrollableDiffEntriesLayout";
 import { Section } from "@ext/git/core/GitMergeRequest/components/Elements";
-import { GitVersionDataSet } from "@ext/git/core/GitVersionControl/GitVersionControl";
-import GitVersionData from "@ext/git/core/model/GitVersionData";
+import type { GitVersionDataSet } from "@ext/git/core/GitVersionControl/GitVersionControl";
+import type GitVersionData from "@ext/git/core/model/GitVersionData";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -174,37 +175,38 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 
 	return (
 		<TabWrapper
+			actions={<DiffExtendedModeToggle />}
+			contentHeight={contentHeight}
+			onClose={() => setShow(false)}
 			ref={tabWrapperRef}
 			show={show}
-			onClose={() => setShow(false)}
 			title={t("git.revisions.compare-title")}
-			contentHeight={contentHeight}
 		>
 			<div>
 				<TopWrapper>
 					<RevisionsWhomWhere
 						currentRevision={revision}
 						onClick={onNewRevisionClick}
+						requestMore={requestMore}
 						revisions={revisions}
 						shouldLoadMoreAtScrollEnd={!reachedFirstCommit}
-						requestMore={requestMore}
 					/>
 				</TopWrapper>
 				{revision && (
 					<Section
 						chevron={false}
-						title={t("git.merge-requests.diff")}
+						headerStyles="padding-left: 1rem; padding-right: 1rem;"
 						isCollapsed={false}
 						isLoading={!diffTree?.tree || isDiffTreeLoading}
-						right={diffTree?.tree && <Overview showTotal fontSize="12px" {...diffTree.overview} />}
-						headerStyles="padding-left: 1rem; padding-right: 1rem;"
+						right={diffTree?.tree && <Overview fontSize="12px" showTotal {...diffTree.overview} />}
+						title={t("git.merge-requests.diff")}
 					>
 						<ScrollableDiffEntriesLayout>
 							{diffTree?.tree && (
 								<DiffEntries
 									changes={diffTree?.tree}
-									setArticleDiffView={setArticleDiffView}
 									renderCommentsCount
+									setArticleDiffView={setArticleDiffView}
 								/>
 							)}
 						</ScrollableDiffEntriesLayout>

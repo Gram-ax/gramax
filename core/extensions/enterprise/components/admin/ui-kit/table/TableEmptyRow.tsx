@@ -1,6 +1,6 @@
 import t from "@ext/localization/locale/translate";
-import { TableCell, TableRow } from "@ui-kit/Table";
 import { ColumnDef } from "@ui-kit/DataTable";
+import { TableCell, TableRow } from "@ui-kit/Table";
 
 interface TableEmptyRowProps<T> {
 	columns: ColumnDef<T>[];
@@ -9,7 +9,7 @@ interface TableEmptyRowProps<T> {
 export const TableEmptyRow = <T,>({ columns }: TableEmptyRowProps<T>) => {
 	return (
 		<TableRow>
-			<TableCell colSpan={columns.length} className="h-24 text-center">
+			<TableCell className="h-24 text-center" colSpan={columns.length}>
 				{t("empty")}
 			</TableCell>
 		</TableRow>

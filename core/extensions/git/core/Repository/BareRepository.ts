@@ -3,7 +3,7 @@ import type Path from "@core/FileProvider/Path/Path";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
-import Repository, { SyncResult, type CheckoutOptions, type SyncOptions } from "@ext/git/core/Repository/Repository";
+import Repository, { type CheckoutOptions, type SyncOptions, SyncResult } from "@ext/git/core/Repository/Repository";
 import RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type Storage from "@ext/storage/logic/Storage";
@@ -11,7 +11,13 @@ import type Storage from "@ext/storage/logic/Storage";
 export default class BareRepository extends Repository {
 	private _state: RepositoryStateProvider;
 
-	constructor(repoPath: Path, fp: FileProvider, gvc: GitVersionControl, storage: Storage, disableMergeRequests: boolean = true) {
+	constructor(
+		repoPath: Path,
+		fp: FileProvider,
+		gvc: GitVersionControl,
+		storage: Storage,
+		disableMergeRequests: boolean = true,
+	) {
 		super(repoPath, fp, gvc, storage, disableMergeRequests);
 		this._state = new RepositoryStateProvider(this, this._repoPath, this._fp);
 	}

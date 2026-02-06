@@ -1,6 +1,6 @@
 import getEnterpriseErrors from "@ext/enterprise/errors/getEnterpriseErrors";
-import { NetworkApiErrorCode } from "@ext/errorHandlers/network/NetworkApiError";
 import NetworkApiErrorComponent from "@ext/errorHandlers/network/components/NetworkApiError";
+import { NetworkApiErrorCode } from "@ext/errorHandlers/network/NetworkApiError";
 import getMergeRequestErrors from "@ext/git/core/GitMergeRequest/errors/getMergeRequestErrors";
 import getStorageErrors from "@ext/storage/components/getStorageErrors";
 import { ComponentProps, ReactNode } from "react";

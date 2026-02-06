@@ -6,7 +6,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import assert from "assert";
-import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, type ReactElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type CatalogSyncValue = {
 	pull: number;
@@ -98,7 +98,7 @@ export default class GlobalSyncCountService {
 		useEffect(() => {
 			if (!fetchAllowed || !hasWorkspace || !sourceDatas || sourceDatas.length === 0) return;
 			fetchSyncCounts(false);
-		}, [fetchAllowed, hasWorkspace, fetchSyncCounts, sourceDatas]);
+		}, [fetchAllowed, hasWorkspace, fetchSyncCounts, sourceDatas?.length]);
 
 		const fetchSyncCountsBackground = useCallback(
 			(delay: number): Promise<NodeJS.Timeout> => {

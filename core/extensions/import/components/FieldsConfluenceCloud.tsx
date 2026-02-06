@@ -1,14 +1,14 @@
-import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
-import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { FormField } from "@ui-kit/Form";
-import { useMemo } from "react";
+import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
 import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
-import t from "@ext/localization/locale/translate";
+import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import { ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
-import { UseFormReturn } from "react-hook-form";
+import t from "@ext/localization/locale/translate";
 import { AsyncSearchSelect, AsyncSearchSelectOption } from "@ui-kit/AsyncSearchSelect";
+import { FormField } from "@ui-kit/Form";
 import { useCache } from "@ui-kit/MultiSelect/utils/useCache";
+import { useMemo } from "react";
+import { UseFormReturn } from "react-hook-form";
 
 interface FieldsConfluenceCloudProps {
 	sourceData: ConfluenceSourceData;
@@ -46,18 +46,18 @@ const FieldsConfluenceCloud = ({ sourceData }: FieldsConfluenceCloudProps) => {
 	return (
 		<>
 			<FormField
-				name="space"
-				title={t("space")}
 				control={({ field }) => (
 					<AsyncSearchSelect
 						{...field}
+						loadOptions={loadOptions}
 						onChange={(option: AsyncSearchSelectOption<FieldsConfluenceCloudValue>) => {
 							field.onChange(option);
 						}}
 						placeholder={t("choose-space")}
-						loadOptions={loadOptions}
 					/>
 				)}
+				name="space"
+				title={t("space")}
 			/>
 		</>
 	);

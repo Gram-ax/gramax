@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { MutableRefObject, TextareaHTMLAttributes, forwardRef, memo } from "react";
+import { forwardRef, MutableRefObject, memo, TextareaHTMLAttributes } from "react";
 import Tooltip from "./Tooltip";
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -15,12 +15,12 @@ const TextArea = forwardRef((props: TextAreaProps, ref?: MutableRefObject<HTMLTe
 
 	return (
 		<div className={classNames(className, {}, ["areaWrapper"])}>
-			<Tooltip visible={Boolean(errorText) && showError} content={<span>{errorText}</span>}>
+			<Tooltip content={<span>{errorText}</span>} visible={Boolean(errorText) && showError}>
 				<textarea
 					className={classNames("textArea", { disabled })}
+					data-qa={dataQa}
 					disabled={disabled}
 					ref={ref}
-					data-qa={dataQa}
 					{...otherProps}
 				/>
 			</Tooltip>

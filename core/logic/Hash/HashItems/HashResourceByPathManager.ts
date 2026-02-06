@@ -4,7 +4,11 @@ import Path from "../../FileProvider/Path/Path";
 import HashItem from "./HashItem";
 
 export default class HashResourceByPathManager extends HashItem {
-	constructor(private _fullResourcePath: Path, private _fp: FileProvider, private _basePath: Path) {
+	constructor(
+		private _fullResourcePath: Path,
+		private _fp: FileProvider,
+		private _basePath: Path,
+	) {
 		super();
 	}
 

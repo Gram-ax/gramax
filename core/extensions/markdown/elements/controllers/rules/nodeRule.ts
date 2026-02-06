@@ -1,5 +1,5 @@
-import { NodeSelection, Transaction } from "prosemirror-state";
 import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
+import { NodeSelection, Transaction } from "prosemirror-state";
 
 const allowedNodes = ["inline-property", blockFieldEditName];
 const nodeRule = (transaction: Transaction): boolean => {

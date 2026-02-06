@@ -1,15 +1,15 @@
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import { copy } from "@ext/markdown/elements/copyArticles/handlers/copy";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { Editor, Extension } from "@tiptap/core";
 import { Node, Slice } from "@tiptap/pm/model";
 import { Plugin, Transaction } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
-import { EditorView } from "prosemirror-view";
 import { Fragment } from "prosemirror-model";
-import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
-import { copy } from "@ext/markdown/elements/copyArticles/handlers/copy";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import { EditorView } from "prosemirror-view";
 
 const mapFragment = (fragment: Fragment, transform: (node: Node) => Node) => {
 	const mapContent = (content: Fragment) => {

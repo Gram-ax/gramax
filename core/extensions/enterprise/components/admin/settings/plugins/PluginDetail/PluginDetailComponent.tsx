@@ -120,57 +120,57 @@ const PluginDetailComponent = () => {
 	return (
 		<div>
 			<StickyHeader
-				title={
-					<>
-						{getAdminPageTitle(Page.PLUGIN_DETAIL)} <Spinner size="small" show={isRefreshing("plugins")} />
-					</>
-				}
-				isScrolled={false}
 				actions={
 					<ButtonsContainer>
 						<SwitchField
-							label={t("plugins.detail.current-status")}
 							alignment="right"
+							checked={!isDisabled}
 							className="gap-2"
 							disabled={isProcessing}
-							checked={!isDisabled}
+							label={t("plugins.detail.current-status")}
 							onCheckedChange={handleToggleState}
 						/>
 						<Button
-							onClick={handleOpenDeleteModal}
-							variant="secondary"
-							status="error"
 							disabled={isProcessing}
+							onClick={handleOpenDeleteModal}
+							status="error"
+							variant="secondary"
 						>
 							<Trash2 size={16} />
 							{t("plugins.detail.delete")}
 						</Button>
 					</ButtonsContainer>
 				}
+				isScrolled={false}
+				title={
+					<>
+						{getAdminPageTitle(Page.PLUGIN_DETAIL)} <Spinner show={isRefreshing("plugins")} size="small" />
+					</>
+				}
 			/>
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
 			<DetailsSection>
 				<FieldsContainer>
 					<StyledField
-						title={t("plugins.detail.fields.id")}
 						control={() => <FieldLabel>{selectedPluginId}</FieldLabel>}
+						title={t("plugins.detail.fields.id")}
 					/>
 					<StyledField
-						title={t("plugins.detail.fields.name")}
 						control={() => <FieldLabel>{pluginConfig?.metadata?.name || "—"}</FieldLabel>}
+						title={t("plugins.detail.fields.name")}
 					/>
 					<StyledField
-						title={t("plugins.detail.fields.version")}
 						control={() => <FieldLabel>{pluginConfig?.metadata?.version || "—"}</FieldLabel>}
+						title={t("plugins.detail.fields.version")}
 					/>
 					<StyledField
-						title={t("plugins.detail.fields.author")}
 						control={() => <FieldLabel>{pluginConfig?.metadata?.author || "—"}</FieldLabel>}
+						title={t("plugins.detail.fields.author")}
 					/>
 					<StyledField
-						title={t("plugins.detail.fields.description")}
 						control={() => <FieldLabel>{pluginConfig?.metadata?.description || "—"}</FieldLabel>}
+						title={t("plugins.detail.fields.description")}
 					/>
 				</FieldsContainer>
 			</DetailsSection>

@@ -6,10 +6,10 @@ const EditCut = ({ node, updateAttributes }: NodeViewProps): ReactElement => {
 	return (
 		<NodeViewWrapper as={node.attrs.isInline ? "span" : "div"}>
 			<Cut
-				text={node.attrs.text}
 				expanded={node.attrs.expanded?.toString() === "true"}
 				isInline={node.attrs.isInline}
 				onUpdate={(expanded) => updateAttributes({ expanded })}
+				text={node.attrs.text}
 			>
 				<NodeViewContent as={node.attrs.isInline ? "span" : "div"} className="content" />
 			</Cut>

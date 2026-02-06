@@ -1,7 +1,9 @@
-import { CSSProperties, memo, ReactNode, useCallback } from "react";
-import { useCurrentEditor } from "@tiptap/react";
-import styled from "@emotion/styled";
 import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import styled from "@emotion/styled";
+import { useMediaQuery } from "@mui/material";
+import { useCurrentEditor } from "@tiptap/react";
+import { type CSSProperties, memo, type ReactNode, useCallback } from "react";
 
 interface BlockCommentViewProps {
 	children: ReactNode;
@@ -21,6 +23,7 @@ const Wrapper = styled.div`
 
 const BlockCommentView = ({ children, commentId, style, className }: BlockCommentViewProps) => {
 	const { editor } = useCurrentEditor();
+	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 
 	const onMouseEnter = useCallback(() => {
 		if (!commentId || !editor) return;
@@ -36,10 +39,10 @@ const BlockCommentView = ({ children, commentId, style, className }: BlockCommen
 		<Wrapper
 			className={cn("block-comment-view", className)}
 			data-comment={commentId ? "true" : "false"}
-			data-comment-id={commentId}
 			data-comment-block={commentId ? "true" : "false"}
-			onMouseEnter={onMouseEnter}
-			onMouseLeave={onMouseLeave}
+			data-comment-id={commentId}
+			onMouseEnter={isMobile ? undefined : onMouseEnter}
+			onMouseLeave={isMobile ? undefined : onMouseLeave}
 			style={style}
 		>
 			{children}

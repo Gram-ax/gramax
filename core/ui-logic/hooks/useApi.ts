@@ -1,14 +1,14 @@
 import resolveModule from "@app/resolveModule/frontend";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import type FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import Method from "@core-ui/ApiServices/Types/Method";
 import type MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type Url from "@core-ui/ApiServices/Types/Url";
+import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
 import type { Equal } from "@core-ui/utils/utilTypes";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
@@ -91,6 +91,7 @@ export type UseApiOptions = {
 	method?: Method;
 	consumeError?: boolean;
 	failOnParse?: boolean;
+	abort?: AbortSignal;
 };
 
 const parseResponse = async <T>(res: FetchResponse<T>, mode: ResponseParser, throwError: boolean): Promise<T> => {
@@ -126,7 +127,6 @@ const parseBody = async (body: unknown, mode: RequestParser): Promise<BodyInit> 
 			return JSON.stringify(body);
 		case "text":
 			return body?.toString();
-		case "blob":
 		default:
 			return body as BodyInit;
 	}
@@ -148,9 +148,10 @@ const fetchEndpoint = async (url: Url, opts?: UseApiOptions) => {
 		(command, args, result) => {
 			void events.emit("on-did-command", { command, args, result });
 		},
+		opts?.abort,
 	);
 
-	if (res.status == 404) {
+	if (res.status === 404) {
 		const command = trimRoutePrefix(url);
 		throw new DefaultError(`${t("command")} "${command}" ${t("not-found2").toLowerCase()}`);
 	}
@@ -302,7 +303,7 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 				await cbs.onFinally?.(data, error);
 			}
 		},
-		[opts, parse],
+		[opts, parse, apiUrlCreator],
 	);
 
 	const reset = useCallback(() => {
@@ -326,7 +327,7 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 
 export type UseDeferApiProps<T, O> = Omit<UseApiProps<T, O>, "url"> & { url?: SpecifyOrCreateApi };
 export type UseDeferApiResult<T, O> = UseApiResult<O> & {
-	call: (defer?: UseDeferApiProps<T, O>) => Promise<O> | void;
+	call: (defer?: UseDeferApiProps<T, O>) => Promise<O>;
 };
 
 export const useDeferApi = <T, O = T>(props: UseDeferApiProps<T, O>): UseDeferApiResult<T, O> => {

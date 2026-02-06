@@ -47,19 +47,19 @@ const LeftNavViewContent = ({
 	return (
 		<div className={className} data-qa={`article-git-modal`}>
 			<LeftNavView
-				elements={elements}
 				currentIdx={currentElementIdx}
 				elementClassName={elementClassName}
+				elements={elements}
 				focusElementClassName={focusElementClassName}
 				onLeftSidebarClick={(idx) => {
 					if (typeof currentIdx !== "number") setCurrentElementIdx(idx);
 					contentRef.current.scrollTo(0, 0);
 					onLeftSidebarClick?.(idx);
 				}}
-				sideBarTop={sideBarTop}
 				sideBarBottom={sideBarBottom}
+				sideBarTop={sideBarTop}
 			/>
-			<div className="content" ref={contentRef} key={commonContent ? undefined : getKey(currentElementIdx)}>
+			<div className="content" key={commonContent ? undefined : getKey(currentElementIdx)} ref={contentRef}>
 				{commonContent ?? elements[currentElementIdx]?.content}
 			</div>
 		</div>

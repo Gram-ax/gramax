@@ -11,9 +11,9 @@ import { tString } from "@ext/localization/locale/translate";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { getPdfExportedKeys } from "@ext/pdfExport/layouts";
 import RuleProvider from "@ext/rules/RuleProvider";
-import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import { getExportedKeys } from "@ext/wordExport/layouts";
+import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import { Command } from "../../types/Command";
 
 const getErrorElements: Command<

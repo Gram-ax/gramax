@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { ReviewLinkData } from "@ext/catalog/actions/review/model/ReviewLinkData";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { Command } from "../../../types/Command";

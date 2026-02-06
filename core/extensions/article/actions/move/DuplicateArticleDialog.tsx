@@ -40,10 +40,10 @@ const DuplicateArticleDialog = ({ articleName, targetCatalogName, onResolve }: D
 					<AlertDialogCancel onClick={() => handleResolve(null)}>
 						{t("article.move.duplicate.cancel")}
 					</AlertDialogCancel>
-					<Button variant="outline" onClick={() => handleResolve("keepBoth")}>
+					<Button onClick={() => handleResolve("keepBoth")} variant="outline">
 						{t("article.move.duplicate.keep-both")}
 					</Button>
-					<Button variant="primary" status="error" onClick={() => handleResolve("replace")}>
+					<Button onClick={() => handleResolve("replace")} status="error" variant="primary">
 						{t("article.move.duplicate.replace")}
 					</Button>
 				</AlertDialogFooter>

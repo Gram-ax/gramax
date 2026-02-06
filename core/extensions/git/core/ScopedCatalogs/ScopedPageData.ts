@@ -9,7 +9,10 @@ import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import assert from "assert";
 
 export default class ScopedPageData {
-	constructor(private _fs: FileStructure, private _sp: SitePresenter) {}
+	constructor(
+		private _fs: FileStructure,
+		private _sp: SitePresenter,
+	) {}
 
 	async getArticlePageData(catalog: Catalog, articlePath: string, scope: TreeReadScope): Promise<ArticlePageData> {
 		const commitScope = await convertScopeToCommitScope(scope, catalog.repo.gvc);

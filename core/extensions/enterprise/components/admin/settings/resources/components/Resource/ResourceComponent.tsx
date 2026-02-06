@@ -3,8 +3,9 @@ import GroupsTable from "@ext/enterprise/components/admin/settings/resources/com
 import UsersTable from "@ext/enterprise/components/admin/settings/resources/components/UsersTable/UsersTable";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AsyncSearchSelect, LoadOptionsParams, LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
+import { AsyncSearchSelect, type LoadOptionsParams, type LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
 import { IconButton } from "@ui-kit/Button";
+import { Counter } from "@ui-kit/Counter";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui-kit/Tabs";
@@ -12,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FloatingAlert } from "../../../../ui-kit/FloatingAlert";
-import { ResourcesSettings } from "../../types/ResourcesComponent";
+import type { ResourcesSettings } from "../../types/ResourcesComponent";
 
 const createFormSchema = () =>
 	z.object({
@@ -111,26 +112,19 @@ export default function ResourceComponent({
 
 	return (
 		<>
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 			<Form {...form} asChild>
 				<form className="contents" onSubmit={(e) => e.preventDefault()}>
 					<FormStack>
-						<FloatingAlert show={Boolean(saveError)} message={saveError} />
+						<FloatingAlert message={saveError} show={Boolean(saveError)} />
 						{isAddingMode && (
 							<div className="flex items-center gap-2 relative z-50 w-full">
 								<div className="flex-1 mt-1">
 									<FormField
-										name="repository"
-										title={t("enterprise.admin.resources.repository")}
-										layout="vertical"
-										description={t("enterprise.admin.resources.select-repository-description")}
 										control={({ field }) => (
 											<AsyncSearchSelect
+												emptyText={t("enterprise.admin.resources.repository-not-found")}
 												loadOptions={loadRepoOptions}
-												value={field.value || undefined}
-												placeholder={t(
-													"enterprise.admin.resources.select-repository-placeholder",
-												)}
 												onChange={
 													isRepositoryLocked
 														? () => {}
@@ -145,14 +139,21 @@ export default function ResourceComponent({
 																		externalUsers: [],
 																	},
 																});
-														  }
+															}
 												}
+												placeholder={t(
+													"enterprise.admin.resources.select-repository-placeholder",
+												)}
 												searchPlaceholder={t(
 													"enterprise.admin.resources.search-repository-placeholder",
 												)}
-												emptyText={t("enterprise.admin.resources.repository-not-found")}
+												value={field.value || undefined}
 											/>
 										)}
+										description={t("enterprise.admin.resources.select-repository-description")}
+										layout="vertical"
+										name="repository"
+										title={t("enterprise.admin.resources.repository")}
 									/>
 								</div>
 							</div>
@@ -162,19 +163,12 @@ export default function ResourceComponent({
 							<div className="flex items-center gap-2">
 								<div className="flex-1">
 									<FormField
-										name="mainBranch"
-										title={t("enterprise.admin.resources.main-branch")}
-										layout="vertical"
-										description={t("enterprise.admin.resources.main-branch-description")}
 										control={({ field }) => (
 											<div className="flex items-center gap-2">
 												<AsyncSearchSelect
+													emptyText={t("enterprise.admin.resources.main-branch-not-found")}
 													key={resourceSettings?.mainBranch}
 													loadOptions={loadBranchOptions}
-													value={field.value || undefined}
-													placeholder={t(
-														"enterprise.admin.resources.select-main-branch-placeholder",
-													)}
 													onChange={(option: SearchSelectOption | null) => {
 														field.onChange(option);
 														if (!resourceSettings) return;
@@ -183,15 +177,17 @@ export default function ResourceComponent({
 															mainBranch: String(option?.value || ""),
 														});
 													}}
+													placeholder={t(
+														"enterprise.admin.resources.select-main-branch-placeholder",
+													)}
 													searchPlaceholder={t(
 														"enterprise.admin.resources.search-main-branch-placeholder",
 													)}
-													emptyText={t("enterprise.admin.resources.main-branch-not-found")}
+													value={field.value || undefined}
 												/>
 												<IconButton
-													icon="x"
-													variant="ghost"
 													disabled={!resourceSettings?.mainBranch}
+													icon="x"
 													onClick={() => {
 														if (!resourceSettings) return;
 														onChange({
@@ -200,9 +196,14 @@ export default function ResourceComponent({
 														});
 														form.setValue("mainBranch", undefined);
 													}}
+													variant="ghost"
 												/>
 											</div>
 										)}
+										description={t("enterprise.admin.resources.main-branch-description")}
+										layout="vertical"
+										name="mainBranch"
+										title={t("enterprise.admin.resources.main-branch")}
 									/>
 								</div>
 							</div>
@@ -213,35 +214,35 @@ export default function ResourceComponent({
 							</label>
 							<Tabs defaultValue="users">
 								<TabsList className="w-full">
-									<TabsTrigger value="users" className="flex-1">
+									<TabsTrigger className="flex-1" value="users">
 										<span className="font-medium">
 											{t("enterprise.admin.users.users")}{" "}
-											{`(${(resourceSettings?.access?.users ?? []).length})`}
+											<Counter variant="text">{`${(resourceSettings?.access?.users ?? []).length}`}</Counter>
 										</span>
 									</TabsTrigger>
-									<TabsTrigger value="groups" className="flex-1">
+									<TabsTrigger className="flex-1" value="groups">
 										<span className="font-medium">
 											{t("enterprise.admin.client-access-keys.groups")}{" "}
-											{`(${(resourceSettings?.access?.groups ?? []).length})`}
+											<Counter variant="text">{`${(resourceSettings?.access?.groups ?? []).length}`}</Counter>
 										</span>
 									</TabsTrigger>
-									<TabsTrigger value="externalUsers" className="flex-1">
+									<TabsTrigger className="flex-1" value="externalUsers">
 										<span className="font-medium">
 											{t("enterprise.admin.client-access-keys.externalUsers")}{" "}
-											{`(${(resourceSettings?.access?.externalUsers ?? []).length})`}
+											<Counter variant="text">{`${(resourceSettings?.access?.externalUsers ?? []).length}`}</Counter>
 										</span>
 									</TabsTrigger>
 								</TabsList>
 								<TabsContent key={"users"} value={"users"}>
 									<UsersTable
-										repositoryId={resourceSettings?.id}
-										users={resourceSettings?.access?.users ?? []}
 										onChange={(users) => {
 											onChange({
 												...resourceSettings,
 												access: { ...resourceSettings?.access, users },
 											});
 										}}
+										repositoryId={resourceSettings?.id}
+										users={resourceSettings?.access?.users ?? []}
 									/>
 								</TabsContent>
 								<TabsContent key={"groups"} value={"groups"}>
@@ -258,14 +259,14 @@ export default function ResourceComponent({
 								<TabsContent key={"externalUsers"} value={"externalUsers"}>
 									<UsersTable
 										isExternal
-										repositoryId={resourceSettings?.id}
-										users={resourceSettings?.access?.externalUsers ?? []}
 										onChange={(externalUsers) => {
 											onChange({
 												...resourceSettings,
 												access: { ...resourceSettings?.access, externalUsers },
 											});
 										}}
+										repositoryId={resourceSettings?.id}
+										users={resourceSettings?.access?.externalUsers ?? []}
 									/>
 								</TabsContent>
 							</Tabs>

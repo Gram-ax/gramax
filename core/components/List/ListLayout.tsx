@@ -1,8 +1,8 @@
 import { classNames } from "@components/libs/classNames";
+import eventEmitter from "@core/utils/eventEmitter";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import useWatch from "@core-ui/hooks/useWatch";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
-import eventEmitter from "@core/utils/eventEmitter";
 import styled from "@emotion/styled";
 import { TippyProps } from "@tippyjs/react";
 import {
@@ -276,29 +276,29 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 	};
 
 	const TooltipContent = (
-		<div style={{ width: filteredWidth }} ref={itemsRef}>
+		<div ref={itemsRef} style={{ width: filteredWidth }}>
 			<Items
-				useVirtuoso={useVirtuoso}
-				setIsOpen={setIsOpen}
-				buttons={buttons}
-				isLoadingData={isLoadingData}
-				isHierarchy={isHierarchy}
-				withBreadcrumbs={withBreadcrumbs}
-				value={getStrValue(value)}
-				filteredWidth={filteredWidth}
 				blurInInput={blurInInput}
+				buttons={buttons}
 				className={itemsClassName}
-				isCode={isCode}
-				maxItems={maxItems}
+				filteredItems={filteredItems}
+				filteredWidth={filteredWidth}
 				hideScrollbar={hideScrollbar}
+				isCode={isCode}
+				isHierarchy={isHierarchy}
+				isLoadingData={isLoadingData}
+				isOpen={isOpen}
 				itemIndex={itemIndex}
 				items={items}
-				filteredItems={filteredItems}
-				showFilteredItems={showFilteredItems}
-				onItemClick={itemClickHandler}
-				isOpen={isOpen}
-				searchRef={searchRef}
 				keepFullWidth={keepFullWidth}
+				maxItems={maxItems}
+				onItemClick={itemClickHandler}
+				searchRef={searchRef}
+				setIsOpen={setIsOpen}
+				showFilteredItems={showFilteredItems}
+				useVirtuoso={useVirtuoso}
+				value={getStrValue(value)}
+				withBreadcrumbs={withBreadcrumbs}
 			/>
 		</div>
 	);
@@ -318,46 +318,46 @@ const ListLayout = forwardRef((props: ListLayoutProps, ref: ForwardedRef<ListLay
 
 	return (
 		<Tooltip
-			content={TooltipContent}
 			appendTo={appendTo}
-			place={place}
-			trigger="click"
-			offset={(p) => (p.placement == "top" ? [0, 7] : [0, 3])}
+			arrow={false}
+			content={TooltipContent}
+			customStyle
 			hideInMobile={false}
 			hideOnClick={false}
 			interactive
-			customStyle
-			arrow={false}
+			offset={(p) => (p.placement == "top" ? [0, 7] : [0, 3])}
+			place={place}
+			trigger="click"
 			visible
 		>
 			<StyledDiv
+				className={classNames("list-layout", { active: isOpen }, [className])}
+				data-qa="list"
 				disable={disable}
 				isCode={isCode}
-				data-qa="list"
 				ref={listRef}
-				className={classNames("list-layout", { active: isOpen }, [className])}
 			>
 				<Search
-					title={getStrValue(value)}
-					value={getStrValue(value)}
-					setValue={setValueHandler}
-					setIsOpen={setIsOpen}
-					ref={searchRef}
+					data-qa={dataQa}
+					disable={disableSearch}
+					disableCancelAction={disableCancelAction}
+					errorText={errorText}
 					icon={icon}
 					isCode={isCode}
-					disableCancelAction={disableCancelAction}
 					isOpen={isOpen}
-					tabIndex={tabIndex}
-					disable={disableSearch}
-					placeholder={placeholder}
-					errorText={errorText}
-					showErrorText={showErrorText}
-					onFocus={onFocusHandler}
-					onSearchChange={onSearchChange}
-					onClick={onSearchClickHandler}
 					onCancelClick={onCancelClick}
 					onChevronClick={onChevronClickHandler}
-					data-qa={dataQa}
+					onClick={onSearchClickHandler}
+					onFocus={onFocusHandler}
+					onSearchChange={onSearchChange}
+					placeholder={placeholder}
+					ref={searchRef}
+					setIsOpen={setIsOpen}
+					setValue={setValueHandler}
+					showErrorText={showErrorText}
+					tabIndex={tabIndex}
+					title={getStrValue(value)}
+					value={getStrValue(value)}
 				/>
 			</StyledDiv>
 		</Tooltip>

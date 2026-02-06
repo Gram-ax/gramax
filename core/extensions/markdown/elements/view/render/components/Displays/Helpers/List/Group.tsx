@@ -1,9 +1,9 @@
-import { Fragment, ReactNode } from "react";
-import { ViewRenderData, ViewRenderGroup, Property as PropertyType, PropertyTypes } from "@ext/properties/models";
 import Anchor from "@components/controls/Anchor";
-import Property from "@ext/properties/components/Property";
 import t from "@ext/localization/locale/translate";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
+import Property from "@ext/properties/components/Property";
+import { Property as PropertyType, PropertyTypes, ViewRenderData, ViewRenderGroup } from "@ext/properties/models";
+import { Fragment, ReactNode } from "react";
 
 const renderGroup = (
 	group: ViewRenderGroup,
@@ -15,28 +15,28 @@ const renderGroup = (
 	const listItems = group.articles.map((article: ViewRenderData) => (
 		<li key={article.itemPath}>
 			<div>
-				<Anchor href={article.linkPath} resourcePath={article.resourcePath} isPrint={isPrint}>
+				<Anchor href={article.linkPath} isPrint={isPrint} resourcePath={article.resourcePath}>
 					{article.title || t("article.no-name")}
 				</Anchor>
 				<div className="chips">
 					{article.otherProps.map((property: PropertyType) => (
 						<PropertyArticle
+							disabled={disabled}
+							key={property.name}
 							onSubmit={(propertyName, value, isDelete) =>
 								onSubmit?.(article.itemPath, parentGroups, propertyName, value, isDelete)
 							}
-							disabled={disabled}
-							key={property.name}
 							property={property}
 							trigger={
 								<div>
 									<Property
-										key={property.name}
-										type={property.type}
 										icon={property.icon}
-										propertyStyle={property.style}
+										key={property.name}
 										name={property.name}
-										value={property.type !== PropertyTypes.flag ? property.value : property.name}
+										propertyStyle={property.style}
 										shouldShowValue={property.type !== PropertyTypes.flag}
+										type={property.type}
+										value={property.type !== PropertyTypes.flag ? property.value : property.name}
 									/>
 								</div>
 							}

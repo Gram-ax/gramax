@@ -1,11 +1,11 @@
-import { parseTable } from "@ext/markdown/elements/table/pdf/utils/parseTable";
-import { TableBody } from "./types";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { parseTable } from "@ext/markdown/elements/table/pdf/utils/parseTable";
 import { BASE_CONFIG, TABLE_STYLE } from "@ext/pdfExport/config";
-import { ContentTable } from "pdfmake/interfaces";
-import { isTag } from "@ext/pdfExport/utils/isTag";
 import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { isTag } from "@ext/pdfExport/utils/isTag";
 import { JSONContent } from "@tiptap/core";
+import { ContentTable } from "pdfmake/interfaces";
+import { TableBody } from "./types";
 
 export async function tableCase(
 	table: Tag | JSONContent,

@@ -9,7 +9,7 @@ export type LinkItemSidebarProps = {
 const LinkItemSidebar = ({ iconCode, title }: LinkItemSidebarProps) => {
 	return (
 		<div style={{ width: "100%", padding: "5px 10px" }}>
-			<Sidebar title={title} leftActions={iconCode && [<Icon key={0} code={iconCode} />]} />
+			<Sidebar leftActions={iconCode && [<Icon code={iconCode} key={0} />]} title={title} />
 		</div>
 	);
 };

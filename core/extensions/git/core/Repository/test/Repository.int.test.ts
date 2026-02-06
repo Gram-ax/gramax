@@ -111,7 +111,7 @@ describe("Repository", () => {
 			});
 		});
 	});
-  
+
 	describe("checkout", () => {
 		let fr: FileRepository;
 		let rep: WorkdirRepository;

@@ -1,8 +1,8 @@
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import useWatch from "@core-ui/hooks/useWatch";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import Toolbar from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
@@ -178,15 +178,15 @@ const ContentEditor = (props: ContentEditorProps) => {
 				<Menu editor={editor} id={ContentEditorId}>
 					<Toolbar
 						editor={editor}
-						isGramaxAiEnabled={isGramaxAiEnabled}
 						fileName={articlePropsRef.current?.fileName}
+						isGramaxAiEnabled={isGramaxAiEnabled}
 					/>
 				</Menu>
 				<CommentEditorProvider editor={editor}>
 					<div>
 						<InlineLinkMenu editor={editor} />
 						<InlineToolbar editor={editor} />
-						<EditorContent editor={editor} data-qa="article-editor" data-iseditable={true} />
+						<EditorContent data-iseditable={true} data-qa="article-editor" editor={editor} />
 					</div>
 				</CommentEditorProvider>
 				<ArticleMat editor={editor} />

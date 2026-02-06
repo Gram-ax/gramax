@@ -12,11 +12,11 @@ const LeftNavigationNarrowComponent = ({ data }: { data: ArticlePageData }) => {
 	return (
 		<LeftNavigationNarrowLayout
 			isOpen={SidebarsIsOpenService.value.left}
-			leftNavigationTop={<LeftNavigationTop data={data} />}
+			leftNavigationBottom={<LeftNavigationBottom closeNavigation={closeNavigation} data={data} />}
 			leftNavigationContent={
-				<LeftNavViewContentContainer itemLinks={data.itemLinks} closeNavigation={closeNavigation} />
+				<LeftNavViewContentContainer closeNavigation={closeNavigation} itemLinks={data.itemLinks} />
 			}
-			leftNavigationBottom={<LeftNavigationBottom data={data} closeNavigation={closeNavigation} />}
+			leftNavigationTop={<LeftNavigationTop data={data} />}
 		/>
 	);
 };

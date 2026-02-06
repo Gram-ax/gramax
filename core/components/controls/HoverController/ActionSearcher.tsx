@@ -19,16 +19,16 @@ const ActionSearcher = (props: ActionSearcherProps) => {
 	};
 
 	return (
-		<Tooltip content={tooltipText} delay={[500, 0]} customStyle>
+		<Tooltip content={tooltipText} customStyle delay={[500, 0]}>
 			<div className={className}>
 				<ListLayout
-					useVirtuoso
-					placeholder={placeholder}
 					appendTo={() => document.body}
+					item={defaultValue}
 					items={items}
 					onCancelClick={onCancelClick}
 					onItemClick={onChange}
-					item={defaultValue}
+					placeholder={placeholder}
+					useVirtuoso
 				/>
 			</div>
 		</Tooltip>

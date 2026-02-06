@@ -21,7 +21,7 @@ const IconComponent = ({ node }: NodeViewProps): ReactElement => {
 
 	return (
 		<NodeViewWrapper as={"span"}>
-			<IconMemoized code={code} svg={svg} color={color} commentId={commentId} />
+			<IconMemoized code={code} color={color} commentId={commentId} svg={svg} />
 		</NodeViewWrapper>
 	);
 };

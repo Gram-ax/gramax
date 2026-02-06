@@ -1,7 +1,7 @@
-import { PermissionMapJSONData } from "@ext/security/logic/PermissionMap/IPermissionMap";
-import { UserType } from "@ext/security/logic/User/User";
-import PermissionJSONData from "../Permission/model/PermissionJSONData";
-import UserInfo from "./UserInfo";
+import type { PermissionMapJSONData } from "@ext/security/logic/PermissionMap/IPermissionMap";
+import type { UserType } from "@ext/security/logic/User/User";
+import type PermissionJSONData from "../Permission/model/PermissionJSONData";
+import type UserInfo from "./UserInfo";
 
 export interface BaseUserJSONData {
 	type: UserType;

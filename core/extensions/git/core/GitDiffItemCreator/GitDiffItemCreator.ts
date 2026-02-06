@@ -20,7 +20,11 @@ export default abstract class GitDiffItemCreator {
 	protected _gitVersionControl: GitVersionControl;
 	private _mergeBase: string;
 
-	constructor(protected _catalog: ReadonlyCatalog, protected _sp: SitePresenter, protected _fs: FileStructure) {
+	constructor(
+		protected _catalog: ReadonlyCatalog,
+		protected _sp: SitePresenter,
+		protected _fs: FileStructure,
+	) {
 		this._gitVersionControl = this._catalog.repo.gvc;
 	}
 
@@ -88,6 +92,8 @@ export default abstract class GitDiffItemCreator {
 			title: file.path.nameWithExtension,
 			added: file.added,
 			deleted: file.deleted,
+			isLfs: file.isLfs,
+			size: file.size,
 		};
 	}
 
@@ -102,6 +108,8 @@ export default abstract class GitDiffItemCreator {
 			isChanged: true,
 			added: file.added,
 			deleted: file.deleted,
+			isLfs: file.isLfs,
+			size: file.size,
 		});
 	}
 

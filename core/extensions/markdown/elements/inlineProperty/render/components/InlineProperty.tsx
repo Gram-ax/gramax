@@ -1,7 +1,7 @@
 import t from "@ext/localization/locale/translate";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { PropertyTypes } from "@ext/properties/models";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
+import { PropertyTypes } from "@ext/properties/models";
 
 const InlineProperty = ({ bind }: { bind: string }) => {
 	if (!PropertyServiceProvider?.value) return;

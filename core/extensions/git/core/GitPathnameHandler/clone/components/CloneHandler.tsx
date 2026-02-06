@@ -1,8 +1,8 @@
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
+import { useRouter } from "@core/Api/useRouter";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { useRouter } from "@core/Api/useRouter";
 import CloneWithShareData from "@ext/catalog/actions/share/components/CloneWithShareData";
 import ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
@@ -43,24 +43,24 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 				<ModalLayoutLight>
 					<OnNetworkApiErrorService.Provider callback={close}>
 						<CloneWithShareData
-							shareData={shareData}
-							onCloneStart={close}
 							clonePath={clonePath}
+							onCloneStart={close}
 							onCreateSourceDataClose={(success) => {
 								if (!success) close();
 							}}
+							shareData={shareData}
 						/>
 					</OnNetworkApiErrorService.Provider>
 				</ModalLayoutLight>
 			) : (
 				<InfoModalForm
-					onCancelClick={close}
-					title={t("git.clone.not-cloned.title")}
 					actionButton={{
 						text: t("catalog.clone"),
 						onClick: () => setClone(true),
 					}}
 					isWarning={true}
+					onCancelClick={close}
+					title={t("git.clone.not-cloned.title")}
 				>
 					<div>{t("git.clone.not-cloned.body")}</div>
 					{isBrowser && (

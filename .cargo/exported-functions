@@ -61,6 +61,9 @@ _list_merge_requests
 _create_or_update_merge_request
 _get_draft_merge_request
 _get_all_commit_authors
+_pull_lfs_objects
+_get_config_val
+_set_config_val
 _gc
 _reset_repo
 _reset_file_lock

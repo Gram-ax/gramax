@@ -1,5 +1,5 @@
-import { Environment } from "@app/resolveModule/env";
-import { createContext, ReactElement, useContext } from "react";
+import type { Environment } from "@app/resolveModule/env";
+import { createContext, type ReactElement, useContext } from "react";
 
 const PlatformContext = createContext<Environment>(undefined);
 

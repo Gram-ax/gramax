@@ -1,4 +1,4 @@
-import { Schema } from "../../render/logic/Markdoc/index";
+import type { Schema } from "../../render/logic/Markdoc/index";
 
 export interface MdParserOptions {
 	tags: { [name: string]: Schema };
@@ -29,11 +29,12 @@ export default class MdParser {
 
 	private _findInlineCodeToIgnore = "`{1,2}[^`].*?`{1,2}";
 	private _findBlockCodeToIgnore = "```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.";
-	private _findHtmlToIgnore = "\\[html.*][\\s\\S]*?\\[\\/html\\]";
+	private _findHtmlToIgnore = String.raw`\[html.*][\s\S]*?\[\/html\]|<html.*>[\s\S]*?<\/html\>`;
 
 	private _preTagRegExp: RegExp;
 
 	constructor(preParserOptions: MdParserOptions = null) {
+		const flags = "gm";
 		this._tags = preParserOptions?.tags ?? {};
 		this._escapeDoubleQuotesRegExp = this._createIgnoreRegExp(String.raw`.*?[^\\](").*?`);
 		this._emptyParagraphRegExp = this._createIgnoreRegExp(String.raw`(\r?\n{4,})`);
@@ -50,15 +51,14 @@ export default class MdParser {
 		this._brRegExp = this._createIgnoreRegExp(String.raw`(<br>|<br\/>)`);
 		this._backDashRegExp = this._createIgnoreRegExp(String.raw`(—)`);
 		this._backArrowRegExp = this._createIgnoreRegExp(String.raw`(→)`);
-		this._listWithAnEmptyItem = new RegExp(String.raw`^[ \t]*(?:\d+\.|-)[ \t]*$`, "gm");
-		this._table = new RegExp(String.raw`{% table\s*([^%]*)%}([\s\S]*?){% \/table %}`, "gm");
-		this._emptyTableCell = new RegExp(String.raw`^(?:\*)[ \t]*$`, "gm");
-
 		this._findHtmlRegExp = this._createBlockCodeIgnoreRegExp(String.raw`(^[^\n]*)\[html.*]([\s\S]*?)\[\/html\]`);
 		this._findHtmlTagRegExp = this._createBlockCodeIgnoreRegExp(
 			String.raw`(^[^\n]*)(<html[^>]*>)([\s\S]*?)<\/html>`,
 		);
-		this._preTagRegExp = new RegExp(String.raw`<pre>([\s\S]*?)<\/pre>`, "gm");
+		this._listWithAnEmptyItem = new RegExp(String.raw`^[ \t]*(?:\d+\.|-)[ \t]*$`, flags);
+		this._table = new RegExp(String.raw`{% table\s*([^%]*)%}([\s\S]*?){% \/table %}`, flags);
+		this._emptyTableCell = new RegExp(String.raw`^(?:\*)[ \t]*$`, flags);
+		this._preTagRegExp = new RegExp(String.raw`<pre>([\s\S]*?)<\/pre>`, flags);
 	}
 
 	use(tag: Schema) {
@@ -66,50 +66,53 @@ export default class MdParser {
 	}
 
 	preParse(content: string): string {
-		content = this._preTagParser(content);
-		content = this._removeComments(content);
-		content = this._tableParser(content);
-		content = this._includeParse(content);
-		content = this._idParser(content);
-		content = this._dashArrowParser(content);
-		content = this._squareBracketsParser(content);
-		content = this._formulaParser(content);
-		content = this._brParser(content);
-		content = this._emptyParagraphParser(content);
-		content = this._htmlParser(content);
-		return content;
+		let newContent = content;
+		newContent = this._preTagParser(newContent);
+		newContent = this._removeComments(newContent);
+		newContent = this._tableParser(newContent);
+		newContent = this._includeParse(newContent);
+		newContent = this._idParser(newContent);
+		newContent = this._dashArrowParser(newContent);
+		newContent = this._squareBracketsParser(newContent);
+		newContent = this._formulaParser(newContent);
+		newContent = this._brParser(newContent);
+		newContent = this._emptyParagraphParser(newContent);
+		newContent = this._htmlParser(newContent);
+		return newContent;
 	}
 
 	backParse(content: string): string {
-		content = this._backdashArrowParser(content);
-		content = this._listParser(content);
-		return content;
+		let newContent = content;
+		newContent = this._backdashArrowParser(newContent);
+		newContent = this._listParser(newContent);
+		return newContent;
 	}
 
 	private _tableParser(content: string) {
 		return content.replaceAll(this._table, (table: string) => {
 			return table.replaceAll(this._emptyTableCell, (cell: string) => {
-				return cell + "\u00A0";
+				return `${cell}\u00A0`;
 			});
 		});
 	}
 
 	private _listParser(content: string): string {
 		return content.replaceAll(this._listWithAnEmptyItem, (listItem: string) => {
-			return listItem + "\u00A0";
+			return `${listItem}\u00A0`;
 		});
 	}
 
 	private _emptyParagraphParser(content: string): string {
-		content = "\n\n" + content;
-		content = content.replaceAll(this._emptyParagraphRegExp, (str: string, match: string) => {
+		let newContent = content;
+		newContent = `\n\n${newContent}`;
+		newContent = newContent.replaceAll(this._emptyParagraphRegExp, (str: string, match: string) => {
 			if (!match) return str;
 			const emptyParagraphsCounter = (match.split("\n").length - 2) / 2;
 			const res: string[] = [];
 			for (let i = 1; i <= emptyParagraphsCounter; i++) res.push("\n\n&nbsp;");
-			return str.replace(match, res.join("") + "\n\n");
+			return str.replace(match, `${res.join("")}\n\n`);
 		});
-		return content.replace(/^\n\n/, "");
+		return newContent.replace(/^\n\n/, "");
 	}
 
 	private _escapeDoubleQuotes(content: string): string {
@@ -128,7 +131,7 @@ export default class MdParser {
 	private _includeParse(content: string): string {
 		return content.replaceAll(this._includeRegExp, (str: string, group: string, group2: string) => {
 			if (!group || !group2) return str;
-			const tag = this._tags["include"];
+			const tag = this._tags?.include;
 			return tag ? this._parse([null, group2, group], tag) : str;
 		});
 	}
@@ -148,9 +151,10 @@ export default class MdParser {
 
 	private _squareBracketsParser(content: string): string {
 		return content.replaceAll(this._squareRegExp, (str: string, group: string, hasOpenBracket: string) => {
-			if (!group || hasOpenBracket) return str;
-			group = this._screenLink(group);
-			const split = group.split(":");
+			let newGroup = group;
+			if (!newGroup || hasOpenBracket) return str;
+			newGroup = this._screenLink(newGroup);
+			const split = newGroup.split(":");
 			if (split[0][0] === "/") {
 				const tagName = this._replaceNotLowerCase(split[0].slice(1).toLowerCase());
 				const tag = this._tags[tagName];
@@ -164,8 +168,9 @@ export default class MdParser {
 	private _idParser(content: string): string {
 		return content.replaceAll(this._idRegExp, (str: string, match: string) => {
 			if (!match) return str;
-			if (match[1] == ":") match = match.replace(/:/, "");
-			return `{% ${match} %}`;
+			let newMatch = match;
+			if (newMatch[1] === ":") newMatch = newMatch.replace(/:/, "");
+			return `{% ${newMatch} %}`;
 		});
 	}
 
@@ -179,16 +184,20 @@ export default class MdParser {
 	}
 
 	private _htmlParser(content: string): string {
-		content = content.replaceAll(this._findHtmlRegExp, (_: string, firstGroup: string, secondGroup: string) => {
-			const group = secondGroup;
-			if (!group) return _;
-			const space = " ".repeat(firstGroup.length);
-			return `${firstGroup}{%html mode="${
-				/\[html:(.*?)\]/.exec(_)?.[1] || "iframe"
-			}" %}\n${space}\`\`\`\n${secondGroup}\n${space}\`\`\`\n${space}{%/html%}`;
-		});
+		let newContent = content;
+		newContent = newContent.replaceAll(
+			this._findHtmlRegExp,
+			(_: string, firstGroup: string, secondGroup: string) => {
+				const group = secondGroup;
+				if (!group) return _;
+				const space = " ".repeat(firstGroup.length);
+				return `${firstGroup}{%html mode="${
+					/\[html:(.*?)\]/.exec(_)?.[1] || "iframe"
+				}" %}\n${space}\`\`\`\n${secondGroup}\n${space}\`\`\`\n${space}{%/html%}`;
+			},
+		);
 
-		content = content.replaceAll(
+		newContent = newContent.replaceAll(
 			this._findHtmlTagRegExp,
 			(_: string, firstGroup: string, htmlTag: string, secondGroup: string) => {
 				const group = secondGroup;
@@ -198,7 +207,7 @@ export default class MdParser {
 			},
 		);
 
-		return content;
+		return newContent;
 	}
 
 	private _parse(split: string[], tag: Schema): string {
@@ -252,10 +261,11 @@ export default class MdParser {
 	}
 
 	private _preTagParser(content: string): string {
-		return content.replaceAll(this._preTagRegExp, (str: string, preContent: string) => {
-			if (!preContent.includes("\n")) preContent = "\n" + preContent + "\n";
+		return content.replaceAll(this._preTagRegExp, (_: string, preContent: string) => {
+			let newPreContent = preContent;
+			if (!newPreContent.includes("\n")) newPreContent = `\n${newPreContent}\n`;
 
-			return `\`\`\`${preContent}\`\`\``;
+			return `\`\`\`${newPreContent}\`\`\``;
 		});
 	}
 }

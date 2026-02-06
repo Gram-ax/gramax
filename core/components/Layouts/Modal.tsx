@@ -36,12 +36,12 @@ export interface ModalLayoutProps {
 }
 
 export enum ModalWidth {
-	"XS" = "30%",
-	"S" = "45%",
-	"M" = "60%",
-	"L" = "80%",
-	"minM" = "min(100%, var(--medium-form-width))",
-	"default" = "var(--default-form-width)",
+	XS = "30%",
+	S = "45%",
+	M = "60%",
+	L = "80%",
+	minM = "min(100%, var(--medium-form-width))",
+	default = "var(--default-form-width)",
 }
 
 const ModalLayout = (props: ModalLayoutProps) => {
@@ -129,19 +129,8 @@ const ModalLayout = (props: ModalLayoutProps) => {
 	return (
 		<>
 			<Popup
-				open={isOpen}
-				onOpen={() => {
-					onOpen?.();
-					setIsOpen(true);
-					IsOpenModalService.value = true;
-				}}
-				disabled={disabled}
-				onClose={onCurrentClose}
-				trigger={trigger}
-				overlayStyle={{
-					backgroundColor: "var(--color-modal-overlay-style-bg)",
-					zIndex: "var(--z-index-ui-kit-modal)",
-				}}
+				closeOnDocumentClick={true}
+				closeOnEscape={false}
 				contentStyle={{
 					display: "flex",
 					height: "100%",
@@ -149,19 +138,30 @@ const ModalLayout = (props: ModalLayoutProps) => {
 					background: "none",
 					width: "100%",
 				}}
-				closeOnEscape={false}
-				closeOnDocumentClick={true}
+				disabled={disabled}
 				modal
 				nested
+				onClose={onCurrentClose}
+				onOpen={() => {
+					onOpen?.();
+					setIsOpen(true);
+					IsOpenModalService.value = true;
+				}}
+				open={isOpen}
+				overlayStyle={{
+					backgroundColor: "var(--color-modal-overlay-style-bg)",
+					zIndex: "var(--z-index-ui-kit-modal)",
+				}}
+				trigger={trigger}
 			>
 				<div
 					className={className}
+					data-qa={`modal-layout`}
+					onMouseDown={() => !closeOnDocumentClick && setMouseDownOnModal(true)}
 					onMouseUp={() => {
 						if (closeOnDocumentClick && !mouseDownOnModal) tryClose();
 						setMouseDownOnModal(false);
 					}}
-					onMouseDown={() => !closeOnDocumentClick && setMouseDownOnModal(true)}
-					data-qa={`modal-layout`}
 				>
 					<div className={"x-mark"}>
 						<Icon
@@ -174,22 +174,22 @@ const ModalLayout = (props: ModalLayoutProps) => {
 					</div>
 					<div
 						className={classNames("outer-modal", { "is-error": isError })}
+						onMouseDown={() => setCloseOnDocumentClick(false)}
 						onMouseEnter={() => setCloseOnDocumentClick(false)}
 						onMouseLeave={() => setCloseOnDocumentClick(true)}
-						onMouseDown={() => setCloseOnDocumentClick(false)}
 					>
-						<ModalErrorHandler onError={handleError} onClose={closeModal}>
+						<ModalErrorHandler onClose={closeModal} onError={handleError}>
 							<>{children}</>
 						</ModalErrorHandler>
-						<div style={{ height: "100%" }} onClick={tryClose} />
+						<div onClick={tryClose} style={{ height: "100%" }} />
 					</div>
 					{isOpenConfirm && (
 						<Confirm
 							closeConfirm={closeConfirm}
-							saveConfirm={confirmSaveAction}
 							forceCloseConfirm={forceCloseConfirm}
-							title={confirmTitle}
+							saveConfirm={confirmSaveAction}
 							text={confirmText}
+							title={confirmTitle}
 						/>
 					)}
 				</div>
@@ -252,7 +252,7 @@ export default styled(ModalLayout)`
 	}
 
 	${(p) =>
-		p.setGlobalsStyles ?? false
+		(p.setGlobalsStyles ?? false)
 			? `
 	.global {
 		gap: 1rem;

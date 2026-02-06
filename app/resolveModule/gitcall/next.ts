@@ -1,11 +1,14 @@
-import { progress, type CredsArgs } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+/** biome-ignore-all lint/suspicious/noExplicitAny: idc */
+import { healthcheckEvents } from "@ext/git/core/GitCommands/errors/HealthcheckEvents";
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
+import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
+import { type CredsArgs, progress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import git from "../../../apps/next/crates/next-gramax-git";
 
 const tryParse = (data: any) => {
 	try {
 		return JSON.parse(data);
-	} catch (err) {
+	} catch {
 		return data;
 	}
 };
@@ -13,8 +16,8 @@ const tryParse = (data: any) => {
 export const call = async <O>(command: string, args?: any): Promise<O> => {
 	let stringifiedArgs = null;
 
-	if (command == "clone") args.callback = (_, val: string) => progress[args.opts.cancelToken]?.(JSON.parse(val));
-	if (command == "diff") stringifiedArgs = JSON.stringify(args);
+	if (command === "clone") args.callback = (_, val: string) => progress[args.opts.cancelToken]?.(JSON.parse(val));
+	if (command === "diff") stringifiedArgs = JSON.stringify(args);
 
 	if (typeof args.scope !== "undefined") args.scope = intoTreeReadScope(args.scope);
 
@@ -29,18 +32,23 @@ export const call = async <O>(command: string, args?: any): Promise<O> => {
 		let error = typeof err === "string" ? tryParse(err) : err;
 		error = err.stack ? tryParse(err.message) : error;
 		if ((args as CredsArgs)?.creds?.accessToken) (args as CredsArgs).creds.accessToken = "<redacted>";
-		return Promise.reject(
-			new LibGit2Error(
-				`git (${command}, ${error.subset ?? "<unknown subset>"}, ${error.class ?? "<unknown class>"}, ${
-					error.code ?? "<unknown code>"
-				})`,
-				`${error?.message?.trim() || error}\nArgs: ${JSON.stringify(args, null, 4)}`,
-				error.subset,
-				error.class,
-				error.code,
-				command,
-			),
+
+		const libGit2Error = new LibGit2Error(
+			`git (${command}, ${error.subset ?? "<unknown subset>"}, ${error.class ?? "<unknown class>"}, ${
+				error.code ?? "<unknown code>"
+			})`,
+			`${error?.message?.trim() || error}\nArgs: ${JSON.stringify(args, null, 4)}`,
+			error.subset,
+			error.class,
+			error.code,
+			command,
 		);
+
+		if (libGit2Error.code === GitErrorCode.HealthcheckFailed && args?.repoPath) {
+			await healthcheckEvents.emit("healthcheck-failed", { repoPath: args.repoPath, error: libGit2Error });
+		}
+
+		return Promise.reject(libGit2Error);
 	}
 };
 

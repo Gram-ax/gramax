@@ -1,6 +1,6 @@
 import { NodeDimensionsData } from "@ext/print/utils/pagination/NodeDimensions";
-import { throwIfAborted } from "./abort";
 import { ControlInfo, PaginationInfo, PrintPageInfo } from "@ext/print/utils/pagination/types";
+import { throwIfAborted } from "./abort";
 
 abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElement = HTMLElement> {
 	static paginationInfo: PaginationInfo;
@@ -50,6 +50,12 @@ abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElem
 		return true;
 	}
 
+	processNodeForPage(node: HTMLElement) {
+		const isNewPage = this._createIfNeadNewPage(node);
+		const tryFit = this.tryFitElement(node);
+		return { isNewPage, tryFit };
+	}
+
 	protected updateAccumulatedHeightNode(node: HTMLElement) {
 		const nodeDimension = Paginator.paginationInfo.nodeDimension;
 		const accumulatedHeight = Paginator.paginationInfo.accumulatedHeight;
@@ -84,6 +90,10 @@ abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElem
 		return childNodes[childNodes.length - 1] === this.headingElements[this.headingElements.length - 1];
 	}
 
+	public hasOnlyHeadingElements() {
+		return this.currentContainer.childNodes.length === this.headingElements.length;
+	}
+
 	abstract paginateNode(): void | Promise<void>;
 	abstract createPage(): HTMLElement;
 	protected abstract cleanHeadingElementsIfNeed(): void;
@@ -94,20 +104,30 @@ abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElem
 		for (const handler of printHandlers.required) {
 			if (await handler(node, this)) return;
 		}
-
-		const yieldTick = Paginator.controlInfo.yieldTick;
-		const signal = Paginator.controlInfo.signal;
-
-		if (this.tryFitElement(node)) return;
+		const { isNewPage, tryFit } = this.processNodeForPage(node);
+		if (tryFit) return;
 
 		for (const handler of printHandlers.conditional) {
 			if (await handler(node, this)) return;
 		}
 
+		const yieldTick = Paginator.controlInfo.yieldTick;
+		const signal = Paginator.controlInfo.signal;
+
 		await yieldTick();
 		throwIfAborted(signal);
-		this.createPage();
+		!isNewPage && this.createPage();
 		this.tryFitElement(node, true);
+	}
+
+	private _createIfNeadNewPage(node: HTMLElement) {
+		const nodeDimension = Paginator.paginationInfo.nodeDimension;
+		const breakBefore = nodeDimension.get(node).breakBefore;
+		throwIfAborted(Paginator.controlInfo.signal);
+		if (breakBefore !== "page") return;
+		if (this.currentContainer.childElementCount === 0 && this.currentContainer.childNodes.length === 0) return true;
+		this.createPage();
+		return true;
 	}
 }
 

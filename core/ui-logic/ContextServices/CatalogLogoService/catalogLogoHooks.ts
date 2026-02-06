@@ -1,17 +1,17 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch, { useWatchClient } from "@core-ui/hooks/useWatch";
-import CustomLogoDriver from "@core/utils/CustomLogoDriver";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
-import { UpdateResource } from "@ext/workspace/components/LogoUploader";
+import type { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { useCallback, useRef, useState } from "react";
-import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const useCatalogLogoManager = (catalogPath: string, theme: Theme) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;

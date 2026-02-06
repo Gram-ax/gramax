@@ -1,8 +1,8 @@
 import Icon from "@components/Atoms/Icon";
+import parseStorageUrl from "@core/utils/parseStorageUrl";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
-import parseStorageUrl from "@core/utils/parseStorageUrl";
 import GitVerseSourceAPI from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceAPI";
 import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
 import handleFormApiError from "@ext/git/actions/Source/logic/handleApiError";
@@ -51,7 +51,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 					token: data?.token,
 					authorName: data?.userName,
 					authorEmail: data?.userEmail,
-			  }
+				}
 			: undefined,
 		mode: "onChange",
 	});
@@ -131,7 +131,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 
 	useLayoutEffect(() => {
 		const primaryButton = (
-			<Button type="submit" onClick={formSubmit}>
+			<Button onClick={formSubmit} type="submit">
 				{t("add")}
 			</Button>
 		);
@@ -149,8 +149,8 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 				<FormStack>
 					<div className="flex flex-row items-center justify-between gap-3 pb-2 lg:gap-4">
 						<FormSectionTitle>{t("authorization")}</FormSectionTitle>
-						<FormSectionHeaderButton size="xs" variant="link" type="button">
-							<a href={GITVERSE_SETTINGS_TOKENS_URL} target="_blank" rel="noreferrer">
+						<FormSectionHeaderButton size="xs" type="button" variant="link">
+							<a href={GITVERSE_SETTINGS_TOKENS_URL} rel="noreferrer" target="_blank">
 								{`${t("create")} ${t("token")}`}
 							</a>
 							<Tooltip>
@@ -170,10 +170,6 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 
 					<FormFieldSet style={{ marginTop: 0 }}>
 						<FormField
-							name="token"
-							title={t("forms.gitverse-source-data.props.token.name")}
-							layout="vertical"
-							description={t("forms.gitverse-source-data.props.token.description")}
 							control={({ field }) => (
 								<SecretInput
 									{...field}
@@ -182,22 +178,26 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 										field.onChange(value);
 										onChangeAuthFields();
 									}}
-									showClearIcon
 									placeholder={t("forms.gitverse-source-data.props.token.placeholder")}
+									showClearIcon
 								/>
 							)}
+							description={t("forms.gitverse-source-data.props.token.description")}
+							layout="vertical"
+							name="token"
+							title={t("forms.gitverse-source-data.props.token.name")}
 						/>
 						{form.formState.errors?.token?.type === "invalid" && (
 							<div className="flex" style={{ marginTop: "-1.5em" }}>
 								<Retry
-									type="button"
-									startIcon="rotate-ccw"
 									className="p-0 ml-auto"
 									onClick={() => {
 										onChangeAuthFields();
 										form.clearErrors("token");
 										form.clearErrors("url");
 									}}
+									startIcon="rotate-ccw"
+									type="button"
 								>
 									{t("try-again")}
 								</Retry>
@@ -205,10 +205,6 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 						)}
 
 						<FormField
-							name="authorName"
-							title={t("forms.gitverse-source-data.props.userName.name")}
-							layout="vertical"
-							description={t("forms.gitverse-source-data.props.userName.description")}
 							control={({ field }) =>
 								isLoading ? (
 									<Skeleton className="w-full" style={{ height: "36px" }} />
@@ -223,13 +219,13 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 									/>
 								)
 							}
+							description={t("forms.gitverse-source-data.props.userName.description")}
+							layout="vertical"
+							name="authorName"
+							title={t("forms.gitverse-source-data.props.userName.name")}
 						/>
 
 						<FormField
-							name="authorEmail"
-							title={t("forms.gitverse-source-data.props.userEmail.name")}
-							layout="vertical"
-							description={t("forms.gitverse-source-data.props.userEmail.description")}
 							control={({ field }) =>
 								isLoading ? (
 									<Skeleton className="w-full" style={{ height: "36px" }} />
@@ -244,6 +240,10 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 									/>
 								)
 							}
+							description={t("forms.gitverse-source-data.props.userEmail.description")}
+							layout="vertical"
+							name="authorEmail"
+							title={t("forms.gitverse-source-data.props.userEmail.name")}
 						/>
 					</FormFieldSet>
 				</FormStack>

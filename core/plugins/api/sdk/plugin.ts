@@ -1,7 +1,7 @@
-import type { Plugin as PluginSdk, PluginProps } from "@gramax/sdk";
+import type { PluginProps, Plugin as PluginSdk } from "@gramax/sdk";
+import type { Extension as ExtensionSDK } from "@gramax/sdk/editor";
 import type { PluginEventMap, PluginEventName } from "@gramax/sdk/events";
 import type { MenuModifier } from "@gramax/sdk/ui";
-import type { Extension as ExtensionSDK } from "@gramax/sdk/editor";
 import { getDeps } from "./core";
 
 export abstract class Plugin implements PluginSdk {

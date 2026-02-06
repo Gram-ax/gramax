@@ -21,10 +21,10 @@ import {
 	DropdownMenuItem,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
+	DropdownMenuSeparator,
 	DropdownMenuSub,
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
-	DropdownMenuSeparator,
 } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useState } from "react";
@@ -106,8 +106,8 @@ const AggregationPopup = ({ editor, tableSheet, node, cell, index, getPos }: Agg
 			</DropdownMenuSubTrigger>
 			<DropdownMenuSubContent>
 				<DropdownMenuRadioGroup
-					value={cell?.attrs?.aggregation}
 					onValueChange={(value) => setAggregation(value as AggregationMethod)}
+					value={cell?.attrs?.aggregation}
 				>
 					{Object.values(AggregationMethod).map((method, index) => (
 						<DropdownMenuRadioItem key={method} value={method}>

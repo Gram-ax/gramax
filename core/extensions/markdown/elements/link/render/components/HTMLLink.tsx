@@ -15,7 +15,7 @@ const HTMLLink = (html: HTMLComponents) => {
 		const newHref = html.getHref(resourcePath, isFile, hash, href);
 
 		return (
-			<a href={newHref} data-component="link">
+			<a data-component="link" href={newHref}>
 				{children}
 			</a>
 		);

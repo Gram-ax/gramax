@@ -159,29 +159,24 @@ export default function ResourcesComponent() {
 	return (
 		<div className="p-6">
 			<ResourcesTable
-				items={localSettings}
 				disabled={isSaving}
-				onRowClick={handleOpenRepository}
-				onDeleteSelected={handleDeleteSelected}
+				items={localSettings}
 				onAdd={handleAdd}
+				onDeleteSelected={handleDeleteSelected}
+				onRowClick={handleOpenRepository}
 			/>
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
 			<SheetComponent
 				isOpen={Boolean(openedRepository) || isAddingMode}
 				onOpenChange={(open) => !open && handleClose()}
-				title={
-					isAddingMode
-						? t("enterprise.admin.resources.add-repository")
-						: `${t("enterprise.admin.resources.repository")} ${openedRepository?.id}`
-				}
 				sheetContent={
 					<>
 						<ResourceComponent
 							isAddingMode={isAddingMode}
+							onChange={setEditedRepository}
 							resourceSettings={editedRepository}
 							resourcesSettings={localSettings}
-							onChange={setEditedRepository}
 						/>
 						<FormFooter
 							primaryButton={
@@ -189,7 +184,7 @@ export default function ResourcesComponent() {
 									{isSaving ? (
 										<LoadingButtonTemplate text={`${t("save2")}...`} />
 									) : (
-										<Button onClick={handleSave} disabled={!hasChanges || isSaving}>
+										<Button disabled={!hasChanges || isSaving} onClick={handleSave}>
 											<Icon icon="save" />
 											{t("save")}
 										</Button>
@@ -197,19 +192,24 @@ export default function ResourcesComponent() {
 								</>
 							}
 							secondaryButton={
-								<Button variant="outline" onClick={handleClose}>
+								<Button onClick={handleClose} variant="outline">
 									{t("cancel")}
 								</Button>
 							}
 						/>
 					</>
 				}
+				title={
+					isAddingMode
+						? t("enterprise.admin.resources.add-repository")
+						: `${t("enterprise.admin.resources.repository")} ${openedRepository?.id}`
+				}
 			/>
 			<ConfirmationDialog
 				isOpen={showUnsavedDialog}
+				onClose={closeResourceDialog}
 				onOpenChange={setShowUnsavedDialog}
 				onSave={handleSave}
-				onClose={closeResourceDialog}
 			/>
 		</div>
 	);

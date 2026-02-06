@@ -1,9 +1,9 @@
-import isTemplateEditableBlock from "@ext/markdown/elements/controllers/helpers/isTemplateEditableBlock";
 import { editName as BLOCK_FIELD_NAME } from "@ext/markdown/elements/blockContentField/consts";
 import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
+import isTemplateEditableBlock from "@ext/markdown/elements/controllers/helpers/isTemplateEditableBlock";
+import { Node } from "@tiptap/pm/model";
 import { ReplaceStep, Step } from "@tiptap/pm/transform";
 import { TextSelection, Transaction } from "prosemirror-state";
-import { Node } from "@tiptap/pm/model";
 
 const stepsContentHasntBlockField = (transaction: Transaction): boolean => {
 	return transaction.steps.some((step) => {

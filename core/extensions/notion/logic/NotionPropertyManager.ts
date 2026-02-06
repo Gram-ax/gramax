@@ -1,11 +1,11 @@
-import { Property, PropertyTypes, PropertyValue } from "@ext/properties/models";
 import Style from "@components/HomePage/Cards/model/Style";
 import {
-	CollectedProperty,
-	NotionProperty,
+	type CollectedProperty,
+	type NotionProperty,
 	NotionPropertyTypes as NotionTypes,
-	PageNode,
+	type PageNode,
 } from "@ext/notion/model/NotionTypes";
+import { type Property, PropertyTypes, type PropertyValue } from "@ext/properties/models";
 
 export type CustomProperty = { id: string[]; originalName: string; parentTitle: string } & Property;
 
@@ -163,12 +163,15 @@ export class NotionPropertyManager {
 		const options = property?.options;
 		const groups = property?.groups;
 
-		const optionToGroupMap = groups?.reduce((map, group) => {
-			for (const id of group.option_ids) {
-				map[id] = group.name;
-			}
-			return map;
-		}, {} as Record<string, string>);
+		const optionToGroupMap = groups?.reduce(
+			(map, group) => {
+				for (const id of group.option_ids) {
+					map[id] = group.name;
+				}
+				return map;
+			},
+			{} as Record<string, string>,
+		);
 
 		const values = options?.map((option) => {
 			const groupName = optionToGroupMap?.[option.id];
@@ -262,7 +265,7 @@ export class NotionPropertyManager {
 				textValue = this._getRelationTitles(value);
 				break;
 
-			case NotionTypes.Rollup:
+			case NotionTypes.Rollup: {
 				const rollupData = value[value.type];
 				if (rollupData.type === "array") {
 					const values = rollupData[rollupData.type].map((item: any) =>
@@ -276,11 +279,13 @@ export class NotionPropertyManager {
 					textValue = rollupData[rollupData.type];
 				}
 				break;
+			}
 
-			case NotionTypes.Formula:
+			case NotionTypes.Formula: {
 				const formulaType = value[value.type].type;
 				textValue = value[value.type][formulaType];
 				break;
+			}
 
 			case NotionTypes.UniqueID:
 				textValue = `${value[value.type].prefix} - ${value[value.type].number}`;

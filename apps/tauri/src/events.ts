@@ -11,11 +11,10 @@ import type { ComponentProps } from "react";
 import TauriCookie from "./cookie/TauriCookie";
 import { attachConsole } from "./logging";
 import { initSpellcheck, toggleSpellcheck } from "./spellcheck";
-import { resetLastUpdateCheck } from "./update/useUpdateChecker";
 import { initZoom } from "./window/zoom";
 
 const subscribeEnterpriseEvents = async (current: WebviewWindow) => {
-	const app = await getApp();
+	const app = await getApp().catch(() => null);
 	await current.listen("enterprise-configure", () => {
 		if (!app?.em) return;
 		ModalToOpenService.setValue<ComponentProps<typeof EditEnterpriseConfig>>(ModalToOpen.EditEnterpriseConfig, {
@@ -29,7 +28,7 @@ const subscribeEnterpriseEvents = async (current: WebviewWindow) => {
 };
 
 const initSettings = async () => {
-	const data = (await invoke("get_settings")) as any;
+	const data = await invoke("get_settings");
 	if (!data) return;
 	TauriCookie.setEncoded(new Map(Object.entries(data as Record<string, string>)));
 };
@@ -42,6 +41,7 @@ const subscribeEvents = async () => {
 	);
 	const current = getCurrentWebviewWindow();
 	const env = await invoke("read_env");
+	// biome-ignore lint/suspicious/noExplicitAny: idc
 	window.process = { env } as any;
 
 	await Promise.all([
@@ -54,7 +54,7 @@ const subscribeEvents = async () => {
 		current.listen("refresh", () => void refreshPage()),
 		subscribeEnterpriseEvents(current),
 		current.listen("settings-data-updated", (ev) => {
-			const data = ev.payload as any;
+			const data = ev.payload;
 			TauriCookie.setEncoded(new Map(data ? Object.entries(data as Record<string, string>) : []));
 		}),
 		initSettings(),

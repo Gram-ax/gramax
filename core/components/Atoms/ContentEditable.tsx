@@ -50,10 +50,10 @@ const ContentEditable = ({
 		<div
 			className={className}
 			contentEditable
-			onInput={handleInput}
-			onPaste={handlePaste}
-			onKeyDown={handleKeyDown}
 			dangerouslySetInnerHTML={{ __html: html }}
+			onInput={handleInput}
+			onKeyDown={handleKeyDown}
+			onPaste={handlePaste}
 			suppressContentEditableWarning={true}
 		/>
 	);

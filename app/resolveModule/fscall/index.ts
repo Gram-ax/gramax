@@ -12,25 +12,29 @@ export const initFSCall = async (): Promise<void> => {
 		const env = getExecutingEnvironment();
 
 		switch (env) {
-			case "browser":
+			case "browser": {
 				const { callFSWasm } = await import("./wasm");
 				call = callFSWasm;
 				break;
+			}
 
-			case "tauri":
+			case "tauri": {
 				const { call: tauriCall } = await import("./tauri");
 				call = tauriCall;
 				break;
+			}
 
-			case "static":
+			case "static": {
 				const { StaticCall } = await import("./static");
 				call = StaticCall;
 				break;
+			}
 
-			case "cli":
+			case "cli": {
 				const { CliCall } = await import("./cli");
 				call = CliCall;
 				break;
+			}
 
 			case "next":
 			case "test":

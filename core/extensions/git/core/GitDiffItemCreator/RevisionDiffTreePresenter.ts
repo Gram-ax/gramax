@@ -55,6 +55,7 @@ export type DiffTreeItem = DiffTreeItemName &
 	HasChilds & {
 		type: "item" | "resource";
 		status: FileStatus;
+
 		rawItem: DiffItem | DiffResource;
 		order?: number;
 		icon?: string;
@@ -66,6 +67,9 @@ export type DiffTreeItem = DiffTreeItemName &
 		overview: {
 			added: number;
 			removed: number;
+			isLfs: boolean;
+			size: number;
+			status: FileStatus;
 		};
 	};
 
@@ -226,6 +230,7 @@ export default class RevisionDiffTreePresenter {
 			isTitle,
 			status: diffItem.status,
 			icon: null,
+
 			filepath: {
 				new: diffItem.filePath.path,
 				old: diffItem.filePath.oldPath || diffItem.filePath.path,
@@ -236,6 +241,9 @@ export default class RevisionDiffTreePresenter {
 			overview: {
 				added: diffItem.added ?? 0,
 				removed: diffItem.deleted ?? 0,
+				isLfs: diffItem.isLfs,
+				size: diffItem.size,
+				status: diffItem.status,
 			},
 			childs,
 		};
@@ -258,6 +266,9 @@ export default class RevisionDiffTreePresenter {
 			overview: {
 				added: resource.added,
 				removed: resource.deleted,
+				isLfs: resource.isLfs,
+				size: resource.size,
+				status: resource.status,
 			},
 			childs: [],
 		};

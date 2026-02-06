@@ -1,7 +1,7 @@
-import ParserContext from "../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
 import { Node, RenderableTreeNodes, Schema, Tag } from "../../../core/render/logic/Markdoc/index";
 
-export function formula(context: ParserContext): Schema {
+export function formula(context: PrivateParserContext): Schema {
 	return {
 		render: "Formula",
 		attributes: { content: { type: String }, latex: { type: String } },

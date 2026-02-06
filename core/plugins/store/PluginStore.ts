@@ -1,4 +1,4 @@
-import assert from "assert";
+import { PlatformServiceNew } from "@core-ui/PlatformService";
 import type { PluginProps } from "@gramax/sdk";
 import { PluginManager } from "@plugins/core/PluginManager";
 import { pluginValidator } from "@plugins/core/PluginValidator";
@@ -6,14 +6,14 @@ import {
 	createBlobUrl,
 	createPluginData,
 	createPluginForManager,
+	isPluginCompatibleWithPlatform,
 	recreatePluginWithNewBlobUrl,
 	updatePluginInList,
 	withDisabledMetadata,
-	isPluginCompatibleWithPlatform,
 } from "@plugins/store/util";
-import { PluginConfig, PluginData } from "@plugins/types";
+import type { PluginConfig, PluginData } from "@plugins/types";
+import assert from "assert";
 import { create } from "zustand";
-import { PlatformServiceNew } from "@core-ui/PlatformService";
 
 export interface PluginStoreType {
 	manager: PluginManager | null;
@@ -118,7 +118,9 @@ export const PluginStore = create<PluginStoreType>((set, get) => ({
 
 		if (disabled) {
 			manager.remove(pluginId);
-			set({ pluginsData: updatePluginInList(pluginsData, pluginId, (p) => withDisabledMetadata(p, true)) });
+			set({
+				pluginsData: updatePluginInList(pluginsData, pluginId, (p) => withDisabledMetadata(p, true)),
+			});
 			return;
 		}
 
@@ -131,6 +133,8 @@ export const PluginStore = create<PluginStoreType>((set, get) => ({
 
 		const enabledPluginData = withDisabledMetadata(recreatePluginWithNewBlobUrl(pluginData), false);
 		await manager.add(createPluginForManager(enabledPluginData));
-		set({ pluginsData: updatePluginInList(pluginsData, pluginId, () => enabledPluginData) });
+		set({
+			pluginsData: updatePluginInList(pluginsData, pluginId, () => enabledPluginData),
+		});
 	},
 }));

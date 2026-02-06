@@ -1,5 +1,4 @@
-import { useCallback, useRef } from "react";
-import { TouchEvent as ReactTouchEvent, MouseEvent as ReactMouseEvent } from "react";
+import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useRef } from "react";
 
 interface DoubleTapConfig {
 	onDoubleTap: () => void;

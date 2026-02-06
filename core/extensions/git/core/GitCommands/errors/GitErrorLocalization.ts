@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { GitErrorLocalization } from "./model/GitErrorLocalization";
+import type { GitErrorLocalization } from "./model/GitErrorLocalization";
 
 const gitErrorLocalization: GitErrorLocalization = {
 	CheckoutConflictError: (props) =>
@@ -16,7 +16,7 @@ const gitErrorLocalization: GitErrorLocalization = {
 			? {
 					message: t("git.publish.error.non-fast-forward.body"),
 					title: t("git.publish.error.non-fast-forward.title"),
-			  }
+				}
 			: { message: `${t("git.publish.error.unknown")} ${props.error.message}` },
 	GitPushError: (props) => {
 		if (props.caller === "deleteBranch") {
@@ -84,11 +84,13 @@ const gitErrorLocalization: GitErrorLocalization = {
 						message: t("git.error.not-found.remote-branch").replace("{{what}}", props.error.data.what),
 					};
 				}
+				break;
 			// eslint-disable-next-line no-fallthrough
-			case "checkout":
+			case "checkout": {
 				const branch: string =
 					props.error?.props?.what ?? /reference '(.*)' not found/.exec(props.error.message)?.[1];
 				return { message: t("git.error.not-found.branch").replace("{{what}}", branch ?? "") };
+			}
 			case "branch":
 				return { message: t("git.error.not-found.branch").replace("{{what}}", props.error.props.what) };
 			case "readBlob":

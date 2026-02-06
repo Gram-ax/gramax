@@ -3,16 +3,16 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import astToParagraphs from "@ext/StyleGuide/logic/astToParagraphs";
-import { getSuggestionItems } from "@ext/StyleGuide/logic/getSuggestionItems";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import t from "@ext/localization/locale/translate";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import astToParagraphs from "@ext/StyleGuide/logic/astToParagraphs";
+import { getSuggestionItems } from "@ext/StyleGuide/logic/getSuggestionItems";
+import { CheckSuggestion } from "@ics/gx-vector-search";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
-import { CheckSuggestion } from "@ics/gx-vector-search";
 import { toast } from "@ui-kit/Toast";
 
 const EnterpriseCheckStyleGuide = () => {

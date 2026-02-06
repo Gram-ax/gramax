@@ -3,6 +3,7 @@ import assert from "assert";
 import type { ComponentType, ReactNode } from "react";
 import React from "react";
 import { RenderableTreeNodes, Scalar } from "../logic/Markdoc";
+
 // import ContentEditor from "../Wysiwyg/ContentEditor";
 
 type Component = ComponentType<unknown>;

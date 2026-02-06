@@ -34,30 +34,30 @@ ssh2-config = { git = "https://github.com/pashokitsme/ssh2-config" }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 futures = { version = "0.3.31" }
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "filter", default-features = false, features = [
+git2 = { git = "https://github.com/gram-ax/git2-rs.git", branch = "filter", default-features = false, features = [
   "vendored-libgit2",
 ] }
-git2-lfs = { git = "https://github.com/pashokitsme/git2-lfs.git", default-features = false }
+git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", default-features = false }
 
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "filter", default-features = false, features = [
+git2 = { git = "https://github.com/gram-ax/git2-rs.git", branch = "filter", default-features = false, features = [
   "https",
   "ssh",
   "use-openssl",
   "vendored-libgit2",
 ] }
-git2-lfs = { git = "https://github.com/pashokitsme/git2-lfs.git", features = [
+git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", features = [
   "git2-vendored-openssl",
   "git2-use-openssl",
 ] }
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
-git2 = { git = "https://github.com/pashokitsme/git2-rs.git", branch = "filter", default-features = false, features = [
+git2 = { git = "https://github.com/gram-ax/git2-rs.git", branch = "filter", default-features = false, features = [
   "https",
   "ssh",
   "vendored-libgit2",
 ] }
-git2-lfs = { git = "https://github.com/pashokitsme/git2-lfs.git" }
+git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git" }
 
 
 [dev-dependencies]

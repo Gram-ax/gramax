@@ -10,6 +10,7 @@ import GitStash from "@ext/git/core/model/GitStash";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import { LogLevel } from "@ext/loggers/Logger";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 export const clear = async () => {
 	console.log("Delete all");
@@ -142,8 +143,18 @@ export const gitApplyStash = async (catalogName: string, stashOid: string) => {
 	await gvc?.applyStash(new GitStash(stashOid));
 };
 
+export const initZip = async () => {
+	const JSZip = await import("jszip");
+	return new JSZip.default();
+};
 export const zip = async (catalog: string) => {
 	const app = await getApp();
 	const fp = app.wm.current().getFileProvider();
 	await downloadZipArchive(fp, new Path(catalog), catalog);
+};
+
+export const setSourceData = async (data: SourceData) => {
+	const app = await getApp();
+	const ctx = await app.contextFactory.fromBrowser({ language: "ru" });
+	return app.rp.setSourceData(ctx, data);
 };

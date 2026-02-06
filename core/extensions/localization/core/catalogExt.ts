@@ -24,8 +24,7 @@ export const resolveRootCategory = (
 	props: CatalogProps,
 	currentLanguage: ContentLanguage,
 ): Category<CatalogProps> => {
-	if (!props.language || !currentLanguage || props.language == currentLanguage)
-		return catalog.getRootCategory();
+	if (!props.language || !currentLanguage || props.language == currentLanguage) return catalog.getRootCategory();
 	return catalog.findArticle(`${catalog.name}/${currentLanguage}`, [
 		(i) => i.type == ItemType.category,
 	]) as Category<CatalogProps>;

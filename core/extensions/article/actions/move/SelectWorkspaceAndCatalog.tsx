@@ -72,7 +72,7 @@ const SelectCatalog = ({ icon, workspaceName, workspacePath, onSelect, asSingle 
 			case RequestStatus.Init || RequestStatus.Loading:
 				return (
 					<DropdownMenuItem disabled onClick={(ev) => ev.stopPropagation()}>
-						<SpinnerLoader width={14} height={14} />
+						<SpinnerLoader height={14} width={14} />
 						{t("loading")}
 					</DropdownMenuItem>
 				);
@@ -164,12 +164,12 @@ const SelectTargetWorkspaceAndCatalog = ({
 		<>
 			{workspaces.map((workspace) => (
 				<SelectCatalog
-					key={workspace.path}
+					asSingle={workspaces.length <= 1}
 					icon={workspace.icon || "layers"}
+					key={workspace.path}
+					onSelect={onSelect}
 					workspaceName={workspace.name}
 					workspacePath={workspace.path}
-					onSelect={onSelect}
-					asSingle={workspaces.length <= 1}
 				/>
 			))}
 		</>

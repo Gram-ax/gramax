@@ -1,19 +1,19 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import docx from "@dynamicImports/docx";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
+import t from "@ext/localization/locale/translate";
+import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
 import { ExportType } from "@ext/wordExport/ExportType";
 import { getExportedKeys } from "@ext/wordExport/layouts";
-import { MainWordExport } from "@ext/wordExport/WordExport";
-import { Command } from "../../types/Command";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
+import type { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import TemplateProcessor from "@ext/wordExport/TemplateProcessor";
-import t from "@ext/localization/locale/translate";
+import { MainWordExport } from "@ext/wordExport/WordExport";
 import assert from "assert";
-import docx from "@dynamicImports/docx";
+import { Command } from "../../types/Command";
 
 const getAsWordDocument: Command<
 	{ ctx: Context; itemPath?: Path; isCategory: boolean; catalogName: string; wordTemplate?: string | Buffer },

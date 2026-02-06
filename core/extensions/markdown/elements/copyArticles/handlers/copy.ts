@@ -1,10 +1,10 @@
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import createPlainText from "@ext/markdown/elements/copyArticles/createPlainText";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import { JSONContent } from "@tiptap/core";
-import { DOMSerializer, Fragment, Node, Schema } from "@tiptap/pm/model";
-import { EditorView } from "@tiptap/pm/view";
+import type { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import type { JSONContent } from "@tiptap/core";
+import { DOMSerializer, Fragment, type Node, type Schema } from "@tiptap/pm/model";
+import type { EditorView } from "@tiptap/pm/view";
 
 interface CreatedFragment {
 	fragment: Fragment;
@@ -57,7 +57,8 @@ const getImageFromFragment = (fragment: Fragment, resourceService: ResourceServi
 
 	void navigator.clipboard.write([
 		new ClipboardItem({
-			[mimeType]: new Blob([buffer], { type: mimeType }),
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			[mimeType]: new Blob([buffer as any], { type: mimeType }),
 		}),
 	]);
 
@@ -87,17 +88,16 @@ const createNodesJSON = (editor: EditorView, fragment: Fragment, getBuffer: (src
 				node.text,
 				marks.filter((m) => m.type.name !== "file"),
 			);
-		} else {
-			const newContent = [];
-			if (content && content.size > 0) {
-				content.forEach((node: Node) => {
-					newContent.push(processNode(node));
-				});
-			}
-
-			const jsonNode = node.type.create(attrs, newContent, marks);
-			return jsonNode;
 		}
+		const newContent = [];
+		if (content && content.size > 0) {
+			content.forEach((node: Node) => {
+				newContent.push(processNode(node));
+			});
+		}
+
+		const jsonNode = node.type.create(attrs, newContent, marks);
+		return jsonNode;
 	};
 
 	fragment.forEach((node: Node, index: number) => {
@@ -123,6 +123,7 @@ const createGramaxClipboardData = (
 	};
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 const createTableFragment = (content: Fragment, schema: Schema<any, any>): CreatedFragment => {
 	const tableFragment =
 		content.firstChild.type.name === "table"
@@ -189,12 +190,41 @@ const getSerializedHTML = (view: EditorView, fragment: Fragment): string => {
 	const serializedElement = DOMSerializer.fromSchema(view.state.schema).serializeFragment(fragment);
 	div.appendChild(serializedElement);
 
+	applyTableClipboardStyles(div);
+
 	if (isTitle(view, fragment)) {
 		const titleHTML = createTitleHTML(view, fragment);
 		div.firstElementChild.replaceWith(titleHTML);
 	}
 
 	return new XMLSerializer().serializeToString(div);
+};
+
+const applyTableClipboardStyles = (root: HTMLElement) => {
+	const tables = Array.from(root.querySelectorAll("table"));
+	for (const tableEl of tables) {
+		if (!(tableEl instanceof HTMLTableElement)) continue;
+
+		tableEl.setAttribute("border", "1");
+		tableEl.style.borderCollapse = "collapse";
+		tableEl.style.borderSpacing = "0";
+		tableEl.style.tableLayout = "fixed";
+
+		const cells = Array.from(tableEl.querySelectorAll("th, td"));
+		for (const cellEl of cells) {
+			if (!(cellEl instanceof HTMLElement)) continue;
+
+			cellEl.style.border = "1px solid #000";
+			cellEl.style.padding = "2px 6px";
+			cellEl.style.verticalAlign = "top";
+		}
+
+		const ps = Array.from(tableEl.querySelectorAll("th p, td p"));
+		for (const pEl of ps) {
+			if (!(pEl instanceof HTMLElement)) continue;
+			pEl.style.margin = "0";
+		}
+	}
 };
 
 const getNodesData = (

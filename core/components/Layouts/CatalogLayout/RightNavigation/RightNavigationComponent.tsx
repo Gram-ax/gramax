@@ -40,10 +40,10 @@ const RightNavigationComponent = (props: RightNavigationComponentProps) => {
 
 	return (
 		<RightNavigationLayout
-			rightNavigationContent={<RightNavigation />}
-			onPointerUp={onRightNavMouseEnterHandler}
 			onPointerLeave={onRightNavMouseLeaveHandler}
+			onPointerUp={onRightNavMouseEnterHandler}
 			onTouchEnd={onRightNavMouseEnterHandler}
+			rightNavigationContent={<RightNavigation />}
 		/>
 	);
 };

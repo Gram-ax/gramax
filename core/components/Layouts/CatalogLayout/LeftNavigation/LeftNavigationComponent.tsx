@@ -52,16 +52,18 @@ const LeftNavigationComponent = ({
 
 	return (
 		<div
-			style={{ width: "fit-content" }}
 			onMouseEnter={() => (isLeftNavHover.current = true)}
 			onMouseLeave={() => (isLeftNavHover.current = false)}
+			style={{ width: "fit-content" }}
 		>
 			<LeftNavigationLayout
+				isOpen={isOpen}
+				isPin={isPin}
 				isStaticBuilding={isStaticCli}
-				mediumMedia={mediumMedia}
-				leftNavigationTop={<LeftNavigationTop data={data} />}
-				leftNavigationContent={<LeftNavViewContentContainer itemLinks={data.itemLinks} />}
 				leftNavigationBottom={<LeftNavigationBottom data={data} />}
+				leftNavigationContent={<LeftNavViewContentContainer itemLinks={data.itemLinks} />}
+				leftNavigationTop={<LeftNavigationTop data={data} />}
+				mediumMedia={mediumMedia}
 				onMouseEnter={() =>
 					setTimeout(() => {
 						if (!isLeftNavHover.current || unpinAnimation.current) return;
@@ -73,8 +75,6 @@ const LeftNavigationComponent = ({
 					unpinAnimation.current = false;
 				}}
 				transitionEndIsOpen={transitionEndIsOpen}
-				isOpen={isOpen}
-				isPin={isPin}
 			/>
 		</div>
 	);

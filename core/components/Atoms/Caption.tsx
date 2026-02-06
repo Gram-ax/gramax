@@ -1,6 +1,6 @@
-import { ReactNode } from "react";
-import styled from "@emotion/styled";
 import { cn } from "@core-ui/utils/cn";
+import styled from "@emotion/styled";
+import { ReactNode } from "react";
 
 const Caption = ({ children, className }: { children: ReactNode; className?: string }) => {
 	return <em className={cn(className, "resource-caption")}>{children}</em>;

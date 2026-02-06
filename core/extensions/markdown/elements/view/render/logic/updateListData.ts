@@ -1,5 +1,4 @@
-import { deleteProperty } from "@ext/properties/logic/changeProperty";
-import { updateProperty } from "@ext/properties/logic/changeProperty";
+import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
 import { Property, ViewRenderData, ViewRenderGroup } from "@ext/properties/models";
 
 const getCurrentGroup = (data: ViewRenderGroup[], groups: string[]): ViewRenderGroup[] => {

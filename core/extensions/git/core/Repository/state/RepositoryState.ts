@@ -59,7 +59,11 @@ export default class RepositoryStateProvider {
 	private _mergeConflictResolver: GitMergeConflictResolver;
 	private _stashConflictResolver: GitStashConflictResolver;
 
-	constructor(private _repo: Repository, private _repoPath: Path, private _fp: FileProvider) {
+	constructor(
+		private _repo: Repository,
+		private _repoPath: Path,
+		private _fp: FileProvider,
+	) {
 		this._mergeConflictResolver = new GitMergeConflictResolver(this._repo, this._fp, this._repoPath);
 		this._stashConflictResolver = new GitStashConflictResolver(this._repo, this._fp, this._repoPath);
 	}

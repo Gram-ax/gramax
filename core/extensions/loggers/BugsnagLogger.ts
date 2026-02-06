@@ -1,11 +1,11 @@
-import { AppConfig } from "@app/config/AppConfig";
+import type { AppConfig } from "@app/config/AppConfig";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import bugsnag from "@dynamicImports/bugsnag";
 import normalizeStacktrace from "@ext/bugsnag/logic/normalizeStacktrace";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import sendBug from "../bugsnag/logic/sendBug";
 import BaseLogger from "./BaseLogger";
-import Logger from "./Logger";
+import type Logger from "./Logger";
 
 export default class BugsnagLogger extends BaseLogger implements Logger {
 	private constructor() {
@@ -13,7 +13,7 @@ export default class BugsnagLogger extends BaseLogger implements Logger {
 	}
 
 	static async init(config: AppConfig): Promise<BugsnagLogger> {
-		const bugsnagStarted = await this.startBugsnag(config);
+		const bugsnagStarted = await BugsnagLogger.startBugsnag(config);
 		if (bugsnagStarted) console.log(`Bugsnag is started! [AppVersion:${config.buildVersion}]`);
 		return new BugsnagLogger();
 	}

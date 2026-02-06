@@ -1,8 +1,8 @@
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
 import { Schema, Tag } from "../../../../core/render/logic/Markdoc/index";
 import linkCreator from "../logic/linkCreator";
 
-export function link(context?: ParserContext): Schema {
+export function link(context?: PrivateParserContext): Schema {
 	return {
 		render: "Link",
 		attributes: {

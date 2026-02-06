@@ -1,6 +1,6 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { BaseLink } from "@ext/navigation/NavigationLinks";
-import { HTMLAttributes, ReactNode, RefObject, forwardRef } from "react";
+import type { BaseLink } from "@ext/navigation/NavigationLinks";
+import { forwardRef, type HTMLAttributes, type ReactNode, type RefObject } from "react";
 
 interface LinkProps extends HTMLAttributes<HTMLAnchorElement> {
 	href: BaseLink;

@@ -1,6 +1,6 @@
+import parseStorageUrl from "@core/utils/parseStorageUrl";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import useWatch from "@core-ui/hooks/useWatch";
-import parseStorageUrl from "@core/utils/parseStorageUrl";
 import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
@@ -76,7 +76,7 @@ const GitForm = ({ data, onSubmit }: EditGitProps) => {
 					token: data?.token,
 					authorName: data?.userName,
 					authorEmail: data?.userEmail,
-			  }
+				}
 			: undefined,
 		mode: "onChange",
 	});
@@ -92,7 +92,7 @@ const GitForm = ({ data, onSubmit }: EditGitProps) => {
 
 	useLayoutEffect(() => {
 		const primaryButton = (
-			<Button type="submit" onClick={formSubmit}>
+			<Button onClick={formSubmit} type="submit">
 				{t("add")}
 			</Button>
 		);
@@ -109,25 +109,25 @@ const GitForm = ({ data, onSubmit }: EditGitProps) => {
 			<form className="contents ui-kit" onSubmit={formSubmit}>
 				<FormStack>
 					<FormField
-						name="url"
-						title={t("forms.git-source-data.props.url.name")}
-						layout="vertical"
-						description={t("forms.git-source-data.props.url.description")}
 						control={({ field }) => (
 							<TextInput {...field} placeholder={t("forms.git-source-data.props.url.placeholder")} />
 						)}
+						description={t("forms.git-source-data.props.url.description")}
+						layout="vertical"
+						name="url"
+						title={t("forms.git-source-data.props.url.name")}
 					/>
 					<FormDivider />
 					<div className="flex flex-row items-center justify-between gap-3 pb-2 lg:gap-4">
 						<FormSectionTitle>{t("authorization")}</FormSectionTitle>
 						<FormSectionHeaderButton
-							size="xs"
-							variant="link"
-							type="button"
 							onClick={() => {
 								setIsToken(!isToken);
 								form.setValue("token", "");
 							}}
+							size="xs"
+							type="button"
+							variant="link"
 						>
 							{isToken
 								? t("forms.git-source-data.props.usePassword.name")
@@ -137,75 +137,75 @@ const GitForm = ({ data, onSubmit }: EditGitProps) => {
 					<FormFieldSet style={{ marginTop: 0 }}>
 						{!isToken && (
 							<FormField
-								title={t("forms.git-source-data.props.gitServerUsername.name")}
-								name="username"
-								layout="vertical"
-								description={t("forms.git-source-data.props.gitServerUsername.description")}
 								control={({ field }) => (
 									<TextInput
 										{...field}
 										placeholder={t("forms.git-source-data.props.gitServerUsername.placeholder")}
 									/>
 								)}
+								description={t("forms.git-source-data.props.gitServerUsername.description")}
+								layout="vertical"
+								name="username"
+								title={t("forms.git-source-data.props.gitServerUsername.name")}
 							/>
 						)}
 
 						{isToken && (
 							<FormField
-								title={t("forms.git-source-data.props.token.name")}
-								name="token"
-								layout="vertical"
-								description={t("forms.git-source-data.props.token.description")}
 								control={({ field }) => (
 									<SecretInput
 										{...field}
-										showClearIcon
 										placeholder={t("forms.git-source-data.props.token.placeholder")}
+										showClearIcon
 									/>
 								)}
+								description={t("forms.git-source-data.props.token.description")}
+								layout="vertical"
+								name="token"
+								title={t("forms.git-source-data.props.token.name")}
 							/>
 						)}
 
 						{!isToken && (
 							<FormField
-								title={t("forms.git-source-data.props.password.name")}
-								name="token"
-								layout="vertical"
-								description={t("forms.git-source-data.props.password.description")}
 								control={({ field }) => (
 									<SecretInput
 										{...field}
-										showClearIcon
 										placeholder={t("forms.git-source-data.props.password.placeholder")}
+										showClearIcon
 									/>
 								)}
+								description={t("forms.git-source-data.props.password.description")}
+								layout="vertical"
+								name="token"
+								title={t("forms.git-source-data.props.password.name")}
 							/>
 						)}
 
 						<FormField
-							title={t("forms.git-source-data.props.userName.name")}
-							name="authorName"
-							layout="vertical"
-							description={t("forms.git-source-data.props.userName.description")}
 							control={({ field }) => (
 								<TextInput
 									{...field}
 									placeholder={t("forms.git-source-data.props.userName.placeholder")}
 								/>
 							)}
+							description={t("forms.git-source-data.props.userName.description")}
+							layout="vertical"
+							name="authorName"
+							title={t("forms.git-source-data.props.userName.name")}
 						/>
 
 						<FormField
-							title={t("forms.git-source-data.props.userEmail.name")}
-							name="authorEmail"
-							layout="vertical"
-							description={t("forms.git-source-data.props.userEmail.description")}
 							control={({ field }) => (
 								<TextInput
 									{...field}
 									placeholder={t("forms.git-source-data.props.userEmail.placeholder")}
 								/>
 							)}
+							description={t("forms.git-source-data.props.userEmail.description")}
+							layout="vertical"
+							name="authorEmail"
+							title={t("forms.git-source-data.props.userEmail.name")}
 						/>
 					</FormFieldSet>
 				</FormStack>

@@ -1,11 +1,11 @@
 import Anchor from "@components/controls/Anchor";
+import { useRouter } from "@core/Api/useRouter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import getRenderRows from "@ext/markdown/elements/view/render/logic/getRenderRows";
 import { Property, ViewRenderGroup } from "@ext/properties/models";
-import { useRouter } from "@core/Api/useRouter";
 import { useMemo } from "react";
 
 const Wrapper = ({

@@ -10,21 +10,21 @@ export default class BrowserStashCache {
 	private static readonly _localStorageKey = "last-stash-cache";
 
 	static getStashCache(catalogName: string): StashCacheItem[] {
-		if (!this._validate()) return [];
+		if (!BrowserStashCache._validate()) return [];
 
-		const data = this.getAllStashCaches();
+		const data = BrowserStashCache.getAllStashCaches();
 		return data[catalogName];
 	}
 
 	static getAllStashCaches(): StashCache {
-		if (!this._validate()) return {};
+		if (!BrowserStashCache._validate()) return {};
 
 		const cache = localStorage.getItem(BrowserStashCache._localStorageKey);
 		return (cache ? JSON.parse(cache) : {}) as StashCache;
 	}
 
 	static setStashCache(catalogName: string, oid: string) {
-		if (!this._validate()) return;
+		if (!BrowserStashCache._validate()) return;
 
 		const cache = localStorage.getItem(BrowserStashCache._localStorageKey);
 		const data = (cache ? JSON.parse(cache) : {}) as StashCache;

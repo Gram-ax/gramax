@@ -1,11 +1,11 @@
+import docx from "@dynamicImports/docx";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 import { errorWordLayout } from "@ext/wordExport/error";
-import { WordFontStyles, diagramString } from "@ext/wordExport/options/wordExportSettings";
-import docx from "@dynamicImports/docx";
+import { diagramString, WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import DbDiagram from "../../../../../ui-logic/DbDiagram";
 import { resolveLanguage } from "../../../../localization/core/model/Language";
-import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const diagramdbWordLayout: WordBlockChild = async ({ tag, wordRenderContext }) => {
 	try {
@@ -16,13 +16,13 @@ export const diagramdbWordLayout: WordBlockChild = async ({ tag, wordRenderConte
 		);
 
 		const diagramRef = wordRenderContext.parserContext.fp.getItemRef(
-			wordRenderContext.parserContext.getResourceManager().getAbsolutePath(new Path(tag.attributes.src)),
+			wordRenderContext.resourceManager.getAbsolutePath(new Path(tag.attributes.src)),
 		);
 		await diagram.addDiagram(
 			diagramRef,
 			tag.attributes.tags,
 			resolveLanguage(),
-			wordRenderContext.parserContext.getResourceManager().rootPath,
+			wordRenderContext.resourceManager.rootPath,
 		);
 
 		return [

@@ -1,7 +1,7 @@
 import type UiLanguage from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
-import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { createParagraph } from "@ext/wordExport/createParagraph";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { NON_BREAKING_SPACE, WordFontStyles } from "./options/wordExportSettings";
 
 export const errorWordLayout = async (objectType: string, language: UiLanguage) => {

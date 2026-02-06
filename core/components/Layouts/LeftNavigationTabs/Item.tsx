@@ -2,7 +2,7 @@ import AnimatedExtension from "@components/Atoms/ItemWrapper";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { isFromModal } from "@ui-kit/Modal";
-import { forwardRef, memo, MouseEvent, RefObject, useCallback, useRef } from "react";
+import { forwardRef, MouseEvent, memo, RefObject, useCallback, useRef } from "react";
 
 export interface ItemComponentProps {
 	id: string;
@@ -49,16 +49,16 @@ const Item = forwardRef((props: ItemComponentProps, ref: RefObject<HTMLDivElemen
 
 	return (
 		<div
-			ref={Ref}
 			className={classNames(className, { selected: isSelected })}
-			onClick={handleClick}
 			data-qa="qa-clickable"
+			onClick={handleClick}
+			ref={Ref}
 		>
 			<AnimatedExtension
-				text={rightText}
-				rightActions={rightActions}
-				width={rightActionsWidth}
 				className="item-wrapper"
+				rightActions={rightActions}
+				text={rightText}
+				width={rightActionsWidth}
 			>
 				<div className="item">
 					<div className="item-header">

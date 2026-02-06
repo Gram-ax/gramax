@@ -1,18 +1,21 @@
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
 import { ConfluenceInstance, Space, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
+import ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
+import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
-import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import t from "@ext/localization/locale/translate";
-import ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
+import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 
 export default class ConfluenceCloudAPI implements ConfluenceAPI {
-	constructor(protected _data: ConfluenceCloudSourceData, private _authServiceUrl?: string) {}
+	constructor(
+		protected _data: ConfluenceCloudSourceData,
+		private _authServiceUrl?: string,
+	) {}
 
 	async getInstanceData(): Promise<ConfluenceInstance> {
 		const res = await this._api("oauth/token/accessible-resources");

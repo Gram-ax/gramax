@@ -1,6 +1,6 @@
-import { CatalogPropsStore, createCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore";
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import { type ReactNode, createContext, useContext, useEffect, useRef } from "react";
+import { CatalogPropsStore, createCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore";
+import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
@@ -42,4 +42,3 @@ export const useCatalogPropsStore = <T,>(
 
 	return useStoreWithEqualityFn(catalogStoreContext, selector, actualEqualityFn);
 };
-

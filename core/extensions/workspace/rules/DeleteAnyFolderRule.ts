@@ -1,5 +1,5 @@
-import Path from "@core/FileProvider/Path/Path";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 
 const deleteAnyFolderRule = async (fp: FileProvider, entries: CatalogEntry[]) => {

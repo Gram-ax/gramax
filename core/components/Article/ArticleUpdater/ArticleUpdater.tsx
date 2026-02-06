@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { useCallback, useEffect, useState } from "react";
 import ArticleUpdaterService from "./ArticleUpdaterService";

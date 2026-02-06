@@ -48,14 +48,14 @@ const Search = forwardRef<HTMLInputElement, SearchProps>((props, ref) => {
 		<span className={className}>
 			<Input
 				dataQa={dataQa ?? placeholder}
-				showErrorText={showErrorText}
 				errorText={errorText}
-				ref={ref}
-				value={searchValue}
 				onChange={onChangeHandler}
 				placeholder={placeholder}
+				ref={ref}
+				showErrorText={showErrorText}
+				value={searchValue}
 			/>
-			{isLoading ? <SpinnerLoader width={14} height={14} /> : <Icon code="search" />}
+			{isLoading ? <SpinnerLoader height={14} width={14} /> : <Icon code="search" />}
 		</span>
 	);
 });

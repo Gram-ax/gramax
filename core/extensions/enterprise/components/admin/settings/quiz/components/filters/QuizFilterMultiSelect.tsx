@@ -1,15 +1,15 @@
-import { ReactNode, useCallback, useState } from "react";
+import { useDebounce } from "@core-ui/hooks/useDebounce";
+import useWatch from "@core-ui/hooks/useWatch";
+import t from "@ext/localization/locale/translate";
+import { LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
+import { Button } from "@ui-kit/Button";
+import { Checkbox } from "@ui-kit/Checkbox";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
+import { Loader } from "@ui-kit/Loader";
+import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import useWatch from "@core-ui/hooks/useWatch";
-import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
-import { Button } from "@ui-kit/Button";
-import { Command, CommandList, CommandInput, CommandEmpty, CommandItem } from "@ui-kit/Command";
-import { useDebounce } from "@core-ui/hooks/useDebounce";
-import { Loader } from "@ui-kit/Loader";
-import { Checkbox } from "@ui-kit/Checkbox";
-import { LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
-import t from "@ext/localization/locale/translate";
+import { ReactNode, useCallback, useState } from "react";
 
 interface FilterMultiSelectProps {
 	existingOptions: string[];
@@ -95,18 +95,18 @@ export const FilterMultiSelect = (props: FilterMultiSelectProps) => {
 		<>
 			<Popover onOpenChange={handleOpenChange}>
 				<PopoverTrigger asChild>
-					<Button startIcon="book-check" variant="outline" endIcon="chevron-down" disabled={disabled}>
+					<Button disabled={disabled} endIcon="chevron-down" startIcon="book-check" variant="outline">
 						{trigger} {selectedOptions.length > 0 ? `(${selectedOptions.length})` : ""}
 					</Button>
 				</PopoverTrigger>
 				<PopoverContent align="start" className="p-0">
 					<Command shouldFilter={false}>
 						<CommandInput
-							placeholder={searchPlaceholder}
 							autoFocus
 							onValueChange={(e) => {
 								onSearchChange(e);
 							}}
+							placeholder={searchPlaceholder}
 						/>
 						<CommandList>
 							{isLoading ? (

@@ -15,9 +15,9 @@ import GetErrorComponent from "../../../../../errorHandlers/logic/GetErrorCompon
 const CheckoutConflictErrorComponent = ({ onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	return (
 		<InfoModalForm
+			closeButton={{ text: t("ok") }}
 			onCancelClick={onCancelClick}
 			title={t("git.checkout.error.conflict")}
-			closeButton={{ text: t("ok") }}
 		>
 			<span>{t("git.checkout.conflict")}</span>
 		</InfoModalForm>

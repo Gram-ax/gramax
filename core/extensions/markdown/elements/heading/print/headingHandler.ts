@@ -1,7 +1,7 @@
-import type { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
-import Paginator from "@ext/print/utils/pagination/Paginator";
+import type { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
 import PagePaginator from "@ext/print/utils/pagination/PagePaginator";
+import Paginator from "@ext/print/utils/pagination/Paginator";
 
 const articleHeaderHandler = (node: HTMLHeadingElement, paginator: Paginator) => {
 	const { currentContainer } = paginator;
@@ -28,16 +28,17 @@ const headingInArticleHandler = (heading: HTMLHeadingElement, paginator: Paginat
 		if (currentLevel <= lastLevel) paginator.headingElements = [];
 	}
 
-	if (paginator.tryFitElement(heading)) return paginator.headingElements.push(heading);
+	const { isNewPage, tryFit } = paginator.processNodeForPage(heading);
+	if (tryFit) return;
 
-	paginator.createPage();
-	paginator.tryFitElement(heading);
+	!isNewPage && paginator.createPage();
+	paginator.tryFitElement(heading, true);
 };
 
 const headingHandlerFn: PrintNodeHandler["handle"] = (node, paginator) => {
 	if (!(node instanceof HTMLHeadingElement)) return false;
-	if (node.tagName === "H1" && paginator instanceof PagePaginator) articleHeaderHandler(node, paginator);
-	else headingInArticleHandler(node, paginator);
+	headingInArticleHandler(node, paginator);
+	paginator.headingElements.push(node);
 	return true;
 };
 

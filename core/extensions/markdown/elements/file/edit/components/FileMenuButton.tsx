@@ -1,15 +1,15 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import InputFile from "@components/Atoms/InputFile";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import createFile from "../logic/createFile";
 import ResourceService, { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { ToolbarDropdownMenuItem, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { Editor } from "@tiptap/core";
 import { Icon } from "@ui-kit/Icon";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import { ToolbarDropdownMenuItem, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { ChangeEvent, useCallback } from "react";
+import createFile from "../logic/createFile";
 
 interface FileMenuButtonProps {
 	editor: Editor;
@@ -53,17 +53,17 @@ export const FileMenuButton = ({ editor, onStart, onSave }: FileMenuButtonProps)
 	return (
 		<ToolbarToggleButton
 			active={isActive}
-			disabled={disabled}
-			tooltipText={t("file")}
 			data-qa={`qa-edit-menu-file`}
+			disabled={disabled}
 			focusable
 			onSelect={(e) => {
 				e.preventDefault();
 				onStart?.();
 				ArticleUpdaterService.stopLoadingAfterFocus();
 			}}
+			tooltipText={t("file")}
 		>
-			<FileInput editor={editor} onSave={onSave} apiUrlCreator={apiUrlCreator} resourceService={rs}>
+			<FileInput apiUrlCreator={apiUrlCreator} editor={editor} onSave={onSave} resourceService={rs}>
 				<ToolbarIcon icon="file" />
 			</FileInput>
 		</ToolbarToggleButton>
@@ -79,9 +79,9 @@ export const FileMenuButtonDropdown = ({ editor, onStart, onSave }: FileMenuButt
 	if (disabled) {
 		return (
 			<ToolbarDropdownMenuItem
+				active={isActive}
 				dataQa={`qa-edit-menu-file`}
 				disabled={disabled}
-				active={isActive}
 				onSelect={() => ArticleUpdaterService.stopLoadingAfterFocus()}
 			>
 				<div className="flex flex-row items-center gap-2 w-full">
@@ -94,16 +94,16 @@ export const FileMenuButtonDropdown = ({ editor, onStart, onSave }: FileMenuButt
 
 	return (
 		<ToolbarDropdownMenuItem
+			active={isActive}
 			dataQa={`qa-edit-menu-file`}
 			disabled={disabled}
-			active={isActive}
 			onSelect={(e) => {
 				e.preventDefault();
 				onStart?.();
 				ArticleUpdaterService.stopLoadingAfterFocus();
 			}}
 		>
-			<FileInput editor={editor} onSave={onSave} apiUrlCreator={apiUrlCreator} resourceService={rs}>
+			<FileInput apiUrlCreator={apiUrlCreator} editor={editor} onSave={onSave} resourceService={rs}>
 				<div className="flex flex-row items-center gap-2 w-full">
 					<Icon icon="file" />
 					{t("file")}

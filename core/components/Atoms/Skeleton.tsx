@@ -9,7 +9,7 @@ interface SkeletonProps {
 const Skeleton = (props: SkeletonProps) => {
 	const { className, style } = props;
 
-	return <div style={style} className={className} />;
+	return <div className={className} style={style} />;
 };
 
 export default styled(Skeleton)`

@@ -1,10 +1,10 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import t from "@ext/localization/locale/translate";
-import { noteIcons, NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { Editor } from "@tiptap/core";
 import { NodeType } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
-import { Icon } from "@ui-kit/Icon";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
+import { NoteType, noteIcons } from "@ext/markdown/elements/note/render/component/Note";
+import { Editor } from "@tiptap/core";
+import { Icon } from "@ui-kit/Icon";
 import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
 
 const getIconColor = (noteType: NoteType) => {
@@ -41,8 +41,8 @@ const NoteMenuButton = ({ editor, noteType }: NoteMenuButtonProps) => {
 
 	return (
 		<ToolbarDropdownMenuItem
-			disabled={disabled}
 			active={isActive}
+			disabled={disabled}
 			onClick={() => editor.chain().focus().toggleNote(noteType).run()}
 		>
 			<div className="flex flex-row items-center gap-2 mr-3">

@@ -1,10 +1,10 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import { TitleItem } from "@core-ui/ContextServices/LinkTitleTooltip";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
+import { TitleItem } from "@core-ui/ContextServices/LinkTitleTooltip";
 import {
 	flatTitleItems,
 	getTitleItemsByTocItems,

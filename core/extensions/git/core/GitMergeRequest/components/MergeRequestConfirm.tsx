@@ -38,13 +38,13 @@ const MergeRequestConfirm = (props: MergeRequestConfirmProps) => {
 		<Modal isOpen={isOpen} onClose={close}>
 			<ModalLayoutLight>
 				<InfoModalForm
-					title={t("git.merge-requests.confirm.title")}
-					icon={{ code: "alert-circle", color: "var(--color-admonition-note-br-h)" }}
-					onCancelClick={currenetOnCancelClick}
 					actionButton={{
 						onClick: currentOnMergeClick,
 						text: t("git.merge.merge"),
 					}}
+					icon={{ code: "alert-circle", color: "var(--color-admonition-note-br-h)" }}
+					onCancelClick={currenetOnCancelClick}
+					title={t("git.merge-requests.confirm.title")}
 				>
 					<p className="article">
 						<span
@@ -55,8 +55,8 @@ const MergeRequestConfirm = (props: MergeRequestConfirmProps) => {
 											? "git.merge-requests.confirm.body.squash-delete-branch-comment"
 											: "git.merge-requests.confirm.body.squash-comment"
 										: deleteAfterMerge
-										? "git.merge-requests.confirm.body.delete-branch-after-merge"
-										: "git.merge-requests.confirm.body.not-delete-branch-after-merge",
+											? "git.merge-requests.confirm.body.delete-branch-after-merge"
+											: "git.merge-requests.confirm.body.not-delete-branch-after-merge",
 								)
 									.replaceAll("{{sourceBranch}}", sourceBranch)
 									.replaceAll("{{targetBranch}}", targetBranch),

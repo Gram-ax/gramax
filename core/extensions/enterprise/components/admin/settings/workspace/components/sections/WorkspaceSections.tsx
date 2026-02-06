@@ -1,14 +1,14 @@
-import React from "react";
-import { useWorkspaceSections } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSections";
 import { closestCorners, DndContext } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useWorkspaceSections } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSections";
 import { Button } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
+import React from "react";
 import { useSortableSections } from "../../hooks/useSortableSections";
 import { WorkspaceSettings } from "../../types/WorkspaceComponent";
-import { SortableSectionItem } from "./components/SortableSectionItem";
 import { SectionDialog } from "./components/SectionDialog";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { SortableSectionItem } from "./components/SortableSectionItem";
 
 interface WorkspaceSectionsProps {
 	localSettings: WorkspaceSettings;
@@ -40,7 +40,7 @@ export function WorkspaceSections({ localSettings, setLocalSettings, sectionReso
 			<div className="flex items-center gap-4 mb-4">
 				<h2 className="text-xl font-medium">Секции каталогов</h2>
 
-				<Button variant="outline" onClick={() => openSectionDialog()}>
+				<Button onClick={() => openSectionDialog()} variant="outline">
 					<Icon icon="plus" />
 					Добавить секцию
 				</Button>
@@ -49,10 +49,10 @@ export function WorkspaceSections({ localSettings, setLocalSettings, sectionReso
 			<div className="flex flex-col gap-4 rounded-lg border p-4 max-h-96 overflow-y-auto overflow-x-hidden">
 				{Object.keys(localSettings.sections || {}).length > 0 ? (
 					<DndContext
-						sensors={sensors}
 						collisionDetection={closestCorners}
-						onDragEnd={handleDragEnd}
 						modifiers={[restrictToVerticalAxis]}
+						onDragEnd={handleDragEnd}
+						sensors={sensors}
 					>
 						<SortableContext
 							items={Object.keys(localSettings.sections || {})}
@@ -61,10 +61,10 @@ export function WorkspaceSections({ localSettings, setLocalSettings, sectionReso
 							{Object.entries(localSettings.sections || {}).map(([key, section]) => (
 								<SortableSectionItem
 									key={key}
-									sectionKey={key}
-									section={section}
-									onEdit={openSectionDialog}
 									onDelete={handleDeleteSection}
+									onEdit={openSectionDialog}
+									section={section}
+									sectionKey={key}
 								/>
 							))}
 						</SortableContext>
@@ -78,16 +78,16 @@ export function WorkspaceSections({ localSettings, setLocalSettings, sectionReso
 			</div>
 
 			<SectionDialog
-				open={showSectionDialog}
-				onOpenChange={setShowSectionDialog}
 				editingKey={editingKey}
 				form={form}
-				setForm={setForm}
-				selectedCatalogs={selectedCatalogs}
-				setSelectedCatalogs={setSelectedCatalogs}
-				sectionResources={sectionResources}
-				onSave={handleSaveSection}
 				onClose={closeDialog}
+				onOpenChange={setShowSectionDialog}
+				onSave={handleSaveSection}
+				open={showSectionDialog}
+				sectionResources={sectionResources}
+				selectedCatalogs={selectedCatalogs}
+				setForm={setForm}
+				setSelectedCatalogs={setSelectedCatalogs}
 			/>
 		</div>
 	);

@@ -1,7 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 
-const diagramsToken = (context?: ParserContext) => ({
+const diagramsToken = (context?: PrivateParserContext) => ({
 	node: "diagrams",
 	getAttrs: (tok) => {
 		if (!context) return tok?.attrs;

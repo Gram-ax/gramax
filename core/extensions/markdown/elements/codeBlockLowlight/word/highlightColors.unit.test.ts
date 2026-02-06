@@ -1,6 +1,6 @@
-import { CLASS_COLOR_MAP } from "./highlightToRuns";
 import fs from "fs";
 import path from "path";
+import { CLASS_COLOR_MAP } from "./highlightToRuns";
 
 const CSS_PATH = path.join(process.cwd(), "core", "styles", "code-block.css");
 

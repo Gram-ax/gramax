@@ -1,9 +1,9 @@
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
+import generateUniqueID from "@core/utils/generateUniqueID";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
-import generateUniqueID from "@core/utils/generateUniqueID";
 import styled from "@emotion/styled";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import Inbox from "@ext/inbox/components/Inbox";
@@ -11,8 +11,8 @@ import InboxFilter from "@ext/inbox/components/InboxFilter";
 import InboxService from "@ext/inbox/components/InboxService";
 import { InboxArticle } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@ui-kit/Button";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const ExtensionWrapper = styled.div`
 	display: flex;
@@ -79,27 +79,27 @@ const InboxTab = ({ show }: InboxTabProps) => {
 	}, []);
 
 	return (
-		<TabWrapper ref={tabWrapperRef} isTop show={show} title="" contentHeight={height}>
+		<TabWrapper contentHeight={height} isTop ref={tabWrapperRef} show={show} title="">
 			<>
 				<ExtensionWrapper>
 					<Button
-						startIcon="plus"
-						onClick={addNewNote}
-						size="sm"
-						variant="text"
 						className="p-0 h-auto"
 						disabled={pageData.userInfo?.mail ? pageData.userInfo?.mail !== selectedAuthor : false}
+						onClick={addNewNote}
+						size="sm"
+						startIcon="plus"
+						variant="text"
 					>
 						{t("inbox.new-note")}
 					</Button>
 					<InboxFilter
-						show={show}
 						apiUrlCreator={apiUrlCreator}
 						selectedAuthor={selectedAuthor}
 						setSelectedAuthor={setSelectedAuthor}
+						show={show}
 					/>
 				</ExtensionWrapper>
-				<Inbox tabWrapperRef={tabWrapperRef} show={show} setContentHeight={setHeight} />
+				<Inbox setContentHeight={setHeight} show={show} tabWrapperRef={tabWrapperRef} />
 			</>
 		</TabWrapper>
 	);

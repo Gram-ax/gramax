@@ -53,7 +53,7 @@ export class NGramIndex<TItem extends { id: unknown }> {
 			for (const tokens of itemTexts) {
 				const docGrams = new Set(tokens.flatMap((t) => this.ngrams(t)));
 
-				const intersection = qgrams.filter(g => docGrams.has(g)).length;
+				const intersection = qgrams.filter((g) => docGrams.has(g)).length;
 				const union = new Set([...qgrams, ...docGrams]).size;
 
 				const score = intersection / union;

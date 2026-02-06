@@ -13,7 +13,7 @@ const TopBarControllers = ({ onClose, className }: TopBarControllersProps) => {
 	return (
 		<div className={className}>
 			<Tooltip content={t("close")}>
-				<ButtonLink textSize={TextSize.L} onClick={onClose} iconCode="x" />
+				<ButtonLink iconCode="x" onClick={onClose} textSize={TextSize.L} />
 			</Tooltip>
 		</div>
 	);

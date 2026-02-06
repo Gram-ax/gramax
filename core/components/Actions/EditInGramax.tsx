@@ -1,16 +1,16 @@
 import Icon from "@components/Atoms/Icon";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import useEditUrl from "./useEditUrl";
-import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";
-import Workspace from "@core-ui/ContextServices/Workspace";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import useEditUrl from "./useEditUrl";
 
 const DESKTOP_APP_LISTENING_ADDRESS = "http://127.0.0.1:52055/";
 
@@ -86,22 +86,22 @@ const EditInDesktop = ({ pathname, articlePath }: { pathname: string; articlePat
 
 	return (
 		<EditInGramaxButton
-			targetSelf
-			text={t("open-in.desktop")}
-			pathname={pathname}
 			articlePath={articlePath}
 			onClick={handleOpen}
+			pathname={pathname}
+			targetSelf
+			text={t("open-in.desktop")}
 		/>
 	);
 };
 
 const EditInWeb = ({ pathname, articlePath }: { pathname: string; articlePath: string }) =>
 	!PageDataContextService.value?.conf.isRelease && (
-		<EditInGramaxButton pathname={pathname} articlePath={articlePath} text={t("open-in.web")} />
+		<EditInGramaxButton articlePath={articlePath} pathname={pathname} text={t("open-in.web")} />
 	);
 
 const EditInWebFromDocPortal = ({ pathname, articlePath }: { pathname: string; articlePath: string }) => (
-	<EditInGramaxButton pathname={pathname} articlePath={articlePath} text={t("open-in.gramax")} />
+	<EditInGramaxButton articlePath={articlePath} pathname={pathname} text={t("open-in.gramax")} />
 );
 
 const editInGramaxComponents = {

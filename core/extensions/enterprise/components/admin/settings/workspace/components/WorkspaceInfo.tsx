@@ -14,27 +14,27 @@ export function WorkspaceInfo({ localSettings, onInputChange }: WorkspaceInfoPro
 			<h2 className="text-xl font-medium mb-4">Основная информация</h2>
 			<div className="space-y-4">
 				<StyledField
-					title={t("enterprise.admin.workspace.workspace-name")}
 					control={() => (
-						<Input id="name" name="name" value={localSettings.name} onChange={onInputChange} required />
+						<Input id="name" name="name" onChange={onInputChange} required value={localSettings.name} />
 					)}
+					title={t("enterprise.admin.workspace.workspace-name")}
 				/>
 				<StyledField
-					title={t("enterprise.admin.workspace.source-url")}
 					control={() => (
 						<Input
+							disabled
 							id="source.url"
 							name="source.url"
-							value={localSettings.source.url}
 							onChange={onInputChange}
 							required
-							disabled
+							value={localSettings.source.url}
 						/>
 					)}
+					title={t("enterprise.admin.workspace.source-url")}
 				/>
 				<StyledField
+					control={() => <Input disabled value="GitLab" />}
 					title={t("enterprise.admin.workspace.source-type")}
-					control={() => <Input value="GitLab" disabled />}
 				/>
 			</div>
 		</div>

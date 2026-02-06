@@ -1,10 +1,9 @@
+import PageDataContext from "@core/Context/PageDataContext";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import createEmotionCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
-import { Router } from "wouter";
-
 import ReactDOMServer from "react-dom/server";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
-import PageDataContext from "@core/Context/PageDataContext";
+import { Router } from "wouter";
 import Gramax from "./../../../browser/src/Gramax";
 
 const convertEmotionStylesToString = (styles: Record<string, string>): string => {
@@ -24,7 +23,7 @@ export const renderAppContent = (data: ArticlePageData, context: PageDataContext
 	});
 	const body = ReactDOMServer.renderToString(
 		<CacheProvider value={emotionCache}>
-			<Router ssrPath={data.articleProps.logicPath} base="./">
+			<Router base="./" ssrPath={data.articleProps.logicPath}>
 				<Gramax
 					data={{
 						data: {
@@ -34,8 +33,8 @@ export const renderAppContent = (data: ArticlePageData, context: PageDataContext
 						context,
 						path: data.articleProps.logicPath,
 					}}
-					setData={() => {}}
 					platform="cli"
+					setData={() => {}}
 				/>
 			</Router>
 		</CacheProvider>,

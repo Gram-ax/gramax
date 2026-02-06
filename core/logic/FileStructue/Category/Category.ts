@@ -7,8 +7,8 @@ import type { Hashable } from "@core/Hash/Hasher";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import Path from "../../FileProvider/Path/Path";
-import { Article, ArticleInitProps, type ArticleEvents, type ArticleProps } from "../Article/Article";
-import { Item, ORDERING_MAX_PRECISION, type ItemEvents } from "../Item/Item";
+import { Article, type ArticleEvents, ArticleInitProps, type ArticleProps } from "../Article/Article";
+import { Item, type ItemEvents, ORDERING_MAX_PRECISION } from "../Item/Item";
 import { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
 

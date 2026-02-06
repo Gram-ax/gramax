@@ -1,9 +1,9 @@
-import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import Caption from "@components/controls/Caption";
+import HoverableActions from "@components/controls/HoverController/HoverableActions";
+import { UseDefaultActionsOptions } from "@components/controls/HoverController/hooks/useDefaultActions";
 import useWatch from "@core-ui/hooks/useWatch";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { FocusEvent, ReactElement, RefObject, useCallback, useState } from "react";
-import { UseDefaultActionsOptions } from "@components/controls/HoverController/hooks/useDefaultActions";
 
 interface BlockActionPanelProps {
 	updateAttributes: (attributes: Record<string, any>) => void;
@@ -59,25 +59,25 @@ const BlockActionPanel = (props: BlockActionPanelProps) => {
 
 	return (
 		<HoverableActions
+			actionsOptions={actionsOptions}
 			hoverElementRef={hoverElementRef}
 			isHovered={isHovered}
 			isOver={isOver}
+			leftActions={leftActions}
+			rightActions={rightActions}
 			selected={selected}
 			setIsHovered={setIsHovered}
-			rightActions={rightActions}
-			leftActions={leftActions}
-			actionsOptions={actionsOptions}
 		>
 			{children}
 			{signatureRef && (
 				<Caption
+					editor={editor}
+					getPos={getPos}
+					onLoseFocus={onLoseFocus}
+					onUpdate={onUpdate}
 					ref={signatureRef}
 					text={signatureText}
-					onUpdate={onUpdate}
-					onLoseFocus={onLoseFocus}
 					visible={hasSignature}
-					getPos={getPos}
-					editor={editor}
 				/>
 			)}
 		</HoverableActions>

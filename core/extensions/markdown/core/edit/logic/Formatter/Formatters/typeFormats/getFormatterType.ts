@@ -1,9 +1,9 @@
+import GitHubFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/GitHubFormatter";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
+import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import LegacyFormatter from "./LegacyFormatter";
 import XmlFormatter from "./XmlFormatter";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
-import GitHubFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/GitHubFormatter";
 
 type NodeFormatterKeys = "note" | "table" | "tableRow" | "tableCell";
 type SupportedElement =

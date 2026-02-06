@@ -6,7 +6,10 @@ import Theme from "@ext/Theme/Theme";
 type OAuthType = "google";
 
 class CloudApi {
-	constructor(protected _cloudUrl: string, private _onError?: (error: NetworkApiError | DefaultError) => void) {}
+	constructor(
+		protected _cloudUrl: string,
+		private _onError?: (error: NetworkApiError | DefaultError) => void,
+	) {}
 
 	getCatalogLogoUrl(catalogName: string, theme: Theme, login: string): string {
 		return `${this._cloudUrl}/api/get-catalog-logo?catalogName=${catalogName}&theme=${theme}&login_name=${login}`;

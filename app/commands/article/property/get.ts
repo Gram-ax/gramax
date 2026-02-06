@@ -2,10 +2,10 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
-import { Command } from "../../../types/Command";
-import CatalogProperty from "@ext/properties/logic/catalogProperty";
 import Path from "@core/FileProvider/Path/Path";
+import CatalogProperty from "@ext/properties/logic/catalogProperty";
 import { PropertyUsage } from "@ext/properties/models";
+import { Command } from "../../../types/Command";
 
 const get: Command<
 	{ articlePath: Path; propertyName: string; values: string[]; catalogName: string; ctx: Context },

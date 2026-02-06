@@ -1,7 +1,7 @@
 import t from "@ext/localization/locale/translate";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from "@ui-kit/Dropdown";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { CSSProperties, FC } from "react";
+import type { CSSProperties, FC } from "react";
 
 interface NavigationDropdownProps {
 	children: React.ReactNode;
@@ -10,12 +10,13 @@ interface NavigationDropdownProps {
 	style?: CSSProperties;
 	className?: string;
 	dataQa?: string;
+	dataTestId?: string;
 	onOpen?: () => void;
 	onClose?: () => void;
 }
 
 const NavigationDropdown: FC<NavigationDropdownProps> = (props) => {
-	const { children, onOpen, onClose, style, className, trigger, dataQa, tooltipText } = props;
+	const { children, onOpen, onClose, style, className, trigger, dataQa, dataTestId, tooltipText } = props;
 
 	const handleOpenChange = (open: boolean) => {
 		if (open) onOpen?.();
@@ -25,7 +26,7 @@ const NavigationDropdown: FC<NavigationDropdownProps> = (props) => {
 	return (
 		<DropdownMenu onOpenChange={handleOpenChange}>
 			<DropdownMenuTrigger asChild>
-				<div style={style} className={className} data-qa={dataQa}>
+				<div className={className} data-qa={dataQa} data-testid={dataTestId} style={style}>
 					<Tooltip>
 						<TooltipContent>{tooltipText ?? t("actions")}</TooltipContent>
 						<TooltipTrigger asChild>{trigger}</TooltipTrigger>

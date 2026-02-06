@@ -1,6 +1,6 @@
 import linkTransformer from "../linkReplacer";
-import testData from "./replaceLinkTestData/linkTransformerTestData.json";
 import expectedData from "./replaceLinkTestData/linkTransformerExpectedData.json";
+import testData from "./replaceLinkTestData/linkTransformerTestData.json";
 
 describe("LinkTransformer", () => {
 	describe("трансформирует ссылки в относительные пути", () => {

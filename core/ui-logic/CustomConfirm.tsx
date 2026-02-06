@@ -18,7 +18,7 @@ const customConfirmWithCallback = (message: string, title?: string, onAnswer?: (
 		title,
 		message,
 		customUI: ({ title, message, onClose }) => (
-			<ConfirmComponent title={title} message={message} onAnswer={onAnswer} onClose={onClose} />
+			<ConfirmComponent message={message} onAnswer={onAnswer} onClose={onClose} title={title} />
 		),
 	});
 };

@@ -1,7 +1,7 @@
 import { PluginLocaleRegistry } from "@plugins/registry";
-import { PluginMenuRegistry } from "@plugins/registry/PluginMenuRegistry";
 import { PluginEventEmitter } from "@plugins/registry/PluginEventRegistry";
 import { PluginExtensionRegistry } from "@plugins/registry/PluginExtensionRegistry";
+import { PluginMenuRegistry } from "@plugins/registry/PluginMenuRegistry";
 
 export enum ServiceKey {
 	Extensions = "extensions",

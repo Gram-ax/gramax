@@ -1,8 +1,8 @@
 import LanguageService from "@core-ui/ContextServices/Language";
 import UiLanguage from "@ext/localization/core/model/Language";
 import { RenderableTreeNode } from "../render/logic/Markdoc";
-import MarkdownTestData from "./test/MarkdownTestData.json";
 import { getParserTestData } from "./test/getParserTestData";
+import MarkdownTestData from "./test/MarkdownTestData.json";
 
 jest.mock("react", () => ({
 	...jest.requireActual("react"),

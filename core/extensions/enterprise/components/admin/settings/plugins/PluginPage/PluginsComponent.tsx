@@ -195,10 +195,10 @@ const PluginsComponent = () => {
 
 			<PluginsHeader
 				isRefreshing={isRefreshing("plugins")}
-				onAddClick={triggerFileSelect}
-				selectedCount={selectedCount}
 				loading={isDeleting}
+				onAddClick={triggerFileSelect}
 				onDeleteSelected={handleDeleteSelected}
+				selectedCount={selectedCount}
 			/>
 			<div className="px-6">
 				{plugins.length === 0 ? (

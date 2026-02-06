@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import paginateIntoPages from "@ext/print/utils/paginateIntoPages";
-import { waitForNextPaint } from "@ext/print/utils/pagination/scheduling";
-import { ArticlePreview, PdfExportProgress, PdfPrintParams, PrintableContent } from "@ext/print/types";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import { ArticlePreview, PdfExportProgress, PdfPrintParams, PrintableContent } from "@ext/print/types";
+import paginateIntoPages from "@ext/print/utils/paginateIntoPages";
 import { isPaginationAbortError } from "@ext/print/utils/pagination/abort";
+import { waitForNextPaint } from "@ext/print/utils/pagination/scheduling";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UsePaginationTaskArgs {
 	apiUrlCreator: ApiUrlCreator;

@@ -1,17 +1,17 @@
+import { useRouter } from "@core/Api/useRouter";
+import Path from "@core/FileProvider/Path/Path";
+import { useEditLfsOptions } from "@core/GitLfs/hooks/useEditLfsOptions";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { useRouter } from "@core/Api/useRouter";
-import Path from "@core/FileProvider/Path/Path";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
-import { useEditTrackedLfsPatterns } from "@ext/catalog/actions/propsEditor/logic/useEditTrackedLfsPatterns";
 import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
-import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
+import type { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import { useCallback, useEffect, useState } from "react";
 
 type ExtendedCatalogEditProps = CatalogEditProps & {
@@ -20,7 +20,7 @@ type ExtendedCatalogEditProps = CatalogEditProps & {
 		light?: null;
 		dark?: null;
 	};
-	lfs?: string[];
+	lfs?: { patterns: string[] };
 };
 
 interface UseCatalogPropsEditorActionsReturn {
@@ -45,30 +45,31 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	const {
-		getTrackedLfsPatterns,
-		updateTrackedLfsPatterns,
-		allowed: allowedEditTrackedLfsPatterns,
-	} = useEditTrackedLfsPatterns();
+	const { getLfsOptions, updateLfsOptions, allowed: allowedEditLfsOptions } = useEditLfsOptions();
 
 	const getOriginalProps = useCallback(async (): Promise<ExtendedCatalogEditProps> => {
 		const res = await FetchService.fetch(apiUrlCreator.getCustomIconsList());
 		if (!res.ok) return { ...getCatalogEditProps(catalogProps.data), icons: [] };
 		const icons = (await res.json()) ?? [];
 
-		const lfs = allowedEditTrackedLfsPatterns ? await getTrackedLfsPatterns() : [];
+		const lfsOptions = allowedEditLfsOptions ? await getLfsOptions() : null;
+		const lfs = lfsOptions ? { patterns: lfsOptions.patterns } : { patterns: [] };
 
+		const editProps = getCatalogEditProps(catalogProps.data);
 		return {
-			...getCatalogEditProps(catalogProps.data),
+			...editProps,
 			icons: icons.map((icon: IconEditorProps) => ({
 				name: icon.code,
 				content: icon.svg,
 				size: icon.size,
 				type: "image/svg+xml",
 			})),
+			filterProperty: editProps.filterProperty // we need to double check this because property may not exist anymore
+				? editProps.properties?.find((p) => p.name === editProps.filterProperty)?.name
+				: null,
 			lfs,
 		};
-	}, [catalogProps.data, apiUrlCreator]);
+	}, [catalogProps.data, apiUrlCreator, allowedEditLfsOptions, getLfsOptions]);
 
 	const fetchCatalogNames = useCallback(async () => {
 		try {
@@ -86,7 +87,7 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 
 	useEffect(() => {
 		void fetchCatalogNames();
-	}, []);
+	}, [fetchCatalogNames]);
 
 	const setOpen = useCallback(
 		(value: boolean) => {
@@ -144,14 +145,6 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 				...newProps,
 			};
 
-			console.log({
-				originalProps: { ...originalProps },
-				newProps: { ...newProps },
-				mergedProps: {
-					...mergedProps,
-				},
-			});
-
 			delete mergedProps.logo;
 
 			setIsLoading(true);
@@ -162,8 +155,11 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 				await uploadIcons(mergedProps.icons);
 				delete mergedProps.icons;
 
-				console.log("allowedEditTrackedLfsPatterns", mergedProps.lfs);
-				if (allowedEditTrackedLfsPatterns) await updateTrackedLfsPatterns(mergedProps.lfs);
+				if (allowedEditLfsOptions && mergedProps.lfs) {
+					await updateLfsOptions({
+						patterns: mergedProps.lfs.patterns,
+					});
+				}
 				delete mergedProps.lfs;
 
 				const response = await FetchService.fetch<ClientCatalogProps>(
@@ -199,6 +195,8 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 			setOpen,
 			deleteIcons,
 			uploadIcons,
+			allowedEditLfsOptions,
+			updateLfsOptions,
 		],
 	);
 

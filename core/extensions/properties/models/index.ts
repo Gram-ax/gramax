@@ -8,7 +8,7 @@ export enum SystemProperties {
 
 export type PropertyOptions = {
 	docportalVisible?: boolean;
-}
+};
 
 export interface Property {
 	name: PropertyID;
@@ -50,6 +50,19 @@ export enum PropertyTypes {
 	blockMd = "BlockMd",
 	// inlineMd = "InlineMd",
 }
+
+export const isPropertySuitableForArticle = (type: PropertyTypes) => {
+	return (
+		type === PropertyTypes.numeric ||
+		type === PropertyTypes.flag ||
+		type === PropertyTypes.enum ||
+		type === PropertyTypes.date ||
+		type === PropertyTypes.many ||
+		type === PropertyTypes.text
+	);
+};
+
+export const ArticlePropertyTypes: Partial<typeof PropertyTypes> = {};
 
 export const isManyProperty: Partial<{ [type in PropertyTypes]: boolean }> = {
 	[PropertyTypes.many]: true,

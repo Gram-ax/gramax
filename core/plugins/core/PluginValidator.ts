@@ -1,5 +1,5 @@
-import { PluginConfig, PluginMetadata } from "@plugins/types";
 import type { PlatformEnvironmentKey } from "@plugins/api/sdk/utilities";
+import { PluginConfig, PluginMetadata } from "@plugins/types";
 import semver from "semver";
 
 interface ValidationResult {

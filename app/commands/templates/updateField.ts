@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import Context from "@core/Context/Context";
-import { Command } from "../../types/Command";
 import { JSONContent } from "@tiptap/core";
+import { Command } from "../../types/Command";
 
 const updateField: Command<
 	{ catalogName: string; ctx: Context; articlePath: string; field: string; content: JSONContent[] },

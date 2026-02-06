@@ -1,5 +1,7 @@
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+
 const blockquote = {
-	group: "block",
+	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	content: "block+",
 };
 

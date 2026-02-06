@@ -3,7 +3,7 @@ import { createEventEmitter, Event } from "@core/Event/EventEmitter";
 import type Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
-import { Catalog, type ArticleFilter } from "@core/FileStructue/Catalog/Catalog";
+import { type ArticleFilter, Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
@@ -22,7 +22,10 @@ export type ContextualCatalogEvents<P extends CatalogProps = CatalogProps> = Eve
 export default class ContextualCatalog<P extends CatalogProps = CatalogProps> implements ReadonlyCatalog<P> {
 	private _events = createEventEmitter<ContextualCatalogEvents>();
 
-	constructor(private readonly _catalog: WeakRef<Catalog<P>>, private readonly _ctx: Context) {}
+	constructor(
+		private readonly _catalog: WeakRef<Catalog<P>>,
+		private readonly _ctx: Context,
+	) {}
 
 	get events() {
 		return this._events;

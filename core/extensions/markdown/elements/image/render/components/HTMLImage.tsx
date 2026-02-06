@@ -1,6 +1,5 @@
-import React from "react";
-import HTMLComponents from "../../../../core/render/components/getComponents/HTMLComponents";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
+import type HTMLComponents from "../../../../core/render/components/getComponents/HTMLComponents";
 
 export interface HTMLImageProps {
 	src: string;
@@ -14,7 +13,7 @@ const HTMLImage = (html: HTMLComponents) => {
 		const src = html.getApiArticleResource(props.src);
 		return (
 			<div>
-				{renderImage && <img src={src} data-component="image" />}
+				{renderImage && <img data-component="image" src={src} />}
 				{props.title && <em>{props.title}</em>}
 			</div>
 		);

@@ -1,8 +1,8 @@
 import Icon from "@components/Atoms/Icon";
+import parseStorageUrl from "@core/utils/parseStorageUrl";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
-import parseStorageUrl from "@core/utils/parseStorageUrl";
 import GitlabSourceAPI from "@ext/git/actions/Source/GitLab/logic/GitlabSourceAPI";
 import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import handleFormApiError from "@ext/git/actions/Source/logic/handleApiError";
@@ -61,7 +61,7 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 					token: data?.token,
 					authorName: data?.userName,
 					authorEmail: data?.userEmail,
-			  }
+				}
 			: undefined,
 		mode: "onChange",
 	});
@@ -141,7 +141,7 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 
 	useLayoutEffect(() => {
 		const primaryButton = (
-			<Button type="submit" onClick={formSubmit}>
+			<Button onClick={formSubmit} type="submit">
 				{t("add")}
 			</Button>
 		);
@@ -158,34 +158,34 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 			<form className="contents ui-kit" onSubmit={formSubmit}>
 				<FormStack>
 					<FormField
-						name="url"
-						title={t("forms.gitlab-source-data.props.url.name")}
-						layout="vertical"
-						readonly={!!data?.domain}
-						description={t("forms.gitlab-source-data.props.url.description")}
 						control={({ field }) => (
 							<Input
 								{...field}
-								readOnly={!!data?.domain}
 								data-qa="qa-gitlab-url"
-								placeholder={t("forms.gitlab-source-data.props.url.placeholder")}
 								onChange={(value) => {
 									field.onChange(value);
 									onChangeAuthFields();
 								}}
+								placeholder={t("forms.gitlab-source-data.props.url.placeholder")}
+								readOnly={!!data?.domain}
 							/>
 						)}
+						description={t("forms.gitlab-source-data.props.url.description")}
+						layout="vertical"
+						name="url"
+						readonly={!!data?.domain}
+						title={t("forms.gitlab-source-data.props.url.name")}
 					/>
 
 					<FormDivider />
 
 					<div className="flex flex-row items-center justify-between gap-3 pb-2 lg:gap-4">
 						<FormSectionTitle>{t("authorization")}</FormSectionTitle>
-						<FormSectionHeaderButton size="xs" variant="link" type="button">
+						<FormSectionHeaderButton size="xs" type="button" variant="link">
 							<a
 								href={getGitlabSettingsUrl(url || "https://gitlab.com")}
-								target="_blank"
 								rel="noopener noreferrer"
+								target="_blank"
 							>
 								{`${t("create")} ${t("token")}`}
 							</a>
@@ -206,10 +206,6 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 
 					<FormFieldSet style={{ marginTop: 0 }}>
 						<FormField
-							name="token"
-							title={t("forms.gitlab-source-data.props.token.name")}
-							layout="vertical"
-							description={t("forms.gitlab-source-data.props.token.description")}
 							control={({ field }) => (
 								<SecretInput
 									{...field}
@@ -218,22 +214,26 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 										field.onChange(value);
 										onChangeAuthFields();
 									}}
-									showClearIcon
 									placeholder={t("forms.gitlab-source-data.props.token.placeholder")}
+									showClearIcon
 								/>
 							)}
+							description={t("forms.gitlab-source-data.props.token.description")}
+							layout="vertical"
+							name="token"
+							title={t("forms.gitlab-source-data.props.token.name")}
 						/>
 						{form.formState.errors?.token?.type === "invalid" && (
 							<div className="flex" style={{ marginTop: "-1.5em" }}>
 								<Retry
-									type="button"
-									startIcon="rotate-ccw"
 									className="p-0 ml-auto"
 									onClick={() => {
 										onChangeAuthFields();
 										form.clearErrors("token");
 										form.clearErrors("url");
 									}}
+									startIcon="rotate-ccw"
+									type="button"
 								>
 									{t("try-again")}
 								</Retry>
@@ -241,10 +241,6 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 						)}
 
 						<FormField
-							name="authorName"
-							title={t("forms.gitlab-source-data.props.userName.name")}
-							layout="vertical"
-							description={t("forms.gitlab-source-data.props.userName.description")}
 							control={({ field }) =>
 								isLoading ? (
 									<Skeleton className="w-full" style={{ height: "36px" }} />
@@ -259,13 +255,13 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 									/>
 								)
 							}
+							description={t("forms.gitlab-source-data.props.userName.description")}
+							layout="vertical"
+							name="authorName"
+							title={t("forms.gitlab-source-data.props.userName.name")}
 						/>
 
 						<FormField
-							name="authorEmail"
-							title={t("forms.gitlab-source-data.props.userEmail.name")}
-							layout="vertical"
-							description={t("forms.gitlab-source-data.props.userEmail.description")}
 							control={({ field }) =>
 								isLoading ? (
 									<Skeleton className="w-full" style={{ height: "36px" }} />
@@ -280,6 +276,10 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 									/>
 								)
 							}
+							description={t("forms.gitlab-source-data.props.userEmail.description")}
+							layout="vertical"
+							name="authorEmail"
+							title={t("forms.gitlab-source-data.props.userEmail.name")}
 						/>
 					</FormFieldSet>
 				</FormStack>

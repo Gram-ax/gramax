@@ -11,8 +11,6 @@ const BranchWasDeletedErrorComponent = ({ onCancelClick }: ComponentProps<typeof
 
 	return (
 		<InfoModalForm
-			title={t("git.branch.error.has-been-deleted.title")}
-			icon={{ code: "circle-x", color: "var(--color-danger)" }}
 			actionButton={{
 				text: t("ok"),
 				onClick: () => {
@@ -21,6 +19,8 @@ const BranchWasDeletedErrorComponent = ({ onCancelClick }: ComponentProps<typeof
 					onCancelClick();
 				},
 			}}
+			icon={{ code: "circle-x", color: "var(--color-danger)" }}
+			title={t("git.branch.error.has-been-deleted.title")}
 		>
 			<p>{t("git.branch.error.has-been-deleted.body")}</p>
 		</InfoModalForm>

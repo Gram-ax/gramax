@@ -11,7 +11,10 @@ import { addScopeToPath } from "@ext/versioning/utils";
 const decoder = new TextDecoder();
 
 export default class GitTreeFileProvider implements ReadOnlyFileProvider {
-	constructor(private readonly _git: GitCommands, private readonly _onlyReadHead = false) {}
+	constructor(
+		private readonly _git: GitCommands,
+		private readonly _onlyReadHead = false,
+	) {}
 
 	get storageId(): string {
 		return `GitTree@${this._git.repoPath.value}`;

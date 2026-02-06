@@ -1,6 +1,6 @@
 import "@core/utils/asyncUtils";
 import assert from "assert";
-import { EnvironmentVariable, defaultVariables } from "../config/env";
+import { defaultVariables, type EnvironmentVariable } from "../config/env";
 import viteEnv from "../config/viteenv";
 
 export type Environment = "next" | "tauri" | "browser" | "test" | "static" | "cli";
@@ -18,9 +18,9 @@ const executing = getEnv() as Environment;
 
 const initEnv = () => {
 	if (executing === "browser") {
-		_env = typeof window !== "undefined" ? (window as any)?.getEnv ?? (() => undefined) : () => undefined;
+		_env = typeof window !== "undefined" ? ((window as any)?.getEnv ?? (() => undefined)) : () => undefined;
 	}
-  
+
 	if (executing === "tauri") {
 		_env = (name: string) => {
 			return typeof window !== "undefined" ? window.process?.env?.[name] : undefined;
@@ -40,7 +40,7 @@ const initEnv = () => {
 	}
 
 	if (executing === "static") {
-		_env = typeof window !== "undefined" ? (window as any)?.getEnv ?? (() => undefined) : () => undefined;
+		_env = typeof window !== "undefined" ? ((window as any)?.getEnv ?? (() => undefined)) : () => undefined;
 	}
 
 	if (executing === "cli") {

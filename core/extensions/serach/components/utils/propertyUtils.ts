@@ -1,4 +1,4 @@
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 
 export function togglePropertyValue(
 	properties: Property[],

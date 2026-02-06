@@ -1,10 +1,10 @@
 import Tooltip from "@components/Atoms/Tooltip";
+import { classNames } from "@components/libs/classNames";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { handleMove, objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
 import { CSSProperties, ReactElement, RefObject, useEffect, useRef, useState } from "react";
 import { SquareObject } from "../../../edit/model/imageEditorTypes";
-import { classNames } from "@components/libs/classNames";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 
 interface SquareObjectProps extends SquareObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -110,11 +110,12 @@ const Square = (props: SquareObjectProps): ReactElement => {
 	});
 
 	return (
-		<Tooltip hideInMobile={false} disabled={isDraggable} trigger="mouseenter focus" content={text}>
+		<Tooltip content={text} disabled={isDraggable} hideInMobile={false} trigger="mouseenter focus">
 			<div
+				className={classNames(className, { selected })}
 				id={"object/" + index}
-				ref={mainRef}
 				onMouseDown={mainMouseDown}
+				ref={mainRef}
 				style={{
 					...style,
 					left: position.x + unitType,
@@ -122,7 +123,6 @@ const Square = (props: SquareObjectProps): ReactElement => {
 					width: position.w + unitType,
 					height: position.h + unitType,
 				}}
-				className={classNames(className, { selected })}
 			>
 				{drawIndexes && (
 					<div className={`annotation annotation-${direction}`}>
@@ -132,10 +132,10 @@ const Square = (props: SquareObjectProps): ReactElement => {
 
 				{editable && selected && (
 					<div>
-						<div onMouseDown={onMouseDown} id="top-left" className="handle top-left"></div>
-						<div onMouseDown={onMouseDown} id="top-right" className="handle top-right"></div>
-						<div onMouseDown={onMouseDown} id="bottom-right" className="handle bottom-right"></div>
-						<div onMouseDown={onMouseDown} id="bottom-left" className="handle bottom-left"></div>
+						<div className="handle top-left" id="top-left" onMouseDown={onMouseDown}></div>
+						<div className="handle top-right" id="top-right" onMouseDown={onMouseDown}></div>
+						<div className="handle bottom-right" id="bottom-right" onMouseDown={onMouseDown}></div>
+						<div className="handle bottom-left" id="bottom-left" onMouseDown={onMouseDown}></div>
 					</div>
 				)}
 			</div>

@@ -1,12 +1,15 @@
-import Path from "@core/FileProvider/Path/Path";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import mergeObjects from "@core/utils/mergeObjects";
 import yaml from "js-yaml";
 
 export default class YamlFileConfig<C extends object> {
 	private _config: C;
 
-	private constructor(private _fp: FileProvider, private _path: Path) {}
+	private constructor(
+		private _fp: FileProvider,
+		private _path: Path,
+	) {}
 
 	static async readFromFile<C extends object>(
 		fp: FileProvider,

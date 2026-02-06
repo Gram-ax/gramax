@@ -1,8 +1,8 @@
-import { TableCell } from "./types";
-import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { BASE_CONFIG } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { BASE_CONFIG } from "@ext/pdfExport/config";
+import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { JSONContent } from "@tiptap/core";
+import { TableCell } from "./types";
 
 export const parseCell = async (
 	cell: Tag | JSONContent,
@@ -35,7 +35,7 @@ export const parseCell = async (
 						BASE_CONFIG.FONT_SIZE * 0.375,
 						BASE_CONFIG.FONT_SIZE * 0.375,
 						BASE_CONFIG.FONT_SIZE * 0.0625,
-				  ],
+					],
 		colSpan: colSpan > 1 ? colSpan : undefined,
 		rowSpan: rowSpan > 1 ? rowSpan : undefined,
 		alignment: attrs.align,

@@ -1,7 +1,7 @@
-import { Dispatch, ReactElement, SetStateAction, useState } from "react";
-import getModalComponentToRender from "./logic/getModalComponentToRender";
-import ModalToOpen from "./model/ModalsToOpen";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { type Dispatch, type ReactElement, type SetStateAction, useState } from "react";
+import getModalComponentToRender from "./logic/getModalComponentToRender";
+import type ModalToOpen from "./model/ModalsToOpen";
 
 interface ModalStackEntry {
 	id: string;
@@ -14,10 +14,13 @@ let _idCounter = 0;
 
 export default abstract class ModalToOpenService {
 	private static _value: ModalToOpen = null;
+	private static _modalStackRef: ModalStackEntry[] = [];
 
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		const isStaticCli = usePlatform().isStaticCli;
-		const [modalStack, setModalStack] = useState<ModalStackEntry[]>([]);
+		const [modalStack, setModalStack] = useState<ModalStackEntry[]>(
+			!isStaticCli ? ModalToOpenService._modalStackRef : [],
+		);
 
 		if (!isStaticCli) {
 			_setModalStack = setModalStack;
@@ -36,26 +39,29 @@ export default abstract class ModalToOpenService {
 
 	static resetValue() {
 		this._value = null;
-		_setModalStack?.([]);
+		this._modalStackRef = [];
+		_setModalStack?.(this._modalStackRef);
 	}
 
 	static setValue<T extends { [name: string]: any }>(value: ModalToOpen, args?: T) {
-		this._value = value;
+		ModalToOpenService._value = value;
 
 		if (value === null) {
-			_setModalStack?.([]);
+			this._modalStackRef = [];
+			_setModalStack?.(this._modalStackRef);
 		} else {
 			const entry: ModalStackEntry = {
 				id: `modal-${_idCounter++}`,
 				modalType: value,
 				args: args || {},
 			};
-			_setModalStack?.([entry]);
+			this._modalStackRef = [entry];
+			_setModalStack?.(this._modalStackRef);
 		}
 	}
 
 	static hasValue(): boolean {
-		return this._value !== null;
+		return ModalToOpenService._value !== null;
 	}
 
 	static addModal<T extends { [name: string]: any }>(modalType: ModalToOpen, args?: T): string {
@@ -65,12 +71,20 @@ export default abstract class ModalToOpenService {
 			args: args || {},
 		};
 
-		_setModalStack?.((prev) => [...prev, entry]);
+		_setModalStack?.((prev) => {
+			const updated = [...prev, entry];
+			this._modalStackRef = updated;
+			return updated;
+		});
 		return entry.id;
 	}
 
 	static removeModal(id: string) {
-		_setModalStack?.((prev) => prev.filter((m) => m.id !== id));
+		_setModalStack?.((prev) => {
+			const filtered = prev.filter((m) => m.id !== id);
+			this._modalStackRef = filtered;
+			return filtered;
+		});
 	}
 
 	static updateArgs<T extends { [name: string]: any }>(updater: (prevArgs: T) => T) {
@@ -82,11 +96,12 @@ export default abstract class ModalToOpenService {
 				...updated[lastIndex],
 				args: updater(updated[lastIndex].args as T),
 			};
+			this._modalStackRef = updated;
 			return updated;
 		});
 	}
 
 	static get value(): ModalToOpen {
-		return this._value;
+		return ModalToOpenService._value;
 	}
 }

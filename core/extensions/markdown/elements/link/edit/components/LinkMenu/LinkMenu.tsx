@@ -1,13 +1,13 @@
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useApi } from "@core-ui/hooks/useApi";
-import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
-import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
-import LinkItem from "@ext/article/LinkCreator/models/LinkItem";
 import useWatch from "@core-ui/hooks/useWatch";
+import LinkItem from "@ext/article/LinkCreator/models/LinkItem";
+import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
+import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
+import { Mark } from "@tiptap/pm/model";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { EditLinkMenu } from "./EditLinkMenu";
 import { ViewLinkMenu } from "./ViewLinkMenu";
-import { Mark } from "@tiptap/pm/model";
 
 export type LinkMenuMode = "edit" | "view";
 
@@ -38,10 +38,10 @@ const LinkMenuContent = memo(({ mark, onDelete, onUpdate }: LinkMenuContentProps
 		const parsedCatalogName = hasError
 			? undefined
 			: href
-			? href.split("/")?.[3] === "-"
-				? href.split("/")?.[5]
-				: href.split("/")?.[3]
-			: "";
+				? href.split("/")?.[3] === "-"
+					? href.split("/")?.[5]
+					: href.split("/")?.[3]
+				: "";
 		const catalogName = isExternal ? undefined : parsedCatalogName;
 		return { hash, pathWithoutHash, catalogName };
 	}, [href, isExternal, hasError]);
@@ -81,10 +81,10 @@ const LinkMenuContent = memo(({ mark, onDelete, onUpdate }: LinkMenuContentProps
 			<EditLinkMenu
 				catalogName={catalogName}
 				defaultValue={itemName}
+				hasError={hasError}
+				onDelete={onDelete}
 				onUpdate={handleUpdate}
 				setMode={setMode}
-				onDelete={onDelete}
-				hasError={hasError}
 			/>
 		);
 	}
@@ -92,15 +92,15 @@ const LinkMenuContent = memo(({ mark, onDelete, onUpdate }: LinkMenuContentProps
 	return (
 		<ViewLinkMenu
 			href={href}
-			itemName={itemName}
 			icon="link"
+			isExternalLink={isExternal}
+			itemName={itemName}
 			onDelete={onDelete}
 			setMode={setMode}
-			isExternalLink={isExternal}
 		/>
 	);
 });
 
 export const LinkMenu = memo(({ mark, onUpdate, onDelete }: LinkMenuProps) => {
-	return <LinkMenuContent key={mark?.attrs?.href} mark={mark} onUpdate={onUpdate} onDelete={onDelete} />;
+	return <LinkMenuContent key={mark?.attrs?.href} mark={mark} onDelete={onDelete} onUpdate={onUpdate} />;
 });

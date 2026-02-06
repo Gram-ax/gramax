@@ -1,4 +1,5 @@
 import { CONTAINS_TASK_LIST } from "@ext/markdown/elements/list/edit/models/bulletList/bulletListToken";
+import { LIST_ITEM_OPEN, LIST_OPEN_TYPES } from "@ext/markdown/elements/list/edit/models/listItem/logic/listPlugin";
 import { CHECKED_ATTR } from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
 import type MarkdownIt from "markdown-it/lib";
 import { RuleBlock } from "markdown-it/lib/parser_block";
@@ -17,7 +18,7 @@ const detectTaskList: RuleBlock = (state, startLine) => {
 	const match = src.match(checkboxRegExp);
 	const lastTokenIndex = tokens.length - 1;
 
-	if (tokens[lastTokenIndex].type !== "list_item_open" || !match) return;
+	if (tokens[lastTokenIndex].type !== LIST_ITEM_OPEN || !match) return;
 
 	state.tShift[startLine] += match[0].length;
 
@@ -29,10 +30,9 @@ const detectTaskList: RuleBlock = (state, startLine) => {
 
 const cleanupTaskListInline: RuleCore = (state) => {
 	const tokens = state.tokens;
-	for (let i = 2; i < tokens.length; i++) {
-		if (isTodoItem(tokens, i)) {
-			todoify(tokens[i]);
-		}
+	for (let i = 1; i < tokens.length; i++) {
+		const todoItem = getTodoItem(tokens, i);
+		if (todoItem) todoify(todoItem);
 	}
 };
 
@@ -57,13 +57,16 @@ const parentToken = (tokens: Token[], index: number) => {
 	return -1;
 };
 
-const isTodoItem = (tokens: Token[], index: number) => {
-	return (
-		tokens[index].type === "inline" &&
-		tokens[index - 1].type === "paragraph_open" &&
-		tokens[index - 2].type === "list_item_open" &&
-		tokens[index - 2].attrs?.some(([key]) => key === CHECKED_ATTR)
-	);
+const getTodoItem = (tokens: Token[], index: number) => {
+	if (tokens[index].type !== LIST_ITEM_OPEN || !tokens[index].attrs?.some(([key]) => key === CHECKED_ATTR)) return;
+
+	for (let i = index + 1; i < tokens.length; i++) {
+		const currentTokenType = tokens[i].type;
+		const nextToken = tokens[i + 1];
+
+		if (currentTokenType === "paragraph_open" && nextToken?.type === "inline") return nextToken;
+		if (currentTokenType !== LIST_ITEM_OPEN && !LIST_OPEN_TYPES.includes(currentTokenType)) return;
+	}
 };
 
 const todoify = (token: Token) => {

@@ -8,7 +8,14 @@ export function TableDraggableButton({ rowId }: { rowId: string }) {
 
 	return (
 		<div className="flex items-center justify-center">
-			<IconButton type="button" className="p-0 h-4 w-4" icon="grip-vertical" variant="text" {...attributes} {...listeners} />
+			<IconButton
+				className="p-0 h-4 w-4"
+				icon="grip-vertical"
+				type="button"
+				variant="text"
+				{...attributes}
+				{...listeners}
+			/>
 		</div>
 	);
 }

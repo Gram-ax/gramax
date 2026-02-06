@@ -1,6 +1,6 @@
 import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
-import { isHasValue, isManyProperty, Property, PropertyValue } from "@ext/properties/models";
 import { getPropertyValue } from "@ext/properties/logic/getPropertyValue";
+import { isHasValue, isManyProperty, Property, PropertyValue } from "@ext/properties/models";
 
 const deleteProperty = (
 	propertyName: string,

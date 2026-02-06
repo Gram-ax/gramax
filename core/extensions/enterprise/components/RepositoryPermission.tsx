@@ -1,3 +1,4 @@
+import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
@@ -18,7 +19,6 @@ import { Modal, ModalContent, ModalHeaderTemplate } from "@ui-kit/Modal";
 import { Lock } from "lucide-react";
 import { ComponentProps, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import ResourceComponent from "./admin/settings/resources/components/Resource/ResourceComponent";
-import CatalogItem from "@components/Actions/CatalogItems/Base";
 
 const getItemId = (pathName: string, sourceName: string, catalogName: string) => {
 	const prefix = `${sourceName}/`;
@@ -56,15 +56,15 @@ export const RepositoryPermission = ({
 	);
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			<OpenProvider open={isOpen} setOpen={onOpenChange}>
 				<SettingsProvider enterpriseService={enterpriseService} token={token}>
 					<RepositoryPermissionModalContent
-						pathName={pathName}
-						sourceName={sourceName}
 						catalogName={catalogName}
-						setIsOpen={setIsOpen}
 						onClose={onClose}
+						pathName={pathName}
+						setIsOpen={setIsOpen}
+						sourceName={sourceName}
 					/>
 				</SettingsProvider>
 			</OpenProvider>
@@ -148,9 +148,9 @@ const RepositoryPermissionModalContent = ({
 	return (
 		<ModalContent size="M">
 			<ModalHeaderTemplate
-				title={t("enterprise.admin.resources.catalog.permission.title")}
 				description={t("enterprise.admin.resources.catalog.permission.description")}
 				icon={Lock}
+				title={t("enterprise.admin.resources.catalog.permission.title")}
 			/>
 
 			{isInitialLoading("resources") ? (
@@ -167,7 +167,7 @@ const RepositoryPermissionModalContent = ({
 					<FormFooter
 						leftContent={
 							<div className="flex items-center">
-								<ShareAction path={`/${pathName}`} isArticle={false} variant="Button" />
+								<ShareAction isArticle={false} path={`/${pathName}`} variant="Button" />
 							</div>
 						}
 						primaryButton={
@@ -175,7 +175,7 @@ const RepositoryPermissionModalContent = ({
 								{isSaving ? (
 									<LoadingButtonTemplate text={`${t("save2")}...`} />
 								) : (
-									<Button onClick={handleSave} disabled={!hasChanges || isSaving}>
+									<Button disabled={!hasChanges || isSaving} onClick={handleSave}>
 										<Icon code="save" />
 										{t("save")}
 									</Button>
@@ -183,7 +183,7 @@ const RepositoryPermissionModalContent = ({
 							</>
 						}
 						secondaryButton={
-							<Button variant="outline" onClick={handleClose}>
+							<Button onClick={handleClose} variant="outline">
 								{t("cancel")}
 							</Button>
 						}
@@ -192,9 +192,9 @@ const RepositoryPermissionModalContent = ({
 			)}
 			<ConfirmationDialog
 				isOpen={showUnsavedDialog}
+				onClose={closeResourceDialog}
 				onOpenChange={setShowUnsavedDialog}
 				onSave={handleSave}
-				onClose={closeResourceDialog}
 			/>
 		</ModalContent>
 	);

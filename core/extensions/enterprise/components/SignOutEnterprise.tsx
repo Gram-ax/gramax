@@ -28,30 +28,30 @@ const SignOutEnterprise = ({ workspaceConfig, onClose }: SignOutEnterpriseProps)
 
 	return (
 		<ModalLayout
+			closeOnCmdEnter={false}
 			contentWidth="S"
 			isOpen={isOpen}
-			closeOnCmdEnter={false}
-			onOpen={() => {
-				setIsOpen(true);
-			}}
 			onClose={() => {
 				setIsOpen(false);
 				onClose();
 			}}
+			onOpen={() => {
+				setIsOpen(true);
+			}}
 		>
 			<InfoModalForm
-				title={t("enterprise.workspace-exit")}
-				icon={{ code: "circle-alert", color: "var(--color-warning)" }}
+				actionButton={{
+					onClick: () => removeWorkspace(),
+					text: t("exit"),
+				}}
 				closeButton={{ text: t("cancel") }}
+				icon={{ code: "circle-alert", color: "var(--color-warning)" }}
 				onCancelClick={() => {
 					setIsOpen(false);
 					onClose();
 					refreshPage();
 				}}
-				actionButton={{
-					onClick: () => removeWorkspace(),
-					text: t("exit"),
-				}}
+				title={t("enterprise.workspace-exit")}
 			>
 				<div>{t("enterprise.workspace-exit-warning")}</div>
 			</InfoModalForm>

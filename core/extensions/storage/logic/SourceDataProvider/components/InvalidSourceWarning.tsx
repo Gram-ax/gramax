@@ -41,12 +41,12 @@ const InvalidSourceWarning = ({ small, source, modalTrigger = true }: InvalidSou
 
 	return (
 		<CreateStorage
-			trigger={<div>{trigger}</div>}
+			data={data}
 			onSubmit={async (data: SourceData) => {
 				await validateSource(data, sourceDatas);
 			}}
-			data={data}
 			sourceType={data?.sourceType}
+			trigger={<div>{trigger}</div>}
 		/>
 	);
 };

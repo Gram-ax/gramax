@@ -1,6 +1,6 @@
 import { useCatalogActionsContext } from "@components/Actions/CatalogActions/CatalogActionsContext";
-import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import AddToFavoriteButton from "@ext/article/Favorite/components/AddToFavoriteButton";
+import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import { ReactNode, useCallback } from "react";
 
 interface FavoriteMenuItemProps {

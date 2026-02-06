@@ -1,16 +1,20 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import localUser from "@ext/security/logic/User/localUser";
-import ApiRequest from "../../../../logic/Api/ApiRequest";
-import ApiResponse from "../../../../logic/Api/ApiResponse";
+import type ApiRequest from "../../../../logic/Api/ApiRequest";
+import type ApiResponse from "../../../../logic/Api/ApiResponse";
 import { apiUtils } from "../../../../logic/Api/apiUtils";
-import Path from "../../../../logic/FileProvider/Path/Path";
+import type Path from "../../../../logic/FileProvider/Path/Path";
 import ApiUrlCreator from "../../../../ui-logic/ApiServices/ApiUrlCreator";
-import Cookie from "../../../cookie/Cookie";
-import User from "../User/User";
-import { AuthProvider } from "./AuthProvider";
+import type Cookie from "../../../cookie/Cookie";
+import type User from "../User/User";
+import type { AuthProvider } from "./AuthProvider";
 
 class EnvAuth implements AuthProvider {
-	constructor(private _basePath: Path, private _login: string, private _password: string) {}
+	constructor(
+		private _basePath: Path,
+		private _login: string,
+		private _password: string,
+	) {}
 
 	login(req: ApiRequest, res: ApiResponse): void | Promise<void> {
 		if (!req.body.login || !req.body.password) {
@@ -42,11 +46,11 @@ class EnvAuth implements AuthProvider {
 		res.send({});
 	}
 
-	mailSendOTP(req: ApiRequest, res: ApiResponse) {
+	mailSendOTP(_, res: ApiResponse) {
 		apiUtils.sendError(res, new DefaultError("Mail send OTP not implemented"), 501);
 	}
 
-	mailLoginOTP(req: ApiRequest, res: ApiResponse) {
+	mailLoginOTP(_, res: ApiResponse) {
 		apiUtils.sendError(res, new DefaultError("Mail login OTP not implemented"), 501);
 	}
 }

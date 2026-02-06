@@ -1,8 +1,8 @@
+import { useRouter } from "@core/Api/useRouter";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { useRouter } from "@core/Api/useRouter";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
 import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
 import getUrlFromShareData from "@ext/git/core/GitPathnameHandler/clone/logic/getUrlFromShareData";

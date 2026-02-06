@@ -1,7 +1,7 @@
-import { findParentNode } from "@tiptap/core";
-import { Selection } from "@tiptap/pm/state";
 import { editName as BLOCK_FIELD } from "@ext/markdown/elements/blockContentField/consts";
 import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
+import { findParentNode } from "@tiptap/core";
+import { Selection } from "@tiptap/pm/state";
 
 const isTemplateEditableBlock = (selection: Selection) => {
 	const blockField = findParentNode((node) => node.type.name === BLOCK_FIELD || node.type.name === BLOCK_PROPERTY)(

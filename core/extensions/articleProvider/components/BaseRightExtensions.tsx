@@ -63,9 +63,9 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 						<TooltipTrigger asChild>
 							<IconButton
 								icon="ellipsis-vertical"
-								variant="text"
 								size="xs"
 								style={{ overflow: "visible" }}
+								variant="text"
 							/>
 						</TooltipTrigger>
 						<TooltipContent>{t("actions")}</TooltipContent>
@@ -74,18 +74,18 @@ const BaseRightExtensions = (props: BaseRightExtensionsProps) => {
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">
 				<EditMarkdownTrigger
-					loadContent={loadContent}
-					saveContent={saveContent}
 					isCurrentItem
 					isTemplate={false}
+					loadContent={loadContent}
+					saveContent={saveContent}
 				/>
 				{items?.(id)}
 				<Delete
+					confirmDeleteText={confirmDeleteText}
 					id={id}
 					onDelete={onDelete}
-					providerType={providerType}
 					preDelete={preDelete}
-					confirmDeleteText={confirmDeleteText}
+					providerType={providerType}
 				/>
 			</DropdownMenuContent>
 		</DropdownMenu>

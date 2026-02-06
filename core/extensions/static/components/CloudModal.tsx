@@ -1,12 +1,12 @@
-import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import UploadCloud from "@ext/static/components/UploadCloud";
-import LoginGoogle from "@ext/static/components/LoginGoogle";
-import Uploaded from "@ext/static/components/Uploaded";
-import { useEffect, useRef, useState } from "react";
-import { Modal, ModalContent } from "@ui-kit/Modal";
 import CloudStateService from "@core-ui/ContextServices/CloudState";
 import useWatch from "@core-ui/hooks/useWatch";
+import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import LoginGoogle from "@ext/static/components/LoginGoogle";
+import UploadCloud from "@ext/static/components/UploadCloud";
+import Uploaded from "@ext/static/components/Uploaded";
+import { Modal, ModalContent } from "@ui-kit/Modal";
+import { useEffect, useRef, useState } from "react";
 
 enum CloudModalState {
 	loggedIn = "loggedIn",
@@ -37,12 +37,12 @@ const CloudModal = ({ onClose }: { onClose: () => void }) => {
 
 	return (
 		<Modal
-			open
 			onOpenChange={(isOpen) => {
 				if (!isOpen) {
 					onClose();
 				}
 			}}
+			open
 		>
 			<ModalContent data-modal-root>
 				{state === CloudModalState.notLoggedIn && (

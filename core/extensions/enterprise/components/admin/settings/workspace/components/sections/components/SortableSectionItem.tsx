@@ -36,11 +36,11 @@ export function SortableSectionItem({ sectionKey, section, onEdit, onDelete }: S
 
 	return (
 		<div
-			ref={setNodeRef}
-			style={style}
 			className={`relative border rounded-lg p-4 bg-primary/[0.03] hover:bg-primary/[0.03] transition-colors cursor-grab active:cursor-grabbing ${
 				isDragging ? "opacity-50 shadow-soft-lg" : ""
 			}`}
+			ref={setNodeRef}
+			style={style}
 			{...listeners}
 			{...attributes}
 		>
@@ -49,7 +49,7 @@ export function SortableSectionItem({ sectionKey, section, onEdit, onDelete }: S
 					<div className="flex items-center gap-2 mb-2">
 						{section.icon && (
 							<div className="text-lg">
-								<Icon icon={section.icon} size="md" className="text-primary" />
+								<Icon className="text-primary" icon={section.icon} size="md" />
 							</div>
 						)}
 						<h3 className="text-lg font-medium">{section.title}</h3>
@@ -86,7 +86,7 @@ export function SortableSectionItem({ sectionKey, section, onEdit, onDelete }: S
 								<Icon icon="pencil" />
 								{t("edit2")}
 							</DropdownMenuItem>
-							<DropdownMenuItem type="danger" onSelect={handleDeleteClick}>
+							<DropdownMenuItem onSelect={handleDeleteClick} type="danger">
 								<Icon icon="trash" />
 								{t("delete")}
 							</DropdownMenuItem>

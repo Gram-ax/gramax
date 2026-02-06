@@ -4,6 +4,7 @@ import t from "@ext/localization/locale/translate";
 import {
 	AudioProcessingApiClient,
 	CheckAuthResponse,
+	CheckResponse,
 	GenerateResponse,
 	PrettifyResponse,
 	RequestOptions,
@@ -11,7 +12,6 @@ import {
 	TranscribeRequest,
 	TranscribeResponse,
 } from "@ics/gx-vector-search";
-import { CheckResponse } from "@ics/gx-vector-search";
 
 class DefaultGramaxAi implements AiProvider {
 	private _textGenApiClient: TextGenerationApiClient;

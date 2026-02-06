@@ -1,17 +1,17 @@
+import type { PaginateIntoPagesOptions } from "@ext/print/types";
 import { ArticlePreview, PdfExportProgress, PdfPrintParams, PrintableContent } from "@ext/print/types";
-import { initTocPageContent } from "./tocPage/initTocPageContent";
-import { createChunkScheduler, nextFrame } from "./pagination/scheduling";
-import { createPage, PAGE_CLASS } from "./pagination/pageElements";
-import { getTitlePageContent, TITLE_PAGE_CLASS } from "./pagination/titlePage";
+import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
+import printHandlers from "@ext/print/utils/pagination/nodeHandlers";
 import { ControlInfo } from "@ext/print/utils/pagination/types";
 // import { countTopLevelTableRows } from "../../markdown/elements/table/print/tablePagination";
 import { throwIfAborted } from "./pagination/abort";
-import { createProgressTracker } from "./pagination/progress";
-import type { PaginateIntoPagesOptions } from "@ext/print/types";
-import type { ProgressTracker } from "./pagination/progress";
-import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import PagePaginator from "./pagination/PagePaginator";
-import printHandlers from "@ext/print/utils/pagination/nodeHandlers";
+import { createPage, PAGE_CLASS } from "./pagination/pageElements";
+import type { ProgressTracker } from "./pagination/progress";
+import { createProgressTracker } from "./pagination/progress";
+import { createChunkScheduler, nextFrame } from "./pagination/scheduling";
+import { getTitlePageContent, TITLE_PAGE_CLASS } from "./pagination/titlePage";
+import { initTocPageContent } from "./tocPage/initTocPageContent";
 
 async function paginateIntoPages(
 	source: HTMLElement,

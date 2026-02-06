@@ -1,12 +1,12 @@
+import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
+import useWatch from "@core-ui/hooks/useWatch";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import TableHelper from "@ext/markdown/elements/table/edit/components/Helpers/TableHelper";
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
+import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
 import { NodeViewProps, useReactNodeView } from "@tiptap/react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import useWatch from "@core-ui/hooks/useWatch";
-import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
 
 const TableComponent = (props: NodeViewProps) => {
 	const { node, getPos, editor } = props;
@@ -42,10 +42,10 @@ const TableComponent = (props: NodeViewProps) => {
 	const table = (
 		<TableWrapper>
 			<table
-				data-qa={"table"}
-				ref={nodeViewContentRef}
 				className="tableComponent"
 				data-header={node.attrs.header}
+				data-qa={"table"}
+				ref={nodeViewContentRef}
 			>
 				<ColGroup content={node.firstChild} parentElement={parentElement} />
 			</table>
@@ -54,8 +54,8 @@ const TableComponent = (props: NodeViewProps) => {
 
 	if (!editor.isEditable) {
 		return (
-			<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
-				<StickyTableWrapper tableRef={tableRef} disableWrapper={isDisabledWrapper}>
+			<NodeViewContextableWrapper props={props} ref={hoverElementRef}>
+				<StickyTableWrapper disableWrapper={isDisabledWrapper} tableRef={tableRef}>
 					{table}
 				</StickyTableWrapper>
 			</NodeViewContextableWrapper>
@@ -63,14 +63,14 @@ const TableComponent = (props: NodeViewProps) => {
 	}
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElementRef} props={props}>
+		<NodeViewContextableWrapper props={props} ref={hoverElementRef}>
 			<TableHelper
-				tableRef={tableRef}
+				disabledWrapper={isDisabledWrapper}
+				editor={editor}
+				getPos={getPos}
 				hoverElementRef={hoverElementRef}
 				node={node}
-				getPos={getPos}
-				editor={editor}
-				disabledWrapper={isDisabledWrapper}
+				tableRef={tableRef}
 			>
 				{table}
 			</TableHelper>

@@ -9,10 +9,10 @@ import { Category } from "@core/FileStructue/Category/Category";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import SitePresenter, { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
+import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import assert from "assert";
 import { ExtendedArticlePageData, InitialArticleData } from "./ArticleTypes";
 import { getItemLinks, replacePathIfNeeded } from "./NavigationUtils";
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 
 export type StaticArticlePageData = {
 	articleContentRender: string;
@@ -25,7 +25,10 @@ export interface Options {
 }
 
 export class ArticleDataService {
-	constructor(private readonly _app: Application, private readonly _options: Options) {}
+	constructor(
+		private readonly _app: Application,
+		private readonly _options: Options,
+	) {}
 
 	async getArticlesPageData(
 		context: Context,
@@ -63,7 +66,7 @@ export class ArticleDataService {
 
 		const nav = await sitePresenter.getCatalogNav(catalog, "");
 
-		if (!catalog.props.resolvedFilterProperty) await getArticle404InitialData();
+		if (!catalog.props.resolvedFilterPropertyValue) await getArticle404InitialData();
 
 		const defaultArticlePageData = await this._createArticlePageData(
 			defaultArticle,
@@ -122,9 +125,7 @@ export class ArticleDataService {
 
 	private async _getCatalogProps(sitePresenter: SitePresenter, catalog: Catalog) {
 		const props = await this._getAnonymizedCatalogProps(sitePresenter, catalog);
-		props.link.pathname = RouterPathProvider.getReadOnlyPathname(
-			RouterPathProvider.getLogicPath(props.link.pathname),
-		);
+		props.link.pathname = RouterPathProvider.getLogicPath(props.link.pathname);
 		return props;
 	}
 

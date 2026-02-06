@@ -100,18 +100,18 @@ const SnippetsList = ({ show, snippets, selectedID, apiUrlCreator, tabWrapperRef
 
 	return (
 		<ItemList
+			items={Array.from(snippets.values())}
+			noItemsText={t("no-snippets")}
+			onDelete={onDelete}
+			onItemClick={onItemClick}
+			onMarkdownChange={onMarkdownChange}
+			preDelete={preDelete}
+			providerType="snippet"
+			rightActions={rightActions}
+			selectedItemId={selectedID}
+			setContentHeight={setHeight}
 			show={show}
 			tabWrapperRef={tabWrapperRef}
-			setContentHeight={setHeight}
-			providerType="snippet"
-			items={Array.from(snippets.values())}
-			selectedItemId={selectedID}
-			onDelete={onDelete}
-			noItemsText={t("no-snippets")}
-			onMarkdownChange={onMarkdownChange}
-			onItemClick={onItemClick}
-			rightActions={rightActions}
-			preDelete={preDelete}
 		/>
 	);
 };

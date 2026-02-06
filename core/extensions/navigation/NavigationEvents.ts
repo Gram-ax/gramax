@@ -1,4 +1,4 @@
-import { createEventEmitter, UnsubscribeToken, type Event } from "@core/Event/EventEmitter";
+import { createEventEmitter, type Event, UnsubscribeToken } from "@core/Event/EventEmitter";
 
 export type NavigationEvents = Event<"item-click", { path: string; mutable: { preventGoto?: boolean } }> &
 	Event<"item-create", { path: string; mutable: { preventGoto?: boolean } }> &

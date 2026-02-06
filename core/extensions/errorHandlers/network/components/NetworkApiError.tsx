@@ -10,16 +10,16 @@ const NetworkApiErrorComponent = ({ error: defaultError, onCancelClick }: Compon
 	const error = defaultError as NetworkApiError;
 	return (
 		<InfoModalForm
-			onCancelClick={onCancelClick}
-			title={error.title || t("app.error.something-went-wrong")}
 			icon={{ code: "circle-x", color: "var(--color-danger)" }}
 			isWarning={false}
+			onCancelClick={onCancelClick}
+			title={error.title || t("app.error.something-went-wrong")}
 		>
 			<div className={"article"}>
 				<p>
 					<span dangerouslySetInnerHTML={{ __html: t("app.error.command-failed.body") }} />
 				</p>
-				<Note title={"Response"} collapsed={true} type={NoteType.hotfixes}>
+				<Note collapsed={true} title={"Response"} type={NoteType.hotfixes}>
 					<CodeBlock value={JSON.stringify(error.props.errorJson, null, 2)} />
 				</Note>
 			</div>

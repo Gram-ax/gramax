@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import t from "@ext/localization/locale/translate";
-import { noteIcons, NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import { NoteType, noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import { Editor } from "@tiptap/core";
 import { Node } from "@tiptap/pm/model";
 import {
@@ -74,9 +74,9 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 		<>
 			<ActionButton
 				icon="heading"
+				onClick={toggleHeadEditor}
 				selected={showHeadEditor}
 				tooltipText={t("title")}
-				onClick={toggleHeadEditor}
 			/>
 			<DropdownMenu>
 				<DropdownMenuTrigger>
@@ -84,9 +84,9 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 				</DropdownMenuTrigger>
 				<DropdownMenuContent>
 					<DropdownMenuRadioGroup
-						value={node.attrs.type}
-						onValueChange={updateType}
 						indicatorIconPosition="end"
+						onValueChange={updateType}
+						value={node.attrs.type}
 					>
 						{Object.values(NoteType).map(
 							(value, key) =>
@@ -106,10 +106,10 @@ const NoteMenuActions = (props: NoteMenuActionsProps) => {
 				</DropdownMenuContent>
 			</DropdownMenu>
 			<ActionButton
-				selected={node.attrs.collapsed}
 				icon={"chevrons-down-up"}
-				tooltipText={t("collapse")}
 				onClick={toggleCollapse}
+				selected={node.attrs.collapsed}
+				tooltipText={t("collapse")}
 			/>
 		</>
 	);

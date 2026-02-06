@@ -1,9 +1,9 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Context from "@core/Context/Context";
-import { Command } from "../../../types/Command";
 import DefaultGramaxAi from "@ext/ai/logic/GramaxAi";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { Command } from "../../../types/Command";
 
 const serverAvailable: Command<{ ctx: Context; apiUrl: string }, boolean> = Command.create({
 	path: "ai/server/checkServer",

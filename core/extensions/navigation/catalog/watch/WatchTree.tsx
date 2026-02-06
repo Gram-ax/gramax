@@ -1,20 +1,20 @@
 import Icon from "@components/Atoms/Icon";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import EditMenu from "@ext/item/EditMenu";
+import t from "@ext/localization/locale/translate";
+import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
+import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
+import { Button } from "@ui-kit/Button";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ArticleLink, CategoryLink, ItemLink, LinkFilter } from "../../NavigationLinks";
 import IconExtension from "../main/render/IconExtension";
 import LevNavItem from "../main/render/Item";
-import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
-import { Button } from "@ui-kit/Button";
-import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
-import t from "@ext/localization/locale/translate";
 
 const LevNavWatchTree = React.memo(
 	({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
 		return (
 			<div>
-				<Tree items={items} level={0} closeNavigation={closeNavigation} />
+				<Tree closeNavigation={closeNavigation} items={items} level={0} />
 			</div>
 		);
 	},
@@ -39,15 +39,15 @@ const Tree = ({
 		<ul className={level === 0 ? "tree-root" : ""}>
 			{items.map((item, key) => {
 				return !isFiltered || isVisible(filter, item as ArticleLink, key, items.length) ? (
-					<Item closeNavigation={closeNavigation} item={item} level={level} key={key} />
+					<Item closeNavigation={closeNavigation} item={item} key={key} level={level} />
 				) : null;
 			})}
 			{filter && isFiltered ? (
 				<li onClick={() => setFiltered(false)}>
 					<LevNavItem
-						onClick={closeNavigation}
-						level={level}
 						leftExtensions={<Icon code="ellipsis" svgStyle={{ fill: "currentColor" }} />}
+						level={level}
+						onClick={closeNavigation}
 					/>
 				</li>
 			) : null}
@@ -99,40 +99,40 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 	return (
 		<li ref={ref}>
 			<LevNavItem
-				item={item}
-				level={level}
+				isCategory={isCategory}
 				isHover={isHover}
 				isOpen={isOpen}
-				isCategory={isCategory}
+				item={item}
 				leftExtensions={<IconExtension item={item} />}
+				level={level}
+				onClick={handleClick}
+				onToggle={onToggle}
 				rightExtensions={
 					<NavigationDropdown
 						style={{ marginRight: "-3px" }}
 						tooltipText={t("article.actions.title")}
 						trigger={
-							<Button variant="text" size="xs" className="p-0 h-full">
+							<Button className="p-0 h-full" size="xs" variant="text">
 								<Icon code="ellipsis-vertical" />
 							</Button>
 						}
 					>
 						<EditMenu
-							itemLink={item}
 							isCategory={isCategory}
-							setItemLink={() => {}}
-							onOpen={() => setIsHover(true)}
+							itemLink={item}
 							onClose={() => setIsHover(false)}
+							onOpen={() => setIsHover(true)}
+							setItemLink={() => {}}
 						/>
 					</NavigationDropdown>
 				}
-				onClick={handleClick}
-				onToggle={onToggle}
 			/>
 			{isCategory && isOpen && (
 				<Tree
+					closeNavigation={closeNavigation}
+					filter={(item as CategoryLink).filter}
 					items={(item as CategoryLink).items}
 					level={level + 1}
-					filter={(item as CategoryLink).filter}
-					closeNavigation={closeNavigation}
 				/>
 			)}
 		</li>

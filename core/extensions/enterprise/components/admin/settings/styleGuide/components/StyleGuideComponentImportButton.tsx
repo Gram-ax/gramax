@@ -12,9 +12,8 @@ export const StyleGuideComponentImportButton = ({
 	return (
 		<div className="relative cursor-pointer">
 			<Input
-				className="opacity-0 cursor-pointer absolute w-full h-full top-0 file:cursor-pointer z-10"
-				type="file"
 				accept=".json"
+				className="opacity-0 cursor-pointer absolute w-full h-full top-0 file:cursor-pointer z-10"
 				onChange={async (e) => {
 					try {
 						const file = e.target.files?.[0];
@@ -34,8 +33,9 @@ export const StyleGuideComponentImportButton = ({
 						console.error(error);
 					}
 				}}
+				type="file"
 			/>
-			<Button variant="outline" className="relative">
+			<Button className="relative" variant="outline">
 				{t("enterprise.admin.check.import-rules")}
 			</Button>
 		</div>

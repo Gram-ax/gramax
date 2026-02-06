@@ -1,9 +1,9 @@
 import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import FilterMenu from "@ext/markdown/elements/view/edit/components/Helpers/FilterMenu";
 import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/ViewButton";
 import { Property, PropertyTypes, PropertyValue, SystemProperties } from "@ext/properties/models";
 import { ReactNode, useCallback, useMemo } from "react";
-import FilterMenu from "@ext/markdown/elements/view/edit/components/Helpers/FilterMenu";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type Mode = "single" | "multiple";
 
@@ -177,15 +177,15 @@ const AddFilter = (props: AddFilterProps) => {
 
 	return (
 		<div className="view-filter-row">
-			<ViewButton icon={icon} tooltipText={tooltipText} empty={!noAssignedProperties.length}>
+			<ViewButton empty={!noAssignedProperties.length} icon={icon} tooltipText={tooltipText}>
 				<FilterMenu
+					availableValues={availableValues}
+					closeOnSelection={closeOnSelection}
+					customPropertyMenu={customPropertyMenu}
+					ignoreEmpty={ignoreEmpty}
+					mode={mode}
 					noAssignedProperties={noAssignedProperties}
 					updateFilter={updateFilter}
-					customPropertyMenu={customPropertyMenu}
-					closeOnSelection={closeOnSelection}
-					ignoreEmpty={ignoreEmpty}
-					availableValues={availableValues}
-					mode={mode}
 				/>
 			</ViewButton>
 		</div>

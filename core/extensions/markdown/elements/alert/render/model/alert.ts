@@ -1,5 +1,5 @@
-import Tag from "../../../../core/render/logic/Markdoc/src/ast/tag";
 import { Schema, SchemaType } from "@ext/markdown/core/render/logic/Markdoc";
+import Tag from "../../../../core/render/logic/Markdoc/src/ast/tag";
 
 export const alert: Schema = {
 	render: "Alert",

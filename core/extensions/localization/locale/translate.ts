@@ -1,6 +1,6 @@
 import LanguageService from "@core-ui/ContextServices/Language";
 import { getContext } from "../../../../apps/next/logic/Context/getContext";
-import UiLanguage, { resolveLanguage, type ContentLanguage } from "../core/model/Language";
+import UiLanguage, { type ContentLanguage, resolveLanguage } from "../core/model/Language";
 import en from "./locale.en";
 import ru from "./locale.ru";
 export type FormDefinition = {

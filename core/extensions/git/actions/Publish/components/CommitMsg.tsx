@@ -85,28 +85,28 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 	return (
 		<div className={classNames(className, {}, ["commit-action"])}>
 			<Input
-				style={{ fontSize: "1em" }}
-				ref={ref}
+				disabled={disableCommitInput}
 				isCode
-				value={typeof commitMessageValue === "string" ? commitMessageValue : commitMessagePlaceholder}
-				onFocus={(e) => {
-					if (e.currentTarget.value == commitMessagePlaceholder) e.currentTarget.select();
-				}}
 				onChange={(e) => {
 					const message = e.currentTarget.value;
 					onCommitMessageChange(message);
 				}}
-				disabled={disableCommitInput}
+				onFocus={(e) => {
+					if (e.currentTarget.value == commitMessagePlaceholder) e.currentTarget.select();
+				}}
 				placeholder={t("commit-message")}
+				ref={ref}
+				style={{ fontSize: "1em" }}
+				value={typeof commitMessageValue === "string" ? commitMessageValue : commitMessagePlaceholder}
 			/>
 			<ButtonWrapper>
 				<Button
-					onClick={onPublishClick}
+					buttonStyle={buttonStyle}
 					disabled={disablePublishButton || !canPush}
 					fullWidth
-					textSize={TextSize.M}
 					isEmUnits
-					buttonStyle={buttonStyle}
+					onClick={onPublishClick}
+					textSize={TextSize.M}
 				>
 					<ButtonContentWrapper>
 						{isLoading && <Spinner height={12} width={12} />}

@@ -6,12 +6,12 @@ export const startMermaid = `sequenceDiagram
 
 export const mermaidIcon = (
 	<svg
-		xmlns="http://www.w3.org/2000/svg"
-		width="16px"
 		height="16px"
-		viewBox="0 0 491 491"
-		version="1.1"
 		style={{ fillRule: "evenodd", clipRule: "evenodd", strokeLinejoin: "round", strokeMiterlimit: 2 }}
+		version="1.1"
+		viewBox="0 0 491 491"
+		width="16px"
+		xmlns="http://www.w3.org/2000/svg"
 	>
 		<path
 			d="M490.16,84.61C490.16,37.912 452.248,0 405.55,0L84.61,0C37.912,0 0,37.912 0,84.61L0,405.55C0,452.248 37.912,490.16 84.61,490.16L405.55,490.16C452.248,490.16 490.16,452.248 490.16,405.55L490.16,84.61Z"

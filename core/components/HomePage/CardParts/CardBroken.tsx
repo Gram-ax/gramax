@@ -11,7 +11,7 @@ import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 import useStorage from "@ext/storage/logic/utils/useStorage";
 import { Loader } from "@ui-kit/Loader";
 import { ProgressBlockTemplate } from "@ui-kit/Progress";
-import { useMemo, type HTMLAttributes } from "react";
+import { type HTMLAttributes, useMemo } from "react";
 
 export type CloneProgressProps = {
 	name: string;
@@ -67,11 +67,11 @@ const CardBroken = ({ link, ...props }: CardBrokenProps) => {
 		>
 			<ProgressBlockTemplate
 				data-qa="loader"
-				value={42}
-				size="sm"
 				onCancel={() => removeCatalog()}
 				onRetry={() => startClone()}
+				size="sm"
 				title={t("git.clone.error.title")}
+				value={42}
 			/>
 		</div>
 	);

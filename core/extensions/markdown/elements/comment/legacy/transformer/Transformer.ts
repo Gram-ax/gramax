@@ -1,7 +1,7 @@
 import { Comment, CommentBlock } from "@core-ui/CommentBlock";
 import { JSONContent } from "@tiptap/core";
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 import { dateNormalize, dateScreening } from "../../../../core/edit/logic/Formatter/Utils/Date";
+import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 
 export const transformNodeToModel = async (node: any, context: ParserContext): Promise<CommentBlock> => {
 	const newNode = JSON.parse(JSON.stringify(node));
@@ -63,7 +63,7 @@ const _getNodeFromComment = (comment: Comment, isComment: boolean) => {
 			dateTime: dateScreening(comment.dateTime),
 			isResolved: false,
 		},
-		content: comment.content,
+		content: comment.content as JSONContent[],
 	};
 	if (!isComment) delete node.attrs.isResolved;
 

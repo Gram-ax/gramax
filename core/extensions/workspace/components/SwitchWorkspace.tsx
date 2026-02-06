@@ -1,3 +1,5 @@
+import { topMenuItemClassName } from "@components/HomePage/TopMenu";
+import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -5,15 +7,15 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import {
-	useSyncableWorkspaces,
 	type UseSyncableWorkspacesReturn,
+	useSyncableWorkspaces,
 } from "@core-ui/ContextServices/SyncCount/useSyncableWorkspaces";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { Admin } from "@ext/enterprise/components/admin/Admin";
+import type { Admin } from "@ext/enterprise/components/admin/Admin";
 import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/components/useEditEnterpriseWorkspace";
 import t, { pluralize } from "@ext/localization/locale/translate";
-import CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
+import type CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import {
 	DropdownIndicator,
@@ -27,20 +29,20 @@ import {
 import { Icon } from "@ui-kit/Icon";
 import { MenuItemInteractiveTemplate } from "@ui-kit/MenuItem";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ComponentProps, useState } from "react";
+import { type ComponentProps, useState } from "react";
 
 const formatTooltip = (
 	workspace: WorkspacePath,
 	currentWorkspace: WorkspacePath,
 	data: UseSyncableWorkspacesReturn,
 ) => {
-	if (workspace != currentWorkspace && !data.syncableWorkspaces[workspace]) return null;
+	if (workspace !== currentWorkspace && !data.syncableWorkspaces[workspace]) return null;
 
 	const count = data.syncableWorkspaces[workspace];
 	const workspaceCount = Object.keys(data.syncableWorkspaces).length;
 	const totalCount = Object.values(data.syncableWorkspaces).reduce((acc, count) => acc + count, 0);
 
-	if (currentWorkspace == workspace) {
+	if (currentWorkspace === workspace) {
 		if (data.isCurrentWorkspaceSyncable && data.syncableWorkspacesCount === 1) {
 			return pluralize(count, {
 				one: t("workspace.tooltip.only-current.one"),
@@ -74,7 +76,7 @@ const formatTooltip = (
 		}
 
 		if (!data.isCurrentWorkspaceSyncable) {
-			if (workspaceCount == 0) return null;
+			if (workspaceCount === 0) return null;
 
 			return pluralize(totalCount, {
 				one: t("workspace.tooltip.excluding-current.one").replace("{{workspace-count}}", workspaceCount),
@@ -123,7 +125,7 @@ const WorkspaceItem = ({
 	});
 	const disableEnterpriseEdit = gesUrl && !editInfo?.permitted;
 
-	const workspaceName = name?.length > 20 ? name.slice(0, 20) + "..." : name;
+	const workspaceName = name?.length > 20 ? `${name.slice(0, 20)}...` : name;
 
 	return (
 		<DropdownMenuItem
@@ -136,15 +138,8 @@ const WorkspaceItem = ({
 			}}
 		>
 			<MenuItemInteractiveTemplate
-				icon={icon}
-				indicator={showIndicator}
-				indicatorClassName="bg-status-error"
-				text={workspaceName}
-				indicatorTooltip={showIndicator && indicatorText}
-				isSelected={path === currentWorkspace.path}
-				buttonIcon={isLoading ? "loader" : disableEnterpriseEdit ? "pen-off" : "pen"}
 				buttonDisabled={disableEnterpriseEdit}
-				disabledTooltip={editInfo?.tooltip}
+				buttonIcon={isLoading ? "loader" : disableEnterpriseEdit ? "pen-off" : "pen"}
 				buttonOnClick={(e) => {
 					setDropdownOpen(false);
 					e.stopPropagation();
@@ -163,6 +158,13 @@ const WorkspaceItem = ({
 						workspace,
 					});
 				}}
+				disabledTooltip={editInfo?.tooltip}
+				icon={icon}
+				indicator={showIndicator}
+				indicatorClassName="bg-status-error"
+				indicatorTooltip={showIndicator && indicatorText}
+				isSelected={path === currentWorkspace.path}
+				text={workspaceName}
 			/>
 		</DropdownMenuItem>
 	);
@@ -179,13 +181,14 @@ const SwitchWorkspace = () => {
 	const showDot = syncableWorkspaces.hasSyncableWorkspaces;
 
 	return (
-		<DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+		<DropdownMenu onOpenChange={setDropdownOpen} open={dropdownOpen}>
 			{isMobile ? (
 				<DropdownMenuTriggerButton
-					variant="ghost"
-					className="relative aspect-square p-2"
-					size="lg"
+					className={classNames("relative aspect-square p-2", {}, [topMenuItemClassName])}
 					data-qa="qa-clickable"
+					data-testid="switch-workspace"
+					size="lg"
+					variant="ghost"
 				>
 					{showDot && (
 						<DropdownIndicator className="h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error left-[23px] top-1" />
@@ -193,7 +196,12 @@ const SwitchWorkspace = () => {
 					<Icon icon="layers" size="lg" />
 				</DropdownMenuTriggerButton>
 			) : (
-				<DropdownMenuTriggerButton variant="ghost" data-qa="qa-clickable" className="relative pl-3 pr-2">
+				<DropdownMenuTriggerButton
+					className={classNames("relative pl-3 pr-2", {}, [topMenuItemClassName])}
+					data-qa="qa-clickable"
+					data-testid="switch-workspace"
+					variant="ghost"
+				>
 					{showDot && (
 						<Tooltip>
 							<TooltipTrigger asChild>
@@ -219,12 +227,12 @@ const SwitchWorkspace = () => {
 
 						return (
 							<WorkspaceItem
-								showIndicator={!!tooltip}
+								currentWorkspace={currentWorkspace}
 								indicatorText={tooltip}
 								key={workspace.path}
-								workspace={workspace}
-								currentWorkspace={currentWorkspace}
 								setDropdownOpen={setDropdownOpen}
+								showIndicator={!!tooltip}
+								workspace={workspace}
 							/>
 						);
 					})}

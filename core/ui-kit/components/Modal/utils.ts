@@ -1,4 +1,4 @@
-import { MouseEvent, KeyboardEvent, useEffect, useRef } from "react";
+import { KeyboardEvent, MouseEvent, useEffect, useRef } from "react";
 
 export function isFromModal(e: MouseEvent | KeyboardEvent) {
 	const path = (e?.nativeEvent as any)?.composedPath?.() as HTMLElement[] | undefined;

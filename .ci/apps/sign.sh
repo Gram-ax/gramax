@@ -29,7 +29,7 @@ sign_win() {
     fi
 }
 
-sign_containers() {
+sign_containers_legacy() {
     if [[ -n "${KMS_AWS_KEY_ARN}" ]]; then # -n "${NEED_TO_SIGN}" &&
         echo "Signing container"
         digest=$(jq -r '."containerimage.digest"' ../../build-metadata.json)
@@ -50,12 +50,61 @@ sign_containers() {
     fi
 }
 
+
+sign_containers() {
+    if [[ -z "${KMS_AWS_KEY_ARN}" ]]; then
+        echo "Skipping container signing because KMS_AWS_KEY_ARN is not set."
+        return 0
+    fi
+
+    echo "Preparing container signing"
+
+    TAGS=()
+
+    if [[ "$CI_COMMIT_REF_NAME" == "develop" ]]; then
+        TAGS+=("${APP_VERSION}-dev" "latest-dev")
+    fi
+
+    if [[ "$CI_COMMIT_REF_NAME" == "master" ]]; then
+        TAGS+=("${APP_VERSION}" "latest" "prod")
+    fi
+
+    for TAG in "${TAGS[@]}"; do
+        IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${TAG}"
+
+        echo "Processing image: ${IMAGE}"
+
+        DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "${IMAGE}" 2>/dev/null | cut -d@ -f2)
+
+        if [[ -z "${DIGEST}" ]]; then
+            echo "Failed to resolve digest for ${IMAGE}, skipping"
+            continue
+        fi
+
+        FULL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE_NAME}@${DIGEST}"
+
+        if cosign verify --key "awskms:///${KMS_AWS_KEY_ARN}" "${FULL_IMAGE}" >/dev/null 2>&1; then
+            echo "Image already signed: ${FULL_IMAGE}"
+            continue
+        fi
+
+        echo "Signing image: ${FULL_IMAGE}"
+
+        AWS_SECRET_ACCESS_KEY=${KMS_AWS_SECRET_ACCESS_KEY} \
+        AWS_ACCESS_KEY_ID=${KMS_AWS_ACCESS_KEY_ID} \
+        AWS_DEFAULT_REGION=${KMS_AWS_DEFAULT_REGION} \
+        cosign sign -y --key "awskms:///${KMS_AWS_KEY_ARN}" "${FULL_IMAGE}" | jq
+    done
+}
+
+
 for arg in "$@"; do
     case "$arg" in
         "--macos") sign_macos_arm ;;
         "--macos-intel") sign_macos_intel ;;
         "--win") sign_win "$2" ;;
         "--android") sign_android ;;
+        "--container-legacy") sign_containers_legacy;;
         "--container") sign_containers;;
     esac
 done

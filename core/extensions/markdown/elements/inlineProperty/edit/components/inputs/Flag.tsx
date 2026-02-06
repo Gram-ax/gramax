@@ -22,7 +22,7 @@ const Flag = ({ value = false, onChange, preSubmit, id }: FlagProps) => {
 	};
 
 	return (
-		<DropdownMenuRadioGroup value={valueString} onValueChange={onClick}>
+		<DropdownMenuRadioGroup onValueChange={onClick} value={valueString}>
 			<DropdownMenuRadioItem value="true">{t("yes")}</DropdownMenuRadioItem>
 			<DropdownMenuRadioItem value="false">{t("no")}</DropdownMenuRadioItem>
 		</DropdownMenuRadioGroup>

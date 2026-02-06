@@ -1,3 +1,7 @@
+import { useRouter } from "@core/Api/useRouter";
+import { UnsubscribeToken } from "@core/Event/EventEmitter";
+import Path from "@core/FileProvider/Path/Path";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -7,10 +11,6 @@ import PagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useWatch from "@core-ui/hooks/useWatch";
-import { useRouter } from "@core/Api/useRouter";
-import { UnsubscribeToken } from "@core/Event/EventEmitter";
-import Path from "@core/FileProvider/Path/Path";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
@@ -31,7 +31,6 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 	const isSourceValid = useIsSourceDataValid();
 	const pageDataContext = PageDataContextService.value;
 	const { isArticle } = pageDataContext;
-	const isEditorPathname = RouterPathProvider.isEditorPathname(router.path);
 	const haveBeenFirstLoad = useRef(false);
 
 	useOnPathnameUpdateBranch();
@@ -41,7 +40,13 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 	}, [isFirstLoad]);
 
 	useEffect(() => {
-		if (!isArticle || !isEditorPathname || !isRepoOk || !haveBeenFirstLoad.current) return;
+		if (!isArticle || !isRepoOk || !haveBeenFirstLoad.current) return;
+
+		const isEditorPathname = RouterPathProvider.isEditorPathname(router.path);
+		if (!isEditorPathname) return;
+
+		const routerPath = new Path(router.path + router.hash).removeExtraSymbols;
+
 		haveBeenFirstLoad.current = false;
 
 		const handler = async () => {
@@ -55,7 +60,17 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 			if (!res.ok) return exit();
 			const mergeData = await res.json();
 
-			const checkoutData = await getPathnameCheckoutData(apiUrlCreator, new Path(router.path).removeExtraSymbols);
+			const pathnameData = RouterPathProvider.parsePath(routerPath);
+			const checkoutData = await getPathnameCheckoutData(apiUrlCreator, pathnameData.refname);
+
+			// restore branch to current branch in router
+			if (checkoutData.haveToCheckout) {
+				const newPath = RouterPathProvider.updatePathnameData(pathnameData, {
+					refname: checkoutData.currentBranch,
+				}).value;
+
+				router.pushPath(newPath);
+			}
 
 			if (!mergeData || !mergeData.ok) {
 				tryOpenMergeConflict({
@@ -64,7 +79,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 						? t("git.merge.confirm.catalog-conflict-state-with-checkout").replace(
 								"{{branchToCheckout}}",
 								checkoutData.branchToCheckout,
-						  )
+							)
 						: t("git.merge.confirm.catalog-conflict-state"),
 					title: t("git.merge.error.catalog-conflict-state"),
 				});
@@ -77,6 +92,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 					currentBranchName: checkoutData.currentBranch,
 					branchToCheckout: checkoutData.branchToCheckout,
 				});
+
 				return exit();
 			}
 
@@ -100,7 +116,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 			ModalToOpenService.setValue<ComponentProps<typeof PullHandler>>(ModalToOpen.PullHandler);
 		};
 		void handler();
-	}, [router.path, isFirstLoad, isArticle, isEditorPathname, isRepoOk, isSourceValid, apiUrlCreator]);
+	}, [router.path, router.hash, isFirstLoad, isArticle, isRepoOk, isSourceValid, apiUrlCreator]);
 };
 
 export default usePathnameHandler;

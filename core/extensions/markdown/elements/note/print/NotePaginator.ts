@@ -1,7 +1,7 @@
+import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
-import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 
 export class NotePaginator extends NodePaginator<HTMLDivElement> {
 	private admonitionContainer: HTMLDivElement;

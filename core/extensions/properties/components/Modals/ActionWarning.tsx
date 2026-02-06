@@ -3,12 +3,12 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import useWatch from "@core-ui/hooks/useWatch";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { FormFooter, FormHeader } from "@ui-kit/Form";
-import { Button } from "@ui-kit/Button";
-import { Label } from "@ui-kit/Label";
 import t from "@ext/localization/locale/translate";
 import { Property, PropertyUsage } from "@ext/properties/models";
+import { Button } from "@ui-kit/Button";
+import { FormFooter, FormHeader } from "@ui-kit/Form";
+import { Label } from "@ui-kit/Label";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { useState } from "react";
 
 export type ActionWarningProps = {
@@ -67,18 +67,18 @@ const ActionWarning = (props: ActionWarningProps) => {
 	};
 
 	return (
-		<Modal open={isOpen} onOpenChange={setIsOpen}>
+		<Modal onOpenChange={setIsOpen} open={isOpen}>
 			<ModalTrigger asChild>{children}</ModalTrigger>
 			<ModalContent>
 				<form>
 					<FormHeader
-						icon="alert-circle"
-						title={t("delete")}
 						description={
 							isCatalog
 								? t("properties.warning.delete-tag-from-catalog.title")
 								: t("properties.warning.delete-value-from-catalog.title")
 						}
+						icon="alert-circle"
+						title={t("delete")}
 					/>
 					<ModalBody>
 						<div>
@@ -101,11 +101,11 @@ const ActionWarning = (props: ActionWarningProps) => {
 													<Label>
 														<Anchor
 															href={usage.linkPath}
-															resourcePath={usage.resourcePath}
 															onClick={() => {
 																setIsOpen(false);
 																onLinkClick?.();
 															}}
+															resourcePath={usage.resourcePath}
 														>
 															<span style={{ color: "var(--color-link)" }}>
 																{usage.title || t("article.no-name")}
@@ -122,12 +122,12 @@ const ActionWarning = (props: ActionWarningProps) => {
 					</ModalBody>
 					<FormFooter
 						primaryButton={
-							<Button type="button" onClick={onClick}>
+							<Button onClick={onClick} type="button">
 								{t("continue")}
 							</Button>
 						}
 						secondaryButton={
-							<Button type="button" variant="outline" onClick={onArchiveClick}>
+							<Button onClick={onArchiveClick} type="button" variant="outline">
 								{t("properties.archive")}
 							</Button>
 						}

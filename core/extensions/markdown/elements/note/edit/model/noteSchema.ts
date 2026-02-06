@@ -1,5 +1,5 @@
-import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 
 const note = {
 	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,

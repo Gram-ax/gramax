@@ -1,8 +1,8 @@
 import InlinePropertyComponent from "@ext/markdown/elements/inlineProperty/edit/components/InlinePropertyComponent";
+import inlinePropertySchema from "@ext/markdown/elements/inlineProperty/edit/models/inlinePropertySchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import inlinePropertySchema from "@ext/markdown/elements/inlineProperty/edit/models/inlinePropertySchema";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {

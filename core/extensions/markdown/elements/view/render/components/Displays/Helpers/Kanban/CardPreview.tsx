@@ -1,14 +1,14 @@
-import styled from "@emotion/styled";
-import { CSSProperties, forwardRef, MouseEvent, useMemo } from "react";
-import { Property as PropertyType, PropertyTypes } from "@ext/properties/models";
-import Property from "@ext/properties/components/Property";
-import t from "@ext/localization/locale/translate";
 import { classNames } from "@components/libs/classNames";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
+import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import AddProperty from "@ext/properties/components/Helpers/AddProperty";
+import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
+import Property from "@ext/properties/components/Property";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import { Property as PropertyType, PropertyTypes } from "@ext/properties/models";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { CSSProperties, forwardRef, MouseEvent, useMemo } from "react";
 
 interface CardProps {
 	otherProps: PropertyType[];
@@ -44,20 +44,20 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 				const isFlag = property.type === PropertyTypes.flag;
 				return (
 					<PropertyArticle
-						key={property.name}
 						disabled={dragging || isReadOnly}
-						property={property}
+						key={property.name}
 						onSubmit={onSubmit}
+						property={property}
 						trigger={
 							<div>
 								<Property
-									key={property.name}
-									type={property.type}
 									icon={property.icon}
-									propertyStyle={property.style}
+									key={property.name}
 									name={property.name}
-									value={!isFlag ? property.value : property.name}
+									propertyStyle={property.style}
 									shouldShowValue={!isFlag}
+									type={property.type}
+									value={!isFlag ? property.value : property.name}
 								/>
 							</div>
 						}
@@ -69,15 +69,15 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 
 	return (
 		<div
-			ref={ref}
 			className={classNames(className, { dragging })}
-			draggable={true}
 			data-drag-handle
-			style={style}
-			onMouseDown={removeLink}
+			draggable={true}
 			onDoubleClick={onDoubleClick}
 			onDragStart={removeLink}
+			onMouseDown={removeLink}
 			onMouseEnter={onMouseEnter}
+			ref={ref}
+			style={style}
 		>
 			<div className="card-title" onMouseEnter={onMouseEnter}>
 				{title}
@@ -89,14 +89,14 @@ const CardPreview = forwardRef<HTMLDivElement, CardProps>((props, ref) => {
 						{!dragging && !isReadOnly && (
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
-									<ButtonLink iconCode="plus" dataQa="kanban-add-property" />
+									<ButtonLink dataQa="kanban-add-property" iconCode="plus" />
 								</DropdownMenuTrigger>
 								<DropdownMenuContent>
 									<AddProperty
-										properties={otherProps}
-										disabled={dragging || isReadOnly}
 										catalogProperties={catalogProperties}
+										disabled={dragging || isReadOnly}
 										onSubmit={onSubmit}
+										properties={otherProps}
 									/>
 								</DropdownMenuContent>
 							</DropdownMenu>

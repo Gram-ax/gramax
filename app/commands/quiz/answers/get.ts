@@ -6,12 +6,12 @@ import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
+import { QuizTestCreate } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
 import { CheckAnswer } from "@ext/markdown/elements/answer/types";
 import { getArticleId, getTestId } from "@ext/quiz/logic/getIds";
-import { QuizTestCreate } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
-import assert from "assert";
-import { QuizResult } from "@ext/quiz/models/types";
 import { getQuizResult } from "@ext/quiz/logic/getQuizResult";
+import { QuizResult } from "@ext/quiz/models/types";
+import assert from "assert";
 
 const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answers: CheckAnswer[] }, QuizResult> =
 	Command.create({
@@ -39,7 +39,7 @@ const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answe
 				await parseContent(article, catalog, ctx, parser, parserContextFactory);
 			}
 
-			const questions = await article.parsedContent.read((p) => p?.questions);
+			const questions = await article.parsedContent.read((p) => p?.parsedContext?.questions);
 			if (!questions) return { passed: false, questions: [] };
 
 			const quizSettings = article.props.quiz;

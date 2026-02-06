@@ -1,6 +1,6 @@
 import WorkspaceAssetsService, { useWorkspaceAssets } from "@core-ui/ContextServices/WorkspaceAssetsService";
 import useWatch from "@core-ui/hooks/useWatch";
-import { useCallback, useState, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export const useWorkspaceStyle = (workspacePath: string) => {
 	const { refreshStyle } = WorkspaceAssetsService.value();

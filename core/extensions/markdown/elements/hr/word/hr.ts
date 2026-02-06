@@ -1,6 +1,6 @@
-import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
-import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import docx from "@dynamicImports/docx";
+import type { WordBlockChild } from "@ext/wordExport/options/WordTypes";
+import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 
 export const hrWordLayout: WordBlockChild = async () => {
 	const { Paragraph } = await docx();

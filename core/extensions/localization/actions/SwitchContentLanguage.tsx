@@ -1,8 +1,9 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
+import { useRouter } from "@core/Api/useRouter";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { useRouter } from "@core/Api/useRouter";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import AddContentLanguage from "@ext/localization/actions/AddContentLanguage";
 import ContentLanguageActions from "@ext/localization/actions/ContentLanguageActions";
 import Localizer from "@ext/localization/core/Localizer";
@@ -11,13 +12,12 @@ import t from "@ext/localization/locale/translate";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuTrigger,
 	DropdownMenuRadioGroup,
 	DropdownMenuRadioItem,
 	DropdownMenuSeparator,
+	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
 import { useEffect, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const SwitchContentLanguage = () => {
 	const router = useRouter();
@@ -75,23 +75,23 @@ const SwitchContentLanguage = () => {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<ButtonLink
-					iconCode="languages"
-					text={t(`language.${ContentLanguage[currentLanguage]}`)}
 					dataQa="switch-content-language"
+					iconCode="languages"
 					iconIsLoading={isLoading}
+					text={t(`language.${ContentLanguage[currentLanguage]}`)}
 				/>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">
 				{!isReadOnly && (
 					<>
-						<AddContentLanguage setIsLoading={setIsLoading} onChange={switchLanguage} />
+						<AddContentLanguage onChange={switchLanguage} setIsLoading={setIsLoading} />
 						<DropdownMenuSeparator />
 					</>
 				)}
 				<DropdownMenuRadioGroup
-					value={currentLanguage}
-					onValueChange={switchLanguage}
 					indicatorIconPosition="start"
+					onValueChange={switchLanguage}
+					value={currentLanguage}
 				>
 					{Object.values(supportedLanguages).map((code) => {
 						const showActions = !isReadOnly && language != code;

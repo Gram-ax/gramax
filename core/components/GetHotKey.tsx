@@ -1,7 +1,7 @@
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import styled from "@emotion/styled";
-import Icon from "./Atoms/Icon";
 import { Fragment } from "react";
+import Icon from "./Atoms/Icon";
 
 // const Cmd = ({ children }: { children }) => <span className="cmd">{children}</span>;
 

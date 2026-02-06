@@ -8,23 +8,26 @@ export const repositoriesTableColumns: ColumnDef<Repository>[] = [
 		id: TABLE_SELECT_COLUMN_CODE,
 		header: ({ table }) => (
 			<Checkbox
-				checked={(table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")) as CheckedState}
-				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 				aria-label="Select all"
+				checked={
+					(table.getIsAllPageRowsSelected() ||
+						(table.getIsSomePageRowsSelected() && "indeterminate")) as CheckedState
+				}
+				onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
 			/>
 		),
 		cell: ({ row }) => (
 			<Checkbox
+				aria-label="Select row"
 				checked={row.getIsSelected()}
 				onCheckedChange={(value) => row.toggleSelected(!!value)}
-				aria-label="Select row"
 			/>
 		),
 		enableSorting: false,
-		enableHiding: false
+		enableHiding: false,
 	},
 	{
 		accessorKey: "repository",
-		header: "Репозиторий"
-	}
+		header: "Репозиторий",
+	},
 ];

@@ -47,7 +47,7 @@ const SnippetAlreadyUseWarn = ({ snippetId, onSubmit, onClose }: SnippetAlreadyU
 	};
 
 	return (
-		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
 			<AlertDialogContent status="warning">
 				<AlertDialogHeader>
 					<AlertDialogIcon icon="alert-circle" />
@@ -63,8 +63,8 @@ const SnippetAlreadyUseWarn = ({ snippetId, onSubmit, onClose }: SnippetAlreadyU
 											<li key={item.pathname}>
 												<GoToArticle
 													href={item.pathname}
-													trigger={item.title}
 													style={{ color: "var(--color-link)" }}
+													trigger={item.title}
 												/>
 											</li>
 										))}

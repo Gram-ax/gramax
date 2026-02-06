@@ -1,6 +1,6 @@
+import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
-import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 
 export class RowPaginator extends NodePaginator<HTMLTableRowElement> {
 	private _currentTr: HTMLTableRowElement;
@@ -28,12 +28,6 @@ export class RowPaginator extends NodePaginator<HTMLTableRowElement> {
 		this.parentPaginator.currentContainer.appendChild(this._currentTr);
 
 		for (this._cellIndex = 0; this._cellIndex < cells.length; this._cellIndex++) {
-			if (
-				this._rowIndex === this._rows.length &&
-				Paginator.paginationInfo.accumulatedHeight.height > accumulatedHeightAfter
-			) {
-				accumulatedHeightAfter = Paginator.paginationInfo.accumulatedHeight.height;
-			}
 			this._rowIndex = 0;
 			this._currentTr = this._rows[this._rowIndex];
 
@@ -55,6 +49,12 @@ export class RowPaginator extends NodePaginator<HTMLTableRowElement> {
 				height: Paginator.paginationInfo.accumulatedHeight.height,
 				rows: this._rowIndex,
 			});
+			if (
+				this._rowIndex === this._rows.length &&
+				Paginator.paginationInfo.accumulatedHeight.height > accumulatedHeightAfter
+			) {
+				accumulatedHeightAfter = Paginator.paginationInfo.accumulatedHeight.height;
+			}
 		}
 		Paginator.paginationInfo.accumulatedHeight.height = accumulatedHeightAfter;
 	}
@@ -64,15 +64,17 @@ export class RowPaginator extends NodePaginator<HTMLTableRowElement> {
 		this._rowIndex++;
 		const nextRow = this._rows[this._rowIndex];
 
-		if (this.currentContainer.childNodes.length) {
+		if (this.currentContainer.childNodes.length || this._cellIndex) {
 			this._currentTr.appendChild(this.currentContainer);
 		}
 
 		if (!nextRow) {
 			this._currentTr = this._currentTr.cloneNode(false) as HTMLTableRowElement;
 			this._rows.push(this._currentTr);
-			for (let i = 0; i < this._cellIndex; i++)
-				this._currentTr.appendChild(this.currentContainer.cloneNode(false) as HTMLElement);
+			for (let i = 0; i < this._cellIndex; i++) {
+				const cell = this._rows[this._rowIndex - 1].childNodes[i];
+				this._currentTr.appendChild(cell.cloneNode(false) as HTMLElement);
+			}
 
 			const parent = this.parentPaginator.createPage();
 			this._emptyAccumulatedHeight = Paginator.paginationInfo.accumulatedHeight.height;

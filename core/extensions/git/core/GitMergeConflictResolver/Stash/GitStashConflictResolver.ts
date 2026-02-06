@@ -1,15 +1,20 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type Repository from "@ext/git/core/Repository/Repository";
-import type { RepositoryStashConflictState } from "@ext/git/core/Repository/state/RepositoryState";
+
 import GitStash from "@ext/git/core/model/GitStash";
 import { GitVersion } from "@ext/git/core/model/GitVersion";
+import type Repository from "@ext/git/core/Repository/Repository";
+import type { RepositoryStashConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
+import Path from "../../../../../logic/FileProvider/Path/Path";
 import GitBaseConflictResolver from "../Base/GitBaseConflictResolver";
 
 export default class GitStashConflictResolver extends GitBaseConflictResolver {
-	constructor(protected _repo: Repository, fp: FileProvider, pathToRep: Path) {
+	constructor(
+		protected _repo: Repository,
+		fp: FileProvider,
+		pathToRep: Path,
+	) {
 		super(_repo, fp, pathToRep);
 	}
 

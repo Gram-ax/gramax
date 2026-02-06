@@ -13,10 +13,10 @@ export const tabsHandler = async (node: Tag | JSONContent, context: pdfRenderCon
 
 		for (const tabNode of tabNodes) {
 			if (tabNode?.type !== "tab") continue;
-			
+
 			const name = tabNode?.attrs?.name;
 			const tabContent = await parseNodeToPDFContent(tabNode, context);
-			
+
 			results.push({
 				text: name,
 				bold: true,

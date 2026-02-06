@@ -1,12 +1,15 @@
 import Link from "@components/Atoms/Link";
-import { SearchResultMarkItem } from "@ext/serach/Searcher";
-import { BlockItem, SearchItemRow } from "@ext/serach/utils/SearchRowsModel";
-import { Fragment } from "react";
-import { SearchFragmentInfo } from "../utils/ArticleFragmentCounter/ArticleFragmentCounter";
+import t from "@ext/localization/locale/translate";
+import type { SearchResultMarkItem } from "@ext/serach/Searcher";
+import type { FocusItem } from "@ext/serach/utils/FocusItemsCollector";
+import type { BlockItem, SearchItemRowId } from "@ext/serach/utils/SearchRowsModel";
+import { Fragment, type RefObject } from "react";
+import type { SearchFragmentInfo } from "../utils/ArticleFragmentCounter/ArticleFragmentCounter";
+import type { ArticleRowItem } from "./rowTypes";
 
 export const getMarkElems = (marks: SearchResultMarkItem[]) => {
 	return marks.map((mark, index) => (
-		<Fragment key={index}>
+		<Fragment key={`${mark.type}-${index}`}>
 			{mark.type === "highlight" ? <strong className="match">{mark.text}</strong> : mark.text}
 		</Fragment>
 	));
@@ -36,27 +39,50 @@ const getBlockMarkElems = (item: BlockItem) => {
 };
 
 export function getResultElems(
-	items: SearchItemRow[],
-	onLinkOver: (id: number) => void,
-	onLinkOpen: (url: string, fragmentInfo?: SearchFragmentInfo) => void,
-	focusId: number | null,
+	items: ArticleRowItem[],
+	onLinkOver: (id: SearchItemRowId) => void,
+	onLinkOpen: (
+		articleInfo: {
+			url: string;
+			searchFragmentInfo?: SearchFragmentInfo;
+			title?: string;
+			catalog?: string;
+			isRecommended?: boolean;
+		},
+		clickPosition?: number,
+	) => void,
+	focusItem: FocusItem | undefined,
 	focusRef: React.RefObject<HTMLElement>,
+	catalog: string,
+	title: string,
+	clickPosition?: number,
 ) {
 	const res: React.JSX.Element[] = [];
 
 	items.forEach((item) => {
+		const isRef = focusItem?.id === item.id;
+		const isActive = focusItem?.type !== "temp" && isRef;
 		if (item.type === "link") {
 			res.push(
-				<Fragment key={item.id ?? item.key}>
+				<Fragment key={item.id}>
 					<Link
+						href={item.url}
 						onClick={() =>
-							onLinkOpen(item.openSideEffect.params.url, item.openSideEffect.params.fragmentInfo)
+							onLinkOpen(
+								{
+									url: item.openSideEffect.params.pathname,
+									searchFragmentInfo: item.openSideEffect.params.fragmentInfo,
+									catalog,
+									title: item.openSideEffect.params.fragmentInfo.text,
+								},
+								clickPosition,
+							)
 						}
-						href={item.href}
-						onMouseOver={item.id ? () => onLinkOver(item.id) : undefined}
-						ref={focusId === item.id ? (focusRef as React.RefObject<HTMLAnchorElement>) : undefined}
+						onFocus={item.id ? () => onLinkOver(item.id) : undefined}
+						onMouseOver={() => onLinkOver(item.id)}
+						ref={isRef ? (focusRef as React.RefObject<HTMLAnchorElement>) : undefined}
 					>
-						<div className={`excerpt ${focusId === item.id ? "item-active" : ""}`} data-qa="qa-clickable">
+						<div className={`excerpt ${isActive ? "item-active" : ""}`} data-qa="qa-clickable">
 							<span className="cut-content">{getMarkElems(item.marks)}</span>
 						</div>
 					</Link>
@@ -65,25 +91,33 @@ export function getResultElems(
 		} else if (item.type === "block" || item.type === "file-block") {
 			const highlightWholeBlock = item.type === "file-block";
 			res.push(
+				// biome-ignore lint/a11y/useKeyWithMouseEvents: div onFocus
 				<div
-					key={item.id ?? item.key}
-					className={highlightWholeBlock && focusId === item.id ? "item-active" : ""}
+					className={highlightWholeBlock && isActive ? "item-active" : ""}
+					key={item.id}
 					onMouseOver={highlightWholeBlock ? () => onLinkOver(item.id) : undefined}
 				>
 					<Link
+						href={item.url}
 						onClick={() =>
-							onLinkOpen(item.openSideEffect.params.url, item.openSideEffect.params.fragmentInfo)
+							onLinkOpen(
+								{
+									url: item.openSideEffect.params.pathname,
+									searchFragmentInfo: item.openSideEffect.params.fragmentInfo,
+								},
+								clickPosition,
+							)
 						}
-						href={item.href}
+						onFocus={() => onLinkOver(item.id)}
 						onMouseOver={!highlightWholeBlock ? () => onLinkOver(item.id) : undefined}
-						ref={focusId === item.id ? (focusRef as React.RefObject<HTMLAnchorElement>) : undefined}
+						ref={isRef ? (focusRef as React.RefObject<HTMLAnchorElement>) : undefined}
 					>
 						<div
-							className={`excerpt article-header ${focusId === item.id ? "item-active" : ""}`}
+							className={`excerpt article-header ${isActive ? "item-active" : ""}`}
 							data-qa="qa-clickable"
 						>
 							{item.breadcrumbs.map((x, i) => (
-								<Fragment key={i}>
+								<Fragment key={`${x.type}-${i}`}>
 									{i > 0 ? <span className="breadcrumbs-separator">/</span> : null}
 									<span>{getBlockMarkElems(x)}</span>
 								</Fragment>
@@ -91,19 +125,47 @@ export function getResultElems(
 						</div>
 					</Link>
 					<div style={{ paddingLeft: `15px` }}>
-						{getResultElems(item.children, onLinkOver, onLinkOpen, focusId, focusRef)}
+						{getResultElems(
+							item.children,
+							onLinkOver,
+							onLinkOpen,
+							focusItem,
+							focusRef,
+							catalog,
+							title,
+							clickPosition,
+						)}
 					</div>
 				</div>,
 			);
-		} else if (item.type === "message") {
+		} else if (item.type === "expander") {
 			res.push(
-				//TODO: set key for message
-				<Fragment key={Math.random()}>
-					<div className="hidden-count-info">{item.textContent}</div>
+				<Fragment key={item.id}>
+					{/** biome-ignore lint/a11y/useKeyWithMouseEvents: div onFocus */}
+					<div
+						className={`hidden-count-info ${isActive ? "item-active" : ""}`}
+						onClick={() => item.expand()}
+						onMouseOver={(e) => {
+							onLinkOver(item.id);
+							e.stopPropagation();
+						}}
+						ref={isRef ? (focusRef as RefObject<HTMLDivElement>) : undefined}
+					>
+						{getHiddenCountText(item.count)}
+					</div>
 				</Fragment>,
 			);
 		}
 	});
 
 	return res;
+}
+
+function getHiddenCountText(count: number): string {
+	let hiddenText = t("search.hidden-results");
+	if (typeof hiddenText === "string") {
+		hiddenText = hiddenText.replace("{{count}}", String(count));
+	}
+
+	return hiddenText;
 }

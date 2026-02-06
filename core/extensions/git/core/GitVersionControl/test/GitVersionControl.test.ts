@@ -26,12 +26,9 @@ describe("GitVersionControl", () => {
 	test("делает чекаут подмодулей (disabled)", async () => {
 		// const subGvcs = await gvc.getSubGitVersionControls();
 		// expect(subGvcs.length).toBe(2);
-
 		// await expect(subGvcs[0].getCurrentBranch()).rejects.toThrow(DefaultError);
 		// await expect(subGvcs[1].getCurrentBranch()).rejects.toThrow(DefaultError);
-
 		// await gvc.checkoutSubGitVersionControls();
-
 		// expect((await subGvcs[0].getCurrentBranch()).toString()).toBe("master");
 		// expect((await subGvcs[1].getCurrentBranch()).toString()).toBe("master");
 	});

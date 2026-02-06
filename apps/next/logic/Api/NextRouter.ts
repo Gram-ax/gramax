@@ -1,6 +1,6 @@
-import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 import Query from "@core/Api/Query";
 import { Router, RouterRule } from "@core/Api/Router";
+import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
 import { RouterContext } from "next/dist/shared/lib/router-context.shared-runtime";
 import { NextRouter as DefaultNextRouter } from "next/router";
 import { useContext, useEffect } from "react";
@@ -9,7 +9,10 @@ import Url from "../../../../core/ui-logic/ApiServices/Types/Url";
 export default class NextRouter extends Router {
 	private _hash?: string;
 
-	private constructor(private _router: DefaultNextRouter, rules: RouterRule[]) {
+	private constructor(
+		private _router: DefaultNextRouter,
+		rules: RouterRule[],
+	) {
 		super(rules);
 	}
 

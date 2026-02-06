@@ -48,11 +48,6 @@ const Tooltip = ({ item, ...rest }: InboxNoteTooltipEditorProps) => {
 		<InboxService.Context value={{ selectedIds, items: items }}>
 			<TooltipArticleView
 				articleType="inbox"
-				onUpdate={onUpdate}
-				onClose={onClose}
-				selectedIds={selectedIds}
-				onOutsideClick={onOutsideClick}
-				item={item}
 				extensions={[
 					Placeholder.configure({
 						placeholder: ({ editor, node }) => {
@@ -71,6 +66,11 @@ const Tooltip = ({ item, ...rest }: InboxNoteTooltipEditorProps) => {
 						},
 					}),
 				]}
+				item={item}
+				onClose={onClose}
+				onOutsideClick={onOutsideClick}
+				onUpdate={onUpdate}
+				selectedIds={selectedIds}
 				{...rest}
 			/>
 		</InboxService.Context>
@@ -80,7 +80,7 @@ const Tooltip = ({ item, ...rest }: InboxNoteTooltipEditorProps) => {
 const InboxNoteTooltipEditor = ({ selectedIds, items, item, ...rest }: InboxNoteTooltipEditorProps) => {
 	return (
 		<InboxService.Context value={{ selectedIds, items: items }}>
-			<Tooltip selectedIds={selectedIds} items={items} item={item} {...rest} />
+			<Tooltip item={item} items={items} selectedIds={selectedIds} {...rest} />
 		</InboxService.Context>
 	);
 };

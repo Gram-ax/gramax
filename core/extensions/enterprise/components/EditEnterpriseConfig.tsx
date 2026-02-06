@@ -15,7 +15,7 @@ const EditEnterpriseConfig = ({ config, onSave }: { config: EnterpriseConfig; on
 	const [disabled, setDisabled] = useState(false);
 
 	return (
-		<ModalLayout isOpen closeOnCmdEnter={false} onClose={() => ModalToOpenService.resetValue()}>
+		<ModalLayout closeOnCmdEnter={false} isOpen onClose={() => ModalToOpenService.resetValue()}>
 			<ModalLayoutLight>
 				<FormStyle>
 					<>
@@ -27,7 +27,6 @@ const EditEnterpriseConfig = ({ config, onSave }: { config: EnterpriseConfig; on
 									<div className="input-lable">
 										<Input
 											isCode
-											value={value}
 											onChange={async (e) => {
 												setDisabled(true);
 												const value = e.target.value;
@@ -38,6 +37,7 @@ const EditEnterpriseConfig = ({ config, onSave }: { config: EnterpriseConfig; on
 												setValue(gesUrl);
 												setDisabled(!(await new EnterpriseApi(gesUrl).check()));
 											}}
+											value={value}
 										/>
 									</div>
 								</div>

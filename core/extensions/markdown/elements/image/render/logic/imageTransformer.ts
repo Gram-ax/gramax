@@ -1,11 +1,11 @@
+import { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
 import {
+	AnnotationObject,
 	Crop,
 	ImageObject,
 	ImageObjectTypes,
-	AnnotationObject,
 	SquareObject,
 } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
 
 export const parse = (
 	crop: string,

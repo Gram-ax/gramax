@@ -4,7 +4,7 @@ import { forwardRef } from "react";
 
 export const TriggerAddButtonTemplate = forwardRef<HTMLButtonElement, ButtonProps>(({ ...props }, ref) => {
 	return (
-		<Button ref={ref} startIcon="plus" className="ml-auto" {...props}>
+		<Button className="ml-auto" ref={ref} startIcon="plus" {...props}>
 			{t("add")}
 		</Button>
 	);

@@ -13,10 +13,8 @@ import answer from "@ext/markdown/elements/comment/legacy/answer/edit/answerSche
 import comment_old from "@ext/markdown/elements/comment/legacy/comment/commentShema";
 import cut from "@ext/markdown/elements/cut/edit/model/cutSchema";
 import inlineCut_component from "@ext/markdown/elements/cut/edit/model/inlineCutSchema";
-import c4Diagram from "@ext/markdown/elements/diagrams/diagrams/c4Diagram/c4DiagramSchema";
 import mermaid from "@ext/markdown/elements/diagrams/diagrams/mermaid/mermaidSchema";
 import plantUml from "@ext/markdown/elements/diagrams/diagrams/plantUml/plantUmlSchema";
-import tsDiagram from "@ext/markdown/elements/diagrams/diagrams/tsDiagram/tsDiagramSchema";
 import diagramsSchema from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema";
 import drawioSchema from "@ext/markdown/elements/drawio/edit/model/drawioSchema";
 import error from "@ext/markdown/elements/error/editor/model/errorSchema";
@@ -82,8 +80,6 @@ export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: Sc
 			diagrams: diagramsSchema,
 			mermaid,
 			"plant-uml": plantUml,
-			"c4-diagram": c4Diagram,
-			"ts-diagram": tsDiagram,
 
 			question: questionSchema,
 			questionAnswer: questionAnswerSchema,

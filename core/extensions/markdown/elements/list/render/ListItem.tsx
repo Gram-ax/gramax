@@ -1,8 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { CHECKED_ATTR } from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
-import { FC, ChangeEvent } from "react";
-import { ReactNode } from "react";
+import { ChangeEvent, FC, ReactNode } from "react";
 
 export interface ListItemProps {
 	checked?: boolean;
@@ -22,7 +21,7 @@ const TaskItemView: FC<ListItemProps> = (props) => {
 			data-checked={checked}
 		>
 			<label contentEditable={false}>
-				<input type="checkbox" checked={checked} readOnly={isReadOnly} onChange={onChangeHandler} />
+				<input checked={checked} onChange={onChangeHandler} readOnly={isReadOnly} type="checkbox" />
 			</label>
 			<div>{children}</div>
 		</li>

@@ -1,6 +1,6 @@
 import { LEFT_NAV_CLASS, RIGHT_NAV_CLASS } from "@app/config/const";
-import debounceFunction from "../debounceFunction";
 import { EditorView } from "prosemirror-view";
+import debounceFunction from "../debounceFunction";
 
 export default (id: symbol, view: EditorView, excludeManySelection: boolean = false) => {
 	const isManySelection = view?.state.selection.from !== view?.state.selection.to;

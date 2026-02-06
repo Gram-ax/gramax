@@ -1,32 +1,23 @@
-import { DynamicModules } from "@app/resolveModule/backend";
+import { browserLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
+import BrowserCookie from "../../../apps/browser/src/logic/BrowserCookie";
+import BrowserGetImageByPath from "../../../apps/browser/src/logic/BrowserGetImageByPath";
+import BrowserGetImageFromDom from "../../../apps/browser/src/logic/BrowserGetImageFromDom";
+import BrowserGetImageSizeFromImageData from "../../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
+import BrowserSvgToPng from "../../../apps/browser/src/logic/BrowserSvgToPng";
+import type { BackendDynamicModules } from "..";
 
-export const getBrowserModules = async (): Promise<DynamicModules> => {
-	const [
-		{ default: BrowserCookie },
-		{ initWasm },
-		{ default: BrowserSvgToPng },
-		{ default: BrowserGetImageSizeFromImageData },
-		{ default: BrowserGetImageFromDom },
-		{ browserLoadFont },
-		{ default: BrowserGetImageByPath },
-	] = await Promise.all([
-		import("../../../apps/browser/src/logic/BrowserCookie"),
+export const getBrowserModules = async (): Promise<BackendDynamicModules> => {
+	const { initWasm } =
 		typeof window !== "undefined"
-			? import("../../../apps/browser/crates/gramax-wasm/js/wasm")
-			: Promise.resolve({ initWasm: () => Promise.resolve() }),
-		import("../../../apps/browser/src/logic/BrowserSvgToPng"),
-		import("../../../apps/browser/src/logic/BrowserGetImageSizeFromImageData"),
-		import("../../../apps/browser/src/logic/BrowserGetImageFromDom"),
-		import("@ext/pdfExport/fontLoaders/browserLoadFont"),
-		import("../../../apps/browser/src/logic/BrowserGetImageByPath"),
-	]);
+			? await import("../../../apps/browser/crates/gramax-wasm/js/wasm")
+			: await Promise.resolve({ initWasm: () => Promise.resolve() });
 
 	return {
-		Cookie: BrowserCookie,
-		initWasm,
 		svgToPng: BrowserSvgToPng,
+		initWasm,
 		getImageSizeFromImageData: BrowserGetImageSizeFromImageData,
 		getImageFromDom: BrowserGetImageFromDom,
+		Cookie: BrowserCookie,
 		moveToTrash: () => Promise.resolve(),
 		getDOMParser: () => new DOMParser(),
 		getXMLSerializer: () => new XMLSerializer(),
@@ -35,3 +26,18 @@ export const getBrowserModules = async (): Promise<DynamicModules> => {
 		getImageByPath: BrowserGetImageByPath,
 	};
 };
+
+let modules: BackendDynamicModules | null = null;
+
+export const initBackendModules = async (): Promise<void> => {
+	if (modules) return;
+	modules = await getBrowserModules();
+};
+
+const resolveBackendModule = <K extends keyof BackendDynamicModules>(name: K): BackendDynamicModules[K] => {
+	const module = modules?.[name];
+	if (!module) throw new Error(`module ${name} not found`);
+	return module;
+};
+
+export default resolveBackendModule;

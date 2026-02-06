@@ -1,6 +1,6 @@
 import { SwitchField as UiKitSwitchField } from "ics-ui-kit/components/switch";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 import { FC } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitSwitchFieldProps = ExtractComponentGeneric<typeof UiKitSwitchField>;
 

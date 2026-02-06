@@ -1,5 +1,5 @@
-import resolveModule from "@app/resolveModule/frontend";
-import { DiffFileInputProps } from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputProps";
+import resolveFrontendModule from "@app/resolveModule/frontend";
+import type { DiffFileInputProps } from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputProps";
 import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInputDefaultLanguage";
 import t from "@ext/localization/locale/translate";
 import ThemeService from "@ext/Theme/components/ThemeService";
@@ -13,7 +13,7 @@ const DiffFileInput = (props: DiffFileInputProps) => {
 	const theme = ThemeService.value;
 	const ref = useRef<HTMLDivElement>(null);
 	const [editorHeight, setEditorHeight] = useState(0);
-	const DiffFileInput = resolveModule("DiffFileInput");
+	const DiffFileInput = resolveFrontendModule("DiffFileInput");
 
 	useLayoutEffect(() => {
 		setEditorHeight(ref.current.getBoundingClientRect().height);
@@ -25,15 +25,6 @@ const DiffFileInput = (props: DiffFileInputProps) => {
 				<DiffFileInput
 					height={editorHeight}
 					modifiedLanguage={language ?? DEFAULT_LANGAUGE}
-					originalLanguage={language ?? DEFAULT_LANGAUGE}
-					options={{
-						unusualLineTerminators: "off",
-						readOnlyMessage: { value: t("cant-edit-this-line") },
-						unicodeHighlight: { ambiguousCharacters: false },
-						wordWrap: "on",
-						...options,
-					}}
-					theme={theme == Theme.dark ? "vs-dark" : "light"}
 					onMount={(editor, monaco) => {
 						onMount?.(editor, monaco);
 						const modifiedEditor = editor.getModifiedEditor();
@@ -41,6 +32,15 @@ const DiffFileInput = (props: DiffFileInputProps) => {
 							onChange?.(modifiedEditor.getModel().getValue());
 						});
 					}}
+					options={{
+						unusualLineTerminators: "off",
+						readOnlyMessage: { value: t("cant-edit-this-line") },
+						unicodeHighlight: { ambiguousCharacters: false },
+						wordWrap: "on",
+						...options,
+					}}
+					originalLanguage={language ?? DEFAULT_LANGAUGE}
+					theme={theme == Theme.dark ? "vs-dark" : "light"}
 					{...otherProps}
 				/>
 			</div>

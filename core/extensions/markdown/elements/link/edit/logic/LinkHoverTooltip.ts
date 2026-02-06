@@ -1,5 +1,5 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ArticleLinkTooltip from "@ext/markdown/elements/link/edit/logic/ArticleLinkTooltip";
 import TooltipBase from "@ext/markdown/elementsUtils/prosemirrorPlugins/TooltipBase";
 import { Mark } from "@tiptap/pm/model";

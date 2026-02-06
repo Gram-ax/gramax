@@ -1,9 +1,8 @@
-import ArticleSearchHotkeyView, {
-	CustomDecorations,
-} from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
+import type ArticleSearchHotkeyView from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
+import type { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
+import collectTextblockMatches from "@ext/markdown/elements/find/edit/logic/collectTextblockMatches";
+import type { Node } from "prosemirror-model";
 import { Decoration, DecorationSet } from "prosemirror-view";
-import { Node } from "prosemirror-model";
-import buildSearchRegex from "./buildSearchRegex";
 
 const createSearchDecorations = (
 	doc: Node,
@@ -21,24 +20,17 @@ const createSearchDecorations = (
 	const decorations: Decoration[] = [];
 	const items: CustomDecorations[] = [];
 
-	const regex = buildSearchRegex(searchTerm, caseSensitive, wholeWord);
+	const matches = collectTextblockMatches(doc, searchTerm, caseSensitive, wholeWord);
 
-	doc.descendants((node: Node, pos: number) => {
-		if (node.isText) {
-			let match;
-			while ((match = regex.exec(node.text)) !== null) {
-				const start = pos + match.index;
-				const end = start + match[0].length;
-				const isActive = decorations.length === activeElementIndex;
+	matches.forEach(({ start, end }) => {
+		const isActive = decorations.length === activeElementIndex;
 
-				items.push({ start, end, isActive });
-				decorations.push(
-					Decoration.inline(start, end, {
-						class: isActive ? "search-highlight search-highlight-active" : "search-highlight",
-					}),
-				);
-			}
-		}
+		items.push({ start, end, isActive });
+		decorations.push(
+			Decoration.inline(start, end, {
+				class: isActive ? "search-highlight search-highlight-active" : "search-highlight",
+			}),
+		);
 	});
 
 	SearchView.updateDecorations(items);

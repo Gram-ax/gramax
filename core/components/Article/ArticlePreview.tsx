@@ -5,8 +5,8 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { useEffect, useState } from "react";
 
 export type ArticlePreviewProps = {
@@ -42,7 +42,7 @@ const ArticlePreview = ({ logicPath, className }: ArticlePreviewProps) => {
 			<ApiUrlCreatorService.Provider value={newApiUrlCreator}>
 				<ResourceService.Provider>
 					<ArticleTooltipService.Provider>
-						<MiniArticle title={data.title} content={data.content} />
+						<MiniArticle content={data.content} title={data.title} />
 					</ArticleTooltipService.Provider>
 				</ResourceService.Provider>
 			</ApiUrlCreatorService.Provider>

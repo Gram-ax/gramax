@@ -40,12 +40,18 @@ class PermissionService implements ContextService {
 	useCheckPermission(permission: IPermission, workspacePath?: WorkspacePath, catalogName?: string): boolean {
 		const { isTauri, isBrowser } = usePlatform();
 		const isEnterpriseWorkspace = useIsEnterpriseWorkspace();
+		const { global, workspace, catalog } = useContext(UserPermissionsContext);
+
 		if (!isEnterpriseWorkspace && (isTauri || isBrowser)) return true;
 
-		const { global, workspace, catalog } = useContext(UserPermissionsContext);
 		if (workspacePath && catalogName) return catalog?.enough(catalogName, permission);
 		if (workspacePath) return workspace?.enough(workspacePath, permission);
 		return global?.enough?.(permission);
+	}
+
+	useCheckAnyCatalogPermission(permission: IPermission): boolean {
+		const { catalog } = useContext(UserPermissionsContext);
+		return catalog?.someEnough(permission);
 	}
 }
 

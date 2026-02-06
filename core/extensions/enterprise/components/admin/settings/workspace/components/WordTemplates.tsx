@@ -47,30 +47,30 @@ export function WordTemplates({ localSettings, setLocalSettings }: WordTemplates
 		<div>
 			<div className="flex items-center gap-4 mb-2">
 				<h2 className="text-xl font-medium">
-					Шаблоны Word <span className="text-sm font-normal">({templates.length}/5)</span>
+					Шаблоны Word <span className="text-sm font-normal">{templates.length}/5</span>
 				</h2>
 				<Button
-					variant="outline"
+					className="flex items-center gap-1"
 					disabled={templates.length >= 5}
 					onClick={() => fileInputRef.current?.click()}
-					className="flex items-center gap-1"
+					variant="outline"
 				>
 					<Icon icon="plus" />
 					Загрузить шаблон
 				</Button>
 				<input
-					ref={fileInputRef}
-					id="wordTemplates"
-					type="file"
 					accept={acceptedFormats}
-					multiple
 					className="hidden"
+					id="wordTemplates"
+					multiple
 					onChange={async (e) => {
 						const fileList = e.target.files;
 						if (!fileList) return;
 						await handleTemplateUpload(fileList);
 						e.target.value = "";
 					}}
+					ref={fileInputRef}
+					type="file"
 				/>
 			</div>
 
@@ -82,8 +82,8 @@ export function WordTemplates({ localSettings, setLocalSettings }: WordTemplates
 			<div className="flex flex-wrap gap-4 mt-2">
 				{templates.map((template) => (
 					<div
-						key={template.title}
 						className="relative w-40 border rounded-md p-3 flex flex-col items-center shadow-soft-sm bg-card"
+						key={template.title}
 					>
 						<Icon icon="file" size="xl" />
 						<span className="text-sm text-center break-words leading-4" title={template.title}>
@@ -92,13 +92,13 @@ export function WordTemplates({ localSettings, setLocalSettings }: WordTemplates
 						<Popover>
 							<PopoverTrigger asChild>
 								<IconButton
-									variant="ghost"
+									className="absolute top-1 right-1"
 									icon="more-vertical"
 									size="sm"
-									className="absolute top-1 right-1"
+									variant="ghost"
 								/>
 							</PopoverTrigger>
-							<PopoverContent className="w-40 p-0" align="end">
+							<PopoverContent align="end" className="w-40 p-0">
 								<button
 									className="w-full text-left px-3 py-2 hover:bg-secondary-bg-hover text-sm rounded"
 									onClick={() => downloadTemplate(template)}
@@ -124,26 +124,26 @@ export function WordTemplates({ localSettings, setLocalSettings }: WordTemplates
 			</div>
 
 			<ConfirmationDialog
+				cancelText="Отмена"
+				confirmText="Заменить"
+				description={`Шаблон «${pendingDuplicate?.title ?? ""}» уже существует. Заменить его?`}
 				isOpen={duplicateDialogOpen}
-				onOpenChange={setDuplicateDialogOpen}
-				onSave={handleReplaceTemplate}
 				onClose={() => {
 					setPendingDuplicate(null);
 				}}
-				title="Шаблон уже существует"
-				description={`Шаблон «${pendingDuplicate?.title ?? ""}» уже существует. Заменить его?`}
-				confirmText="Заменить"
-				cancelText="Отмена"
+				onOpenChange={setDuplicateDialogOpen}
+				onSave={handleReplaceTemplate}
 				showDiscard={false}
+				title="Шаблон уже существует"
 			/>
 
 			<RenameTemplateDialog
-				open={renameDialogOpen}
-				onOpenChange={setRenameDialogOpen}
-				templateTitle={templateToRename}
 				newTitle={newTemplateTitle}
-				setNewTitle={setNewTemplateTitle}
+				onOpenChange={setRenameDialogOpen}
 				onSave={handleRenameTemplate}
+				open={renameDialogOpen}
+				setNewTitle={setNewTemplateTitle}
+				templateTitle={templateToRename}
 			/>
 		</div>
 	);
@@ -160,24 +160,24 @@ interface RenameTemplateDialogProps {
 
 function RenameTemplateDialog({ open, onOpenChange, newTitle, setNewTitle, onSave }: RenameTemplateDialogProps) {
 	return (
-		<Modal open={open} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={open}>
 			<ModalContent>
-				<ModalHeaderTemplate title="Переименовать шаблон" className="pb-0 lg:pb-0 border-b-0" />
+				<ModalHeaderTemplate className="pb-0 lg:pb-0 border-b-0" title="Переименовать шаблон" />
 
 				<ModalBody>
 					<Input
-						value={newTitle}
+						className="mt-2"
 						onChange={(e) => setNewTitle(e.target.value)}
 						placeholder="Введите новое имя"
-						className="mt-2"
+						value={newTitle}
 					/>
 				</ModalBody>
 
 				<ModalFooterTemplate
 					className="pt-0 lg:pt-0 border-t-0"
 					primaryButton="Сохранить"
-					secondaryButton="Отмена"
 					primaryButtonProps={{ disabled: !newTitle.trim(), onClick: onSave }}
+					secondaryButton="Отмена"
 					secondaryButtonProps={{ variant: "outline", onClick: () => onOpenChange(false) }}
 				/>
 			</ModalContent>

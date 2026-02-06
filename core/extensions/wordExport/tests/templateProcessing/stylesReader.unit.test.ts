@@ -1,6 +1,6 @@
+import { initBackendModules } from "@app/resolveModule/backend";
 import * as JSZip from "jszip";
-import { initModules } from "@app/resolveModule/backend";
-import { readTemplateStyles, extractStylesData, normalizeStyleMapping } from "../../templateProcessing/stylesReader";
+import { extractStylesData, normalizeStyleMapping, readTemplateStyles } from "../../templateProcessing/stylesReader";
 
 const createMockDocx = async (files: Record<string, string>): Promise<Uint8Array> => {
 	const zip = new JSZip.default();
@@ -12,7 +12,7 @@ const createMockDocx = async (files: Record<string, string>): Promise<Uint8Array
 
 describe("templateProcessing/stylesReader", () => {
 	beforeAll(async () => {
-		await initModules();
+		await initBackendModules();
 	});
 
 	it("reads styles from a template archive", async () => {

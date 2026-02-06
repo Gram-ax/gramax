@@ -1,6 +1,4 @@
-import { Table, TableBody, TableCell, TableRow } from "@ui-kit/Table";
-import { IconButton } from "@ui-kit/Button";
-import { ColumnDef, flexRender, getCoreRowModel, Row, useReactTable } from "@ui-kit/DataTable";
+import Input from "@components/Atoms/Input";
 import {
 	closestCenter,
 	DndContext,
@@ -14,11 +12,13 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 import t from "@ext/localization/locale/translate";
-import Input from "@components/Atoms/Input";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@ui-kit/Tooltip";
+import { IconButton } from "@ui-kit/Button";
+import { ColumnDef, flexRender, getCoreRowModel, Row, useReactTable } from "@ui-kit/DataTable";
 import { EmptyState } from "@ui-kit/EmptyState";
+import { Table, TableBody, TableCell, TableRow } from "@ui-kit/Table";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 
 interface ValuesProps {
 	data: string[];
@@ -45,7 +45,7 @@ const DraggableTableRow = ({ row, children, state }: DraggableTableRowProps) => 
 	};
 
 	return (
-		<TableRow ref={setNodeRef} style={style} data-state={state} className="border-secondary-border">
+		<TableRow className="border-secondary-border" data-state={state} ref={setNodeRef} style={style}>
 			{children}
 		</TableRow>
 	);
@@ -57,13 +57,13 @@ const DraggableButton = ({ rowId }: { rowId: string }) => {
 	});
 
 	return (
-		<div {...listeners} {...attributes} ref={setNodeRef} className="flex items-center justify-center ml-1">
+		<div {...listeners} {...attributes} className="flex items-center justify-center ml-1" ref={setNodeRef}>
 			<IconButton
-				type="button"
-				variant="text"
+				icon="grip-vertical"
 				size="sm"
 				style={{ padding: "0", height: "auto" }}
-				icon="grip-vertical"
+				type="button"
+				variant="text"
 			/>
 		</div>
 	);
@@ -76,12 +76,12 @@ const DeleteButton = ({ onClick }: { onClick: () => void }) => {
 			<TooltipTrigger asChild>
 				<div className="flex items-center justify-center mr-2">
 					<IconButton
+						icon="trash"
+						onClick={onClick}
+						size="sm"
+						style={{ padding: "0", height: "auto" }}
 						type="button"
 						variant="text"
-						size="sm"
-						icon="trash"
-						style={{ padding: "0", height: "auto" }}
-						onClick={onClick}
 					/>
 				</div>
 			</TooltipTrigger>
@@ -140,8 +140,8 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 				header: "Название",
 				cell: ({ row }) => (
 					<Input
-						className="text-primary-fg"
 						autoFocus={!row.original.length}
+						className="text-primary-fg"
 						defaultValue={row.original}
 						onBlur={(e) => onBlur(e, row.original)}
 					/>
@@ -197,10 +197,10 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 
 	return (
 		<DndContext
-			sensors={sensors}
 			collisionDetection={closestCenter}
 			modifiers={[restrictToVerticalAxis]}
 			onDragEnd={handleDragEnd}
+			sensors={sensors}
 		>
 			<div className="overflow-hidden rounded-md border border-secondary-border">
 				<Table>
@@ -215,12 +215,12 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 									>
 										{row.getVisibleCells().map((cell) => (
 											<TableCell
-												key={cell.id}
 												className={
 													cell.column.id === "actions" || cell.column.id === "draggable"
 														? "w-6 border-secondary-border"
 														: "auto border-secondary-border"
 												}
+												key={cell.id}
 											>
 												{flexRender(cell.column.columnDef.cell, cell.getContext())}
 											</TableCell>
@@ -230,8 +230,8 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 							) : (
 								<TableRow>
 									<TableCell
-										colSpan={columns.length}
 										className="h-24 text-center border-secondary-border"
+										colSpan={columns.length}
 									>
 										<EmptyState>{t("properties.no-values")}</EmptyState>
 									</TableCell>

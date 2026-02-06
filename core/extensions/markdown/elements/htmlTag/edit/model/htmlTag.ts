@@ -1,9 +1,9 @@
-import { inlineHtmlTagComponent, blockHtmlTagComponent } from "./htmlTagSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import InlineHtmlTagComponent from "../component/InlineHtmlTagComponent";
 import BlockHtmlTagComponent from "../component/BlockHtmlTagComponent";
+import InlineHtmlTagComponent from "../component/InlineHtmlTagComponent";
+import { blockHtmlTagComponent, inlineHtmlTagComponent } from "./htmlTagSchema";
 
 export const InlineHtmlTag = Node.create({
 	...getExtensionOptions({ schema: inlineHtmlTagComponent, name: "inlineHtmlTagComponent" }),

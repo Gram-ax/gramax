@@ -1,8 +1,8 @@
 import { ResponseKind } from "@app/types/ResponseKind";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import convertToSharePointDir from "@ext/markdown/elements/video/logic/convertToSharePointDir";
 import { Command } from "../../../types/Command";
-import type Context from "@core/Context/Context";
 
 const getUrl: Command<{ ctx: Context; articlePath: Path; catalogName: string; path: string }, string> = Command.create({
 	path: "elements/video/getUrl",

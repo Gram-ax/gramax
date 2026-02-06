@@ -14,7 +14,7 @@
 				"name": "Fence",
 				"children": []
 			},
-			"html": "<pre data-component=\"fence\">text\n</pre>"
+			"html": "<pre data-component=\"fence\">text</pre>"
 		}
 	],
 	"Code": [
@@ -170,13 +170,13 @@
 				"$$mdtype": "Tag",
 				"attributes": {
 					"level": 2,
-					"id": "header-",
-					"isCustomId": false
+					"id": "my-id",
+					"isCustomId": true
 				},
 				"children": ["Header "],
 				"name": "Heading"
 			},
-			"html": "<h2 id=\"my-id\" data-component=\"header\">Header <a href=\"#my-id\" class=\"anchor\" data-mdignore=\"true\" contenteditable=\"false\"><i class=\"link-icon chain-icon\"></i></a></h2>"
+			"html": "<h2 id=\"my-id\" data-component=\"header\">Header <a class=\"anchor\" contenteditable=\"false\" data-mdignore=\"true\" href=\"#my-id\"><i class=\"link-icon chain-icon\"></i></a></h2>"
 		}
 	],
 	"Image": [
@@ -209,7 +209,7 @@
 				"children": [],
 				"name": "Image"
 			},
-			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fimage.png\" data-component=\"image\"><em>someTitle</em></div>"
+			"html": "<div><img data-component=\"image\" src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fimage.png\"><em>someTitle</em></div>"
 		}
 	],
 	"Video": [
@@ -231,7 +231,7 @@
 				"children": [],
 				"name": "Video"
 			},
-			"html": "<div data-component=\"video\"><video id=\"my-player\" data-focusable=\"true\" class=\"video-js\" controls=\"\" preload=\"auto\" data-setup=\"{}\" crossorigin=\"anonymous\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div>"
+			"html": "<div data-component=\"video\"><video class=\"video-js\" controls=\"\" crossorigin=\"anonymous\" data-focusable=\"true\" data-setup=\"{}\" id=\"my-player\" preload=\"auto\" src=\"sample-mp4-file.mp4\"></video><em>Очень интересное видео</em></div>"
 		}
 	],
 	"Term": [
@@ -251,7 +251,7 @@
 				"children": [],
 				"name": "Term"
 			},
-			"html": "<span data-component=\"term\" data-title=\"second\" data-summary=\"\" data-children=\"{&quot;key&quot;:null,&quot;ref&quot;:null,&quot;props&quot;:{},&quot;_owner&quot;:null,&quot;_store&quot;:{}}\">second</span>"
+			"html": "<span data-component=\"term\" data-summary=\"\" data-title=\"second\" data-children=\"{&quot;key&quot;:null,&quot;ref&quot;:null,&quot;props&quot;:{},&quot;_owner&quot;:null,&quot;_store&quot;:{}}\">second</span>"
 		}
 	],
 	"Strong": [
@@ -339,7 +339,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><span data-component=\"color\" data-color=\"red\" style=\"color: red;\">123</span></p>"
+			"html": "<p><span data-color=\"red\" data-component=\"color\" style=\"color: red;\">123</span></p>"
 		}
 	],
 	"Hr": [
@@ -377,7 +377,7 @@
 				"children": [],
 				"name": "Drawio"
 			},
-			"html": "<div><img src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fdrawio.svg\" data-component=\"image\"><em>someTitle</em></div>"
+			"html": "<div><img data-component=\"image\" src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fdrawio.svg\"><em>someTitle</em></div>"
 		}
 	],
 	"Formula": [
@@ -627,7 +627,7 @@
 				],
 				"type": "Table"
 			},
-			"html": "<table data-component=\"table\"><thead><tr><th align=\"left\"><p>Столбец 1</p></th><th align=\"left\"><p>Столбец 2</p></th><th align=\"left\"><p>Столбец 3</p></th></tr></thead><tbody><tr><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td><td align=\"left\"><p>Строка 1</p></td></tr><tr><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td><td align=\"left\"><p>Строка 2</p></td></tr></tbody></table>"
+			"html": "<table data-component=\"table\"><tbody><tr><td colspan=\"1\" rowspan=\"1\"><p>Столбец 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Столбец 2</p></td><td colspan=\"1\" rowspan=\"1\"><p>Столбец 3</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>Строка 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 1</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>Строка 2</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 2</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 2</p></td></tr></tbody></table>"
 		},
 		{
 			"text": {
@@ -858,7 +858,7 @@
 				],
 				"type": "Table"
 			},
-			"html": "<table data-component=\"table\"><tbody><tr><td colspan=\"2\"><p>Объединённая ячейка по горизонтали</p></td><td><p>Строка 1 Ячейка 2</p></td></tr><tr><td><p>Строка 2 Ячейка 1</p></td><td><p>Строка 2 Ячейка 2</p></td><td rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul depth=\"0\"><li data-component=\"list-item\"><p>Объединённая</p></li><li data-component=\"list-item\"><p>ячейка</p></li><li data-component=\"list-item\"><p>по вертикали</p></li></ul></td></tr><tr><td><p>Строка 3 Ячейка 1</p></td><td><p>Строка 3 Ячейка 2</p></td></tr></tbody></table>"
+			"html": "<table data-component=\"table\"><tbody><tr><td colspan=\"2\" rowspan=\"1\"><p>Объединённая ячейка по горизонтали</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 1 Ячейка 2</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>Строка 2 Ячейка 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 2 Ячейка 2</p></td><td colspan=\"1\" rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul data-component=\"bullet-list\"><li data-component=\"list-item\"><p>Объединённая</p></li><li data-component=\"list-item\"><p>ячейка</p></li><li data-component=\"list-item\"><p>по вертикали</p></li></ul></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>Строка 3 Ячейка 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 3 Ячейка 2</p></td></tr></tbody></table>"
 		}
 	],
 	"Note": [
@@ -883,7 +883,7 @@
 				],
 				"type": "note"
 			},
-			"html": "<div data-component=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-quote\" aria-hidden=\"true\"><path d=\"M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z\"></path><path d=\"M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\">Цитата</div></div><div class=\"admonition-content\"><p>Текст заметки</p></div></div>"
+			"html": "<div data-component=\"note\" data-type=\"quote\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-quote\" aria-hidden=\"true\"><path d=\"M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z\"></path><path d=\"M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z\"></path></svg></i></div><div class=\"titleWrapper\" contenteditable=\"false\">Цитата</div></div><div class=\"admonition-content\"><p>Текст заметки</p></div></div>"
 		},
 		{
 			"text": {
@@ -906,7 +906,7 @@
 				],
 				"type": "note"
 			},
-			"html": "<div data-component=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-triangle-alert\" aria-hidden=\"true\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"></path><path d=\"M12 9v4\"></path><path d=\"M12 17h.01\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\">Предупреждение</div></div><div class=\"admonition-content\"><p>Текст заметки</p></div></div>"
+			"html": "<div data-component=\"note\" data-type=\"danger\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-triangle-alert\" aria-hidden=\"true\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"></path><path d=\"M12 9v4\"></path><path d=\"M12 17h.01\"></path></svg></i></div><div class=\"titleWrapper\" contenteditable=\"false\">Предупреждение</div></div><div class=\"admonition-content\"><p>Текст заметки</p></div></div>"
 		},
 		{
 			"text": {
@@ -951,7 +951,7 @@
 				],
 				"type": "note"
 			},
-			"html": "<div data-component=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-info\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 16v-4\"></path><path d=\"M12 8h.01\"></path></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\">Внешняя заметка</div></div><div class=\"admonition-content\"><p>Внешний текст</p><div data-component=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-alert\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"></line><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"></line></svg></i></div><div contenteditable=\"false\" class=\"titleWrapper\">Вложенная заметка</div></div><div class=\"admonition-content\"><p>Текст внутренней заметки</p></div></div><p>Еще текст внешней заметки</p></div></div>"
+			"html": "<div data-component=\"note\" data-type=\"info\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-info\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><path d=\"M12 16v-4\"></path><path d=\"M12 8h.01\"></path></svg></i></div><div class=\"titleWrapper\" contenteditable=\"false\">Внешняя заметка</div></div><div class=\"admonition-content\"><p>Внешний текст</p><div data-component=\"note\" data-type=\"note\"><div class=\"admonition-heading\"><div class=\"admonition-icon\"><i><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"lucide lucide-circle-alert\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"10\"></circle><line x1=\"12\" x2=\"12\" y1=\"8\" y2=\"12\"></line><line x1=\"12\" x2=\"12.01\" y1=\"16\" y2=\"16\"></line></svg></i></div><div class=\"titleWrapper\" contenteditable=\"false\">Вложенная заметка</div></div><div class=\"admonition-content\"><p>Текст внутренней заметки</p></div></div><p>Еще текст внешней заметки</p></div></div>"
 		}
 	],
 	"Link": [
@@ -978,7 +978,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><a href=\"https://ics-it.gram.ax/\" data-component=\"link\">Gramax</a></p>"
+			"html": "<p><a data-component=\"link\" href=\"https://ics-it.gram.ax/\">Gramax</a></p>"
 		},
 		{
 			"text": {
@@ -1003,7 +1003,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2F1718261246743-2.log\" data-component=\"link\">Очень важный файл</a></p>"
+			"html": "<p><a data-component=\"link\" href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2F1718261246743-2.log\">Очень важный файл</a></p>"
 		},
 		{
 			"text": {
@@ -1028,7 +1028,7 @@
 				],
 				"name": "p"
 			},
-			"html": "<p><a href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/html#какой-то-там-заголовок\" data-component=\"link\">Ссылка</a></p>"
+			"html": "<p><a data-component=\"link\" href=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/html#какой-то-там-заголовок\">Ссылка</a></p>"
 		}
 	]
 }

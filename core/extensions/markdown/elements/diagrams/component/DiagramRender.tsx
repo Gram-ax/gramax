@@ -1,11 +1,11 @@
+import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
+import { classNames } from "@components/libs/classNames";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { ComponentProps, forwardRef, MutableRefObject } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
-import { classNames } from "@components/libs/classNames";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 
 interface DiagramProps {
 	data?: string;
@@ -21,19 +21,9 @@ interface DiagramProps {
 }
 
 const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HTMLDivElement>) => {
-	const {
-		data,
-		error,
-		diagramName,
-		className,
-		isFrozen,
-		background = true,
-		title,
-		downloadSrc,
-		openEditor,
-	} = props;
+	const { data, error, diagramName, className, isFrozen, background = true, title, downloadSrc, openEditor } = props;
 
-	if (error) return <DiagramError error={error} diagramName={diagramName} />;
+	if (error) return <DiagramError diagramName={diagramName} error={error} />;
 
 	const onDoubleClick = () => {
 		ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
@@ -62,10 +52,10 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 			data-focusable="true"
 		>
 			<div
-				ref={ref}
 				className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
-				onDoubleClick={onDoubleClick}
 				dangerouslySetInnerHTML={{ __html: data }}
+				onDoubleClick={onDoubleClick}
+				ref={ref}
 			/>
 		</div>
 	);
@@ -80,15 +70,6 @@ export default styled(DiagramRender)`
 	p {
 		line-height: 1.5em;
 	}
-
-	${(p) => {
-		return p.diagramName == DiagramType["c4-diagram"]
-			? `.${DiagramType["c4-diagram"]}-diagram {
-					height: ${p.isFull ? "100%" : "33rem"} !important;
-			}
-			`
-			: "";
-	}}
 
 	.isFrozen {
 		opacity: 0.4;

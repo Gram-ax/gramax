@@ -1,19 +1,19 @@
-import { EnterpriseConfig } from "@app/config/AppConfig";
-import ApiRequest from "@core/Api/ApiRequest";
-import ApiResponse from "@core/Api/ApiResponse";
+import type { EnterpriseConfig } from "@app/config/AppConfig";
+import type ApiRequest from "@core/Api/ApiRequest";
+import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
-import Path from "@core/FileProvider/Path/Path";
-import Cookie from "@ext/cookie/Cookie";
+import type Path from "@core/FileProvider/Path/Path";
+import type Cookie from "@ext/cookie/Cookie";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { AuthProvider } from "@ext/security/logic/AuthProviders/AuthProvider";
+import type { AuthProvider } from "@ext/security/logic/AuthProviders/AuthProvider";
 import Permission from "@ext/security/logic/Permission/Permission";
 import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
-import User from "@ext/security/logic/User/User";
-import UserInfo from "@ext/security/logic/User/UserInfo";
-import { UserRepositoryProvider } from "@ext/security/logic/UserRepository";
-import { Workspace } from "@ext/workspace/Workspace";
+import type User from "@ext/security/logic/User/User";
+import type UserInfo from "@ext/security/logic/User/UserInfo";
+import type { UserRepositoryProvider } from "@ext/security/logic/UserRepository";
+import type { Workspace } from "@ext/workspace/Workspace";
 
 class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 	private _basePath: string;
@@ -36,7 +36,7 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 		res.redirect(`${gesUrl}/sso/login?from=${req.query.from}&redirect=${redirect}`);
 	}
 
-	logout(req: ApiRequest, res: ApiResponse): Promise<void> | void {
+	logout(_, res: ApiResponse): Promise<void> | void {
 		res.redirect("/");
 	}
 

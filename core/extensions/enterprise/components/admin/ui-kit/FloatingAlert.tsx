@@ -45,7 +45,7 @@ export function FloatingAlert({
 				className ?? "",
 			].join(" ")}
 		>
-			<Alert status="error" focus="medium">
+			<Alert focus="medium" status="error">
 				<AlertIcon icon="alert-circle" />
 				{title && <AlertTitle>{title}</AlertTitle>}
 				<AlertDescription>{message}</AlertDescription>

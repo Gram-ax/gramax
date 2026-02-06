@@ -1,13 +1,13 @@
-import styled from "@emotion/styled";
-import t from "@ext/localization/locale/translate";
-import Group from "@ext/markdown/elements/view/render/components/Displays/Helpers/Table/Group";
-import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
-import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
-import { useRef } from "react";
-import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
+import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
+import Group from "@ext/markdown/elements/view/render/components/Displays/Helpers/Table/Group";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
+import { useRef } from "react";
 
 interface TableProps {
 	content: ViewRenderGroup[];
@@ -30,31 +30,31 @@ const Table = ({ content, className, groupby, select, commentId }: TableProps) =
 		<div className={className}>
 			<WidthWrapper>
 				<BlockCommentView commentId={commentId}>
-					<table ref={ref} data-focusable="true">
+					<table data-focusable="true" ref={ref}>
 						<ColGroup tableRef={ref} />
 						<tbody>
 							<tr>
 								{groupby?.map((name) => (
-									<th key={name} scope="col" data-colwidth="10em">
+									<th data-colwidth="10em" key={name} scope="col">
 										{name}
 									</th>
 								))}
-								<th scope="col" data-colwidth="10em">
+								<th data-colwidth="10em" scope="col">
 									{t("properties.article")}
 								</th>
 								{select?.map((name) => (
-									<th key={name} scope="col" data-colwidth={getWidth(properties.get(name))}>
+									<th data-colwidth={getWidth(properties.get(name))} key={name} scope="col">
 										{name}
 									</th>
 								))}
 							</tr>
 							{content?.map((group) => (
 								<Group
-									key={group.group?.[0]}
-									group={group}
-									select={select}
 									catalogName={catalogName}
 									catalogProperties={properties}
+									group={group}
+									key={group.group?.[0]}
+									select={select}
 								/>
 							))}
 						</tbody>

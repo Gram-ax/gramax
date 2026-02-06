@@ -14,14 +14,14 @@ const CloneErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof Get
 	const cause = (error.cause?.cause || error.cause) as Error;
 
 	return (
-		<InfoModalForm onCancelClick={onCancelClick} title={t("clone-fail")} closeButton={{ text: t("ok") }}>
+		<InfoModalForm closeButton={{ text: t("ok") }} onCancelClick={onCancelClick} title={t("clone-fail")}>
 			<div className="article">
 				<Wrapper>
 					{t("clone-error-desc1")}
 					{error.props.remoteUrl && (
 						<>
 							{" "}
-							<a href={error.props.remoteUrl} target="_blank" rel="noreferrer">
+							<a href={error.props.remoteUrl} rel="noreferrer" target="_blank">
 								{error.props.remoteUrl}
 							</a>
 						</>
@@ -30,12 +30,12 @@ const CloneErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof Get
 				</Wrapper>
 
 				{cause && (
-					<Note title={t("technical-details")} collapsed={true} type={NoteType.hotfixes}>
+					<Note collapsed={true} title={t("technical-details")} type={NoteType.hotfixes}>
 						<CodeBlock
 							value={
 								cause.stack.includes("Fn:")
 									? cause.stack
-									: cause.name + ": " + cause.message + "\n" + cause.stack
+									: `${cause.name}: ${cause.message}\n${cause.stack}`
 							}
 						/>
 					</Note>

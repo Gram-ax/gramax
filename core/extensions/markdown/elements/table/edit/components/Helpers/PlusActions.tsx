@@ -65,9 +65,9 @@ const PlusActions = (props: PlusActionsProps) => {
 	return (
 		<div
 			className={classNames(className, { vertical: vertical, horizontal: !vertical }, ["hidden"])}
+			data-qa={dataQa}
 			onMouseEnter={preOnMouseEnter}
 			onMouseLeave={preOnMouseLeave}
-			data-qa={dataQa}
 		>
 			{hoveredData && (
 				<Line

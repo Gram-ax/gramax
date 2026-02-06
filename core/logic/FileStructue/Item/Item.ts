@@ -73,20 +73,20 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 	get parent(): Category {
 		return this._parent;
 	}
-	
-  set parent(value: Category) {
+
+	set parent(value: Category) {
 		this._parent = value;
 	}
 
 	get props() {
 		return this._props;
 	}
-	
-  get neededPermission(): IPermission {
+
+	get neededPermission(): IPermission {
 		return this._neededPermission;
 	}
-	
-  get order(): number {
+
+	get order(): number {
 		return this._props.order;
 	}
 
@@ -96,8 +96,8 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 		return this.props.title?.length
 			? this.props.title
 			: isNewArticle
-			? t("article.no-name")
-			: this.getFileName() || t("article.no-name");
+				? t("article.no-name")
+				: this.getFileName() || t("article.no-name");
 	}
 
 	async setOrder(order: number, silent = false) {

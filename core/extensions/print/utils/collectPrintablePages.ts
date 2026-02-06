@@ -36,7 +36,7 @@ async function collectPrintablePages(
 			await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
 			const parsedData = await (item as Article).parsedContent.read((p) => ({
 				content: p?.renderTree,
-				resourceManager: p?.resourceManager,
+				resourceManager: p?.parsedContext?.getResourceManager(),
 				itemRefPath: item.ref.path.value,
 				logicPath: item.logicPath,
 			}));

@@ -4,19 +4,20 @@ import MediaRenderer from "@components/Atoms/Image/modalImage/MediaRenderer";
 import { getCanMoves, getClampedValues, getLimits } from "@components/Atoms/Image/modalImage/utils";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { Overlay } from "@ui-kit/Overlay";
 import {
-	CSSProperties,
+	type CSSProperties,
+	type MouseEventHandler,
+	type MutableRefObject,
 	memo,
-	MouseEventHandler,
-	MutableRefObject,
-	ReactElement,
+	type ReactElement,
 	useCallback,
 	useEffect,
 	useRef,
 	useState,
 } from "react";
+import { MediaDescription } from "./MediaDescription";
 
 export const DATA_QA_LIGHTBOX = "qa-lightbox";
 
@@ -57,7 +58,7 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 			if (target.classList.contains("data-close")) return closeModal();
 			if (!mainContainerRef.current.contains(target)) event.stopPropagation();
 		},
-		[mainContainerRef.current, closeModal],
+		[closeModal],
 	);
 
 	const onKeyDown = useCallback(
@@ -116,7 +117,7 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 		return () => {
 			window.removeEventListener("keydown", onKeyDown);
 		};
-	}, [src, svg]);
+	}, [onKeyDown]);
 
 	useEffect(() => {
 		const onResize = () => {
@@ -129,14 +130,13 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 
 	return (
 		<div
-			key={downloadSrc}
-			ref={mainContainerRef}
-			data-qa={DATA_QA_LIGHTBOX}
 			className={className}
+			data-qa={DATA_QA_LIGHTBOX}
+			key={downloadSrc}
 			onClick={onClick}
+			ref={mainContainerRef}
 		>
 			<Overlay
-				data-state={isClosing ? "closed" : "open"}
 				className={classNames(
 					"modal-background",
 					{
@@ -145,26 +145,27 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 					},
 					["data-close"],
 				)}
+				data-state={isClosing ? "closed" : "open"}
 			/>
 			<Header
-				modalEdit={modalEdit}
-				zoomImage={zoomImage}
-				onClose={closeModal}
 				downloadSrc={downloadSrc}
 				isClosing={isClosing}
+				modalEdit={modalEdit}
+				onClose={closeModal}
+				zoomImage={zoomImage}
 			/>
 			<MediaAnimation isClosing={isClosing}>
 				<MediaRenderer
-					zoomImage={zoomImage}
-					ref={containerRef}
 					id={id}
+					modalStyle={modalStyle}
+					objects={objects}
+					ref={containerRef}
 					src={src}
 					svg={svg}
-					objects={objects}
-					modalStyle={modalStyle}
+					zoomImage={zoomImage}
 				/>
 			</MediaAnimation>
-			{title && <em>{title}</em>}
+			{title && <MediaDescription>{title}</MediaDescription>}
 		</div>
 	);
 };
@@ -213,17 +214,5 @@ export default styled(memo(MediaPreview))`
 			opacity: 0;
 			pointer-events: none;
 		}
-	}
-
-	em {
-		position: absolute;
-		bottom: 5%;
-		left: 50%;
-		transform: translateX(-50%);
-		text-align: center;
-		margin-top: 1em;
-		color: var(--color-active-white) !important;
-		font-size: 1em !important;
-		z-index: var(--z-index-article-modal);
 	}
 `;

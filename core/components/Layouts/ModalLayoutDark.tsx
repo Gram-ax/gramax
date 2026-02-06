@@ -9,7 +9,7 @@ interface ModalLayoutDarkProps {
 const ModalLayoutDark = forwardRef<HTMLDivElement, ModalLayoutDarkProps>(
 	({ children, className }: ModalLayoutDarkProps, ref): JSX.Element => {
 		return (
-			<div ref={ref} className={className}>
+			<div className={className} ref={ref}>
 				{children}
 			</div>
 		);

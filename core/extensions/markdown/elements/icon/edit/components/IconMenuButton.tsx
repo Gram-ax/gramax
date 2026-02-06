@@ -2,20 +2,20 @@ import { useBaseLucideIconList } from "@components/Atoms/Icon/lucideIconList";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
 import { useLazySearchList } from "@core-ui/hooks/useLazySearchList";
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import t from "@ext/localization/locale/translate";
 import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import CustomIcon from "@ext/markdown/elements/icon/render/components/Icon";
+import { useMediaQuery } from "@mui/material";
 import { Editor } from "@tiptap/core";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
 import { DropdownMenuSub, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
-import { ToolbarDropdownMenuSubContent } from "@ui-kit/Toolbar";
 import { Icon } from "@ui-kit/Icon";
 import { Loader } from "@ui-kit/Loader";
 import { LoadMoreTrigger } from "@ui-kit/LoadMoreTrigger";
+import { ToolbarDropdownMenuSubContent } from "@ui-kit/Toolbar";
 import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { cn } from "@core-ui/utils/cn";
 
 interface IconMenuButtonProps {
 	editor: Editor;
@@ -119,11 +119,11 @@ const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 				</div>
 			</DropdownMenuSubTrigger>
 			<ToolbarDropdownMenuSubContent
+				alignOffset={!isMobile ? -18 : 0}
+				className={cn(!isMobile && "px-3 py-3 pl-2")}
+				contentClassName="p-0 lg:shadow-hard-base"
 				ref={listRef}
 				sideOffset={!isMobile ? 2 : 6}
-				contentClassName="p-0 lg:shadow-hard-base"
-				className={cn(!isMobile && "px-3 py-3 pl-2")}
-				alignOffset={!isMobile ? -18 : 0}
 				style={{
 					maxWidth: "calc(min(11rem, var(--radix-dropdown-menu-content-available-width, 100%)))",
 					height: listHeight,
@@ -168,7 +168,7 @@ const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 								))}
 							</CommandGroup>
 						)}
-						<LoadMoreTrigger onLoad={handleLoadMore} hasMore={hasMoreItems} />
+						<LoadMoreTrigger hasMore={hasMoreItems} onLoad={handleLoadMore} />
 					</CommandList>
 				</Command>
 			</ToolbarDropdownMenuSubContent>

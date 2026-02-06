@@ -1,11 +1,11 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
+import Path from "@core/FileProvider/Path/Path";
+import { getClientDomain } from "@core/utils/getClientDomain";
+import { uniqueName } from "@core/utils/uniqueName";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
-import Path from "@core/FileProvider/Path/Path";
-import { getClientDomain } from "@core/utils/getClientDomain";
-import { uniqueName } from "@core/utils/uniqueName";
 import styled from "@emotion/styled";
 import { UsePropsEditorActionsParams } from "@ext/item/actions/propsEditor/logic/usePropsEditorAcitions";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
@@ -135,31 +135,27 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 	}, [itemLink?.pathname]);
 
 	return (
-		<Modal open={open} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={open}>
 			<ModalContent data-modal-root>
 				<Form asChild {...form}>
-					<form ref={formRef} className="contents ui-kit" onSubmit={formSubmitHandler}>
+					<form className="contents ui-kit" onSubmit={formSubmitHandler} ref={formRef}>
 						<ModalHeader>
 							<ModalTitle>{t(`${isCategory ? "section" : "article"}.configure.title`)}</ModalTitle>
 						</ModalHeader>
 						<ModalBody>
 							<FormStack>
 								<FormField
-									name="title"
-									title={t("title")}
-									layout="vertical"
 									control={({ field }) => <Input data-qa={t("title")} {...field} autoFocus />}
 									labelClassName={"w-44"}
+									layout="vertical"
+									name="title"
+									title={t("title")}
 								/>
 
 								<FormField
-									name="fileName"
-									title={t("article-url.title")}
-									description={t("article-url.description")}
-									layout="vertical"
 									control={({ field, fieldState }) => (
 										<InputGroup>
-											<Tooltip open={openOverflow} onOpenChange={onOpenChangeOverflow}>
+											<Tooltip onOpenChange={onOpenChangeOverflow} open={openOverflow}>
 												<TooltipTrigger asChild>
 													<InputGroupText style={{ maxWidth: "65%" }}>
 														<OverflowContainer ref={ref}>{url}</OverflowContainer>
@@ -178,26 +174,30 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 											/>
 										</InputGroup>
 									)}
+									description={t("article-url.description")}
 									labelClassName={"w-44"}
+									layout="vertical"
+									name="fileName"
+									title={t("article-url.title")}
 								/>
 
-								<QuizSettingsFields isCurrentItem={hookParams.isCurrentItem} form={form} />
+								<QuizSettingsFields form={form} isCurrentItem={hookParams.isCurrentItem} />
 
 								<FormField
-									name="searchPhrases"
-									title={t("article.searchPhrases.title")}
-									description={t("article.searchPhrases.description")}
-									layout="vertical"
 									control={({ field }) => (
 										<TagInput
-											placeholder={t("article.searchPhrases.placeholder")}
 											onChange={(newValues) =>
 												field.onChange(newValues.length === 0 ? undefined : newValues)
 											}
+											placeholder={t("article.searchPhrases.placeholder")}
 											{...field}
 										/>
 									)}
+									description={t("article.searchPhrases.description")}
 									labelClassName={"w-44"}
+									layout="vertical"
+									name="searchPhrases"
+									title={t("article.searchPhrases.title")}
 								/>
 							</FormStack>
 						</ModalBody>

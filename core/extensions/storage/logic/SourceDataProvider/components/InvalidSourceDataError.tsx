@@ -23,9 +23,6 @@ const InvalidSourceDataError = ({ error, onCancelClick }: ComponentProps<typeof 
 	return (
 		<>
 			<InfoModalForm
-				onCancelClick={onCancelClick}
-				title={t("storage-not-connected")}
-				icon={{ code: "key-round" }}
 				actionButton={
 					source
 						? {
@@ -34,10 +31,13 @@ const InvalidSourceDataError = ({ error, onCancelClick }: ComponentProps<typeof 
 									onCancelClick?.();
 									openRestoreSourceModal();
 								},
-						  }
+							}
 						: null
 				}
 				closeButton={{ text: t("close") }}
+				icon={{ code: "key-round" }}
+				onCancelClick={onCancelClick}
+				title={t("storage-not-connected")}
 			>
 				<div className="article">
 					<p>{t("git.source.error.invalid-credentials.desc")}</p>

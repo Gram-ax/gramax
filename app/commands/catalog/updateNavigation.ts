@@ -4,9 +4,9 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Context from "@core/Context/Context";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
 import DragTree from "@ext/navigation/catalog/drag/logic/DragTree";
 import DragTreeTransformer from "@ext/navigation/catalog/drag/logic/DragTreeTransformer";
+import { ItemLink } from "@ext/navigation/NavigationLinks";
 import { NodeModel } from "@minoru/react-dnd-treeview";
 import { Command } from "../../types/Command";
 

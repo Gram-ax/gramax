@@ -4,11 +4,11 @@ import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import { readyToPlace, stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
+import { BlockPlusAndSubNodes, ListGroupAndItem } from "@ext/markdown/logic/insertableNodeGroups";
 import { callOrReturn, findParentNode, InputRule, mergeAttributes, Node } from "@tiptap/core";
 import { findWrapping } from "@tiptap/pm/transform";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditNote from "../components/Note";
-import { BlockPlusAndSubNodes, ListGroupAndItem } from "@ext/markdown/logic/insertableNodeGroups";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {

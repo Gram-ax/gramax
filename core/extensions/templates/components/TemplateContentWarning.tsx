@@ -19,17 +19,14 @@ const TemplateContentWarning = ({ initialIsOpen, onClose, action, templateName }
 			closeOnEscape
 			contentWidth="S"
 			isOpen={isOpen}
-			onOpen={() => setIsOpen(true)}
 			onClose={() => {
 				setIsOpen(false);
 				onClose?.();
 			}}
+			onOpen={() => setIsOpen(true)}
 		>
 			<ModalLayoutLight>
 				<InfoModalForm
-					isWarning
-					onCancelClick={() => setIsOpen(false)}
-					title={t("template.warning.content.name").replace("{{template}}", templateName)}
 					actionButton={{
 						text: t("continue"),
 						onClick: () => {
@@ -39,6 +36,9 @@ const TemplateContentWarning = ({ initialIsOpen, onClose, action, templateName }
 					}}
 					closeButton={{ text: t("cancel") }}
 					icon={{ code: "alert-circle", color: "var(--color-warning)" }}
+					isWarning
+					onCancelClick={() => setIsOpen(false)}
+					title={t("template.warning.content.name").replace("{{template}}", templateName)}
 				>
 					{t("template.warning.content.body")}
 				</InfoModalForm>

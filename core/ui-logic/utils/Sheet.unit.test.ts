@@ -1,4 +1,4 @@
-import Sheet, { SheetType, SheetRow, SheetColumn } from "./Sheet";
+import Sheet, { SheetColumn, SheetRow, SheetType } from "./Sheet";
 
 describe("Sheet", () => {
 	describe("Constructor and static methods", () => {

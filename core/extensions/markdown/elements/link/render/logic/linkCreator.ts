@@ -1,9 +1,9 @@
 import { CATEGORY_ROOT_FILENAME, GRAMAX_DIRECTORY } from "@app/config/const";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 import type { Catalog } from "../../../../../../logic/FileStructue/Catalog/Catalog";
-import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 
 interface LinkResult {
 	href: string;

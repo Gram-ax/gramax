@@ -1,7 +1,7 @@
 import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 import { JSONContent } from "@tiptap/core";
 import { ParserOptions } from "../../../Parser/Parser";
-import ParserContext from "../../../Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
 import { RenderableTreeNodes, Schema, SchemaType, Tag } from "../../../render/logic/Markdoc";
 import { getMarkdocFormatter } from "../Formatter/Formatters/getMarkdocFormatter";
 import NodeTransformerFunc from "./NodeTransformerFunc";
@@ -14,14 +14,14 @@ export class Transformer {
 		private _schemes: Record<string, Schema>,
 		private _nodeTransformerFuncs: NodeTransformerFunc[],
 		private _tokenTransformerFuncs: TokenTransformerFunc[],
-		private _context: ParserContext,
+		private _context: PrivateParserContext,
 	) {}
 
 	async transformMdComponents(
 		node: JSONContent,
 		renderer: (
 			content: string,
-			context?: ParserContext,
+			context?: PrivateParserContext,
 			parserOptions?: ParserOptions,
 		) => Promise<RenderableTreeNodes>,
 	): Promise<JSONContent> {

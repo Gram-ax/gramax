@@ -39,6 +39,8 @@ const buildDocumentTree = async (
 		content: "",
 		resourceManager: undefined,
 		parserContext: null,
+		linkResourceManager: null,
+		language: null,
 	};
 
 	if (!isCatalog) {
@@ -46,7 +48,8 @@ const buildDocumentTree = async (
 			await parseContent(item as Article, catalog, ctx, parser, parserContextFactory);
 			const parsedData = await (item as Article).parsedContent.read(async (p) => ({
 				content: filter.getSupportedTree(p?.renderTree),
-				resourceManager: p?.resourceManager,
+				resourceManager: p?.parsedContext?.getResourceManager(),
+				linkResourceManager: p?.parsedContext?.getLinkManager(),
 				parserContext: await parserContextFactory.fromArticle(
 					item as Article,
 					catalog,
@@ -57,6 +60,8 @@ const buildDocumentTree = async (
 
 			heading.content = parsedData.content;
 			heading.resourceManager = parsedData.resourceManager;
+			heading.linkResourceManager = parsedData.linkResourceManager;
+			heading.language = parsedData.parserContext.getLanguage();
 			heading.parserContext = parsedData.parserContext;
 		} catch (error) {
 			console.error(error);

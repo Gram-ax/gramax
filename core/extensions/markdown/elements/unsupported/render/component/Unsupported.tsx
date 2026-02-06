@@ -23,8 +23,8 @@ const Unsupported = ({ url, code, source }: UnsupportedProps): ReactElement => {
 				{`${t("import.error.cannot-import.desc")} `}
 				<Anchor href={url}>{url}</Anchor>
 			</span>
-			<Note title={t("alert.details")} type={NoteType.note} collapsed>
-				<CodeBlock value={code} language={"json"} />
+			<Note collapsed title={t("alert.details")} type={NoteType.note}>
+				<CodeBlock language={"json"} value={code} />
 			</Note>
 		</Alert>
 	);

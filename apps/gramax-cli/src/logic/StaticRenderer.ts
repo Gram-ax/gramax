@@ -1,21 +1,25 @@
 import Application from "@app/types/Application";
+import Context from "@core/Context/Context";
 import PageDataContext from "@core/Context/PageDataContext";
+import { Article } from "@core/FileStructue/Article/Article";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { overriddenLanguage } from "@ext/localization/core/model/Language";
+import { PropertyTypes } from "@ext/properties/models";
+import { feature } from "@ext/toggleFeatures/features";
 import { renderAppContent } from "../Components/renderAppContent";
 import { ArticleDataService, Options } from "./ArticleDataService";
 import { HtmlData, InitialArticleData } from "./ArticleTypes";
-import { overriddenLanguage } from "@ext/localization/core/model/Language";
-import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import Context from "@core/Context/Context";
-import { feature } from "@ext/toggleFeatures/features";
 
 export const STATIC_WORKSPACE_PATH = "/";
 
 class StaticRenderer {
 	private _articleDataService: ArticleDataService;
 
-	constructor(private _app: Application, options: Options) {
+	constructor(
+		private _app: Application,
+		options: Options,
+	) {
 		this._articleDataService = new ArticleDataService(_app, options);
 	}
 
@@ -90,15 +94,25 @@ class StaticRenderer {
 		};
 		await getData(catalog);
 
-		const getFilteredCatalogs = () =>
-			catalog.props.filterProperties?.mapAsync(async (property) => {
+		const getFilteredCatalogs = async () => {
+			if (!catalog.props.filterProperty) return;
+
+			const property = catalog.props.properties?.find((p) => p.name === catalog.props.filterProperty);
+			if (!property) return;
+
+			const filterValues = ["any"];
+			if (property.values) filterValues.push(...property.values);
+			if (property.type === PropertyTypes.flag) filterValues.push(property.name);
+
+			await filterValues.mapAsync(async (filterValue) => {
 				const mutableCatalog = { catalog };
 				await this._app.wm.current().events.emit("on-catalog-resolve", {
 					mutableCatalog,
-					metadata: property,
+					metadata: filterValue,
 				});
 				await getData(mutableCatalog.catalog);
 			});
+		};
 		if (feature("filtered-catalog")) await getFilteredCatalogs();
 
 		return initialArticleData;

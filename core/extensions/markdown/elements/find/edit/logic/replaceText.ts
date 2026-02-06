@@ -1,7 +1,6 @@
-import { EditorView } from "prosemirror-view";
-import { Mark, Node } from "prosemirror-model";
+import collectTextblockMatches from "@ext/markdown/elements/find/edit/logic/collectTextblockMatches";
 import { TextSelection } from "prosemirror-state";
-import buildSearchRegex from "./buildSearchRegex";
+import type { EditorView } from "prosemirror-view";
 
 type ReplaceProps = (
 	view: EditorView,
@@ -26,25 +25,21 @@ const replaceHighlightedText: ReplaceProps = (view, searchTerm, newText, caseSen
 
 	if (!searchTerm) return;
 
-	const regex = buildSearchRegex(searchTerm, caseSensitive, wholeWord);
+	const matches = collectTextblockMatches(doc, searchTerm, caseSensitive, wholeWord);
+	if (!matches.length) return;
 
 	let shift = 0;
 	let lastPos = 0;
 
-	doc.descendants((node: Node, pos: number) => {
-		if (node.isText) {
-			let match;
-			while ((match = regex.exec(node.text)) !== null) {
-				const start = pos + match.index + shift;
-				const end = start + match[0].length;
+	matches.forEach(({ start, end, marks }) => {
+		const from = start + shift;
+		const to = end + shift;
 
-				if (!newText) tr.delete(start, end);
-				else tr.replaceWith(start, end, state.schema.text(newText, node.marks));
+		if (!newText) tr.delete(from, to);
+		else tr.replaceWith(from, to, state.schema.text(newText, marks));
 
-				lastPos = start + newText.length;
-				shift += newText.length - match[0].length;
-			}
-		}
+		lastPos = from + newText.length;
+		shift += newText.length - (end - start);
 	});
 
 	if (tr.docChanged) {
@@ -61,21 +56,7 @@ const replaceSpecificHighlightedText: ReplaceOneProps = (view, searchTerm, newTe
 
 	if (!searchTerm) return;
 
-	const regex = buildSearchRegex(searchTerm, caseType, wholeWord);
-
-	const matchesStack: { start: number; end: number; marks: readonly Mark[] }[] = [];
-
-	doc.descendants((node: Node, pos: number) => {
-		if (node.isText) {
-			let match;
-			while ((match = regex.exec(node.text)) !== null) {
-				const start = pos + match.index;
-				const end = start + match[0].length;
-
-				matchesStack.push({ start, end, marks: node.marks });
-			}
-		}
-	});
+	const matchesStack = collectTextblockMatches(doc, searchTerm, caseType, wholeWord);
 
 	if (matchesStack.length > index) {
 		const { start, end, marks } = matchesStack[index];

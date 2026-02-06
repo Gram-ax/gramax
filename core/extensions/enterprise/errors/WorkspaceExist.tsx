@@ -12,9 +12,6 @@ const WorkspaceExist = ({ onCancelClick, error }: ComponentProps<typeof GetError
 
 	return (
 		<InfoModalForm
-			title={error.title}
-			icon={getIcon(error)}
-			isWarning={error.isWarning}
 			actionButton={{
 				text: t("switch"),
 				onClick: () => {
@@ -22,6 +19,9 @@ const WorkspaceExist = ({ onCancelClick, error }: ComponentProps<typeof GetError
 					onCancelClick();
 				},
 			}}
+			icon={getIcon(error)}
+			isWarning={error.isWarning}
+			title={error.title}
 		>
 			<ErrorBody error={error} />
 		</InfoModalForm>

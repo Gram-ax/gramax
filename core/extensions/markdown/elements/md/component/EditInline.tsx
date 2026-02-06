@@ -1,8 +1,8 @@
+import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
 import EditMarkdown from "@ext/markdown/elements/md/component/EditMarkdown";
 import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import Renderer from "../../../core/render/components/Renderer";
 import getComponents from "../../../core/render/components/getComponents/getComponents";
-import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
+import Renderer from "../../../core/render/components/Renderer";
 
 const EditInline = ({ node, selected }: NodeViewProps) => {
 	const commentId = node.attrs.comment?.id;
@@ -11,9 +11,9 @@ const EditInline = ({ node, selected }: NodeViewProps) => {
 			<InlineCommentView commentId={commentId}>
 				<EditMarkdown visible={selected}>
 					<div
-						style={{ display: "inline", borderRadius: "var(--radius-x-small)" }}
-						data-focusable="true"
 						className="focus-pointer-events"
+						data-focusable="true"
+						style={{ display: "inline", borderRadius: "var(--radius-x-small)" }}
 					>
 						{Renderer(node.attrs.tag, { components: getComponents() })}
 					</div>

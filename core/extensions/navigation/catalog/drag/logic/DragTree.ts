@@ -1,4 +1,5 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import type { Category } from "@core/FileStructue/Category/Category";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
@@ -11,10 +12,12 @@ import itemRefUtils from "../../../../../logic/utils/itemRefUtils";
 import { ItemLink } from "../../../NavigationLinks";
 import DragTreeTransformer from "./DragTreeTransformer";
 import getMovements from "./Movement/getMovements";
-import Path from "@core/FileProvider/Path/Path";
 
 class DragTree {
-	constructor(private _fp: FileProvider, private _makeResourceUpdater: MakeResourceUpdater) {}
+	constructor(
+		private _fp: FileProvider,
+		private _makeResourceUpdater: MakeResourceUpdater,
+	) {}
 
 	public async findOrderingAncestors(newNav: NodeModel<ItemLink>[], draggedItemPath: string, catalog: Catalog) {
 		let newCategoryPath: Path;

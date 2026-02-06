@@ -1,10 +1,10 @@
 import react from "@vitejs/plugin-react";
-import { UserConfig, mergeConfig } from "vite";
+import { mergeConfig, type UserConfig } from "vite";
 import mkcert from "vite-plugin-mkcert";
 import env from "../../scripts/compileTimeEnv.mjs";
 import baseConfig from "../../vite.config";
 
-const { setVersion, setBuildVersion } = env;
+const { setVersion, setBuildVersion, dynamicModules } = env;
 
 process.env.VITE_ENVIRONMENT = "browser";
 setVersion("web");
@@ -26,6 +26,9 @@ export default mergeConfig(baseConfig(), {
 	},
 	envDir: "../..",
 	build: {
+		resolve: {
+			alias: dynamicModules(),
+		},
 		rollupOptions: {
 			output: {
 				entryFileNames: (chunkInfo) => {

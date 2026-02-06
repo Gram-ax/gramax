@@ -4,6 +4,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
+
 // import customConfirm from "@core-ui/CustomConfirm";
 
 const Discard = ({
@@ -40,9 +41,9 @@ const Discard = ({
 		>
 			<a>
 				<Icon
-					tooltipContent={t("git.discard.select-all-arrow-tooltip")}
 					code={discardAll ? "reply-all" : "reply"}
 					style={{ fontSize: "13px", fontWeight: 300 }}
+					tooltipContent={t("git.discard.select-all-arrow-tooltip")}
 				/>
 			</a>
 		</span>

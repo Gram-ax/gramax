@@ -1,8 +1,8 @@
-import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
-import Paginator from "@ext/print/utils/pagination/Paginator";
-import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import { RowPaginator } from "@ext/markdown/elements/table/print/RowPaginator";
 import type { TablePaginatorInterface } from "@ext/markdown/elements/table/print/TablePaginator.types";
+import { throwIfAborted } from "@ext/print/utils/pagination/abort";
+import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
+import Paginator from "@ext/print/utils/pagination/Paginator";
 
 export class RowGroupPaginator extends NodePaginator<HTMLElement, HTMLTableSectionElement> {
 	private _rows: HTMLTableRowElement[];
@@ -120,11 +120,15 @@ export class RowGroupPaginator extends NodePaginator<HTMLElement, HTMLTableSecti
 
 				row.remove();
 				const cells = Array.from(row.childNodes);
-				for (let i = 0; i < cells.length; i++) {
+				const cellsWithRowSpanIndexes = Array.from(this._cellsWithRowSpan.entries())
+					.filter(([, v]) => v.rowIndex === this._rowIndex - 1)
+					.map(([key]) => key);
+				for (let i = 0, j = 0; i < cells.length; i++) {
 					const cell = cells[i] as HTMLTableCellElement;
 					if (cell.rowSpan && cell.rowSpan > 1) {
 						cell.dataset._rowIndex = (this._rowIndex - 1).toString();
-						nextContainerCells[i] = cell;
+						nextContainerCells[cellsWithRowSpanIndexes[j]] = cell;
+						j++;
 					}
 				}
 			}

@@ -12,9 +12,9 @@ export function HTMLIcon(html: HTMLComponents) {
 		if (props.svg) {
 			return (
 				<i
+					dangerouslySetInnerHTML={{ __html: props.svg }}
 					data-component="icon"
 					style={{ color: props.color }}
-					dangerouslySetInnerHTML={{ __html: props.svg }}
 				/>
 			);
 		}

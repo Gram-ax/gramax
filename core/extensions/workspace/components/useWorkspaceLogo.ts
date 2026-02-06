@@ -1,9 +1,9 @@
+import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import WorkspaceAssetsService, { useLogoManager } from "@core-ui/ContextServices/WorkspaceAssetsService";
 import useWatch from "@core-ui/hooks/useWatch";
-import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import Theme from "@ext/Theme/Theme";
 import { UpdateResource } from "@ext/workspace/components/LogoUploader";
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export const useWorkspaceLogo = (workspacePath: string) => {
 	const { refreshHomeLogo } = WorkspaceAssetsService.value();

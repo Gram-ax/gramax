@@ -5,7 +5,7 @@ files_to_delete=(
     "./core/extensions/security/logic/AuthProviders/dropbox.ts"
     "./scripts/enterprise"
     "./services"
-    "./ci/**/*.{yml,yaml,sh}"
+    "./.ci/**/*.{yml,yaml,sh}"
     "./deploy"
     "./docs"
     "./.gitlab-ci.{yml,yaml}"

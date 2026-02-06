@@ -1,25 +1,25 @@
+import resolveModule from "@app/resolveModule/frontend";
+import useUrlImage from "@components/Atoms/Image/useUrlImage";
+import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import styled from "@emotion/styled";
-import useUrlImage from "@components/Atoms/Image/useUrlImage";
-import ThemeService from "@ext/Theme/components/ThemeService";
-import t from "@ext/localization/locale/translate";
-import { ContentDivider } from "@ui-kit/Divider";
-import { memo } from "react";
-import { Button, RichButton } from "@ui-kit/Button";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
-import resolveModule from "@app/resolveModule/frontend";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import { useButtonsHandlers } from "@ext/catalog/actions/logic/useButtonsHandlers";
+import styled from "@emotion/styled";
 import CreateCatalog from "@ext/catalog/actions/CreateCatalog";
+import { useButtonsHandlers } from "@ext/catalog/actions/logic/useButtonsHandlers";
+import t from "@ext/localization/locale/translate";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import ThemeService from "@ext/Theme/components/ThemeService";
+import { Button, RichButton } from "@ui-kit/Button";
+import { ContentDivider } from "@ui-kit/Divider";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+import { memo } from "react";
 
 const Container = styled.div`
 	max-width: 469px;
@@ -97,8 +97,8 @@ const Logo = memo(({ isMobile }: { isMobile: boolean }) => {
 	const theme = ThemeService.value;
 	return (
 		<img
-			src={useUrlImage(apiUrlCreator.getLogo(theme, true))}
 			className={cn(!isMobile && "w-12 h-12", isMobile && "w-11 h-11")}
+			src={useUrlImage(apiUrlCreator.getLogo(theme, true))}
 		/>
 	);
 });
@@ -115,8 +115,6 @@ const WorkspacePath = () => {
 						{PageDataContextService.value.workspace.defaultPath}
 					</TextOverflowTooltip>
 					<Button
-						variant="link"
-						size="xl"
 						className="h-auto p-0 flex-shrink-0 whitespace-nowrap"
 						onClick={async () => {
 							const path = await resolveModule("openDirectory")();
@@ -124,6 +122,8 @@ const WorkspacePath = () => {
 							await FetchService.fetch(apiUrlCreator.setDefaultPath(path));
 							await refreshPage();
 						}}
+						size="xl"
+						variant="link"
 					>
 						{t("change")}
 					</Button>
@@ -164,15 +164,15 @@ export const EditorWelcome = () => {
 				</TopContainerWrapper>
 			</div>
 			{canAddCatalog && (
-				<div className="container">
+				<div className="container mx-auto">
 					<IsReadOnlyHOC>
 						<CreateCatalog
 							trigger={
 								<RichButton
+									description={t("catalog.new-3")}
 									icon={"plus"}
 									size={richButtonSize}
 									title={t("catalog.new-2")}
-									description={t("catalog.new-3")}
 								/>
 							}
 						/>
@@ -181,19 +181,19 @@ export const EditorWelcome = () => {
 						<div className="text-sm text-center font-normal text-muted">{t("or")}</div>
 					</ContentDivider>
 					<RichButton
+						description={t("catalog.clone-4")}
 						icon={"cloud-download"}
-						size={richButtonSize}
-						title={t("welcome.editor.options.download-exists.title")}
-						description={t("welcome.editor.options.download-exists.description")}
 						onClick={onCloneClick}
+						size={richButtonSize}
+						title={t("catalog.clone-2")}
 					/>
 					<IsReadOnlyHOC>
 						<RichButton
+							description={t("catalog.import-3")}
 							icon={"import"}
+							onClick={onImportClick}
 							size={richButtonSize}
 							title={t("catalog.import-2")}
-							description={t("catalog.import-3")}
-							onClick={onImportClick}
 						/>
 					</IsReadOnlyHOC>
 				</div>

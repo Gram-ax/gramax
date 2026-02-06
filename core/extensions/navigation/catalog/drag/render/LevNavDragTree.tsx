@@ -69,34 +69,34 @@ const LevNavDragTree = (props: LevNavDragTreeProps) => {
 			<CssBaseline />
 			<div className={className}>
 				<Tree<ItemLink>
-					tree={items}
-					rootId={DragTreeTransformer.getRootId()}
-					sort={false}
-					insertDroppableFirst={false}
-					dropTargetOffset={6}
-					onDrop={onDropHandler}
-					canDrop={handleCanDrop}
 					canDrag={canDragCheck}
-					onDragEnd={handleDragEnd}
-					onDragStart={handleDragStart}
-					initialOpen={initialOpenArray}
-					render={(node, params) => (
-						<NavItem
-							node={node}
-							params={params}
-							toggleOpen={toggleOpen}
-							draggedItemPath={draggedItemPath}
-							closeNavigation={closeNavigation}
-						/>
-					)}
-					placeholderRender={(_, { depth }) => {
-						return <div className={"placeholder depth-" + depth} />;
-					}}
+					canDrop={handleCanDrop}
 					classes={{
 						root: "tree-root",
 						draggingSource: "dragging-source",
 						placeholder: "placeholder-container",
 					}}
+					dropTargetOffset={6}
+					initialOpen={initialOpenArray}
+					insertDroppableFirst={false}
+					onDragEnd={handleDragEnd}
+					onDragStart={handleDragStart}
+					onDrop={onDropHandler}
+					placeholderRender={(_, { depth }) => {
+						return <div className={"placeholder depth-" + depth} />;
+					}}
+					render={(node, params) => (
+						<NavItem
+							closeNavigation={closeNavigation}
+							draggedItemPath={draggedItemPath}
+							node={node}
+							params={params}
+							toggleOpen={toggleOpen}
+						/>
+					)}
+					rootId={DragTreeTransformer.getRootId()}
+					sort={false}
+					tree={items}
 				/>
 			</div>
 		</>

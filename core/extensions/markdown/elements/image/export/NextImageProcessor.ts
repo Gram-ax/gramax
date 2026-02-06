@@ -2,11 +2,11 @@ import Path from "@core/FileProvider/Path/Path";
 import ResourceManager from "@core/Resource/ResourceManager";
 import t from "@ext/localization/locale/translate";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
 import Annotation from "@ext/markdown/elements/image/word/imageEditor/Annotation";
 import Square from "@ext/markdown/elements/image/word/imageEditor/Square";
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
-import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
 import { MAX_HEIGHT, SCALE } from "@ext/wordExport/options/wordExportSettings";
 
 export interface GetImageByPathOptions {

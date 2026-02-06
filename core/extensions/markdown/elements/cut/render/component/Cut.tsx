@@ -36,11 +36,11 @@ const Cut = styled(({ text, expanded, children, isInline, onUpdate, className }:
 		<div className={`admonition admonition-cut admonition-column`}>
 			<div
 				className="admonition-heading"
+				contentEditable={false}
 				onClick={() => {
 					setExpanded(!isExpanded);
 					onUpdate?.(!isExpanded);
 				}}
-				contentEditable={false}
 			>
 				<div className="admonition-icon">
 					<Icon code={isExpanded ? "chevron-down" : "chevron-right"} viewBox="3 3 18 18" />

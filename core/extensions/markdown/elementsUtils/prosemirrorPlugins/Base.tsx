@@ -1,7 +1,7 @@
 import { Editor } from "@tiptap/core";
 import { EditorState } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
-import { Root, createRoot } from "react-dom/client";
+import { createRoot, Root } from "react-dom/client";
 
 abstract class Base {
 	protected _root: Root;
@@ -10,7 +10,10 @@ abstract class Base {
 	protected _componentIsShow: boolean;
 	protected _lastPosition: number = null;
 
-	constructor(protected _view: EditorView, protected _editor: Editor) {
+	constructor(
+		protected _view: EditorView,
+		protected _editor: Editor,
+	) {
 		this._tooltip = document.createElement("div");
 		this._tooltip.style.position = "absolute";
 		this._view.dom.parentElement.appendChild(this._tooltip);

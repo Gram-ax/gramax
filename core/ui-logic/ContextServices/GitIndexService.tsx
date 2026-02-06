@@ -1,12 +1,12 @@
 import type { ClientGitStatus } from "@app/commands/versionControl/statuses";
+import type { UnsubscribeToken } from "@core/Event/EventEmitter";
+import type Path from "@core/FileProvider/Path/Path";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService, { type OnDidCommandEv } from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useApiEvent } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import type { UnsubscribeToken } from "@core/Event/EventEmitter";
-import type Path from "@core/FileProvider/Path/Path";
 import type { TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { createContext, ReactElement, useCallback, useContext, useLayoutEffect, useState } from "react";

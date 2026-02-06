@@ -1,18 +1,26 @@
-import { flexRender } from "@ui-kit/DataTable";
-import { useVirtualizer } from "@tanstack/react-virtual";
-import { DependencyList, Dispatch, SetStateAction, memo, useCallback, useEffect, useRef, useState } from "react";
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@ui-kit/Table";
+import { cn } from "@core-ui/utils/cn";
+import styled from "@emotion/styled";
 import {
 	columnThClassName,
 	TABLE_COLUMN_CODE_DEFAULT,
-	TableComponentProps,
+	type TableComponentProps,
 } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableEmptyRow } from "@ext/enterprise/components/admin/ui-kit/table/TableEmptyRow";
-import { cn } from "@core-ui/utils/cn";
-import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
 import { TableLoadingRow } from "@ext/enterprise/components/admin/ui-kit/table/TableLoadingRow";
-import styled from "@emotion/styled";
-import useWatch from "@core-ui/hooks/useWatch";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { flexRender } from "@ui-kit/DataTable";
+import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@ui-kit/Table";
+import {
+	type DependencyList,
+	type Dispatch,
+	memo,
+	type SetStateAction,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
 import { renderRow } from "./renderRow";
 
 export type RequestCursor = {
@@ -31,7 +39,9 @@ interface LazyInfinityTableProps<T> extends TableComponentProps<T> {
 	hasMore: boolean;
 	setData: Dispatch<SetStateAction<T[]>>;
 	loadOptions: () => Promise<RequestData<T>>;
-	selectedArticleIds?: number[];
+	selectedRowIds?: number[];
+	selectedRowId?: string | null;
+	responsive?: boolean;
 }
 
 const Wrapper = styled.div`
@@ -45,64 +55,75 @@ const Wrapper = styled.div`
 `;
 
 const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
-	const { loadOptions, table, columns, onRowClick, hasMore, setData, deps, selectedArticleIds = [] } = props;
+	const {
+		loadOptions,
+		table,
+		columns,
+		onRowClick,
+		hasMore,
+		setData,
+		deps,
+		selectedRowIds = [],
+		selectedRowId,
+		responsive = true,
+	} = props;
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const [isFetching, setIsFetching] = useState(false);
 	const isInitialLoadComplete = useRef(false);
 	const lastScrollTop = useRef(0);
 
-	const hasScroll = useCallback(() => {
-		const scrollContainer = scrollContainerRef.current;
-		if (!scrollContainer) return false;
-		return scrollContainer.scrollHeight > scrollContainer.clientHeight;
-	}, []);
-
-	useWatch(() => {
-		isInitialLoadComplete.current = false;
-		setIsFetching(false);
-		lastScrollTop.current = 0;
-		//why do we need it here? It just clears the passed data
-		setData([]);
-	}, [...deps]);
+	const depsRef = useRef(deps);
+	const isFetchingRef = useRef(false);
 
 	useEffect(() => {
-		const fetchUntilScroll = async () => {
-			if (isInitialLoadComplete.current) return;
+		// Check if deps actually changed
+		const depsChanged = deps.some((dep, i) => !Object.is(dep, depsRef.current[i]));
+		if (depsChanged) {
+			depsRef.current = deps;
+			isInitialLoadComplete.current = false;
+			isFetchingRef.current = false;
+			setIsFetching(false);
+			lastScrollTop.current = 0;
+			setData([]);
+		}
+		// biome-ignore lint/correctness/useExhaustiveDependencies: deps is a dynamic array passed as prop
+	}, deps);
 
-			const loadBatch = async () => {
-				if (!hasMore) {
-					isInitialLoadComplete.current = true;
-					return;
-				}
+	// biome-ignore lint/correctness/useExhaustiveDependencies: setData is stable callback from props
+	useEffect(() => {
+		if (isInitialLoadComplete.current || isFetchingRef.current) return;
 
-				if (isFetching) return;
+		const loadInitialData = async () => {
+			if (isInitialLoadComplete.current || isFetchingRef.current || !hasMore) return;
 
-				setIsFetching(true);
+			isFetchingRef.current = true;
+			setIsFetching(true);
+
+			try {
 				const newData = await loadOptions();
 
-				setData((prevData) => [...prevData, ...newData.data]);
-				setIsFetching(false);
-
-				if (!newData.has_more) {
-					setIsFetching(false);
-					isInitialLoadComplete.current = true;
-					return;
+				if (newData.data.length > 0) {
+					setData((prevData) => [...prevData, ...newData.data]);
 				}
 
-				const shouldContinue = !hasScroll() && newData.has_more;
-
-				if (shouldContinue) await loadBatch();
-				else isInitialLoadComplete.current = true;
-			};
-
-			await loadBatch();
+				if (!newData.has_more) {
+					isInitialLoadComplete.current = true;
+				}
+			} catch (error) {
+				console.error("Error loading initial data:", error);
+			} finally {
+				setIsFetching(false);
+				isFetchingRef.current = false;
+				// Mark as complete after first load - scroll will trigger more
+				isInitialLoadComplete.current = true;
+			}
 		};
 
-		fetchUntilScroll();
-	}, [loadOptions, hasMore, isFetching, hasScroll, table]);
+		loadInitialData();
+	}, [loadOptions, hasMore]);
 
 	const fetchMoreOnBottomReached = useCallback(async () => {
-		if (!isInitialLoadComplete.current) return;
+		if (!isInitialLoadComplete.current || isFetchingRef.current) return;
 
 		const scrollContainer = scrollContainerRef.current;
 		if (!scrollContainer) return;
@@ -113,7 +134,8 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 		const { scrollHeight, scrollTop, clientHeight } = scrollContainer;
 		lastScrollTop.current = scrollTop;
 
-		if (scrollTop + clientHeight >= scrollHeight - clientHeight * 0.2 && !isFetching) {
+		if (scrollTop + clientHeight >= scrollHeight - clientHeight * 0.2) {
+			isFetchingRef.current = true;
 			setIsFetching(true);
 
 			const scrollHeightBefore = scrollHeight;
@@ -124,6 +146,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 
 			if (!newData.has_more) {
 				setIsFetching(false);
+				isFetchingRef.current = false;
 				return;
 			}
 
@@ -137,8 +160,9 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 			});
 
 			setIsFetching(false);
+			isFetchingRef.current = false;
 		}
-	}, [loadOptions, setData, hasMore, isFetching]);
+	}, [loadOptions, setData, hasMore]);
 
 	const { rows } = table.getRowModel();
 
@@ -150,28 +174,27 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 	});
 
 	return (
-		<div className="relative overflow-hidden flex flex-col max-h-full h-full">
+		<div className="relative overflow-hidden flex flex-col max-h-full h-full ">
 			<ScrollShadowContainer
-				ref={scrollContainerRef}
-				className="flex-1 overflow-y-auto max-h-full"
-				shadowTopClassName="mt-10"
+				className="flex-1 overflow-y-auto max-h-full border rounded-md"
 				onScrollCapture={() => fetchMoreOnBottomReached()}
+				ref={scrollContainerRef}
+				shadowTopClassName="mt-10"
 			>
-				<Wrapper className="border rounded-md">
-					<Table className="min-w-full" style={{ tableLayout: "fixed" }}>
+				<Wrapper>
+					<Table className={cn("min-w-full", !responsive && "w-auto")} style={{ tableLayout: "fixed" }}>
 						<colgroup>
-							{columns.map((col, idx) => {
+							{columns.map((col) => {
 								const size = col.size;
-								return <col key={idx} style={size ? { width: `${size}px` } : undefined} />;
+								return <col key={col.id} style={size ? { width: `${size}px` } : undefined} />;
 							})}
 						</colgroup>
 						<TableHeader className="h-10 bg-secondary-bg top-0 z-10">
 							{table.getHeaderGroups().map((headerGroup) => (
-								<TableRow key={headerGroup.id} className="h-10 items-center">
+								<TableRow className="h-10 items-center" key={headerGroup.id}>
 									{headerGroup.headers.map((header, idx) => {
 										return (
 											<TableHead
-												key={header.id}
 												className={cn(
 													columnThClassName[
 														header.column.id as keyof typeof columnThClassName
@@ -179,6 +202,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 													idx === 0 ? "pl-3" : "",
 													"h-10 items-center whitespace-nowrap",
 												)}
+												key={header.id}
 											>
 												{header.isPlaceholder
 													? null
@@ -193,11 +217,15 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 							{table.getRowModel().rows?.length ? (
 								<>
 									<tr style={{ height: `${rowVirtualizer.getVirtualItems()[0]?.start ?? 0}px` }} />
-									{rowVirtualizer
-										.getVirtualItems()
-										.map((virtualRow) =>
-											renderRow({ virtualRow, rows, onRowClick, selectedArticleIds }),
-										)}
+									{rowVirtualizer.getVirtualItems().map((virtualRow) =>
+										renderRow({
+											virtualRow,
+											rows,
+											onRowClick,
+											selectedRowIds,
+											selectedRowId,
+										}),
+									)}
 									<tr
 										style={{
 											height: `${

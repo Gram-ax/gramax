@@ -45,11 +45,11 @@ const BreadcrumbContainer = ({ breadcrumb, className, children }) => {
 	return (
 		<div className={`container ${className}`}>
 			<div
+				className={"breadcrumbWrapper"}
 				onMouseMove={(e) => {
 					e.preventDefault();
 					e.stopPropagation();
 				}}
-				className={"breadcrumbWrapper"}
 			>
 				<ul className={"breadcrumbList"}>
 					{breadcrumb.map((item) => {
@@ -100,7 +100,7 @@ const Item = forwardRef((props: ItemProps, ref: ForwardedRef<HTMLDivElement>) =>
 		if (isLoading) {
 			return (
 				<div className="loading-element">
-					<SpinnerLoader width={14} height={14} />
+					<SpinnerLoader height={14} width={14} />
 					&nbsp;
 					<span>{t("loading")}</span>
 				</div>
@@ -111,14 +111,14 @@ const Item = forwardRef((props: ItemProps, ref: ForwardedRef<HTMLDivElement>) =>
 	};
 
 	return (
-		<BreadcrumbContainer className={className} breadcrumb={withBreadcrumbs ? breadcrumb : false}>
+		<BreadcrumbContainer breadcrumb={withBreadcrumbs ? breadcrumb : false} className={className}>
 			<div
-				ref={ref}
-				data-qa="qa-clickable"
-				onMouseOver={onHover}
-				onClick={!disable ? onClick : null}
-				style={isHierarchy && breadcrumbLevel ? { paddingLeft: breadcrumbLevel * 8 } : undefined}
 				className={classNames("item", mods, [className])}
+				data-qa="qa-clickable"
+				onClick={!disable ? onClick : null}
+				onMouseOver={onHover}
+				ref={ref}
+				style={isHierarchy && breadcrumbLevel ? { paddingLeft: breadcrumbLevel * 8 } : undefined}
 				{...otherProps}
 			>
 				{getContent()}

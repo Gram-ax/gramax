@@ -10,8 +10,6 @@ export const COMMENT_BLOCK_NODE_TYPES = [
 	"view",
 	"mermaid",
 	"plant-uml",
-	"ts-diagram",
-	"c4-diagram",
 ];
 
 export const COMMENT_NODE_TYPES = [...COMMENT_BLOCK_NODE_TYPES, ...COMMENT_INLINE_NODE_TYPES];

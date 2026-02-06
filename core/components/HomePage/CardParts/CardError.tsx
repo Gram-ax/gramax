@@ -27,8 +27,8 @@ const CardError = ({ link, error }: { link: CatalogLink; error: DefaultError }) 
 			<ProgressIconButton
 				className="ml-auto text-status-error hover:text-status-error-hover"
 				icon="circle-x"
-				size="sm"
 				onClick={onClick}
+				size="sm"
 			/>
 		</div>
 	);

@@ -35,11 +35,11 @@ const StatusBarWrapper = (props: StatusBarWrapperProps) => {
 	return (
 		<Wrapper data-qa={dataQa} show={isShow} style={additionalStyles}>
 			<StatusBarElement
-				onClick={onClick}
 				iconCode={iconCode}
-				iconStyle={iconStyle}
-				tooltipText={tooltipText}
 				iconStrokeWidth={iconStrokeWidth}
+				iconStyle={iconStyle}
+				onClick={onClick}
+				tooltipText={tooltipText}
 			>
 				{children}
 			</StatusBarElement>

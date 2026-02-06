@@ -11,7 +11,12 @@ export class ExtHostDocumentLine implements interfaces.TextLine {
 	private readonly _text: string;
 	private readonly _isLastLine: boolean;
 
-	constructor(private _monaco: typeof monaco, line: number, text: string, isLastLine: boolean) {
+	constructor(
+		private _monaco: typeof monaco,
+		line: number,
+		text: string,
+		isLastLine: boolean,
+	) {
 		this._line = line;
 		this._text = text;
 		this._isLastLine = isLastLine;

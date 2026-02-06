@@ -21,10 +21,10 @@ export const fromRaw = (
 	message: string,
 	command?: string,
 ): GitErrorCode => {
-	const eq = (targetKlass: number, targetCode: number) => targetKlass == klass && targetCode == code;
+	const eq = (targetKlass: number, targetCode: number) => targetKlass === klass && targetCode === code;
 
 	switch (true) {
-		case subset == 3 && klass == undefined:
+		case subset === 3:
 			return GitErrorCode.HealthcheckFailed;
 
 		case eq(20, 11):
@@ -60,7 +60,7 @@ export const fromRaw = (
 		case message.includes("unexpected http status code: 401"):
 			return GitErrorCode.NotAuthorizedError;
 
-		case [413, 431, 422].some((c) => code == c || message.includes(`unexpected http status code: ${c}`)):
+		case [413, 431, 422].some((c) => code === c || message.includes(`unexpected http status code: ${c}`)):
 			return GitErrorCode.ContentTooLargeError;
 
 		case eq(34, 16):
@@ -75,7 +75,7 @@ export const fromRaw = (
 		case eq(2, 0) && !message.includes("file"):
 			return GitErrorCode.NetworkConntectionError;
 
-		case klass == 14 && message.includes("does not exist in the given tree"):
+		case klass === 14 && message.includes("does not exist in the given tree"):
 			return GitErrorCode.FileNotFoundError;
 
 		case command === "clone" &&
@@ -93,6 +93,7 @@ export const fromRaw = (
 	}
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: idc
 export const makeData = (code: GitErrorCode, rawCode: number): any => {
 	switch (code) {
 		case GitErrorCode.PushRejectedError:

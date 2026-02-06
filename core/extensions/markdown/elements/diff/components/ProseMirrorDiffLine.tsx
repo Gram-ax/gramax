@@ -52,10 +52,10 @@ const DiffLineContainer = ({
 	return (
 		<Tooltip content={tooltipText} offset={tooltipOffset ?? [-8, 8]}>
 			<DiffLineContainerStyle
-				style={{ ...(style ?? {}), width: clickArea }}
+				className={className}
 				diffLineType={type}
 				onClick={onClick}
-				className={className}
+				style={{ ...(style ?? {}), width: clickArea }}
 			>
 				{children}
 			</DiffLineContainerStyle>
@@ -119,8 +119,8 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, articlePath, onDiscar
 			diffElement = (
 				<CommentIconWrapper height={height}>
 					<Icon
-						size="12px"
 						code="message-square"
+						size="12px"
 						svgStyle={{ color: "var(--color-text-accent)", fill: "var(--color-text-accent)" }}
 					/>
 				</CommentIconWrapper>
@@ -136,10 +136,10 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, articlePath, onDiscar
 		return (
 			<div className={classNames(className, { "disable-hover": true })}>
 				<DiffLineContainer
-					tooltipOffset={isComment ? [-4, 8] : undefined}
-					type={type}
-					tooltipText={tooltipText}
 					style={{ top, height, left }}
+					tooltipOffset={isComment ? [-4, 8] : undefined}
+					tooltipText={tooltipText}
+					type={type}
 				>
 					{diffElement}
 				</DiffLineContainer>
@@ -149,19 +149,17 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, articlePath, onDiscar
 	return (
 		<div className={className}>
 			<DiffLineContainer
-				type={type}
-				tooltipText={tooltipText}
-				style={{ top, height, left }}
-				onClick={() => setVisible(true)}
 				className="has-content"
+				onClick={() => setVisible(true)}
+				style={{ top, height, left }}
+				tooltipText={tooltipText}
+				type={type}
 			>
 				<Tooltip
-					zIndex={49} // Because default tooltip has z-index 50
-					visible={visible}
+					arrow={false} // Because default tooltip has z-index 50
 					content={
 						<ProseMirrorDiffLineContent
 							articlePath={articlePath}
-							type={diffLine.type}
 							oldContent={diffLine.oldContent}
 							oldDecorations={diffLine.oldDecorations}
 							oldScope={oldScope}
@@ -170,10 +168,14 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, articlePath, onDiscar
 								onDiscard?.();
 								setVisible(false);
 							}}
+							type={diffLine.type}
 						/>
 					}
-					arrow={false}
-					place="top-end"
+					contentClassName={classNames(
+						"diff-line-tooltip-content",
+						{ "has-content": !!diffLine.oldContent },
+						[className],
+					)}
 					interactive
 					onClickOutside={(_, event) => {
 						let el = event.target as HTMLElement;
@@ -185,11 +187,9 @@ const DiffLine = ({ top, height, left, diffLine, oldScope, articlePath, onDiscar
 
 						setVisible(false);
 					}}
-					contentClassName={classNames(
-						"diff-line-tooltip-content",
-						{ "has-content": !!diffLine.oldContent },
-						[className],
-					)}
+					place="top-end"
+					visible={visible}
+					zIndex={49}
 				>
 					{diffElement}
 				</Tooltip>

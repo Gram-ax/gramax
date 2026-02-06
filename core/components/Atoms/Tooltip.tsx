@@ -4,7 +4,7 @@ import { mediaQueries } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useMediaQuery } from "@react-hook/media-query";
 import Tippy, { TippyProps } from "@tippyjs/react";
-import { ReactNode, RefObject, forwardRef, useEffect, useRef, useState } from "react";
+import { forwardRef, ReactNode, RefObject, useEffect, useRef, useState } from "react";
 import { Placement } from "tippy.js";
 
 interface TooltipProps extends TippyProps {
@@ -65,35 +65,35 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 
 	return (
 		<Tippy
+			appendTo={appendTo}
 			content={
 				exists && (
 					<TooltipContent
+						arrow={arrow}
 						className={contentClassName}
+						customStyle={customStyle}
 						inverseStyle={inverseStyle}
 						place={finalPlace}
-						arrow={arrow}
-						customStyle={customStyle}
 					>
 						{content}
 					</TooltipContent>
 				)
 			}
+			delay={interactive ? delay : DEFAULT_DELAY}
 			duration={0}
-			trigger={trigger}
-			visible={visible}
-			maxWidth="30em"
-			placement={place}
-			interactiveBorder={interactiveBorder}
-			offset={[0, distance]}
 			hideOnClick={visible !== undefined && !hideOnClick ? undefined : hideOnClick}
+			interactive={interactive}
+			interactiveBorder={interactiveBorder}
+			maxWidth="30em"
+			offset={[0, distance]}
 			onMount={(instance) => {
 				onMount?.(instance);
 				setFinalPlace(instance.popperInstance.state.placement);
 			}}
+			placement={place}
 			ref={tooltipRef}
-			appendTo={appendTo}
-			interactive={interactive}
-			delay={interactive ? delay : DEFAULT_DELAY}
+			trigger={trigger}
+			visible={visible}
 			{...otherProps}
 			className={interactive ? "interactive-tooltip" : undefined}
 		>

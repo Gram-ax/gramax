@@ -1,14 +1,14 @@
 import Portal from "@components/Portal";
-import styled from "@emotion/styled";
-import { Editor } from "@tiptap/react";
-import { ReactNode, useEffect, useState } from "react";
-import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
 import { isActive } from "@core-ui/hooks/useAudioRecorder";
-import { ArticleAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
-import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import styled from "@emotion/styled";
+import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
+import { ArticleAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
+import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
 import { useMediaQuery } from "@mui/material";
+import { Editor } from "@tiptap/react";
+import { ReactNode, useEffect, useState } from "react";
 
 interface MenuProps {
 	editor: Editor;
@@ -16,7 +16,6 @@ interface MenuProps {
 	children: ReactNode;
 	className?: string;
 }
-
 
 const Menu = ({ editor, id, className, children }: MenuProps) => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -44,8 +43,8 @@ const Menu = ({ editor, id, className, children }: MenuProps) => {
 				<div role="bottom-toolbar">
 					{isActive(recorderState) && <ArticleAudioToolbar editor={editor} />}
 					<div
-						data-qa="qa-edit-menu-button"
 						className={cn("transition-all", !isOpen && "scroll-hidden", isOpen && "scroll-visible")}
+						data-qa="qa-edit-menu-button"
 					>
 						{children}
 					</div>

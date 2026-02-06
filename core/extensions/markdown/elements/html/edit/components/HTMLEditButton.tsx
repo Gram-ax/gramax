@@ -47,8 +47,8 @@ const HTMLEditor = ({ content, editor, onClose }: { content?: string; editor: Ed
 			contentWidth="L"
 			isOpen={isOpen}
 			onClose={cancel}
-			trigger={<ActionButton icon={"pencil"} tooltipText={t("edit2")} />}
 			onCmdEnter={save}
+			trigger={<ActionButton icon={"pencil"} tooltipText={t("edit2")} />}
 		>
 			<ModalLayoutLight>
 				<FormStyle>
@@ -56,8 +56,8 @@ const HTMLEditor = ({ content, editor, onClose }: { content?: string; editor: Ed
 						<legend>{t("edit-html")}</legend>
 						<FileInput
 							language={"html"}
-							value={contentState?.toString() ?? ""}
 							onChange={setContentEditState}
+							value={contentState?.toString() ?? ""}
 						/>
 						<div className="buttons">
 							<ButtonAtom buttonStyle={ButtonStyle.underline} onClick={cancel}>

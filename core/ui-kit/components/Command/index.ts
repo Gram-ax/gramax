@@ -1,9 +1,9 @@
 export {
 	Command,
-	CommandInput,
-	CommandList,
 	CommandEmpty,
-	CommandItem,
 	CommandGroup,
+	CommandInput,
+	CommandItem,
+	CommandList,
 	CommandSeparator,
 } from "ics-ui-kit/components/command";

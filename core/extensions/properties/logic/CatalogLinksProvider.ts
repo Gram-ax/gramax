@@ -17,7 +17,10 @@ export default class CatalogLinksProvider {
 	private _linksCache: Map<ArticlePath, ArticleLinks> = new Map(); // Links from the article
 	private _backlinksCache: Map<ArticlePath, Backlinks> = new Map(); // Links to the article
 
-	constructor(private _fs: FileStructure, private _catalog: Catalog) {
+	constructor(
+		private _fs: FileStructure,
+		private _catalog: Catalog,
+	) {
 		this._initCatalogEvents();
 	}
 
@@ -86,7 +89,10 @@ export default class CatalogLinksProvider {
 
 	private async _parseArticleLinks(article: Article) {
 		const linksArray = await article.parsedContent.read(
-			(p) => p?.linkManager?.resources.map((r) => p.linkManager.getAbsolutePath(r)) || [],
+			(p) =>
+				p?.parsedContext
+					?.getLinkManager()
+					?.resources.map((r) => p.parsedContext.getLinkManager().getAbsolutePath(r)) || [],
 		);
 
 		const links = new Set<Path>(linksArray);

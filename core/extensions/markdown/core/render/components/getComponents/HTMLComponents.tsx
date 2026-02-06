@@ -1,16 +1,14 @@
+import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import camelToKebabCase from "@core-ui/camelToKebabCase";
 import PublicApiUrlCreator from "@ext/publicApi/PublicApiUrlCreator";
 import React from "react";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import ParserContext from "../../../Parser/ParserContext/ParserContext";
-import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 
 export enum unSupportedElements {
-	"tab" = "Tab",
-	"openApi" = "OpenApi",
-	"mermaid" = "Mermaid",
-	"c4-diagram" = "C4-diagram",
-	"ts-diagram" = "Ts-diagram",
+	tab = "Tab",
+	openApi = "OpenApi",
+	mermaid = "Mermaid",
 	"db-diagram" = "Db-diagram",
 	"plant-uml" = "PlantUml",
 }
@@ -18,7 +16,10 @@ export enum unSupportedElements {
 class HTMLComponents {
 	private _publicApiUrlCreator: PublicApiUrlCreator;
 
-	constructor(private _requestUrl: string, context: ParserContext) {
+	constructor(
+		private _requestUrl: string,
+		context: ParserContext,
+	) {
 		this._publicApiUrlCreator = new PublicApiUrlCreator(
 			encodeURIComponent(context.getCatalog()?.name),
 			context.getArticle()?.logicPath,

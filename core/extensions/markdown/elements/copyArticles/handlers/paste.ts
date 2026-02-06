@@ -1,5 +1,7 @@
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
+import { GramaxClipboardData } from "@ext/markdown/elements/copyArticles/handlers/copy";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
@@ -7,8 +9,6 @@ import { Attrs, Fragment, Mark, Node, Slice } from "@tiptap/pm/model";
 import { Selection, Transaction } from "@tiptap/pm/state";
 import { EditorView } from "@tiptap/pm/view";
 import { handlePaste } from "prosemirror-tables";
-import { GramaxClipboardData } from "@ext/markdown/elements/copyArticles/handlers/copy";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 
 interface CreateProps {
 	node: Node;

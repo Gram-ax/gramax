@@ -1,12 +1,12 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import DbDiagram from "@core-ui/DbDiagram";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashItem from "@core/Hash/HashItems/HashItem";
 import HashItemContent from "@core/Hash/HashItems/HashItemContent";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import DbDiagram from "@core-ui/DbDiagram";
 import { Command } from "../../../types/Command";
 
 const getDbDiagram: Command<
@@ -37,7 +37,7 @@ const getDbDiagram: Command<
 		await parseContent(article, catalog, ctx, this._app.parser, this._app.parserContextFactory);
 
 		const hashItem = await article.parsedContent.read((p) => {
-			const resourceManager = p.resourceManager;
+			const resourceManager = p.parsedContext.getResourceManager();
 			const diagramRef = fp.getItemRef(resourceManager.getAbsolutePath(path));
 
 			const key = diagramRef.path.value + diagramRef.storageId;

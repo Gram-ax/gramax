@@ -1,18 +1,19 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { UnsubscribeToken } from "@core/Event/EventEmitter";
+import type { UnsubscribeToken } from "@core/Event/EventEmitter";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import FileProvider from "@core/FileProvider/model/FileProvider";
 import GitAttributes from "@core/GitLfs/GitAttributes";
 import haveInternetAccess from "@core/utils/haveInternetAccess";
-import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
-import { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
+import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
-import GitStorage from "@ext/git/core/GitStorage/GitStorage";
-import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import type GitStorage from "@ext/git/core/GitStorage/GitStorage";
+import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import Repository, {
 	type CheckoutOptions,
 	type IsShouldSyncOptions,
@@ -26,10 +27,9 @@ import RepositoryStateProvider, {
 	type RepositoryMergeConflictState,
 	type RepositoryStashConflictState,
 } from "@ext/git/core/Repository/state/RepositoryState";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import Storage from "@ext/storage/logic/Storage";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type Storage from "@ext/storage/logic/Storage";
 
 export default class WorkdirRepository extends Repository {
 	private _getRepositoryStateFirstly = true;

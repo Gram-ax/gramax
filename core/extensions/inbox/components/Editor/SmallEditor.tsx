@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
@@ -14,14 +14,14 @@ import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import deleteFiles from "@ext/markdown/elements/file/edit/logic/deleteFiles";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
+import { InlineLinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/InlineLinkMenu";
+import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import OnDeleteMark from "@ext/markdown/elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "@ext/markdown/elements/onDocChange/OnDeleteNode";
 import { Mark } from "@tiptap/pm/model";
 import { EditorView } from "@tiptap/pm/view";
 import { Editor, EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
 import { memo, useCallback, useEffect, useMemo } from "react";
-import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
-import { InlineLinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/InlineLinkMenu";
 
 type MiniProps<T> = T extends { title: string; content: JSONContent } ? T : { title: string; content: JSONContent };
 
@@ -196,15 +196,15 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 					<div className="mini-article-body">
 						<InlineLinkMenu editor={editor} />
 						<EditorContent
-							data-qa="article-editor"
-							data-iseditable={true}
-							editor={editor}
 							className={"article-body"}
+							data-iseditable={true}
+							data-qa="article-editor"
+							editor={editor}
 						/>
 						<ArticleMat editor={editor} />
 					</div>
 				</div>
-				<Menu menu={options?.menu} editor={editor} id={ContentEditorId} />
+				<Menu editor={editor} id={ContentEditorId} menu={options?.menu} />
 			</SmallEditorWrapper>
 		</ApiUrlCreatorService.Provider>
 	);

@@ -27,15 +27,15 @@ const CalendarInput = (props: InputProps<Date>) => {
 
 	return (
 		<Calendar
-			selected={selectedValue}
-			onSelect={onSelect}
-			mode="single"
-			defaultMonth={selectedValue}
 			className="border-0 shadow-none bg-transparent"
 			classNames={{
 				dropdown_root:
 					"has-focus:border-ring has-focus:ring-ring/50 has-focus:ring-[3px] shadow-xs relative rounded-md border border-input text-foreground",
 			}}
+			defaultMonth={selectedValue}
+			mode="single"
+			onSelect={onSelect}
+			selected={selectedValue}
 		/>
 	);
 };
@@ -43,16 +43,16 @@ const CalendarInput = (props: InputProps<Date>) => {
 const NumericInput = (props: InputProps<number>) => {
 	return (
 		<Input
-			type="number"
-			placeholder={t("enter-number")}
-			value={props.value}
 			onChange={(e) => props.onChange(Number(e.target.value))}
+			placeholder={t("enter-number")}
+			type="number"
+			value={props.value}
 		/>
 	);
 };
 
 const BaseInput = (props: InputProps<string>) => {
-	return <Input placeholder={t("enter-text")} value={props.value} onChange={(e) => props.onChange(e.target.value)} />;
+	return <Input onChange={(e) => props.onChange(e.target.value)} placeholder={t("enter-text")} value={props.value} />;
 };
 
 export const getInputComponent = (type: PropertyTypes): ComponentType<InputProps> => {
@@ -73,5 +73,5 @@ export const CustomInputRenderer = (props: CustomInputRendererProps) => {
 	const InputComponent = getInputComponent(type);
 
 	if (!InputComponent) return null;
-	return <InputComponent value={value} onChange={onChange} />;
+	return <InputComponent onChange={onChange} value={value} />;
 };

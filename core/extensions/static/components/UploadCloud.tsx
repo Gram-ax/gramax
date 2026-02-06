@@ -1,12 +1,12 @@
-import t from "@ext/localization/locale/translate";
-import { FormFooter, FormHeader } from "@ui-kit/Form";
-import UploadButton from "@ext/static/components/UploadCloudProgress";
 import CloudStateService from "@core-ui/ContextServices/CloudState";
+import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
-import { Description } from "@ui-kit/Description";
-import { Button } from "@ui-kit/Button";
 import CloudModalBody from "@ext/static/components/CloudModalBody";
+import UploadButton from "@ext/static/components/UploadCloudProgress";
 import useGetCatalogCloudUrl from "@ext/static/utils/cloudUrl";
+import { Button } from "@ui-kit/Button";
+import { Description } from "@ui-kit/Description";
+import { FormFooter, FormHeader } from "@ui-kit/Form";
 
 interface UploadCloudComponentProps {
 	onUpload?: () => void;
@@ -26,11 +26,11 @@ const UploadCloud = ({ onUpload }: UploadCloudComponentProps) => {
 	return (
 		<>
 			<FormHeader
-				title={actionText}
 				description={
 					catalogVersion ? t("cloud.upload-modal.published.description") : t("cloud.upload-modal.description")
 				}
 				icon="cloud-upload"
+				title={actionText}
 			/>
 			<CloudModalBody>
 				<p
@@ -42,12 +42,12 @@ const UploadCloud = ({ onUpload }: UploadCloudComponentProps) => {
 				<Description>{t("cloud.upload-modal.revoke")}</Description>
 			</CloudModalBody>
 			<FormFooter
+				primaryButton={<UploadButton actionText={actionText} onUpload={onUpload} />}
 				secondaryButton={
-					<Button variant="outline" startIcon="log-out" onClick={onClickLogOut}>
+					<Button onClick={onClickLogOut} startIcon="log-out" variant="outline">
 						{t("cloud.upload-modal.switch-account")}
 					</Button>
 				}
-				primaryButton={<UploadButton actionText={actionText} onUpload={onUpload} />}
 			/>
 		</>
 	);

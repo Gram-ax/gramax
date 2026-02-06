@@ -77,15 +77,15 @@ export function WorkspaceRepositories({
 
 	return (
 		<div className="py-10">
-			<TableInfoBlock title="Базовые репозитории" description={localSettings.source.repos?.length ?? 0} />
+			<TableInfoBlock description={localSettings.source.repos?.length ?? 0} title="Базовые репозитории" />
 
 			<div>
 				<TableToolbar
 					input={
 						<TableToolbarTextInput
+							onChange={handleFilterChange}
 							placeholder="Найти репозитории..."
 							value={(table.getColumn("repository")?.getFilterValue() as string) ?? ""}
-							onChange={handleFilterChange}
 						/>
 					}
 				>
@@ -95,15 +95,15 @@ export function WorkspaceRepositories({
 						selectedCount={selectedCount}
 					/>
 					<RepositoryToolbarAddBtn
-						key="add-repository"
 						disable={selectResources.length === 0}
+						existingRepositories={localSettings.source.repos ?? []}
+						key="add-repository"
 						onAdd={handleAddRepos}
 						repositories={selectResources}
-						existingRepositories={localSettings.source.repos ?? []}
 					/>
 				</TableToolbar>
 
-				<TableComponent<Repository> table={table} columns={repositoriesTableColumns} />
+				<TableComponent<Repository> columns={repositoriesTableColumns} table={table} />
 			</div>
 		</div>
 	);

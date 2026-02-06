@@ -119,7 +119,7 @@ describe("FindMatrixCrossMax handles", () => {
 		const startTime = performance.now();
 		const finder = new FindMatrixCrossMax(matrix);
 
-		const result = finder.findCrossMaxes()
+		const result = finder.findCrossMaxes();
 
 		const duration = performance.now() - startTime;
 		expect(result).toHaveLength(1000);

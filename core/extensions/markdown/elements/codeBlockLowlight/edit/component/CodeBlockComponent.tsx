@@ -1,6 +1,8 @@
 import BlockActionPanel from "@components/BlockActionPanel";
+import styled from "@emotion/styled";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import CodeBlockActions from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockActions";
-import { loadLanguage, checkLanguage } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
+import { checkLanguage, loadLanguage } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
 import {
 	getLowerLangName,
 	getOriginalLangName,
@@ -10,8 +12,6 @@ import StyledCodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/com
 import { Editor, NodeViewProps } from "@tiptap/core";
 import { NodeViewContent } from "@tiptap/react";
 import { useLayoutEffect, useRef, useState } from "react";
-import styled from "@emotion/styled";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 export const useLowlightActions = (props: {
 	language?: string;
@@ -74,12 +74,12 @@ const CodeBlockComponent = (props: NodeViewProps) => {
 	});
 
 	return (
-		<NodeViewContextableWrapper ref={viewWrapperRef} props={props}>
+		<NodeViewContextableWrapper props={props} ref={viewWrapperRef}>
 			<BlockActionPanel
-				updateAttributes={updateAttributes}
-				hoverElementRef={viewWrapperRef}
 				getPos={getPos}
-				rightActions={isEditable && <CodeBlockActions onChange={onChange} node={node} />}
+				hoverElementRef={viewWrapperRef}
+				rightActions={isEditable && <CodeBlockActions node={node} onChange={onChange} />}
+				updateAttributes={updateAttributes}
 			>
 				<StyledCodeBlock>
 					<StyledNodeViewContent />

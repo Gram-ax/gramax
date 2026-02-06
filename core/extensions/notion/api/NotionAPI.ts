@@ -1,16 +1,19 @@
 import resolveModule from "@app/resolveModule/frontend";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import t from "@ext/localization/locale/translate";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
-import { NotionBlock, NotionPage } from "@ext/notion/model/NotionTypes";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
+import type { NotionBlock, NotionPage } from "@ext/notion/model/NotionTypes";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000;
 
 export default class NotionAPI implements SourceAPI {
-	constructor(protected _data: NotionSourceData, private _authServiceUrl?: string) {}
+	constructor(
+		protected _data: NotionSourceData,
+		private _authServiceUrl?: string,
+	) {}
 
 	async getContent(pageId: string): Promise<NotionBlock[]> {
 		const res = await this._paginationApi(`blocks/${pageId}/children`);
@@ -82,14 +85,14 @@ export default class NotionAPI implements SourceAPI {
 			const requestUrl = isGet
 				? `${url}${nextCursor ? `?start_cursor=${nextCursor}` : ""}${
 						limit ? `${nextCursor ? "&" : "?"}page_size=${limit}` : ""
-				  }`
+					}`
 				: url;
 
 			const requestBody = !isGet
 				? JSON.stringify({
 						...(nextCursor && { start_cursor: nextCursor }),
 						...(limit && { page_size: limit }),
-				  })
+					})
 				: null;
 			const res = await this._api(requestUrl, method, requestBody);
 			if (res.status !== 200) return res;

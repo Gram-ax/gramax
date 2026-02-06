@@ -14,7 +14,7 @@ const HTMLHeading = (props: HTMLHeadingProps) => {
 		<>
 			{props.children}
 			{props.copyLinkIcon !== false && !!props.children && (
-				<a href={hash} className="anchor" data-mdignore={true} contentEditable={false}>
+				<a className="anchor" contentEditable={false} data-mdignore={true} href={hash}>
 					<i className="link-icon chain-icon" />
 				</a>
 			)}

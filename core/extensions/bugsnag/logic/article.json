@@ -98,7 +98,11 @@
 									"type": "text",
 									"text": "- a214a6080ba9366ebc75c67e813c747f303b788c ("
 								},
-								{ "type": "text", "marks": [{ "type": "code" }], "text": "a214a6080ba9366ebc75c67e813c747f303b788c" },
+								{
+									"type": "text",
+									"marks": [{ "type": "code" }],
+									"text": "a214a6080ba9366ebc75c67e813c747f303b788c"
+								},
 								{ "type": "text", "text": ")." }
 							]
 						},
@@ -127,7 +131,11 @@
 										{
 											"type": "paragraph",
 											"content": [
-												{ "type": "text", "marks": [{ "type": "strong" }], "text": "2027cb9cc0cbb1a507adbd7f910c0712" },
+												{
+													"type": "text",
+													"marks": [{ "type": "strong" }],
+													"text": "2027cb9cc0cbb1a507adbd7f910c0712"
+												},
 												{ "type": "text", "text": ": 2027cb9cc0cbb1a507adbd7f910c0712" }
 											]
 										}
@@ -171,7 +179,11 @@
 						{
 							"type": "paragraph",
 							"content": [
-								{ "type": "text", "marks": [{ "type": "strong" }], "text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15:" },
+								{
+									"type": "text",
+									"marks": [{ "type": "strong" }],
+									"text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15:"
+								},
 								{ "type": "text", "text": " 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" }
 							]
 						}
@@ -183,7 +195,11 @@
 						{
 							"type": "paragraph",
 							"content": [
-								{ "type": "text", "marks": [{ "type": "strong" }], "text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" },
+								{
+									"type": "text",
+									"marks": [{ "type": "strong" }],
+									"text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15"
+								},
 								{ "type": "text", "text": ": 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" }
 							]
 						}
@@ -211,7 +227,11 @@
 									"text": "Баг "
 								},
 								{ "type": "text", "text": "- 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" },
-								{ "type": "text", "marks": [{ "type": "code" }], "text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" },
+								{
+									"type": "text",
+									"marks": [{ "type": "code" }],
+									"text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15"
+								},
 								{
 									"type": "text",
 									"text": ", 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15."
@@ -243,7 +263,11 @@
 										{
 											"type": "paragraph",
 											"content": [
-												{ "type": "text", "marks": [{ "type": "strong" }], "text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" },
+												{
+													"type": "text",
+													"marks": [{ "type": "strong" }],
+													"text": "3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15"
+												},
 												{ "type": "text", "text": ": 3e9bed2b1b2f7d822e14a7d1cda1081466e6ef15" }
 											]
 										}

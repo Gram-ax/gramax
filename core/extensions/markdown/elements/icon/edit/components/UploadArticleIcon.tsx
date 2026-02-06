@@ -1,11 +1,11 @@
 import { MAX_ICON_SIZE } from "@app/config/const";
-import t from "@ext/localization/locale/translate";
-import { useCallback, useMemo } from "react";
-import { type FileValue, type FileMetadata, FileUploadCompact } from "@ui-kit/FileUpload";
-import { UseFormReturn } from "react-hook-form";
-import { FormData } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import Path from "@core/FileProvider/Path/Path";
 import { formatBytes } from "@core-ui/utils/formatBytes";
+import { FormData } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
+import t from "@ext/localization/locale/translate";
+import { type FileMetadata, FileUploadCompact, type FileValue } from "@ui-kit/FileUpload";
+import { useCallback, useMemo } from "react";
+import { UseFormReturn } from "react-hook-form";
 
 export const useUploadIcon = (form: UseFormReturn<FormData>) => {
 	const onAddFile = useCallback(
@@ -59,15 +59,15 @@ const UploadArticleIcon = ({ form }: { form: UseFormReturn<FormData> }) => {
 
 	return (
 		<FileUploadCompact
-			initialFiles={files as FileMetadata[]}
-			title={`${t("upload")} ${t("forms.catalog-edit-props.props.icons.name").toLowerCase()}`}
+			accept=".svg"
 			description={t("forms.catalog-edit-props.props.icons.fileConditions")}
 			errorMessages={errorMessages}
 			files={files as FileValue[]}
+			initialFiles={files as FileMetadata[]}
+			maxSize={MAX_ICON_SIZE}
 			onAdd={onAddFile}
 			onRemove={onRemoveFile}
-			maxSize={MAX_ICON_SIZE}
-			accept=".svg"
+			title={`${t("upload")} ${t("forms.catalog-edit-props.props.icons.name").toLowerCase()}`}
 		/>
 	);
 };

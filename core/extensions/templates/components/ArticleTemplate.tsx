@@ -2,9 +2,9 @@ import BaseArticleView from "@ext/articleProvider/components/BaseArticleView";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
+import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
 import TemplateService from "@ext/templates/components/TemplateService";
 import { JSONContent } from "@tiptap/core";
-import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
 
 interface ArticleTemplateProps {
 	item: ProviderItemProps;
@@ -34,12 +34,6 @@ const ArticleTemplate = ({ item }: ArticleTemplateProps) => {
 
 	return (
 		<BaseArticleView
-			providerType="template"
-			item={item}
-			onUpdate={updateContent}
-			onCloseClick={onCloseClick}
-			menuOptions={{ isTemplate: true }}
-			extensionsOptions={{ isTemplateInstance: false }}
 			extensions={[
 				Placeholder.configure({
 					placeholder: ({ editor, node }) => {
@@ -58,6 +52,12 @@ const ArticleTemplate = ({ item }: ArticleTemplateProps) => {
 					},
 				}),
 			]}
+			extensionsOptions={{ isTemplateInstance: false }}
+			item={item}
+			menuOptions={{ isTemplate: true }}
+			onCloseClick={onCloseClick}
+			onUpdate={updateContent}
+			providerType="template"
 		/>
 	);
 };

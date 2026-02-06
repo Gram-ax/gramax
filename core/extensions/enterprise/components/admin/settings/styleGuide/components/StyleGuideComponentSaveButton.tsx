@@ -17,7 +17,7 @@ export const StyleGuideComponentSaveButton = ({
 			{isSaving ? (
 				<LoadingButtonTemplate text={t("save2")} />
 			) : (
-				<Button className="gap-2" startIcon="save" onClick={handleSave} disabled={isEqual}>
+				<Button className="gap-2" disabled={isEqual} onClick={handleSave} startIcon="save">
 					{t("save")}
 				</Button>
 			)}

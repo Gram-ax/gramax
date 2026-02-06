@@ -1,5 +1,5 @@
-import { TableBody } from "@ui-kit/Table";
 import { ColumnDef, Table as ReactTable, Row } from "@ui-kit/DataTable";
+import { TableBody } from "@ui-kit/Table";
 import { TableEmptyRow } from "./TableEmptyRow";
 
 type TableBodyComponentProps<T> = {

@@ -1,5 +1,6 @@
 import { callFS } from "@app/resolveModule/fscall/wasm.worker";
 import { callGit } from "@app/resolveModule/gitcall/wasm.worker";
+import type { RemoteProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import WasmModule from "../dist/gramax-wasm";
 import { ptr2bytes, ptr2str, str2ptr } from "./utils";
 
@@ -9,8 +10,8 @@ const CORS_PROXY_KEY = 1;
 
 const self = global.self as typeof global.self & {
 	on_done: (callbackId: number, ptr: number) => void;
-	onRemoteProgress: (data: any) => void;
-	wasm: any;
+	onRemoteProgress: (data: RemoteProgress) => void;
+	wasm: unknown;
 	store: (key: number, value: string) => Promise<void>;
 	getStore: (key: number) => string;
 };
@@ -18,7 +19,7 @@ const self = global.self as typeof global.self & {
 try {
 	self.wasm = await Promise.race([
 		WasmModule(),
-		new Promise((resolve, reject) => setTimeout(() => reject(new Error("wasm init timed out")), 10_000)),
+		new Promise((_, reject) => setTimeout(() => reject(new Error("wasm init timed out")), 10_000)),
 	]);
 } catch (error) {
 	self.postMessage({ type: "timeout" });
@@ -74,13 +75,13 @@ const broadcast = new BroadcastChannel("pthreads-broadcast");
 
 // eslint-disable-next-line @typescript-eslint/no-misused-promises
 self.addEventListener("message", async (ev) => {
-	if (ev.data.type == "fs-call") {
+	if (ev.data.type === "fs-call") {
 		const id = await callFS(ev.data.command, ev.data.args);
 		callbacks[id] = { callbackId: ev.data.callbackId, command: ev.data.command, type: ev.data.type };
 		return;
 	}
 
-	if (ev.data.type == "git-call") {
+	if (ev.data.type === "git-call") {
 		const id = await callGit(ev.data.command, ev.data.args);
 		callbacks[id] = { callbackId: ev.data.callbackId, command: ev.data.command, type: ev.data.type };
 
@@ -89,7 +90,7 @@ self.addEventListener("message", async (ev) => {
 		return;
 	}
 
-	if (ev.data.type == "set-proxy") {
+	if (ev.data.type === "set-proxy") {
 		await self.store(CORS_PROXY_KEY, ev.data.corsProxy);
 		return;
 	}

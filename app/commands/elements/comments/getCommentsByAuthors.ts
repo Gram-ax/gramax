@@ -1,5 +1,4 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import Context from "@core/Context/Context";
@@ -7,6 +6,7 @@ import Path from "@core/FileProvider/Path/Path";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
+import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { JSONContent } from "@tiptap/core";
 import assert from "assert";
 import { Command } from "../../../types/Command";

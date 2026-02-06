@@ -21,11 +21,11 @@ export const PluginsTable = ({ table }: PluginsTableProps) => {
 			<StyledTableWrapper>
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
-						<TableRow key={headerGroup.id} className="border-b">
+						<TableRow className="border-b" key={headerGroup.id}>
 							{headerGroup.headers.map((header) => (
 								<TableHead
-									key={header.id}
 									className={columnClassName[header.column.id as keyof typeof columnClassName]}
+									key={header.id}
 								>
 									{flexRender(header.column.columnDef.header, header.getContext())}
 								</TableHead>
@@ -35,7 +35,7 @@ export const PluginsTable = ({ table }: PluginsTableProps) => {
 				</TableHeader>
 				<TableBody>
 					{table.getRowModel().rows.map((row) => (
-						<PluginTableRowComponent key={row.id} row={row} navigate={navigate} />
+						<PluginTableRowComponent key={row.id} navigate={navigate} row={row} />
 					))}
 				</TableBody>
 			</StyledTableWrapper>
@@ -60,16 +60,16 @@ const PluginTableRowComponent = ({ row, navigate }: PluginTableRowComponentProps
 
 	return (
 		<TableRow
-			data-state={row.getIsSelected() && "selected"}
 			className={cn(
 				"border-b",
 				row.original.deleted && "deleted-row",
 				!row.original.deleted && row.original.disabled && "disabled-row",
 			)}
+			data-state={row.getIsSelected() && "selected"}
 			onClick={handleRowClick}
 		>
 			{row.getVisibleCells().map((cell) => (
-				<TableCell key={cell.id} className={columnClassName[cell.column.id as keyof typeof columnClassName]}>
+				<TableCell className={columnClassName[cell.column.id as keyof typeof columnClassName]} key={cell.id}>
 					{flexRender(cell.column.columnDef.cell, cell.getContext())}
 				</TableCell>
 			))}

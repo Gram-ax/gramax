@@ -1,16 +1,16 @@
+import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
+import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import Column from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/Column";
 import { CustomDragLayer } from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CustomDragLayer";
 import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
 import { Property, ViewRenderGroup } from "@ext/properties/models";
 import { useCallback, useState } from "react";
 import { DndProvider } from "react-dnd";
-import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
-import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 
 interface KanbanProps {
 	groupby: string[];
@@ -104,11 +104,11 @@ const Kanban = (props: KanbanProps) => {
 									if (!group.subgroups) return null;
 									return (
 										<Column
-											id={index}
+											cards={group.subgroups?.[0].articles}
 											disabled={disabled}
+											id={index}
 											key={group.group?.[0]}
 											name={group.group?.join(" ")}
-											cards={group.subgroups?.[0].articles}
 											onCardDrop={onCardDrop}
 											updateProperty={updateHandler}
 										/>

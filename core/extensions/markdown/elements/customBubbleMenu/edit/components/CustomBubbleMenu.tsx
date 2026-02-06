@@ -54,7 +54,7 @@ export const CustomBubbleMenu = (props: BubbleMenuProps) => {
 	}, [props.editor, currentEditor, element, props?.shouldShow]);
 
 	return (
-		<div ref={setElement} className={props.className} style={{ visibility: "hidden" }}>
+		<div className={props.className} ref={setElement} style={{ visibility: "hidden" }}>
 			{props.children}
 		</div>
 	);

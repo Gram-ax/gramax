@@ -1,8 +1,8 @@
 import getApp from "@app/node/app";
 import type Application from "@app/types/Application";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import Path from "@core/FileProvider/Path/Path";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import type { Workspace } from "@ext/workspace/Workspace";

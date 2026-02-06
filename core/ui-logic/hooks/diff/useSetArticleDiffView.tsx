@@ -1,9 +1,8 @@
+import Path from "@core/FileProvider/Path/Path";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useWatch from "@core-ui/hooks/useWatch";
-import Path from "@core/FileProvider/Path/Path";
 import { css } from "@emotion/react";
 import getSideBarData from "@ext/git/actions/Publish/logic/getSideBarData";
 import getSideBarElementByModelIdx, {
@@ -14,6 +13,7 @@ import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
 import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleDiffViewWrapper from "@ext/markdown/elements/diff/components/ArticleDiffViewWrapper";
+import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import type { DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
 import { useCallback, useRef } from "react";
 
@@ -84,11 +84,11 @@ const setArticleView = (
 		const uniqueKey = getUniqueKey(path, scope, deleteScope);
 		const ArticleDiffView = () => (
 			<ArticleDiffViewWrapper
-				key={uniqueKey}
-				sideBarData={sideBarData}
-				scope={scope}
-				oldScope={deleteScope}
 				isReadOnly={isReadOnly}
+				key={uniqueKey}
+				oldScope={deleteScope}
+				scope={scope}
+				sideBarData={sideBarData}
 			/>
 		);
 		ArticleViewService.setView(ArticleDiffView, useDefaultStyles, diffStyles);

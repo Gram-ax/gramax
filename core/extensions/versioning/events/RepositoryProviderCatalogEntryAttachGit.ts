@@ -5,7 +5,10 @@ import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 
 export default class RepositoryProviderCatalogEntryAttachGit implements EventHandlerCollection {
-	constructor(private _fs: FileStructure, private _rp: RepositoryProvider) {}
+	constructor(
+		private _fs: FileStructure,
+		private _rp: RepositoryProvider,
+	) {}
 
 	mount(): void {
 		this._rp.events.on("connect-repository", async ({ repo }) => {

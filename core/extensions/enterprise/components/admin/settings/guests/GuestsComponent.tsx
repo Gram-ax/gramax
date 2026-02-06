@@ -175,12 +175,6 @@ const GuestsComponent = () => {
 	return (
 		<>
 			<StickyHeader
-				title={
-					<>
-						{getAdminPageTitle(Page.GUESTS)} <Spinner size="small" show={isRefreshing("guests")} />
-					</>
-				}
-				isScrolled={isScrolled}
 				actions={
 					<>
 						{isSaving ? (
@@ -193,20 +187,24 @@ const GuestsComponent = () => {
 						)}
 					</>
 				}
+				isScrolled={isScrolled}
+				title={
+					<>
+						{getAdminPageTitle(Page.GUESTS)} <Spinner show={isRefreshing("guests")} size="small" />
+					</>
+				}
 			/>
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
 			<div className="px-6 space-y-6">
 				<div>
 					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.guests.general-settings")}</h2>
 					<Field
-						title={t("enterprise.admin.guests.otp-enabled")}
 						className="items-center"
 						control={() => (
 							<Switch
-								size="sm"
-								id="otpEnabled"
 								checked={localOtpEnabled}
+								id="otpEnabled"
 								onCheckedChange={(checked) => {
 									setLocalOtpEnabled(checked as boolean);
 									if (checked) {
@@ -216,8 +214,10 @@ const GuestsComponent = () => {
 										}));
 									}
 								}}
+								size="sm"
 							/>
 						)}
+						title={t("enterprise.admin.guests.otp-enabled")}
 					/>
 					<Description>{t("enterprise.admin.guests.otp-description")}</Description>
 				</div>
@@ -226,20 +226,20 @@ const GuestsComponent = () => {
 					<>
 						<div>
 							<Field
-								title={t("enterprise.admin.guests.session-duration-hours")}
 								className="items-center"
 								control={() => (
 									<Input
+										className="w-24"
 										id="sessionDurationHours"
+										min="1"
 										name="sessionDurationHours"
-										type="number"
-										value={localSettings.sessionDurationHours}
 										onChange={handleInputChange}
 										required
-										min="1"
-										className="w-24"
+										type="number"
+										value={localSettings.sessionDurationHours}
 									/>
 								)}
+								title={t("enterprise.admin.guests.session-duration-hours")}
 							/>
 						</div>
 
@@ -249,21 +249,21 @@ const GuestsComponent = () => {
 							</h2>
 
 							<Field
-								title={t("enterprise.admin.guests.whitelist-enabled")}
 								className="items-center"
 								control={() => (
 									<Switch
-										size="sm"
-										id="whitelistEnabled"
 										checked={localSettings.whitelistEnabled}
+										id="whitelistEnabled"
 										onCheckedChange={(checked) =>
 											setLocalSettings((prev) => ({
 												...prev,
 												whitelistEnabled: checked as boolean,
 											}))
 										}
+										size="sm"
 									/>
 								)}
+								title={t("enterprise.admin.guests.whitelist-enabled")}
 							/>
 
 							{localSettings.whitelistEnabled && (
@@ -276,25 +276,25 @@ const GuestsComponent = () => {
 									<TableToolbar
 										input={
 											<TableToolbarTextInput
+												onChange={handleFilterChange}
 												placeholder={t("enterprise.admin.guests.whitelist-domains-placeholder")}
 												value={(table.getColumn("domain")?.getFilterValue() as string) ?? ""}
-												onChange={handleFilterChange}
 											/>
 										}
 									>
 										<AlertDeleteDialog
-											selectedCount={selectedCount}
 											hidden={!selectedCount}
 											onConfirm={handleDeleteSelectedDomains}
+											selectedCount={selectedCount}
 										/>
 										<GuestsToolbarAddBtn
+											existingDomains={localSettings.domains || []}
 											key="add-domain"
 											onAddDomain={handleAddDomain}
-											existingDomains={localSettings.domains || []}
 										/>
 									</TableToolbar>
 
-									<TableComponent<Domain> table={table} columns={guestsTableColumns} />
+									<TableComponent<Domain> columns={guestsTableColumns} table={table} />
 								</div>
 							)}
 						</div>

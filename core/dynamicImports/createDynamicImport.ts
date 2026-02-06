@@ -2,9 +2,10 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 
 export interface DynamicImportOptions<T> {
 	importFunction: () => Promise<T>;
+	skipPreloadInCl?: boolean;
 }
 
-export const createDynamicImport = <T>({ importFunction }: DynamicImportOptions<T>) => {
+export const createDynamicImport = <T>({ importFunction, skipPreloadInCl }: DynamicImportOptions<T>) => {
 	let cachedPromise: Promise<T> | null = null;
 
 	const dynamicImport = (): Promise<T> => {
@@ -15,7 +16,7 @@ export const createDynamicImport = <T>({ importFunction }: DynamicImportOptions<
 	};
 
 	const preloadSoon = (): void => {
-		if (getExecutingEnvironment() === "static") return;
+		if (getExecutingEnvironment() === "static" || (getExecutingEnvironment() === "cli" && skipPreloadInCl)) return;
 
 		typeof queueMicrotask === "function"
 			? queueMicrotask(() => void dynamicImport())

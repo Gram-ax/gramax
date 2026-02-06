@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, PropsWithChildren } from "react";
+import React, { createContext, PropsWithChildren, ReactNode, useContext, useState } from "react";
 
 interface FooterPortalContextType {
 	primaryButton: ReactNode;

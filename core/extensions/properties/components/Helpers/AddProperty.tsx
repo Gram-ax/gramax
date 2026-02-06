@@ -1,19 +1,19 @@
 import Icon from "@components/Atoms/Icon";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import t from "@ext/localization/locale/translate";
-import { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
-import { Property, PropertyValue } from "@ext/properties/models";
-import { useCallback, useRef, Dispatch, SetStateAction, useEffect, useMemo } from "react";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import combineProperties from "@ext/properties/logic/combineProperties";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
-import PropertyItem from "@ext/properties/components/Helpers/PropertyItem";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
+import t from "@ext/localization/locale/translate";
+import PropertyItem from "@ext/properties/components/Helpers/PropertyItem";
+import type { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
+import combineProperties from "@ext/properties/logic/combineProperties";
+import type { Property, PropertyValue } from "@ext/properties/models";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo, useRef } from "react";
 
 interface AddPropertyProps {
 	properties: Property[] | PropertyValue[];
@@ -102,6 +102,7 @@ const AddProperty = (props: AddPropertyProps) => {
 			isOpenRef.current = true;
 			ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
 				properties,
+				onlyArticlePropertyTypes: true,
 				data: catalogProperties.get(id),
 				onSubmit: async (property) => {
 					await saveCatalogProperties(property);
@@ -131,11 +132,11 @@ const AddProperty = (props: AddPropertyProps) => {
 		return Array.from(catalogProperties.values()).map((property) => {
 			return (
 				<PropertyItem
-					key={property.name}
-					property={property}
 					disabled={disabled}
+					key={property.name}
 					onClick={addProperty}
 					onEditClick={canEdit ? editProperty : undefined}
+					property={property}
 				/>
 			);
 		});

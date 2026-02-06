@@ -74,34 +74,12 @@
       rules:
         - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME  =~ /^(master|develop)$/
 
-.template.cache:
-  npm: []
-  #    - key:
-  #        files:
-  #          - './package-lock.json'
-  #        prefix: ${CI_JOB_NAME}-${CI_COMMIT_REF_SLUG}-npm-${CI_COMMIT_SHORT_SHA}
-  #      paths:
-  #        - './node_modules'
-  #        - './apps/next/node_modules'
-  #        - './e2e/node_modules'
-  #        - './services/target/enterprise/node_modules'
-  #        - './services/node_modules'
-  #        - './.npm'
-  #      policy: pull-push
-
-  cargo: []
-#    - key:
-#        files:
-#          - './Cargo.lock'
-#        prefix: ${CI_JOB_NAME}-${CI_COMMIT_REF_SLUG}-cargo-${CI_COMMIT_SHORT_SHA}
-#      paths:
-#        - './target'
-#        - './.cargo'
-#      policy: pull-push
-
 .template.docker.base:
   image: gitlab.ics-it.ru:4567/ics/doc-reader:dind-bun-$BRANCH
   stage: build
+  interruptible: true
+  variables:
+    GIT_DEPTH: 600
   tags:
     - kubernetes01-gramax
   before_script:
@@ -114,10 +92,7 @@
     - cp $GRAMAX_CI_CD_USER_SSH_PRIVATE_KEY .ci/github-private-key
     - echo ${BUILDX_DRIVER}
     - echo "$CI_DEPENDENCY_PROXY_PASSWORD" | docker login $CI_DEPENDENCY_PROXY_SERVER --username $CI_DEPENDENCY_PROXY_USER --password-stdin &&
-      echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username $CI_REGISTRY_USER --password-stdin
-  cache:
-    - !reference [.template.cache, npm]
-    - !reference [.template.cache, cargo]
+    - echo "$GRAMAX_USER_PASSWORD" | docker login $CI_REGISTRY --username git --password-stdin
 
 .template.docker.kubernetes:
   extends: .template.docker.base
@@ -150,6 +125,71 @@
       --build-arg APP_VERSION=${APP_VERSION}
       .
     - docker push $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
+    - ./.ci/apps/sign.sh --container-legacy
+
+.template.docker.build.new.version:
+  extends: .template.docker.base
+  script:
+    - |
+      if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then
+        TAG="${APP_VERSION}-dev"
+      fi
+
+      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+        TAG="${APP_VERSION}"
+      fi
+
+    - |
+      docker build --rm \
+        -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$TAG \
+        -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest \
+        -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest-dev \
+        -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:prod \
+        -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:$TAG \
+        -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:latest \
+        -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:latest-dev \
+        -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:prod \
+        -f $DOCKERFILE_PATH \
+        --progress=plain \
+        --metadata-file build-metadata.json \
+        --build-arg BRANCH=$BRANCH \
+        --build-arg BASE_PATH=${BASE_PATH} \
+        --build-arg PRODUCTION=$PRODUCTION \
+        --build-arg AUTH_SERVICE_URL=$AUTH_SERVICE_URL \
+        --build-arg SSO_SERVICE_URL=$SSO_SERVICE_URL \
+        --build-arg SSO_SERVICE_ENCRYPTION_KEY=$SSO_SERVICE_ENCRYPTION_KEY \
+        --build-arg REVIEW_SERVICE_URL=$REVIEW_SERVICE_URL \
+        --build-arg GIT_PROXY_SERVICE_URL=$GIT_PROXY_SERVICE_URL \
+        --build-arg DIAGRAM_RENDERER_SERVICE_URL=$DIAGRAM_RENDERER_SERVICE_URL \
+        --build-arg BUGSNAG_API_KEY=$BUGSNAG_API_KEY \
+        --build-arg COOKIE_SECRET=${COOKIE_SECRET} \
+        --build-arg SHARE_ACCESS_TOKEN=${SHARE_ACCESS_TOKEN} \
+        --build-arg UPLOAD_SOURCE_MAPS_TO_BUGSNAG=${UPLOAD_SOURCE_MAPS_TO_BUGSNAG} \
+        --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX} \
+        --build-arg CLOUD_SERVICE_URL=${CLOUD_SERVICE_URL} \
+        --build-arg CLOUD_UPLOAD_TOKEN=${CLOUD_UPLOAD_TOKEN} \
+        --build-arg APP_VERSION=${APP_VERSION} .
+
+    - |
+      if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
+        TAGS="$TAG latest prod"
+      elif [ "$CI_COMMIT_REF_NAME" = "develop" ]; then
+        TAGS="$TAG latest-dev"
+      fi
+
+      for t in $TAGS; do
+        docker push "$CI_REGISTRY_IMAGE/$SERVICE_NAME:$t"
+      done
+
+      docker logout gitlab.ics-it.ru:4567
+      docker login gitlab.ics-it.ru:4567 \
+        -u "$GX_USER" \
+        -p "$GX_TOKEN"
+
+      for t in $TAGS; do
+        docker push "gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:$t"
+      done
+
     - ./.ci/apps/sign.sh --container
 
 .template.docker.build.service:
@@ -157,6 +197,19 @@
   variables:
     DOCKERFILE_PATH: 'services/target/$SERVICE_NAME/Dockerfile'
     GIT_DEPTH: 600
+    KUBERNETES_MEMORY_REQUEST: '0.5Gi'
+    KUBERNETES_CPU_REQUEST: '0.8'
+    KUBERNETES_CPU_LIMIT: '2'
+  rules: !reference [.condition, build, service, rules]
+
+.template.docker.build.new.version.service:
+  extends: .template.docker.build.new.version
+  variables:
+    DOCKERFILE_PATH: 'services/target/$SERVICE_NAME/Dockerfile'
+    GIT_DEPTH: 600
+    KUBERNETES_MEMORY_REQUEST: '0.5Gi'
+    KUBERNETES_CPU_REQUEST: '0.8'
+    KUBERNETES_CPU_LIMIT: '2'
   rules: !reference [.condition, build, service, rules]
 
 .template.docker.build.image:
@@ -164,12 +217,64 @@
   variables:
     SERVICE_NAME: $IMAGE_NAME
     DOCKERFILE_PATH: '.ci/images/$IMAGE_NAME.dockerfile'
+    KUBERNETES_MEMORY_REQUEST: '1Gi'
+    KUBERNETES_CPU_REQUEST: '1'
+    KUBERNETES_CPU_LIMIT: '3'
   rules:
     - !reference [.condition, build, image, rules]
 
+.template.e2e-pw:
+  stage: test
+  interruptible: true
+  tags:
+    - kubernetes01-gramax-5ghz
+  image: gitlab.ics-it.ru:4567/ics/doc-reader:playwright-$BRANCH
+  rules:
+    - !reference [.condition, tests, base, rules]
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - !reference [.condition, core, rules]
+    - !reference [.condition, tests, e2e, rules]
+  variables:
+    PRODUCTION: 'false'
+    GX_E2E_GITLAB_PUSH_REPO: test-push-$CI_COMMIT_SHORT_SHA
+    KUBERNETES_MEMORY_REQUEST: '4Gi'
+    KUBERNETES_CPU_REQUEST: '1.8'
+    KUBERNETES_CPU_LIMIT: '5'
+    CARGO_HOME: '$CI_PROJECT_DIR/.cargo'
+  artifacts:
+    when: on_failure
+    expire_in: '2 days'
+    paths:
+      - e2e-pw/report
+  before_script:
+    - ./install-deps.sh --ci
+    - ./.ci/e2e/repo-info.sh
+
 .template.tests:
+  interruptible: true
   tags:
     - kubernetes01-gramax
+
+.template.build.apps:
+  stage: build
+  interruptible: true
+  rules: !reference [.condition, build, base, rules]
+  variables:
+    GIT_DEPTH: 600
+    CARGO_HOME: '$CI_PROJECT_DIR/.cargo'
+    ANDROID_HOME: '/opt/homebrew/share/android-commandlinetools'
+    NDK_HOME: '/opt/homebrew/share/android-commandlinetools/ndk/25.2.9519653'
+    APPLE_SIGNING_IDENTITY: 'Developer ID Application: INTELLEKTUALNYE KORPORATIVNYE RESHENIYA, OOO (V9C959AY94)'
+  artifacts:
+    expire_in: 8h
+    when: on_success
+    paths:
+      - ./apps-build-artifacts/linux-x86_64
+      - ./apps-build-artifacts/android
+      - ./apps-build-artifacts/darwin-aarch64
+      - ./apps-build-artifacts/darwin-x86_64
+      - ./apps-build-artifacts/windows-x86_64
+
 # .template.deploy:
 #   stage: deploy
 #   tags:

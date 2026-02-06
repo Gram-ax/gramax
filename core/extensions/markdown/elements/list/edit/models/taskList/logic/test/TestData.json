@@ -299,6 +299,98 @@
 		"type": "list_item_close"
 	},
 	{
+		"attrs": [["checked", "false"]],
+		"children": null,
+		"content": "",
+		"tag": "li",
+		"type": "list_item_open"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "p",
+		"type": "paragraph_open"
+	},
+	{
+		"attrs": null,
+		"children": [],
+		"content": "",
+		"tag": "",
+		"type": "inline"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "p",
+		"type": "paragraph_close"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "ul",
+		"type": "bullet_list_open"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "li",
+		"type": "list_item_open"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "p",
+		"type": "paragraph_open"
+	},
+	{
+		"attrs": null,
+		"children": [
+			{
+				"attrs": null,
+				"children": null,
+				"content": "список",
+				"tag": "",
+				"type": "text"
+			}
+		],
+		"content": "список",
+		"tag": "",
+		"type": "inline"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "p",
+		"type": "paragraph_close"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "li",
+		"type": "list_item_close"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "ul",
+		"type": "bullet_list_close"
+	},
+	{
+		"attrs": null,
+		"children": null,
+		"content": "",
+		"tag": "li",
+		"type": "list_item_close"
+	},
+	{
 		"attrs": null,
 		"children": null,
 		"content": "",

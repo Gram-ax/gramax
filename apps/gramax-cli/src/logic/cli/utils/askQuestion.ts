@@ -14,4 +14,4 @@ const askQuestion = (query: string): Promise<string> => {
 	});
 };
 
-export default askQuestion
+export default askQuestion;

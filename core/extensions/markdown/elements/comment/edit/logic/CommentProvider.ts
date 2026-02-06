@@ -1,13 +1,14 @@
-import { Comment, CommentBlock } from "@core-ui/CommentBlock";
-import * as yaml from "js-yaml";
-import Path from "../../../../../../logic/FileProvider/Path/Path";
-import FileProvider from "../../../../../../logic/FileProvider/model/FileProvider";
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
-import generateUniqueID from "@core/utils/generateUniqueID";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Context from "@core/Context/Context";
-import { Workspace } from "@ext/workspace/Workspace";
+import generateUniqueID from "@core/utils/generateUniqueID";
+import { Comment, CommentBlock } from "@core-ui/CommentBlock";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import { createPrivateParserContext } from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import { Workspace } from "@ext/workspace/Workspace";
+import * as yaml from "js-yaml";
+import FileProvider from "../../../../../../logic/FileProvider/model/FileProvider";
+import Path from "../../../../../../logic/FileProvider/Path/Path";
 
 type CommentData = Record<string, { stringifiedData: CommentBlock<string>; parsedData: CommentBlock }>;
 
@@ -80,6 +81,7 @@ class CommentProvider {
 			ctx.user.isLogged,
 		);
 
+		await copyArticle.parsedContent.write(async () => await context.parser.parse(copyArticle.content, context));
 		const copyComment = await this.getComment(id, copyArticle.ref.path, context);
 		if (!copyComment) return false;
 
@@ -116,7 +118,10 @@ class CommentProvider {
 	}
 
 	private async _parseComment(comment: Comment<string>, context: ParserContext): Promise<Comment> {
-		return { ...comment, content: (await context.parser.editParse(comment.content, context)).content };
+		return {
+			...comment,
+			content: (await context.parser.editParse(comment.content, createPrivateParserContext(context))).content,
+		};
 	}
 
 	private async _stringify(commentBlock: CommentBlock, context: ParserContext): Promise<CommentBlock<string>> {

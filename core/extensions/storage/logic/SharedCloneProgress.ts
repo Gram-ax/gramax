@@ -151,7 +151,7 @@ export default class SharedCloneProgressManager {
 	}
 
 	static get instance() {
-		return this._instance;
+		return SharedCloneProgressManager._instance;
 	}
 
 	createProgress(id: string, save: boolean): SharedCloneProgress {

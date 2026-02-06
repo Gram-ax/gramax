@@ -1,23 +1,23 @@
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import docx from "@dynamicImports/docx";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
-import { ExportType } from "@ext/wordExport/ExportType";
-import { createContent } from "@ext/wordExport/TextWordGenerator";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { createParagraph } from "@ext/wordExport/createParagraph";
+import type DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
+import { ExportType } from "@ext/wordExport/ExportType";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import { styles } from "@ext/wordExport/options/mainStyles";
+import type { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
 import type { ISectionOptions, Paragraph } from "docx";
-import docx from "@dynamicImports/docx";
-import { WordSerializerState } from "./WordExportState";
 import { getBlockChildren } from "./getBlockChildren";
 import { getInlineChildren } from "./getInlineChildren";
 import { getWordDocumentStyles } from "./options/wordDocumentStyles";
 import { getHeadingStyles, WordFontStyles } from "./options/wordExportSettings";
-import { styles } from "@ext/wordExport/options/mainStyles";
+import { WordSerializerState } from "./WordExportState";
 
 const MAX_HEADING_LEVEL = 9;
 
@@ -115,6 +115,9 @@ abstract class WordExport {
 			getInlineChildren(),
 			getBlockChildren(),
 			article.parserContext,
+			article.resourceManager,
+			article.linkResourceManager,
+			article.language,
 			this._exportType,
 			this._titlesMap,
 			article.name,

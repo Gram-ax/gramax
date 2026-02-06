@@ -1,8 +1,8 @@
-import { ComponentType, memo, useCallback, useState } from "react";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import { PreviewContainer } from "@ext/markdown/elements/file/edit/components/Preview/PreviewContainer";
+import { type ComponentType, memo, useCallback, useState } from "react";
 import DocxRenderer from "./DocxRenderer";
 import PdfRenderer from "./PdfRenderer";
-import { PreviewContainer } from "@ext/markdown/elements/file/edit/components/Preview/PreviewContainer";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 
 export interface FilePreviewProps {
 	file: File;
@@ -27,10 +27,9 @@ const getRendererByExtension = (extension: string): ComponentType<RendererProps>
 export const FilePreview = memo((props: FilePreviewProps) => {
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
 	const { file } = props;
-	if (!file) return null;
 
-	const extension: string = file.name.split(".").pop()?.toLowerCase() ?? "";
-	const Renderer = getRendererByExtension(extension);
+	const extension: string = file ? (file?.name?.split(".").pop()?.toLowerCase() ?? "") : "";
+	const Renderer = file ? getRendererByExtension(extension) : null;
 
 	const onLoad = useCallback(() => {
 		setIsLoaded(true);
@@ -41,10 +40,11 @@ export const FilePreview = memo((props: FilePreviewProps) => {
 	}, []);
 
 	if (!Renderer) return null;
+
 	return (
 		<PreviewContainer>
 			{isLoaded ? null : <SpinnerLoader fullScreen />}
-			<Renderer {...props} onLoad={onLoad} onError={onError} />
+			<Renderer {...props} onError={onError} onLoad={onLoad} />
 		</PreviewContainer>
 	);
 });

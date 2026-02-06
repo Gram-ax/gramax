@@ -15,10 +15,10 @@
 }
 
 .admonition .content-hide {
-	overflow: hidden;
 	height: 0;
-	opacity: 0;
+	overflow: hidden;
 	pointer-events: none;
+	opacity: 0;
 }
 
 .admonition .title.clickable {
@@ -37,8 +37,8 @@
 }
 
 .admonition-row > .admonition-heading {
-	margin-bottom: 0 !important;
 	width: var(--heading-row-width-admonition);
+	margin-bottom: 0 !important;
 }
 
 .admonition-row .admonition-content {
@@ -47,8 +47,8 @@
 
 .admonition-heading {
 	display: flex;
-	width: 100%;
 	align-items: center;
+	width: 100%;
 	margin-bottom: 0.7em;
 }
 
@@ -58,9 +58,9 @@
 
 .admonition-heading .titleWrapper {
 	display: flex;
-	width: 100%;
-	justify-content: start;
 	align-items: center;
+	justify-content: start;
+	width: 100%;
 }
 
 .admonition-heading .titleWrapper .title {
@@ -70,20 +70,20 @@
 
 .admonition-heading .admonition-icon {
 	display: flex;
-	font-size: 20px;
 	align-items: flex-start;
+	font-size: 20px;
 }
 
 .admonition-heading .title {
+	margin-left: 0.5em;
 	font-weight: 500;
 	line-height: 1.5em;
 	vertical-align: top;
-	margin-left: 0.5em;
 }
 
 .admonition-icon i {
-	vertical-align: top;
 	padding: 4px 0;
+	vertical-align: top;
 }
 
 .admonition-content {
@@ -101,13 +101,13 @@
 }
 
 .admonition-content > ul:first-of-type {
-	margin-left: 0;
 	padding-left: 18px;
+	margin-left: 0;
 }
 
 .admonition-quote {
-	border-color: var(--color-admonition-quote-border);
 	background: var(--color-admonition-quote-bg);
+	border-color: var(--color-admonition-quote-border);
 }
 
 .admonition-quote .admonition-heading *,
@@ -117,8 +117,8 @@
 }
 
 .admonition-lab {
-	border-color: var(--color-admonition-lab-br-h);
 	background: var(--color-admonition-lab-bg);
+	border-color: var(--color-admonition-lab-br-h);
 }
 .admonition-lab .admonition-heading *,
 .admonition-lab strong {
@@ -126,8 +126,8 @@
 }
 
 .admonition-tip {
-	border-color: var(--color-admonition-tip-br-h);
 	background: var(--color-admonition-tip-bg);
+	border-color: var(--color-admonition-tip-br-h);
 }
 .admonition-tip .admonition-heading *,
 .admonition-tip strong {
@@ -135,8 +135,8 @@
 }
 
 .admonition-info {
-	border-color: var(--color-admonition-info-br-h);
 	background: var(--color-admonition-info-bg);
+	border-color: var(--color-admonition-info-br-h);
 }
 .admonition-info .admonition-heading *,
 .admonition-info strong {
@@ -144,8 +144,8 @@
 }
 
 .admonition-note {
-	border-color: var(--color-admonition-note-br-h);
 	background: var(--color-admonition-note-bg);
+	border-color: var(--color-admonition-note-br-h);
 }
 .admonition-note .admonition-heading *,
 .admonition-note strong {
@@ -153,8 +153,8 @@
 }
 
 .admonition-danger {
-	border-color: var(--color-admonition-danger-br-h);
 	background: var(--color-admonition-danger-bg);
+	border-color: var(--color-admonition-danger-br-h);
 }
 .admonition-danger .admonition-heading *,
 .admonition-danger strong {
@@ -162,8 +162,8 @@
 }
 
 .admonition-hotfixes {
-	border-color: var(--color-admonition-hotfixes-br-h);
 	background: var(--color-admonition-hotfixes-bg);
+	border-color: var(--color-admonition-hotfixes-br-h);
 }
 .admonition-hotfixes .admonition-heading *,
 .admonition-hotfixes strong {
@@ -171,9 +171,9 @@
 }
 
 .admonition-cut {
+	padding: 4px 0px 4px var(--distance-admonition);
 	margin: 0 0 0.7em;
 	border-left: solid 2px var(--color-line);
-	padding: 4px 0px 4px var(--distance-admonition);
 }
 
 .article .admonition.admonition-cut {
@@ -182,9 +182,9 @@
 }
 
 .admonition-cut > .admonition-heading {
-	cursor: pointer;
 	margin-bottom: 0;
 	color: var(--color-article-heading-text);
+	cursor: pointer;
 }
 /* .admonition-cut > .admonition-heading:hover {
 	color: var(--color-primary);

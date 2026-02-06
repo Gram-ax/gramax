@@ -1,5 +1,5 @@
 import { ButtonProps } from "@ui-kit/Button";
-import { Modal, ModalContent, ModalTrigger, ModalHeaderTemplate, ModalFooterTemplate, ModalBody } from "@ui-kit/Modal";
+import { Modal, ModalBody, ModalContent, ModalFooterTemplate, ModalHeaderTemplate, ModalTrigger } from "@ui-kit/Modal";
 
 interface ModalComponentProps {
 	isOpen?: boolean;
@@ -29,20 +29,20 @@ export const ModalComponent = ({
 	modalContentClassName,
 }: ModalComponentProps) => {
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			<ModalTrigger asChild>{trigger}</ModalTrigger>
 			<ModalContent className={modalContentClassName}>
 				{(title || description) && (
-					<ModalHeaderTemplate title={title} description={description} className="pb-0 lg:pb-0 border-b-0" />
+					<ModalHeaderTemplate className="pb-0 lg:pb-0 border-b-0" description={description} title={title} />
 				)}
 				{modalContent && <ModalBody>{modalContent}</ModalBody>}
 				{(confirmButtonText || cancelButtonText) && (
 					<ModalFooterTemplate
+						className="pt-0 lg:pt-0 border-t-0"
 						primaryButton={confirmButtonText}
 						primaryButtonProps={confirmButtonProps as any}
 						secondaryButton={cancelButtonText}
 						secondaryButtonProps={cancelButtonProps as any}
-						className="pt-0 lg:pt-0 border-t-0"
 					/>
 				)}
 			</ModalContent>

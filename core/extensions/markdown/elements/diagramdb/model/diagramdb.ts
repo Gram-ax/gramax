@@ -1,9 +1,9 @@
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
-import ParserContext from "../../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
 import { Node, Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
 
-export function dbDiagram(context: ParserContext): Schema {
+export function dbDiagram(context: PrivateParserContext): Schema {
 	return {
 		render: "Db-diagram",
 		attributes: {

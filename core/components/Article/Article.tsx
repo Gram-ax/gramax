@@ -1,8 +1,8 @@
 import { ArticleEditRenderer, ArticleReadRenderer } from "@components/Article/ArticleRenderer";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useCtrlKeyLinkHandler } from "@core-ui/hooks/useCtrlKeyLinkHandler";
 import useScrollToArticleAnchor from "@core-ui/hooks/useScrollToArticleAnchor";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 
 const Article = ({ data }: { data: ArticlePageData }) => {
 	const { articleProps } = data;

@@ -63,7 +63,7 @@ const CloneWithShareData = (props: CloneWithShareDataProps) => {
 
 	const domain = (
 		<div style={{ display: "inline-flex" }}>
-			<SmallFence overflow="hidden" fixWidth value={(shareData as GitShareData)?.domain} />
+			<SmallFence fixWidth overflow="hidden" value={(shareData as GitShareData)?.domain} />
 		</div>
 	);
 
@@ -85,13 +85,13 @@ const CloneWithShareData = (props: CloneWithShareDataProps) => {
 
 	const createSourceDataWarning = (
 		<InfoModalForm
-			isWarning={true}
-			title={t("clone-fail")}
-			onCancelClick={() => onCreateSourceDataClose?.(false)}
 			actionButton={{
 				onClick: () => openCreateStorageModal(),
 				text: t("add-storage"),
 			}}
+			isWarning={true}
+			onCancelClick={() => onCreateSourceDataClose?.(false)}
+			title={t("clone-fail")}
 		>
 			<div>
 				{t("no-access-to-storage")} {domain}. {t("add-to-continue-downloading")}

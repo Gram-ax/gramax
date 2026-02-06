@@ -1,10 +1,10 @@
 import { MenuItemDescriptorApp } from "@components/Actions/CatalogActions/buildCatalogMenu";
 import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
+import type { CoreMenuItemId, MenuContext, MenuItemDescriptor, MenuModifier } from "@gramax/sdk/ui";
 import { MenuItem } from "@plugins/api/sdk";
 import { PluginRegistry } from "@plugins/registry/PluginRegistry";
 import { MenuRegistryInterface } from "@plugins/types";
-import type { CoreMenuItemId, MenuContext, MenuItemDescriptor, MenuModifier } from "@gramax/sdk/ui";
 
 export class PluginMenuRegistry extends PluginRegistry<string, MenuModifier[]> implements MenuRegistryInterface {
 	registerModifier(pluginId: string, modifier: MenuModifier): void {

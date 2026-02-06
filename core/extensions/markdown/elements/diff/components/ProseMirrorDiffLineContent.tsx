@@ -3,22 +3,21 @@ import Icon from "@components/Atoms/Icon";
 import Tooltip, { DEFAULT_TOOLTIP_SHOW_DELAY } from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
+import getIsSafari from "@core-ui/utils/isSafari";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
 import getExtensions from "@ext/markdown/core/edit/logic/getExtensions";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import CommentEditorProvider from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import DiffExtension from "@ext/markdown/elements/diff/logic/DiffExtension";
-import { DiffLineType } from "@ext/markdown/elements/diff/logic/model/DiffLine";
+import type { DiffLineType } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 import Document from "@tiptap/extension-document";
-import { PluginKey } from "@tiptap/pm/state";
-import { Decoration, DecorationSet } from "@tiptap/pm/view";
-import { EditorContent, JSONContent, useEditor } from "@tiptap/react";
+import { type Decoration, DecorationSet } from "@tiptap/pm/view";
+import { EditorContent, type JSONContent, useEditor } from "@tiptap/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-
-const diffDeletedTextPluginKey = new PluginKey("diff-deleted-text");
 
 interface ProsemirrorDiffLineContentProps {
 	oldContent: JSONContent;
@@ -29,14 +28,18 @@ interface ProsemirrorDiffLineContentProps {
 	onDiscard?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }
 
-const DiscardWrapper = styled.div`
+const DiscardWrapper = styled.div<{ isSafari: boolean }>`
 	display: flex;
 	align-items: center;
 	cursor: pointer;
 
-	> i {
-		margin-bottom: 3px;
-	}
+	${({ isSafari }) =>
+		isSafari &&
+		css`
+			> i {
+				margin-bottom: 3px;
+			}
+		`}
 
 	opacity: 0.6;
 	:hover {
@@ -57,6 +60,8 @@ const Header = styled.div`
 const HeaderText = styled.span`
 	opacity: 0.6;
 `;
+
+const isSafari = getIsSafari();
 
 const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 	const { oldContent, oldDecorations, onDiscard, oldScope, type, articlePath } = props;
@@ -98,12 +103,13 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 	const DiscardButton = (
 		<Tooltip content={t("git.discard.paragraph-tooltip")} distance={5} visible={tooltipVisible}>
 			<DiscardWrapper
-				onMouseEnter={() => setTooltipVisibleWrapper(true)}
-				onMouseLeave={() => setTooltipVisibleWrapper(false)}
+				isSafari={isSafari}
 				onClick={(e) => {
 					setTooltipVisibleWrapper(false);
 					onDiscard?.(e);
 				}}
+				onMouseEnter={() => setTooltipVisibleWrapper(true)}
+				onMouseLeave={() => setTooltipVisibleWrapper(false)}
 			>
 				<Icon code="reply" />
 				<span>{t("diff.discard")}</span>
@@ -112,7 +118,7 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 	);
 
 	return (
-		<ArticleContextWrapper scope={oldScope} articlePath={articlePath}>
+		<ArticleContextWrapper articlePath={articlePath} scope={oldScope}>
 			<div className={classNames("article", {}, ["tooltip-article"])}>
 				<Header>
 					<HeaderText>
@@ -126,7 +132,7 @@ const ProsemirrorDiffLineContent = (props: ProsemirrorDiffLineContentProps) => {
 					<MinimizedArticleStyled>
 						<div className={classNames("article-body", {}, ["popup-article"])}>
 							<CommentEditorProvider editor={editor}>
-								<EditorContent editor={editor} data-iseditable={false} />
+								<EditorContent data-iseditable={false} editor={editor} />
 							</CommentEditorProvider>
 						</div>
 					</MinimizedArticleStyled>

@@ -1,11 +1,11 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { listItemHandler } from "@ext/markdown/elements/list/pdf/listItem";
-import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
 import { BASE_CONFIG, ICON_SIZE } from "@ext/pdfExport/config";
-import { Content } from "pdfmake/interfaces";
-import { isTag } from "@ext/pdfExport/utils/isTag";
 import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
+import { isTag } from "@ext/pdfExport/utils/isTag";
 import { JSONContent } from "@tiptap/core";
+import { Content } from "pdfmake/interfaces";
 
 export const bulletListHandler = async (
 	node: Tag | JSONContent,

@@ -1,7 +1,7 @@
 import getIsSelectedOneNode from "@ext/markdown/elementsUtils/getIsSelectedOneNode";
-import { Mark, markInputRule, markPasteRule, mergeAttributes } from "@tiptap/core";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import arrowRight from "@ext/markdown/logic/keys/marks/arrowRight";
+import { Mark, markInputRule, markPasteRule, mergeAttributes } from "@tiptap/core";
 
 interface CodeOptions {
 	HTMLAttributes: Record<string, any>;

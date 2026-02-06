@@ -1,16 +1,18 @@
-import { ToolbarToggleGroup, ToolbarToggleItem as UiKitToolbarToggleItem } from "ics-ui-kit/components/toolbar";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { forwardRef, useCallback } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipShortcut } from "@ui-kit/Tooltip";
 import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
+import { Tooltip, TooltipContent, TooltipShortcut, TooltipTrigger } from "@ui-kit/Tooltip";
+import { ToolbarToggleGroup, ToolbarToggleItem as UiKitToolbarToggleItem } from "ics-ui-kit/components/toolbar";
+import { forwardRef, useCallback } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitToolbarToggleItemProps = ExtractComponentGeneric<typeof UiKitToolbarToggleItem>;
 
 const StyledToolbarToggleItem = styled(UiKitToolbarToggleItem)`
-	&:hover,
-	&[data-open="open"] {
-		background-color: hsl(var(--inverse-hover));
+	@media (pointer: fine) {
+		&:hover,
+		&[data-open="open"] {
+			background-color: hsl(var(--inverse-hover));
+		}
 	}
 `;
 
@@ -50,9 +52,9 @@ export const ToolbarToggleButton = forwardRef<HTMLButtonElement, ToolbarToggleBu
 				{...otherProps}
 				className={cn(className, "p-1")}
 				data-state={state}
-				value="custom"
 				onClick={handleClick}
 				onTouchStart={handleTouchStart}
+				value="custom"
 			/>
 		</ToolbarToggleGroup>
 	);
@@ -65,7 +67,7 @@ export const ToolbarToggleButton = forwardRef<HTMLButtonElement, ToolbarToggleBu
 				<TooltipContent sideOffset={2}>
 					<div className="flex items-center gap-2">
 						{tooltipText}
-						{hotKey && <TooltipShortcut value={hotKey} inverse className="p-0" />}
+						{hotKey && <TooltipShortcut className="p-0" inverse value={hotKey} />}
 					</div>
 				</TooltipContent>
 			)}

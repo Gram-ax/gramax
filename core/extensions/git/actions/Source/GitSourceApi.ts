@@ -1,12 +1,12 @@
+import haveInternetAccess from "@core/utils/haveInternetAccess";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import haveInternetAccess from "@core/utils/haveInternetAccess";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
+import type { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
 import type { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
-import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import CatalogExistsError from "@ext/storage/models/CatalogExistsError";
@@ -48,7 +48,7 @@ abstract class GitSourceApi implements SourceAPI {
 	async assertStorageExist(data: StorageData): Promise<void> {
 		if (await this.isRepositoryExists(data)) {
 			throw new CatalogExistsError(
-				(data as GitStorageData).source.domain + "/" + (data as GitStorageData).group,
+				`${(data as GitStorageData).source.domain}/${(data as GitStorageData).group}`,
 				data.name,
 			);
 		}
@@ -135,8 +135,7 @@ abstract class GitSourceApi implements SourceAPI {
 	}
 
 	protected async _assertHasInternetAccess() {
-		const gesUrl = this._data.isEnterprise ? `${this._data.protocol ?? "https"}://${this._data.domain}` : undefined;
-		if (!(await haveInternetAccess(gesUrl))) {
+		if (!(await haveInternetAccess())) {
 			throw new NetworkApiError(
 				t("app.error.offline.no-internet"),
 				{ url: null, errorJson: null, status: -1 },

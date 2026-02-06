@@ -211,26 +211,28 @@ const GroupsComponent = () => {
 				<GroupsTable onDelete={proceedDelete} />
 			</div>
 
-			<FloatingAlert show={Boolean(saveError)} message={saveError} />
+			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
 			<SheetComponent
+				confirmButton={
+					<>
+						{isSaving ? (
+							<LoadingButtonTemplate text={`${t("save2")}...`} />
+						) : (
+							<Button disabled={!form.formState.isValid || !hasChanges} onClick={handleSave}>
+								<Icon icon="save" />
+								{t("save")}
+							</Button>
+						)}
+					</>
+				}
 				isOpen={isEditing}
 				onOpenChange={(open) => !open && handleClose()}
-				title={
-					editingGroup
-						? editingGroupOriginalName
-							? `${t("enterprise.admin.groups.group")} ${editingGroupOriginalName}`
-							: t("enterprise.admin.groups.group")
-						: t("enterprise.admin.groups.add-group")
-				}
 				sheetContent={
 					<Form asChild {...form}>
 						<form className="contents">
 							<div className="flex flex-col">
 								<FormField
-									name="groupName"
-									title={t("enterprise.admin.groups.group-name")}
-									layout="vertical"
 									control={({ field }) => (
 										<TextInput
 											className="w-[300px] mb-4"
@@ -238,31 +240,29 @@ const GroupsComponent = () => {
 											{...field}
 										/>
 									)}
+									layout="vertical"
+									name="groupName"
+									title={t("enterprise.admin.groups.group-name")}
 								/>
-								<GroupsUserTable users={groupUsers} onChange={setGroupUsers} />
+								<GroupsUserTable onChange={setGroupUsers} users={groupUsers} />
 							</div>
 						</form>
 					</Form>
 				}
-				confirmButton={
-					<>
-						{isSaving ? (
-							<LoadingButtonTemplate text={`${t("save2")}...`} />
-						) : (
-							<Button onClick={handleSave} disabled={!form.formState.isValid || !hasChanges}>
-								<Icon icon="save" />
-								{t("save")}
-							</Button>
-						)}
-					</>
+				title={
+					editingGroup
+						? editingGroupOriginalName
+							? `${t("enterprise.admin.groups.group")} ${editingGroupOriginalName}`
+							: t("enterprise.admin.groups.group")
+						: t("enterprise.admin.groups.add-group")
 				}
 			/>
 
 			<ConfirmationDialog
 				isOpen={showUnsavedDialog}
+				onClose={resetForm}
 				onOpenChange={setShowUnsavedDialog}
 				onSave={handleSave}
-				onClose={resetForm}
 			/>
 		</div>
 	);

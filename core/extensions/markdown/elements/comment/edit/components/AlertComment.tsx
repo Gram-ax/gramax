@@ -1,14 +1,14 @@
 import t from "@ext/localization/locale/translate";
 import {
 	AlertDialog,
-	AlertDialogPrimitiveCancel,
-	AlertDialogFooter,
-	AlertDialogDescription,
-	AlertDialogTitle,
-	AlertDialogIcon,
-	AlertDialogHeader,
 	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
 	AlertDialogPrimitiveAction,
+	AlertDialogPrimitiveCancel,
+	AlertDialogTitle,
 } from "@ui-kit/AlertDialog";
 import { Button } from "@ui-kit/Button";
 import { useState } from "react";
@@ -21,7 +21,7 @@ interface AlertCommentProps {
 export const AlertComment = ({ onConfirm, onCancel }: AlertCommentProps) => {
 	const [open, setOpen] = useState(true);
 	return (
-		<AlertDialog open={open} onOpenChange={setOpen}>
+		<AlertDialog onOpenChange={setOpen} open={open}>
 			<AlertDialogContent
 				onEscapeKeyDown={() => {
 					setOpen(false);
@@ -38,12 +38,12 @@ export const AlertComment = ({ onConfirm, onCancel }: AlertCommentProps) => {
 				<AlertDialogFooter>
 					<AlertDialogPrimitiveCancel asChild>
 						<Button
-							variant="text"
-							type="button"
 							onClick={() => {
 								onCancel();
 								setOpen(false);
 							}}
+							type="button"
+							variant="text"
 						>
 							{t("cancel")}
 						</Button>

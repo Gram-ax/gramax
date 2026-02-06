@@ -1,28 +1,29 @@
-import { LibGit2BaseCommands } from "@ext/git/core/GitCommands/LibGit2BaseCommands";
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
-import GitVersionData from "@ext/git/core/model/GitVersionData";
+import { LibGit2BaseCommands } from "@ext/git/core/GitCommands/LibGit2BaseCommands";
+import type GitVersionData from "@ext/git/core/model/GitVersionData";
 import Path from "../../../../logic/FileProvider/Path/Path";
-import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
+import type SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
+import type { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
-import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
 import { GitBranch } from "../GitBranch/GitBranch";
-import { GitStatus } from "../GitWatcher/model/GitStatus";
-import GitSourceData from "../model/GitSourceData.schema";
+import type { GitStatus } from "../GitWatcher/model/GitStatus";
+import type GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 import * as git from "./LibGit2IntermediateCommands";
-import GitCommandsModel, {
-	type CancelToken,
-	type DiffConfig,
-	type DiffTree2TreeInfo,
-	type DirEntry,
-	type DirStat,
-	type FileStat,
-	type GcOptions,
-	type MergeOptions,
-	type RefInfo,
-	type RemoteProgress,
-	type ResetOptions,
-	type TreeReadScope,
+import type GitCommandsModel from "./model/GitCommandsModel";
+import type {
+	CancelToken,
+	DiffConfig,
+	DiffTree2TreeInfo,
+	DirEntry,
+	DirStat,
+	FileStat,
+	GcOptions,
+	MergeOptions,
+	RefInfo,
+	RemoteProgress,
+	ResetOptions,
+	TreeReadScope,
 } from "./model/GitCommandsModel";
 
 class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
@@ -50,6 +51,7 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		depth?: number,
 		isBare?: boolean,
 		allowNonEmptyDir?: boolean,
+		skipLfsPull?: boolean,
 		onProgress?: (progress: RemoteProgress) => void,
 	) {
 		try {
@@ -64,6 +66,7 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 						depth: depth || 0,
 						allowNonEmptyDir,
 						isBare,
+						skipLfsPull,
 					},
 				},
 				onProgress,
@@ -256,6 +259,21 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		return git.restore({ repoPath: this._repoPath, staged, paths: filePaths.map((p) => p.value) });
 	}
 
+	async pullLfsObjects(
+		data: GitSourceData,
+		paths: string[],
+		checkout: boolean,
+		cancelToken: CancelToken,
+	): Promise<void> {
+		await git.pullLfsObjects({
+			repoPath: this._repoPath,
+			creds: this._intoCreds(data),
+			paths,
+			checkout,
+			cancelToken,
+		});
+	}
+
 	reset(opts: ResetOptions): Promise<void> {
 		return git.reset({
 			repoPath: this._repoPath,
@@ -344,6 +362,14 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 
 	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean> {
 		return git.fileExists({ repoPath: this._repoPath, scope, path: filePath.value });
+	}
+
+	async getConfigVal(name: string): Promise<string> {
+		return await git.getConfigVal({ repoPath: this._repoPath, name });
+	}
+
+	setConfigVal(name: string, val: git.ConfigValue): Promise<void> {
+		return git.setConfigVal({ repoPath: this._repoPath, name, val });
 	}
 
 	async getReferencesByGlob(patterns: string[]): Promise<RefInfo[]> {

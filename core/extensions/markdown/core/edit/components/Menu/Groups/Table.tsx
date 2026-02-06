@@ -31,37 +31,37 @@ const TableMenuGroup = ({ editor, onClick }: { editor?: Editor; onClick?: () => 
 		<>
 			{canMergeCells && (
 				<ToolbarToggleButton
-					onClick={mergeCells}
-					disabled={!canMergeCells}
-					tooltipText={t("editor.table.join-cells")}
 					className="text-inverse-primary-fg"
+					disabled={!canMergeCells}
+					onClick={mergeCells}
+					tooltipText={t("editor.table.join-cells")}
 				>
 					<ToolbarIcon icon="merge-cells" />
 				</ToolbarToggleButton>
 			)}
 			{canSplitCells && (
 				<ToolbarToggleButton
-					onClick={splitCells}
-					disabled={!canSplitCells}
 					className="text-inverse-primary-fg"
+					disabled={!canSplitCells}
+					onClick={splitCells}
 					tooltipText={t("editor.table.split-cells")}
 				>
 					<ToolbarIcon icon="split-cells" />
 				</ToolbarToggleButton>
 			)}
 			<ToolbarToggleButton
-				onClick={deleteRow}
-				disabled={editor ? !editor.can().deleteRow() : false}
-				tooltipText={t("editor.table.row.delete")}
 				className="text-inverse-primary-fg"
+				disabled={editor ? !editor.can().deleteRow() : false}
+				onClick={deleteRow}
+				tooltipText={t("editor.table.row.delete")}
 			>
 				<ToolbarIcon icon="delete-row" />
 			</ToolbarToggleButton>
 			<ToolbarToggleButton
-				onClick={deleteColumn}
-				disabled={editor ? !editor.can().deleteColumn() : false}
-				tooltipText={t("editor.table.column.delete")}
 				className="text-inverse-primary-fg"
+				disabled={editor ? !editor.can().deleteColumn() : false}
+				onClick={deleteColumn}
+				tooltipText={t("editor.table.column.delete")}
 			>
 				<ToolbarIcon icon="delete-column" />
 			</ToolbarToggleButton>

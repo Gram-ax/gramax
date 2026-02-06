@@ -13,11 +13,11 @@ const LinkMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () => vo
 
 	return (
 		<ToolbarToggleButton
-			tooltipText={t("link")}
-			hotKey={"Mod-K"}
-			disabled={disabled}
 			active={isActive}
+			disabled={disabled}
+			hotKey={"Mod-K"}
 			onClick={() => onClickHandler()}
+			tooltipText={t("link")}
 		>
 			<ToolbarIcon icon={"link"} />
 		</ToolbarToggleButton>

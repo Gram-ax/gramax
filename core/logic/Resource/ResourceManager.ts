@@ -1,3 +1,5 @@
+import type Context from "@core/Context/Context";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
 import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
@@ -5,13 +7,23 @@ import ResourceMovements from "@core/Resource/models/ResourceMovements";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { Buffer } from "buffer";
-import Path from "../FileProvider/Path/Path";
 import FileProvider from "../FileProvider/model/FileProvider";
+import Path from "../FileProvider/Path/Path";
+
+export type ResourceManagerEvents = Event<
+	"content-read",
+	{ path: Path; ctx?: Context; content: Buffer; out: { out: Buffer | true | null } }
+>;
 
 class ResourceManager implements Hashable {
 	private _resources: Path[];
+	private _events = createEventEmitter<ResourceManagerEvents>();
 
-	constructor(private _fp: FileProvider, private _basePath: Path, private _rootPath?: Path) {
+	constructor(
+		private _fp: FileProvider,
+		private _basePath: Path,
+		private _rootPath?: Path,
+	) {
 		this._resources = [];
 	}
 
@@ -25,6 +37,10 @@ class ResourceManager implements Hashable {
 
 	get resources() {
 		return this._resources;
+	}
+
+	get events() {
+		return this._events;
 	}
 
 	getAllPaths(): Path[] {
@@ -90,10 +106,17 @@ class ResourceManager implements Hashable {
 		return await this._fp.write(this.getAbsolutePath(path), data);
 	}
 
-	async getContent(path: Path): Promise<Buffer> {
+	async getContent(path: Path, ctx?: Context, silent?: boolean): Promise<Buffer> {
+		let content = null;
 		try {
-			return await this._fp.readAsBinary(this.getAbsolutePath(path));
+			content = await this._fp.readAsBinary(this.getAbsolutePath(path));
 		} catch {}
+
+		const out = { out: null };
+		if (!silent) await this._events.emit("content-read", { path: this._basePath.join(path), ctx, content, out });
+
+		if (out.out == true) return await this.getContent(path, ctx, true);
+		return out.out ?? content;
 	}
 
 	async hash(hash: Hasher) {

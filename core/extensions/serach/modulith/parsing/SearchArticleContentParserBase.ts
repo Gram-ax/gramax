@@ -1,5 +1,5 @@
+import { ArticleBlock, ArticleItem } from "@ics/gx-vector-search";
 import HeaderArticleBlock from "./HeaderArticleBlock";
-import { ArticleItem, ArticleBlock } from "@ics/gx-vector-search";
 
 export default abstract class SearchArticleContentParserBase {
 	protected _children: ArticleItem[] = [];

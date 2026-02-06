@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import SpinnerLoader from "../SpinnerLoader";
-import Path from "./Path";
 import { VIEWBOX_CENTER_X, VIEWBOX_CENTER_Y, VIEWBOX_HEIGHT, VIEWBOX_HEIGHT_HALF, VIEWBOX_WIDTH } from "./constants";
+import Path from "./Path";
 
 const CircularProgressbar = styled(
 	({
@@ -39,7 +39,7 @@ const CircularProgressbar = styled(
 		const pathRatio = getPathRatio();
 
 		return (
-			<div key={text} className={className} data-qa="loader">
+			<div className={className} data-qa="loader" key={text}>
 				<svg className="circular-progressbar" viewBox={`0 0 ${VIEWBOX_WIDTH} ${VIEWBOX_HEIGHT}`}>
 					<Path
 						className="circular-progressbar-trail"

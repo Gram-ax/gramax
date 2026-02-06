@@ -1,11 +1,11 @@
-import styled from "@emotion/styled";
-import { Property, PropertyTypes } from "@ext/properties/models";
-import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import Icon from "@components/Atoms/Icon";
+import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import Flag from "@ext/markdown/elements/inlineProperty/edit/components/inputs/Flag";
-import getDisplayValue from "@ext/properties/logic/getDisplayValue";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
+import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import getDisplayValue from "@ext/properties/logic/getDisplayValue";
+import { Property, PropertyTypes } from "@ext/properties/models";
 
 interface InlinePropertyProps {
 	bind: string;
@@ -69,9 +69,9 @@ const EditableProperty = ({ bind, onChangeProperty, articleProp, catalogProp, is
 		return () => (
 			<Flag
 				id={catalogProp.name}
+				onChange={(e) => onChangeProperty(catalogProp.name, e.target.checked)}
 				preSubmit={onChangeProperty}
 				value={isExists}
-				onChange={(e) => onChangeProperty(catalogProp.name, e.target.checked)}
 			/>
 		);
 	};
@@ -79,10 +79,10 @@ const EditableProperty = ({ bind, onChangeProperty, articleProp, catalogProp, is
 	return (
 		<span>
 			<PropertyArticle
-				renderInput={renderInput()}
-				property={articleProp}
-				onSubmit={onChangeProperty}
 				hideClear={catalogProp.type === PropertyTypes.flag}
+				onSubmit={onChangeProperty}
+				property={articleProp}
+				renderInput={renderInput()}
 				trigger={trigger}
 			/>
 		</span>
@@ -99,17 +99,17 @@ const InlineProperty = ({ bind, props, isEditable, onChangeProperty, selected }:
 
 		return (
 			<EditableProperty
-				bind={bind}
-				onChangeProperty={onChangeProperty}
 				articleProp={articleProp}
+				bind={bind}
 				catalogProp={catalogProp}
 				isExists={isExists}
+				onChangeProperty={onChangeProperty}
 			/>
 		);
 	}
 
 	return (
-		<TriggerWrapper data-focusable="true" className={selected ? "selected" : ""}>
+		<TriggerWrapper className={selected ? "selected" : ""} data-focusable="true">
 			{articleProp && catalogProp?.icon && <Icon code={catalogProp?.icon} />}
 			{bind || "???"}
 		</TriggerWrapper>

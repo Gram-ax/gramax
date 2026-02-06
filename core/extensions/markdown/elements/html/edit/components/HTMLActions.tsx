@@ -8,7 +8,7 @@ interface HTMLActionsProps {
 const HTMLActions = ({ openEditor }: HTMLActionsProps) => {
 	return (
 		<>
-			<ActionButton icon="pencil" tooltipText={t("edit")} onClick={openEditor} />
+			<ActionButton icon="pencil" onClick={openEditor} tooltipText={t("edit")} />
 		</>
 	);
 };

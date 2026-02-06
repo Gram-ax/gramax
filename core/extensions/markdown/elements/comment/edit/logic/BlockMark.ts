@@ -23,7 +23,10 @@ export interface BlockMarkData {
 }
 
 class CommentBlockMark implements BlockMarkInterface {
-	constructor(private readonly _tr: Transaction, private readonly _markType: MarkType) {}
+	constructor(
+		private readonly _tr: Transaction,
+		private readonly _markType: MarkType,
+	) {}
 
 	static getCommentPosition(doc: Node, commentId: string): CommentPosition[] {
 		const commentMarksWithRange: CommentPosition[] = [];

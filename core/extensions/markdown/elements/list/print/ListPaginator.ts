@@ -1,17 +1,13 @@
+import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
-import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 
 type ListElement = HTMLOListElement | HTMLUListElement;
 export class ListPaginator extends NodePaginator<ListElement> {
 	private _currentStartNumber = 1;
 	private _listContainer: ListElement;
 	private _taskItemTemplate?: HTMLElement;
-
-	constructor(listElement: ListElement, parentPaginator: Paginator) {
-		super(listElement, parentPaginator);
-	}
 
 	async paginateNode() {
 		throwIfAborted(Paginator.controlInfo.signal);
@@ -56,7 +52,8 @@ export class ListPaginator extends NodePaginator<ListElement> {
 		const parentPage = this.parentPaginator.createPage();
 		const currentList = this.node.cloneNode(false) as HTMLOListElement | HTMLUListElement;
 		if (this.node.tagName === "OL") {
-			currentList.style.setProperty("counter-reset", `listitem ${this._currentStartNumber}`);
+			const listItemStart = this._currentStartNumber - (isSplitedItem ? 0 : 1);
+			currentList.style.setProperty("counter-reset", `listitem ${listItemStart}`);
 			currentList.setAttribute("start", `${this._currentStartNumber}`);
 		}
 		parentPage.appendChild(currentList);

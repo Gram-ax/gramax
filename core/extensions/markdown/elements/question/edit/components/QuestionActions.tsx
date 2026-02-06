@@ -1,16 +1,16 @@
 import ActionButton from "@components/controls/HoverController/ActionButton";
+import t from "@ext/localization/locale/translate";
+import { answerTypeByQuestionType } from "@ext/markdown/elements/question/edit/logic/answerTypeByQuestionType";
+import { QuestionType } from "@ext/markdown/elements/question/types";
+import { Node } from "@tiptap/pm/model";
+import { Editor } from "@tiptap/react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
-	DropdownMenuTrigger,
-	DropdownMenuRadioItem,
 	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
-import { Node } from "@tiptap/pm/model";
-import { QuestionType } from "@ext/markdown/elements/question/types";
-import { Editor } from "@tiptap/react";
-import { answerTypeByQuestionType } from "@ext/markdown/elements/question/edit/logic/answerTypeByQuestionType";
-import t from "@ext/localization/locale/translate";
 
 interface QuestionActionsProps {
 	node: Node;
@@ -53,16 +53,16 @@ const QuestionActions = ({ node, getPos, editor }: QuestionActionsProps) => {
 		<>
 			<ActionButton
 				icon="check"
-				tooltipText={t("editor.question.required")}
 				onClick={setRequired}
 				selected={node.attrs.required}
+				tooltipText={t("editor.question.required")}
 			/>
 			<DropdownMenu>
 				<DropdownMenuTrigger>
 					<ActionButton icon="type" tooltipText={t("editor.question.types.name")} />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent>
-					<DropdownMenuRadioGroup value={node.attrs.type} onValueChange={setQuestionType}>
+					<DropdownMenuRadioGroup onValueChange={setQuestionType} value={node.attrs.type}>
 						<DropdownMenuRadioItem value="many">{t("editor.question.types.many")}</DropdownMenuRadioItem>
 						<DropdownMenuRadioItem value="one">{t("editor.question.types.one")}</DropdownMenuRadioItem>
 					</DropdownMenuRadioGroup>

@@ -5,11 +5,11 @@ import { getComponentByType } from "@ext/markdown/elements/answer/edit/logic/get
 import { AnswerType } from "@ext/markdown/elements/answer/types";
 import {
 	Stepper,
+	StepperIndicator,
 	StepperItem,
+	StepperSeparator,
 	StepperTitle,
 	StepperTrigger,
-	StepperIndicator,
-	StepperSeparator,
 } from "@ui-kit/Stepper";
 import { useMemo } from "react";
 
@@ -73,10 +73,10 @@ export const QuestionsList = ({ data }: { data: QuizTestData }) => {
 			<Stepper orientation="vertical">
 				{data?.questions?.map((question, index) => (
 					<StepperItem
+						className="not-last:flex-1 relative items-start"
 						disabled
 						key={question.id}
 						step={index + 1}
-						className="not-last:flex-1 relative items-start"
 					>
 						<StepperTrigger className="items-start rounded pb-12 last:pb-0" style={{ opacity: "1" }}>
 							<StepperIndicator
@@ -94,13 +94,13 @@ export const QuestionsList = ({ data }: { data: QuizTestData }) => {
 								<StepperTitle className="text-lg mb-2">{question.title}</StepperTitle>
 								{question.answers?.map((answer) => (
 									<ListItem
+										answer={answer}
+										key={answer.id}
+										mappedAnswers={mappedAnswers}
+										questionId={question.id}
 										type={
 											question.answers.filter((a) => a.correct).length > 1 ? "checkbox" : "radio"
 										}
-										key={answer.id}
-										answer={answer}
-										questionId={question.id}
-										mappedAnswers={mappedAnswers}
 									/>
 								))}
 							</div>

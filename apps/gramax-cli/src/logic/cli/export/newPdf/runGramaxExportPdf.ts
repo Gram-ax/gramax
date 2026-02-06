@@ -1,9 +1,9 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { RunGramaxExportPdfProps, HELPER_PKG } from "./exportConfig";
-import ChalkLogger from "../../../../utils/ChalkLogger";
-import { spawn } from "child_process";
 import { CliPrintStatus } from "@ext/print/types";
+import { spawn } from "child_process";
+import ChalkLogger from "../../../../utils/ChalkLogger";
 import { logResult } from "../../utils/logger";
+import { HELPER_PKG, RunGramaxExportPdfProps } from "./exportConfig";
 
 const statusMessages = {
 	preparing: "Preparing elements",

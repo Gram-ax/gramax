@@ -1,9 +1,9 @@
 .article-body .beta,
 .article-body .alfa {
-	background: var(--color-warning);
-	color: white;
-	font-size: 12px;
 	padding: 1px 3px;
+	font-size: 12px;
+	color: white;
+	background: var(--color-warning);
 	border-radius: var(--radius-small);
 }
 
@@ -18,8 +18,8 @@
 .article-body h2 .alfa,
 .article-body h3 .beta,
 .article-body h2 .beta {
-	top: -8px;
 	position: relative;
+	top: -8px;
 }
 
 .article-body span.module {

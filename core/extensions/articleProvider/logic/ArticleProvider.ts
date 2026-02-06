@@ -1,5 +1,4 @@
 import { GRAMAX_DIRECTORY } from "@app/config/const";
-import DateUtils from "@core-ui/utils/dateUtils";
 import Context from "@core/Context/Context";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
@@ -8,6 +7,7 @@ import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import FileStructure from "@core/FileStructue/FileStructure";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
+import DateUtils from "@core-ui/utils/dateUtils";
 import { ItemID } from "@ext/articleProvider/models/types";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
@@ -110,7 +110,7 @@ export default class ArticleProvider {
 		}
 
 		await article.parsedContent.write(async (p) => {
-			await p.resourceManager.deleteAll();
+			await p.parsedContext?.getResourceManager()?.deleteAll();
 			return p;
 		});
 

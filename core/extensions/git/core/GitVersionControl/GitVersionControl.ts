@@ -2,7 +2,7 @@ import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import BrowserStashCache from "@ext/git/core/BrowserStashCache/BrowserStashCache";
-import type { CommitAuthorInfo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import type { CommitAuthorInfo, ConfigValue } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import type {
 	DiffConfig,
 	DiffTree2TreeInfo,
@@ -14,10 +14,10 @@ import type {
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitStash from "@ext/git/core/model/GitStash";
 import GitVersionData from "@ext/git/core/model/GitVersionData";
-import Path from "../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
-import { FileStatus } from "../../../Watchers/model/FileStatus";
+import Path from "../../../../logic/FileProvider/Path/Path";
 import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
+import { FileStatus } from "../../../Watchers/model/FileStatus";
 import { GitBranch } from "../GitBranch/GitBranch";
 import { GitCommands } from "../GitCommands/GitCommands";
 import GitWatcher from "../GitWatcher/GitWatcher";
@@ -42,7 +42,11 @@ export default class GitVersionControl {
 	private _relativeToParentPath: Path;
 	private _cachedStatus: { index: GitStatus[]; workdir: GitStatus[] } = { index: null, workdir: null };
 
-	constructor(private _path: Path, private _fp: FileProvider, relativeToParentPath: Path = new Path()) {
+	constructor(
+		private _path: Path,
+		private _fp: FileProvider,
+		relativeToParentPath: Path = new Path(),
+	) {
 		this._relativeToParentPath = relativeToParentPath;
 		this._gitRepository = new GitCommands(this._fp, this._path);
 		this._gitWatcher = new GitWatcher(this);
@@ -276,6 +280,10 @@ export default class GitVersionControl {
 		await this.reset({ mode: "soft", head: parent });
 	}
 
+	async pullLfsObjects(data: GitSourceData, paths: Path[], checkout: boolean): Promise<void> {
+		return await this._gitRepository.pullLfsObjects(data, paths, checkout, 0);
+	}
+
 	async getVersionControlByPath(path: Path): Promise<{ gitVersionControl: GitVersionControl; relativePath: Path }> {
 		return { gitVersionControl: this, relativePath: path };
 	}
@@ -329,6 +337,14 @@ export default class GitVersionControl {
 			),
 			reachedFirstCommit,
 		};
+	}
+
+	async getConfigVal(name: string): Promise<string> {
+		return await this._gitRepository.getConfigVal(name);
+	}
+
+	async setConfigVal(name: string, val: ConfigValue): Promise<void> {
+		return await this._gitRepository.setConfigVal(name, val);
 	}
 
 	private async _getVersionControlsAndItsFiles(filePaths: Path[]): Promise<Map<GitVersionControl, Path[]>> {

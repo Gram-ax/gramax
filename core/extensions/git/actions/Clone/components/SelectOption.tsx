@@ -71,10 +71,10 @@ const CustomSelectOption = (props: CustomSelectOptionProps) => {
 	);
 
 	return (
-		<SelectOption value={value} asChild onPointerDown={onInvalidHandler}>
+		<SelectOption asChild onPointerDown={onInvalidHandler} value={value}>
 			<MenuItem className="pl-8 lg:pl-8">
 				<SelectItemIndicator asChild>
-					<Icon code="check" className="absolute left-2" />
+					<Icon className="absolute left-2" code="check" />
 				</SelectItemIndicator>
 				<SelectItemText asChild>
 					<IconWrapper className="flex flex-row items-center gap-2 p-0">
@@ -84,9 +84,9 @@ const CustomSelectOption = (props: CustomSelectOptionProps) => {
 									<TooltipContent>{t("git.source.error.invalid-credentials2")}</TooltipContent>
 									<TooltipTrigger asChild>
 										<Indicator
+											className="bg-status-error"
 											rounded
 											size="sm"
-											className="bg-status-error"
 											style={{
 												position: "absolute",
 												top: "0",
@@ -103,12 +103,12 @@ const CustomSelectOption = (props: CustomSelectOptionProps) => {
 					</IconWrapper>
 				</SelectItemText>
 				{(onDelete || onEdit) && (
-					<DropdownMenu open={open} onOpenChange={setOpen}>
+					<DropdownMenu onOpenChange={setOpen} open={open}>
 						<DropdownMenuTrigger className="ml-auto">
 							<MenuItemIconButton
-								icon="ellipsis-vertical"
-								data-qa="option-menu"
 								className="ml-auto right-extensions"
+								data-qa="option-menu"
+								icon="ellipsis-vertical"
 							/>
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="start">
@@ -119,7 +119,7 @@ const CustomSelectOption = (props: CustomSelectOptionProps) => {
 								</DropdownMenuItem>
 							)}
 							{onDelete && (
-								<DropdownMenuItem type="danger" onPointerDown={onDeleteHandler}>
+								<DropdownMenuItem onPointerDown={onDeleteHandler} type="danger">
 									<Icon code="trash" />
 									{t("delete")}
 								</DropdownMenuItem>

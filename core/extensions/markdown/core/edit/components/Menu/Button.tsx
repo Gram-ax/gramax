@@ -5,7 +5,7 @@ import { classNames } from "@components/libs/classNames";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import { NodeValues } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
 import styled from "@emotion/styled";
-import { ForwardedRef, HTMLAttributes, forwardRef, CSSProperties } from "react";
+import { CSSProperties, ForwardedRef, forwardRef, HTMLAttributes } from "react";
 
 export interface ButtonProps extends HTMLAttributes<HTMLDivElement> {
 	isActive?: boolean;
@@ -51,10 +51,10 @@ const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>
 	};
 
 	const ButtonContent = (
-		<div onMouseLeave={onMouseLeave} onClick={disabled ? null : onClick} className={classNames("button", mods)}>
+		<div className={classNames("button", mods)} onClick={disabled ? null : onClick} onMouseLeave={onMouseLeave}>
 			{icon ? (
 				<div className="iconFrame">
-					<Icon viewBox={iconViewBox} code={icon} style={iconStyle} strokeWidth={iconStrokeWidth} />
+					<Icon code={icon} strokeWidth={iconStrokeWidth} style={iconStyle} viewBox={iconViewBox} />
 					{text && <span>{text}</span>}
 				</div>
 			) : (
@@ -64,12 +64,12 @@ const Button = forwardRef((props: ButtonProps, ref: ForwardedRef<HTMLDivElement>
 	);
 
 	const ButtonWithTooltip = () => (
-		<Tooltip content={<ButtonTooltipContent tooltipText={tooltipText} hotKey={hotKey} />}>{ButtonContent}</Tooltip>
+		<Tooltip content={<ButtonTooltipContent hotKey={hotKey} tooltipText={tooltipText} />}>{ButtonContent}</Tooltip>
 	);
 
 	return (
 		<div data-qa="qa-edit-menu-button">
-			<StyledDiv ref={ref} data-qa={dataQa} {...otherProps}>
+			<StyledDiv data-qa={dataQa} ref={ref} {...otherProps}>
 				{tooltipText ? ButtonWithTooltip() : ButtonContent}
 			</StyledDiv>
 		</div>

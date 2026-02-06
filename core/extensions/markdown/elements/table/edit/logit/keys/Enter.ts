@@ -1,8 +1,8 @@
-import { selectedRect } from "prosemirror-tables";
-import KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
-import KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import isTypeOf from "@ext/markdown/elementsUtils/isTypeOf";
+import KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
+import KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
+import { selectedRect } from "prosemirror-tables";
 
 const quitTableOnDoubleEnder: KeyboardRule = ({ editor }) => {
 	const { state } = editor;

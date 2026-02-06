@@ -1,19 +1,18 @@
-import { Field } from "../../../../../logic/components/tableDB/table";
-import { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
-import type { IRunOptions } from "docx";
 import docx from "@dynamicImports/docx";
-import { Table as TableDB } from "../../../../../logic/components/tableDB/table";
-import {
-	wordFontSizes,
-	WordFontStyles,
-	getHeadingStyles,
-	wordMarginsType,
-	WordBlockType,
-	WordFontColors,
-	NON_BREAKING_SPACE,
-} from "../../../../wordExport/options/wordExportSettings";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
+import type { IRunOptions } from "docx";
+import type { Field, Table as TableDB } from "../../../../../logic/components/tableDB/table";
+import type { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
+import {
+	getHeadingStyles,
+	NON_BREAKING_SPACE,
+	WordBlockType,
+	WordFontColors,
+	WordFontStyles,
+	wordFontSizes,
+	wordMarginsType,
+} from "../../../../wordExport/options/wordExportSettings";
 
 export class DbTableRenderer {
 	private readonly _defaultWidths = [2500, 2000, 2000];
@@ -81,7 +80,7 @@ export class DbTableRenderer {
 							...addOptions,
 							color: WordFontColors.dontNullableTypeTableDB,
 						} as AddOptionsWord),
-				  ]),
+					]),
 			await createContent(NON_BREAKING_SPACE),
 			field.primary
 				? await createContent(NON_BREAKING_SPACE + "PK" + NON_BREAKING_SPACE, addOptions as AddOptionsWord)
@@ -103,7 +102,7 @@ export class DbTableRenderer {
 								],
 								WordFontStyles.normal,
 							),
-					  ]
+						]
 					: []),
 			],
 			width: {

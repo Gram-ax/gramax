@@ -1,7 +1,7 @@
 import docx from "@dynamicImports/docx";
-import { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
-import { WordBlockType } from "@ext/wordExport/options/wordExportSettings";
 import { createBlockChild } from "@ext/wordExport/createBlock";
+import type { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
+import { WordBlockType } from "@ext/wordExport/options/wordExportSettings";
 import { highlightCodeToRuns } from "./highlightToRuns";
 
 const fenceWordLayout: WordBlockChild = async ({ tag, addOptions }) => {

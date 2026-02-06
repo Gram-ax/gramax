@@ -38,7 +38,7 @@ const file: NotionNodeConverter = async (mediaNode, ctx) => {
 		: {
 				type: "paragraph",
 				content: [textNode, { type: "text", text }],
-		  };
+			};
 };
 
 export default file;

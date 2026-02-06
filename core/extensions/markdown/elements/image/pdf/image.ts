@@ -1,9 +1,9 @@
-import { ContentStack, ContentTable } from "pdfmake/interfaces";
-import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_HEIGTH, MAX_WIDTH } from "@ext/pdfExport/config";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import Path from "@core/FileProvider/Path/Path";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { PDFImageExporter } from "@ext/markdown/elements/image/pdf/PdfImageProcessor";
+import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_HEIGTH, MAX_WIDTH } from "@ext/pdfExport/config";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { ContentStack, ContentTable } from "pdfmake/interfaces";
 
 export async function imageHandler(
 	node: Tag,
@@ -14,7 +14,7 @@ export async function imageHandler(
 
 	const { base64, size } = await PDFImageExporter.getImageByPath(
 		new Path(node.attributes.src),
-		context.parserContext.getResourceManager(),
+		context.resourceManager,
 		originalWidth,
 		MAX_HEIGTH,
 		node.attributes?.crop,

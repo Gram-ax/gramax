@@ -1,5 +1,5 @@
 import docx from "@dynamicImports/docx";
-import { WordInlineChild } from "@ext/wordExport/options/WordTypes";
+import type { WordInlineChild } from "@ext/wordExport/options/WordTypes";
 
 export const brWordLayout: WordInlineChild = async () => {
 	const { TextRun } = await docx();

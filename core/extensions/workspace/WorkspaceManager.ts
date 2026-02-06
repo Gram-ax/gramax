@@ -1,14 +1,13 @@
 import type { AppConfig, ServicesConfig } from "@app/config/AppConfig";
 import { WORKSPACE_CONFIG_FILENAME } from "@app/config/const";
-
 import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
-import type FileProvider from "@core/FileProvider/model/FileProvider";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type { CatalogFilesUpdated } from "@core/FileStructue/Catalog/CatalogEvents";
 import FileStructure from "@core/FileStructue/FileStructure";
 import mergeObjects from "@core/utils/mergeObjects";
@@ -16,14 +15,14 @@ import { uniqueName } from "@core/utils/uniqueName";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import t from "@ext/localization/locale/translate";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
 import UnintializedWorkspace from "@ext/workspace/UnintializedWorkspace";
 import { Workspace, type WorkspaceInitCallback } from "@ext/workspace/Workspace";
 import WorkspaceAssets from "@ext/workspace/WorkspaceAssets";
-import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import type { ClientWorkspaceConfig, WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { getBaseCatalogName } from "../../../apps/gramax-cli/src/logic/initialDataUtils/getCatalogName";
 
 export type FSCreatedCallback = (fs: FileStructure) => void;
@@ -32,7 +31,10 @@ export type CatalogAddedCallback = (args: { catalog: Catalog }) => void | Promis
 export type FSCatalogsInitializedCallback = (fp: FileProvider, catalogs: CatalogEntry[]) => void;
 export type FSFileProviderFactory = (path: WorkspacePath) => MountFileProvider;
 
-export type WorkspaceManagerConfig = { "latest-workspace"?: WorkspacePath; workspaces?: WorkspacePath[] };
+export type WorkspaceManagerConfig = {
+	"latest-workspace"?: WorkspacePath;
+	workspaces?: WorkspacePath[];
+};
 
 export type WorkspaceConfigWithCatalogs = {
 	catalogNames: string[];
@@ -118,11 +120,15 @@ export default class WorkspaceManager {
 			const current = this._workspaces.get(this._current.path());
 			if (!current) return;
 
-			current.catalogNames = current.catalogNames.filter((name) => name != catalog.name);
+			current.catalogNames = current.catalogNames.filter((name) => name !== catalog.name);
 		});
 
+		const latest = this._getLatestWorkspace();
 		this._setLatestWorkspace(this._current.path());
-		await this.saveWorkspaces();
+
+		if (latest !== this._current.path()) {
+			await this.saveWorkspaces();
+		}
 
 		await this._events.emit("workspace-changed", { workspace: this._current });
 	}
@@ -132,14 +138,14 @@ export default class WorkspaceManager {
 
 		if (
 			this._config.paths.root &&
-			!Array.from(this._workspaces.keys()).find((path) => path == this._config.paths.root.value)
+			!Array.from(this._workspaces.keys()).find((path) => path === this._config.paths.root.value)
 		)
 			await this._importWorkspaceFromRootPath();
 
 		this.removeInvalidWorkspaces();
 
-		if (!this._workspacesConfig.get("workspaces") || this._workspacesConfig.get("workspaces").length == 0) {
-			if (getExecutingEnvironment() == "tauri") return;
+		if (!this._workspacesConfig.get("workspaces") || this._workspacesConfig.get("workspaces").length === 0) {
+			if (getExecutingEnvironment() === "tauri") return;
 			await this._createDefaultWorkspace();
 		}
 
@@ -163,7 +169,7 @@ export default class WorkspaceManager {
 			await fp.createRootPathIfNeed();
 		}
 
-		if (skipIfNoDirs && (await fp.readdir(Path.empty)).length == 0) return;
+		if (skipIfNoDirs && (await fp.readdir(Path.empty)).length === 0) return;
 
 		const yaml = await this.readWorkspace(fp, config);
 
@@ -184,7 +190,6 @@ export default class WorkspaceManager {
 	}
 
 	getWorkspaceAssets(path: WorkspacePath): WorkspaceAssets | null {
-
 		if (!path || path === this._current?.path()) {
 			if (this.hasWorkspace()) return this._current.getAssets();
 			return null;
@@ -209,10 +214,10 @@ export default class WorkspaceManager {
 
 	async removeWorkspace(path: WorkspacePath) {
 		const fp = this._makeFileProvider(path);
-		if (getExecutingEnvironment() == "browser") await fp.delete(Path.empty);
+		if (getExecutingEnvironment() === "browser") await fp.delete(Path.empty);
 		this._workspaces.delete(path);
 		await this.saveWorkspaces();
-		if (this.current().path() == path && this.workspaces()?.[0]?.path) {
+		if (this.current().path() === path && this.workspaces()?.[0]?.path) {
 			await this.setWorkspace(this.workspaces()[0].path);
 		}
 	}
@@ -225,11 +230,14 @@ export default class WorkspaceManager {
 		this._config.paths.default = path;
 	}
 
-	workspaces() {
+	workspaces(): ClientWorkspaceConfig[] {
 		return Array.from(this._workspaces.entries())
 			.map(([path, val]) => ({ path, ...val.config.inner() }))
 			.sort((a, b) =>
-				a.name.localeCompare(b.name, undefined, { sensitivity: "variant", ignorePunctuation: true }),
+				a.name.localeCompare(b.name, undefined, {
+					sensitivity: "variant",
+					ignorePunctuation: true,
+				}),
 			);
 	}
 
@@ -299,7 +307,7 @@ export default class WorkspaceManager {
 		);
 
 		if (!yaml.get("enterprise")?.gesUrl) yaml.set("services", this._config.services);
-		if (yaml.get("name") != name) await yaml.save();
+		if (yaml.get("name") !== name) await yaml.save();
 
 		const catalogNames = await FileStructure.getCatalogDirs(fp);
 		return { catalogNames: catalogNames.map((i) => i.name), config: yaml };
@@ -310,7 +318,7 @@ export default class WorkspaceManager {
 			if (!this._workspaces.get(path))
 				this._workspacesConfig.set(
 					"workspaces",
-					[...this._workspacesConfig.inner().workspaces]?.filter((p) => p != path),
+					[...this._workspacesConfig.inner().workspaces]?.filter((p) => p !== path),
 				);
 		}
 	}
@@ -347,7 +355,7 @@ export default class WorkspaceManager {
 		if (typeof window !== "undefined" && window.sessionStorage)
 			window.sessionStorage.setItem(LATEST_WORKSPACE_KEY, path);
 
-		if (getExecutingEnvironment() == "tauri") void resolveModule("setSessionData")(LATEST_WORKSPACE_KEY, path);
+		if (getExecutingEnvironment() === "tauri") void resolveModule("setSessionData")(LATEST_WORKSPACE_KEY, path);
 	}
 
 	private _getLatestWorkspace(): WorkspacePath {

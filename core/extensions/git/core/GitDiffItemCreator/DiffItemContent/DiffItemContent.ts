@@ -25,7 +25,10 @@ export default class DiffItemContent {
 	private _fp: FileProvider;
 	private _contentCache: Map<string, string> = new Map();
 
-	constructor(private _workdirCatalog: Catalog, private _fs: FileStructure) {
+	constructor(
+		private _workdirCatalog: Catalog,
+		private _fs: FileStructure,
+	) {
 		this._repo = this._workdirCatalog.repo;
 		this._fp = this._fs.fp;
 	}

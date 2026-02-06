@@ -81,12 +81,12 @@ const MergeButton = ({ mergeRequest, status }: MergeButtonProps) => {
 	const button = (
 		<MergeButtonWrapper>
 			<Button
-				isEmUnits
-				textSize={TextSize.M}
-				style={{ maxHeight: "29px" }}
-				disabled={disabled}
 				buttonStyle={ButtonStyle.orange}
+				disabled={disabled}
+				isEmUnits
 				onClick={startMerge}
+				style={{ maxHeight: "29px" }}
+				textSize={TextSize.M}
 			>
 				<Icon code="git-merge2" />
 				<span>{t("git.merge.branches")}</span>

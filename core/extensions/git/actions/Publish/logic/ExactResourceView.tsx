@@ -53,7 +53,7 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 
 	if (isLoading) return <LoadingWithDiffBottomBar filePath={filePath} />;
 
-	return <ExactResourceViewWithContent {...props} type={type} newContent={newContent} oldContent={oldContent} />;
+	return <ExactResourceViewWithContent {...props} newContent={newContent} oldContent={oldContent} type={type} />;
 };
 
 export default ExactResourceView;

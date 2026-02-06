@@ -1,5 +1,5 @@
 import { STANDARD_PAGE_WIDTH } from "@ext/wordExport/options/wordExportSettings";
-import { LIST_HANGING_MM, LIST_LEFT_INDENT_MM, LIST_GAP_MM_DEFAULT, getMmToTw } from "./consts";
+import { getMmToTw, LIST_GAP_MM_DEFAULT, LIST_HANGING_MM, LIST_LEFT_INDENT_MM } from "./consts";
 
 export type WrapperMetrics = {
 	indent: number; // indent of the whole wrapper (tblInd), twips

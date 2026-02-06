@@ -1,9 +1,9 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Context from "@core/Context/Context";
-import { Command } from "../../../types/Command";
 import DefaultGramaxAi from "@ext/ai/logic/GramaxAi";
 import assert from "assert";
+import { Command } from "../../../types/Command";
 
 const getGeneratedText: Command<{ ctx: Context; catalogName: string; command: string }, string> = Command.create({
 	path: "ai/text/generate",

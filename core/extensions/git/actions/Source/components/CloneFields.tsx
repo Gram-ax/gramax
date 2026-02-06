@@ -1,17 +1,17 @@
-import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
-import t from "@ext/localization/locale/translate";
-import GitSourceData from "../../../core/model/GitSourceData.schema";
-import { LazySearchSelect, RenderOptionProps } from "@ui-kit/LazySearchSelect";
-import useWatch from "@core-ui/hooks/useWatch";
-import { ControllerRenderProps, FieldValues, UseFormReturn } from "react-hook-form";
-import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
 import Date from "@components/Atoms/Date";
-import { useEffect, useRef, useState } from "react";
-import GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import { useMediaQuery } from "@mui/material";
+import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
+import GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
+import t from "@ext/localization/locale/translate";
+import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import { useMediaQuery } from "@mui/material";
+import { LazySearchSelect, RenderOptionProps } from "@ui-kit/LazySearchSelect";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+import { useEffect, useRef, useState } from "react";
+import { ControllerRenderProps, FieldValues, UseFormReturn } from "react-hook-form";
+import GitSourceData from "../../../core/model/GitSourceData.schema";
 
 interface CloneFieldsProps extends ControllerRenderProps<FieldValues, string> {
 	source: GitSourceData;
@@ -67,17 +67,16 @@ const CloneFields = (props: CloneFieldsProps) => {
 	return (
 		<LazySearchSelect
 			{...rest}
-			options={options}
-			onChange={(value) => rest.onChange?.({ path: value, lastActivity: undefined })}
-			value={value?.value || null}
 			emptyMessage={
 				stateRef.current === "loading" ? (
 					<div className="flex items-center justify-center gap-2">
-						<SpinnerLoader width={15} height={15} />
+						<SpinnerLoader height={15} width={15} />
 						{t("loading")}
 					</div>
 				) : undefined
 			}
+			onChange={(value) => rest.onChange?.({ path: value, lastActivity: undefined })}
+			options={options}
 			placeholder={`${t("find")} ${t("repository2")}`}
 			renderOption={(data: RenderOptionProps<Option>) => {
 				const { option, type } = data;
@@ -92,10 +91,11 @@ const CloneFields = (props: CloneFieldsProps) => {
 						style={!isMobile ? { maxWidth: "288px", width: "288px" } : undefined}
 					>
 						<TextOverflowTooltip className="flex-1">{option.label}</TextOverflowTooltip>
-						<Date date={option.date} className="text-muted" />
+						<Date className="text-muted" date={option.date} />
 					</div>
 				);
 			}}
+			value={value?.value || null}
 		/>
 	);
 };

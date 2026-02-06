@@ -4,16 +4,16 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
-import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
-import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
+import BaseArticleBreadcrumb from "@ext/articleProvider/components/BaseArticleBreadcrumb";
+import CustomArticleEditor from "@ext/articleProvider/components/CustomArticleEditor";
+import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
+import { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
+import { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
+import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import { Extensions, JSONContent } from "@tiptap/react";
 import { useState } from "react";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import CustomArticleEditor from "@ext/articleProvider/components/CustomArticleEditor";
-import { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
-import { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
-import BaseArticleBreadcrumb from "@ext/articleProvider/components/BaseArticleBreadcrumb";
 
 interface BaseArticleViewProps {
 	providerType: ArticleProviderType;
@@ -78,14 +78,14 @@ const BaseArticleView = (props: BaseArticleViewProps) => {
 						<>
 							<BaseArticleBreadcrumb onCloseClick={onCloseClick} />
 							<CustomArticleEditor
-								title={item.title}
 								content={content}
-								id={item.id}
-								providerType={providerType}
 								extensions={extensions}
 								extensionsOptions={extensionsOptions}
+								id={item.id}
 								menuOptions={menuOptions}
 								onUpdate={onUpdate}
+								providerType={providerType}
+								title={item.title}
 							/>
 						</>
 					)}

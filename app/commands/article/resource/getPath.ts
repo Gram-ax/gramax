@@ -35,7 +35,7 @@ const getPath: Command<
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 
 		return await article.parsedContent.read((p) => {
-			return p.resourceManager.getAbsolutePath(path).value;
+			return p.parsedContext.getResourceManager()?.getAbsolutePath(path).value;
 		});
 	},
 

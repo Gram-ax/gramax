@@ -1,3 +1,5 @@
+import PageDataContext from "@core/Context/PageDataContext";
+import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
@@ -5,8 +7,6 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { SidebarsIsPinValue } from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import debounceFunction from "@core-ui/debounceFunction";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import PageDataContext from "@core/Context/PageDataContext";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import ProseMirrorDiffLineComponent from "@ext/markdown/elements/diff/components/ProseMirrorDiffLine";
@@ -122,13 +122,13 @@ class DiffLines implements PluginView {
 								<ArticleRefService.Provider value={this._articleRef}>
 									<ProseMirrorDiffLineComponent
 										articlePath={this._articlePath}
-										key={uniqueKey}
 										diffLine={diffLine}
-										oldScope={this._extensionStore.oldScope}
-										left={this._getLeft(diffLine)}
-										top={this._getTop(diffLine)}
 										height={this._getHeight(diffLine)}
+										key={uniqueKey}
+										left={this._getLeft(diffLine)}
+										oldScope={this._extensionStore.oldScope}
 										onDiscard={this._getOnDiscard(diffLine)?.bind(this)}
+										top={this._getTop(diffLine)}
 									/>
 								</ArticleRefService.Provider>
 							</ApiUrlCreatorService.Provider>

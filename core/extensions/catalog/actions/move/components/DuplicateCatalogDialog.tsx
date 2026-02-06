@@ -13,7 +13,7 @@ import { Button } from "@ui-kit/Button";
 
 interface DuplicateCatalogDialogProps {
 	catalogName: string;
-  targetWorkspaceName: string;
+	targetWorkspaceName: string;
 	onResolve: (resolution: CatalogMoveConflictResolution) => void;
 }
 
@@ -29,7 +29,9 @@ const DuplicateCatalogDialog = ({ catalogName, targetWorkspaceName, onResolve }:
 					<AlertDialogTitle>{t("catalog.duplicate.title")}</AlertDialogTitle>
 					<AlertDialogDescription
 						dangerouslySetInnerHTML={{
-							__html: t("catalog.duplicate.description").replace("{{catalogName}}", catalogName).replace("{{targetWorkspaceName}}", targetWorkspaceName),
+							__html: t("catalog.duplicate.description")
+								.replace("{{catalogName}}", catalogName)
+								.replace("{{targetWorkspaceName}}", targetWorkspaceName),
 						}}
 					></AlertDialogDescription>
 				</AlertDialogHeader>
@@ -37,10 +39,10 @@ const DuplicateCatalogDialog = ({ catalogName, targetWorkspaceName, onResolve }:
 					<AlertDialogCancel onClick={() => handleResolve(null)}>
 						{t("catalog.duplicate.cancel")}
 					</AlertDialogCancel>
-					<Button variant="outline" onClick={() => handleResolve("keepBoth")}>
+					<Button onClick={() => handleResolve("keepBoth")} variant="outline">
 						{t("catalog.duplicate.keep-both")}
 					</Button>
-					<Button variant="primary" status="error" onClick={() => handleResolve("replace")}>
+					<Button onClick={() => handleResolve("replace")} status="error" variant="primary">
 						{t("catalog.duplicate.replace")}
 					</Button>
 				</AlertDialogFooter>

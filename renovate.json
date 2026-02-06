@@ -1,28 +1,25 @@
 {
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"extends": ["config:recommended"],
 	"timezone": "Europe/Moscow",
 	"schedule": ["before 18:00 every weekday"],
-	"baseBranches": ["develop"],
+	"baseBranchPatterns": ["develop"],
 	"reviewers": ["pavel.smirnov", "stanislav.yargunkin"],
-	"postUpdateOptions": ["skipInstalls"],
-	"bun": {
-		"enabled": true,
-		"binarySource": "docker"
-	},
-	"cargo": {
-		"enabled": true
-	},
-	"packageRules": [
-		{
-			"matchManagers": ["cargo"],
-			"updateTypes": ["minor", "patch"]
-		},
-		{
-			"matchManagers": ["bun"],
-			"updateTypes": ["minor", "patch"],
-			"lockFileMaintenance": true
-		}
-	],
+	"dependencyDashboard": true,
+	"npmrcMerge": true,
+	"hostRules": [{ "encrypted": { "token": "$GITHUB_TOKEN" }, "matchHost": "github.com" }],
+	"labels": ["renovate"],
+	"automerge": false,
+	"rangeStrategy": "bump",
+	"semanticCommits": "enabled",
+	"semanticCommitType": "chore",
+	"semanticCommitScope": "deps",
 	"enabledManagers": ["bun", "cargo"],
-	"dependencyDashboard": true
+	"lockFileMaintenance": {
+		"enabled": true,
+		"schedule": ["before 12:00 on sunday"]
+	},
+	"vulnerabilityAlerts": { "enabled": true },
+	"bun": { "enabled": true },
+	"cargo": { "enabled": true }
 }

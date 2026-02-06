@@ -1,3 +1,4 @@
+import { useRouter } from "@core/Api/useRouter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -5,15 +6,14 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { useRouter } from "@core/Api/useRouter";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import type OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import { shouldShowActionWarning } from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import { NodeModel } from "@minoru/react-dnd-treeview";
-import React, { useCallback, useEffect, useRef, useState, type ComponentProps } from "react";
+import React, { type ComponentProps, useCallback, useEffect, useRef, useState } from "react";
 import { ItemLink } from "../../../NavigationLinks";
 import DragTreeTransformer from "../logic/DragTreeTransformer";
 import LevNavDragTree from "./LevNavDragTree";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 type handleOnDropType = (
 	draggedItemPath: string,
@@ -72,7 +72,7 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 							isOpen: true,
 							onClose: () => ModalToOpenService.resetValue(),
 						},
-				  )
+					)
 				: handleOnDrop(...args);
 		},
 		[supportedLanguages?.length, handleOnDrop],
@@ -82,7 +82,7 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 		setDragged(!isReadOnly);
 	}, [isReadOnly]);
 
-	return <LevNavDragTree items={treeData} canDrag={dragged} onDrop={onDrop} closeNavigation={closeNavigation} />;
+	return <LevNavDragTree canDrag={dragged} closeNavigation={closeNavigation} items={treeData} onDrop={onDrop} />;
 };
 
 export default ExportLevNavDragTree;

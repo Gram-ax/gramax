@@ -1,10 +1,10 @@
+import { Router } from "@core/Api/Router";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
-import { Router } from "@core/Api/Router";
 import UserSettings from "@ext/enterprise/types/UserSettings";
 
 const initEnterprise = async (oneTimeCode: string, apiUrlCreator: ApiUrlCreator, router: Router) => {

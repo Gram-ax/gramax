@@ -1,16 +1,16 @@
+import validateEmail from "@core/utils/validateEmail";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
-import { ButtonProps } from "@ui-kit/Button";
+import type { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
+import type { ButtonProps } from "@ui-kit/Button";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
 import { MultiSelect } from "@ui-kit/MultiSelect";
-import { SearchSelectOption } from "@ui-kit/SearchSelect";
+import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import validateEmail from "@core/utils/validateEmail";
 import { ModalComponent } from "../../ui-kit/ModalComponent";
 import { SelectDisableItem } from "./SelectDisableItem";
 import { TriggerAddButtonTemplate } from "./TriggerAddButtonTemplate";
@@ -61,7 +61,7 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 			return {
 				options: users.map((user) => ({
 					value: user.email,
-					label: `${user.email} ${user.name ? `(${user.name})` : ""}`,
+					label: `${user.email} ${user.name ? `(${user.name})` : ""}`.trim(),
 					disabled: existingUsers.includes(user.email),
 				})),
 			};
@@ -91,7 +91,7 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 					form.reset();
 					setIsModalOpen(false);
 				},
-			} as ButtonProps),
+			}) as ButtonProps,
 		[form],
 	);
 
@@ -101,75 +101,75 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 				type: "submit",
 				onClick: handleAddSelectedUsers,
 				disabled: !form.watch("users").length || disable,
-			} as ButtonProps),
+			}) as ButtonProps,
 		[form, disable, handleAddSelectedUsers],
 	);
 
 	return (
 		<ModalComponent
-			isOpen={isModalOpen}
-			onOpenChange={setIsModalOpen}
-			trigger={<TriggerAddButtonTemplate disabled={disable} />}
-			title={t("enterprise.admin.search.users.title")}
+			cancelButtonProps={cancelButtonProps}
+			cancelButtonText={t("cancel")}
+			confirmButtonProps={confirmButtonProps}
+			confirmButtonText={t("add")}
 			description={
 				availableSlots
 					? t("enterprise.admin.search.users.description").replace("{count}", availableSlots.toString())
 					: ""
 			}
+			isOpen={isModalOpen}
 			modalContent={
 				<Form asChild {...form}>
 					<form className="contents">
 						<FormStack>
 							<FormField
-								name="users"
-								title={t("enterprise.admin.users.users")}
-								layout="vertical"
-								description={t("enterprise.admin.users.add-select")}
 								control={({ field }) =>
 									hasUsers ? (
 										<MultiSelect
+											emptyText={t("enterprise.admin.search.users.emptyText")}
+											errorText={t("enterprise.admin.search.users.errorText")}
+											inputHintText={t("enterprise.admin.search.users.inputHintText")}
+											loadingText={t("enterprise.admin.search.users.loadingText")}
+											loadMode="input"
 											loadOptions={loadOptions}
+											minInputLength={1}
+											onChange={handleUsersChange}
+											placeholder={t("enterprise.admin.search.users.placeholder")}
 											renderOption={(props: RenderOptionProps<SearchSelectOption>) => {
 												if (props.type === "trigger") return;
 												return (
 													<SelectDisableItem
-														text={props.option.label}
 														isDisabled={props.option.disabled}
 														isSelected={props.isSelected}
+														text={props.option.label}
 													/>
 												);
 											}}
-											loadMode="input"
-											minInputLength={1}
-											placeholder={t("enterprise.admin.search.users.placeholder")}
 											searchPlaceholder={t("enterprise.admin.search.users.searchPlaceholder")}
-											inputHintText={t("enterprise.admin.search.users.inputHintText")}
-											loadingText={t("enterprise.admin.search.users.loadingText")}
-											emptyText={t("enterprise.admin.search.users.emptyText")}
-											errorText={t("enterprise.admin.search.users.errorText")}
 											value={field.value?.map((value) => ({ value, label: value })) || []}
-											onChange={handleUsersChange}
 										/>
 									) : (
 										<Input
 											{...field}
-											placeholder={t("enterprise.admin.search.users.placeholder")}
 											onChange={(e) => {
 												const value = e.target.value;
 												field.onChange(value ? [value] : []);
 											}}
+											placeholder={t("enterprise.admin.search.users.placeholder")}
 										/>
 									)
 								}
+								description={t("enterprise.admin.users.add-select")}
+								layout="vertical"
+								name="users"
+								title={t("enterprise.admin.users.users")}
 							/>
 						</FormStack>
 					</form>
 				</Form>
 			}
-			confirmButtonText={t("add")}
-			cancelButtonText={t("cancel")}
-			cancelButtonProps={cancelButtonProps}
-			confirmButtonProps={confirmButtonProps}
+			onOpenChange={setIsModalOpen}
+			title={t("enterprise.admin.search.users.title")}
+			trigger={<TriggerAddButtonTemplate disabled={disable} />}
 		/>
 	);
 };

@@ -1,10 +1,10 @@
-import useTrigger from "@core-ui/triggers/useTrigger";
-import { Button } from "@ui-kit/Button";
 import FileInput from "@components/Atoms/FileInput/FileInput";
+import useTrigger from "@core-ui/triggers/useTrigger";
 import t from "@ext/localization/locale/translate";
-import { FormHeader, FormFooter } from "@ui-kit/Form";
-import { Modal, ModalTrigger, ModalContent, ModalBody } from "@ui-kit/Modal";
-import { useCallback, useState, useRef, useEffect } from "react";
+import { Button } from "@ui-kit/Button";
+import { FormFooter, FormHeader } from "@ui-kit/Form";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface FileEditorProps {
 	trigger?: JSX.Element;
@@ -52,30 +52,30 @@ const EditMarkdown = ({ trigger, loadContent, saveContent, onClose }: FileEditor
 	}, []);
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			{trigger && (
-				<ModalTrigger onClick={() => void onOpenChange(true)} asChild>
+				<ModalTrigger asChild onClick={() => void onOpenChange(true)}>
 					{trigger}
 				</ModalTrigger>
 			)}
 			<ModalContent data-modal-root size="L">
 				<FormHeader
-					title={t("article.markdown-edit.title")}
 					description={t("article.markdown-edit.description")}
 					icon={"file-pen"}
+					title={t("article.markdown-edit.title")}
 				/>
 				<ModalBody className="space-y-4">
 					<FileInput
-						key={key}
-						style={{ padding: undefined }}
-						language={"markdown"}
-						value={value}
-						onChange={setValue}
 						height={"100%"}
+						key={key}
+						language={"markdown"}
+						onChange={setValue}
+						style={{ padding: undefined }}
 						uiKitTheme
+						value={value}
 					/>
 				</ModalBody>
-				<FormFooter primaryButton={<Button variant="primary" onClick={save} children={t("save")} />} />
+				<FormFooter primaryButton={<Button children={t("save")} onClick={save} variant="primary" />} />
 			</ModalContent>
 		</Modal>
 	);

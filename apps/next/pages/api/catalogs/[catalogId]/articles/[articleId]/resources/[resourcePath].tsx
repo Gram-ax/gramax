@@ -1,4 +1,3 @@
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
@@ -7,6 +6,7 @@ import { HttpMethodsMiddleware } from "@core/Api/middleware/HttpMethodsMiddlewar
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 import Path from "@core/FileProvider/Path/Path";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 

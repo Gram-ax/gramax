@@ -9,7 +9,7 @@ interface PlayButtonProps {
 const PlayButton = forwardRef<HTMLElement, PlayButtonProps>(({ className, onClick }, ref) => {
 	return (
 		<div className={className} onClick={onClick}>
-			<Icon ref={ref} code="play-button" />
+			<Icon code="play-button" ref={ref} />
 		</div>
 	);
 });

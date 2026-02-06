@@ -39,19 +39,19 @@ const LeftNavView = (props: LeftNavViewProps) => {
 
 	return (
 		<div className={classNames(className, {}, ["left-sidebar"])}>
-			<LeftSidebar sidebarTop={sideBarTop} sidebarBottom={sideBarBottom}>
+			<LeftSidebar sidebarBottom={sideBarBottom} sidebarTop={sideBarTop}>
 				<ScrollableElement>
 					<div className={"sidebar"}>
 						<div className="sidebar-content">
 							{elements.map((c, idx) => (
 								<div
 									className={getClassName(idx)}
+									data-qa="qa-clickable"
 									key={getKey(idx)}
 									onClick={() => {
 										if (c.clickable === false) return;
 										onLeftSidebarClick?.(idx);
 									}}
-									data-qa="qa-clickable"
 								>
 									{c.leftSidebar}
 								</div>

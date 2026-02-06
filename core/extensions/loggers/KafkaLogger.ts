@@ -1,7 +1,7 @@
 import { env } from "@app/resolveModule/env";
 import { Kafka } from "kafkajs";
 import BaseLogger from "./BaseLogger";
-import Logger from "./Logger";
+import type Logger from "./Logger";
 
 const topic = "logs";
 const facilityCode = 14;

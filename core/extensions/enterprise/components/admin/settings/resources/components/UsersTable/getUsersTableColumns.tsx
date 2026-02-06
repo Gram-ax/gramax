@@ -1,3 +1,4 @@
+import { InvalidEmailCell } from "@ext/enterprise/components/admin/settings/components/InvalidEmailCell";
 import { REPOSITORY_USER_ROLES, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import t from "@ext/localization/locale/translate";
@@ -6,7 +7,6 @@ import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
 import { MultiSelect } from "@ui-kit/MultiSelect";
 import { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
-import { InvalidEmailCell } from "@ext/enterprise/components/admin/settings/components/InvalidEmailCell";
 
 export type UsersTableColumn = {
 	value: string;
@@ -26,18 +26,18 @@ const getUsersTableColumns = (isExternal: boolean): ColumnDef<UsersTableColumn>[
 
 				return (
 					<Checkbox
+						aria-label="Select all"
 						checked={(allSelectableSelected || (someSelectableSelected && "indeterminate")) as CheckedState}
 						onCheckedChange={handleSelectAll}
-						aria-label="Select all"
 					/>
 				);
 			},
 			cell: ({ row }) => (
 				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value) => row.toggleSelected(!!value)}
 					aria-label="Select row"
+					checked={row.getIsSelected()}
 					disabled={row.original.disabled}
+					onCheckedChange={(value) => row.toggleSelected(!!value)}
 				/>
 			),
 			enableSorting: false,
@@ -61,7 +61,7 @@ const getUsersTableColumns = (isExternal: boolean): ColumnDef<UsersTableColumn>[
 				};
 
 				return (
-					<Select value={cell.getValue() as RoleId} onValueChange={handleValueChange}>
+					<Select onValueChange={handleValueChange} value={cell.getValue() as RoleId}>
 						<SelectTrigger>
 							<SelectValue placeholder={t("enterprise.admin.roles.select")} />
 						</SelectTrigger>
@@ -100,12 +100,12 @@ const getUsersTableColumns = (isExternal: boolean): ColumnDef<UsersTableColumn>[
 				if (role === "reviewer") {
 					return (
 						<MultiSelect
-							loadOptions={loadBranchesOptions}
-							value={row.original.branches.map((branch) => ({ value: branch, label: branch }))}
-							onChange={handleBranchesChange}
 							loadMode="auto"
+							loadOptions={loadBranchesOptions}
 							minInputLength={1}
+							onChange={handleBranchesChange}
 							placeholder={t("enterprise.admin.resources.branches.placeholder")}
+							value={row.original.branches.map((branch) => ({ value: branch, label: branch }))}
 						/>
 					);
 				}

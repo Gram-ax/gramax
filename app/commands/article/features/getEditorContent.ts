@@ -17,7 +17,7 @@ const getEditorContent: Command<{ ctx: Context; articlePath: Path; catalogName: 
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			if (!catalog) return null;
-			
+
 			const article: Article = catalog.findItemByItemPath(articlePath);
 			if (!article) return null;
 

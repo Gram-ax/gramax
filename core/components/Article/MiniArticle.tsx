@@ -3,8 +3,8 @@ import styled from "@emotion/styled";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import Header from "@ext/markdown/elements/heading/render/component/Header";
-import { useMemo, type ReactNode } from "react";
+import Header from "@ext/markdown/elements/heading/render/components/Header";
+import { type ReactNode, useMemo } from "react";
 
 const MinimizedArticle = ({ className, children }: { className?: string; children: ReactNode }) => {
 	return <div className={className}>{children}</div>;
@@ -99,7 +99,7 @@ const MiniArticle = ({ title, content, className }: MiniArticleProps) => {
 	const renderedContent = useMemo(() => Renderer(content, { components: getComponents() }), [content]);
 	return (
 		<div className={classNames("article", {}, ["tooltip-size", className])}>
-			<Header level={1} className={classNames("article-title", {}, ["link-popup-title"])} copyLinkIcon={false}>
+			<Header className={classNames("article-title", {}, ["link-popup-title"])} copyLinkIcon={false} level={1}>
 				{title}
 			</Header>
 			<MinimizedArticleStyled>

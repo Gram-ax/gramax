@@ -1,10 +1,10 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import useWatch from "@core-ui/hooks/useWatch";
 import ViewRenderContent from "@ext/markdown/elements/view/render/components/ViewRenderContent";
 import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/display";
 import { useCallback, useState } from "react";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import useWatch from "@core-ui/hooks/useWatch";
 
 interface ViewProps {
 	defs: PropertyValue[];
@@ -55,16 +55,16 @@ const View = (props: ViewProps) => {
 	if (!content) return null;
 	return (
 		<ViewRenderContent
+			commentId={commentId}
+			content={content}
 			defs={defs}
-			isPrint={isPrint}
+			disabled={disabled}
+			display={display}
 			groupby={groupby}
+			isPrint={isPrint}
 			orderby={orderby}
 			select={select}
-			content={content}
-			display={display}
-			disabled={disabled}
 			updateArticle={updateArticle}
-			commentId={commentId}
 		/>
 	);
 };

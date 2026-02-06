@@ -1,8 +1,8 @@
-import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
-import { memo, useCallback } from "react";
-import t from "@ext/localization/locale/translate";
-import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
 import Icon from "@components/Atoms/Icon";
+import t from "@ext/localization/locale/translate";
+import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
+import { memo, useCallback } from "react";
 
 interface MenuProps {
 	name: string;

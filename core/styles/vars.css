@@ -99,7 +99,8 @@
 
 	--transition-time: 0.3s;
 	--transition-time-fast: 0.15s;
-	--navigation-transition: transform var(--transition-time) ease 0s, width var(--transition-time) ease 0s,
+	--navigation-transition:
+		transform var(--transition-time) ease 0s, width var(--transition-time) ease 0s,
 		padding var(--transition-time) ease 0s, padding-right var(--transition-time) ease 0s;
 
 	--article-max-width: 780px;
@@ -114,13 +115,13 @@
 	--z-index-nav-layout: 49;
 	--z-index-overlay: 50;
 	--z-index-top-menu: 50;
+	--z-index-header-navigation: 50;
 	--z-index-ui-kit-modal: 50;
 	--z-index-top-menu-dragable-area: 51;
 	--z-index-base: 100;
 	--z-index-popover: 150;
 	--z-index-article-modal: 200;
 	--z-index-article-confirm-modal: 300;
-	--z-index-header-navigation: 103;
 	--z-index-diff-bottom-bar: 104;
 	--z-index-article-search: 110;
 	--z-index-modal-overlay: 190;

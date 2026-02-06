@@ -3,13 +3,13 @@ import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/Ta
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
+import t from "@ext/localization/locale/translate";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
-import { UserToolbarAddBtn } from "../../components/UserToolbarAddBtn";
 import { GroupValue } from "../../components/roles/Access";
+import { UserToolbarAddBtn } from "../../components/UserToolbarAddBtn";
 import { groupUserTableColumns } from "../config/GroupsUserTableConfig";
 import { GroupUser } from "../types/GroupsUserComponentTypes";
-import t from "@ext/localization/locale/translate";
 
 interface GroupsUserTableProps {
 	users: GroupValue[];
@@ -78,26 +78,26 @@ export const GroupsUserTable = ({ users, onChange }: GroupsUserTableProps) => {
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
+						onChange={handleFilterChange}
 						placeholder={t("enterprise.admin.resources.users.search-placeholder")}
 						value={(usersTable.getColumn("value")?.getFilterValue() as string) ?? ""}
-						onChange={handleFilterChange}
 					/>
 				}
 			>
 				<AlertDeleteDialog
 					hidden={!selectedUsersCount}
-					selectedCount={selectedUsersCount}
 					onConfirm={handleDeleteSelectedUsers}
+					selectedCount={selectedUsersCount}
 				/>
 
 				<UserToolbarAddBtn
+					existingUsers={users.map((user) => user.value)}
 					key="add-user"
 					onAdd={handleAddUsers}
-					existingUsers={users.map((user) => user.value)}
 				/>
 			</TableToolbar>
 
-			<TableComponent<GroupUser> table={usersTable} columns={groupUserTableColumns} />
+			<TableComponent<GroupUser> columns={groupUserTableColumns} table={usersTable} />
 		</>
 	);
 };

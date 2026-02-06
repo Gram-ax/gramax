@@ -19,6 +19,7 @@ const uploadSourceMapsToBugsnag = process.env.UPLOAD_SOURCE_MAPS_TO_BUGSNAG === 
 const bugsnagOptions = {
 	apiKey: process.env.BUGSNAG_API_KEY,
 	appVersion: process.env.BUILD_VERSION,
+	overwrite: true,
 };
 
 if (isProduction) console.log("Build in production mode");
@@ -42,7 +43,7 @@ export default withBundleAnalyzer({
 
 	transpilePackages: ["monaco-editor", "mdt-charts"],
 
-	webpack: (config, { isServer, webpack }) => {
+	webpack: (config, { webpack }) => {
 		if (isProduction && uploadSourceMapsToBugsnag) config.plugins.push(new NextSourceMapUploader(bugsnagOptions));
 		config.devtool = isProduction ? "source-map" : "eval-source-map";
 
@@ -50,6 +51,14 @@ export default withBundleAnalyzer({
 			new webpack.IgnorePlugin({
 				resourceRegExp: /^node:/,
 			}),
+			new webpack.NormalModuleReplacementPlugin(
+				/@app\/resolveModule\/frontend$/,
+				path.resolve(dirname, "../../app/resolveModule/frontend/next.ts"),
+			),
+			new webpack.NormalModuleReplacementPlugin(
+				/@app\/resolveModule\/backend$/,
+				path.resolve(dirname, "../../app/resolveModule/backend/next.ts"),
+			),
 		);
 
 		config.resolve.fallback = {
@@ -82,11 +91,16 @@ export default withBundleAnalyzer({
 			"@plugins": path.resolve(dirname, "../../core/plugins"),
 			"@core": path.resolve(dirname, "../../core/logic"),
 			"@ext": path.resolve(dirname, "../../core/extensions"),
+
 			"@app": path.resolve(dirname, "../../app"),
 			"./frontend/browser": path.resolve(dirname, "empty.mjs"),
 			"./frontend/tauri": path.resolve(dirname, "empty.mjs"),
 			"./frontend/static": path.resolve(dirname, "empty.mjs"),
 			"./frontend/cli": path.resolve(dirname, "empty.mjs"),
+			"./backend/browser": path.resolve(dirname, "empty.mjs"),
+			"./backend/tauri": path.resolve(dirname, "empty.mjs"),
+			"./backend/static": path.resolve(dirname, "empty.mjs"),
+			"./backend/cli": path.resolve(dirname, "empty.mjs"),
 		};
 
 		config.plugins.push(

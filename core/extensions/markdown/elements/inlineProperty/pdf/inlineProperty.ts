@@ -1,9 +1,9 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import getTextByProperty from "@ext/markdown/elements/inlineProperty/edit/logic/getTextByProperty";
-import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { Content } from "pdfmake/interfaces";
-import { JSONContent } from "@tiptap/core";
 import { paragraphCase } from "@ext/markdown/elements/paragraph/pdf/paragraph";
+import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { JSONContent } from "@tiptap/core";
+import { Content } from "pdfmake/interfaces";
 
 export const inlinePropertyHandler = async (tag: Tag | JSONContent, context: pdfRenderContext): Promise<Content[]> => {
 	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;

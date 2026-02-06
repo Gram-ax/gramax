@@ -7,7 +7,10 @@ import {
 import { AggregateProgress } from "@ics/modulith-utils";
 
 export class AggregateModulithSearchClient implements ModulithSearchClient {
-	constructor(private readonly _main: ModulithSearchClient, private readonly _extra: ModulithSearchClient) {}
+	constructor(
+		private readonly _main: ModulithSearchClient,
+		private readonly _extra: ModulithSearchClient,
+	) {}
 
 	async update({ articles, filter, progressCallback }: UpdateArgs): Promise<void> {
 		const aggProgress = new AggregateProgress({

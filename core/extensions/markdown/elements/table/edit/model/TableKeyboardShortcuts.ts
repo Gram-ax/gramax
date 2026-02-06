@@ -1,7 +1,6 @@
-import { Extension } from "@tiptap/core";
-
-import getEnterShortcuts from "../logit/keys/Enter";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
+import { Extension } from "@tiptap/core";
+import getEnterShortcuts from "../logit/keys/Enter";
 
 const TableKeyboardShortcuts = Extension.create({
 	name: "TableKeyboardShortcuts",

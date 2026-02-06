@@ -1,11 +1,11 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
 import { useMakeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
+import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import { useState } from "react";
 import GitlabSourceAPI from "../logic/GitlabSourceAPI";
-import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 
 interface ConnectFieldsProps {
 	source: GitSourceData;
@@ -30,7 +30,6 @@ const ConnectFields = ({ source, placeholder, ...rest }: ConnectFieldsProps) => 
 	return (
 		<LazySearchSelect
 			{...rest}
-			placeholder={placeholder || `${t("find")} ${t("group2")}`}
 			onChange={(value) => {
 				rest.onChange?.({ path: value, lastActivity: undefined });
 			}}
@@ -38,6 +37,7 @@ const ConnectFields = ({ source, placeholder, ...rest }: ConnectFieldsProps) => 
 				label: group,
 				value: group,
 			}))}
+			placeholder={placeholder || `${t("find")} ${t("group2")}`}
 		/>
 	);
 };

@@ -1,12 +1,12 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import t from "@ext/localization/locale/translate";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import dagre from "@dynamicImports/dagre";
+import SilentError from "@ext/errorHandlers/silent/SilentError";
+import t from "@ext/localization/locale/translate";
 import { getLocalizedString } from "../components/libs/utils";
+import type { Field, Link, Table, TableDB } from "../logic/components/tableDB/table";
 import Path from "../logic/FileProvider/Path/Path";
 import ResourceManager from "../logic/Resource/ResourceManager";
-import { Field, Link, Table, TableDB } from "../logic/components/tableDB/table";
-import SilentError from "@ext/errorHandlers/silent/SilentError";
 
 const style = {
 	title: {
@@ -55,7 +55,10 @@ export default class DbDiagram {
 	private linksSvg: { link: string; table1Name: string; table2Name: string }[];
 	private width: number;
 	private height: number;
-	constructor(private _tableManager: TableDB, private _fp: FileProvider) {
+	constructor(
+		private _tableManager: TableDB,
+		private _fp: FileProvider,
+	) {
 		this.tablesSvg = [];
 		this.linksSvg = [];
 		this.width = 0;
@@ -88,8 +91,8 @@ export default class DbDiagram {
 			textAnchor == "start"
 				? x + style.field.padding.left
 				: textAnchor == "end"
-				? x - style.field.padding.left
-				: x
+					? x - style.field.padding.left
+					: x
 		}" y="${
 			y + (isTitle ? style.title.fontSize : style.field.fontSize) - 1
 		}" fill="${color}" text-anchor="${textAnchor}" class="${className}">${
@@ -219,7 +222,7 @@ export default class DbDiagram {
 					arc,
 					Math.min(
 						Math.abs(p) - arcMinX,
-						Math.abs(idx == arr.length - 2 ? arr[idx + 1] ?? 0 : (arr[idx + 1] ?? 0) / 2),
+						Math.abs(idx == arr.length - 2 ? (arr[idx + 1] ?? 0) : (arr[idx + 1] ?? 0) / 2),
 					),
 				);
 				if (arcMinY < 0) arcMinY = 0;
@@ -406,13 +409,12 @@ export default class DbDiagram {
 					});
 					if (this._haveTag(table.tags, includeTags)) tableRefs.add(table.code);
 					return;
-				} else {
-					table.fields = table.fields.filter(
-						(field) =>
-							!this._haveTag(field.tags, excludeTags) &&
-							(includeTags.length == 0 || this._haveTag(field.tags, includeTags)),
-					);
 				}
+				table.fields = table.fields.filter(
+					(field) =>
+						!this._haveTag(field.tags, excludeTags) &&
+						(includeTags.length == 0 || this._haveTag(field.tags, includeTags)),
+				);
 				table.fields.forEach((field) => {
 					tableRefs.add(field.refObject);
 				});
@@ -457,9 +459,7 @@ export default class DbDiagram {
 		const dagreLib = await dagre();
 		const g = new dagreLib.graphlib.Graph();
 		g.setGraph({ rankdir: "LR", marginx: 50, marginy: 50 });
-		g.setDefaultEdgeLabel(function () {
-			return {};
-		});
+		g.setDefaultEdgeLabel(() => ({}));
 		tables.forEach((t, idx) => {
 			g.setNode(t.table.code, {
 				width: tablesSizes[idx].width,

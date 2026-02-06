@@ -100,7 +100,7 @@ const createState = (
 		renderBlock,
 		renderInline: jest.fn(),
 		renderBlockAsInline: jest.fn(),
-	} as unknown as WordSerializerState);
+	}) as unknown as WordSerializerState;
 
 const createTableTag = () =>
 	({
@@ -142,7 +142,7 @@ const createTableTag = () =>
 				],
 			},
 		],
-	} as any);
+	}) as any;
 
 describe("WordTableExport", () => {
 	beforeEach(() => {

@@ -1,8 +1,8 @@
-import { Command } from "commander";
-import { addOptionsToCommand, OptionProps } from "../build/command";
-import { join } from "path";
 import type { ExportFormat } from "@ext/wordExport/components/ItemExport";
+import type { Command } from "commander";
+import { join } from "path";
 import ChalkLogger from "../../../utils/ChalkLogger";
+import { addOptionsToCommand, type OptionProps } from "../build/command";
 
 export interface ExportOptions {
 	source: string;
@@ -43,7 +43,8 @@ const exportOptions: {
 		short: "y",
 	},
 	format: {
-		description: "Export format: docx, pdf or beta-pdf",
+		description:
+			"Export format: docx, pdf, legacy-pdf (temporary compatibility mode; will be removed in a future release)",
 		defaultValue: {
 			value: "docx",
 			description: "docx",
@@ -52,20 +53,18 @@ const exportOptions: {
 		type: "string",
 	},
 	template: {
-		description:
-			"Path to a template file, or template name from the workspace of the catalog.\n" +
-			"Applies when format is 'docx' or beta-pdf",
+		description: "Path to a template file, or template name from the workspace of the catalog.",
 		short: "t",
 		type: "string",
 	},
 	PdfTitle: {
-		description: "Add a title page (only for 'beta-pdf' format).",
+		description: "Add a title page (only for 'pdf' format).",
 	},
 	PdfToc: {
-		description: "Add a table of contents (only for 'beta-pdf' format).",
+		description: "Add a table of contents (only for 'pdf' format).",
 	},
 	PdfNumber: {
-		description: "Add heading numbering (only for 'beta-pdf' format).",
+		description: "Add heading numbering (only for 'pdf' format).",
 	},
 };
 

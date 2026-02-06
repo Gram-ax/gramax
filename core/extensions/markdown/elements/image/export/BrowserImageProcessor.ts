@@ -1,13 +1,13 @@
 import t from "@ext/localization/locale/translate";
+import hasValidCrop from "@ext/markdown/elements/image/edit/logic/hasValidCrop";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
+import { GetImageByPathOptions, GetImageByPathResult } from "@ext/markdown/elements/image/export/NextImageProcessor";
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
 import Annotation from "@ext/markdown/elements/image/word/imageEditor/Annotation";
 import Square from "@ext/markdown/elements/image/word/imageEditor/Square";
-import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
 import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { MAX_HEIGHT, SCALE } from "@ext/wordExport/options/wordExportSettings";
-import { GetImageByPathOptions, GetImageByPathResult } from "@ext/markdown/elements/image/export/NextImageProcessor";
-import hasValidCrop from "@ext/markdown/elements/image/edit/logic/hasValidCrop";
 
 export class BrowserImageProccessor extends BaseImageProcessor {
 	static async getImageByPath(options: GetImageByPathOptions): Promise<GetImageByPathResult> {

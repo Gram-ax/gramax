@@ -48,7 +48,7 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 		docroot: z.optional(z.string().nullable()),
 		language: z.optional(z.string().nullable()),
 		versions: z.optional(z.array(z.string()).nullable()),
-		filterProperties: z.optional(z.array(z.string()).nullable()),
+		filterProperty: z.optional(z.string().nullable()),
 		description: z.optional(
 			z
 				.string()
@@ -81,7 +81,13 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 				)
 				.nullable(),
 		),
-		lfs: z.optional(z.array(z.string()).nullable()),
+		lfs: z
+			.object({
+				patterns: z.optional(z.array(z.string()).nullable()),
+			})
+			.default({
+				patterns: [],
+			}),
 	});
 
 export type FormData = z.infer<ReturnType<typeof createFormSchema>>;

@@ -1,6 +1,6 @@
-import { tagName } from "./shared";
 import type { createElement, Fragment, ReactNode } from "react";
 import type { RenderableTreeNodes, Scalar } from "../../types";
+import { tagName } from "./shared";
 
 type ReactShape = Readonly<{
 	createElement: typeof createElement;

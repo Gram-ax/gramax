@@ -1,6 +1,6 @@
 import { MenuItemDescriptorApp } from "@components/Actions/CatalogActions/buildCatalogMenu";
-import type { MenuContext } from "@gramax/sdk/ui";
 import type { PluginProps } from "@gramax/sdk";
+import type { MenuContext } from "@gramax/sdk/ui";
 import { ServiceKey } from "@plugins/core/PluginContainer";
 import { PluginStore, PluginStoreType } from "@plugins/store/PluginStore";
 import { ExtensionType, PluginConfig } from "@plugins/types";

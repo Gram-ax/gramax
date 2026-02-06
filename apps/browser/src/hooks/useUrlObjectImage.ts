@@ -1,6 +1,6 @@
-import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import type Url from "@core-ui/ApiServices/Types/Url";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import { useEffect, useState } from "react";
 
 const useUrlObjectImage = (src: Url, deps: Array<any> = []) => {

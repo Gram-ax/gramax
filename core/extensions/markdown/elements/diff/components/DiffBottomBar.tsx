@@ -85,11 +85,11 @@ const DiffContentComponent = forwardRef<HTMLDivElement, { changes: DiffHunk[]; u
 	({ changes, unchangedColor }: { changes: DiffHunk[]; unchangedColor?: string }, ref) => (
 		<div data-theme="dark">
 			<DiffContent
-				ref={ref}
-				whiteSpace="nowrap"
 				changes={changes}
-				unchangedColor={unchangedColor ? { color: unchangedColor } : undefined}
+				ref={ref}
 				showDiff
+				unchangedColor={unchangedColor ? { color: unchangedColor } : undefined}
+				whiteSpace="nowrap"
 			/>
 		</div>
 	),
@@ -116,16 +116,16 @@ const DiffBottomBar = ({
 		<DiffContentWrapper showDiffViewChanger={showDiffViewChanger}>
 			<TooltipIfOveflow
 				childrenRef={wrapperRef}
-				interactive
 				content={
 					<DiffContentComponent
 						changes={changes}
 						unchangedColor={`var(--color-primary${theme === Theme.dark ? "-inverse" : ""})`}
 					/>
 				}
+				interactive
 			>
 				<div>
-					<DiffContentComponent changes={changes} unchangedColor="var(--color-primary)" ref={wrapperRef} />
+					<DiffContentComponent changes={changes} ref={wrapperRef} unchangedColor="var(--color-primary)" />
 				</div>
 			</TooltipIfOveflow>
 		</DiffContentWrapper>
@@ -136,7 +136,7 @@ const DiffBottomBar = ({
 			<BranchContainer title={oldRevision}>
 				<FormattedBranch name={oldRevision} />
 			</BranchContainer>
-			<LargeIcon strokeWidth={1.5} code="arrow-right" style={{ color: "var(--color-primary)" }} />
+			<LargeIcon code="arrow-right" strokeWidth={1.5} style={{ color: "var(--color-primary)" }} />
 			<BranchContainer title={newRevision}>
 				<FormattedBranch name={newRevision} />
 			</BranchContainer>
@@ -153,8 +153,8 @@ const DiffBottomBar = ({
 					{showDiffViewChanger && (
 						<DiffViewPicker
 							currentMode={diffViewMode}
-							onDiffViewPick={(mode) => onDiffViewPick?.(mode)}
 							hasWysiwyg={hasWysiwyg}
+							onDiffViewPick={(mode) => onDiffViewPick?.(mode)}
 						/>
 					)}
 				</div>

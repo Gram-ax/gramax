@@ -1,26 +1,25 @@
+import Tooltip from "@components/Atoms/Tooltip";
 import { parseButton } from "@components/List/ButtonItem";
 import LoadingListItem from "@components/List/LoadingListItem";
 import { SearchElement } from "@components/List/Search";
 import { classNames } from "@components/libs/classNames";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
+import ErrorHandler from "@ext/errorHandlers/client/components/ErrorHandler";
+import t from "@ext/localization/locale/translate";
 import {
+	forwardRef,
 	HTMLAttributes,
 	MouseEventHandler,
 	MutableRefObject,
-	ReactNode,
-	forwardRef,
 	memo,
+	ReactNode,
 	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
 	useState,
 } from "react";
-
-import Tooltip from "@components/Atoms/Tooltip";
-import ErrorHandler from "@ext/errorHandlers/client/components/ErrorHandler";
-import t from "@ext/localization/locale/translate";
 import { Virtuoso, VirtuosoHandle } from "react-virtuoso";
 import Item, { ButtonItem, ItemContent, ListItem } from "./Item";
 
@@ -212,16 +211,16 @@ const Items = memo((props: ItemsProps) => {
 		if (idx < buttons.length) {
 			return (
 				<Item
-					key={idx}
 					content={parseButton({ ...button, isLastButton })}
+					disable={typeof button === "string" ? null : button?.disable}
+					isActive={idx === activeIdx}
+					key={idx}
 					onClick={() => {
 						setIsOpen(false);
 						blurInInput();
 						return button.onClick();
 					}}
 					ref={idx === activeIdx ? focusRef : null}
-					isActive={idx === activeIdx}
-					disable={typeof button === "string" ? null : button?.disable}
 				/>
 			);
 		}
@@ -237,23 +236,23 @@ const Items = memo((props: ItemsProps) => {
 		return (
 			<Tooltip content={tooltipDisabledContent} key={idx}>
 				<Item
-					key={idx}
 					className={classNames("", {
 						"disable-with-tooltip": !!tooltipDisabledContent,
 					})}
-					isHierarchy={isHierarchy}
-					withBreadcrumbs={withBreadcrumbs}
-					showFilteredItems={showFilteredItems}
 					content={item}
+					disable={isLoading || (typeof item !== "string" && item?.disable)}
+					isActive={!isLoading && (typeof item === "string" || !item.isTitle) && idx === activeIdx}
+					isHierarchy={isHierarchy}
+					isLoading={isLoading}
+					key={idx}
 					onClick={(e) => {
 						itemClickHandler({ item, e, idx: itemIndex });
 						setIsOpen(false);
 						blurInInput();
 					}}
 					ref={idx === activeIdx ? focusRef : null}
-					isActive={!isLoading && (typeof item === "string" || !item.isTitle) && idx === activeIdx}
-					disable={isLoading || (typeof item !== "string" && item?.disable)}
-					isLoading={isLoading}
+					showFilteredItems={showFilteredItems}
+					withBreadcrumbs={withBreadcrumbs}
 				/>
 			</Tooltip>
 		);
@@ -270,25 +269,20 @@ const Items = memo((props: ItemsProps) => {
 
 	return (
 		<StyleDiv
-			ref={!useVirtuoso ? ref : null}
+			className={classNames("items", {}, [className])}
+			filteredWidth={filteredWidth}
+			isOpen={isOpen}
 			maxItems={maxItems}
 			onMouseMove={handleMouseMove}
-			className={classNames("items", {}, [className])}
-			isOpen={isOpen}
-			filteredWidth={filteredWidth}
+			ref={!useVirtuoso ? ref : null}
 			{...otherProps}
 		>
 			{!useVirtuoso ? (
 				itemsWithButtons.map((_, idx) => itemContent(idx))
 			) : (
-				<StyledVirtuoso height={maxItems * 32} width={filteredWidth} keepFullWidth={keepFullWidth}>
+				<StyledVirtuoso height={maxItems * 32} keepFullWidth={keepFullWidth} width={filteredWidth}>
 					<ErrorHandler>
 						<Virtuoso
-							ref={virtuosoRef}
-							totalCount={itemsWithButtons.length}
-							itemsRendered={(items) => {
-								if (items.length && !isReadyToScroll) setIsReadyToScroll(true);
-							}}
 							components={{
 								List: forwardRef((props: any, listRef) => {
 									const { children, ...rest } = props;
@@ -308,6 +302,11 @@ const Items = memo((props: ItemsProps) => {
 								}),
 							}}
 							itemContent={itemContent}
+							itemsRendered={(items) => {
+								if (items.length && !isReadyToScroll) setIsReadyToScroll(true);
+							}}
+							ref={virtuosoRef}
+							totalCount={itemsWithButtons.length}
 						/>
 					</ErrorHandler>
 				</StyledVirtuoso>
@@ -345,11 +344,11 @@ const StyleDiv = styled.div<ConfigProps>`
 
 const RequestValueNotFound = () => (
 	<Item
-		style={{ color: "var(--color-primary-general-inverse)" }}
 		content={{
 			element: <span style={{ fontSize: "14px", padding: "6px 12px" }}>{t("list.no-results-found")}</span>,
 			labelField: "",
 		}}
+		style={{ color: "var(--color-primary-general-inverse)" }}
 	/>
 );
 

@@ -1,9 +1,9 @@
+import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 import { WordInlineChild } from "@ext/wordExport/options/WordTypes";
 import { ICON_SIZE } from "@ext/wordExport/options/wordExportSettings";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import { LucideIcon } from "../../../../../../components/Atoms/Icon/LucideIcon";
-import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 
 export const iconWordLayout: WordInlineChild = async ({ tag }) => {
 	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;

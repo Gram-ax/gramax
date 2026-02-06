@@ -2,7 +2,7 @@ import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { forwardRef, memo, MouseEvent, useCallback } from "react";
+import { forwardRef, type MouseEvent, memo, useCallback } from "react";
 
 interface ActionButtonProps {
 	icon: string;
@@ -28,10 +28,10 @@ const ActionButton = forwardRef<HTMLDivElement, ActionButtonProps>((props, ref) 
 	return (
 		<Tooltip content={tooltipText} delay={[500, 0]}>
 			<div
-				ref={ref}
-				className={classNames(className, { selected })}
+				className={classNames(className, { selected, disabled })}
 				onClick={preClick}
 				onMouseLeave={onMouseLeave}
+				ref={ref}
 			>
 				<Icon code={icon} />
 			</div>
@@ -49,5 +49,10 @@ export default memo(styled(ActionButton)`
 
 	&:hover {
 		color: var(--color-primary);
+	}
+
+	&.disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 `);

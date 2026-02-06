@@ -1,6 +1,6 @@
 import { isTauriMobile } from "@app/resolveModule/env";
 import IoError from "@core/FileProvider/DiskFileProvider/DFPIOError";
-import { InvokeArgs, convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, type InvokeArgs, invoke } from "@tauri-apps/api/core";
 
 const CUSTOM_PROTOCOL_COMMANDS = isTauriMobile() ? ["read_file"] : ["read_file", "write_file"];
 
@@ -9,7 +9,7 @@ const callAsCustomProtocol = async <O>(
 	args: InvokeArgs & { path: string; content?: Buffer },
 ): Promise<O> => {
 	switch (command) {
-		case "read_file":
+		case "read_file": {
 			const readRes = await fetch(convertFileSrc(args.path, "gramax-fs-stream"));
 			if (readRes.ok) return (await readRes.arrayBuffer()) as O;
 
@@ -19,8 +19,9 @@ const callAsCustomProtocol = async <O>(
 				code: readerr.name,
 				message: `${readerr.name}: ${readerr.message};\nargs: ${JSON.stringify(args, null, 4)}`,
 			});
+		}
 
-		case "write_file":
+		case "write_file": {
 			const writeRes = await fetch(convertFileSrc(args.path, "gramax-fs-stream"), {
 				method: "POST",
 				body: args.content,
@@ -33,6 +34,7 @@ const callAsCustomProtocol = async <O>(
 				code: writeerr.name,
 				message: `${writeerr.name}: ${writeerr.message};\nargs: ${JSON.stringify(args, null, 4)}`,
 			});
+		}
 	}
 };
 

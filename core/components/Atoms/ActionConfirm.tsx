@@ -1,19 +1,19 @@
 import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import t from "@ext/localization/locale/translate";
-import { cloneElement, useCallback, useState } from "react";
 import {
 	AlertDialog,
-	AlertDialogContent,
 	AlertDialogCancel,
+	AlertDialogContent,
 	AlertDialogDescription,
-	AlertDialogTitle,
-	AlertDialogHeader,
-	AlertDialogTrigger,
-	AlertDialogIcon,
 	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+	AlertDialogTrigger,
 } from "@ui-kit/AlertDialog";
-import { CheckboxField } from "@ui-kit/Checkbox";
 import { Button } from "@ui-kit/Button";
+import { CheckboxField } from "@ui-kit/Checkbox";
+import { cloneElement, useCallback, useState } from "react";
 
 const localStorage = typeof window !== "undefined" ? window.localStorage : null;
 
@@ -91,7 +91,7 @@ const ActionConfirm = (props: ActionConfirmProps) => {
 	};
 
 	return (
-		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
 			{children && <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>}
 			<AlertDialogContent status="warning">
 				<AlertDialogHeader>
@@ -103,8 +103,8 @@ const ActionConfirm = (props: ActionConfirmProps) => {
 					<div className="flex items-center justify-between w-full">
 						{doNotShowAgainKey ? (
 							<CheckboxField
-								label={t("do-not-show-again")}
 								checked={doNotShowAgain}
+								label={t("do-not-show-again")}
 								onCheckedChange={(checked: boolean) => setDoNotShowAgain(checked)}
 							/>
 						) : (
@@ -113,11 +113,11 @@ const ActionConfirm = (props: ActionConfirmProps) => {
 						<div className="flex items-center gap-2">
 							<AlertDialogCancel>{cancelText}</AlertDialogCancel>
 							<Button
-								type="button"
 								onClick={() => {
 									onConfirmClick();
 									onOpenChange(false);
 								}}
+								type="button"
 								variant="outline"
 							>
 								{confirmText}

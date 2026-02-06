@@ -1,6 +1,6 @@
+import htmlTagTransform from "@ext/markdown/elements/htmlTag/logic/htmlTagTransform";
 import tableTransform from "@ext/markdown/elements/table/logic/tableTransform";
 import data from "./testDate.json";
-import htmlTagTransform from "@ext/markdown/elements/htmlTag/logic/htmlTagTransform";
 
 describe("Transformer корректно трансформирует токены", () => {
 	test("tableTransform", () => {

@@ -1,7 +1,7 @@
 import type { Extension as ExtensionSDK } from "@gramax/sdk/editor";
 import { ExtensionRegistryInterface, ExtensionType, ExtensionTypeMapper } from "@plugins/types";
-import { PluginRegistry } from "./PluginRegistry";
 import { MarkSpec, NodeSpec } from "@tiptap/pm/model";
+import { PluginRegistry } from "./PluginRegistry";
 
 function isNodeSpec(
 	schema: ReturnType<ExtensionSDK["addSchema"]>,

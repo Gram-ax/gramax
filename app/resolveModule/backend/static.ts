@@ -1,23 +1,13 @@
-import { DynamicModules } from "@app/resolveModule/backend";
+import { browserLoadFont } from "@ext/pdfExport/fontLoaders/browserLoadFont";
+import BrowserCookie from "../../../apps/browser/src/logic/BrowserCookie";
+import BrowserGetImageByPath from "../../../apps/browser/src/logic/BrowserGetImageByPath";
+import BrowserGetImageFromDom from "../../../apps/browser/src/logic/BrowserGetImageFromDom";
+import BrowserGetImageSizeFromImageData from "../../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
+import BrowserSvgToPng from "../../../apps/browser/src/logic/BrowserSvgToPng";
+import type { BackendDynamicModules } from "..";
 
-export const getStaticModules = async (): Promise<DynamicModules> => {
-	const [
-		{ default: BrowserCookie },
-		{ default: BrowserSvgToPng },
-		{ default: BrowserGetImageSizeFromImageData },
-		{ default: BrowserGetImageFromDom },
-		{ browserLoadFont },
-		{ default: StaticGetImageByPath },
-	] = await Promise.all([
-		import("../../../apps/browser/src/logic/BrowserCookie"),
-		import("../../../apps/browser/src/logic/BrowserSvgToPng"),
-		import("../../../apps/browser/src/logic/BrowserGetImageSizeFromImageData"),
-		import("../../../apps/browser/src/logic/BrowserGetImageFromDom"),
-		import("@ext/pdfExport/fontLoaders/browserLoadFont"),
-		import("../../../apps/browser/src/logic/BrowserGetImageByPath"),
-	]);
-
-	return {
+export const getStaticModules = async (): Promise<BackendDynamicModules> => {
+	return Promise.resolve({
 		Cookie: BrowserCookie,
 		initWasm: () => Promise.resolve(),
 		svgToPng: BrowserSvgToPng,
@@ -28,6 +18,21 @@ export const getStaticModules = async (): Promise<DynamicModules> => {
 		getXMLSerializer: () => new XMLSerializer(),
 		setSessionData: () => Promise.resolve(),
 		pdfLoadFont: browserLoadFont,
-		getImageByPath: StaticGetImageByPath,
-	};
+		getImageByPath: BrowserGetImageByPath,
+	});
 };
+
+let modules: BackendDynamicModules | null = null;
+
+export const initBackendModules = async (): Promise<void> => {
+	if (modules) return;
+	modules = await getStaticModules();
+};
+
+const resolveBackendModule = <K extends keyof BackendDynamicModules>(name: K): BackendDynamicModules[K] => {
+	const module = modules?.[name];
+	if (!module) throw new Error(`module ${name} not found`);
+	return module;
+};
+
+export default resolveBackendModule;

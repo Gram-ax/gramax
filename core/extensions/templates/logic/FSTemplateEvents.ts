@@ -3,9 +3,9 @@ import { Article } from "@core/FileStructue/Article/Article";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { ItemEvents } from "@core/FileStructue/Item/Item";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
 import { fillMarkdownTemplate, recursiveFindNode } from "@ext/templates/logic/utils";
 import FileStructure, { type FSEvents } from "../../../logic/FileStructue/FileStructure";
@@ -109,7 +109,7 @@ export default class FSTemplateEvents {
 					? properties.push({
 							name: bind,
 							value: [formatted],
-					  })
+						})
 					: (properties[property].value = [formatted]);
 			}
 

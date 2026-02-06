@@ -1,14 +1,15 @@
 import Path from "@core/FileProvider/Path/Path";
-import { imageString } from "@ext/wordExport/options/wordExportSettings";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { errorWordLayout } from "@ext/wordExport/error";
+import ResourceManager from "@core/Resource/ResourceManager";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { AddOptionsWord, WordInlineChild } from "@ext/wordExport/options/WordTypes";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
+import { errorWordLayout } from "@ext/wordExport/error";
+import { AddOptionsWord, WordInlineChild } from "@ext/wordExport/options/WordTypes";
+import { imageString } from "@ext/wordExport/options/wordExportSettings";
 import { JSONContent } from "@tiptap/core";
 
 export const renderInlineImageWordLayout: WordInlineChild = async ({ tag, addOptions, wordRenderContext }) => {
-	return imageWordLayout(tag, addOptions, wordRenderContext.parserContext);
+	return imageWordLayout(tag, addOptions, wordRenderContext.parserContext, wordRenderContext.resourceManager);
 };
 
 const MAX_HEIGHT = 28; // inline-image-height(1.7em) in px
@@ -30,7 +31,12 @@ const calculateInlineImageSize = (originalWidth: number, originalHeight: number,
 	};
 };
 
-const imageWordLayout = async (tag: Tag | JSONContent, addOptions: AddOptionsWord, parserContext: ParserContext) => {
+const imageWordLayout = async (
+	tag: Tag | JSONContent,
+	addOptions: AddOptionsWord,
+	parserContext: ParserContext,
+	resourceManager: ResourceManager,
+) => {
 	try {
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 		const originalWidth = parseFloat(attrs.width) || 100;
@@ -41,7 +47,7 @@ const imageWordLayout = async (tag: Tag | JSONContent, addOptions: AddOptionsWor
 		return [
 			await WordImageExporter.getImageByPath(
 				new Path(attrs.src),
-				parserContext.getResourceManager(),
+				resourceManager,
 				calculatedWidth,
 				calculatedHeight,
 			),

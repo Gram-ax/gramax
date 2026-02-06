@@ -61,39 +61,39 @@ const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
 						<>
 							<FormStack>
 								<FormField
-									name="email"
-									title={t("enterprise-guest.fields.emailLabel")}
-									description={t("enterprise-guest.descriptions.emailFieldDescription")}
 									control={({ field }) => {
 										return (
 											<Input
+												autoComplete="email"
 												data-qa="email"
+												disabled={isLoading}
 												placeholder={t("enterprise-guest.placeholders.emailPlaceholder")}
 												type="email"
-												autoComplete="email"
-												disabled={isLoading}
 												{...field}
 											/>
 										);
 									}}
+									description={t("enterprise-guest.descriptions.emailFieldDescription")}
+									name="email"
+									title={t("enterprise-guest.fields.emailLabel")}
 									{...formProps}
 								/>
 
 								{isPasswordSent && (
 									<FormField
+										description={t("enterprise-guest.descriptions.otpFieldDescription")}
 										name="otp"
 										title={t("enterprise-guest.fields.otpLabel")}
-										description={t("enterprise-guest.descriptions.otpFieldDescription")}
 										{...formProps}
 										control={({ field }) => (
 											<InputOTP
 												autoFocus
-												maxLength={6}
-												value={field.value || ""}
-												onChange={handleOtpChange}
-												onBlur={field.onBlur}
-												pasteTransformer={(pasted) => pasted.replace(/\D/g, "")}
 												disabled={isLoading}
+												maxLength={6}
+												onBlur={field.onBlur}
+												onChange={handleOtpChange}
+												pasteTransformer={(pasted) => pasted.replace(/\D/g, "")}
+												value={field.value || ""}
 											>
 												<InputOTPGroup>
 													<InputOTPSlot index={0} />
@@ -112,7 +112,7 @@ const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
 								)}
 
 								<div style={{ paddingTop: "1rem" }}>
-									<Button type="submit" style={{ width: "100%" }} disabled={isLoading}>
+									<Button disabled={isLoading} style={{ width: "100%" }} type="submit">
 										{isPasswordSent
 											? t("enterprise-guest.buttons.confirmButton")
 											: t("enterprise-guest.buttons.sendPasswordButton")}
@@ -121,17 +121,17 @@ const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
 
 								{isPasswordSent && (
 									<Button
-										type="button"
-										variant="link"
+										disabled={isResendButtonDisabled}
 										onClick={handleSendPassword}
 										style={{ width: "100%", marginTop: "0.75rem" }}
-										disabled={isResendButtonDisabled}
+										type="button"
+										variant="link"
 									>
 										{sendButtonCooldown !== 0
 											? t("enterprise-guest.buttons.resendPasswordButtonWithCooldown").replace(
 													"{seconds}",
 													String(sendButtonCooldown),
-											  )
+												)
 											: t("enterprise-guest.buttons.resendPasswordButton")}
 									</Button>
 								)}
@@ -148,11 +148,11 @@ const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
 					)}
 
 					<Button
-						type="button"
-						variant="outline"
+						onClick={relocateToAuthUrl}
 						startIcon="building-2"
 						style={{ width: "100%", marginTop: "-0.5rem" }}
-						onClick={relocateToAuthUrl}
+						type="button"
+						variant="outline"
 					>
 						{t("enterprise-guest.buttons.corporateLoginButton")}
 					</Button>

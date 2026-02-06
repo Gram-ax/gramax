@@ -1,8 +1,8 @@
 import { feedbackLink } from "@components/libs/utils";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import t from "@ext/localization/locale/translate";
 import { TitledLink } from "@ext/navigation/NavigationLinks";
 import ArticlePropsService from "./ContextServices/ArticleProps";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const divider = {} as TitledLink;

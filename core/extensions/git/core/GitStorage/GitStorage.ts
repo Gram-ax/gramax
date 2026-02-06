@@ -1,29 +1,31 @@
 import { getHttpsRepositoryUrl } from "@components/libs/utils";
 import { createEventEmitter } from "@core/Event/EventEmitter";
 import type FileStructure from "@core/FileStructue/FileStructure";
-import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import type { CancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import assert from "assert";
-import Path from "../../../../logic/FileProvider/Path/Path";
-import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
+import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
+import type Path from "../../../../logic/FileProvider/Path/Path";
 import parseStorageUrl, { type StorageUrl } from "../../../../logic/utils/parseStorageUrl";
-import Branch from "../../../VersionControl/model/branch/Branch";
 import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
-import Storage, { StorageEvents } from "../../../storage/logic/Storage";
+import type Storage from "../../../storage/logic/Storage";
+import type { StorageEvents } from "../../../storage/logic/Storage";
 import getPartGitSourceDataByStorageName from "../../../storage/logic/utils/getPartSourceDataByStorageName";
 import getStorageNameByData from "../../../storage/logic/utils/getStorageNameByData";
-import GitCommands from "../GitCommands/GitCommands";
-import GitError from "../GitCommands/errors/GitError";
+import type Branch from "../../../VersionControl/model/branch/Branch";
+import type GitError from "../GitCommands/errors/GitError";
 import GitErrorCode from "../GitCommands/errors/model/GitErrorCode";
-import gitDataParser, { GitDataParser } from "../GitDataParser/GitDataParser";
-import GitShareData from "../model/GitShareData";
-import GitSourceData from "../model/GitSourceData.schema";
-import GitStorageData from "../model/GitStorageData";
-import GitStorageUrl from "../model/GitStorageUrl";
-import GitCloneData from "./GitCloneData";
+import GitCommands from "../GitCommands/GitCommands";
+import gitDataParser, { type GitDataParser } from "../GitDataParser/GitDataParser";
+import type GitShareData from "../model/GitShareData";
+import type GitSourceData from "../model/GitSourceData.schema";
+import type GitStorageData from "../model/GitStorageData";
+import type GitStorageUrl from "../model/GitStorageUrl";
+import type GitCloneData from "./GitCloneData";
 
 export default class GitStorage implements Storage {
 	private _url: GitStorageUrl;
@@ -35,7 +37,11 @@ export default class GitStorage implements Storage {
 	private static _gitDataParser: GitDataParser = gitDataParser;
 	private _events = createEventEmitter<StorageEvents>();
 
-	constructor(private _path: Path, private _fp: FileProvider, private _authServiceUrl?: string) {
+	constructor(
+		private _path: Path,
+		private _fp: FileProvider,
+		private _authServiceUrl?: string,
+	) {
 		this._gitRepository = new GitCommands(this._fp, this._path);
 		this._gitRepository.events.on("fetch", ({ force }) => this._events.emit("fetch", { storage: this, force }));
 	}
@@ -67,6 +73,7 @@ export default class GitStorage implements Storage {
 		isBare = false,
 		onProgress,
 		repositoryPath,
+		skipLfsPull = false,
 	}: GitCloneData) {
 		fs.fp.stopWatch();
 		try {
@@ -78,9 +85,11 @@ export default class GitStorage implements Storage {
 					isBare,
 					onProgress,
 					allowNonEmptyDir,
+					skipLfsPull,
 				});
 			} catch (e) {
-				if (((e as GitError).cause as any)?.props?.errorCode === GitErrorCode.CancelledOperation) throw e;
+				if (((e as GitError).cause as DefaultError)?.props?.errorCode === GitErrorCode.CancelledOperation)
+					throw e;
 
 				await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
 				throw e;
@@ -92,8 +101,8 @@ export default class GitStorage implements Storage {
 
 	static async init(repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
 		if (
-			data.source.sourceType == SourceType.gitHub ||
-			data.source.sourceType == SourceType.gitVerse ||
+			data.source.sourceType === SourceType.gitHub ||
+			data.source.sourceType === SourceType.gitVerse ||
 			data.source.sourceType === SourceType.gitea
 		) {
 			const sourceApi = makeSourceApi(data.source) as GitSourceApi;
@@ -192,12 +201,7 @@ export default class GitStorage implements Storage {
 	}
 
 	async updateSyncCount() {
-		try {
-			this._syncCount = await this._gitRepository.countChangedFiles(this._syncSearchInPath);
-		} catch (e) {
-			this._syncCount = { pull: 0, push: 0, hasChanges: false };
-			console.error(e);
-		}
+		this._syncCount = await this._gitRepository.countChangedFiles(this._syncSearchInPath);
 	}
 
 	getRemoteName(): Promise<string> {

@@ -104,7 +104,6 @@ build-web-dev:
       --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
       .
     - docker push $CI_REGISTRY/$CI_PROJECT_PATH:${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME//\//-}-app
-    - ./gx/apps/sign.sh --container
 
 deploy-web-dev:
   stage: deploy-dev

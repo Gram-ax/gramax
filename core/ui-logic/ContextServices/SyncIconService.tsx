@@ -1,5 +1,5 @@
 import ContextService from "@core-ui/ContextServices/ContextService";
-import { Dispatch, ReactElement, SetStateAction, createContext, useContext, useState } from "react";
+import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useState } from "react";
 
 const SyncIconContext = createContext<boolean>(undefined);
 

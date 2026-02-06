@@ -5,12 +5,12 @@ import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddlewar
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { Article } from "@core/FileStructue/Article/Article";
-import { getArticleId, getTestId } from "@ext/quiz/logic/getIds";
-import assert from "assert";
-import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
+import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
+import { getArticleId, getTestId } from "@ext/quiz/logic/getIds";
 import { getQuizResult } from "@ext/quiz/logic/getQuizResult";
 import { StoredQuizResult } from "@ext/quiz/models/types";
+import assert from "assert";
 
 const getTestResult: Command<{ ctx: Context; catalogName: string; articlePath: Path }, StoredQuizResult> =
 	Command.create({
@@ -52,7 +52,7 @@ const getTestResult: Command<{ ctx: Context; catalogName: string; articlePath: P
 			const answers = await new EnterpriseApi(gesUrl).getQuizTestByUser(enterpriseSource.token, testId, mail);
 			if (!answers?.length) return { passed: null, questions: [], selectedAnswers: {} };
 
-			const questions = await article.parsedContent.read((p) => p?.questions);
+			const questions = await article.parsedContent.read((p) => p?.parsedContext?.questions);
 			const results = getQuizResult(questions, answers, article.props.quiz);
 			return {
 				passed: results.passed,

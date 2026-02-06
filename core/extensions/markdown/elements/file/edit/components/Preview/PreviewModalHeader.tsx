@@ -1,16 +1,16 @@
-import { ReactElement } from "react";
-import styled from "@emotion/styled";
 import { MediaHeaderButton } from "@components/Atoms/Image/modalImage/MediaHeaderButton";
-import t from "@ext/localization/locale/translate";
+import type Path from "@core/FileProvider/Path/Path";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import downloadResource from "@core-ui/downloadResource";
-import Path from "@core/FileProvider/Path/Path";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
+import type { ReactElement } from "react";
 
 interface PreviewModalHeaderProps {
 	path: Path;
 	className?: string;
-	openInSupportedApp: () => void;
+	openInSupportedApp?: () => void;
 	closeModal: () => void;
 }
 
@@ -25,7 +25,7 @@ const PreviewModalHeaderUnstyled = (props: PreviewModalHeaderProps): ReactElemen
 
 	return (
 		<div className={className}>
-			{isTauri && (
+			{isTauri && openInSupportedApp && (
 				<MediaHeaderButton
 					icon="external-link"
 					onClick={openInSupportedApp}

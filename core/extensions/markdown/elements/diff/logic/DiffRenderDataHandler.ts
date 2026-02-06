@@ -24,7 +24,6 @@ export default class DiffRenderDataHandler {
 		const removedDecorations: Decoration[] = [];
 		const diffLines: DiffLine[] = [];
 
-
 		const diff = this._astDiffDataHandler.getDiff();
 		const positionMapper = this._astDiffDataHandler.getPositionMapper();
 		const astDiffTransformer = this._astDiffDataHandler.getAstDiffTransformer();

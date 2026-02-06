@@ -1,11 +1,11 @@
 import generateUniqueID from "@core/utils/generateUniqueID";
-import answerSchema from "@ext/markdown/elements/answer/edit/models/answerSchema";
+import { editName } from "@ext/markdown/elements/answer/consts";
 import AnswerComponent from "@ext/markdown/elements/answer/edit/components/AnswerComponent";
+import answerSchema from "@ext/markdown/elements/answer/edit/models/answerSchema";
+import { AnswerType } from "@ext/markdown/elements/answer/types";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { findParentNode, isAtEndOfNode, isAtStartOfNode, mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { AnswerType } from "@ext/markdown/elements/answer/types";
-import { editName } from "@ext/markdown/elements/answer/consts";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {

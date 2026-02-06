@@ -1,30 +1,29 @@
 import type { AppConfig } from "@app/config/AppConfig";
 import type Context from "@core/Context/Context";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import FileProvider from "@core/FileProvider/model/FileProvider";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type FileStructure from "@core/FileStructue/FileStructure";
-import { resetRepo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
-import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
+import { resetRepo } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import BareRepository from "@ext/git/core/Repository/BareRepository";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import NullRepository from "@ext/git/core/Repository/NullRepository";
 import type Repository from "@ext/git/core/Repository/Repository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
-import UserInfo from "@ext/security/logic/User/UserInfo";
+import type UserInfo from "@ext/security/logic/User/UserInfo";
+import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import type { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
-import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import Storage from "@ext/storage/logic/Storage";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type Storage from "@ext/storage/logic/Storage";
 import StorageProvider, { type OnCloneFinish } from "@ext/storage/logic/StorageProvider";
-import StorageData from "@ext/storage/models/StorageData";
+import type StorageData from "@ext/storage/models/StorageData";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import assert from "assert";
@@ -40,8 +39,8 @@ export default class RepositoryProvider {
 		this._sp = new StorageProvider();
 	}
 
-	static resetRepo() {
-		return resetRepo();
+	static async resetRepo() {
+		return await resetRepo();
 	}
 
 	get events() {
@@ -81,20 +80,19 @@ export default class RepositoryProvider {
 		return this._sdp.withContext(ctx).updateSource(data, workspaceId);
 	}
 
-	async getRepositoryByPath(path: Path, fp: FileProvider): Promise<Repository> {
+	async getRepositoryByPath(path: Path, fp: FileProvider, error?: Error): Promise<Repository> {
 		const gvc = new GitVersionControl(path, fp);
 		let storage: Storage;
 
 		try {
-			const isInit = await gvc.isInit();
-			if (!isInit) return await this._makeRepository(path, fp, null, null);
 			storage = await this._sp.getStorageByPath(path, fp, this._config);
-			const repo = await this._makeRepository(path, fp, gvc, storage);
-			return repo;
-		} catch (error) {
-			if (error instanceof GitError || error instanceof LibGit2Error)
+
+			if (error) {
 				return new BrokenRepository(path, fp, gvc, storage).withError(error);
-			throw error;
+			}
+			return await this._makeRepository(path, fp, gvc, storage);
+		} catch (error) {
+			return new BrokenRepository(path, fp, gvc, storage).withError(error);
 		}
 	}
 
@@ -147,9 +145,10 @@ export default class RepositoryProvider {
 		data: StorageData,
 		isBare = false,
 		branch?: string,
+		skipLfsPull?: boolean,
 		onCloneFinish?: OnCloneFinish,
 	) {
-		return await this._sp.clone(fs, { out: path, data, isBare, branch, onFinish: onCloneFinish });
+		return await this._sp.clone(fs, { out: path, data, isBare, branch, skipLfsPull, onFinish: onCloneFinish });
 	}
 
 	async recover(repo: BrokenRepository, data: StorageData, onFinish?: OnCloneFinish) {
@@ -176,9 +175,9 @@ export default class RepositoryProvider {
 
 		if (!progress || progress.type === "error" || progress.type === "finish") {
 			return this._sp.disposeCloneProgress(path);
-		} else {
-			catalog.props.isCloning = true;
 		}
+
+		catalog.props.isCloning = true;
 	}
 
 	private async _makeRepository(

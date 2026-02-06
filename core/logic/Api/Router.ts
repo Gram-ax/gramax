@@ -1,5 +1,5 @@
-import Url from "../../ui-logic/ApiServices/Types/Url";
-import Query from "./Query";
+import type Url from "../../ui-logic/ApiServices/Types/Url";
+import type Query from "./Query";
 
 export type RouterRule = (path: string, prev: string) => string;
 
@@ -10,6 +10,17 @@ export abstract class Router {
 	abstract get query(): Query;
 	abstract get hash(): string;
 	abstract get path(): string;
+
+	static preventNextPushRefresh: boolean = false;
+
+	getPreventNextPushRefresh() {
+		return Router.preventNextPushRefresh;
+	}
+
+	setPreventNextPushRefresh(value: boolean) {
+		Router.preventNextPushRefresh = value;
+	}
+
 	abstract pushQuery(query: Query): this;
 	abstract pushPath(path: string): this;
 	abstract setUrl(url: Url): this;

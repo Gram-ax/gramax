@@ -30,7 +30,7 @@ export const SheetComponent = ({
 	confirmButton,
 }: SheetComponentProps) => {
 	return (
-		<Sheet open={isOpen} onOpenChange={onOpenChange}>
+		<Sheet onOpenChange={onOpenChange} open={isOpen}>
 			<SheetTrigger asChild>{trigger}</SheetTrigger>
 			<StyledSheetContent>
 				<SheetHeader>{title && <SheetTitle>{title}</SheetTitle>}</SheetHeader>

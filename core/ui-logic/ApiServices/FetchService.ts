@@ -1,13 +1,13 @@
 import resolveModule from "@app/resolveModule/frontend";
+import type { Event } from "@core/Event/EventEmitter";
 import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import { events } from "@core-ui/hooks/useApi";
-import { type Event } from "@core/Event/EventEmitter";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import FetchResponse from "./Types/FetchResponse";
+import type FetchResponse from "./Types/FetchResponse";
 import Method from "./Types/Method";
 import MimeTypes from "./Types/MimeTypes";
-import Url from "./Types/Url";
+import type Url from "./Types/Url";
 
 export type OnDidCommandEv = { command: string; args: object; result: unknown };
 

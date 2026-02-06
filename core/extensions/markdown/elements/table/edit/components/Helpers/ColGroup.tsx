@@ -130,10 +130,10 @@ const ColGroup = ({ content, parentElement, tableRef, initColInfo }: ColGroupPro
 	return (
 		<>
 			<colgroup>{generatedCols}</colgroup>
-			<thead style={{ userSelect: "none" }} contentEditable="false">
+			<thead contentEditable="false" style={{ userSelect: "none" }}>
 				<tr style={{ visibility: "hidden" }}>
 					{generatedCols.map((_, i) => (
-						<td key={i} style={{ height: "0px", padding: "0", border: "none" }} contentEditable="false" />
+						<td contentEditable="false" key={i} style={{ height: "0px", padding: "0", border: "none" }} />
 					))}
 				</tr>
 			</thead>

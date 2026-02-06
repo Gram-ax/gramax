@@ -17,7 +17,7 @@ export const listItem = {
 				attributes.isTaskItem
 					? {
 							"data-checked": attributes.checked,
-					  }
+						}
 					: {},
 		},
 	},

@@ -3,11 +3,11 @@ import t from "@ext/localization/locale/translate";
 
 const RequestValueNotFound = () => (
 	<ItemByUikit
-		style={{ color: "var(--color-primary-general-inverse)" }}
 		content={{
 			element: t("list.no-results-found"),
 			labelField: "",
 		}}
+		style={{ color: "var(--color-primary-general-inverse)" }}
 	/>
 );
 

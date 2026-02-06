@@ -2,7 +2,11 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import PlatformService from "@core-ui/ContextServices/PlatformService";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ExtensionUpdaterRules from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/ExtensionUpdaterRules";
 import { Editor, Extensions } from "@tiptap/react";
 import { useMemo } from "react";
@@ -11,10 +15,6 @@ import ThemeService from "../../../Theme/components/ThemeService";
 import attributeUpdaterExtension from "./attributeUpdaterExtension";
 import { ExtensionFilter } from "./rules/ExtensionFilter";
 import { getExtensionUpdaterRules } from "./rules/getExtensionUpdaterRules";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import PlatformService from "@core-ui/ContextServices/PlatformService";
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export default abstract class ExtensionContextUpdater {
 	static useExtendExtensionsWithContext(extensions: Extensions): Extensions {

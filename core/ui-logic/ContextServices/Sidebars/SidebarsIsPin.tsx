@@ -1,7 +1,7 @@
+import isMobileService from "@core-ui/ContextServices/isMobileService";
 import { useMediaQuery } from "@react-hook/media-query";
 import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useMemo, useState } from "react";
 import { cssMedia } from "../../utils/cssUtils";
-import isMobileService from "@core-ui/ContextServices/isMobileService";
 
 export interface SidebarsIsPinValue {
 	left: boolean;

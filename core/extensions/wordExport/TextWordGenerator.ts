@@ -1,7 +1,7 @@
-import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
+import docx from "@dynamicImports/docx";
+import type { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 import { NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
 import type { IRunOptions } from "docx";
-import docx from "@dynamicImports/docx";
 
 export async function createContent(text: string, addOptions?: AddOptionsWord) {
 	const { TextRun } = await docx();

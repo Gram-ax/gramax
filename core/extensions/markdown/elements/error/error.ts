@@ -1,7 +1,7 @@
-import ParserContext from "../../core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../core/Parser/ParserContext/PrivateParserContext";
 import { Node, RenderableTreeNodes, Schema, SchemaType, Tag } from "../../core/render/logic/Markdoc/index";
 
-export function error(context: ParserContext): Schema {
+export function error(context: PrivateParserContext): Schema {
 	return {
 		render: "Error",
 		attributes: {

@@ -1,9 +1,9 @@
-import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
-import { Display } from "@ext/properties/models/display";
 import { Article } from "@core/FileStructue/Article/Article";
-import ViewFilter from "@ext/properties/logic/ViewFilter";
 import { viewList } from "@ext/markdown/elements/view/word/viewList";
 import { getTableWithGrouping, getTableWithoutGrouping } from "@ext/markdown/elements/view/word/viewTabe";
+import ViewFilter from "@ext/properties/logic/ViewFilter";
+import { Display } from "@ext/properties/models/display";
+import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 
 export const viewWordLayout: WordBlockChild = async ({ tag, wordRenderContext }) => {
 	const item = wordRenderContext.parserContext.getArticle();

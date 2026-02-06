@@ -1,10 +1,10 @@
 import Tooltip from "@components/Atoms/Tooltip";
+import { classNames } from "@components/libs/classNames";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
 import { CSSProperties, RefObject, useEffect, useRef, useState } from "react";
 import { AnnotationObject } from "../../../edit/model/imageEditorTypes";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { classNames } from "@components/libs/classNames";
 
 interface AnnotationObjectProps extends AnnotationObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -70,12 +70,12 @@ const Annotation = (props: AnnotationObjectProps) => {
 	});
 
 	return (
-		<Tooltip hideInMobile={false} disabled={isDraggable} trigger="mouseenter focus" content={text}>
+		<Tooltip content={text} disabled={isDraggable} hideInMobile={false} trigger="mouseenter focus">
 			<div
-				id={"object/" + index}
-				ref={mainRef}
-				onMouseDown={mainMouseDown}
 				className={classNames(className, { selected }, ["annotation"])}
+				id={"object/" + index}
+				onMouseDown={mainMouseDown}
+				ref={mainRef}
 				style={{
 					...style,
 					left: position.x + unitType,

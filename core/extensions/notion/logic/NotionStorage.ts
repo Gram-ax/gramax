@@ -1,9 +1,9 @@
 import { CATEGORY_ROOT_FILENAME, DOC_ROOT_FILENAME } from "@app/config/const";
-import { transliterate } from "@core-ui/languageConverter/transliterate";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileStructure from "@core/FileStructue/FileStructure";
 import { uniqueName } from "@core/utils/uniqueName";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import t from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import generateUnsupportedMd from "@ext/markdown/elements/unsupported/logic/generateUnsupportedMd";

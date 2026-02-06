@@ -1,7 +1,7 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
-import groupsTableColumns from "@ext/enterprise/components/admin/settings/resources/components/GroupsTable/groupsTableColumns";
 import { GroupAndRoleToolbarAddBtn } from "@ext/enterprise/components/admin/settings/resources/components/GroupsTable/GroupToolbarAddBtn";
+import groupsTableColumns from "@ext/enterprise/components/admin/settings/resources/components/GroupsTable/groupsTableColumns";
 import { ClientAccessGroup } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
 import { getGroupsWithNames } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/utils/groupUtils";
 import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
@@ -93,29 +93,29 @@ const GroupsTable = ({ groups, onChange }: GroupsTableProps) => {
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
+						onChange={handleFilterChange}
 						placeholder={t("enterprise.admin.resources.users.search-placeholder")}
 						value={(groupsTable.getColumn("value")?.getFilterValue() as string) ?? ""}
-						onChange={handleFilterChange}
 					/>
 				}
 			>
 				<AlertDeleteDialog
-					selectedCount={selectedGroupsCount}
-					onConfirm={handleDeleteSelected}
-					hidden={!selectedGroupsCount}
 					description={`${t("enterprise.admin.delete-alert")} ${selectedGroupsCount} ${
 						selectedGroupsCount === 1 ? t("record") : t("records")
 					}?`}
+					hidden={!selectedGroupsCount}
+					onConfirm={handleDeleteSelected}
+					selectedCount={selectedGroupsCount}
 				/>
 				<GroupAndRoleToolbarAddBtn
-					key="add-group-role"
 					disable={false}
-					groups={allGroups}
-					onAdd={handleAddGroups}
 					existingGroups={groups.map((group) => group.id)}
+					groups={allGroups}
+					key="add-group-role"
+					onAdd={handleAddGroups}
 				/>
 			</TableToolbar>
-			<TableComponent<ClientAccessGroup> table={groupsTable} columns={groupsTableColumns} />
+			<TableComponent<ClientAccessGroup> columns={groupsTableColumns} table={groupsTable} />
 		</div>
 	);
 };

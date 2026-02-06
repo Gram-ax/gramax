@@ -1,20 +1,20 @@
 import { TEMPLATES_DIRECTORY } from "@app/config/const";
+import Context from "@core/Context/Context";
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
 import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
 import FileStructure from "@core/FileStructue/FileStructure";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import Context from "@core/Context/Context";
-import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import Path from "@core/FileProvider/Path/Path";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
-import assert from "assert";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import { JSONContent } from "@tiptap/core";
+import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
 import { ItemID } from "@ext/articleProvider/models/types";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { Property } from "@ext/properties/models";
+import { JSONContent } from "@tiptap/core";
+import assert from "assert";
 
 declare module "@ext/articleProvider/logic/ArticleProvider" {
 	export enum ArticleProviders {

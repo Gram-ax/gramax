@@ -5,7 +5,7 @@ import { ArticleFilter } from "@ics/modulith-search-domain/article";
 export type ArticleLanguage = ContentLanguage | "none";
 
 export function isArticleLanguage(str: string | undefined): str is ArticleLanguage {
-	return str != undefined && (str === "none" || (ContentLanguage[str] != undefined));
+	return str != undefined && (str === "none" || ContentLanguage[str] != undefined);
 }
 
 export type SearchArticleMetadataBase = {

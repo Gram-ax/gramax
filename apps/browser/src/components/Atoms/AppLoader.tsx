@@ -1,11 +1,11 @@
 import { classNames } from "@components/libs/classNames";
+import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
-import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import styled from "@emotion/styled";
-import Theme from "@ext/Theme/Theme";
-import ThemeService from "@ext/Theme/components/ThemeService";
 import t from "@ext/localization/locale/translate";
+import ThemeService from "@ext/Theme/components/ThemeService";
+import Theme from "@ext/Theme/Theme";
 import { useState } from "react";
 import DarkLogo from "../../../../../core/public/images/gramax-logo-dark.svg";
 import LightLogo from "../../../../../core/public/images/gramax-logo-light.svg";
@@ -31,9 +31,9 @@ const AppLoader = ({ className }: { className?: string }) => {
 
 	return (
 		<div className={classNames(className, { "custom-logo": custom })}>
-			<div className={className} data-qa="loader">
+			<div aria-label="app-loader" className={className} data-qa="loader" role="progressbar">
 				<div className="logo-container">
-					<img src={logo} alt={`logo_${theme}`} />
+					<img alt={`logo_${theme}`} src={logo} />
 				</div>
 				<div className="text">
 					<span>{t("app.loading")}</span>

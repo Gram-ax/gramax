@@ -1,11 +1,11 @@
+import Icon from "@components/Atoms/Icon";
+import t from "@ext/localization/locale/translate";
 import {
 	DropdownMenuSeparator,
 	DropdownMenuSub,
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 } from "@ui-kit/Dropdown";
-import Icon from "@components/Atoms/Icon";
-import t from "@ext/localization/locale/translate";
 import ItemExport, { ExportFormat } from "../../extensions/wordExport/components/ItemExport";
 
 interface ExportToDocxOrPdfProps {
@@ -26,33 +26,33 @@ const ExportToDocxOrPdf = (props: ExportToDocxOrPdfProps) => {
 			<DropdownMenuSubContent>
 				{isCategory && (
 					<ItemExport
-						fileName={fileName}
-						itemRefPath={itemRefPath}
-						isCategory={isCategory}
 						exportFormat={ExportFormat.docx}
+						fileName={fileName}
+						isCategory={isCategory}
+						itemRefPath={itemRefPath}
 					/>
 				)}
 				<ItemExport
-					fileName={fileName}
-					itemRefPath={itemRefPath}
-					isCategory={false}
 					exportFormat={ExportFormat.docx}
+					fileName={fileName}
+					isCategory={false}
+					itemRefPath={itemRefPath}
 				/>
 				{isCategory && <DropdownMenuSeparator />}
 				{isCategory && (
 					<ItemExport
-						fileName={fileName}
-						itemRefPath={itemRefPath}
-						isCategory={isCategory}
 						exportFormat={ExportFormat.pdf}
+						fileName={fileName}
+						isCategory={isCategory}
+						itemRefPath={itemRefPath}
 					/>
 				)}
 
 				<ItemExport
-					fileName={fileName}
-					itemRefPath={itemRefPath}
-					isCategory={false}
 					exportFormat={ExportFormat.pdf}
+					fileName={fileName}
+					isCategory={false}
+					itemRefPath={itemRefPath}
 				/>
 			</DropdownMenuSubContent>
 		</DropdownMenuSub>

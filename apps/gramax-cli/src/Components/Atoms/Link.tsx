@@ -1,8 +1,8 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import useGetHref from "@core-ui/useGetHref";
-import { BrowserLinkProps, WouterLink } from "../../../../browser/src/components/Atoms/Link";
-import { RefObject, forwardRef } from "react";
+import { forwardRef, RefObject } from "react";
 import { useRouter } from "wouter";
+import { BrowserLinkProps, WouterLink } from "../../../../browser/src/components/Atoms/Link";
 
 const getHashIfSameDocument = (href: string) => {
 	if (typeof window === "undefined") return;

@@ -1,17 +1,12 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import {
+import type {
 	SearchArticleResult,
 	SearchCatalogResult,
 	SearchResult,
 	SearchResultBlockItem,
 	SearchResultItem,
 } from "@ext/serach/Searcher";
-import {
-	buildArticleRows,
-	RowArticleSearchResult,
-	RowSearchResult,
-	SearchItemMessageRow,
-} from "@ext/serach/utils/SearchRowsModel";
+import { buildArticleRows, type RowSearchResult } from "@ext/serach/utils/SearchRowsModel";
 
 describe("SearchRowsModel", () => {
 	it("should create search rows model for article with paragraphs", () => {
@@ -48,14 +43,13 @@ describe("SearchRowsModel", () => {
 			{
 				type: "article",
 				rawResult: searchData,
-				id: 0,
-				href: Url.from({ pathname: "release-notes" }),
+				id: "0",
+				url: Url.from({ pathname: "release-notes" }),
 				items: [
 					{
 						type: "link",
-						id: 1,
-						key: undefined,
-						href: Url.from({
+						id: "1",
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "установить логотип можно с помощью кнопки",
@@ -69,7 +63,7 @@ describe("SearchRowsModel", () => {
 						],
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "установить логотип можно с помощью кнопки",
 									indexInArticle: 0,
@@ -80,7 +74,7 @@ describe("SearchRowsModel", () => {
 				],
 				openSideEffect: {
 					params: {
-						url: "release-notes",
+						pathname: "release-notes",
 					},
 				},
 			},
@@ -144,14 +138,13 @@ describe("SearchRowsModel", () => {
 			{
 				type: "article",
 				rawResult: searchData,
-				id: 0,
-				href: Url.from({ pathname: "release-notes" }),
+				id: "0",
+				url: Url.from({ pathname: "release-notes" }),
 				items: [
 					{
 						type: "link",
-						id: 1,
-						key: undefined,
-						href: Url.from({
+						id: "1",
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "установить логотип можно с помощью кнопки",
@@ -165,7 +158,7 @@ describe("SearchRowsModel", () => {
 						],
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "установить логотип можно с помощью кнопки",
 									indexInArticle: 0,
@@ -175,9 +168,8 @@ describe("SearchRowsModel", () => {
 					},
 					{
 						type: "link",
-						id: 2,
-						key: undefined,
-						href: Url.from({
+						id: "2",
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "сделать логотип",
@@ -190,7 +182,7 @@ describe("SearchRowsModel", () => {
 						],
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "сделать логотип",
 									indexInArticle: 0,
@@ -200,9 +192,8 @@ describe("SearchRowsModel", () => {
 					},
 					{
 						type: "link",
-						id: 3,
-						key: undefined,
-						href: Url.from({
+						id: "3",
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "показать логотип в заголовке",
@@ -216,7 +207,7 @@ describe("SearchRowsModel", () => {
 						],
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "показать логотип в заголовке",
 									indexInArticle: 0,
@@ -225,13 +216,34 @@ describe("SearchRowsModel", () => {
 						},
 					},
 					{
-						type: "message",
-						textContent: "...1 more",
+						type: "link",
+						id: "4",
+						url: Url.from({
+							pathname: "release-notes",
+							query: {
+								highlightFragment: "удалить логотип из заголовка",
+								highlightFragmentIndex: "0",
+							},
+						}),
+						marks: [
+							{ type: "text", text: "...удалить " },
+							{ type: "highlight", text: "логотип" },
+							{ type: "text", text: " из заголовка..." },
+						],
+						openSideEffect: {
+							params: {
+								pathname: "release-notes",
+								fragmentInfo: {
+									text: "удалить логотип из заголовка",
+									indexInArticle: 0,
+								},
+							},
+						},
 					},
 				],
 				openSideEffect: {
 					params: {
-						url: "release-notes",
+						pathname: "release-notes",
 					},
 				},
 			},
@@ -285,20 +297,19 @@ describe("SearchRowsModel", () => {
 			{
 				type: "article",
 				rawResult: searchData,
-				id: 0,
-				href: Url.from({ pathname: "release-notes" }),
+				id: "0",
+				url: Url.from({ pathname: "release-notes" }),
 				items: [
 					{
 						type: "link",
-						id: 1,
-						href: Url.from({
+						id: "1",
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "установить логотип можно с помощью кнопки",
 								highlightFragmentIndex: "0",
 							},
 						}),
-						key: undefined,
 						marks: [
 							{ type: "text", text: "...установить " },
 							{ type: "highlight", text: "логотип" },
@@ -306,7 +317,7 @@ describe("SearchRowsModel", () => {
 						],
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "установить логотип можно с помощью кнопки",
 									indexInArticle: 0,
@@ -316,19 +327,18 @@ describe("SearchRowsModel", () => {
 					},
 					{
 						type: "link",
-						id: 2,
-						href: Url.from({
+						id: "2",
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "Логотип",
 								highlightFragmentIndex: "1",
 							},
 						}),
-						key: undefined,
 						marks: [{ type: "text", text: "Логотип" }],
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "Логотип",
 									indexInArticle: 1,
@@ -338,19 +348,18 @@ describe("SearchRowsModel", () => {
 					},
 					{
 						type: "link",
-						id: 3,
-						href: Url.from({
+						id: "3",
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "Логотип",
 								highlightFragmentIndex: "1",
 							},
 						}),
-						key: undefined,
 						marks: [{ type: "text", text: "Логотип" }],
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "Логотип",
 									indexInArticle: 1,
@@ -361,7 +370,7 @@ describe("SearchRowsModel", () => {
 				],
 				openSideEffect: {
 					params: {
-						url: "release-notes",
+						pathname: "release-notes",
 					},
 				},
 			},
@@ -425,19 +434,19 @@ describe("SearchRowsModel", () => {
 			{
 				type: "article",
 				rawResult: searchData,
-				id: 0,
-				href: Url.from({ pathname: "release-notes" }),
+				id: "0",
+				url: Url.from({ pathname: "release-notes" }),
 				items: [
 					{
 						type: "block",
-						id: 1,
-						href: Url.from({
+						id: "1",
+						url: Url.from({
 							pathname: "release-notes",
 							query: { highlightFragment: "Логотип", highlightFragmentIndex: "0" },
 						}),
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "Логотип",
 									indexInArticle: 0,
@@ -457,15 +466,14 @@ describe("SearchRowsModel", () => {
 						children: [
 							{
 								type: "link",
-								id: 2,
-								href: Url.from({
+								id: "2",
+								url: Url.from({
 									pathname: "release-notes",
 									query: {
 										highlightFragment: "установить логотип можно с помощью кнопки",
 										highlightFragmentIndex: "0",
 									},
 								}),
-								key: undefined,
 								marks: [
 									{ type: "text", text: "...установить " },
 									{ type: "highlight", text: "логотип" },
@@ -473,7 +481,7 @@ describe("SearchRowsModel", () => {
 								],
 								openSideEffect: {
 									params: {
-										url: "release-notes",
+										pathname: "release-notes",
 										fragmentInfo: {
 											text: "установить логотип можно с помощью кнопки",
 											indexInArticle: 0,
@@ -483,19 +491,18 @@ describe("SearchRowsModel", () => {
 							},
 							{
 								type: "link",
-								id: 3,
-								href: Url.from({
+								id: "3",
+								url: Url.from({
 									pathname: "release-notes",
 									query: {
 										highlightFragment: "Логотип",
 										highlightFragmentIndex: "2",
 									},
 								}),
-								key: undefined,
 								marks: [{ type: "text", text: "Логотип" }],
 								openSideEffect: {
 									params: {
-										url: "release-notes",
+										pathname: "release-notes",
 										fragmentInfo: {
 											text: "Логотип",
 											indexInArticle: 2,
@@ -505,19 +512,18 @@ describe("SearchRowsModel", () => {
 							},
 							{
 								type: "link",
-								id: 4,
-								href: Url.from({
+								id: "4",
+								url: Url.from({
 									pathname: "release-notes",
 									query: {
 										highlightFragment: "Логотип",
 										highlightFragmentIndex: "2",
 									},
 								}),
-								key: undefined,
 								marks: [{ type: "text", text: "Логотип" }],
 								openSideEffect: {
 									params: {
-										url: "release-notes",
+										pathname: "release-notes",
 										fragmentInfo: {
 											text: "Логотип",
 											indexInArticle: 2,
@@ -530,83 +536,11 @@ describe("SearchRowsModel", () => {
 				],
 				openSideEffect: {
 					params: {
-						url: "release-notes",
+						pathname: "release-notes",
 					},
 				},
 			},
 		] satisfies RowSearchResult[]);
-	});
-
-	it("should add message row when there are more than N paragraphs before block", () => {
-		const paragraphs: SearchResultItem[] = [
-			{
-				type: "paragraph",
-				items: [
-					{ type: "text", text: "...установить " },
-					{ type: "highlight", text: "логотип" },
-					{ type: "text", text: " можно с помощью кнопки..." },
-				],
-			},
-			{
-				type: "paragraph",
-				items: [
-					{ type: "text", text: "...сделать " },
-					{ type: "highlight", text: "логотип" },
-				],
-			},
-			{
-				type: "paragraph",
-				items: [
-					{ type: "text", text: "...показать " },
-					{ type: "highlight", text: "логотип" },
-					{ type: "text", text: " в заголовке..." },
-				],
-			},
-			{
-				type: "paragraph",
-				items: [
-					{ type: "text", text: "...удалить " },
-					{ type: "highlight", text: "логотип" },
-					{ type: "text", text: " из заголовка..." },
-				],
-			},
-		];
-		const searchData: SearchResult = {
-			type: "article",
-			url: "release-notes",
-			title: [
-				{
-					type: "text",
-					text: "Release Notes",
-				},
-			],
-			properties: [],
-			breadcrumbs: [],
-			isRecommended: false,
-			catalog: {
-				name: "Gramax",
-				title: "Gramax Docs",
-				url: "gramax-docs",
-			},
-			items: [
-				...paragraphs,
-				{
-					type: "block",
-					title: [
-						{ type: "text", text: "Л" },
-						{ type: "highlight", text: "оготи" },
-						{ type: "text", text: "п" },
-					],
-					items: [],
-				},
-			],
-		};
-		const result = buildArticleRows([searchData]);
-
-		expect((result.rows[0] as RowArticleSearchResult).items.length).toEqual(5);
-		expect(((result.rows[0] as RowArticleSearchResult).items[3] as SearchItemMessageRow).textContent).toEqual(
-			"...1 more",
-		);
 	});
 
 	it("should set correct link for element link", () => {
@@ -675,27 +609,33 @@ describe("SearchRowsModel", () => {
 		};
 		const { rowIdLinkMap } = buildArticleRows([searchData]);
 
-		expect(rowIdLinkMap.size).toEqual(5);
-		expect(rowIdLinkMap.get(0).url).toEqual(Url.from({ pathname: "release-notes" }));
-		expect(rowIdLinkMap.get(1).url).toEqual(
+		expect(rowIdLinkMap.size).toEqual(6);
+		expect(rowIdLinkMap.get("0").url).toEqual(Url.from({ pathname: "release-notes" }));
+		expect(rowIdLinkMap.get("1").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
 				query: { highlightFragment: "установить логотип можно с помощью кнопки", highlightFragmentIndex: "0" },
 			}),
 		);
-		expect(rowIdLinkMap.get(2).url).toEqual(
+		expect(rowIdLinkMap.get("2").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
 				query: { highlightFragment: "сделать логотип", highlightFragmentIndex: "0" },
 			}),
 		);
-		expect(rowIdLinkMap.get(3).url).toEqual(
+		expect(rowIdLinkMap.get("3").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
 				query: { highlightFragment: "показать логотип в заголовке", highlightFragmentIndex: "0" },
 			}),
 		);
-		expect(rowIdLinkMap.get(4).url).toEqual(
+		expect(rowIdLinkMap.get("4").url).toEqual(
+			Url.from({
+				pathname: "release-notes",
+				query: { highlightFragment: "удалить логотип из заголовка", highlightFragmentIndex: "0" },
+			}),
+		);
+		expect(rowIdLinkMap.get("5").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
 				query: { highlightFragment: "Логотип", highlightFragmentIndex: "4" },
@@ -762,14 +702,13 @@ describe("SearchRowsModel", () => {
 			{
 				type: "article",
 				rawResult: searchData[0],
-				id: 0,
-				href: Url.from({ pathname: "release-notes" }),
+				id: "0",
+				url: Url.from({ pathname: "release-notes" }),
 				items: [
 					{
 						type: "link",
-						id: 1,
-						key: undefined,
-						href: Url.from({
+						id: "1",
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "установить логотип можно с помощью кнопки",
@@ -783,7 +722,7 @@ describe("SearchRowsModel", () => {
 						],
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "установить логотип можно с помощью кнопки",
 									indexInArticle: 0,
@@ -794,18 +733,18 @@ describe("SearchRowsModel", () => {
 				],
 				openSideEffect: {
 					params: {
-						url: "release-notes",
+						pathname: "release-notes",
 					},
 				},
 			},
 			{
 				type: "catalog",
 				rawResult: searchData[1],
-				id: 2,
-				href: Url.from({ pathname: "caturl" }),
+				id: "2",
+				url: Url.from({ pathname: "caturl" }),
 				openSideEffect: {
 					params: {
-						url: "caturl",
+						pathname: "caturl",
 					},
 				},
 			},
@@ -878,22 +817,22 @@ describe("SearchRowsModel", () => {
 			{
 				type: "article",
 				rawResult: searchData,
-				id: 0,
-				href: Url.from({ pathname: "release-notes" }),
+				id: "0",
+				url: Url.from({ pathname: "release-notes" }),
 				items: [
 					{
 						type: "file-block",
-						id: 1,
+						id: "1",
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "Фрагмент с файлом",
 									indexInArticle: 0,
 								},
 							},
 						},
-						href: Url.from({
+						url: Url.from({
 							pathname: "release-notes",
 							query: { highlightFragment: "Фрагмент с файлом", highlightFragmentIndex: "0" },
 						}),
@@ -912,9 +851,8 @@ describe("SearchRowsModel", () => {
 						children: [
 							{
 								type: "link",
-								key: expect.any(String),
-								id: undefined,
-								href: Url.from({
+								id: "2",
+								url: Url.from({
 									pathname: "release-notes",
 									query: { highlightFragment: "Фрагмент с файлом", highlightFragmentIndex: "0" },
 								}),
@@ -925,7 +863,7 @@ describe("SearchRowsModel", () => {
 								],
 								openSideEffect: {
 									params: {
-										url: "release-notes",
+										pathname: "release-notes",
 										fragmentInfo: {
 											text: "Фрагмент с файлом",
 											indexInArticle: 0,
@@ -935,6 +873,7 @@ describe("SearchRowsModel", () => {
 							},
 							{
 								type: "block",
+								id: "3",
 								breadcrumbs: [
 									{
 										type: "header",
@@ -949,9 +888,8 @@ describe("SearchRowsModel", () => {
 								children: [
 									{
 										type: "link",
-										key: expect.any(String),
-										id: undefined,
-										href: Url.from({
+										id: "4",
+										url: Url.from({
 											pathname: "release-notes",
 											query: {
 												highlightFragment: "Фрагмент с файлом",
@@ -961,7 +899,7 @@ describe("SearchRowsModel", () => {
 										marks: [{ type: "text", text: "Контент" }],
 										openSideEffect: {
 											params: {
-												url: "release-notes",
+												pathname: "release-notes",
 												fragmentInfo: {
 													text: "Фрагмент с файлом",
 													indexInArticle: 0,
@@ -970,17 +908,16 @@ describe("SearchRowsModel", () => {
 										},
 									},
 								],
-								key: expect.any(String),
 								openSideEffect: {
 									params: {
-										url: "release-notes",
+										pathname: "release-notes",
 										fragmentInfo: {
 											text: "Фрагмент с файлом",
 											indexInArticle: 0,
 										},
 									},
 								},
-								href: Url.from({
+								url: Url.from({
 									pathname: "release-notes",
 									query: { highlightFragment: "Фрагмент с файлом", highlightFragmentIndex: "0" },
 								}),
@@ -990,7 +927,7 @@ describe("SearchRowsModel", () => {
 				],
 				openSideEffect: {
 					params: {
-						url: "release-notes",
+						pathname: "release-notes",
 					},
 				},
 			},
@@ -1095,22 +1032,22 @@ describe("SearchRowsModel", () => {
 			{
 				type: "article",
 				rawResult: searchData,
-				id: 0,
-				href: Url.from({ pathname: "release-notes" }),
+				id: "0",
+				url: Url.from({ pathname: "release-notes" }),
 				items: [
 					{
 						type: "file-block",
-						id: 1,
+						id: "1",
 						openSideEffect: {
 							params: {
-								url: "release-notes",
+								pathname: "release-notes",
 								fragmentInfo: {
 									text: "Это текст к которому прикреплен файл",
 									indexInArticle: 0,
 								},
 							},
 						},
-						href: Url.from({
+						url: Url.from({
 							pathname: "release-notes",
 							query: {
 								highlightFragment: "Это текст к которому прикреплен файл",
@@ -1175,9 +1112,8 @@ describe("SearchRowsModel", () => {
 						children: [
 							{
 								type: "link",
-								key: expect.any(String),
-								id: undefined,
-								href: Url.from({
+								id: "2",
+								url: Url.from({
 									pathname: "release-notes",
 									query: {
 										highlightFragment: "Это текст к которому прикреплен файл",
@@ -1190,7 +1126,7 @@ describe("SearchRowsModel", () => {
 								],
 								openSideEffect: {
 									params: {
-										url: "release-notes",
+										pathname: "release-notes",
 										fragmentInfo: {
 											text: "Это текст к которому прикреплен файл",
 											indexInArticle: 0,
@@ -1203,7 +1139,7 @@ describe("SearchRowsModel", () => {
 				],
 				openSideEffect: {
 					params: {
-						url: "release-notes",
+						pathname: "release-notes",
 					},
 				},
 			},

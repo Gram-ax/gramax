@@ -9,7 +9,7 @@ import { memo, useCallback, useMemo } from "react";
 import { UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
-interface EditWorkspaceAssetsProps{
+interface EditWorkspaceAssetsProps {
 	lightLogo?: string;
 	darkLogo?: string;
 	deleteLightLogo?: () => void;
@@ -71,50 +71,50 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 	return (
 		<>
 			<FormField
+				control={({ fieldState }) => (
+					<LogoUploader
+						defaultFileInfo={defaultLightFileInfo}
+						deleteResource={deleteLightLogo}
+						error={fieldState.error?.message}
+						onChange={() => onChange("logo.light")}
+						onError={(error) => onError("logo.light", error)}
+						updateResource={updateLightLogo}
+					/>
+				)}
+				description={t("file-input.both-themes-if-no-dark")}
 				name="logo.light"
 				title={t("file-input.logo-light")}
-				description={t("file-input.both-themes-if-no-dark")}
-				control={({ fieldState }) => (
-					<LogoUploader
-						deleteResource={deleteLightLogo}
-						updateResource={updateLightLogo}
-						defaultFileInfo={defaultLightFileInfo}
-						onChange={() => onChange("logo.light")}
-						error={fieldState.error?.message}
-						onError={(error) => onError("logo.light", error)}
-					/>
-				)}
 				{...formProps}
 			/>
 
 			<FormField
+				control={({ fieldState }) => (
+					<LogoUploader
+						defaultFileInfo={defaultDarkFileInfo}
+						deleteResource={deleteDarkLogo}
+						error={fieldState.error?.message}
+						onChange={() => onChange("logo.dark")}
+						onError={(error) => onError("logo.dark", error)}
+						updateResource={updateDarkLogo}
+					/>
+				)}
+				description={t("file-input.dark-theme-only")}
 				name="logo.dark"
 				title={t("file-input.logo-dark")}
-				description={t("file-input.dark-theme-only")}
-				control={({ fieldState }) => (
-					<LogoUploader
-						deleteResource={deleteDarkLogo}
-						updateResource={updateDarkLogo}
-						defaultFileInfo={defaultDarkFileInfo}
-						onChange={() => onChange("logo.dark")}
-						error={fieldState.error?.message}
-						onError={(error) => onError("logo.dark", error)}
-					/>
-				)}
 				{...formProps}
 			/>
 
 			<FormField
-				name="cssStyles"
-				title={t("workspace.css-style")}
-				description={t("workspace.css-styles-description")}
 				control={() => (
-					<EditStyles revertCustomCss={revertCustomCss} setCustomCss={setCustomCss} customCss={customCss}>
-						<Button startIcon="palette" type="button" variant="outline" style={{ width: "100%" }}>
+					<EditStyles customCss={customCss} revertCustomCss={revertCustomCss} setCustomCss={setCustomCss}>
+						<Button startIcon="palette" style={{ width: "100%" }} type="button" variant="outline">
 							{t("edit2")}
 						</Button>
 					</EditStyles>
 				)}
+				description={t("workspace.css-styles-description")}
+				name="cssStyles"
+				title={t("workspace.css-style")}
 				{...formProps}
 			/>
 		</>

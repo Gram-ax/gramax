@@ -1,7 +1,7 @@
-import React, { RefObject, useEffect, useRef, useState } from "react";
-import { Crop, Cropper } from "../../model/imageEditorTypes";
 import styled from "@emotion/styled";
 import { handleMove, objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
+import React, { RefObject, useEffect, useRef, useState } from "react";
+import { Crop, Cropper } from "../../model/imageEditorTypes";
 
 const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObject<HTMLDivElement> }) => {
 	const { crop, cropEnabled, setCrop, handleUpdateArea, className, parentRef } = props;
@@ -54,6 +54,8 @@ const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObjec
 	if (!cropEnabled) return null;
 	return (
 		<div
+			className={className}
+			onMouseDown={cropperMouseDown}
 			ref={cropperRef}
 			style={{
 				left: curCrop.x + "%",
@@ -61,13 +63,11 @@ const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObjec
 				width: curCrop.w + "%",
 				height: curCrop.h + "%",
 			}}
-			onMouseDown={cropperMouseDown}
-			className={className}
 		>
-			<div onMouseDown={onMouseDown} id="top-left" className="handle top-left" />
-			<div onMouseDown={onMouseDown} id="top-right" className="handle top-right" />
-			<div onMouseDown={onMouseDown} id="bottom-right" className="handle bottom-right" />
-			<div onMouseDown={onMouseDown} id="bottom-left" className="handle bottom-left" />
+			<div className="handle top-left" id="top-left" onMouseDown={onMouseDown} />
+			<div className="handle top-right" id="top-right" onMouseDown={onMouseDown} />
+			<div className="handle bottom-right" id="bottom-right" onMouseDown={onMouseDown} />
+			<div className="handle bottom-left" id="bottom-left" onMouseDown={onMouseDown} />
 
 			<div className="cropper__overlay"></div>
 		</div>

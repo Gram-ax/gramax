@@ -1,9 +1,9 @@
-import { Editor } from "@tiptap/core";
-import { MicrophonePermission } from "@core-ui/hooks/useMicrophone";
-import t from "@ext/localization/locale/translate";
-import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import { isActive } from "@core-ui/hooks/useAudioRecorder";
+import { MicrophonePermission } from "@core-ui/hooks/useMicrophone";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
+import t from "@ext/localization/locale/translate";
+import { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { useCallback, useMemo } from "react";
 
@@ -67,8 +67,8 @@ const TranscribeButton = ({ editor }: { editor?: Editor }) => {
 		<ToolbarToggleButton
 			active={isActive(recorderState)}
 			disabled={isDisabled}
-			tooltipText={tooltipText}
 			onClick={handleClick}
+			tooltipText={tooltipText}
 		>
 			<ToolbarIcon icon={icon} />
 		</ToolbarToggleButton>

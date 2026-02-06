@@ -2,11 +2,11 @@ import {
 	TABLE_EDIT_COLUMN_CODE,
 	TABLE_SELECT_COLUMN_CODE,
 } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
+import t from "@ext/localization/locale/translate";
 import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
 import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
 import { Icon } from "@ui-kit/Icon";
 import { Group } from "../types/GroupsComponentTypes";
-import t from "@ext/localization/locale/translate";
 
 export const groupTableColumns: ColumnDef<Group>[] = [
 	{
@@ -18,18 +18,18 @@ export const groupTableColumns: ColumnDef<Group>[] = [
 
 			return (
 				<Checkbox
+					aria-label="Select all"
 					checked={(allSelectableSelected || (someSelectableSelected && "indeterminate")) as CheckedState}
 					onCheckedChange={handleSelectAll}
-					aria-label="Select all"
 				/>
 			);
 		},
 		cell: ({ row }) => (
 			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
 				aria-label="Select row"
+				checked={row.getIsSelected()}
 				disabled={row.original.disabled}
+				onCheckedChange={(value) => row.toggleSelected(!!value)}
 			/>
 		),
 		enableSorting: false,
@@ -37,7 +37,7 @@ export const groupTableColumns: ColumnDef<Group>[] = [
 	},
 	{
 		id: TABLE_EDIT_COLUMN_CODE,
-		cell: () => <Icon icon="pen" className="text-muted" />,
+		cell: () => <Icon className="text-muted" icon="pen" />,
 		enableSorting: false,
 		enableHiding: false,
 	},

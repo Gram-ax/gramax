@@ -17,13 +17,13 @@ const ModalLoading = ({
 	return (
 		<Modal
 			isOpen={isOpen}
-			onOpen={() => {
-				setisOpen(true);
-				onOpen?.();
-			}}
 			onClose={() => {
 				setisOpen(false);
 				onClose?.();
+			}}
+			onOpen={() => {
+				setisOpen(true);
+				onOpen?.();
 			}}
 		>
 			<ModalLayoutLight>

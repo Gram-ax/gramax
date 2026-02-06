@@ -90,8 +90,6 @@ export const blockLayouts = {
 	"block-property": blockPropertyHandler,
 	// cut
 	// blockquote
-	// 	"Ts-diagram": tsDiagramWordLayout,
-	// "C4-diagram": c4DiagramWordLayout,
 	// 	// "Img-v": imagesWordLayout,
 	// 	// "Img-h": imagesWordLayout,
 	// 	// See: seeWordLayout,

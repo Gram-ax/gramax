@@ -46,7 +46,7 @@ const List = ({ content, groupby, className, disabled, updateArticle, commentId,
 
 	return (
 		<BlockCommentView commentId={commentId}>
-			<div data-focusable="true" className="flex w-full h-full">
+			<div className="flex w-full h-full" data-focusable="true">
 				<ul className={className}>
 					{data.map((group: ViewRenderGroup, idx: number) => (
 						<Fragment key={`${group.group?.[0]}-${idx}`}>

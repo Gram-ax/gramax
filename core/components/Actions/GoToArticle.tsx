@@ -27,8 +27,8 @@ const GoToArticle = (props: GoToArticleProps) => {
 	}, []);
 
 	return (
-		<Tooltip hideOnClick={true} content={t("go-to-article")} distance={distance}>
-			<span onClick={onClickHandler} className={containerClassName}>
+		<Tooltip content={t("go-to-article")} distance={distance} hideOnClick={true}>
+			<span className={containerClassName} onClick={onClickHandler}>
 				<Link href={Url.from({ pathname: href })} ref={ref} {...otherProps}>
 					{trigger}
 				</Link>

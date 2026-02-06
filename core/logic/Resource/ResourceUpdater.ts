@@ -1,16 +1,16 @@
 import Path from "@core/FileProvider/Path/Path";
+import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import ResourceMovements from "@core/Resource/models/ResourceMovements";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 import { JSONContent } from "@tiptap/core";
+import MarkdownFormatter from "../../extensions/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
 import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
-import MarkdownFormatter from "../../extensions/markdown/core/edit/logic/Formatter/Formatter";
 import Context from "../Context/Context";
 import { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 
 export default class ResourceUpdater {
 	constructor(
@@ -37,8 +37,8 @@ export default class ResourceUpdater {
 				}
 
 			await item.parsedContent.write(async (p) => {
-				p.linkManager.resources.map((resource) => {
-					const absolutePath = p.linkManager.getAbsolutePath(resource);
+				p.parsedContext.getLinkManager().resources.map((resource) => {
+					const absolutePath = p.parsedContext.getLinkManager().getAbsolutePath(resource);
 
 					if (absolutePath.value !== oldPath.value) return p;
 					oldResources.push(resource);
@@ -74,7 +74,8 @@ export default class ResourceUpdater {
 		if (await oldArticle?.parsedContent.isNull()) return;
 
 		await oldArticle.parsedContent.write(async (p) => {
-			const { resourceManager, linkManager } = p;
+			const resourceManager = p.parsedContext.getResourceManager();
+			const linkManager = p.parsedContext.getLinkManager();
 
 			const newResourceBasePath = this._catalog
 				.getRootCategoryRef()

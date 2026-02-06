@@ -1,26 +1,26 @@
-import { FormEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Command, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator } from "@ui-kit/Command";
+import Workspace from "@core-ui/ContextServices/Workspace";
+import { useApi } from "@core-ui/hooks/useApi";
+import { useExternalLink } from "@core-ui/hooks/useExternalLink";
+import { useLazySearchList } from "@core-ui/hooks/useLazySearchList";
+import useWatch from "@core-ui/hooks/useWatch";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import type LinkItem from "@ext/article/LinkCreator/models/LinkItem";
-import { Icon } from "@ui-kit/Icon";
-import { LinkHeadings } from "./LinkHeadings";
-import { SearchSelectOption } from "@ui-kit/SearchSelect";
-import { useApi } from "@core-ui/hooks/useApi";
 import t from "@ext/localization/locale/translate";
-import { useExternalLink } from "@core-ui/hooks/useExternalLink";
-import { LinkMenuMode } from "./LinkMenu";
-import { IconButton } from "@ui-kit/Button";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { CatalogSummary } from "@ext/workspace/UnintializedWorkspace";
-import Workspace from "@core-ui/ContextServices/Workspace";
-import { Loader } from "@ui-kit/Loader";
-import { useLazySearchList } from "@core-ui/hooks/useLazySearchList";
-import { LoadMoreTrigger } from "@ui-kit/LoadMoreTrigger";
-import useWatch from "@core-ui/hooks/useWatch";
-import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+import type { CatalogSummary } from "@ext/workspace/UnintializedWorkspace";
 import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { cn } from "@core-ui/utils/cn";
+import { IconButton } from "@ui-kit/Button";
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList, CommandSeparator } from "@ui-kit/Command";
+import { Icon } from "@ui-kit/Icon";
+import { Loader } from "@ui-kit/Loader";
+import { LoadMoreTrigger } from "@ui-kit/LoadMoreTrigger";
+import type { SearchSelectOption } from "@ui-kit/SearchSelect";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+import { type FormEvent, type HTMLAttributes, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { LinkHeadings } from "./LinkHeadings";
+import type { LinkMenuMode } from "./LinkMenu";
 
 interface EditLinkMenuProps {
 	catalogName: string;
@@ -68,6 +68,10 @@ const StyledCommand = styled(Command)`
 	}
 `;
 
+const getLoaderItems = () => {
+	return Array.from({ length: 4 }, (_, i) => ({ key: `loader-${i}` }));
+};
+
 export const filterBySearch = (searchValue: string, optionLabel: string): boolean => {
 	if (searchValue === "") return true;
 	const cleanedSearchValue = searchValue.split("#")[0];
@@ -77,16 +81,16 @@ export const filterBySearch = (searchValue: string, optionLabel: string): boolea
 const LinkItemComponent = ({ option, icon, depth, onUpdate }: LinkItemOption) => {
 	return (
 		<CommandItem
-			key={option.value}
-			value={`${option.value}`}
-			onSelect={() => onUpdate(option.relativePath, option.pathname)}
 			className="px-2 py-1 pr-1"
+			key={option.value}
+			onSelect={() => onUpdate(option.relativePath, option.pathname)}
+			value={`${option.value}`}
 		>
 			<div
 				className="flex items-center gap-2 overflow-hidden"
 				style={{ paddingLeft: `calc((0.5rem + 0.875rem) * ${depth})` }}
 			>
-				<Icon icon={icon} className="w-3.5 h-3.5" />
+				<Icon className="w-3.5 h-3.5" icon={icon} />
 				<TextOverflowTooltip className="truncate whitespace-nowrap text-xs">{option.label}</TextOverflowTooltip>
 			</div>
 			<LinkHeadings linkItem={option} onUpdate={onUpdate} />
@@ -94,9 +98,68 @@ const LinkItemComponent = ({ option, icon, depth, onUpdate }: LinkItemOption) =>
 	);
 };
 
+const CommandLabel = (props: HTMLAttributes<HTMLDivElement>) => {
+	const { children, className, ...rest } = props;
+	return (
+		<div className={cn("text-inverse-muted text-xs font-medium truncate", className)} {...rest}>
+			{children}
+		</div>
+	);
+};
+
+const CommandBreadcrumb = (props: HTMLAttributes<HTMLDivElement> & { breadcrumb: string[] }) => {
+	const { breadcrumb, children, className, ...rest } = props;
+
+	const isLongBreadcrumb = breadcrumb.length > 2;
+	const firstBreadcrumb = isLongBreadcrumb ? breadcrumb[0] : null;
+	const lastBreadcrumb = isLongBreadcrumb ? breadcrumb[breadcrumb.length - 1] : null;
+
+	return (
+		<div
+			className={cn("flex items-center gap-1 overflow-hidden max-w-full truncate py-1.5 pb-0.5 px-2", className)}
+			{...rest}
+		>
+			{!isLongBreadcrumb &&
+				breadcrumb.map((breadcrumb, index) => (
+					<>
+						{index > 0 && (
+							<CommandLabel className="flex-shrink-0">
+								<span>/</span>
+							</CommandLabel>
+						)}
+						<CommandLabel className="inline-flex" key={breadcrumb}>
+							<TextOverflowTooltip>{breadcrumb}</TextOverflowTooltip>
+						</CommandLabel>
+					</>
+				))}
+
+			{isLongBreadcrumb && lastBreadcrumb && (
+				<>
+					<CommandLabel className="flex-shrink-0">
+						<span>{firstBreadcrumb}</span>
+					</CommandLabel>
+					<CommandLabel className="flex-shrink-0">
+						<span>/</span>
+					</CommandLabel>
+					<CommandLabel className="flex-shrink-0">
+						<span>...</span>
+					</CommandLabel>
+					<CommandLabel className="flex-shrink-0">
+						<span>/</span>
+					</CommandLabel>
+					<CommandLabel className="inline-flex">
+						<TextOverflowTooltip>{lastBreadcrumb}</TextOverflowTooltip>
+					</CommandLabel>
+				</>
+			)}
+			{children}
+		</div>
+	);
+};
+
 const CommandItemLoader = () => {
 	return (
-		<CommandItem disabled className="px-2 py-1">
+		<CommandItem className="px-2 py-1" disabled>
 			<div className="flex items-center">
 				<Loader className="w-3.5 h-3.5 text-inverse-primary-fg" />
 				<span>{t("loading")}</span>
@@ -116,19 +179,19 @@ const CommandInput = ({ value, onValueChange, setMode, isSearchCatalogs }: Comma
 	return (
 		<div className="flex items-center border-b border-inverse-border pl-2 pr-1">
 			<input
-				ref={inputRef}
 				className="flex h-9 w-full rounded-md bg-transparent py-1 pl-1 text-sm outline-none placeholder:text-muted disabled:cursor-not-allowed disabled:opacity-50 text-xs"
-				type="text"
-				placeholder={isSearchCatalogs ? `${t("list.search-catalogs")}...` : `${t("list.search-articles")}...`}
-				value={value}
 				onInput={onValueChange}
+				placeholder={isSearchCatalogs ? `${t("list.search-catalogs")}...` : `${t("list.search-articles")}...`}
+				ref={inputRef}
+				type="text"
+				value={value}
 			/>
 			<IconButton
+				className="h-7 w-7 rounded-sm shadow-none"
 				icon="x"
+				iconClassName="flex-shrink-0"
 				onPointerDown={() => setMode("view")}
 				size="lg"
-				className="h-7 w-7 rounded-sm shadow-none"
-				iconClassName="flex-shrink-0"
 			/>
 		</div>
 	);
@@ -158,7 +221,7 @@ const ChooseArticles = (props: ChooseArticlesProps) => {
 				}),
 			);
 		})();
-	}, [catalogName]);
+	}, [getItemLinks]);
 
 	const { visibleOptions, hasMoreItems, handleLoadMore, handleSearchChange } = useLazySearchList<ItemLinkOption>({
 		options,
@@ -172,25 +235,32 @@ const ChooseArticles = (props: ChooseArticlesProps) => {
 		handleSearchChange(searchValue);
 	}, [searchValue]);
 
+	const shouldVisibleBreadcrumb = !!searchValue;
+
 	return (
 		<>
 			<CommandGroup
+				className="overflow-y-auto text-xs"
 				heading={isCurrentCatalog ? t("editor.link.current-catalog") : t("editor.link.other-catalogs")}
 				style={{ maxHeight: "11rem" }}
-				className="overflow-y-auto text-xs"
 			>
 				{!isLoading
 					? visibleOptions.map((option) => (
-							<LinkItemComponent
-								key={option.value}
-								option={option}
-								icon={option.type === "article" ? "file" : "folder"}
-								depth={searchValue.length ? 0 : option.breadcrumb?.length}
-								onUpdate={onUpdate}
-							/>
-					  ))
-					: Array.from({ length: 4 }).map((_, index) => <CommandItemLoader key={index} />)}
-				<LoadMoreTrigger onLoad={handleLoadMore} hasMore={hasMoreItems} />
+							<>
+								{shouldVisibleBreadcrumb && option.breadcrumb?.length > 0 && (
+									<CommandBreadcrumb breadcrumb={option.breadcrumb} />
+								)}
+								<LinkItemComponent
+									depth={searchValue.length ? 0 : option.breadcrumb?.length}
+									icon={option.type === "article" ? "file" : "folder"}
+									key={option.value}
+									onUpdate={onUpdate}
+									option={option}
+								/>
+							</>
+						))
+					: getLoaderItems().map((item) => <CommandItemLoader key={item.key} />)}
+				<LoadMoreTrigger hasMore={hasMoreItems} onLoad={handleLoadMore} />
 			</CommandGroup>
 		</>
 	);
@@ -218,30 +288,30 @@ const ChooseCatalog = ({ searchValue, setCatalogName }: ChooseCatalogProps) => {
 			const res = (await getCatalogList()) || [];
 			setOptions(res);
 		})();
-	}, []);
+	}, [getCatalogList]);
 
 	const allOptions = useMemo(() => {
 		return options
 			.filter((option) => filterBySearch(searchValue, option.title))
 			.map((option, index) => (
 				<CommandItem
-					key={option.name + index}
-					value={option.name + index}
 					className="px-2 py-1"
+					key={option.name}
 					onSelect={() => setCatalogName(option.name)}
+					value={option.name + index}
 				>
 					<span className="text-xs whitespace-nowrap truncate">{option.title}</span>
 				</CommandItem>
 			));
-	}, [options, searchValue]);
+	}, [options, searchValue, setCatalogName]);
 
 	return (
 		<CommandGroup
+			className="overflow-y-auto text-xs"
 			heading={t("editor.link.catalogs")}
 			style={{ maxHeight: "11rem" }}
-			className="overflow-y-auto text-xs"
 		>
-			{!isLoading ? allOptions : Array.from({ length: 4 }).map((_, index) => <CommandItemLoader key={index} />)}
+			{!isLoading ? allOptions : getLoaderItems().map((item) => <CommandItemLoader key={item.key} />)}
 		</CommandGroup>
 	);
 };
@@ -282,31 +352,31 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 
 	return (
 		<StyledCommand
-			role="link-toolbar"
-			shouldFilter={false}
 			className={cn("rounded-lg lg:shadow-hard-base", isMobile && "mobile")}
+			role="toolbar"
+			shouldFilter={false}
 		>
 			<CommandInput
-				value={value}
+				isSearchCatalogs={!isCurrentCatalog}
 				onValueChange={onValueChange}
 				setMode={changeMode}
-				isSearchCatalogs={!isCurrentCatalog}
+				value={value}
 			/>
 			<CommandList>
 				<CommandEmpty>{t("list.no-results-found")}</CommandEmpty>
-				<CommandItem value="-" className="hidden" />
+				<CommandItem className="hidden" value="-" />
 				{!isExternalLink && selectedCatalogName && (
 					<ChooseArticles
 						catalogName={selectedCatalogName}
-						searchValue={value}
-						onUpdate={onUpdate}
 						isCurrentCatalog={isCurrentCatalog}
+						onUpdate={onUpdate}
+						searchValue={value}
 					/>
 				)}
 				{!isExternalLink && !selectedCatalogName && (
 					<ChooseCatalog
-						searchValue={value}
 						catalogName={selectedCatalogName}
+						searchValue={value}
 						setCatalogName={setSelectedCatalogName}
 					/>
 				)}
@@ -316,14 +386,14 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 						<div className="p-1">
 							<CommandItem
 								className="px-2 py-1 h-7"
-								value="other-catalogs"
 								onSelect={() => {
 									setSelectedCatalogName(null);
 									setValue("");
 								}}
+								value="other-catalogs"
 							>
 								<div className="flex items-center gap-2">
-									<Icon icon="folders" className="w-3.5 h-3.5" />
+									<Icon className="w-3.5 h-3.5" icon="folders" />
 									<span className="text-xs whitespace-nowrap truncate">
 										{t("editor.link.other-catalogs")}
 									</span>
@@ -339,7 +409,7 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 							onSelect={() => onUpdate(externalLink, externalLink)}
 						>
 							<div className="flex items-center gap-2 truncate">
-								<Icon icon="globe" className="w-3.5 h-3.5" />
+								<Icon className="w-3.5 h-3.5" icon="globe" />
 								<span className="truncate whitespace-nowrap text-xs">{externalLink}</span>
 							</div>
 						</CommandItem>

@@ -1,8 +1,8 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import User from "@ext/security/logic/User/User";
+import type User from "@ext/security/logic/User/User";
 
 const isReadOnlyBranch = async (user: User, catalog: Catalog) => {
 	if (getExecutingEnvironment() === "next") return true;

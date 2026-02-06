@@ -34,13 +34,13 @@ const StatusBarElement = styled(
 			ref: React.LegacyRef<HTMLDivElement>,
 		) => {
 			return (
-				<div ref={ref} className={className} onClick={disable ? undefined : onClick}>
-					<Tooltip content={tooltipText} arrow={tooltipArrow}>
+				<div className={className} onClick={disable ? undefined : onClick} ref={ref}>
+					<Tooltip arrow={tooltipArrow} content={tooltipText}>
 						<div style={{ height: "100%" }}>
 							<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
 								{iconCode && (
 									<div className={"status-bar-icon" + (iconClassName ? " " + iconClassName : "")}>
-										<Icon code={iconCode} style={iconStyle} strokeWidth={iconStrokeWidth} />
+										<Icon code={iconCode} strokeWidth={iconStrokeWidth} style={iconStyle} />
 									</div>
 								)}
 								{children && (

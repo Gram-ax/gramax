@@ -1,32 +1,24 @@
-const getTestModules = async (): Promise<any> => {
-	const [
-		{ default: DiffFileInputCdn },
-		{ default: FileInputCdn },
-		{ default: LanguageServiceModule },
-		{ default: LocalizerModule },
-		{ default: NextLink },
-		{ default: NextRouter },
-		{ default: useUrlImage },
-	] = await Promise.all([
-		import("@components/Atoms/FileInput/DiffFileInput/DiffFileInputCdn"),
-		import("@components/Atoms/FileInput/FileInputCdn"),
-		import("@core-ui/ContextServices/Language"),
-		import("@ext/localization/core/Localizer"),
-		import("../../../apps/next/components/Atoms/Link"),
-		import("../../../apps/next/logic/Api/NextRouter"),
-		import("../../../core/components/Atoms/Image/useUrlImage"),
-	]);
+/** biome-ignore-all lint/suspicious/noExplicitAny: idc */
 
+import DiffFileInputCdn from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputCdn";
+import FileInputCdn from "@components/Atoms/FileInput/FileInputCdn";
+import LanguageServiceModule from "@core-ui/ContextServices/Language";
+import LocalizerModule from "@ext/localization/core/Localizer";
+import NextLink from "../../../apps/next/components/Atoms/Link";
+import NextRouter from "../../../apps/next/logic/Api/NextRouter";
+import useUrlImage from "../../../core/components/Atoms/Image/useUrlImage";
+import type { DynamicModules } from "..";
+
+const getTestModules = async (): Promise<DynamicModules> => {
 	return {
 		Link: NextLink,
 		Router: NextRouter,
-		Fetcher: async <T = any>(
+		Fetcher: async (
 			url: any,
 			body?: BodyInit,
 			mime?: any,
 			method?: any,
 			_notifyError?: any,
-			// eslint-disable-next-line @typescript-eslint/no-unused-vars
 			_onDidCommand?: (command: string, args: object, result: unknown) => void,
 			signal?: AbortSignal,
 		) => {
@@ -45,7 +37,7 @@ const getTestModules = async (): Promise<any> => {
 							body,
 							headers,
 							signal,
-					  }
+						}
 					: { headers, signal },
 			)) as any;
 			res.buffer = async () => Buffer.from(await res.arrayBuffer());
@@ -67,3 +59,18 @@ const getTestModules = async (): Promise<any> => {
 };
 
 export { getTestModules };
+
+let modules: DynamicModules | null = null;
+
+export const initFrontendModules = async (): Promise<void> => {
+	if (modules) return;
+	modules = await getTestModules();
+};
+
+const resolveFrontendModule = <K extends keyof DynamicModules>(name: K): DynamicModules[K] => {
+	const module = modules?.[name];
+	if (!module) throw new Error(`module ${name} not found`);
+	return module;
+};
+
+export default resolveFrontendModule;

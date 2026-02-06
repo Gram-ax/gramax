@@ -1,9 +1,12 @@
+import isMobileService from "@core-ui/ContextServices/isMobileService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import { useMediaQuery } from "@react-hook/media-query";
 import {
 	createContext,
-	Dispatch,
-	ReactElement,
-	SetStateAction,
+	type Dispatch,
+	type ReactElement,
+	type SetStateAction,
 	useContext,
 	useEffect,
 	useLayoutEffect,
@@ -11,9 +14,6 @@ import {
 	useState,
 } from "react";
 import SidebarsIsPinService from "./SidebarsIsPin";
-import isMobileService from "@core-ui/ContextServices/isMobileService";
-import { useMediaQuery } from "@react-hook/media-query";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 
 const SidebarsIsOpenContext = createContext<{ left: boolean; right: boolean }>(undefined);
 const LeftNavigationTransitionEndLeftContext = createContext<boolean>(undefined);
@@ -32,8 +32,8 @@ abstract class SidebarsIsOpenService {
 		const isMobile = isMobileService.value;
 		const isMedium = useMediaQuery(cssMedia.JSmedium);
 
-		const [isLeftOpen, setIsLeftOpen] = useState(false);
-		const [isRightOpen, setIsRightOpen] = useState(false);
+		const [isLeftOpen, setIsLeftOpen] = useState(true);
+		const [isRightOpen, setIsRightOpen] = useState(true);
 		const sideBarsIsOpen = useMemo(() => ({ left: isLeftOpen, right: isRightOpen }), [isLeftOpen, isRightOpen]);
 		const { isStatic, isStaticCli } = usePlatform();
 

@@ -7,8 +7,8 @@ import t from "@ext/localization/locale/translate";
 import {
 	ChangeEventHandler,
 	ForwardedRef,
-	HTMLProps,
 	forwardRef,
+	HTMLProps,
 	useEffect,
 	useImperativeHandle,
 	useRef,
@@ -102,11 +102,11 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 	return (
 		<div
 			className={classNames("search", { "input-with-focus": focus }, [className, inputClassName])}
-			onFocus={() => {
-				setIsFocus(true);
-			}}
 			onBlur={() => {
 				setIsFocus(false);
+			}}
+			onFocus={() => {
+				setIsFocus(true);
 			}}
 		>
 			<div className="list-search" ref={searchRef}>
@@ -118,20 +118,20 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 				<div className="list-input" onClick={onClick}>
 					<Input
 						className={"input-component"}
-						title={title}
 						dataQa={dataQa ?? placeholder}
-						tabIndex={tabIndex}
-						showErrorText={showErrorText}
 						errorText={errorText}
-						ref={inputRef}
-						value={value}
-						onChange={onChangeHandler}
-						placeholder={placeholder}
-						onFocus={onFocusHandler}
 						onBlur={() => {
 							setInstantFocus(true);
 							instantFocusDriver.start();
 						}}
+						onChange={onChangeHandler}
+						onFocus={onFocusHandler}
+						placeholder={placeholder}
+						ref={inputRef}
+						showErrorText={showErrorText}
+						tabIndex={tabIndex}
+						title={title}
+						value={value}
 					/>
 				</div>
 				{!disableCancelAction && typeof onCancelClick === "function" && (
@@ -140,13 +140,13 @@ const Search = forwardRef((props: SearchProps, ref: ForwardedRef<SearchElement>)
 						onClick={onCancelHandler}
 						ref={chevronRef}
 					>
-						<Button textSize={TextSize.XS} buttonStyle={ButtonStyle.transparent}>
+						<Button buttonStyle={ButtonStyle.transparent} textSize={TextSize.XS}>
 							<Icon code={"x"} />
 						</Button>
 					</div>
 				)}
 				<div className={"custom-action"} onClick={onChevronClick} ref={chevronRef}>
-					<Button textSize={TextSize.S} buttonStyle={ButtonStyle.transparent}>
+					<Button buttonStyle={ButtonStyle.transparent} textSize={TextSize.S}>
 						<Icon code={`chevron-${isOpen ? "up" : "down"}`} />
 					</Button>
 				</div>

@@ -18,7 +18,7 @@ const InlineUser = ({ name, mail, date, className }: UserProps) => {
 			<span className="user-circle">
 				<UserCircle name={name || "Unknown"} />
 			</span>
-			<Tooltip delay={[1000, 0]} content={mail} appendTo={() => document.body} interactive>
+			<Tooltip appendTo={() => document.body} content={mail} delay={[1000, 0]} interactive>
 				<span className="user-name">{name}</span>
 			</Tooltip>
 			{date && (

@@ -1,24 +1,24 @@
-import { TABLE_EDIT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
-import { ColumnDef, getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
-import { QuizTest } from "../types/QuizComponentTypes";
 import Date from "@components/Atoms/Date";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import useWatch from "@core-ui/hooks/useWatch";
-import { IconButton } from "@ui-kit/Button";
-import t from "@ext/localization/locale/translate";
-import { TestInfo } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTestInfo";
+import DateUtils from "@core-ui/utils/dateUtils";
+import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import {
-	QuizTableFilters,
+	type QuizTableFilters,
 	TableControls,
 } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
-import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import DateUtils from "@core-ui/utils/dateUtils";
+import { TestInfo } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTestInfo";
 import {
 	LazyInfinityTable,
-	RequestCursor,
-	RequestData,
+	type RequestCursor,
+	type RequestData,
 } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
+import { TABLE_EDIT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
+import t from "@ext/localization/locale/translate";
+import { IconButton } from "@ui-kit/Button";
+import { type ColumnDef, getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { QuizTest } from "../types/QuizComponentTypes";
 
 const columns: ColumnDef<QuizTest>[] = [
 	{
@@ -26,7 +26,7 @@ const columns: ColumnDef<QuizTest>[] = [
 		accessorKey: "id",
 		header: "",
 		enableHiding: false,
-		cell: () => <IconButton icon={"maximize-2"} size="md" className="h-auto p-0 align-middle" variant="text" />,
+		cell: () => <IconButton className="h-auto p-0 align-middle" icon={"maximize-2"} size="md" variant="text" />,
 	},
 	{
 		accessorKey: "user",
@@ -58,7 +58,7 @@ const columns: ColumnDef<QuizTest>[] = [
 	},
 ];
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
 
 export const QuizTestsTable = ({ isHealthy }: { isHealthy: boolean }) => {
 	const { getQuizUsersAnswers } = useSettings();
@@ -74,7 +74,7 @@ export const QuizTestsTable = ({ isHealthy }: { isHealthy: boolean }) => {
 		if (response.next_cursor) cursorRef.current = response.next_cursor;
 		hasMoreRef.current = response.has_more;
 		return response;
-	}, [filters, isHealthy]);
+	}, [filters, isHealthy, getQuizUsersAnswers]);
 
 	const table = useReactTable<QuizTest>({
 		data: tests,
@@ -108,20 +108,20 @@ export const QuizTestsTable = ({ isHealthy }: { isHealthy: boolean }) => {
 	return (
 		<div className="flex gap-4 h-full max-h-full">
 			<div className="flex flex-col flex-1 min-h-0 max-h-full gap-2 overflow-hidden">
-				<TableControls filters={filters} setFilters={setFilters} disabled={!isHealthy} />
+				<TableControls disabled={!isHealthy} filters={filters} setFilters={setFilters} />
 				<div className="flex-1 min-h-0 max-h-full">
 					<LazyInfinityTable<QuizTest>
-						table={table}
-						setData={setTests}
 						columns={columns}
-						hasMore={hasMoreRef.current}
 						deps={[filters, isHealthy]}
+						hasMore={hasMoreRef.current}
 						loadOptions={loadOptions}
 						onRowClick={(row) => row.toggleSelected()}
+						setData={setTests}
+						table={table}
 					/>
 				</div>
 			</div>
-			<TestInfo table={table} isOpen={isOpen} onClose={onClose} />
+			<TestInfo isOpen={isOpen} onClose={onClose} table={table} />
 		</div>
 	);
 };

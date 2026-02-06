@@ -1,7 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import SEOGenerator from "@core/Sitemap/SEOGenerator";
-import { Workspace } from "@ext/workspace/Workspace";
+import type { Workspace } from "@ext/workspace/Workspace";
 
 const isBrowser = getExecutingEnvironment() === "browser";
 

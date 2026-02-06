@@ -78,67 +78,64 @@ export const GroupAndRoleToolbarAddBtn = ({
 
 	const cancelButtonProps = useMemo(
 		() =>
-		({
-			variant: "outline",
-			onClick: () => {
-				form.reset();
-				setIsModalOpen(false);
-			},
-		} as ButtonProps),
+			({
+				variant: "outline",
+				onClick: () => {
+					form.reset();
+					setIsModalOpen(false);
+				},
+			}) as ButtonProps,
 		[form],
 	);
 
 	const confirmButtonProps = useMemo(
 		() =>
-		({
-			type: "submit",
-			onClick: handleAddSelectedGroups,
-			disabled: !form.watch("groups").length || disable,
-		} as ButtonProps),
+			({
+				type: "submit",
+				onClick: handleAddSelectedGroups,
+				disabled: !form.watch("groups").length || disable,
+			}) as ButtonProps,
 		[form, disable, handleAddSelectedGroups],
 	);
 
 	return (
 		<ModalComponent
+			cancelButtonProps={cancelButtonProps}
+			cancelButtonText={t("cancel")}
+			confirmButtonProps={confirmButtonProps}
+			confirmButtonText={t("add")}
 			isOpen={isModalOpen}
-			onOpenChange={setIsModalOpen}
-			trigger={<TriggerAddButtonTemplate disabled={disable} />}
-			title={t("enterprise.admin.resources.groups.select")}
 			modalContent={
 				<Form asChild {...form}>
 					<form className="contents">
 						<FormStack>
 							<FormField
-								name="groups"
-								title={t("enterprise.admin.resources.groups.group")}
-								layout="vertical"
-								description={t("enterprise.admin.resources.groups.select-groups")}
 								control={({ field }) => (
 									<MultiSelect
+										emptyText={t("enterprise.admin.resources.groups.not-found")}
+										errorText={t("enterprise.admin.resources.groups.error-search")}
 										loadOptions={loadOptions}
+										onChange={handleGroupsChange}
+										placeholder={t("enterprise.admin.resources.groups.select")}
 										renderOption={(props: RenderOptionProps<SearchSelectOption>) => {
 											if (props.type === "trigger") return;
 											return (
 												<SelectDisableItem
-													text={props.option.label}
 													isDisabled={props.option.disabled}
 													isSelected={props.isSelected}
+													text={props.option.label}
 												/>
 											);
 										}}
 										value={field.value?.map((value) => ({ value, label: value })) || []}
-										onChange={handleGroupsChange}
-										placeholder={t("enterprise.admin.resources.groups.select")}
-										emptyText={t("enterprise.admin.resources.groups.not-found")}
-										errorText={t("enterprise.admin.resources.groups.error-search")}
 									/>
 								)}
+								description={t("enterprise.admin.resources.groups.select-groups")}
+								layout="vertical"
+								name="groups"
+								title={t("enterprise.admin.resources.groups.group")}
 							/>
 							<FormField
-								name="role"
-								title={t("enterprise.admin.roles.role")}
-								layout="vertical"
-								description={t("enterprise.admin.roles.select")}
 								control={({ field }) => (
 									<Select {...field} onValueChange={field.onChange}>
 										<SelectTrigger>
@@ -155,15 +152,18 @@ export const GroupAndRoleToolbarAddBtn = ({
 										</SelectContent>
 									</Select>
 								)}
+								description={t("enterprise.admin.roles.select")}
+								layout="vertical"
+								name="role"
+								title={t("enterprise.admin.roles.role")}
 							/>
 						</FormStack>
 					</form>
 				</Form>
 			}
-			confirmButtonText={t("add")}
-			cancelButtonText={t("cancel")}
-			cancelButtonProps={cancelButtonProps}
-			confirmButtonProps={confirmButtonProps}
+			onOpenChange={setIsModalOpen}
+			title={t("enterprise.admin.resources.groups.select")}
+			trigger={<TriggerAddButtonTemplate disabled={disable} />}
 		/>
 	);
 };

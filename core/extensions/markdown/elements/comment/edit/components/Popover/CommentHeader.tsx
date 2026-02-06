@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { ProgressIconButton } from "@ui-kit/Button";
+import { Button, IconButton } from "@ui-kit/Button";
 import { Divider } from "@ui-kit/Divider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
@@ -14,15 +14,21 @@ export const CommentHeader = (props: CommentHeaderProps) => {
 
 	return (
 		<>
-			<div className="flex items-center justify-between pl-3 pr-2 py-1.5">
-				<div className="text-sm font-semibold text-primary-fg">{t("comment")}</div>
-				<div className="flex items-center gap-2">
+			<div className="flex items-center justify-between pl-4 pr-1 py-1">
+				<div className="text-xs font-semibold text-primary-fg">{t("comment")}</div>
+				<div className="flex items-center gap-0.5">
 					{renderDeleteIcon && (
 						<Tooltip>
 							<TooltipContent>{t("delete-as-resolved")}</TooltipContent>
 							<TooltipTrigger asChild>
 								<div className="inline-flex">
-									<ProgressIconButton size="sm" icon="trash" onClick={onResolve} className="p-0.5" />
+									<IconButton
+										className="p-1 w-7 h-7 rounded-md"
+										icon="big-check2"
+										iconClassName="w-4 h-4"
+										onClick={onResolve}
+										variant="ghost"
+									/>
 								</div>
 							</TooltipTrigger>
 						</Tooltip>
@@ -31,7 +37,14 @@ export const CommentHeader = (props: CommentHeaderProps) => {
 						<TooltipContent>{t("close")}</TooltipContent>
 						<TooltipTrigger asChild>
 							<div className="inline-flex">
-								<ProgressIconButton icon="x" onClick={onClose} className="p-0" />
+								<Button
+									className="p-0.5 w-7 h-7 rounded-md"
+									iconClassName="w-5 h-5"
+									onClick={onClose}
+									size="xs"
+									startIcon="x"
+									variant="ghost"
+								/>
 							</div>
 						</TooltipTrigger>
 					</Tooltip>

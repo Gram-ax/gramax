@@ -29,7 +29,7 @@ export const useSyncableWorkspaces = (): UseSyncableWorkspacesReturn => {
 					? {
 							...context.syncableWorkspaces,
 							[currentWorkspace.path]: syncCountsLen,
-					  }
+						}
 					: context.syncableWorkspaces,
 		};
 	}, [context.syncableWorkspaces, syncCounts, syncCountsLen, currentWorkspace]);

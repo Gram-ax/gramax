@@ -1,5 +1,5 @@
-import icon from "@ext/markdown/elements/icon/edit/model/iconSchema";
 import IconComponent from "@ext/markdown/elements/icon/edit/components/IconComponent";
+import icon from "@ext/markdown/elements/icon/edit/model/iconSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";

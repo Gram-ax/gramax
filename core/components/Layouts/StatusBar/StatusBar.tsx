@@ -11,10 +11,10 @@ const StatusBar = ({
 }) => {
 	return (
 		<ExtensionBarLayout
-			padding={padding}
-			height="var(--status-bar-height)"
 			background="var(--version-control-primary)"
+			height="var(--status-bar-height)"
 			leftExtensions={leftElements}
+			padding={padding}
 			rightExtensions={rightElements}
 		/>
 	);

@@ -1,17 +1,17 @@
 import Icon from "@components/Atoms/Icon";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import styled from "@emotion/styled";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import { MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@ui-kit/Button";
+import { CheckboxField } from "@ui-kit/Checkbox";
 import { Form, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
-import styled from "@emotion/styled";
-import { CheckboxField } from "@ui-kit/Checkbox";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import { Button } from "@ui-kit/Button";
 
 const OptionsContainer = styled.div`
 	display: flex;
@@ -67,13 +67,11 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose, isLoa
 	};
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			<ModalContent>
 				<Form asChild {...form}>
 					<form className="contents" onSubmit={formSubmit}>
 						<FormHeader
-							icon={"git-pull-request-arrow"}
-							title={t("git.merge.title")}
 							description={
 								<div className="flex items-center gap-1">
 									<span>{t("git.merge.branches")}</span>
@@ -84,25 +82,27 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose, isLoa
 									<FormattedBranch name={targetBranchRef} />
 								</div>
 							}
+							icon={"git-pull-request-arrow"}
+							title={t("git.merge.title")}
 						/>
 						<ModalBody>
 							<FormStack>
 								<OptionsContainer>
 									<CheckboxField
 										checked={form.watch("options.deleteAfterMerge")}
+										label={t("git.merge.delete-branch-after-merge")}
 										onCheckedChange={(value) =>
 											form.setValue("options.deleteAfterMerge", toBoolean(value))
 										}
-										label={t("git.merge.delete-branch-after-merge")}
 									/>
 									<span>
 										<CheckboxField
 											checked={form.watch("options.squash")}
 											description={t("git.merge.squash-tooltip")}
+											label={t("git.merge.squash")}
 											onCheckedChange={(value) =>
 												form.setValue("options.squash", toBoolean(value))
 											}
-											label={t("git.merge.squash")}
 										/>
 									</span>
 								</OptionsContainer>
@@ -111,7 +111,7 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose, isLoa
 						<FormFooter
 							primaryButton={
 								<Button disabled={isLoading} type="submit">
-									{isLoading && <SpinnerLoader width={16} height={16} />}
+									{isLoading && <SpinnerLoader height={16} width={16} />}
 									{isLoading ? t("loading") : t("git.merge.merge")}
 								</Button>
 							}

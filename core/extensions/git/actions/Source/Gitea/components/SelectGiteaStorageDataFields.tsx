@@ -52,11 +52,11 @@ const SelectGiteaStorageDataFields = (props: SelectGiteaStorageDataFieldsProps) 
 
 	return (
 		<FormField
-			title={t("repository")}
-			name="repository"
 			control={({ field }) => (
-				<CloneFields {...field} form={form} source={source} gitPaginatedProjectList={gitPaginatedProjectList} />
+				<CloneFields {...field} form={form} gitPaginatedProjectList={gitPaginatedProjectList} source={source} />
 			)}
+			name="repository"
+			title={t("repository")}
 		/>
 	);
 };

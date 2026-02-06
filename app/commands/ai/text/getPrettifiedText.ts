@@ -1,9 +1,9 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { Command } from "../../../types/Command";
 import Context from "@core/Context/Context";
 import DefaultGramaxAi from "@ext/ai/logic/GramaxAi";
 import assert from "assert";
+import { Command } from "../../../types/Command";
 
 const getPrettifiedText: Command<{ ctx: Context; catalogName: string; command: string; text: string }, string> =
 	Command.create({
@@ -26,7 +26,7 @@ const getPrettifiedText: Command<{ ctx: Context; catalogName: string; command: s
 
 			assert(data.token, "AI Server token is required");
 			assert(data.apiUrl, "AI Server API URL is required");
-			
+
 			const aiProvider = new DefaultGramaxAi({
 				apiUrl: data.apiUrl,
 				token: data.token,

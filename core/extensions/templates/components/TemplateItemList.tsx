@@ -1,13 +1,18 @@
+import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
+import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { useApi } from "@core-ui/hooks/useApi";
+import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
 import { TemplateContentWarningProps } from "@ext/templates/components/TemplateContentWarning";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
-import { useCallback, useState } from "react";
+import TemplateService from "@ext/templates/components/TemplateService";
 import {
 	DropdownMenuItem,
 	DropdownMenuSeparator,
@@ -15,12 +20,7 @@ import {
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 } from "@ui-kit/Dropdown";
-import TemplateService from "@ext/templates/components/TemplateService";
-import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
-import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
-import { useApi } from "@core-ui/hooks/useApi";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import Icon from "@components/Atoms/Icon";
+import { useCallback, useState } from "react";
 
 const TemplateItemList = ({ itemRefPath, disabled }: { itemRefPath: string; disabled: boolean }) => {
 	const [list, setList] = useState<ProviderItemProps[]>([]);
@@ -102,16 +102,16 @@ const TemplateItemList = ({ itemRefPath, disabled }: { itemRefPath: string; disa
 
 	const items = isApiRequest
 		? [
-				<DropdownMenuItem key={0} disabled>
-					<SpinnerLoader width={14} height={14} />
+				<DropdownMenuItem disabled key={0}>
+					<SpinnerLoader height={14} width={14} />
 					{t("loading")}
 				</DropdownMenuItem>,
-		  ]
+			]
 		: list.map((item) => (
 				<DropdownMenuItem key={item.id} onSelect={() => onSelectHandler(item)}>
 					{item.title.length ? item.title : t("article.no-name")}
 				</DropdownMenuItem>
-		  ));
+			));
 
 	const onOpen = useCallback(
 		(open: boolean) => {

@@ -16,9 +16,9 @@ div#root {
 }
 
 * {
-	margin: 0;
-	padding: 0;
 	box-sizing: border-box;
+	padding: 0;
+	margin: 0;
 	font-display: swap !important;
 }
 

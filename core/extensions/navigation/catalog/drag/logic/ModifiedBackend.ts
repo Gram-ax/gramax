@@ -1,7 +1,7 @@
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
+import { MouseTransition, MultiBackend, TouchTransition } from "dnd-multi-backend";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
-import { MouseTransition, TouchTransition, MultiBackend } from "dnd-multi-backend";
 
 const HTML5toTouch = {
 	backends: [

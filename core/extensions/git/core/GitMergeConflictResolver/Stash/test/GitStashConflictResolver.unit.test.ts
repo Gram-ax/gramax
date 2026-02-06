@@ -1,7 +1,7 @@
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import type { RepositoryStashConflictState } from "@ext/git/core/Repository/state/RepositoryState";
+import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";

@@ -1,8 +1,8 @@
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { CSSProperties, forwardRef, useCallback } from "react";
+import { cn } from "@core-ui/utils/cn";
 import { DropdownMenuPrimitive, dropdownMenuContentStyles } from "ics-ui-kit/components/dropdown";
 import { useComponentVariant } from "ics-ui-kit/providers/component-variant-context";
-import { cn } from "@core-ui/utils/cn";
+import { type CSSProperties, forwardRef, useCallback } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 const PrimitiveDropdownMenuContent = DropdownMenuPrimitive.Content;
 const PrimitiveDropdownMenuPortal = DropdownMenuPrimitive.Portal;
@@ -47,6 +47,7 @@ export const ToolbarDropdownMenuContent = forwardRef<HTMLDivElement, ToolbarDrop
 				)}
 				data-dropdown-menu-content
 				data-qa="dropdown-menu-content"
+				data-testid="dropdown-content"
 				onCloseAutoFocus={onCloseAutoFocus}
 			>
 				<div className={dropdownMenuContentStyles({ theme, className: contentClassName })} style={contentStyle}>

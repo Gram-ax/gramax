@@ -1,9 +1,9 @@
 import getCommentsByAuthors from "@app/commands/elements/comments/getCommentsByAuthors";
-import deleteComment from "./deleteComment";
-import getNewCommentId from "./getNewCommentId";
-import getComment from "./get";
-import updateComment from "./update";
 import copyComment from "./copy";
+import deleteComment from "./deleteComment";
+import getComment from "./get";
+import getNewCommentId from "./getNewCommentId";
+import updateComment from "./update";
 
 const comments = {
 	deleteComment,

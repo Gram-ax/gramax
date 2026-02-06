@@ -1,10 +1,10 @@
+import ElementGroups from "@ext/markdown/core/element/ElementGroups";
+import { editName } from "@ext/markdown/elements/blockProperty/consts";
+import BlockPropertyComponent from "@ext/markdown/elements/blockProperty/edit/components/BlockPropertyComponent";
+import blockPropertySchema from "@ext/markdown/elements/blockProperty/edit/models/blockPropertySchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import blockPropertySchema from "@ext/markdown/elements/blockProperty/edit/models/blockPropertySchema";
-import { editName } from "@ext/markdown/elements/blockProperty/consts";
-import BlockPropertyComponent from "@ext/markdown/elements/blockProperty/edit/components/BlockPropertyComponent";
-import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {

@@ -31,10 +31,10 @@ const ShareTicketHandler = ({ ticket }: { ticket: string }) => {
 		<ModalLayout isOpen={isOpen} onClose={close}>
 			<ModalLayoutLight>
 				<CloneWithShareData
-					shareData={shareLinkData}
 					onCloneError={close}
 					onCloneStart={close}
 					onCreateSourceDataClose={close}
+					shareData={shareLinkData}
 				/>
 			</ModalLayoutLight>
 		</ModalLayout>

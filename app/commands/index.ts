@@ -1,7 +1,9 @@
+import ai from "@app/commands/ai";
 import enterprise from "@app/commands/enterprise";
 import inbox from "@app/commands/inbox";
 import setLanguage from "@app/commands/language/set";
 import pdf from "@app/commands/pdf";
+import templates from "@app/commands/templates";
 import workspace from "@app/commands/workspace";
 import Application from "../types/Application";
 import { Command } from "../types/Command";
@@ -14,14 +16,12 @@ import healthcheck from "./healthcheck";
 import item from "./item";
 import mergeRequests from "./mergeRequests";
 import page from "./pageData";
+import quiz from "./quiz";
 import search from "./search";
 import storage from "./storage";
 import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
 import word from "./word";
-import templates from "@app/commands/templates";
-import ai from "@app/commands/ai";
-import quiz from "./quiz";
 
 const commands = {
 	ai,

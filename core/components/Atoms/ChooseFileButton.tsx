@@ -21,18 +21,18 @@ const ChooseFile = (props: ChooseFileProps) => {
 	}, [fileNameProp]);
 
 	return (
-		<Tooltip visible={!!errorText} content={<span>{errorText}</span>}>
+		<Tooltip content={<span>{errorText}</span>} visible={!!errorText}>
 			<div className={className + (errorText ? " error-file" : "")}>
 				<span>
 					{t(fileName ? "file" : "style-guide.select-file")}: {fileName ?? t("style-guide.no-file-selected")}
 				</span>
 				<input
+					accept={extension}
 					onChange={(e) => {
 						onChange(e.target.files[0]);
 						setFileName(e.target.files[0].name);
 					}}
 					type="file"
-					accept={extension}
 				/>
 			</div>
 		</Tooltip>

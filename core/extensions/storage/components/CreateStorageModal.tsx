@@ -1,11 +1,11 @@
-import { ComponentProps, useState } from "react";
-import SourceData from "../logic/SourceDataProvider/model/SourceData";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import getStorageNameByData from "../logic/utils/getStorageNameByData";
 import CreateStorage from "@ext/storage/components/CreateStorage";
+import { ComponentProps, useState } from "react";
+import SourceData from "../logic/SourceDataProvider/model/SourceData";
+import getStorageNameByData from "../logic/utils/getStorageNameByData";
 
 interface CreateStorageModalProps extends Omit<ComponentProps<typeof CreateStorage>, "onSubmit"> {
 	onSubmit: (data: SourceData) => void;
@@ -34,7 +34,7 @@ const CreateStorageModal = ({ onSubmit, onClose, ...props }: CreateStorageModalP
 	};
 
 	return (
-		<CreateStorage onSubmit={preSubmitStorage} onClose={onClose} isOpen={isOpen} setIsOpen={setIsOpen} {...props} />
+		<CreateStorage isOpen={isOpen} onClose={onClose} onSubmit={preSubmitStorage} setIsOpen={setIsOpen} {...props} />
 	);
 };
 

@@ -64,14 +64,14 @@ const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, se
 	);
 
 	return (
-		<NodeViewWrapper as="span" draggable={true} data-drag-handle>
+		<NodeViewWrapper as="span" data-drag-handle draggable={true}>
 			<InlineProperty
 				bind={bind}
-				selected={isSelected}
-				onUpdate={onUpdate}
-				props={properties}
 				isEditable={extension.options.canChangeProps}
 				onChangeProperty={onSubmit}
+				onUpdate={onUpdate}
+				props={properties}
+				selected={isSelected}
 			/>
 		</NodeViewWrapper>
 	);

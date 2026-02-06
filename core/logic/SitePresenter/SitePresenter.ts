@@ -2,43 +2,44 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
-import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import homeSections from "@core/utils/homeSections";
 import htmlToText from "@dynamicImports/htmlToText";
-import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
-import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { catalogHasItems, isLanguageCategory, resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
-import { StoredQuestion } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
 import { getStoredQuestionsByContent } from "@ext/markdown/elements/question/render/logic/getStoredQuestionsByContent";
+import type { StoredQuestion } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
 import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandlers";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
-import { Property, PropertyValue, type PropertyID } from "@ext/properties/models";
+import type { Property, PropertyID, PropertyValue } from "@ext/properties/models";
+import type { QuizSettings } from "@ext/quiz/models/types";
 import RuleProvider from "@ext/rules/RuleProvider";
-import { TemplateField } from "@ext/templates/models/types";
+import type { TemplateField } from "@ext/templates/models/types";
+import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspaceConfig, WorkspaceSection } from "@ext/workspace/WorkspaceConfig";
 import { WorkspaceView } from "@ext/workspace/WorkspaceConfig";
-import UiLanguage, { ContentLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
-import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
-import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
-import { CatalogLink, ItemLink, TitledLink } from "../../extensions/navigation/NavigationLinks";
-import { TocItem } from "../../extensions/navigation/article/logic/createTocItems";
-import Navigation from "../../extensions/navigation/catalog/main/logic/Navigation";
-import UserInfo from "../../extensions/security/logic/User/UserInfo";
-import Context from "../Context/Context";
+import type UiLanguage from "../../extensions/localization/core/model/Language";
+import { ContentLanguage, resolveLanguage } from "../../extensions/localization/core/model/Language";
+import type MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
+import type ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type { TocItem } from "../../extensions/navigation/article/logic/createTocItems";
+import type Navigation from "../../extensions/navigation/catalog/main/logic/Navigation";
+import type { CatalogLink, ItemLink, TitledLink } from "../../extensions/navigation/NavigationLinks";
+import type UserInfo from "../../extensions/security/logic/User/UserInfo";
+import type Context from "../Context/Context";
 import Path from "../FileProvider/Path/Path";
-import { Article } from "../FileStructue/Article/Article";
+import type { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
-import { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
+import type { ArticleFilter, Catalog, ItemFilter } from "../FileStructue/Catalog/Catalog";
 import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "../FileStructue/Catalog/ReadonlyCatalog";
-import { QuizSettings } from "@ext/quiz/models/types";
 
 export type ClientCatalogProps = {
 	name: string;
@@ -60,8 +61,8 @@ export type ClientCatalogProps = {
 	syntax?: Syntax;
 	docrootIsNoneExsistent?: boolean;
 	notFound: boolean;
-	resolvedFilterProperty?: PropertyID;
-	filterProperties?: PropertyID[];
+	resolvedFilterPropertyValue?: PropertyID;
+	filterProperty?: PropertyID;
 	logo?: string;
 	logo_dark?: string;
 };
@@ -339,9 +340,9 @@ export default class SitePresenter {
 			docroot: catalog.getRelativeRootCategoryPath()?.value,
 			supportedLanguages: Array.from(catalog.props.supportedLanguages || []),
 			versions: catalog.props.versions,
-			filterProperties: catalog.props.filterProperties,
+			filterProperty: catalog.props.filterProperty,
 			resolvedVersion: catalog.props.resolvedVersion,
-			resolvedFilterProperty: catalog.props.resolvedFilterProperty,
+			resolvedFilterPropertyValue: catalog.props.resolvedFilterPropertyValue,
 			resolvedVersions: catalog.props.resolvedVersions,
 			syntax: syntax?.toUpperCase() === Syntax.xml ? Syntax.xml : syntax,
 			docrootIsNoneExsistent: catalog.props.docrootIsNoneExistent,

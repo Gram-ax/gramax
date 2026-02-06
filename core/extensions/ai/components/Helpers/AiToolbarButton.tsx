@@ -1,5 +1,5 @@
-import { ToolbarIcon, ToolbarToggleButton, ToolbarToggleButtonProps } from "@ui-kit/Toolbar";
 import styled from "@emotion/styled";
+import { ToolbarIcon, ToolbarToggleButton, ToolbarToggleButtonProps } from "@ui-kit/Toolbar";
 
 interface AiToolbarButtonProps extends Omit<ToolbarToggleButtonProps, "children"> {
 	tooltipText: string;
@@ -21,7 +21,7 @@ const StyledToolbarToggleButton = styled(ToolbarToggleButton)`
 
 export const AiToolbarButton = ({ tooltipText, icon, ...otherProps }: AiToolbarButtonProps) => {
 	return (
-		<StyledToolbarToggleButton tooltipText={tooltipText} focusable className="text-secondary-bg" {...otherProps}>
+		<StyledToolbarToggleButton className="text-secondary-bg" focusable tooltipText={tooltipText} {...otherProps}>
 			<ToolbarIcon icon={icon} />
 		</StyledToolbarToggleButton>
 	);

@@ -1,5 +1,5 @@
-import { isAnswersCorrect } from "./isAnswersCorrect";
 import { Question } from "@ext/markdown/elements/question/types";
+import { isAnswersCorrect } from "./isAnswersCorrect";
 
 describe("isAnswersCorrect", () => {
 	it("should return true if all answers are correct", () => {

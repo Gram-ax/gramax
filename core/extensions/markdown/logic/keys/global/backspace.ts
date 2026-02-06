@@ -1,8 +1,8 @@
+import { isNodeSelectable } from "@ext/markdown/elementsUtils/isNodeSelectable";
 import getNodeByPos from "../../../elementsUtils/getNodeByPos";
 import isTypeOf from "../../../elementsUtils/isTypeOf";
 import KeyboardRule from "../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
 import KeyboardShortcut from "../../../elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
-import { isNodeSelectable } from "@ext/markdown/elementsUtils/isNodeSelectable";
 
 const betweenNoteOrCut: KeyboardRule = ({ editor }) => {
 	const { state } = editor;

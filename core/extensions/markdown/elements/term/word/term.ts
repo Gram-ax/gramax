@@ -1,8 +1,8 @@
 import docx from "@dynamicImports/docx";
-import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
-import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
 import { escapeLinkForPatcher } from "@ext/wordExport/utils/escapeLinkForPatcher";
+import type { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const termWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
 	const { ExternalHyperlink } = await docx();

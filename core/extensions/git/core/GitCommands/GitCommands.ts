@@ -1,29 +1,30 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import fixConflictLibgit2 from "@ext/git/actions/MergeConflictHandler/logic/FixConflictLibgit2";
+import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
+import type { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
+import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import LibGit2Commands from "@ext/git/core/GitCommands/LibGit2Commands";
 import type {
 	CommitAuthorInfo,
+	ConfigValue,
 	MergeResult,
 	UpstreamCountFileChanges,
 } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
-import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
-import { Caller } from "@ext/git/core/GitCommands/errors/model/Caller";
-import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
-import GitVersionData from "@ext/git/core/model/GitVersionData";
+import type GitVersionData from "@ext/git/core/model/GitVersionData";
 import t from "@ext/localization/locale/translate";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import assert from "assert";
+import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../logic/FileProvider/Path/Path";
-import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
-import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
-import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
-import { GitBranch } from "../GitBranch/GitBranch";
-import { GitStatus } from "../GitWatcher/model/GitStatus";
-import GitSourceData from "../model/GitSourceData.schema";
+import type SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
+import type { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
+import type { GitBranch } from "../GitBranch/GitBranch";
+import type { GitStatus } from "../GitWatcher/model/GitStatus";
+import type GitSourceData from "../model/GitSourceData.schema";
 import GitStash from "../model/GitStash";
-import GitStorageData from "../model/GitStorageData";
+import type GitStorageData from "../model/GitStorageData";
 import { GitVersion } from "../model/GitVersion";
 import GitError from "./errors/GitError";
 import GitCommandsModel, {
@@ -49,13 +50,17 @@ export type CloneOptions = {
 	isBare?: boolean;
 	onProgress?: (progress: RemoteProgress) => void;
 	allowNonEmptyDir?: boolean;
+	skipLfsPull?: boolean;
 };
 
 export class GitCommands {
 	private _impl: GitCommandsModel;
 	private _events = createEventEmitter<GitCommandsEvents>();
 
-	constructor(private _fp: FileProvider, private _repoPath: Path) {
+	constructor(
+		private _fp: FileProvider,
+		private _repoPath: Path,
+	) {
 		this._impl = new LibGit2Commands(this._fp.rootPath.join(_repoPath));
 	}
 
@@ -323,6 +328,7 @@ export class GitCommands {
 					opts.depth,
 					opts.isBare,
 					opts.allowNonEmptyDir,
+					opts.skipLfsPull,
 					opts.onProgress,
 				);
 			} catch (e) {
@@ -370,6 +376,26 @@ export class GitCommands {
 				}
 			},
 		);
+	}
+
+	async pullLfsObjects(
+		data: GitSourceData,
+		paths: Path[],
+		checkout: boolean,
+		cancelToken: CancelToken,
+	): Promise<void> {
+		return await this._logWrapper("pullLfsObjects", "Pulling LFS objects", async () => {
+			try {
+				return await this._impl.pullLfsObjects(
+					data,
+					paths.map((p) => p.value),
+					checkout,
+					cancelToken,
+				);
+			} catch (e) {
+				throw getGitError(e, { repositoryPath: this._repoPath.value });
+			}
+		});
 	}
 
 	async reset(opts: ResetOptions): Promise<void> {
@@ -718,6 +744,14 @@ export class GitCommands {
 		} catch (e) {
 			throw getGitError(e, { repositoryPath: this._repoPath.value });
 		}
+	}
+
+	async getConfigVal(name: string): Promise<string> {
+		return await this._impl.getConfigVal(name);
+	}
+
+	async setConfigVal(name: string, val: ConfigValue): Promise<void> {
+		return await this._impl.setConfigVal(name, val);
 	}
 
 	// todo: optimize

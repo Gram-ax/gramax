@@ -1,16 +1,16 @@
+import parseStorageUrl from "@core/utils/parseStorageUrl";
+import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
+import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
+import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import t from "@ext/localization/locale/translate";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@ui-kit/Button";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { Input, SecretInput } from "@ui-kit/Input";
-import { Button } from "@ui-kit/Button";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useLayoutEffect } from "react";
-import t from "@ext/localization/locale/translate";
-import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
-import parseStorageUrl from "@core/utils/parseStorageUrl";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 interface EditConfluenceServerProps {
 	data?: Partial<ConfluenceServerSourceData>;
@@ -68,7 +68,7 @@ const EditConfluenceServer = ({ onSubmit, data }: EditConfluenceServerProps) => 
 
 	useLayoutEffect(() => {
 		const primaryButton = (
-			<Button type="submit" onClick={formSubmit}>
+			<Button onClick={formSubmit} type="submit">
 				{t("add")}
 			</Button>
 		);
@@ -85,41 +85,41 @@ const EditConfluenceServer = ({ onSubmit, data }: EditConfluenceServerProps) => 
 			<form className="contents ui-kit" onSubmit={formSubmit}>
 				<FormStack>
 					<FormField
-						name="url"
-						title={t("forms.confluence-server-source-data.props.domain.name")}
-						description={t("forms.confluence-server-source-data.props.domain.description")}
 						control={({ field }) => (
 							<Input
 								{...field}
-								readOnly={!!data?.domain}
 								placeholder={t("forms.confluence-server-source-data.props.domain.placeholder")}
+								readOnly={!!data?.domain}
 							/>
 						)}
+						description={t("forms.confluence-server-source-data.props.domain.description")}
+						name="url"
+						title={t("forms.confluence-server-source-data.props.domain.name")}
 					/>
 					<FormField
-						name="token"
-						title={t("forms.confluence-server-source-data.props.token.name")}
+						control={({ field }) => (
+							<SecretInput
+								{...field}
+								placeholder={t("forms.confluence-server-source-data.props.token.placeholder")}
+								showClearIcon
+							/>
+						)}
 						description={
 							<>
 								{t("forms.confluence-server-source-data.props.token.description")}.
 								<a
 									href="https://confluence.atlassian.com/enterprise/using-personal-access-tokens-1026032365.html"
-									target="_blank"
 									rel="noreferrer"
+									target="_blank"
 								>
-									<Button type="button" variant="link" size="xs">
+									<Button size="xs" type="button" variant="link">
 										{t("more")}
 									</Button>
 								</a>
 							</>
 						}
-						control={({ field }) => (
-							<SecretInput
-								{...field}
-								showClearIcon
-								placeholder={t("forms.confluence-server-source-data.props.token.placeholder")}
-							/>
-						)}
+						name="token"
+						title={t("forms.confluence-server-source-data.props.token.name")}
 					/>
 				</FormStack>
 			</form>

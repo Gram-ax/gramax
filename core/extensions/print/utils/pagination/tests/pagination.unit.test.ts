@@ -1,10 +1,12 @@
-import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
-import { TablePaginator } from "@ext/markdown/elements/table/print/TablePaginator";
-import { RowPaginator } from "@ext/markdown/elements/table/print/RowPaginator";
+/** biome-ignore-all lint/correctness/noUndeclaredVariables: <explanation> */
+/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
 import { ListPaginator } from "@ext/markdown/elements/list/print/ListPaginator";
-import { SnippetPaginator } from "@ext/markdown/elements/snippet/print/SnippetPaginator";
 import { NotePaginator } from "@ext/markdown/elements/note/print/NotePaginator";
+import { SnippetPaginator } from "@ext/markdown/elements/snippet/print/SnippetPaginator";
+import { RowPaginator } from "@ext/markdown/elements/table/print/RowPaginator";
+import { TablePaginator } from "@ext/markdown/elements/table/print/TablePaginator";
 import { TabsPaginator } from "@ext/markdown/elements/tabs/print/TabsPaginator";
+import type { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
 import { AbortController } from "abort-controller";
@@ -114,6 +116,7 @@ describe("Paginator System", () => {
 			td.textContent = "Data";
 			row.appendChild(td);
 			tbody.appendChild(row);
+			tbody.appendChild(row.cloneNode(true));
 			table.appendChild(tbody);
 			tableWrapper.appendChild(table);
 
@@ -311,25 +314,50 @@ describe("Paginator System", () => {
 			expect(mockPaginator.currentContainer.children).toHaveLength(1);
 		});
 
-		it("should create new list with correct start number on page break", () => {
-			const ol = document.createElement("ol");
+		describe("should create new list with correct start number on page break", () => {
+			it("without splitting list item", () => {
+				const ol = document.createElement("ol");
 
-			const mockParentPaginator = {
-				createPage: jest.fn(() => document.createElement("div")),
-				currentContainer: {},
-			};
+				const mockParentPaginator = {
+					createPage: jest.fn(() => document.createElement("div")),
+					currentContainer: {},
+				};
 
-			const paginator = new ListPaginator(ol, mockParentPaginator as any);
-			paginator["_currentStartNumber"] = 3;
-			paginator["_listContainer"] = document.createElement("ol");
-			paginator["currentContainer"] = document.createElement("li");
+				const paginator = new ListPaginator(ol, mockParentPaginator as any);
+				paginator["_currentStartNumber"] = 3;
+				paginator["_listContainer"] = document.createElement("ol");
+				paginator["currentContainer"] = document.createElement("li");
 
-			paginator.createPage();
+				paginator.createPage();
 
-			expect(mockParentPaginator.createPage).toHaveBeenCalled();
-			const newList = mockParentPaginator.createPage.mock.results[0].value.children[0];
-			expect(newList.tagName).toBe("OL");
-			expect(newList.getAttribute("start")).toBe("3");
+				expect(mockParentPaginator.createPage).toHaveBeenCalled();
+				const newList = mockParentPaginator.createPage.mock.results[0].value.children[0] as HTMLElement;
+				expect(newList.tagName).toBe("OL");
+				expect(newList.style["counter-reset"]).toBe("listitem 2");
+				expect(newList.getAttribute("start")).toBe("3");
+			});
+
+			it("with splitting list item", () => {
+				const ol = document.createElement("ol");
+
+				const mockParentPaginator = {
+					createPage: jest.fn(() => document.createElement("div")),
+					currentContainer: {},
+				};
+
+				const paginator = new ListPaginator(ol, mockParentPaginator as any);
+				paginator["_currentStartNumber"] = 3;
+				paginator["_listContainer"] = document.createElement("ol");
+				paginator["currentContainer"] = document.createElement("li");
+				paginator["currentContainer"].appendChild(document.createElement("div"));
+
+				paginator.createPage();
+
+				expect(mockParentPaginator.createPage).toHaveBeenCalled();
+				const newList = mockParentPaginator.createPage.mock.results[0].value.children[0];
+				expect(newList.tagName).toBe("OL");
+				expect(newList.getAttribute("start")).toBe("3");
+			});
 		});
 
 		it("should handle task items correctly", () => {
@@ -462,6 +490,7 @@ describe("Paginator System", () => {
 
 		it("should create new page container when content overflows", () => {
 			const tabs = document.createElement("div");
+			tabs.appendChild(document.createElement("div"));
 
 			const mockParentPaginator = {
 				createPage: jest.fn(() => document.createElement("div")),
@@ -470,7 +499,9 @@ describe("Paginator System", () => {
 
 			const paginator = new TabsPaginator(tabs, mockParentPaginator as any);
 			paginator["currentContainer"] = document.createElement("div");
-			paginator["tabsContainer"] = document.createElement("div");
+			paginator["_tabsWrapper"] = document.createElement("div");
+			paginator["_tabsContainer"] = document.createElement("div");
+			paginator["_currentTabContainer"] = document.createElement("div");
 			paginator["addTabDimension"] = jest.fn();
 
 			const newContainer = paginator.createPage();

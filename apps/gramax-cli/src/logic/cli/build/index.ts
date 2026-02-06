@@ -12,7 +12,7 @@ import { checkExistsPath, checkIsFile, setRootPath } from "../utils/paths";
 import CliUserError from "../../CliUserError";
 import { copyWordTemplatesInCli, copyPdfTemplatesInCli } from "./copyTemplatesInCli";
 import { setFeatureList } from "@ext/toggleFeatures/features";
-import { DirectoryInfoBasic } from "@app/resolveModule/fscall/static";
+import type { DirectoryInfoBasic } from "../../initialDataUtils/types";
 import { STORAGE_DIR_NAME } from "@app/config/const";
 
 const CONFIG_NAME = "gramax.config.yaml";
@@ -99,7 +99,7 @@ const validateBaseUrl = (baseUrl: string | undefined): void => {
 		throw new CliUserError(`BaseUrl must be an absolute URL like "https://example.com". Received: "${baseUrl}"`);
 	}
 
-	if (!["http", "https"].includes(url.protocol)) {
+	if (!["http:", "https:"].includes(url.protocol)) {
 		throw new CliUserError(`BaseUrl: expected protocol "http" or "https", got "${url.protocol}"`);
 	}
 };
@@ -139,16 +139,8 @@ const getStorageTree = (targetDir: Path, fp: DiskFileProvider) => async () => {
 };
 
 const buildCommandFunction = async (options: BuildOptions) => {
-	const {
-		source,
-		destination,
-		SkipCheck,
-		customCss,
-		docxTemplates,
-		BaseUrl: baseUrl,
-		pdfTemplates,
-		...configOptions
-	} = options;
+	const { source, destination, SkipCheck, customCss, docxTemplates, baseUrl, pdfTemplates, ...configOptions } =
+		options;
 
 	const targetDir = new Path(destination);
 	const fullPath = resolve(source);
@@ -167,7 +159,7 @@ const buildCommandFunction = async (options: BuildOptions) => {
 	const app = await getApp();
 	const wm = app.wm.current();
 	const catalog = await wm.getContextlessCatalog(catalogName);
-	if (!catalog) throw new CliUserError("This is an empty catalog");
+	if (!catalog?.getItems().length) throw new CliUserError("This is an empty catalog");
 
 	if (!SkipCheck) {
 		if (!(await check(catalogName))) process.exit(1);

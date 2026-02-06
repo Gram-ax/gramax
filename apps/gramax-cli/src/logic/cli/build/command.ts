@@ -12,7 +12,7 @@ export interface BuildOptions {
 	customCss: string;
 	docxTemplates: string;
 	pdfTemplates: string;
-	BaseUrl: string;
+	baseUrl: string;
 }
 
 export interface OptionProps {
@@ -93,7 +93,7 @@ const buildOptions: { [K in keyof BuildOptions]: OptionProps } = {
 		short: "pt",
 		type: "path|glob",
 	},
-	BaseUrl: {
+	baseUrl: {
 		description: "Base site URL for sitemap.xml and robots.txt.",
 		type: "url",
 	},

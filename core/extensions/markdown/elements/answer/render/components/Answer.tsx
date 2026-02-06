@@ -1,11 +1,11 @@
 import { classNames } from "@components/libs/classNames";
-import { ReactNode, useCallback, memo, HTMLAttributes, useMemo } from "react";
+import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
-import { AnswerType, AnswerValueType } from "@ext/markdown/elements/answer/types";
 import { getComponentByType } from "@ext/markdown/elements/answer/edit/logic/getComponentByType";
 import { useAnswerProps } from "@ext/markdown/elements/answer/render/logic/useAnswerProps";
+import { AnswerType, AnswerValueType } from "@ext/markdown/elements/answer/types";
 import { Skeleton } from "@ui-kit/Skeleton";
-import { cn } from "@core-ui/utils/cn";
+import { HTMLAttributes, memo, ReactNode, useCallback, useMemo } from "react";
 
 interface BaseAnswerProps extends HTMLAttributes<HTMLDivElement> {
 	correct: boolean;
@@ -86,11 +86,11 @@ export const Answer = memo(
 		return (
 			<BaseAnswer
 				{...props}
-				correct={isCorrected}
-				selected={isCorrected === undefined && isSelected}
-				onClick={onClick}
 				className="cursor-pointer"
+				correct={isCorrected}
 				disabled={state !== "answering"}
+				onClick={onClick}
+				selected={isCorrected === undefined && isSelected}
 			>
 				{state === "loading" && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
 				<AnswerContent className={cn(state === "loading" && "invisible")}>

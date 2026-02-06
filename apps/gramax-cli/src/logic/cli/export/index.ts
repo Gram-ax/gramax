@@ -3,23 +3,30 @@ import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
+import type { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import chalk from "chalk";
 import { exists, mkdir, readFile, writeFileSync } from "fs-extra";
 import { basename, dirname, resolve } from "path";
 import ChalkLogger from "../../../utils/ChalkLogger";
 import CliUserError from "../../CliUserError";
+import askQuestion from "../utils/askQuestion";
 import { logStep, logStepWithErrorSuppression } from "../utils/logger";
 import { checkExistsPath, getPathWithExtension, setRootPath } from "../utils/paths";
-import { defaultName, ExportOptions } from "./command";
+import { defaultName, type ExportOptions } from "./command";
+import legacyExport from "./legacyExport";
 import runPdfCli from "./newPdf/runPdfCli";
-import askQuestion from "../utils/askQuestion";
 
-const fileExt: { [key in ExportFormat]: string } = {
+const fileExts: { [key in ExportFormat]: string } = {
 	pdf: "pdf",
+	"legacy-pdf": "pdf",
 	"beta-pdf": "pdf",
 	docx: "docx",
+};
+
+const warnMessages: Partial<{ [key in ExportFormat]: string }> = {
+	"legacy-pdf": `\`legacy-pdf\` uses the legacy PDF export for compatibility. Use \`pdf\` unless you need the old output.`,
+	"beta-pdf": `\`beta-pdf\` is now an alias of \`pdf\`. Use \`pdf\` instead.`,
 };
 
 export const exportCommandFunction = async (options: ExportOptions) => {
@@ -27,8 +34,12 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 
 	if (!ExportFormat[format]) throw new CliUserError(`Unsupported format: ${format}. Allowed formats: docx, pdf`);
 
-	const formatName = format.toUpperCase();
-	const outputPath = await getPathWithExtension(resolve(output), `${defaultName}.${fileExt[format]}`);
+	const warnMessage = warnMessages[format];
+	if (warnMessage) ChalkLogger.warn(`${warnMessage}\n`);
+
+	const fileExt = fileExts[format];
+	const formatName = fileExt.toUpperCase();
+	const outputPath = await getPathWithExtension(resolve(output), `${defaultName}.${fileExt}`);
 
 	const fullPath = resolve(source);
 	await checkExistsPath(fullPath);
@@ -47,8 +58,8 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 
 	const getTemplateValue = async () => {
 		if (!template) return;
-		if (format !== ExportFormat.docx) {
-			ChalkLogger.warn("`template` is only applicable when format is 'docx'. It will be ignored.");
+		if (format === ExportFormat["legacy-pdf"]) {
+			ChalkLogger.warn("`template` is not applicable when format is 'legacy-pdf'. It will be ignored.");
 			ChalkLogger.log();
 			return;
 		}
@@ -130,11 +141,13 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 	const simpleExport = async () => {
 		const wordTemplate = await getTemplateValue();
 		await checkAndProcessUnsupportedElements();
-		const getWordCommand = commands.word.getAsWordDocument;
-		const command: typeof getWordCommand = format === ExportFormat.docx ? getWordCommand : commands.pdf.getDocument;
+		const getWordCommand: typeof commands.word.getAsWordDocument.do = commands.word.getAsWordDocument.do.bind(
+			commands.word.getAsWordDocument,
+		);
+		const command: typeof getWordCommand = format === ExportFormat.docx ? getWordCommand : legacyExport(app);
 
 		const wordDocument = await logStepWithErrorSuppression(`Generating ${formatName}`, () =>
-			command.do({
+			command({
 				ctx,
 				catalogName,
 				itemPath: new Path(""),
@@ -149,7 +162,7 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 		});
 	};
 
-	await (format === ExportFormat["beta-pdf"]
+	await (format === ExportFormat.pdf || format === ExportFormat["beta-pdf"]
 		? runPdfCli({
 				source,
 				output: outputPath,
@@ -160,7 +173,7 @@ export const exportCommandFunction = async (options: ExportOptions) => {
 					titleNumber: PdfNumber,
 					template,
 				},
-		  })
+			})
 		: simpleExport());
 	ChalkLogger.log(`Saved to: ${outputPath}`, { indent: 1 });
 };

@@ -1,11 +1,11 @@
-import { WorkspaceSettings } from "../types/WorkspaceComponent";
-import { Button, IconButton } from "@ui-kit/Button";
-import { FileInput, Input, type FileValue } from "@ui-kit/Input";
-import { StyledField } from "@ext/enterprise/components/admin/ui-kit/StyledField";
 import styled from "@emotion/styled";
-import EditStyles from "@ext/workspace/components/EditStyles";
-import { useRef } from "react";
+import { StyledField } from "@ext/enterprise/components/admin/ui-kit/StyledField";
 import t from "@ext/localization/locale/translate";
+import EditStyles from "@ext/workspace/components/EditStyles";
+import { Button, IconButton } from "@ui-kit/Button";
+import { FileInput, type FileValue, Input } from "@ui-kit/Input";
+import { useRef } from "react";
+import { WorkspaceSettings } from "../types/WorkspaceComponent";
 
 const StyledFileInput = styled(FileInput)`
 	width: 20rem;
@@ -37,7 +37,6 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 			<h2 className="text-xl font-medium mb-4">{t("workspace.appearance")}</h2>
 			<div className="space-y-4">
 				<StyledField
-					title={t("file-input.logo-light")}
 					control={() => (
 						<div className="flex-[2]">
 							{localSettings.style?.logo ? (
@@ -47,27 +46,26 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 										style={{ backgroundColor: "#f4f4f4", width: "20rem" }}
 									>
 										<img
-											src={`data:image/svg+xml;base64,${toBase64(localSettings.style.logo)}`}
 											alt="logo"
 											className="w-full h-8"
+											src={`data:image/svg+xml;base64,${toBase64(localSettings.style.logo)}`}
 										/>
 									</div>
 									<IconButton
 										icon="x"
-										variant="outline"
 										onClick={() => {
 											setLocalSettings((prev) => ({
 												...prev,
 												style: { ...prev.style, logo: undefined },
 											}));
 										}}
+										variant="outline"
 									/>
 									<div className="relative cursor-pointer">
 										<Input
-											id="style.logo"
-											type="file"
 											accept="image/svg+xml"
 											className="opacity-0 cursor-pointer absolute w-full h-full top-0 file:cursor-pointer"
+											id="style.logo"
 											onChange={async (e) => {
 												const file = e.target.files?.[0];
 												if (!file) return;
@@ -78,6 +76,7 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 													style: { ...prev.style, logo: svg },
 												}));
 											}}
+											type="file"
 										/>
 										<IconButton icon="upload" variant="outline" />
 									</div>
@@ -85,7 +84,6 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 							) : (
 								<StyledFileInput
 									accept="image/svg+xml"
-									placeholder={t("file-input.select-file")}
 									chooseButtonText={t("select")}
 									onChange={async (file: FileValue) => {
 										if (!file || !(file instanceof File)) return;
@@ -96,14 +94,15 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 											style: { ...prev.style, logo: svg },
 										}));
 									}}
+									placeholder={t("file-input.select-file")}
 								/>
 							)}
 						</div>
 					)}
+					title={t("file-input.logo-light")}
 				/>
 
 				<StyledField
-					title={t("file-input.logo-dark")}
 					control={() => (
 						<div className="flex-[2]">
 							{localSettings.style?.logoDark ? (
@@ -113,27 +112,26 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 										style={{ backgroundColor: "#151828", width: "20rem" }}
 									>
 										<img
-											src={`data:image/svg+xml;base64,${toBase64(localSettings.style.logoDark)}`}
 											alt="logo"
 											className="w-full h-8"
+											src={`data:image/svg+xml;base64,${toBase64(localSettings.style.logoDark)}`}
 										/>
 									</div>
 									<IconButton
 										icon="x"
-										variant="outline"
 										onClick={() => {
 											setLocalSettings((prev) => ({
 												...prev,
 												style: { ...prev.style, logoDark: undefined },
 											}));
 										}}
+										variant="outline"
 									/>
 									<div className="relative cursor-pointer">
 										<Input
-											id="style.logoDark"
-											type="file"
 											accept="image/svg+xml"
 											className="opacity-0 cursor-pointer absolute w-full h-full top-0 file:cursor-pointer"
+											id="style.logoDark"
 											onChange={async (e) => {
 												const file = e.target.files?.[0];
 												if (!file) return;
@@ -144,6 +142,7 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 													style: { ...prev.style, logoDark: svg },
 												}));
 											}}
+											type="file"
 										/>
 										<IconButton icon="upload" variant="outline" />
 									</div>
@@ -151,7 +150,6 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 							) : (
 								<StyledFileInput
 									accept="image/svg+xml"
-									placeholder={t("file-input.select-file")}
 									chooseButtonText={t("select")}
 									onChange={async (file: FileValue) => {
 										if (!file || !(file instanceof File)) return;
@@ -162,32 +160,34 @@ export function WorkspaceStyling({ localSettings, setLocalSettings }: WorkspaceS
 											style: { ...prev.style, logoDark: svg },
 										}));
 									}}
+									placeholder={t("file-input.select-file")}
 								/>
 							)}
 						</div>
 					)}
+					title={t("file-input.logo-dark")}
 				/>
 
 				<StyledField
-					title={t("workspace.css-style")}
 					control={() => (
 						<div className="flex-[2]">
 							<EditStyles
 								customCss={localSettings.style?.css || ""}
+								revertCustomCss={handleRevertCss}
 								setCustomCss={(css: string) => {
 									setLocalSettings((prev) => ({
 										...prev,
 										style: { ...prev.style, css },
 									}));
 								}}
-								revertCustomCss={handleRevertCss}
 							>
-								<Button variant="outline" onClick={handleOpenCssEditor}>
+								<Button onClick={handleOpenCssEditor} variant="outline">
 									{t("edit2")}
 								</Button>
 							</EditStyles>
 						</div>
 					)}
+					title={t("workspace.css-style")}
 				/>
 			</div>
 		</div>

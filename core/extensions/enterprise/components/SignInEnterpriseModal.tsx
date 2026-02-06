@@ -20,10 +20,9 @@ const SignInEnterpriseModal = ({ authUrl }: { authUrl: string }) => {
 	);
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			<ModalTrigger asChild>
 				<IconButton
-					variant="ghost"
 					icon="log-in"
 					onClick={(e) => {
 						if (onlySSO) {
@@ -32,14 +31,15 @@ const SignInEnterpriseModal = ({ authUrl }: { authUrl: string }) => {
 							relocateToAuthUrl();
 						}
 					}}
+					variant="ghost"
 				/>
 			</ModalTrigger>
 			<ModalContent data-modal-root data-sign-in-enteprise-form>
 				<ModalBody>
 					<SignInEnterpriseForm
 						authUrl={authUrl}
-						relocateToAuthUrl={relocateToAuthUrl}
 						onlySSO={onlySSO}
+						relocateToAuthUrl={relocateToAuthUrl}
 						{...otherFields}
 					/>
 				</ModalBody>

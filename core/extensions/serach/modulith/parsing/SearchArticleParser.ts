@@ -2,22 +2,22 @@ import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import resolveModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Path from "@core/FileProvider/Path/Path";
-import { Article, ArticleProps, Content } from "@core/FileStructue/Article/Article";
+import type { Article, ArticleProps, Content } from "@core/FileStructue/Article/Article";
 import { getExtractHeader } from "@core/FileStructue/Article/parseContent";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import mammothModule from "@dynamicImports/mammoth";
-import pdfParseModule from "@dynamicImports/pdf-parse";
+import pdfParse from "@dynamicImports/pdf-parse";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import { SearchArticle, SearchArticleArticleMetadata } from "@ext/serach/modulith/SearchArticle";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import SearchArticleContentParser from "@ext/serach/modulith/parsing/SearchArticleContentParser";
 import SearchArticleContentParserHTML from "@ext/serach/modulith/parsing/SearchArticleContentParserHTML";
+import type { SearchArticle, SearchArticleArticleMetadata } from "@ext/serach/modulith/SearchArticle";
 import { getLang } from "@ext/serach/modulith/utils/getLang";
 import { getValidCatalogItems } from "@ext/serach/modulith/utils/getValidCatalogItems";
-import { Workspace } from "@ext/workspace/Workspace";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { AggregateProgress, ProgressCallback } from "@ics/modulith-utils";
+import type { Workspace } from "@ext/workspace/Workspace";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import { AggregateProgress, type ProgressCallback } from "@ics/modulith-utils";
 import type { TypedArray } from "pdfjs-dist/types/display/api";
 
 export type CatalogNameWithSearchArticle = [string, SearchArticle[]];
@@ -136,7 +136,7 @@ export class SearchArticleParser {
 		progressCallback?: ProgressCallback,
 	): Promise<SearchArticle> {
 		const parsedContent = await this._parseArticleContent(article, catalog);
-		const title = parsedContent ? getExtractHeader(parsedContent) ?? article.getTitle() : article.getTitle();
+		const title = parsedContent ? (getExtractHeader(parsedContent) ?? article.getTitle()) : article.getTitle();
 
 		const aggProgress = new AggregateProgress({
 			progress: {
@@ -164,7 +164,7 @@ export class SearchArticleParser {
 				onChange: (p) => aggProgress.setProgress(1, p),
 			});
 
-			const rm = parsedContent.resourceManager;
+			const rm = parsedContent.parsedContext.getResourceManager();
 
 			const resourceArticles = (
 				await resources.mapAsync(async (x, i) => {
@@ -181,7 +181,8 @@ export class SearchArticleParser {
 								(searchArticle.metadata as SearchArticleArticleMetadata).properties,
 								pc,
 							);
-						} else if (x.extension === "pdf") {
+						}
+						if (x.extension === "pdf") {
 							return await this._parseResourcePdf(
 								wsPath,
 								article,
@@ -218,16 +219,18 @@ export class SearchArticleParser {
 		properties: Record<string, unknown>,
 		progressCallback?: ProgressCallback,
 	): Promise<SearchArticle | null> {
+		if (!data) return null;
+
 		const mammoth = await mammothModule();
 		const html = (
 			await mammoth.convertToHtml({
 				...(getExecutingEnvironment() !== "next"
 					? {
 							arrayBuffer: data.buffer as ArrayBuffer,
-					  }
+						}
 					: {
 							buffer: data,
-					  }),
+						}),
 			})
 		).value;
 
@@ -260,9 +263,7 @@ export class SearchArticleParser {
 		properties: Record<string, unknown>,
 		progressCallback?: ProgressCallback,
 	): Promise<SearchArticle | null> {
-		if (!data) {
-			return null;
-		}
+		if (!data) return null;
 
 		const aggProgress = new AggregateProgress({
 			progress: {
@@ -271,35 +272,38 @@ export class SearchArticleParser {
 			onChange: (p) => progressCallback?.(p),
 		});
 
-		const pdfParse = await pdfParseModule();
-		const text: string = await pdfParse.pdfToMarkdown(
-			data as unknown as TypedArray,
-			aggProgress.getProgressCallback(0),
-		);
+		const pdf = await pdfParse();
+		const text: string = await pdf.pdfToMarkdown(data as unknown as TypedArray, aggProgress.getProgressCallback(0));
 		const parseCtx = await this._parserContextFactory.fromArticle(article, catalog, resolveLanguage(), true);
-		const mdParsed = (await this._parser.parse(text, parseCtx)).editTree;
 
-		const items = await new SearchArticleContentParser(
-			mdParsed.content,
-			() => null,
-			() => null,
-			() => null,
-		).parse();
+		try {
+			const mdParsed = (await this._parser.parse(text, parseCtx)).editTree;
+			const items = await new SearchArticleContentParser(
+				mdParsed.content,
+				() => null,
+				() => null,
+				() => null,
+			).parse();
 
-		aggProgress.setProgress(1, 1);
-		return {
-			id: this._getResourceArticleId(wsPath, article.logicPath, file),
-			title: file,
-			children: [],
-			items,
-			metadata: {
-				type: "file",
-				wsPath,
-				catalogId: catalog.name,
-				lang: getLang(article.logicPath, catalog.props.language),
-				properties,
-			},
-		};
+			aggProgress.setProgress(1, 1);
+			return {
+				id: this._getResourceArticleId(wsPath, article.logicPath, file),
+				title: file,
+				children: [],
+				items,
+				metadata: {
+					type: "file",
+					wsPath,
+					catalogId: catalog.name,
+					lang: getLang(article.logicPath, catalog.props.language),
+					properties,
+				},
+			};
+		} catch (error) {
+			console.error(error);
+			console.log({ path: article.ref.path.toString(), file });
+			return null;
+		}
 	}
 
 	private async _parseItem(
@@ -342,7 +346,7 @@ export class SearchArticleParser {
 						getSnippetItems,
 						getPropertyValue,
 						getLinkId,
-				  ).parse()
+					).parse()
 				: [],
 			metadata: {
 				type: "article",

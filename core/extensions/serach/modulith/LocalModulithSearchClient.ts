@@ -1,12 +1,12 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import {
+import type {
 	ModulithSearchClient,
 	SearchBatchArgs,
 	SearchResult,
 	UpdateArgs,
 } from "@ext/serach/modulith/ModulithSearchClient";
-import { SearchArticleMetadata } from "@ext/serach/modulith/SearchArticle";
-import { SearchService } from "@ics/modulith-search-domain/search";
+import type { SearchArticleMetadata } from "@ext/serach/modulith/SearchArticle";
+import type { SearchService } from "@ics/modulith-search-domain/search";
 
 const tenant = "local";
 

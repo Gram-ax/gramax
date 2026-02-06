@@ -12,7 +12,7 @@ export type CatalogProps = FSLocalizationProps & {
 	contactEmail?: string;
 	properties?: Property[];
 	versions?: string[];
-	filterProperties?: PropertyID[];
+	filterProperty?: PropertyID;
 	syntax?: Syntax;
 
 	relatedLinks?: TitledLink[];
@@ -25,7 +25,7 @@ export type CatalogProps = FSLocalizationProps & {
 	isCloning?: boolean;
 	cloneCancelDisabled?: boolean;
 	redirectOnClone?: string;
-	resolvedFilterProperty?: PropertyID;
+	resolvedFilterPropertyValue?: PropertyID;
 	resolvedVersions?: RefInfo[];
 	resolvedVersion?: RefInfo;
 	optionalCategoryIndex?: boolean;

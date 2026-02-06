@@ -1,6 +1,6 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 import getTextByProperty from "@ext/markdown/elements/inlineProperty/edit/logic/getTextByProperty";
+import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const inlinePropertyWordLayout: WordInlineChild = async ({ state, tag, addOptions, wordRenderContext }) => {
 	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;

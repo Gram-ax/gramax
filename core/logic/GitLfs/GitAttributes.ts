@@ -9,7 +9,11 @@ const GIT_ATTRIBUTES_PATH = new Path(".gitattributes");
 export default class GitAttributes {
 	private _dirty = false;
 
-	constructor(private _attrs: GitAttributesMap, private _fp: FileProvider, private _path: Path) {}
+	constructor(
+		private _attrs: GitAttributesMap,
+		private _fp: FileProvider,
+		private _path: Path,
+	) {}
 
 	static async parse(repo: WorkdirRepository, fp: FileProvider): Promise<GitAttributes> {
 		const path = repo.path.join(GIT_ATTRIBUTES_PATH);

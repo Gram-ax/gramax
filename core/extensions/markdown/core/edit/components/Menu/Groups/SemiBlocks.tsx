@@ -1,20 +1,20 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import t from "@ext/localization/locale/translate";
 import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import HTMLMenuButton from "@ext/markdown/elements/html/edit/components/HTMLMenuButton";
+import QuestionMenuButton from "@ext/markdown/elements/question/edit/components/QuestionMenuButton";
 import SnippetsButton from "@ext/markdown/elements/snippet/edit/components/SnippetsButton";
 import TabsMenuButton from "@ext/markdown/elements/tabs/edit/components/TabsMenuButton";
 import ViewMenuButton from "@ext/markdown/elements/view/edit/components/ViewMenuButton";
-import { Editor } from "@tiptap/core";
-import { useCallback, useMemo } from "react";
-import QuestionMenuButton from "@ext/markdown/elements/question/edit/components/QuestionMenuButton";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
-import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarTrigger } from "@ui-kit/Toolbar";
-import { ComponentVariantProvider } from "@ui-kit/Providers";
-import t from "@ext/localization/locale/translate";
 import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { cn } from "@core-ui/utils/cn";
+import { Editor } from "@tiptap/core";
+import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
+import { ComponentVariantProvider } from "@ui-kit/Providers";
+import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarTrigger } from "@ui-kit/Toolbar";
+import { useCallback, useMemo } from "react";
 
 interface SemiBlocksProps {
 	editor?: Editor;
@@ -77,16 +77,16 @@ const SemiBlocks = ({ editor, includeResources, isSmallEditor }: SemiBlocksProps
 	return (
 		<ComponentVariantProvider variant="inverse">
 			<div
-				tabIndex={-1}
+				className={cn(disabled && "pointer-events-none")}
 				onMouseEnter={handleMouseEnter}
 				onMouseLeave={onMouseLeave}
-				className={cn(disabled && "pointer-events-none")}
+				tabIndex={-1}
 			>
-				<DropdownMenu open={isOpen} onOpenChange={onOpenChange} modal={false}>
+				<DropdownMenu modal={false} onOpenChange={onOpenChange} open={isOpen}>
 					<DropdownMenuTrigger asChild>
 						<ToolbarTrigger
-							data-state={isActive ? "open" : "closed"}
 							data-open={isOpen ? "open" : "closed"}
+							data-state={isActive ? "open" : "closed"}
 							disabled={disabled}
 						>
 							<ToolbarIcon icon="pencil-ruler" />
@@ -94,13 +94,13 @@ const SemiBlocks = ({ editor, includeResources, isSmallEditor }: SemiBlocksProps
 					</DropdownMenuTrigger>
 					<ToolbarDropdownMenuContent
 						align="start"
-						side="top"
-						contentClassName={cn(!isOpen && "pointer-events-none", "lg:shadow-hard-base")}
-						className={cn(!isMobile && "px-3 py-3 pb-2")}
-						sideOffset={isMobile ? 10 : 0}
 						alignOffset={!isMobile ? -19 : -5}
-						onInteractOutside={onInteractOutside}
+						className={cn(!isMobile && "px-3 py-3 pb-2")}
+						contentClassName={cn(!isOpen && "pointer-events-none", "lg:shadow-hard-base")}
 						onFocusOutside={onFocusOutside}
+						onInteractOutside={onInteractOutside}
+						side="top"
+						sideOffset={isMobile ? 10 : 0}
 					>
 						<DropdownMenuLabel className="font-normal text-inverse-muted">
 							{t("editor.tools")}

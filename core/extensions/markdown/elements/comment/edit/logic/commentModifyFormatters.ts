@@ -1,8 +1,11 @@
 import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 
-const commentModifyFormatters = (formatters: { [node: string]: NodeSerializerSpec }, context?: ParserContext) => {
+const commentModifyFormatters = (
+	formatters: { [node: string]: NodeSerializerSpec },
+	context?: PrivateParserContext,
+) => {
 	const formatter = getFormatterTypeByContext(context);
 
 	Object.keys(formatters).forEach((nodeType) => {

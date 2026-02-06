@@ -1,16 +1,16 @@
+import docx from "@dynamicImports/docx";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 import {
-	STANDARD_PAGE_WIDTH,
-	WordBlockType,
 	getWordBordersType,
+	STANDARD_PAGE_WIDTH,
+	type WordBlockType,
 	wordMarginsType,
 } from "@ext/wordExport/options/wordExportSettings";
-import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
-import { WordSerializerState } from "@ext/wordExport/WordExportState";
-import docx from "@dynamicImports/docx";
-import { JSONContent } from "@tiptap/core";
-import { FileChild } from "@ext/wordExport/types";
+import type { FileChild } from "@ext/wordExport/types";
 import { markTableAsListContinuation } from "@ext/wordExport/utils/listContinuation";
+import type { WordSerializerState } from "@ext/wordExport/WordExportState";
+import type { JSONContent } from "@tiptap/core";
 
 export const createBlock = async (
 	state: WordSerializerState,

@@ -1,7 +1,7 @@
-import useCurrentAction from "./hooks/useCurrentAction";
-import { ReactElement, ReactNode, createContext } from "react";
 import { Editor } from "@tiptap/core";
-import { NodeValues, ActionContextValue } from "./hooks/types";
+import { createContext, ReactElement, ReactNode } from "react";
+import { ActionContextValue, NodeValues } from "./hooks/types";
+import useCurrentAction from "./hooks/useCurrentAction";
 import useType from "./hooks/useType";
 
 const ActionContext = createContext<ActionContextValue>({

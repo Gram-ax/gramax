@@ -21,6 +21,7 @@ interface LogOptions {
 
 const BASE_INDENT = 3;
 
+// biome-ignore lint/complexity/noStaticOnlyClass: ok
 class ChalkLogger {
 	private static _silent = false;
 	static #originalConsole = {
@@ -81,7 +82,7 @@ class ChalkLogger {
 
 	static error(str?: string, options: LogOptions = {}) {
 		options.styles = options.styles || [];
-		options.styles.push("yellow");
+		options.styles.push("red");
 		this.log(str, options);
 	}
 

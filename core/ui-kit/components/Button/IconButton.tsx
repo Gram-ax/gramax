@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { IconButton as UiKitIconButton } from "ics-ui-kit/components/button";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 import { forwardRef } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitIconButtonProps = ExtractComponentGeneric<typeof UiKitIconButton>;
 
@@ -13,5 +13,5 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>((props,
 	const { icon, ...otherProps } = props;
 	const lucideIcon = LucideIcon(icon);
 	if (!lucideIcon) return null;
-	return <UiKitIconButton ref={ref} icon={lucideIcon as any} {...otherProps} />;
+	return <UiKitIconButton icon={lucideIcon as any} ref={ref} {...otherProps} />;
 });

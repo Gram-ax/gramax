@@ -2,8 +2,8 @@ import { useCatalogActionsContext } from "@components/Actions/CatalogActions/Cat
 import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
-import t from "@ext/localization/locale/translate";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import t from "@ext/localization/locale/translate";
 import { ReactNode } from "react";
 
 interface NotesItemProps {

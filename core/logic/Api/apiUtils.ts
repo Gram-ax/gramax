@@ -18,7 +18,7 @@ export const apiUtils = {
 				? {
 						stack: error.cause.stack,
 						message: error.cause.message,
-				  }
+					}
 				: null,
 			props: error.props,
 			title: error.title,

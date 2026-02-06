@@ -2,13 +2,13 @@ import ScrollableElement from "@components/Layouts/ScrollableElement";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import InboxService from "@ext/inbox/components/InboxService";
 import Note from "@ext/inbox/components/Note/Note";
-import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import { InboxArticle, InboxDragDropData } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
-import { useCallback, useEffect, useMemo, useRef, RefObject } from "react";
+import { RefObject, useCallback, useEffect, useMemo, useRef } from "react";
 import { DndProvider } from "react-dnd";
 
 interface InboxProps {
@@ -111,7 +111,7 @@ const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 
 	return (
 		<div ref={ref}>
-			<ScrollableElement style={{ maxHeight: "40vh" }} dragScrolling={false}>
+			<ScrollableElement dragScrolling={false} style={{ maxHeight: "40vh" }}>
 				<DndProvider backend={backend} options={options}>
 					<div className="tree-root" style={{ height: sortedNotes.length === 0 ? "2em" : "auto" }}>
 						{sortedNotes.length === 0 && (
@@ -121,13 +121,13 @@ const Inbox = ({ show, setContentHeight, tabWrapperRef }: InboxProps) => {
 						)}
 						{sortedNotes.map((note) => (
 							<Note
-								key={note.id}
 								article={note}
-								handleDrop={handleDrop}
-								onItemClick={onItemClick}
-								isSelected={selectedIds?.includes(note.id)}
-								onDelete={onDelete}
 								confirmDeleteText={t("confirm-inbox-note-delete")}
+								handleDrop={handleDrop}
+								isSelected={selectedIds?.includes(note.id)}
+								key={note.id}
+								onDelete={onDelete}
+								onItemClick={onItemClick}
 							/>
 						))}
 					</div>

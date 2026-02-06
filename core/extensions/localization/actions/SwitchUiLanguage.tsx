@@ -1,9 +1,11 @@
+import { topMenuItemClassName } from "@components/HomePage/TopMenu";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import UiLanguage from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
+import { IconButton } from "@ui-kit/Button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -12,9 +14,8 @@ import {
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
 import { MenuItemInfoTemplate } from "@ui-kit/MenuItem";
-import { useCallback } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { IconButton } from "@ui-kit/Button";
+import { useCallback } from "react";
 
 const SwitchUiLanguage = ({ size = "md" }: { size?: "md" | "lg" }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -27,7 +28,7 @@ const SwitchUiLanguage = ({ size = "md" }: { size?: "md" | "lg" }) => {
 			const r = await FetchService.fetch(apiUrlCreator.getSetLanguageURL(language));
 			if (r.ok) LanguageService.setUiLanguage(language);
 		},
-		[apiUrlCreator],
+		[apiUrlCreator, isNext],
 	);
 
 	const current = LanguageService.currentUi();
@@ -37,13 +38,18 @@ const SwitchUiLanguage = ({ size = "md" }: { size?: "md" | "lg" }) => {
 			<Tooltip>
 				<TooltipContent>{t("change-language")}</TooltipContent>
 				<TooltipTrigger asChild>
-					<DropdownMenuTrigger data-qa={`qa-language-${current}`} asChild>
+					<DropdownMenuTrigger
+						asChild
+						className={topMenuItemClassName}
+						data-qa={`qa-language-${current}`}
+						data-testid="switch-ui-language"
+					>
 						<IconButton
-							icon="globe"
-							size={size}
-							iconClassName="h-5 w-5 stroke-[1.6]"
-							variant="ghost"
 							className="aspect-square p-2"
+							icon="globe"
+							iconClassName="h-5 w-5 stroke-[1.6]"
+							size={size}
+							variant="ghost"
 						/>
 					</DropdownMenuTrigger>
 				</TooltipTrigger>
@@ -52,11 +58,11 @@ const SwitchUiLanguage = ({ size = "md" }: { size?: "md" | "lg" }) => {
 				<DropdownMenuGroup>
 					{Object.values(UiLanguage).map((l, idx) => (
 						<DropdownMenuItem
-							key={idx + l}
-							onClick={l == current ? null : () => setLanguage(l)}
 							data-qa="qa-clickable"
+							key={idx + l}
+							onClick={l === current ? null : () => setLanguage(l)}
 						>
-							<MenuItemInfoTemplate text={t("current", l)} isSelected={current == l} />
+							<MenuItemInfoTemplate isSelected={current === l} text={t("current", l)} />
 						</DropdownMenuItem>
 					))}
 				</DropdownMenuGroup>

@@ -6,7 +6,10 @@ export const PDF_TEMPLATES_DIR = "pdf";
 const PDF_TEMPLATE_FORMATS = ["css"];
 
 class PdfTemplate {
-	constructor(private _workspace: Workspace, private _templates: string[]) {}
+	constructor(
+		private _workspace: Workspace,
+		private _templates: string[],
+	) {}
 
 	getTemplates() {
 		return this._templates;

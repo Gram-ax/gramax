@@ -10,7 +10,8 @@ import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { addExternalItems } from "@ext/localization/core/addExternalItems";
 import assert from "assert";
-import FileStructure, { type FSEvents } from "../../../../logic/FileStructue/FileStructure";
+import type FileStructure from "../../../../logic/FileStructue/FileStructure";
+import type { FSEvents } from "../../../../logic/FileStructue/FileStructure";
 import { ContentLanguage } from "../model/Language";
 
 export type FSLocalizationProps = {

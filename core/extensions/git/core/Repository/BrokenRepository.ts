@@ -1,14 +1,10 @@
-import type FileProvider from "@core/FileProvider/model/FileProvider";
-import type Path from "@core/FileProvider/Path/Path";
 import { XxHash } from "@core/Hash/Hasher";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import { resetFileLock } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
-import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import BareRepository from "@ext/git/core/Repository/BareRepository";
-import { SharedCloneProgress } from "@ext/storage/logic/SharedCloneProgress";
-import type Storage from "@ext/storage/logic/Storage";
+import type { SharedCloneProgress } from "@ext/storage/logic/SharedCloneProgress";
 import type { GitStorageCloneResult } from "@ext/storage/logic/StorageProvider";
 
 export type RecoverOptions = {
@@ -18,10 +14,6 @@ export type RecoverOptions = {
 
 export default class BrokenRepository extends BareRepository {
 	private _error: Error;
-
-	constructor(repoPath: Path, fp: FileProvider, gvc: GitVersionControl, storage: Storage) {
-		super(repoPath, fp, gvc, storage);
-	}
 
 	get error() {
 		return this._error;

@@ -1,16 +1,17 @@
-import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import CatalogActions from "@components/Actions/CatalogActions/CatalogActions";
 import { TextSize } from "@components/Atoms/Button/Button";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import NotificationIcon from "@components/Layouts/LeftNavigationTabs/NotificationIcon";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import { useRouter } from "@core/Api/useRouter";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { useRouter } from "@core/Api/useRouter";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import PromptService from "@ext/ai/components/Tab/PromptService";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
@@ -19,11 +20,10 @@ import t from "@ext/localization/locale/translate";
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import TemplateService from "@ext/templates/components/TemplateService";
+import { useEffect } from "react";
 import Search from "../../../extensions/serach/components/Search";
 import Link from "../../Atoms/Link";
 import Logo from "../../Logo";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useEffect } from "react";
 
 interface TopBarContentProps {
 	data: ArticlePageData;
@@ -73,58 +73,58 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarCont
 	return (
 		<div className={className} key={catalogName}>
 			{showHomePageButton && (
-				<Link className="home" href={Url.fromRouter(useRouter(), { pathname: "/" })} dataQa="home-page-button">
-					<ButtonLink textSize={TextSize.L} iconCode="grip" />
+				<Link className="home" dataQa="home-page-button" href={Url.fromRouter(useRouter(), { pathname: "/" })}>
+					<ButtonLink iconCode="grip" textSize={TextSize.L} />
 				</Link>
 			)}
 			<Logo imageUrl={logoImageUrl} />
 			<div className="iconWrapper">
 				{currentTab === LeftNavigationTab.Inbox && (
 					<NotificationIcon
-						iconCode="inbox"
-						tooltipText={t("inbox.notes")}
 						count={notes.length}
+						iconCode="inbox"
 						isMacDesktop={isMacDesktop}
 						onCloseNotification={onCloseInbox}
+						tooltipText={t("inbox.notes")}
 					/>
 				)}
 				{currentTab === LeftNavigationTab.FavoriteArticles && (
 					<NotificationIcon
-						iconCode="star"
-						tooltipText={t("favorites-articles")}
 						count={articles.length}
+						iconCode="star"
 						isMacDesktop={isMacDesktop}
+						tooltipText={t("favorites-articles")}
 					/>
 				)}
 				{currentTab === LeftNavigationTab.Template && (
 					<NotificationIcon
 						count={templates.size}
-						tooltipText={t("template.name")}
 						iconCode="layout-template"
 						isMacDesktop={isMacDesktop}
 						onCloseNotification={onCloseTemplate}
+						tooltipText={t("template.name")}
 					/>
 				)}
 				{currentTab === LeftNavigationTab.Snippets && (
 					<NotificationIcon
-						iconCode="file"
 						count={snippets.size}
-						tooltipText={t("snippets")}
+						iconCode="file"
 						isMacDesktop={isMacDesktop}
 						onCloseNotification={onCloseSnippet}
+						tooltipText={t("snippets")}
 					/>
 				)}
 				{currentTab === LeftNavigationTab.Prompt && (
 					<NotificationIcon
-						iconCode="square-chevron-right"
 						count={promptNotes.length}
-						tooltipText={t("ai.ai-prompts")}
+						iconCode="square-chevron-right"
 						isMacDesktop={isMacDesktop}
 						onCloseNotification={onClosePrompt}
+						tooltipText={t("ai.ai-prompts")}
 					/>
 				)}
 				<Search isHomePage={false} />
-				<CatalogActions isCatalogExist={isCatalogExist} itemLinks={data.itemLinks} currentTab={currentTab} />
+				<CatalogActions currentTab={currentTab} isCatalogExist={isCatalogExist} itemLinks={data.itemLinks} />
 			</div>
 		</div>
 	);

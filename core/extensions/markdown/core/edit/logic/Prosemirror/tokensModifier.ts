@@ -1,9 +1,12 @@
 import { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import { COMMENT_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
 import { FLOAT_NODES } from "@ext/markdown/elements/float/edit/model/consts";
 
-const tokensModifier = (tokens: Record<string, ParseSpec>, context?: ParserContext): Record<string, ParseSpec> => {
+const tokensModifier = (
+	tokens: Record<string, ParseSpec>,
+	context?: PrivateParserContext,
+): Record<string, ParseSpec> => {
 	const modifiedTokens = { ...tokens };
 
 	for (const [key, tk] of Object.entries(tokens)) {

@@ -1,8 +1,8 @@
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
-import paginateCodeBlock from "../codeBlockPagination";
-import { createPage } from "@ext/print/utils/pagination/pageElements";
 import Paginator from "@ext/print/utils/pagination/Paginator";
+import { createPage } from "@ext/print/utils/pagination/pageElements";
 import { AbortController } from "abort-controller";
+import paginateCodeBlock from "../codeBlockPagination";
 
 describe("codeBlockPagination", () => {
 	const createMockNodeDimension = (dimensions: Record<string, any> = {}) =>
@@ -24,7 +24,7 @@ describe("codeBlockPagination", () => {
 			updateAccumulatedHeight: jest.fn(),
 			updateAccumulatedHeightNode: jest.fn(() => ({ height: 20, marginBottom: 0 })),
 			updateAccumulatedHeightDim: jest.fn(() => ({ height: 20, marginBottom: 0 })),
-		} as unknown as NodeDimensions);
+		}) as unknown as NodeDimensions;
 
 	beforeEach(() => {
 		const abortController = new AbortController();

@@ -1,15 +1,15 @@
+import Date from "@components/Atoms/Date";
+import Item from "@components/Layouts/LeftNavigationTabs/Item";
 import { classNames } from "@components/libs/classNames";
+import useWatch from "@core-ui/hooks/useWatch";
+import styled from "@emotion/styled";
+import BaseRightExtensions from "@ext/articleProvider/components/BaseRightExtensions";
+import InboxService from "@ext/inbox/components/InboxService";
 import { INBOX_DRAG_TYPE } from "@ext/inbox/models/consts";
 import { InboxArticle, InboxDragDropData, InboxDragItemData } from "@ext/inbox/models/types";
+import t from "@ext/localization/locale/translate";
 import { useCallback, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import t from "@ext/localization/locale/translate";
-import InboxService from "@ext/inbox/components/InboxService";
-import Item from "@components/Layouts/LeftNavigationTabs/Item";
-import styled from "@emotion/styled";
-import Date from "@components/Atoms/Date";
-import BaseRightExtensions from "@ext/articleProvider/components/BaseRightExtensions";
-import useWatch from "@core-ui/hooks/useWatch";
 
 interface NoteProps {
 	article: InboxArticle;
@@ -66,23 +66,23 @@ const Note = ({ article, handleDrop, onItemClick, isSelected, onDelete, confirmD
 
 	return (
 		<StyledNote
-			ref={containerRef}
-			id={article.id}
-			title={title}
-			rightActionsWidth="0.75em"
-			rightText={<Date date={article.props.date ?? ""} />}
 			className={classNames("", { over: isOver })}
+			id={article.id}
+			isSelected={isSelected}
+			onItemClick={onItemClick}
+			ref={containerRef}
 			rightActions={
 				<BaseRightExtensions
-					id={article.id}
-					providerType="inbox"
-					onMarkdownChange={onMarkdownChange}
-					onDelete={onDelete}
 					confirmDeleteText={confirmDeleteText}
+					id={article.id}
+					onDelete={onDelete}
+					onMarkdownChange={onMarkdownChange}
+					providerType="inbox"
 				/>
 			}
-			onItemClick={onItemClick}
-			isSelected={isSelected}
+			rightActionsWidth="0.75em"
+			rightText={<Date date={article.props.date ?? ""} />}
+			title={title}
 		/>
 	);
 };

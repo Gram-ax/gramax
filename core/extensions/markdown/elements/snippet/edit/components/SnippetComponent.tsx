@@ -1,6 +1,8 @@
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import Renderer from "@ext/markdown/core/render/components/Renderer";
+import styled from "@emotion/styled";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
+import Renderer from "@ext/markdown/core/render/components/Renderer";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import SnippetActions from "@ext/markdown/elements/snippet/edit/components/SnippetActions";
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
@@ -8,8 +10,6 @@ import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/S
 import Snippet from "@ext/markdown/elements/snippet/render/components/Snippet";
 import { NodeViewProps } from "@tiptap/react";
 import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import styled from "@emotion/styled";
 
 const StyledBlockCommentView = styled(BlockCommentView)`
 	margin: -4px -8px 0.2em -8px;
@@ -36,13 +36,13 @@ const SnippetComponent = (props: NodeViewProps): ReactElement => {
 	const contents = useMemo(() => Renderer(content, { components: getComponents() }), [content]);
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElementRef} props={props} draggable={true} data-drag-handle>
+		<NodeViewContextableWrapper data-drag-handle draggable={true} props={props} ref={hoverElementRef}>
 			<HoverableActions
-				hoverElementRef={hoverElementRef}
-				setIsHovered={setIsHovered}
-				isHovered={isHovered}
 				actionsOptions={{ comment: true }}
+				hoverElementRef={hoverElementRef}
+				isHovered={isHovered}
 				rightActions={isExist ? <SnippetActions onClickEdit={handleEdit} /> : null}
+				setIsHovered={setIsHovered}
 			>
 				<StyledBlockCommentView commentId={node.attrs.comment?.id}>
 					<Snippet id={node.attrs.id}>{contents}</Snippet>

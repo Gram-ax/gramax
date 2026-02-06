@@ -17,11 +17,11 @@ const InlineEditPanel = memo((props: InlineEditPanelProps) => {
 	const { editor, closeHandler, isInTable, isCellSelection } = props;
 
 	return (
-		<Toolbar role="article-inline-toolbar" data-qa="qa-inline-wysiwyg-menu">
+		<Toolbar data-qa="qa-inline-wysiwyg-menu" role="article-inline-toolbar">
 			{isInTable && (
 				<>
 					<TableMenuGroup editor={editor} onClick={closeHandler} />
-					<TableAggregation editor={editor} disabled={!isCellSelection} />
+					<TableAggregation disabled={!isCellSelection} editor={editor} />
 					<ToolbarSeparator />
 				</>
 			)}

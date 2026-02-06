@@ -25,13 +25,13 @@ const usePrintHandler = (isFirstLoad: boolean) => {
 
 			ArticleViewService.setBottomView(() => (
 				<PrintView
-					isCategory={true}
-					catalogProps={catalogProps}
-					itemPath={null}
 					apiUrlCreator={apiUrlCreator}
-					params={params}
+					catalogProps={catalogProps}
+					isCategory={true}
+					itemPath={null}
 					onProgress={progressBridge}
 					openPrint={false}
+					params={params}
 					throttleUnits={1}
 				/>
 			));

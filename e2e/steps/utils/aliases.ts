@@ -10,7 +10,7 @@ const aliases = {
 	"левую панель": ".left-navigation-layout, .left-sidebar",
 	"нижнюю панель": `[data-qa="qa-status-bar"]`,
 	"правую панель": ".article-right-sidebar",
-	"панель действий": '[data-qa="app-actions"]',
+	"панель действий": '[data-qa="top-menu"]',
 	"инлайновая панель": '[data-qa="qa-inline-wysiwyg-menu"]',
 	"блок комментариев": ".comment-block",
 	"история изменений": '[data-qa="article-git-modal"]',
@@ -125,6 +125,6 @@ export const globalAlias = (val: string) => aliases[val];
 
 export const globalIcon = (shorthand: string) => {
 	const name = icons[shorthand];
-	if (!name) throw new Error("Invalid icon: '" + shorthand + "', supported: " + JSON.stringify(Object.keys(icons)));
+	if (!name) throw new Error(`Invalid icon: '${shorthand}', supported: ${JSON.stringify(Object.keys(icons))}`);
 	return name;
 };

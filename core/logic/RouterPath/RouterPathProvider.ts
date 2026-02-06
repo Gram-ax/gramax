@@ -1,25 +1,25 @@
 import Path from "@core/FileProvider/Path/Path";
-import PathnameData from "@core/RouterPath/model/PathnameData";
+import type PathnameData from "@core/RouterPath/model/PathnameData";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
 
-export default class RouterPathProvider {
+class RouterPathProvider {
 	private static readonly _separator = "-";
 	private static readonly _readonlyPathPrefix = "/";
 
 	static getLogicPath(pathname: string) {
-		return this.isEditorPathname(pathname)
-			? new Path(this.parsePath(new Path(pathname)).itemLogicPath).value
-			: pathname.startsWith(this._readonlyPathPrefix)
-			? pathname.substring(1)
-			: pathname;
+		return RouterPathProvider.isEditorPathname(pathname)
+			? new Path(RouterPathProvider.parsePath(new Path(pathname)).itemLogicPath).value
+			: pathname.startsWith(RouterPathProvider._readonlyPathPrefix)
+				? pathname.substring(1)
+				: pathname;
 	}
 
 	static getReadOnlyPathname(ligicPath: string) {
-		return `${this._readonlyPathPrefix}${ligicPath}`;
+		return `${RouterPathProvider._readonlyPathPrefix}${ligicPath}`;
 	}
 
 	static parsePath(path: string[] | string | Path): PathnameData {
-		const segments = this._parseSegments(path);
+		const segments = RouterPathProvider._parseSegments(path);
 
 		let isPublic = false;
 		if (segments[0] === "public") {
@@ -32,7 +32,7 @@ export default class RouterPathProvider {
 		const language = ContentLanguage[maybeLanguage];
 		maybeLanguage && filePath.unshift(maybeLanguage);
 		const normalizedFilePath = filePath.map((x) => decodeURIComponent(x));
-		const catalogName = dir ?? repo ?? this._separator;
+		const catalogName = dir ?? repo ?? RouterPathProvider._separator;
 		const itemLogicPath = [catalogName, ...normalizedFilePath];
 		const repNameItemLogicPath = repo ? [repo, ...normalizedFilePath] : null;
 
@@ -43,7 +43,7 @@ export default class RouterPathProvider {
 			group: group ? decodeURIComponent(group) : null,
 			repo: repo,
 			refname: refname ? decodeURIComponent(refname) : null,
-			catalogName,
+			catalogName: catalogName === RouterPathProvider._separator ? null : catalogName,
 			language,
 			filePath: normalizedFilePath,
 			itemLogicPath,
@@ -60,15 +60,15 @@ export default class RouterPathProvider {
 		const filePath = hasFilePath
 			? new Path(data.filePath).value
 			: hasItemLogicPath
-			? new Path(data.itemLogicPath.slice(1)).value
-			: null;
-		catalogName = catalogName === data.repo ? this._separator : catalogName;
+				? new Path(data.itemLogicPath.slice(1)).value
+				: null;
+		catalogName = catalogName === data.repo ? RouterPathProvider._separator : catalogName;
 
 		return new Path([
-			data.sourceName ? encodeURIComponent(data.sourceName) : this._separator,
-			data.group ? encodeURIComponent(data.group) : this._separator,
-			data.repo ?? this._separator,
-			data.refname ? encodeURIComponent(data.refname) : this._separator,
+			data.sourceName ? encodeURIComponent(data.sourceName) : RouterPathProvider._separator,
+			data.group ? encodeURIComponent(data.group) : RouterPathProvider._separator,
+			data.repo ?? RouterPathProvider._separator,
+			data.refname ? encodeURIComponent(data.refname) : RouterPathProvider._separator,
 			catalogName,
 			filePath,
 		]);
@@ -79,18 +79,20 @@ export default class RouterPathProvider {
 		filePath: string[];
 		fullPath: string[];
 	} {
-		const fullPath = this._getArrayOfStrings(itemLogicPath);
+		const fullPath = RouterPathProvider._getArrayOfStrings(itemLogicPath);
 		const [catalogName, ...filePath] = fullPath;
 		return { catalogName, filePath, fullPath };
 	}
 
 	static isEditorPathname(path: string[] | string | Path): boolean {
-		const currentPath = this._getArrayOfStrings(path);
+		const currentPath = RouterPathProvider._getArrayOfStrings(path);
 		const exclude = ["public"];
 		const offset = exclude.includes(currentPath[0]) ? 1 : 0;
 
 		const maybeStorage = decodeURIComponent(currentPath[0 + offset]);
-		const maybeSeparator = currentPath.slice(1 + offset, 4 + offset).some((s) => s === this._separator);
+		const maybeSeparator = currentPath
+			.slice(1 + offset, 4 + offset)
+			.some((s) => s === RouterPathProvider._separator);
 
 		const isEditorPathname =
 			(maybeStorage?.includes(".") || maybeSeparator || maybeStorage.startsWith("localhost")) &&
@@ -105,9 +107,9 @@ export default class RouterPathProvider {
 	): Path {
 		const pathnameData =
 			basePathname instanceof Array || basePathname instanceof Path || typeof basePathname === "string"
-				? this.parsePath(basePathname)
+				? RouterPathProvider.parsePath(basePathname)
 				: basePathname;
-		return this.getPathname({ ...pathnameData, ...newPathnameData });
+		return RouterPathProvider.getPathname({ ...pathnameData, ...newPathnameData });
 	}
 
 	static validate(pathdata: PathnameData): boolean {
@@ -136,11 +138,13 @@ export default class RouterPathProvider {
 	}
 
 	private static _parseSegments(path: string[] | string | Path): string[] {
-		const rawSegments = this._getArrayOfStrings(path);
-		const segments = this.isEditorPathname(rawSegments)
+		const rawSegments = RouterPathProvider._getArrayOfStrings(path);
+		const segments = RouterPathProvider.isEditorPathname(rawSegments)
 			? rawSegments
-			: this._getArrayOfStrings(this.getPathname({ itemLogicPath: rawSegments }));
+			: RouterPathProvider._getArrayOfStrings(RouterPathProvider.getPathname({ itemLogicPath: rawSegments }));
 
-		return segments.filter(Boolean).map((p) => (p === this._separator ? null : p));
+		return segments.filter(Boolean).map((p) => (p === RouterPathProvider._separator ? null : p));
 	}
 }
+
+export default RouterPathProvider;

@@ -1,6 +1,6 @@
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { setComments } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import { Dispatch, SetStateAction } from "react";
 
@@ -49,7 +49,7 @@ export default abstract class ArticleUpdaterService {
 		if (!_flag) ArticleUpdaterService.startLoadingAfterFocus();
 		else {
 			const response = await FetchService.fetch(apiUrlCreator.checkLastModifiedArticle());
-			return response && response.ok ? (await response?.json?.()) ?? null : null;
+			return response && response.ok ? ((await response?.json?.()) ?? null) : null;
 		}
 	}
 }

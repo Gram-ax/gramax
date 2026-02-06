@@ -1,5 +1,8 @@
 import { alert } from "@ext/markdown/elements/alert/render/model/alert";
 import { alfa, beta } from "@ext/markdown/elements/alfaBeta/alfaBeta";
+import { questionAnswer } from "@ext/markdown/elements/answer/render/models/answer";
+import { blockField } from "@ext/markdown/elements/blockContentField/render/models/blockField";
+import { blockProperty } from "@ext/markdown/elements/blockProperty/render/models/blockProperty";
 import { br } from "@ext/markdown/elements/br/render/br";
 import { cmd } from "@ext/markdown/elements/cmd/model/cmd";
 import { color } from "@ext/markdown/elements/color/render/model/color";
@@ -7,14 +10,21 @@ import { answer } from "@ext/markdown/elements/comment/legacy/answer/render/answ
 import { comment } from "@ext/markdown/elements/comment/render/comment";
 import { cut } from "@ext/markdown/elements/cut/render/model/cut";
 import { dbDiagram } from "@ext/markdown/elements/diagramdb/model/diagramdb";
-import { c4Diagram } from "@ext/markdown/elements/diagrams/diagrams/c4Diagram/c4Diagram";
 import { mermaid } from "@ext/markdown/elements/diagrams/diagrams/mermaid/mermaid";
 import { plantUml } from "@ext/markdown/elements/diagrams/diagrams/plantUml/plantUml";
-import { tsDiagram } from "@ext/markdown/elements/diagrams/diagrams/tsDiagram/tsDiagram";
 import { drawio } from "@ext/markdown/elements/drawio/render/model/drawio";
 import { error } from "@ext/markdown/elements/error/error";
 import { formula } from "@ext/markdown/elements/formula/model/formula";
+import { highlight } from "@ext/markdown/elements/highlight/render/model/schema";
 import { html } from "@ext/markdown/elements/html/render/models/html";
+import {
+	blockHtmlTag,
+	blockHtmlTagComponent,
+	blockWithInlineHtmlTag,
+	inlineHtmlTag,
+	inlineHtmlTagComponent,
+	selfClosingHtmlTag,
+} from "@ext/markdown/elements/htmlTag/render/model/htmlTag";
 import { icon } from "@ext/markdown/elements/icon/render/model/icon";
 import { image } from "@ext/markdown/elements/image/render/image";
 import { imgs } from "@ext/markdown/elements/imgs/model/imgs";
@@ -25,9 +35,10 @@ import { kbd } from "@ext/markdown/elements/kbd/model/kbd";
 import { module } from "@ext/markdown/elements/module/model/module";
 import { note } from "@ext/markdown/elements/note/render/model/note";
 import { OpenApi } from "@ext/markdown/elements/openApi/render/model/OpenApi";
+import { question } from "@ext/markdown/elements/question/render/models/question";
 import { see } from "@ext/markdown/elements/see/model/see";
 import { snippet } from "@ext/markdown/elements/snippet/render/model/snippet";
-import { table, td, tr, col, colgroup } from "@ext/markdown/elements/table/render/model/table";
+import { col, colgroup, table, td, tr } from "@ext/markdown/elements/table/render/model/table";
 import { tabledb } from "@ext/markdown/elements/tabledb/model/tabledb";
 import { tab, tabs } from "@ext/markdown/elements/tabs/render/model/tabs";
 import { term } from "@ext/markdown/elements/term/model/term";
@@ -35,27 +46,12 @@ import { unsupported } from "@ext/markdown/elements/unsupported/render/model/uns
 import { video } from "@ext/markdown/elements/video/render/model/video";
 import { view } from "@ext/markdown/elements/view/render/models/view";
 import { when, who } from "@ext/markdown/elements/whowhen/model/whowhen";
-import ParserContext from "../../../Parser/ParserContext/ParserContext";
+import PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
 import { Schema } from "../Markdoc";
-import { blockField } from "@ext/markdown/elements/blockContentField/render/models/blockField";
-import { blockProperty } from "@ext/markdown/elements/blockProperty/render/models/blockProperty";
-import {
-	blockHtmlTag,
-	inlineHtmlTag,
-	selfClosingHtmlTag,
-	blockHtmlTagComponent,
-	inlineHtmlTagComponent,
-	blockWithInlineHtmlTag,
-} from "@ext/markdown/elements/htmlTag/render/model/htmlTag";
-import { highlight } from "@ext/markdown/elements/highlight/render/model/schema";
-import { question } from "@ext/markdown/elements/question/render/models/question";
-import { questionAnswer } from "@ext/markdown/elements/answer/render/models/answer";
 
-function getContextTagElementRenderModels(context: ParserContext): Record<string, Schema> {
+function getContextTagElementRenderModels(context: PrivateParserContext): Record<string, Schema> {
 	return {
-		"ts-diagram": tsDiagram(context),
 		"db-diagram": dbDiagram(context),
-		"c4-diagram": c4Diagram(context),
 		"plant-uml": plantUml(context),
 		"db-table": tabledb(context),
 		"img-h": imgs(context, "h"),
@@ -73,7 +69,7 @@ function getContextTagElementRenderModels(context: ParserContext): Record<string
 	};
 }
 
-export default function getTagElementRenderModels(context?: ParserContext): Record<string, Schema> {
+export default function getTagElementRenderModels(context?: PrivateParserContext): Record<string, Schema> {
 	const contextElements = context ? getContextTagElementRenderModels(context) : {};
 
 	return {

@@ -21,11 +21,11 @@ const RevisionsWhomWhere = (props: RevisionsWhomWhereProps) => {
 			fromComponent={<FormattedBranch name={currentBranch} />}
 			whereComponent={
 				<RevisionsListLayout
-					revisions={revisions}
 					currentRevision={currentRevision}
 					onClick={onClick}
-					shouldLoadMoreAtScrollEnd={shouldLoadMoreAtScrollEnd}
 					requestMore={requestMore}
+					revisions={revisions}
+					shouldLoadMoreAtScrollEnd={shouldLoadMoreAtScrollEnd}
 				/>
 			}
 		/>

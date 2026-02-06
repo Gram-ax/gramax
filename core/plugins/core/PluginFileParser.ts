@@ -1,5 +1,5 @@
-import assert from "assert";
 import { PluginConfig, PluginMetadata } from "@plugins/types";
+import assert from "assert";
 
 export const PLUGIN_FILE_NAMES = {
 	metadata: "_metadata.json",

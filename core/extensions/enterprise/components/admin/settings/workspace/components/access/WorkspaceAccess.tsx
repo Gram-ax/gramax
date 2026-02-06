@@ -19,18 +19,18 @@ export function WorkspaceAccess({ localSettings, setLocalSettings, ownerRole, gr
 			<div className="flex flex-row gap-4">
 				<div className="flex-1 py-6">
 					<WorkspaceAccessGroup
-						localSettings={localSettings}
-						setLocalSettings={setLocalSettings}
-						ownerRole={ownerRole}
 						groups={groups}
+						localSettings={localSettings}
+						ownerRole={ownerRole}
+						setLocalSettings={setLocalSettings}
 					/>
 				</div>
 
 				<div className="flex-1 py-6">
 					<WorkspaceAccessUser
 						localSettings={localSettings}
-						setLocalSettings={setLocalSettings}
 						ownerRole={ownerRole}
+						setLocalSettings={setLocalSettings}
 					/>
 				</div>
 			</div>

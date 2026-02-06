@@ -1,12 +1,12 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import { useRouter } from "@core/Api/useRouter";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import Alert, { AlertType } from "@ext/markdown/elements/alert/render/component/Alert";
 import { addScopeToPath } from "@ext/versioning/utils";
 import type { HTMLAttributes } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type NotActualRevisionWarningProps = HTMLAttributes<HTMLDivElement>;
 
@@ -20,8 +20,8 @@ const NotActualRevisionWarning = (props: NotActualRevisionWarningProps) => {
 	const url = addScopeToPath(router.path);
 
 	return (
-		<div data-qa="switch-version-warning" className={classNames(className, {}, ["article-body"])} {...restProps}>
-			<Alert type={AlertType.warning} title={t("versions.not-actual-warning.header")}>
+		<div className={classNames(className, {}, ["article-body"])} data-qa="switch-version-warning" {...restProps}>
+			<Alert title={t("versions.not-actual-warning.header")} type={AlertType.warning}>
 				<div>
 					<div>
 						{t("versions.not-actual-warning.1")}

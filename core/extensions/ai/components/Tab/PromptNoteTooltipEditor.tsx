@@ -48,11 +48,6 @@ const Tooltip = ({ item, ...rest }: PromptNoteTooltipEditorProps) => {
 	return (
 		<TooltipArticleView
 			articleType="prompt"
-			onUpdate={onUpdate}
-			onClose={onClose}
-			selectedIds={selectedIds}
-			onOutsideClick={onOutsideClick}
-			item={item}
 			extensions={[
 				Placeholder.configure({
 					placeholder: ({ editor, node }) => {
@@ -71,6 +66,11 @@ const Tooltip = ({ item, ...rest }: PromptNoteTooltipEditorProps) => {
 					},
 				}),
 			]}
+			item={item}
+			onClose={onClose}
+			onOutsideClick={onOutsideClick}
+			onUpdate={onUpdate}
+			selectedIds={selectedIds}
 			{...rest}
 		/>
 	);
@@ -79,7 +79,7 @@ const Tooltip = ({ item, ...rest }: PromptNoteTooltipEditorProps) => {
 const PromptNoteTooltipEditor = ({ selectedIds, items, item, ...rest }: PromptNoteTooltipEditorProps) => {
 	return (
 		<PromptService.Context value={{ selectedIds, items }}>
-			<Tooltip selectedIds={selectedIds} items={items} item={item} {...rest} />
+			<Tooltip item={item} items={items} selectedIds={selectedIds} {...rest} />
 		</PromptService.Context>
 	);
 };

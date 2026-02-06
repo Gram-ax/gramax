@@ -1,5 +1,5 @@
-import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Node, Schema } from "@tiptap/pm/model";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
 
 const taskListPlugin = (type: string, schema: Schema) =>
 	new Plugin({

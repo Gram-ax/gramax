@@ -20,24 +20,24 @@ const ReadOnlyUserField = (props: ReadOnlyUserFieldProps) => {
 		if (!renderAvatar) return;
 
 		return (
-			<Avatar size="xs" className="w-4 h-4">
-				<AvatarImage src={user.avatarUrl} crossOrigin={isBrowser ? "anonymous" : undefined} />
+			<Avatar className="w-4 h-4" size="xs">
+				<AvatarImage crossOrigin={isBrowser ? "anonymous" : undefined} src={user.avatarUrl} />
 			</Avatar>
 		);
 	};
 
 	return (
 		<Field
-			title={t("user")}
-			labelClassName="w-44"
 			control={() => (
 				<TextInput
-					startIcon={getStartIcon()}
 					className="font-medium"
-					value={user ? user.name : t("loading")}
 					readOnly
+					startIcon={getStartIcon()}
+					value={user ? user.name : t("loading")}
 				/>
 			)}
+			labelClassName="w-44"
+			title={t("user")}
 		/>
 	);
 };

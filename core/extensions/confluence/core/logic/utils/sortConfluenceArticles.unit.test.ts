@@ -1,5 +1,5 @@
-import { sortConfluenceArticles } from "./sortConfluenceArticles";
 import { ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
+import { sortConfluenceArticles } from "./sortConfluenceArticles";
 
 const RU_ALPHA = "\u0410\u043b\u044c\u0444\u0430";
 const RU_APPLE = "\u042f\u0431\u043b\u043e\u043a\u043e";

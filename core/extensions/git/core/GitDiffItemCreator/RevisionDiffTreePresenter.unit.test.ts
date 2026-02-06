@@ -16,6 +16,8 @@ describe("RevisionDiffTreePresenter", () => {
 		deleted: 0,
 		hunks: [],
 		order: 0,
+		isLfs: false,
+		size: 0,
 	});
 
 	const createDiffResource = (path: string, status = FileStatus.new): DiffResource => ({
@@ -27,6 +29,8 @@ describe("RevisionDiffTreePresenter", () => {
 		added: 1,
 		deleted: 0,
 		hunks: [],
+		isLfs: false,
+		size: 0,
 	});
 
 	const createItemLink = (path: string, title?: string, type = ItemType.article): ItemLink => ({

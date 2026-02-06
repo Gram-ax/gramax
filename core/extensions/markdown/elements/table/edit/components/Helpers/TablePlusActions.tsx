@@ -1,8 +1,12 @@
 import { classNames } from "@components/libs/classNames";
-import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import styled from "@emotion/styled";
+import {
+	CONTROLS_CONTAINER_VERTICAL_TOP,
+	HELPERS_TOP,
+} from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 import PlusActions from "@ext/markdown/elements/table/edit/components/Helpers/PlusActions";
 import PlusMenu from "@ext/markdown/elements/table/edit/components/Helpers/PlusMenu";
+import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import {
 	addColumn,
 	addColumnRight,
@@ -16,10 +20,6 @@ import { Node } from "@tiptap/pm/model";
 import { Transaction } from "@tiptap/pm/state";
 import { columnResizingPluginKey } from "prosemirror-tables";
 import { RefObject, useCallback, useEffect, useState } from "react";
-import {
-	CONTROLS_CONTAINER_VERTICAL_TOP,
-	HELPERS_TOP,
-} from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 
 interface TablePlusActionsProps {
 	node: Node;
@@ -91,28 +91,28 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 		>
 			<div className="table-controller">
 				<div className="controls-container-horizontal">
-					<div data-col-number={-1} className="plus-actions-container">
+					<div className="plus-actions-container" data-col-number={-1}>
 						<PlusActions
+							dataQa={`qa-add-column-right`}
 							index={-1}
 							onClick={plusColumn}
-							dataQa={`qa-add-column-right`}
 							tableRef={tableRef}
 						/>
 					</div>
 					{tableSizes?.cols?.map((_, index) => (
-						<div key={index} data-col-number={index} className="plus-actions-container">
+						<div className="plus-actions-container" data-col-number={index} key={index}>
 							<PlusMenu
-								getPos={getPos}
-								node={node}
-								isHovered={isHovered}
-								index={index}
 								editor={editor}
+								getPos={getPos}
+								index={index}
+								isHovered={isHovered}
+								node={node}
 								tableSheet={tableSheet}
 							/>
 							<PlusActions
+								dataQa={`qa-add-column-${index}`}
 								index={index}
 								onClick={plusColumn}
-								dataQa={`qa-add-column-${index}`}
 								tableRef={tableRef}
 							/>
 						</div>
@@ -121,32 +121,32 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 
 				<div className="controls-container-vertical">
 					{tableSizes?.rows?.map((_, index) => (
-						<div key={index} data-row-number={index} className="plus-actions-container">
+						<div className="plus-actions-container" data-row-number={index} key={index}>
 							<PlusActions
-								index={index}
-								vertical
-								onClick={plusRow}
 								dataQa={`qa-add-row-${index}`}
+								index={index}
+								onClick={plusRow}
 								tableRef={tableRef}
+								vertical
 							/>
 							<PlusMenu
-								getPos={getPos}
-								node={node}
-								vertical
-								isHovered={isHovered}
-								index={index}
 								editor={editor}
+								getPos={getPos}
+								index={index}
+								isHovered={isHovered}
+								node={node}
 								tableSheet={tableSheet}
+								vertical
 							/>
 						</div>
 					))}
-					<div data-row-number={tableSizes?.rows?.length} className="plus-actions-container">
+					<div className="plus-actions-container" data-row-number={tableSizes?.rows?.length}>
 						<PlusActions
-							index={tableSizes?.rows?.length}
-							vertical
-							onClick={plusRow}
 							dataQa={`qa-add-row-down`}
+							index={tableSizes?.rows?.length}
+							onClick={plusRow}
 							tableRef={tableRef}
+							vertical
 						/>
 					</div>
 				</div>

@@ -28,6 +28,7 @@ const Arrow = styled(({ next, link, className }: { next: boolean; link: ItemLink
 		<div className={className}>
 			{link && (
 				<Link
+					dataQa={"jump-to-" + (next ? "next" : "prev")}
 					href={link}
 					onClick={() =>
 						articleElement?.scrollTo({
@@ -36,7 +37,6 @@ const Arrow = styled(({ next, link, className }: { next: boolean; link: ItemLink
 							behavior: "smooth",
 						})
 					}
-					dataQa={"jump-to-" + (next ? "next" : "prev")}
 				>
 					<Icon code={next ? "arrow-right" : "arrow-left"} />
 					<span>{link.title}</span>

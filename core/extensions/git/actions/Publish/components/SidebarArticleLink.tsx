@@ -17,9 +17,9 @@ const SidebarArticleLink = styled(
 				<div className="logic-path-change">
 					<DiffContent
 						changes={filePath.hunks ?? [{ value: filePath.path, type }]}
-						unchangedColor={{ color: "var(--color-primary-secondary)" }}
 						isCode={false}
 						showDiff
+						unchangedColor={{ color: "var(--color-primary-secondary)" }}
 					/>
 				</div>
 			</div>

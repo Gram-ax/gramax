@@ -12,35 +12,41 @@ export const initGitCall = async (): Promise<void> => {
 		const environment = getExecutingEnvironment();
 
 		switch (environment) {
-			case "browser":
+			case "browser": {
 				const { callGitWasm } = await import("./wasm");
 				call = callGitWasm;
 				break;
+			}
 
-			case "next":
+			case "next": {
 				const { call: nextCall } = await import("./next");
 				call = nextCall;
 				break;
+			}
 
-			case "tauri":
+			case "tauri": {
 				const { call: tauriCall } = await import("./tauri");
 				call = tauriCall;
 				break;
+			}
 
-			case "test":
+			case "test": {
 				const { call: testCall } = await import("./next");
 				call = testCall;
 				break;
+			}
 
-			case "static":
+			case "static": {
 				const { call: staticCall } = await import("./static");
 				call = staticCall;
 				break;
+			}
 
-			case "cli":
+			case "cli": {
 				const { call: cliCall } = await import("./cli");
 				call = cliCall;
 				break;
+			}
 
 			default:
 				throw new Error(`unsupported env: ${environment}`);

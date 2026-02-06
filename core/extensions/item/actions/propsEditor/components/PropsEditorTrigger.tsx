@@ -1,11 +1,11 @@
+import Icon from "@components/Atoms/Icon";
 import {
 	UsePropsEditorActionsParams,
 	usePropsEditorActions,
 } from "@ext/item/actions/propsEditor/logic/usePropsEditorAcitions";
 import t from "@ext/localization/locale/translate";
-import { FC } from "react";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import Icon from "@components/Atoms/Icon";
+import { FC } from "react";
 
 interface PropsEditorTriggerProps extends Omit<UsePropsEditorActionsParams, "onExternalClose"> {
 	onUpdate?: () => void;

@@ -1,10 +1,10 @@
 import resolveModule from "@app/resolveModule/backend";
-import Path from "@core/FileProvider/Path/Path";
-import ResourceManager from "@core/Resource/ResourceManager";
+import type Path from "@core/FileProvider/Path/Path";
+import type ResourceManager from "@core/Resource/ResourceManager";
 import t from "@ext/localization/locale/translate";
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { SCALE } from "@ext/wordExport/options/wordExportSettings";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 export class BaseImageProcessor {
 	static async getFileByPath(path: Path, resourceManager: ResourceManager) {
@@ -20,12 +20,12 @@ export class BaseImageProcessor {
 
 	static async getImageFromSvgPath(path: Path, resourceManager: ResourceManager, maxWidth?: number) {
 		const svgCode = (await resourceManager.getContent(path)).toString();
-		return this.getImageFromSvgString(svgCode, maxWidth);
+		return BaseImageProcessor.getImageFromSvgString(svgCode, maxWidth);
 	}
 
 	static async getImageFromSvgString(svgCode: string, maxWidth?: number) {
 		const size = ImageDimensionsFinder.getSvgDimensions(svgCode, maxWidth);
-		const imageBuffer = await this.svgToPng(svgCode, size);
+		const imageBuffer = await BaseImageProcessor.svgToPng(svgCode, size);
 		return { imageBuffer, size };
 	}
 

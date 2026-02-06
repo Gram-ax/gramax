@@ -1,9 +1,9 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { Router } from "@core/Api/Router";
 import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import { paste } from "@ext/markdown/elements/copyArticles/handlers/paste";
 import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
@@ -37,6 +37,13 @@ export type EditorPasteHandler = (
 export interface EditorData {
 	commentEnabled: boolean;
 	lastUsedHighlightColor: HIGHLIGHT_COLOR_NAMES;
+	search: {
+		findText: string;
+		replaceText: string;
+		caseSensitive: boolean;
+		wholeWord: boolean;
+		replaceIsOpen: boolean;
+	};
 }
 
 export type EditorDataKey = keyof EditorData;
@@ -46,6 +53,13 @@ export default abstract class EditorService {
 	private static _data: EditorData = {
 		commentEnabled: false,
 		lastUsedHighlightColor: null,
+		search: {
+			findText: "",
+			replaceText: "",
+			caseSensitive: false,
+			wholeWord: false,
+			replaceIsOpen: false,
+		},
 	};
 
 	public static bindEditor(editor: Editor) {
@@ -94,7 +108,7 @@ export default abstract class EditorService {
 							articleProps.fileName,
 							fileName,
 						),
-				  )
+					)
 				: articleProps.fileName;
 
 			const url = apiUrlCreator.updateItemProps(articleProps.ref.path, articleProps.fileName);
@@ -134,7 +148,9 @@ export default abstract class EditorService {
 		fileName?: string,
 		newFileName?: string,
 	): Promise<string[]> {
-		const response = await FetchService.fetch(apiUrlCreator.getArticleBrotherFileNames(articlePath, fileName, newFileName));
+		const response = await FetchService.fetch(
+			apiUrlCreator.getArticleBrotherFileNames(articlePath, fileName, newFileName),
+		);
 		if (!response.ok) return;
 		const data = (await response.json()) as string[];
 		return data;

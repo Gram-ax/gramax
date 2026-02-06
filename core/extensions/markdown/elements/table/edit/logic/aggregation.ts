@@ -1,4 +1,5 @@
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+import Sheet, { SheetType } from "@core-ui/utils/Sheet";
 import parseNumber from "@ext/markdown/elements/table/edit/logic/parseNumber";
 import {
 	AggregationData,
@@ -7,7 +8,6 @@ import {
 	ColumnData,
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { DependencyList, RefObject, useEffect } from "react";
-import Sheet, { SheetType } from "@core-ui/utils/Sheet";
 
 const NULL_VALUE = "-";
 

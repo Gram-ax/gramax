@@ -25,7 +25,7 @@ const Video = ({ path, title, noEm, className, commentId, isPrint }: VideoProps)
 
 	if (isPrint)
 		return (
-			<a href={path} target="_blank" rel="noreferrer" data-type="video">
+			<a data-type="video" href={path} rel="noreferrer" target="_blank">
 				{t("editor.video.name")}
 				{title && !noEm && <span>:{title}</span>}
 			</a>
@@ -34,15 +34,15 @@ const Video = ({ path, title, noEm, className, commentId, isPrint }: VideoProps)
 	return (
 		<div className={className} data-type="video">
 			<BlockCommentView commentId={commentId}>
-				<Skeleton isLoaded={isError || isLoaded} width="100%" height="100%" style={{ height: "100%" }}>
+				<Skeleton height="100%" isLoaded={isError || isLoaded} style={{ height: "100%" }} width="100%">
 					{isError ? (
 						<>
-							<ErrorVideo link={path} isLink isNoneError={!path} />
+							<ErrorVideo isLink isNoneError={!path} link={path} />
 							{!path && title && !noEm && <em>{title}</em>}
 						</>
 					) : (
 						<>
-							<RenderVideo url={path} setIsError={setIsError} setIsLoaded={setIsLoaded} />
+							<RenderVideo setIsError={setIsError} setIsLoaded={setIsLoaded} url={path} />
 							{title && !noEm && <em>{title}</em>}
 						</>
 					)}

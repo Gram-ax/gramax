@@ -1,10 +1,10 @@
-import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import getIsSelected from "@ext/markdown/elementsUtils/getIsSelected";
-import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import { memo, useCallback } from "react";
+import t from "@ext/localization/locale/translate";
 import { useIsOneNodeSelected } from "@ext/markdown/core/edit/logic/hooks/useIsOneNodeSelected";
+import getIsSelected from "@ext/markdown/elementsUtils/getIsSelected";
+import { Editor } from "@tiptap/core";
+import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { memo, useCallback } from "react";
 
 interface CodeMenuButtonProps {
 	editor: Editor;
@@ -25,11 +25,11 @@ const CodeMenuButton = ({ editor, isInline = false }: CodeMenuButtonProps) => {
 
 	return (
 		<ToolbarToggleButton
+			active={isActiveCode}
+			disabled={isDisabledCode}
+			hotKey={isInline && "Mod-L"}
 			onClick={toggleCode}
 			tooltipText={isSelected ? t("editor.code") : t("editor.code-block")}
-			hotKey={isInline && "Mod-L"}
-			disabled={isDisabledCode}
-			active={isActiveCode}
 		>
 			<ToolbarIcon icon={"code-xml"} />
 		</ToolbarToggleButton>

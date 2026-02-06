@@ -1,23 +1,23 @@
+import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { useCheckAnswers } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
-import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
-import { memo, useCallback, useMemo, useState } from "react";
-import { GroupHeader } from "@ext/navigation/article/render/GroupHeader";
 import styled from "@emotion/styled";
-import { Icon } from "@ui-kit/Icon";
+import t from "@ext/localization/locale/translate";
+import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
+import {
+	FocusState,
+	QuestionsStoreState,
+	StoredQuestion,
+	useCheckAnswers,
+} from "@ext/markdown/elements/question/render/logic/QuestionsStore";
+import { GroupHeader } from "@ext/navigation/article/render/GroupHeader";
 import { Button } from "@ui-kit/Button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@ui-kit/Collapsible";
-import {
-	StoredQuestion,
-	QuestionsStoreState,
-	FocusState,
-} from "@ext/markdown/elements/question/render/logic/QuestionsStore";
-import t from "@ext/localization/locale/translate";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { Icon } from "@ui-kit/Icon";
 import { FieldLabel } from "@ui-kit/Label";
-import { shallow } from "zustand/shallow";
 import { toast } from "@ui-kit/Toast";
-import Workspace from "@core-ui/ContextServices/Workspace";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { memo, useCallback, useMemo, useState } from "react";
+import { shallow } from "zustand/shallow";
 
 const StyledListItem = styled.li`
 	label {
@@ -74,7 +74,7 @@ const CollapsibleInfo = ({ answeredCount, totalCount, state, questions, setFocus
 	const showAnswered = isNext ? answeredCount : undefined;
 
 	return (
-		<Collapsible open={open} onOpenChange={setOpen}>
+		<Collapsible onOpenChange={setOpen} open={open}>
 			<GroupHeader>
 				<CollapsibleTrigger
 					className="w-full flex justify-between items-center"
@@ -103,15 +103,15 @@ const CollapsibleInfo = ({ answeredCount, totalCount, state, questions, setFocus
 					{questions.map((question, index) => (
 						<StyledListItem key={question.id} onClick={() => onClickQuestion(index)}>
 							<div className="flex justify-between items-center">
-								<FieldLabel required={question.isRequired} className="text-xs font-normal">
+								<FieldLabel className="text-xs font-normal" required={question.isRequired}>
 									{t("quiz.info.question")} {index + 1}
 								</FieldLabel>
 								{state === "finished" && (
 									<div>
 										{question.isCorrected ? (
-											<Icon icon="check" className="text-status-success" />
+											<Icon className="text-status-success" icon="check" />
 										) : (
-											<Icon icon="x" className="text-status-error" />
+											<Icon className="text-status-error" icon="x" />
 										)}
 									</div>
 								)}
@@ -221,21 +221,21 @@ export const QuizNavigationInfo = memo(() => {
 		<div className="flex flex-col gap-2">
 			<CollapsibleInfo
 				answeredCount={answeredQuestions.length}
-				totalCount={questionsArray.length}
-				state={state}
 				questions={questionsArray}
 				setFocusedQuestion={setFocusedQuestion}
+				state={state}
+				totalCount={questionsArray.length}
 			/>
 			{state === "finished" && <Statistics />}
 			{isNext && (
 				<>
 					<Button
+						className="w-full"
+						disabled={state !== "answering"}
 						onClick={checkAnswersHandler}
+						size="sm"
 						startIcon="check"
 						variant="text"
-						className="w-full"
-						size="sm"
-						disabled={state !== "answering"}
 					>
 						{t("quiz.info.send")}
 					</Button>

@@ -1,6 +1,8 @@
 import MiniArticle from "@components/Article/MiniArticle";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
+import PageDataContext from "@core/Context/PageDataContext";
+import { ClientArticleProps, type ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
@@ -9,8 +11,6 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import PageDataContext from "@core/Context/PageDataContext";
-import { ClientArticleProps, type ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
@@ -170,32 +170,32 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 
 	return (
 		<Tooltip
-			visible={isVisible}
 			arrow={false}
-			interactive={true}
-			hideOnClick={undefined}
-			setPlaceCallback={(place) => setTooltipPlace(place)}
-			contentClassName={classNames("tooltip-wrapper", {}, [className])}
 			content={
 				isVisible && (
 					<TooltipProvider
-						data={data}
 						apiUrlCreator={apiUrlCreator}
 						catalogProps={catalogProps}
+						data={data}
 						{...otherProps}
 					>
 						<TooltipContent
 							className={classNames("tooltip-article", mods, [className])}
-							start={close}
-							position={tooltipPlace}
 							clear={clearHandler}
 							close={closeHandler}
 							data={data}
 							hash={hash}
+							position={tooltipPlace}
+							start={close}
 						/>
 					</TooltipProvider>
 				)
 			}
+			contentClassName={classNames("tooltip-wrapper", {}, [className])}
+			hideOnClick={undefined}
+			interactive={true}
+			setPlaceCallback={(place) => setTooltipPlace(place)}
+			visible={isVisible}
 		>
 			<div style={{ height: "1.25rem" }} />
 		</Tooltip>
@@ -259,7 +259,7 @@ const TooltipContent = (props: TooltipContent) => {
 	return (
 		<div ref={articleRef}>
 			<div className={className}>
-				<MiniArticle title={data.title} content={data.content} />
+				<MiniArticle content={data.content} title={data.title} />
 			</div>
 		</div>
 	);

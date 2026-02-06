@@ -1,9 +1,9 @@
+import { useScrollContainer } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
+import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import {
 	AuthMethod,
 	WorkspaceSettings,
 } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
-import { useScrollContainer } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
-import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { useCallback, useEffect, useState } from "react";
 
 const defaultSettings: WorkspaceSettings = {

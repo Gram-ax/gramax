@@ -515,7 +515,7 @@ article a span.external-link-wrapper {
 .article .main-container + em,
 .article .node-image em {
 	display: block;
-	font-size: 13px;
+	font-size: 0.875em;
 	margin-top: -4px;
 	font-weight: 300;
 	line-height: 1.4em;
@@ -582,14 +582,34 @@ article a span.external-link-wrapper {
 	color: var(--color-link);
 }
 
-.article .article-body a {
+.article .article-body a,
+.article .article-body button.link {
 	color: var(--color-link);
 	font-weight: inherit;
 	cursor: pointer;
 }
 
+.article .article-body button.link {
+	display: inline;
+	align-items: center;
+	background: none;
+	border: none;
+	padding: 0;
+	text-align: left;
+	margin: 0;
+}
+
+.article .article-body button.link:focus {
+	outline: none;
+	border: none;
+	background: none;
+	padding: 0;
+	margin: 0;
+}
+
 @media (pointer: fine) {
-	.article .article-body a:hover {
+	.article .article-body a:hover,
+	.article .article-body button.link:hover {
 		text-decoration: underline;
 	}
 }
@@ -597,7 +617,6 @@ article a span.external-link-wrapper {
 .article .article-body table th,
 .article strong {
 	font-weight: 500;
-	color: var(--color-article-strong-text);
 }
 
 .article [data-highlight] > strong {
@@ -923,4 +942,12 @@ article a span.external-link-wrapper {
 	margin-left: 1.35em;
 	margin-top: 0.5em;
 	z-index: 1;
+}
+
+.ProseMirror gr-file::before,
+.article .article-body button.link::before {
+	content: var(--content-file-plus);
+	vertical-align: text-bottom;
+	line-height: 1;
+	padding-right: 0.3rem;
 }

@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useRef } from "react";
 import { docxPreview } from "@dynamicImports/docx-preview";
-import { RendererProps } from "./FilePreview";
 import styled from "@emotion/styled";
+import { useCallback, useEffect, useRef } from "react";
+import type { RendererProps } from "./FilePreview";
 
 const DocxContainer = styled.div`
 	.docx-wrapper {

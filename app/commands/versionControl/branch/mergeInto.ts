@@ -51,7 +51,7 @@ const mergeInto: Command<MergeIntoParams, MergeData> = Command.create({
 					mergeFiles: mergeResult,
 					reverseMerge: (state.inner as RepositoryMergeConflictState).data.reverseMerge,
 					caller: MergeConflictCaller.Branch,
-			  };
+				};
 	},
 
 	params(ctx, q) {

@@ -95,8 +95,6 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 
 	return (
 		<div
-			style={style}
-			ref={containerRef}
 			className={classNames(className, {
 				"has-top-shadow": showTopBottomShadow && hasElementScroll && !isTop,
 				"has-bottom-shadow": showTopBottomShadow && hasElementScroll && !isBottom,
@@ -117,10 +115,12 @@ const Scrollable = forwardRef((props: ScrollableProps, ref: MutableRefObject<HTM
 				setIsBottom(isBottom);
 				onScroll?.(isTop, isBottom);
 			}}
+			ref={containerRef}
+			style={style}
 		>
 			<div
-				style={containerWidth ? Object.assign({ width: containerWidth }, style) : style}
 				className="scrolling-content"
+				style={containerWidth ? Object.assign({ width: containerWidth }, style) : style}
 			>
 				{children}
 			</div>

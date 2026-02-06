@@ -3,6 +3,8 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
+import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
+import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import t from "@ext/localization/locale/translate";
 import { Command } from "../../types/Command";
 
@@ -50,7 +52,15 @@ const getAllSyncCount: Command<{ ctx: Context; shouldFetch?: boolean; resetSyncC
 					if (resetSyncCount) await entry.repo.storage.updateSyncCount();
 					res[name] = await entry.repo.storage.getSyncCount();
 				} catch (err) {
-					if (!res[name]) res[name] = { errorMessage: t("unable-to-get-sync-count") };
+					if (res[name]) return;
+
+					if (err instanceof LibGit2Error) {
+						if (err.code === GitErrorCode.HealthcheckFailed) {
+							res[name] = { errorMessage: t("git.error.broken.healthcheck.title") };
+						}
+					} else {
+						res[name] = { errorMessage: t("unable-to-get-sync-count") };
+					}
 				}
 			}, 2);
 
@@ -58,7 +68,7 @@ const getAllSyncCount: Command<{ ctx: Context; shouldFetch?: boolean; resetSyncC
 		},
 
 		params(ctx, q) {
-			return { ctx, shouldFetch: q.fetch == "true" };
+			return { ctx, shouldFetch: q.fetch === "true" };
 		},
 	});
 

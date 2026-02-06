@@ -4,10 +4,10 @@ import { commitCount, project } from "../util";
 import { Builder } from "./builder";
 
 export class IosBuilder extends Builder {
-  override get isSigningSupported(): boolean {
-    return false;
-  }
-  
+	override get isSigningSupported(): boolean {
+		return false;
+	}
+
 	override get platform(): string {
 		return "ios";
 	}

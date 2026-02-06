@@ -1,10 +1,10 @@
 import { classNames } from "@components/libs/classNames";
-import { FormFooter as UiKitFormFooter } from "ics-ui-kit/components/form";
-import React, { ReactNode, FC } from "react";
-import { tv } from "tailwind-variants";
+import t from "@ext/localization/locale/translate";
 import { useMediaQuery } from "@react-hook/media-query";
 import { Button } from "@ui-kit/Button";
-import t from "@ext/localization/locale/translate";
+import { FormFooter as UiKitFormFooter } from "ics-ui-kit/components/form";
+import type { FC, ReactNode } from "react";
+import { tv } from "tailwind-variants";
 
 const formFooterTemplateStyles = tv({
 	slots: {
@@ -47,13 +47,13 @@ const useIsLg = () => useMediaQuery(`(min-width: ${breakpoints.lg})`);
 const useIsMobile = () => !useIsLg();
 
 export const FormFooter: FC<FormHeaderTemplateProps> = (props) => {
-	const { leftContent, className, primaryButton: primaryButton, secondaryButton } = props;
+	const { leftContent, className, primaryButton, secondaryButton } = props;
 
 	const isMobile = useIsMobile();
 	const { container, endBlock } = formFooterTemplateStyles({ isMobile });
 
 	const rightButton = primaryButton || (
-		<Button type="submit" variant="primary" disabled>
+		<Button disabled type="submit" variant="primary">
 			{t("add")}
 		</Button>
 	);

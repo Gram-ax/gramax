@@ -33,7 +33,7 @@ const Group = ({ title, catalogLinks, setIsAnyCardLoading, sections }: GroupProp
 				)}
 				<div className="group-content">
 					{catalogLinks.map((link) => (
-						<Card key={link.name} name={link.name} link={link} onClick={() => setIsAnyCardLoading(true)} />
+						<Card key={link.name} link={link} name={link.name} onClick={() => setIsAnyCardLoading(true)} />
 					))}
 				</div>
 			</div>

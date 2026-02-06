@@ -1,6 +1,6 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import { expect } from "playwright/test";
-import E2EWorld from "../models/World";
+import type E2EWorld from "../models/World";
 import config from "../setup/config";
 import { makePath, sleep } from "./utils/utils";
 
@@ -9,7 +9,7 @@ Given("находимся в новой статье", { timeout: config.timeout
 });
 
 Given("находимся в существующей статье", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
-	if (this.page().kind() != "home") await this.page().goto("/");
+	if (this.page().kind() !== "home") await this.page().goto("/");
 
 	await this.page().waitForLoad();
 

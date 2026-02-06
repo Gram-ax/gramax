@@ -16,7 +16,11 @@ export class SourceDataProvider {
 	private _encoder: Encoder;
 	private _postfix = "_storage_data";
 
-	constructor(private _wm: WorkspaceManager, private _cookie?: Cookie, private _authServiceUrl?: string) {
+	constructor(
+		private _wm: WorkspaceManager,
+		private _cookie?: Cookie,
+		private _authServiceUrl?: string,
+	) {
 		this._encoder = new Encoder();
 	}
 

@@ -7,7 +7,12 @@ export default class TauriCookie extends Cookie {
 	private static _onCookieUpdated: OnCookieUpdated;
 
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	constructor(secret: string, _req: any, _res: any, private _migrateFrom: Cookie) {
+	constructor(
+		secret: string,
+		_req: any,
+		_res: any,
+		private _migrateFrom: Cookie,
+	) {
 		super(secret);
 	}
 

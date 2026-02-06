@@ -1,3 +1,4 @@
+import getLinkItemByPath from "@app/commands/article/features/getLinkItemByPath";
 import getRenderContentByLogicPath from "@app/commands/article/features/getRenderContentByLogicPath";
 import getProperty from "@app/commands/article/property/get";
 import removeProperty from "@app/commands/article/property/remove";
@@ -20,15 +21,12 @@ import getRenderContent from "./features/getRenderContent";
 import setContent from "./features/setContent";
 import getNameAfterMove from "./getNameAfterMove";
 import getProps from "./getProps";
-import markAsOpened from "./markAsOpened";
-import markAsRead from "./markAsRead";
 import move from "./move";
 import get from "./resource/get";
 import getByPath from "./resource/getByPath";
 import removeResource from "./resource/remove";
 import set from "./resource/set";
 import updateContent from "./updateContent";
-import getLinkItemByPath from "@app/commands/article/features/getLinkItemByPath";
 
 const article = {
 	features: {
@@ -68,8 +66,6 @@ const article = {
 	getProps,
 	updateContent,
 	checkLastModified,
-	markAsRead,
-	markAsOpened,
 };
 
 export default article;

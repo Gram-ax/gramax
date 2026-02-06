@@ -22,7 +22,10 @@ class ExceptionsResponse {
 	private _hidenFilter: ItemFilter;
 	private _securityFilter: ItemFilter;
 
-	constructor(private _res: ApiResponse, context?: Context) {
+	constructor(
+		private _res: ApiResponse,
+		context?: Context,
+	) {
 		if (!context) return;
 		this._hidenFilter = new HiddenRules(null).getItemFilter();
 		this._securityFilter = new SecurityRules(context.user).getItemFilter();

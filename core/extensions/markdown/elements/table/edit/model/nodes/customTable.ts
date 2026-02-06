@@ -1,3 +1,5 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { CELL_MIN_WIDTH } from "@components/WidthWrapper/WidthWrapper";
 import TableComponent from "@ext/markdown/elements/table/edit/components/TableComponent";
 import aggregationPlugin from "@ext/markdown/elements/table/edit/model/aggregationPlugin/plugin";
 import { columnResizing } from "@ext/markdown/elements/table/edit/model/columnResizing/columnResizing";
@@ -6,11 +8,8 @@ import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import Table from "@tiptap/extension-table";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 import { ReactNodeViewRenderer } from "@tiptap/react";
+import { deleteColumn, deleteRow, isInTable, selectedRect, TableView } from "prosemirror-tables";
 import { table } from "../tableSchema";
-import { deleteRow, deleteColumn, TableView, selectedRect, isInTable } from "prosemirror-tables";
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { CELL_MIN_WIDTH } from "@components/WidthWrapper/WidthWrapper";
 export const COL_MIN_WIDTH = 48; // CELL_MIN_WIDTH
 
 const CustomTable = Table.extend({
@@ -111,7 +110,7 @@ const CustomTable = Table.extend({
 							View: TableView,
 							lastColumnResizable: this.options.lastColumnResizable,
 						}),
-				  ]
+					]
 				: []),
 			decorationPlugin,
 			aggregationPlugin,

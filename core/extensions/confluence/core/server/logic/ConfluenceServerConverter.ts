@@ -1,20 +1,19 @@
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
+import fileNameUtils from "@core-ui/fileNameUtils";
+import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
+import getConfluenceExtension from "@ext/confluence/core/api/getConfluenceExtension";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
 import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
-import { JSONContent } from "@tiptap/core";
 import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
 import convertHTMLUnsupportedNode from "@ext/confluence/core/server/logic/convertHTMLUnsupportedNode";
 import getServerConvertors from "@ext/confluence/core/server/logic/getServerConvertors";
+import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
 import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
-import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
-import getConfluenceExtension from "@ext/confluence/core/api/getConfluenceExtension";
-import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
-import fileNameUtils from "@core-ui/fileNameUtils";
 import t from "@ext/localization/locale/translate";
+import { JSONContent } from "@tiptap/core";
 
 export default class ConfluenceServerConverter implements ConfluenceConverter {
 	private _confluencePageUrl: string;
@@ -23,7 +22,10 @@ export default class ConfluenceServerConverter implements ConfluenceConverter {
 	private _allFileNames: string[];
 	private _conversionMap: Record<string, HTMLNodeConverter>;
 
-	constructor(private _data: ConfluenceServerSourceData, private _fp: FileProvider) {
+	constructor(
+		private _data: ConfluenceServerSourceData,
+		private _fp: FileProvider,
+	) {
 		this._conversionMap = getServerConvertors();
 	}
 
@@ -70,7 +72,7 @@ export default class ConfluenceServerConverter implements ConfluenceConverter {
 					save: this._saveAttachment.bind(this),
 					confluencePageUrl: this._confluencePageUrl,
 					data: this._data,
-			  })
+				})
 			: convertHTMLUnsupportedNode(htmlNode, this._confluencePageUrl);
 	}
 

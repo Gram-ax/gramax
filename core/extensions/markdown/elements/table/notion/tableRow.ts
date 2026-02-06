@@ -5,7 +5,7 @@ const tableRow: NotionNodeConverter = (tableRowNode) => {
 		type: (index === 0 && tableRowNode?.rowHeader) || tableRowNode.columnHeader ? "tableHeader" : "tableCell",
 		content: cell,
 	}));
-	
+
 	return {
 		type: "tableRow",
 		content: cells,

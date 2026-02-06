@@ -1,15 +1,16 @@
-import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type {
 	CommitAuthorInfo,
+	ConfigValue,
 	MergeResult,
 	UpstreamCountFileChanges,
 } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitStash from "@ext/git/core/model/GitStash";
 import GitVersionData from "@ext/git/core/model/GitVersionData";
+import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
 import SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
+import { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
 import { GitBranch } from "../../GitBranch/GitBranch";
 import { GitStatus } from "../../GitWatcher/model/GitStatus";
 import GitSourceData from "../../model/GitSourceData.schema";
@@ -55,6 +56,8 @@ export type DiffTree2TreeFile = {
 	status: FileStatus;
 	added: number;
 	deleted: number;
+	isLfs: boolean;
+	size: number;
 };
 
 export type MergeOptions = {
@@ -80,6 +83,17 @@ type RemoteProgressTypes =
 	| {
 			type: "chunkedTransfer";
 			data: { id: CancelToken; transfer: TransferProgress; bytes: number; downloadSpeedBytes: number };
+	  }
+	| {
+			type: "lfs";
+			data: {
+				totalBytes: number;
+				totalObjects: number;
+				bytesHandled: number;
+				objectsHandled: number;
+				nextObjectSize: number;
+				downloadSpeedBytes: number;
+			};
 	  };
 
 export type RemoteProgress = RemoteProgressTypes & { cancellable?: boolean };
@@ -137,6 +151,7 @@ interface GitCommandsModel {
 		depth?: number,
 		isBare?: boolean,
 		allowNonEmptyDir?: boolean,
+		skipLfsPull?: boolean,
 		onProgress?: (progress: RemoteProgress) => void,
 	): Promise<void>;
 	recover(
@@ -180,6 +195,8 @@ interface GitCommandsModel {
 
 	getHeadCommit(branch: string): Promise<GitVersion>;
 
+	pullLfsObjects(data: GitSourceData, paths: string[], checkout: boolean, cancelToken: CancelToken): Promise<void>;
+
 	reset(opts: ResetOptions): Promise<void>;
 
 	addRemote(url: string): Promise<void>;
@@ -200,6 +217,9 @@ interface GitCommandsModel {
 
 	gc(opts: GcOptions): Promise<void>;
 	healthcheck(): Promise<void>;
+
+	getConfigVal(name: string): Promise<string>;
+	setConfigVal(name: string, val: ConfigValue): Promise<void>;
 }
 
 export default GitCommandsModel;

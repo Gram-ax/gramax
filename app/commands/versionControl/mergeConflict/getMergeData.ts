@@ -2,7 +2,7 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import { Command } from "../../../types/Command";
 
 const getMergeData: Command<{ catalogName: string }, MergeData> = Command.create({

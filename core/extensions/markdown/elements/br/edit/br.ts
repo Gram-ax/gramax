@@ -1,8 +1,8 @@
 import br from "@ext/markdown/elements/br/edit/model/brSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { Node } from "@tiptap/core";
-import { Plugin, PluginKey } from "prosemirror-state";
 import { splitBlock } from "prosemirror-commands";
+import { Plugin, PluginKey } from "prosemirror-state";
 
 interface BrOptions {
 	keepMarks: boolean;

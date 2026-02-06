@@ -5,15 +5,17 @@ import ExportCatalogItem from "@components/Actions/CatalogItems/ExportCatalogIte
 import ExportMenuItem from "@components/Actions/CatalogItems/ExportMenuItem";
 import FavoriteMenuItem from "@components/Actions/CatalogItems/FavoriteMenuItem";
 import HealthcheckItem from "@components/Actions/CatalogItems/HealthcheckItem";
+import LfsLazyToggleItem from "@components/Actions/CatalogItems/LfsLazyToggleItem";
 import NotesItem from "@components/Actions/CatalogItems/NotesItem";
 import RepositoryPermissionItem from "@components/Actions/CatalogItems/RepositoryPermissionItem";
+import ShareCatalogItem from "@components/Actions/CatalogItems/ShareCatalogItem";
 import SharedTicketTrigger from "@components/Actions/CatalogItems/SharedTicketTrigger";
 import SnippetsItem from "@components/Actions/CatalogItems/SnippetsItem";
 import TemplateItem from "@components/Actions/CatalogItems/TemplateItem";
 import ViewFavoritesItem from "@components/Actions/CatalogItems/ViewFavoritesItem";
 import Icon from "@components/Atoms/Icon";
 import { PlatformServiceNew } from "@core-ui/PlatformService";
-import { CatalogMoveActionRenderProps } from "@ext/catalog/actions/move/components/CatalogMoveAction";
+import type { CatalogMoveActionRenderProps } from "@ext/catalog/actions/move/components/CatalogMoveAction";
 import CatalogPropsTrigger from "@ext/catalog/actions/propsEditor/components/CatalogPropsTrigger";
 import DeleteCatalog from "@ext/catalog/actions/propsEditor/components/DeleteCatalog";
 import t from "@ext/localization/locale/translate";
@@ -21,14 +23,19 @@ import openCloudModal from "@ext/static/components/openCloudModal";
 import { feature } from "@ext/toggleFeatures/features";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import type { CoreMenuItemId } from "@gramax/sdk/ui";
-import { ReactNode } from "react";
+import { DropdownMenuLabel, DropdownMenuSeparator } from "@ui-kit/Dropdown";
+import type { ReactNode } from "react";
 import IsReadOnlyHOC from "../../../ui-logic/HigherOrderComponent/IsReadOnlyHOC";
 import DownloadZip from "../DownloadZip";
 import ShowInExplorer from "../ShowInExplorer";
-import { CatalogActionsContextValue } from "./CatalogActionsContext";
-import { DropdownMenuLabel, DropdownMenuSeparator } from "@ui-kit/Dropdown";
+import type { CatalogActionsContextValue } from "./CatalogActionsContext";
 
-type CoreMenuItemIdNew = "navigation-title" | "separator" | "repository-permission" | "favorite-articles";
+type CoreMenuItemIdNew =
+	| "navigation-title"
+	| "separator"
+	| "repository-permission"
+	| "favorite-articles"
+	| "lfs-lazy-toggle";
 
 export type CoreMenuItemIdApp = CoreMenuItemId | CoreMenuItemIdNew;
 
@@ -57,6 +64,7 @@ export interface MenuItemPropMap {
 	"catalog-move-select": CatalogMoveActionRenderProps;
 	"repository-permission": ReactNode;
 	"favorite-articles": ReactNode;
+	"lfs-lazy-toggle": ReactNode;
 }
 
 export type MenuItemDescriptorApp = {
@@ -69,7 +77,8 @@ export type MenuItemDescriptorApp = {
 }[CoreMenuItemIdApp];
 
 export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescriptorApp[] {
-	const { canConfigure, hasGesUrl, isAiEnabled, renderDeleteCatalog, isMac, isReadOnly, cloudServiceUrl } = ctx;
+	const { canConfigure, hasGesUrl, isAiEnabled, renderDeleteCatalog, isMac, isReadOnly, cloudServiceUrl, hasSource } =
+		ctx;
 	const platform = PlatformServiceNew;
 
 	const showMainMenu =
@@ -98,6 +107,11 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 			visible: canConfigure && !isReadOnly,
 		},
 		{
+			id: "share-catalog",
+			component: (children) => <ShareCatalogItem>{children}</ShareCatalogItem>,
+			visible: !platform.isDocPortal && hasSource,
+		},
+		{
 			id: "toggle-favorite",
 			visible: !platform.isStatic && !platform.isStaticCli,
 			component: (children) => <FavoriteMenuItem>{children}</FavoriteMenuItem>,
@@ -115,7 +129,7 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 				{
 					id: "catalog-move-select",
 					component: ({ targetWorkspaceRef, checkAndMove }) => (
-						<CatalogMoveSelectItem targetWorkspaceRef={targetWorkspaceRef} checkAndMove={checkAndMove} />
+						<CatalogMoveSelectItem checkAndMove={checkAndMove} targetWorkspaceRef={targetWorkspaceRef} />
 					),
 					visible: true,
 				},
@@ -126,11 +140,6 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 			component: () => <DropdownMenuSeparator />,
 			visible: showMainMenu,
 		},
-		// {
-		// 	id: "share-catalog",
-		// 	component: (children) => <ShareCatalogItem>{children}</ShareCatalogItem>,
-		// 	visible: !platform.isDocPortal && hasSource,
-		// },
 		{
 			id: "share-ticket",
 			component: (children) => <SharedTicketTrigger>{children}</SharedTicketTrigger>,
@@ -178,6 +187,11 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 					id: "ai-prompt",
 					component: (children) => <AiPromptItem>{children}</AiPromptItem>,
 					visible: isAiEnabled,
+				},
+				{
+					id: "lfs-lazy-toggle",
+					component: (children) => <LfsLazyToggleItem>{children}</LfsLazyToggleItem>,
+					visible: hasSource,
 				},
 			],
 		},
@@ -247,7 +261,7 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 		{
 			id: "separator",
 			component: () => <DropdownMenuSeparator />,
-			visible: true,
+			visible: renderDeleteCatalog,
 		},
 		{
 			id: "delete-catalog",

@@ -7,15 +7,17 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import Workspace from "@core-ui/ContextServices/Workspace";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
-import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
-import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
+import type MergeModal from "@ext/git/actions/Branch/components/MergeModal";
+import type CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
-import { CreateMergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import { useMergeRequestStore } from "@ext/git/core/GitMergeRequest/logic/store/MergeRequestStore";
+import type { CreateMergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import DeleteItem from "@ext/item/actions/DeleteItem";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import { ComponentProps, useCallback, useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { type ComponentProps, useCallback, useState } from "react";
 
 interface BranchMenuProps {
 	currentBranchName: string;
@@ -33,6 +35,7 @@ const BranchMenu = (props: BranchMenuProps) => {
 	const workspace = Workspace.current();
 	const gesUrl = workspace?.enterprise?.gesUrl;
 	const isEnterprise = !!gesUrl;
+	const hasMergeRequest = useMergeRequestStore((state) => !!state.mergeRequest && !state.isDraft);
 
 	const setCreateMergeRequestModal = useCallback(() => {
 		ModalToOpenService.setValue<ComponentProps<typeof CreateMergeRequestModal>>(ModalToOpen.CreateMergeRequest, {
@@ -62,7 +65,7 @@ const BranchMenu = (props: BranchMenuProps) => {
 				ModalToOpenService.resetValue();
 			},
 		});
-	}, [currentBranchName, branchName, isEnterprise, gesUrl, onMergeRequestCreate, refreshList]);
+	}, [currentBranchName, branchName, isEnterprise, gesUrl, onMergeRequestCreate, apiUrlCreator]);
 
 	const instantMerge = useCallback(() => {
 		ModalToOpenService.setValue<ComponentProps<typeof MergeModal>>(ModalToOpen.Merge, {
@@ -88,7 +91,7 @@ const BranchMenu = (props: BranchMenuProps) => {
 				ModalToOpenService.resetValue();
 			},
 		});
-	}, [currentBranchName, branchName, refreshList]);
+	}, [currentBranchName, branchName, refreshList, apiUrlCreator]);
 
 	const deleteBranch = useCallback(async () => {
 		if (isLoading) return;
@@ -103,22 +106,31 @@ const BranchMenu = (props: BranchMenuProps) => {
 	}, [branchName, refreshList, apiUrlCreator, isLoading]);
 
 	return (
-		<div style={{ marginRight: "-8px" }} className="right-extensions">
+		<div className="right-extensions" style={{ marginRight: "-8px" }}>
 			<DropdownMenu>
 				<DropdownMenuTrigger asChild>
-					<Icon isAction code="ellipsis-vertical" tooltipContent={t("actions")} />
+					<Icon code="ellipsis-vertical" isAction tooltipContent={t("actions")} />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start">
-					<DropdownMenuItem onSelect={instantMerge}>
-						<Icon code="merge" />
-						{t("git.merge.instant-merge")}
-					</DropdownMenuItem>
-					<DropdownMenuItem onSelect={setCreateMergeRequestModal}>
-						<Icon code="git-pull-request-arrow" />
-						{t("git.merge-requests.create")}
-					</DropdownMenuItem>
+					<Tooltip>
+						<TooltipContent>{t("git.merge.error.merge-request-instant-merge")}</TooltipContent>
+						<TooltipTrigger className="cursor-default block w-full">
+							<DropdownMenuItem disabled={hasMergeRequest} onSelect={instantMerge}>
+								<Icon code="merge" />
+								{t("git.merge.instant-merge")}
+							</DropdownMenuItem>
+						</TooltipTrigger>
+					</Tooltip>
+					<Tooltip>
+						<TooltipContent>{t("git.merge.error.merge-request-exists")}</TooltipContent>
+						<TooltipTrigger className="cursor-default block w-full">
+							<DropdownMenuItem disabled={hasMergeRequest} onSelect={setCreateMergeRequestModal}>
+								<Icon code="git-pull-request-arrow" />
+								{t("git.merge-requests.create")}
+							</DropdownMenuItem>
+						</TooltipTrigger>
+					</Tooltip>
 					<DeleteItem
-						confirmTitle={t("git.branch.delete.confirm.title")}
 						confirmBody={
 							<span
 								className="article"
@@ -130,8 +142,9 @@ const BranchMenu = (props: BranchMenuProps) => {
 								}}
 							/>
 						}
-						onConfirm={deleteBranch}
+						confirmTitle={t("git.branch.delete.confirm.title")}
 						isLoading={isLoading}
+						onConfirm={deleteBranch}
 					/>
 				</DropdownMenuContent>
 			</DropdownMenu>

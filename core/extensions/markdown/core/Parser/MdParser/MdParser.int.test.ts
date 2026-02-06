@@ -1,10 +1,11 @@
+import { createPrivateParserContext } from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import getTagElementRenderModels from "../../render/logic/getRenderElements/getTagElementRenderModels";
 import { getParserTestData } from "../test/getParserTestData";
 import MdParser from "./MdParser";
 
 const getMdParser = async () => {
 	const args = await getParserTestData();
-	return new MdParser({ tags: getTagElementRenderModels(args.parseContext) });
+	return new MdParser({ tags: getTagElementRenderModels(createPrivateParserContext(args.parseContext)) });
 };
 
 describe("MdParser корректно парсит", () => {
@@ -802,6 +803,16 @@ describe("MdParser корректно парсит", () => {
 
 			const str = `[html:iframe]\n<tag attr1="1" attr2="2"></tag>\n[/html]\n[html:unsafe]\n<tag attr1="1" attr2="2"></tag>\n[/html]`;
 			const parsedStr = `{%html mode="iframe" %}\n\`\`\`\n\n<tag attr1="1" attr2="2"></tag>\n\n\`\`\`\n{%/html%}\n{%html mode="unsafe" %}\n\`\`\`\n\n<tag attr1="1" attr2="2"></tag>\n\n\`\`\`\n{%/html%}`;
+
+			const testParseStr = mdParser.preParse(str);
+
+			expect(testParseStr).toEqual(parsedStr);
+		});
+		test("with comments/dash/arrow", async () => {
+			const mdParser = await getMdParser();
+
+			const str = `[html]\n\n<p>HTML</p>\n\n<!-- comment -->\n\n<p>HTML</p>\n\n[/html]\n\n<html>\n\n<p>HTML</p>\n\n<!-- comment -->\n\n<p>HTML</p>\n\n</html>`;
+			const parsedStr = `{%html mode="iframe" %}\n\`\`\`\n\n\n<p>HTML</p>\n\n<!-- comment -->\n\n<p>HTML</p>\n\n\n\`\`\`\n{%/html%}\n\n<html>\n\`\`\`\n\n\n<p>HTML</p>\n\n<!-- comment -->\n\n<p>HTML</p>\n\n\n\`\`\`\n</html>`;
 
 			const testParseStr = mdParser.preParse(str);
 

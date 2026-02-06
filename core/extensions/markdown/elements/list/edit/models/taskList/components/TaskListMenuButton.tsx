@@ -7,11 +7,11 @@ const TaskListMenuButton = ({ editor }: { editor: Editor }) => {
 	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "taskList" });
 	return (
 		<ToolbarToggleButton
+			active={isActive}
+			disabled={disabled}
+			hotKey={"Mod-Shift-9"}
 			onClick={() => editor.chain().focus().toggleTaskList().run()}
 			tooltipText={t("editor.task-list")}
-			hotKey={"Mod-Shift-9"}
-			disabled={disabled}
-			active={isActive}
 		>
 			<ToolbarIcon icon={"list-todo"} />
 		</ToolbarToggleButton>

@@ -1,22 +1,22 @@
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import TranscribeButton from "@ext/ai/components/Audio/Buttons/TranscribeMenuButton";
+import AIGroup from "@ext/markdown/core/edit/components/Menu/Groups/AIGroup";
+import PropertyMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Property";
+import ToolbarWrapper from "@ext/markdown/core/edit/components/Menu/ToolbarWrapper";
+import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
+import { InlineToolbarOptions } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
+import { LinkMenuMobilePopover } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenuMobilePopover";
+import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
+import { useMediaQuery } from "@mui/material";
 import { Editor } from "@tiptap/core";
+import { Toolbar, ToolbarSeparator } from "@ui-kit/Toolbar";
+import { CellSelection, isInTable } from "prosemirror-tables";
 import { memo, useEffect, useState } from "react";
 import AnyMenuGroup from "../Groups/Any";
 import HeadersMenuGroup from "../Groups/Headers";
 import ListMenuGroup from "../Groups/List";
 import TextMenuGroup from "../Groups/Text";
-import AIGroup from "@ext/markdown/core/edit/components/Menu/Groups/AIGroup";
-import PropertyMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Property";
-import TranscribeButton from "@ext/ai/components/Audio/Buttons/TranscribeMenuButton";
-import { Toolbar, ToolbarSeparator } from "@ui-kit/Toolbar";
-import ToolbarWrapper from "@ext/markdown/core/edit/components/Menu/ToolbarWrapper";
-import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
-import { InlineToolbarOptions } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
-import { CellSelection, isInTable } from "prosemirror-tables";
-import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { LinkMenuMobilePopover } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenuMobilePopover";
-import { cn } from "@core-ui/utils/cn";
-import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 
 export interface ToolbarMenuProps {
 	includeResources?: boolean;
@@ -51,8 +51,8 @@ const MainToolbarButtons = (props: MainToolbarMenuProps) => {
 			<ToolbarSeparator />
 			<AnyMenuGroup
 				editor={editor}
-				includeResources={includeResources}
 				fileName={fileName}
+				includeResources={includeResources}
 				isSmallEditor={isSmallEditor}
 			/>
 			<ToolbarSeparator />
@@ -95,10 +95,10 @@ const InlineToolbarButtons = (props: MainToolbarMenuProps) => {
 
 	return (
 		<InlineEditPanel
-			editor={editor}
 			closeHandler={() => {}}
-			isInTable={options.isInTable}
+			editor={editor}
 			isCellSelection={options.isCellSelection}
+			isInTable={options.isInTable}
 		/>
 	);
 };
@@ -131,12 +131,12 @@ const ToolbarMenu = (props: MainToolbarMenuProps) => {
 			<ToolbarWrapper className={cn("transition-all", !isMobile && "lg:shadow-hard-base rounded-lg")}>
 				<Component
 					editor={editor}
-					includeResources={includeResources}
-					isTemplate={isTemplate}
 					fileName={fileName}
-					isSmallEditor={isSmallEditor}
+					includeResources={includeResources}
 					isGramaxAiEnabled={isGramaxAiEnabled}
 					isMobile={isMobile}
+					isSmallEditor={isSmallEditor}
+					isTemplate={isTemplate}
 				/>
 			</ToolbarWrapper>
 			{isMobile && <LinkMenuMobilePopover editor={editor} />}

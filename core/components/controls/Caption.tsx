@@ -2,8 +2,8 @@ import { classNames } from "@components/libs/classNames";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import { FocusEvent, forwardRef, KeyboardEvent, RefObject } from "react";
+import type { Editor } from "@tiptap/core";
+import { type FocusEvent, forwardRef, type KeyboardEvent, type RefObject } from "react";
 
 interface CaptionProps {
 	text: string;
@@ -43,15 +43,15 @@ const Caption = forwardRef<HTMLInputElement, CaptionProps>((props, ref: RefObjec
 
 	return (
 		<input
-			ref={ref}
-			onFocus={preventSelect}
-			type="text"
-			defaultValue={text}
-			placeholder={t("signature")}
 			className={classNames(className, { visible }, ["no-selection", "resource-caption"])}
+			defaultValue={text}
 			onBlur={preOnBlur}
 			onChange={(e) => onUpdate(e.target.value)}
+			onFocus={preventSelect}
 			onKeyUp={onKeyUp}
+			placeholder={t("signature")}
+			ref={ref}
+			type="text"
 		/>
 	);
 });
@@ -59,7 +59,7 @@ const Caption = forwardRef<HTMLInputElement, CaptionProps>((props, ref: RefObjec
 export default styled(Caption)`
 	display: flex;
 	width: 100%;
-	font-size: 13px;
+	font-size: 0.875em;
 	margin-top: -4px;
 	font-weight: 300;
 	line-height: 1.4em;

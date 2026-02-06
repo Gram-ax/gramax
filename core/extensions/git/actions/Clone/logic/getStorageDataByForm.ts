@@ -1,5 +1,5 @@
-import { transliterate } from "@core-ui/languageConverter/transliterate";
 import parseStorageUrl from "@core/utils/parseStorageUrl";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";

@@ -9,7 +9,10 @@ export default class AstDiffDataHandler {
 	private _positionMapper: PositionMapper;
 	private _diff: LevenshteinStringsDiffResult;
 
-	constructor(private _astDiffTransformer: AstDiffTransformer, private _config?: LevenshteinStringsDiffConfig) {}
+	constructor(
+		private _astDiffTransformer: AstDiffTransformer,
+		private _config?: LevenshteinStringsDiffConfig,
+	) {}
 
 	getPositionMapper(): PositionMapper {
 		return this._positionMapper;

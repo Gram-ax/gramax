@@ -25,7 +25,7 @@ describe("PersistentLogger выводит логи", () => {
 
 		const logs = PersistentLogger.getRawLogs();
 
-		expect(logs.slice(0, 3).map(x => JSON.parse(x).b)).toEqual(["c", "b", "a"]);
+		expect(logs.slice(0, 3).map((x) => JSON.parse(x).b)).toEqual(["c", "b", "a"]);
 	});
 	test("если head на нуле", () => {
 		for (let i = 0; i < 997; i++) PersistentLogger.info("0");

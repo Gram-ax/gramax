@@ -1,10 +1,10 @@
+import NotesMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Notes";
 import SemiBlocks from "@ext/markdown/core/edit/components/Menu/Groups/SemiBlocks";
 import CodeMenuButton from "@ext/markdown/elements/code/edit/components/CodeMenuButton";
 import TableMenuButton from "@ext/markdown/elements/table/edit/components/TableMenuButton";
 import { Editor } from "@tiptap/core";
 import DiagramsMenuGroup from "./Diagrams";
 import FilesMenuGroup from "./Files";
-import NotesMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Notes";
 
 interface AnyMenuGroupProps {
 	editor?: Editor;

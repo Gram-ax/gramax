@@ -54,7 +54,7 @@ interface BranchActionsProps {
 	setIsInitNewBranch: (isInitNewBranch: boolean) => void;
 	setShow: (show: boolean) => void;
 	setContentHeight?: (height: number) => void;
-	canEditCatalog?: boolean;
+	allowAddNewBranch?: boolean;
 	onSwitchBranch?: (isNewBranchCreated: boolean) => void;
 	onMergeRequestCreate?: () => void;
 }
@@ -73,23 +73,23 @@ const getBranchListItems = (
 
 		return (
 			<BranchItem
-				key={b.name}
-				currentBranchName={currentBranch}
-				isLocal={!b.remoteName}
-				mergeRequest={b.mergeRequest}
-				title={b.name}
 				branchStatus={b.remoteName ? BranchStatusEnum.Remote : BranchStatusEnum.Local}
+				canSwitchBranch={canSwitchBranch}
+				currentBranchName={currentBranch}
 				data={{
 					lastCommitAuthor: b.lastCommitAuthor,
 					lastCommitModify: b.lastCommitModify,
 					lastCommitAuthorMail: b.lastCommitAuthorMail,
 				}}
 				disable={disable}
-				showBranchMenu
-				refreshList={refreshList}
+				isLocal={!b.remoteName}
+				key={b.name}
+				mergeRequest={b.mergeRequest}
 				onMergeRequestCreate={onMergeRequestCreate}
+				refreshList={refreshList}
+				showBranchMenu
 				switchBranch={switchBranch}
-				canSwitchBranch={canSwitchBranch}
+				title={b.name}
 			/>
 		);
 	});
@@ -100,7 +100,7 @@ const BranchActions = (props: BranchActionsProps) => {
 		currentBranch,
 		show,
 		setShow,
-		canEditCatalog = false,
+		allowAddNewBranch = false,
 		tabWrapperRef,
 		onSwitchBranch,
 		onMergeRequestCreate,
@@ -284,50 +284,50 @@ const BranchActions = (props: BranchActionsProps) => {
 		[allBranches],
 	);
 
-	if (apiProcess || isLoadingData) return <SpinnerLoader ref={containerRef} fullScreen />;
+	if (apiProcess || isLoadingData) return <SpinnerLoader fullScreen ref={containerRef} />;
 
 	return (
 		<BranchActionsWrapper ref={containerRef}>
 			<Search
 				dataQa="qa-branch-search"
-				placeholder={t("search.name")}
-				onValueChange={onSearchChange}
-				searchValue={searchValue}
-				setSearchValue={setSearchValue}
 				isLoading={isLoadingSearch}
+				onValueChange={onSearchChange}
+				placeholder={t("search.name")}
+				searchValue={searchValue}
 				setIsLoading={setIsLoadingSearch}
+				setSearchValue={setSearchValue}
 			/>
 			<ScrollableElement
-				dragScrolling={false}
-				style={{ maxHeight: "45vh" }}
 				boxShadowStyles={{
 					top: "0px 6px 5px 0px var(--color-diff-entries-shadow) inset",
 					bottom: "0px -6px 5px 0px var(--color-diff-entries-shadow) inset",
 				}}
+				dragScrolling={false}
+				style={{ maxHeight: "45vh" }}
 			>
 				{items}
 			</ScrollableElement>
-			{canEditCatalog && (
+			{allowAddNewBranch && (
 				<NewBranchInputWrapper className={classNames("init-new-branch-input", { active: isInitNewBranch })}>
 					<Input
 						dataQa="input-new-branch"
-						isCode
 						errorText={newBranchValidationError}
-						type="text"
-						ref={initNewBranchInputRef}
-						style={{ pointerEvents: isInitNewBranch ? "auto" : "none" }}
-						placeholder={t("enter-branch-name")}
+						isCode
 						onChange={(e) => {
 							const validateBranchNameValue = validateBranchName(e.currentTarget.value);
 							setNewBranchValidationError(validateBranchNameValue);
 							setInitNewBranchName(e.currentTarget.value);
 						}}
+						placeholder={t("enter-branch-name")}
+						ref={initNewBranchInputRef}
+						style={{ pointerEvents: isInitNewBranch ? "auto" : "none" }}
+						type="text"
 					/>
 					<Button
-						isEmUnits
-						textSize={TextSize.M}
-						onClick={() => initNewBranch(initNewBranchName)}
 						disabled={!canInitNewBranch}
+						isEmUnits
+						onClick={() => initNewBranch(initNewBranchName)}
+						textSize={TextSize.M}
 					>
 						<Icon code="plus" />
 						<span>{t("add-new-branch")}</span>

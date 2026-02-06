@@ -1,11 +1,12 @@
+import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
-import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 
 export class TabsPaginator extends NodePaginator<HTMLDivElement> {
-	private currentTab: HTMLDivElement;
-	private currentTabContainer: HTMLDivElement;
-	private tabsContainer: HTMLDivElement;
+	private _currentTab: HTMLDivElement;
+	private _currentTabContainer: HTMLDivElement;
+	private _tabsContainer: HTMLDivElement;
+	private _tabsWrapper: HTMLDivElement;
 
 	constructor(tabsElement: HTMLDivElement, parentPaginator: Paginator) {
 		super(tabsElement, parentPaginator);
@@ -16,29 +17,49 @@ export class TabsPaginator extends NodePaginator<HTMLDivElement> {
 
 		const allTabElements = this.node.querySelectorAll<HTMLDivElement>(":scope > .tabs > .tab");
 		this.addDimension();
-		this.tabsContainer = this.node.cloneNode(false) as HTMLDivElement;
-		this.parentPaginator.currentContainer.appendChild(this.tabsContainer);
+		this._tabsWrapper = this.node.cloneNode(false) as HTMLDivElement;
+		this._tabsContainer = this.node.firstElementChild.cloneNode(false) as HTMLDivElement;
+		this._tabsWrapper.appendChild(this._tabsContainer);
+		this.parentPaginator.currentContainer.appendChild(this._tabsWrapper);
 
 		for (const tab of allTabElements) {
 			const tabHeight = Paginator.paginationInfo.nodeDimension.get(tab).height;
 
 			if (tabHeight + Paginator.paginationInfo.accumulatedHeight.height > this.getUsableHeight()) {
-				this.currentTab = tab;
-				this.currentTabContainer = tab.cloneNode(true) as HTMLDivElement;
-				const content = tab.querySelector<HTMLDivElement>(".content");
-				const contentContainer = this.currentTabContainer.querySelector<HTMLDivElement>(".content");
+				this._currentTab = tab;
+				this._currentTabContainer = tab.cloneNode(true) as HTMLDivElement;
+				const contentContainer = this._currentTabContainer.querySelector<HTMLDivElement>(".content");
 				this.currentContainer = contentContainer.cloneNode(false) as HTMLDivElement;
+				const content = tab.querySelector<HTMLDivElement>(".content");
 
-				this.tabsContainer.appendChild(this.currentTabContainer);
-				contentContainer.replaceWith(this.currentContainer);
+				if (!this._parentHasOnlyHeading()) this.createPage();
+				else {
+					this._tabsContainer.appendChild(this._currentTabContainer);
+					this.addDimension();
+					this.addTabDimension();
+				}
 
-				this.addTabDimension();
-				await super.paginateSource(content);
+				const nodeDimension = Paginator.paginationInfo.nodeDimension;
+
+				const canAppend = nodeDimension.canUpdateAccumulatedHeight(
+					content,
+					Paginator.paginationInfo.accumulatedHeight,
+					this.getUsableHeight(),
+				);
+				if (!canAppend) {
+					contentContainer.replaceWith(this.currentContainer);
+					await super.paginateSource(content);
+				} else {
+					Paginator.paginationInfo.accumulatedHeight = nodeDimension.updateAccumulatedHeightNode(
+						content,
+						Paginator.paginationInfo.accumulatedHeight,
+					);
+				}
 				continue;
 			}
 			Paginator.paginationInfo.accumulatedHeight.height += tabHeight;
 
-			this.tabsContainer.appendChild(tab);
+			this._tabsContainer.appendChild(tab);
 		}
 
 		this.setMarginBottom();
@@ -46,24 +67,26 @@ export class TabsPaginator extends NodePaginator<HTMLDivElement> {
 	}
 
 	createPage() {
+		const tabsContainsSomeTab = !!this._tabsContainer.childNodes.length;
+		if (!tabsContainsSomeTab) this._tabsWrapper.remove();
+
 		this.cleanHeadingElementsIfNeed();
 		throwIfAborted();
 
-		const tabsContainsSomeTab = this.tabsContainer.childNodes.length > 1;
-		if (this.currentContainer.childNodes.length || tabsContainsSomeTab) {
-			if (!this.currentContainer.childNodes.length) this.currentTabContainer.remove();
+		if (tabsContainsSomeTab && this.currentContainer.childNodes.length) {
+			this._currentTabContainer = this._currentTab.cloneNode(false) as HTMLDivElement;
+			this.currentContainer = this.currentContainer.cloneNode(false) as HTMLDivElement;
 
-			this.tabsContainer = this.node.cloneNode(false) as HTMLDivElement;
-			this.currentTabContainer = this.currentTab.cloneNode(true) as HTMLDivElement;
-			const contentContainer = this.currentTabContainer.querySelector<HTMLDivElement>(".content");
-			this.currentContainer = contentContainer.cloneNode(false) as HTMLDivElement;
+			this._currentTabContainer.appendChild(this.currentContainer);
+		}
 
-			this.tabsContainer.appendChild(this.currentTabContainer);
-			contentContainer.replaceWith(this.currentContainer);
-		} else this.tabsContainer.remove();
+		this._tabsContainer = this.node.firstElementChild.cloneNode(false) as HTMLDivElement;
+		this._tabsContainer.appendChild(this._currentTabContainer);
+		this._tabsWrapper = this.node.cloneNode(false) as HTMLDivElement;
+		this._tabsWrapper.appendChild(this._tabsContainer);
 
 		const parentPage = this.parentPaginator.createPage();
-		parentPage.appendChild(this.tabsContainer);
+		parentPage.appendChild(this._tabsWrapper);
 
 		this.addDimension();
 		this.addTabDimension();
@@ -71,10 +94,23 @@ export class TabsPaginator extends NodePaginator<HTMLDivElement> {
 		return this.currentContainer;
 	}
 
+	getTabDimension() {
+		const nodeDimension = Paginator.paginationInfo.nodeDimension;
+		const tabDim = nodeDimension.get(this._currentTab);
+		const contentDim = nodeDimension.get(this._currentTab.querySelector<HTMLDivElement>(".content"));
+		const addTabDimension = { ...tabDim };
+
+		addTabDimension.height -= contentDim.height + contentDim.paddingH;
+
+		const addTabsDimension = { ...this.nodeDimension };
+		addTabsDimension.height = addTabsDimension.paddingH;
+		return { addTabDimension, addTabsDimension };
+	}
+
 	addTabDimension() {
 		const nodeDimension = Paginator.paginationInfo.nodeDimension;
-		const tabDim = nodeDimension.get(this.currentTab);
-		const contentDim = nodeDimension.get(this.currentTab.querySelector<HTMLDivElement>(".content"));
+		const tabDim = nodeDimension.get(this._currentTab);
+		const contentDim = nodeDimension.get(this._currentTab.querySelector<HTMLDivElement>(".content"));
 		const addDimension = { ...tabDim };
 
 		addDimension.height -= contentDim.height + contentDim.paddingH;
@@ -85,5 +121,10 @@ export class TabsPaginator extends NodePaginator<HTMLDivElement> {
 		const addDimension = { ...this.nodeDimension };
 		addDimension.height = addDimension.paddingH;
 		this.updateAccumulatedHeightDim(addDimension);
+	}
+
+	private _parentHasOnlyHeading() {
+		const { headingElements, currentContainer } = this.parentPaginator;
+		return headingElements.length && headingElements.length === currentContainer.childNodes.length - 1;
 	}
 }

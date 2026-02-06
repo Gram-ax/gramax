@@ -12,7 +12,7 @@ import {
 } from "ics-ui-kit/components/alert-dialog";
 import { Button } from "ics-ui-kit/components/button";
 import { AlertCircle } from "lucide-react";
-import { useState, type ComponentProps } from "react";
+import { type ComponentProps, useState } from "react";
 
 export type AlertConfirmProps = {
 	children: JSX.Element;
@@ -44,7 +44,7 @@ export const AlertConfirm = (props: AlertConfirmProps) => {
 	const [open, setOpen] = useState(false);
 
 	return (
-		<AlertDialog open={open} onOpenChange={setOpen}>
+		<AlertDialog onOpenChange={setOpen} open={open}>
 			<AlertDialogTrigger asChild={asChild}>{children}</AlertDialogTrigger>
 			<AlertDialogContent status={status}>
 				<AlertDialogHeader>
@@ -56,13 +56,13 @@ export const AlertConfirm = (props: AlertConfirmProps) => {
 					<AlertDialogCancel onClick={onCancel}>{cancelText}</AlertDialogCancel>
 					{onConfirm && (
 						<Button
-							status={status}
-							variant="primary"
+							autoFocus
 							onClick={() => {
 								onConfirm();
 								setOpen(false);
 							}}
-							autoFocus
+							status={status}
+							variant="primary"
 						>
 							{confirmText}
 						</Button>

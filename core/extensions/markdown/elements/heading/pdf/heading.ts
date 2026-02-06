@@ -1,9 +1,9 @@
-import { ContentText } from "pdfmake/interfaces";
-import { extractContent } from "@ext/pdfExport/utils/extractTextForCases";
-import { BASE_CONFIG } from "@ext/pdfExport/config";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { BASE_CONFIG } from "@ext/pdfExport/config";
 import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { extractContent } from "@ext/pdfExport/utils/extractTextForCases";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
+import { ContentText } from "pdfmake/interfaces";
 
 export async function headingHandler(node: Tag, context: pdfRenderContext): Promise<ContentText> {
 	const level = node.attributes?.level;

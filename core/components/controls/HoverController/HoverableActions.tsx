@@ -114,11 +114,11 @@ const HoverableActions = (props: HoverProps) => {
 	return (
 		<>
 			<div
-				ref={actionsRef}
-				data-qa="qa-node-actions"
 				className={classNames(className, { isOver }, ["node-actions", placement])}
-				data-drag-handle
 				contentEditable={false}
+				data-drag-handle
+				data-qa="qa-node-actions"
+				ref={actionsRef}
 			>
 				<div className="actions-left" style={actionsStyle}>
 					{isHovered && Left && <ActionButtonContainer>{Left}</ActionButtonContainer>}

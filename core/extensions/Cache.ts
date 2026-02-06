@@ -1,9 +1,12 @@
 import { STORAGE_DIR_NAME } from "@app/config/const";
-import Path from "../logic/FileProvider/Path/Path";
 import FileProvider from "../logic/FileProvider/model/FileProvider";
+import Path from "../logic/FileProvider/Path/Path";
 
 class Cache {
-	constructor(private _fp: FileProvider, private _pathPrefix = STORAGE_DIR_NAME) {}
+	constructor(
+		private _fp: FileProvider,
+		private _pathPrefix = STORAGE_DIR_NAME,
+	) {}
 
 	async set(key: string, value: string) {
 		return this._fp.write(this._getKeyPath(key), value ?? "");

@@ -1,7 +1,7 @@
-import { useDeferApi, type UseApiProps } from "@core-ui/hooks/useApi";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useRouter } from "@core/Api/useRouter";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { type UseApiProps, useDeferApi } from "@core-ui/hooks/useApi";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { useCallback } from "react";
@@ -16,6 +16,7 @@ export type UseCloneRepoProps = {
 	isBare?: boolean;
 	redirectOnClone?: string;
 	deleteIfExists?: boolean;
+	skipLfsPull?: boolean;
 } & Pick<UseApiProps, "onStart" | "onError">;
 
 export type StartCloneProps = {
@@ -70,6 +71,7 @@ export const useCloneRepo = ({ onError, ...props }: UseCloneRepoProps) => {
 						data.skipCheck,
 						data.branch,
 						data.deleteIfExists,
+						data.skipLfsPull,
 					),
 				opts: {
 					body: data.storageData,

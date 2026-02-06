@@ -1,6 +1,6 @@
+import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
-import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 
 const TabsFormatter =
 	(formatter: FormatterType): NodeSerializerSpec =>

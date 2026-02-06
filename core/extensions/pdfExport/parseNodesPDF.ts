@@ -1,18 +1,21 @@
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
-import { addMargin } from "@ext/pdfExport/utils/addMargin";
-import { HEADING_MARGINS } from "@ext/pdfExport/config";
-import { Content } from "pdfmake/interfaces";
-import { errorCase } from "@ext/pdfExport/utils/getErrorElement";
-import { isTag } from "@ext/pdfExport/utils/isTag";
-import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import LinkResourceManager from "@core/Link/LinkResourceManager";
+import ResourceManager from "@core/Resource/ResourceManager";
+import UiLanguage from "@ext/localization/core/model/Language";
+import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import { HEADING_MARGINS } from "@ext/pdfExport/config";
+import { addMargin } from "@ext/pdfExport/utils/addMargin";
+import { errorCase } from "@ext/pdfExport/utils/getErrorElement";
 import getLayout from "@ext/pdfExport/utils/getLayout";
+import { isTag } from "@ext/pdfExport/utils/isTag";
+import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
+import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
+import { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import { JSONContent } from "@tiptap/core";
+import { Content } from "pdfmake/interfaces";
 
 export interface NodeOptions {
 	level?: number;
@@ -21,6 +24,9 @@ export interface NodeOptions {
 
 export interface pdfRenderContext {
 	titlesMap: Map<string, TitleInfo>;
+	language: UiLanguage;
+	linkResourceManager: LinkResourceManager;
+	resourceManager: ResourceManager;
 	parserContext: ParserContext;
 	articleName: string;
 	order: string;
@@ -115,6 +121,9 @@ export async function handleDocumentTree(
 	const context: pdfRenderContext = {
 		titlesMap: titlesMap,
 		parserContext: node.parserContext,
+		language: node.language,
+		linkResourceManager: node.linkResourceManager,
+		resourceManager: node.resourceManager,
 		articleName: node.name,
 		order: node.number,
 		headingMap: new Map<string, number>(),

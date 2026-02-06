@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CSSProperties, ForwardedRef, MouseEvent, ReactNode, forwardRef } from "react";
+import { CSSProperties, ForwardedRef, forwardRef, MouseEvent, ReactNode } from "react";
 import { Placement, Props } from "tippy.js";
 import SpinnerLoader from "../SpinnerLoader";
 import Tooltip from "../Tooltip";
@@ -50,29 +50,29 @@ const Icon = forwardRef((props: IconProps, ref: ForwardedRef<HTMLElement>) => {
 	if (isLoading) {
 		return (
 			<i style={{ display: "flex", alignItems: "center", ...style }}>
-				<SpinnerLoader width={16} height={16} lineWidth={1.5} />
+				<SpinnerLoader height={16} lineWidth={1.5} width={16} />
 			</i>
 		);
 	}
 	const IconComponent = LucideIcon(code);
 
-	if (!IconComponent) return <Icon {...props} tooltipContent="Unknown icon" code="circle-help" />;
+	if (!IconComponent) return <Icon {...props} code="circle-help" tooltipContent="Unknown icon" />;
 
 	return (
-		<Tooltip content={tooltipContent} place={TooltipPlace} delay={tooltipDelay} appendTo={tooltipAppendTo}>
+		<Tooltip appendTo={tooltipAppendTo} content={tooltipContent} delay={tooltipDelay} place={TooltipPlace}>
 			<i
-				style={style}
-				ref={ref}
 				className={classNames(className, { "action-icon": isAction, "li-fw": fw })}
 				data-qa={dataQa}
+				ref={ref}
+				style={style}
 				{...otherProps}
 			>
 				<IconComponent
-					width={size || "1em"}
 					height={size || "1em"}
-					style={svgStyle}
 					strokeWidth={strokeWidth}
+					style={svgStyle}
 					viewBox={viewBox ?? "0 0 24 24"}
+					width={size || "1em"}
 				/>
 			</i>
 		</Tooltip>

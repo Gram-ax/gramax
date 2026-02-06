@@ -1,6 +1,6 @@
 import t from "@ext/localization/locale/translate";
 import { shouldPropertyVisible } from "@ext/properties/logic/shouldPropertyVisible";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 import {
 	cloneProperty,
 	filterPropertiesBySearch,
@@ -61,7 +61,7 @@ export function usePropertyFilter({ properties, isReadOnlyPlatform }: UsePropert
 				propertyQuery,
 				propertyValuesQueries,
 			),
-		[properties, propertyQuery, propertyValuesQueries],
+		[properties, propertyQuery, propertyValuesQueries, isReadOnlyPlatform],
 	);
 
 	return {

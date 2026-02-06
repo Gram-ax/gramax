@@ -1,10 +1,12 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
+import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
+import type StorageData from "@ext/storage/models/StorageData";
+import { Modal, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { useState } from "react";
 import SelectStorageDataForm from "../../../../storage/components/SelectStorageDataForm";
-import { Modal, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import StorageData from "@ext/storage/models/StorageData";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
 
 interface CloneModalProps {
 	title?: string;
@@ -17,7 +19,9 @@ interface CloneModalProps {
 
 const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: CloneModalProps) => {
 	const [isOpen, setIsOpen] = useState(!trigger);
+
 	const { isNext } = usePlatform();
+
 	const { startClone } = useCloneRepo({
 		skipCheck: true,
 		isBare: isNext,
@@ -34,9 +38,10 @@ const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: C
 		onClose?.();
 	};
 
-	const handleSubmit = (storageData: StorageData) => {
+	const handleSubmit = (storageData: GitStorageData) => {
 		startClone({
 			storageData,
+			skipLfsPull: getExecutingEnvironment() == "browser" || getExecutingEnvironment() == "tauri" ? true : false,
 		});
 		onSubmit?.(storageData);
 		closeForm();
@@ -48,16 +53,18 @@ const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: C
 	};
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
 			<ModalContent>
 				<OnNetworkApiErrorService.Provider callback={() => closeForm()}>
-					<SelectStorageDataForm
-						{...props}
-						onSubmit={handleSubmit}
-						selectedStorage={selectedStorage}
-						onClose={() => closeForm()}
-					/>
+					<>
+						<SelectStorageDataForm
+							{...props}
+							onClose={() => closeForm()}
+							onSubmit={handleSubmit}
+							selectedStorage={selectedStorage}
+						/>
+					</>
 				</OnNetworkApiErrorService.Provider>
 			</ModalContent>
 		</Modal>

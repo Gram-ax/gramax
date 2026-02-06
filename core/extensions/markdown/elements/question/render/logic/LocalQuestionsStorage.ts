@@ -31,7 +31,7 @@ export class LocalQuestionsStorage implements QuestionStorage {
 		questions[this._path][questionId] = answers;
 		this._write(questions);
 	}
-	
+
 	clearQuestions(): void {
 		const questions = this._read() || {};
 		delete questions[this._path];

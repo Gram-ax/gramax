@@ -1,13 +1,18 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { UnsubscribeToken } from "@core/Event/EventEmitter";
+import type { UnsubscribeToken } from "@core/Event/EventEmitter";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
+import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import { PropertyTypes } from "@ext/properties/models";
 import type { Workspace } from "@ext/workspace/Workspace";
 
 export default class ScopedCatalogsResolver implements EventHandlerCollection {
 	private _unsubscribeTokens: UnsubscribeToken[] = [];
 
-	constructor(private _workspace: Workspace, private _rp: RepositoryProvider) {}
+	constructor(
+		private _workspace: Workspace,
+		private _rp: RepositoryProvider,
+	) {}
 
 	mount(): void {
 		if (getExecutingEnvironment() === "next") return; // todo: add support in docportal
@@ -16,7 +21,7 @@ export default class ScopedCatalogsResolver implements EventHandlerCollection {
 			const refname = metadata;
 			if (!refname || !mutableCatalog.catalog) return;
 
-			if (mutableCatalog.catalog.props.filterProperties?.includes(refname)) return;
+			if (this._shouldSkipProperty(mutableCatalog.catalog, refname)) return;
 
 			const gvc = mutableCatalog.catalog?.repo?.gvc;
 			if (!gvc) return;
@@ -33,5 +38,16 @@ export default class ScopedCatalogsResolver implements EventHandlerCollection {
 		});
 
 		this._unsubscribeTokens.push(token);
+	}
+
+	private _shouldSkipProperty(catalog: BaseCatalog, refname: string): boolean {
+		const property = catalog.props.properties?.find((p) => p.name === catalog.props.filterProperty);
+
+		if (!property) return false;
+
+		if (property.type === PropertyTypes.flag) return refname === "any" || refname === property.name;
+		if (property.type === PropertyTypes.many || property.type === PropertyTypes.enum)
+			return refname === "any" || property.values.includes(refname);
+		return false;
 	}
 }

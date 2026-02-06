@@ -2,7 +2,7 @@ import { ClientCatalogProps } from "../../../../../logic/SitePresenter/SitePrese
 import CatalogEditProps from "../model/CatalogEditProps";
 
 const getCatalogEditProps = (props: ClientCatalogProps): CatalogEditProps => {
-	const { title, name, docroot, language, versions, syntax, properties, link, filterProperties } = props;
+	const { title, name, docroot, language, versions, syntax, properties, link, filterProperty } = props;
 
 	return {
 		title,
@@ -13,7 +13,7 @@ const getCatalogEditProps = (props: ClientCatalogProps): CatalogEditProps => {
 		syntax,
 		properties,
 		description: link?.description,
-		filterProperties,
+		filterProperty: filterProperty || null,
 		style: link?.style,
 		logo: props.logo,
 		logo_dark: props.logo_dark,

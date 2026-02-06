@@ -1,6 +1,6 @@
-import { Extension } from "@tiptap/core";
-import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import getMoveNode from "@ext/markdown/elements/moveNode/edit/logic/moveFunctions";
+import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
+import { Extension } from "@tiptap/core";
 
 const ArrowsMove = Extension.create({
 	name: "ArrowsMove",

@@ -1,4 +1,4 @@
-import { tagIf, tagElse } from "./conditional";
+import { tagElse, tagIf } from "./conditional";
 import { partial } from "./partial";
 import { table } from "./table";
 

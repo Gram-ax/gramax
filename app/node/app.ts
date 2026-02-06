@@ -1,54 +1,55 @@
-import { initModules } from "@app/resolveModule/backend";
+import { initBackendModules } from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { initModules as initModulesFrontend } from "@app/resolveModule/frontend";
+import { initFrontendModules } from "@app/resolveModule/frontend";
 import autoPull from "@core/AutoPull/AutoPull";
 import { ContextFactory } from "@core/Context/ContextFactory";
+import { TableDB } from "@core/components/tableDB/table";
+import type VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileStructureEventHandlers from "@core/FileStructue/events/FileStuctureEventHandlers";
-import HashItemProvider from "@core/Hash/HashItemProvider";
 import { XxHash } from "@core/Hash/Hasher";
+import HashItemProvider from "@core/Hash/HashItemProvider";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
-import { TableDB } from "@core/components/tableDB/table";
-import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
-import { Encoder } from "@ext/Encoder/Encoder";
-import ThemeManager from "@ext/Theme/ThemeManager";
-import BlankWatcher from "@ext/Watchers/BlankWatcher";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
+import { Encoder } from "@ext/Encoder/Encoder";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
-import Logger, { LogLevel } from "@ext/loggers/Logger";
+import type Logger from "@ext/loggers/Logger";
+import { LogLevel } from "@ext/loggers/Logger";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import AuthManager from "@ext/security/logic/AuthManager";
+import type AuthManager from "@ext/security/logic/AuthManager";
 import EnterpriseAuth from "@ext/security/logic/AuthProviders/EnterpriseAuth";
 import ServerAuthManager from "@ext/security/logic/ServerAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import SearcherManager from "@ext/serach/SearcherManager";
+import { createModulithService } from "@ext/serach/modulith/createModulithService";
 import ModulithChatBotSearcher from "@ext/serach/modulith/ModulithChatBotSearcher";
 import { ModulithSearcher } from "@ext/serach/modulith/ModulithSearcher";
 import { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
-import { createModulithService } from "@ext/serach/modulith/createModulithService";
+import SearcherManager from "@ext/serach/SearcherManager";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
+import ThemeManager from "@ext/Theme/ThemeManager";
+import BlankWatcher from "@ext/Watchers/BlankWatcher";
 import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import EnvAuth from "../../core/extensions/security/logic/AuthProviders/EnvAuth";
 import FSTemplateEvents from "../../core/extensions/templates/logic/FSTemplateEvents";
-import { AppConfig, getConfig } from "../config/AppConfig";
-import Application from "../types/Application";
+import { type AppConfig, getConfig } from "../config/AppConfig";
+import type Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	await initModulesFrontend();
-	await initModules();
+	await initBackendModules();
+	await initFrontendModules();
 	if (!config.isReadOnly && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
 
 	const logger: Logger =
@@ -97,7 +98,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const encoder = new Encoder();
 
-	const ticketManager = new TicketManager(encoder, config.tokens.share, enterpriseConfig);
+	const ticketManager = new TicketManager(encoder, config.tokens.share);
 
 	const parser = new MarkdownParser();
 
@@ -105,7 +106,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
 
-	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter);
+	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter, rp);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 
 	templateEventHandlers.withParser(parser, formatter, parserContextFactory);
@@ -138,7 +139,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 					apiUrl: config.portalAi.apiUrl,
 					apiKey: config.portalAi.token,
 					collectionName: config.portalAi.instanceName,
-			  })
+				})
 			: undefined;
 
 	const aiAvailable = remoteModulithClient ? await remoteModulithClient.checkConnection() : false;
@@ -204,16 +205,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			allowedOrigins: config.allowedGramaxUrls,
 
 			portalAi: { enabled: aiAvailable },
-
-			search: {
-				elastic: {
-					enabled: config.search.elastic.enabled,
-					apiUrl: config.search.elastic.apiUrl,
-					instanceName: config.search.elastic.instanceName,
-					username: config.search.elastic.username,
-					password: config.search.elastic.password,
-				},
-			},
 
 			forceUiLangSync: config.forceUiLangSync,
 		},

@@ -1,8 +1,8 @@
-import useWatch from "@core-ui/hooks/useWatch";
-import { useState } from "react";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import useWatch from "@core-ui/hooks/useWatch";
 import { UploadStatus } from "@ext/static/logic/CloudUploadStatus";
+import { useState } from "react";
 
 const useUploadProgress = (startUploading: boolean, setError?) => {
 	const [data, setData] = useState<UploadStatus>({ status: null });

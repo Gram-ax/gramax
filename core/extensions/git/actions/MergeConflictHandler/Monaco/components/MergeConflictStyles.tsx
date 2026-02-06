@@ -12,7 +12,7 @@ const MergeConflictStyles = ({
 	style?: CSSProperties;
 }) => {
 	return (
-		<div style={style} className={classNames("merge-conflict-styles", {}, [className])}>
+		<div className={classNames("merge-conflict-styles", {}, [className])} style={style}>
 			{children}
 		</div>
 	);

@@ -9,8 +9,8 @@ import t from "@ext/localization/locale/translate";
 import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { collapseTocItems } from "@ext/navigation/article/logic/createTocItems";
 import RuleProvider from "@ext/rules/RuleProvider";
-import Path from "../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../logic/FileProvider/model/FileProvider";
+import Path from "../../../logic/FileProvider/Path/Path";
 import { Item } from "../../../logic/FileStructue/Item/Item";
 import ResourceExtensions from "../../../logic/Resource/ResourceExtensions";
 
@@ -32,7 +32,10 @@ export interface CatalogErrorArgs {
 
 class Healthcheck {
 	private _catalogContentItems: Article[];
-	constructor(private _fp: FileProvider, private _catalog: ContextualCatalog) {}
+	constructor(
+		private _fp: FileProvider,
+		private _catalog: ContextualCatalog,
+	) {}
 
 	private _errors: CatalogErrors;
 
@@ -61,10 +64,10 @@ class Healthcheck {
 					return;
 				}
 
-				const manager = p.linkManager;
+				const manager = p.parsedContext.getLinkManager();
 				const { linkResources, resources } = manager;
 
-				for (const resource of p.resourceManager.resources) {
+				for (const resource of p.parsedContext.getResourceManager().resources) {
 					await this._checkResource(item, resource);
 				}
 
@@ -80,7 +83,7 @@ class Healthcheck {
 					else await this._checkResourceLink(item, linkedResource.resource, linkedResource.hash);
 				}
 
-				for (const iconCode of p.icons) {
+				for (const iconCode of p.parsedContext.icons) {
 					await this._checkIcons(item, iconCode);
 				}
 
@@ -127,12 +130,14 @@ class Healthcheck {
 
 	private _pathExists = async (item: Article, resource: Path) => {
 		const path = !resource.extension ? resource.join(new Path(CATEGORY_ROOT_FILENAME)) : resource;
-		return await item.parsedContent.read((p) => p.resourceManager.exists(path));
+		return await item.parsedContent.read((p) => p.parsedContext.getResourceManager().exists(path));
 	};
 
 	private _getArticleByResourcePath = async (item: Article, resource: Path) => {
 		const path = !resource.extension ? resource.join(new Path(CATEGORY_ROOT_FILENAME)) : resource;
-		const absolutePath = await item.parsedContent.read((p) => p.resourceManager.getAbsolutePath(path));
+		const absolutePath = await item.parsedContent.read((p) =>
+			p.parsedContext.getResourceManager().getAbsolutePath(path),
+		);
 
 		let index = 0;
 		let article: Article = undefined;

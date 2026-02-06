@@ -1,9 +1,8 @@
-import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT, ICON_SIZE } from "@ext/pdfExport/config";
-import { Field } from "../../../../../logic/components/tableDB/table";
-import { Table as TableDB } from "../../../../../logic/components/tableDB/table";
 import t from "@ext/localization/locale/translate";
-import { Content } from "pdfmake/interfaces";
+import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT, ICON_SIZE } from "@ext/pdfExport/config";
 import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
+import { Content } from "pdfmake/interfaces";
+import { Field, Table as TableDB } from "../../../../../logic/components/tableDB/table";
 
 export class DbTableRenderer {
 	private readonly _defaultWidths = ["auto", "auto", "auto"];
@@ -137,7 +136,7 @@ export class DbTableRenderer {
 
 									margin: [-8, -4, 0, 0],
 									layout: "noBorders",
-							  }
+								}
 							: { text: "", border: [false, false, false, false] },
 					],
 				],

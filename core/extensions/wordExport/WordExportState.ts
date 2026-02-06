@@ -1,17 +1,20 @@
-import type { ParagraphChild } from "docx";
-import { FileChild } from "@ext/wordExport/types";
-import ParserContext from "../markdown/core/Parser/ParserContext/ParserContext";
-import { Tag } from "../markdown/core/render/logic/Markdoc";
-import { AddOptionsWord, TitleInfo, WordBlockChildren, WordInlineChildren } from "./options/WordTypes";
-import { createContent } from "@ext/wordExport/TextWordGenerator";
-import { createParagraph } from "@ext/wordExport/createParagraph";
-import { NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
-import { ExportType } from "@ext/wordExport/ExportType";
-import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import { JSONContent } from "@tiptap/core";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import type LinkResourceManager from "@core/Link/LinkResourceManager";
+import type ResourceManager from "@core/Resource/ResourceManager";
 import docx from "@dynamicImports/docx";
+import type UiLanguage from "@ext/localization/core/model/Language";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import { createParagraph } from "@ext/wordExport/createParagraph";
+import type { ExportType } from "@ext/wordExport/ExportType";
+import { NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
+import type { FileChild } from "@ext/wordExport/types";
+import type { JSONContent } from "@tiptap/core";
+import type { ParagraphChild } from "docx";
+import type { Tag } from "../markdown/core/render/logic/Markdoc";
+import type { AddOptionsWord, TitleInfo, WordBlockChildren, WordInlineChildren } from "./options/WordTypes";
 import { normalizeInlineWhitespace } from "./utils/normalizeInlineWhitespace";
 
 export class WordSerializerState {
@@ -19,6 +22,9 @@ export class WordSerializerState {
 		private _inlineConfig: WordInlineChildren,
 		private _blockConfig: WordBlockChildren,
 		private _parserContext: ParserContext,
+		private _resourceManager: ResourceManager,
+		private _linkResourceManager: LinkResourceManager,
+		private _language: UiLanguage,
 		private _exportType: ExportType,
 		private readonly _titlesMap: Map<string, TitleInfo>,
 		private readonly _articleName: string,
@@ -49,6 +55,9 @@ export class WordSerializerState {
 					addOptions,
 					wordRenderContext: {
 						parserContext: this._parserContext,
+						resourceManager: this._resourceManager,
+						linkResourceManager: this._linkResourceManager,
+						language: this._language,
 						exportType: this._exportType,
 						titlesMap: this._titlesMap,
 						articleName: this._articleName,
@@ -95,6 +104,9 @@ export class WordSerializerState {
 			wordRenderContext: {
 				parserContext: this._parserContext,
 				exportType: this._exportType,
+				resourceManager: this._resourceManager,
+				linkResourceManager: this._linkResourceManager,
+				language: this._language,
 				titlesMap: this._titlesMap,
 				articleName: this._articleName,
 				order: this._order,

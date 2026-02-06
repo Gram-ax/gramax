@@ -20,6 +20,8 @@ module.exports = {
 	],
 	reporters: ["default", ["jest-junit", { suiteName: "jest tests" }]],
 	moduleNameMapper: {
+		"^@app/resolveModule/frontend$": "<rootDir>/app/resolveModule/frontend/test",
+		"^@app/resolveModule/backend$": "<rootDir>/app/resolveModule/backend/test",
 		"^ics-ui-kit$": "<rootDir>/node_modules/ics-ui-kit/dist/index.js",
 		"^ics-ui-kit/(.*)$": "<rootDir>/node_modules/ics-ui-kit/dist/$1",
 		"react-dnd": "<rootDir>/app/test/__mocks__/react-dnd.js",
@@ -37,13 +39,8 @@ module.exports = {
 		"^@core-ui/(.*)$": "<rootDir>/core/ui-logic/$1",
 		"^@ext/(.*)$": "<rootDir>/core/extensions/$1",
 		"^@app/(.*)$": "<rootDir>/app/$1",
-		"^pdfjs-dist/build/pdf.worker.min.js\\?url$": "<rootDir>/scripts/jest/mocks/pdf.worker.min.js"
+		"^pdfjs-dist/build/pdf.worker.min.js\\?url$": "<rootDir>/scripts/jest/mocks/pdf.worker.min.js",
 	},
-	transformIgnorePatterns: [
-		"<rootDir>/.next",
-		"<rootDir>/public",
-		"<rootDir>/docs",
-		"<rootDir>/application",
-	],
+	transformIgnorePatterns: ["<rootDir>/.next", "<rootDir>/public", "<rootDir>/docs", "<rootDir>/application"],
 	coveragePathIgnorePatterns: ["/node_modules/", "(.test)\\.(ts|tsx|js)$", "/distribution/.*\\.(ts|js)$"],
 };

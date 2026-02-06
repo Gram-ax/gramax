@@ -1,14 +1,15 @@
 import resolveModule from "@app/resolveModule/frontend";
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import ConfluenceAPI, { GetSpacesOptions } from "@ext/confluence/core/api/model/ConfluenceAPI";
-import { Space, SpaceData, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
-import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
-import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
-import ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
-import t from "@ext/localization/locale/translate";
 import buildCqlQuery from "@ext/confluence/core/api/buildCqlQuery";
+import type ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import type { GetSpacesOptions } from "@ext/confluence/core/api/model/ConfluenceAPI";
+import type { Space, SpaceData, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
+import type ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
+import type { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
+import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import type ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import type { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import t from "@ext/localization/locale/translate";
+import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 
 export default class ConfluenceServerAPI implements ConfluenceAPI {
 	constructor(protected _data: ConfluenceServerSourceData) {}

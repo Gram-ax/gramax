@@ -1,10 +1,13 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { Workspace } from "@ext/workspace/Workspace";
 import { Buffer } from "buffer";
 import HashItem from "./HashItem";
-import type { Workspace } from "@ext/workspace/Workspace";
 
 export default class HashItemRef extends HashItem {
-	constructor(private _itemRef: ItemRef, private _workspace: Workspace) {
+	constructor(
+		private _itemRef: ItemRef,
+		private _workspace: Workspace,
+	) {
 		super();
 	}
 	public getKey(): string {

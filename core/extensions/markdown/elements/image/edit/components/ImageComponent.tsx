@@ -1,11 +1,11 @@
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import { resolveFloat } from "@ext/markdown/elements/float/edit/logic/resolveFloat";
 import Image from "@ext/markdown/elements/image/edit/components/Image";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import { NodeViewProps } from "@tiptap/core";
 import { ReactElement, useCallback, useRef } from "react";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import { resolveFloat } from "@ext/markdown/elements/float/edit/logic/resolveFloat";
 
 const ImageComponent = (props: NodeViewProps): ReactElement => {
 	const { editor, node, getPos, selected, updateAttributes } = props;
@@ -40,29 +40,29 @@ const ImageComponent = (props: NodeViewProps): ReactElement => {
 
 	return (
 		<NodeViewContextableWrapper
-			ref={hoverElement}
+			data-drag-handle
+			data-float={float}
+			data-resize-container
 			draggable={true}
 			props={props}
-			data-float={float}
-			data-drag-handle
-			data-resize-container
+			ref={hoverElement}
 		>
 			<Image
-				editor={editor}
-				updateAttributes={updateAttributesCallback}
-				selected={isSelected}
-				id={node.attrs.id}
-				title={node.attrs.title}
-				objects={node.attrs.objects}
-				src={node.attrs.src}
 				alt={node.attrs.alt}
-				width={node.attrs.width}
-				height={node.attrs.height}
-				getPos={getPos}
-				hoverElementRef={hoverElement}
-				scale={node.attrs.scale}
-				crop={node.attrs.crop}
 				commentId={node.attrs.comment?.id}
+				crop={node.attrs.crop}
+				editor={editor}
+				getPos={getPos}
+				height={node.attrs.height}
+				hoverElementRef={hoverElement}
+				id={node.attrs.id}
+				objects={node.attrs.objects}
+				scale={node.attrs.scale}
+				selected={isSelected}
+				src={node.attrs.src}
+				title={node.attrs.title}
+				updateAttributes={updateAttributesCallback}
+				width={node.attrs.width}
 			/>
 		</NodeViewContextableWrapper>
 	);

@@ -1,13 +1,13 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import { ArticlePrintPreview } from "@ext/print/components/ArticlePrintPreview";
-import { StartPaginationFunction } from "@ext/print/components/hooks/usePaginationTask";
+import type { StartPaginationFunction } from "@ext/print/components/hooks/usePaginationTask";
 import { useGetItems } from "@ext/print/components/useGetItems";
-import { PdfExportProgress, PdfPrintParams } from "@ext/print/types";
+import type { PdfExportProgress, PdfPrintParams } from "@ext/print/types";
 import PagePaginator from "@ext/print/utils/pagination/PagePaginator";
 import { memo, useCallback, useEffect, useMemo, useRef } from "react";
 
@@ -112,10 +112,9 @@ const PrintPages = memo(
 							<div className="page-content" ref={renderDivRef}>
 								{printableContent.items.map((item, i) => (
 									<ArticlePrintPreview
-										key={i + item.title}
-										item={item}
-										index={i}
 										components={components}
+										item={item}
+										key={i + item.title}
 										onRender={
 											i === printableContent.items.length - 1 ? handleLastRender : undefined
 										}

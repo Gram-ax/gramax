@@ -1,9 +1,9 @@
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
+import { Selection } from "@tiptap/pm/state";
+import { CellSelection } from "prosemirror-tables";
 import { useContext } from "react";
 import { ActionContext } from "../ButtonStateService";
 import { Attrs, ButtonState, Mark, NodeType, NodeValues } from "./types";
-import { Selection } from "@tiptap/pm/state";
-import { CellSelection } from "prosemirror-tables";
 
 export const ListGroup = ["orderedList", "bulletList", "taskList"];
 export const BlockPlus = ["table", "cut", "tab", "tabs", "blockquote"];

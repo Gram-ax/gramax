@@ -24,7 +24,7 @@ const ctx: Context = {
 	},
 	get domain() {
 		return "";
-	}
+	},
 };
 
 export default ctx;

@@ -1,54 +1,54 @@
-import resolveModule, { initModules } from "@app/resolveModule/backend";
-import { initModules as initModulesFrontend } from "@app/resolveModule/frontend";
+import resolveBackendModule, { initBackendModules } from "@app/resolveModule/backend";
+import { initFrontendModules } from "@app/resolveModule/frontend";
 import { ContextFactory } from "@core/Context/ContextFactory";
+import { TableDB } from "@core/components/tableDB/table";
+import type VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import FileStructureEventHandlers from "@core/FileStructue/events/FileStuctureEventHandlers";
-import HashItemProvider from "@core/Hash/HashItemProvider";
 import { XxHash } from "@core/Hash/Hasher";
+import HashItemProvider from "@core/Hash/HashItemProvider";
 import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
-import { TableDB } from "@core/components/tableDB/table";
-import VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
-import { Encoder } from "@ext/Encoder/Encoder";
-import ThemeManager from "@ext/Theme/ThemeManager";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
+import { Encoder } from "@ext/Encoder/Encoder";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
-import Logger from "@ext/loggers/Logger";
+import type Logger from "@ext/loggers/Logger";
+import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import AuthManager from "@ext/security/logic/AuthManager";
+import type AuthManager from "@ext/security/logic/AuthManager";
 import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import SearcherManager from "@ext/serach/SearcherManager";
-import { ModulithSearcher } from "@ext/serach/modulith/ModulithSearcher";
 import { createModulithService } from "@ext/serach/modulith/createModulithService";
+import { ModulithSearcher } from "@ext/serach/modulith/ModulithSearcher";
+import SearcherManager from "@ext/serach/SearcherManager";
 import WorkspaceCheckIsCatalogCloning from "@ext/storage/events/WorkspaceCheckIsCatalogCloning";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
+import ThemeManager from "@ext/Theme/ThemeManager";
 import FSTemplateEvents from "@ext/templates/logic/FSTemplateEvents";
 import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import setWorkerProxy from "../../apps/browser/src/logic/setWorkerProxy";
-import { AppConfig, getConfig, type AppGlobalConfig } from "../config/AppConfig";
-import Application from "../types/Application";
+import { type AppConfig, type AppGlobalConfig, getConfig } from "../config/AppConfig";
+import type Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	await initModulesFrontend();
-	await initModules();
+	await initFrontendModules();
+	await initBackendModules();
 
 	const vur: VideoUrlRepository = null;
 
-	const initWasm = resolveModule("initWasm");
+	const initWasm = resolveBackendModule("initWasm");
 
 	await initWasm?.(config.services.gitProxy.url);
 	await XxHash.init();
@@ -94,7 +94,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
 
-	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter);
+	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter, rp);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 	const logger: Logger = config.isProduction ? await BugsnagLogger.init(config) : new ConsoleLogger();
 	const sitePresenterFactory = new SitePresenterFactory(
@@ -168,10 +168,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 			portalAi: {
 				enabled: false,
-			},
-
-			search: {
-				elastic: { enabled: false },
 			},
 
 			forceUiLangSync: config.forceUiLangSync,

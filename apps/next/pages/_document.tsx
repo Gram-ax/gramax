@@ -1,8 +1,8 @@
+import { OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import fs from "fs";
+import Document, { DocumentContext, DocumentInitialProps, Head, Html, Main, NextScript } from "next/document";
 import path from "path";
-import Document, { Html, Head, Main, NextScript, DocumentContext, DocumentInitialProps } from "next/document";
-import { OpenGraphData } from "@core/SitePresenter/SitePresenter";
 
 interface MyDocumentProps extends DocumentInitialProps {
 	cssContent: string;
@@ -60,22 +60,22 @@ class MyDocument extends Document<MyDocumentProps> {
 				<Head>
 					{openGraphData && (
 						<>
-							<meta property="og:title" content={openGraphData.title || ""} />
-							<meta property="og:type" content="article" />
-							<meta property="og:description" content={openGraphData.description || ""} />
-							{currentUrl && <meta property="og:url" content={currentUrl} />}
+							<meta content={openGraphData.title || ""} property="og:title" />
+							<meta content="article" property="og:type" />
+							<meta content={openGraphData.description || ""} property="og:description" />
+							{currentUrl && <meta content={currentUrl} property="og:url" />}
 							{domain && (
 								<>
-									<meta property="og:image" content={`${domain}${basePath}/favicon.ico`} />
-									<meta property="og:image:width" content="64" />
-									<meta property="og:image:height" content="64" />
+									<meta content={`${domain}${basePath}/favicon.ico`} property="og:image" />
+									<meta content="64" property="og:image:width" />
+									<meta content="64" property="og:image:height" />
 								</>
 							)}
 						</>
 					)}
 					<style dangerouslySetInnerHTML={{ __html: this.props.cssContent }} />
 				</Head>
-				<body id="custom-style" data-theme={this.props.theme}>
+				<body data-theme={this.props.theme} id="custom-style">
 					<Main />
 					<NextScript />
 				</body>

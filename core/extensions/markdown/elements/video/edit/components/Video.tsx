@@ -1,9 +1,9 @@
+import BlockActionPanel from "@components/BlockActionPanel";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import VideoActions from "@ext/markdown/elements/video/edit/components/VideoActions";
 import { NodeViewProps } from "@tiptap/react";
 import { ReactElement, useRef, useState } from "react";
 import Video from "../../render/components/Video";
-import BlockActionPanel from "@components/BlockActionPanel";
-import VideoActions from "@ext/markdown/elements/video/edit/components/VideoActions";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 const EditVideo = (props: NodeViewProps): ReactElement => {
 	const { editor, node, getPos } = props;
@@ -23,33 +23,33 @@ const EditVideo = (props: NodeViewProps): ReactElement => {
 	};
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElement} props={props} draggable={true} data-drag-handle>
+		<NodeViewContextableWrapper data-drag-handle draggable={true} props={props} ref={hoverElement}>
 			<BlockActionPanel
-				isSignature={node.attrs?.title?.length > 0}
-				updateAttributes={updateAttributes}
-				hoverElementRef={hoverElement}
-				signatureText={node.attrs.title}
 				actionsOptions={{ comment: true }}
-				hasSignature={hasSignature}
 				getPos={getPos}
-				setHasSignature={setHasSignature}
-				signatureRef={signatureRef}
+				hasSignature={hasSignature}
+				hoverElementRef={hoverElement}
+				isSignature={node.attrs?.title?.length > 0}
 				rightActions={
 					isEditable && (
 						<VideoActions
-							updateAttributes={updateAttributes}
-							signatureRef={signatureRef}
 							node={node}
 							setHasSignature={setHasSignature}
+							signatureRef={signatureRef}
+							updateAttributes={updateAttributes}
 						/>
 					)
 				}
+				setHasSignature={setHasSignature}
+				signatureRef={signatureRef}
+				signatureText={node.attrs.title}
+				updateAttributes={updateAttributes}
 			>
 				<Video
+					commentId={node.attrs.comment?.id}
 					noEm={isEditable}
 					path={node.attrs.path}
 					title={node.attrs.title}
-					commentId={node.attrs.comment?.id}
 				/>
 			</BlockActionPanel>
 		</NodeViewContextableWrapper>

@@ -1,9 +1,9 @@
-import { ContentStack } from "pdfmake/interfaces";
-import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { pdfDiagramRenderer } from "@ext/markdown/elements/diagrams/pdf/pdfDiagramRenderer";
 import DiagramType from "@core/components/Diagram/DiagramType";
+import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { pdfDiagramRenderer } from "@ext/markdown/elements/diagrams/pdf/pdfDiagramRenderer";
+import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
+import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { ContentStack } from "pdfmake/interfaces";
 
 export async function plantUmlHandler(
 	node: Tag,
@@ -19,7 +19,7 @@ export async function plantUmlHandler(
 	const { base64, size } = await pdfDiagramRenderer.renderSimpleDiagram(
 		node,
 		DiagramType["plant-uml"],
-		context.parserContext.getResourceManager(),
+		context.resourceManager,
 		originalWidth,
 	);
 

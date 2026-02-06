@@ -1,13 +1,13 @@
 enum GitMergeStatus {
-    BothModified = "bothModified",
+	BothModified = "bothModified",
 
-    AddedByUs = "addedByUs",
-    AddedByThem = "addedByThem",
-    BothAdded = "bothAdded",
-    
-    DeletedByUs = "deletedByUs",
-    DeletedByThem = "deletedByThem",
-    BothDeleted = "bothDeleted",
+	AddedByUs = "addedByUs",
+	AddedByThem = "addedByThem",
+	BothAdded = "bothAdded",
+
+	DeletedByUs = "deletedByUs",
+	DeletedByThem = "deletedByThem",
+	BothDeleted = "bothDeleted",
 }
 
-export default GitMergeStatus
+export default GitMergeStatus;

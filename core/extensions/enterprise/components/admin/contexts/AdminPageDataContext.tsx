@@ -1,7 +1,7 @@
 import useWatch from "@core-ui/hooks/useWatch";
 import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
 import { ModuleOptions } from "@ext/enterprise/types/UserSettings";
-import { createContext, useContext, memo, useRef } from "react";
+import { createContext, memo, useContext, useRef } from "react";
 import { create } from "zustand";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";

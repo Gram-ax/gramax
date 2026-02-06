@@ -21,16 +21,16 @@ const SelectGitStorageDataFields = (props: SelectGitStorageDataFieldsProps) => {
 
 	return (
 		<FormField
-			name="repository"
-			title={t("git.clone.repo-link")}
 			control={({ field }) => (
 				<TextInput
 					{...field}
-					value={field.value?.path}
 					onChange={(value) => field.onChange({ path: value, lastActivity: undefined })}
 					placeholder={exampleLink}
+					value={field.value?.path}
 				/>
 			)}
+			name="repository"
+			title={t("git.clone.repo-link")}
 		/>
 	);
 };

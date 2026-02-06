@@ -22,10 +22,10 @@ const SingInByMail = () => {
 
 	return (
 		<ModalLayout
-			setGlobalsStyles
 			isOpen={isOpen}
-			onOpen={() => setIsOpen(true)}
 			onClose={() => setIsOpen(false)}
+			onOpen={() => setIsOpen(true)}
+			setGlobalsStyles
 			trigger={
 				<div>
 					<a>
@@ -41,10 +41,10 @@ const SingInByMail = () => {
 					<label>{t("mail")}</label>
 					<div className="catalog-url-slag margin-bottom">
 						<Input
-							value={mail}
 							className="none-border"
 							onChange={(e) => setMail(e.currentTarget.value)}
 							placeholder="Mail"
+							value={mail}
 						/>
 					</div>
 					<div className="article global">

@@ -1,7 +1,7 @@
-import { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
-import { TablePaginator } from "./TablePaginator";
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
+import { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
 import Paginator from "@ext/print/utils/pagination/Paginator";
+import { TablePaginator } from "./TablePaginator";
 
 const tableHandlerFn: PrintNodeHandler["handle"] = async (node, paginator) => {
 	if (node.dataset?.component !== "table") return false;
@@ -14,7 +14,7 @@ const tableHandlerFn: PrintNodeHandler["handle"] = async (node, paginator) => {
 };
 
 const tableHandler: PrintNodeHandler = {
-	isRequired: true,
+	isRequired: false,
 	handle: tableHandlerFn,
 };
 

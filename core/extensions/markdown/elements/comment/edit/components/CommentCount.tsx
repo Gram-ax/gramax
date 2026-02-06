@@ -9,9 +9,9 @@ const VersionControlCommentCount = ({ count, className }: { count: number; class
 			<div className={className}>
 				<Icon
 					code="message-square"
-					viewBox="2 2 20 20"
-					svgStyle={{ fill: "var(--color-text-accent)" }}
 					style={{ color: "var(--color-text-accent)", fontSize: "1.2em" }}
+					svgStyle={{ fill: "var(--color-text-accent)" }}
+					viewBox="2 2 20 20"
 				/>
 				<div className="count">{count}</div>
 			</div>

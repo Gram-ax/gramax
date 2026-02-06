@@ -1,28 +1,28 @@
-import ToolsArticleActions from "@ext/item/actions/ToolsArticleActions";
 import { TextSize } from "@components/Atoms/Button/Button";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import useWatch from "@core-ui/hooks/useWatch";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import useWatch from "@core-ui/hooks/useWatch";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import BugsnagTrigger from "@ext/bugsnag/components/BugsnagTrigger";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
+import ToolsArticleActions from "@ext/item/actions/ToolsArticleActions";
 import { shouldShowActionWarning } from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
+import { DropdownMenuLabel, DropdownMenuSeparator } from "@ui-kit/Dropdown";
 import React, { CSSProperties, Dispatch, SetStateAction, useCallback, useEffect, useState } from "react";
 import { ItemLink } from "../navigation/NavigationLinks";
 import DeleteItem from "./actions/DeleteItem";
-import { DropdownMenuLabel, DropdownMenuSeparator } from "@ui-kit/Dropdown";
-import { MainArticleActionsProps } from "./actions/MainArticleActions";
-import { LinksArticleActions } from "./actions/LinksArticleActions";
-import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
-import BugsnagTrigger from "@ext/bugsnag/components/BugsnagTrigger";
 import { ExportIntegrationArticleActions } from "./actions/ExportIntegrationArticleActions";
+import { LinksArticleActions } from "./actions/LinksArticleActions";
+import { MainArticleActionsProps } from "./actions/MainArticleActions";
 
 interface EditMenuProps {
 	itemLink: ItemLink;
@@ -101,14 +101,14 @@ const EditMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 			<DropdownMenuLabel className="text-primary-fg">{t("article.actions.title")}</DropdownMenuLabel>
 			<DropdownMenuSeparator />
 			<MainArticleActionsProps
-				hasError={hasError}
-				itemProps={itemProps}
-				itemLink={itemLink}
-				isCategory={isCategory}
 				catalogName={catalogName}
+				hasError={hasError}
+				isCategory={isCategory}
 				isCurrentItem={isCurrentItem}
-				setItemLink={setItemLink}
+				itemLink={itemLink}
+				itemProps={itemProps}
 				onUpdate={onUpdate}
+				setItemLink={setItemLink}
 			/>
 			<DropdownMenuSeparator />
 			<IsReadOnlyHOC>
@@ -116,18 +116,18 @@ const EditMenu = React.memo(({ itemLink, isCategory, setItemLink }: EditMenuProp
 				<DropdownMenuSeparator />
 			</IsReadOnlyHOC>
 			<ToolsArticleActions
-				item={itemProps}
 				isCurrentItem={isCurrentItem}
 				isTemplate={articleProps?.template?.length > 0}
+				item={itemProps}
 			/>
 			<IsReadOnlyHOC>
 				<DropdownMenuSeparator />
 			</IsReadOnlyHOC>
 			<ExportIntegrationArticleActions
-				itemLink={itemLink}
 				hasError={hasError}
 				isCategory={isCategory}
 				item={itemProps}
+				itemLink={itemLink}
 			/>
 			<IsReadOnlyHOC>
 				<DropdownMenuSeparator />

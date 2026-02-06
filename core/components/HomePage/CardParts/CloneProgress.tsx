@@ -1,12 +1,13 @@
 import { useApi } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { formatBytes } from "@core-ui/utils/formatBytes";
 import styled from "@emotion/styled";
 import type { RemoteProgress, RemoteProgressPercentage } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
 import { Divider } from "@ui-kit/Divider";
 import { Progress } from "@ui-kit/Progress";
-import { Tooltip, TooltipContent, TooltipTrigger, useOverflowTooltip } from "@ui-kit/Tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback } from "react";
 
 const collectProgressInfo = (data: RemoteProgress) => {
@@ -31,11 +32,18 @@ const collectProgressInfo = (data: RemoteProgress) => {
 			.replace("{total}", data.data.total);
 
 	if (data.type == "sideband") return data.data.remoteText;
+
+	if (data.type === "lfs")
+		return t("git.clone.lfs")
+			.replace("{handledObjects}", data.data.objectsHandled)
+			.replace("{totalObjects}", data.data.totalObjects)
+			.replace("{bytesHandled}", formatBytes(data.data.bytesHandled))
+			.replace("{totalBytes}", formatBytes(data.data.totalBytes));
 };
 
 const formatSpeed = (data: RemoteProgress): string => {
 	if (!data) return "";
-	if (data.type !== "chunkedTransfer" && data.type !== "download") return "";
+	if (data.type !== "chunkedTransfer" && data.type !== "download" && data.type !== "lfs") return "";
 
 	const perSecond = data.data.downloadSpeedBytes;
 
@@ -47,14 +55,10 @@ const formatSpeed = (data: RemoteProgress): string => {
 
 const formatCollectedBytes = (data: RemoteProgress): string => {
 	if (!data) return "";
-	if (data.type !== "chunkedTransfer" && data.type !== "download") return "";
+	if (data.type !== "chunkedTransfer" && data.type !== "download" && data.type !== "lfs") return "";
 
-	const bytes = data.data.bytes;
-
-	if (bytes >= 999 * 1024) return t("git.clone.etc.mb").replace("{}", (bytes / 1024 / 1024).toFixed(2));
-	if (bytes >= 999) return t("git.clone.etc.kb").replace("{}", (bytes / 1024).toFixed(2));
-
-	return t("git.clone.etc.b").replace("{}", bytes.toFixed(2));
+	if (data.type === "lfs") return formatBytes(data.data.bytesHandled);
+	return formatBytes(data.data.bytes);
 };
 
 const resolveLabelText = (data: RemoteProgress, isBrowser: boolean) => {
@@ -73,7 +77,6 @@ const resolveLabelText = (data: RemoteProgress, isBrowser: boolean) => {
 		return t("git.clone.progress.downloading");
 
 	if (data.type === "checkout") return t("git.clone.progress.checkout");
-
 	return "";
 };
 
@@ -88,46 +91,44 @@ export type CloneProgressProps = {
 interface ProgressBlockProps {
 	title: string;
 	speed?: string;
+	total?: string;
 	indeterminate?: boolean;
 	value?: number;
 	onCancel?: () => void;
 }
 
-const ProgressBlock = ({ indeterminate, title, onCancel, value, speed }: ProgressBlockProps) => {
-	const { open, onOpenChange, ref } = useOverflowTooltip<HTMLDivElement>();
-
+const ProgressBlock = ({ indeterminate, title, onCancel, value, speed, total }: ProgressBlockProps) => {
 	return (
 		<div className="flex w-full flex-col gap-1 max-w-full overflow-hidden">
 			<div className="flex items-center gap-2 justify-between">
 				<div className="flex items-center justify-between gap-1" style={{ maxWidth: "85%" }}>
 					<div className="text-xs text-primary-fg font-normal whitespace-nowrap">{title}</div>
+					{total && (
+						<>
+							{title && <Divider className="h-3" orientation="vertical" />}
+							<div className="text-xs truncate text-primary-fg font-normal">{total}</div>
+						</>
+					)}
 					{speed && (
 						<>
-							<Divider orientation="vertical" className="h-3" />
-							<Tooltip open={open} onOpenChange={onOpenChange}>
-								<TooltipTrigger asChild>
-									<div className="text-xs truncate text-primary-fg font-normal" ref={ref}>
-										{speed}
-									</div>
-								</TooltipTrigger>
-								<TooltipContent>{`${title} / ${speed}`}</TooltipContent>
-							</Tooltip>
+							<Divider className="h-3" orientation="vertical" />
+							<div className="text-xs truncate text-primary-fg font-normal">{speed}</div>
 						</>
 					)}
 				</div>
 				<div className="flex items-center w-full justify-end">
 					{onCancel && (
 						<IconButton
-							size="sm"
-							variant="text"
-							onClick={onCancel}
 							icon="x"
+							onClick={onCancel}
+							size="sm"
 							style={{ padding: "0", height: "auto" }}
+							variant="text"
 						/>
 					)}
 				</div>
 			</div>
-			<Progress indeterminate={indeterminate} value={value} size="sm" />
+			<Progress indeterminate={indeterminate} size="sm" value={Math.min(value ?? 0, 100)} />
 		</div>
 	);
 };
@@ -149,7 +150,8 @@ const CloneProgress = (props: CloneProgressProps) => {
 
 	const tooltipContent = collectProgressInfo(progress);
 
-	const title = resolveLabelText(progress, isBrowser) || formatCollectedBytes(progress);
+	const title = resolveLabelText(progress, isBrowser);
+	const total = !title ? formatCollectedBytes(progress) : undefined;
 	const speed = isBrowser ? undefined : formatSpeed(progress);
 
 	return (
@@ -161,10 +163,11 @@ const CloneProgress = (props: CloneProgressProps) => {
 					) : (
 						<ProgressBlock
 							indeterminate={!progress?.percentage}
-							title={title}
-							speed={speed}
-							value={progress?.percentage}
 							onCancel={handleCancel}
+							speed={speed}
+							title={title}
+							total={total}
+							value={progress?.percentage}
 						/>
 					)}
 				</div>

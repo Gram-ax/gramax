@@ -2,13 +2,13 @@ import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import Query, { parserQuery } from "@core/Api/Query";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
 import { ConfluenceInstance } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
 import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
+import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
 import t from "@ext/localization/locale/translate";
 import User2 from "@ext/security/components/User/User2";
@@ -68,18 +68,16 @@ const CreateConfluenceCloudSourceData = ({
 								<User2 name={user.username} />
 							</div>
 						) : (
-							<SpinnerLoader height={25} width={25} lineWidth={2} />
+							<SpinnerLoader height={25} lineWidth={2} width={25} />
 						)}
 					</div>
 				) : (
 					<ButtonLink
-						fullWidth
-						className="input-lable"
 						buttonStyle={ButtonStyle.default}
-						textSize={TextSize.M}
-						iconFw={false}
+						className="input-lable"
+						fullWidth
 						iconCode={SourceType.confluenceCloud.toLowerCase()}
-						text={t("log-in") + "Confluence"}
+						iconFw={false}
 						onClick={async () => {
 							if (token) return;
 							createChildWindow(
@@ -92,6 +90,8 @@ const CreateConfluenceCloudSourceData = ({
 
 							if (isBrowser) setToken(parserQuery(await waitForTempToken()));
 						}}
+						text={t("log-in") + "Confluence"}
+						textSize={TextSize.M}
 					/>
 				)}
 			</div>

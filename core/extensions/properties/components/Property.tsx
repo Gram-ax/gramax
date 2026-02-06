@@ -21,10 +21,12 @@ interface PropertyProps {
 const Property = ({ type, name, value, className, style, icon, shouldShowValue = true, onClear }: PropertyProps) => {
 	return (
 		<Tooltip content={name}>
-			<div className={className} style={style} data-qa="qa-property">
+			<div className={className} data-qa="qa-property" style={style}>
 				{icon && <Icon className="prop-icon" code={icon} />}
 				{shouldShowValue ? getDisplayValue(type, value) : name}
-				{onClear ? <IconButton className="prop-x-mark" variant="text" size="xs" icon="x" onClick={() => onClear()} /> : null}
+				{onClear ? (
+					<IconButton className="prop-x-mark" icon="x" onClick={() => onClear()} size="xs" variant="text" />
+				) : null}
 			</div>
 		</Tooltip>
 	);

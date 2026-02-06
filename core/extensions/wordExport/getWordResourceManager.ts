@@ -2,10 +2,14 @@ import ResourceManager from "@core/Resource/ResourceManager";
 import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 
-const getWordResourceManager = async (addOptions: AddOptionsWord, parserContext: ParserContext) => {
+const getWordResourceManager = async (
+	addOptions: AddOptionsWord,
+	parserContext: ParserContext,
+	resourceManager: ResourceManager,
+) => {
 	return (
 		(addOptions?.snippetId && (await getSnippetResourceManager(addOptions.snippetId, parserContext))) ||
-		parserContext.getResourceManager()
+		resourceManager
 	);
 };
 
@@ -20,7 +24,7 @@ const getSnippetResourceManager = async (
 	const snippetArticle = snippetProvider.getArticle(snippetId);
 	if (!snippetArticle) return;
 
-	const readResourceManager = () => snippetArticle.parsedContent.read((p) => p?.resourceManager);
+	const readResourceManager = () => snippetArticle.parsedContent.read((p) => p?.parsedContext?.getResourceManager());
 
 	let resourceManager = await readResourceManager();
 	if (resourceManager) return resourceManager;

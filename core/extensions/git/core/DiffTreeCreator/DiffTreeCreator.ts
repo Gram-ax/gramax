@@ -1,13 +1,13 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import ArticleParser from "@core/FileStructue/Article/ArticleParser";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import FileStructure from "@core/FileStructue/FileStructure";
-import SitePresenter from "@core/SitePresenter/SitePresenter";
+import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import type SitePresenter from "@core/SitePresenter/SitePresenter";
 import type { CommitScope, DiffCompareOptions, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import RevisionDiffItemCreator from "@ext/git/core/GitDiffItemCreator/RevisionDiffItemCreator";
-import RevisionDiffTreePresenter, { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
-import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import RevisionDiffTreePresenter, { type DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
 import Navigation from "@ext/navigation/catalog/main/logic/Navigation";
 

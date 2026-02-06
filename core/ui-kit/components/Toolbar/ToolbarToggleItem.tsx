@@ -1,8 +1,8 @@
-import { ToolbarToggleItem as UiKitToolbarToggleItem } from "ics-ui-kit/components/toolbar";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { forwardRef, useCallback } from "react";
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipShortcut } from "@ui-kit/Tooltip";
 import { cn } from "@core-ui/utils/cn";
+import { Tooltip, TooltipContent, TooltipShortcut, TooltipTrigger } from "@ui-kit/Tooltip";
+import { ToolbarToggleItem as UiKitToolbarToggleItem } from "ics-ui-kit/components/toolbar";
+import { forwardRef, useCallback } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitToolbarToggleItemProps = ExtractComponentGeneric<typeof UiKitToolbarToggleItem>;
 
@@ -40,7 +40,7 @@ export const ToolbarToggleItem = forwardRef<HTMLButtonElement, ToolbarToggleItem
 				<TooltipContent sideOffset={2}>
 					<div className="flex items-center gap-2">
 						{tooltipText}
-						{hotKey && <TooltipShortcut value={hotKey} inverse className="p-0" />}
+						{hotKey && <TooltipShortcut className="p-0" inverse value={hotKey} />}
 					</div>
 				</TooltipContent>
 			)}

@@ -1,16 +1,16 @@
-import fileNameUtils from "@core-ui/fileNameUtils";
-import { transliterate } from "@core-ui/languageConverter/transliterate";
 import FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
+import fileNameUtils from "@core-ui/fileNameUtils";
+import { transliterate } from "@core-ui/languageConverter/transliterate";
 import t from "@ext/localization/locale/translate";
 import NotionAPI from "@ext/notion/api/NotionAPI";
+import convertNotionUnsupportedNode from "@ext/notion/logic/convertNotionUnsupportedNode";
 import getNotionConvertors from "@ext/notion/logic/getNotionConverters";
 import contentTypeToExtension from "@ext/notion/logic/getNotionExtension";
-import { PageNode, PathsMapValue } from "@ext/notion/model/NotionTypes";
 import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 import NotionSourceData from "@ext/notion/model/NotionSourceData";
+import { PageNode, PathsMapValue } from "@ext/notion/model/NotionTypes";
 import { JSONContent } from "@tiptap/core";
-import convertNotionUnsupportedNode from "@ext/notion/logic/convertNotionUnsupportedNode";
 
 export default class NotionConverter {
 	private _page: PageNode;
@@ -19,7 +19,10 @@ export default class NotionConverter {
 	private _pathsMap: Map<string, PathsMapValue>;
 	private _conversionMap: Record<string, NotionNodeConverter> = getNotionConvertors();
 
-	constructor(private _data: NotionSourceData, private _fp: FileProvider) {}
+	constructor(
+		private _data: NotionSourceData,
+		private _fp: FileProvider,
+	) {}
 
 	convert(page: PageNode, articlePath: Path, pathsMap: Map<string, PathsMapValue>): Promise<JSONContent> {
 		this._allFileNames = [];
@@ -53,7 +56,7 @@ export default class NotionConverter {
 					convertUnsupported: (node) => convertNotionUnsupportedNode(node, this._page.url),
 					currentPath: this._articlePath,
 					pathsMap: this._pathsMap,
-			  })
+				})
 			: convertNotionUnsupportedNode(notionNode, this._page.url);
 	}
 

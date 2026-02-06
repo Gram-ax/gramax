@@ -5,15 +5,17 @@ import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type { FSEvents } from "@core/FileStructue/FileStructure";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
+import { enumTypes, PropertyTypes } from "@ext/properties/models";
 import { feature } from "@ext/toggleFeatures/features";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import { addScopeToPath } from "@ext/versioning/utils";
 import type { Workspace } from "@ext/workspace/Workspace";
 
-export default class CatalogTagFilter implements EventHandlerCollection {
+export default class CatalogPropertyFilter implements EventHandlerCollection {
 	private _catalogs = new WeakMap<Catalog, Map<string, CatalogEntry>>();
 	private _events = [];
 
@@ -29,33 +31,33 @@ export default class CatalogTagFilter implements EventHandlerCollection {
 			fs.events.on("item-filter", this._itemFilter.bind(this)),
 
 			this._workspace.events.on("on-catalog-resolve", async ({ mutableCatalog, metadata }) => {
-				const property = metadata;
-				if (!property || !mutableCatalog.catalog) return;
-				if (!mutableCatalog.catalog.props.filterProperties?.includes(property)) return;
+				const filterValue = metadata;
+				if (!filterValue || !mutableCatalog.catalog) return;
+				if (!mutableCatalog.catalog.props.filterProperty) return;
 
 				const filteredCatalog = this._catalogs.get(mutableCatalog.catalog);
 				if (filteredCatalog) {
-					const catalog = filteredCatalog.get(property);
+					const catalog = filteredCatalog.get(filterValue);
 					if (catalog) mutableCatalog.catalog = await catalog.load();
 				}
 			}),
 
 			this._workspace.events.on("on-catalog-entry-resolve", async ({ mutableEntry, name, metadata }) => {
-				const property = metadata;
-				if (!property) return;
+				const filterValue = metadata;
+				if (!filterValue) return;
 
 				if (!mutableEntry.entry) {
 					mutableEntry.entry = await this._workspace.getContextlessCatalog(name);
 					if (!mutableEntry.entry) return;
 				}
 
-				if (!mutableEntry.entry.props.filterProperties?.includes(property)) return;
+				if (!mutableEntry.entry.props.filterProperty) return;
 
 				// Catalog versions are only loaded if the catalog itself is loaded.
 				// As long as Catalog.load() returns this and the reference will be the same, this will work
 				const filteredCatalogs = this._catalogs.get(mutableEntry.entry.upgrade("catalog"));
 				if (filteredCatalogs) {
-					const catalog = filteredCatalogs.get(property);
+					const catalog = filteredCatalogs.get(filterValue);
 					if (catalog) mutableEntry.entry = catalog;
 				}
 			}),
@@ -68,12 +70,15 @@ export default class CatalogTagFilter implements EventHandlerCollection {
 				});
 
 				catalog.events.on("item-props-updated", async ({ item, props, catalog }) => {
-					if (catalog.props.resolvedFilterProperty || catalog.props.resolvedVersion) return;
+					if (catalog.props.resolvedFilterPropertyValue || catalog.props.resolvedVersion) return;
 
 					const itemProps = new Set(item.props.properties?.map((p) => p.name) || []);
 					const updateProps = new Set(props.properties?.map((p) => p.name) || []);
 
-					if (itemProps.difference(updateProps).intersection(new Set(catalog.props.filterProperties)))
+					if (
+						catalog.props.filterProperty &&
+						(itemProps.has(catalog.props.filterProperty) || updateProps.has(catalog.props.filterProperty))
+					)
 						await this._updateCatalog(catalog);
 				});
 			}),
@@ -81,29 +86,57 @@ export default class CatalogTagFilter implements EventHandlerCollection {
 	}
 
 	private _categoryFilter({ item, catalogProps }: EventArgs<FSEvents, "category-filter">): boolean {
-		if (!catalogProps.resolvedFilterProperty) return true;
-		if (!item.parent.parent && item.type == ItemType.category) {
+		if (!catalogProps.resolvedFilterPropertyValue || !catalogProps.filterProperty) return true;
+
+		if (!item.parent.parent && item.type === ItemType.category) {
 			const maybeItemLanguage = ContentLanguage[item.getFileName()];
 			if (catalogProps.supportedLanguages.includes(maybeItemLanguage)) return true;
 		}
-		return !!item.props.properties?.some((p) => p.name == catalogProps.resolvedFilterProperty);
+
+		return this._matchesFilter(item, catalogProps.filterProperty, catalogProps.resolvedFilterPropertyValue);
 	}
 
 	private _itemFilter({ item, catalogProps }: EventArgs<FSEvents, "item-filter">): boolean {
-		if (!catalogProps.resolvedFilterProperty || item.type === "category") return true;
-		return !!item.props.properties?.some((p) => p.name == catalogProps.resolvedFilterProperty);
+		if (!catalogProps.resolvedFilterPropertyValue || !catalogProps.filterProperty || item.type === "category")
+			return true;
+		return this._matchesFilter(item, catalogProps.filterProperty, catalogProps.resolvedFilterPropertyValue);
+	}
+
+	private _matchesFilter(item: Item, propertyName: string, filterValue: string): boolean {
+		const itemProperty = item.props.properties?.find((p) => p.name === propertyName);
+
+		if (!itemProperty) return false;
+
+		// flag or 'any' property value
+		if (!itemProperty?.value || filterValue === "any") return true;
+
+		const itemValues = Array.isArray(itemProperty.value) ? itemProperty.value : [itemProperty.value];
+		return itemValues.includes(filterValue);
 	}
 
 	private async _updateCatalog(catalog: Catalog) {
-		if (!catalog.props.filterProperties) return;
+		if (!catalog.props.filterProperty) return;
 
 		const entries = new Map();
-
 		const fs = this._workspace.getFileStructure();
 
-		for (const filterTag of catalog.props.filterProperties) {
+		const property = catalog.props.properties?.find((p) => p.name === catalog.props.filterProperty);
+		if (!property) return;
+
+		const filterValues = new Set<string>();
+
+		filterValues.add("any");
+
+		if (property.type === PropertyTypes.flag) {
+			filterValues.add(property.name);
+		}
+
+		if (enumTypes.includes(property.type) && property.values)
+			property.values.forEach((value) => filterValues.add(value));
+
+		for (const filterValue of filterValues) {
 			const realPath = catalog.basePath;
-			const virtualPath = new Path(addScopeToPath(realPath, filterTag, false));
+			const virtualPath = new Path(addScopeToPath(realPath, filterValue, false));
 
 			const parentFp = fs.fp.at(realPath);
 
@@ -117,17 +150,17 @@ export default class CatalogTagFilter implements EventHandlerCollection {
 			}
 
 			const entry = await fs.getCatalogEntryByPath(virtualPath, false, {
-				resolvedFilterProperty: filterTag,
-				filterProperties: catalog.props.filterProperties,
+				resolvedFilterPropertyValue: filterValue,
+				filterProperty: catalog.props.filterProperty,
 			});
 
 			entry.setRepository(catalog.repo);
 			entry.setLoadCallback((c) => {
 				c.events.on("update", () => catalog.update());
 				c.setRepository(catalog.repo);
-				entries.set(filterTag, c);
+				entries.set(filterValue, c);
 			});
-			entries.set(filterTag, entry);
+			entries.set(filterValue, entry);
 		}
 
 		this._catalogs.set(catalog, entries);

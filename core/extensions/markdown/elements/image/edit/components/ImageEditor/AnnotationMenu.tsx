@@ -83,16 +83,16 @@ const AnnotationMenu = (props: AnnotationMenuProps) => {
 			<ModalLayoutDark>
 				<ButtonsLayout>
 					<Input
-						ref={textRef}
-						type="text"
-						style={{ width: "15rem" }}
-						value={text}
-						placeholder={annotationText}
 						onChange={(event) => {
 							const text = event.target.value.replace(",", "");
 							setText(text);
 							debounceFunction(ANNOTATION_MENU_SYMBOL, () => setTooltipText(index, text), 200);
 						}}
+						placeholder={annotationText}
+						ref={textRef}
+						style={{ width: "15rem" }}
+						type="text"
+						value={text}
 					/>
 
 					{maxIndex > 1 && (
@@ -100,18 +100,18 @@ const AnnotationMenu = (props: AnnotationMenuProps) => {
 							<div className="divider" />
 
 							<Input
-								showErrorText={indexErrorText && indexErrorText.length > 0}
-								errorText={indexErrorText}
-								min={1}
-								value=""
-								onInput={validateIndex}
-								max={maxIndex}
 								disabled={maxIndex === 1}
-								ref={indexRef}
-								type="number"
-								style={{ width: "2rem" }}
-								placeholder={`#${cIndex}`}
+								errorText={indexErrorText}
+								max={maxIndex}
+								min={1}
 								onChange={(event) => setIndex(index, +event.target.value)}
+								onInput={validateIndex}
+								placeholder={`#${cIndex}`}
+								ref={indexRef}
+								showErrorText={indexErrorText && indexErrorText.length > 0}
+								style={{ width: "2rem" }}
+								type="number"
+								value=""
 							/>
 						</>
 					)}
@@ -120,11 +120,11 @@ const AnnotationMenu = (props: AnnotationMenuProps) => {
 
 					<Button
 						icon={directionIcons[curDirection]}
-						tooltipText={localizeDirections[curDirection]}
 						onClick={() => changeDirection(index, getNewDirection(curDirection))}
+						tooltipText={localizeDirections[curDirection]}
 					/>
 					<div className="divider" />
-					<Button tooltipText={localizedDelete} icon={"trash"} onClick={() => remove(index, true)} />
+					<Button icon={"trash"} onClick={() => remove(index, true)} tooltipText={localizedDelete} />
 				</ButtonsLayout>
 			</ModalLayoutDark>
 		</div>

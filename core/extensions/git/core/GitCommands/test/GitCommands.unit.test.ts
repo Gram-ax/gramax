@@ -4,12 +4,12 @@
 
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 const path = (path: string) => new Path(path);
 const repPath = (path: string) => new Path(["testRep", path]);

@@ -1,16 +1,16 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import haveConflictWithFileDelete from "@ext/git/actions/MergeConflictHandler/logic/haveConflictWithFileDelete";
-import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
 import {
 	GitMarkers,
 	MergeConflictParser,
 } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
-import GitCommands from "@ext/git/core/GitCommands/GitCommands";
-import { MergeResult } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
-import GitStash from "@ext/git/core/model/GitStash";
-import { GitVersion } from "@ext/git/core/model/GitVersion";
+import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
+import type GitCommands from "@ext/git/core/GitCommands/GitCommands";
+import type { MergeResult } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import type GitStash from "@ext/git/core/model/GitStash";
+import type { GitVersion } from "@ext/git/core/model/GitVersion";
 
 const fixMerge = async (
 	mergeResult: MergeResult,
@@ -25,11 +25,11 @@ const fixMerge = async (
 		const convertedStatus = gitMergeConverter([r])[0];
 		const filePath = convertedStatus.path;
 
-		if (await fp.exists(repPath.join(new Path(filePath + "~" + "Updated upstream")))) {
-			const upstreamPath = new Path(filePath + "~" + "Updated upstream");
+		if (await fp.exists(repPath.join(new Path(`${filePath}~Updated upstream`)))) {
+			const upstreamPath = new Path(`${filePath}~Updated upstream`);
 			const upstreamContent = await fp.read(repPath.join(upstreamPath));
 
-			const stashedPath = new Path(filePath + "~" + "Stashed changes");
+			const stashedPath = new Path(`${filePath}~Stashed changes`);
 			const stashedContent = await fp.read(repPath.join(stashedPath));
 
 			const isContentEqual = upstreamContent === stashedContent;
@@ -46,11 +46,11 @@ const fixMerge = async (
 				filesToAdd.push(new Path(filePath));
 				return;
 			}
-		} else if (await fp.exists(repPath.join(new Path(filePath + "~" + "ours")))) {
-			const oursPath = new Path(filePath + "~" + "ours");
+		} else if (await fp.exists(repPath.join(new Path(`${filePath}~ours`)))) {
+			const oursPath = new Path(`${filePath}~ours`);
 			const oursContent = await fp.read(repPath.join(oursPath));
 
-			const theirsPath = new Path(filePath + "~" + "theirs");
+			const theirsPath = new Path(`${filePath}~theirs`);
 			const theirsContent = await fp.read(repPath.join(theirsPath));
 
 			const isContentEqual = oursContent === theirsContent;

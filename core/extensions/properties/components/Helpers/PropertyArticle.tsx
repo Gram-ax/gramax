@@ -1,7 +1,14 @@
-import { isManyProperty, Property as PropertyType } from "@ext/properties/models";
-import t from "@ext/localization/locale/translate";
-import { memo, useMemo, useState } from "react";
+import Icon from "@components/Atoms/Icon";
 import useWatch from "@core-ui/hooks/useWatch";
+import t from "@ext/localization/locale/translate";
+import {
+	CustomInputRenderer,
+	getInputComponent,
+	InputValue,
+} from "@ext/properties/components/Helpers/CustomInputRenderer";
+import PropertyButtons from "@ext/properties/components/Helpers/PropertyButtons";
+import getFormatValue from "@ext/properties/logic/getFormatValue";
+import { isManyProperty, Property as PropertyType } from "@ext/properties/models";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -10,14 +17,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
-import Icon from "@components/Atoms/Icon";
-import PropertyButtons from "@ext/properties/components/Helpers/PropertyButtons";
-import {
-	CustomInputRenderer,
-	getInputComponent,
-	InputValue,
-} from "@ext/properties/components/Helpers/CustomInputRenderer";
-import getFormatValue from "@ext/properties/logic/getFormatValue";
+import { memo, useMemo, useState } from "react";
 
 interface PropertyArticleProps {
 	trigger: JSX.Element;
@@ -61,22 +61,22 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 		return (
 			<PropertyButtons
 				name={property.name}
-				type={isManyProperty[property.type] ? "checkbox" : "radio"}
-				values={property.values}
-				value={property.value}
 				onChange={onChange}
+				type={isManyProperty[property.type] ? "checkbox" : "radio"}
+				value={property.value}
+				values={property.values}
 			/>
 		);
 	}, [property.values, property.value, property.name]);
 
 	const getInputRenderer = () => {
 		if (renderInput) return renderInput({ value: typeof value === "string" ? value : value?.[0], onChange });
-		return <CustomInputRenderer type={property.type} value={value} onChange={onChange} />;
+		return <CustomInputRenderer onChange={onChange} type={property.type} value={value} />;
 	};
 
 	return (
 		<DropdownMenu onOpenChange={onOpenChange}>
-			<DropdownMenuTrigger disabled={disabled} asChild>
+			<DropdownMenuTrigger asChild disabled={disabled}>
 				{trigger}
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">

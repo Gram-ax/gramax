@@ -1,19 +1,25 @@
-import t from "@ext/localization/locale/translate";
-import { Select, SelectContent, SelectGroup, SelectTrigger, SelectValue } from "@ui-kit/Select";
-import { SelectItem as BaseSelectItem } from "@ui-kit/Select";
 import styled from "@emotion/styled";
-import { FC } from "react";
-import { AnonymousFilter } from "../../useMetricsFilters";
+import t from "@ext/localization/locale/translate";
+import {
+	SelectItem as BaseSelectItem,
+	Select,
+	SelectContent,
+	SelectGroup,
+	SelectTrigger,
+	SelectValue,
+} from "@ui-kit/Select";
+import type { FC } from "react";
+import type { AnonymousFilter } from "../../filters";
 
 const StyledSelectItemWrapper = styled.div`
-	[role="option"] {
-		padding-left: 2rem;
-		padding-right: 0.5rem;
-	}
-	[role="option"] > span:first-child {
-		left: 0.5rem;
-		right: auto;
-	}
+  [role="option"] {
+    padding-left: 2rem;
+    padding-right: 0.5rem;
+  }
+  [role="option"] > span:first-child {
+    left: 0.5rem;
+    right: auto;
+  }
 `;
 
 const SelectItem: FC<React.ComponentProps<typeof BaseSelectItem>> = (props) => {
@@ -47,7 +53,7 @@ const MetricsAnonymousSelect: FC<MetricsAnonymousSelectProps> = ({ value, disabl
 	};
 
 	return (
-		<Select value={value} onValueChange={handleChange} disabled={disabled}>
+		<Select disabled={disabled} onValueChange={handleChange} value={value}>
 			<SelectTrigger className="w-auto min-w-[180px]">
 				<SelectValue placeholder={getDisplayValue()} />
 			</SelectTrigger>

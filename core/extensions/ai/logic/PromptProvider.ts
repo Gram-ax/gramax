@@ -1,9 +1,9 @@
 import { PROMPT_DIRECTORY } from "@app/config/const";
 import FileProvider from "@core/FileProvider/model/FileProvider";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
-import FileStructure from "@core/FileStructue/FileStructure";
 import Path from "@core/FileProvider/Path/Path";
+import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import FileStructure from "@core/FileStructue/FileStructure";
+import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
 
 declare module "@ext/articleProvider/logic/ArticleProvider" {
 	export enum ArticleProviders {

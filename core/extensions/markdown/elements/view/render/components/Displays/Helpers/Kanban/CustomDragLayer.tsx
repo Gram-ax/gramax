@@ -44,7 +44,7 @@ export const CustomDragLayer = () => {
 	const renderItem = () => {
 		switch (itemType) {
 			case DragItems.Card:
-				return <CardPreview title={item.itemData.title} otherProps={item.itemData.otherProps} dragging />;
+				return <CardPreview dragging otherProps={item.itemData.otherProps} title={item.itemData.title} />;
 			default:
 				return null;
 		}

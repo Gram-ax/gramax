@@ -1,7 +1,7 @@
-import { QuizResult, QuizSettings } from "@ext/quiz/models/types";
 import { CheckAnswer } from "@ext/markdown/elements/answer/types";
 import { Question } from "@ext/markdown/elements/question/types";
 import { isAnswersCorrect } from "@ext/quiz/logic/isAnswersCorrect";
+import { QuizResult, QuizSettings } from "@ext/quiz/models/types";
 
 export const getQuizResult = (
 	questions: Map<string, Question>,

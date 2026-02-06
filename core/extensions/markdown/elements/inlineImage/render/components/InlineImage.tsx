@@ -1,11 +1,11 @@
-import AlertError from "@components/AlertError";
 import Skeleton from "@components/Atoms/ImageSkeleton";
-import t from "@ext/localization/locale/translate";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import { ReactNode, useState } from "react";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import styled from "@emotion/styled";
 import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
-import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import { ResourceError } from "@ext/markdown/elements/copyArticles/errors";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import InlineImageError from "@ext/markdown/elements/inlineImage/render/components/InlineImageError";
+import { ReactNode, useState } from "react";
 
 interface InlineImageProps {
 	src: string;
@@ -43,7 +43,7 @@ const SkeletonWrapper = ({ children, width, height, isLoaded }: SkeletonWrapperP
 	const displaySize = calculateDisplaySize(width, height);
 
 	return (
-		<Skeleton elementType="span" width={displaySize.width} height={displaySize.height} isLoaded={isLoaded}>
+		<Skeleton elementType="span" height={displaySize.height} isLoaded={isLoaded} width={displaySize.width}>
 			{children}
 		</Skeleton>
 	);
@@ -75,7 +75,7 @@ const InlineImage = ({ src: initialSrc, alt, width, height, commentId, isPrint }
 	const { useGetResource } = ResourceService.value;
 
 	const [isLoaded, setIsLoaded] = useState(false);
-	const [isError, setIsError] = useState(false);
+	const [error, setError] = useState<ResourceError | null>(null);
 	const [src, setSrc] = useState(null);
 
 	const onLoad = () => {
@@ -84,12 +84,13 @@ const InlineImage = ({ src: initialSrc, alt, width, height, commentId, isPrint }
 
 	const onError = () => {
 		if (!src) return;
-		setIsError(true);
+		setError(new ResourceError("Image error", initialSrc));
 	};
 
 	useGetResource(
-		(buffer) => {
-			if (!buffer || !buffer.byteLength) return setIsError(true);
+		(buffer, resourceError) => {
+			if (resourceError || !buffer || !buffer.byteLength)
+				return setError(resourceError ?? new ResourceError("Image error", initialSrc));
 			if (isLoaded) setIsLoaded(false);
 
 			if (src) URL.revokeObjectURL(src);
@@ -102,12 +103,16 @@ const InlineImage = ({ src: initialSrc, alt, width, height, commentId, isPrint }
 		isPrint,
 	);
 
-	if (isError) return <AlertError title={t("alert.image.unavailable")} error={{ message: t("alert.image.path") }} />;
+	const displaySize = calculateDisplaySize(width, height);
 
 	return (
 		<ContainerWrapper commentId={commentId}>
-			<SkeletonWrapper width={width} height={height} isLoaded={isLoaded}>
-				<img src={src} alt={alt} onLoad={onLoad} onError={onError} data-focusable="true" />
+			<SkeletonWrapper height={height} isLoaded={!!error || isLoaded} width={width}>
+				{error ? (
+					<InlineImageError height={displaySize.height} resourceError={error} width={displaySize.width} />
+				) : (
+					<img alt={alt} data-focusable="true" onError={onError} onLoad={onLoad} src={src} />
+				)}
 			</SkeletonWrapper>
 		</ContainerWrapper>
 	);

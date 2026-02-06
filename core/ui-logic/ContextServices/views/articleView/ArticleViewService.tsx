@@ -1,9 +1,9 @@
 import ArticlePage from "@components/ArticlePage/ArticlePage";
+import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import ArticleLoadingView from "@core-ui/ContextServices/views/articleView/ArticleLoadingView";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { createContext, ReactElement, ReactNode, useContext, useEffect, useState } from "react";
 
 type ArticleViewComponent = ({ data }: { data: ArticlePageData }) => ReactNode;

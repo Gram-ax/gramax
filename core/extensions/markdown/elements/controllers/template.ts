@@ -1,7 +1,7 @@
-import { Plugin, PluginKey, Transaction } from "prosemirror-state";
-import { Extension } from "@tiptap/core";
-import selectionRule from "@ext/markdown/elements/controllers/rules/selectionRule";
 import nodeRule from "@ext/markdown/elements/controllers/rules/nodeRule";
+import selectionRule from "@ext/markdown/elements/controllers/rules/selectionRule";
+import { Extension } from "@tiptap/core";
+import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 
 const validateRules = (transaction: Transaction, ...rules: ((transaction: Transaction) => boolean)[]): boolean => {
 	return rules.every((rule) => {

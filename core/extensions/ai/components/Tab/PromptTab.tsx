@@ -1,7 +1,7 @@
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
+import generateUniqueID from "@core/utils/generateUniqueID";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import generateUniqueID from "@core/utils/generateUniqueID";
 import PromptService from "@ext/ai/components/Tab/PromptService";
 import ItemList from "@ext/articleProvider/components/ItemList";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
@@ -9,8 +9,8 @@ import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@ui-kit/Button";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface PromptTab {
 	show: boolean;
@@ -121,29 +121,29 @@ const PromptTab = ({ show }: PromptTab) => {
 
 	return (
 		<TabWrapper
-			ref={tabWrapperRef}
+			contentHeight={height}
 			isTop
+			ref={tabWrapperRef}
 			show={show}
 			title=""
-			contentHeight={height}
 			titleRightExtension={
-				<Button startIcon="plus" onClick={addNewNote} size="sm" variant="text" className="p-0 h-auto">
+				<Button className="p-0 h-auto" onClick={addNewNote} size="sm" startIcon="plus" variant="text">
 					{t("ai.prompt.new-prompt")}
 				</Button>
 			}
 		>
 			<ItemList
-				tabWrapperRef={tabWrapperRef}
-				show={show}
-				setContentHeight={setHeight}
-				items={items}
-				selectedItemId={selectedIds}
-				providerType="prompt"
-				noItemsText={t("ai.prompt.no-prompts")}
-				onItemClick={onItemClick}
-				onDelete={onDelete}
-				onMarkdownChange={onMarkdownChange}
 				confirmDeleteText={t("confirm-prompts-delete")}
+				items={items}
+				noItemsText={t("ai.prompt.no-prompts")}
+				onDelete={onDelete}
+				onItemClick={onItemClick}
+				onMarkdownChange={onMarkdownChange}
+				providerType="prompt"
+				selectedItemId={selectedIds}
+				setContentHeight={setHeight}
+				show={show}
+				tabWrapperRef={tabWrapperRef}
 			/>
 		</TabWrapper>
 	);

@@ -3,7 +3,7 @@ import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 
 const InlineHtmlTagComponent = ({ node }: NodeViewProps) => {
 	return (
-		<NodeViewWrapper data-focusable="true" as="span">
+		<NodeViewWrapper as="span" data-focusable="true">
 			<HtmlTagComponent editTree={node.attrs.content} />
 		</NodeViewWrapper>
 	);

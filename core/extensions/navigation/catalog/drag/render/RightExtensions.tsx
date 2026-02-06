@@ -1,11 +1,11 @@
 import Icon from "@components/Atoms/Icon";
 import ItemMenu from "@ext/item/EditMenu";
+import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import { Button } from "@ui-kit/Button";
 import React from "react";
 import CreateArticle from "../../../../article/actions/CreateArticle";
 import { ItemLink } from "../../../NavigationLinks";
-import t from "@ext/localization/locale/translate";
 
 interface RightExtensionsProps {
 	item: ItemLink;
@@ -26,17 +26,17 @@ const RightExtensions: React.FC<RightExtensionsProps> = ({
 		<>
 			<CreateArticle item={item} />
 			<NavigationDropdown
+				onClose={onMenuClose}
+				onOpen={onMenuOpen}
 				style={{ marginRight: "-4px" }}
 				tooltipText={t("article.actions.title")}
-				onOpen={onMenuOpen}
-				onClose={onMenuClose}
 				trigger={
-					<Button variant="text" size="xs" className="p-0 h-full">
+					<Button className="p-0 h-full" size="xs" variant="text">
 						<Icon code="ellipsis-vertical" />
 					</Button>
 				}
 			>
-				<ItemMenu itemLink={item} isCategory={isCategory} setItemLink={setThisItem} />
+				<ItemMenu isCategory={isCategory} itemLink={item} setItemLink={setThisItem} />
 			</NavigationDropdown>
 		</>
 	);

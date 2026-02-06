@@ -1,20 +1,20 @@
-import { Modal, ModalContent, ModalBody, ModalTrigger } from "@ui-kit/Modal";
+import { FooterPortalProvider, useGetFooterButtons } from "@core-ui/hooks/useFooterPortal";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
+import useWatch from "@core-ui/hooks/useWatch";
+import { cn } from "@core-ui/utils/cn";
+import { getAllowedSourceTypes, getAllSourceTypes } from "@ext/import/logic/useFilteredSourceData";
+import t from "@ext/localization/locale/translate";
+import getStorageIconByData from "@ext/storage/logic/SourceDataProvider/logic/getStorageIconByData";
+import sourceComponents from "@ext/storage/logic/SourceDataProvider/logic/sourceComponents";
+import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import { Divider } from "@ui-kit/Divider";
+import { Field } from "@ui-kit/Field";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
-import getStorageIconByData from "@ext/storage/logic/SourceDataProvider/logic/getStorageIconByData";
-import { useCallback, useState } from "react";
-import t from "@ext/localization/locale/translate";
-import { FooterPortalProvider, useGetFooterButtons } from "@core-ui/hooks/useFooterPortal";
-import useWatch from "@core-ui/hooks/useWatch";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import sourceComponents from "@ext/storage/logic/SourceDataProvider/logic/sourceComponents";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { getAllSourceTypes, getAllowedSourceTypes } from "@ext/import/logic/useFilteredSourceData";
-import { Field } from "@ui-kit/Field";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { SearchSelect } from "@ui-kit/SearchSelect";
-import { Divider } from "@ui-kit/Divider";
-import { cn } from "@core-ui/utils/cn";
+import { useCallback, useState } from "react";
 
 interface CreateStorageContentProps {
 	// Default data is used to prefill the form
@@ -75,23 +75,16 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 	};
 
 	return (
-		<Modal open={isOpen} onOpenChange={onOpenChange}>
+		<Modal onOpenChange={onOpenChange} open={isOpen}>
 			{trigger && <ModalTrigger>{trigger}</ModalTrigger>}
 			<ModalContent data-modal-root style={{ maxWidth: "570px" }}>
-				<FormHeader icon="plug" title={title} description={t("forms.create-source.description")} />
+				<FormHeader description={t("forms.create-source.description")} icon="plug" title={title} />
 				<ModalBody>
 					<Field
-						title={`${t("type")} ${t("source2").toLowerCase()}`}
-						description={
-							Object.keys(allowedSourceTypes).length !== allSourceTypes.length
-								? t("forms.create-source.props.source.description")
-								: undefined
-						}
-						layout="vertical"
-						labelClassName="w-44"
 						control={() => (
 							<SearchSelect
-								placeholder={t("select")}
+								disabled={isReadonly}
+								onChange={(value) => setSelectedSourceType(value)}
 								options={allSourceTypes.map((type: string) => {
 									const isDisabledByAllowed = !allowedSourceTypes[type];
 									const isDisabledByReadonly = Boolean(isReadonly && type !== sourceType);
@@ -103,8 +96,7 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 										disabled,
 									};
 								})}
-								value={selectedSourceType}
-								onChange={(value) => setSelectedSourceType(value)}
+								placeholder={t("select")}
 								renderOption={(option) => {
 									return (
 										<div
@@ -114,23 +106,31 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 											)}
 										>
 											<Icon
+												className="text-base"
 												icon={getStorageIconByData({
 													sourceType: option.option.value as SourceType,
 													userName: "",
 													userEmail: "",
 												})}
-												className="text-base"
 											/>
 											{option.option.label}
 											{option.type === "list" && selectedSourceType === option.option.value && (
-												<Icon icon="check" className="ml-auto" />
+												<Icon className="ml-auto" icon="check" />
 											)}
 										</div>
 									);
 								}}
-								disabled={isReadonly}
+								value={selectedSourceType}
 							/>
 						)}
+						description={
+							Object.keys(allowedSourceTypes).length !== allSourceTypes.length
+								? t("forms.create-source.props.source.description")
+								: undefined
+						}
+						labelClassName="w-44"
+						layout="vertical"
+						title={`${t("type")} ${t("source2").toLowerCase()}`}
 					/>
 					{selectedSourceType && sourceComponents[selectedSourceType] && (
 						<>
@@ -140,10 +140,10 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 									const Form = sourceComponents[selectedSourceType];
 									return (
 										<Form
-											onSubmit={addSourceData}
-											type={selectedSourceType}
 											data={data}
 											isReadonly={isReadonly}
+											onSubmit={addSourceData}
+											type={selectedSourceType}
 										/>
 									);
 								})()}

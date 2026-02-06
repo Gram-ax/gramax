@@ -8,7 +8,7 @@ interface ActionButtonContainerProps {
 
 const ActionButtonContainer = ({ children, className }: ActionButtonContainerProps) => {
 	return (
-		<div contentEditable={false} className={className}>
+		<div className={className} contentEditable={false}>
 			{children}
 		</div>
 	);

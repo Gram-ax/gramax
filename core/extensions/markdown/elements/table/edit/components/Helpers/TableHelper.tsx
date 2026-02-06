@@ -1,10 +1,12 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
+import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import { HELPERS_LEFT, HELPERS_TOP } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 import TablePlusActions from "@ext/markdown/elements/table/edit/components/Helpers/TablePlusActions";
 import { hideOldControls, showNewControls } from "@ext/markdown/elements/table/edit/logic/controlActions";
+import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import { getHoveredData, getTableSizes } from "@ext/markdown/elements/table/edit/logic/utils";
 import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { Editor } from "@tiptap/core";
@@ -15,12 +17,10 @@ import {
 	RefObject,
 	useCallback,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
-	useMemo,
 } from "react";
-import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
-import { HELPERS_LEFT, HELPERS_TOP } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 
 interface TableHelperProps {
 	tableRef: RefObject<HTMLTableElement>;
@@ -175,31 +175,31 @@ const TableHelper = (props: TableHelperProps) => {
 			{isHovered && (
 				<Tooltip content={t("select-table")} delay={[1000, 0]}>
 					<TriangleButtonContainer data-table-select-all-container>
-						<TriangleButton onClick={selectNode} data-qa="table-select-all" contentEditable={false} />
+						<TriangleButton contentEditable={false} data-qa="table-select-all" onClick={selectNode} />
 					</TriangleButtonContainer>
 				</Tooltip>
 			)}
 			<TablePlusActions
-				isHovered={isHovered}
-				tableSizes={tableSizes}
-				node={node}
-				getPos={getPos}
-				tableRef={tableRef}
 				editor={editor}
+				getPos={getPos}
+				isHovered={isHovered}
+				node={node}
+				tableRef={tableRef}
 				tableSheet={tableSheet}
+				tableSizes={tableSizes}
 			/>
 		</>
 	);
 
 	return (
 		<HoverableActions
-			hoverElementRef={hoverElementRef}
-			setIsHovered={setIsHovered}
-			isHovered={isHovered}
 			actionsOptions={actionsOptions}
+			hoverElementRef={hoverElementRef}
+			isHovered={isHovered}
+			setIsHovered={setIsHovered}
 		>
 			<div onMouseMove={onMouseMove}>
-				<StickyTableWrapper tableRef={tableRef} disableWrapper={disabledWrapper}>
+				<StickyTableWrapper disableWrapper={disabledWrapper} tableRef={tableRef}>
 					{WrapperChildren}
 				</StickyTableWrapper>
 			</div>

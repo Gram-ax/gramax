@@ -266,7 +266,7 @@ describe("ParseStorageUrl", () => {
 
 				const result = parseStorageUrl(link);
 				delete result.pathname;
-        
+
 				expect(result).toEqual(parsedLink);
 			});
 		});

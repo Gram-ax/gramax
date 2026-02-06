@@ -1,5 +1,5 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ResourceManager from "@core/Resource/ResourceManager";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 
 export type PrintMode = "pdf" | "paper";

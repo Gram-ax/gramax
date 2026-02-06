@@ -1,13 +1,13 @@
 import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import { ItemLink } from "../../navigation/NavigationLinks";
-import TemplateItemList from "@ext/templates/components/TemplateItemList";
-import PropsEditorTrigger from "@ext/item/actions/propsEditor/components/PropsEditorTrigger";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
-import { useCallback } from "react";
-import AddToFavoriteButton from "@ext/article/Favorite/components/AddToFavoriteButton";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ArticleMoveAction from "@ext/article/actions/move/ArticleMoveAction";
+import AddToFavoriteButton from "@ext/article/Favorite/components/AddToFavoriteButton";
+import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
+import PropsEditorTrigger from "@ext/item/actions/propsEditor/components/PropsEditorTrigger";
+import TemplateItemList from "@ext/templates/components/TemplateItemList";
+import { useCallback } from "react";
+import { ItemLink } from "../../navigation/NavigationLinks";
 
 interface MainArticleActionsProps {
 	hasError: boolean;
@@ -41,14 +41,14 @@ export const MainArticleActionsProps = (props: MainArticleActionsProps) => {
 				{!hasError && (
 					<>
 						<PropsEditorTrigger
-							item={itemProps}
-							itemLink={itemLink}
 							isCategory={isCategory}
 							isCurrentItem={isCurrentItem}
-							setItemLink={setItemLink}
+							item={itemProps}
+							itemLink={itemLink}
 							onUpdate={onUpdate}
+							setItemLink={setItemLink}
 						/>
-						<TemplateItemList itemRefPath={itemProps?.ref.path} disabled={!isCurrentItem} />
+						<TemplateItemList disabled={!isCurrentItem} itemRefPath={itemProps?.ref.path} />
 					</>
 				)}
 			</IsReadOnlyHOC>

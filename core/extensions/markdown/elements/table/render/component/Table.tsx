@@ -2,10 +2,10 @@ import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
 import ColGroup, { ColInfo } from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
 import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import modifyChildren from "@ext/markdown/elements/table/print/modifyChildren";
+import PrintColGroup from "@ext/markdown/elements/table/print/PrintColGroup";
 import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
 import { ReactElement, useLayoutEffect, useMemo, useRef, useState } from "react";
-import PrintColGroup from "@ext/markdown/elements/table/print/PrintColGroup";
-import modifyChildren from "@ext/markdown/elements/table/print/modifyChildren";
 
 interface TableProps {
 	children?: any;
@@ -40,28 +40,28 @@ const Table = (props: TableProps): ReactElement => {
 	}, [firstRow]);
 
 	const printColGroupData = isPrint && firstRow ? PrintColGroup({ firstRow }) : null;
-	const ColGroupComponent = isPrint ? printColGroupData?.colgroup : <ColGroup tableRef={ref} initColInfo={colInfo} />;
+	const ColGroupComponent = isPrint ? printColGroupData?.colgroup : <ColGroup initColInfo={colInfo} tableRef={ref} />;
 
 	const table =
 		typeof children === "string" ? (
 			<table
-				ref={ref}
 				dangerouslySetInnerHTML={{ __html: children }}
-				suppressHydrationWarning={true}
-				data-header={header}
 				data-focusable="true"
+				data-header={header}
+				ref={ref}
+				suppressHydrationWarning={true}
 			/>
 		) : (
 			<table
-				ref={ref}
-				data-header={header}
 				data-focusable="true"
+				data-header={header}
+				ref={ref}
 				style={
 					isPrint
 						? {
 								maxWidth: printColGroupData?.totalTableWidth || "unset",
 								display: "table",
-						  }
+							}
 						: {}
 				}
 			>
@@ -86,7 +86,7 @@ const Table = (props: TableProps): ReactElement => {
 	});
 
 	return (
-		<StickyTableWrapper data-wrapper="table" tableRef={ref} disableWrapper={!isEnabledWrapper}>
+		<StickyTableWrapper data-wrapper="table" disableWrapper={!isEnabledWrapper} tableRef={ref}>
 			<TableWrapper>{table}</TableWrapper>
 		</StickyTableWrapper>
 	);

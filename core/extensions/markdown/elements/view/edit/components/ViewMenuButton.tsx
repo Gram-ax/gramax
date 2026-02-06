@@ -8,9 +8,9 @@ const ViewMenuButton = ({ editor }: { editor: Editor }) => {
 	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "view" });
 	return (
 		<ToolbarDropdownMenuItem
-			onClick={() => editor.chain().focus().setView({ defs: [] }).run()}
 			active={isActive}
 			disabled={disabled}
+			onClick={() => editor.chain().focus().setView({ defs: [] }).run()}
 		>
 			<div className="flex items-center gap-2">
 				<Icon icon="panels-top-left" />

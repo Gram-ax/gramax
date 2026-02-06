@@ -1,17 +1,22 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { MergeConflictParser } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
+
 import haveConflictWithFileDelete from "@ext/git/actions/MergeConflictHandler/logic/haveConflictWithFileDelete";
+import { MergeConflictParser } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
 import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type Repository from "@ext/git/core/Repository/Repository";
 import type { RepositoryState } from "@ext/git/core/Repository/state/RepositoryState";
-import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
+import Path from "../../../../../logic/FileProvider/Path/Path";
 import FileStructure from "../../../../../logic/FileStructue/FileStructure";
 import { GitMergeResultContent } from "../../../actions/MergeConflictHandler/model/GitMergeResultContent";
 
 export default class GitBaseConflictResolver {
-	constructor(protected _repo: Repository, private _fp: FileProvider, private _pathToRep: Path) {}
+	constructor(
+		protected _repo: Repository,
+		private _fp: FileProvider,
+		private _pathToRep: Path,
+	) {}
 
 	async abortMerge(_state: RepositoryState, _sourceData?: GitSourceData): Promise<void> {
 		await this._repo.gvc.reset({ mode: "hard" });
@@ -30,7 +35,7 @@ export default class GitBaseConflictResolver {
 					content,
 					path: r.path,
 					status: r.status,
-					title: fs ? fs.parseMarkdown(content).props.title ?? "" : "",
+					title: fs ? (fs.parseMarkdown(content).props.title ?? "") : "",
 				};
 			}),
 		);

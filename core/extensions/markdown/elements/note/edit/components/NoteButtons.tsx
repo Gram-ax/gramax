@@ -20,16 +20,16 @@ const Note = ({ editor, type, setType, title }: NoteButtonsProps) => {
 				(value, key) =>
 					value !== NoteType.hotfixes && (
 						<Button
-							tooltipText={t(`${value}-text`)}
 							icon={noteIcons[value]}
 							iconStrokeWidth="2"
 							iconStyle={{ color: `var(--color-admonition-${value}-br-h)` }}
+							isActive={value === type}
 							key={key}
 							onClick={() => {
 								setType(value);
 								editor.chain().focus().updateNote({ type: value, title }).run();
 							}}
-							isActive={value === type}
+							tooltipText={t(`${value}-text`)}
 						/>
 					),
 			)}

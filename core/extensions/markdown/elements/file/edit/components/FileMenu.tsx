@@ -1,18 +1,19 @@
+import resolveModule from "@app/resolveModule/frontend";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import Path from "@core/FileProvider/Path/Path";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import downloadResource from "@core-ui/downloadResource";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import FileTranscription from "@ext/ai/components/Audio/FileTranscription";
 import { ALLOWED_MEDIA_EXTENSIONS as ALLOWED_MEDIA_EXTENSIONS_AI } from "@ext/ai/models/consts";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import Name from "./Menu/Name";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import downloadResource from "@core-ui/downloadResource";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import resolveModule from "@app/resolveModule/frontend";
+import { LfsPointerError, type ResourceError } from "@ext/markdown/elements/copyArticles/errors";
 import { toast } from "@ui-kit/Toast";
+import Name from "./Menu/Name";
 
 interface FileMenuProps {
 	resourcePath: string;
@@ -27,13 +28,24 @@ const FileMenu = ({ onDelete, resourcePath, aiEnabled }: FileMenuProps) => {
 	const isMediaFile = aiEnabled && ALLOWED_MEDIA_EXTENSIONS_AI.includes(path.extension.toLowerCase());
 	const apiUrlCreator = ApiUrlCreator.value;
 
-	const onError = () =>
+	const onError = (err: ResourceError | null) => {
+		if (err instanceof LfsPointerError) {
+			toast(t("file-not-found"), {
+				status: "warning",
+				icon: "cloud-alert",
+				description: t("git.lfs.file-is-pointer-2"),
+				size: "lg",
+			});
+			return;
+		}
+
 		toast(t("file-not-found"), {
 			status: "error",
 			icon: "triangle-alert",
 			description: t("file-download-error-message"),
 			size: "lg",
 		});
+	};
 
 	const download = async () => {
 		await downloadResource(apiUrlCreator, path);
@@ -41,13 +53,13 @@ const FileMenu = ({ onDelete, resourcePath, aiEnabled }: FileMenuProps) => {
 
 	const openInSupportedApp = async () => {
 		const res = await FetchService.fetch(apiUrlCreator.getResourcePath(path.value));
-		if (!res.ok) return onError();
+		if (!res.ok) return onError(null);
 
 		const absolutePath = await res.text();
 		try {
 			await resolveModule("openInExplorer")?.(new Path(workspace.path).join(new Path(absolutePath)).value);
 		} catch (error) {
-			onError();
+			onError(error == "lfs-pointer" ? new LfsPointerError(path.value) : null);
 			console.error(error);
 		}
 	};
@@ -57,10 +69,10 @@ const FileMenu = ({ onDelete, resourcePath, aiEnabled }: FileMenuProps) => {
 			<div>
 				<ButtonsLayout>
 					<Name
-						path={path}
 						downloadResource={download}
 						onError={onError}
 						openInSupportedApp={openInSupportedApp}
+						path={path}
 					/>
 					<div className="divider" />
 					{isMediaFile && <FileTranscription path={path} />}

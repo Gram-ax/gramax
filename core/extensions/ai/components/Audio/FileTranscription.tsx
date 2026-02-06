@@ -1,20 +1,20 @@
-import { CSSProperties, MouseEvent, useEffect, useState } from "react";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { Button } from "@ui-kit/Button";
+import Skeleton from "@components/Atoms/Skeleton";
+import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import TextArea from "@components/Atoms/TextArea";
+import Path from "@core/FileProvider/Path/Path";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import useWatch from "@core-ui/hooks/useWatch";
+import styled from "@emotion/styled";
+import TiptapGramaxAi from "@ext/ai/logic/TiptapGramaxAi";
 import t from "@ext/localization/locale/translate";
 import MenuButton from "@ext/markdown/core/edit/components/Menu/Button";
-import { FormFooter, FormHeader } from "@ui-kit/Form";
-import { Divider } from "@ui-kit/Divider";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import TiptapGramaxAi from "@ext/ai/logic/TiptapGramaxAi";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import Path from "@core/FileProvider/Path/Path";
-import TextArea from "@components/Atoms/TextArea";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import styled from "@emotion/styled";
-import useWatch from "@core-ui/hooks/useWatch";
-import Skeleton from "@components/Atoms/Skeleton";
+import { Button } from "@ui-kit/Button";
+import { Divider } from "@ui-kit/Divider";
+import { FormFooter, FormHeader } from "@ui-kit/Form";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { CSSProperties, MouseEvent, useEffect, useState } from "react";
 
 const EditableArea = ({
 	defaultValue,
@@ -32,7 +32,7 @@ const EditableArea = ({
 		onChange(e.target.value);
 	};
 
-	return <TextArea value={value} onChange={onChangeHandler} style={style} />;
+	return <TextArea onChange={onChangeHandler} style={style} value={value} />;
 };
 
 const Attention = styled.div<{ hasText: boolean }>`
@@ -56,7 +56,7 @@ const CopyButton = ({ text }: { text: string }) => {
 	};
 
 	return (
-		<Button variant="outline" onClick={onClick} onMouseLeave={onMouseLeave}>
+		<Button onClick={onClick} onMouseLeave={onMouseLeave} variant="outline">
 			{isCopied ? t("copied") : t("copy")}
 		</Button>
 	);
@@ -108,16 +108,16 @@ const FileTranscription = ({ path }: { path: Path }) => {
 	}, [open]);
 
 	return (
-		<Modal open={open} onOpenChange={setOpen}>
+		<Modal onOpenChange={setOpen} open={open}>
 			<ModalTrigger asChild>
 				<MenuButton icon="audio-lines" tooltipText={t("ai.transcribe.name")} />
 			</ModalTrigger>
 			<ModalContent>
 				<form className="contents ui-kit">
 					<FormHeader
+						description={t("ai.transcribe.description")}
 						icon="audio-lines"
 						title={t("ai.transcribe.name")}
-						description={t("ai.transcribe.description")}
 					/>
 					<Divider />
 					<ModalBody>
@@ -137,21 +137,21 @@ const FileTranscription = ({ path }: { path: Path }) => {
 								)}
 							</SkeletonWrapper>
 							<Attention
-								hasText={text?.length >= 0}
 								dangerouslySetInnerHTML={{ __html: t("ai.transcribe.modalAttention") }}
+								hasText={text?.length >= 0}
 							/>
 						</div>
 					</ModalBody>
 					<FormFooter
-						secondaryButton={text && <CopyButton text={text} />}
 						primaryButton={
 							isLoading && (
-								<Button hidden variant="outline" disabled onClick={onClick}>
+								<Button disabled hidden onClick={onClick} variant="outline">
 									{isLoading ? t("ai.transcribtion") : t("ai.transcribe.name")}
 									{isLoading && <SpinnerLoader height={16} width={16} />}
 								</Button>
 							)
 						}
+						secondaryButton={text && <CopyButton text={text} />}
 					/>
 				</form>
 			</ModalContent>

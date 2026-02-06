@@ -91,13 +91,13 @@ const LogoUploaderComponent = memo((props: LogoUploaderProps) => {
 	return (
 		<Wrapper className={className}>
 			<FileInput
-				defaultValue={defaultFileInfo as FileValue}
 				accept={svgOnly ? "image/svg+xml" : "image/svg+xml, image/png"}
-				onChange={onChangeHandler}
 				chooseButtonText={t("file-input.select-file")}
 				className="overflow-hidden"
-				placeholder={t("file-input.no-file-chosen")}
+				defaultValue={defaultFileInfo as FileValue}
 				error={error}
+				onChange={onChangeHandler}
+				placeholder={t("file-input.no-file-chosen")}
 			/>
 		</Wrapper>
 	);

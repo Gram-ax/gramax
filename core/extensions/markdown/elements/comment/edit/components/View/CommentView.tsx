@@ -1,17 +1,17 @@
-import { CSSProperties, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Editor, JSONContent, posToDOMRect, Range } from "@tiptap/core";
-import PageDataContext from "@core-ui/ContextServices/PageDataContext";
-import { CommentBlock } from "@core-ui/CommentBlock";
-import GlobalEditorIsEditable from "@ext/markdown/elements/comment/edit/logic/GlobalIsEditable";
 import Tooltip from "@components/Atoms/Tooltip";
-import { Instance, Props } from "tippy.js";
-import { isInDropdown } from "@ui-kit/Dropdown";
-import { isCommentBlockDirty } from "../../logic/isCommentBlockDirty";
-import { confirmCommentClose } from "@ext/markdown/elements/comment/edit/logic/confirmCommentClose";
+import type { CommentBlock } from "@core-ui/CommentBlock";
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { Comment } from "@ext/markdown/elements/comment/edit/components/Popover/Comment";
+import { confirmCommentClose } from "@ext/markdown/elements/comment/edit/logic/confirmCommentClose";
+import GlobalEditorIsEditable from "@ext/markdown/elements/comment/edit/logic/GlobalIsEditable";
+import { type Editor, type JSONContent, posToDOMRect, type Range } from "@tiptap/core";
+import { isInDropdown } from "@ui-kit/Dropdown";
+import { type CSSProperties, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Instance, Props } from "tippy.js";
+import { isCommentBlockDirty } from "../../logic/isCommentBlockDirty";
 import "tippy.js/animations/shift-away.css";
-import t from "@ext/localization/locale/translate";
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import t from "@ext/localization/locale/translate";
 
 export type CommentViewProps = {
 	commentId: string;
@@ -47,7 +47,7 @@ const CommentView = memo((props: CommentViewProps) => {
 		if (!commentId || commentId === openedCommentIdRef.current) return;
 		openedCommentIdRef.current = commentId;
 		void onShow(commentId);
-	}, [commentId]);
+	}, [commentId, onShow]);
 
 	useEffect(() => {
 		if (!editor || editor.isDestroyed) return;
@@ -90,7 +90,7 @@ const CommentView = memo((props: CommentViewProps) => {
 			document.removeEventListener("keydown", onKeyDown, { capture: true });
 			editor.off("selectionUpdate", onSelectionUpdate);
 		};
-	}, [editor]);
+	}, [editor, isReadOnly]);
 
 	const onHide = useCallback(() => {
 		if (!data?.comment && !flagNoDeleteRef.current) editor.commands.unsetCurrentComment();
@@ -136,7 +136,7 @@ const CommentView = memo((props: CommentViewProps) => {
 			}
 
 			requestAnimationFrame(() => {
-				if (instance && instance.popperInstance) {
+				if (instance?.popperInstance) {
 					instance.popperInstance.update();
 				}
 			});
@@ -161,7 +161,7 @@ const CommentView = memo((props: CommentViewProps) => {
 			saveComment(openedCommentIdRef.current, commentBlock);
 
 			requestAnimationFrame(() => {
-				if (instanceRef.current && instanceRef.current.popperInstance) {
+				if (instanceRef.current?.popperInstance) {
 					instanceRef.current.popperInstance.update();
 				}
 			});
@@ -199,7 +199,7 @@ const CommentView = memo((props: CommentViewProps) => {
 				if (result) instanceRef.current?.hide();
 			});
 		},
-		[editor],
+		[editor, isReadOnly],
 	);
 
 	const onClose = useCallback(() => {
@@ -209,26 +209,37 @@ const CommentView = memo((props: CommentViewProps) => {
 	return (
 		<div ref={elementRef} style={styles}>
 			<Tooltip
-				interactive
+				animation="shift-away"
+				appendTo={() => (appendCommentToBody ? document.body : editor.view.dom.parentElement)}
+				arrow={false}
+				content={
+					<GlobalEditorIsEditable.Provider value={editor?.isEditable}>
+						{data && (
+							<Comment
+								data={data}
+								onAddAnswer={onAddAnswer}
+								onClose={onClose}
+								onCreate={onCreate}
+								onDelete={onDelete}
+								onDeleteAnswer={onDeleteAnswer}
+								user={pageData.userInfo}
+							/>
+						)}
+					</GlobalEditorIsEditable.Provider>
+				}
 				customStyle
+				distance={4} // Because ui kit modal/dropdown has z-index 50
+				duration={[150, 150]}
+				getReferenceClientRect={getReferenceClientRect}
+				hideInMobile={false}
+				interactive
+				maxWidth="none"
+				onClickOutside={onOutsideClick}
+				onHide={onHide}
 				onMount={(instance) => {
 					instanceRef.current = instance;
 				}}
-				arrow={false}
 				placement="bottom-start"
-				zIndex={50} // Because ui kit modal/dropdown has z-index 50
-				distance={4}
-				duration={[150, 150]}
-				animation="shift-away"
-				sticky={true}
-				visible={!!data}
-				hideInMobile={false}
-				maxWidth="none"
-				appendTo={() => (appendCommentToBody ? document.body : editor.view.dom.parentElement)}
-				getReferenceClientRect={getReferenceClientRect}
-				reference={elementRef}
-				onHide={onHide}
-				onClickOutside={onOutsideClick}
 				popperOptions={{
 					modifiers: [
 						{
@@ -247,21 +258,10 @@ const CommentView = memo((props: CommentViewProps) => {
 						},
 					],
 				}}
-				content={
-					<GlobalEditorIsEditable.Provider value={editor?.isEditable}>
-						{data && (
-							<Comment
-								data={data}
-								user={pageData.userInfo}
-								onClose={onClose}
-								onDelete={onDelete}
-								onCreate={onCreate}
-								onAddAnswer={onAddAnswer}
-								onDeleteAnswer={onDeleteAnswer}
-							/>
-						)}
-					</GlobalEditorIsEditable.Provider>
-				}
+				reference={elementRef}
+				sticky={true}
+				visible={!!data}
+				zIndex={50}
 			/>
 		</div>
 	);

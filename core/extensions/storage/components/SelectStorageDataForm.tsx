@@ -38,7 +38,7 @@ import {
 	SelectValue,
 } from "@ui-kit/Select";
 import { useCallback, useMemo, useState } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { UseFormReturn, useForm } from "react-hook-form";
 import SelectGitHubStorageDataFields from "../../git/actions/Source/GitHub/components/SelectGitHubStorageDataFields";
 import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/components/SelectGitLabStorageDataFields";
 import SourceData from "../logic/SourceDataProvider/model/SourceData";
@@ -55,6 +55,8 @@ interface SelectStorageDataFormProps {
 }
 
 type GitSourceDatas = GitSourceData | GitlabSourceData | GitHubSourceData | GitVerseSourceData;
+
+export type SelectStorageDataFormData = SelectFormSchemaType;
 
 const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 	const { onSubmit, selectedStorage, mode = "clone", onClose, ...formProps } = props;
@@ -127,23 +129,23 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 		return (
 			<>
 				{sourceData?.sourceType === SourceType.git && (
-					<SelectGitStorageDataFields mode={mode} form={form} source={sourceData as GitSourceData} />
+					<SelectGitStorageDataFields form={form} mode={mode} source={sourceData as GitSourceData} />
 				)}
 				{sourceData?.sourceType === SourceType.gitLab && (
-					<SelectGitLabStorageDataFields mode={mode} form={form} source={sourceData as GitlabSourceData} />
+					<SelectGitLabStorageDataFields form={form} mode={mode} source={sourceData as GitlabSourceData} />
 				)}
 				{sourceData?.sourceType === SourceType.gitHub && (
-					<SelectGitHubStorageDataFields mode={mode} form={form} source={sourceData as GitHubSourceData} />
+					<SelectGitHubStorageDataFields form={form} mode={mode} source={sourceData as GitHubSourceData} />
 				)}
 				{sourceData?.sourceType === SourceType.gitVerse && (
 					<SelectGitVerseStorageDataFields
-						mode={mode}
 						form={form}
+						mode={mode}
 						source={sourceData as GitVerseSourceData}
 					/>
 				)}
 				{sourceData?.sourceType === SourceType.gitea && (
-					<SelectGiteaStorageDataFields mode={mode} form={form} source={sourceData as GiteaSourceData} />
+					<SelectGiteaStorageDataFields form={form} mode={mode} source={sourceData as GiteaSourceData} />
 				)}
 			</>
 		);
@@ -154,15 +156,13 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 			<Form asChild {...form}>
 				<form className="contents ui-kit" onSubmit={formSubmit}>
 					<FormHeader
-						title={formProps.title ?? t("forms.clone-repo.name")}
 						description={formProps.description ?? t("forms.clone-repo.description")}
 						icon="git-pull-request"
+						title={formProps.title ?? t("forms.clone-repo.name")}
 					/>
 					<ModalBody>
 						<FormStack>
 							<FormField
-								title={t("forms.clone-repo.props.storage.name")}
-								name="sourceKey"
 								control={({ field }) => (
 									<Select {...field} onValueChange={(val) => val && field.onChange(val)}>
 										<SelectTrigger>
@@ -177,25 +177,25 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 													return (
 														<SourceOption
 															key={storageKey}
-															storageKey={storageKey}
-															source={d}
-															onEdit={
-																isEnterprise
-																	? undefined
-																	: () => {
-																			onSourceClickEdit(d);
-																	  }
-															}
 															onDelete={
 																isEnterprise
 																	? undefined
 																	: () => {
 																			if (sourceKey === storageKey) form.reset();
-																	  }
+																		}
+															}
+															onEdit={
+																isEnterprise
+																	? undefined
+																	: () => {
+																			onSourceClickEdit(d);
+																		}
 															}
 															onInvalid={() => {
 																onSourceClickEdit(d);
 															}}
+															source={d}
+															storageKey={storageKey}
 														/>
 													);
 												})}
@@ -203,10 +203,10 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 											{!isEnterprise && filteredSourceDatas.length > 0 && <SelectSeparator />}
 											{!isEnterprise && (
 												<SelectOption
-													value="add-new-storage"
 													asChild
-													role="button"
 													onPointerDown={() => setIsCreateStorageOpen(true)}
+													role="button"
+													value="add-new-storage"
 												>
 													<MenuItem>
 														<MenuItemAction icon="plus" text={t("add-storage")} />
@@ -216,6 +216,8 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 										</SelectContent>
 									</Select>
 								)}
+								name="sourceKey"
+								title={t("forms.clone-repo.props.storage.name")}
 							/>
 							{sourceKey && getFormLowerPart(form, sourceData)}
 						</FormStack>
@@ -223,7 +225,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 					<FormFooter
 						primaryButton={
 							<Button disabled={isLoading}>
-								{isLoading && <SpinnerLoader width={16} height={16} />}
+								{isLoading && <SpinnerLoader height={16} width={16} />}
 								{(!isLoading && (mode === "init" ? t("add") : t("load"))) ||
 									(isLoading && t("loading"))}
 							</Button>
@@ -233,17 +235,17 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 			</Form>
 			{isCreateStorageOpen && (
 				<CreateStorage
+					data={invalidSourceData}
 					isOpen={isCreateStorageOpen}
-					setIsOpen={setIsCreateStorageOpen}
-					onSubmit={onSourceDataCreate}
+					isReadonly={invalidSourceData?.isInvalid}
 					onClose={() => {
 						setInvalidSourceData(null);
 						onClose?.();
 					}}
-					title={invalidSourceData ? t("forms.add-storage.name3") : t("forms.add-storage.name2")}
-					data={invalidSourceData}
+					onSubmit={onSourceDataCreate}
+					setIsOpen={setIsCreateStorageOpen}
 					sourceType={invalidSourceData?.sourceType}
-					isReadonly={invalidSourceData?.isInvalid}
+					title={invalidSourceData ? t("forms.add-storage.name3") : t("forms.add-storage.name2")}
 				/>
 			)}
 		</>

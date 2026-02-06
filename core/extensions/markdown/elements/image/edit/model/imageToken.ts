@@ -1,9 +1,9 @@
 import Path from "@core/FileProvider/Path/Path";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import { parse } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 
-function imageToken(context: ParserContext) {
+function imageToken(context: PrivateParserContext) {
 	return {
 		node: "image",
 		getAttrs: (tok) => {

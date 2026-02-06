@@ -29,7 +29,7 @@ const Breadcrumbs = ({ breadcrumb, marginLeft }: { breadcrumb: DiffTreeBreadcrum
 
 	return (
 		<Wrapper marginLeft={marginLeft}>
-			<TooltipIfOveflow content={breadcrumbString} childrenRef={wrapperRef} interactive>
+			<TooltipIfOveflow childrenRef={wrapperRef} content={breadcrumbString} interactive>
 				<div ref={wrapperRef}>
 					{breadcrumb.map((b, id) => (
 						<span key={id}>{b.name}</span>

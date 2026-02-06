@@ -1,4 +1,5 @@
 import { Attrs, Mark, MarkType, Node, NodeType, Schema } from "prosemirror-model";
+
 // import markdownit from "markdown-it";
 // import { schema } from "./schema";
 // import { tokens } from "./tokens";
@@ -21,7 +22,10 @@ function maybeMerge(a: Node, b: Node): Node | undefined {
 class MarkdownParseState {
 	stack: { type: NodeType; attrs: Attrs | null; content: Node[]; marks: readonly Mark[] }[];
 
-	constructor(readonly schema: Schema, readonly tokenHandlers: { [token: string]: Handler }) {
+	constructor(
+		readonly schema: Schema,
+		readonly tokenHandlers: { [token: string]: Handler },
+	) {
 		this.stack = [{ type: schema.topNodeType, attrs: null, content: [], marks: Mark.none }];
 	}
 

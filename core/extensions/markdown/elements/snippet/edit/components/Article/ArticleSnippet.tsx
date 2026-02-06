@@ -1,13 +1,13 @@
-import { JSONContent } from "@tiptap/core";
-import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
-import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
+import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import BaseArticleView from "@ext/articleProvider/components/BaseArticleView";
 import { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
-import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
+import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
+import { JSONContent } from "@tiptap/core";
 
 const ArticleSnippet = ({ item }: { item: ProviderItemProps }) => {
 	const { snippets } = SnippetService.value;
@@ -36,12 +36,6 @@ const ArticleSnippet = ({ item }: { item: ProviderItemProps }) => {
 	return (
 		<ResourceService.Provider id={item.id} provider="snippet">
 			<BaseArticleView
-				providerType="snippet"
-				item={item}
-				onUpdate={updateContent}
-				onCloseClick={onCloseClick}
-				extensionsOptions={{ isTemplateInstance: false, includeResources: true }}
-				menuOptions={{ includeResources: true, fileName: item.id, isSmallEditor: true }}
 				extensions={[
 					Placeholder.configure({
 						placeholder: ({ editor, node }) => {
@@ -60,6 +54,12 @@ const ArticleSnippet = ({ item }: { item: ProviderItemProps }) => {
 						},
 					}),
 				]}
+				extensionsOptions={{ isTemplateInstance: false, includeResources: true }}
+				item={item}
+				menuOptions={{ includeResources: true, fileName: item.id, isSmallEditor: true }}
+				onCloseClick={onCloseClick}
+				onUpdate={updateContent}
+				providerType="snippet"
 			/>
 		</ResourceService.Provider>
 	);

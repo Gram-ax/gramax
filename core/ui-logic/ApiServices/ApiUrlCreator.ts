@@ -1,20 +1,20 @@
 import type { CatalogMoveConflictResolution } from "@app/commands/catalog/move";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { Router } from "@core/Api/Router";
-import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
-import DiagramType from "@core/components/Diagram/DiagramType";
-import Theme from "@ext/Theme/Theme";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { Router } from "@core/Api/Router";
+import type CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { DiffItemContentScope } from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
-import UiLanguage, { type ContentLanguage } from "@ext/localization/core/model/Language";
-import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
-import { SearcherType } from "@ext/serach/SearcherManager";
-import { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type UiLanguage from "@ext/localization/core/model/Language";
+import type { ContentLanguage } from "@ext/localization/core/model/Language";
+import type { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
+import type { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
+import type { SearcherType } from "@ext/serach/SearcherManager";
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import Theme from "@ext/Theme/Theme";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import MimeTypes from "./Types/MimeTypes";
+import type MimeTypes from "./Types/MimeTypes";
 import Url from "./Types/Url";
 
 /**
@@ -29,7 +29,7 @@ export default class ApiUrlCreator {
 	) {}
 
 	fromArticle(articlePath: string) {
-		return this.fromNewArticlePath(this._catalogName + "/" + articlePath);
+		return this.fromNewArticlePath(`${this._catalogName}/${articlePath}`);
 	}
 
 	fromNewArticlePath(articlePath: string, catalogName?: string) {
@@ -39,14 +39,14 @@ export default class ApiUrlCreator {
 	public getLogo(theme: Theme, isMobile: boolean = true) {
 		if (isMobile) {
 			return Url.fromBasePath(
-				theme == Theme.dark ? `/images/gramax-logo-hp-dark.svg` : `/images/gramax-logo-hp-light.svg`,
-				getExecutingEnvironment() == "next" ? this._basePath : "",
+				theme === Theme.dark ? `/images/gramax-logo-hp-dark.svg` : `/images/gramax-logo-hp-light.svg`,
+				getExecutingEnvironment() === "next" ? this._basePath : "",
 			);
 		}
 
 		return Url.fromBasePath(
-			theme == Theme.dark ? `/images/gramax-logo-desktop-dark.svg` : `/images/gramax-logo-desktop-light.svg`,
-			getExecutingEnvironment() == "next" ? this._basePath : "",
+			theme === Theme.dark ? `/images/gramax-logo-desktop-dark.svg` : `/images/gramax-logo-desktop-light.svg`,
+			getExecutingEnvironment() === "next" ? this._basePath : "",
 		);
 	}
 
@@ -253,13 +253,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getDiagramByContentUrl(diagramName: DiagramType, count: number = null) {
-		return Url.fromBasePath(`/api/diagram/content`, this._basePath, {
-			diagram: diagramName,
-			count: count?.toString(),
-		});
-	}
-
 	public getEditOnSourceLink(articlePath: string) {
 		return Url.fromBasePath("/api/article/editOn/source", this._basePath, {
 			catalogName: this._catalogName,
@@ -303,7 +296,7 @@ export default class ApiUrlCreator {
 	}
 
 	public getOpenGraphLogoUrl(domain: string) {
-		return domain + (this._basePath ?? "") + "/openGraph/logo.png";
+		return `${domain}${this._basePath ?? ""}/openGraph/logo.png`;
 	}
 
 	public getAuthUrl(router: Router, isLogged: boolean) {
@@ -369,12 +362,12 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getErrorWordElementsUrl(isCategory: boolean, itemPath?: string, exportFormat?: ExportFormat) {
+	public getErrorWordElementsUrl(isCategory: boolean, itemPath?: string) {
 		return Url.fromBasePath(`/api/word/getErrorElements`, this._basePath, {
 			itemPath,
 			catalogName: this._catalogName,
 			isCategory: isCategory ? "true" : "false",
-			exportFormat,
+			exportFormat: ExportFormat.docx,
 		});
 	}
 
@@ -399,7 +392,11 @@ export default class ApiUrlCreator {
 
 	public getSyncCountUrl({
 		forceCatalogName,
-	}: { forceCatalogName?: string; fetch?: boolean; returnError?: boolean } = {}) {
+	}: {
+		forceCatalogName?: string;
+		fetch?: boolean;
+		returnError?: boolean;
+	} = {}) {
 		return Url.fromBasePath(`/api/storage/getSyncCount`, this._basePath, {
 			catalogName: forceCatalogName ?? this._catalogName,
 		});
@@ -513,6 +510,7 @@ export default class ApiUrlCreator {
 		skipCheck?: boolean,
 		branch?: string,
 		deleteIfExists?: boolean,
+		skipLfsPull?: boolean,
 	) {
 		return Url.fromBasePath(`/api/storage/startClone`, this._basePath, {
 			branch,
@@ -521,6 +519,7 @@ export default class ApiUrlCreator {
 			isBare: isBare?.toString(),
 			redirectOnClone,
 			deleteIfExists: deleteIfExists?.toString(),
+			skipLfsPull: skipLfsPull?.toString(),
 		});
 	}
 
@@ -546,14 +545,14 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath("/api/storage/getUrl", this._basePath, { catalogName: this._catalogName });
 	}
 
-	public getTrackedLfsPatterns() {
-		return Url.fromBasePath("/api/versionControl/lfs/getTrackedLfsPatterns", this._basePath, {
+	public getLfsOptions() {
+		return Url.fromBasePath("/api/versionControl/lfs/getLfsOptions", this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
 
-	public updateTrackedLfsPatterns() {
-		return Url.fromBasePath("/api/versionControl/lfs/updateTrackedLfsPatterns", this._basePath, {
+	public updateLfsOptions() {
+		return Url.fromBasePath("/api/versionControl/lfs/updateLfsOptions", this._basePath, {
 			catalogName: this._catalogName,
 		});
 	}
@@ -649,7 +648,7 @@ export default class ApiUrlCreator {
 
 	public getSearchDataUrl(
 		query: string | undefined,
-		catalogName: string,
+		catalogName?: string,
 		type?: SearcherType,
 		articlesLanguage?: ArticleLanguage,
 	) {
@@ -901,7 +900,7 @@ export default class ApiUrlCreator {
 
 	public getLinkItemByPath(path: string, catalogName?: string) {
 		return Url.fromBasePath(`/api/article/features/getLinkItemByPath`, this._basePath, {
-			path,
+			path: encodeURIComponent(path),
 			catalogName: catalogName || this._catalogName,
 		});
 	}

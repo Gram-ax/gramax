@@ -1,6 +1,7 @@
 import Icon from "@components/Atoms/Icon";
-import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
 import { useRouter } from "@core/Api/useRouter";
+import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
 import { makeGitShareData } from "@ext/git/actions/Clone/logic/makeGitShareData";
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
@@ -13,7 +14,6 @@ import { AlertConfirm } from "@ui-kit/AlertDialog/AlertConfirm";
 import { Button } from "@ui-kit/Button";
 import { Modal, ModalBody, ModalContent, ModalTitle, ModalTrigger } from "@ui-kit/Modal";
 import { useMemo, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 export type RepositoryNotFullyClonedProps = {
 	trigger: JSX.Element;
@@ -69,11 +69,11 @@ export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyC
 	const [open, setOpen] = useState(false);
 
 	return (
-		<Modal open={open} onOpenChange={setOpen}>
+		<Modal onOpenChange={setOpen} open={open}>
 			<ModalTrigger asChild>{trigger}</ModalTrigger>
 			<ModalContent>
 				<ModalBody className="flex flex-row items-start gap-4 lg:py-6">
-					<Icon code="circle-alert" className="text-status-error" size="24px" />
+					<Icon className="text-status-error" code="circle-alert" size="24px" />
 					<div className="space-y-2">
 						<ModalTitle className="text-lg">{t("git.error.broken.clone-failed.title")}</ModalTitle>
 						<p style={{ paddingBottom: "1rem" }}>{t("git.error.broken.clone-failed.body")}</p>
@@ -86,32 +86,32 @@ export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyC
 				</ModalBody>
 				<FooterWrapper>
 					<TechnicalDetails error={error}>
-						<Button variant="link" size="xl" className="p-0 h-auto underline">
+						<Button className="p-0 h-auto underline" size="xl" variant="link">
 							{t("git.error.broken.clone-failed.technical-details")}
 						</Button>
 					</TechnicalDetails>
 					<div className="ml-auto gap-2 flex">
 						<AlertConfirm
-							title={t("git.error.broken.clone-failed.title")}
 							description={t("git.error.broken.clone-failed.delete.description")}
 							onConfirm={removeCatalog}
+							title={t("git.error.broken.clone-failed.title")}
 						>
 							<Button
+								className="ml-auto text-sm"
+								disabled={isBusy}
 								iconClassName={isBusy ? "animate-spin" : ""}
 								startIcon={isBusy ? "loader-circle" : null}
-								disabled={isBusy}
-								className="ml-auto text-sm"
 								variant="outline"
 							>
 								{t("git.error.broken.clone-failed.delete.button")}
 							</Button>
 						</AlertConfirm>
 						<AlertConfirm
-							title={t("git.error.broken.clone-failed.clone.title")}
 							description={t("git.error.broken.clone-failed.clone.description")}
 							onConfirm={startClone}
+							title={t("git.error.broken.clone-failed.clone.title")}
 						>
-							<Button variant="primary" className="text-sm">
+							<Button className="text-sm" variant="primary">
 								{t("git.error.broken.clone-failed.clone.button")}
 							</Button>
 						</AlertConfirm>

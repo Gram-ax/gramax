@@ -1,12 +1,12 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Context from "@core/Context/Context";
-import PageDataContext from "@core/Context/PageDataContext";
+import type Context from "@core/Context/Context";
+import type PageDataContext from "@core/Context/PageDataContext";
 import getClientPermissions from "@ext/enterprise/utils/getClientPermissions";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
-import UserInfo from "@ext/security/logic/User/UserInfo";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type UserInfo from "@ext/security/logic/User/UserInfo";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import { getEnabledFeatures } from "@ext/toggleFeatures/features";
-import Application from "../../types/Application";
+import type Application from "../../types/Application";
 
 type GetPageDataContext = (args: {
 	ctx: Context;
@@ -71,7 +71,6 @@ const getPageDataContext: GetPageDataContext = async ({ ctx, app, isArticle, use
 			diagramsServiceUrl: workspaceConfig?.services?.diagramRenderer?.url || conf.services.diagramRenderer.url,
 			enterprise: enterpriseConfig,
 			logo: conf.logo,
-			search: conf.search,
 			ai: { enabled: isGramaxAiEnabled },
 			forceUiLangSync: conf.forceUiLangSync,
 		},

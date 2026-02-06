@@ -2,9 +2,7 @@ import SearchArticleContentParserBase from "@ext/serach/modulith/parsing/SearchA
 import { ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
 
 export default class SearchArticleContentParserHTML extends SearchArticleContentParserBase {
-	constructor(
-		private readonly _items: NodeList
-	) {
+	constructor(private readonly _items: NodeList) {
 		super();
 	}
 
@@ -56,9 +54,7 @@ export default class SearchArticleContentParserHTML extends SearchArticleContent
 			for (const cell of row.childNodes ?? []) {
 				let cellItems: ArticleItem[] = [];
 				if (cell.childNodes) {
-					cellItems = await new SearchArticleContentParserHTML(
-						cell.childNodes,
-					).parse();
+					cellItems = await new SearchArticleContentParserHTML(cell.childNodes).parse();
 				}
 
 				const cs = (cell as Element).attributes?.getNamedItem("colspan")?.value;

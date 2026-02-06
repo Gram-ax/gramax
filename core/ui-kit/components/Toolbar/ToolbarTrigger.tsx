@@ -1,8 +1,8 @@
-import { ToolbarTrigger as UiKitToolbarTrigger } from "ics-ui-kit/components/toolbar";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
-import { forwardRef } from "react";
 import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
+import { ToolbarTrigger as UiKitToolbarTrigger } from "ics-ui-kit/components/toolbar";
+import { forwardRef } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitToolbarTriggerProps = ExtractComponentGeneric<typeof UiKitToolbarTrigger>;
 
@@ -15,5 +15,5 @@ const StyledUiKitToolbarTrigger = styled(UiKitToolbarTrigger)`
 
 export const ToolbarTrigger = forwardRef<HTMLButtonElement, UiKitToolbarTriggerProps>((props, ref) => {
 	const { className, ...otherProps } = props;
-	return <StyledUiKitToolbarTrigger ref={ref} className={cn(className, "p-1")} {...otherProps} />;
+	return <StyledUiKitToolbarTrigger className={cn(className, "p-1")} ref={ref} {...otherProps} />;
 });

@@ -1,18 +1,24 @@
-import docx from "@dynamicImports/docx";
 import Path from "@core/FileProvider/Path/Path";
-import { WordFontStyles, imageString } from "@ext/wordExport/options/wordExportSettings";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { errorWordLayout } from "@ext/wordExport/error";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import docx from "@dynamicImports/docx";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import AnnotationText from "@ext/markdown/elements/image/word/imageEditor/AnnotationText";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
-import { JSONContent } from "@tiptap/core";
-import { wrapWithListContinuationBookmark } from "@ext/wordExport/utils/listContinuation";
+import { errorWordLayout } from "@ext/wordExport/error";
 import getWordResourceManager from "@ext/wordExport/getWordResourceManager";
+import type { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
+import { imageString, WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import { wrapWithListContinuationBookmark } from "@ext/wordExport/utils/listContinuation";
+import type { JSONContent } from "@tiptap/core";
 
 export const renderImageWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
-	const result = await imageWordLayout(tag, addOptions, wordRenderContext.parserContext);
+	const result = await imageWordLayout(
+		tag,
+		addOptions,
+		wordRenderContext.parserContext,
+		wordRenderContext.resourceManager,
+	);
 	return Array.isArray(result) ? result : [result];
 };
 
@@ -20,16 +26,17 @@ export const imageWordLayout = async (
 	tag: Tag | JSONContent,
 	addOptions: AddOptionsWord,
 	parserContext: ParserContext,
+	resourceManager: ResourceManager,
 ) => {
 	try {
 		const { Paragraph, AlignmentType } = await docx();
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 
-		const resourceManager = await getWordResourceManager(addOptions, parserContext);
+		const wordResourceManager = await getWordResourceManager(addOptions, parserContext, resourceManager);
 
 		const imageRun = await WordImageExporter.getImageByPath(
 			new Path(attrs.src),
-			resourceManager,
+			wordResourceManager,
 			addOptions?.maxPictureWidth,
 			undefined,
 			attrs.crop,

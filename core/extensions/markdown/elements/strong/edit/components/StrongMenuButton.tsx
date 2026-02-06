@@ -8,11 +8,11 @@ const StrongMenuButton = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<ToolbarToggleButton
-			tooltipText={t("editor.bold")}
-			hotKey={"Mod-B"}
-			disabled={disabled}
 			active={isActive}
+			disabled={disabled}
+			hotKey={"Mod-B"}
 			onClick={() => editor.chain().focus().toggleStrong().run()}
+			tooltipText={t("editor.bold")}
 		>
 			<ToolbarIcon icon={"bold"} />
 		</ToolbarToggleButton>

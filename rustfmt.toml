@@ -1,7 +1,4 @@
-indent_style = "Block"
-chained_indent = "Block"
-hard_tabs = false
+newline_style = "Unix"
 tab_spaces = 2
-empty_item_single_line = false
-max_width = 110
-use_small_heuristics = "Max"
+hard_tabs = true
+max_width = 150

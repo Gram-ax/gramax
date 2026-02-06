@@ -1,10 +1,10 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import UserCircle from "@components/Atoms/UserCircle";
-import VersionControlCommentCount from "@ext/markdown/elements/comment/edit/components/CommentCount";
 import styled from "@emotion/styled";
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
 import type { Signature } from "@ext/git/core/model/Signature";
 import t from "@ext/localization/locale/translate";
+import VersionControlCommentCount from "@ext/markdown/elements/comment/edit/components/CommentCount";
 
 const Comments = styled(VersionControlCommentCount)`
 	margin-left: 0;

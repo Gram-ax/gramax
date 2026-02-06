@@ -1,4 +1,4 @@
-import { PaginationAbortError, throwIfAborted, isPaginationAbortError } from "../abort";
+import { isPaginationAbortError, PaginationAbortError, throwIfAborted } from "../abort";
 
 describe("pagination abort helpers", () => {
 	it("throws PaginationAbortError when signal aborted", () => {

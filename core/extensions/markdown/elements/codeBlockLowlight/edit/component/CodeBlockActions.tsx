@@ -2,8 +2,8 @@ import ActionButton from "@components/controls/HoverController/ActionButton";
 import ActionSearcher from "@components/controls/HoverController/ActionSearcher";
 import t from "@ext/localization/locale/translate";
 import {
-	StandardCaseLangList,
 	getStandardCaseByLower,
+	StandardCaseLangList,
 } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
 import { Node } from "@tiptap/pm/model";
 import { useState } from "react";
@@ -28,16 +28,16 @@ const CodeBlockActions = ({ node, onChange }: CodeBlockActionsProps) => {
 	return (
 		<>
 			<ActionSearcher
-				placeholder={t("language.name")}
+				defaultValue={getStandardCaseByLower(node.attrs.language) || ""}
 				items={StandardCaseLangList}
 				onChange={onChange}
-				defaultValue={getStandardCaseByLower(node.attrs.language) || ""}
+				placeholder={t("language.name")}
 			/>
 			<ActionButton
 				icon={isCopied ? "check" : "copy"}
-				tooltipText={t("copy")}
 				onClick={handleCopy}
 				onMouseLeave={onMouseLeave}
+				tooltipText={t("copy")}
 			/>
 		</>
 	);

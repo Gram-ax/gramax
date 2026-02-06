@@ -32,12 +32,8 @@ const getExportData = async (path: string, isCategory: boolean): Promise<Buffer>
 		getExportedKeys(),
 		catalog,
 		ctx,
-		(
-			await getApplication()
-		).parser,
-		(
-			await getApplication()
-		).parserContextFactory,
+		(await getApplication()).parser,
+		(await getApplication()).parserContextFactory,
 		new RuleProvider(ctx, null).getItemFilters(),
 		titlesMap,
 	);

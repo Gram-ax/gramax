@@ -1,7 +1,7 @@
-import { Command } from "../../types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { genNDJson } from "@core/utils/genNDJson";
 import { isSearcherType, SearcherType } from "@ext/serach/SearcherManager";
+import { Command } from "../../types/Command";
 
 const getIndexingProgress: Command<
 	{ type?: SearcherType },

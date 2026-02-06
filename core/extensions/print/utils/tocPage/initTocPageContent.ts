@@ -47,15 +47,17 @@ function buildItemFirstPageByH1(pages: HTMLElement, items: PrintablePage[]): (nu
 
 	const pageNodes = ensurePageIds(pages);
 	for (const page of pageNodes) {
-		const h1 = page.querySelector<HTMLHeadingElement>("h1");
-		if (!h1) continue;
-		const key = norm(h1.textContent ?? "");
-		const queue = indexQueues.get(key);
-		if (!queue?.length) continue;
+		const headings = page.querySelectorAll<HTMLHeadingElement>("h1");
+		if (!headings) continue;
+		headings.forEach((h1) => {
+			const key = norm(h1.textContent ?? "");
+			const queue = indexQueues.get(key);
+			if (!queue?.length) return;
 
-		const itemIndex = queue.shift();
-		const num = Number(page.dataset.pageNumber) || 0;
-		if (num) firstPage[itemIndex] = num;
+			const itemIndex = queue.shift();
+			const num = Number(page.dataset.pageNumber) || 0;
+			if (num) firstPage[itemIndex] = num;
+		});
 	}
 	return firstPage;
 }

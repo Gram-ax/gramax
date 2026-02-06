@@ -35,8 +35,8 @@ const set: Command<
 
 		await article.parsedContent.write(async (p) => {
 			if (!p || !data) return;
-			const hashItem = new HashResourceManager(src, p.resourceManager);
-			await p.resourceManager.setContent(src, data);
+			const hashItem = new HashResourceManager(src, p.parsedContext.getResourceManager(), ctx);
+			await p.parsedContext.getResourceManager().setContent(src, data);
 			hashes.deleteHash(hashItem);
 			return p;
 		});

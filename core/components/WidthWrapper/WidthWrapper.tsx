@@ -133,20 +133,20 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 					center:
 						disableWrapper || isShowMainLangContentPreview
 							? scrollContainerRef.current?.parentElement.clientWidth <
-							  scrollContainerRef.current?.firstElementChild?.firstElementChild?.clientWidth
+								scrollContainerRef.current?.firstElementChild?.firstElementChild?.clientWidth
 							: wrapperSize > 0,
 				},
 				["width-wrapper"],
 			)}
-			style={{ ...getWidth() }}
 			data-wrapper={dataWrapper}
+			style={{ ...getWidth() }}
 		>
-			<div ref={scrollContainerRef} className={"scrollableContent"} onScroll={setWidth}>
+			<div className={"scrollableContent"} onScroll={setWidth} ref={scrollContainerRef}>
 				{children}
 			</div>
 			{additional}
-			<ShadowBox width={leftWidth} height={height} direction="left" />
-			<ShadowBox width={rightWidth} height={height} direction="right" />
+			<ShadowBox direction="left" height={height} width={leftWidth} />
+			<ShadowBox direction="right" height={height} width={rightWidth} />
 		</div>
 	);
 };

@@ -1,20 +1,22 @@
-import AlertError from "@components/AlertError";
 import GifImage from "@components/Atoms/Image/GifImage";
 import Image from "@components/Atoms/Image/Image";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import Path from "@core/FileProvider/Path/Path";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import styled from "@emotion/styled";
-import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
+import { ResourceError } from "@ext/markdown/elements/copyArticles/errors/ResourceError";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ImageResizer from "@ext/markdown/elements/image/edit/components/ImageResizer";
 import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import ImageError from "@ext/markdown/elements/image/render/components/ImageError";
 import { ImageSkeleton } from "@ext/markdown/elements/image/render/components/ImageSkeleton";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import { cropImage } from "@ext/markdown/elements/image/render/logic/cropImage";
 import {
-	createContext,
 	CSSProperties,
+	createContext,
 	forwardRef,
 	memo,
 	ReactElement,
@@ -23,6 +25,7 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from "react";
@@ -66,25 +69,25 @@ const ImageR = forwardRef<HTMLImageElement, ImageRProps>((props, ref) => {
 	return (
 		<div className="image-container" data-focusable="true">
 			<Image
-				ref={ref}
+				alt={alt}
 				id={id}
 				modalEdit={openEditor}
-				onLoad={onLoad}
 				modalTitle={title}
-				onError={onError}
-				src={src}
-				alt={alt}
 				objects={objects}
+				onError={onError}
+				onLoad={onLoad}
 				realSrc={realSrc}
+				ref={ref}
+				src={src}
 			/>
 			<div className="object-container">
 				{isLoaded && (
 					<ObjectRenderer
+						editable={false}
 						imageRef={ref as RefObject<HTMLImageElement>}
 						objects={objects}
-						editable={false}
-						parentRef={imageContainerRef}
 						originalWidth={width}
+						parentRef={imageContainerRef}
 					/>
 				)}
 			</div>
@@ -149,9 +152,12 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		isPrint,
 	} = props;
 
-	const [error, setError] = useState<boolean>(false);
+	const articleRef = ArticleRefService.value;
+
+	const [error, setError] = useState<ResourceError | null>(null);
 	const [imageSrc, setImageSrc] = useState<string>(null);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
+	const [size, setSize] = useState<{ width: string; height: string }>(null);
 
 	const isGif = new Path(realSrc).extension == "gif";
 	const { useGetResource, getBuffer } = ResourceService.value;
@@ -162,7 +168,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	const initialLoadDoneRef = useRef<boolean>(false);
 
 	const onError = useCallback(() => {
-		setError(true);
+		setError(new ResourceError("Image error", realSrc));
 	}, []);
 
 	const onLoad = useCallback(() => {
@@ -211,8 +217,11 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	}, []);
 
 	useGetResource(
-		async (buffer: Buffer) => {
-			if (!buffer || !buffer.byteLength) return setError(true);
+		async (buffer, resourceError) => {
+			if (resourceError || !buffer || !buffer.byteLength) {
+				setError(resourceError ?? new ResourceError("Image error", realSrc));
+				return;
+			}
 			if (initialLoadDoneRef.current) return;
 			if (isLoaded) setIsLoaded(false);
 
@@ -224,31 +233,44 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		isPrint,
 	);
 
-	if (error) {
-		return (
-			<AlertError
-				title={t(`alert.${isGif ? "gif" : "image"}.unavailable`)}
-				error={{ message: t("alert.image.path") }}
-			/>
-		);
-	}
+	useLayoutEffect(() => {
+		if (!width?.endsWith("px")) return;
+		if (!mainContainerRef.current) return;
+		const parentWidth =
+			mainContainerRef.current?.clientWidth ||
+			articleRef.current?.firstElementChild?.firstElementChild?.clientWidth;
+
+		if (!parentWidth) return;
+		const newWidth = (parseFloat(width) * (crop?.w || 100)) / 100;
+		const newHeight = (parseFloat(height) * (crop?.h || 100)) / 100;
+		const newSize = getAdjustedSize(newWidth, newHeight, parentWidth, scale);
+
+		setSize({
+			width: newSize.width + "px",
+			height: newSize.height + "px",
+		});
+	}, [width, height, mainContainerRef.current]);
 
 	if (isGif) {
 		return (
 			<BlockCommentView commentId={commentId}>
-				<GifImage
-					src={imageSrc}
-					title={noEm ? "" : title}
-					alt={title}
-					onError={onError}
-					hoverElementRef={hoverElementRef}
-					setIsHovered={setIsHovered}
-					isHovered={isHovered}
-					rightActions={rightActions}
-					width={width}
-					height={height}
-					realSrc={realSrc}
-				/>
+				{error ? (
+					<ImageError height={height} resourceError={error} width={width} />
+				) : (
+					<GifImage
+						alt={title}
+						height={height}
+						hoverElementRef={hoverElementRef}
+						isHovered={isHovered}
+						onError={onError}
+						realSrc={realSrc}
+						rightActions={rightActions}
+						setIsHovered={setIsHovered}
+						src={imageSrc}
+						title={noEm ? "" : title}
+						width={width}
+					/>
+				)}
 			</BlockCommentView>
 		);
 	}
@@ -259,7 +281,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 				imageContainerRef,
 				mainContainerRef,
 				imgRef,
-				attrs: { id, width, height, crop, scale, title, alt, objects, src: realSrc },
+				attrs: { id, width: size?.width, height: size?.height, crop, scale, title, alt, objects, src: realSrc },
 				isLoaded,
 			}}
 		>
@@ -268,43 +290,48 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 				data-float={float ? float : undefined}
 				data-resize-container={float ? float : undefined}
 			>
-				<div ref={mainContainerRef} className="main-container">
+				<div className="main-container" ref={mainContainerRef}>
 					<div className="resizer-container">
 						<HoverableActions
+							actionsOptions={IMAGE_ACTIONS_OPTIONS}
 							hoverElementRef={hoverElementRef}
 							isHovered={isHovered}
+							rightActions={error ? undefined : rightActions}
 							setIsHovered={setIsHovered}
-							actionsOptions={IMAGE_ACTIONS_OPTIONS}
-							rightActions={rightActions}
 						>
 							<div ref={imageContainerRef}>
 								<BlockCommentView commentId={commentId}>
 									<ImageSkeleton
-										width={width}
-										height={height}
-										crop={crop}
-										scale={scale}
-										isLoaded={error || isLoaded}
-										mainContainerRef={mainContainerRef}
+										height={size?.height}
+										isLoaded={!!error || isLoaded}
+										width={size?.width}
 									>
-										<ImageR
-											ref={imgRef}
-											src={imageSrc}
-											onLoad={onLoad}
-											onError={onError}
-											openEditor={openEditor}
-										/>
+										{error ? (
+											<ImageError
+												height={size?.height}
+												resourceError={error}
+												width={size?.width}
+											/>
+										) : (
+											<ImageR
+												onError={onError}
+												onLoad={onLoad}
+												openEditor={openEditor}
+												ref={imgRef}
+												src={imageSrc}
+											/>
+										)}
 									</ImageSkeleton>
 								</BlockCommentView>
 							</div>
 						</HoverableActions>
 						{isLoaded && (
 							<ImageResizer
+								containerRef={mainContainerRef}
+								imageRef={imgRef}
+								saveResize={saveResize}
 								scale={scale}
 								selected={showResizer}
-								saveResize={saveResize}
-								imageRef={imgRef}
-								containerRef={mainContainerRef}
 							/>
 						)}
 					</div>

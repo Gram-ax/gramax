@@ -2,13 +2,13 @@ import type ApiRequest from "@core/Api/ApiRequest";
 import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
 import { AllowedOriginsMiddleware } from "@core/Api/middleware/AllowedOriginsMiddleware";
+import { HttpMethodsMiddleware } from "@core/Api/middleware/HttpMethodsMiddleware";
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
+import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
 import parseContent from "@core/FileStructue/Article/parseContent";
+import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import ExceptionsResponse from "@ext/publicApi/ExceptionsResponse";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
-import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import { TokenValidationMiddleware } from "@core/Api/middleware/TokenValidationMiddleware";
-import { HttpMethodsMiddleware } from "@core/Api/middleware/HttpMethodsMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {

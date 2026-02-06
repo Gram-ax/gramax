@@ -1,9 +1,9 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Context from "@core/Context/Context";
-import PageDataContext from "@core/Context/PageDataContext";
-import { Article } from "@core/FileStructue/Article/Article";
+import type Context from "@core/Context/Context";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { Article } from "@core/FileStructue/Article/Article";
 import LastVisited from "@core/SitePresenter/LastVisited";
-import { ArticlePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import isReadOnlyBranch from "@ext/enterprise/utils/isReadOnlyBranch";
 import { Command } from "../../types/Command";
 import getPageDataContext from "./getPageDataContext";
@@ -62,7 +62,7 @@ const getArticlePageData: Command<
 			const showErrorTypeText = !this._app.conf.isReadOnly;
 			const errorArticle = customArticlePresenter.getArticle(
 				"500",
-				{ type: showErrorTypeText ? error?.type ?? null : null },
+				{ type: showErrorTypeText ? (error?.type ?? null) : null },
 				article?.ref,
 			);
 			data = await dataProvider.getArticlePageData(errorArticle, catalog);

@@ -1,14 +1,14 @@
 import resolveModule from "@app/resolveModule/backend";
-import Path from "@core/FileProvider/Path/Path";
-import ResourceManager from "@core/Resource/ResourceManager";
-import t from "@ext/localization/locale/translate";
-import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
-import { GetImageByPathOptions } from "@ext/markdown/elements/image/export/NextImageProcessor";
-import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
-import { MAX_WIDTH } from "@ext/wordExport/options/wordExportSettings";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import type Path from "@core/FileProvider/Path/Path";
+import type ResourceManager from "@core/Resource/ResourceManager";
 import docx from "@dynamicImports/docx";
+import t from "@ext/localization/locale/translate";
+import type { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
+import type { GetImageByPathOptions } from "@ext/markdown/elements/image/export/NextImageProcessor";
+import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import { MAX_WIDTH } from "@ext/wordExport/options/wordExportSettings";
 
 export class WordImageExporter {
 	static async getImageByPath(
@@ -32,7 +32,7 @@ export class WordImageExporter {
 		};
 		const { imageBuffer, size } = await resolveModule("getImageByPath")(options);
 
-		return this._getImageRun(imageBuffer, size);
+		return WordImageExporter._getImageRun(imageBuffer, size);
 	}
 
 	static async getFileByPath(path: Path, resourceManager: ResourceManager) {
@@ -43,12 +43,12 @@ export class WordImageExporter {
 
 	static async getImageFromSvgString(svgCode: string, maxWidth?: number) {
 		const { imageBuffer, size } = await BaseImageProcessor.getImageFromSvgString(svgCode, maxWidth);
-		return this._getImageRun(imageBuffer, size);
+		return WordImageExporter._getImageRun(imageBuffer, size);
 	}
 
 	static async getImageFromDiagramString(svgCode: string, fitContent = false, maxWidth?: number) {
 		const image = await BaseImageProcessor.getImageFromDom(svgCode, fitContent);
-		return this._getImageRun(
+		return WordImageExporter._getImageRun(
 			image,
 			await ImageDimensionsFinder.getImageSizeFromImageData(
 				Buffer.from(image as unknown as ArrayBuffer),
@@ -59,7 +59,7 @@ export class WordImageExporter {
 
 	static async getImageFromSvgPath(path: Path, resourceManager: ResourceManager, maxWidth?: number) {
 		const svgCode = (await resourceManager.getContent(path)).toString();
-		return this.getImageFromSvgString(svgCode, maxWidth);
+		return WordImageExporter.getImageFromSvgString(svgCode, maxWidth);
 	}
 
 	private static async _getImageRun(imageBuffer: string | Buffer | Uint8Array | ArrayBuffer, size: ImageDimensions) {

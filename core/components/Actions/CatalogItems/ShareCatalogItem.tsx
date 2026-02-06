@@ -10,7 +10,7 @@ const ShareCatalogItem = ({ children }: ShareCatalogItemProps) => {
 	const { pathName } = useCatalogActionsContext();
 
 	return (
-		<ShareAction path={`/${pathName}`} isArticle={false}>
+		<ShareAction isArticle={false} path={`/${pathName}`}>
 			{children}
 		</ShareAction>
 	);

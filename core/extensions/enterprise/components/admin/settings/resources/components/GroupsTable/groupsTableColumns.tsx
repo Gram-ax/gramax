@@ -16,18 +16,18 @@ const groupsTableColumns: ColumnDef<ClientAccessGroup>[] = [
 
 			return (
 				<Checkbox
+					aria-label="Select all"
 					checked={(allSelectableSelected || (someSelectableSelected && "indeterminate")) as CheckedState}
 					onCheckedChange={handleSelectAll}
-					aria-label="Select all"
 				/>
 			);
 		},
 		cell: ({ row }) => (
 			<Checkbox
-				checked={row.getIsSelected()}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
 				aria-label="Select row"
+				checked={row.getIsSelected()}
 				disabled={row.original.disabled}
+				onCheckedChange={(value) => row.toggleSelected(!!value)}
 			/>
 		),
 		enableSorting: false,
@@ -47,7 +47,7 @@ const groupsTableColumns: ColumnDef<ClientAccessGroup>[] = [
 			};
 
 			return (
-				<Select value={cell.getValue() as RoleId} onValueChange={handleValueChange}>
+				<Select onValueChange={handleValueChange} value={cell.getValue() as RoleId}>
 					<SelectTrigger>
 						<SelectValue placeholder={t("enterprise.admin.roles.select")} />
 					</SelectTrigger>

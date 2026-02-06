@@ -1,7 +1,7 @@
-import { Editor } from "@tiptap/core";
-import t from "@ext/localization/locale/translate";
-import { memo, useCallback, useEffect, useState } from "react";
 import AiWritingPopover from "@ext/ai/components/AiWritingPopover";
+import t from "@ext/localization/locale/translate";
+import { Editor } from "@tiptap/core";
+import { memo, useCallback, useEffect, useState } from "react";
 
 const TextGenerateButton = ({ editor }: { editor?: Editor }) => {
 	const [canOpen, setCanOpen] = useState(true);
@@ -36,15 +36,15 @@ const TextGenerateButton = ({ editor }: { editor?: Editor }) => {
 
 	return (
 		<AiWritingPopover
-			editor={editor}
-			triggerTooltipText={t("ai.generate")}
-			triggerIcon="sparkles"
 			contentPlaceholder={t("ai.placeholder.generate")}
 			disabled={!canOpen}
+			editor={editor}
 			isOpen={isOpen}
+			onSubmit={onSubmit}
 			setIsOpen={setIsOpen}
 			toolbarSelector="[role='bottom-toolbar']"
-			onSubmit={onSubmit}
+			triggerIcon="sparkles"
+			triggerTooltipText={t("ai.generate")}
 		/>
 	);
 };

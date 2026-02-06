@@ -1,8 +1,8 @@
-import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
-import { createContent } from "@ext/wordExport/TextWordGenerator";
-import { WordFontStyles, NON_BREAKING_SPACE } from "@ext/wordExport/options/wordExportSettings";
-import type { ImageRun } from "docx";
 import { getIconFromString } from "@ext/markdown/elements/icon/render/word/icon";
+import { NON_BREAKING_SPACE, WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
+import { createContent } from "@ext/wordExport/TextWordGenerator";
+import type { ImageRun } from "docx";
+import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const cmdWordLayout: WordInlineChild = async ({ tag, addOptions }) => {
 	const icons: ImageRun[] = [];

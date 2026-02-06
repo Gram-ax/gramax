@@ -1,9 +1,6 @@
-import {
-	getCoreRowModel,
-	getFilteredRowModel,
-	getPaginationRowModel,
-	useReactTable
-} from "@ui-kit/DataTable";
+import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
+import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
+import { getCoreRowModel, getFilteredRowModel, getPaginationRowModel, useReactTable } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
 import { AlertDeleteDialog } from "../../../ui-kit/AlertDeleteDialog";
 import { TableComponent } from "../../../ui-kit/table/TableComponent";
@@ -11,8 +8,6 @@ import { TableToolbar } from "../../../ui-kit/table/TableToolbar";
 import { BranchToolbarAddBtn } from "./components/BranchToolbarAddBtn";
 import { branchesTableColumns } from "./config/BranchesTableConfig";
 import { Branch } from "./types/BranchesComponentTypes";
-import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
-import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
 
 export type BranchesComponentProps = {
 	items: string[];
@@ -33,8 +28,8 @@ export const BranchesComponent = ({ items, onDelete, onAdd, selectOptions }: Bra
 		getFilteredRowModel: getFilteredRowModel(),
 		onRowSelectionChange: setRowSelection,
 		state: {
-			rowSelection
-		}
+			rowSelection,
+		},
 	});
 
 	const selectedCount = useMemo(() => table.getFilteredSelectedRowModel().rows.length, [table, rowSelection]);
@@ -53,42 +48,39 @@ export const BranchesComponent = ({ items, onDelete, onAdd, selectOptions }: Bra
 				onAdd(newBranches);
 			}
 		},
-		[items, onAdd]
+		[items, onAdd],
 	);
 
 	const handleFilterChange = useCallback(
 		(value: string | null) => {
 			table.getColumn("branch")?.setFilterValue(value);
 		},
-		[table]
+		[table],
 	);
 
 	return (
 		<div>
-			<TableInfoBlock title="Ветки" description={items.length} />
+			<TableInfoBlock description={items.length} title="Ветки" />
 
 			<TableToolbar
 				input={
 					<TableToolbarTextInput
+						onChange={handleFilterChange}
 						placeholder="Найти ветки..."
 						value={(table.getColumn("branch")?.getFilterValue() as string) ?? ""}
-						onChange={handleFilterChange}
 					/>
 				}
 			>
 				<AlertDeleteDialog hidden={!selectedCount} onConfirm={deleteSelected} selectedCount={selectedCount} />
 				<BranchToolbarAddBtn
-					key="add-branch"
-					onAdd={handleAddMultipleBranches}
 					branches={selectOptions}
 					existingBranches={items}
+					key="add-branch"
+					onAdd={handleAddMultipleBranches}
 				/>
 			</TableToolbar>
 
-			<TableComponent<Branch>
-				table={table}
-				columns={branchesTableColumns}
-			/>
+			<TableComponent<Branch> columns={branchesTableColumns} table={table} />
 		</div>
 	);
 };

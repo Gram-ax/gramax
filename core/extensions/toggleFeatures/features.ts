@@ -41,7 +41,7 @@ export type Feature = {
 let cachedFeatures: Record<string, Feature> = null;
 
 export const getRawEnabledFeatures = (): string | null => {
-	if (getExecutingEnvironment() == "next" || getExecutingEnvironment() === "cli")
+	if (getExecutingEnvironment() === "next" || getExecutingEnvironment() === "cli")
 		return env("DOCPORTAL_FEATURES") || env("FEATURES") || null;
 	if (getExecutingEnvironment() === "static") return getStaticFeatures();
 	return typeof window !== "undefined" ? window.localStorage?.getItem(FEATURES_KEY) : null;
@@ -154,19 +154,6 @@ export const features = {
 			en: null, // Waiting for translation
 		},
 		icon: "filter",
-		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
-		default: false,
-	},
-	"export-pdf": {
-		title: {
-			ru: "Новый экспорт в PDF",
-			en: "New export to PDF",
-		},
-		desc: {
-			ru: "Поддерживает все элементы оформления статей",
-			en: "Supports all article formatting elements",
-		},
-		icon: "file-text",
 		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
 		default: false,
 	},

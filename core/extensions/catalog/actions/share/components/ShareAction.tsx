@@ -1,10 +1,10 @@
 import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
+import { useRouter } from "@core/Api/useRouter";
+import { getClientDomain } from "@core/utils/getClientDomain";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { showPopover } from "@core-ui/showPopover";
-import { useRouter } from "@core/Api/useRouter";
-import { getClientDomain } from "@core/utils/getClientDomain";
 import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
@@ -70,7 +70,7 @@ const ShareAction = ({ path, isArticle, children, variant = "MenuItem" }: ShareA
 
 	if (variant === "Button") {
 		return (
-			<Button onClick={onClickButton} variant="text" size="xs" className="p-0 h-full">
+			<Button className="p-0 h-full" onClick={onClickButton} size="xs" variant="text">
 				<Icon code="link" />
 				{isArticle ? t("share.name.article") : t("share.name.catalog")}
 			</Button>

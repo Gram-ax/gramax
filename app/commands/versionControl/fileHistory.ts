@@ -2,11 +2,11 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { ArticleHistoryViewModel } from "@ext/git/actions/History/model/ArticleHistoryViewModel";
 import GitFileHistory from "@ext/git/core/GitFileHistory/GitFileHistory";
 import t from "@ext/localization/locale/translate";
 import { Command } from "../../types/Command";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 
 const fileHistory: Command<{ catalogName: string; filePath: string }, ArticleHistoryViewModel[]> = Command.create({
 	path: "versionControl/fileHistory",

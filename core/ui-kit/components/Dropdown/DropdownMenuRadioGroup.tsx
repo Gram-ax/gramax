@@ -1,6 +1,6 @@
 import { DropdownMenuRadioGroup as UiKitDropdownMenuRadioGroup } from "ics-ui-kit/components/dropdown";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 import { FC } from "react";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 interface UiKitDropdownMenuRadioGroupProps extends ExtractComponentGeneric<typeof UiKitDropdownMenuRadioGroup> {}
 

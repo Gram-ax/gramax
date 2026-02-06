@@ -1,22 +1,22 @@
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
 import { findCommand } from "@app/commands";
-import Application from "@app/types/Application";
+import type Application from "@app/types/Application";
 import { ResponseKind } from "@app/types/ResponseKind";
-import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
-import type Method from "@core-ui/ApiServices/Types/Method";
-import type MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import Url from "@core-ui/ApiServices/Types/Url";
-import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
-import ApiRequest from "@core/Api/ApiRequest";
-import ApiResponse from "@core/Api/ApiResponse";
-import Query from "@core/Api/Query";
+import type ApiRequest from "@core/Api/ApiRequest";
+import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
 import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
-import Middleware from "@core/Api/middleware/Middleware";
 import buildMiddleware from "@core/Api/middleware/buildMiddleware";
-import HashItem from "@core/Hash/HashItems/HashItem";
+import type Middleware from "@core/Api/middleware/Middleware";
+import type Query from "@core/Api/Query";
+import type HashItem from "@core/Hash/HashItems/HashItem";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import type FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
+import type Method from "@core-ui/ApiServices/Types/Method";
+import type MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import type Url from "@core-ui/ApiServices/Types/Url";
+import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import PersistentLogger from "@ext/loggers/PersistentLogger";
 import BrowserApiResponse from "./BrowserApiResponse";
 
@@ -47,7 +47,9 @@ const fetchSelf = async (
 
 	Object.entries(url.query)
 		.filter(([, v]) => !!v)
-		.forEach(([k, v]) => (url.query[k] = decodeURIComponent(v)));
+		.forEach(([k, v]) => {
+			url.query[k] = decodeURIComponent(v);
+		});
 
 	const req: ApiRequest = { headers: {}, query: url.query, body: parseBody(body) };
 
@@ -70,7 +72,7 @@ const fetchSelf = async (
 const parseBody = (body: BodyInit) => {
 	if (body === "") return body;
 	if (!body) return;
-	if (typeof body != "string") return body;
+	if (typeof body !== "string") return body;
 	try {
 		return JSON.parse(body);
 	} catch {
@@ -78,22 +80,30 @@ const parseBody = (body: BodyInit) => {
 	}
 };
 
-const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind: ResponseKind, commandResult: any) => {
-	if (kind == ResponseKind.none) return;
+const respond = async (
+	_app: Application,
+	_req: ApiRequest,
+	res: ApiResponse,
+	kind: ResponseKind,
+	// biome-ignore lint/suspicious/noExplicitAny: commandResult is any
+	commandResult: any,
+) => {
+	if (kind === ResponseKind.none) return;
 
-	if (kind == ResponseKind.json) return apiUtils.sendJson(res, commandResult);
+	if (kind === ResponseKind.json) return apiUtils.sendJson(res, commandResult);
 
-	if (kind == ResponseKind.plain) return apiUtils.sendPlainText(res, commandResult);
+	if (kind === ResponseKind.plain) return apiUtils.sendPlainText(res, commandResult);
 
-	if (kind == ResponseKind.blob) return res.send(await (commandResult?.hashItem as HashItem)?.getContentAsBinary());
+	if (kind === ResponseKind.blob) return res.send(await (commandResult?.hashItem as HashItem)?.getContentAsBinary());
 
-	if (kind == ResponseKind.file) return res.send(commandResult);
+	if (kind === ResponseKind.file) return res.send(commandResult);
 
-	if (kind == ResponseKind.redirect) return res.redirect(commandResult);
+	if (kind === ResponseKind.redirect) return res.redirect(commandResult);
 
-	if (kind == ResponseKind.html) return res.send(commandResult);
+	if (kind === ResponseKind.html) return res.send(commandResult);
 
-	if (kind == ResponseKind.stream) return res.send(generatorToReadableStream(commandResult.iterator ?? commandResult));
+	if (kind === ResponseKind.stream)
+		return res.send(generatorToReadableStream(commandResult.iterator ?? commandResult));
 
 	throw new Error("Invalid ResponseKind");
 };

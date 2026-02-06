@@ -8,4 +8,3 @@ export interface SnippetEditorProps {
 export interface SnippetRenderData extends SnippetEditorProps {
 	content: RenderableTreeNode[];
 }
-

@@ -1,9 +1,10 @@
 import Icon from "@components/Atoms/Icon";
 import TruncatedText from "@components/Atoms/TruncatedText";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import { useRouter } from "@core/Api/useRouter";
 import { useApi } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { useRouter } from "@core/Api/useRouter";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import t from "@ext/localization/locale/translate";
 import { addScopeToPath } from "@ext/versioning/utils";
@@ -15,7 +16,6 @@ import {
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
 import { useCallback, useEffect, useState } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const SwitchVersion = () => {
 	const { isNext } = usePlatform();
@@ -65,26 +65,26 @@ const SwitchVersion = () => {
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<ButtonLink
-					iconIsLoading={isLoading}
 					iconCode={"tag"}
 					iconFw
+					iconIsLoading={isLoading}
+					rightActions={[<Icon code="chevron-down" key={0} />]}
 					text={
 						<TruncatedText maxWidth={180}>
 							{isActualVersion ? branch?.name || t("versions.switch") : resolvedVersion.name}
 						</TruncatedText>
 					}
-					rightActions={[<Icon key={0} code="chevron-down" />]}
 				/>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">
-				<DropdownMenuRadioGroup value={resolvedVersion?.name || branch?.name} onValueChange={onSwitch}>
+				<DropdownMenuRadioGroup onValueChange={onSwitch} value={resolvedVersion?.name || branch?.name}>
 					<DropdownMenuRadioItem data-qa="qa-clickable" value={branch?.name}>
 						<TruncatedText maxWidth={180}>{branch?.name || t("versions.switch")}</TruncatedText>
 					</DropdownMenuRadioItem>
 					{resolvedVersions
 						?.filter((version) => version.name !== branch?.name)
 						.map((version) => (
-							<DropdownMenuRadioItem data-qa="qa-clickable" value={version.name} key={version.name}>
+							<DropdownMenuRadioItem data-qa="qa-clickable" key={version.name} value={version.name}>
 								<TruncatedText maxWidth={180}>{version.name}</TruncatedText>
 							</DropdownMenuRadioItem>
 						))}

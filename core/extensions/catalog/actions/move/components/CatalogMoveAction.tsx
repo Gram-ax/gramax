@@ -12,7 +12,7 @@ import t from "@ext/localization/locale/translate";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useRef, type ComponentProps, type MutableRefObject, type ReactNode } from "react";
+import { type ComponentProps, type MutableRefObject, type ReactNode, useRef } from "react";
 import DuplicateCatalogDialog from "./DuplicateCatalogDialog";
 export interface CatalogMoveActionRenderProps {
 	targetWorkspaceRef: MutableRefObject<ClientWorkspaceConfig | null>;
@@ -115,8 +115,8 @@ const CatalogMoveAction = ({ children, catalogName, onSuccess }: CatalogWorkspac
 	return (
 		<CatalogItem
 			renderLabel={(Component) => (
-				<Component onClick={(ev) => ev.stopPropagation()} disabled={isLoading}>
-					{isLoading ? <SpinnerLoader width={16} height={16} /> : <Icon code="arrow-right" />}
+				<Component disabled={isLoading} onClick={(ev) => ev.stopPropagation()}>
+					{isLoading ? <SpinnerLoader height={16} width={16} /> : <Icon code="arrow-right" />}
 					{t("catalog.move.to-workspace")}
 				</Component>
 			)}

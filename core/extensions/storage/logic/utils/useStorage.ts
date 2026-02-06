@@ -1,9 +1,9 @@
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import SourceDataService from "@core-ui/ContextServices/SourceDataService";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import { useMemo } from "react";
 import getStorageNameByData from "./getStorageNameByData";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const useStorage = (sourceName?: string): SourceData | null => {
 	const sourceDatas = SourceDataService.value;

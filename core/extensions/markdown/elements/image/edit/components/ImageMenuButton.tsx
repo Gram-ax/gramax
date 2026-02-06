@@ -1,16 +1,16 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import InputFile from "@components/Atoms/InputFile";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import createImages from "../logic/createImages";
 import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import { ChangeEvent, useCallback } from "react";
-import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import { Editor } from "@tiptap/core";
 import { Icon } from "@ui-kit/Icon";
-import InputFile from "@components/Atoms/InputFile";
-import { cn } from "@core-ui/utils/cn";
+import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
+import { ChangeEvent, useCallback } from "react";
+import createImages from "../logic/createImages";
 
 interface ImageMenuButtonProps {
 	editor: Editor;
@@ -47,9 +47,9 @@ const ImageMenuButton = ({ editor, className, fileName, onSave, onStart }: Image
 	if (disabled) {
 		return (
 			<ToolbarDropdownMenuItem
+				active={isActive}
 				dataQa={`qa-edit-menu-image`}
 				disabled={disabled}
-				active={isActive}
 				onSelect={() => ArticleUpdaterService.stopLoadingAfterFocus()}
 			>
 				<div className="flex flex-row items-center gap-2 w-full">
@@ -62,10 +62,10 @@ const ImageMenuButton = ({ editor, className, fileName, onSave, onStart }: Image
 
 	return (
 		<ToolbarDropdownMenuItem
-			dataQa={`qa-edit-menu-image`}
-			disabled={disabled}
 			active={isActive}
 			className={cn(className, "flex flex-row items-center gap-2 whitespace-nowrap")}
+			dataQa={`qa-edit-menu-image`}
+			disabled={disabled}
 			onSelect={(e) => {
 				e.preventDefault();
 				onStart?.();
@@ -74,8 +74,8 @@ const ImageMenuButton = ({ editor, className, fileName, onSave, onStart }: Image
 		>
 			<InputFile
 				className="flex flex-row items-center w-full cursor-pointer"
-				onChange={onChange}
 				onAbort={onAbort}
+				onChange={onChange}
 			>
 				<div className="flex flex-row items-center gap-2 w-full">
 					<Icon icon="image" />

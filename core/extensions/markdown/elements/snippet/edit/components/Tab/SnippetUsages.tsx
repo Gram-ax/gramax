@@ -63,7 +63,7 @@ const SnippetUsages = ({ snippetId, trigger, isSubmenu }: SnippetUsagesProps) =>
 					<>
 						{[
 							<DropdownMenuItem key={0}>
-								<SpinnerLoader width={16} height={16} />
+								<SpinnerLoader height={16} width={16} />
 								{t("loading")}
 							</DropdownMenuItem>,
 						]}
@@ -72,7 +72,7 @@ const SnippetUsages = ({ snippetId, trigger, isSubmenu }: SnippetUsagesProps) =>
 					<>
 						{list.map((item, idx) => (
 							<DropdownMenuItem key={idx}>
-								<GoToArticle href={item.pathname} trigger={item.title} onClick={onClick} />
+								<GoToArticle href={item.pathname} onClick={onClick} trigger={item.title} />
 							</DropdownMenuItem>
 						))}
 						{!list.length && <DropdownMenuItem disabled>{t("snippet-no-usages")}</DropdownMenuItem>}

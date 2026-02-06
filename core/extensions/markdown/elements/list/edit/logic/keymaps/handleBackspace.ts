@@ -1,10 +1,10 @@
+import { findListItemPos } from "@ext/markdown/elements/list/edit/logic/keymaps/findListItemPos";
+import { hasListBefore } from "@ext/markdown/elements/list/edit/logic/keymaps/hasListBefore";
+import { hasListItemBefore } from "@ext/markdown/elements/list/edit/logic/keymaps/hasListItemBefore";
+import { listItemHasSubList } from "@ext/markdown/elements/list/edit/logic/keymaps/listItemHasSubList";
 import type { Editor } from "@tiptap/core";
 import { isAtStartOfNode, isNodeActive, isNodeSelection } from "@tiptap/core";
 import type { Node } from "@tiptap/pm/model";
-import { hasListBefore } from "@ext/markdown/elements/list/edit/logic/keymaps/hasListBefore";
-import { findListItemPos } from "@ext/markdown/elements/list/edit/logic/keymaps/findListItemPos";
-import { listItemHasSubList } from "@ext/markdown/elements/list/edit/logic/keymaps/listItemHasSubList";
-import { hasListItemBefore } from "@ext/markdown/elements/list/edit/logic/keymaps/hasListItemBefore";
 
 export const handleBackspace = (editor: Editor, name: string, parentListTypes: string[]) => {
 	// this is required to still handle the undo handling
@@ -44,7 +44,7 @@ export const handleBackspace = (editor: Editor, name: string, parentListTypes: s
 
 		const $lastItemPos = editor.state.doc.resolve($listPos.start() + lastItem.pos + 1);
 		const lastChild = lastItem.node.lastChild;
-		const isBlockWithoutContent = lastChild && lastChild.isBlock && !lastChild.type.spec.content;
+		const isBlockWithoutContent = lastChild?.isBlock && !lastChild?.type.spec.content;
 		const insertPos = isBlockWithoutContent ? $lastItemPos.end() - 1 : $lastItemPos.end();
 
 		return editor
@@ -93,6 +93,5 @@ export const handleBackspace = (editor: Editor, name: string, parentListTypes: s
 	// otherwise in the end, a backspace should
 	// always just lift the list item if
 	// joining / merging is not possible
-	console.log(1);
 	return editor.chain().liftListItem(name).run();
 };

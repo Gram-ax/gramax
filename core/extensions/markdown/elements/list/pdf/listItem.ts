@@ -3,8 +3,8 @@ import { BASE_CONFIG } from "@ext/pdfExport/config";
 import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { extractContent } from "@ext/pdfExport/utils/extractTextForCases";
 import { isTag } from "@ext/pdfExport/utils/isTag";
-import { Content, ContentStack } from "pdfmake/interfaces";
 import { JSONContent } from "@tiptap/core";
+import { Content, ContentStack } from "pdfmake/interfaces";
 
 export const listItemHandler = async (
 	node: Tag | JSONContent,

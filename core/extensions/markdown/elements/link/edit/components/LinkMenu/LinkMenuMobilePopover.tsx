@@ -1,12 +1,12 @@
 import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import styled from "@emotion/styled";
+import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
+import { useLinkMenuState } from "@ext/markdown/elements/link/edit/hooks/useLinkMenuState";
+import { useMediaQuery } from "@mui/material";
 import { Editor } from "@tiptap/core";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
 import { useCallback, useEffect, useState } from "react";
-import { useMediaQuery } from "@mui/material";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
-import { useLinkMenuState } from "@ext/markdown/elements/link/edit/hooks/useLinkMenuState";
-import styled from "@emotion/styled";
 
 interface LinkMenuMobilePopoverProps {
 	editor: Editor;
@@ -92,7 +92,7 @@ export const LinkMenuMobilePopover = (props: LinkMenuMobilePopoverProps) => {
 				}}
 			>
 				<Container className={cn("bg-transparent border-none lg:shadow-hard-base")}>
-					<LinkMenu mark={mark} onUpdate={onUpdate} onDelete={onDelete} />
+					<LinkMenu mark={mark} onDelete={onDelete} onUpdate={onUpdate} />
 				</Container>
 			</div>
 		</ComponentVariantProvider>

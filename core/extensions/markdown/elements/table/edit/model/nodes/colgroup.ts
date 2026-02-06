@@ -1,6 +1,6 @@
-import { mergeAttributes, Node } from "@tiptap/core";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { colgroup, col } from "../tableSchema";
+import { mergeAttributes, Node } from "@tiptap/core";
+import { col, colgroup } from "../tableSchema";
 
 const Col = Node.create({
 	...getExtensionOptions({ schema: col, name: "col" }),

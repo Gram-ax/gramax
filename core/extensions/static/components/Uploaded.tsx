@@ -1,14 +1,14 @@
-import t from "@ext/localization/locale/translate";
-import { ModalHeader, ModalTitle, ModalClose } from "@ui-kit/Modal";
-import { FormFooter } from "@ui-kit/Form";
-import { Button } from "@ui-kit/Button";
-import { showPopover } from "@core-ui/showPopover";
-import { Description } from "@ui-kit/Description";
-import Anchor from "@components/controls/Anchor";
 import Icon from "@components/Atoms/Icon";
+import Anchor from "@components/controls/Anchor";
+import { showPopover } from "@core-ui/showPopover";
 import styled from "@emotion/styled";
+import t from "@ext/localization/locale/translate";
 import CloudModalBody from "@ext/static/components/CloudModalBody";
 import useGetCatalogCloudUrl from "@ext/static/utils/cloudUrl";
+import { Button } from "@ui-kit/Button";
+import { Description } from "@ui-kit/Description";
+import { FormFooter } from "@ui-kit/Form";
+import { ModalClose, ModalHeader, ModalTitle } from "@ui-kit/Modal";
 
 const IconComponent = ({ className }: { className?: string }) => {
 	return (
@@ -48,7 +48,7 @@ const Uploaded = () => {
 				<p>
 					{t("cloud.uploaded-modal.link") + ": "}
 					<br />
-					<Anchor className="anchor" href={url} data-qa="qa-clickable">
+					<Anchor className="anchor" data-qa="qa-clickable" href={url}>
 						{url}
 					</Anchor>
 				</p>

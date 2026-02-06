@@ -1,13 +1,13 @@
+import HoverableActions from "@components/controls/HoverController/HoverableActions";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import ViewActions from "@ext/markdown/elements/view/edit/components/Helpers/ViewActions";
 import View from "@ext/markdown/elements/view/render/components/View";
 import { Display } from "@ext/properties/models/display";
 import { NodeViewProps } from "@tiptap/react";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
 import { useCallback, useRef, useState } from "react";
-import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import ViewActions from "@ext/markdown/elements/view/edit/components/Helpers/ViewActions";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 interface ViewComponentProps extends NodeViewProps {
 	className?: string;
@@ -37,33 +37,33 @@ const ViewComponent = (props: ViewComponentProps) => {
 	);
 
 	return (
-		<NodeViewContextableWrapper ref={hoverElementRef} props={props} data-drag-handle>
+		<NodeViewContextableWrapper data-drag-handle props={props} ref={hoverElementRef}>
 			<div className={className}>
 				<HoverableActions
+					actionsOptions={{ comment: true }}
 					hideOnClick={false}
 					hoverElementRef={hoverElementRef}
-					actionsOptions={{ comment: true }}
 					isHovered={isHovered}
-					setIsHovered={setIsHovered}
 					rightActions={
 						isEditable && (
 							<ViewActions
 								node={node}
-								updateDisplay={updateDisplay}
 								updateAttributes={updateAttributes}
+								updateDisplay={updateDisplay}
 							/>
 						)
 					}
+					setIsHovered={setIsHovered}
 				>
 					<View
-						defs={node.attrs.defs}
-						orderby={node.attrs.orderby}
-						groupby={node.attrs.groupby}
-						select={node.attrs.select}
-						display={node.attrs.display}
-						disabled={false}
-						updateArticle={updateArticle}
 						commentId={node.attrs.comment?.id}
+						defs={node.attrs.defs}
+						disabled={false}
+						display={node.attrs.display}
+						groupby={node.attrs.groupby}
+						orderby={node.attrs.orderby}
+						select={node.attrs.select}
+						updateArticle={updateArticle}
 					/>
 				</HoverableActions>
 			</div>

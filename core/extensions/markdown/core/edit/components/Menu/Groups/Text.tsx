@@ -3,7 +3,7 @@ import HighlightMenuButton from "@ext/markdown/elements/highlight/edit/component
 import StrikeMenuButton from "@ext/markdown/elements/strikethrough/edit/components/StrikeMenuButton";
 import StrongMenuButton from "@ext/markdown/elements/strong/edit/components/StrongMenuButton";
 import { getPluginComponents } from "@plugins/store";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ToolbarSeparator } from "@ui-kit/Toolbar";
 
 const TextMenuGroup = ({ editor, isSelectionMenu = false }: { editor?: Editor; isSelectionMenu?: boolean }) => {
@@ -20,7 +20,8 @@ const TextMenuGroup = ({ editor, isSelectionMenu = false }: { editor?: Editor; i
 				</>
 			)}
 			{getPluginComponents().map((Component, index) => (
-				<Component key={index} editor={editor} />
+				// biome-ignore lint/suspicious/noArrayIndexKey: index used as key because the order of plugins is static
+				<Component editor={editor} key={index} />
 			))}
 		</>
 	);

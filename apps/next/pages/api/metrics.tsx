@@ -7,6 +7,7 @@ promClient.collectDefaultMetrics({
 	register: registry,
 	gcDurationBuckets: [0.1, 0.2, 0.3],
 });
+registry.removeSingleMetric("nodejs_version_info");
 
 const httpRequestCounter = new Counter({
 	name: "api_http_requests_total",
@@ -38,7 +39,7 @@ export default ApplyApiMiddleware(
 		try {
 			const metrics = await registry.metrics();
 			res.send(metrics);
-		} catch (error) {
+		} catch (_) {
 			httpRequestErrorCounter.labels("errorInMetrics").inc();
 		} finally {
 			const duration = (Date.now() - startTime) / 1000;

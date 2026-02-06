@@ -11,8 +11,8 @@ import { DiffEntries } from "@ext/git/core/GitMergeRequest/components/Changes/Di
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
 import ScrollableDiffEntriesLayout from "@ext/git/core/GitMergeRequest/components/Changes/ScrollableDiffEntriesLayout";
 import SelectAll from "@ext/git/core/GitPublish/SelectAll";
-
-import { RefObject, useCallback, useLayoutEffect, useRef } from "react";
+import { type RefObject, useCallback, useLayoutEffect, useRef } from "react";
+import { useDiffExtendedMode } from "../GitMergeRequest/components/Changes/stores/DiffExtendedModeStore";
 
 export type PublishChangesProps = {
 	diffTree: DiffTree;
@@ -56,6 +56,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 		tabWrapperRef,
 		setContentHeight,
 	} = props;
+	const extendedMode = useDiffExtendedMode();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const setArticleDiffView = useSetArticleDiffView(false, null, "HEAD");
 
@@ -78,14 +79,14 @@ export const PublishChanges = (props: PublishChangesProps) => {
 		if (!containerRef.current || !tabWrapperRef.current || !show) return;
 		const mainElement = tabWrapperRef.current;
 		const firstChild = containerRef.current.firstElementChild as HTMLElement;
-		const isSpinner = firstChild.dataset.qa === "loader";
+		const isSpinner = firstChild?.dataset?.qa === "loader";
 
 		if (!mainElement && !isSpinner) return;
 		const height =
 			calculateTabWrapperHeight(mainElement) - parseFloat(getComputedStyle(document.documentElement).fontSize);
 
 		setContentHeight(height);
-	}, [diffTree?.tree, containerRef.current, tabWrapperRef.current, isLoading, show]);
+	}, [diffTree?.tree, containerRef.current, extendedMode, tabWrapperRef.current, isLoading, show]);
 
 	const hasChanges = diffTree?.tree?.length > 0;
 
@@ -94,31 +95,31 @@ export const PublishChanges = (props: PublishChangesProps) => {
 			{hasChanges && (
 				<SelectAllWrapper>
 					<SelectAll
-						isSelectedAll={isSelectedAll}
 						canDiscard={canDiscard}
+						isSelectedAll={isSelectedAll}
 						onDiscard={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
 							onDiscard();
 						}}
 						onSelectAll={selectAll}
-						overview={<Overview showTotal fontSize="12px" {...overview} />}
+						overview={<Overview fontSize="12px" showTotal {...overview} />}
 					/>
 				</SelectAllWrapper>
 			)}
 			<ScrollableDiffEntriesLayout>
 				{isLoading ? (
-					<SpinnerLoader ref={containerRef} fullScreen />
+					<SpinnerLoader fullScreen ref={containerRef} />
 				) : (
 					<DiffEntries
-						ref={containerRef}
-						changes={diffTree?.tree}
-						selectFile={selectFile}
-						isFileSelected={isFileSelected}
-						setArticleDiffView={setArticleDiffView}
-						onAction={onEntryDiscard}
 						actionIcon="reply"
+						changes={diffTree?.tree}
+						isFileSelected={isFileSelected}
+						onAction={onEntryDiscard}
+						ref={containerRef}
 						renderCommentsCount
+						selectFile={selectFile}
+						setArticleDiffView={setArticleDiffView}
 					/>
 				)}
 			</ScrollableDiffEntriesLayout>

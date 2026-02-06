@@ -26,7 +26,7 @@ export default styled(FormStyle)`
 	background: var(--color-article-bg);
 	color: var(--color-article-heading-text);
 	padding: ${(p) => p.padding ?? "1rem"};
-	overflow: ${(p) => (p.overflow ?? true ? "auto" : "")};
+	overflow: ${(p) => ((p.overflow ?? true) ? "auto" : "")};
 
 	> div {
 		legend {

@@ -1,14 +1,14 @@
-import t from "@ext/localization/locale/translate";
-import { ComponentProps, useState } from "react";
-import getPartGitSourceDataByStorageName from "../logic/utils/getPartSourceDataByStorageName";
-import { Modal, ModalContent, ModalBody, ModalTrigger } from "@ui-kit/Modal";
-import { FormFooter, FormHeader } from "@ui-kit/Form";
-import { Button } from "@ui-kit/Button";
-import { Label } from "@ui-kit/Label";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import CreateStorage from "@ext/storage/components/CreateStorage";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import t from "@ext/localization/locale/translate";
+import CreateStorage from "@ext/storage/components/CreateStorage";
+import { Button } from "@ui-kit/Button";
+import { FormFooter, FormHeader } from "@ui-kit/Form";
+import { Label } from "@ui-kit/Label";
+import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { ComponentProps, useState } from "react";
+import getPartGitSourceDataByStorageName from "../logic/utils/getPartSourceDataByStorageName";
 
 const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 	const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +30,7 @@ const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 	};
 
 	return (
-		<Modal open={isOpen} onOpenChange={setIsOpen}>
+		<Modal onOpenChange={setIsOpen} open={isOpen}>
 			<ModalTrigger asChild>{trigger}</ModalTrigger>
 			<ModalContent data-modal-root>
 				<FormHeader title={t("catalog.catalog-already-linked.name")} />
@@ -40,7 +40,7 @@ const InitSource = ({ trigger }: { trigger: JSX.Element }) => {
 				<FormFooter
 					primaryButton={<Button onClick={handleAddStorage}>{t("add-storage")}</Button>}
 					secondaryButton={
-						<Button variant="outline" onClick={() => setIsOpen(false)}>
+						<Button onClick={() => setIsOpen(false)} variant="outline">
 							{t("continue-locally")}
 						</Button>
 					}

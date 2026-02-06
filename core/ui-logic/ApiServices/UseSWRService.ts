@@ -1,4 +1,4 @@
-import useSWR, { SWRResponse, BareFetcher, SWRConfiguration } from "swr";
+import useSWR, { BareFetcher, SWRConfiguration, SWRResponse } from "swr";
 import FetchService from "./FetchService";
 import Fetcher from "./Types/Fetcher";
 import Method from "./Types/Method";

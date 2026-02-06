@@ -1,6 +1,6 @@
-import { Plugin } from "prosemirror-state";
-import { TextSelection } from "@tiptap/pm/state";
 import isVideoSupported from "@ext/markdown/elements/video/logic/isVideoSupported";
+import { TextSelection } from "@tiptap/pm/state";
+import { Plugin } from "prosemirror-state";
 
 function isValidURL(url) {
 	const urlPattern = /^(https?:\/\/[^\s]+)$/;

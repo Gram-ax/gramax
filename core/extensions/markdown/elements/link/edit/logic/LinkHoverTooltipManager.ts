@@ -1,11 +1,14 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import PageDataContext from "@core/Context/PageDataContext";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import LinkHoverTooltip from "./LinkHoverTooltip";
 
 export class LinkHoverTooltipManager {
 	private tooltips: Set<LinkHoverTooltip> = new Set();
 
-	constructor(private parentElement: HTMLElement, private pageDataContext: PageDataContext) {}
+	constructor(
+		private parentElement: HTMLElement,
+		private pageDataContext: PageDataContext,
+	) {}
 
 	createTooltip({
 		linkElement,

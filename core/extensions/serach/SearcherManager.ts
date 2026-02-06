@@ -14,7 +14,7 @@ export default class SearcherManager {
 	constructor(
 		private readonly _defaultSearcher: Searcher,
 		private readonly _chatBotSearcher?: ChatBotSearcher,
-		private readonly _extraSearchers: Partial<Record<SearcherType, Searcher>> = {}
+		private readonly _extraSearchers: Partial<Record<SearcherType, Searcher>> = {},
 	) {}
 
 	getSearcher(type?: SearcherType): Searcher {

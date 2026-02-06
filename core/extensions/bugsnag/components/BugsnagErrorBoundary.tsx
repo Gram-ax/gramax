@@ -1,8 +1,8 @@
-import { Environment } from "@app/resolveModule/env";
+import type { Environment } from "@app/resolveModule/env";
 import type { OnErrorCallback } from "@bugsnag/js";
 import bugsnag from "@dynamicImports/bugsnag";
 import normalizeStack from "@ext/bugsnag/logic/normalizeStacktrace";
-import { ErrorBoundaryProps } from "@ext/errorHandlers/client/components/ErrorBoundary";
+import type { ErrorBoundaryProps } from "@ext/errorHandlers/client/components/ErrorBoundary";
 import React from "react";
 import sendBug from "../logic/sendBug";
 

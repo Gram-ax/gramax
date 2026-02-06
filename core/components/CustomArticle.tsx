@@ -1,9 +1,9 @@
+import type CustomArticleName from "@core/SitePresenter/customArticles/model/CustomArticle";
 import UseSWRService from "@core-ui/ApiServices/UseSWRService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import CustomArticleName from "@core/SitePresenter/customArticles/model/CustomArticle";
-import Renderer from "../extensions/markdown/core/render/components/Renderer";
+import Renderer from "@ext/markdown/core/render/components/Renderer";
 import getComponents from "../extensions/markdown/core/render/components/getComponents/getComponents";
-import Header from "../extensions/markdown/elements/heading/render/component/Header";
+import Header from "../extensions/markdown/elements/heading/render/components/Header";
 import ModalLayoutLight from "./Layouts/ModalLayoutLight";
 
 export type CustomArticleProps = {
@@ -18,7 +18,7 @@ const CustomArticle = ({ name, setLayout = true, copyLinkIcon = true }: CustomAr
 
 	const article = (
 		<>
-			<Header level={2} copyLinkIcon={copyLinkIcon}>
+			<Header copyLinkIcon={copyLinkIcon} level={2}>
 				{data?.title}
 			</Header>
 			<div className="article" style={{ background: "none" }}>

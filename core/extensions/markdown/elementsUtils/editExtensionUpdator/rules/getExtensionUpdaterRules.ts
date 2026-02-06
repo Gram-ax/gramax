@@ -1,22 +1,22 @@
+import type { Environment } from "@app/resolveModule/env";
+import type { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import getArticleRefRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/articleRef";
 import getCatalogPropsRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/catalogProps";
-import { MutableRefObject } from "react";
-import PageDataContext from "../../../../../logic/Context/PageDataContext";
-import { ClientArticleProps, ClientCatalogProps } from "../../../../../logic/SitePresenter/SitePresenter";
-import ApiUrlCreator from "../../../../../ui-logic/ApiServices/ApiUrlCreator";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import Theme from "../../../../Theme/Theme";
-import ExtensionUpdaterRules from "./ExtensionUpdaterRules";
-import getApiUrlCreatorRule from "./extensionRules/ruleApiUrlCreator";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type { MutableRefObject } from "react";
+import type PageDataContext from "../../../../../logic/Context/PageDataContext";
+import type { ClientArticleProps, ClientCatalogProps } from "../../../../../logic/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "../../../../../ui-logic/ApiServices/ApiUrlCreator";
+import type Theme from "../../../../Theme/Theme";
+import type ExtensionUpdaterRules from "./ExtensionUpdaterRules";
 import getArticlePropsRule from "./extensionRules/articleProps";
 import isMacInfoRule from "./extensionRules/isMac";
 import getPageDataContextRule from "./extensionRules/pageDataContext";
-import getThemeRule from "./extensionRules/theme";
-import getResourceServiceRule from "./extensionRules/resourceService";
-import { Environment } from "@app/resolveModule/env";
 import getPlatformRule from "./extensionRules/platform";
+import getResourceServiceRule from "./extensionRules/resourceService";
+import getApiUrlCreatorRule from "./extensionRules/ruleApiUrlCreator";
 import getSourceDataRule from "./extensionRules/sourceData";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import getThemeRule from "./extensionRules/theme";
 
 export const getExtensionUpdaterRules = (
 	theme: Theme,

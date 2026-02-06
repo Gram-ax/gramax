@@ -1,33 +1,25 @@
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import LinkResourceManager from "@core/Link/LinkResourceManager";
-import Path from "../../../../../logic/FileProvider/Path/Path";
-import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
-import { Article } from "../../../../../logic/FileStructue/Article/Article";
-import ResourceManager from "../../../../../logic/Resource/ResourceManager";
+import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import { TableDB } from "../../../../../logic/components/tableDB/table";
+import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
+import Path from "../../../../../logic/FileProvider/Path/Path";
+import { Article } from "../../../../../logic/FileStructue/Article/Article";
 import UiLanguage from "../../../../localization/core/model/Language";
 import UserInfo from "../../../../security/logic/User/UserInfo";
 import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
 import MarkdownParser from "../Parser";
-import ParserContext, { BaseContext } from "./ParserContext";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import ParserContext from "./ParserContext";
 
-export default class TestContext extends BaseContext implements ParserContext {
-	private _linkManager: LinkResourceManager;
-	private _resourceManager: ResourceManager;
-
+export default class TestContext implements ParserContext {
 	constructor(
 		private _itemRef: ItemRef,
 		private _catalog: ContextualCatalog,
 		readonly fp: FileProvider,
 		readonly parser: MarkdownParser,
 		readonly formatter: MarkdownFormatter,
-	) {
-		super();
-		this._linkManager = new LinkResourceManager(fp, this._itemRef.path);
-		this._resourceManager = new ResourceManager(fp, this._itemRef.path);
-	}
+	) {}
 
 	getDiagramRendererServerUrl(): string {
 		return process.env.DIAGRAM_RENDERER_SERVICE_URL;
@@ -35,14 +27,6 @@ export default class TestContext extends BaseContext implements ParserContext {
 
 	getWorkspaceManager(): WorkspaceManager {
 		return null;
-	}
-
-	getResourceManager(): ResourceManager {
-		return this._resourceManager;
-	}
-
-	getLinkManager(): LinkResourceManager {
-		return this._linkManager;
 	}
 
 	getItemByPath(): Article {
@@ -82,6 +66,14 @@ export default class TestContext extends BaseContext implements ParserContext {
 	}
 
 	getTablesManager(): TableDB {
+		return null;
+	}
+
+	getProp(): any {
+		return {};
+	}
+
+	getRepositoryProvider(): RepositoryProvider {
 		return null;
 	}
 

@@ -5,10 +5,10 @@ import { Editor } from "@tiptap/core";
 const InlinePropertyMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<Button
-			onClick={() => editor.chain().focus().setInlineProperty().run()}
 			icon="rectangle-ellipsis"
-			tooltipText={t("editor.templates.inline-property")}
 			nodeValues={{ action: "inline-property" }}
+			onClick={() => editor.chain().focus().setInlineProperty().run()}
+			tooltipText={t("editor.templates.inline-property")}
 		/>
 	);
 };

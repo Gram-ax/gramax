@@ -1,12 +1,12 @@
 import inputRuleHandler from "@ext/markdown/elements/list/edit/logic/inputRuleHandler";
+import { handleBackspace } from "@ext/markdown/elements/list/edit/logic/keymaps/handleBackspace";
+import { handleDelete } from "@ext/markdown/elements/list/edit/logic/keymaps/handleDelete";
+import taskListPlugin from "@ext/markdown/elements/list/edit/models/listItem/logic/taskListPlugin";
 import { listItem } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { wrappingInputRule } from "@tiptap/core";
 import ListItem, { ListItemOptions } from "@tiptap/extension-list-item";
 import { TaskItem } from "@tiptap/extension-task-item";
-import taskListPlugin from "@ext/markdown/elements/list/edit/models/listItem/logic/taskListPlugin";
-import { handleDelete } from "@ext/markdown/elements/list/edit/logic/keymaps/handleDelete";
-import { handleBackspace } from "@ext/markdown/elements/list/edit/logic/keymaps/handleBackspace";
 
 export const CHECKED_ATTR = "checked";
 

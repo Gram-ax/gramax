@@ -6,7 +6,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import assert from "assert";
-import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, type ReactElement, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 export type SyncableWorkspacesContext = {
 	syncableWorkspaces: { [key: WorkspacePath]: number };
@@ -33,7 +33,7 @@ export default class SyncableWorkspacesService {
 		const [syncableWorkspaces, setSyncableWorkspaces] = useState<{ [key: WorkspacePath]: number }>({});
 
 		const fetchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-		const lastFocusTimeRef = useRef(Date.now());
+		const lastFocusTimeRef = useRef(Date.now() - SYNCABLE_WORKSPACES_FETCH_INTERVAL);
 
 		const endpoint = useMemo(() => apiUrlCreator.getAllSyncableWorkspacesUrl(), [apiUrlCreator]);
 
@@ -72,21 +72,24 @@ export default class SyncableWorkspacesService {
 		const fetchWorkspacesBackground = useCallback(
 			async (delay: number): Promise<NodeJS.Timeout> => {
 				if (!fetchAllowed) return null;
-				await fetchSyncableWorkspaces(true);
+
 				clearTimeout(fetchTimeoutRef.current);
-				return setTimeout(() => fetchWorkspacesBackground(delay), delay);
+				return setTimeout(async () => {
+					await fetchSyncableWorkspaces(true);
+					fetchWorkspacesBackground(delay);
+				}, delay);
 			},
 			[fetchSyncableWorkspaces, fetchAllowed],
 		);
 
 		const handleFocus = useCallback(async () => {
-			if (Date.now() - lastFocusTimeRef.current > SYNCABLE_WORKSPACES_FETCH_INTERVAL)
+			if (Date.now() - lastFocusTimeRef.current >= SYNCABLE_WORKSPACES_FETCH_INTERVAL)
 				await fetchSyncableWorkspaces(true);
 
 			lastFocusTimeRef.current = Date.now();
 			clearTimeout(fetchTimeoutRef.current);
 			const timeout = await fetchWorkspacesBackground(SYNCABLE_WORKSPACES_FETCH_INTERVAL);
-			if (timeout !== null) fetchTimeoutRef.current = timeout;
+			fetchTimeoutRef.current = timeout;
 		}, [fetchSyncableWorkspaces, fetchWorkspacesBackground]);
 
 		const handleBlur = useCallback(async () => {
@@ -94,7 +97,7 @@ export default class SyncableWorkspacesService {
 
 			clearTimeout(fetchTimeoutRef.current);
 			const timeout = await fetchWorkspacesBackground(SYNCABLE_WORKSPACES_FETCH_INTERVAL_DOUBLED);
-			if (timeout !== null) fetchTimeoutRef.current = timeout;
+			fetchTimeoutRef.current = timeout;
 		}, [fetchSyncableWorkspaces, fetchWorkspacesBackground]);
 
 		useEffect(() => {

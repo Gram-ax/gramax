@@ -1,18 +1,18 @@
 import useShouldRenderDeleteCatalog from "@components/Actions/useShouldRenderDeleteCatalog";
 import Icon from "@components/Atoms/Icon";
-import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
+import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import type { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
-import { applyMenuModifiers, useIsPluginReady } from "@plugins/store";
-import useValidateDeleteCatalogInStatic from "@ext/static/logic/useValidateDeleteCatalogInStatic";
-import { Button } from "@ui-kit/Button";
-import { FC, Fragment, ReactNode, useEffect, useLayoutEffect, useState } from "react";
-import { CatalogActionsProvider, useCatalogActionsContext } from "./CatalogActionsContext";
-import { buildCatalogMenu, MenuItemDescriptorApp } from "./buildCatalogMenu";
 import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
-import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
+import useValidateDeleteCatalogInStatic from "@ext/static/logic/useValidateDeleteCatalogInStatic";
+import { applyMenuModifiers } from "@plugins/store";
+import { Button } from "@ui-kit/Button";
+import { type FC, Fragment, type ReactNode, useEffect, useState } from "react";
+import { buildCatalogMenu, type MenuItemDescriptorApp } from "./buildCatalogMenu";
+import { CatalogActionsProvider, useCatalogActionsContext } from "./CatalogActionsContext";
 
 interface CatalogActionsProps {
 	isCatalogExist: boolean;
@@ -20,6 +20,7 @@ interface CatalogActionsProps {
 	currentTab: LeftNavigationTab;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: idc
 type RenderPropsFunction = (props: any) => ReactNode;
 type MenuChildrenContent = ReactNode | RenderPropsFunction | undefined;
 
@@ -85,18 +86,19 @@ const CatalogActions: FC<CatalogActionsProps> = ({ isCatalogExist, itemLinks, cu
 
 	return (
 		<CatalogActionsProvider
-			itemLinks={itemLinks}
 			currentTab={currentTab}
-			setCurrentTab={setCurrentTab}
+			itemLinks={itemLinks}
 			renderDeleteCatalog={renderDeleteCatalog}
+			setCurrentTab={setCurrentTab}
 		>
 			<NavigationDropdown
-				onOpen={onOpen}
-				tooltipText={t("catalog.actions.title")}
 				dataQa="qa-catalog-actions"
+				dataTestId="catalog-actions"
+				onOpen={onOpen}
 				style={{ marginRight: "-4px" }}
+				tooltipText={t("catalog.actions.title")}
 				trigger={
-					<Button variant="text" size="xs" className="p-0 h-full">
+					<Button className="p-0 h-full" size="xs" variant="text">
 						<Icon code="ellipsis-vertical" style={{ fontSize: "1.7em" }} />
 					</Button>
 				}

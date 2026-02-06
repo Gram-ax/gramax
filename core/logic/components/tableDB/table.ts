@@ -1,9 +1,9 @@
 import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import SilentError from "@ext/errorHandlers/silent/SilentError";
 import t from "@ext/localization/locale/translate";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import yaml from "js-yaml";
 import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
-import SilentError from "@ext/errorHandlers/silent/SilentError";
 
 export type LocalizedString = { [lang: string]: string; default: string };
 
@@ -51,7 +51,10 @@ export class TableDB {
 	private _tables: Map<string, Table[]> = new Map();
 	private _parseToHtml: (content: string) => Promise<string>;
 
-	constructor(parser: MarkdownParser, private _wm: WorkspaceManager) {
+	constructor(
+		parser: MarkdownParser,
+		private _wm: WorkspaceManager,
+	) {
 		this._parseToHtml = parser.parseToHtml.bind(parser);
 		this._wm.onCatalogChange(this._onChange.bind(this));
 	}

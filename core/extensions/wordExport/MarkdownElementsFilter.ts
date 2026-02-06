@@ -1,8 +1,8 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import t from "@ext/localization/locale/translate";
-import { RenderableTreeNode, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { RenderableTreeNode, Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { Display } from "@ext/properties/models/display";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 class MarkdownElementsFilter {
 	private _errors: Map<string, number>;

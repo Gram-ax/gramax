@@ -10,13 +10,13 @@ const PinToggleArrowIcon = styled(({ className }: { className?: string }) => {
 	return (
 		<div className={className}>
 			<ButtonLink
-				iconFw={false}
-				textSize={TextSize.L}
 				iconCode={isPin ? "arrow-left-from-line" : "arrow-right-from-line"}
+				iconFw={false}
 				onClick={() => {
 					SidebarsIsPinService.value = { left: !isPin };
 					if (!isPin) SidebarsIsOpenService.value = { left: true, right: isDependent ? true : undefined };
 				}}
+				textSize={TextSize.L}
 			/>
 		</div>
 	);

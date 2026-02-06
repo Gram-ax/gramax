@@ -1,23 +1,23 @@
+import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+import BlockActionPanel from "@components/BlockActionPanel";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base64Converter";
+import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import LanguageService from "@core-ui/ContextServices/Language";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import DrawioActions from "@ext/markdown/elements/drawio/edit/components/DrawioActions";
+import getDrawioID from "@ext/markdown/elements/drawio/edit/logic/getDrawioID";
+import DiagramEditor from "@ext/markdown/elements/drawio/logic/diagram-editor";
+import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import { NodeViewProps } from "@tiptap/react";
 import { ReactElement, useCallback, useRef, useState } from "react";
 import Drawio from "../../render/component/Drawio";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import getDrawioID from "@ext/markdown/elements/drawio/edit/logic/getDrawioID";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import BlockActionPanel from "@components/BlockActionPanel";
-import DrawioActions from "@ext/markdown/elements/drawio/edit/components/DrawioActions";
-import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base64Converter";
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import DiagramEditor from "@ext/markdown/elements/drawio/logic/diagram-editor";
-import LanguageService from "@core-ui/ContextServices/Language";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 const DrawioComponent = (props: NodeViewProps): ReactElement => {
 	const { node, getPos, editor, updateAttributes } = props;
@@ -101,44 +101,44 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 
 	return (
 		<NodeViewContextableWrapper
-			ref={hoverElement}
-			props={props}
-			draggable={true}
 			data-drag-handle
 			data-qa="qa-drawio"
+			draggable={true}
+			props={props}
+			ref={hoverElement}
 		>
 			<BlockActionPanel
-				isSignature={hasSignature}
-				hoverElementRef={hoverElement}
-				updateAttributes={updateAttributesCallback}
-				signatureText={node.attrs.title}
 				actionsOptions={{ comment: true }}
-				signatureRef={signatureRef}
 				getPos={getPos}
 				hasSignature={hasSignature}
-				setHasSignature={setHasSignature}
+				hoverElementRef={hoverElement}
+				isSignature={hasSignature}
 				rightActions={
 					isEditable && (
 						<DrawioActions
-							openEditor={openEditor}
 							editor={editor}
 							node={node}
+							openEditor={openEditor}
 							setHasSignature={setHasSignature}
 							signatureRef={signatureRef}
 						/>
 					)
 				}
+				setHasSignature={setHasSignature}
+				signatureRef={signatureRef}
+				signatureText={node.attrs.title}
+				updateAttributes={updateAttributesCallback}
 			>
 				<Drawio
-					noEm={isEditable}
-					ref={refT}
-					id={getDrawioID(nodeSrc, articleProps.logicPath)}
-					width={node.attrs.width}
+					commentId={node.attrs.comment?.id}
 					height={node.attrs.height}
+					id={getDrawioID(nodeSrc, articleProps.logicPath)}
+					noEm={isEditable}
 					openEditor={openEditor}
+					ref={refT}
 					src={nodeSrc}
 					title={node.attrs.title}
-					commentId={node.attrs.comment?.id}
+					width={node.attrs.width}
 				/>
 			</BlockActionPanel>
 		</NodeViewContextableWrapper>

@@ -1,12 +1,14 @@
-import { Environment } from "@app/resolveModule/env";
+import type { Environment } from "@app/resolveModule/env";
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import { useRouter } from "@core/Api/useRouter";
+import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import CloudStateService from "@core-ui/ContextServices/CloudState";
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
@@ -31,8 +33,6 @@ import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { initRefresh } from "@core-ui/utils/initGlobalFuncs";
 import yandexMetric, { yandexHit as yandexMetricHit } from "@core-ui/yandexMetric";
-import { useRouter } from "@core/Api/useRouter";
-import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import PromptService from "@ext/ai/components/Tab/PromptService";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
@@ -49,9 +49,9 @@ import TemplateService from "@ext/templates/components/TemplateService";
 import { TooltipProvider } from "@ui-kit/Tooltip";
 import { useEffect } from "react";
 import ThemeService from "../extensions/Theme/components/ThemeService";
-import PageDataContext from "../logic/Context/PageDataContext";
-import IsMobileService from "../ui-logic/ContextServices/isMobileService";
+import type PageDataContext from "../logic/Context/PageDataContext";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
+import IsMobileService from "../ui-logic/ContextServices/isMobileService";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
 
 export interface PageProps {
@@ -120,7 +120,7 @@ export default function ContextProviders({
 			useEffect(() => yandexMetricHit(metrics.yandex.metricCounter), [url]);
 		}
 	}
-	
+
 	initRefresh(refreshPage, clearData);
 	return (
 		<PlatformService.Provider value={platform}>
@@ -128,7 +128,11 @@ export default function ContextProviders({
 				<TooltipProvider>
 					{Inits.reduceRight(
 						(children, Provider) => {
-							return <Provider pageProps={pageProps}>{children}</Provider>;
+							return (
+								<Provider key={Provider.name} pageProps={pageProps}>
+									{children}
+								</Provider>
+							);
 						},
 						<SidebarsIsPinService.Provider>
 							<>

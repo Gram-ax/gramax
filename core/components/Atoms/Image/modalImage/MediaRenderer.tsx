@@ -1,20 +1,20 @@
+import { getCanMoves, getClampedValues, ZOOM_COUNT } from "@components/Atoms/Image/modalImage/utils";
+import { useDebounce } from "@core-ui/hooks/useDebounce";
+import { useTouchHandler } from "@core-ui/hooks/useTouchHandler";
+import styled from "@emotion/styled";
+import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import {
-	useEffect,
+	CSSProperties,
 	forwardRef,
 	MutableRefObject,
-	useRef,
-	CSSProperties,
-	useCallback,
 	memo,
+	useCallback,
+	useEffect,
 	useLayoutEffect,
+	useRef,
 	useState,
 } from "react";
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import styled from "@emotion/styled";
-import { getCanMoves, getClampedValues, ZOOM_COUNT } from "@components/Atoms/Image/modalImage/utils";
-import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
-import { useTouchHandler } from "@core-ui/hooks/useTouchHandler";
-import { useDebounce } from "@core-ui/hooks/useDebounce";
 
 interface ImageProps {
 	id: string;
@@ -184,26 +184,26 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 	return (
 		<div className={className}>
 			<div
-				ref={ref}
+				className="image-container"
+				onMouseDown={onMouseDown}
 				onPointerDown={onPointerDown}
 				onTouchStart={onTouchStart}
-				onMouseDown={onMouseDown}
+				ref={ref}
 				style={{
 					left: rect?.left,
 					top: rect?.top,
 					scale: rect?.scale || 1,
 					...modalStyle,
 				}}
-				className="image-container"
 			>
 				{svg ? (
-					<div ref={imgRef} id={id} draggable={false} dangerouslySetInnerHTML={{ __html: svg }} />
+					<div dangerouslySetInnerHTML={{ __html: svg }} draggable={false} id={id} ref={imgRef} />
 				) : (
-					<img key={id} ref={imgRef} id={id} draggable="false" src={src} alt="" />
+					<img alt="" draggable="false" id={id} key={id} ref={imgRef} src={src} />
 				)}
 
 				<div className="object-container">
-					<ObjectRenderer imageRef={imgRef} objects={objects} editable={false} parentRef={ref} />
+					<ObjectRenderer editable={false} imageRef={imgRef} objects={objects} parentRef={ref} />
 				</div>
 			</div>
 		</div>

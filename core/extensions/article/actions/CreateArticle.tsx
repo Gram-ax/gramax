@@ -1,12 +1,12 @@
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { TextSize } from "@components/Atoms/Button/Button";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import { useRouter } from "@core/Api/useRouter";
+import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
-import { useRouter } from "@core/Api/useRouter";
-import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import styled from "@emotion/styled";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
@@ -63,13 +63,13 @@ const CreateArticle = (props: CreateArticleProps) => {
 		<OtherLanguagesPresentWarning action={onClickHandler}>
 			<span className={className}>
 				<ButtonLink
-					iconFw={false}
 					iconCode="plus"
-					iconViewBox="3 3 18 18"
-					iconIsLoading={isLoading}
-					textSize={item ? null : TextSize.M}
 					iconContent={content}
+					iconFw={false}
+					iconIsLoading={isLoading}
 					iconPlace={item ? "top" : "right"}
+					iconViewBox="3 3 18 18"
+					textSize={item ? null : TextSize.M}
 				/>
 			</span>
 		</OtherLanguagesPresentWarning>

@@ -1,5 +1,5 @@
-import { Editor } from "@tiptap/core";
 import isTemplateEditableBlock from "@ext/markdown/elements/controllers/helpers/isTemplateEditableBlock";
+import { Editor } from "@tiptap/core";
 
 const isInTitle = (editor: Editor) => {
 	const { selection } = editor.view.state;

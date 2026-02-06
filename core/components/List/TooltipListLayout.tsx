@@ -1,12 +1,12 @@
-import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
-import ButtonsLayout from "@components/Layouts/ButtonLayout";
-import { useRef, useState } from "react";
-import ListLayout, { ListLayoutElement, ListLayoutProps } from "@components/List/ListLayout";
-import styled from "@emotion/styled";
 import Tooltip from "@components/Atoms/Tooltip";
+import ButtonsLayout from "@components/Layouts/ButtonLayout";
+import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
+import ListLayout, { ListLayoutElement, ListLayoutProps } from "@components/List/ListLayout";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import { NodeType } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
+import styled from "@emotion/styled";
+import Button from "@ext/markdown/core/edit/components/Menu/Button";
+import { useRef, useState } from "react";
 
 const StyledDiv = styled.div`
 	padding: 0 5.5px;
@@ -37,29 +37,21 @@ const TooltipListLayout = (props: TooltipListLayoutProps) => {
 		<Tooltip
 			appendTo={"parent"}
 			arrow={false}
-			interactive
-			distance={8}
-			customStyle
-			onShow={() => {
-				setIsOpen(true);
-				onShow?.();
-			}}
-			onHide={() => setIsOpen(false)}
 			content={
 				!state.disabled && isOpen ? (
 					<ModalLayoutDark ref={containerRef}>
 						<ButtonsLayout>
 							<StyledDiv>
 								<ListLayout
-									ref={childRef}
 									appendTo={"parent"}
-									openByDefault
-									isCode={false}
-									place="top"
-									itemsClassName={className}
-									placeholder={placeholder}
 									containerRef={containerRef}
 									disabledOutsideClick
+									isCode={false}
+									itemsClassName={className}
+									openByDefault
+									place="top"
+									placeholder={placeholder}
+									ref={childRef}
 									{...otherProps}
 								/>
 							</StyledDiv>
@@ -69,13 +61,21 @@ const TooltipListLayout = (props: TooltipListLayoutProps) => {
 					<></>
 				)
 			}
+			customStyle
+			distance={8}
+			interactive
+			onHide={() => setIsOpen(false)}
+			onShow={() => {
+				setIsOpen(true);
+				onShow?.();
+			}}
 		>
 			<div data-qa={`qa-${action}s`}>
 				<Button
 					icon={buttonIcon}
 					nodeValues={{ action }}
-					tooltipText={state.disabled && tooltipText}
 					onClick={handleButtonClick}
+					tooltipText={state.disabled && tooltipText}
 				/>
 			</div>
 		</Tooltip>

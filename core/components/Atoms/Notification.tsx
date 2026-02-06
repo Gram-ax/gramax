@@ -1,6 +1,6 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
-import type { HTMLAttributes, CSSProperties } from "react";
+import type { CSSProperties, HTMLAttributes } from "react";
 
 type NotificationProps = {
 	tooltip?: string;
@@ -16,14 +16,14 @@ const Notification = ({ tooltip, className, size = 12, wrapperStyle, ...props }:
 	if (tooltip) {
 		return (
 			<Tooltip content={tooltip} hideInMobile={false}>
-				<NotificationWrapper size={size} className={className} style={wrapperStyle}>
+				<NotificationWrapper className={className} size={size} style={wrapperStyle}>
 					<div {...props} />
 				</NotificationWrapper>
 			</Tooltip>
 		);
 	}
 	return (
-		<NotificationWrapper size={size} className={className} style={wrapperStyle}>
+		<NotificationWrapper className={className} size={size} style={wrapperStyle}>
 			<div {...props} />
 		</NotificationWrapper>
 	);

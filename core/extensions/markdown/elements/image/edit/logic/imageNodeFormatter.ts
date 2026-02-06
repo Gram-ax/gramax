@@ -1,7 +1,7 @@
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
-import { format } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
+import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import { format } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 
 const CLEAR_CROP = { x: 0, y: 0, w: 100, h: 100 };
 

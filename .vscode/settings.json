@@ -46,43 +46,12 @@
 	"editor.tabCompletion": "on",
 
 	"search.exclude": {
-		"./**/.next": true,
-		"./**/node_modules": true
+		"./apps/next/.next": true,
+		"**/node_modules": true
 	},
 
-	"search.searchEditor.reusePriorSearchConfiguration": true,
-	"cSpell.language": "en,ru",
-	"git.ignoreLimitWarning": true,
+	// cucumber
 	"cucumber.glue": ["e2e/steps/**/*.steps.ts"],
-	"cucumberautocomplete.steps": ["**/*.steps.ts"],
-	"cucumberautocomplete.strictGherkinCompletion": true,
-	"cucumberautocomplete.strictGherkinValidation": true,
-	"[cucumber]": {
-		"editor.defaultFormatter": "CucumberOpen.cucumber-official"
-	},
-	"cucumberautocomplete.skipDocStringsFormat": true,
-	"cucumberautocomplete.formatConfOverride": {
-		"Функция": 0,
-		"Функционал": 0,
-		"Правило": 1,
-		"Сценарий": 1,
-		"Контекст": 1,
-		"Дано": 2,
-		"Пусть": 2,
-		"Когда": 2,
-		"Тогда": 2,
-		"То": 2,
-		"И": 2,
-		"\\*": 4,
-		"\\|": 3,
-		"\"\"\"": 3,
-		"#": "relative",
-		"@": "relative"
-	},
-
-	"[yaml]": {
-		"editor.defaultFormatter": "redhat.vscode-yaml"
-	},
 
 	"yaml.schemas": {
 		"https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json": [
@@ -92,22 +61,35 @@
 		]
 	},
 
-	"yaml.customTags": ["!reference sequence"],
+	"editor.defaultFormatter": "biomejs.biome",
 
-	"typescript.preferences.importModuleSpecifier": "non-relative",
-	"typescript.tsserver.experimental.enableProjectDiagnostics": true,
-
-	"cSpell.words": [
-		"Bugsnag",
-		"gramax",
-		"katex",
-		"Markdoc",
-		"prosemirror",
-		"Renderable",
-		"STYLEGUIDE",
-		"tiptap",
-		"traptitech"
-	],
 	"typescript.tsdk": "node_modules/typescript/lib",
-	"ansible.python.interpreterPath": "/sbin/python3.13"
+
+	"editor.codeActionsOnSave": {
+		"source.organizeImports.biome": "always",
+		"source.fixAll.biome": "always",
+		"source.biome": "always",
+		"source.addMissingImports.ts": "explicit",
+		"source.fixAll.ts": "explicit",
+		"source.organizeImports": "never",
+		"source.removeUnused.ts": "never"
+	},
+
+	"[yaml]": {
+		"editor.defaultFormatter": "redhat.vscode-yaml"
+	},
+	"javascript.preferences.importModuleSpecifier": "non-relative",
+	"typescript.preferences.importModuleSpecifier": "non-relative",
+	"[typescriptreact]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[typescript]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[jsonc]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	},
+	"[json]": {
+		"editor.defaultFormatter": "biomejs.biome"
+	}
 }

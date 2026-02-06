@@ -8,7 +8,7 @@ import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchActions from "@ext/git/actions/Branch/components/BranchActions";
-import GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
+import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
@@ -34,11 +34,7 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate }: Bra
 
 	const workspacePath = WorkspaceService.current().path;
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
-	const canEditCatalog = PermissionService.useCheckPermission(
-		editCatalogPermission,
-		workspacePath,
-		catalogName,
-	);
+	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName);
 
 	const allowAddNewBranch = !isNext && canEditCatalog;
 
@@ -56,35 +52,35 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate }: Bra
 
 	return (
 		<TabWrapper
+			contentHeight={contentHeight}
+			onClose={onClose}
 			ref={tabWrapperRef}
+			show={show}
+			title={t("branches")}
 			titleRightExtension={
 				allowAddNewBranch && (
 					<Icon
-						style={{ fontSize: "1.35em", marginLeft: "-0.5em" }}
-						isAction
 						code="plus"
-						tooltipContent={t("add-new-branch")}
+						isAction
 						onClick={() => setIsInitNewBranch((prev) => !prev)}
+						style={{ fontSize: "1.35em", marginLeft: "-0.5em" }}
+						tooltipContent={t("add-new-branch")}
 					/>
 				)
 			}
-			show={show}
-			contentHeight={contentHeight}
-			title={t("branches")}
-			onClose={onClose}
 		>
 			<div>
 				<BranchActions
-					show={show}
-					isInitNewBranch={isInitNewBranch}
-					setIsInitNewBranch={setIsInitNewBranch}
-					setShow={setShow}
-					setContentHeight={setContentHeight}
-					tabWrapperRef={tabWrapperRef}
-					canEditCatalog={allowAddNewBranch}
+					allowAddNewBranch={allowAddNewBranch}
 					currentBranch={branchName}
+					isInitNewBranch={isInitNewBranch}
 					onMergeRequestCreate={onMergeRequestCreate}
 					onSwitchBranch={onSwitchBranch}
+					setContentHeight={setContentHeight}
+					setIsInitNewBranch={setIsInitNewBranch}
+					setShow={setShow}
+					show={show}
+					tabWrapperRef={tabWrapperRef}
 				/>
 			</div>
 		</TabWrapper>

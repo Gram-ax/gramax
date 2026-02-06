@@ -1,7 +1,7 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import type { PluginsListResult } from "@ext/workspace/assets/PluginsAsset";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 export type GetPluginsResponse = PluginsListResult;
 

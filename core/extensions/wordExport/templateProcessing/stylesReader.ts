@@ -1,7 +1,7 @@
-import assert from "assert";
 import jszip from "@dynamicImports/jszip";
+import assert from "assert";
+import type { ListLevelIndent, TemplateStylesInfo } from "./types";
 import { parseXml } from "./xmlUtils";
-import { ListLevelIndent, TemplateStylesInfo } from "./types";
 
 export async function readTemplateStyles(templateBuffer: Buffer): Promise<TemplateStylesInfo> {
 	const JSZip = await jszip();

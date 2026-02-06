@@ -1,8 +1,8 @@
 import { ModalWidth } from "@components/Layouts/Modal";
+import styled from "@emotion/styled";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
 import React from "react";
-import styled from "@emotion/styled";
 
 export interface ConfirmProps {
 	className?: string;
@@ -20,12 +20,12 @@ const Confirm = (props: ConfirmProps) => {
 		<div className={className}>
 			<div className="modalContainer" style={{ width: ModalWidth.default }}>
 				<InfoModalForm
-					title={title}
+					actionButton={{ onClick: saveConfirm, text: t("save") }}
+					closeButton={{ text: t("cancel") }}
 					icon={{ code: "circle-alert", color: "var(--color-warning)" }}
 					onCancelClick={closeConfirm}
 					secondButton={{ onClick: forceCloseConfirm, text: t("dont-save") }}
-					actionButton={{ onClick: saveConfirm, text: t("save") }}
-					closeButton={{ text: t("cancel") }}
+					title={title}
 				>
 					<span>{text}</span>
 				</InfoModalForm>

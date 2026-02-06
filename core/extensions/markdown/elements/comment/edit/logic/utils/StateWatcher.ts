@@ -1,12 +1,12 @@
 import { CommentOptions, CommentStorage } from "@ext/markdown/elements/comment/edit/model/types";
 import {
 	ChangedRange,
+	combineTransactionSteps,
 	Editor,
+	getChangedRanges,
 	MarkConfig,
 	ParentConfig,
 	Range,
-	combineTransactionSteps,
-	getChangedRanges,
 } from "@tiptap/core";
 import { MarkType, Node } from "@tiptap/pm/model";
 import { EditorState, Plugin, PluginKey, Transaction } from "@tiptap/pm/state";

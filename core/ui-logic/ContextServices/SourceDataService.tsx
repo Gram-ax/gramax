@@ -1,10 +1,18 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import useTrigger from "@core-ui/triggers/useTrigger";
 import { useValidateSource } from "@ext/git/actions/Source/logic/useValidateSource";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useState } from "react";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import {
+	createContext,
+	type Dispatch,
+	type ReactElement,
+	type SetStateAction,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
 
 export const SourceDataContext = createContext<SourceData[]>(undefined);
 
@@ -40,6 +48,7 @@ class SourceDataService implements ContextService {
 	}
 
 	get value(): SourceData[] {
+		// biome-ignore lint/correctness/useHookAtTopLevel: idc
 		return useContext(SourceDataContext);
 	}
 

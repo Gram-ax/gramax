@@ -68,31 +68,31 @@ const GitDateSideBar = ({
 		<div ref={ref} style={{ width: "100%", padding: "6px 15px" }}>
 			<Sidebar
 				disable={disable}
-				title={title}
-				titleComponent={mergeRequest ? <MergeRequestIcon /> : undefined}
 				leftActions={
 					iconCode && [
 						<Icon
-							key={0}
 							code={iconCode}
+							key={0}
+							style={{ fontSize: "1rem", color: "var(--color-placeholder)", fontWeight: 300 }}
 							tooltipContent={tooltipContent}
 							viewBox={iconViewBox}
-							style={{ fontSize: "1rem", color: "var(--color-placeholder)", fontWeight: 300 }}
 						/>,
 					]
 				}
 				rightActions={[
-					data && <DateComponent key={0} width={width} data={data} dateWidth={dateWidth} />,
+					data && <DateComponent data={data} dateWidth={dateWidth} key={0} width={width} />,
 					showBranchMenu && (
 						<BranchMenu
-							key={1}
-							refreshList={refreshList}
 							branchName={title}
-							onMergeRequestCreate={onMergeRequestCreate}
 							currentBranchName={currentBranchName}
+							key={1}
+							onMergeRequestCreate={onMergeRequestCreate}
+							refreshList={refreshList}
 						/>
 					),
 				]}
+				title={title}
+				titleComponent={mergeRequest ? <MergeRequestIcon /> : undefined}
 			/>
 		</div>
 	);

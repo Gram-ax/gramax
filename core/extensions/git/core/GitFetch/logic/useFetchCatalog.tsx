@@ -4,9 +4,9 @@ import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTime
 import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
 import { useEffect, useRef } from "react";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 
 const useFetchCatalog = () => {
 	const catalogProps = useCatalogPropsStore((state) => state.data, "shallow");

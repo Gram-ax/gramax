@@ -13,8 +13,8 @@ import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 
 const BranchElement = ({ branchName }: { branchName: string }) => (
-	<div title={branchName} style={{ display: "inline-flex" }}>
-		<SmallFence overflow="hidden" fixWidth value={branchName} />
+	<div style={{ display: "inline-flex" }} title={branchName}>
+		<SmallFence fixWidth overflow="hidden" value={branchName} />
 	</div>
 );
 
@@ -63,10 +63,10 @@ const CheckoutHandler = ({
 					spinnerLoader
 				) : (
 					<InfoModalForm
-						onCancelClick={onCancel}
-						title={t("git.checkout.change-branch") + "?"}
 						actionButton={{ text: t("change-and-sync"), onClick: onActionButtonClick }}
 						isWarning={true}
+						onCancelClick={onCancel}
+						title={t("git.checkout.change-branch") + "?"}
 					>
 						<span>
 							{t("leads-to-the-branch")}

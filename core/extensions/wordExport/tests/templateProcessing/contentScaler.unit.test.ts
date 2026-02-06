@@ -1,12 +1,12 @@
+import { initBackendModules } from "@app/resolveModule/backend";
 import { DOMParser } from "@xmldom/xmldom";
-import { initModules } from "@app/resolveModule/backend";
 import { fitIndentedContentWidth } from "../../templateProcessing/contentScaler";
 
 describe("templateProcessing/contentScaler", () => {
 	const parser = new DOMParser();
 
 	beforeAll(async () => {
-		await initModules();
+		await initBackendModules();
 	});
 
 	it("scales drawings based on the remaining width", () => {

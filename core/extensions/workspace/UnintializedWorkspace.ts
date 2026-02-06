@@ -19,7 +19,11 @@ export type CatalogSummary = {
 export default class UnintializedWorkspace {
 	private _repos: Map<string, Repository> = new Map();
 
-	constructor(private _path: WorkspacePath, private _fs: FileStructure, private _rp: RepositoryProvider) {}
+	constructor(
+		private _path: WorkspacePath,
+		private _fs: FileStructure,
+		private _rp: RepositoryProvider,
+	) {}
 
 	static async init({ path, fs, rp }: UnintializedWorkspaceProps) {
 		const self = new UnintializedWorkspace(path, fs, rp);

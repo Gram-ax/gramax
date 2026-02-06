@@ -50,4 +50,7 @@ permissions = [
   "allow-format-merge-message",
   "allow-get-commit-info",
   "allow-get-all-cancel-tokens",
+  "allow-pull-lfs-objects",
+  "allow-get-config-val",
+  "allow-set-config-val",
 ]

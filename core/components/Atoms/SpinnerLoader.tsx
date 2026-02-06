@@ -13,7 +13,7 @@ interface SpinnerLoaderProps {
 const SpinnerLoader = forwardRef<HTMLDivElement, SpinnerLoaderProps>(
 	({ fullScreen = false, style, className }, ref) => {
 		const Spinner = (
-			<div data-qa="loader" className={className}>
+			<div className={className} data-qa="loader">
 				<div className="spinner" />
 			</div>
 		);

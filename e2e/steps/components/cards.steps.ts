@@ -24,4 +24,4 @@ When("наводимся на карточку с текстом {string}", asyn
 	const processedText = replaceMultiple(text, this.replace.bind(this));
 	const elem = page.locator(`${CARD_SELECTOR}:has-text("${processedText}")`);
 	await elem.hover();
-})
+});

@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import t from "@ext/localization/locale/translate";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { toast } from "@ui-kit/Toast";
-import { loadPlugins, PluginConfig } from "../index";
+import { useEffect, useState } from "react";
+import { loadPlugins, type PluginConfig } from "../index";
 
 export interface GetPluginsResponse {
 	plugins: PluginConfig[];

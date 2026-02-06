@@ -1,7 +1,7 @@
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
-import { ListPaginator } from "./ListPaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
+import { ListPaginator } from "./ListPaginator";
 
 const listHandlerFn: PrintNodeHandler["handle"] = async (node, paginator) => {
 	if (node.tagName !== "UL" && node.tagName !== "OL") return false;

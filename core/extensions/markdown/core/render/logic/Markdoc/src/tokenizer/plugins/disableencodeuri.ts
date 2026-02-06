@@ -4,7 +4,5 @@ export default function plugin(md: MarkdownIt) {
 	md.normalizeLink = (url) => {
 		return url;
 	};
-	md.normalizeLinkText = function (text) {
-		return text;
-	};
+	md.normalizeLinkText = (text) => text;
 }

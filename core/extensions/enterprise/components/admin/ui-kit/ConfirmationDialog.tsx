@@ -1,3 +1,4 @@
+import t from "@ext/localization/locale/translate";
 import {
 	AlertDialog,
 	AlertDialogContent,
@@ -9,7 +10,6 @@ import {
 	AlertDialogTitle,
 } from "@ui-kit/AlertDialog";
 import { Button } from "@ui-kit/Button";
-import t from "@ext/localization/locale/translate";
 
 interface ConfirmationDialogProps {
 	isOpen: boolean;
@@ -50,7 +50,7 @@ export function ConfirmationDialog({
 	};
 
 	return (
-		<AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
 			<AlertDialogContent>
 				<AlertDialogHeader>
 					<AlertDialogTitle>{title}</AlertDialogTitle>
@@ -58,7 +58,7 @@ export function ConfirmationDialog({
 				</AlertDialogHeader>
 				<AlertDialogFooter className="flex gap-2 sm:gap-0">
 					{showDiscard && (
-						<Button variant="outline" className="px-3" onClick={handleDiscard}>
+						<Button className="px-3" onClick={handleDiscard} variant="outline">
 							{discardText}
 						</Button>
 					)}

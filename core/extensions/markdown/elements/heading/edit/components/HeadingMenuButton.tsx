@@ -11,11 +11,11 @@ interface HeadingMenuButtonProps {
 const HeadingMenuButton = ({ level, editor }: HeadingMenuButtonProps) => {
 	return (
 		<ToolbarToggleItem
-			tooltipText={`${t("editor.heading")} ${level}`}
 			active={editor.isActive("heading", { level })}
 			hotKey={`Mod-Alt-${level}`}
-			value={level.toString()}
 			onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
+			tooltipText={`${t("editor.heading")} ${level}`}
+			value={level.toString()}
 		>
 			<ToolbarIcon icon={`heading-${level}-custom`} />
 		</ToolbarToggleItem>

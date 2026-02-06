@@ -4,11 +4,11 @@ import { useCallback } from "react";
 
 export function useSortableCatalogs(
 	dataIds: () => string[],
-	setItems: (updater: (prev: string[]) => string[]) => void | ((items: string[]) => void)
+	setItems: (updater: (prev: string[]) => string[]) => void | ((items: string[]) => void),
 ) {
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+		useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
 	);
 
 	const handleDragEnd = useCallback(
@@ -21,7 +21,7 @@ export function useSortableCatalogs(
 			}
 		},
 
-		[setItems, dataIds]
+		[setItems, dataIds],
 	);
 
 	return { sensors, handleDragEnd };

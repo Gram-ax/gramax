@@ -1,8 +1,6 @@
-import ParserContext from "../../../Parser/ParserContext/ParserContext";
-import { Schema } from "../Markdoc";
-
 import { fence } from "@ext/markdown/elements/codeBlockLowlight/render/model/codeBlock";
 import { color } from "@ext/markdown/elements/color/render/model/color";
+import { highlight } from "@ext/markdown/elements/highlight/render/model/schema";
 import { article } from "../../../../elements/article/render/article";
 import { code } from "../../../../elements/code/render/model/code";
 import { em } from "../../../../elements/em/render/em";
@@ -16,9 +14,10 @@ import { strikethrough } from "../../../../elements/strikethrough/render/striket
 import { strong } from "../../../../elements/strong/render/strong";
 import { sub } from "../../../../elements/sub/sub";
 import { table, tbody, td, thead, tr } from "../../../../elements/table/render/model/table";
-import { highlight } from "@ext/markdown/elements/highlight/render/model/schema";
+import PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
+import { Schema } from "../Markdoc";
 
-export default function getNodeElementRenderModels(context?: ParserContext): Record<string, Schema> {
+export default function getNodeElementRenderModels(context?: PrivateParserContext): Record<string, Schema> {
 	const contextelements = context ? getContextNodeElementRenderModels(context) : {};
 
 	return {
@@ -47,7 +46,7 @@ export default function getNodeElementRenderModels(context?: ParserContext): Rec
 	};
 }
 
-function getContextNodeElementRenderModels(context: ParserContext): Record<string, Schema> {
+function getContextNodeElementRenderModels(context: PrivateParserContext): Record<string, Schema> {
 	return {
 		image: image(context),
 	};

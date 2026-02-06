@@ -1,6 +1,5 @@
 import { CheckAnswer } from "@ext/markdown/elements/answer/types";
-import { Question } from "@ext/markdown/elements/question/types";
-import { QuestionResult } from "@ext/markdown/elements/question/types";
+import { Question, QuestionResult } from "@ext/markdown/elements/question/types";
 
 interface isAnswersCorrectOptions {
 	// If true, the correct answers ids will be included in the result

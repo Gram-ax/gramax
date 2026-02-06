@@ -8,7 +8,7 @@ import styled from "@emotion/styled";
 import InboxService from "@ext/inbox/components/InboxService";
 import t from "@ext/localization/locale/translate";
 import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
-import { Command, CommandItem, CommandEmpty, CommandList, CommandInput } from "@ui-kit/Command";
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -95,10 +95,10 @@ const InboxFilter = ({ show, apiUrlCreator, selectedAuthor, setSelectedAuthor }:
 	if (!show || !isRepoOk) return null;
 
 	return (
-		<Popover open={isOpen} onOpenChange={setIsOpen}>
+		<Popover onOpenChange={setIsOpen} open={isOpen}>
 			<PopoverTrigger>
 				<Wrapper>
-					<ButtonLink textSize={TextSize.S} text={selectedAuthor} style={{ marginLeft: "-8px" }} />
+					<ButtonLink style={{ marginLeft: "-8px" }} text={selectedAuthor} textSize={TextSize.S} />
 					<Icon code="chevron-down" />
 				</Wrapper>
 			</PopoverTrigger>
@@ -109,10 +109,10 @@ const InboxFilter = ({ show, apiUrlCreator, selectedAuthor, setSelectedAuthor }:
 						<CommandEmpty>{t("inbox.no-user-with-this-name")}</CommandEmpty>
 						{items.map((item) => (
 							<CommandItem
-								key={item}
-								value={item}
-								onSelect={() => onItemClick(item)}
 								className="justify-between"
+								key={item}
+								onSelect={() => onItemClick(item)}
+								value={item}
 							>
 								{item}
 								{selectedAuthor === item && <Icon code="check" />}

@@ -1,7 +1,7 @@
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
-import { WordFontStyles, wordFontTypes } from "@ext/wordExport/options/wordExportSettings";
 import docx from "@dynamicImports/docx";
+import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
+import { WordFontStyles, wordFontTypes } from "@ext/wordExport/options/wordExportSettings";
 import type { TextRun as TextRunType } from "docx";
 
 class AnnotationText {
@@ -20,9 +20,7 @@ class AnnotationText {
 		const paragraphStyle = WordFontStyles.pictureTitle;
 
 		if (!objects.some((object) => object.text))
-			return title
-				? [new Paragraph({ children: [new TextRun(title)], style: paragraphStyle, indent })]
-				: [];
+			return title ? [new Paragraph({ children: [new TextRun(title)], style: paragraphStyle, indent })] : [];
 
 		const lastIndex = objects.reduce((lastIndex, object, index) => {
 			return object.text ? index : lastIndex;
@@ -31,7 +29,7 @@ class AnnotationText {
 		const annotations: TextRunType[] = title ? [new TextRun({ break: 1 })] : [];
 		for (const [index, object] of objects.entries()) {
 			if (object.text) {
-				annotations.push(...(await this._createAnnotations(index, object.text, index == lastIndex)));
+				annotations.push(...(await AnnotationText._createAnnotations(index, object.text, index == lastIndex)));
 			}
 		}
 

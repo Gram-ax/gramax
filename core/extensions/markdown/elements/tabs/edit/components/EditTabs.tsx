@@ -1,12 +1,12 @@
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import Tabs from "@ext/markdown/elements/tabs/render/component/Tabs";
 import { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
 import { NodeViewContent, NodeViewProps } from "@tiptap/react";
 import { ReactElement, useCallback, useEffect, useState } from "react";
-import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 
 const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement => {
 	const { node, editor, className, getPos, updateAttributes, deleteNode } = props;
@@ -107,14 +107,14 @@ const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement =
 		<NodeViewContextableWrapper props={props}>
 			<div className="flex flex-col">
 				<Tabs
+					childAttrs={node.attrs.childAttrs}
+					className={`${className} ${activeHoverStyle ? "hover" : ""}`}
 					isEdit
-					onTabEnter={onTabEnter}
 					onAddClick={onAddClick}
+					onDeleteClick={onDeleteClick}
 					onNameUpdate={onNameUpdate}
 					onRemoveClick={onRemoveClick}
-					childAttrs={node.attrs.childAttrs}
-					onDeleteClick={onDeleteClick}
-					className={`${className} ${activeHoverStyle ? "hover" : ""}`}
+					onTabEnter={onTabEnter}
 				>
 					<NodeViewContent className="content" />
 				</Tabs>

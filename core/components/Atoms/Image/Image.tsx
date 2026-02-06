@@ -1,3 +1,7 @@
+import Caption from "@components/Atoms/Caption";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import {
 	ComponentProps,
 	CSSProperties,
@@ -8,12 +12,8 @@ import {
 	ReactEventHandler,
 	useCallback,
 } from "react";
-import MediaPreview from "./modalImage/MediaPreview";
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { useDoubleTap } from "../../../ui-logic/hooks/useDoubleTap";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import Caption from "@components/Atoms/Caption";
+import MediaPreview from "./modalImage/MediaPreview";
 
 interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> {
 	realSrc?: string;
@@ -54,15 +54,15 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 	return (
 		<>
 			<img
-				ref={ref}
-				id={id}
 				alt={alt}
-				onLoad={onLoad}
-				onError={onError}
-				src={src}
 				className={className}
+				id={id}
 				onDoubleClick={onDoubleClick}
+				onError={onError}
+				onLoad={onLoad}
 				onTouchStart={onTouchStart}
+				ref={ref}
+				src={src}
 			/>
 			{title && <Caption>{title}</Caption>}
 		</>

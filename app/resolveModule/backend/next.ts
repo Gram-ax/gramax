@@ -1,25 +1,16 @@
-import { DynamicModules } from "@app/resolveModule/backend";
+/** biome-ignore-all lint/suspicious/noExplicitAny: idc */
 
-export const getNextModules = async (): Promise<DynamicModules> => {
-	const [
-		{ default: NextCookie },
-		{ default: NextSvgToPng },
-		{ default: NextGetImageSizeFromImageData },
-		{ default: NextGetImageFromDom },
-		xmldom,
-		{ nextLoadFont },
-		{ default: NextGetImageByPath },
-	] = await Promise.all([
-		import("../../../apps/next/logic/NextCookie"),
-		import("../../../apps/next/logic/NextSvgToPng"),
-		import("../../../apps/next/logic/NextGetImageSizeFromImageData"),
-		import("../../../apps/next/logic/NextGetImageFromDom"),
-		import("@xmldom/xmldom"),
-		import("@ext/pdfExport/fontLoaders/loadFontBuffer"),
-		import("../../../apps/next/logic/NextGetImageByPath"),
-	]);
+import { nextLoadFont } from "@ext/pdfExport/fontLoaders/loadFontBuffer";
+import xmldom from "@xmldom/xmldom";
+import NextCookie from "../../../apps/next/logic/NextCookie";
+import NextGetImageByPath from "../../../apps/next/logic/NextGetImageByPath";
+import NextGetImageFromDom from "../../../apps/next/logic/NextGetImageFromDom";
+import NextGetImageSizeFromImageData from "../../../apps/next/logic/NextGetImageSizeFromImageData";
+import NextSvgToPng from "../../../apps/next/logic/NextSvgToPng";
+import type { BackendDynamicModules } from "..";
 
-	return {
+export const getNextModules = (): Promise<BackendDynamicModules> => {
+	return Promise.resolve({
 		Cookie: NextCookie,
 		initWasm: () => Promise.resolve(),
 		svgToPng: NextSvgToPng,
@@ -31,5 +22,20 @@ export const getNextModules = async (): Promise<DynamicModules> => {
 		setSessionData: () => Promise.resolve(),
 		pdfLoadFont: nextLoadFont(),
 		getImageByPath: NextGetImageByPath,
-	};
+	});
 };
+
+let modules: BackendDynamicModules | null = null;
+
+export const initBackendModules = async (): Promise<void> => {
+	if (modules) return;
+	modules = await getNextModules();
+};
+
+const resolveBackendModule = <K extends keyof BackendDynamicModules>(name: K): BackendDynamicModules[K] => {
+	const module = modules?.[name];
+	if (!module) throw new Error(`module ${name} not found`);
+	return module;
+};
+
+export default resolveBackendModule;

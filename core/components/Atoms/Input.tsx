@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { ChangeEvent, HTMLProps, MutableRefObject, forwardRef } from "react";
+import { ChangeEvent, forwardRef, HTMLProps, MutableRefObject } from "react";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
 
@@ -38,7 +38,7 @@ const Input = forwardRef((props: InputProps, ref?: MutableRefObject<HTMLInputEle
 		<div className={className}>
 			{icon && <Icon code={icon} />}
 			{startText && <div className="startTextContainer">{startText}</div>}
-			<Tooltip visible={!!errorText && showErrorText} content={<span>{errorText}</span>}>
+			<Tooltip content={<span>{errorText}</span>} visible={!!errorText && showErrorText}>
 				<input
 					className={classNames("textInput", { loading: isLoading })}
 					data-qa={dataQa}

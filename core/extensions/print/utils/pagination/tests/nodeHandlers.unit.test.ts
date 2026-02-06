@@ -1,8 +1,8 @@
-import printHandlers from "../nodeHandlers";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import PagePaginator from "@ext/print/utils/pagination/PagePaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
 import { AbortController } from "abort-controller";
+import printHandlers from "../nodeHandlers";
 
 jest.mock("@ext/print/utils/pagination/abort", () => ({
 	throwIfAborted: jest.fn(),
@@ -26,7 +26,7 @@ describe("nodeHandlers", () => {
 				marginBottom: 0,
 				paddingH: 5,
 			})),
-			canUpdateAccumulatedHeight: jest.fn(),
+			canUpdateAccumulatedHeight: jest.fn(() => true),
 			updateAccumulatedHeight: jest.fn(),
 			updateAccumulatedHeightNode: jest.fn(() => ({ height: 20, marginBottom: 0 })),
 			updateAccumulatedHeightDim: jest.fn(() => ({ height: 20, marginBottom: 0 })),
@@ -59,6 +59,7 @@ describe("nodeHandlers", () => {
 			currentContainer: document.createElement("div"),
 			createPage: jest.fn(),
 			getUsableHeight: jest.fn(() => 100),
+			headingElements: [],
 		});
 
 		jest.clearAllMocks();
@@ -86,16 +87,20 @@ describe("nodeHandlers", () => {
 	});
 
 	describe("headingHandler", () => {
-		it("should handle H1 elements and create new page when container has content", async () => {
+		it("should handle H1 elements and create new page when `breakBefore` is `page`", async () => {
 			const h1 = document.createElement("h1");
-			h1.textContent = "Test Heading";
+			Paginator.paginationInfo.nodeDimension["get"] = jest.fn(() => ({
+				height: 20,
+				marginTop: 0,
+				marginBottom: 0,
+				paddingH: 5,
+				breakBefore: "page",
+			}));
 
-			// Добавляем контент в контейнер
+			h1.textContent = "Test Heading";
 			mockPaginator.currentContainer.appendChild(document.createElement("p"));
 
-			// Импортируем и тестируем headingHandler
 			const { default: headingHandler } = await import("@ext/markdown/elements/heading/print/headingHandler");
-
 			const result = await headingHandler.handle(h1, mockPaginator);
 
 			expect(result).toBe(true);
@@ -103,15 +108,12 @@ describe("nodeHandlers", () => {
 			expect(mockPaginator.currentContainer.contains(h1)).toBe(true);
 		});
 
-		it("should handle H1 elements without creating new page when container is empty", async () => {
+		it("should handle H1 elements without creating new page when `breakBefore` is not `page`", async () => {
 			const h1 = document.createElement("h1");
 			h1.textContent = "Test Heading";
-
-			// Контейнер пустой
 			mockPaginator.currentContainer.innerHTML = "";
 
 			const { default: headingHandler } = await import("@ext/markdown/elements/heading/print/headingHandler");
-
 			const result = await headingHandler.handle(h1, mockPaginator);
 
 			expect(result).toBe(true);
@@ -330,13 +332,15 @@ describe("nodeHandlers", () => {
 
 	describe("tabsHandler", () => {
 		it("should handle DIV elements with tabs component", async () => {
-			const tabs = document.createElement("div");
-			tabs.dataset.component = "tabs";
-			tabs.textContent = "Tabs content";
+			const tabsWrapper = document.createElement("div");
+			tabsWrapper.dataset.component = "tabs";
+			const tabsContainer = document.createElement("div");
+			tabsWrapper.appendChild(tabsContainer);
+			tabsContainer.textContent = "Tabs content";
 
 			const { default: tabsHandler } = await import("@ext/markdown/elements/tabs/print/tabsHandler");
 
-			const result = await tabsHandler.handle(tabs, mockPaginator);
+			const result = await tabsHandler.handle(tabsWrapper, mockPaginator);
 
 			expect(result).toBe(true);
 		});

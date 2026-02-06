@@ -15,12 +15,12 @@ const NextLink = (props: NextLinkProps, ref: RefObject<HTMLAnchorElement>) => {
 
 	return (
 		<Link
-			ref={ref}
-			href={url?.toString()}
-			scroll={true}
-			passHref
-			onClick={onClick}
 			data-qa={dataQa}
+			href={url?.toString()}
+			onClick={onClick}
+			passHref
+			ref={ref}
+			scroll={true}
 			{...otherProps}
 		>
 			{children}

@@ -1,6 +1,3 @@
-import t from "@ext/localization/locale/translate";
-import { useState, useCallback, useMemo, useEffect, CSSProperties } from "react";
-import { IconButton } from "@ui-kit/Button";
 import {
 	closestCenter,
 	DndContext,
@@ -14,7 +11,10 @@ import {
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import t from "@ext/localization/locale/translate";
+import { IconButton } from "@ui-kit/Button";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 
 interface Value {
 	id: string;
@@ -64,9 +64,9 @@ const SortableValue = ({ value }: SortableValueProps) => {
 
 	return (
 		<DropdownMenuItem onSelect={onClick}>
-			<div ref={setNodeRef} style={style} className="sortable-value">
+			<div className="sortable-value" ref={setNodeRef} style={style}>
 				<div {...listeners} {...attributes} className="flex items-center justify-center">
-					<IconButton type="button" variant="text" size="sm" style={iconButtonStyle} icon="grip-vertical" />
+					<IconButton icon="grip-vertical" size="sm" style={iconButtonStyle} type="button" variant="text" />
 				</div>
 				<div className="flex-1">{value.text}</div>
 			</div>
@@ -132,10 +132,10 @@ const ValueHandler = ({ data, onChange }: ValueHandlerProps) => {
 
 	return (
 		<DndContext
-			sensors={sensors}
 			collisionDetection={closestCenter}
 			modifiers={[restrictToVerticalAxis]}
 			onDragEnd={handleDragEnd}
+			sensors={sensors}
 		>
 			{values?.length ? (
 				<SortableContext items={valueIds} strategy={verticalListSortingStrategy}>

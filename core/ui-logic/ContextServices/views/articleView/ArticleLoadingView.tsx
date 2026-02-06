@@ -1,6 +1,6 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import styled from "@emotion/styled";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+import styled from "@emotion/styled";
 
 const StyledDiv = styled.div`
 	height: 100%;

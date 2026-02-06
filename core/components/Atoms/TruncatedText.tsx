@@ -1,6 +1,6 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
-import { useEffect, useRef, useState, type HTMLAttributes } from "react";
+import { type HTMLAttributes, useEffect, useRef, useState } from "react";
 
 const TruncatedDiv = styled.div<{ maxWidth: number }>`
 	white-space: nowrap;
@@ -21,8 +21,8 @@ const TruncatedText = ({ children, maxWidth = 180, ...props }: TruncatedDivProps
 	useEffect(() => setIsOverflowing(ref.current.clientWidth >= maxWidth - 1), [children, maxWidth]);
 
 	return (
-		<Tooltip hideInMobile hideOnClick placement="left" content={isOverflowing ? children : null}>
-			<TruncatedDiv {...props} ref={ref} maxWidth={maxWidth}>
+		<Tooltip content={isOverflowing ? children : null} hideInMobile hideOnClick placement="left">
+			<TruncatedDiv {...props} maxWidth={maxWidth} ref={ref}>
 				{children}
 			</TruncatedDiv>
 		</Tooltip>

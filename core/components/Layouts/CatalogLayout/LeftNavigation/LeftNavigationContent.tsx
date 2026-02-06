@@ -13,7 +13,7 @@ const LeftNavigationContent: LeftNavViewContentComponent = ({ itemLinks, closeNa
 	return (
 		<div style={isOpen ? null : { paddingRight: "31px" }}>
 			<Layout>
-				<LevNav items={itemLinks} closeNavigation={closeNavigation} />
+				<LevNav closeNavigation={closeNavigation} items={itemLinks} />
 			</Layout>
 		</div>
 	);

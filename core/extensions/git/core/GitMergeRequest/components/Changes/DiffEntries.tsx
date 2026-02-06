@@ -73,23 +73,23 @@ export const DiffEntries = forwardRef<HTMLDivElement, DiffEntriesProps>((props, 
 
 	return (
 		<SelectedDiffEntryContext.Provider value={{ selectedByPath, setSelectedByPath }}>
-			<DiffEntriesWrapper ref={ref} hasChanges={hasChanges}>
+			<DiffEntriesWrapper hasChanges={hasChanges} ref={ref}>
 				{hasChanges ? (
-					changes.map((entry, id) => (
+					changes.map((entry) => (
 						<DiffEntry
-							key={id}
+							actionIcon={actionIcon}
 							entry={entry}
 							indent={hasCheckboxes ? 1 : 0}
+							isFileSelected={isFileSelected}
+							key={entry.logicpath}
+							onAction={onAction}
 							onSelect={(entry) => {
 								if (entry.type === "node") return;
 								setSelectedByPath(entry.filepath.new);
 								setArticleDiffView(entry.rawItem);
 							}}
-							onAction={onAction}
-							actionIcon={actionIcon}
-							selectFile={selectFile}
-							isFileSelected={isFileSelected}
 							renderCommentsCount={renderCommentsCount}
+							selectFile={selectFile}
 						/>
 					))
 				) : (

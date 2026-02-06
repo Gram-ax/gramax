@@ -1,6 +1,5 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import t from "@ext/localization/locale/translate";
-import {
+import type {
 	SearchArticleResult,
 	SearchCatalogResult,
 	SearchResult,
@@ -11,19 +10,21 @@ import {
 } from "@ext/serach/Searcher";
 import {
 	ArticleFragmentCounter,
-	SearchFragmentInfo,
+	type SearchFragmentInfo,
 } from "@ext/serach/utils/ArticleFragmentCounter/ArticleFragmentCounter";
 
-interface LinkOpenSideEffectOptions {
+export type SearchItemRowId = string;
+
+export interface LinkOpenSideEffectOptions {
 	params: {
-		url: string;
+		pathname: string;
 		fragmentInfo?: SearchFragmentInfo;
 	};
 }
 
 export interface RowSearchResultBase {
-	id: number;
-	href?: Url;
+	id: SearchItemRowId;
+	url: Url;
 	openSideEffect: LinkOpenSideEffectOptions;
 }
 
@@ -41,10 +42,9 @@ export interface RowCatalogSearchResult extends RowSearchResultBase {
 export type RowSearchResult = RowArticleSearchResult | RowCatalogSearchResult;
 
 export interface SearchItemRowBase {
-	id?: number;
-	key?: string;
+	id: SearchItemRowId;
 	openSideEffect: LinkOpenSideEffectOptions;
-	href: Url;
+	url: Url;
 }
 
 export interface SearchItemBlockRowBase extends SearchItemRowBase {
@@ -62,17 +62,12 @@ export interface SearchItemFileBlockRow extends SearchItemBlockRowBase {
 
 export type SearchItemBlockRow = SearchItemHeaderBlockRow | SearchItemFileBlockRow;
 
-export interface SearchItemMessageRow {
-	type: "message";
-	textContent: string;
-}
-
 export interface SearchItemLinkRow extends SearchItemRowBase {
 	type: "link";
 	marks: SearchResultMarkItem[];
 }
 
-export type SearchItemRow = SearchItemLinkRow | SearchItemMessageRow | SearchItemBlockRow;
+export type SearchItemRow = SearchItemLinkRow | SearchItemBlockRow;
 
 type BlockItemBase = Omit<SearchResultBlockItem, "type" | "embeddedLinkTitle" | "items">;
 
@@ -87,22 +82,23 @@ export interface FileBlockItem extends BlockItemBase {
 
 export type BlockItem = HeaderBlockItem | FileBlockItem;
 
-class SearchItemRowIdGenerator {
+export class SearchItemRowIdGenerator {
 	private id = 0;
 
-	generateId(): number {
-		return this.id++;
+	generateId(): SearchItemRowId {
+		return (this.id++).toString();
 	}
 }
 
-export type RowIdLinkMap = Map<number, { url: Url; openSideEffect: LinkOpenSideEffectOptions }>;
-
-const MAX_SHOW_PARAGRAPH = 3;
+export type RowIdLinkMap = Map<SearchItemRowId, { url: Url; openSideEffect: LinkOpenSideEffectOptions }>;
 
 export function buildArticleRows(searchData: SearchResult[]): { rows: RowSearchResult[]; rowIdLinkMap: RowIdLinkMap } {
 	const rows: RowSearchResult[] = [];
 
-	const rowIdLinkMap: RowIdLinkMap = new Map<number, { url: Url; openSideEffect: LinkOpenSideEffectOptions }>();
+	const rowIdLinkMap: RowIdLinkMap = new Map<
+		SearchItemRowId,
+		{ url: Url; openSideEffect: LinkOpenSideEffectOptions }
+	>();
 	const idGenerator = new SearchItemRowIdGenerator();
 
 	for (const d of searchData) {
@@ -110,7 +106,7 @@ export function buildArticleRows(searchData: SearchResult[]): { rows: RowSearchR
 		const href = createLinkRefUrl(d.url);
 		const openSideEffect: LinkOpenSideEffectOptions = {
 			params: {
-				url: d.url,
+				pathname: d.url,
 			},
 		};
 		rowIdLinkMap.set(id, { url: href, openSideEffect });
@@ -122,7 +118,7 @@ export function buildArticleRows(searchData: SearchResult[]): { rows: RowSearchR
 					type: "article",
 					id,
 					rawResult: d,
-					href,
+					url: href,
 					openSideEffect,
 					items: getSearchRows(d.items, d.url, idGenerator, rowIdLinkMap),
 				});
@@ -133,7 +129,7 @@ export function buildArticleRows(searchData: SearchResult[]): { rows: RowSearchR
 					type: "catalog",
 					id,
 					rawResult: d,
-					href,
+					url: href,
 					openSideEffect,
 				});
 				break;
@@ -168,7 +164,6 @@ function getSearchRows(
 
 	const handleItemsRecursively = (items: SearchResultItem[], overrideFragmentInfo?: SearchFragmentInfo) => {
 		const res: SearchItemRow[] = [];
-		let paragraphCountBuffer = 0;
 
 		items.forEach((item) => {
 			const handleParagraph = (
@@ -186,32 +181,24 @@ function getSearchRows(
 					}
 				}
 
-				paragraphCountBuffer++;
-				if (paragraphCountBuffer > MAX_SHOW_PARAGRAPH) {
-					return;
-				}
-
 				const href = createLinkRefUrl(baseUrl, fragmentInfo);
 				const openSideEffect: LinkOpenSideEffectOptions = {
 					params: {
-						url: baseUrl,
+						pathname: baseUrl,
 						fragmentInfo,
 					},
 				};
 
-				let id: number | undefined = undefined;
-				let key: string | undefined = undefined;
+				const id = idGenerator.generateId();
 				if (!overrideFragmentInfo) {
-					id = idGenerator.generateId();
 					rowIdLinkMap.set(id, { url: href, openSideEffect });
-				} else key = Math.random().toString();
+				}
 
 				res.push({
 					type: "link",
-					marks: item.items,
-					href,
-					key,
 					id,
+					url: href,
+					marks: item.items,
 					openSideEffect,
 				});
 			};
@@ -219,7 +206,7 @@ function getSearchRows(
 			if (item.type === "paragraph") {
 				handleParagraph(item, (text) => articleFragmentCounter.initFragmentInfo(text));
 			} else if (item.type === "paragraph_group") {
-				let linkInfoForWholeGroup: SearchFragmentInfo | undefined = undefined;
+				let linkInfoForWholeGroup: SearchFragmentInfo | undefined;
 				item.paragraphs.forEach((p) => {
 					handleParagraph(p, (text) => {
 						if (linkInfoForWholeGroup === undefined)
@@ -228,8 +215,6 @@ function getSearchRows(
 					});
 				});
 			} else if (item.type === "block") {
-				paragraphCountBuffer = tryAddHiddenCountRow(res, paragraphCountBuffer);
-
 				let fragmentInfo: SearchFragmentInfo | undefined = overrideFragmentInfo;
 				let overrideFragmentInfoForChildren: SearchFragmentInfo | undefined = overrideFragmentInfo;
 				let type: SearchItemBlockRow["type"] = "block";
@@ -265,24 +250,22 @@ function getSearchRows(
 				}
 
 				const href = createLinkRefUrl(baseUrl, fragmentInfo);
-				let id: number | undefined = undefined;
-				let key: string | undefined = undefined;
+				const id = idGenerator.generateId();
 				const openSideEffect: LinkOpenSideEffectOptions = {
 					params: {
-						url: baseUrl,
+						pathname: baseUrl,
 						fragmentInfo,
 					},
 				};
+
 				if (!overrideFragmentInfo) {
-					id = idGenerator.generateId();
 					rowIdLinkMap.set(id, { url: href, openSideEffect });
-				} else key = Math.random().toString();
+				}
 
 				res.push({
 					type,
 					id,
-					key,
-					href,
+					url: href,
 					breadcrumbs,
 					children: handleItemsRecursively(curRawItem.items, overrideFragmentInfoForChildren),
 					openSideEffect,
@@ -290,7 +273,6 @@ function getSearchRows(
 			}
 		});
 
-		paragraphCountBuffer = tryAddHiddenCountRow(res, paragraphCountBuffer);
 		return res;
 	};
 
@@ -323,26 +305,5 @@ function getBlockItem(item: SearchResultBlockItem): BlockItem {
 	return {
 		type: "header",
 		title: item.title,
-	};
-}
-
-function tryAddHiddenCountRow(rows: SearchItemRow[], paragraphCountBuffer: number): number {
-	if (paragraphCountBuffer > MAX_SHOW_PARAGRAPH) {
-		rows.push(getHiddenCountRow(paragraphCountBuffer - MAX_SHOW_PARAGRAPH));
-		return 0;
-	}
-
-	return paragraphCountBuffer;
-}
-
-function getHiddenCountRow(count: number): SearchItemMessageRow {
-	let hiddenText = t("search.hidden-results");
-	if (typeof hiddenText === "string") {
-		hiddenText = hiddenText.replace("{{count}}", String(count));
-	}
-
-	return {
-		type: "message",
-		textContent: hiddenText,
 	};
 }

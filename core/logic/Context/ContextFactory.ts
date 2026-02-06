@@ -1,26 +1,26 @@
 import LanguageService from "@core-ui/ContextServices/Language";
-import ThemeManager from "../../extensions/Theme/ThemeManager";
-import Cookie from "../../extensions/cookie/Cookie";
+import type Cookie from "../../extensions/cookie/Cookie";
 import CookieFactory from "../../extensions/cookie/CookieFactory";
 import UiLanguage, {
 	ContentLanguage,
 	overriddenLanguage,
 	resolveLanguage,
 } from "../../extensions/localization/core/model/Language";
-import AuthManager from "../../extensions/security/logic/AuthManager";
-import User from "../../extensions/security/logic/User/User";
+import type AuthManager from "../../extensions/security/logic/AuthManager";
 import localUser from "../../extensions/security/logic/User/localUser";
-import ApiRequest from "../Api/ApiRequest";
-import ApiResponse from "../Api/ApiResponse";
-import Query from "../Api/Query";
+import type User from "../../extensions/security/logic/User/User";
+import type ThemeManager from "../../extensions/Theme/ThemeManager";
+import type ApiRequest from "../Api/ApiRequest";
+import type ApiResponse from "../Api/ApiResponse";
 import { apiUtils } from "../Api/apiUtils";
+import type Query from "../Api/Query";
 import { getClientDomain } from "../utils/getClientDomain";
-import Context from "./Context";
+import type Context from "./Context";
 
 export interface FromArgs {
 	req: ApiRequest;
 	res: ApiResponse;
-	query?: { [key: string]: string | string[] };
+	query?: Query;
 }
 
 export interface FromBrowserArgs {

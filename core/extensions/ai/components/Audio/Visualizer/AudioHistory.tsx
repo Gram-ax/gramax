@@ -1,11 +1,11 @@
+import Icon from "@components/Atoms/Icon";
 import useWatch from "@core-ui/hooks/useWatch";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import { AudioHistoryItem } from "@ext/ai/models/types";
-import { memo, useMemo, useState } from "react";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import Icon from "@components/Atoms/Icon";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { memo, useMemo, useState } from "react";
 
 const AudioHistory = ({ disabled, onClick }: { disabled?: boolean; onClick?: (audio: AudioHistoryItem) => void }) => {
 	const { recordedAudio } = AudioRecorderService.value;
@@ -28,7 +28,7 @@ const AudioHistory = ({ disabled, onClick }: { disabled?: boolean; onClick?: (au
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
-				<ToolbarToggleButton tooltipText={t("ai.transcribe.history")} disabled={isDisabled}>
+				<ToolbarToggleButton disabled={isDisabled} tooltipText={t("ai.transcribe.history")}>
 					<ToolbarIcon icon="history" />
 				</ToolbarToggleButton>
 			</DropdownMenuTrigger>

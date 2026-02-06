@@ -1,17 +1,17 @@
-import os from "os";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import { spawnSync } from "child_process";
 import { mkdtempSync } from "fs";
+import os from "os";
 import { basename, join } from "path";
-import buildCommandFunction from "../../build";
 import ChalkLogger from "../../../../utils/ChalkLogger";
 import CliUserError from "../../../CliUserError";
-import detectPackageManager from "./detectPackageManager";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import buildCommandFunction from "../../build";
 import askQuestion from "../../utils/askQuestion";
 import { logStep } from "../../utils/logger";
-import { HELPER_PKG, packageManagers, RunGramaxExportPdfProps } from "./exportConfig";
-import { spawnSync } from "child_process";
-import runGramaxExportPdf from "./runGramaxExportPdf";
 import { checkExistsPath } from "../../utils/paths";
+import detectPackageManager from "./detectPackageManager";
+import { HELPER_PKG, packageManagers, RunGramaxExportPdfProps } from "./exportConfig";
+import runGramaxExportPdf from "./runGramaxExportPdf";
 
 const installPakage = async (skipConfirm: boolean) => {
 	const pm = detectPackageManager();
@@ -65,7 +65,7 @@ export const runPdfCli = async (props: RunGramaxExportPdfProps & { skipConfirm: 
 				docxTemplates: null,
 				forceUiLangSync: false,
 				features: "export-pdf",
-				BaseUrl: "",
+				baseUrl: "",
 				pdfTemplates: templatePath,
 			}),
 		{ silent: true },

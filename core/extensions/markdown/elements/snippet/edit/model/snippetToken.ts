@@ -1,8 +1,8 @@
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
+import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
 
-const snippetToken = (context?: ParserContext): ParseSpec => {
+const snippetToken = (context?: PrivateParserContext): ParseSpec => {
 	return {
 		node: "snippet",
 		getAttrs: async (tok) => {

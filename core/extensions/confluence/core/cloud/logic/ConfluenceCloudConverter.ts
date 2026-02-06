@@ -1,20 +1,20 @@
-import fileNameUtils from "@core-ui/fileNameUtils";
-import Path from "@core/FileProvider/Path/Path";
 import FileProvider from "@core/FileProvider/model/FileProvider";
+import Path from "@core/FileProvider/Path/Path";
 import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
+import fileNameUtils from "@core-ui/fileNameUtils";
+import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
+import ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
+import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
 import getCloudConvertors from "@ext/confluence/core/cloud/logic/getCloudConvertors";
+import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import CONFLUENCE_EXTENSION_TYPES from "@ext/confluence/core/cloud/model/confluenceExtensionTypes";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
 import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
+import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
 import t from "@ext/localization/locale/translate";
 import { JSONContent } from "@tiptap/core";
-import NodeConverter from "../model/NodeConverter";
 import getConfluenceExtension from "../../api/getConfluenceExtension";
-import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
-import ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
-import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
-import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
+import NodeConverter from "../model/NodeConverter";
 
 export default class ConfluenceCloudConverter implements ConfluenceConverter {
 	private _confluencePageUrl: string;
@@ -23,7 +23,10 @@ export default class ConfluenceCloudConverter implements ConfluenceConverter {
 	private _articlePath: Path;
 	private _conversionMap: Record<string, NodeConverter>;
 
-	constructor(private _data: ConfluenceCloudSourceData, private _fp: FileProvider) {
+	constructor(
+		private _data: ConfluenceCloudSourceData,
+		private _fp: FileProvider,
+	) {
 		this._conversionMap = getCloudConvertors();
 	}
 
@@ -59,7 +62,7 @@ export default class ConfluenceCloudConverter implements ConfluenceConverter {
 					save: this._saveAttachment.bind(this),
 					confluencePageUrl: this._confluencePageUrl,
 					data: this._data,
-			  })
+				})
 			: convertUnsupportedNode(confluenceNode, this._confluencePageUrl);
 	}
 

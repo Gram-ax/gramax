@@ -1,7 +1,7 @@
-import PathUtils from "path";
 import { AppConfig } from "@app/config/AppConfig";
-import BrowserRouter from "../../../../browser/src/logic/Api/BrowserRouter";
 import { RouterRule } from "@core/Api/Router";
+import PathUtils from "path";
+import BrowserRouter from "../../../../browser/src/logic/Api/BrowserRouter";
 
 export default class StaticRouter {
 	private static additionalRules: RouterRule[] = [

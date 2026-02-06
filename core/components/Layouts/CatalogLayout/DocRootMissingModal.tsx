@@ -54,7 +54,6 @@ const DocRootMissingModal = ({ onClose }: { onClose: () => void }) => {
 			<Modal isOpen={isMainModalOpen} onClose={onMainModalClose}>
 				<ModalLayoutLight>
 					<InfoModalForm
-						title={t("catalog.missing-config.title")}
 						actionButton={{
 							text: t("catalog.missing-config.open-settings"),
 							onClick: () => {
@@ -73,6 +72,7 @@ const DocRootMissingModal = ({ onClose }: { onClose: () => void }) => {
 							},
 						}}
 						secondButton={{ text: t("cancel"), onClick: () => setIsMainModalOpen(false) }}
+						title={t("catalog.missing-config.title")}
 					>
 						{t("catalog.missing-config.description")}
 					</InfoModalForm>

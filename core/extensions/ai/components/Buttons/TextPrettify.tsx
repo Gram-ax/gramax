@@ -1,7 +1,7 @@
+import AiWritingPopover from "@ext/ai/components/AiWritingPopover";
 import t from "@ext/localization/locale/translate";
 import { Editor } from "@tiptap/core";
 import { useCallback, useEffect, useState } from "react";
-import AiWritingPopover from "@ext/ai/components/AiWritingPopover";
 
 const TextPrettify = ({ editor }: { editor: Editor }) => {
 	const [canOpen, setCanOpen] = useState(true);
@@ -36,15 +36,15 @@ const TextPrettify = ({ editor }: { editor: Editor }) => {
 
 	return (
 		<AiWritingPopover
-			editor={editor}
-			triggerTooltipText={t("editor.ai.improve")}
-			triggerIcon="wand-sparkles"
 			contentPlaceholder={t("ai.placeholder.prettify")}
 			disabled={!canOpen}
+			editor={editor}
 			isOpen={isOpen}
+			onSubmit={onSubmit}
 			setIsOpen={setIsOpen}
 			toolbarSelector="[role='article-inline-toolbar'], [role='bottom-toolbar']"
-			onSubmit={onSubmit}
+			triggerIcon="wand-sparkles"
+			triggerTooltipText={t("editor.ai.improve")}
 		/>
 	);
 };

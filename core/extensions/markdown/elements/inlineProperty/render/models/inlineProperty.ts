@@ -1,5 +1,5 @@
+import { Schema, SchemaType, Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { Config, Node } from "@ext/markdown/core/render/logic/Markdoc/src/types";
-import { SchemaType, Tag, Schema } from "@ext/markdown/core/render/logic/Markdoc";
 
 export const inlineProperty: Schema = {
 	render: "Inline-property",

@@ -1,11 +1,12 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
-import { Suspense, lazy, useState } from "react";
-import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
-import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
+import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
+import { lazy, Suspense, useState } from "react";
+import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
+
 const LazySwaggerUI = lazy(() => import("./SwaggerUI"));
 
 interface OpenApiProps {
@@ -26,8 +27,8 @@ const OpenApi = (props: OpenApiProps) => {
 	if (typeof window === "undefined" || !apiUrlCreator || !resourceService) return null;
 
 	resourceService.useGetResource(
-		(buffer: Buffer) => {
-			if (!buffer || !buffer?.byteLength) return setIsError(true);
+		(buffer, resourceError) => {
+			if (resourceError || !buffer || !buffer?.byteLength) return setIsError(true);
 			setData(buffer.toString());
 		},
 		src,
@@ -40,21 +41,21 @@ const OpenApi = (props: OpenApiProps) => {
 		<div data-qa="qa-open-api">
 			{isError ? (
 				<DiagramError
+					diagramName="OpenApi"
 					error={{ message: t("diagram.error.cannot-get-data") }}
 					title={t("diagram.error.specification")}
-					diagramName="OpenApi"
 				/>
 			) : (
 				<div className={className} data-focusable="true">
 					<Suspense
 						fallback={
 							<div className="suspense">
-								<SpinnerLoader width={75} height={75} />
+								<SpinnerLoader height={75} width={75} />
 							</div>
 						}
 					>
 						<BlockCommentView commentId={commentId}>
-							<LazySwaggerUI key={flag} defaultModelsExpandDepth={flag ? 1 : -1} spec={data} />
+							<LazySwaggerUI defaultModelsExpandDepth={flag ? 1 : -1} key={flag} spec={data} />
 						</BlockCommentView>
 					</Suspense>
 				</div>

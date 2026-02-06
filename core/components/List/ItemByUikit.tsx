@@ -1,9 +1,9 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { classNames } from "@components/libs/classNames";
-import { ItemProps } from "./Item";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { ForwardedRef, forwardRef } from "react";
+import { ItemProps } from "./Item";
 
 const itemClass =
 	"relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm text-primary-fg outline-none focus:bg-secondary-bg-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50";
@@ -33,7 +33,7 @@ const Item = forwardRef((props: ItemProps, ref: ForwardedRef<HTMLDivElement>) =>
 		if (isLoading) {
 			return (
 				<div className="loading-element">
-					<SpinnerLoader width={14} height={14} />
+					<SpinnerLoader height={14} width={14} />
 					&nbsp;
 					<span>{t("loading")}</span>
 				</div>
@@ -45,11 +45,11 @@ const Item = forwardRef((props: ItemProps, ref: ForwardedRef<HTMLDivElement>) =>
 
 	return (
 		<div
-			ref={ref}
-			data-qa="qa-clickable"
-			onMouseOver={onHover}
-			onClick={!disable ? onClick : null}
 			className={classNames("item", mods, [className, itemClass])}
+			data-qa="qa-clickable"
+			onClick={!disable ? onClick : null}
+			onMouseOver={onHover}
+			ref={ref}
 			{...otherProps}
 		>
 			{getContent()}

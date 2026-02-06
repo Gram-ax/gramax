@@ -1,7 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import GifImage from "@components/Atoms/Image/GifImage";
 import styled from "@emotion/styled";
-import { type HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 import { getUrlFileExtension } from "../../logic/getUrlFileExtension";
 
 export type RenderVideoProps = {
@@ -42,9 +42,9 @@ const SupportedVideoHostings: {
 	"youtube.com": (url, onLoad, onError) => {
 		const id = url.match(/v=([^&]+)/)?.[1];
 		return isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`} onLoad={onLoad} />
+			<PreviewVideo onLoad={onLoad} previewUrl={`https://img.youtube.com/vi/${id}/maxresdefault.jpg`} url={url} />
 		) : (
-			<IFrameVideo url={`https://youtube.com/embed/${id}`} onLoad={onLoad} onError={onError} />
+			<IFrameVideo onError={onError} onLoad={onLoad} url={`https://youtube.com/embed/${id}`} />
 		);
 	},
 	"youtu.be": (url, onLoad, onError) => {
@@ -53,26 +53,26 @@ const SupportedVideoHostings: {
 		const videoId = rel.match(/(.*)\?/)?.[1];
 		return isCredentiallessUnsupported ? (
 			<PreviewVideo
-				url={url}
-				previewUrl={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
 				onLoad={onLoad}
+				previewUrl={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+				url={url}
 			/>
 		) : (
-			<IFrameVideo url={`https://youtube.com/embed/${rel}`} onLoad={onLoad} onError={onError} />
+			<IFrameVideo onError={onError} onLoad={onLoad} url={`https://youtube.com/embed/${rel}`} />
 		);
 	},
 	"drive.google.com": (url, onLoad, onError) => {
 		return isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={"/images/gdrive.png"} onLoad={onLoad} />
+			<PreviewVideo onLoad={onLoad} previewUrl={"/images/gdrive.png"} url={url} />
 		) : (
-			<IFrameVideo url={url.replace("view", "preview")} onLoad={onLoad} onError={onError} />
+			<IFrameVideo onError={onError} onLoad={onLoad} url={url.replace("view", "preview")} />
 		);
 	},
 	"mega.nz": (url, onLoad, onError) =>
 		isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={"/images/meganz.png"} onLoad={onLoad} />
+			<PreviewVideo onLoad={onLoad} previewUrl={"/images/meganz.png"} url={url} />
 		) : (
-			<IFrameVideo url={url.replace(`/file/`, `/embed/`)} onLoad={onLoad} onError={onError} />
+			<IFrameVideo onError={onError} onLoad={onLoad} url={url.replace(`/file/`, `/embed/`)} />
 		),
 	"dropbox.com": (url, onLoad, onError) => {
 		const processedUrl = url.replace(
@@ -81,24 +81,24 @@ const SupportedVideoHostings: {
 		);
 
 		return !isVideoFormatSupported(url) ? (
-			<PreviewVideo url={url} previewUrl={"/images/dropbox.png"} onLoad={onLoad} />
+			<PreviewVideo onLoad={onLoad} previewUrl={"/images/dropbox.png"} url={url} />
 		) : (
-			<IFrameVideo url={processedUrl} onLoad={onLoad} onError={onError} />
+			<IFrameVideo onError={onError} onLoad={onLoad} url={processedUrl} />
 		);
 	},
 	"rutube.ru": (url, onLoad, onError) =>
 		isCredentiallessUnsupported ? (
-			<PreviewVideo url={url} previewUrl={"/images/rutube.png"} onLoad={onLoad} />
+			<PreviewVideo onLoad={onLoad} previewUrl={"/images/rutube.png"} url={url} />
 		) : (
-			<IFrameVideo url={rutubeUrlReplacer(url)} onLoad={onLoad} onError={onError} />
+			<IFrameVideo onError={onError} onLoad={onLoad} url={rutubeUrlReplacer(url)} />
 		),
 	// "sharepoint.com": (link) => <VideoTag link={link.replace(/\?e=.*?$/, "?download=1")} />,
 };
 
 const PreviewVideoUnstyled = ({ url, previewUrl, className, onLoad, ...props }: PreviewVideoProps) => {
 	return (
-		<a {...props} className={"video-js " + className} href={url} target="_blank" rel="noreferrer">
-			<GifImage noplay src={previewUrl} onLoad={onLoad} />
+		<a {...props} className={"video-js " + className} href={url} rel="noreferrer" target="_blank">
+			<GifImage noplay onLoad={onLoad} src={previewUrl} />
 		</a>
 	);
 };
@@ -110,7 +110,7 @@ const PreviewVideo = styled(PreviewVideoUnstyled)`
 	height: fit-content;
 `;
 
-export const IFrameVideo = ({ url, onLoad: onLoad, onError }: RenderVideoProps) => {
+export const IFrameVideo = ({ url, onLoad, onError }: RenderVideoProps) => {
 	const props = {
 		credentialless: "true",
 		allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture",
@@ -119,12 +119,12 @@ export const IFrameVideo = ({ url, onLoad: onLoad, onError }: RenderVideoProps) 
 
 	return (
 		<iframe
+			className="video-js focus-pointer-events"
+			data-focusable="true"
 			onError={onError}
 			onLoad={onLoad}
-			className="video-js focus-pointer-events"
-			style={{ border: "none" }}
-			data-focusable="true"
 			src={url}
+			style={{ border: "none" }}
 			{...props}
 		/>
 	);
@@ -133,17 +133,17 @@ export const IFrameVideo = ({ url, onLoad: onLoad, onError }: RenderVideoProps) 
 const RawVideo = ({ url, onLoad, onError }: RenderVideoProps) => {
 	return (
 		<video
-			id="my-player"
-			data-focusable="true"
 			className="video-js"
 			controls
-			preload="auto"
-			data-setup="{}"
 			crossOrigin="anonymous"
-			src={url}
-			onLoad={onLoad}
+			data-focusable="true"
+			data-setup="{}"
+			id="my-player"
 			onError={onError}
+			onLoad={onLoad}
 			onLoadedData={onLoad}
+			preload="auto"
+			src={url}
 		/>
 	);
 };
@@ -159,11 +159,11 @@ const RenderVideo = ({ url, setIsError, setIsLoaded }: RenderVideoPropsWithoutLo
 
 	if (typeof url !== "string") return;
 
-	if (url.includes("embed")) return <IFrameVideo url={url} onLoad={onLoad} onError={onError} />;
+	if (url.includes("embed")) return <IFrameVideo onError={onError} onLoad={onLoad} url={url} />;
 
 	return (
 		Object.entries(SupportedVideoHostings).find(([name]) => url.includes(name))?.[1](url, onLoad, onError) ?? (
-			<RawVideo url={url} onLoad={onLoad} onError={onError} />
+			<RawVideo onError={onError} onLoad={onLoad} url={url} />
 		)
 	);
 };

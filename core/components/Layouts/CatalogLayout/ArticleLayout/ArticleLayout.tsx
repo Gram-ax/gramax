@@ -35,12 +35,12 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 	return (
 		<div
 			className={classNames(className, { article: useArticleDefaultStyles })}
-			ref={articleRef}
 			onTransitionEnd={onRightNavTransitionEnd}
+			ref={articleRef}
 		>
 			<div
-				id="article"
 				className="article-content-wrapper"
+				id="article"
 				onMouseEnter={onArticleMouseEnter}
 				onMouseLeave={onArticleMouseLeave}
 				onTouchEnd={onArticleMouseEnter}

@@ -1,16 +1,15 @@
-import { Article } from "@core/FileStructue/Article/Article";
-import ChatBotSearcher, {
-	ChatBotSearchItem,
-	ChatBotSearchStream,
-	SearchArgs,
-	SearchStreamArgs,
-} from "@ext/serach/ChatBotSearcher";
-import { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { ChatResponse, ChatResponseItem, ChatStreamResponse } from "@ics/gx-vector-search";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type ChatBotSearcher from "@ext/serach/ChatBotSearcher";
+import type { ChatBotSearchItem, ChatBotSearchStream, SearchArgs, SearchStreamArgs } from "@ext/serach/ChatBotSearcher";
+import type { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import type { ChatResponse, ChatResponseItem, ChatStreamResponse } from "@ics/gx-vector-search";
 
 export default class ModulithChatBotSearcher implements ChatBotSearcher {
-	constructor(private readonly _searcher: RemoteModulithSearchClient, private readonly _wm: WorkspaceManager) {}
+	constructor(
+		private readonly _searcher: RemoteModulithSearchClient,
+		private readonly _wm: WorkspaceManager,
+	) {}
 
 	async search(args: SearchArgs): Promise<ChatBotSearchItem[]>;
 	async search(args: SearchStreamArgs): Promise<ChatBotSearchStream>;
@@ -35,14 +34,15 @@ export default class ModulithChatBotSearcher implements ChatBotSearcher {
 		switch (x.type) {
 			case "text":
 				return x;
-			case "link":
+			case "link": {
 				const article = await this._getArticleByLogicPath(x.link);
 				return !article
 					? null
 					: {
 							type: "articleRef" as const,
 							article,
-					  };
+						};
+			}
 			default:
 				return null;
 		}

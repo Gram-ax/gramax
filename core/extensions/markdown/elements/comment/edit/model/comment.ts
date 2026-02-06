@@ -1,11 +1,12 @@
+import isMobile from "@core-ui/utils/IsMobile";
+import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
+import getNearestNodeWithSameCommentId from "@ext/markdown/elements/comment/edit/logic/utils/getNearestNodeWithSameCommentId";
+import StateWatcher from "@ext/markdown/elements/comment/edit/logic/utils/StateWatcher";
+import { COMMENT_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
+import type { CommentOptions, CommentStorage } from "@ext/markdown/elements/comment/edit/model/types";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import space from "@ext/markdown/logic/keys/marks/space";
-import { Mark, Range } from "@tiptap/core";
-import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
-import StateWatcher from "@ext/markdown/elements/comment/edit/logic/utils/StateWatcher";
-import { CommentOptions, CommentStorage } from "@ext/markdown/elements/comment/edit/model/types";
-import { COMMENT_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
-import getNearestNodeWithSameCommentId from "@ext/markdown/elements/comment/edit/logic/utils/getNearestNodeWithSameCommentId";
+import { Mark, type Range } from "@tiptap/core";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -83,21 +84,30 @@ const Comment = Mark.create<CommentOptions, CommentStorage>({
 		dom.setAttribute("data-qa", "qa-comment");
 		dom.setAttribute("data-comment-id", HTMLAttributes.id);
 		dom.setAttribute("data-comment", "true");
+		const mobile = isMobile();
 
-		dom.addEventListener("mouseenter", () => {
-			this.editor.commands.hoverComment(HTMLAttributes.id);
-		});
+		if (!mobile) {
+			dom.addEventListener("mouseenter", () => {
+				this.editor.commands.hoverComment(HTMLAttributes.id);
+			});
 
-		dom.addEventListener("mouseleave", () => {
-			this.editor.commands.unhoverComment();
-		});
+			dom.addEventListener("mouseleave", () => {
+				this.editor.commands.unhoverComment();
+			});
+		}
 
-		dom.addEventListener("click", () => {
+		dom.addEventListener("click", (event) => {
 			const posAtDom = this.editor.view.posAtDOM(dom, 0);
 			if (!posAtDom) return;
 
 			const range = getNearestNodeWithSameCommentId(this.editor.state, posAtDom, HTMLAttributes.id);
-			if (range) this.editor.commands.openComment(HTMLAttributes.id, range);
+			if (!range) return;
+
+			event.preventDefault();
+			event.stopPropagation();
+
+			if (mobile) this.editor.commands.blur();
+			this.editor.commands.openComment(HTMLAttributes.id, range);
 		});
 
 		return { dom, contentDOM: dom };

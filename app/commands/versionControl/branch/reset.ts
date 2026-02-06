@@ -1,12 +1,12 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import haveInternetAccess from "@core/utils/haveInternetAccess";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
+import type ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
 import { Command } from "../../../types/Command";
 
@@ -18,9 +18,8 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 	middlewares: [new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { rp, wm, em } = this._app;
+		const { rp, wm } = this._app;
 		const workspace = wm.current();
-		const gesUrl = em.getConfig().gesUrl;
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
@@ -29,7 +28,7 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 		const isBare = catalog.repo.isBare;
 		let hasCheckout = false;
 		if (isBare) {
-			if ((await haveInternetAccess(gesUrl)) && storage && !data.isInvalid) await storage.fetch(data);
+			if ((await haveInternetAccess()) && storage && !data.isInvalid) await storage.fetch(data);
 			hasCheckout = (await catalog.repo.checkoutIfCurrentBranchNotExist(data)).hasCheckout;
 		}
 		if ((await haveInternetAccess()) && storage && !data.isInvalid) await storage.fetch(data, isBare);
@@ -41,10 +40,13 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 		const headCommitHash = await gvc.getHeadCommit();
 
 		const list = await catalog.repo.mergeRequests.list({ cached: false });
-		const mrs = list.reduce((acc, mr) => {
-			acc[mr.sourceBranchRef] = mr;
-			return acc;
-		}, {} as Record<string, MergeRequest>);
+		const mrs = list.reduce(
+			(acc, mr) => {
+				acc[mr.sourceBranchRef] = mr;
+				return acc;
+			},
+			{} as Record<string, MergeRequest>,
+		);
 
 		return (await gvc.resetBranches()).map(
 			(b): ClientGitBranchData => ({

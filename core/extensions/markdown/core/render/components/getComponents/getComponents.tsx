@@ -1,25 +1,31 @@
-import { ReactNode } from "react";
-import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
-import DiagramData from "../../../../elements/diagrams/component/DiagramData";
-
 import Error from "@components/Error";
 import Alert from "@ext/markdown/elements/alert/render/component/Alert";
+import { Answer } from "@ext/markdown/elements/answer/render/components/Answer";
+import BlockField from "@ext/markdown/elements/blockContentField/render/components/BlockField";
+import BlockProperty from "@ext/markdown/elements/blockProperty/render/components/BlockProperty";
 import Fence from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Color from "@ext/markdown/elements/color/render/components/Color";
+import Highlight from "@ext/markdown/elements/highlight/render/components/Highlight";
 import Html from "@ext/markdown/elements/html/render/components/HTML";
+import HtmlTag from "@ext/markdown/elements/htmlTag/render/component/HtmlTag";
+import InlineImage from "@ext/markdown/elements/inlineImage/render/components/InlineImage";
 import InlineProperty from "@ext/markdown/elements/inlineProperty/render/components/InlineProperty";
-import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
 import BulletList from "@ext/markdown/elements/list/render/BulletList";
 import OrderList from "@ext/markdown/elements/list/render/OrderList";
+import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
+import { Question } from "@ext/markdown/elements/question/render/components/Question";
 import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
 import View from "@ext/markdown/elements/view/render/components/View";
+import { ReactNode } from "react";
+import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
 import Cmd from "../../../../elements/cmd/render/Cmd";
 import Code from "../../../../elements/code/render/component/Code";
 import Cut from "../../../../elements/cut/render/component/Cut";
 import DbDiagram from "../../../../elements/diagramdb/render/DbDiagram";
+import DiagramData from "../../../../elements/diagrams/component/DiagramData";
 import Drawio from "../../../../elements/drawio/render/component/Drawio";
 import Formula from "../../../../elements/formula/render/Formula";
-import Header from "../../../../elements/heading/render/component/Header";
+import Header from "../../../../elements/heading/render/components/ArticleContentHeader";
 import Icon from "../../../../elements/icon/render/components/Icon";
 import Image from "../../../../elements/image/render/components/Image";
 import Images from "../../../../elements/imgs/render/Images";
@@ -40,13 +46,6 @@ import Term from "../../../../elements/term/render/Term";
 import Video from "../../../../elements/video/render/components/Video";
 import When from "../../../../elements/whowhen/render/When";
 import Who from "../../../../elements/whowhen/render/Who";
-import BlockField from "@ext/markdown/elements/blockContentField/render/components/BlockField";
-import BlockProperty from "@ext/markdown/elements/blockProperty/render/components/BlockProperty";
-import HtmlTag from "@ext/markdown/elements/htmlTag/render/component/HtmlTag";
-import InlineImage from "@ext/markdown/elements/inlineImage/render/components/InlineImage";
-import Highlight from "@ext/markdown/elements/highlight/render/components/Highlight";
-import { Answer } from "@ext/markdown/elements/answer/render/components/Answer";
-import { Question } from "@ext/markdown/elements/question/render/components/Question";
 
 export default function getComponents(): { [name: string]: (...props: any) => ReactNode } {
 	return {
@@ -108,8 +107,6 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		"Db-diagram": DbDiagram,
 		Mermaid: getDiagramRender(DiagramType.mermaid),
 		"Plant-uml": getDiagramRender(DiagramType["plant-uml"]),
-		"C4-diagram": getDiagramRender(DiagramType["c4-diagram"]),
-		"Ts-diagram": getDiagramRender(DiagramType["ts-diagram"]),
 	};
 }
 

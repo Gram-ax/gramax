@@ -1,10 +1,10 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
+import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import assert from "assert";
 import { Article } from "../../../../core/logic/FileStructue/Article/Article";
@@ -41,11 +41,13 @@ const get: Command<
 		await parseContent(article, catalog, ctx, parser, parserContextFactory);
 
 		ifNotExistsErrorText &&
-			(await article.parsedContent.read((p) => p?.resourceManager.assertExists(src, ifNotExistsErrorText)));
+			(await article.parsedContent.read((p) =>
+				p?.parsedContext?.getResourceManager()?.assertExists(src, ifNotExistsErrorText),
+			));
 
 		const hashItem = await article.parsedContent.read((p) => {
-			if (!p.resourceManager) return null;
-			return new HashResourceManager(src, p.resourceManager);
+			if (!p.parsedContext?.getResourceManager()) return null;
+			return new HashResourceManager(src, p.parsedContext.getResourceManager(), ctx);
 		});
 
 		return { hashItem, mime };

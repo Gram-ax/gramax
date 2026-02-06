@@ -1,8 +1,8 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
+import { ModalDescription, ModalTitle } from "@ui-kit/Modal";
 import { FormHeaderTemplate as UiKitFormHeaderTemplate } from "ics-ui-kit/components/form";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 import { FC } from "react";
-import { ModalTitle, ModalDescription } from "@ui-kit/Modal";
+import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitFormHeaderTemplateProps = ExtractComponentGeneric<typeof UiKitFormHeaderTemplate>;
 
@@ -18,9 +18,9 @@ export const FormHeader: FC<FormHeaderTemplateProps> = (props) => {
 	return (
 		<UiKitFormHeaderTemplate
 			{...otherProps}
-			title={<ModalTitle>{title}</ModalTitle>}
 			description={description && <ModalDescription>{description}</ModalDescription>}
 			icon={Icon as any}
+			title={<ModalTitle>{title}</ModalTitle>}
 		/>
 	);
 };

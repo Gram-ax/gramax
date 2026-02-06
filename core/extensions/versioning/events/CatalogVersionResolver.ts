@@ -1,7 +1,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
@@ -12,7 +12,10 @@ import type { Workspace } from "@ext/workspace/Workspace";
 export default class CatalogVersionResolver implements EventHandlerCollection {
 	private _catalogs = new WeakMap<Catalog, Map<string, CatalogEntry>>();
 
-	constructor(private _workspace: Workspace, private _rp: RepositoryProvider) {}
+	constructor(
+		private _workspace: Workspace,
+		private _rp: RepositoryProvider,
+	) {}
 
 	mount(): void {
 		if (getExecutingEnvironment() !== "next") return; // todo: add support in editor

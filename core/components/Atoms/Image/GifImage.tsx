@@ -1,7 +1,7 @@
-import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
+import Caption from "@components/Atoms/Caption";
+import type MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import PlayButton from "@components/Atoms/Image/PlayButton";
 import ImageSkeleton from "@components/Atoms/ImageSkeleton";
-import Caption from "@components/Atoms/Caption";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
@@ -9,12 +9,13 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import styled from "@emotion/styled";
-import React, {
-	ComponentProps,
+import {
+	type ComponentProps,
+	type MouseEvent,
 	memo,
-	MouseEvent,
-	ReactEventHandler,
-	ReactNode,
+	type ReactEventHandler,
+	type ReactNode,
+	type RefObject,
 	useCallback,
 	useLayoutEffect,
 	useRef,
@@ -29,7 +30,7 @@ interface GifImageProps {
 	noplay?: boolean;
 	onError?: ReactEventHandler<HTMLImageElement>;
 	onLoad?: () => void;
-	hoverElementRef?: React.RefObject<HTMLDivElement>;
+	hoverElementRef?: RefObject<HTMLDivElement>;
 	setIsHovered?: (isHovered: boolean) => void;
 	isHovered?: boolean;
 	rightActions?: ReactNode;
@@ -65,6 +66,7 @@ const GifImage = (props: GifImageProps) => {
 	const [thumbnail, setThumbnail] = useState<string>(null);
 	const [size, setSize] = useState(null);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected, because is ref
 	useLayoutEffect(() => {
 		if (!width?.endsWith("px")) return;
 		const parentWidth =
@@ -76,8 +78,8 @@ const GifImage = (props: GifImageProps) => {
 		const newSize = getAdjustedSize(newWidth, newHeight, parentWidth);
 
 		setSize({
-			width: newSize.width + "px",
-			height: newSize.height + "px",
+			width: `${newSize.width}px`,
+			height: `${newSize.height}px`,
 		});
 	}, [width, height]);
 
@@ -113,9 +115,9 @@ const GifImage = (props: GifImageProps) => {
 		const gif = gifRef.current;
 
 		if (!thumbnail) {
-			const w = (canvas.width = gif.width);
-			const h = (canvas.height = gif.height);
-			canvas.getContext("2d").drawImage(gif, 0, 0, w, h);
+			canvas.width = gif?.width;
+			canvas.height = gif?.height;
+			canvas.getContext("2d").drawImage(gif, 0, 0, canvas.width, canvas.height);
 
 			canvas.toBlob((blob) => {
 				setThumbnail(URL.createObjectURL(blob));
@@ -129,25 +131,25 @@ const GifImage = (props: GifImageProps) => {
 		<div className={className}>
 			<div>
 				<div
-					onDoubleClick={onDoubleClick}
 					className={classNames("ff-container", { "ff-active": isPlaying, "ff-inactive": !isPlaying })}
+					onDoubleClick={onDoubleClick}
 				>
 					<HoverableActions
 						hoverElementRef={hoverElementRef}
 						isHovered={isHovered}
-						setIsHovered={setIsHovered}
 						rightActions={rightActions}
+						setIsHovered={setIsHovered}
 					>
-						<ImageSkeleton width={size?.width} height={size?.height} isLoaded={!!thumbnail}>
-							<PlayButton onClick={onPlayButtonClick} ref={buttonRef} className="ff-button" />
-							<canvas className="ff-canvas" ref={canvasRef} data-focusable="true" />
+						<ImageSkeleton height={size?.height} isLoaded={!!thumbnail} width={size?.width}>
+							<PlayButton className="ff-button" onClick={onPlayButtonClick} ref={buttonRef} />
+							<canvas className="ff-canvas" data-focusable="true" ref={canvasRef} />
 							<div className="ff-gif" data-focusable={true} onClick={onImageClick}>
 								<img
-									src={(!thumbnail && !isPlaying) || (isPlaying && thumbnail) ? src : thumbnail}
 									alt={alt}
+									onError={onError}
 									onLoad={preOnLoad}
 									ref={gifRef}
-									onError={onError}
+									src={(!thumbnail && !isPlaying) || (isPlaying && thumbnail) ? src : thumbnail}
 								/>
 							</div>
 						</ImageSkeleton>
@@ -216,8 +218,8 @@ export default styled(memo(GifImage))`
 			z-index: var(--z-index-foreground);
 			color: var(--color-white);
 			cursor: pointer;
-			max-width: 5.875em;
-			max-height: 5.875em;
+			height: min(5em, 70%);
+			width: auto;
 			background-size: contain;
 			background-position: center;
 			background-repeat: no-repeat;

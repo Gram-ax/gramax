@@ -48,21 +48,21 @@ const ObjectRenderer = (props: ObjectRendererProps) => {
 
 		return (
 			<UnifiedComponent
-				key={index}
 				index={index}
-				parentRef={parentRef}
 				isPixels={percentToPx}
+				key={index}
+				parentRef={parentRef}
 				{...newData}
+				changeData={changeData}
+				drawIndexes={objects.length > 1}
+				editable={editable}
+				onClick={onClick}
 				selectedIndex={selectedIndex}
 				style={{
 					marginLeft: noStyles ? undefined : isNotLeft && `calc(-1.4em * ${1 - scaleFactor})`,
 					marginTop: noStyles ? undefined : isNotTop && `calc(-1.4em * ${1 - scaleFactor})`,
 				}}
-				editable={editable}
 				type={data.type}
-				drawIndexes={objects.length > 1}
-				onClick={onClick}
-				changeData={changeData}
 			/>
 		);
 	});

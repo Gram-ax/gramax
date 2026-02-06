@@ -7,11 +7,11 @@ const StrikeMenuButton = ({ editor }: { editor: Editor }) => {
 	const { disabled, isActive } = ButtonStateService.useCurrentAction({ mark: "s" });
 	return (
 		<ToolbarToggleButton
-			tooltipText={t("strike")}
+			active={isActive}
+			disabled={disabled}
 			hotKey={"Mod-Shift-X"}
 			onClick={() => editor.chain().focus().toggleStrike().run()}
-			disabled={disabled}
-			active={isActive}
+			tooltipText={t("strike")}
 		>
 			<ToolbarIcon icon={"strikethrough"} />
 		</ToolbarToggleButton>
