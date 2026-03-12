@@ -7,7 +7,7 @@ import type FilePreviewModal from "@ext/markdown/elements/file/edit/components/P
 import type { ComponentProps } from "react";
 
 const MEDIA_EXTENSIONS = ["png", "jpg", "jpeg", "webp"];
-const FILE_EXTENSIONS = ["docx", "pdf"];
+const FILE_EXTENSIONS = ["docx", "pdf", "xls", "xlsx"];
 
 interface OpenPreviewOptions {
 	onError: () => void;

@@ -1,9 +1,10 @@
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -32,7 +33,7 @@ interface DiagramDataProps {
 const DiagramData = (props: DiagramDataProps) => {
 	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId, float, isPrint } = props;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
-	const { useGetResource, getBuffer } = ResourceService.value;
+	const { getBuffer } = ResourceService.value;
 
 	const ref = useRef<HTMLDivElement | HTMLImageElement>(null);
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -41,6 +42,7 @@ const DiagramData = (props: DiagramDataProps) => {
 	const [error, setError] = useState(null);
 	const [size, setSize] = useState<{ width: string; height: string }>(null);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const buffer = getBuffer(src);
 		if (!buffer?.byteLength) return;
@@ -58,7 +60,7 @@ const DiagramData = (props: DiagramDataProps) => {
 		const computedStyleOne = window.getComputedStyle(container.parentElement);
 		const computedStyleTwo = window.getComputedStyle(container);
 		const offset = parseFloat(computedStyleTwo.marginTop) * 2 + parseFloat(computedStyleOne.paddingTop) * 2;
-		setSize({ width: parentWidth + "px", height: newSize.height + offset + "px" });
+		setSize({ width: `${parentWidth}px`, height: `${newSize.height + offset}px` });
 	}, [width, height]);
 
 	useGetResource(
@@ -87,7 +89,7 @@ const DiagramData = (props: DiagramDataProps) => {
 	);
 
 	return (
-		<div data-float={float} data-qa="qa-diagram-data" ref={parentRef}>
+		<div data-component="diagram" data-float={float} data-qa="qa-diagram-data" ref={parentRef}>
 			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
 				<Skeleton height={size?.height} isLoaded={isLoaded} width={size?.width}>
 					<DiagramRender

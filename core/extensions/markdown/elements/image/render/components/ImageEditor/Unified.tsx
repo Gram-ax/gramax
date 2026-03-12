@@ -1,8 +1,8 @@
 import useWatch from "@core-ui/hooks/useWatch";
-import { ImageObject, ImageObjectTypes } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { type ImageObject, ImageObjectTypes } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import Annotation from "@ext/markdown/elements/image/render/components/ImageEditor/Annotation";
 import Square from "@ext/markdown/elements/image/render/components/ImageEditor/Square";
-import { CSSProperties, RefObject, useState } from "react";
+import { type CSSProperties, type RefObject, useState } from "react";
 
 interface UnifiedComponentProps extends ImageObject {
 	index: number;
@@ -14,6 +14,7 @@ interface UnifiedComponentProps extends ImageObject {
 	isPixels?: boolean;
 }
 
+// biome-ignore lint/suspicious/noExplicitAny: it's ok
 const Components: Record<ImageObjectTypes, React.FC<any>> = {
 	[ImageObjectTypes.Unknown]: null,
 	[ImageObjectTypes.Annotation]: Annotation,

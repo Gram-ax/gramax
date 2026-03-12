@@ -1,15 +1,15 @@
-import { Button, ButtonProps } from "@ui-kit/Button";
+import { Button, type ButtonProps } from "@ui-kit/Button";
 import {
-	Modal,
-	ModalBody,
-	ModalClose,
-	ModalContent,
-	ModalDescription,
-	ModalFooter,
-	ModalHeader,
-	ModalTitle,
-} from "@ui-kit/Modal";
-import { ReactElement } from "react";
+	Dialog,
+	DialogBody,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@ui-kit/Dialog";
+import type { ReactElement } from "react";
 
 type ModalButtonProps = {
 	text: string;
@@ -47,24 +47,24 @@ const DefaultModal = ({
 	};
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
-			<ModalContent>
-				<ModalHeader className="lg:pb-1 pb-1">
-					<ModalTitle className={modalStatusSettings[status].className}>{title}</ModalTitle>
-					{!!description && <ModalDescription>{description}</ModalDescription>}
-					<ModalClose />
-				</ModalHeader>
-				{!!content && <ModalBody>{content}</ModalBody>}
-				<ModalFooter className="flex gap-2 px-4 pb-4 lg:px-6 lg:pb-6 justify-end">
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			<DialogContent>
+				<DialogHeader className="lg:pb-1 pb-1">
+					<DialogTitle className={modalStatusSettings[status].className}>{title}</DialogTitle>
+					{!!description && <DialogDescription>{description}</DialogDescription>}
+					<DialogClose />
+				</DialogHeader>
+				{!!content && <DialogBody>{content}</DialogBody>}
+				<DialogFooter className="flex gap-2 px-4 pb-4 lg:px-6 lg:pb-6 justify-end">
 					{!!secondaryButtonProps && <Button {...secondaryButtonProps}>{secondaryButtonProps.text}</Button>}
 					{!!primaryButtonProps && (
 						<Button {...primaryButtonProps} status={status}>
 							{primaryButtonProps.text}
 						</Button>
 					)}
-				</ModalFooter>
-			</ModalContent>
-		</Modal>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

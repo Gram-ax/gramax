@@ -1,11 +1,12 @@
 import { healthcheckEvents } from "@ext/git/core/GitCommands/errors/HealthcheckEvents";
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
+import { span } from "@ext/loggers/opentelemetry";
 
 let callbackId = 0;
 const callbacks = {};
 
-export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
+export const callGitWasm = async <O>(command: string, args: any = {}): Promise<O> => {
 	const promise = new Promise((resolve, reject) => {
 		callbacks[++callbackId] = {
 			resolve,
@@ -13,6 +14,11 @@ export const callGitWasm = async <O>(command: string, args?): Promise<O> => {
 		};
 	});
 
+	const ctx = span()?.spanContext();
+	if (ctx) {
+		args.spanId = ctx.spanId;
+		args.traceId = ctx.traceId;
+	}
 	window.wasm.postMessage({
 		type: "git-call",
 		command,

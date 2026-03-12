@@ -8,6 +8,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import { MergeRequestStatus } from "@ext/git/core/GitMergeRequest/components/Elements/Status";
@@ -37,16 +38,20 @@ const useIsMergeAvailable = ({ mergeRequest, status, hasConflicts }: MergeButton
 	return { disabled: false, reason: null };
 };
 
-const MergeButtonWrapper = styled.div`
+const MergeButtonWrapper = styled.div<{ isMrDisabled: boolean }>`
 	i > svg {
 		fill: var(--color-text-accent);
 	}
 
-	&:hover {
-		i > svg {
-			fill: white;
-		}
-	}
+	${({ isMrDisabled }) =>
+		!isMrDisabled &&
+		css`
+			&:hover {
+				i > svg {
+					fill: white;
+				}
+			}
+		`}
 `;
 
 const MergeButton = ({ mergeRequest, status }: MergeButtonProps) => {
@@ -79,7 +84,7 @@ const MergeButton = ({ mergeRequest, status }: MergeButtonProps) => {
 	}, [apiUrlCreator, mergeRequest]);
 
 	const button = (
-		<MergeButtonWrapper>
+		<MergeButtonWrapper isMrDisabled={disabled}>
 			<Button
 				buttonStyle={ButtonStyle.orange}
 				disabled={disabled}

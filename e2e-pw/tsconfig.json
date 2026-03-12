@@ -27,6 +27,8 @@
 		"noUnusedParameters": false,
 		"noPropertyAccessFromIndexSignature": false,
 
+		"types": ["Bun", "@playwright/test"],
+
 		"paths": {
 			"@gramax/*": ["../*"],
 			"@shared-pom/*": ["./shared-pom/atoms/*", "./shared-pom/*"],

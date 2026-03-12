@@ -48,7 +48,7 @@ const locale = {
 				},
 				filterProperty: {
 					name: "Filter Property",
-					placeholder: "Select a property for filtering",
+					placeholder: "Select a property",
 					description: "Select a flag or enum property to use for filtering the catalog",
 					none: "No filter",
 				},
@@ -160,7 +160,7 @@ const locale = {
 				},
 				token: {
 					name: "Token",
-					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
+					placeholder: "glpat-***************-***",
 					description: "Token used for authorization on the git server",
 				},
 				password: {
@@ -210,7 +210,7 @@ const locale = {
 				},
 				token: {
 					name: "GitLab Token",
-					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
+					placeholder: "glpat-***************-***",
 					description: "Token used for authorization on the GitLab server",
 				},
 				url: {
@@ -800,7 +800,7 @@ title: 403
 title: Unable to display the article
 ---
 `,
-				body: `[alert:error:Gramax couldn’t read the Markdown structure in the article file].\n\nFix the error or remove the structure by "Edit Markdown".\n\n[/alert]`,
+				body: `[alert:error:Gramax couldn’t read the Markdown structure in the article file].\n\nFix the error or remove the structure by «Edit Markdown».\n\n[/alert]`,
 			},
 		},
 		searchPhrases: {
@@ -913,6 +913,7 @@ title: Unable to display the article
 			"no-private-groups": "No private groups set. Learn more https://docs.ics-it.ru/doc-reader/catalog/private",
 			"need-permission": "Need access to the catalog",
 			"incorrect-ticket": "Incorrect ticket",
+			"failed-to-copy": "Failed to copy to clipboard",
 		},
 	},
 	diagram: {
@@ -1001,6 +1002,14 @@ title: Unable to display the article
 			networkError: "Network error. Please try again",
 		},
 	},
+	"enterprise-cloud-guest": {
+		buttons: {
+			continueWithGoogle: "Continue with Google",
+			continueWithYandex: "Continue with Yandex",
+			continueWithoutAccount: "Continue without account",
+		},
+		description: "Sign in to sync across devices and collaborate",
+	},
 	cloud: {
 		"publish-to-cloud": "Publish to Cloud",
 		"login-modal": {
@@ -1050,7 +1059,7 @@ title: Unable to display the article
 		name: "Search",
 		open: "Open search",
 		placeholder: "Enter query",
-		desc: '<ul><li>Use <code>"</code> for exact matches. Example:&nbsp;<code><nobr>"word"</nobr></code> or <code><nobr>"search phrase"</nobr></code>.</li><li>Use <code>-</code> to exclude. Example:&nbsp;<code><nobr>-word</nobr></code> or <code><nobr>-"excluded phrase"</nobr></code>.</li></ul>',
+		desc: '<ul><li>Use <code>"</code> for exact matches. Example:&nbsp;<code><nobr>"word"</nobr></code> or <code><nobr>"search phrase"</nobr></code>.</li><li>Use <code>-</code> to exclude. Example:&nbsp;<code><nobr>-word</nobr></code> or <code><nobr>-"excluded phrase"</nobr></code>.</li><li>Use <code>+</code> to force inclusion. Example:&nbsp;<code><nobr>+word</nobr></code> or <code><nobr>+"exact phrase"</nobr></code>.</li></ul>',
 		"articles-not-found": "No articles found",
 		"all-catalogs": "Search all catalogs",
 		ai: "AI search",
@@ -1060,7 +1069,13 @@ title: Unable to display the article
 		"indexing-info": "Indexing...",
 		"hidden-results": "...{{count}} more",
 		recommended: "Recommended",
+		current: "Current article",
 		"property-filter-tooltip": "Property filter",
+		"resource-filter": {
+			"with-resources": "With files",
+			"without-resources": "Without files",
+			"only-resources": "Only in files",
+		},
 	},
 	list: {
 		"no-results-found": "No results found",
@@ -1413,6 +1428,7 @@ title: Unable to display the article
 			approval: {
 				approved: "Approved",
 				unapproved: "Pending review",
+				"publish-tooltip": "Approval takes effect only after you publish the changes",
 			},
 			status: {
 				draft: "Draft",
@@ -1576,6 +1592,7 @@ title: Unable to display the article
 				name: "Question type",
 				one: "One answer",
 				many: "Multiple answers",
+				text: "Free answer",
 			},
 			answer: {
 				add: "Add answer",
@@ -1741,8 +1758,9 @@ title: Unable to display the article
 	enterprise: {
 		"user-not-found":
 			"This email isn't set up for Gramax Enterprise Server. You can continue using the full features of the free version or contact your admin for further assistance.",
-		"workspace-exit-warning": "Are you sure you want to exit?",
-		"workspace-exit": "Exit Workspace",
+		"workspace-exit-warning":
+			"Workspace will be closed for the current session.<br>Catalogs will be saved and will be available again after login",
+		"workspace-exit": "Sign out of workspace",
 		"check-if-user-editor-warning": "Make sure you have been issued an editor license.",
 		"access-restricted": "Access restricted",
 		"config-error": "Configuration issues. Contact your administrator.",
@@ -1790,6 +1808,7 @@ title: Unable to display the article
 				resources: "Repositories",
 				mail: "Mail server",
 				guests: "External readers",
+				roles: "Roles",
 				quiz: "Training",
 				modules: "Modules",
 				metrics: "Metrics",
@@ -1835,6 +1854,7 @@ title: Unable to display the article
 			quiz: {
 				"test-info": {
 					"correct-answers-count": "Correct answers count",
+					"answers-count": "Answers count",
 				},
 				switch: {
 					on: "The training module is enabled",
@@ -1857,11 +1877,23 @@ title: Unable to display the article
 						loading: "Loading tests...",
 						empty: "Tests not found",
 					},
+					result: {
+						name: "Result",
+						passed: "Passed",
+						failed: "Failed",
+					},
 				},
 				"users-test-table": {
 					test: "Test name",
 					user: "User",
 					version: "Version",
+					result: {
+						name: "Result",
+						passed: "Passed",
+						failed: "Failed",
+						free: "The test has no correct answers",
+						tooltip: "Number of correct answers: ${countOfCorrectAnswers} out of ${countQuestions}",
+					},
 					"updated-at": "Updated at",
 					"created-at": "Completed at",
 				},
@@ -2041,20 +2073,27 @@ title: Unable to display the article
 			canceled: "Cancelling...",
 
 			form: {
-				title: "Export to PDF",
-				description: "Generate PDF from the selected catalog element.",
+				title: {
+					catalog: "Export catalog to PDF",
+					category: "Export section to PDF",
+					article: "Export article to PDF",
+				},
+				description: "Customize content and formatting.",
 				titlePage: "Title page",
 				titlePageDescription: "Add a title page with the catalog/section name and basic information.",
 				tocPage: "Table of contents",
 				tocPageDescription:
 					"Add a section with a table of contents, where the catalog sections and page numbers will be listed.",
-				titleNumber: "Title numbers",
-				titleNumberDescription: "Add numbers for headings.",
+				titleNumber: "Section numbering",
+				titleNumberDescription: "Automatic numbering of article titles",
 				template: "Custom template",
 				templateDescription: {
 					body: "Use custom CSS styles to format the PDF.",
-					more: "Learn more about creating templates in the project documentation.",
+					more: "More",
 				},
+				sectionTitle: "Document content and formatting",
+				openPrint: "Open print dialog",
+				printDialog: 'In the print dialog select "Save as PDF"',
 				footerDescription:
 					"After exporting, the browser’s print dialog will open.\nSelect A4, and in the “Printer/Destination” field choose Save as PDF.",
 			},
@@ -2084,7 +2123,7 @@ title: Unable to display the article
 	"no-selected": "No selected",
 	"comment-on": "Comment",
 	company: "Internal documentation",
-	configure: "Edit",
+	configure: "Configure",
 	confirm: "Confirm",
 	continue: "Continue",
 	copied: "Copied",
@@ -2236,6 +2275,7 @@ title: Unable to display the article
 	"check-links": "Links",
 	"check-unsupported": "Unsupported elements",
 	"check-content": "Articles",
+	"check-comments": "Comments",
 	"choose-header": "Choose header",
 	"clarifying-tags": "Clarifying tags",
 	"click-to-copy": "Click to copy",
@@ -2311,6 +2351,7 @@ title: Unable to display the article
 	"incorrects-paths": "Incorrect paths",
 	"incorrects-unsupported": "Elements",
 	"incorrects-content": "Incorrect syntax",
+	"incorrects-comments": "Unassigned comments",
 	"markdown-error": "Incorrect markdown",
 	"info-text": "Information",
 	"init-git-version-control": "Initialize Git",
@@ -2698,6 +2739,7 @@ title: Unable to display the article
 			answered: "Answered",
 			total: "Total",
 			send: "Send answers",
+			retake: "Retake test",
 			statistics: {
 				title: "Statistics",
 				"correct-answers": "Correct answers",
@@ -2711,11 +2753,19 @@ title: Unable to display the article
 				title: "Show answers",
 				description: "Show answers to the questions after the test is completed",
 			},
+			retake: {
+				title: "User can retake the test",
+				description: "Allow users to retake the test if they fail it",
+			},
 			"precent-of-correct-answers": {
-				title: "Percentage of correct answers",
-				description: "The percentage of correct answers to pass the test",
+				title: "Count of correct answers",
+				description: "The count of correct answers to pass the test",
 				placeholder: "Number between 0 and 100",
 			},
+		},
+		"answer-placeholder": {
+			edit: "Here will be the field for entering text",
+			render: "Write the answer",
 		},
 		"required-questions": "Please answer all required questions",
 	},
@@ -2782,7 +2832,6 @@ title: Unable to display the article
 		"failed-to-load": "Failed to load metrics data",
 		disabled: "The metrics module is disabled",
 		enabled: "The metrics module is enabled",
-		"no-data-available": "No data available",
 		filters: {
 			date: {
 				today: "Today",

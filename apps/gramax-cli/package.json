@@ -5,7 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "npm run build:cli && npm run build:bundle && node build.js",
-		"build:bundle": "vite build --ssrManifest --outDir ./dist/bundle",
+		"build:bundle": "vite build --outDir ./dist/bundle",
 		"build:cli": "vite build --ssr src/index.ts --outDir ./dist",
 		"cli": "node ./dist/index.js"
 	},
@@ -24,6 +24,6 @@
 	},
 	"devDependencies": {
 		"@types/shelljs": "^0.8.15",
-		"vite-plugin-static-copy": "^2.2.0"
+		"vite-plugin-static-copy": "^2.3.2"
 	}
 }

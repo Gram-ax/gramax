@@ -1,4 +1,5 @@
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import safeDecode from "@core/utils/safeDecode";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { useEffect, useRef } from "react";
 
@@ -13,21 +14,18 @@ const useScrollToArticleAnchor = (data: ArticlePageData) => {
 			if (!articleRef.current) return;
 
 			const anchorId = window.location.hash.substring(1);
-			if (!anchorId) {
-				return articleRef.current.scrollTo({ top: 0 });
-			}
+			if (!anchorId) return;
 
 			_data.current = data;
 
 			const getElemAndScroll = () => {
 				const anchorId = window.location.hash.substring(1);
-
 				if (!anchorId) {
 					if (articleRef.current) articleRef.current.scroll();
 					return;
 				}
 
-				const anchor = articleRef.current.querySelector(`#${CSS.escape(decodeURI(anchorId))}`);
+				const anchor = articleRef.current.querySelector(`#${CSS.escape(safeDecode(anchorId))}`);
 
 				if (anchor) anchor.scrollIntoView({ behavior: "smooth", block: "start" });
 			};
@@ -39,7 +37,7 @@ const useScrollToArticleAnchor = (data: ArticlePageData) => {
 			_data.current = null;
 			if (timeout.current) clearTimeout(timeout.current);
 		};
-	}, [data, articleRef.current]);
+	}, [data]);
 };
 
 export default useScrollToArticleAnchor;

@@ -36,7 +36,7 @@ try {
 			break;
 		default: {
 			parsed ? console.error(`failed: unknown command: ${parsed}`) : console.error("failed: no command provided");
-			const msg = "available commands: build, sign, make-icons, upload, sign-ci-windows, version";
+			const msg = "available commands: build, sign, make-icons, upload, sign-ci-windows, version\nyou can also use FORCE_CHANNEL and FORCE_HOST to override the default values";
 			console.error(msg);
 			process.exit(1);
 		}

@@ -3,7 +3,9 @@ import { getNodeNameFromCursor } from "@core-ui/ContextServices/ButtonStateServi
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
 import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { callOrReturn, InputRule, mergeAttributes, Node } from "@tiptap/core";
-// import updateId from "@ext/markdown/elements/heading/edit/plugins/updateId";
+import { handleAltNumbers } from "../logic/keymaps/handleAltNumbers";
+import { handleBackspace } from "../logic/keymaps/handleBackspace";
+import { handleEnter } from "../logic/keymaps/handleEnter";
 
 export type Level = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -79,30 +81,9 @@ const Heading = Node.create<HeadingOptions>({
 
 	addKeyboardShortcuts() {
 		return {
-			...this.options.levels
-				.filter((level) => level < 5)
-				.reduce(
-					(items, level) => ({
-						...items,
-						...{
-							[`Mod-Alt-${level}`]: () => {
-								if (this.editor.state.selection.$from.parent === this.editor.state.doc.firstChild)
-									return false;
-
-								return this.editor.commands.toggleHeading({ level });
-							},
-						},
-					}),
-					{},
-				),
-			Enter: ({ editor }) => {
-				const { $from } = editor.state.selection;
-				if ($from.parent.type.name !== "heading") return false;
-				if ($from.parentOffset === 0) return false;
-				if ($from.parentOffset + 2 === $from.parent.nodeSize) return false;
-
-				return editor.chain().focus().splitBlock().toggleNode("paragraph", this.name).run();
-			},
+			...handleAltNumbers(this.editor, this.options.levels),
+			Backspace: ({ editor }) => handleBackspace(editor),
+			Enter: ({ editor }) => handleEnter(editor),
 		};
 	},
 

@@ -95,7 +95,7 @@
 .article .h3 + ul,
 .article .h2 + ul + .admonition + ul,
 .article ul {
-	padding-left: 20px;
+	padding-left: 1.25em;
 }
 
 .article .h2 + ol,
@@ -168,8 +168,12 @@ article a i.link-icon {
 	vertical-align: middle;
 }
 
-article a span.external-link-wrapper {
-	display: inline-flex;
+article a:has(> span.external-link-wrapper) {
+	white-space: nowrap;
+
+	> span.external-link-wrapper {
+		display: inline-flex;
+	}
 }
 
 .article p,

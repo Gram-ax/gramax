@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, getAvatarFallback } from "@ui-kit/Avatar";
 import { Label } from "@ui-kit/Label";
 import { StepperIndicator, StepperItem, StepperTitle, StepperTrigger } from "@ui-kit/Stepper";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { type HTMLAttributes, memo, useCallback, useState } from "react";
+import { type HTMLAttributes, memo, type RefObject, useCallback, useState } from "react";
 
 interface CommentMessageProps extends Omit<HTMLAttributes<HTMLDivElement>, "content"> {
 	index: number;
@@ -21,6 +21,7 @@ interface CommentMessageProps extends Omit<HTMLAttributes<HTMLDivElement>, "cont
 	autofocus?: FocusPosition;
 	showName?: boolean;
 	showAvatar?: boolean;
+	containerRef?: RefObject<HTMLDivElement>;
 	onConfirm: (index: number, content: JSONContent[], hide: boolean) => void;
 	onDelete?: (index: number) => void;
 }
@@ -39,6 +40,8 @@ export const CommentMessage = memo((props: CommentMessageProps) => {
 		onConfirm,
 		className,
 		onDelete,
+		last,
+		containerRef,
 		...otherProps
 	} = props;
 	const [isEditing, setIsEditing] = useState(editable);
@@ -103,6 +106,7 @@ export const CommentMessage = memo((props: CommentMessageProps) => {
 						)}
 						<CommentInput
 							autofocus={autofocus || isOldContent}
+							containerRef={containerRef}
 							content={content}
 							editable={isEditing}
 							isNewComment={!content}

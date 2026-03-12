@@ -15,6 +15,7 @@ import type { QuizSettings } from "@ext/enterprise/components/admin/settings/qui
 import QuizComponent from "@ext/enterprise/components/admin/settings/quiz/QuizComponent";
 import ResourcesComponent from "@ext/enterprise/components/admin/settings/resources/ResourcesComponent";
 import type { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import RolesComponent from "@ext/enterprise/components/admin/settings/roles/RolesComponent";
 import StyleGuideComponent, {
 	type StyleGuideSettings,
 } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
@@ -41,6 +42,7 @@ export enum Page {
 	USER_GROUPS = "groups",
 	MAIL = "mail",
 	GUESTS = "guests",
+	ROLES = "roles",
 }
 
 export type Settings = {
@@ -73,4 +75,5 @@ export const PageComponents: Record<Page, ComponentType> = {
 	[Page.METRICS]: MetricsPage,
 	[Page.VIEW_METRICS]: ViewMetricsComponent,
 	[Page.SEARCH_METRICS]: SearchMetricsComponent,
+	[Page.ROLES]: RolesComponent,
 };

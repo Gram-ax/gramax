@@ -18,17 +18,17 @@ import SelectTargetWorkspaceAndCatalog, { type SelectCatalogResult } from "./Sel
 
 interface ArticleMoveActionProps {
 	articlePath: string;
-	catalogName: string;
 }
 
-const ArticleMoveAction = ({ articlePath, catalogName: sourceCatalogName }: ArticleMoveActionProps) => {
+const ArticleMoveAction = ({ articlePath }: ArticleMoveActionProps) => {
+	const router = useRouter();
+	const { sourceCatalogName, hasLanguage } = useCatalogPropsStore((state) => ({
+		sourceCatalogName: state.data?.name,
+		hasLanguage: state.data?.supportedLanguages?.length > 1 || !!state.data?.language,
+	}));
 	const targetWorkspaceRef = useRef<WorkspacePath | null>(null);
 	const targetCatalogRef = useRef<string | null>(null);
 	const createNewCatalogRef = useRef<boolean>(false);
-
-	const hasLanguage = useCatalogPropsStore((s) => s.data?.supportedLanguages?.length > 1 || !!s.data?.language);
-
-	const router = useRouter();
 
 	const { show, dismiss } = useDismissableToast({
 		title: t("article.move.progress"),

@@ -17,7 +17,6 @@ import type Method from "@core-ui/ApiServices/Types/Method";
 import type MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import type Url from "@core-ui/ApiServices/Types/Url";
 import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
-import PersistentLogger from "@ext/loggers/PersistentLogger";
 import BrowserApiResponse from "./BrowserApiResponse";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -38,8 +37,6 @@ const fetchSelf = async (
 
 	if (!command) {
 		const msg = `Route ${route} was not found`;
-		const err = new Error(msg);
-		PersistentLogger.err("command not found", err, "cmd", { body });
 		res.statusCode = 404;
 		res.send(msg);
 		return res as unknown as FetchResponse;
@@ -58,7 +55,6 @@ const fetchSelf = async (
 			language: RouterPathProvider.parsePath(window.location.pathname)?.language,
 		});
 		const params = command.params(ctx, req.query as Query, req.body, signal);
-		PersistentLogger.info(`executing command ${route}`, "cmd", { ...req.query });
 		const result = await command.do(params);
 		_onDidCommand?.(route, req.query, result);
 		await respond(app, req, res, command.kind, result);

@@ -1,6 +1,7 @@
 import { isTauriMobile } from "@app/resolveModule/env";
 import IoError from "@core/FileProvider/DiskFileProvider/DFPIOError";
-import { convertFileSrc, type InvokeArgs, invoke } from "@tauri-apps/api/core";
+import { convertFileSrc, type InvokeArgs } from "@tauri-apps/api/core";
+import { invoke } from "../../../apps/tauri/src/window/commands";
 
 const CUSTOM_PROTOCOL_COMMANDS = isTauriMobile() ? ["read_file"] : ["read_file", "write_file"];
 
@@ -51,6 +52,8 @@ const callAsPlugin = async <O>(command: string, args: InvokeArgs): Promise<O> =>
 };
 
 export const call = async <O>(command: string, args: InvokeArgs): Promise<O> => {
-	if (CUSTOM_PROTOCOL_COMMANDS.includes(command)) return await callAsCustomProtocol(command, args as any);
+	if (CUSTOM_PROTOCOL_COMMANDS.includes(command))
+		// biome-ignore lint/suspicious/noExplicitAny: i am sure
+		return await callAsCustomProtocol(command, args as any);
 	return await callAsPlugin(command, args);
 };

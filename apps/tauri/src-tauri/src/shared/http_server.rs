@@ -33,6 +33,7 @@ pub fn start_ping_server<F: Fn(&Request) + Send + Sync + 'static>(on_request: F)
 	});
 }
 
+#[tracing::instrument(skip(on_request))]
 fn serve_oauth<F: FnOnce(&Request)>(action: OauthListenOnceAction, on_request: F) -> Result<(), Error> {
 	let server = Server::http(HTTP_OAUTH_SERVER_ADDRESS)?;
 	info!("http-server started at {HTTP_OAUTH_SERVER_ADDRESS}");

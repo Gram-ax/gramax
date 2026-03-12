@@ -1,7 +1,8 @@
-import PageDataContext from "@core/Context/PageDataContext";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { linkPastePlugin } from "@ext/markdown/elements/link/edit/logic/linkPastePlugin";
+import { syncLinkText } from "@ext/markdown/elements/link/edit/model/helpers/syncLinkText";
 import { hoverTooltip } from "@ext/markdown/elements/link/edit/model/helpers/termsTooltip";
 import simpleLink from "@ext/markdown/elements/link/edit/model/simpleLink";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
@@ -18,7 +19,7 @@ export interface LinkOptions {
 	apiUrlCreator?: ApiUrlCreator;
 	pageDataContext?: PageDataContext;
 	catalogProps?: ClientCatalogProps;
-	HTMLAttributes: Record<string, any>;
+	HTMLAttributes: Record<string, unknown>;
 	validate?: (url: string) => boolean;
 }
 
@@ -158,6 +159,7 @@ export default Link.extend({
 
 		plugins.push(linkPastePlugin(this.editor));
 		plugins.push(hoverTooltip(this.editor, this.options.apiUrlCreator, this.options.pageDataContext));
+		plugins.push(syncLinkText({ type: this.type }));
 
 		return plugins;
 	},

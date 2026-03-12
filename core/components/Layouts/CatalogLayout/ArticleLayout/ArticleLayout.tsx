@@ -1,6 +1,8 @@
 import { RIGHT_NAV_CLASS } from "@app/config/const";
 import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
+import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { PAGE_WIDTH_PDF } from "@ext/print/const";
@@ -31,15 +33,18 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 		useArticleDefaultStyles,
 		className,
 	} = props;
+	const breakpoint = useBreakpoint();
 
+	const isMobile = breakpoint === "sm";
 	return (
 		<div
 			className={classNames(className, { article: useArticleDefaultStyles })}
+			data-testid="article-scroll-container"
 			onTransitionEnd={onRightNavTransitionEnd}
 			ref={articleRef}
 		>
 			<div
-				className="article-content-wrapper"
+				className={cn("article-content-wrapper", isMobile && "article-mobile")}
 				id="article"
 				onMouseEnter={onArticleMouseEnter}
 				onMouseLeave={onArticleMouseLeave}
@@ -191,13 +196,19 @@ export default styled(ArticleLayout)`
 		background: #fff;
 
 		.article-content-wrapper {
+			height: auto; 
 			padding-top: 0;
 			padding-left: 30px;
 			width: 100% !important;
 		}
 
+		.article-content {
+			height: auto ;
+		}
+
 		.article-default-content {
 			min-width: ${PAGE_WIDTH_PDF}px !important;
+			height: auto ;
 		}
 	}
 	${(p) => p.additionalStyles ?? ""}

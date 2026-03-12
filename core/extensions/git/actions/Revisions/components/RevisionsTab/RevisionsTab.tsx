@@ -7,7 +7,6 @@ import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import BranchUpdaterService, {
 	type OnBranchUpdateListener,
@@ -15,7 +14,7 @@ import BranchUpdaterService, {
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import RevisionsWhomWhere from "@ext/git/actions/Revisions/components/RevisionsTab/RevisionsWhomWhere";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
-import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { DiffEntries } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
 import DiffExtendedModeToggle from "@ext/git/core/GitMergeRequest/components/Changes/DiffExtendedModeToggle";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
@@ -38,12 +37,12 @@ const TopWrapper = styled.div`
 `;
 
 const RevisionsTab = (props: RevisionsTabProps) => {
-	const { isNext } = usePlatform();
-	if (isNext) return null;
-
 	const { show, setShow } = props;
 
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
+	const scrollableRef = useRef<HTMLDivElement>(null);
+	const wasOpenedRef = useRef(false);
+	const containerRef = useRef<HTMLDivElement>(null);
 	const [contentHeight, setContentHeight] = useState<number>(null);
 
 	const [isDiffTreeLoading, setIsDiffTreeLoading] = useState(false);
@@ -63,7 +62,7 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 		async (revision: string) => {
 			setIsDiffTreeLoading(true);
 			const res = await FetchService.fetch<DiffTree>(
-				apiUrlCreator.getVersionControlDiffTreeUrl({ commit: revision }),
+				apiUrlCreator.getVersionControlDiffTreeUrl({ commit: revision }, "HEAD"),
 			);
 			setIsDiffTreeLoading(false);
 			if (!res.ok) return;
@@ -73,21 +72,27 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 		[apiUrlCreator],
 	);
 
-	const getRevisions = async (from?: string) => {
-		const depth = 51;
-		const res = await FetchService.fetch<GitVersionDataSet>(
-			apiUrlCreator.getVersionControlRevisionsUrl(from, depth),
-		);
-		if (!res.ok) return [];
-		const data = await res.json();
-		setReachedFirstCommit(data.reachedFirstCommit);
-		return data.data.slice(1);
-	};
+	const getRevisions = useCallback(
+		async (from?: string) => {
+			const depth = 51;
+			const res = await FetchService.fetch<GitVersionDataSet>(
+				apiUrlCreator.getVersionControlRevisionsUrl(from, depth),
+			);
+			if (!res.ok) return [];
+			const data = await res.json();
+			setReachedFirstCommit(data.reachedFirstCommit);
+			return data.data.slice(1);
+		},
+		[apiUrlCreator],
+	);
 
-	const requestMore = async (lastRevision: string) => {
-		const newRevisions = await getRevisions(lastRevision);
-		setRevisions([...revisions, ...newRevisions]);
-	};
+	const requestMore = useCallback(
+		async (lastRevision: string) => {
+			const newRevisions = await getRevisions(lastRevision);
+			setRevisions([...revisions, ...newRevisions]);
+		},
+		[getRevisions, revisions],
+	);
 
 	const onNewRevisionClick = useCallback(
 		(revision: string) => {
@@ -98,7 +103,7 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 		[requestDiffTree],
 	);
 
-	const onOpen = async () => {
+	const onOpen = useCallback(async () => {
 		const revisions = await getRevisions();
 
 		const onFirstOpen = () => {
@@ -111,9 +116,9 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 		if (!revision) onFirstOpen();
 
 		setRevisions(revisions);
-	};
+	}, [getRevisions, requestDiffTree, revision]);
 
-	const onClose = async () => {
+	const onClose = useCallback(async () => {
 		setRevisions(null);
 
 		const isDefaultView = ArticleViewService.isDefaultView();
@@ -123,16 +128,17 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 		restoreRightSidebar();
 		await ArticleUpdaterService.update(apiUrlCreator);
 		refreshPage();
-	};
+	}, [apiUrlCreator, restoreRightSidebar]);
 
-	const reset = () => {
+	const reset = useCallback(() => {
 		setShow(false);
+		wasOpenedRef.current = false;
 		setRevision(null);
 		setDiffTree(null);
 		setIsDiffTreeLoading(false);
 		setReachedFirstCommit(false);
 		setRevisions(null);
-	};
+	}, [setShow]);
 
 	useEffect(() => {
 		const onUpdate: OnBranchUpdateListener = (_, caller) => {
@@ -142,23 +148,28 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 		};
 		BranchUpdaterService.addListener(onUpdate);
 		return () => BranchUpdaterService.removeListener(onUpdate);
-	}, []);
+	}, [reset]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: needs for opening/closing tab
 	useEffect(() => {
-		if (show) void onOpen();
-		else void onClose();
+		if (show) {
+			wasOpenedRef.current = true;
+			void onOpen();
+		} else if (wasOpenedRef.current) void onClose();
 	}, [show]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: needs for calculating height
 	useEffect(() => {
 		if (!tabWrapperRef.current || !show) return;
 		const height = calculateTabWrapperHeight(tabWrapperRef.current);
 		setContentHeight(height);
-	}, [tabWrapperRef.current, show, diffTree, revision]);
+	}, [containerRef.current, tabWrapperRef.current, show, diffTree, revision]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: needs for updating diff tree
 	useEffect(() => {
 		if (!revision || !show) return;
 		void requestDiffTree(revision);
-	}, [gitStatus, show]);
+	}, [gitStatus, show, requestDiffTree, revision]);
 
 	const tryOpenBeforeSyncRevision = useCallback(() => {
 		const token = SyncService.events.on("finish", ({ syncData }) => {
@@ -169,9 +180,9 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 		});
 
 		return () => SyncService.events.off(token);
-	}, []);
+	}, [requestDiffTree, setShow]);
 
-	useEffect(tryOpenBeforeSyncRevision, [tryOpenBeforeSyncRevision]);
+	useEffect(tryOpenBeforeSyncRevision, []);
 
 	return (
 		<TabWrapper
@@ -197,15 +208,17 @@ const RevisionsTab = (props: RevisionsTabProps) => {
 						chevron={false}
 						headerStyles="padding-left: 1rem; padding-right: 1rem;"
 						isCollapsed={false}
-						isLoading={!diffTree?.tree || isDiffTreeLoading}
-						right={diffTree?.tree && <Overview fontSize="12px" showTotal {...diffTree.overview} />}
+						isLoading={!diffTree?.data || isDiffTreeLoading}
+						right={diffTree?.data && <Overview fontSize="12px" showTotal {...diffTree.overview} />}
 						title={t("git.merge-requests.diff")}
 					>
-						<ScrollableDiffEntriesLayout>
-							{diffTree?.tree && (
+						<ScrollableDiffEntriesLayout ref={scrollableRef}>
+							{diffTree?.data && (
 								<DiffEntries
-									changes={diffTree?.tree}
+									changes={diffTree?.data}
+									ref={containerRef}
 									renderCommentsCount
+									scrollableRef={scrollableRef}
 									setArticleDiffView={setArticleDiffView}
 								/>
 							)}

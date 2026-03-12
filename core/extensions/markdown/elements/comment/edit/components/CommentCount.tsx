@@ -1,22 +1,29 @@
+import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import Icon from "../../../../../../components/Atoms/Icon";
-import Tooltip from "../../../../../../components/Atoms/Tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
 const VersionControlCommentCount = ({ count, className }: { count: number; className?: string }) => {
-	return count > 0 ? (
-		<Tooltip content={<span>{t("numbero-of-unsolved-comments")}</span>}>
-			<div className={className}>
-				<Icon
-					code="message-square"
-					style={{ color: "var(--color-text-accent)", fontSize: "1.2em" }}
-					svgStyle={{ fill: "var(--color-text-accent)" }}
-					viewBox="2 2 20 20"
-				/>
-				<div className="count">{count}</div>
-			</div>
+	if (typeof count !== "number" || count <= 0) return null;
+
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<div className={className}>
+					<Icon
+						code="message-square"
+						style={{ color: "var(--color-text-accent)", fontSize: "1.2em" }}
+						svgStyle={{ fill: "var(--color-text-accent)" }}
+						viewBox="2 2 20 20"
+					/>
+					<div className="count">{count}</div>
+				</div>
+			</TooltipTrigger>
+			<TooltipContent>
+				<span>{t("numbero-of-unsolved-comments")}</span>
+			</TooltipContent>
 		</Tooltip>
-	) : null;
+	);
 };
 
 export default styled(VersionControlCommentCount)`

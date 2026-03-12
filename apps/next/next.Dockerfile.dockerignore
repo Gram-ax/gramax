@@ -1,5 +1,6 @@
 **/node_modules/
 **/.vite-cache/
+**/.cache
 **/.next/
 **/dist/
 services/
@@ -8,7 +9,7 @@ services/
 deploy/
 docs/
 .ci/
-!.ci/build/
+!.ci/build
 core/extensions/security/logic/AuthProviders/dropbox.ts
 **/*.cem
 .gitlab-ci.yml

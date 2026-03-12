@@ -5,14 +5,19 @@ const bundle = fs.readFileSync("./crates/gramax-wasm/dist/gramax-wasm.js", "utf-
 let replaced = bundle.replace(
 	`allocateUnusedWorker(){var worker;if(Module["mainScriptUrlOrBlob"]){var pthreadMainJs=Module["mainScriptUrlOrBlob"];if(typeof pthreadMainJs!="string"){pthreadMainJs=URL.createObjectURL(pthreadMainJs)}worker=new Worker(pthreadMainJs,{type:"module",workerData:"em-pthread",trackUnmanagedFds:false,name:"em-pthread"})}else worker=new Worker(new URL("gramax-wasm.js",import.meta.url),{type:"module",workerData:"em-pthread",trackUnmanagedFds:false,name:"em-pthread"});PThread.unusedWorkers.push(worker)}`,
 	`allocateUnusedWorker(){var worker;if(Module["mainScriptUrlOrBlob"]){var pthreadMainJs=Module["mainScriptUrlOrBlob"];if(typeof pthreadMainJs!="string"){pthreadMainJs=URL.createObjectURL(pthreadMainJs)}worker=new Worker(pthreadMainJs,{type:"module",workerData:"em-pthread",trackUnmanagedFds:false,name:"em-pthread"})}else{worker=new Worker(new URL("gramax-wasm.js",import.meta.url),{type:"module",workerData:"em-pthread",trackUnmanagedFds:false,name:"em-pthread"});} worker.addEventListener("message", (ev) => {
+					ev.data.type == "otel" && self.send_otel(ev.data.spans);
 		      ev.data.type == "remote-progress" && onRemoteProgress(ev.data.progress);
 		      ev.data.ptr && self.on_done(ev.data.callbackId, ev.data.ptr);
 		  });
   PThread.unusedWorkers.push(worker)}`,
 );
 
-replaced = replaced.replace(
-	`allocateUnusedWorker() {
+if (replaced === bundle)
+	throw "postbuild: minified allocateUnusedWorker replacement failed — Emscripten bundle format may have changed";
+
+replaced = replaced
+	.replace(
+		`allocateUnusedWorker() {
     var worker;
     // If we're using module output, use bundler-friendly pattern.
     if (Module["mainScriptUrlOrBlob"]) {
@@ -53,7 +58,7 @@ replaced = replaced.replace(
     });
     PThread.unusedWorkers.push(worker);
   }`,
-	`allocateUnusedWorker() {
+		`allocateUnusedWorker() {
 			var worker;
 			// If we're using module output, use bundler-friendly pattern.
 			if (Module["mainScriptUrlOrBlob"]) {
@@ -95,12 +100,17 @@ replaced = replaced.replace(
 				});
 
 			worker.addEventListener("message", (ev) => {
+				ev.data.type == "otel" && self.send_otel(ev.data.spans);
 				ev.data.type == "remote-progress" && onRemoteProgress(ev.data.progress);
 				ev.data.ptr && self.on_done(ev.data.callbackId, ev.data.ptr);
 			});
 
 			PThread.unusedWorkers.push(worker);
 		}`,
-);
+	)
+	.replace(`if(isNode)isPthread=(await import("worker_threads")).workerData==="em-pthread";`, "");
+
+if (replaced.includes("self.send_otel") === false)
+	throw "postbuild: unminified allocateUnusedWorker replacement failed — Emscripten bundle format may have changed";
 
 fs.writeFileSync("./crates/gramax-wasm/dist/gramax-wasm.js", replaced);

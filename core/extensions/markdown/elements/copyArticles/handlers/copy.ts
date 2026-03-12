@@ -1,7 +1,7 @@
 import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import createPlainText from "@ext/markdown/elements/copyArticles/createPlainText";
-import type { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import type { JSONContent } from "@tiptap/core";
 import { DOMSerializer, Fragment, type Node, type Schema } from "@tiptap/pm/model";
 import type { EditorView } from "@tiptap/pm/view";
@@ -57,7 +57,7 @@ const getImageFromFragment = (fragment: Fragment, resourceService: ResourceServi
 
 	void navigator.clipboard.write([
 		new ClipboardItem({
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			// biome-ignore lint/suspicious/noExplicitAny: it's ok
 			[mimeType]: new Blob([buffer as any], { type: mimeType }),
 		}),
 	]);
@@ -123,7 +123,7 @@ const createGramaxClipboardData = (
 	};
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+// biome-ignore lint/suspicious/noExplicitAny: it's ok
 const createTableFragment = (content: Fragment, schema: Schema<any, any>): CreatedFragment => {
 	const tableFragment =
 		content.firstChild.type.name === "table"

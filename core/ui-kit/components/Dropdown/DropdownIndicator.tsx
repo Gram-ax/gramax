@@ -1,6 +1,10 @@
+import { cn } from "@core-ui/utils/cn";
 import { Indicator } from "@ui-kit/Indicator";
-import type { CSSProperties } from "react";
+import type { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
 
-export const DropdownIndicator = ({ className, style }: { className?: string; style?: CSSProperties }) => {
-	return <Indicator className={`bg-status-error absolute m-0.5 ${className}`} rounded size="xs" style={style} />;
+type DropdownIndicatorProps = ExtractComponentGeneric<typeof Indicator>;
+
+export const DropdownIndicator = (props: DropdownIndicatorProps) => {
+	const { className, ...otherProps } = props;
+	return <Indicator {...otherProps} className={cn("bg-status-error", className)} rounded size="xs" />;
 };

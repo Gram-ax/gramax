@@ -1,8 +1,10 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import GifImage from "@components/Atoms/Image/GifImage";
+import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import type { HTMLAttributes } from "react";
 import { getUrlFileExtension } from "../../logic/getUrlFileExtension";
+import previews from "./previews";
 
 export type RenderVideoProps = {
 	url: string;
@@ -63,14 +65,14 @@ const SupportedVideoHostings: {
 	},
 	"drive.google.com": (url, onLoad, onError) => {
 		return isCredentiallessUnsupported ? (
-			<PreviewVideo onLoad={onLoad} previewUrl={"/images/gdrive.png"} url={url} />
+			<PreviewVideo onLoad={onLoad} previewUrl={previews.gdrive} url={url} />
 		) : (
 			<IFrameVideo onError={onError} onLoad={onLoad} url={url.replace("view", "preview")} />
 		);
 	},
 	"mega.nz": (url, onLoad, onError) =>
 		isCredentiallessUnsupported ? (
-			<PreviewVideo onLoad={onLoad} previewUrl={"/images/meganz.png"} url={url} />
+			<PreviewVideo onLoad={onLoad} previewUrl={previews.meganz} url={url} />
 		) : (
 			<IFrameVideo onError={onError} onLoad={onLoad} url={url.replace(`/file/`, `/embed/`)} />
 		),
@@ -81,14 +83,14 @@ const SupportedVideoHostings: {
 		);
 
 		return !isVideoFormatSupported(url) ? (
-			<PreviewVideo onLoad={onLoad} previewUrl={"/images/dropbox.png"} url={url} />
+			<PreviewVideo onLoad={onLoad} previewUrl={previews.dropbox} url={url} />
 		) : (
 			<IFrameVideo onError={onError} onLoad={onLoad} url={processedUrl} />
 		);
 	},
 	"rutube.ru": (url, onLoad, onError) =>
 		isCredentiallessUnsupported ? (
-			<PreviewVideo onLoad={onLoad} previewUrl={"/images/rutube.png"} url={url} />
+			<PreviewVideo onLoad={onLoad} previewUrl={previews.rutube} url={url} />
 		) : (
 			<IFrameVideo onError={onError} onLoad={onLoad} url={rutubeUrlReplacer(url)} />
 		),
@@ -97,7 +99,7 @@ const SupportedVideoHostings: {
 
 const PreviewVideoUnstyled = ({ url, previewUrl, className, onLoad, ...props }: PreviewVideoProps) => {
 	return (
-		<a {...props} className={"video-js " + className} href={url} rel="noreferrer" target="_blank">
+		<a {...props} className={classNames("video-js", {}, [className])} href={url} rel="noreferrer" target="_blank">
 			<GifImage noplay onLoad={onLoad} src={previewUrl} />
 		</a>
 	);

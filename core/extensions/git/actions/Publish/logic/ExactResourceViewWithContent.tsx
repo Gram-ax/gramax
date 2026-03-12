@@ -11,13 +11,12 @@ import CatalogContextWrapper from "@core-ui/ScopedContextWrapper/CatalogContextW
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import DiagramData from "@ext/markdown/elements/diagrams/component/DiagramData";
+import { useResourceViewResolver } from "@ext/git/actions/Publish/logic/useResourceViewResolver";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
 import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
-import Image from "@ext/markdown/elements/image/render/components/Image";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
-import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
+import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useEffect, useLayoutEffect, useState } from "react";
 
@@ -37,6 +36,15 @@ interface DiffResourceScopesWrapperProps {
 	oldChildren?: JSX.Element;
 }
 
+const StatusContainer = styled.div`
+	max-width: var(--article-max-width);
+	overflow-y: auto;
+
+	&[data-status="delete"] {
+		align-content: center;
+	}
+`;
+
 const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 	const { children, oldScope, newScope, status, oldChildren, parentPath, type } = props;
 	const hasParentPath = !!parentPath?.path || !!parentPath?.oldPath;
@@ -53,20 +61,22 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 		const isDeleted = status === FileStatus.delete;
 
 		return (
-			<StatusWrapper isImg={isImg} status={status}>
-				<ScopeWrapper
-					articlePath={isDeleted ? oldArticlePath : newArticlePath}
-					hasParentPath={hasParentPath}
-					scope={isDeleted ? oldScope : newScope}
-				>
-					{children}
-				</ScopeWrapper>
-			</StatusWrapper>
+			<StatusContainer data-status={status}>
+				<StatusWrapper isImg={isImg} status={status}>
+					<ScopeWrapper
+						articlePath={isDeleted ? oldArticlePath : newArticlePath}
+						hasParentPath={hasParentPath}
+						scope={isDeleted ? oldScope : newScope}
+					>
+						{children}
+					</ScopeWrapper>
+				</StatusWrapper>
+			</StatusContainer>
 		);
 	}
 
 	return (
-		<div>
+		<StatusContainer data-status={status}>
 			<StatusWrapper isImg={isImg} status={FileStatus.delete}>
 				<ScopeWrapper articlePath={oldArticlePath} hasParentPath={hasParentPath} scope={oldScope}>
 					{oldChildren}
@@ -78,7 +88,7 @@ const DiffResourceScopesWrapper = (props: DiffResourceScopesWrapperProps) => {
 					{children}
 				</ScopeWrapper>
 			</StatusWrapper>
-		</div>
+		</StatusContainer>
 	);
 };
 
@@ -119,31 +129,17 @@ const ExactResourceViewWithContent = (props: UseResourceArticleViewType) => {
 	const oldSrc = oldRelativeTo
 		? oldRelativeTo.getRelativePath(oldResourcePath).value
 		: oldResourcePath.nameWithExtension;
-	const maybeDiagramType = DIAGRAM_FILE_TYPES[ext];
 	const isDeleteOrAdded = status === FileStatus.delete || status === FileStatus.new;
 
-	let element: JSX.Element = null;
-	let oldElement: JSX.Element = null;
-
-	if (type === "image") {
-		element = (
-			<Image
-				hasParentPath={!!parentPath?.path}
-				marginBottom={"0px"}
-				src={parentPath?.path ? src : filePath.path}
-			/>
-		);
-		oldElement = isDeleteOrAdded ? null : (
-			<Image
-				hasParentPath={!!parentPath?.oldPath}
-				marginBottom={"0px"}
-				src={parentPath?.oldPath ? oldSrc : filePath.oldPath}
-			/>
-		);
-	} else if (type === "diagram") {
-		element = <DiagramData diagramName={maybeDiagramType} src={src} />;
-		oldElement = isDeleteOrAdded ? null : <DiagramData diagramName={maybeDiagramType} src={oldSrc} />;
-	}
+	const { element, oldElement } = useResourceViewResolver({
+		type,
+		src,
+		oldSrc,
+		extension: ext,
+		parentPath,
+		filePath,
+		isDeleteOrAdded,
+	});
 
 	return (
 		<ResourceDiffView
@@ -237,6 +233,7 @@ const ResourceDiffView = ({
 
 	const isWysiwyg = diffView === "wysiwyg-single" || diffView === "wysiwyg-double";
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		if (type === "text" && isWysiwyg) setDiffView("single-panel");
 		if (type === "image" && !hasContent) setDiffView("wysiwyg-single");
@@ -244,6 +241,7 @@ const ResourceDiffView = ({
 
 	const setupRightNavCloseHandler = useSetupRightNavCloseHandler();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		setupRightNavCloseHandler();
 	}, []);

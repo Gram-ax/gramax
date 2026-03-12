@@ -9,6 +9,7 @@ const EmMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<ToolbarToggleButton
 			active={isActive}
+			data-testid="tb-italic"
 			disabled={disabled}
 			hotKey={"Mod-I"}
 			onClick={() => editor.chain().focus().toggleItalic().run()}

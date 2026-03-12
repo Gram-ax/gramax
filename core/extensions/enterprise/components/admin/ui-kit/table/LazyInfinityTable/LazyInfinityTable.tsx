@@ -42,9 +42,12 @@ interface LazyInfinityTableProps<T> extends TableComponentProps<T> {
 	selectedRowIds?: number[];
 	selectedRowId?: string | null;
 	responsive?: boolean;
+	isFetchingProp?: boolean;
 }
 
 const Wrapper = styled.div`
+	position: relative;
+	
 	> div {
 		overflow: unset;
 	}
@@ -52,6 +55,16 @@ const Wrapper = styled.div`
 	thead {
 		position: sticky;
 	}
+`;
+
+const Div = styled.div`
+	border-color:hsl(var(--secondary-border));
+	
+	.header-shadow {
+		top: 40px !important;
+	}
+	& > div {
+		height:100%;}
 `;
 
 const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
@@ -66,6 +79,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 		selectedRowIds = [],
 		selectedRowId,
 		responsive = true,
+		isFetchingProp = false,
 	} = props;
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const [isFetching, setIsFetching] = useState(false);
@@ -174,25 +188,26 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 	});
 
 	return (
-		<div className="relative overflow-hidden flex flex-col max-h-full h-full ">
+		<Div className="relative overflow-hidden flex flex-col max-h-full h-full w-full border rounded-md">
 			<ScrollShadowContainer
-				className="flex-1 overflow-y-auto max-h-full border rounded-md"
+				className={cn("flex-1 overflow-y-auto max-h-full")}
 				onScrollCapture={() => fetchMoreOnBottomReached()}
 				ref={scrollContainerRef}
-				shadowTopClassName="mt-10"
+				shadowTopClassName="header-shadow"
 			>
 				<Wrapper>
-					<Table className={cn("min-w-full", !responsive && "w-auto")} style={{ tableLayout: "fixed" }}>
+					<Table className={cn("h-full", responsive && "min-w-full")}>
 						<colgroup>
 							{columns.map((col) => {
 								const size = col.size;
 								return <col key={col.id} style={size ? { width: `${size}px` } : undefined} />;
 							})}
 						</colgroup>
-						<TableHeader className="h-10 bg-secondary-bg top-0 z-10">
+						<TableHeader className="h-10 bg-secondary-bg top-0">
 							{table.getHeaderGroups().map((headerGroup) => (
 								<TableRow className="h-10 items-center" key={headerGroup.id}>
 									{headerGroup.headers.map((header, idx) => {
+										const columnSize = columns.find((col) => col.id === header.column.id)?.size;
 										return (
 											<TableHead
 												className={cn(
@@ -200,9 +215,18 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 														header.column.id as keyof typeof columnThClassName
 													] || columnThClassName[TABLE_COLUMN_CODE_DEFAULT],
 													idx === 0 ? "pl-3" : "",
-													"h-10 items-center whitespace-nowrap",
+													"h-10 items-center whitespace-nowrap overflow-hidden text-ellipsis",
 												)}
 												key={header.id}
+												style={
+													!responsive && columnSize
+														? {
+																width: `${columnSize}px`,
+																minWidth: `${columnSize}px`,
+																maxWidth: `${columnSize}px`,
+															}
+														: undefined
+												}
 											>
 												{header.isPlaceholder
 													? null
@@ -213,7 +237,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 								</TableRow>
 							))}
 						</TableHeader>
-						<TableBody>
+						<TableBody className="h-full">
 							{table.getRowModel().rows?.length ? (
 								<>
 									<tr style={{ height: `${rowVirtualizer.getVirtualItems()[0]?.start ?? 0}px` }} />
@@ -236,9 +260,9 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 											}px`,
 										}}
 									/>
-									{hasMore && isFetching && <TableLoadingRow columns={columns} />}
+									{hasMore && (isFetching || isFetchingProp) && <TableLoadingRow columns={columns} />}
 								</>
-							) : isFetching ? (
+							) : isFetching || isFetchingProp ? (
 								<TableLoadingRow columns={columns} />
 							) : (
 								<TableEmptyRow columns={columns} />
@@ -247,7 +271,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 					</Table>
 				</Wrapper>
 			</ScrollShadowContainer>
-		</div>
+		</Div>
 	);
 };
 

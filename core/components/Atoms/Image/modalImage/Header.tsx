@@ -2,13 +2,13 @@ import { ZOOM_COUNT } from "@components/Atoms/Image/modalImage/utils";
 import { classNames } from "@components/libs/classNames";
 import Path from "@core/FileProvider/Path/Path";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import downloadResource from "@core-ui/downloadResource";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { IconButton } from "@ui-kit/Button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ReactElement } from "react";
+import type { ReactElement } from "react";
 
 interface HeaderProps {
 	onClose: (immediately?: boolean) => void;
@@ -50,7 +50,10 @@ const Header = (props: HeaderProps): ReactElement => {
 				</TooltipElement>
 				{downloadSrc && !rs.id && (
 					<TooltipElement content={t("download")}>
-						<a onClick={() => downloadResource(apiUrlCreator, new Path(downloadSrc))}>
+						<a
+							// biome-ignore lint/a11y/useValidAnchor: it's ok
+							onClick={() => downloadResource(apiUrlCreator, new Path(downloadSrc))}
+						>
 							<IconButton icon="download" variant="text" />
 						</a>
 					</TooltipElement>

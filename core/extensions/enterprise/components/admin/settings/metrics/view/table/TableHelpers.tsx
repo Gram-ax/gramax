@@ -74,8 +74,11 @@ export const SortableHeader = <T extends string = SortByColumn>({
 			onClick={() => onSortChange(columnKey)}
 			type="button"
 		>
-			<span>{label}</span>
-			{tooltip ? <MetricsTooltipHelper text={tooltip} /> : null}
+			{tooltip ? (
+				<MetricsTooltipHelper label={label} text={tooltip} />
+			) : (
+				<span className="text-muted">{label}</span>
+			)}
 			{isActive && <SortIcon className="flex-shrink-0" size={14} />}
 		</button>
 	);

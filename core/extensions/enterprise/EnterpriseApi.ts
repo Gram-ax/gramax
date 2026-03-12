@@ -118,7 +118,9 @@ class EnterpriseApi {
 				headers: { Authorization: `Bearer ${token}` },
 				credentials: "include",
 			});
-			if (!res.ok) throw new Error();
+			if (!res.ok) {
+				throw new Error(`Failed to log out: server responded with status ${res.status} (${res.statusText})`);
+			}
 		} catch {
 			throw new DefaultError(
 				t("enterprise.logout.error-message"),
@@ -135,7 +137,7 @@ class EnterpriseApi {
 			const res = await fetch(`${this._gesUrl}/enterprise/style-guide/check`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify(paragraphs),
+				body: JSON.stringify({ chunks: paragraphs }),
 				credentials: "include",
 			});
 			const status = res.status;
@@ -179,7 +181,7 @@ class EnterpriseApi {
 	async getToken(oneTimeCode: string) {
 		if (!this._gesUrl || !oneTimeCode) return;
 
-		const res = await fetch(`${this._gesUrl}/enterprise/sso/token`, {
+		const res = await fetch(`${this._gesUrl}/sso/token`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

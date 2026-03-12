@@ -3,7 +3,8 @@ import { FilterMultiSelect } from "@ext/enterprise/components/admin/settings/qui
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { useCache } from "@ui-kit/MultiSelect";
-import { Dispatch, memo, SetStateAction, useCallback } from "react";
+import { type Dispatch, memo, type SetStateAction, useCallback } from "react";
+import { QuizFilterDropdown } from "./filters/QuizFilterDropdown";
 
 interface TableControlProps {
 	filters: QuizTableFilters;
@@ -14,6 +15,7 @@ interface TableControlProps {
 export type QuizTableFilters = {
 	users: string[];
 	tests: string[];
+	result: string[];
 };
 
 interface MultiSelectFilterProps<T extends keyof QuizTableFilters> extends Omit<TableControlProps, "filters"> {
@@ -35,15 +37,19 @@ const TestsSelect = memo((props: MultiSelectFilterProps<"tests">) => {
 		return options;
 	});
 
-	const onTestsChange = useCallback((tests: string[]) => {
-		setFilters((prev) => ({ ...prev, tests }));
-	}, []);
+	const onTestsChange = useCallback(
+		(tests: string[]) => {
+			setFilters((prev) => ({ ...prev, tests }));
+		},
+		[setFilters],
+	);
 
 	return (
 		<FilterMultiSelect
 			disabled={disabled}
 			emptyPlaceholder={t("enterprise.admin.quiz.filters.tests.empty")}
 			existingOptions={filter}
+			icon="rows-3"
 			loadingPlaceholder={t("enterprise.admin.quiz.filters.tests.loading")}
 			loadOptions={loadOptions}
 			onAdd={onTestsChange}
@@ -69,15 +75,19 @@ const UsersSelect = memo((props: MultiSelectFilterProps<"users">) => {
 		return options;
 	});
 
-	const onUsersChange = useCallback((users: string[]) => {
-		setFilters((prev) => ({ ...prev, users }));
-	}, []);
+	const onUsersChange = useCallback(
+		(users: string[]) => {
+			setFilters((prev) => ({ ...prev, users }));
+		},
+		[setFilters],
+	);
 
 	return (
 		<FilterMultiSelect
 			disabled={disabled}
 			emptyPlaceholder={t("enterprise.admin.quiz.filters.users.empty")}
 			existingOptions={filter}
+			icon="users"
 			loadingPlaceholder={t("enterprise.admin.quiz.filters.users.loading")}
 			loadOptions={loadOptions}
 			onAdd={onUsersChange}
@@ -88,20 +98,52 @@ const UsersSelect = memo((props: MultiSelectFilterProps<"users">) => {
 	);
 });
 
+const ResultSelect = memo((props: MultiSelectFilterProps<"result">) => {
+	const { filter, setFilters, disabled } = props;
+
+	const onResultChange = useCallback(
+		(result: string[]) => {
+			setFilters((prev) => ({ ...prev, result }));
+		},
+		[setFilters],
+	);
+
+	const onClear = useCallback(() => {
+		setFilters((prev) => ({ ...prev, result: ["passed", "failed"] }));
+	}, [setFilters]);
+
+	return (
+		<QuizFilterDropdown
+			disabled={disabled}
+			inverseCounter
+			multiple
+			onAdd={onResultChange}
+			onClear={onClear}
+			onRemove={onResultChange}
+			options={[
+				{ value: "passed", label: t("enterprise.admin.quiz.filters.result.passed") },
+				{ value: "failed", label: t("enterprise.admin.quiz.filters.result.failed") },
+			]}
+			trigger={t("enterprise.admin.quiz.filters.result.name")}
+			value={filter}
+		/>
+	);
+});
+
 export const TableControls = (props: TableControlProps) => {
 	const { setFilters, filters, disabled } = props;
+
+	const onClear = useCallback(() => {
+		if (filters.users.length === 0 && filters.tests.length === 0 && filters.result.length === 0) return;
+		setFilters({ users: [], tests: [], result: ["passed", "failed"] });
+	}, [filters, setFilters]);
 
 	return (
 		<div className="flex gap-2">
 			<UsersSelect disabled={disabled} filter={filters.users} setFilters={setFilters} />
 			<TestsSelect disabled={disabled} filter={filters.tests} setFilters={setFilters} />
-			<Button
-				className="ml-auto"
-				disabled={disabled}
-				onClick={() => setFilters({ users: [], tests: [] })}
-				startIcon="eraser"
-				variant="outline"
-			>
+			<ResultSelect disabled={disabled} filter={filters.result} setFilters={setFilters} />
+			<Button className="ml-auto" disabled={disabled} onClick={onClear} startIcon="eraser" variant="outline">
 				{t("clear")}
 			</Button>
 		</div>

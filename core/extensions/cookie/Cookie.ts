@@ -14,23 +14,31 @@ export default abstract class Cookie {
 	}
 
 	protected _encrypt(value: string): string {
-		return cryptoJS.AES.encrypt(value, this._secret).toString();
+		return this._baseEncrypt(value, this._secret);
 	}
 
 	protected _decrypt(value: string): string {
 		try {
-			return cryptoJS.AES.decrypt(value ?? "", this._secret).toString(cryptoJS.enc.Utf8);
-		} catch (e) {
+			return this._baseDecrypt(value ?? "", this._secret);
+		} catch {
 			try {
-				return cryptoJS.AES.decrypt(value ?? "", "").toString(cryptoJS.enc.Utf8);
+				return this._baseDecrypt(value ?? "", "");
 			} catch {
 				try {
-					return cryptoJS.AES.decrypt(value ?? "", ".").toString(cryptoJS.enc.Utf8);
+					return this._baseDecrypt(value ?? "", ".");
 				} catch (e) {
 					console.warn(new Error("Cookie decrypt error", { cause: e }));
 				}
 			}
 		}
+	}
+
+	protected _baseDecrypt(value: string, secret: string): string {
+		return cryptoJS.AES.decrypt(value ?? "", secret).toString(cryptoJS.enc.Utf8);
+	}
+
+	protected _baseEncrypt(value: string, secret: string): string {
+		return cryptoJS.AES.encrypt(value, secret).toString();
 	}
 
 	protected _parse(cookieString: string, name: string) {

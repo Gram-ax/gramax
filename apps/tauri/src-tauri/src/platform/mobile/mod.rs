@@ -26,27 +26,28 @@ pub mod config {
 
 pub mod commands {
 	use tauri::*;
+	use tauri_otel_context::OtelContext;
 
 	#[command]
-	pub fn set_root_path<R: Runtime>(app: AppHandle<R>) -> std::result::Result<(), String> {
+	pub fn set_root_path<R: Runtime>(_otel: OtelContext, app: AppHandle<R>) -> std::result::Result<(), String> {
 		super::config::init_env(&app);
 		Ok(())
 	}
 
 	#[command]
-	pub fn close_current_window<R: Runtime>(_app: AppHandle<R>) -> std::result::Result<(), String> {
+	pub fn close_current_window<R: Runtime>(_otel: OtelContext, _app: AppHandle<R>) -> std::result::Result<(), String> {
 		warn!("close_current_window not implemented");
 		Ok(())
 	}
 
 	#[command]
-	pub fn set_language<R: Runtime>(app: AppHandle<R>, language: &str) -> Result<()> {
+	pub fn set_language<R: Runtime>(_otel: OtelContext, app: AppHandle<R>, language: &str) -> Result<()> {
 		warn!("set_language not implemented");
 		Ok(())
 	}
 
 	#[command]
-	pub fn set_badge<R: Runtime>(_app: AppHandle<R>, _count: Option<usize>) -> Result<()> {
+	pub fn set_badge<R: Runtime>(_otel: OtelContext, _app: AppHandle<R>, _count: Option<usize>) -> Result<()> {
 		warn!("set_badge not implemented");
 		Ok(())
 	}

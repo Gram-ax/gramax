@@ -2,13 +2,13 @@ import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
-import { MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { CheckboxField } from "@ui-kit/Checkbox";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { Form, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -67,8 +67,8 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose, isLoa
 	};
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
-			<ModalContent>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			<DialogContent>
 				<Form asChild {...form}>
 					<form className="contents" onSubmit={formSubmit}>
 						<FormHeader
@@ -85,7 +85,7 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose, isLoa
 							icon={"git-pull-request-arrow"}
 							title={t("git.merge.title")}
 						/>
-						<ModalBody>
+						<DialogBody>
 							<FormStack>
 								<OptionsContainer>
 									<CheckboxField
@@ -107,7 +107,7 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose, isLoa
 									</span>
 								</OptionsContainer>
 							</FormStack>
-						</ModalBody>
+						</DialogBody>
 						<FormFooter
 							primaryButton={
 								<Button disabled={isLoading} type="submit">
@@ -118,8 +118,8 @@ const MergeModal = ({ sourceBranchRef, targetBranchRef, onSubmit, onClose, isLoa
 						/>
 					</form>
 				</Form>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

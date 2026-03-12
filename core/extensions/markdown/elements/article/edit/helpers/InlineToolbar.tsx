@@ -1,25 +1,36 @@
-import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
+import InlineEditPanel, {
+	type InlineToolbarButtons,
+} from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
 import { CustomBubbleMenu } from "@ext/markdown/elements/customBubbleMenu/edit/components/CustomBubbleMenu";
-import { Editor } from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
 import { CellSelection, isInTable } from "prosemirror-tables";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { memo, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import "tippy.js/animations/shift-toward.css";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useMediaQuery } from "@mui/material";
+import type { Instance, Props } from "tippy.js";
+
+interface InlineToolbarProps {
+	editor: Editor;
+	shouldShow: (props: { editor: Editor }) => boolean;
+	pluginKey?: string;
+	buttons?: InlineToolbarButtons;
+	boundaryRef?: RefObject<HTMLElement>;
+}
 
 export interface InlineToolbarOptions {
 	isInTable: boolean;
 	isCellSelection: boolean;
 }
 
-export const InlineToolbar = memo(({ editor }: { editor: Editor }) => {
+export const InlineToolbar = memo(({ editor, pluginKey, buttons, shouldShow, boundaryRef }: InlineToolbarProps) => {
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 
 	const [options, setOptions] = useState<InlineToolbarOptions>({
 		isInTable: false,
 		isCellSelection: false,
 	});
-	const tippyInstanceRef = useRef<any>(null);
+	const tippyInstanceRef = useRef<Instance<Props>>(null);
 
 	useEffect(() => {
 		if (!editor || isMobile) return;
@@ -40,26 +51,7 @@ export const InlineToolbar = memo(({ editor }: { editor: Editor }) => {
 		};
 	}, [editor, isMobile]);
 
-	const shouldShow = useCallback(
-		({ editor }: { editor: Editor }) => {
-			if (isMobile) return false;
-
-			const { from, to, empty } = editor.state.selection;
-			if (empty) return false;
-
-			const text = !!editor.state.doc.textBetween(from, to);
-			const isCellSelection = editor.state.selection instanceof CellSelection;
-
-			if ((!text && !isCellSelection) || editor.state.doc.firstChild === editor.state.selection.$from.parent) {
-				return false;
-			}
-
-			return true;
-		},
-		[isMobile],
-	);
-
-	const onShow = useCallback((instance: any) => {
+	const onShow = useCallback((instance: Instance<Props>) => {
 		tippyInstanceRef.current = instance;
 		requestAnimationFrame(() => {
 			if (instance?.popperInstance) {
@@ -79,14 +71,15 @@ export const InlineToolbar = memo(({ editor }: { editor: Editor }) => {
 		editor.commands.focus();
 	}, [editor]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const appendTo = useCallback(() => {
-		return editor.view.dom.parentElement;
+		return boundaryRef?.current ?? editor.view.dom.parentElement;
 	}, [editor]);
 
 	return (
 		<CustomBubbleMenu
 			editor={editor}
-			pluginKey="inline-toolbar"
+			pluginKey={pluginKey || "inline-toolbar"}
 			shouldShow={shouldShow}
 			tippyOptions={{
 				maxWidth: "unset",
@@ -105,7 +98,7 @@ export const InlineToolbar = memo(({ editor }: { editor: Editor }) => {
 			}}
 		>
 			<div className="lg:shadow-hard-base rounded-lg">
-				<InlineEditPanel closeHandler={closeHandler} editor={editor} {...options} />
+				<InlineEditPanel buttons={buttons} closeHandler={closeHandler} editor={editor} {...options} />
 			</div>
 		</CustomBubbleMenu>
 	);

@@ -60,6 +60,8 @@ export class EnterpriseWorkspace extends Workspace {
 
 		baseHasher.hash({
 			name: this._config.get("name"),
+			webEditorUrl: this._config.get("webEditorUrl"),
+			services: this._config.get("services"),
 			sections: this._config.get("sections"),
 			style: {
 				css: customCss,
@@ -94,9 +96,10 @@ export class EnterpriseWorkspace extends Workspace {
 		this._config.delete("groups");
 		this._config.set("enterprise", {
 			...this._config.get("enterprise"),
-			authMethods: config.authMethods,
 			modules: config.modules,
 		});
+		if (config.services) this._config.set("services", config.services);
+		this._config.set("webEditorUrl", config.webEditorUrl);
 		if (this._config.get("pdfTemplates")) {
 			this._config.delete("pdfTemplates");
 		}

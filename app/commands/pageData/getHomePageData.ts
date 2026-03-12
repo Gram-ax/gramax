@@ -1,12 +1,14 @@
-import Context from "@core/Context/Context";
-import PageDataContext from "@core/Context/PageDataContext";
-import { HomePageData } from "@core/SitePresenter/SitePresenter";
+import type Context from "@core/Context/Context";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../types/Command";
 import getPageDataContext from "./getPageDataContext";
 
 const getHomePageData: Command<{ ctx: Context; path?: string }, { data: HomePageData; context: PageDataContext }> =
 	Command.create({
-		path: "index",
+		path: "page/getHomePageData",
+
+		flags: ["otel-omit-result"],
 
 		async do({ ctx, path }) {
 			const { wm, sitePresenterFactory } = this._app;

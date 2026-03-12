@@ -2,7 +2,7 @@ import assert from "assert";
 import { $ } from "bun";
 import fs from "fs/promises";
 import path from "path";
-import { project, sizeOf, version } from "../util";
+import { env, project, sizeOf, version } from "../util";
 
 const artifactsDir = path.join(project, "apps-build-artifacts");
 
@@ -14,6 +14,7 @@ export type BuildOptions = {
 
 	version: string;
 	updateChannel: "prod" | "dev" | string;
+	updateHost?: string | null | undefined;
 
 	useSign: boolean;
 	useSignVerify: boolean;
@@ -126,9 +127,7 @@ export abstract class Builder {
 	protected abstract verify(): Promise<void>;
 
 	protected createTauriConfig(): string {
-		process.env.UPDATE_CHANNEL = this.opts.updateChannel; // used for legacy updater; remove if not needed anymore
-
-		const updatehost = this.opts.updateChannel === "prod" ? "gram.ax" : "develop.gram.ax";
+		const updatehost = this.opts.updateHost ? this.opts.updateHost : this.opts.updateChannel === "prod" ? "https://gram.ax/apps" : "https://develop.gram.ax/apps";
 
 		const signCommand =
 			this.platform === "windows-x86_64"
@@ -152,7 +151,7 @@ export abstract class Builder {
 			plugins: {
 				updater: {
 					endpoints: [
-						`https://${updatehost}/apps/${this.platform}/updates?channel=${this.opts.updateChannel}`,
+						`${updatehost}/${this.platform}/updates?channel=${this.opts.updateChannel}`,
 					],
 				},
 			},

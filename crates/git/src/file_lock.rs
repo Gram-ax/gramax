@@ -12,8 +12,9 @@ pub const FILE_LOCK_PATH: &str = ".gx-lock";
 const INTERVAL: Duration = Duration::from_millis(150);
 
 #[derive(Debug)]
-pub struct FileLock {
-	path: PathBuf,
+pub enum FileLock {
+	Lock { path: PathBuf },
+	Dummy,
 }
 
 #[derive(Serialize, Debug)]
@@ -51,6 +52,10 @@ impl std::fmt::Display for FileLockError {
 }
 
 impl FileLock {
+	pub fn dummy() -> Self {
+		Self::Dummy
+	}
+
 	pub fn lock_with_ctx<D: Serialize>(path: PathBuf, data: FileLockData<'_, D>) -> Result<Self> {
 		Self::lock_ex(path, Some(data))
 	}
@@ -73,7 +78,7 @@ impl FileLock {
 					lock_file.sync_all().map_err(FileLockError::Other)?;
 				}
 				debug!("lock file created: {}", path.display());
-				Ok(Self { path })
+				Ok(Self::Lock { path })
 			}
 			Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
 				let data = std::fs::read_to_string(path).map_err(FileLockError::Other)?;
@@ -126,10 +131,12 @@ impl FileLock {
 
 impl Drop for FileLock {
 	fn drop(&mut self) {
-		if let Err(err) = std::fs::remove_file(&self.path) {
-			error!("failed to remove lock file: {}", err);
-		} else {
-			debug!("lock file removed: {}", self.path.display());
+		if let FileLock::Lock { ref path } = self {
+			if let Err(err) = std::fs::remove_file(&path) {
+				error!("failed to remove lock file: {}", err);
+			} else {
+				debug!("lock file removed: {}", path.display());
+			}
 		}
 	}
 }

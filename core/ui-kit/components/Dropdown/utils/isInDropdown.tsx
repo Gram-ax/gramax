@@ -1,5 +1,5 @@
-import { isFromModal } from "@ui-kit/Modal";
-import { MouseEvent } from "react";
+import { isFromModal } from "@ui-kit/Dialog/utils";
+import type { MouseEvent } from "react";
 
 export const isInDropdown = (e: MouseEvent<HTMLElement>): boolean => {
 	const target = e.target as HTMLElement;

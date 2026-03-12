@@ -26,13 +26,15 @@
 		"docportal:start": "rm -rf ./docportal-test-data && mkdir -p ./docportal-test-data && PORT=6003 ROOT_PATH=$(pwd)/docportal-test-data ADMIN_PASSWORD=${ADMIN_PASSWORD:-1} ADMIN_LOGIN=${ADMIN_LOGIN:-1} bun run --cwd ../apps/next start"
 	},
 	"devDependencies": {
-		"@types/bun": "latest"
+		"@types/bun": "latest",
+		"@types/xml2js": "^0.4.14"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
 	},
 	"dependencies": {
 		"@playwright/test": "=1.57.0",
-		"playwright": "=1.57.0"
+		"playwright": "=1.57.0",
+		"xml2js": "^0.6.2"
 	}
 }

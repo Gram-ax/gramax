@@ -4,25 +4,23 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import t from "@ext/localization/locale/translate";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import astToParagraphs from "@ext/StyleGuide/logic/astToParagraphs";
 import { getSuggestionItems } from "@ext/StyleGuide/logic/getSuggestionItems";
-import { CheckSuggestion } from "@ics/gx-vector-search";
+import type { CheckSuggestion } from "@ics/gx-vector-search";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { toast } from "@ui-kit/Toast";
 
 const EnterpriseCheckStyleGuide = () => {
 	const workspace = WorkspaceService.current();
-	const { isNext } = usePlatform();
 
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	if (isNext || !workspace?.enterprise?.modules?.styleGuide) return null;
+	if (!workspace?.enterprise?.modules?.styleGuide) return null;
 
 	const checkArticle = async () => {
 		if (!workspace?.enterprise?.modules?.styleGuide) return;
@@ -37,9 +35,9 @@ const EnterpriseCheckStyleGuide = () => {
 		}
 		const content = await res.json();
 		const json = content;
-		json.content.shift();
 
 		const paragraphs = astToParagraphs(json);
+
 		const result = await new EnterpriseApi(gesUrl).checkStyleGuide(paragraphs);
 		if (!result) return ModalToOpenService.resetValue();
 

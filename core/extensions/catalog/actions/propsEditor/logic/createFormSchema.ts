@@ -42,7 +42,7 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 			.refine((value) => validateEncodingSymbolsUrl(value), {
 				message: t("no-encoding-symbols-in-url"),
 			})
-			.refine((value) => !allCatalogNames.includes(value), {
+			.refine((value) => !allCatalogNames.some((name) => name.toLowerCase() === value.toLowerCase()), {
 				message: t("catalog.error.already-exist"),
 			}),
 		docroot: z.optional(z.string().nullable()),

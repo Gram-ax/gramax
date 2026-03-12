@@ -1,18 +1,19 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import Path from "@core/FileProvider/Path/Path";
 import { uniqueName } from "@core/utils/uniqueName";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { isActive } from "@core-ui/hooks/useAudioRecorder";
 import styled from "@emotion/styled";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
-import Visualizer, { VisualizerProps } from "@ext/ai/components/Audio/Visualizer/Visualizer";
+import Visualizer, { type VisualizerProps } from "@ext/ai/components/Audio/Visualizer/Visualizer";
 import createNameForFile from "@ext/ai/logic/helpers/createNameForFile";
 import { MAX_AUDIO_DURATION_MS, MAX_AUDIO_HISTORY_ITEMS } from "@ext/ai/models/consts";
-import { AudioHistoryItem } from "@ext/ai/models/types";
+import type { AudioHistoryItem } from "@ext/ai/models/types";
 import t from "@ext/localization/locale/translate";
 import ToolbarWrapper from "@ext/markdown/core/edit/components/Menu/ToolbarWrapper";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import createFile from "@ext/markdown/elements/file/edit/logic/createFile";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { Toolbar } from "@ui-kit/Toolbar";
 import { memo, useCallback } from "react";
 
@@ -105,7 +106,7 @@ const ArticleAudioToolbar = ({ editor }: { editor: Editor }) => {
 
 	const generateFileName = useCallback((fileName: string, names: string[]) => {
 		const path = new Path(fileName);
-		if (names.includes(fileName)) return uniqueName(path.name, names, "." + path.extension);
+		if (names.includes(fileName)) return uniqueName(path.name, names, `.${path.extension}`);
 		return fileName;
 	}, []);
 

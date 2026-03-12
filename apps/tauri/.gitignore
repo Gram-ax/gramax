@@ -20,7 +20,6 @@ dist-ssr
 *.local
 
 tsconfig.tsbuildinfo
-Cargo.lock
 bundle
 
 # Editor directories and files

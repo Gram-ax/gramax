@@ -4,11 +4,12 @@ import Path from "@core/FileProvider/Path/Path";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import { CACHE_DIR, MODULITH_BASE } from "@ext/serach/modulith/createModulithService";
+import { CACHE_DIR, MODULITH_BASE } from "@ext/serach/modulith/consts";
 import CloudUploadStatus from "@ext/static/logic/CloudUploadStatus";
 import convertCatalogLink from "@ext/static/logic/convertCatalogLink";
 import VersionedCloudApi from "@ext/static/logic/VersionedCloudApi";
 import ZipFileProvider from "@ext/static/logic/ZipFileProvider";
+import assert from "assert";
 import type { DirectoryInfoBasic } from "../../../../apps/gramax-cli/src/logic/initialDataUtils/types";
 import StaticSiteBuilder from "../../../../apps/gramax-cli/src/logic/StaticSiteBuilder";
 import { Command } from "../../../types/Command";
@@ -33,22 +34,27 @@ const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Comma
 			if (!(await cloudApi.getServerState())) throw new DefaultError(t("cloud.error.failed-to-connect"));
 
 			const htmlTemplate = await cloudApi.getTemplateHtml();
+			const modulithBasePath = new Path(baseCatalogName).join(MODULITH_BASE);
 			const getCache = {
 				fp: () => {
-					const catceFileProvider = ZipFileProvider.createWithExistingZip(zipFileProvider.zip);
-					catceFileProvider.setRootPath(MODULITH_BASE.join(CACHE_DIR));
+					const cacheFileProvider = ZipFileProvider.createWithExistingZip(zipFileProvider.zip);
+					cacheFileProvider.setRootPath(modulithBasePath.join(CACHE_DIR));
 					const articleStorageFileProvider = ZipFileProvider.createWithExistingZip(zipFileProvider.zip);
-					articleStorageFileProvider.setRootPath(MODULITH_BASE);
-					return { catceFileProvider, articleStorageFileProvider };
+					articleStorageFileProvider.setRootPath(modulithBasePath);
+					return { cacheFileProvider, articleStorageFileProvider };
 				},
 				tree: () => {
-					zipFileProvider.setRootPath(MODULITH_BASE);
+					zipFileProvider.setRootPath(modulithBasePath);
 					const files = zipFileProvider.currentFolder.file(new RegExp(/.*/));
 					const filePaths = files.map((f) => f.name);
 					const directoryTree = StaticSiteBuilder.buildDirectoryTreeFromPaths(filePaths)
 						?.children?.[0] as DirectoryInfoBasic;
+
+					assert(directoryTree.name === baseCatalogName);
+
+					const treeToMerge = directoryTree.children[0] as DirectoryInfoBasic;
 					zipFileProvider.setRootPath(new Path(""));
-					return directoryTree;
+					return treeToMerge;
 				},
 			};
 			const staticSiteBuilder = new StaticSiteBuilder({

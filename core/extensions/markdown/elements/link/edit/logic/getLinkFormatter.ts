@@ -2,20 +2,23 @@ import Path from "@core/FileProvider/Path/Path";
 import isURL from "@core-ui/utils/isURL";
 import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
-import { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { Mark, Node } from "@tiptap/pm/model";
+import {
+	MarkdownSerializerState,
+	type MarkSerializerSpec,
+} from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type { Mark, Node } from "@tiptap/pm/model";
 
-function isPlainURL(link: Mark, parent: Node, index: number, side: number) {
-	if (link.attrs.title || !/^\w+:/.test(link.attrs.href)) return false;
+const isPlainURL = (link: Mark, parent: Node, index: number, side: number) => {
+	const href = link.attrs.href;
+	if (link.attrs.title || !/^\w+:/.test(href) || MarkdownSerializerState.escape(href) !== href) return false;
 	const content = parent.child(index + (side < 0 ? -1 : 0));
-	if (!content.isText || content.text != link.attrs.href || content.marks[content.marks.length - 1] != link)
-		return false;
-	if ((link.attrs.href as string).endsWith("-")) return false;
-	if (index == (side < 0 ? 1 : parent.childCount - 1)) return true;
+	if (!content.isText || content.text !== href || content.marks[content.marks.length - 1] !== link) return false;
+	if ((href as string).endsWith("-")) return false;
+	if (index === (side < 0 ? 1 : parent.childCount - 1)) return true;
 	const next = parent.child(index + (side < 0 ? -2 : 1));
 	return !link.isInSet(next.marks);
-}
+};
 
 const getLinkFormatter = (context?: ParserContext): MarkSerializerSpec => {
 	const formatter = getFormatterTypeByContext(context);
@@ -28,7 +31,7 @@ const getLinkFormatter = (context?: ParserContext): MarkSerializerSpec => {
 		close(_state, mark, parent, index) {
 			const isFile = mark.attrs?.isFile ?? false;
 			const resourcePath =
-				mark.attrs.resourcePath && mark.attrs.resourcePath != "" ? new Path(mark.attrs.resourcePath) : null;
+				mark.attrs.resourcePath && mark.attrs.resourcePath !== "" ? new Path(mark.attrs.resourcePath) : null;
 			const isUrl = isURL(resourcePath?.value);
 
 			const link: string =

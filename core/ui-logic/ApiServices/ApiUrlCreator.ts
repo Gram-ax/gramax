@@ -1,5 +1,4 @@
 import type { CatalogMoveConflictResolution } from "@app/commands/catalog/move";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type { Router } from "@core/Api/Router";
 import type CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
@@ -9,9 +8,10 @@ import type UiLanguage from "@ext/localization/core/model/Language";
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
 import type { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import type { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
+import type { ResourceFilter } from "@ext/serach/Searcher";
 import type { SearcherType } from "@ext/serach/SearcherManager";
 import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import Theme from "@ext/Theme/Theme";
+import type Theme from "@ext/Theme/Theme";
 import { ExportFormat } from "@ext/wordExport/components/ItemExport";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import type MimeTypes from "./Types/MimeTypes";
@@ -34,20 +34,6 @@ export default class ApiUrlCreator {
 
 	fromNewArticlePath(articlePath: string, catalogName?: string) {
 		return new ApiUrlCreator(this._basePath, catalogName || this._catalogName, articlePath);
-	}
-
-	public getLogo(theme: Theme, isMobile: boolean = true) {
-		if (isMobile) {
-			return Url.fromBasePath(
-				theme === Theme.dark ? `/images/gramax-logo-hp-dark.svg` : `/images/gramax-logo-hp-light.svg`,
-				getExecutingEnvironment() === "next" ? this._basePath : "",
-			);
-		}
-
-		return Url.fromBasePath(
-			theme === Theme.dark ? `/images/gramax-logo-desktop-dark.svg` : `/images/gramax-logo-desktop-light.svg`,
-			getExecutingEnvironment() === "next" ? this._basePath : "",
-		);
 	}
 
 	public switchWorkspace(id: WorkspacePath) {
@@ -295,10 +281,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getOpenGraphLogoUrl(domain: string) {
-		return `${domain}${this._basePath ?? ""}/openGraph/logo.png`;
-	}
-
 	public getAuthUrl(router: Router, isLogged: boolean) {
 		const from = encodeURIComponent(router?.basePath + router?.path);
 		return Url.fromBasePath(isLogged ? `/api/auth/logout` : `/api/auth/login`, this._basePath, {
@@ -324,6 +306,10 @@ export default class ApiUrlCreator {
 
 	public refreshEnterpriseWorkspace() {
 		return Url.fromBasePath(`api/enterprise/refreshWorkspace`, this._basePath);
+	}
+
+	public offEnterpriseUrl() {
+		return Url.fromBasePath(`api/enterprise/off`, this._basePath);
 	}
 
 	public getAuthSsoUrl(data: string, sign: string, from: string) {
@@ -420,9 +406,10 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVersionControlDiscardUrl() {
+	public getVersionControlDiscardUrl(articlePath?: string) {
 		return Url.fromBasePath(`/api/versionControl/discard`, this._basePath, {
 			catalogName: this._catalogName,
+			articlePath,
 		});
 	}
 
@@ -616,19 +603,6 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getReviewLinkUrl(filePath: string) {
-		return Url.fromBasePath(`/api/catalog/review/getReviewLink`, this._basePath, {
-			catalogName: this._catalogName,
-			filePath,
-		});
-	}
-
-	public getReviewStorageDataUrl() {
-		return Url.fromBasePath(`/api/catalog/review/getReviewLinkData`, this._basePath, {
-			catalogName: this._catalogName,
-		});
-	}
-
 	public getShareLinkUrl(filePath: string) {
 		return Url.fromBasePath(`/api/catalog/share/getShareLink`, this._basePath, {
 			catalogName: this._catalogName,
@@ -671,11 +645,14 @@ export default class ApiUrlCreator {
 			catalogName,
 			articlesLanguage,
 			responseLanguage,
+			currentArticle: this._articlePath,
 		});
 	}
 
-	public getIndexingProgressUrl() {
-		return Url.fromBasePath(`/api/search/getIndexingProgress`, this._basePath);
+	public getIndexingProgressUrl(resourceFilter?: ResourceFilter) {
+		return Url.fromBasePath(`/api/search/getIndexingProgress`, this._basePath, {
+			resourceFilter,
+		});
 	}
 
 	public getResetSearchDataUrl(catalogName?: string) {
@@ -684,10 +661,11 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public getVersionControlFileHistoryUrl(articlePath: string) {
+	public getVersionControlFileHistoryUrl(articlePath: string, offset: number) {
 		return Url.fromBasePath(`/api/versionControl/fileHistory`, this._basePath, {
 			path: articlePath,
 			catalogName: this._catalogName,
+			offset: offset.toString(),
 		});
 	}
 
@@ -929,6 +907,7 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/item/remove`, this._basePath, {
 			catalogName: this._catalogName,
 			articlePath: articlePath,
+			currentArticlePath: this._articlePath,
 		});
 	}
 
@@ -1355,6 +1334,14 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/quiz/getTestResult`, this._basePath, {
 			catalogName: this._catalogName,
 			articlePath: this._articlePath,
+		});
+	}
+
+	public createLinkFromHref(href: string) {
+		return Url.fromBasePath(`/api/article/features/createLinkFromHref`, this._basePath, {
+			catalogName: this._catalogName,
+			articlePath: this._articlePath,
+			href,
 		});
 	}
 

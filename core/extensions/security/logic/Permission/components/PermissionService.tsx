@@ -1,14 +1,14 @@
-import { PageProps } from "@components/ContextProviders";
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type { PageProps } from "@components/ContextProviders";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";
-import IPermission from "@ext/security/logic/Permission/IPermission";
+import type IPermission from "@ext/security/logic/Permission/IPermission";
 import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/PermissionParser";
-import ClientPermissions from "@ext/security/logic/Permission/model/ClientPermissions";
-import IPermissionMap from "@ext/security/logic/PermissionMap/IPermissionMap";
+import type ClientPermissions from "@ext/security/logic/Permission/model/ClientPermissions";
+import type IPermissionMap from "@ext/security/logic/PermissionMap/IPermissionMap";
 import parsePermissionMapFromJSON from "@ext/security/logic/PermissionMap/parsePermissionMapFromJSON";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { createContext, ReactElement, useContext, useMemo } from "react";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import { createContext, type ReactElement, useContext, useMemo } from "react";
 
 const UserPermissionsContext = createContext<{
 	global: IPermission;

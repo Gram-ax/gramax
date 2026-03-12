@@ -1,7 +1,7 @@
-import PageDataContext from "@core/Context/PageDataContext";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import { StaticArticlePageData } from "./ArticleDataService";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
+import type { StaticArticlePageData } from "./ArticleDataService";
 
 export interface InitialData {
 	data: {

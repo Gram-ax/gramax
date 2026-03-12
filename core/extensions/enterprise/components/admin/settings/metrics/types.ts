@@ -39,7 +39,7 @@ export interface SearchQueryDetailRow {
 
 export interface SearchQueryDetailsResponse {
 	data: SearchQueryDetailRow[];
-	nextCursor: string | null;
+	nextCursor: number | null;
 	hasMore: boolean;
 }
 

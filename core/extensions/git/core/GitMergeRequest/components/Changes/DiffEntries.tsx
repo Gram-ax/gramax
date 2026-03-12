@@ -1,10 +1,11 @@
 import styled from "@emotion/styled";
-import type { DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import type { DiffFlattenTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import DiffEntry from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntry";
+import { useDiffExtendedMode } from "@ext/git/core/GitMergeRequest/components/Changes/stores/DiffExtendedModeStore";
 import useUpdateArticleDiffView from "@ext/git/core/GitMergeRequest/components/Changes/useUpdateArticleDiffView";
 import t from "@ext/localization/locale/translate";
-import type { DiffItemOrResource } from "@ext/VersionControl/model/Diff";
-import { createContext, forwardRef, useState } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
+import { createContext, forwardRef, memo, type RefObject, useCallback, useMemo, useState } from "react";
 
 export enum DiffEntriesLoadStage {
 	NotLoaded,
@@ -17,9 +18,10 @@ const DiffEntriesWrapper = styled.div<{ hasChanges: boolean }>`
 	flex-direction: column;
 	height: auto;
 	flex-shrink: 1;
+	overflow: hidden;
 	${({ hasChanges }) => hasChanges && "margin: 0 -1.6em;"}
 
-	& > div {
+	& > div:not(.virtual-spacer) {
 		padding-left: 1rem;
 		padding-right: 1rem;
 	}
@@ -50,52 +52,118 @@ export const SelectedDiffEntryContext = createContext<{
 });
 
 export type DiffEntriesProps = {
-	changes: DiffTreeAnyItem[];
+	changes: DiffFlattenTreeAnyItem[];
 	renderCommentsCount: boolean;
-	setArticleDiffView: (item: DiffItemOrResource) => void;
-
-	selectFile?: (entry: DiffTreeAnyItem, checked: boolean) => void;
-	isFileSelected?: (entry: DiffTreeAnyItem) => boolean;
-
-	onAction?: (entry: DiffTreeAnyItem) => void;
 	actionIcon?: string;
+	scrollableRef: RefObject<HTMLDivElement>;
+
+	setArticleDiffView: (item: DiffFlattenTreeAnyItem) => void;
+
+	selectFile?: (entry: DiffFlattenTreeAnyItem, checked: boolean) => void;
+	isFileSelected?: (entry: DiffFlattenTreeAnyItem) => boolean;
+
+	onAction?: (entry: DiffFlattenTreeAnyItem) => void;
 };
 
-export const DiffEntries = forwardRef<HTMLDivElement, DiffEntriesProps>((props, ref) => {
-	const { changes, selectFile, isFileSelected, setArticleDiffView, onAction, actionIcon, renderCommentsCount } =
-		props;
-	const [selectedByPath, setSelectedByPath] = useState<string>(undefined);
-	const hasChanges = changes?.length > 0;
+export const DiffEntries = memo(
+	forwardRef<HTMLDivElement, DiffEntriesProps>((props, ref) => {
+		const {
+			changes,
+			selectFile,
+			isFileSelected,
+			setArticleDiffView,
+			onAction,
+			actionIcon,
+			renderCommentsCount,
+			scrollableRef,
+		} = props;
+		const [selectedByPath, setSelectedByPath] = useState<string>(undefined);
+		const extendedMode = useDiffExtendedMode();
 
-	const hasCheckboxes = selectFile && isFileSelected;
+		const hasChanges = changes?.length > 0;
+		const hasCheckboxes = Boolean(selectFile && isFileSelected);
 
-	useUpdateArticleDiffView({ changes, currentSelectedPath: selectedByPath, setArticleDiffView });
+		useUpdateArticleDiffView({ changes, currentSelectedPath: selectedByPath, setArticleDiffView });
 
-	return (
-		<SelectedDiffEntryContext.Provider value={{ selectedByPath, setSelectedByPath }}>
-			<DiffEntriesWrapper hasChanges={hasChanges} ref={ref}>
-				{hasChanges ? (
-					changes.map((entry) => (
-						<DiffEntry
-							actionIcon={actionIcon}
-							entry={entry}
-							indent={hasCheckboxes ? 1 : 0}
-							isFileSelected={isFileSelected}
-							key={entry.logicpath}
-							onAction={onAction}
-							onSelect={(entry) => {
-								if (entry.type === "node") return;
-								setSelectedByPath(entry.filepath.new);
-								setArticleDiffView(entry.rawItem);
-							}}
-							renderCommentsCount={renderCommentsCount}
-							selectFile={selectFile}
-						/>
-					))
-				) : (
-					<NoChanges data-qa="qa-no-changes">{t("git.warning.no-changes.title")}</NoChanges>
-				)}
-			</DiffEntriesWrapper>
-		</SelectedDiffEntryContext.Provider>
-	);
-});
+		const onSelect = useCallback(
+			(entry: DiffFlattenTreeAnyItem) => {
+				if (entry.type === "node") return;
+				setSelectedByPath(entry.filepath.new);
+				setArticleDiffView(entry);
+			},
+			[setArticleDiffView],
+		);
+
+		const flatChanges: DiffFlattenTreeAnyItem[] = useMemo(() => {
+			if (!changes) return [];
+			return changes
+				.filter((entry) => !(entry.type === "resource" && !extendedMode && entry.indent > 1))
+				.map((entry) => ({ ...entry, indent: hasCheckboxes ? entry.indent + 1 : entry.indent }));
+		}, [changes, hasCheckboxes, extendedMode]);
+
+		const getItemKey = useCallback(
+			(index: number) => {
+				const entry = flatChanges[index];
+				if (entry.type === "node") return entry.logicpath;
+				return `diff-entry-${index}`;
+			},
+			[flatChanges],
+		);
+
+		const virtualList = useVirtualizer({
+			count: flatChanges.length,
+			getScrollElement: () => scrollableRef.current,
+			getItemKey,
+			estimateSize: () => 20,
+			overscan: 8,
+			scrollMargin: 0,
+			// i know its magic number, but it works. it should be 20, but it doesn't work.
+		});
+
+		const virtualItems = virtualList.getVirtualItems();
+
+		return (
+			<SelectedDiffEntryContext.Provider value={{ selectedByPath, setSelectedByPath }}>
+				<DiffEntriesWrapper
+					hasChanges={hasChanges}
+					ref={ref}
+					style={{
+						paddingTop: `${virtualItems?.[0]?.start ?? 0}px`,
+						paddingBottom: `${
+							virtualList.getTotalSize() - (virtualItems?.[virtualItems.length - 1]?.end ?? 0)
+						}px`,
+					}}
+				>
+					{virtualItems.length > 0 ? (
+						<>
+							{virtualItems.map((item) => {
+								const entry = flatChanges[item.index];
+								if (!entry) return <div className="h-5" key={item.key} />;
+
+								return (
+									<div className="h-5" key={item.key}>
+										<DiffEntry
+											actionIcon={actionIcon}
+											entry={entry}
+											indent={entry.indent}
+											isExtendedMode={extendedMode}
+											isFileSelected={isFileSelected}
+											onAction={onAction}
+											onSelect={onSelect}
+											renderCommentsCount={renderCommentsCount}
+											selectFile={selectFile}
+										/>
+									</div>
+								);
+							})}
+						</>
+					) : (
+						!changes?.length && (
+							<NoChanges data-qa="qa-no-changes">{t("git.warning.no-changes.title")}</NoChanges>
+						)
+					)}
+				</DiffEntriesWrapper>
+			</SelectedDiffEntryContext.Provider>
+		);
+	}),
+);

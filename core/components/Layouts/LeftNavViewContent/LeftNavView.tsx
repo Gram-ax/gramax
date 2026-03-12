@@ -1,4 +1,4 @@
-import { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
+import type { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LeftSidebar from "@components/Layouts/LeftSidebar/LeftSidebar";
 import ScrollableElement from "@components/Layouts/ScrollableElement";
 import { classNames } from "@components/libs/classNames";
@@ -11,8 +11,9 @@ interface LeftNavViewProps {
 	sideBarBottom?: JSX.Element;
 	elementClassName?: string;
 	focusElementClassName?: string;
-	onLeftSidebarClick?: (idx: number) => void;
+	loadMoreTrigger?: JSX.Element;
 	className?: string;
+	onLeftSidebarClick?: (idx: number) => void;
 }
 
 const LeftNavView = (props: LeftNavViewProps) => {
@@ -23,8 +24,9 @@ const LeftNavView = (props: LeftNavViewProps) => {
 		sideBarBottom,
 		elementClassName = "log-entry",
 		focusElementClassName = "log-entry active",
-		onLeftSidebarClick,
+		loadMoreTrigger,
 		className,
+		onLeftSidebarClick,
 	} = props;
 
 	const getKey = (idx: number) => {
@@ -56,6 +58,7 @@ const LeftNavView = (props: LeftNavViewProps) => {
 									{c.leftSidebar}
 								</div>
 							))}
+							{loadMoreTrigger}
 						</div>
 					</div>
 				</ScrollableElement>

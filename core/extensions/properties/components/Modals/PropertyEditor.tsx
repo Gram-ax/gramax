@@ -10,6 +10,7 @@ import PropertyService from "@ext/properties/components/PropertyService";
 import { isPropertySuitableForArticle, type Property, PropertyTypes, type PropertyValue } from "@ext/properties/models";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, IconButton } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { ErrorState } from "@ui-kit/ErrorState";
 import { Form, FormField, FormFieldSet, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
@@ -17,7 +18,6 @@ import { Input } from "@ui-kit/Input";
 import { FieldLabel } from "@ui-kit/Label";
 import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import { Loader } from "@ui-kit/Loader";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
@@ -44,6 +44,7 @@ const BetweenContainer = styled.div`
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	width: 100%;
 `;
 
 const CustomFormField = styled.div`
@@ -217,8 +218,8 @@ const PropertyEditor = ({
 
 	return (
 		<>
-			<Modal onOpenChange={onOpenChange} open={open}>
-				<ModalContent data-modal-root>
+			<Dialog onOpenChange={onOpenChange} open={open}>
+				<DialogContent data-modal-root>
 					<Form asChild {...form}>
 						<form className="contents ui-kit" onSubmit={formSubmit}>
 							<FormHeader
@@ -232,7 +233,7 @@ const PropertyEditor = ({
 									isNew ? t("forms.catalog-create-props.name") : t("forms.catalog-create-props.name2")
 								}
 							/>
-							<ModalBody>
+							<DialogBody>
 								<FormStack>
 									<FormField
 										control={({ field }) => (
@@ -348,7 +349,7 @@ const PropertyEditor = ({
 										</FormFieldSet>
 									)}
 								</FormStack>
-							</ModalBody>
+							</DialogBody>
 							<FormFooter
 								leftContent={
 									<div className="flex items-center gap-2">
@@ -411,8 +412,8 @@ const PropertyEditor = ({
 							/>
 						</form>
 					</Form>
-				</ModalContent>
-			</Modal>
+				</DialogContent>
+			</Dialog>
 
 			<UnsavedChangesModal
 				isOpen={alertOpen}

@@ -5,6 +5,7 @@ use serde::Deserialize;
 use serde::Serialize;
 
 use tauri::*;
+use tauri_otel_context::OtelContext;
 
 use reqwest::header::*;
 use reqwest::Client;
@@ -59,7 +60,8 @@ impl From<reqwest::Error> for RequestError {
 }
 
 #[command]
-pub async fn http_request(req: Request) -> std::result::Result<Response, RequestError> {
+pub async fn http_request(_otel: OtelContext, req: Request) -> std::result::Result<Response, RequestError> {
+	drop(_otel);
 	let client = Client::builder();
 	let client = client.connect_timeout(Duration::from_secs(10)).timeout(Duration::from_secs(30)).build()?;
 

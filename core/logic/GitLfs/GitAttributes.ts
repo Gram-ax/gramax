@@ -1,12 +1,13 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
+import type { ToSpan } from "@ext/loggers/opentelemetry";
 
 type GitAttributesMap = Map<string, { attributes: string[]; disabled: boolean }>;
 
 const GIT_ATTRIBUTES_PATH = new Path(".gitattributes");
 
-export default class GitAttributes {
+export default class GitAttributes implements ToSpan {
 	private _dirty = false;
 
 	constructor(
@@ -92,5 +93,9 @@ export default class GitAttributes {
 			.join("\n");
 
 		await this._fp.write(this._path, lines);
+	}
+
+	toSpan() {
+		return Array.from(this._attrs);
 	}
 }

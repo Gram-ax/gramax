@@ -5,4 +5,5 @@ export const CatalogErrorGroups: Record<string, { type: string; title: string }>
 	images: { type: "images", title: "incorrects-paths" },
 	diagrams: { type: "diagrams", title: "incorrects-paths" },
 	icon: { type: "icons", title: "incorrects-icons" },
+	comments: { type: "comments", title: "incorrects-comments" },
 };

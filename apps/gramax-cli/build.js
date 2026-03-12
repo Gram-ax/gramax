@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import { dirname } from "node:path";
-import { spawn } from "child_process";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -16,7 +15,7 @@ async function generatePackageJson() {
 	const templatePackagePath = path.join(dist, "package.json");
 	const templatePackageJson = JSON.parse(await fs.readFile(templatePackagePath, "utf8"));
 
-	const version = process.env.GRAMAX_VERSION;
+	const version = process.env.GRAMAX_NPM_VERSION;
 
 	templatePackageJson.version = version;
 

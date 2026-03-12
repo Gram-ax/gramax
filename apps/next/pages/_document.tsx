@@ -1,7 +1,7 @@
-import { OpenGraphData } from "@core/SitePresenter/SitePresenter";
+import type { OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import fs from "fs";
-import Document, { DocumentContext, DocumentInitialProps, Head, Html, Main, NextScript } from "next/document";
+import Document, { type DocumentContext, type DocumentInitialProps, Head, Html, Main, NextScript } from "next/document";
 import path from "path";
 
 interface MyDocumentProps extends DocumentInitialProps {

@@ -1,17 +1,19 @@
-import { Router } from "@core/Api/Router";
-import { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
+import type { Router } from "@core/Api/Router";
+import type { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { paste } from "@ext/markdown/elements/copyArticles/handlers/paste";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
+import type { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
-import { PropertyService } from "@ext/properties/components/PropertyService";
-import { Editor } from "@tiptap/core";
-import { Slice } from "@tiptap/pm/model";
-import { EditorView } from "prosemirror-view";
+import type { PropertyService } from "@ext/properties/components/PropertyService";
+import type { Editor } from "@tiptap/core";
+import type { Slice } from "@tiptap/pm/model";
+import type { EditorView } from "prosemirror-view";
+import { useCallback } from "react";
 
 export interface BaseEditorContext {
 	apiUrlCreator: ApiUrlCreator;
@@ -32,7 +34,7 @@ export type EditorPasteHandler = (
 	apiUrlCreator: ApiUrlCreator,
 	articleProps: ClientArticleProps,
 	catalogProps: ClientCatalogProps,
-) => boolean | void;
+) => boolean;
 
 export interface EditorData {
 	commentEnabled: boolean;
@@ -74,14 +76,14 @@ export default abstract class EditorService {
 	}
 
 	public static createOnUpdateCallback(): (editorContext: EditorContext) => Promise<void> {
-		return async (editorContext: EditorContext) => {
+		return useCallback(async (editorContext: EditorContext) => {
 			const { editor, apiUrlCreator } = editorContext;
 			const json = editor.getJSON();
 			json.content.shift();
 			const articleContentEdit = JSON.stringify(json);
 			const url = apiUrlCreator.updateArticleContent();
 			await FetchService.fetch(url, articleContentEdit, MimeTypes.json);
-		};
+		}, []);
 	}
 
 	public static createHandlePasteCallback(resourceService: ResourceServiceType): EditorPasteHandler {

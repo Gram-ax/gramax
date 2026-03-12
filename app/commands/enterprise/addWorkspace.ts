@@ -1,18 +1,18 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import { EnterpriseErrorCode } from "@ext/enterprise/errors/getEnterpriseErrors";
-import UserSettings from "@ext/enterprise/types/UserSettings";
+import type UserSettings from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import Permission from "@ext/security/logic/Permission/Permission";
 import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
-import UserInfo from "@ext/security/logic/User/UserInfo";
+import type UserInfo from "@ext/security/logic/User/UserInfo";
 import Theme from "@ext/Theme/Theme";
-import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { Command } from "../../types/Command";
 
 const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings> = Command.create({
@@ -57,25 +57,21 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			);
 		}
 
+		const enterpriseWorkspace = userSettings.workspace;
 		const workspaceConfig: ClientWorkspaceConfig = {
-			...userSettings.workspace,
 			path,
+			id: enterpriseWorkspace.id,
+			name: enterpriseWorkspace.name,
+			icon: enterpriseWorkspace.icon,
+			sections: enterpriseWorkspace.sections,
+			services: enterpriseWorkspace.services,
 			enterprise: {
-				...enterpriseConfig,
+				gesUrl: enterpriseConfig.gesUrl,
 				modules: userSettings.workspace.modules,
 				lastUpdateDate: Date.now(),
-			},
-			services: {
-				gitProxy: { url: null },
-				auth: { url: `${gesUrl}/auth` },
-				review: { url: null },
-				diagramRenderer: { url: `${gesUrl}/diagram-renderer` },
+				refreshInterval: enterpriseConfig.refreshInterval,
 			},
 		};
-		delete (workspaceConfig as any).style;
-		delete (workspaceConfig as any).plugins;
-		delete (workspaceConfig as any).pdfTemplates;
-		delete (workspaceConfig as any).wordTemplates;
 
 		if (!existWorkspace) await this._commands.workspace.create.do({ config: workspaceConfig });
 		else await this._commands.workspace.edit.do({ data: { ...workspaceConfig } });

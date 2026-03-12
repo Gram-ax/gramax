@@ -1,8 +1,9 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import isNavigatorAvailable from "@core-ui/isNavigatorAvailable";
 import useGetHref from "@core-ui/useGetHref";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import styled from "@emotion/styled";
-import React, { MouseEvent } from "react";
+import React, { type MouseEvent } from "react";
 
 export interface HeaderProps {
 	level: number;
@@ -25,7 +26,7 @@ const Header = (props: HeaderProps) => {
 		if (!copyAllowed) return;
 		if (!id) e.preventDefault();
 		const clipboardLink = window.location.origin + window.location.pathname + hash;
-		void navigator.clipboard.writeText(clipboardLink);
+		void tryCopyToClipboard(clipboardLink);
 	};
 
 	const headerId = !isPrint ? id : articleProps.logicPath + hash;

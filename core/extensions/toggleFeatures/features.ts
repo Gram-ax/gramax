@@ -157,6 +157,23 @@ export const features = {
 		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
 		default: false,
 	},
+	"opentelemetry-logs": {
+		title: {
+			ru: "Подробное логгирование",
+			en: "Verbose Logging",
+		},
+		desc: {
+			ru: "Негативно влияет на производительность. Выводится в F12 → Console → Debug",
+			en: "Has a negative impact on performance. Logs are exported to F12 → Console → Debug",
+		},
+		url: {
+			ru: null,
+			en: null, // Waiting for translation
+		},
+		icon: "library-big",
+		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.docportal,
+		default: false,
+	},
 } as const satisfies FeatureList;
 
 loadFeatures();

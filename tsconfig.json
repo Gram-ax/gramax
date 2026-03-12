@@ -81,9 +81,9 @@
 		"**/.vite-cache",
 		".git",
 		"./e2e-pw",
-		"services/**/Services/TSClassDiagram/files",
 		"apps/tauri/src-tauri",
 		"gx",
-		"**/build"
+		"**/build",
+		"apps/next/tsconfig.json"
 	]
 }

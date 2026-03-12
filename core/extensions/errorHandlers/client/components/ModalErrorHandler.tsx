@@ -1,21 +1,19 @@
 import sendBug from "@ext/bugsnag/logic/sendBug";
 import DefaultErrorComponent from "@ext/errorHandlers/client/components/DefaultError";
-import ErrorHandler, { ErrorHandlerProps } from "@ext/errorHandlers/client/components/ErrorHandler";
+import ErrorHandler, { type ErrorHandlerProps } from "@ext/errorHandlers/client/components/ErrorHandler";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
+import type { ComponentType, ReactNode } from "react";
 
 interface ModalErrorHandlerProps extends ErrorHandlerProps {
 	onClose: () => void;
-	onError: () => void;
+	onError?: () => void;
+	wrapper?: ComponentType<{ children: ReactNode }>;
 }
 
 class ModalErrorHandler extends ErrorHandler<ModalErrorHandlerProps> {
-	constructor(props: ModalErrorHandlerProps) {
-		super(props);
-	}
-
 	override renderError() {
-		return (
+		const children = (
 			<DefaultErrorComponent
 				error={
 					new DefaultError(
@@ -29,10 +27,12 @@ class ModalErrorHandler extends ErrorHandler<ModalErrorHandlerProps> {
 				onCancelClick={this.props.onClose}
 			/>
 		);
+		const Wrapper = this.props.wrapper;
+		return Wrapper ? <Wrapper>{children}</Wrapper> : children;
 	}
 
 	override componentDidCatch(error: Error): void {
-		this.props.onError();
+		this.props.onError?.();
 		sendBug(error);
 	}
 }

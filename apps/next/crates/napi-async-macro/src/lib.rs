@@ -45,20 +45,23 @@ pub fn napi_async(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
 	let expanded = quote! {
 		pub struct #task_name {
-				#(#field_defs),*
+			#(#field_defs,)*
+			span_id: Option<String>,
+			trace_id: Option<String>,
 		}
 
 		impl napi::Task for #task_name {
 			type Output = String;
-			type JsValue = napi::JsString;
+			type JsValue = String;
 
 			fn compute(&mut self) -> napi::Result<Self::Output> {
-				let #task_name { #(#param_names),*, .. } = self;
+				let #task_name { #(#param_names,)* span_id, trace_id } = self;
+				let _otel_guard = crate::setup_remote_context(span_id.as_deref(), trace_id.as_deref());
 				#fn_name(#(#param_names.clone().into()),*)
 			}
 
-			fn resolve(&mut self, env: napi::Env, output: Self::Output) -> napi::Result<Self::JsValue> {
-				env.create_string(output.as_str())
+			fn resolve(&mut self, _env: napi::Env, output: Self::Output) -> napi::Result<Self::JsValue> {
+				Ok(output)
 			}
 
 			fn reject(&mut self, _: napi::Env, error: napi::Error) -> napi::Result<Self::JsValue> {
@@ -71,8 +74,8 @@ pub fn napi_async(_attr: TokenStream, item: TokenStream) -> TokenStream {
 		}
 
 		#[napi(js_name = #fn_name)]
-		#fn_vis fn #fn_name_async(#(#param_names: #param_types),*) -> napi::bindgen_prelude::AsyncTask<#task_name> {
-			napi::bindgen_prelude::AsyncTask::new(#task_name { #(#param_names),* })
+		#fn_vis fn #fn_name_async(#(#param_names: #param_types,)* span_id: Option<String>, trace_id: Option<String>) -> napi::bindgen_prelude::AsyncTask<#task_name> {
+			napi::bindgen_prelude::AsyncTask::new(#task_name { #(#param_names,)* span_id, trace_id })
 		}
 	};
 

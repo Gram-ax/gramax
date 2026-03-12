@@ -10,12 +10,13 @@ interface ActionButtonProps {
 	tooltipText?: string;
 	className?: string;
 	disabled?: boolean;
+	dataTestId?: string;
 	onClick?: (e: MouseEvent<HTMLDivElement>) => void;
 	onMouseLeave?: () => void;
 }
 
 const ActionButton = forwardRef<HTMLDivElement, ActionButtonProps>((props, ref) => {
-	const { icon, tooltipText, onClick, className, disabled, onMouseLeave, selected } = props;
+	const { icon, tooltipText, onClick, className, disabled, dataTestId, onMouseLeave, selected } = props;
 
 	const preClick = useCallback(
 		(e: MouseEvent<HTMLDivElement>) => {
@@ -29,6 +30,7 @@ const ActionButton = forwardRef<HTMLDivElement, ActionButtonProps>((props, ref) 
 		<Tooltip content={tooltipText} delay={[500, 0]}>
 			<div
 				className={classNames(className, { selected, disabled })}
+				data-testid={dataTestId}
 				onClick={preClick}
 				onMouseLeave={onMouseLeave}
 				ref={ref}

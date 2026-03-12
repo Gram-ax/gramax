@@ -1,7 +1,7 @@
 import LeftNavView from "@components/Layouts/LeftNavViewContent/LeftNavView";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
-import { Attributes, useRef, useState } from "react";
+import { type Attributes, useCallback, useRef, useState } from "react";
 
 export type ViewContent = {
 	leftSidebar: JSX.Element;
@@ -9,17 +9,7 @@ export type ViewContent = {
 	clickable?: boolean;
 } & Pick<Attributes, "key">;
 
-const LeftNavViewContent = ({
-	elements,
-	sideBarTop,
-	sideBarBottom,
-	currentIdx,
-	commonContent,
-	elementClassName = "log-entry",
-	focusElementClassName = "log-entry active",
-	className,
-	onLeftSidebarClick,
-}: {
+interface LeftNavViewContentProps {
 	elements: ViewContent[];
 	sideBarTop?: JSX.Element;
 	sideBarBottom?: JSX.Element;
@@ -28,8 +18,23 @@ const LeftNavViewContent = ({
 	focusElementClassName?: string;
 	currentIdx?: number;
 	className?: string;
+	loadMoreTrigger?: JSX.Element;
 	onLeftSidebarClick?: (idx: number) => void;
-}) => {
+}
+
+const LeftNavViewContent = (props: LeftNavViewContentProps) => {
+	const {
+		elements,
+		sideBarTop,
+		sideBarBottom,
+		currentIdx,
+		commonContent,
+		elementClassName = "log-entry",
+		focusElementClassName = "log-entry active",
+		className,
+		loadMoreTrigger,
+		onLeftSidebarClick: onLeftSidebarClickProp,
+	} = props;
 	const contentRef = useRef<HTMLDivElement>(null);
 	const [currentElementIdx, setCurrentElementIdx] = useState(currentIdx ?? 0);
 
@@ -38,11 +43,23 @@ const LeftNavViewContent = ({
 		setCurrentElementIdx(currentIdx);
 	}, [currentIdx]);
 
-	const getKey = (idx: number) => {
-		return elements[idx]?.key ?? idx;
-	};
+	const getKey = useCallback(
+		(idx: number) => {
+			return elements[idx]?.key ?? idx;
+		},
+		[elements],
+	);
 
-	if (elements.length == 0) return null;
+	const onLeftSidebarClick = useCallback(
+		(idx: number) => {
+			if (typeof currentIdx !== "number") setCurrentElementIdx(idx);
+			contentRef.current.scrollTo(0, 0);
+			onLeftSidebarClickProp?.(idx);
+		},
+		[currentIdx, onLeftSidebarClickProp],
+	);
+
+	if (!elements.length) return null;
 
 	return (
 		<div className={className} data-qa={`article-git-modal`}>
@@ -51,11 +68,8 @@ const LeftNavViewContent = ({
 				elementClassName={elementClassName}
 				elements={elements}
 				focusElementClassName={focusElementClassName}
-				onLeftSidebarClick={(idx) => {
-					if (typeof currentIdx !== "number") setCurrentElementIdx(idx);
-					contentRef.current.scrollTo(0, 0);
-					onLeftSidebarClick?.(idx);
-				}}
+				loadMoreTrigger={loadMoreTrigger}
+				onLeftSidebarClick={onLeftSidebarClick}
 				sideBarBottom={sideBarBottom}
 				sideBarTop={sideBarTop}
 			/>

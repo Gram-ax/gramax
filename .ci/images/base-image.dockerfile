@@ -3,7 +3,7 @@ ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.91-bookworm
 
 RUN apt-get update && \
-	apt-get install -y \
+	apt-get install -y --no-install-recommends \
 	git \
 	curl \
 	make \
@@ -27,6 +27,7 @@ RUN curl -fsSL -o /usr/local/bin/n https://raw.githubusercontent.com/tj/n/master
 	chmod +x /usr/local/bin/n && \
 	n install stable && \
 	n install 20 && \
+	n use 20 && \
 	n use stable
 
 ENV PATH="/root/.cargo/bin:/usr/local/bin:${PATH}"

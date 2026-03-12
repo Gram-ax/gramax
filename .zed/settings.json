@@ -39,6 +39,9 @@
 			"formatter": "language_server",
 			"hard_tabs": false
 		},
+		"CSS": {
+			"formatter": "language_server"
+		},
 		"TOML": {
 			"formatter": { "external": { "command": "taplo", "arguments": ["fmt", "-"] } }
 		},
@@ -50,11 +53,11 @@
 		"yaml-language-server": {
 			"settings": {
 				"yaml": {
+					"customTags": ["!reference sequence"],
 					"format": {
-						"hardTabs": true,
+						"hardTabs": false,
 						"singleQuote": true
 					},
-					"customTags": ["!reference sequence"],
 					"schemas": {
 						"https://gitlab.com/gitlab-org/gitlab/-/raw/master/app/assets/javascripts/editor/schema/ci.json": [
 							".ci/**/*.yml",
@@ -62,6 +65,31 @@
 						]
 					}
 				}
+			}
+		},
+		"rust-analyzer": {
+			"initialization_options": {
+				"rust": {
+					"analyzerTargetDir": true
+				},
+				"imports": {
+					"granularity": {
+						"enforce": true,
+						"group": "item"
+					},
+					"group": {
+						"enable": true
+					}
+				}
+				// "cargo": {
+				// 	"target": "wasm32-unknown-emscripten",
+				// 	"features": [],
+				// 	"extraEnv": {
+				// 		"BUGSNAG_API_KEY": "",
+				// 		"CFLAGS": "-Wno-error=incompatible-pointer-types"
+				// 	}
+				// },
+				// "check": { "targets": "wasm32-unknown-emscripten", "allTargets": true }
 			}
 		}
 	}

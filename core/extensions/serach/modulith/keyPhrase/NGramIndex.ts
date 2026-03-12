@@ -1,6 +1,7 @@
 export class NGramIndex<TItem extends { id: unknown }> {
 	private readonly _index = new Map<string, Set<TItem>>();
 	private readonly _documents = new Map<unknown, string[][]>();
+	private readonly _items = new Map<unknown, TItem>();
 
 	constructor(private readonly _N = 3) {}
 
@@ -15,6 +16,7 @@ export class NGramIndex<TItem extends { id: unknown }> {
 		}
 
 		this._documents.set(item.id, tokenized);
+		this._items.set(item.id, item);
 
 		for (const tokens of tokenized) {
 			this.addToIndex(item, tokens);
@@ -29,6 +31,14 @@ export class NGramIndex<TItem extends { id: unknown }> {
 			this.removeFromIndex(item, tokens);
 		}
 		this._documents.delete(item.id);
+		this._items.delete(item.id);
+	}
+
+	removeById(id: unknown) {
+		const item = this._items.get(id);
+		if (item !== undefined) {
+			this.remove(item);
+		}
 	}
 
 	search(query: string, threshold = 0.6): TItem[] {

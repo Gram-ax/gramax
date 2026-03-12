@@ -1,8 +1,8 @@
 import Date from "@components/Atoms/Date";
 import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
 type ApproveCheckbox = {
 	status: "approved" | "unapproved";
@@ -19,27 +19,30 @@ const Wrapper = styled.span`
 const ApproveCheckbox = ({ status, since }: ApproveCheckbox) => {
 	if (status === "approved")
 		return (
-			<Tooltip
-				content={
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Wrapper>
+						<Icon code="approved" />
+					</Wrapper>
+				</TooltipTrigger>
+				<TooltipContent side="right">
 					<Wrapper>
 						<span>{t("git.merge-requests.approval.approved")}</span>
 						<Date date={since.toString()} />
 					</Wrapper>
-				}
-				placement="right"
-			>
-				<Wrapper>
-					<Icon code="approved" />
-				</Wrapper>
+				</TooltipContent>
 			</Tooltip>
 		);
 
 	if (status === "unapproved")
 		return (
-			<Tooltip content={t("git.merge-requests.approval.unapproved")} placement="right">
-				<Wrapper>
-					<Icon code="unapproved" />
-				</Wrapper>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Wrapper>
+						<Icon code="unapproved" />
+					</Wrapper>
+				</TooltipTrigger>
+				<TooltipContent side="right">{t("git.merge-requests.approval.unapproved")}</TooltipContent>
 			</Tooltip>
 		);
 };

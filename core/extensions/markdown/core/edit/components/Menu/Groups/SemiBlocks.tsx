@@ -87,6 +87,7 @@ const SemiBlocks = ({ editor, includeResources, isSmallEditor }: SemiBlocksProps
 						<ToolbarTrigger
 							data-open={isOpen ? "open" : "closed"}
 							data-state={isActive ? "open" : "closed"}
+							data-testid="tb-pencil-ruler"
 							disabled={disabled}
 						>
 							<ToolbarIcon icon="pencil-ruler" />

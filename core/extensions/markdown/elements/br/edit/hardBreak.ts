@@ -6,7 +6,7 @@ import { Plugin, PluginKey } from "prosemirror-state";
 
 interface HardBreakOptions {
 	keepMarks: boolean;
-	HTMLAttributes: Record<string, any>;
+	HTMLAttributes: Record<string, unknown>;
 }
 
 const HardBreak = Node.create<HardBreakOptions>({
@@ -38,6 +38,11 @@ const HardBreak = Node.create<HardBreakOptions>({
 				props: {
 					handleKeyDown: (view, event) => {
 						if (event.key === "Enter" && event.shiftKey) {
+							const { $from } = view.state.selection;
+							if ($from.parent.type.name === "code_block") {
+								view.dispatch(view.state.tr.insertText("\n"));
+								return true;
+							}
 							splitBlock(view.state, view.dispatch);
 						}
 					},

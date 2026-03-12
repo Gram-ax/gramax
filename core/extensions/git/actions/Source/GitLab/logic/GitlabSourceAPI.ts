@@ -1,10 +1,10 @@
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
-import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
+import type { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import assert from "assert";
 
 export default class GitlabSourceAPI extends GitSourceApi {
@@ -47,7 +47,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async getProjectsByGroup(group: string, field = "name"): Promise<string[]> {
 		const user = await this.getUser();
-		const url = `${user.username == group ? "users" : "groups"}/${encodeURIComponent(group)}/projects`;
+		const url = `${user.username === group ? "users" : "groups"}/${encodeURIComponent(group)}/projects`;
 		return await Promise.all(
 			(await this._paginationApi(url)).map(async (res) => (await res.json()).map((g) => g[field])),
 		).then((x) => x.flat());
@@ -84,8 +84,10 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async getAllGroups(): Promise<string[]> {
 		const groups: string[][] = [];
-		const user = await this.getUser();
-		if (user) groups.push([user.username]);
+		if (!this._data.isEnterprise) {
+			const user = await this.getUser();
+			if (user) groups.push([user.username]);
+		}
 		groups.push(
 			...(await Promise.all(
 				(
@@ -98,7 +100,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 
 	async getBranchWithFile(fileName: string, data: GitStorageData): Promise<string> {
 		const defaultBranch = await this.getDefaultBranch(data);
-		const branches = [defaultBranch, ...(await this.getAllBranches(data)).filter((b) => b != defaultBranch)];
+		const branches = [defaultBranch, ...(await this.getAllBranches(data)).filter((b) => b !== defaultBranch)];
 		for (const branch of branches) {
 			const search = await this._searchFileInBranch(fileName, data, branch);
 			if (!search || !search.length) continue;
@@ -118,6 +120,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		return (await res.json()).default_branch;
 	}
 
+	// biome-ignore lint/suspicious/noExplicitAny: it's ok
 	async getAllBranches(data: GitStorageData, field?: string): Promise<any[]> {
 		const res = await this._api(`projects/${encodeURIComponent(`${data.group}/${data.name}`)}/repository/branches`);
 		return (await res.json()).map((branch) => branch?.[field] ?? branch?.name);
@@ -190,7 +193,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 					...(init?.headers ?? {}),
 					...(this._data.token && { Authorization: `Bearer ${this._data.token}` }),
 				},
-				// credentials: isEnterprise ? "include" : undefined, Will be used in future for GES Cloud
+				// credentials: "include", // Will be used in future for GES Cloud
 			});
 			await this._validateResponse(res);
 			return res;

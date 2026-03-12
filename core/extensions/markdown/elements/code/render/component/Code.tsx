@@ -1,6 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import isNavigatorAvailable from "@core-ui/isNavigatorAvailable";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import t from "@ext/localization/locale/translate";
 import { useState } from "react";
 
@@ -12,8 +13,10 @@ export default function Code({ children }: { children: string }) {
 
 	const onClickHandler = () => {
 		if (!copyAllowed) return;
-		setCopped(true);
-		navigator.clipboard.writeText(children);
+
+		tryCopyToClipboard(children, {
+			showPopover: false,
+		}).then((copied) => copied && setCopped(true));
 	};
 
 	const onMouseLeaveHandler = () => {

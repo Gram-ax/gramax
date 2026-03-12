@@ -29,13 +29,15 @@ interface cropImageProps {
 	scale?: number;
 }
 
+export const isNonCropped = (crop: Crop) => crop?.x === 0 && crop?.y === 0 && crop?.w === 100 && crop?.h === 100;
+
 export const getCroppedCanvas = async (
 	imageContainer: HTMLDivElement,
 	crop: Crop,
 	realSrc: string,
 	originalBuffer: Buffer,
 ): Promise<Blob> => {
-	if (crop.x === 0 && crop.y === 0 && crop.w === 100 && crop.h === 100) return;
+	if (isNonCropped(crop)) return;
 
 	const imageContainerRect = imageContainer?.getBoundingClientRect();
 	if (!imageContainerRect) return;

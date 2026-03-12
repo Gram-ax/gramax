@@ -4,13 +4,13 @@ import ArticleWithPreviewArticle from "@components/ArticlePage/ArticleWithPrevie
 import ArticleBreadcrumb from "@components/Breadcrumbs/ArticleBreadcrumb";
 import Welcome from "@components/Welcome";
 import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import CreateFirstArticle from "@ext/article/actions/CreateFirstArticle";
 import ArticleErrorHandler from "@ext/errorHandlers/client/components/ArticleErrorHandler";
 import t from "@ext/localization/locale/translate";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { useEffect } from "react";
 import Article from "../Article/Article";
 

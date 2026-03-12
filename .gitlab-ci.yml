@@ -32,22 +32,22 @@ include:
 #     - renovate --dry-run
 
 variables:
-  BRANCH: ''
-  GRAMAX_SITE_HTTP_PROTOCOL: https
-  GRAMAX_ENTERPRISE_SITE_URL: develop.gram.ax
-  ENTERPRISE_SERVER_URL: $GRAMAX_SITE_HTTP_PROTOCOL://$GRAMAX_ENTERPRISE_SITE_URL
-  GRAMAX_SITE: $GRAMAX_SITE_HTTP_PROTOCOL://$GRAMAX_SITE_URL
-  AUTH_SERVICE_URL: ${ENTERPRISE_SERVER_URL}/auth
-  REVIEW_SERVICE_URL: ${ENTERPRISE_SERVER_URL}/review
-  GIT_PROXY_SERVICE_URL: ${ENTERPRISE_SERVER_URL}/git-proxy
-  DIAGRAM_RENDERER_SERVICE_URL: $GRAMAX_SITE/-server/diagram-renderer
+  TRIVY_MAX_SEVERITY: "CRITICAL"
+  BRANCH: ""
+  GRAMAX_SITE_PROTOCOL: https
+  GRAMAX_SITE_DOMAIN: develop.gram.ax
+  GRAMAX_SITE_URL: $GRAMAX_SITE_PROTOCOL://$GRAMAX_SITE_DOMAIN
+  AUTH_SERVICE_URL: ${GRAMAX_SITE_URL}/auth
+  REVIEW_SERVICE_URL: ${GRAMAX_SITE_URL}/review
+  GIT_PROXY_SERVICE_URL: ${GRAMAX_SITE_URL}/git-proxy
+  DIAGRAM_RENDERER_SERVICE_URL: ${GRAMAX_SITE_URL}/diagram-renderer
   NODE_OPTIONS: --max_old_space_size=8192
   KUBERNETES_NAMESPACE: gramax
   BUILD_IMAGES:
-    value: 'true'
+    value: "true"
     options:
-      - 'true'
-      - 'false'
+      - "true"
+      - "false"
 
 workflow:
   auto_cancel:
@@ -55,37 +55,36 @@ workflow:
   rules:
     - if: $CI_COMMIT_BRANCH == "master"
       variables:
-        PRODUCTION: 'true'
-        BRANCH: 'master'
+        PRODUCTION: "true"
+        BRANCH: "master"
         S3_ENV_FOLDER: release
-        UPDATER_CHANNEL: 'prod'
-        GRAMAX_SITE_URL: app.gram.ax
-        GRAMAX_ENTERPRISE_SITE_URL: gram.ax
+        UPDATER_CHANNEL: "prod"
+        GRAMAX_SITE_DOMAIN: gram.ax
         # DEPLOYMENT_ENVIRONMENT: 'prod'
         BUGSNAG_API_KEY: $BUGSNAG_API_KEY_MASTER
         GITHUB_CLIENT_ID: $GITHUB_CLIENT_ID_MASTER
         GITHUB_CLIENT_SECRET: $GITHUB_CLIENT_SECRET_MASTER
         CONFLUENCE_CLIENT_ID: $CONFLUENCE_CLIENT_ID_MASTER
         CONFLUENCE_CLIENT_SECRET: $CONFLUENCE_CLIENT_SECRET_MASTER
-        IS_MERGE_REQUEST: 'false'
+        IS_MERGE_REQUEST: "false"
 
     - if: $CI_COMMIT_BRANCH == "develop"
       variables:
-        PRODUCTION: 'true'
-        BRANCH: 'develop'
+        PRODUCTION: "true"
+        BRANCH: "develop"
         S3_ENV_FOLDER: dev
         S3_BASE_PATH: public/gramax
-        UPDATER_CHANNEL: 'dev'
-        GRAMAX_SITE_URL: dev.gram.ax
+        UPDATER_CHANNEL: "dev"
+        GRAMAX_SITE_DOMAIN: develop.gram.ax
         # DEPLOYMENT_ENVIRONMENT: 'dev'
         BUGSNAG_API_KEY: $BUGSNAG_API_KEY_DEVELOP
         GITHUB_CLIENT_ID: $GITHUB_CLIENT_ID_DEVELOP
         GITHUB_CLIENT_SECRET: $GITHUB_CLIENT_SECRET_DEVELOP
         CONFLUENCE_CLIENT_ID: $CONFLUENCE_CLIENT_ID_DEVELOP
         CONFLUENCE_CLIENT_SECRET: $CONFLUENCE_CLIENT_SECRET_DEVELOP
-        IS_MERGE_REQUEST: 'false'
+        IS_MERGE_REQUEST: "false"
 
-    - if: '$CI_COMMIT_TAG'
+    - if: "$CI_COMMIT_TAG"
 
     - if: '$CI_MERGE_REQUEST_TITLE =~ /^(\[Draft\]|\(Draft\)|Draft:)/'
       when: never
@@ -95,15 +94,14 @@ workflow:
 
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
       variables:
-        GRAMAX_ENTERPRISE_SITE_URL: gram.ax
-        BRANCH: 'master'
-        GRAMAX_SITE_URL: app.gram.ax
-        IS_MERGE_REQUEST: 'true'
+        BRANCH: "master"
+        GRAMAX_SITE_DOMAIN: gram.ax
+        IS_MERGE_REQUEST: "true"
 
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       variables:
-        BRANCH: 'develop'
-        GRAMAX_SITE_URL: dev.gram.ax
-        IS_MERGE_REQUEST: 'true'
+        BRANCH: "develop"
+        GRAMAX_SITE_DOMAIN: develop.gram.ax
+        IS_MERGE_REQUEST: "true"
 
     - when: never

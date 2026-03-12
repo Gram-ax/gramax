@@ -1,9 +1,10 @@
 use rust_i18n::locale;
 use std::collections::HashMap;
 use tauri::*;
+use tauri_otel_context::OtelContext;
 
 #[tauri::command]
-pub fn read_env() -> HashMap<String, String> {
+pub fn read_env(_otel: OtelContext) -> HashMap<String, String> {
 	let vars = std::env::vars().collect::<HashMap<String, String>>();
 	if std::env::var("UPDATE_INSTALLED").is_ok() {
 		std::env::remove_var("UPDATE_INSTALLED");
@@ -23,6 +24,7 @@ pub fn get_user_language() -> String {
 
 #[command]
 pub fn http_listen_once<R: Runtime>(
+	_otel: OtelContext,
 	window: Window<R>,
 	url: &str,
 	action: super::http_server::OauthListenOnceAction,
@@ -44,13 +46,13 @@ pub fn http_listen_once<R: Runtime>(
 }
 
 #[command]
-pub fn open_in_web(url: &str) -> Result<()> {
+pub fn open_in_web(_otel: OtelContext, url: &str) -> Result<()> {
 	crate::open_url(url)?;
 	Ok(())
 }
 
 #[command]
-pub fn set_session_data<R: Runtime>(window: WebviewWindow<R>, key: &str, data: &str) -> Result<()> {
+pub fn set_session_data<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>, key: &str, data: &str) -> Result<()> {
 	use crate::shared::session_data::WindowSessionDataExt;
 	window.set_session_data(key, data);
 	Ok(())

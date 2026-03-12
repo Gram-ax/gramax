@@ -65,7 +65,7 @@ pub struct CommitInfo {
 }
 
 pub trait History {
-	fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<HistoryInfo>;
+	fn history<P: AsRef<Path>>(&self, path: P, offset: usize, limit: usize) -> Result<HistoryInfo>;
 
 	fn get_all_authors(&self) -> Result<Vec<CommitAuthorInfo>>;
 
@@ -161,8 +161,8 @@ impl<C: Creds> History for Repo<'_, C> {
 		Ok(BranchCommitsInfo { authors, commits })
 	}
 
-	fn history<P: AsRef<Path>>(&self, path: P, max: usize) -> Result<HistoryInfo> {
-		let mut remain = max;
+	fn history<P: AsRef<Path>>(&self, path: P, offset: usize, limit: usize) -> Result<HistoryInfo> {
+		let mut found = 0;
 		let mut history = vec![];
 
 		let mut revwalk = self.0.revwalk()?;
@@ -176,9 +176,10 @@ impl<C: Creds> History for Repo<'_, C> {
 
 		let mut inspected = 0;
 		let mut path = path.as_ref().to_path_buf();
+		let total_needed = offset + limit;
 
 		for c in revwalk {
-			if remain == 0 {
+			if found >= total_needed {
 				break;
 			}
 
@@ -211,8 +212,10 @@ impl<C: Creds> History for Repo<'_, C> {
 				.next()
 			{
 				Some(delta) if delta.status() == Delta::Modified => {
-					history.push(DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?);
-					remain -= 1;
+					found += 1;
+					if found > offset {
+						history.push(DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?);
+					}
 					continue;
 				}
 				Some(_) => {}
@@ -230,12 +233,14 @@ impl<C: Creds> History for Repo<'_, C> {
 				.deltas()
 				.find(|delta| delta.new_file().path().is_some_and(|p| p.eq(&path)) && matches!(delta.status(), Delta::Modified | Delta::Renamed))
 			{
-				let diff = DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?;
 				if let Some(p) = delta.old_file().path() {
 					path = p.to_path_buf();
 				}
-				history.push(diff);
-				remain -= 1;
+				found += 1;
+				if found > offset {
+					let diff = DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?;
+					history.push(diff);
+				}
 				continue;
 			}
 
@@ -245,33 +250,39 @@ impl<C: Creds> History for Repo<'_, C> {
 			diff.find_similar(Some(&mut find_opts))?;
 
 			if let Some(delta) = diff.deltas().find(|delta| delta.new_file().path().is_some_and(|p| p.eq(&path))) {
-				let diff = DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?;
 				if let Some(p) = delta.old_file().path() {
 					path = p.to_path_buf();
 				}
-				history.push(diff);
-				remain -= 1;
+				found += 1;
+				if found > offset {
+					let diff = DiffFile::from_diff_delta(&self.0, &newer_commit, &delta)?;
+					history.push(diff);
+				}
 				continue;
 			}
 		}
 
 		// collect the init commit if we've crawled to the end
-		if history.len() < max {
+		if found < total_needed {
 			let diff = self.0.diff_tree_to_tree(None, Some(&older_commit.tree()?), None)?;
 
 			if let Some(delta) = diff.deltas().find(|delta| delta.new_file().path().is_some_and(|p| p.eq(&path))) {
-				let diff = DiffFile::from_diff_delta(&self.0, &older_commit, &delta)?;
-				history.push(diff);
+				found += 1;
+				if found > offset {
+					let diff = DiffFile::from_diff_delta(&self.0, &older_commit, &delta)?;
+					history.push(diff);
+				}
 			}
 		}
 
 		info!(
 			target: TAG,
-			"looked up for history of file {}; inspected {} commits & collected {}/{} history entries",
+			"looked up for history of file {}; inspected {} commits & collected {}/{} history entries (offset: {})",
 			path.display(),
 			inspected,
 			history.len(),
-			max
+			limit,
+			offset
 		);
 
 		Ok(HistoryInfo(history))

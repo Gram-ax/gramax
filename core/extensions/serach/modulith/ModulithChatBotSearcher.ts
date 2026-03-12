@@ -1,7 +1,7 @@
 import type { Article } from "@core/FileStructue/Article/Article";
 import type ChatBotSearcher from "@ext/serach/ChatBotSearcher";
 import type { ChatBotSearchItem, ChatBotSearchStream, SearchArgs, SearchStreamArgs } from "@ext/serach/ChatBotSearcher";
-import type { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
+import type { RemoteModulithSearchClient } from "@ext/serach/modulith/search/RemoteModulithSearchClient";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import type { ChatResponse, ChatResponseItem, ChatStreamResponse } from "@ics/gx-vector-search";
 

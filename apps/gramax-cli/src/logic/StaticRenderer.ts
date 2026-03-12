@@ -1,15 +1,15 @@
-import Application from "@app/types/Application";
-import Context from "@core/Context/Context";
-import PageDataContext from "@core/Context/PageDataContext";
-import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type Application from "@app/types/Application";
+import type Context from "@core/Context/Context";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { overriddenLanguage } from "@ext/localization/core/model/Language";
 import { PropertyTypes } from "@ext/properties/models";
 import { feature } from "@ext/toggleFeatures/features";
 import { renderAppContent } from "../Components/renderAppContent";
-import { ArticleDataService, Options } from "./ArticleDataService";
-import { HtmlData, InitialArticleData } from "./ArticleTypes";
+import { ArticleDataService, type Options } from "./ArticleDataService";
+import type { HtmlData, InitialArticleData } from "./ArticleTypes";
 
 export const STATIC_WORKSPACE_PATH = "/";
 

@@ -8,10 +8,10 @@ import ModalErrorHandler from "@ext/errorHandlers/client/components/ModalErrorHa
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { Form, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
 import { Loader } from "@ui-kit/Loader";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import {
 	Sidebar,
 	SidebarContent,
@@ -27,7 +27,7 @@ import { useForm } from "react-hook-form";
 import { FORM_STYLES } from "../consts/form";
 import type { CatalogSettingsModalProps, FormData, FormProps } from "../logic/createFormSchema";
 import { createFormSchema } from "../logic/createFormSchema";
-import { SectionComponent, SettingsTab, SettingsTabs } from "./Sections";
+import { SectionComponent, type SettingsTab, SettingsTabs } from "./Sections";
 
 const SidebarContainer = styled(SidebarProvider)`
 	--sidebar-width: 12rem !important;
@@ -99,8 +99,8 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 	);
 
 	return (
-		<Modal onOpenChange={setOpen} open={open}>
-			<ModalContent
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogContent
 				data-modal-root
 				{...modalContentProps}
 				className="overflow-hidden p-0"
@@ -142,7 +142,10 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 								<div className="flex flex-col h-full min-h-0">
 									<Form asChild {...form}>
 										<form className="flex flex-col h-full min-h-0" onSubmit={formSubmit}>
-											<ModalBody className="flex-1 overflow-auto min-h-0" style={{ flexGrow: 1 }}>
+											<DialogBody
+												className="flex-1 overflow-auto min-h-0"
+												style={{ flexGrow: 1 }}
+											>
 												<FormStack>
 													<SectionComponent
 														activeTab={activeTab}
@@ -150,7 +153,7 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 														formProps={formProps}
 													/>
 												</FormStack>
-											</ModalBody>
+											</DialogBody>
 											<FormFooter
 												className="flex-shrink-0"
 												primaryButton={
@@ -168,8 +171,8 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 						</main>
 					</SidebarContainer>
 				</ModalErrorHandler>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

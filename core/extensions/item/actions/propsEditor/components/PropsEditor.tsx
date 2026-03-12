@@ -4,27 +4,30 @@ import { getClientDomain } from "@core/utils/getClientDomain";
 import { uniqueName } from "@core/utils/uniqueName";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import styled from "@emotion/styled";
-import { UsePropsEditorActionsParams } from "@ext/item/actions/propsEditor/logic/usePropsEditorAcitions";
+import type { UsePropsEditorActionsParams } from "@ext/item/actions/propsEditor/logic/usePropsEditorAcitions";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
 import { QuizSettingsFields } from "@ext/quiz/components/QuizSettingsFields";
+import type { QuizSettings } from "@ext/quiz/models/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from "@ui-kit/Dialog";
 import { Form, FormField, FormFooter, FormStack } from "@ui-kit/Form";
 import { Input, InputGroup, InputGroupInput, InputGroupText } from "@ui-kit/Input";
-import { Modal, ModalBody, ModalContent, ModalHeader, ModalTitle } from "@ui-kit/Modal";
 import { TagInput } from "@ui-kit/TagInput";
 import { Tooltip, TooltipArrow, TooltipContent, TooltipTrigger, useOverflowTooltip } from "@ui-kit/Tooltip";
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { type FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 
 interface PropsEditorProps extends Omit<UsePropsEditorActionsParams, "onExternalClose"> {
 	submit: SubmitHandler<{ title: string; fileName: string }>;
 	onClose?: () => void;
+	isCurrentItem: boolean;
 }
 
 const OverflowContainer = styled.div`
@@ -48,11 +51,27 @@ const getSchema = (brotherFileNames: string[]) => {
 			}),
 		quiz: z
 			.object({
-				showAnswers: z.boolean().optional(),
-				countOfCorrectAnswers: z.number().optional(),
+				showAnswers: z
+					.boolean()
+					.optional()
+					.transform((val) => (val === true ? true : undefined)),
+				canRetake: z
+					.boolean()
+					.optional()
+					.transform((val) => (val === true ? true : undefined)),
+				countOfCorrectAnswers: z
+					.number()
+					.optional()
+					.nullable()
+					.transform((val) => (typeof val === "number" ? val : undefined)),
 			})
 			.nullable()
-			.optional(),
+			.optional()
+			.transform((val) => {
+				if (!val) return undefined;
+				const newVal = Object.fromEntries(Object.entries(val).filter(([_, value]) => value !== undefined));
+				return Object.keys(newVal || {}).length ? (newVal as QuizSettings) : undefined;
+			}),
 		searchPhrases: z.array(z.string().min(1, { message: t("must-be-not-empty") })).nullish(),
 	});
 };
@@ -64,11 +83,12 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 	const { ref, open: openOverflow, onOpenChange: onOpenChangeOverflow } = useOverflowTooltip<HTMLDivElement>();
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const webEditorUrl = WorkspaceService.current()?.webEditorUrl;
 	const { onClose, submit, item, itemLink, isCategory, ...hookParams } = props;
 	const formRef = useRef<HTMLFormElement>(null);
 	const brotherFileNames = useRef<string[]>([]);
 
-	const formSchema = useMemo(() => getSchema(brotherFileNames.current), [brotherFileNames.current]);
+	const formSchema = useMemo(() => getSchema(brotherFileNames.current), []);
 
 	const form = useForm<PropsEditorFormValues>({
 		resolver: zodResolver(formSchema),
@@ -97,6 +117,7 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 		setBrotherFileNames();
 	}, [itemLink?.ref?.path]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!watchTitle) return;
 		if (!NEW_ARTICLE_REGEX.test(item?.fileName)) return;
@@ -129,20 +150,20 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 	const url = useMemo(() => {
 		const parentLinkPath = new Path(itemLink?.ref.path).parentDirectoryPath;
 		const parentLinkPathValue = (isCategory ? parentLinkPath.parentDirectoryPath : parentLinkPath).value;
-		const domain = getClientDomain();
+		const domain = getClientDomain(webEditorUrl);
 
 		return `${domain}${parentLinkPathValue.startsWith("/") ? parentLinkPathValue : `/${parentLinkPathValue}`}`;
-	}, [itemLink?.pathname]);
+	}, [webEditorUrl, isCategory, itemLink?.ref?.path]);
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={open}>
-			<ModalContent data-modal-root>
+		<Dialog onOpenChange={onOpenChange} open={open}>
+			<DialogContent data-modal-root>
 				<Form asChild {...form}>
 					<form className="contents ui-kit" onSubmit={formSubmitHandler} ref={formRef}>
-						<ModalHeader>
-							<ModalTitle>{t(`${isCategory ? "section" : "article"}.configure.title`)}</ModalTitle>
-						</ModalHeader>
-						<ModalBody>
+						<DialogHeader>
+							<DialogTitle>{t(`${isCategory ? "section" : "article"}.configure.title`)}</DialogTitle>
+						</DialogHeader>
+						<DialogBody>
 							<FormStack>
 								<FormField
 									control={({ field }) => <Input data-qa={t("title")} {...field} autoFocus />}
@@ -200,7 +221,7 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 									title={t("article.searchPhrases.title")}
 								/>
 							</FormStack>
-						</ModalBody>
+						</DialogBody>
 
 						<FormFooter
 							primaryButton={
@@ -215,8 +236,8 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 						/>
 					</form>
 				</Form>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

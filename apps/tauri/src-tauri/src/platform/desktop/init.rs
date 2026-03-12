@@ -15,18 +15,23 @@ pub struct OpenUrl(pub Mutex<Option<String>>);
 
 type InitResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
-pub fn window_post_init<R: Runtime>(_w: &WebviewWindow<R>) -> Result<()> {
+#[tracing::instrument(skip_all)]
+pub fn window_post_init<R: Runtime>(w: &WebviewWindow<R>) -> Result<()> {
 	#[cfg(target_os = "macos")]
-	_w.with_webview(|webview| unsafe {
+	w.with_webview(|webview| unsafe {
 		let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
 		// webview.setAllowsBackForwardNavigationGestures(true);
 		webview.setAllowsMagnification(true);
 	})?;
+
+	crate::logging::force_find_processes(&w.app_handle())?;
+
 	Ok(())
 }
 
+#[tracing::instrument(skip_all)]
 pub fn init_app<R: Runtime>(app: &mut App<R>) -> InitResult {
-	crate::logging::watch_process(app.handle().clone());
+	crate::logging::init_mem_watching(&app.handle())?;
 
 	#[cfg(target_os = "macos")]
 	macos_init_spellcheck(&app.config().identifier);

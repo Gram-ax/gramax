@@ -6,42 +6,42 @@ build-image:
   stage: build-images
   parallel:
     matrix:
-      - IMAGE_NAME: ['linux-tauri', 'playwright', 'dind-bun'] # TEMP: removed 'build-dev'
+      - IMAGE_NAME: ["linux-tauri", "playwright", "dind-bun"] # TEMP: removed 'build-dev'
 
-build-image-dind-bun:
+bootstrap-dind-bun:
   extends: .template.docker.build.image
   image: docker:28.5.1-dind
   stage: build-images
   variables:
-    IMAGE_NAME: 'dind-bun'
+    IMAGE_NAME: "dind-bun"
 
 build-image-spa:
   extends: .template.docker.build.image
   stage: build-images
   rules: !reference [.condition, build, rust, rules]
   variables:
-    IMAGE_NAME: 'spa'
-    DOCKERFILE_PATH: './crates/spa/Dockerfile'
+    IMAGE_NAME: "spa"
+    DOCKERFILE_PATH: "./crates/spa/Dockerfile"
 
 build-image-multiplatform:
   extends: .template.docker.build.image
   stage: build-images
   variables:
-    BUILD_PLATFORMS: 'linux/amd64,linux/arm64'
+    BUILD_PLATFORMS: "linux/amd64,linux/arm64"
   parallel:
     matrix:
-      - IMAGE_NAME: ['base-image']
+      - IMAGE_NAME: ["base-image"]
 
 build-web:
   extends: .template.docker.base
   stage: build
   rules: !reference [.condition, build, base, rules]
   variables:
-    SERVICE_NAME: 'web'
-    DOCKERFILE_PATH: './apps/browser/Dockerfile'
-    KUBERNETES_MEMORY_REQUEST: '0.3Gi'
-    KUBERNETES_CPU_REQUEST: '0.8'
-    KUBERNETES_CPU_LIMIT: '1.2'
+    SERVICE_NAME: "web"
+    DOCKERFILE_PATH: "./apps/browser/Dockerfile"
+    KUBERNETES_MEMORY_REQUEST: "0.3Gi"
+    KUBERNETES_CPU_REQUEST: "0.8"
+    KUBERNETES_CPU_LIMIT: "1.2"
   script:
     - |
       if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then
@@ -66,6 +66,7 @@ build-web:
       --build-arg BRANCH=$BRANCH
       --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
       .
+    - ./.ci/trivy/trivy-image-scan.sh $CI_REGISTRY_IMAGE/$SERVICE_NAME:$TAG
     - |
       if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
         TAGS="$TAG latest prod"
@@ -93,12 +94,12 @@ build-docportal:
   variables:
     GIT_DEPTH: 2000
     # NEED_TO_SIGN: true
-    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'true'
-    SERVICE_NAME: 'docportal'
-    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
-    KUBERNETES_MEMORY_REQUEST: '1Gi'
-    KUBERNETES_CPU_REQUEST: '1'
-    KUBERNETES_CPU_LIMIT: '2'
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "true"
+    SERVICE_NAME: "docportal"
+    DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
+    KUBERNETES_MEMORY_REQUEST: "1Gi"
+    KUBERNETES_CPU_REQUEST: "1"
+    KUBERNETES_CPU_LIMIT: "2"
 
 build-blog:
   extends: .template.docker.build
@@ -106,10 +107,10 @@ build-blog:
     - !reference [.condition, build, onlymaster, rules]
   variables:
     GIT_DEPTH: 2000
-    SERVICE_NAME: 'blog'
-    BASE_PATH: '/resources'
-    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
-    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
+    SERVICE_NAME: "blog"
+    BASE_PATH: "/resources"
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "false"
+    DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
 
 build-partners:
   extends: .template.docker.build
@@ -117,17 +118,17 @@ build-partners:
     - !reference [.condition, build, onlymaster, rules]
   variables:
     GIT_DEPTH: 2000
-    SERVICE_NAME: 'partners'
-    BASE_PATH: '/docs'
-    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
-    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
+    SERVICE_NAME: "partners"
+    BASE_PATH: "/docs"
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "false"
+    DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
 
 build-services:
   extends: .template.docker.build.new.version.service
   parallel:
     matrix:
       - SERVICE_NAME:
-          ['auth', 'git-proxy', 'enterprise', 'diagram-renderer', 'cloud']
+          ["auth", "git-proxy", "enterprise", "diagram-renderer", "cloud"]
 
 publish-cli:
   tags:
@@ -151,8 +152,8 @@ build-assets-cloud:
   extends: .template.docker.build
   rules: !reference [.condition, build, onlymaster, rules]
   variables:
-    SERVICE_NAME: 'assets-cloud'
-    DOCKERFILE_PATH: './services/target/cloud/Dockerfile.assets'
+    SERVICE_NAME: "assets-cloud"
+    DOCKERFILE_PATH: "./services/target/cloud/Dockerfile.assets"
 
 build-web-opensource:
   extends: .template.docker.base
@@ -160,7 +161,7 @@ build-web-opensource:
   rules:
     - !reference [.condition, build, onlymaster, rules]
   variables:
-    SERVICE_NAME: 'web'
+    SERVICE_NAME: "web"
   script:
     - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
     - apk add bash git
@@ -173,6 +174,7 @@ build-web-opensource:
       --tag gramax/editor:${VERSION_WEB}
       --tag gramax/editor:latest
       .
+    - ./.ci/trivy/trivy-image-scan.sh gramax/editor:${VERSION_WEB}
     - docker push gramax/editor:${VERSION_WEB}
     - docker push gramax/editor:latest
 
@@ -183,7 +185,7 @@ build-docportal-opensource:
   variables:
     GIT_DEPTH: 2000
     NEED_TO_SIGN: true
-    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "false"
   stage: build
   script:
     - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
@@ -200,6 +202,7 @@ build-docportal-opensource:
       --tag gramax/docportal:${VERSION_DOCPORTAL}
       --tag gramax/docportal:latest
       .
+    - ./.ci/trivy/trivy-image-scan.sh gramax/docportal:${VERSION_DOCPORTAL}
     - docker push gramax/docportal:${VERSION_DOCPORTAL}
     - docker push gramax/docportal:latest
 
@@ -218,5 +221,24 @@ build-git-proxy-opensource:
       --tag gramax/git-proxy:${VERSION_GIT_PROXY}
       --tag gramax/git-proxy:latest
       .
+    - ./.ci/trivy/trivy-image-scan.sh gramax/git-proxy:${VERSION_GIT_PROXY}
     - docker push gramax/git-proxy:${VERSION_GIT_PROXY}
     - docker push gramax/git-proxy:latest
+
+build-diagram-renderer-opensource:
+  extends: .template.docker.build.service
+  stage: build
+  rules:
+    - !reference [.condition, build, onlymaster, rules]
+  script:
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - apk add bash git
+    - . ./.ci/apps/init.sh --only-env
+    - docker build --rm
+      -f ./services/target/diagram-renderer/Dockerfile
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      --tag gramax/diagram-renderer:${VERSION_DIAGRAM_RENDERER}
+      --tag gramax/diagram-renderer:latest
+      .
+    - docker push gramax/diagram-renderer:${VERSION_DIAGRAM_RENDERER}
+    - docker push gramax/diagram-renderer:latest

@@ -4,6 +4,9 @@ import BrowserGetImageByPath from "../../../apps/browser/src/logic/BrowserGetIma
 import BrowserGetImageFromDom from "../../../apps/browser/src/logic/BrowserGetImageFromDom";
 import BrowserGetImageSizeFromImageData from "../../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
 import BrowserSvgToPng from "../../../apps/browser/src/logic/BrowserSvgToPng";
+import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
+import { WebWorkerResourceParseClient } from "../../../apps/browser/src/search/modulith/WebResourceParseWorkerClient";
+import { WebWorkerModulithSearchClient } from "../../../apps/browser/src/search/modulith/WebWorkerModulithSearchClient";
 import type { BackendDynamicModules } from "..";
 
 export const getStaticModules = async (): Promise<BackendDynamicModules> => {
@@ -19,6 +22,10 @@ export const getStaticModules = async (): Promise<BackendDynamicModules> => {
 		setSessionData: () => Promise.resolve(),
 		pdfLoadFont: browserLoadFont,
 		getImageByPath: BrowserGetImageByPath,
+		getModulithSearchClient: async ({ cacheFileProvider, articleStorageFileProvider }) =>
+			await WebWorkerModulithSearchClient.create({ cacheFileProvider, articleStorageFileProvider }),
+		getResourceParseClient: async () => await WebWorkerResourceParseClient.create(),
+		getPdfjs,
 	});
 };
 

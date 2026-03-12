@@ -168,6 +168,7 @@ const MetricsTable = ({
 				deps={[sortBy, sortOrder]}
 				hasMore={hasMore}
 				loadOptions={loadOptions}
+				responsive={false}
 				selectedRowIds={Array.from(selectedArticleIds)}
 				setData={deferredSetAllRows}
 				table={table}

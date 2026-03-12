@@ -57,7 +57,7 @@ type EventHandlers = {
 const eventHandlers: Partial<EventHandlers> = {
 	"app:open": {
 		setup: (emit, rawData, firedRef) => {
-			if (rawData === undefined || firedRef?.current) return;
+			if (!rawData || firedRef?.current) return;
 
 			const payload = {
 				data: rawData.data,
@@ -74,6 +74,8 @@ const eventHandlers: Partial<EventHandlers> = {
 				return false;
 			};
 
+			if (checkAndEmit()) return;
+
 			const unsubscribe = PluginStore.subscribe(() => {
 				if (checkAndEmit()) unsubscribe();
 			});
@@ -89,7 +91,7 @@ const eventHandlers: Partial<EventHandlers> = {
 	},
 	"article:open": {
 		setup: (emit, rawData, firedRef) => {
-			if (rawData === undefined) () => {};
+			if (rawData === undefined) return () => {};
 
 			firedRef.current = false;
 
@@ -108,7 +110,15 @@ const eventHandlers: Partial<EventHandlers> = {
 				emit(payload);
 				return;
 			}
-			return () => {};
+
+			const unsubscribe = PluginStore.subscribe(() => {
+				if (getPluginIsReady() && !firedRef.current) {
+					firedRef.current = true;
+					emit(payload);
+					unsubscribe();
+				}
+			});
+			return unsubscribe;
 		},
 	},
 	"article:close": {
@@ -126,6 +136,6 @@ export const usePluginEvent = <E extends PluginEventName>(
 	useEffect(() => {
 		if (!handler) return;
 		const emit = (p: EventPayload<E>) => void emitPluginEvent(event, p);
-		return handler.setup(emit, input, firedRef);
+		return handler?.setup(emit, input, firedRef);
 	}, [event, input, handler]);
 };

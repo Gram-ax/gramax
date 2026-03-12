@@ -1,13 +1,14 @@
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { GramaxClipboardData } from "@ext/markdown/elements/copyArticles/handlers/copy";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
+import type { GramaxClipboardData } from "@ext/markdown/elements/copyArticles/handlers/copy";
+import { copyCommentIfNeed, processMarks } from "@ext/markdown/elements/copyArticles/handlers/paste/processMarks";
 import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
-import { Attrs, Fragment, Mark, Node, Slice } from "@tiptap/pm/model";
-import { Selection, Transaction } from "@tiptap/pm/state";
-import { EditorView } from "@tiptap/pm/view";
+import { type Attrs, Fragment, Node, Slice } from "@tiptap/pm/model";
+import { Selection, type Transaction } from "@tiptap/pm/state";
+import type { EditorView } from "@tiptap/pm/view";
 import { handlePaste } from "prosemirror-tables";
 
 interface CreateProps {
@@ -41,6 +42,7 @@ interface PasteProps {
 
 interface HandleNodesProps extends Omit<FilterProps, "catalogProps"> {
 	isStorageConnected: boolean;
+	existedComments: string[];
 }
 
 type ClipboardItems = Record<string, string>;
@@ -64,55 +66,7 @@ const createResourceIfNeed = async (node: Node, apiUrlCreator: ApiUrlCreator, re
 	return { ...attrs, src: newName, nodeName: node.type.name };
 };
 
-const copyCommentIfNeed = async (
-	id: string,
-	apiUrlCreator: ApiUrlCreator,
-	copyData: GramaxClipboardData,
-): Promise<boolean> => {
-	const res = await FetchService.fetch(apiUrlCreator.copyComment(id, copyData.copyPath));
-	if (!res.ok) return false;
-	return await res.json();
-};
-
-const handleCommentaryMarks = async (
-	view: EditorView,
-	marks: Mark[] | readonly Mark[],
-	apiUrlCreator: ApiUrlCreator,
-	copyData: GramaxClipboardData,
-	isStorageConnected: boolean,
-): Promise<Mark[] | readonly Mark[]> => {
-	if (!isStorageConnected) return marks.filter((mark) => mark.type.name !== "comment");
-
-	const newMarks: Mark[] = [];
-	const existedComments: string[] = [];
-
-	const { doc } = view.state;
-
-	doc.descendants((node: Node) => {
-		node.forEach((childNode: Node) => {
-			const commentMark = childNode.marks.find((mark) => mark.type.name === "comment");
-			if (commentMark) existedComments.push(commentMark.attrs.id);
-		});
-	});
-
-	for (const mark of marks) {
-		if (mark.type.name !== "comment" || existedComments.includes(mark.attrs.id)) {
-			newMarks.push(mark);
-			continue;
-		}
-
-		const copyComment = await copyCommentIfNeed(mark.attrs.id, apiUrlCreator, copyData);
-		if (copyComment) {
-			newMarks.push(mark.type.create({ id: mark.attrs.id }));
-			existedComments.push(mark.attrs.id);
-		}
-	}
-
-	return newMarks;
-};
-
 const handleNodeCommentary = async (
-	view: EditorView,
 	node: Node,
 	apiUrlCreator: ApiUrlCreator,
 	copyData: GramaxClipboardData,
@@ -126,7 +80,17 @@ const handleNodeCommentary = async (
 };
 
 const handleNodes = async (props: HandleNodesProps): Promise<Node> => {
-	const { view, node, attrs, apiUrlCreator, resourceService, headingAllowed, copyData, isStorageConnected } = props;
+	const {
+		view,
+		node,
+		attrs,
+		apiUrlCreator,
+		resourceService,
+		headingAllowed,
+		copyData,
+		isStorageConnected,
+		existedComments,
+	} = props;
 	const newChildren = [];
 
 	for (let index = 0; index < node.content.childCount; index++) {
@@ -138,19 +102,19 @@ const handleNodes = async (props: HandleNodesProps): Promise<Node> => {
 			newChild = child.type.create(newAttrs, child.content, child.marks);
 		}
 
-		newChild = await handleNodeCommentary(view, newChild, apiUrlCreator, copyData);
+		newChild = await handleNodeCommentary(newChild, apiUrlCreator, copyData);
 
 		if (!headingAllowed && newChild.type.name === "heading") newChild = headingPasteFormatter(view.state, newChild);
 
 		if (newChild.isText && newChild.marks.length > 0) {
-			const newMarks = await handleCommentaryMarks(
-				view,
-				newChild.marks,
+			const processedMarks = await processMarks({
+				marks: newChild.marks,
 				apiUrlCreator,
 				copyData,
+				existedComments,
 				isStorageConnected,
-			);
-			newChildren.push(newChild.mark(newMarks));
+			});
+			newChildren.push(newChild.mark(processedMarks));
 		} else if (newChild.childCount > 0) {
 			newChildren.push(await handleNodes({ ...props, node: newChild, attrs: newChild.attrs }));
 		} else {
@@ -159,13 +123,13 @@ const handleNodes = async (props: HandleNodesProps): Promise<Node> => {
 	}
 
 	if (node.type.name === "text") return view.state.schema.text(node.text, node.marks);
-	else return node.type.create(attrs, Fragment.from(newChildren), node.marks);
+	return node.type.create(attrs, Fragment.from(newChildren), node.marks);
 };
 
 const handleCodeBlock = (data: ClipboardItems, view: EditorView): Slice => {
 	const { $from } = view.state.selection;
 	const parent = $from?.parent;
-	if (parent && parent.type.spec.code && data["text/plain"]) {
+	if (parent?.type?.spec?.code && data["text/plain"]) {
 		const plainText = data["text/plain"].replace(/\r\n?/g, "\n");
 		return new Slice(Fragment.from(view.state.schema.text(plainText)), 0, 0);
 	}
@@ -182,7 +146,7 @@ const hasChildNodeText = (node: Node): boolean => {
 	return false;
 };
 
-const handleListItem = (data: ClipboardItems, view: EditorView, node: Node): Slice => {
+const handleListItem = (view: EditorView, node: Node): Slice => {
 	const parent = node.content.firstChild?.firstChild;
 	const selectionNode = view.state.selection.$from.node(view.state.selection.$from.depth - 1);
 	const cursorInListItem = selectionNode?.type?.name === "listItem";
@@ -219,7 +183,19 @@ const proceedNodes = async (props: FilterProps) => {
 	if (node.type.name === "text") {
 		const newMarks = node.marks;
 		return view.state.schema.text(node.text, newMarks);
-	} else return await handleNodes({ ...props, isStorageConnected });
+	}
+
+	const existedComments: string[] = [];
+	const { doc } = view.state;
+
+	doc.descendants((node: Node) => {
+		node.forEach((childNode: Node) => {
+			const commentMark = childNode.marks.find((mark) => mark.type.name === "comment");
+			if (commentMark) existedComments.push(commentMark.attrs.id as string);
+		});
+	});
+
+	return await handleNodes({ ...props, isStorageConnected, existedComments });
 };
 
 const handleOthers = (view: EditorView, node: Node): Slice => {
@@ -229,7 +205,7 @@ const handleOthers = (view: EditorView, node: Node): Slice => {
 };
 
 const handleNodesPaste = (data: ClipboardItems, view: EditorView, node: Node): boolean => {
-	const slice = handleCodeBlock(data, view) || handleListItem(data, view, node);
+	const slice = handleCodeBlock(data, view) || handleListItem(view, node);
 	if (slice) {
 		insertSlice(view.state.tr, view, slice);
 		return true;

@@ -1,4 +1,3 @@
-import Tooltip from "@components/Atoms/Tooltip";
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import { classNames } from "@components/libs/classNames";
 import { css } from "@emotion/react";
@@ -39,16 +38,13 @@ const ShowMergeRequest = ({ className, mergeRequest, isShow, setShow }: ShowMerg
 				iconStrokeWidth="1.6"
 				iconStyle={isShow ? { color: "var(--color-primary)" } : null}
 				onClick={() => setShow(!isShow)}
+				tooltipText={t("git.merge-requests.approvedCountTooltip")
+					.replace("{{approvedCount}}", approvedCount)
+					.replace("{{approvedTotal}}", approvedTotal)}
 			>
-				<Tooltip
-					content={t("git.merge-requests.approvedCountTooltip")
-						.replace("{{approvedCount}}", approvedCount)
-						.replace("{{approvedTotal}}", approvedTotal)}
-				>
-					<span>
-						{approvedCount} / {approvedTotal}
-					</span>
-				</Tooltip>
+				<span>
+					{approvedCount} / {approvedTotal}
+				</span>
 			</StatusBarElement>
 		</Wrapper>
 	);

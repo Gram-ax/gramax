@@ -10,7 +10,7 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 gramax-git = { path = "../git", optional = true }
 tracing = { workspace = true }
 rstest = "0.23.0"
-tempdir = "0.3.7"
+tempfile = "3"
 colored = { workspace = true }
 
 [features]

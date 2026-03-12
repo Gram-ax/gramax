@@ -1,14 +1,14 @@
+import { DialogBody } from "@ui-kit/Dialog";
 import { Divider } from "@ui-kit/Divider";
-import { ModalBody } from "@ui-kit/Modal";
 
 const CloudModalBody = ({ children }: { children: React.ReactNode }) => (
 	<>
 		<Divider />
-		<ModalBody>
+		<DialogBody>
 			<div className="article" style={{ background: "initial" }}>
 				{children}
 			</div>
-		</ModalBody>
+		</DialogBody>
 		<Divider />
 	</>
 );

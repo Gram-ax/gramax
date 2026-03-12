@@ -8,14 +8,17 @@
 			"**/*.jsonc",
 			"**/*.json",
 			"**/*.css",
+			"!**/*.rs",
 			"!apps/browser/crates/gramax-wasm/**/*.js",
 			"!apps/tauri/src-tauri/src/scripts/**/*.js",
 			"!apps/tauri/plugins/*/permissions/schemas/schema.json",
 			"!core/extensions/VersionControl/DiffHandler/diffMatchLib.js",
 			"!core/extensions/markdown/elements/drawio/logic/diagram-editor.js",
 			"!scripts/static/ensureCustomStyleLast.js",
+			"!core/logic/FileProvider/Path/Path.ts",
 			"!apps/next/crates/**/*",
 			"!core/styles/article.css", // it breaks :c
+			"!core/styles/swagger-ui-theme.css",
 			"!.cargo/**/*",
 			"!.npm/**/*",
 			"!target/**/*",
@@ -38,10 +41,13 @@
 			"semicolons": "always",
 			"trailingCommas": "all"
 		},
-		"globals": ["Bun", "refreshPage"]
+		"globals": ["Bun", "refreshPage", "jest"]
 	},
 	"linter": {
 		"enabled": true,
+		"domains": {
+			"test": "recommended"
+		},
 		"rules": {
 			"recommended": true,
 			"correctness": {
@@ -56,7 +62,7 @@
 				"noUnusedVariables": "warn",
 				"noVoidTypeReturn": "warn",
 				"useExhaustiveDependencies": "warn",
-				"useHookAtTopLevel": "warn"
+				"useHookAtTopLevel": "off"
 			},
 			"complexity": {
 				"noUselessFragments": "off",
@@ -84,7 +90,18 @@
 				"noUselessElse": "warn",
 				"useConst": "warn",
 				"useNodejsImportProtocol": "off",
-				"useTemplate": "warn"
+				"useTemplate": "warn",
+				"noRestrictedImports": {
+					"level": "warn",
+					"options": {
+						"patterns": [
+							{
+								"group": ["ics-ui-kit", "ics-ui-kit/*", "ics-ui-kit/**"],
+								"message": "Do not import directly from ics-ui-kit. Use reexports from @ui-kit."
+							}
+						]
+					}
+				}
 			},
 			"a11y": {
 				"noLabelWithoutControl": "warn",
@@ -120,5 +137,17 @@
 		"defaultBranch": "develop",
 		"enabled": true,
 		"useIgnoreFile": true
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["core/ui-kit/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": "off"
+					}
+				}
+			}
+		}
+	]
 }

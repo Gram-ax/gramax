@@ -67,8 +67,8 @@ pub fn init_new(repo_path: String, creds: AccessTokenCreds) -> Result<()> {
 }
 
 #[em_bindgen(json)]
-pub fn file_history(repo_path: String, file_path: String, count: usize) -> Result<HistoryInfo> {
-	git::file_history(Path::new(&repo_path), Path::new(&file_path), count)
+pub fn file_history(repo_path: String, file_path: String, offset: usize, limit: usize) -> Result<HistoryInfo> {
+	git::file_history(Path::new(&repo_path), Path::new(&file_path), offset, limit)
 }
 
 #[em_bindgen(json)]

@@ -1,27 +1,29 @@
-import styled from "@emotion/styled";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import { getComponentByType } from "@ext/markdown/elements/answer/edit/logic/getComponentByType";
-import { AnswerContent, BaseAnswer } from "@ext/markdown/elements/answer/render/components/Answer";
-import { AnswerType } from "@ext/markdown/elements/answer/types";
-import { NodeViewContent, NodeViewProps } from "@tiptap/react";
+import { getAvailableChildrens } from "@ext/markdown/elements/answer/edit/logic/getAvailableChildrens";
+import { getLeftComponentByType } from "@ext/markdown/elements/answer/edit/logic/getLeftComponentByType";
+import { AnswerContent, BaseAnswerContainer } from "@ext/markdown/elements/answer/render/components/Answer";
+import type { AnswerType } from "@ext/markdown/elements/answer/types";
+import type { QuizCorrect } from "@ext/markdown/elements/question/types";
+import type { NodeViewProps } from "@tiptap/react";
 import { IconButton } from "@ui-kit/Button";
 import { memo, useCallback } from "react";
+import { AnswerComponentContent } from "./AnswerComponentContent";
 
 interface AnswerProps<T extends AnswerType = AnswerType> {
-	correct: boolean;
+	correct: QuizCorrect;
 	type: T;
 	updateCorrect: () => void;
 	deleteAnswer: () => void;
 }
 
-const StyledContent = styled(NodeViewContent)`
-	> div > :last-of-type {
-		margin-bottom: 0;
-	}
-`;
+interface AnswerLeftProps {
+	type: AnswerType;
+	correct: QuizCorrect;
+	updateCorrect: () => void;
+}
 
-const AnswerLeft = ({ type, correct, updateCorrect }: { type: any; correct: boolean; updateCorrect: () => void }) => {
-	return getComponentByType({ type, value: correct, onClick: updateCorrect });
+const AnswerLeft = ({ type, correct, updateCorrect }: AnswerLeftProps) => {
+	return getLeftComponentByType({ type, value: correct ?? false, onChange: updateCorrect });
 };
 
 const AnswerRight = ({ deleteAnswer }: { deleteAnswer: () => void }) => {
@@ -38,14 +40,16 @@ const AnswerRight = ({ deleteAnswer }: { deleteAnswer: () => void }) => {
 };
 
 const Answer = memo(({ correct, type, updateCorrect, deleteAnswer }: AnswerProps) => {
+	const { right, left, content } = getAvailableChildrens(type);
+
 	return (
-		<BaseAnswer correct={!!correct}>
+		<BaseAnswerContainer correct={correct}>
 			<AnswerContent>
-				<AnswerLeft correct={correct} type={type} updateCorrect={updateCorrect} />
-				<StyledContent className="w-full" />
-				<AnswerRight deleteAnswer={deleteAnswer} />
+				{left && <AnswerLeft correct={correct} type={type} updateCorrect={updateCorrect} />}
+				{content && <AnswerComponentContent type={type} />}
+				{right && <AnswerRight deleteAnswer={deleteAnswer} />}
 			</AnswerContent>
-		</BaseAnswer>
+		</BaseAnswerContainer>
 	);
 });
 
@@ -54,6 +58,8 @@ const AnswerComponent = (props: NodeViewProps) => {
 	const { type, correct } = node.attrs as { type: AnswerType; correct: boolean };
 
 	const updateCorrect = useCallback(() => {
+		if (type === "text") return;
+
 		editor
 			.chain()
 			.focus(getPos() + 1)
@@ -63,7 +69,7 @@ const AnswerComponent = (props: NodeViewProps) => {
 				return true;
 			})
 			.run();
-	}, [editor, correct, getPos]);
+	}, [editor, correct, getPos, type]);
 
 	const deleteAnswer = useCallback(() => {
 		deleteNode();

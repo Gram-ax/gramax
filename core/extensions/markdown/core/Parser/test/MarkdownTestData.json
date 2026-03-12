@@ -204,7 +204,8 @@
 					"scale": null,
 					"objects": [],
 					"height": null,
-					"width": null
+					"width": null,
+					"renderSrc": "/testBasePath/api/article/resource/get?articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&catalogName=MarkdownCatalog&src=.%2Fimage.png"
 				},
 				"children": [],
 				"name": "Image"

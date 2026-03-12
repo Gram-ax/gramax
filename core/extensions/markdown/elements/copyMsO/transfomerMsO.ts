@@ -1,10 +1,10 @@
 import Path from "@core/FileProvider/Path/Path";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import isVideoSupported from "@ext/markdown/elements/video/logic/isVideoSupported";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 
 class TransformerMsO {
 	private _articleProps: ClientArticleProps;
@@ -24,9 +24,13 @@ class TransformerMsO {
 		this._view = view;
 	}
 
-	public parseFromHTML = (html: string): string => {
+	public canTransform = (html: string) => {
 		const regexp = /(urn:schemas-microsoft-com.*)/gi.exec(html);
-		if (!regexp || regexp?.[0] === null) return html;
+		return regexp && regexp?.[0] !== null;
+	};
+
+	public parseFromHTML = async (html: string) => {
+		if (!this.canTransform(html)) return html;
 		this._changeAttrs(html);
 
 		const newHTML = this._lineBreakers(html);
@@ -36,19 +40,15 @@ class TransformerMsO {
 		this._links(doc);
 
 		if (this._isTauri) {
-			void (async () => {
-				await this._images(doc.body, (oldImage, newImage) => {
-					const parentNode = this._getImageParentNode(oldImage);
-					if (!parentNode) return;
-					parentNode.replaceWith(newImage);
-				});
-				this._insertContent(doc);
-			})();
-
-			return;
+			await this._images(doc.body, (oldImage, newImage) => {
+				const parentNode = this._getImageParentNode(oldImage);
+				if (!parentNode) return;
+				parentNode.replaceWith(newImage);
+			});
 		}
 
-		return doc.body.innerHTML !== "undefined" && doc.body.innerHTML;
+		this._insertContent(doc);
+		return doc.body.innerHTML;
 	};
 
 	public getResourcePath = (src: string) => {
@@ -56,19 +56,20 @@ class TransformerMsO {
 	};
 
 	private _lineBreakers = (html: string) => {
-		html = html.replace(/<br\s*\/?>/gi, "</p><p>");
-		html = html.replace(/<p><\/p>/gi, "");
-		html = html.replace(/<p>(.*?)<\/p>/gi, (match, content) => {
+		let newHTML = html;
+		newHTML = newHTML.replace(/<br\s*\/?>/gi, "</p><p>");
+		newHTML = newHTML.replace(/<p><\/p>/gi, "");
+		newHTML = newHTML.replace(/<p>(.*?)<\/p>/gi, (_, content) => {
 			const boldMatch = content.match(/<b>(.*?)<\/b>/i);
 			if (boldMatch) {
 				return `<p><b>${boldMatch[1]}</b></p>`;
 			}
 			return `<p>${content}</p>`;
 		});
-		html = html.replace(/<p><\/p>/gi, "");
-		html = html.replaceAll(/\u00A0/g, " ");
+		newHTML = newHTML.replace(/<p><\/p>/gi, "");
+		newHTML = newHTML.replaceAll(/\u00A0/g, " ");
 
-		return html;
+		return newHTML;
 	};
 
 	private _changeAttrs = (html: string) => {
@@ -191,10 +192,10 @@ class TransformerMsO {
 			if (isExternal) return link.setAttribute("href", href);
 
 			const startSlice = href.includes(link.baseURI) ? link.baseURI.length + 2 : 2;
-			const newHref = "#" + href.slice(startSlice, startSlice + href.length).toLowerCase();
+			const newHref = `#${href.slice(startSlice, startSlice + href.length).toLowerCase()}`;
 			link.setAttribute("hash", newHref);
 			link.setAttribute("href", "");
-			link.setAttribute("resourcepath", "./" + this._articleProps.fileName + ".md");
+			link.setAttribute("resourcepath", `./${this._articleProps.fileName}.md`);
 			link.setAttribute("newHref", this._articleProps.pathname + newHref);
 		});
 
@@ -239,6 +240,7 @@ class TransformerMsO {
 	};
 
 	private _insertContent(doc: Document) {
+		if (!this._view) return;
 		this._view.pasteHTML(doc.body.innerHTML);
 	}
 

@@ -1,5 +1,5 @@
 import Button, { TextSize } from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
+import type { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Input from "@components/Atoms/Input";
 import Notification from "@components/Atoms/Notification";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
@@ -8,7 +8,7 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
 import InvalidSourceWarning from "@ext/storage/logic/SourceDataProvider/components/InvalidSourceWarning";
-import { forwardRef, MutableRefObject } from "react";
+import { forwardRef, type MutableRefObject } from "react";
 
 const NotificationWrapper = styled.div`
 	position: relative;
@@ -54,7 +54,7 @@ const ButtonWrapper = styled.div`
 	width: 100%;
 	margin-top: 1em;
 
-	> div:nth-child(1) {
+	> div:nth-of-type(1) {
 		max-width: fit-content;
 		flex: 1;
 		&:hover {
@@ -92,7 +92,7 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 					onCommitMessageChange(message);
 				}}
 				onFocus={(e) => {
-					if (e.currentTarget.value == commitMessagePlaceholder) e.currentTarget.select();
+					if (e.currentTarget.value === commitMessagePlaceholder) e.currentTarget.select();
 				}}
 				placeholder={t("commit-message")}
 				ref={ref}

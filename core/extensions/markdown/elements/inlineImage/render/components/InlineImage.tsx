@@ -1,11 +1,11 @@
 import Skeleton from "@components/Atoms/ImageSkeleton";
+import { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
+import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import styled from "@emotion/styled";
 import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
-import { ResourceError } from "@ext/markdown/elements/copyArticles/errors";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import InlineImageError from "@ext/markdown/elements/inlineImage/render/components/InlineImageError";
-import { ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 interface InlineImageProps {
 	src: string;
@@ -14,6 +14,7 @@ interface InlineImageProps {
 	height: string;
 	commentId?: string;
 	isPrint?: boolean;
+	renderSrc?: string;
 }
 
 interface SkeletonWrapperProps {
@@ -71,12 +72,12 @@ const ContainerWrapper = styled(InlineCommentView)`
 	}
 `;
 
-const InlineImage = ({ src: initialSrc, alt, width, height, commentId, isPrint }: InlineImageProps) => {
-	const { useGetResource } = ResourceService.value;
-
+const InlineImage = (props: InlineImageProps) => {
+	const { src: initialSrc, alt, width, height, commentId, isPrint, renderSrc: propRenderSrc } = props;
+	const renderSrc = isPrint ? null : propRenderSrc;
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [error, setError] = useState<ResourceError | null>(null);
-	const [src, setSrc] = useState(null);
+	const [src, setSrc] = useState(renderSrc || null);
 
 	const onLoad = () => {
 		setIsLoaded(true);
@@ -94,13 +95,14 @@ const InlineImage = ({ src: initialSrc, alt, width, height, commentId, isPrint }
 			if (isLoaded) setIsLoaded(false);
 
 			if (src) URL.revokeObjectURL(src);
-			const url = URL.createObjectURL(new Blob([buffer as any], { type: resolveFileKind(buffer) }));
+			const url = URL.createObjectURL(new Blob([buffer as BlobPart], { type: resolveFileKind(buffer) }));
 			setSrc(url);
 		},
 		initialSrc,
 		undefined,
 		undefined,
 		isPrint,
+		!!renderSrc,
 	);
 
 	const displaySize = calculateDisplaySize(width, height);

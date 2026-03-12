@@ -3,11 +3,11 @@ import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
 import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
-import ResourceMovements from "@core/Resource/models/ResourceMovements";
+import type ResourceMovements from "@core/Resource/models/ResourceMovements";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { Buffer } from "buffer";
-import FileProvider from "../FileProvider/model/FileProvider";
+import type { Buffer } from "buffer";
+import type FileProvider from "../FileProvider/model/FileProvider";
 import Path from "../FileProvider/Path/Path";
 
 export type ResourceManagerEvents = Event<

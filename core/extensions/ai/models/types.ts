@@ -1,6 +1,6 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import {
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
+import type {
 	CheckAuthResponse,
 	CheckResponse,
 	RequestOptions,

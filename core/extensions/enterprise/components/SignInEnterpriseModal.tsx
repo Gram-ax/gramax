@@ -1,7 +1,7 @@
 import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
 import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
 import { IconButton } from "@ui-kit/Button";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { useCallback, useState } from "react";
 
 const SignInEnterpriseModal = ({ authUrl }: { authUrl: string }) => {
@@ -20,8 +20,8 @@ const SignInEnterpriseModal = ({ authUrl }: { authUrl: string }) => {
 	);
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
-			<ModalTrigger asChild>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			<DialogTrigger asChild>
 				<IconButton
 					icon="log-in"
 					onClick={(e) => {
@@ -33,18 +33,18 @@ const SignInEnterpriseModal = ({ authUrl }: { authUrl: string }) => {
 					}}
 					variant="ghost"
 				/>
-			</ModalTrigger>
-			<ModalContent data-modal-root data-sign-in-enteprise-form>
-				<ModalBody>
+			</DialogTrigger>
+			<DialogContent data-modal-root data-sign-in-enteprise-form>
+				<DialogBody>
 					<SignInEnterpriseForm
 						authUrl={authUrl}
 						onlySSO={onlySSO}
 						relocateToAuthUrl={relocateToAuthUrl}
 						{...otherFields}
 					/>
-				</ModalBody>
-			</ModalContent>
-		</Modal>
+				</DialogBody>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

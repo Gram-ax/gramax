@@ -10,6 +10,7 @@ import create from "./create";
 import app from "./editOn/app";
 import source from "./editOn/source";
 import checkLastModified from "./features/checkLastModified";
+import createLinkFromHref from "./features/createLinkFromHref";
 import getArticleHeadersByRelativePath from "./features/getArticleHeadersByRelativePath";
 import getBrotherFileNames from "./features/getBrotherFileNames";
 import getBrotherNames from "./features/getBrotherNames";
@@ -40,6 +41,7 @@ const article = {
 		getEditorContent,
 		getBrotherFileNames,
 		getRenderContentByLogicPath,
+		createLinkFromHref,
 	},
 	editOn: {
 		source,

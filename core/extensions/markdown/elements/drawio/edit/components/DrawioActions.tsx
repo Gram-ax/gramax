@@ -27,12 +27,18 @@ const DrawioActions = ({ editor, node, setHasSignature, signatureRef, openEditor
 	return (
 		<>
 			<ActionButton
+				dataTestId="drawio-edit"
 				disabled={disabledEdit}
 				icon="pencil"
 				onClick={openEditor}
 				tooltipText={disabledEdit ? t("diagram.error.no-diagram-renderer") : t("edit2")}
 			/>
-			<ActionButton icon="captions" onClick={addSignature} tooltipText={t("signature")} />
+			<ActionButton
+				dataTestId="drawio-signature"
+				icon="captions"
+				onClick={addSignature}
+				tooltipText={t("signature")}
+			/>
 		</>
 	);
 };

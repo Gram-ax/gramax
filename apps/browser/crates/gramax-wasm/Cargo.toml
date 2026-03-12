@@ -9,18 +9,22 @@ crate-type = ['cdylib']
 [dependencies]
 gramax-git = { path = "../../../../crates/git" }
 gramax-fs = { path = "../../../../crates/fs" }
+gramax-opentelemetry = { path = "../../../../crates/opentelemetry" }
 em-bindgen-macro = { path = "../em-bindgen-macro" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["json", "env-filter"] }
+tracing-opentelemetry = { workspace = true }
 chrono = { workspace = true, default-features = false, features = [
   "alloc",
   "std",
 ] }
 threadpool = "1.8.1"
 futures = "0.3.31"
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
 
 url = { workspace = true }
 

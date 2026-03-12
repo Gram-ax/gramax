@@ -80,7 +80,7 @@ export class TablePaginator
 	}
 
 	createPage(height?: number) {
-		const isSplited = this.currentContainer.childNodes.length;
+		const isSplited = this.haveChildNodes();
 		if (!isSplited) {
 			this.currentTableWrapper.remove();
 			if (

@@ -39,7 +39,7 @@ const SearchQueryDetailsTableInner = ({
 	const { getSearchQueryDetails } = useSettings();
 
 	const dataLoader = useCallback(
-		async (cursor?: string, sortByParam?: string, sortOrderParam?: string, limit?: number) => {
+		async (cursor?: number, sortByParam?: string, sortOrderParam?: string, limit?: number) => {
 			if (!selectedQuery) return null;
 
 			return await getSearchQueryDetails(
@@ -72,10 +72,6 @@ const SearchQueryDetailsTableInner = ({
 		[sortBy, sortOrder, actualSortHandler],
 	);
 
-	if (!selectedQuery) {
-		return null;
-	}
-
 	return (
 		<UnifiedMetricsTable
 			dataLoader={dataLoader}
@@ -84,7 +80,7 @@ const SearchQueryDetailsTableInner = ({
 			initialData={emptyInitialData}
 			responsive={false}
 			sorting={sorting}
-			title={t("metrics.search.query-details-title")}
+			title={`${t("metrics.search.query-details-title")} (${selectedQuery})`}
 		/>
 	);
 };

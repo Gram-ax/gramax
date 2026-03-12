@@ -1,7 +1,7 @@
 import { HEIGHT_TOLERANCE_PX } from "@ext/print/const";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import Paginator from "@ext/print/utils/pagination/Paginator";
-import { ControlInfo, PaginationInfo } from "@ext/print/utils/pagination/types";
+import type { ControlInfo, PaginationInfo } from "@ext/print/utils/pagination/types";
 import assert from "assert";
 import { createPage } from "./pageElements";
 
@@ -30,12 +30,12 @@ class PagePaginator extends Paginator {
 
 		await super.paginateSource(this.node, true);
 
-		if (this.currentContainer.childNodes.length) this._pageContainer.appendChild(this.currentContainer);
+		if (this.haveChildNodes()) this._pageContainer.appendChild(this.currentContainer);
 	}
 
 	createPage() {
 		this.cleanHeadingElementsIfNeed();
-		if (this.currentContainer.childNodes.length) this._pageContainer.appendChild(this.currentContainer);
+		if (this.haveChildNodes()) this._pageContainer.appendChild(this.currentContainer);
 		const newPage = createPage(Paginator.printPageInfo.pages);
 		this.currentContainer = document.createDocumentFragment() as any;
 		this._pageContainer = newPage;
@@ -46,6 +46,10 @@ class PagePaginator extends Paginator {
 
 	cleanHeadingElementsIfNeed() {
 		if (!this.lastChildNodeIsHeading() || this.hasOnlyHeadingElements()) this.headingElements = [];
+	}
+
+	getPageContainer() {
+		return this._pageContainer;
 	}
 
 	static setUsablePageWidth(page: HTMLElement) {

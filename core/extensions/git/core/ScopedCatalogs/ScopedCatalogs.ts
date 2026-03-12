@@ -7,6 +7,7 @@ import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel"
 import Repository from "@ext/git/core/Repository/Repository";
 import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
+import { addScopeToPath } from "@ext/versioning/utils";
 
 export default class ScopedCatalogs {
 	private _scopedCatalogs: Map<string, Catalog> = new Map();
@@ -35,10 +36,11 @@ export default class ScopedCatalogs {
 	}
 
 	private _getGitTreeFileProvider(catalogPath: Path, fp: MountFileProvider): GitTreeFileProvider {
-		if (!this._gitTreeFps.has(catalogPath.value)) {
-			const gitTreeFp = new GitTreeFileProvider(new GitCommands(fp.default(), catalogPath));
-			this._gitTreeFps.set(catalogPath.value, gitTreeFp);
+		const realPath = new Path(addScopeToPath(catalogPath.value));
+		if (!this._gitTreeFps.has(realPath.value)) {
+			const gitTreeFp = new GitTreeFileProvider(new GitCommands(fp.default(), realPath));
+			this._gitTreeFps.set(realPath.value, gitTreeFp);
 		}
-		return this._gitTreeFps.get(catalogPath.value);
+		return this._gitTreeFps.get(realPath.value);
 	}
 }

@@ -1,19 +1,20 @@
-import generateUniqueID from "@core/utils/generateUniqueID";
 import { editName } from "@ext/markdown/elements/answer/consts";
 import AnswerComponent from "@ext/markdown/elements/answer/edit/components/AnswerComponent";
 import answerSchema from "@ext/markdown/elements/answer/edit/models/answerSchema";
-import { AnswerType } from "@ext/markdown/elements/answer/types";
+import type { QuizCorrect } from "@ext/markdown/elements/question/types";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { findParentNode, isAtEndOfNode, isAtStartOfNode, mergeAttributes, Node } from "@tiptap/core";
+import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
+import { addQuestionAnswer } from "../logic/commands/addQuestionAnswer";
+import { setQuestionAnswerCorrect } from "../logic/commands/setQuestionAnswerCorrect";
+import { handleBackspace } from "../logic/keymaps/handleBackspace";
+import { handleEnter } from "../logic/keymaps/handleEnter";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
 		questionAnswer: {
-			setQuestionAnswer: (
-				position: number,
-				options: { questionId: string; answerId: string; type: AnswerType },
-			) => ReturnType;
+			addQuestionAnswer: (attrs?: { correct?: QuizCorrect }) => ReturnType;
+			setQuestionAnswerCorrect: (correct: QuizCorrect) => ReturnType;
 		};
 	}
 }
@@ -35,58 +36,15 @@ const QuestionAnswer = Node.create({
 
 	addCommands() {
 		return {
-			setQuestionAnswer:
-				(position, options) =>
-				({ commands, editor }) => {
-					const questionAnswer = editor.schema.nodes.questionAnswer.create(
-						{ id: generateUniqueID(), ...options },
-						[editor.schema.nodes.paragraph.create()],
-					);
-
-					return commands.insertContentAt(position, questionAnswer);
-				},
+			addQuestionAnswer,
+			setQuestionAnswerCorrect,
 		};
 	},
 
 	addKeyboardShortcuts() {
 		return {
-			Enter: ({ editor }) => {
-				const parentNode = findParentNode((node) => node.type.name === editName)(editor.state.selection);
-				if (!parentNode) return false;
-				if (!isAtEndOfNode(editor.state)) return false;
-				if (
-					parentNode.node.content.childCount === 1 &&
-					parentNode.node.content.firstChild?.type.name === "paragraph" &&
-					parentNode.node.textContent.length === 0
-				)
-					return false;
-
-				return editor.commands.setQuestionAnswer(parentNode.pos + parentNode.node.nodeSize, {
-					questionId: parentNode.node.attrs.questionId,
-					answerId: generateUniqueID(),
-					type: parentNode.node.attrs.type,
-				});
-			},
-			Backspace: ({ editor }) => {
-				const parentNode = findParentNode((node) => node.type.name === editName)(editor.state.selection);
-				if (!parentNode) return false;
-				if (!isAtStartOfNode(editor.state)) return false;
-				if (
-					parentNode.node.content.childCount !== 1 ||
-					(parentNode.node.content.firstChild?.type.name === "paragraph" &&
-						parentNode.node.textContent.length !== 0)
-				)
-					return false;
-
-				return editor
-					.chain()
-					.deleteRange({
-						from: parentNode.pos,
-						to: parentNode.pos + parentNode.node.nodeSize,
-					})
-					.focus(parentNode.pos - 1)
-					.run();
-			},
+			Enter: handleEnter,
+			Backspace: handleBackspace,
 		};
 	},
 });

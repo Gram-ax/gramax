@@ -4,12 +4,12 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import { getArticleId, getTestId } from "@ext/quiz/logic/getIds";
 import { getQuizResult } from "@ext/quiz/logic/getQuizResult";
-import { StoredQuizResult } from "@ext/quiz/models/types";
+import type { StoredQuizResult } from "@ext/quiz/models/types";
 import assert from "assert";
 
 const getTestResult: Command<{ ctx: Context; catalogName: string; articlePath: Path }, StoredQuizResult> =
@@ -25,42 +25,41 @@ const getTestResult: Command<{ ctx: Context; catalogName: string; articlePath: P
 			const workspace = wm.current();
 			const config = await workspace.config();
 
-			if (!config.enterprise?.gesUrl && !config.gesUrl)
-				return { passed: null, questions: [], selectedAnswers: {} };
-			if (!config.enterprise?.modules?.quiz) return { passed: null, questions: [], selectedAnswers: {} };
+			if (!config.enterprise?.gesUrl && !config.gesUrl) return null;
+			if (!config.enterprise?.modules?.quiz) return null;
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
 			assert(catalog, "Catalog not found");
 
 			const article = catalog.findItemByItemPath<Article>(articlePath);
-			if (!article) return { passed: null, questions: [], selectedAnswers: {} };
+			if (!article) return null;
 
 			const gvc = catalog.repo.gvc;
-			if (!gvc) return { passed: null, questions: [], selectedAnswers: {} };
+			if (!gvc) return null;
 
 			const gesUrl = config.enterprise?.gesUrl;
 			const sourceDatas = this._app.rp.getSourceDatas(ctx, workspace.path());
 			const enterpriseSource = getEnterpriseSourceData(sourceDatas, gesUrl);
-			if (!gesUrl || !enterpriseSource) return { passed: null, questions: [], selectedAnswers: {} };
+			if (!gesUrl || !enterpriseSource) return null;
 
 			const mail = ctx.user.info.mail;
-			if (!mail) return { passed: null, questions: [], selectedAnswers: {} };
+			if (!mail) return null;
 
 			const articleId = getArticleId(article);
 			const testId = await getTestId(articleId, gvc);
 
 			const answers = await new EnterpriseApi(gesUrl).getQuizTestByUser(enterpriseSource.token, testId, mail);
-			if (!answers?.length) return { passed: null, questions: [], selectedAnswers: {} };
+			if (!answers?.length) return null;
 
 			const questions = await article.parsedContent.read((p) => p?.parsedContext?.questions);
 			const results = getQuizResult(questions, answers, article.props.quiz);
 			return {
 				passed: results.passed,
-				countOfCorrectAnswers: results.countOfCorrectAnswers,
-				questions: results.questions,
-				selectedAnswers: Object.fromEntries(
-					answers.map((answer) => [answer.questionId, answer.answersIds]),
-				) as Record<string, string[]>,
+				countOfCorrectAnswers: article.props.quiz?.countOfCorrectAnswers
+					? results.countOfCorrectAnswers
+					: undefined,
+				questions: article.props.quiz?.countOfCorrectAnswers ? results.questions : [],
+				selectedAnswers: answers,
 			};
 		},
 

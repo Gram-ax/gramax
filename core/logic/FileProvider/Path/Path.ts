@@ -1,6 +1,7 @@
 import { normalizePosix, normalizeWin } from "@core/FileProvider/Path/normalize";
+import type { ToSpan } from "@ext/loggers/opentelemetry";
 
-class Path {
+class Path implements ToSpan {
 	private _path: string;
 
 	constructor(path: string | string[] = "") {
@@ -79,13 +80,14 @@ class Path {
 
 		if (firstComponent === ".") {
 			return new Path(`${firstComponent}/${pathComponents[1]}`);
-		} else if (firstComponent === ".." || firstComponent === "...") {
-			return new Path(`${firstComponent}/${pathComponents[1]}`);
-		} else if (this._path.startsWith("/")) {
-			return new Path(`/${pathComponents[1]}`);
-		} else {
-			return new Path(firstComponent);
 		}
+		if (firstComponent === ".." || firstComponent === "...") {
+			return new Path(`${firstComponent}/${pathComponents[1]}`);
+		}
+		if (this._path.startsWith("/")) {
+			return new Path(`/${pathComponents[1]}`);
+		}
+		return new Path(firstComponent);
 	}
 
 	get removeExtraSymbols(): Path {
@@ -157,6 +159,10 @@ class Path {
 		if (parent) return new Path([parent, newFileName + (this.extension ? `.${this.extension}` : "")]);
 		const startsWithSlash = this.value.startsWith("/");
 		return new Path((startsWithSlash ? "/" : "") + newFileName + (this.extension ? `.${this.extension}` : ""));
+	}
+
+	toSpan() {
+		return this._path;
 	}
 
 	private _parseArrayPath(path: string[]) {

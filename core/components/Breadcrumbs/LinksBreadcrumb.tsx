@@ -1,11 +1,11 @@
 import styled from "@emotion/styled";
-import { ArticleLink, BaseLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { forwardRef, MutableRefObject } from "react";
+import type { ArticleLink, BaseLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
+import { forwardRef, type MutableRefObject } from "react";
 import Breadcrumb from "./Breadcrumb";
 
 export interface LinksBreadcrumbProps {
 	itemLinks?: ItemLink[];
-	readyData?: { titles: string[]; links: BaseLink[]; onClicks?: (() => void)[] };
+	readyData?: { titles: string[]; links: BaseLink[]; onClicks?: ((e: React.MouseEvent) => void)[] };
 	className?: string;
 }
 
@@ -49,7 +49,7 @@ const LinksBreadcrumb = forwardRef((props: LinksBreadcrumbProps, ref: MutableRef
 	if (!titles.length) return <div />;
 	return (
 		<div
-			className={className + " breadcrumb"}
+			className={`${className} breadcrumb`}
 			ref={ref}
 			style={titles.length && categoryLinks.length ? {} : { visibility: "hidden" }}
 		>

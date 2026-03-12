@@ -63,4 +63,4 @@ git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git" }
 [dev-dependencies]
 test-utils = { path = "../test-utils", features = ["git"] }
 rstest = { workspace = true }
-tempdir = "0.3.7"
+tempfile = "3"

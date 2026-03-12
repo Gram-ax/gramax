@@ -1,12 +1,12 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import DiffTreeCreator from "@ext/git/core/DiffTreeCreator/DiffTreeCreator";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import { type DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
-import { WithMergeBase } from "@ext/VersionControl/model/Diff";
+import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
+import type { WithMergeBase } from "@ext/VersionControl/model/Diff";
 import assert from "assert";
 
 const getDiffTree: Command<

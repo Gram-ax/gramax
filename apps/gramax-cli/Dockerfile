@@ -2,7 +2,7 @@ FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image A
 
 WORKDIR /src
 
-RUN [ "apt-get", "install", "-y", "git", "bash" ]
+RUN [ "apt-get", "install", "-y", "--no-install-recommends", "git", "bash" ]
 
 COPY . .
 

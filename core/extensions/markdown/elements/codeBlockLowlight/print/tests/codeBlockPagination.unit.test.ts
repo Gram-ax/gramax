@@ -1,8 +1,8 @@
-import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
+import codeBlockHandler from "@ext/markdown/elements/codeBlockLowlight/print/codeBlockHandler";
+import type { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import Paginator from "@ext/print/utils/pagination/Paginator";
 import { createPage } from "@ext/print/utils/pagination/pageElements";
 import { AbortController } from "abort-controller";
-import paginateCodeBlock from "../codeBlockPagination";
 
 describe("codeBlockPagination", () => {
 	const createMockNodeDimension = (dimensions: Record<string, any> = {}) =>
@@ -74,9 +74,7 @@ describe("codeBlockPagination", () => {
 		const pre = document.createElement("pre");
 		pre.textContent = "some code";
 
-		const result = await paginateCodeBlock(pre, paginator as any);
-
-		expect(result).toBe(false);
+		await expect(codeBlockHandler.handle(pre, paginator as any)).rejects.toThrow();
 		expect(pre.parentElement).toBeNull();
 	});
 
@@ -91,7 +89,7 @@ describe("codeBlockPagination", () => {
 		wrapper.className = "child-wrapper";
 		pre.appendChild(wrapper);
 
-		const result = await paginateCodeBlock(pre, paginator as any);
+		const result = await codeBlockHandler.handle(pre, paginator as any);
 
 		expect(result).toBe(true);
 		expect(pre.parentElement).toBeNull();
@@ -115,7 +113,7 @@ describe("codeBlockPagination", () => {
 			wrapper.appendChild(line);
 		}
 
-		const result = await paginateCodeBlock(pre, paginator as any);
+		const result = await codeBlockHandler.handle(pre, paginator as any);
 
 		expect(result).toBe(true);
 		expect(pre.parentElement).toBeNull();
@@ -141,7 +139,7 @@ describe("codeBlockPagination", () => {
 			wrapper.appendChild(line);
 		}
 
-		const result = await paginateCodeBlock(pre, paginator as any);
+		const result = await codeBlockHandler.handle(pre, paginator as any);
 
 		expect(result).toBe(true);
 		expect(pre.parentElement).toBeNull();
@@ -166,7 +164,7 @@ describe("codeBlockPagination", () => {
 		line.appendChild(document.createTextNode(" text"));
 		wrapper.appendChild(line);
 
-		await paginateCodeBlock(pre, paginator as any);
+		await codeBlockHandler.handle(pre, paginator as any);
 
 		expect(pre.parentElement).toBeNull();
 		expect(paginator.currentContainer.children).toHaveLength(1);
@@ -191,7 +189,7 @@ describe("codeBlockPagination", () => {
 			wrapper.appendChild(document.createTextNode("\n"));
 		}
 
-		await paginateCodeBlock(pre, paginator as any);
+		await codeBlockHandler.handle(pre, paginator as any);
 
 		expect(pre.parentElement).toBeNull();
 		expect(paginator.currentContainer.children).toHaveLength(1);
@@ -206,9 +204,7 @@ describe("codeBlockPagination", () => {
 		const pre = document.createElement("pre");
 		pre.textContent = "plain text content";
 
-		const result = await paginateCodeBlock(pre, paginator as any);
-
-		expect(result).toBe(false);
+		await expect(codeBlockHandler.handle(pre, paginator as any)).rejects.toThrow();
 	});
 
 	it("updates accumulated height correctly", async () => {
@@ -227,7 +223,7 @@ describe("codeBlockPagination", () => {
 		line.textContent = "test line";
 		wrapper.appendChild(line);
 
-		await paginateCodeBlock(pre, paginator as any);
+		await codeBlockHandler.handle(pre, paginator as any);
 
 		expect(pre.parentElement).toBeNull();
 	});
@@ -252,6 +248,6 @@ describe("codeBlockPagination", () => {
 		wrapper.appendChild(line);
 		pre.appendChild(wrapper);
 
-		await expect(paginateCodeBlock(pre, paginator as any)).rejects.toThrow();
+		await expect(codeBlockHandler.handle(pre, paginator as any)).rejects.toThrow();
 	});
 });

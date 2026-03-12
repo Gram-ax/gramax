@@ -17,6 +17,7 @@ import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import t from "@ext/localization/locale/translate";
+import { trace } from "@ext/loggers/opentelemetry";
 import NoActiveWorkspace from "@ext/workspace/error/NoActiveWorkspaceError";
 import WorkspaceMissingPath from "@ext/workspace/error/UnknownWorkspace";
 import UnintializedWorkspace from "@ext/workspace/UnintializedWorkspace";
@@ -28,6 +29,7 @@ import { getBaseCatalogName } from "../../../apps/gramax-cli/src/logic/initialDa
 export type FSCreatedCallback = (fs: FileStructure) => void;
 export type CatalogChangedCallback = (change: CatalogFilesUpdated) => void | Promise<void>;
 export type CatalogAddedCallback = (args: { catalog: Catalog }) => void | Promise<void>;
+export type CatalogRemovedCallback = (args: { name: string }) => void | Promise<void>;
 export type FSCatalogsInitializedCallback = (fp: FileProvider, catalogs: CatalogEntry[]) => void;
 export type FSFileProviderFactory = (path: WorkspacePath) => MountFileProvider;
 
@@ -53,6 +55,7 @@ export default class WorkspaceManager {
 	private _workspaces: Map<WorkspacePath, WorkspaceConfigWithCatalogs> = new Map();
 	private _rules: CatalogChangedCallback[] = [];
 	private _addingRules: CatalogAddedCallback[] = [];
+	private _removingRules: CatalogRemovedCallback[] = [];
 	private _events = createEventEmitter<WorkspaceManagerEvents>();
 
 	constructor(
@@ -68,6 +71,7 @@ export default class WorkspaceManager {
 		return this._events;
 	}
 
+	@trace()
 	async getUnintializedWorkspaces() {
 		const current = this.maybeCurrent()?.path();
 		if (!current) return [];
@@ -79,6 +83,7 @@ export default class WorkspaceManager {
 		});
 	}
 
+	@trace()
 	async getUnintializedWorkspace(path: WorkspacePath) {
 		return await UnintializedWorkspace.init({
 			path,
@@ -87,6 +92,7 @@ export default class WorkspaceManager {
 		});
 	}
 
+	@trace()
 	async setWorkspace(path: WorkspacePath) {
 		if (!path) throw new Error(`Invalid workspace path ${path}`);
 		const { config: init } = this._workspaces.get(path);
@@ -106,11 +112,13 @@ export default class WorkspaceManager {
 			onInit: this._onInit,
 		});
 
-		this._rules?.forEach((fn) => this._current.events.on("catalog-changed", fn));
-		this._addingRules?.forEach((fn) => this._current.events.on("add-catalog", fn));
+		this._current.events.on("catalog-changed", (catalog) => {
+			this._rules?.forEach((fn) => fn(catalog));
+		});
 
 		this._current.events.on("add-catalog", (catalog) => {
 			const current = this._workspaces.get(this._current.path());
+			this._addingRules?.forEach((fn) => fn(catalog));
 			if (!current || current.catalogNames.includes(catalog.catalog.name)) return;
 
 			current.catalogNames.push(catalog.catalog.name);
@@ -118,6 +126,7 @@ export default class WorkspaceManager {
 
 		this._current.events.on("remove-catalog", (catalog) => {
 			const current = this._workspaces.get(this._current.path());
+			this._removingRules?.forEach((fn) => fn(catalog));
 			if (!current) return;
 
 			current.catalogNames = current.catalogNames.filter((name) => name !== catalog.name);
@@ -133,6 +142,7 @@ export default class WorkspaceManager {
 		await this._events.emit("workspace-changed", { workspace: this._current });
 	}
 
+	@trace()
 	async readWorkspaces(): Promise<void> {
 		await Promise.all(this._workspacesConfig.get("workspaces")?.map((w) => this.addWorkspace(w)) ?? []);
 
@@ -245,6 +255,7 @@ export default class WorkspaceManager {
 		return !!this._current;
 	}
 
+	@trace()
 	async getCatalogOrFindAtAnyWorkspace(catalogName: string): Promise<Catalog> {
 		const current = this.maybeCurrent();
 
@@ -273,18 +284,21 @@ export default class WorkspaceManager {
 
 	onCatalogChange(callback: CatalogChangedCallback) {
 		this._rules.push(callback);
-		this.maybeCurrent()?.events.on("catalog-changed", callback);
 	}
 
 	onCatalogAdd(callback: CatalogAddedCallback) {
 		this._addingRules.push(callback);
-		this.maybeCurrent()?.events.on("add-catalog", callback);
+	}
+
+	onCatalogRemove(callback: CatalogRemovedCallback) {
+		this._removingRules.push(callback);
 	}
 
 	private async readWorkspace(fp: FileProvider, config?: WorkspaceConfig): Promise<WorkspaceConfigWithCatalogs> {
 		const yaml = await YamlFileConfig.readFromFile(fp, workspaceConfigFilename, {
 			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
+			webEditorUrl: config?.webEditorUrl ?? null,
 			groups: config?.groups ?? null,
 			sections: config?.sections ?? null,
 			enterprise: {

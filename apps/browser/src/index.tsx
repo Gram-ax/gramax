@@ -16,10 +16,11 @@ declare global {
 }
 
 declare const __BUILD_ID__: number;
+
 const container = document.getElementById("root");
 
 if (container && Number(container.dataset.buildId) === __BUILD_ID__) {
-	window.debug = debug;
+	window.debug = { ...debug };
 	const root = createRoot(container);
 	root.render(<AppDesktopGuard />);
 } else {

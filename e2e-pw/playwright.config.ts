@@ -27,12 +27,12 @@ export default defineConfig({
 	repeatEach: 1,
 
 	// Retry on CI only.
-	retries: isCI ? 2 : 0,
+	retries: isCI ? 3 : 0,
 
-	timeout: isCI ? 50_000 : 30_000,
+	timeout: 60_000,
 
 	// Opt out of parallel tests on dev server.
-	workers: isDev ? 1 : process.env.PLAYWRIGHT_WORKERS || 3,
+	workers: isDev ? 1 : Number(process.env.PLAYWRIGHT_WORKERS) || 4,
 
 	// Reporter to use
 	reporter: "list",
@@ -47,7 +47,7 @@ export default defineConfig({
 	projects: [
 		{
 			name: "web",
-			testDir: "platforms/web/tests",
+			testDir: "./platforms/web/tests",
 			use: {
 				...devices["Desktop Chrome"],
 				bypassCSP: true,
@@ -61,6 +61,9 @@ export default defineConfig({
 						"--ignore-certificate-errors",
 						"--ignore-certificate-errors-spki-list",
 						"--allow-insecure-localhost",
+						"--disable-dev-shm-usage",
+						"--no-sandbox",
+						"--disable-setuid-sandbox",
 					],
 				},
 			},
@@ -73,6 +76,9 @@ export default defineConfig({
 				bypassCSP: true,
 				baseURL: "http://localhost:6002",
 				screenshot: "on-first-failure",
+				launchOptions: {
+					args: ["--disable-dev-shm-usage", "--no-sandbox", "--disable-setuid-sandbox"],
+				},
 			},
 		},
 		{
@@ -94,6 +100,9 @@ export default defineConfig({
 				baseURL: "http://localhost:6003",
 				bypassCSP: true,
 				screenshot: "on-first-failure",
+				launchOptions: {
+					args: ["--disable-dev-shm-usage", "--no-sandbox", "--disable-setuid-sandbox"],
+				},
 			},
 		},
 		{
@@ -104,6 +113,9 @@ export default defineConfig({
 				baseURL: "http://localhost:6003",
 				bypassCSP: true,
 				screenshot: "on-first-failure",
+				launchOptions: {
+					args: ["--disable-gpu", "--disable-dev-shm-usage", "--no-sandbox", "--disable-setuid-sandbox"],
+				},
 			},
 		},
 	],

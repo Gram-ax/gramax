@@ -49,7 +49,7 @@ const locale: DefaultLocale = {
 				},
 				filterProperty: {
 					name: "Фильтрация",
-					placeholder: "Выберите свойство для фильтрации",
+					placeholder: "Выберите свойство",
 					description: "Выберите флаг или перечисление для фильтрации каталога",
 					none: "Без фильтра",
 				},
@@ -161,7 +161,7 @@ const locale: DefaultLocale = {
 				},
 				token: {
 					name: "Токен",
-					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
+					placeholder: "glpat-***************-***",
 					description: "Токен для авторизации на Git-сервере",
 				},
 				password: {
@@ -211,7 +211,7 @@ const locale: DefaultLocale = {
 				},
 				token: {
 					name: "GitLab-токен",
-					placeholder: "glpat-aq6PK8sz1eQeKhTy-Dm5", // # gitleaks:allow
+					placeholder: "glpat-***************-***",
 					description: "Токен для авторизации в GitLab",
 				},
 				url: {
@@ -511,9 +511,7 @@ const locale: DefaultLocale = {
 				"Для работы приложения необходимо HTTPS-подключение и <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated'>cross-origin isolation</a>",
 			"command-failed": {
 				title: "Что-то пошло не так",
-				body: `<p>Перезагрузите страницу и попробуйте еще раз.</p><p>Мы получим сообщение о проблеме и постараемся ее быстро исправить. Если ошибка блокирует работу — напишите нам в <a href="https://t.me/gramax_assist_bot" target="${
-					getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-				}">Telegram</a>.</p>`,
+				body: `<p>Перезагрузите страницу и попробуйте еще раз.</p><p>Мы получим сообщение о проблеме и постараемся ее быстро исправить. Если ошибка блокирует работу — напишите нам в <a href="https://t.me/gramax_assist_bot" target="${getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"}">Telegram</a>.</p>`,
 			},
 			"something-went-wrong": "Что-то пошло не так",
 		},
@@ -914,6 +912,7 @@ title: Не удалось отобразить статью
 				"Не установленно ни одной приватной группы. Подробнее https://docs.ics-it.ru/doc-reader/catalog/private",
 			"need-permission": "Нужен доступ к каталогу",
 			"incorrect-ticket": "Некорректный тикет",
+			"failed-to-copy": "Не удалось скопировать в буфер обмена",
 		},
 	},
 	diagram: {
@@ -1003,6 +1002,15 @@ title: Не удалось отобразить статью
 			networkError: "Ошибка сети. Пожалуйста, попробуйте снова",
 		},
 	},
+	"enterprise-cloud-guest": {
+		buttons: {
+			continueWithGoogle: "Войти с помощью Google",
+			continueWithYandex: "Войти с помощью Yandex",
+			continueWithoutAccount: "Продолжить без аккаунта",
+		},
+		//TODO: what text should be here?
+		description: "Войдите, чтобы синхронизировать устройства",
+	},
 	cloud: {
 		"publish-to-cloud": "Опубликовать в облако",
 		"login-modal": {
@@ -1052,7 +1060,7 @@ title: Не удалось отобразить статью
 		name: "Поиск",
 		open: "Открыть поиск",
 		placeholder: "Введите запрос",
-		desc: `<ul><li>Для поиска точного совпадения используйте <code>"</code>. Например:&nbsp;<code><nobr>"слово"</nobr></code> или <code><nobr>"искомая фраза"</nobr></code>.</li><li>Для исключения из поиска используйте <code>-</code>. Например:&nbsp;<code><nobr>-слово</nobr></code> или <code><nobr>-"исключенная фраза"</nobr></code>.</li></ul>`,
+		desc: `<ul><li>Для поиска точного совпадения используйте <code>"</code>. Например:&nbsp;<code><nobr>"слово"</nobr></code> или <code><nobr>"искомая фраза"</nobr></code>.</li><li>Для исключения из поиска используйте <code>-</code>. Например:&nbsp;<code><nobr>-слово</nobr></code> или <code><nobr>-"исключенная фраза"</nobr></code>.</li><li>Для обязательного наличия в поиске используйте <code>+</code>. Например:&nbsp;<code><nobr>+слово</nobr></code> или <code><nobr>+"обязательная фраза"</nobr></code>.</li></ul>`,
 		"articles-not-found": "Статей не найдено",
 		"all-catalogs": "Искать по всем каталогам",
 		ai: "AI-поиск",
@@ -1062,7 +1070,13 @@ title: Не удалось отобразить статью
 		"indexing-info": "Индексация...",
 		"hidden-results": "...еще {{count}}",
 		recommended: "Рекомендовано",
+		current: "Текущая статья",
 		"property-filter-tooltip": "Фильтр по свойствам",
+		"resource-filter": {
+			"with-resources": "С вложениями",
+			"without-resources": "Без вложений",
+			"only-resources": "Только во вложениях",
+		},
 	},
 	list: {
 		"no-results-found": "Ничего не найдено",
@@ -1145,9 +1159,7 @@ title: Не удалось отобразить статью
 			public: {
 				"link-title": "Ссылка на репозиторий",
 				"link-placeholder": "URL публичного git-репозитория",
-				"link-description": `Ссылка на публичный git-репозиторий для клонирования.<br>Например: <a href='https://github.com/gram-ax/gramax' ${
-					getExecutingEnvironment() === "tauri" ? "" : "target=_blank"
-				} rel='noreferrer'>https://github.com/gram-ax/gramax</a>`,
+				"link-description": `Ссылка на публичный git-репозиторий для клонирования.<br>Например: <a href='https://github.com/gram-ax/gramax' ${getExecutingEnvironment() === "tauri" ? "" : "target=_blank"} rel='noreferrer'>https://github.com/gram-ax/gramax</a>`,
 			},
 			error: {
 				title: "Ошибка загрузки",
@@ -1326,9 +1338,7 @@ title: Не удалось отобразить статью
 				blob: "Не удалось найти файл <code>{{path}}</code>",
 				repo: {
 					title: "Репозиторий не найден",
-					message: `Не удалось найти репозиторий <a href='{{url}}' ${
-						getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-					} rel='noreferrer'>{{name}}</a> в Git-хранилище. Возможно он был удален, перемещен или у вас недостаточно прав для работы с ним`,
+					message: `Не удалось найти репозиторий <a href='{{url}}' ${getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"} rel='noreferrer'>{{name}}</a> в Git-хранилище. Возможно он был удален, перемещен или у вас недостаточно прав для работы с ним`,
 				},
 				generic: "Код ошибки - NotFoundError. Сообщение ошибки - ",
 			},
@@ -1410,6 +1420,7 @@ title: Не удалось отобразить статью
 			approval: {
 				approved: "Утверждено",
 				unapproved: "Ожидает утверждения",
+				"publish-tooltip": "Подтверждение сохранится только после публикации изменений",
 			},
 			status: {
 				draft: "Черновик",
@@ -1579,6 +1590,7 @@ title: Не удалось отобразить статью
 				name: "Тип вопроса",
 				one: "Один ответ",
 				many: "Несколько ответов",
+				text: "Свободный ответ",
 			},
 			answer: {
 				add: "Добавить ответ",
@@ -1740,8 +1752,9 @@ title: Не удалось отобразить статью
 	enterprise: {
 		"user-not-found":
 			"Эта почта не подключена к Gramax Enterprise Server. Вы можете продолжить работу в бесплатной версии приложения или обратиться к вашему администратору за помощью.",
-		"workspace-exit-warning": "Вы уверены, что хотите выйти?",
-		"workspace-exit": "Выход из рабочего пространства",
+		"workspace-exit-warning":
+			"Рабочее пространство будет закрыто для текущей сессии.<br>Каталоги сохранятся и снова будут доступны после входа",
+		"workspace-exit": "Выйти из рабочего пространства",
 		"check-if-user-editor-warning": "Убедитесь, что вам выдана лицензия редактора.",
 		"access-restricted": "Доступ ограничен",
 		"config-error": "Проблемы с настройками. Обратитесь к администратору.",
@@ -1789,6 +1802,7 @@ title: Не удалось отобразить статью
 				resources: "Репозитории",
 				mail: "Почтовый сервер",
 				guests: "Внешние читатели",
+				roles: "Роли",
 				quiz: "Обучение",
 				modules: "Модули",
 				metrics: "Метрики",
@@ -1834,6 +1848,7 @@ title: Не удалось отобразить статью
 			quiz: {
 				"test-info": {
 					"correct-answers-count": "Количество верных ответов",
+					"answers-count": "Количество ответов",
 				},
 				switch: {
 					on: "Модуль обучения включен",
@@ -1856,11 +1871,23 @@ title: Не удалось отобразить статью
 						loading: "Загрузка тестов...",
 						empty: "Тесты не найдены",
 					},
+					result: {
+						name: "Результат",
+						passed: "Пройден",
+						failed: "Не пройден",
+					},
 				},
 				"users-test-table": {
 					test: "Название теста",
 					user: "Пользователь",
 					version: "Версия",
+					result: {
+						name: "Результат",
+						passed: "Пройден",
+						failed: "Не пройден",
+						free: "В тесте нет правильных ответов",
+						tooltip: "Количество правильных ответов: {countOfCorrectAnswers} из {countQuestions}",
+					},
 					"updated-at": "Дата обновления",
 					"created-at": "Дата прохождения",
 				},
@@ -1991,8 +2018,8 @@ title: Не удалось отобразить статью
 			},
 			check: {
 				switch: {
-					on: "Модуль проверки включен",
-					off: "Модуль проверки выключен",
+					on: "Включен",
+					off: "Выключен",
 				},
 				"service-unavailable": "Сервис стайлгайда недоступен",
 				rule: "Правило",
@@ -2037,25 +2064,32 @@ title: Не удалось отобразить статью
 			catalog: "Каталог в PDF",
 			article: "Статью в PDF",
 			category: "Раздел в PDF",
-			process: "Экспортируем PDF",
+			process: "Генерация PDF",
 			canceled: "Отмена...",
 
 			form: {
-				title: "Экспорт в PDF",
-				description: "Сформируйте PDF-документ по выбранному элементу каталога.",
+				title: {
+					catalog: "Экспорт каталога в PDF",
+					category: "Экспорт раздела в PDF",
+					article: "Экспорт статьи в PDF",
+				},
+				description: "Настройте содержимое и оформление.",
 				titlePage: "Титульная страница",
 				titlePageDescription:
 					"Добавить титульную страницу с названием каталога/раздела и основной информацией.",
 				tocPage: "Оглавление",
 				tocPageDescription:
 					"Добавить раздел с оглавлением, где будут перечислены все разделы каталога и номера страниц.",
-				titleNumber: "Номера заголовков",
-				titleNumberDescription: "Добавить номера для заголовков.",
+				titleNumber: "Нумерация разделов",
+				titleNumberDescription: "Автоматическая нумерация заголовков статей",
 				template: "Кастомный шаблон",
 				templateDescription: {
 					body: "Используйте собственные CSS-стили для оформления PDF.",
-					more: "Подробнее.",
+					more: "Подробнее",
 				},
+				sectionTitle: "Состав и оформление документа",
+				openPrint: "Открыть окно печати",
+				printDialog: "В окне печати выберите «Сохранить как PDF»",
 				footerDescription:
 					"После экспорта откроется окно печати браузера.\nВыберите A4 и в поле «Принтер/Назначение» выберите сохранение в PDF.",
 			},
@@ -2105,7 +2139,7 @@ title: Не удалось отобразить статью
 	"enter-value": "Введите значение",
 	error: "Ошибка",
 	existing: "существующий",
-	exit: "Выход",
+	exit: "Выйти",
 	expand: "Раскрыть",
 	field: "Поле",
 	file: "Файл",
@@ -2237,6 +2271,7 @@ title: Не удалось отобразить статью
 	"check-links": "Ссылки",
 	"check-unsupported": "Неподдерживаемые элементы",
 	"check-content": "Статьи",
+	"check-comments": "Комментарии",
 	"choose-header": "Выбрать заголовок",
 	"clarifying-tags": "Уточняющие метки",
 	"click-to-copy": "Нажмите, чтобы скопировать",
@@ -2315,6 +2350,7 @@ title: Не удалось отобразить статью
 	"incorrects-paths": "Некорректные пути",
 	"incorrects-unsupported": "Элементы",
 	"incorrects-content": "Некорректный синтаксис",
+	"incorrects-comments": "Непривязанные комментарии",
 	"markdown-error": "Некорректная разметка",
 	"info-text": "Информация",
 	"init-git-version-control": "Инициализировать Git",
@@ -2701,6 +2737,7 @@ title: Не удалось отобразить статью
 			answered: "Отвечено",
 			total: "Всего",
 			send: "Отправить ответы",
+			retake: "Перепройти тест",
 			statistics: {
 				title: "Статистика",
 				"correct-answers": "Правильных ответов",
@@ -2714,11 +2751,19 @@ title: Не удалось отобразить статью
 				title: "Показывать ответы",
 				description: "Показывать ответы на вопросы после прохождения теста",
 			},
+			retake: {
+				title: "Перепрохождение теста",
+				description: "Разрешить повторное прохождение теста, в случае неуспеха",
+			},
 			"precent-of-correct-answers": {
-				title: "Процент правильных ответов",
-				description: "Процент правильных ответов для прохождения теста",
+				title: "Количество правильных ответов",
+				description: "Количество правильных ответов для прохождения теста",
 				placeholder: "Число от 0 до 100",
 			},
+		},
+		"answer-placeholder": {
+			edit: "Здесь будет поле для ввода текста",
+			render: "Напишите ответ",
 		},
 		"required-questions": "Пожалуйста, ответьте на все обязательные вопросы",
 	},
@@ -2785,7 +2830,6 @@ title: Не удалось отобразить статью
 		"failed-to-load": "Не удалось загрузить данные метрик",
 		disabled: "Модуль метрик отключен",
 		enabled: "Модуль метрик включен",
-		"no-data-available": "Нет доступных данных",
 		filters: {
 			date: {
 				today: "Сегодня",

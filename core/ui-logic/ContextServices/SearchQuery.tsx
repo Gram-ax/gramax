@@ -1,22 +1,28 @@
-import ContextService from "@core-ui/ContextServices/ContextService";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useState } from "react";
+import type ContextService from "@core-ui/ContextServices/ContextService";
+import type { ResourceFilter } from "@ext/serach/Searcher";
+import { createContext, type Dispatch, type ReactElement, type SetStateAction, useContext, useState } from "react";
 
-const SearchQueryContext = createContext<string>(undefined);
+export interface SearchQueryServiceValue {
+	query: string;
+	setQuery: Dispatch<SetStateAction<string>>;
+	resourceFilter: ResourceFilter;
+	setResourceFilter: Dispatch<SetStateAction<ResourceFilter>>;
+}
+
+const SearchQueryContext = createContext<SearchQueryServiceValue>(undefined);
 class SearchQueryService implements ContextService {
-	private _setQuery: Dispatch<SetStateAction<string>>;
-
 	Init({ children }: { children: ReactElement }): ReactElement {
 		const [query, setQuery] = useState<string>("");
-		this._setQuery = setQuery;
-		return <SearchQueryContext.Provider value={query}>{children}</SearchQueryContext.Provider>;
+		const [resourceFilter, setResourceFilter] = useState<ResourceFilter>("with");
+		return (
+			<SearchQueryContext.Provider value={{ query, setQuery, resourceFilter, setResourceFilter }}>
+				{children}
+			</SearchQueryContext.Provider>
+		);
 	}
 
-	get value(): string {
+	get value(): SearchQueryServiceValue {
 		return useContext(SearchQueryContext);
-	}
-
-	set value(value: string) {
-		this._setQuery(value);
 	}
 }
 

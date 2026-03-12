@@ -12,6 +12,7 @@ import FileStructure from "@core/FileStructue/FileStructure";
 import ItemExtensions from "@core/FileStructue/Item/ItemExtensions";
 import type YamlFileConfig from "@core/utils/YamlFileConfig";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import { trace } from "@ext/loggers/opentelemetry";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import WorkspaceEventHandlers from "@ext/workspace/events/WorkspaceEventHandlers";
@@ -83,6 +84,7 @@ export class Workspace {
 		return catalog?.ctx(ctx);
 	}
 
+	@trace()
 	async getContextlessCatalog(name: string): Promise<Catalog> {
 		const { name: n, metadata } = BaseCatalog.parseName(name);
 		const catalog = await this._entries.get(n)?.upgrade("catalog", true);
@@ -94,6 +96,7 @@ export class Workspace {
 		return mutableCatalog.catalog;
 	}
 
+	@trace()
 	async refreshCatalog(name: string) {
 		const catalog = await this.getContextlessCatalog(name);
 		const entry = await this._fs.getCatalogByPath(catalog.basePath);
@@ -101,6 +104,7 @@ export class Workspace {
 		await this._initRepositories([entry], this._fs.fp);
 	}
 
+	@trace()
 	async getBaseCatalog(name: string): Promise<BaseCatalog> {
 		const { name: n, metadata } = BaseCatalog.parseName(name);
 		const entry = this._entries.get(n);
@@ -129,6 +133,7 @@ export class Workspace {
 		return this._assets;
 	}
 
+	@trace()
 	async removeCatalog(name: string, deleteFromFs = true) {
 		await RepositoryProvider.resetRepo();
 		const catalog = await this.getBaseCatalog(name);
@@ -146,10 +151,12 @@ export class Workspace {
 		await this._events.emit("remove-catalog", { name });
 	}
 
+	@trace()
 	addCatalogEntry(catalogEntry: CatalogEntry): void {
 		this._entries.set(catalogEntry.name, catalogEntry);
 	}
 
+	@trace()
 	async addCatalog(catalog: Catalog): Promise<void> {
 		this._entries.set(catalog.name, catalog);
 		const basePath = catalog.basePath;
@@ -173,6 +180,7 @@ export class Workspace {
 		await this._events.emit("add-catalog", { catalog });
 	}
 
+	@trace()
 	private async _initRepositories(entries: BaseCatalog[], fp: FileProvider): Promise<void> {
 		await Promise.all(
 			entries.map(async (entry) => {
@@ -185,6 +193,7 @@ export class Workspace {
 		);
 	}
 
+	@trace()
 	private async _onItemChanged(items: ItemRefStatus[]): Promise<void> {
 		const catalogs = this.getAllCatalogs();
 

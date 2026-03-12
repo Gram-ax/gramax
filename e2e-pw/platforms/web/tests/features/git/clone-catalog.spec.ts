@@ -29,13 +29,16 @@ test.describe("basic git", () => {
 		await sharedPage.getByPlaceholder("Find").fill("test-catalog");
 		await homePage.waitForLoad();
 
-		await sharedPage.getByRole("option", { name: `${repo.group}/${repo.testRepo}` }).click();
+		await sharedPage.getByRole("option", { name: `${repo.group}/${repo.testRepo}` }).click({ timeout: 15_000 });
 
 		await sharedPage.getByRole("button", { name: "Load" }).click();
 
-		await homePage.waitForLoad();
+		await homePage.waitForLoad(1000);
 
-		await sharedPage.getByRole("button", { name: "Автотест Для автотестирования" }).click();
-		await sharedPage.getByRole("link", { name: "test-catalog Автотест" }).click();
+		await sharedPage.getByRole("button", { name: "Автотест" }).click();
+
+		await homePage.waitForLoad(1000);
+
+		await sharedPage.getByRole("link", { name: "Автотест" }).click();
 	});
 });

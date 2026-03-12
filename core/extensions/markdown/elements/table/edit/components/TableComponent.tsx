@@ -45,6 +45,7 @@ const TableComponent = (props: NodeViewProps) => {
 				className="tableComponent"
 				data-header={node.attrs.header}
 				data-qa={"table"}
+				data-testid={"table"}
 				ref={nodeViewContentRef}
 			>
 				<ColGroup content={node.firstChild} parentElement={parentElement} />

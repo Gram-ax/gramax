@@ -8,6 +8,7 @@ const TaskListMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<ToolbarToggleButton
 			active={isActive}
+			data-testid="tb-task-list"
 			disabled={disabled}
 			hotKey={"Mod-Shift-9"}
 			onClick={() => editor.chain().focus().toggleTaskList().run()}

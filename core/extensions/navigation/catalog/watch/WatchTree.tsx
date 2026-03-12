@@ -1,12 +1,12 @@
 import Icon from "@components/Atoms/Icon";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import useHandleItemClick from "@core-ui/hooks/useHandleItemClick";
 import EditMenu from "@ext/item/EditMenu";
 import t from "@ext/localization/locale/translate";
-import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import { Button } from "@ui-kit/Button";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { ArticleLink, CategoryLink, ItemLink, LinkFilter } from "../../NavigationLinks";
+import type { ArticleLink, CategoryLink, ItemLink, LinkFilter } from "../../NavigationLinks";
 import IconExtension from "../main/render/IconExtension";
 import LevNavItem from "../main/render/Item";
 
@@ -118,7 +118,6 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 						}
 					>
 						<EditMenu
-							isCategory={isCategory}
 							itemLink={item}
 							onClose={() => setIsHover(false)}
 							onOpen={() => setIsHover(true)}

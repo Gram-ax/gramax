@@ -1,10 +1,12 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import RuleProvider from "@ext/rules/RuleProvider";
-import { ArticleLanguage, isArticleLanguage } from "@ext/serach/modulith/SearchArticle";
-import { PropertyFilter, SearchResult } from "@ext/serach/Searcher";
-import { isSearcherType, SearcherType } from "@ext/serach/SearcherManager";
+import { getAccessibleCatalogs } from "@ext/security/logic/getAccessibleCatalogs";
+import SecurityRules from "@ext/security/logic/SecurityRules";
+import { type ArticleLanguage, isArticleLanguage } from "@ext/serach/modulith/SearchArticle";
+import type { PropertyFilter, ResourceFilter, SearchResult } from "@ext/serach/Searcher";
+import { isSearcherType, type SearcherType } from "@ext/serach/SearcherManager";
 import { Command } from "../../types/Command";
 
 const searchCommand: Command<
@@ -15,6 +17,7 @@ const searchCommand: Command<
 		catalogName?: string;
 		query: string | undefined;
 		propertyFilter?: PropertyFilter;
+		resourceFilter?: ResourceFilter;
 		articlesLanguage?: ArticleLanguage;
 	},
 	SearchResult[]
@@ -23,7 +26,7 @@ const searchCommand: Command<
 
 	kind: ResponseKind.json,
 
-	async do({ ctx, signal, query, type, catalogName, propertyFilter, articlesLanguage }) {
+	async do({ ctx, signal, query, type, catalogName, propertyFilter, resourceFilter, articlesLanguage }) {
 		const getCatalogItemsIds = async (catalogName: string, requireExactLanguageMatch = false) => {
 			const filters = new RuleProvider(ctx).getItemFilters({ requireExactLanguageMatch });
 			const catalog = await this._app.wm.current().getContextlessCatalog(catalogName);
@@ -38,6 +41,7 @@ const searchCommand: Command<
 					catalogName,
 					articleIds: await getCatalogItemsIds(catalogName, true),
 					propertyFilter,
+					resourceFilter,
 					articlesLanguage,
 				});
 				return result;
@@ -54,14 +58,18 @@ const searchCommand: Command<
 		};
 
 		const getAllSearchData = async (query: string | undefined) => {
-			const catalogs = Array.from(this._app.wm.current().getAllCatalogs().keys());
-			const catalogArticleIds = {};
-			await Promise.all(catalogs.map(async (c) => (catalogArticleIds[c] = await getCatalogItemsIds(c))));
+			const catalogs = getAccessibleCatalogs(ctx.user, this._app.wm.current().getAllCatalogs().values());
+			if (catalogs.length === 0) return [];
+			const catalogArticleIds: Record<string, string[]> = {};
+			await catalogs.forEachAsync(async (c) => {
+				catalogArticleIds[c.name] = await getCatalogItemsIds(c.name);
+			});
 			const search = async (query: string) => {
 				const result = await this._app.searcherManager.getSearcher(type).searchAll({
 					query,
 					catalogToArticleIds: catalogArticleIds,
 					propertyFilter,
+					resourceFilter,
 					articlesLanguage,
 				});
 				return result;
@@ -77,7 +85,12 @@ const searchCommand: Command<
 			return (await doSearch(query)) ?? [];
 		};
 
-		return catalogName ? await getSearchData(query, catalogName) : await getAllSearchData(query);
+		if (catalogName) {
+			const entry = this._app.wm.current().getAllCatalogs().get(catalogName);
+			if (!entry || !SecurityRules.canReadCatalog(ctx.user, entry.perms, entry.name)) return [];
+			return await getSearchData(query, catalogName);
+		}
+		return await getAllSearchData(query);
 	},
 
 	params(ctx, q, body, signal) {
@@ -85,8 +98,9 @@ const searchCommand: Command<
 		const catalogName = q.catalogName;
 		const type = isSearcherType(q.type) ? q.type : undefined;
 		const propertyFilter = body?.propertyFilter;
+		const resourceFilter = body?.resourceFilter;
 		const articlesLanguage = isArticleLanguage(q.articlesLanguage) ? q.articlesLanguage : undefined;
-		return { ctx, signal, catalogName, type, query, propertyFilter, articlesLanguage };
+		return { ctx, signal, catalogName, type, query, propertyFilter, resourceFilter, articlesLanguage };
 	},
 });
 

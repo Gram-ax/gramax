@@ -1,5 +1,5 @@
 import { useRouter } from "@core/Api/useRouter";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -8,18 +8,17 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
-import PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
+import type PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import { QuizSettings } from "@ext/quiz/models/types";
-import { ComponentProps, Dispatch, SetStateAction, useCallback, useState } from "react";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
+import type { QuizSettings } from "@ext/quiz/models/types";
+import { type ComponentProps, type Dispatch, type SetStateAction, useCallback, useState } from "react";
 
 export interface UsePropsEditorActionsParams {
 	item: ClientArticleProps;
 	itemLink: ItemLink;
 	setItemLink: Dispatch<SetStateAction<ItemLink>>;
 	isCategory: boolean;
-	isCurrentItem: boolean;
 	onUpdate?: () => void;
 	onExternalClose?: () => void;
 }
@@ -32,10 +31,11 @@ export interface PropsEditorData {
 }
 
 export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
-	const { item, itemLink, setItemLink, isCurrentItem, onExternalClose, isCategory, onUpdate } = params;
+	const { item, itemLink, setItemLink, onExternalClose, isCategory, onUpdate } = params;
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const articleProps = ArticlePropsService.value;
+	const isCurrentItem = item.ref.path === articleProps.ref.path;
 	const router = useRouter();
 
 	const domain = PageDataContextService.value.domain;

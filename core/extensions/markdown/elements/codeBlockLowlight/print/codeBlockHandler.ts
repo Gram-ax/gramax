@@ -1,9 +1,11 @@
-import { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
-import paginateCodeBlock from "./codeBlockPagination";
+import type { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
+import CodeBlockPaginator from "./CodeBlockPagination";
 
 const codeBlockHandlerFn: PrintNodeHandler["handle"] = async (node, paginator) => {
 	if (node.tagName !== "PRE") return false;
-	return await paginateCodeBlock(node as HTMLPreElement, paginator);
+	const codeBlockPaginator = new CodeBlockPaginator(node as HTMLPreElement, paginator);
+	await codeBlockPaginator.paginateNode();
+	return true;
 };
 
 const codeBlockHandler: PrintNodeHandler = {

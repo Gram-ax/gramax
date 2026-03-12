@@ -1,21 +1,23 @@
 import getPageDataContext from "@app/commands/pageData/getPageDataContext";
-import Application from "@app/types/Application";
-import Context from "@core/Context/Context";
-import { Article } from "@core/FileStructue/Article/Article";
+import type Application from "@app/types/Application";
+import type Context from "@core/Context/Context";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { Category } from "@core/FileStructue/Category/Category";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type { Category } from "@core/FileStructue/Category/Category";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import SitePresenter, { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type SitePresenter from "@core/SitePresenter/SitePresenter";
+import type { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import type { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import assert from "assert";
-import { ExtendedArticlePageData, InitialArticleData } from "./ArticleTypes";
+import type { ExtendedArticlePageData, InitialArticleData } from "./ArticleTypes";
 import { getItemLinks, replacePathIfNeeded } from "./NavigationUtils";
 
 export type StaticArticlePageData = {
-	articleContentRender: string;
+	mode: "read";
+	content: RenderableTreeNode;
 	articleProps: ClientArticleProps;
 };
 
@@ -179,14 +181,9 @@ export class ArticleDataService {
 		const articleProps = await sp.serializeArticleProps(article, await catalog.getPathname(article));
 		articleProps.ref.path = replacePathIfNeeded(articleProps.ref.path, catalog);
 		return {
-			articleContentRender: this._stringifyRenderableTreeNodeSafely(
-				await article.parsedContent.read((p) => p.renderTree),
-			),
+			mode: "read",
+			content: await article.parsedContent.read((p) => p.renderTree),
 			articleProps,
 		};
-	}
-
-	private _stringifyRenderableTreeNodeSafely(value: RenderableTreeNode): string {
-		return JSON.stringify(value).replaceAll("<", "\\u003C");
 	}
 }

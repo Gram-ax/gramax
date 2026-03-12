@@ -3,24 +3,26 @@ import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import Menu from "@ext/inbox/components/Editor/Menu";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
+import { useShouldShowInlineToolbar } from "@ext/markdown/core/edit/logic/hooks/useShouldShowInlineToolbar";
+import type { InlineToolbarButtons } from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
+import { InlineToolbar } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
 import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import deleteFiles from "@ext/markdown/elements/file/edit/logic/deleteFiles";
 import imageHandlePaste from "@ext/markdown/elements/image/edit/logic/imageHandlePaste";
 import { InlineLinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/InlineLinkMenu";
-import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import OnDeleteMark from "@ext/markdown/elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "@ext/markdown/elements/onDocChange/OnDeleteNode";
-import { Mark } from "@tiptap/pm/model";
-import { EditorView } from "@tiptap/pm/view";
-import { Editor, EditorContent, Extensions, JSONContent, useEditor } from "@tiptap/react";
+import type { Mark } from "@tiptap/pm/model";
+import type { EditorView } from "@tiptap/pm/view";
+import { type Editor, EditorContent, type Extensions, type JSONContent, useEditor } from "@tiptap/react";
 import { memo, useCallback, useEffect, useMemo } from "react";
 
 type MiniProps<T> = T extends { title: string; content: JSONContent } ? T : { title: string; content: JSONContent };
@@ -77,14 +79,23 @@ interface SmallEditorProps<T> {
 	content: JSONContent;
 	articleType: ArticleProviderType;
 	extensions?: Extensions;
-	updateCallback?: (id: string, content: JSONContent, title: string) => void;
 	options?: SmallEditorOptions;
 	className?: string;
+	inlineToolbarButtons?: InlineToolbarButtons;
+	updateCallback?: (id: string, content: JSONContent, title: string) => void;
 }
 
 const defaultContent = { type: "doc", content: [{ type: "paragraph" }, { type: "paragraph" }] };
 
-const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
+const editorButtons: InlineToolbarButtons = {
+	inlineGroup: {
+		file: false,
+		comment: false,
+		prettify: false,
+	},
+};
+
+const SmallEditor = <T extends MiniProps<unknown>>(proprs: SmallEditorProps<T>) => {
 	const {
 		id,
 		props,
@@ -94,6 +105,7 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 		updateCallback,
 		options,
 		className,
+		inlineToolbarButtons = editorButtons,
 	} = proprs;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const resourceService = ResourceService.value;
@@ -114,7 +126,7 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 			await FetchService.fetch(url, JSON.stringify({ editTree: content, props: articleProps }), MimeTypes.json);
 			updateCallback?.(id, content, title);
 		},
-		[id, apiUrlCreator, props],
+		[id, apiUrlCreator, props, articleType, updateCallback],
 	);
 
 	const debouncedUpdateContent = useDebounce(updateContent, 500);
@@ -141,7 +153,7 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 	const editorExtensions = useMemo(() => {
 		updateLinkExtansion();
 		return extensions;
-	}, [extensions]);
+	}, [extensions, updateLinkExtansion]);
 
 	const { onDeleteNodes } = useContentEditorHooks();
 
@@ -182,6 +194,7 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 		[content],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!editor || !resourceService) return;
 
@@ -189,12 +202,15 @@ const SmallEditor = <T extends MiniProps<any>>(proprs: SmallEditorProps<T>) => {
 		if (copyArticlesExtension) copyArticlesExtension.options.resourceService = resourceService;
 	}, [resourceService?.data]);
 
+	const shouldShow = useShouldShowInlineToolbar();
+
 	return (
 		<ApiUrlCreatorService.Provider value={newApiUrlCreator}>
 			<SmallEditorWrapper className={classNames(className, {}, ["article"])}>
 				<div className="mini-article">
 					<div className="mini-article-body">
 						<InlineLinkMenu editor={editor} />
+						<InlineToolbar buttons={inlineToolbarButtons} editor={editor} shouldShow={shouldShow} />
 						<EditorContent
 							className={"article-body"}
 							data-iseditable={true}

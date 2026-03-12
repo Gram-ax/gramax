@@ -1,12 +1,12 @@
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useApi } from "@core-ui/hooks/useApi";
-import type { AnswerType, TypedAnswer } from "@ext/markdown/elements/answer/types";
+import type { AnswerType, AnswerValueType, TypedAnswer } from "@ext/markdown/elements/answer/types";
 import {
 	type QuestionStorage,
 	useQuestionsStore,
 } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
-import type { Question, QuestionResult } from "@ext/markdown/elements/question/types";
+import type { Question, QuestionResult, QuizCorrect } from "@ext/markdown/elements/question/types";
 import type { QuizResult, StoredQuizResult } from "@ext/quiz/models/types";
 import { toast } from "@ui-kit/Toast";
 import { type DependencyList, useLayoutEffect } from "react";
@@ -15,8 +15,10 @@ import { shallow } from "zustand/shallow";
 
 export interface StoredAnswer extends Omit<TypedAnswer<AnswerType>, "type"> {}
 
+export type SelectedAnswer = Record<string, AnswerValueType<AnswerType>>;
+
 export interface StoredQuestion extends Omit<Question, "answers"> {
-	selectedAnswers: string[];
+	selectedAnswers: SelectedAnswer;
 	answers: Record<string, StoredAnswer>;
 	isRequired?: boolean;
 	isCorrected?: boolean;
@@ -24,7 +26,7 @@ export interface StoredQuestion extends Omit<Question, "answers"> {
 }
 
 export type QuestionsStoreState = {
-	passed: boolean;
+	passed: QuizCorrect;
 	type: "loading" | "answering" | "checking" | "finished";
 	countOfCorrectAnswers?: number;
 };
@@ -35,12 +37,12 @@ export interface QuestionsStore {
 	questions: Record<string, StoredQuestion>;
 	state: QuestionsStoreState;
 	focusState?: { questionId: string; state: FocusState };
-	resetStore: (content: string) => void;
+	resetStore: () => void;
 	setState: (state: Partial<QuestionsStoreState>) => void;
 	setQuestions: (questions: Record<string, StoredQuestion>) => void;
-	selectAnswer: (questionId: string, answerId: string) => void;
+	selectAnswer: (questionId: string, answerId: string, value: AnswerValueType<AnswerType>) => void;
 	getAnswer: (questionId: string, answerId: string) => StoredAnswer;
-	getSelectedAnswers: (questionId: string) => string[];
+	getSelectedAnswers: (questionId: string) => SelectedAnswer;
 	restoreStoredAnswers: (result: StoredQuizResult) => void;
 	setIsCorrectedQuestions: (result: QuestionResult[]) => void;
 	setFocusedQuestion: (questionId: string, state: FocusState) => void;
@@ -67,7 +69,7 @@ export const createQuestionsStore = (questions: Record<string, StoredQuestion>, 
 			return set({ state: { ...oldState, ...state } });
 		},
 		setQuestions: (questions: Record<string, StoredQuestion>) => set({ questions }),
-		selectAnswer: (questionId: string, answerId: string) => {
+		selectAnswer: (questionId: string, answerId: string, value?: AnswerValueType<AnswerType>) => {
 			const { questions } = get();
 
 			const question = questions[questionId];
@@ -76,13 +78,19 @@ export const createQuestionsStore = (questions: Record<string, StoredQuestion>, 
 			const answer = question.answers[answerId];
 			if (!answer) return;
 
-			const newValue = !answer.value;
-			const isSelected = question.selectedAnswers.includes(answerId);
-			let newSelectedAnswers: string[];
+			const newValue = value ?? !answer.value;
+			let newSelectedAnswers: SelectedAnswer = {};
 
-			if (isSelected) newSelectedAnswers = question.selectedAnswers.filter((id) => id !== answerId);
-			else if (question.type === "one" && newValue) newSelectedAnswers = [answerId];
-			else newSelectedAnswers = [...question.selectedAnswers, answerId];
+			if (question.type === "one" && newValue) {
+				newSelectedAnswers = { [answerId]: newValue };
+			} else {
+				if (newValue) {
+					newSelectedAnswers = { ...question.selectedAnswers, [answerId]: newValue };
+				} else {
+					newSelectedAnswers = { ...question.selectedAnswers };
+					delete newSelectedAnswers[answerId];
+				}
+			}
 
 			set({
 				questions: {
@@ -125,22 +133,21 @@ export const createQuestionsStore = (questions: Record<string, StoredQuestion>, 
 			const { questions } = get();
 			const newQuestions = { ...questions };
 
-			Object.entries(result.selectedAnswers).forEach(([questionId, selectedAnswers]) => {
-				if (newQuestions[questionId]) {
-					newQuestions[questionId] = {
-						...newQuestions[questionId],
-						selectedAnswers,
-					};
-					storage.saveQuestion(questionId, selectedAnswers);
-				}
-			});
-
 			result.questions.forEach((questionResult) => {
 				if (newQuestions[questionResult.questionId]) {
 					newQuestions[questionResult.questionId] = {
 						...newQuestions[questionResult.questionId],
 						isCorrected: questionResult.isCorrect,
 						correctAnswers: questionResult.correctAnswersIds,
+					};
+				}
+			});
+
+			result.selectedAnswers.forEach((answer) => {
+				if (newQuestions[answer.questionId]) {
+					newQuestions[answer.questionId] = {
+						...newQuestions[answer.questionId],
+						selectedAnswers: answer.answersIds,
 					};
 				}
 			});
@@ -217,7 +224,7 @@ export const useIsAnsweredToTest = (deps: DependencyList) => {
 			setState({ type: "answering" });
 		},
 		onDone: (result) => {
-			if (result.passed === null) return setState({ type: "answering" });
+			if (!result) return setState({ type: "answering" });
 			restoreStoredAnswers(result);
 			setState({
 				type: "finished",
@@ -227,11 +234,10 @@ export const useIsAnsweredToTest = (deps: DependencyList) => {
 		},
 	});
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		if (!workspace?.enterprise?.modules?.quiz || !user?.mail) return;
 		void isAnswered();
-	}, [workspace?.enterprise?.modules?.quiz, user, ...deps]);
+	}, [workspace?.enterprise?.modules?.quiz, isAnswered, user, ...deps]);
 
 	return isAnswered;
 };

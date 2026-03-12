@@ -1,6 +1,6 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { EditorView } from "prosemirror-view";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
+import type { EditorView } from "prosemirror-view";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 
 const createFile = async (files: File[], view: EditorView, apiUrlCreator: ApiUrlCreator, rs: ResourceServiceType) => {

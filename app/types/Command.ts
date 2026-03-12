@@ -1,22 +1,28 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: fix */
+
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
-import Middleware from "@core/Api/middleware/Middleware";
-import Query from "@core/Api/Query";
-import Context from "@core/Context/Context";
-import { CommandTree } from "../commands";
-import Application from "./Application";
+import type Middleware from "@core/Api/middleware/Middleware";
+import type Query from "@core/Api/Query";
+import type Context from "@core/Context/Context";
+import { traced } from "@ext/loggers/opentelemetry";
+import type { CommandTree } from "../commands";
+import type Application from "./Application";
 import { ResponseKind } from "./ResponseKind";
+
+export type CommandFlags = "otel-omit-args" | "otel-omit-result";
 
 export interface CommandConfig<P, O> {
 	path?: string;
 	kind?: ResponseKind;
 	middlewares?: Middleware[];
+	flags?: CommandFlags[];
 	do: (this: { _app: Application; _commands: CommandTree }, args: P) => O | Promise<O>;
 	params?: (ctx: Context, query: Query, body?: any, signal?: AbortSignal) => P;
 }
 
 export class Command<P, O> {
-	private _app: Application = {} as any;
-	private _commands: CommandTree = {} as any;
+	protected _app: Application = null;
+	protected _commands: CommandTree = null;
 
 	constructor(private _c: CommandConfig<P, O>) {
 		if (!_c.kind) _c.kind = ResponseKind.none;
@@ -35,8 +41,17 @@ export class Command<P, O> {
 		return this._c.kind;
 	}
 
-	do(args: P): O | Promise<O> {
-		return this._c.do.bind(this)(args);
+	async do(args: P): Promise<O> {
+		return await traced(
+			this._c.path,
+			{
+				args: this._c.flags?.includes("otel-omit-args") ? [] : (args as unknown[]),
+				omitResult: this._c.flags?.includes("otel-omit-result"),
+			},
+			async () => {
+				return await this._c.do.bind(this)(args);
+			},
+		);
 	}
 
 	params(ctx: Context, query: Query, body: any, signal?: AbortSignal): P {

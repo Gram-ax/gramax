@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { Editor } from "@tiptap/core";
-import { CSSProperties, memo, useCallback } from "react";
+import type { Editor } from "@tiptap/core";
+import { type CSSProperties, memo, useCallback } from "react";
 
 interface ArticleMatProps {
 	editor?: Editor;
@@ -34,7 +34,14 @@ const ArticleMat = memo(({ editor, className, style }: ArticleMatProps) => {
 		}
 	}, [editor]);
 
-	return <div className={classNames("mat-under-article", {}, [className])} onClick={onClickHandler} style={style} />;
+	return (
+		<div
+			className={classNames("mat-under-article", {}, [className])}
+			data-testid="article-bottom"
+			onClick={onClickHandler}
+			style={style}
+		/>
+	);
 });
 
 export const getMat = () => {

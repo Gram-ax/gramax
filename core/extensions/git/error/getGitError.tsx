@@ -1,7 +1,7 @@
 import CloneErrorComponent from "@ext/git/actions/Clone/error/components/CloneError";
 import { RepositoryHealthcheckError } from "@ext/git/actions/RepositoryBroken/RepositoryHealthcheckFailed";
-import { ComponentProps, ReactNode } from "react";
-import GetErrorComponent from "../../errorHandlers/logic/GetErrorComponent";
+import type { ComponentProps, ReactNode } from "react";
+import type GetErrorComponent from "../../errorHandlers/logic/GetErrorComponent";
 import CheckoutConflictErrorComponent from "../actions/Branch/error/components/CheckoutConflictError";
 import GitErrorCode from "../core/GitCommands/errors/model/GitErrorCode";
 import NotFoundErrorHandler from "./NotFoundErrorHandler";

@@ -4,7 +4,7 @@ module.exports = {
 	setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
 	globalSetup: "<rootDir>/jest.globalSetup.js",
 	transform: {
-		"^.+\\.jsx?$": "babel-jest",
+		"^.+\\.m?jsx?$": "babel-jest",
 		"^.+\\.svg$": "<rootDir>/scripts/jest/svgTransform.js",
 		"^.+\\.(ts)x?$": ["ts-jest", { diagnostics: true, babelConfig: true }],
 	},
@@ -29,6 +29,7 @@ module.exports = {
 		"^hast-util-to-jsx-runtime$": "<rootDir>/app/test/__mocks__/lowlight.js",
 		viteenv: "<rootDir>/app/test/__mocks__/mermaid.js",
 		"\\.(css|scss)$": "identity-obj-proxy",
+		"\\.(png|jpg|jpeg|gif|webp|avif|ico|bmp)$": "<rootDir>/app/test/__mocks__/fileMock.js",
 		"^lodash-es(/(.*)|$)": "lodash$1",
 		"^nanoid(/(.*)|$)": "nanoid$1",
 		"^@components/(.*)$": "<rootDir>/core/components/$1",

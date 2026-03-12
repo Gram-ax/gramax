@@ -104,8 +104,8 @@ const validateBaseUrl = (baseUrl: string | undefined): void => {
 	}
 };
 
-const getStorageTree = (targetDir: Path, fp: DiskFileProvider) => async () => {
-	const baseDirPath = targetDir.join(new Path(STORAGE_DIR_NAME));
+const getStorageTree = (catalogName: string, targetDir: Path, fp: DiskFileProvider) => async () => {
+	const baseDirPath = targetDir.join(new Path(catalogName), new Path(STORAGE_DIR_NAME));
 	const resDir: DirectoryInfoBasic = {
 		type: "dir",
 		name: STORAGE_DIR_NAME,
@@ -162,7 +162,7 @@ const buildCommandFunction = async (options: BuildOptions) => {
 	if (!catalog?.getItems().length) throw new CliUserError("This is an empty catalog");
 
 	if (!SkipCheck) {
-		if (!(await check(catalogName))) process.exit(1);
+		if (!(await check(catalogName, undefined, false))) process.exit(1);
 		ChalkLogger.log();
 	}
 	const assetsDir = new Path(dirname(fileURLToPath(import.meta.url)));
@@ -174,7 +174,7 @@ const buildCommandFunction = async (options: BuildOptions) => {
 	const customStyles = await loadCustomStyles(customCss, fp);
 
 	const getCache = {
-		tree: getStorageTree(targetDir, fp),
+		tree: getStorageTree(catalogName, targetDir, fp),
 	};
 
 	await new StaticSiteBuilder({ fp, app, html: templateHtml, getCache }).generate(catalog, targetDir, {

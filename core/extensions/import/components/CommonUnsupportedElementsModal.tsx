@@ -1,10 +1,10 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
-import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
+import type { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
-import { Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalTitle } from "@ui-kit/Modal";
+import { Dialog, DialogBody, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@ui-kit/Dialog";
 
 interface CommonUnsupportedElementsModalProps {
 	open: boolean;
@@ -34,13 +34,13 @@ const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalPro
 	} = props;
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={open}>
-			<ModalContent showCloseButton={false}>
-				<ModalHeader className="flex gap-4" style={{ border: "unset" }}>
+		<Dialog onOpenChange={onOpenChange} open={open}>
+			<DialogContent showCloseButton={false}>
+				<DialogHeader className="flex gap-4" style={{ border: "unset" }}>
 					<Icon className="text-status-warning text-2xl" code="circle-alert" />
-					<ModalTitle className="text-lg text-status-warning font-medium">{title}</ModalTitle>
-				</ModalHeader>
-				<ModalBody className="flex flex-row items-start gap-4 lg:py-6">
+					<DialogTitle className="text-lg text-status-warning font-medium">{title}</DialogTitle>
+				</DialogHeader>
+				<DialogBody className="flex flex-row items-start gap-4 lg:py-6">
 					<div />
 					<div className="flex flex-row gap-6 space-y-2" style={{ marginTop: "-1.5rem" }}>
 						<div />
@@ -88,8 +88,8 @@ const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalPro
 							</StyledTable>
 						</div>
 					</div>
-				</ModalBody>
-				<ModalFooter className="flex gap-2 px-4 pb-4 lg:px-6 lg:pb-6" style={{ border: "unset" }}>
+				</DialogBody>
+				<DialogFooter className="flex gap-2 px-4 pb-4 lg:px-6 lg:pb-6" style={{ border: "unset" }}>
 					<Button className="ml-auto" onClick={() => onOpenChange(false)} variant="outline">
 						{t("cancel")}
 					</Button>
@@ -103,9 +103,9 @@ const CommonUnsupportedElementsModal = (props: CommonUnsupportedElementsModalPro
 							t("continue")
 						)}
 					</Button>
-				</ModalFooter>
-			</ModalContent>
-		</Modal>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

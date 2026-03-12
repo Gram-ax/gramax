@@ -1,4 +1,4 @@
-import PageDataContext from "@core/Context/PageDataContext";
+import type PageDataContext from "@core/Context/PageDataContext";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -7,8 +7,8 @@ import sendBug from "@ext/bugsnag/logic/sendBug";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import PersistentLogger from "@ext/loggers/PersistentLogger";
-import { JSONContent } from "@tiptap/core";
+import { getRecentSpans } from "@ext/loggers/opentelemetry";
+import type { JSONContent } from "@tiptap/core";
 import { useCallback } from "react";
 
 export const useBugsnag = (itemLogicPath: string) => {
@@ -33,11 +33,6 @@ export const useBugsnag = (itemLogicPath: string) => {
 			result.context = { ...context, sourceDatas: null, userInfo: null, conf };
 		}
 
-		if (PersistentLogger) {
-			const gitLogs = PersistentLogger.getLogs(/git/, 100);
-			result.gitLogs = gitLogs;
-		}
-
 		return result;
 	}, []);
 
@@ -55,6 +50,7 @@ export const useBugsnag = (itemLogicPath: string) => {
 					new Error("Пользовательская ошибка"),
 					(e) => {
 						e.addMetadata("props", logs);
+						e.addMetadata("logs", getRecentSpans());
 					},
 					false,
 				);

@@ -25,6 +25,7 @@ export const Comment = (props: CommentProps) => {
 	const scrollShadowContainerRef = useRef<HTMLDivElement>(null);
 	const isNewComment = !data?.comment;
 	const isEditable = useContext(GlobalEditorIsEditable);
+	const containerRef = useRef<HTMLDivElement>(null);
 
 	useWatch(() => {
 		dataRef.current = data;
@@ -99,7 +100,7 @@ export const Comment = (props: CommentProps) => {
 
 	if (isNewComment) {
 		return (
-			<CommentContent data-qa="qa-add-comment">
+			<CommentContent data-qa="qa-add-comment" ref={containerRef}>
 				<div>
 					<CommentMessage
 						autofocus
@@ -120,12 +121,13 @@ export const Comment = (props: CommentProps) => {
 	const isCurrentUser = isEditable ? data.comment.user.mail === user.mail : false;
 
 	return (
-		<CommentContent>
+		<CommentContent ref={containerRef}>
 			<CommentHeader onClose={onClose} onResolve={onDelete} renderDeleteIcon={isEditable} />
 			<ScrollShadowContainer className="scroll-area" ref={scrollShadowContainerRef}>
 				<div className="px-1 py-1">
 					{data.comment && (
 						<CommentMessage
+							containerRef={containerRef}
 							content={data.comment.content}
 							date={data.comment.dateTime}
 							index={0}
@@ -137,10 +139,11 @@ export const Comment = (props: CommentProps) => {
 					)}
 					{data?.answers.map((answer, index) => (
 						<CommentMessage
+							containerRef={containerRef}
 							content={answer.content}
 							date={answer.dateTime}
 							index={index + 1}
-							isCurrentUser={isCurrentUser}
+							isCurrentUser={isEditable ? answer.user.mail === user.mail : false}
 							key={answer.dateTime}
 							last={index === data.answers.length - 1}
 							onConfirm={onAddCommentAnswer}
@@ -155,6 +158,7 @@ export const Comment = (props: CommentProps) => {
 					<Divider />
 					<CommentMessage
 						className="flex-shrink-0 p-1"
+						containerRef={containerRef}
 						editable
 						index={data.answers.length + 1}
 						isCurrentUser

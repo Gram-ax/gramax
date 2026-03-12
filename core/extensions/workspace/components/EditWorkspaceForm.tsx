@@ -7,18 +7,18 @@ import t from "@ext/localization/locale/translate";
 import EditCustomTheme from "@ext/workspace/components/EditCustomTheme";
 import { useWorkspaceEditorActions } from "@ext/workspace/components/logic/useWorkspaceEditorActions";
 import { useWorkspaceAi } from "@ext/workspace/components/useWorkspaceAi";
-import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { Description } from "@ui-kit/Description";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { Divider } from "@ui-kit/Divider";
 import { Form, FormField, FormFooter, FormHeader, FormSectionTitle, FormStack } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
 import { Input, TextInput } from "@ui-kit/Input";
 import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import { Loader } from "@ui-kit/Loader";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
-import { Dispatch, SetStateAction, useCallback, useMemo } from "react";
+import { type Dispatch, type SetStateAction, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -129,7 +129,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 				ModalToOpenService.resetValue();
 			}
 		},
-		[onOpenChange, onClose],
+		[onOpenChange, onClose, setOpen],
 	);
 
 	const onCloseHandler = useCallback(() => {
@@ -151,8 +151,8 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 	}, []);
 
 	return (
-		<Modal onOpenChange={onOpenChangeHandler} open={open}>
-			<ModalContent data-modal-root>
+		<Dialog onOpenChange={onOpenChangeHandler} open={open}>
+			<DialogContent data-modal-root>
 				<ModalErrorHandler onClose={onCloseHandler} onError={() => {}}>
 					<Form asChild {...form}>
 						<form className="contents" onSubmit={formSubmit}>
@@ -161,7 +161,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 								icon={"settings"}
 								title={t("workspace.edit")}
 							/>
-							<ModalBody>
+							<DialogBody>
 								<FormStack>
 									<FormField
 										control={({ field }) => (
@@ -179,6 +179,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									/>
 									<FormField
 										control={({ field }) => {
+											// biome-ignore lint/correctness/useHookAtTopLevel: expected!?
 											const iconFilter = useIconFilter();
 											return (
 												<LazySearchSelect
@@ -187,6 +188,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 														form.setValue("icon", `${value}`);
 														field.value = `${value}`;
 													}}
+													// biome-ignore lint/correctness/useHookAtTopLevel: expected!?
 													options={useLucideIconLists().lucideIconListForUikitOptions}
 													placeholder={t("icon")}
 													renderOption={({ option, type }) => (
@@ -228,7 +230,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									{originalProps.path && (
 										<>
 											<Divider />
-											<FormSectionTitle children={t("workspace.appearance")} />
+											<FormSectionTitle>{t("workspace.appearance")}</FormSectionTitle>
 											<EditCustomTheme
 												{...workspaceStyleProps}
 												{...workspaceLogoProps}
@@ -237,9 +239,8 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 											/>
 										</>
 									)}
-
 									<Divider />
-									<FormSectionTitle children={t("workspace.set-ai-server")} />
+									<FormSectionTitle>{t("workspace.set-ai-server")}</FormSectionTitle>{" "}
 									<Description
 										className="font-sans text-sm font-normal tracking-tight text-muted"
 										style={{ marginTop: "0.25rem" }}
@@ -278,16 +279,17 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 										{...formProps}
 									/>
 								</FormStack>
-							</ModalBody>
+							</DialogBody>
 							<FormFooter
 								leftContent={
 									<>
 										<Button
-											children={t("delete")}
 											onClick={() => removeWorkspace(onCloseHandler)}
 											type="button"
 											variant="text"
-										/>
+										>
+											{t("delete")}
+										</Button>
 									</>
 								}
 								primaryButton={
@@ -300,8 +302,8 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 						</form>
 					</Form>
 				</ModalErrorHandler>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

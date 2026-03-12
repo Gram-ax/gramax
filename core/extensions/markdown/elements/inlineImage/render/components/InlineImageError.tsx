@@ -1,6 +1,6 @@
+import { LfsPointerError, type ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { LfsPointerError, type ResourceError } from "@ext/markdown/elements/copyArticles/errors";
 import { Icon } from "@ui-kit/Icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 

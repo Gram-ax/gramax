@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import React from "react";
+import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
 const PrintAnnotationsWrap = styled.div`
 	margin-top: 0.5em;
@@ -26,10 +25,10 @@ const AnnotationList = ({ objects }: { objects?: ImageObject[] }) => {
 	if (!items || items.length === 0) return null;
 
 	return (
-		<PrintAnnotationsWrap>
+		<PrintAnnotationsWrap data-component="annotation-list">
 			<PrintAnnotations>
-				{items.map((text, idx) => (
-					<p key={idx}>{text}</p>
+				{items.map((text) => (
+					<p key={text}>{text}</p>
 				))}
 			</PrintAnnotations>
 		</PrintAnnotationsWrap>

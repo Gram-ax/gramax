@@ -41,6 +41,8 @@ const StyledDropdownMenuTriggerButton = styled(DropdownMenuTriggerButton)`
 	&&[data-state="open"] {
 		background-color: var(--color-black);
 		color: var(--color-white);
+		width: fit-content;
+		flex-shrink: 0;
 	}
 `;
 
@@ -85,7 +87,7 @@ const MetricsDateFilter: FC<MetricsDateFilterProps> = ({ interval, disabled, dat
 			<DropdownMenuTrigger asChild>
 				<StyledDropdownMenuTriggerButton disabled={disabled} variant="outline">
 					<Icon icon="calendar" />
-					{getDisplayValue()}
+					<p className="whitespace-nowrap">{getDisplayValue()}</p>
 				</StyledDropdownMenuTriggerButton>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="p-0">

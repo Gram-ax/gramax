@@ -1,17 +1,17 @@
 import { SNIPPETS_DIRECTORY } from "@app/config/const";
-import Context from "@core/Context/Context";
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type Context from "@core/Context/Context";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
-import { ItemID } from "@ext/articleProvider/models/types";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { JSONContent } from "@tiptap/core";
+import type { ItemID } from "@ext/articleProvider/models/types";
+import type MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { JSONContent } from "@tiptap/core";
 
 declare module "@ext/articleProvider/logic/ArticleProvider" {
 	export enum ArticleProviders {
@@ -20,6 +20,8 @@ declare module "@ext/articleProvider/logic/ArticleProvider" {
 }
 
 export default class SnippetProvider extends ArticleProvider {
+	private _parsing = new Map<string, Promise<void>>();
+
 	constructor(fp: FileProvider, fs: FileStructure, catalog: Catalog) {
 		super(fp, fs, catalog, new Path(SNIPPETS_DIRECTORY));
 
@@ -54,8 +56,22 @@ export default class SnippetProvider extends ArticleProvider {
 	public async getRenderData(snippetId: string, context: ParserContext) {
 		const snippet = this.getArticle(snippetId);
 		if (!snippet) throw new Error("Snippet not found");
-		if (await snippet.parsedContent.isNull()) {
-			await snippet.parsedContent.write(() => context.parser.parse(snippet.content, context));
+
+		if (this._parsing.has(snippetId)) {
+			await this._parsing.get(snippetId);
+		} else if (await snippet.parsedContent.isNull()) {
+			let resolve: () => void;
+			const promise = new Promise<void>((res) => {
+				resolve = res;
+			});
+			this._parsing.set(snippetId, promise);
+
+			try {
+				await snippet.parsedContent.write(() => context.parser.parse(snippet.content, context));
+			} finally {
+				this._parsing.delete(snippetId);
+				resolve();
+			}
 		}
 
 		return await snippet.parsedContent.read((p) => {

@@ -40,7 +40,8 @@ export const isPresetInterval = (interval: MetricsInterval): interval is PresetI
 };
 
 export const getDateRangeForInterval = (interval: PresetInterval): { startDate: string; endDate: string } => {
-	const now = dayjs();
+	const language = LanguageService.currentUi();
+	const now = dayjs().locale(language);
 	let startDate: dayjs.Dayjs;
 	let endDate: dayjs.Dayjs;
 

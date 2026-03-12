@@ -2,7 +2,7 @@ import { default as SharedPage } from "@shared-pom/page";
 import { CatalogPom } from "./catalog.pom";
 import { WorkspacePom } from "./workspace.pom";
 
-export default class Page extends SharedPage {
+export default class BasePage extends SharedPage {
 	catalog(name: string): CatalogPom {
 		return new CatalogPom(this._page, name);
 	}

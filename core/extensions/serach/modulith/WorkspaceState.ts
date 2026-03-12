@@ -1,18 +1,15 @@
 import { KeyPhraseArticleSearcher } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { DynamicAggregateProgress, Lock, ProgressCallback } from "@ics/modulith-utils";
+import { ProgressManager } from "@ext/serach/modulith/ProgressManager";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import { Lock, MultiLock } from "@ics/modulith-utils";
 
 export class WorkspaceState {
 	private readonly _indexingLock = new Lock();
-	private readonly _progressSubscribers = new Set<ProgressCallback>();
+	private readonly _resourceIndexingLock = new MultiLock();
+	private readonly _resourceParsingLock = new MultiLock();
+	private readonly _indexingProgressManager = new ProgressManager();
+	private readonly _resourceIndexingProgressManager = new ProgressManager();
 	private readonly _indexedCatalogs = new Set<string>();
-	private readonly _doneProgresses = new Set<unknown>();
-	private readonly _indexingProgress = new DynamicAggregateProgress({
-		onChange: (p) => {
-			if (this._indexingProgress.getProgressesCount() === 0) p = 1;
-			return this._progressSubscribers.forEach((x) => x(p));
-		},
-	});
 	private readonly _keyPhraseSearcher = new KeyPhraseArticleSearcher();
 
 	constructor(private readonly _path: WorkspacePath) {}
@@ -25,8 +22,24 @@ export class WorkspaceState {
 		return this._keyPhraseSearcher;
 	}
 
+	get indexingProgressManager(): ProgressManager {
+		return this._indexingProgressManager;
+	}
+
+	get resourceIndexingProgressManager(): ProgressManager {
+		return this._resourceIndexingProgressManager;
+	}
+
+	get resourceParsingLock(): MultiLock {
+		return this._resourceParsingLock;
+	}
+
 	lockIndexing(): Promise<() => void> {
 		return this._indexingLock.lock();
+	}
+
+	lockResourceIndexing(key: string): Promise<() => void> {
+		return this._resourceIndexingLock.lock(key);
 	}
 
 	hasIndexedCatalog(catalogName: string): boolean {
@@ -39,41 +52,5 @@ export class WorkspaceState {
 
 	resetIndexedCatalog(catalogName: string): void {
 		this._indexedCatalogs.delete(catalogName);
-	}
-
-	addProgressSubscriber(pc: ProgressCallback): void {
-		this._progressSubscribers.add(pc);
-	}
-
-	removeProgressSubscriber(pc: ProgressCallback): void {
-		this._progressSubscribers.delete(pc);
-	}
-
-	addProgress(): unknown {
-		return this._indexingProgress.addProgress();
-	}
-
-	setProgress(prid: unknown, value: number): void {
-		this._indexingProgress.setProgress(prid, value);
-	}
-
-	getTotalProgress(): number {
-		return this._indexingProgress.getTotalProgress();
-	}
-
-	getProgressCallback(prid: unknown): ProgressCallback {
-		return this._indexingProgress.getProgressCallback(prid);
-	}
-
-	hasProgresses(): boolean {
-		return this._indexingProgress.getProgressesCount() > 0;
-	}
-
-	doneProgress(prid: unknown) {
-		this._doneProgresses.add(prid);
-		if (this._doneProgresses.size == this._indexingProgress.getProgressesCount()) {
-			this._doneProgresses.forEach((x) => this._indexingProgress.removeProgress(x));
-			this._doneProgresses.clear();
-		}
 	}
 }

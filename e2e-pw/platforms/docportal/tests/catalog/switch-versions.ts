@@ -4,7 +4,7 @@ import { expect } from "@playwright/test";
 test.use({ source: "env", user: "env" });
 
 test.describe("versions", () => {
-	test("switch branches in test-catalog", async ({ basePage }) => {
+	test("switch version in test-catalog", async ({ basePage }) => {
 		const page = basePage.raw;
 
 		await page.getByRole("button", { name: "Автотест" }).click();

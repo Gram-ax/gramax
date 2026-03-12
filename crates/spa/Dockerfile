@@ -6,25 +6,25 @@ WORKDIR /src
 
 COPY . .
 
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    curl \
-    git \
-    unzip \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -fsSL https://bun.sh/install | bash
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	ca-certificates \
+	curl \
+	git \
+	unzip \
+	&& rm -rf /var/lib/apt/lists/* \
+	&& curl -fsSL https://bun.sh/install | bash
 
 ENV PATH="/root/.bun/bin:$PATH"
 
 RUN cargo install --path crates/spa
 
-FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/oven/bun:latest AS run
+FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/oven/bun:debian AS run
 
-RUN apt-get update && apt-get install -y \
-    curl \
-    unzip \
-    git \
-    && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	curl \
+	unzip \
+	git \
+	&& rm -rf /var/lib/apt/lists/*
 
 STOPSIGNAL SIGTERM
 

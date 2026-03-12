@@ -1,9 +1,8 @@
-import { Content } from "@core/FileStructue/Article/Article";
+import type { Content } from "@core/FileStructue/Article/Article";
 import editTreeToRenderTree from "@ext/markdown/core/Parser/EditTreeToRenderTree";
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
-import PrivateParserContext, {
-	createPrivateParserContext,
-} from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import { createPrivateParserContext } from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import quizTokensTransformer from "@ext/markdown/elements/answer/edit/logic/quizTokensTransformer";
 import inlineNodeTransformers from "@ext/markdown/elements/comment/edit/logic/inlineNodeTransformers";
 import commentTokenTransformer from "@ext/markdown/elements/comment/logic/commentTokenTransformer";
@@ -26,8 +25,8 @@ import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableToken
 import getTabsNodeTransformer from "@ext/markdown/elements/tabs/edit/logic/getTabsNodeTransformer";
 import unsupportedNodeTransformer from "@ext/markdown/elements/unsupported/logic/unsupportedNodeTransformer";
 import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
-import { JSONContent } from "@tiptap/core";
-import { Node } from "prosemirror-model";
+import type { JSONContent } from "@tiptap/core";
+import type { Node } from "prosemirror-model";
 import { ProsemirrorMarkdownParser, ProsemirrorTransformer } from "../edit/logic/Prosemirror";
 import { getSchema } from "../edit/logic/Prosemirror/schema";
 import { getTokens } from "../edit/logic/Prosemirror/tokens";
@@ -35,16 +34,16 @@ import getComponentsHTML from "../render/components/getComponents/getComponentsH
 import getNodeElementRenderModels from "../render/logic/getRenderElements/getNodeElementRenderModels";
 import getTagElementRenderModels from "../render/logic/getRenderElements/getTagElementRenderModels";
 import Markdoc, {
-	Config,
-	RenderableTreeNode,
-	RenderableTreeNodes,
-	Schema,
-	Tag,
-	Token,
+	type Config,
+	type RenderableTreeNode,
+	type RenderableTreeNodes,
+	type Schema,
+	type Tag,
+	type Token,
 	Tokenizer,
 } from "../render/logic/Markdoc";
 import MdParser from "./MdParser/MdParser";
-import ParserContext from "./ParserContext/ParserContext";
+import type ParserContext from "./ParserContext/ParserContext";
 import preTransformTokens from "./Transformer/preTransformTokens";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
@@ -138,9 +137,9 @@ export default class MarkdownParser {
 			return node;
 		};
 		if (!parserOptions.isOneElement) return node;
-		else node = filter(node, "article");
+		node = filter(node, "article");
 		if (parserOptions.isBlock) return node;
-		else node = filter(node, "p");
+		node = filter(node, "p");
 		return node;
 	}
 

@@ -1,4 +1,4 @@
-import { showPopover } from "@core-ui/showPopover";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import t from "@ext/localization/locale/translate";
 import {
 	getAggregatedValue,
@@ -10,7 +10,7 @@ import {
 	aggregationMethodIcons,
 	methodsWithTooltip,
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
@@ -45,8 +45,7 @@ const TableAggregation = memo(({ editor, disabled }: { editor: Editor; disabled:
 
 	const copyAggregation = useCallback(
 		(index: number) => {
-			navigator.clipboard.writeText(aggregationData[index]);
-			showPopover(t("share.popover"));
+			tryCopyToClipboard(aggregationData[index]);
 		},
 		[aggregationData],
 	);

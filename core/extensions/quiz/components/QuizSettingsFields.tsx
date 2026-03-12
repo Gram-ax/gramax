@@ -1,8 +1,8 @@
 import Workspace from "@core-ui/ContextServices/Workspace";
-import { PropsEditorFormValues } from "@ext/item/actions/propsEditor/components/PropsEditor";
+import type { PropsEditorFormValues } from "@ext/item/actions/propsEditor/components/PropsEditor";
 import t from "@ext/localization/locale/translate";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { getQuizBlocksCount } from "@ext/quiz/logic/getQuizBlocksCount";
+import { getQuizBlocksCount, isQuizArticle } from "@ext/quiz/logic/getQuizBlocksCount";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@ui-kit/Collapsible";
 import { Divider } from "@ui-kit/Divider";
 import { FormField } from "@ui-kit/Form";
@@ -11,7 +11,7 @@ import { Icon } from "@ui-kit/Icon";
 import { Slider, SliderRange, SliderThumb, SliderTrack } from "@ui-kit/Slider";
 import { SwitchField } from "@ui-kit/Switch";
 import { useCallback, useMemo, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 interface QuizSettingsFieldsProps {
 	isCurrentItem: boolean;
@@ -30,16 +30,24 @@ export const QuizSettingsFields = ({ isCurrentItem, form }: QuizSettingsFieldsPr
 		[form],
 	);
 
-	const quizBlocksCount = useMemo(() => getQuizBlocksCount(EditorService.getEditor().getJSON()), []);
+	const toggleCanRetake = useCallback(
+		(value: boolean) => {
+			form.setValue("quiz.canRetake", value);
+		},
+		[form],
+	);
 
-	if (!showQuizSettings || !isCurrentItem || !quizBlocksCount) return null;
+	const quizBlocksCount = useMemo(() => getQuizBlocksCount(EditorService.getEditor()?.getJSON()), []);
+	const isQuiz = useMemo(() => isQuizArticle(EditorService.getEditor()?.getJSON()), []);
+
+	if (!showQuizSettings || !isCurrentItem || !isQuiz) return null;
 
 	return (
 		<>
 			<Divider />
 			<Collapsible onOpenChange={setIsOpen} open={isOpen}>
 				<CollapsibleTrigger className="w-full flex justify-between items-center">
-					<FormSectionTitle children={t("quiz.settings.name")} />
+					<FormSectionTitle>{t("quiz.settings.name")}</FormSectionTitle>
 					<Icon className="text-primary" icon={isOpen ? "chevron-down" : "chevron-right"} />
 				</CollapsibleTrigger>
 				<CollapsibleContent className="space-y-5 lg:space-y-4 pt-4">
@@ -52,6 +60,15 @@ export const QuizSettingsFields = ({ isCurrentItem, form }: QuizSettingsFieldsPr
 						onCheckedChange={toggleShowAnswers}
 						size="sm"
 					/>
+					<SwitchField
+						alignment="right"
+						checked={form.watch("quiz.canRetake")}
+						className="justify-between"
+						description={t("quiz.settings.retake.description")}
+						label={t("quiz.settings.retake.title")}
+						onCheckedChange={toggleCanRetake}
+						size="sm"
+					/>
 					<FormField
 						control={({ field }) => (
 							<div className="flex flex-col gap-4 relative">
@@ -62,6 +79,7 @@ export const QuizSettingsFields = ({ isCurrentItem, form }: QuizSettingsFieldsPr
 									{field.value || 0}/{quizBlocksCount}
 								</output>
 								<Slider
+									defaultValue={[quizBlocksCount]}
 									max={quizBlocksCount}
 									min={0}
 									onValueChange={(value) => form.setValue("quiz.countOfCorrectAnswers", value[0])}
@@ -75,13 +93,14 @@ export const QuizSettingsFields = ({ isCurrentItem, form }: QuizSettingsFieldsPr
 							</div>
 						)}
 						description={t("quiz.settings.precent-of-correct-answers.description")}
-						labelClassName="w-56"
+						labelClassName="w-72"
 						layout="vertical"
 						name="quiz.countOfCorrectAnswers"
 						title={t("quiz.settings.precent-of-correct-answers.title")}
 					/>
 				</CollapsibleContent>
 			</Collapsible>
+			<Divider />
 		</>
 	);
 };

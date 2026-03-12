@@ -1,6 +1,5 @@
 import { initBackendModules } from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import { initFrontendModules } from "@app/resolveModule/frontend";
 import autoPull from "@core/AutoPull/AutoPull";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import { TableDB } from "@core/components/tableDB/table";
@@ -24,6 +23,7 @@ import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import type Logger from "@ext/loggers/Logger";
 import { LogLevel } from "@ext/loggers/Logger";
+import { registerOtel } from "@ext/loggers/opentelemetry";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
@@ -31,13 +31,10 @@ import type AuthManager from "@ext/security/logic/AuthManager";
 import EnterpriseAuth from "@ext/security/logic/AuthProviders/EnterpriseAuth";
 import ServerAuthManager from "@ext/security/logic/ServerAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import { createModulithService } from "@ext/serach/modulith/createModulithService";
-import ModulithChatBotSearcher from "@ext/serach/modulith/ModulithChatBotSearcher";
-import { ModulithSearcher } from "@ext/serach/modulith/ModulithSearcher";
-import { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
-import SearcherManager from "@ext/serach/SearcherManager";
+import { createNodeSearcherManager } from "@ext/serach/createSearcherManager";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
+import { feature } from "@ext/toggleFeatures/features";
 import BlankWatcher from "@ext/Watchers/BlankWatcher";
 import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
@@ -48,8 +45,8 @@ import { type AppConfig, getConfig } from "../config/AppConfig";
 import type Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
+	if (feature("opentelemetry-logs")) await registerOtel();
 	await initBackendModules();
-	await initFrontendModules();
 	if (!config.isReadOnly && !config.paths.data) throw new Error(`USER_DATA_PATH not specified`);
 
 	const logger: Logger =
@@ -133,30 +130,14 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
-	const remoteModulithClient =
-		config.portalAi.enabled && getExecutingEnvironment() !== "cli"
-			? new RemoteModulithSearchClient({
-					apiUrl: config.portalAi.apiUrl,
-					apiKey: config.portalAi.token,
-					collectionName: config.portalAi.instanceName,
-				})
-			: undefined;
-
-	const aiAvailable = remoteModulithClient ? await remoteModulithClient.checkConnection() : false;
-
-	const searcherManager = new SearcherManager(
-		new ModulithSearcher(
-			await createModulithService({
-				basePath: config.paths.data,
-				wm,
-				parser,
-				parserContextFactory,
-				remoteClient: remoteModulithClient,
-				parseResources: Boolean(enterpriseConfig.gesUrl),
-			}),
-		),
-		remoteModulithClient ? new ModulithChatBotSearcher(remoteModulithClient, wm) : undefined,
-	);
+	const searchResourcesEnabled = Boolean(enterpriseConfig.gesUrl);
+	const { aiAvailable, searcherManager } = await createNodeSearcherManager({
+		config,
+		wm,
+		parser,
+		parserContextFactory,
+		searchResourcesEnabled,
+	});
 
 	const workspaceConfig = await wm.maybeCurrent()?.config();
 
@@ -205,6 +186,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			allowedOrigins: config.allowedGramaxUrls,
 
 			portalAi: { enabled: aiAvailable },
+
+			search: {
+				resourcesEnabled: searchResourcesEnabled,
+			},
 
 			forceUiLangSync: config.forceUiLangSync,
 		},

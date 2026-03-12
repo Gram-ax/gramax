@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/complexity/noImportantStyles: <explanation> */
+/** biome-ignore-all lint/complexity/noImportantStyles: expected */
 .ProseMirror {
 	position: relative;
 	font-feature-settings: "liga" 0;
@@ -47,7 +47,7 @@
 	outline-offset: -2px;
 }
 
-.ProseMirror a {
+.ProseMirror[contentEditable="true"] a {
 	cursor: text !important;
 }
 

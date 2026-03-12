@@ -2,9 +2,10 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import initReviewers from "@ext/enterprise/utils/initReviewers";
+import { span } from "@ext/loggers/opentelemetry";
 import { Command } from "../../types/Command";
 
 const publish: Command<
@@ -18,7 +19,7 @@ const publish: Command<
 	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, message, filePaths }) {
-		const { logger, rp, wm, em } = this._app;
+		const { rp, wm, em } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
@@ -31,15 +32,10 @@ const publish: Command<
 			commitMessage: message,
 			filesToPublish: filePaths?.map((p) => new Path(p)),
 			data,
-			onAdd: () =>
-				logger.logTrace(
-					`Added in catalog "${catalogName}". Files: "${
-						filePaths ? filePaths.map((p) => p).join('", "') : "*"
-					}"`,
-				),
-			onCommit: () => logger.logTrace(`Commited in catalog "${catalogName}". Message: "${message}"`),
+			onAdd: () => span()?.addEvent("add", { paths: filePaths }),
+			onCommit: () => span()?.addEvent("commit", { message }),
 			onPush: async () => {
-				logger.logInfo(`Pushed in catalog "${catalogName}".`);
+				span()?.addEvent("push", { message });
 
 				await catalog.repo.gc({
 					looseObjectsLimit: 600,
@@ -49,6 +45,7 @@ const publish: Command<
 				const branch = await catalog.repo.gvc.getCurrentBranchName();
 				const mr = await catalog.repo.mergeRequests.findBySource(branch, false);
 				if (!mr) return;
+				span()?.addEvent("initReviewers", { approvers: JSON.stringify(mr.approvers), branch });
 				await initReviewers(em?.getConfig()?.gesUrl, data, storage, mr.approvers, branch);
 			},
 		});

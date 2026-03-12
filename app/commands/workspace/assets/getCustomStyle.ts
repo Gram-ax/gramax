@@ -6,6 +6,8 @@ const getCustomStyle: Command<{ workspacePath?: WorkspacePath }, string> = Comma
 	path: "workspace/assets/getCustomStyle",
 	kind: ResponseKind.plain,
 
+	flags: ["otel-omit-result"],
+
 	async do({ workspacePath }) {
 		const assets = this._app.wm.getWorkspaceAssets(workspacePath);
 		if (!assets) return "";

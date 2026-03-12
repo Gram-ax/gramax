@@ -2,7 +2,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
 
 const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.create({
@@ -13,7 +13,7 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName }) {
-		const { logger, rp, wm } = this._app;
+		const { rp, wm } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
@@ -23,8 +23,6 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 		const data = rp.getSourceData(ctx, await storage.getSourceName());
 		if (!data) return;
 		await storage.fetch(data, catalog.repo.isBare);
-
-		logger.logTrace(`Fetched in catalog "${catalogName}".`);
 	},
 
 	params(ctx, q) {

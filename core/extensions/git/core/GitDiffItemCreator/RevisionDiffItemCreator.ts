@@ -1,12 +1,13 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
-import ArticleParser from "@core/FileStructue/Article/ArticleParser";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import FileStructure from "@core/FileStructue/FileStructure";
-import SitePresenter from "@core/SitePresenter/SitePresenter";
-import {
-	type DiffCompareOptions,
+import type { Article } from "@core/FileStructue/Article/Article";
+import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import type SitePresenter from "@core/SitePresenter/SitePresenter";
+import schedulerYield from "@core-ui/utils/schedulerYield";
+import type {
+	DiffCompareOptions,
 	DiffTree2TreeFile,
 	DiffTree2TreeInfo,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
@@ -47,79 +48,80 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 
 		const articlesWithCatalogs = await this._getDiffArticles(isAnyResourceDeletedOrRenamed, diffItems);
 
-		for (const resource of resources) {
+		const { itemsByLogicPath, resourcePathSetByItem } = this._buildDiffItemsIndex(diffItems);
+
+		const resourceUsageIndex = await this._buildResourceUsageIndex(articlesWithCatalogs);
+
+		const pathnameCache = new Map<Article, string>();
+		const getPathnameCached = async (catalog: ReadonlyCatalog, article: Article) => {
+			const cached = pathnameCache.get(article);
+			if (cached) return cached;
+			const v = await catalog.getPathname(article);
+			pathnameCache.set(article, v);
+			return v;
+		};
+
+		for (let i = 0; i < resources.length; i++) {
+			const resource = resources[i];
 			let isResourceAssigned = false;
-			let parentPath: string;
 
-			for (const { article, catalog } of articlesWithCatalogs) {
-				const parsedContent = await article.parsedContent.read((p) => {
-					if (!p) return null;
-					return {
-						paths: [
-							...p.parsedContext.getResourceManager().resources,
-							...p.parsedContext.getLinkManager().resources,
-						],
-						resourceManager: p.parsedContext.getResourceManager(),
-					};
-				});
+			const assignees = resourceUsageIndex.get(resource.path.value);
 
-				if (!parsedContent) continue;
+			if (assignees && assignees.length > 0) {
+				for (const { article, catalog } of assignees) {
+					resourcePathAssignees.set(resource.path.value, { article, catalog });
 
-				const { paths, resourceManager } = parsedContent;
+					const parentPath = catalog.getRepositoryRelativePath(article.ref).value;
 
-				// resourceManager.getAbsolutePath(path) returns the path including catalog name but the resource doesn't have one in it's path
-				// so we need to remove the catalog name from the path to compare it with the resource path
-				const rootCategoryPath = catalog.basePath;
+					const diffResource = this._getDiffResource(resource, {
+						path: parentPath,
+						oldPath: parentPath,
+					});
 
-				for (const path of paths) {
-					const absoluteResourcePath = resourceManager.getAbsolutePath(path);
-					const itemResourcePath =
-						rootCategoryPath.subDirectory(absoluteResourcePath) || absoluteResourcePath;
+					allResources.add(diffResource);
 
-					if (itemResourcePath.compare(resource.path)) {
-						resourcePathAssignees.set(resource.path.value, { article, catalog });
-						parentPath = catalog.getRepositoryRelativePath(article.ref).value;
-						const diffResource = this._getDiffResource(resource, {
-							path: parentPath,
-							oldPath: parentPath,
-						});
-						allResources.add(diffResource);
+					const logicPath = await getPathnameCached(catalog, article);
 
-						for (const diffItem of diffItems) {
-							// If resource is deleted, it can only be attached to deleted article
-							if (resource.status === FileStatus.delete && diffItem.status !== FileStatus.delete)
-								continue;
+					const candidates = itemsByLogicPath.get(logicPath) ?? [];
 
-							const diffItemResourcePaths = diffItem.resources.map((resource) => resource.filePath.path);
+					for (const diffItem of candidates) {
+						const set = resourcePathSetByItem.get(diffItem)!;
 
-							const shouldAssign =
-								!diffItemResourcePaths.includes(diffResource.filePath.path) &&
-								diffItem.logicPath === (await catalog.getPathname(article));
-
-							if (shouldAssign) {
-								diffItem.resources.push(diffResource);
-								isResourceAssigned = true;
-							}
-						}
-
-						// If resource is deleted and not attached to any deleted article, then leave as resource
-						if (!isResourceAssigned && resource.status !== FileStatus.delete) {
+						if (!set.has(diffResource.filePath.path)) {
+							diffItem.resources.push(diffResource);
+							set.add(diffResource.filePath.path);
 							isResourceAssigned = true;
-
-							const item = await this._getNewOrModifiedDiffItemByArticle(
-								this._getDiffFileByArticle(article, catalog),
-								article,
-								catalog,
-								false,
-								[diffResource],
-							);
-
-							diffItems.push(item);
 						}
 					}
-					if (resource.status === FileStatus.rename && itemResourcePath.compare(resource.oldPath)) {
-						resourcePathAssignees.set(resource.oldPath.value, { article, catalog });
+
+					if (!isResourceAssigned && resource.status !== FileStatus.delete) {
+						isResourceAssigned = true;
+
+						const item = await this._getNewOrModifiedDiffItemByArticle(
+							this._getDiffFileByArticle(article, catalog),
+							article,
+							catalog,
+							false,
+							[diffResource],
+						);
+
+						diffItems.push(item);
+
+						const set = new Set<string>([diffResource.filePath.path]);
+						resourcePathSetByItem.set(item, set);
+
+						const list = itemsByLogicPath.get(item.logicPath);
+						if (list) list.push(item);
+						else itemsByLogicPath.set(item.logicPath, [item]);
 					}
+				}
+			}
+
+			if (resource.status === FileStatus.rename) {
+				const oldAssignees = resourceUsageIndex.get(resource.oldPath.value);
+				if (oldAssignees && oldAssignees.length > 0) {
+					const { article, catalog } = oldAssignees[0];
+					resourcePathAssignees.set(resource.oldPath.value, { article, catalog });
 				}
 			}
 
@@ -131,11 +133,67 @@ export default class RevisionDiffItemCreator extends GitDiffItemCreator {
 					allResources.add(unassigneedResource);
 				}
 			}
+
+			if ((i + 1) % 5 === 0) await schedulerYield();
 		}
 
 		this._addOldParentPathToDiffResource(allResources, resourcePathAssignees);
 
 		return Array.from(unassigneedResources);
+	}
+
+	private _buildDiffItemsIndex(diffItems: DiffItem[]) {
+		const itemsByLogicPath = new Map<string, DiffItem[]>();
+		const resourcePathSetByItem = new Map<DiffItem, Set<string>>();
+
+		for (const item of diffItems) {
+			const list = itemsByLogicPath.get(item.logicPath);
+			if (list) list.push(item);
+			else itemsByLogicPath.set(item.logicPath, [item]);
+
+			const set = new Set<string>();
+			for (const r of item.resources) set.add(r.filePath.path);
+			resourcePathSetByItem.set(item, set);
+		}
+
+		return { itemsByLogicPath, resourcePathSetByItem };
+	}
+
+	private async _buildResourceUsageIndex(
+		articlesWithCatalogs: ArticleWithCatalog[],
+	): Promise<Map<string, ArticleWithCatalog[]>> {
+		const resourceUsageIndex = new Map<string, ArticleWithCatalog[]>();
+
+		for (const { article, catalog } of articlesWithCatalogs) {
+			const parsedContent = await article.parsedContent.read((p) => {
+				if (!p) return null;
+				return {
+					paths: [
+						...p.parsedContext.getResourceManager().resources,
+						...p.parsedContext.getLinkManager().resources,
+					],
+					resourceManager: p.parsedContext.getResourceManager(),
+				};
+			});
+
+			if (!parsedContent) continue;
+
+			const { paths, resourceManager } = parsedContent;
+			const rootCategoryPath = catalog.basePath;
+
+			for (const path of paths) {
+				const absoluteResourcePath = resourceManager.getAbsolutePath(path);
+				const itemResourcePath = rootCategoryPath.subDirectory(absoluteResourcePath) || absoluteResourcePath;
+
+				const key = itemResourcePath.value;
+
+				const arr = resourceUsageIndex.get(key);
+				if (arr) arr.push({ article, catalog });
+				else resourceUsageIndex.set(key, [{ article, catalog }]);
+			}
+		}
+
+		return resourceUsageIndex;
 	}
 
 	private async _assignUnassigneedComment(

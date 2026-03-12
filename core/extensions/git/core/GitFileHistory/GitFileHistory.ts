@@ -1,12 +1,12 @@
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
-import Path from "../../../../logic/FileProvider/Path/Path";
-import { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
+import type Path from "../../../../logic/FileProvider/Path/Path";
+import type { Catalog } from "../../../../logic/FileStructue/Catalog/Catalog";
 import { getDiff } from "../../../VersionControl/DiffHandler/DiffHandler";
-import { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
-import { ArticleHistoryViewModel } from "../../actions/History/model/ArticleHistoryViewModel";
+import type { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
+import type { ArticleHistoryViewModel } from "../../actions/History/model/ArticleHistoryViewModel";
 import { GitCommands } from "../GitCommands/GitCommands";
-import GitVersionControl from "../GitVersionControl/GitVersionControl";
+import type GitVersionControl from "../GitVersionControl/GitVersionControl";
 
 export default class GitFileHistory {
 	private _versionControl: GitVersionControl;
@@ -19,48 +19,30 @@ export default class GitFileHistory {
 		private _fp: FileProvider,
 	) {}
 
-	async getArticleHistoryInfo(itemRef: ItemRef): Promise<ArticleHistoryViewModel[]> {
+	async getArticleHistoryInfo(itemRef: ItemRef, offset = 0, limit = 15): Promise<ArticleHistoryViewModel[]> {
 		this._filePath = this._catalog.getRepositoryRelativePath(itemRef);
 
 		try {
-			const getFileHistory = await this._getFileHistory();
+			const getFileHistory = await this._getFileHistory(offset, limit);
 			return this._versionControlDiffParser(getFileHistory);
 		} catch {
 			return [];
 		}
 	}
 
-	private async _getFileHistory(): Promise<VersionControlInfo[]> {
-		// if (this._storageData) {
-		// 	const body = {
-		// 		filePath: this._filePath.value,
-		// 		repName: this._storageData.name,
-		// 		branch: this._storageData.branch,
-		// 	};
-		// 	const response = await fetch(`${this._reviewServerUrl}/filehistory`, {
-		// 		method: "POST",
-		// 		body: JSON.stringify(body),
-		// 		headers: { "Content-Type": "application/json" },
-		// 	});
-		// 	if (!response.ok) throw new DefaultError((await response.json()).message);
-		// 	return await response.json();
-		// }
-
+	private async _getFileHistory(offset = 0, limit = 15): Promise<VersionControlInfo[]> {
 		const gvc = this._catalog.repo.gvc;
 		if (!gvc) return;
 		({ gitVersionControl: this._versionControl, relativePath: this._relativeFilePath } =
 			await gvc.getVersionControlByPath(this._filePath));
 
 		this._gitRepository = new GitCommands(this._fp, this._versionControl.getPath());
-		return this._gitRepository.getFileHistory(this._relativeFilePath);
+		return this._gitRepository.getFileHistory(this._relativeFilePath, offset, limit);
 	}
 
 	private _versionControlDiffParser(versionControlInfo: VersionControlInfo[]): ArticleHistoryViewModel[] {
-		if (versionControlInfo.length < 14)
-			versionControlInfo.push({ version: "", author: "", date: "", path: new Path(), content: "" });
 		const articleHistoryViewModels: ArticleHistoryViewModel[] = versionControlInfo.map(
-			(data, idx): ArticleHistoryViewModel => {
-				if (idx == versionControlInfo.length - 1) return null;
+			(data): ArticleHistoryViewModel => {
 				const diff = getDiff(data.parentContent ?? "", data.content ?? "").changes;
 				const getPathDiff =
 					data.parentPath?.value && !data.parentPath.compare(data.path)
@@ -80,7 +62,7 @@ export default class GitFileHistory {
 				};
 			},
 		);
-		articleHistoryViewModels.pop();
+
 		return articleHistoryViewModels;
 	}
 }

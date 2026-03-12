@@ -147,9 +147,9 @@ const SearchMetricsComponent = () => {
 				}
 			/>
 			<div
-				className={`flex flex-col flex-1 min-h-0 px-6 pb-6 gap-6 overflow-auto ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}
+				className={`flex flex-col flex-1 min-h-0 px-6 pb-6 gap-8 overflow-auto ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}
 			>
-				<div className="flex gap-6">
+				<div className="flex gap-8" style={{ minHeight: 440 }}>
 					<div className="flex-1 min-w-0">
 						<MetricsChart
 							axisLabelFormat={filters.chart.axisLabelFormat}
@@ -171,6 +171,7 @@ const SearchMetricsComponent = () => {
 				<div className="flex flex-col" style={{ height: TABLES_HEIGHT }}>
 					<div className="overflow-x-auto flex-1 min-h-0">
 						<SearchMetricsTable
+							endDate={filters.endDate}
 							getSearchTableData={stableGetSearchTableData}
 							initialData={initialData}
 							onRowClick={handleTableRowClick}
@@ -178,6 +179,7 @@ const SearchMetricsComponent = () => {
 							selectedQuery={selectedQuery}
 							sortBy={filters.queriesTable.sortBy}
 							sortOrder={filters.queriesTable.sortOrder}
+							startDate={filters.startDate}
 							tableKey="queriesTable"
 						/>
 					</div>

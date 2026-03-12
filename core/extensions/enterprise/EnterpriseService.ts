@@ -33,6 +33,7 @@ import type {
 } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
 import type { PluginsSettings } from "@ext/enterprise/types/EnterpriseAdmin";
 import t from "@ext/localization/locale/translate";
+import type { CheckChunk, CheckOverrideSettings, CheckSuggestion } from "@ics/gx-vector-search";
 
 export interface searchUserInfo {
 	email: string;
@@ -343,13 +344,13 @@ class EnterpriseService {
 		query: string,
 		startDate: string,
 		endDate: string,
-		cursor?: string,
+		cursor?: number,
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
 	): Promise<{
 		data: SearchQueryDetailRow[];
-		nextCursor: string | null;
+		nextCursor: number | null;
 		hasMore: boolean;
 	} | null> {
 		if (!this._url) return null;
@@ -359,7 +360,7 @@ class EnterpriseService {
 				startDate,
 				endDate,
 			});
-			if (cursor) params.append("cursor", cursor);
+			if (cursor) params.append("cursor", String(cursor));
 			if (sortBy) params.append("sortBy", sortBy);
 			if (sortOrder) params.append("sortOrder", sortOrder);
 			if (limit) params.append("limit", limit.toString());
@@ -804,6 +805,39 @@ class EnterpriseService {
 		}
 	}
 
+	async checkStyleGuide(
+		chunks: CheckChunk[],
+		providers: ["languageTool" | "llm"],
+		overrideSettings?: CheckOverrideSettings,
+		checkSpelling?: boolean,
+		signal?: AbortSignal,
+	): Promise<CheckSuggestion[]> {
+		try {
+			const res = await fetch(`${this._url}/enterprise/style-guide/check`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					chunks,
+					providers: providers,
+					overrideSettings,
+					checkSpelling,
+				}),
+				credentials: "include",
+				signal,
+			});
+
+			//TODO_RM: add here proper text upon errors with localization like other methods here
+			if (res.status === 503) throw new Error("Style guide is disabled");
+			if (!res.ok) throw new Error("Failed to check example");
+
+			const response = await res.json();
+			return response;
+		} catch (e) {
+			console.error(e);
+			throw e;
+		}
+	}
+
 	async setQuizConfig(token: string, quiz: QuizSettings) {
 		if (!this._url) return false;
 		try {
@@ -888,18 +922,25 @@ class EnterpriseService {
 		filters?: QuizTableFilters,
 	): Promise<RequestData<QuizTest>> {
 		try {
-			let url = `${this._url}/enterprise/modules/quiz/answer/get-with-user?limit=${limit}`;
-			if (filters.users && filters.users.length > 0) {
-				url += `&users=${encodeURIComponent(JSON.stringify(filters.users))}`;
+			const baseUrl = `${this._url}/enterprise/modules/quiz/answer/get-with-user`;
+			const params = new URLSearchParams();
+			params.set("limit", limit.toString());
+
+			if (filters?.users && filters.users.length > 0) {
+				params.set("users", encodeURIComponent(JSON.stringify(filters.users)));
 			}
 
-			if (filters.tests && filters.tests.length > 0) {
-				url += `&tests=${encodeURIComponent(JSON.stringify(filters.tests))}`;
+			if (filters?.tests && filters.tests.length > 0) {
+				params.set("tests", encodeURIComponent(JSON.stringify(filters.tests)));
 			}
 
-			if (cursor) url += `&cursor=${encodeURIComponent(JSON.stringify(cursor))}`;
+			if (filters?.result && filters.result.length > 0) {
+				params.set("result", encodeURIComponent(JSON.stringify(filters.result)));
+			}
 
-			const res = await fetch(url, {
+			if (cursor) params.set("cursor", encodeURIComponent(JSON.stringify(cursor)));
+
+			const res = await fetch(`${baseUrl}?${params.toString()}`, {
 				headers: {
 					Authorization: `Bearer ${token}`,
 				},

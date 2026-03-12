@@ -19,7 +19,7 @@ const Line = styled.div<{ ignore: boolean }>`
 const LinesWrapper = styled.div<{ gap: string; containerMarginLeft?: string }>`
 	display: flex;
 	gap: ${({ gap }) => gap};
-	height: 100%;
+	height: 1.25rem;
 	position: absolute;
 	${({ containerMarginLeft }) => containerMarginLeft && `margin-left: ${containerMarginLeft};`}
 `;

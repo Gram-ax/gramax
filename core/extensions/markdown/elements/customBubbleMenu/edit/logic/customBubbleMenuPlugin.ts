@@ -125,6 +125,9 @@ export class CustomBubbleMenuView {
 		const hasFocusGuard = document.body.querySelector("[data-radix-focus-guard]");
 
 		if (event.key === "Escape" && !hasFocusGuard) {
+			event.preventDefault();
+			event.stopPropagation();
+
 			this.hide();
 		}
 	};

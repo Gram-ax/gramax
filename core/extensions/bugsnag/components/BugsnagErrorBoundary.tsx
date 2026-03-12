@@ -3,6 +3,7 @@ import type { OnErrorCallback } from "@bugsnag/js";
 import bugsnag from "@dynamicImports/bugsnag";
 import normalizeStack from "@ext/bugsnag/logic/normalizeStacktrace";
 import type { ErrorBoundaryProps } from "@ext/errorHandlers/client/components/ErrorBoundary";
+import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import React from "react";
 import sendBug from "../logic/sendBug";
 
@@ -13,6 +14,7 @@ class BugsnagErrorBoundary extends React.Component<BugsnagErrorBoundaryProps> {
 		super(props);
 		if (!props.context.conf.bugsnagApiKey || typeof window === "undefined") return;
 		const onError: OnErrorCallback = (e) => {
+			if (e.originalError instanceof DefaultError) return false;
 			const target = props.environment.toUpperCase();
 			e.errors.forEach((e) => {
 				if (!e.errorMessage.includes(target)) e.errorMessage = `[${target}:ui] ${e.errorMessage}`;

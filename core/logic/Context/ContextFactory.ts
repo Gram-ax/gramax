@@ -1,6 +1,6 @@
+import resolveModule from "@app/resolveModule/backend";
 import LanguageService from "@core-ui/ContextServices/Language";
 import type Cookie from "../../extensions/cookie/Cookie";
-import CookieFactory from "../../extensions/cookie/CookieFactory";
 import UiLanguage, {
 	ContentLanguage,
 	overriddenLanguage,
@@ -29,7 +29,6 @@ export interface FromBrowserArgs {
 }
 
 export class ContextFactory {
-	private _cookieFactory = new CookieFactory();
 	constructor(
 		private _tm: ThemeManager,
 		private _cookieSecret: string,
@@ -38,7 +37,8 @@ export class ContextFactory {
 	) {}
 
 	async from({ req, res, query }: FromArgs): Promise<Context> {
-		const cookie = this._cookieFactory.from(this._cookieSecret, req, res);
+		const ResolveCookie = resolveModule("Cookie");
+		const cookie = new ResolveCookie(this._cookieSecret, req, res);
 		if (!query) query = {};
 
 		query.ui =
@@ -51,7 +51,8 @@ export class ContextFactory {
 	}
 
 	async fromBrowser({ language, query }: FromBrowserArgs): Promise<Context> {
-		const cookie = this._cookieFactory.from(this._cookieSecret);
+		const ResolveCookie = resolveModule("Cookie");
+		const cookie = new ResolveCookie(this._cookieSecret, null, null);
 		if (!query) query = {};
 		query.l = language;
 		query.ui = LanguageService.currentUi();
@@ -75,6 +76,7 @@ export class ContextFactory {
 			ui: (query?.ui || resolveLanguage()) as UiLanguage,
 			theme: this._tm?.getTheme(cookie),
 			refname: query?.refname as string,
+			toSpan: () => "<redacted>",
 		};
 	}
 }

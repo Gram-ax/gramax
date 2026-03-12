@@ -18,8 +18,6 @@ export class NotePaginator extends NodePaginator<HTMLDivElement> {
 		const headingClone = this.originalHeading.cloneNode(true) as HTMLElement;
 		this.admonitionContainer.appendChild(headingClone);
 
-		this.parentPaginator.currentContainer.appendChild(this.admonitionContainer);
-
 		const admonitionContentContainer = this.node.querySelector<HTMLDivElement>(".admonition-content");
 		this.admonitionContentContainer = admonitionContentContainer.cloneNode(false) as HTMLDivElement;
 
@@ -32,15 +30,17 @@ export class NotePaginator extends NodePaginator<HTMLDivElement> {
 		this.addDimension();
 		await super.paginateSource(admonitionContent);
 
+		this.parentPaginator.currentContainer.appendChild(this.admonitionContainer);
 		this.setMarginBottom();
 		this.node.remove();
 	}
 
 	createPage() {
+		this.parentPaginator.currentContainer.appendChild(this.admonitionContainer);
 		this.cleanHeadingElementsIfNeed();
 		throwIfAborted();
 
-		if (this.currentContainer.childNodes.length) {
+		if (this.haveChildNodes()) {
 			this.admonitionContainer = this.admonitionContainer.cloneNode(false) as HTMLDivElement;
 			this.admonitionContentContainer = this.admonitionContentContainer.cloneNode(false) as HTMLDivElement;
 			this.currentContainer = this.currentContainer.cloneNode(false) as HTMLDivElement;
@@ -49,8 +49,7 @@ export class NotePaginator extends NodePaginator<HTMLDivElement> {
 			this.admonitionContainer.appendChild(this.admonitionContentContainer);
 		} else this.admonitionContainer.remove();
 
-		const parentPage = this.parentPaginator.createPage();
-		parentPage.appendChild(this.admonitionContainer);
+		this.parentPaginator.createPage();
 
 		this.addDimension();
 		this.setHeadings();

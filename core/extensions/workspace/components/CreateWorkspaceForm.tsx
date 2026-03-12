@@ -9,11 +9,11 @@ import { useCreateWorkspaceActions } from "@ext/workspace/components/logic/useCr
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
 import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { type FormEvent, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -63,7 +63,7 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 	const onCloseHandler = useCallback(() => {
 		setOpen(false);
 		ModalToOpenService.resetValue();
-	}, []);
+	}, [setOpen]);
 
 	const formProps: FormProps = useMemo(() => {
 		return {
@@ -72,14 +72,14 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 	}, []);
 
 	return (
-		<Modal
+		<Dialog
 			onOpenChange={(v) => {
 				setOpen(v);
 				if (!v) onCloseHandler();
 			}}
 			open={open}
 		>
-			<ModalContent data-modal-root>
+			<DialogContent data-modal-root>
 				<ModalErrorHandler onClose={onCloseHandler} onError={() => {}}>
 					<Form asChild {...form}>
 						<form className="contents" onSubmit={formSubmit}>
@@ -88,7 +88,7 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 								icon={"settings"}
 								title={t("workspace.edit")}
 							/>
-							<ModalBody>
+							<DialogBody>
 								<FormStack>
 									<FormField
 										control={({ field }) => (
@@ -106,6 +106,7 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									/>
 									<FormField
 										control={({ field }) => {
+											// biome-ignore lint/correctness/useHookAtTopLevel: expected!?
 											const iconFilter = useIconFilter();
 											return (
 												<LazySearchSelect
@@ -114,6 +115,7 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 														form.setValue("icon", `${value}`);
 														field.value = `${value}`;
 													}}
+													// biome-ignore lint/correctness/useHookAtTopLevel: expected!?
 													options={useLucideIconLists().lucideIconListForUikitOptions}
 													placeholder={t("icon")}
 													renderOption={({ option, type }) => (
@@ -148,9 +150,7 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 													/>
 													<Button
 														onClick={async () => {
-															const module = await resolveModule(
-																"openDirectory" as any,
-															)();
+															const module = await resolveModule("openDirectory")();
 															const dir = module || field.value;
 															field.onChange(dir);
 														}}
@@ -168,23 +168,24 @@ const CreateWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 										/>
 									)}
 								</FormStack>
-							</ModalBody>
+							</DialogBody>
 							<FormFooter
-								primaryButton={<Button children={t("save")} type="submit" variant="primary" />}
+								primaryButton={
+									<Button type="submit" variant="primary">
+										{t("save")}
+									</Button>
+								}
 								secondaryButton={
-									<Button
-										children={t("cancel")}
-										onClick={onCloseHandler}
-										type="button"
-										variant="text"
-									/>
+									<Button onClick={onCloseHandler} type="button" variant="text">
+										{t("cancel")}
+									</Button>
 								}
 							/>
 						</form>
 					</Form>
 				</ModalErrorHandler>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

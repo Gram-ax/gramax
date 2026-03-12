@@ -1,7 +1,7 @@
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
-import { StoredAnswer, StoredQuestion } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
-import { QuestionType } from "@ext/markdown/elements/question/types";
-import { JSONContent } from "@tiptap/core";
+import type { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import type { StoredAnswer, StoredQuestion } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
+import type { QuestionType } from "@ext/markdown/elements/question/types";
+import type { JSONContent } from "@tiptap/core";
 
 export const getStoredQuestionsByContent = (renderTree: RenderableTreeNode) => {
 	const questions: Record<string, StoredQuestion> = {};
@@ -24,7 +24,7 @@ export const getStoredQuestionsByContent = (renderTree: RenderableTreeNode) => {
 					},
 					{},
 				),
-				selectedAnswers: [],
+				selectedAnswers: {},
 				isRequired: node.attrs.required ?? false,
 			};
 		}

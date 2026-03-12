@@ -33,7 +33,9 @@ const NavigationDropdown: FC<NavigationDropdownProps> = (props) => {
 					</Tooltip>
 				</div>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start">{children}</DropdownMenuContent>
+			<DropdownMenuContent align="start" side="right">
+				{children}
+			</DropdownMenuContent>
 		</DropdownMenu>
 	);
 };

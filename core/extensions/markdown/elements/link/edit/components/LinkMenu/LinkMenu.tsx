@@ -1,30 +1,33 @@
+import safeDecode from "@core/utils/safeDecode";
 import { useApi } from "@core-ui/hooks/useApi";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
-import useWatch from "@core-ui/hooks/useWatch";
-import LinkItem from "@ext/article/LinkCreator/models/LinkItem";
+import type LinkItem from "@ext/article/LinkCreator/models/LinkItem";
 import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
 import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
-import { Mark } from "@tiptap/pm/model";
-import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { EditLinkMenu } from "./EditLinkMenu";
+import type { Mark } from "@tiptap/pm/model";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { EditLinkMenu } from "./EditLinkMenu/EditLinkMenu";
 import { ViewLinkMenu } from "./ViewLinkMenu";
 
 export type LinkMenuMode = "edit" | "view";
 
 interface LinkMenuContentProps {
 	mark: Mark;
+	mode: LinkMenuMode;
+	setMode: (mode: LinkMenuMode) => void;
 	onDelete: () => void;
-	onUpdate: (relativePath: string, newHref: string, mark: any) => void;
+	onUpdate: (relativePath: string, newHref: string, mark: Mark) => void;
 }
 
 interface LinkMenuProps {
 	mark: Mark;
-	onUpdate: (relativePath: string, newHref: string, mark: any) => void;
+	mode: LinkMenuMode;
+	setMode: (mode: LinkMenuMode) => void;
+	onUpdate: (relativePath: string, newHref: string, mark: Mark) => void;
 	onDelete?: () => void;
 }
 
-const LinkMenuContent = memo(({ mark, onDelete, onUpdate }: LinkMenuContentProps) => {
-	const [mode, setMode] = useState<LinkMenuMode>(mark?.attrs?.href ? "view" : "edit");
+const LinkMenuContent = memo(({ mark, mode, setMode, onDelete, onUpdate }: LinkMenuContentProps) => {
 	const [itemName, setItemName] = useState<string>("");
 	const [hasError, setHasError] = useState<boolean>(false);
 
@@ -50,6 +53,7 @@ const LinkMenuContent = memo(({ mark, onDelete, onUpdate }: LinkMenuContentProps
 		url: (api) => api.getLinkItemByPath(isExternal ? "" : pathWithoutHash, catalogName),
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!mark?.attrs?.href) return;
 		if (isExternal) return setItemName(href);
@@ -57,21 +61,21 @@ const LinkMenuContent = memo(({ mark, onDelete, onUpdate }: LinkMenuContentProps
 			const item = await getLinkItemByPath();
 			setHasError(!item);
 			setMode(item ? "view" : "edit");
-			if (item) return setItemName(item.title + (hash ? decodeURI(hash) : ""));
+			if (item) return setItemName(item.title + (hash ? safeDecode(hash) : ""));
 			setItemName(href);
 		})();
-	}, [mark?.attrs?.href, mark?.attrs?.resourcePath, hash, href]);
+	}, [mark?.attrs?.href, hash, href, getLinkItemByPath, isExternal]);
 
-	useWatch(() => {
+	useLayoutEffect(() => {
 		setMode(mark?.attrs?.href ? "view" : "edit");
-	}, [mark?.attrs?.href]);
+	}, [mark?.attrs?.href, setMode]);
 
 	const handleUpdate = useCallback(
 		(relativePath: string, newHref: string) => {
 			setMode("view");
 			onUpdate(relativePath, newHref, mark);
 		},
-		[mark, onUpdate],
+		[mark, onUpdate, setMode],
 	);
 
 	if (!mark) return null;
@@ -101,6 +105,15 @@ const LinkMenuContent = memo(({ mark, onDelete, onUpdate }: LinkMenuContentProps
 	);
 });
 
-export const LinkMenu = memo(({ mark, onUpdate, onDelete }: LinkMenuProps) => {
-	return <LinkMenuContent key={mark?.attrs?.href} mark={mark} onDelete={onDelete} onUpdate={onUpdate} />;
+export const LinkMenu = memo(({ mark, mode, setMode, onUpdate, onDelete }: LinkMenuProps) => {
+	return (
+		<LinkMenuContent
+			key={mark?.attrs?.href}
+			mark={mark}
+			mode={mode}
+			onDelete={onDelete}
+			onUpdate={onUpdate}
+			setMode={setMode}
+		/>
+	);
 });

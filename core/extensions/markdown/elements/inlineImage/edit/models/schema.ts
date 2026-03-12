@@ -9,5 +9,6 @@ export default {
 		alt: { default: null },
 		width: { default: null },
 		height: { default: null },
+		renderSrc: { default: null },
 	},
 };

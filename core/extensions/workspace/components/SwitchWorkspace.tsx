@@ -12,6 +12,7 @@ import {
 } from "@core-ui/ContextServices/SyncCount/useSyncableWorkspaces";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import styled from "@emotion/styled";
 import type { Admin } from "@ext/enterprise/components/admin/Admin";
 import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/components/useEditEnterpriseWorkspace";
 import t, { pluralize } from "@ext/localization/locale/translate";
@@ -98,6 +99,15 @@ const formatTooltip = (
 		false,
 	);
 };
+
+const StyledDropdownIndicator = styled(DropdownIndicator)`
+	left: 1.4rem;
+`;
+
+const StyledTooltipTrigger = styled(TooltipTrigger)`
+	left: 1.4rem;
+	top: 0.25rem;
+`;
 
 interface WorkspaceItemProps {
 	currentWorkspace: ClientWorkspaceConfig;
@@ -191,7 +201,7 @@ const SwitchWorkspace = () => {
 					variant="ghost"
 				>
 					{showDot && (
-						<DropdownIndicator className="h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error left-[23px] top-1" />
+						<StyledDropdownIndicator className="h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error top-1" />
 					)}
 					<Icon icon="layers" size="lg" />
 				</DropdownMenuTriggerButton>
@@ -204,11 +214,11 @@ const SwitchWorkspace = () => {
 				>
 					{showDot && (
 						<Tooltip>
-							<TooltipTrigger asChild>
-								<div className="absolute left-[23px] top-1 h-1.5 w-1.5">
-									<DropdownIndicator className="w-full h-full m-0.5 rounded-full bg-status-error" />
+							<StyledTooltipTrigger asChild className="absolute m-0.5">
+								<div>
+									<StyledDropdownIndicator className="h-1.5 w-1.5 rounded-full bg-status-error" />
 								</div>
-							</TooltipTrigger>
+							</StyledTooltipTrigger>
 							<TooltipContent side="right">
 								{formatTooltip(currentWorkspace.path, currentWorkspace.path, syncableWorkspaces)}
 							</TooltipContent>

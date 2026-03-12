@@ -3,6 +3,7 @@ import { healthcheckEvents } from "@ext/git/core/GitCommands/errors/HealthcheckE
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import { type CredsArgs, progress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { span } from "@ext/loggers/opentelemetry";
 import git from "../../../apps/next/crates/next-gramax-git";
 
 const tryParse = (data: any) => {
@@ -21,10 +22,14 @@ export const call = async <O>(command: string, args?: any): Promise<O> => {
 
 	if (typeof args.scope !== "undefined") args.scope = intoTreeReadScope(args.scope);
 
+	const ctx = span()?.spanContext();
+	const spanId = ctx?.spanId;
+	const traceId = ctx?.traceId;
+
 	try {
 		const promise = stringifiedArgs
-			? git[command](stringifiedArgs)
-			: git[command](...Object.values(args).filter((p) => p !== undefined && p !== null));
+			? git[command](stringifiedArgs, spanId, traceId)
+			: git[command](...Object.values(args).filter((p) => p !== undefined && p !== null), spanId, traceId);
 		const result = await promise;
 		if (result?.stack) throw result;
 		return Promise.resolve(typeof result === "string" ? JSON.parse(result) : result);

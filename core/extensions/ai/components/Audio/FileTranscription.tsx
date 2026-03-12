@@ -1,20 +1,21 @@
 import Skeleton from "@components/Atoms/Skeleton";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import TextArea from "@components/Atoms/TextArea";
-import Path from "@core/FileProvider/Path/Path";
+import type Path from "@core/FileProvider/Path/Path";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import styled from "@emotion/styled";
 import TiptapGramaxAi from "@ext/ai/logic/TiptapGramaxAi";
 import t from "@ext/localization/locale/translate";
 import MenuButton from "@ext/markdown/core/edit/components/Menu/Button";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { Divider } from "@ui-kit/Divider";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { CSSProperties, MouseEvent, useEffect, useState } from "react";
+import { type CSSProperties, type MouseEvent, useEffect, useState } from "react";
 
 const EditableArea = ({
 	defaultValue,
@@ -47,8 +48,7 @@ const CopyButton = ({ text }: { text: string }) => {
 		e.preventDefault();
 		e.stopPropagation();
 
-		navigator.clipboard.writeText(text);
-		setIsCopied(true);
+		void tryCopyToClipboard(text, { showPopover: false }).then((copied) => copied && setIsCopied(true));
 	};
 
 	const onMouseLeave = () => {
@@ -108,11 +108,11 @@ const FileTranscription = ({ path }: { path: Path }) => {
 	}, [open]);
 
 	return (
-		<Modal onOpenChange={setOpen} open={open}>
-			<ModalTrigger asChild>
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogTrigger asChild>
 				<MenuButton icon="audio-lines" tooltipText={t("ai.transcribe.name")} />
-			</ModalTrigger>
-			<ModalContent>
+			</DialogTrigger>
+			<DialogContent>
 				<form className="contents ui-kit">
 					<FormHeader
 						description={t("ai.transcribe.description")}
@@ -120,7 +120,7 @@ const FileTranscription = ({ path }: { path: Path }) => {
 						title={t("ai.transcribe.name")}
 					/>
 					<Divider />
-					<ModalBody>
+					<DialogBody>
 						<div className="article" style={{ background: "initial" }}>
 							<SkeletonWrapper>
 								{isLoading && (
@@ -141,7 +141,7 @@ const FileTranscription = ({ path }: { path: Path }) => {
 								hasText={text?.length >= 0}
 							/>
 						</div>
-					</ModalBody>
+					</DialogBody>
 					<FormFooter
 						primaryButton={
 							isLoading && (
@@ -154,8 +154,8 @@ const FileTranscription = ({ path }: { path: Path }) => {
 						secondaryButton={text && <CopyButton text={text} />}
 					/>
 				</form>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

@@ -1,8 +1,8 @@
 import AnimatedExtension from "@components/Atoms/ItemWrapper";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { isFromModal } from "@ui-kit/Modal";
-import { forwardRef, MouseEvent, memo, RefObject, useCallback, useRef } from "react";
+import { isFromModal } from "@ui-kit/Dialog/utils";
+import { forwardRef, type MouseEvent, memo, type RefObject, useCallback, useRef } from "react";
 
 export interface ItemComponentProps {
 	id: string;
@@ -48,11 +48,14 @@ const Item = forwardRef((props: ItemComponentProps, ref: RefObject<HTMLDivElemen
 	);
 
 	return (
+		// biome-ignore lint/a11y/useFocusableInteractive: ask @NV
+		// biome-ignore lint/a11y/useSemanticElements: ask @NV
 		<div
 			className={classNames(className, { selected: isSelected })}
 			data-qa="qa-clickable"
 			onClick={handleClick}
 			ref={Ref}
+			role="button"
 		>
 			<AnimatedExtension
 				className="item-wrapper"

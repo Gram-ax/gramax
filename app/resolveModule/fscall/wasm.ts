@@ -1,15 +1,23 @@
 import IoError from "@core/FileProvider/DiskFileProvider/DFPIOError";
+import { span } from "@ext/loggers/opentelemetry";
 
 let callbackId = 0;
 const callbacks = {};
 
-export const callFSWasm = async <O>(command: string, args?: any): Promise<O> => {
+export const callFSWasm = async <O>(command: string, args: any = {}): Promise<O> => {
 	const promise = new Promise((resolve, reject) => {
 		callbacks[++callbackId] = {
 			resolve,
 			reject,
 		};
 	});
+	const ctx = span()?.spanContext();
+
+	if (ctx) {
+		args.spanId = ctx.spanId;
+		args.traceId = ctx.traceId;
+	}
+
 	(window as any).wasm.postMessage({
 		type: "fs-call",
 		command,

@@ -1,10 +1,10 @@
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
+import type CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import t from "@ext/localization/locale/translate";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	const formatError = () => {

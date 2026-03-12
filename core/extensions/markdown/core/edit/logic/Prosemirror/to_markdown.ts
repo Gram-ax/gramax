@@ -1,5 +1,5 @@
 import MdParser from "@ext/markdown/core/Parser/MdParser/MdParser";
-import { Mark, Node } from "prosemirror-model";
+import type { Mark, Node } from "prosemirror-model";
 
 export type NodeSerializerSpec = (
 	state: MarkdownSerializerState,
@@ -68,8 +68,8 @@ export class MarkdownSerializer {
 		} = {},
 		delim = "",
 	) {
-		options = Object.assign(this.options, options);
-		const state = new MarkdownSerializerState(this.nodes, this.marks, options, delim);
+		Object.assign(this.options, options);
+		const state = new MarkdownSerializerState(this.nodes, this.marks, this.options, delim);
 		await state.renderContent(content);
 		return state.out;
 	}
@@ -99,7 +99,7 @@ export class MarkdownSerializerState {
 
 		delim: string,
 	) {
-		if (typeof this.options.tightLists == "undefined") this.options.tightLists = false;
+		if (typeof this.options.tightLists === "undefined") this.options.tightLists = false;
 		this.delim = delim ?? "";
 	}
 
@@ -111,7 +111,7 @@ export class MarkdownSerializerState {
 				let delimMin = this.delim;
 				const trim = /\s+$/.exec(delimMin);
 				if (trim) delimMin = delimMin.slice(0, delimMin.length - trim[0].length);
-				for (let i = 1; i < size; i++) this.out += delimMin + "\n";
+				for (let i = 1; i < size; i++) this.out += `${delimMin}\n`;
 			}
 			this.closed = null;
 		}
@@ -162,18 +162,18 @@ export class MarkdownSerializerState {
 			this.write();
 			// Escape exclamation marks in front of links
 			// eslint-disable-next-line no-useless-escape
-			if (!escape && lines[i][0] == "[" && /(^|[^\\])\!$/.test(this.out))
-				this.out = this.out.slice(0, this.out.length - 1) + "\\!";
+			if (!escape && lines[i][0] === "[" && /(^|[^\\])!$/.test(this.out))
+				this.out = `${this.out.slice(0, this.out.length - 1)}\\!`;
 			this.out += escape ? this.esc(lines[i], this.atBlockStart) : lines[i];
-			if (i != lines.length - 1) this.out += "\n";
+			if (i !== lines.length - 1) this.out += "\n";
 		}
 	}
 
 	/// Render the given node as a block.
 	async render(node: Node, parent: Node, index: number) {
-		if (typeof parent == "number") throw new Error("!");
+		if (typeof parent === "number") throw new Error("!");
 		if (!this.nodes[node.type.name])
-			throw new Error("Token type `" + node.type.name + "` not supported by Markdown renderer");
+			throw new Error(`Token type \`${node.type.name}\` not supported by Markdown renderer`);
 		await this.nodes[node.type.name](this, node, parent, index);
 		if (node.type.name === "table_simple") this.out = formatTable(this.out, this.delim);
 	}
@@ -192,17 +192,18 @@ export class MarkdownSerializerState {
 		this.atBlockStart = true;
 		const active: Mark[] = [];
 		let trailing = "";
-		const progress = async (node: Node | null, offset: number, index: number) => {
-			let marks = node ? node.marks : [];
+		const progress = async (node: Node | null, _: number, index: number) => {
+			let curNode = node;
+			let marks = curNode ? curNode.marks : [];
 
 			// Remove marks from `hard_break` that are the last node inside
 			// that mark to prevent parser edge cases with new lines just
 			// before closing marks.
 			// (FIXME it'd be nice if we had a schema-agnostic way to
 			// identify nodes that serialize as hard breaks)
-			if (node && node.type.name === "hard_break")
+			if (curNode && curNode.type.name === "hard_break")
 				marks = marks.filter((m) => {
-					if (index + 1 == parent.childCount) return false;
+					if (index + 1 === parent.childCount) return false;
 					const next = parent.child(index + 1);
 					return m.isInSet(next.marks) && (!next.isText || /\S/.test(next.text));
 				});
@@ -212,19 +213,19 @@ export class MarkdownSerializerState {
 			// If whitespace has to be expelled from the node, adjust
 			// leading and trailing accordingly.
 			if (
-				node &&
-				node.isText &&
+				curNode?.isText &&
 				marks.some((mark) => {
 					const info = this.marks[mark.type.name];
-					return info && info.expelEnclosingWhitespace;
+					return info?.expelEnclosingWhitespace;
 				})
 			) {
-				const [, lead, inner, trail] = /^(\s*)(.*?)(\s*)$/m.exec(node.text);
+				const [, lead, inner, trail] = /^(\s*)(.*?)(\s*)$/m.exec(curNode.text);
 				leading += lead;
 				trailing = trail;
 				if (lead || trail) {
-					node = inner ? (node as any).withText(inner) : null;
-					if (!node) marks = active;
+					// biome-ignore lint/suspicious/noExplicitAny: it`s TextNode, TextNode have this method
+					curNode = inner ? (curNode as any).withText(inner) : null;
+					if (!curNode) marks = active;
 				}
 			}
 
@@ -271,7 +272,7 @@ export class MarkdownSerializerState {
 			if (leading) this.text(leading);
 
 			// Open the marks that need to be opened
-			if (node) {
+			if (curNode) {
 				while (active.length < len) {
 					const add = marks[active.length];
 					active.push(add);
@@ -280,14 +281,14 @@ export class MarkdownSerializerState {
 
 				// Render the node. Special case code marks, since their content
 				// may not be escaped.
-				if (noEsc && node.isText)
+				if (noEsc && curNode.isText)
 					this.text(
 						this.markString(inner, true, parent, index) +
-							node.text +
+							curNode.text +
 							this.markString(inner, false, parent, index + 1),
 						false,
 					);
-				else await this.render(node, parent, index);
+				else await this.render(curNode, parent, index);
 			}
 		};
 		// parent.forEach(progress);
@@ -305,10 +306,10 @@ export class MarkdownSerializerState {
 	/// `firstDelim` is a function going from an item index to a
 	/// delimiter for the first line of the item.
 	async renderList(node: Node, delim: (index: number) => string, firstDelim: (index: number) => string) {
-		if (this.closed && this.closed.type == node.type) this.flushClose(3);
+		if (this.closed && this.closed.type === node.type) this.flushClose(3);
 		else if (this.inTightList) this.flushClose(1);
 
-		const isTight = typeof node.attrs.tight != "undefined" ? node.attrs.tight : this.options.tightLists;
+		const isTight = typeof node.attrs.tight !== "undefined" ? node.attrs.tight : this.options.tightLists;
 		const prevTight = this.inTightList;
 		this.inTightList = isTight;
 
@@ -330,18 +331,15 @@ export class MarkdownSerializerState {
 	/// content. If `startOfLine` is true, also escape characters that
 	/// have special meaning only at the start of the line.
 	esc(str: string, startOfLine = false) {
-		// eslint-disable-next-line no-useless-escape
-		str = str.replace(/[`*\\~\[\]_\${<]/g, (m, i) =>
-			m == "_" && i > 0 && i + 1 < str.length && str[i - 1].match(/\w/) && str[i + 1].match(/\w/) ? m : "\\" + m,
-		);
-		if (startOfLine) str = str.replace(/^[#\-*+>]/, "\\$&").replace(/^(\s*\d+)\./, "$1\\.");
-		if (this.options.escapeExtraCharacters) str = str.replace(this.options.escapeExtraCharacters, "\\$&");
-		return str;
+		let newStr = MarkdownSerializerState.escape(str);
+		if (startOfLine) newStr = newStr.replace(/^[#\-*+>]/, "\\$&").replace(/^(\s*\d+)\./, "$1\\.");
+		if (this.options.escapeExtraCharacters) newStr = newStr.replace(this.options.escapeExtraCharacters, "\\$&");
+		return newStr;
 	}
 
 	/// @internal
 	quote(str: string) {
-		const wrap = str.indexOf('"') == -1 ? '""' : str.indexOf("'") == -1 ? "''" : "()";
+		const wrap = str.indexOf('"') === -1 ? '""' : str.indexOf("'") === -1 ? "''" : "()";
 		return wrap[0] + str + wrap[1];
 	}
 
@@ -356,7 +354,7 @@ export class MarkdownSerializerState {
 	markString(mark: Mark, open: boolean, parent: Node, index: number) {
 		const info = this.marks[mark.type.name];
 		const value = open ? info.open : info.close;
-		return typeof value == "string" ? value : value(this, mark, parent, index);
+		return typeof value === "string" ? value : value(this, mark, parent, index);
 	}
 
 	/// Get leading and trailing whitespace from a string. Values of
@@ -368,11 +366,18 @@ export class MarkdownSerializerState {
 			trailing: (text.match(/(\s+)$/) || [undefined])[0],
 		};
 	}
+
+	static escape(str: string) {
+		const newStr = str.replace(/[`*\\~[\]_${<]/g, (m, i) =>
+			m === "_" && i > 0 && i + 1 < str.length && str[i - 1].match(/\w/) && str[i + 1].match(/\w/) ? m : `\\${m}`,
+		);
+		return newStr;
+	}
 }
 
 export const formatTable = (table: string, delim: string) => {
-	table = new MdParser().backParse(table);
-	const lines = table.trim().split("\n");
+	const newTable = new MdParser().backParse(table);
+	const lines = newTable.trim().split("\n");
 
 	const headers = lines[0]
 		.split("|")

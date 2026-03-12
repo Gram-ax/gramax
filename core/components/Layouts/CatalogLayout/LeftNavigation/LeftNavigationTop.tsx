@@ -4,6 +4,7 @@ import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/Arti
 import ButtonLink from "@components/Molecules/ButtonLink";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
+import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -41,7 +42,11 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 
 	useEffect(() => {
 		const onBranchChange = (_, caller: OnBranchUpdateCaller) => {
+			const isDefaultView = ArticleViewService.isDefaultView();
+
+			if (isDefaultView) return;
 			NavigationTabsService.setTop(LeftNavigationTab.None);
+
 			if (caller === OnBranchUpdateCaller.Init || caller === OnBranchUpdateCaller.CheckoutToNewCreatedBranch)
 				return;
 			[SnippetService, TemplateService].forEach((context) => context.closeItem());

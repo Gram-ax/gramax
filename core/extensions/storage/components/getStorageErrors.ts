@@ -1,8 +1,8 @@
-import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import CatalogExistsError from "@ext/storage/components/CatalogExistsError";
 import InvalidSourceDataError from "@ext/storage/logic/SourceDataProvider/components/InvalidSourceDataError";
 import { InvalidSourceDataErrorCode } from "@ext/storage/logic/SourceDataProvider/error/InvalidSourceData";
-import { ComponentProps, ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 export enum StorageError {
 	CatalogExists = "catalog-exists",

@@ -11,7 +11,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useRemoteProgress from "@ext/git/actions/Clone/logic/useRemoteProgress";
 import CatalogFetchNotification from "@ext/git/actions/Fetch/CatalogFetchNotification";
 import t from "@ext/localization/locale/translate";
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 import { ActionCard, CardFooter, CardSubTitle, CardTitle, CardVisualBadge } from "@ui-kit/Card";
 import { ProgressBlockTemplate } from "@ui-kit/Progress";
 import { OverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
@@ -32,18 +32,18 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 	const workspace = Workspace.current()?.path;
 
 	const { isNext, isStatic } = usePlatform();
-	const logo = useGetCatalogTitleLogo(link.name, [workspace]);
 	const { isCloning, progress, error, start } = useRemoteProgress(
 		link.name,
 		link.redirectOnClone,
 		link.cloneCancelDisabled,
 		setIsCancel,
 	);
+	const logo = useGetCatalogTitleLogo(link.name, [workspace, isCloning, error]);
 	const brokenCloneFailed = link.broken === "clone-failed";
 	const { onClick: onClickError } = useCardError(link, error);
 
 	useEffect(() => {
-		if (link.isCloning && !isCloning && !(progress?.type == "finish" || progress?.type == "error")) start();
+		if (link.isCloning && !isCloning && !(progress?.type === "finish" || progress?.type === "error")) start();
 	}, [link, start, progress, isCloning]);
 
 	useEffect(() => {

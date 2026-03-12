@@ -1,10 +1,11 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
-import { QuestionType } from "@ext/markdown/elements/question/types";
-import { memo, ReactNode } from "react";
+import type { QuestionType } from "@ext/markdown/elements/question/types";
+import { QuizArticleBottom } from "@ext/quiz/components/QuizArticleBottom";
+import { memo, type ReactNode } from "react";
 import { shallow } from "zustand/shallow";
-import { FocusState } from "../logic/QuestionsStore";
+import type { FocusState } from "../logic/QuestionsStore";
 
 const Wrapper = styled.div`
 	&.shadow-focus-error {
@@ -67,21 +68,25 @@ export const BaseQuestion = memo(({ children, required, focused, focusState }: B
 });
 
 export const Question = ({ children, id, required }: BaseQuestionProps) => {
-	const { isFocused, focusState } = useQuestionsStore(
+	const { isFocused, focusState, isLast } = useQuestionsStore(
 		(store) => ({
 			isFocused: store.focusState?.questionId === id,
 			focusState: store.focusState?.state,
+			isLast: store.questions[id] === Object.values(store.questions).pop(),
 		}),
 		shallow,
 	);
 
 	return (
-		<div className="mb-4 mt-4">
-			<BaseQuestion focused={isFocused} focusState={focusState} required={required}>
-				<div>
-					<div>{children}</div>
-				</div>
-			</BaseQuestion>
-		</div>
+		<>
+			<div className="mb-4 mt-4">
+				<BaseQuestion focused={isFocused} focusState={focusState} required={required}>
+					<div>
+						<div>{children}</div>
+					</div>
+				</BaseQuestion>
+			</div>
+			{isLast && <QuizArticleBottom />}
+		</>
 	);
 };

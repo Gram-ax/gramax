@@ -1,7 +1,6 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
-import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import homeSections from "@core/utils/homeSections";
@@ -11,8 +10,8 @@ import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import type GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { catalogHasItems, isLanguageCategory, resolveRootCategory } from "@ext/localization/core/catalogExt";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
+import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import { getStoredQuestionsByContent } from "@ext/markdown/elements/question/render/logic/getStoredQuestionsByContent";
 import type { StoredQuestion } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
@@ -115,15 +114,24 @@ export type HomePageData = {
 	group?: string;
 };
 
-export type ArticlePageData = {
-	markdown?: string;
-	articleContentRender?: string;
-	articleContentEdit?: string;
+type BaseArticlePageData = {
 	articleProps: ClientArticleProps;
 	catalogProps: ClientCatalogProps;
 	itemLinks: ItemLink[];
 	rootRef?: ClientItemRef;
 };
+
+export type EditArticlePageData = BaseArticlePageData & {
+	content: string;
+	mode: "edit";
+};
+
+export type ReadonlyArticlePageData = BaseArticlePageData & {
+	content: RenderableTreeNodes;
+	mode: "read";
+};
+
+export type ArticlePageData = EditArticlePageData | ReadonlyArticlePageData;
 
 export type OpenGraphData = {
 	title: string;
@@ -161,47 +169,29 @@ export default class SitePresenter {
 			(c) =>
 				!c.props.language ||
 				!this._context.contentLanguage ||
-				c.props.language == this._context.contentLanguage,
+				c.props.language === this._context.contentLanguage,
 		);
 		const { section, breadcrumb, group } = this._getSection(catalogsLinks, sectionsInfo, pathSections);
 
-		return { section, catalogsLinks, breadcrumb, group };
+		return { section, catalogsLinks, breadcrumb, group: group ?? null };
 	}
 
 	async getArticlePageData(article: Article, catalog: ReadonlyCatalog): Promise<ArticlePageData> {
-		if (!this._isReadOnly && !catalog?.customProviders?.templateProvider?.isTransferedLegacyProperties()) {
-			const formatter = new MarkdownFormatter();
-			await catalog?.customProviders?.templateProvider?.transferLegacyProperties(
-				new ResourceUpdaterFactory(this._parser, this._parserContextFactory, formatter),
-				this._parserContextFactory,
-				this._parser,
-				formatter,
-				this._context,
-			);
-		}
-
 		await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 
 		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.ref.path.value) : [];
+		const articleProps = await this.serializeArticleProps(article, await catalog?.getPathname(article));
+		const catalogProps = await this.serializeCatalogProps(catalog);
+		const rootRef = catalog ? await this._nav.getRootItemLink(catalog) : null;
+		const isReadOnly = this._isReadOnly || !!articleProps.errorCode;
 
-		const { edit, render } = await article.parsedContent.read((p) => {
-			if (!p) return { render: null, edit: null };
+		if (isReadOnly) {
+			const content = await this._getReadonlyArticleContent(article);
+			return { content, articleProps, catalogProps, rootRef, itemLinks, mode: "read" };
+		}
 
-			return {
-				render: JSON.stringify(p.renderTree),
-				edit: !this._isReadOnly ? JSON.stringify(getArticleWithTitle(article.props.title, p.editTree)) : null,
-			};
-		});
-
-		return {
-			markdown: this._isReadOnly ? article.content : null,
-			articleContentRender: render,
-			articleContentEdit: edit,
-			articleProps: await this.serializeArticleProps(article, await catalog?.getPathname(article)),
-			catalogProps: await this.serializeCatalogProps(catalog),
-			rootRef: catalog ? await this._nav.getRootItemLink(catalog) : null,
-			itemLinks,
-		};
+		const content = await this._getEditArticleContent(article);
+		return { content, articleProps, catalogProps, rootRef, itemLinks, mode: "edit" };
 	}
 
 	async getArticlePageDataByPath(path: string[], pathname?: string): Promise<ArticlePageData> {
@@ -242,16 +232,17 @@ export default class SitePresenter {
 			: await this.getArticleByPathOfCatalog(path, [this._filters[1], this._filters[2]]);
 
 		if (!article) return null;
-		if (await article.parsedContent.isNull())
+		if (await article.parsedContent.isNull()) {
 			await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
+		}
+
 		const { convert } = await htmlToText();
 		const htmlValue = await article.parsedContent.read((p) => p?.getHtmlValue.get());
-		let description =
-			article.props["summary"] ??
-			convert(htmlValue, {
-				selectors: ["h1", "h2", "h3", "h4"].map((v) => ({ selector: v, options: { uppercase: false } })),
-			});
-		if (description.length > 150) description = description.slice(0, 150) + "...";
+		let description = convert(htmlValue, {
+			selectors: ["h1", "h2", "h3", "h4"].map((v) => ({ selector: v, options: { uppercase: false } })),
+		});
+
+		if (description.length > 150) description = `${description.slice(0, 150)}...`;
 		return {
 			title: article.props.title ?? "",
 			description,
@@ -262,7 +253,7 @@ export default class SitePresenter {
 		for (const article of catalog.getContentItems()) {
 			try {
 				await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
-			} catch (e) {
+			} catch {
 				// logger.logError(e);
 			}
 		}
@@ -277,15 +268,15 @@ export default class SitePresenter {
 		}
 
 		return {
-			pathname,
-			logicPath: article.logicPath,
+			pathname: pathname ?? null,
+			logicPath: article.logicPath ?? null,
 			fileName: article.getFileName(),
 			ref: {
 				path: article.ref.path.value,
 				storageId: article.ref.storageId,
 			},
 			title: article.getTitle(),
-			description: article.props["description"] ?? "",
+			description: article.props.description ?? "",
 			tocItems: (await article?.parsedContent.read((p) => p?.tocItems)) ?? [],
 			properties: article.props.properties ?? [],
 			errorCode: article.errorCode ?? null,
@@ -318,7 +309,7 @@ export default class SitePresenter {
 			};
 		}
 
-		const sourceName = await catalog.repo?.storage?.getSourceName();
+		const sourceName = (await catalog.repo?.storage?.getSourceName()) ?? null;
 
 		const workspaceConfig = await this._workspace.config();
 		const link = await this._nav.getCatalogLink(catalog, new LastVisited(this._context, workspaceConfig.name));
@@ -339,13 +330,13 @@ export default class SitePresenter {
 			userInfo: this._grp.getSourceUserInfo(this._context, sourceName),
 			docroot: catalog.getRelativeRootCategoryPath()?.value,
 			supportedLanguages: Array.from(catalog.props.supportedLanguages || []),
-			versions: catalog.props.versions,
-			filterProperty: catalog.props.filterProperty,
-			resolvedVersion: catalog.props.resolvedVersion,
-			resolvedFilterPropertyValue: catalog.props.resolvedFilterPropertyValue,
-			resolvedVersions: catalog.props.resolvedVersions,
-			syntax: syntax?.toUpperCase() === Syntax.xml ? Syntax.xml : syntax,
-			docrootIsNoneExsistent: catalog.props.docrootIsNoneExistent,
+			versions: catalog.props.versions ?? null,
+			filterProperty: catalog.props.filterProperty ?? null,
+			resolvedVersion: catalog.props.resolvedVersion ?? null,
+			resolvedFilterPropertyValue: catalog.props.resolvedFilterPropertyValue ?? null,
+			resolvedVersions: catalog.props.resolvedVersions ?? null,
+			syntax: syntax?.toUpperCase() === Syntax.xml ? Syntax.xml : (syntax ?? null),
+			docrootIsNoneExsistent: catalog.props.docrootIsNoneExistent ?? null,
 		};
 	}
 
@@ -368,12 +359,17 @@ export default class SitePresenter {
 		// ! Hack, because we need to 😢
 		// ? Checks if the found category is a language category, then redirects user to first child, or to any other first in route
 		if (isLanguageCategory(catalog, article)) {
-			if (this._context.contentLanguage || catalog.props.language != this._context.contentLanguage)
+			if (this._context.contentLanguage || catalog.props.language !== this._context.contentLanguage)
 				article = (article as Category).items[0] as Article;
 			else article = catalog.getRootCategory().items.find((i) => !isLanguageCategory(catalog, i)) as Article;
 		}
 
 		return { article, catalog };
+	}
+
+	getRedirectOnDelete(catalog: Catalog, articlePath: Path) {
+		const item = catalog.findItemByItemPath(articlePath);
+		return catalog.getPathname(item.parent);
 	}
 
 	private _getSection(
@@ -446,5 +442,15 @@ export default class SitePresenter {
 
 	private _getLang(catalog: ReadonlyCatalog): UiLanguage {
 		return convertContentToUiLanguage(this._context.contentLanguage || catalog.props.language);
+	}
+
+	private async _getReadonlyArticleContent(article: Article): Promise<RenderableTreeNodes> {
+		return await article.parsedContent.read((p) => p?.renderTree);
+	}
+
+	private async _getEditArticleContent(article: Article): Promise<string> {
+		return await article.parsedContent.read((p) =>
+			JSON.stringify(getArticleWithTitle(article.props.title, p?.editTree)),
+		);
 	}
 }

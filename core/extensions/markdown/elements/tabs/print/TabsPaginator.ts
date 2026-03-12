@@ -20,7 +20,6 @@ export class TabsPaginator extends NodePaginator<HTMLDivElement> {
 		this._tabsWrapper = this.node.cloneNode(false) as HTMLDivElement;
 		this._tabsContainer = this.node.firstElementChild.cloneNode(false) as HTMLDivElement;
 		this._tabsWrapper.appendChild(this._tabsContainer);
-		this.parentPaginator.currentContainer.appendChild(this._tabsWrapper);
 
 		for (const tab of allTabElements) {
 			const tabHeight = Paginator.paginationInfo.nodeDimension.get(tab).height;
@@ -41,11 +40,7 @@ export class TabsPaginator extends NodePaginator<HTMLDivElement> {
 
 				const nodeDimension = Paginator.paginationInfo.nodeDimension;
 
-				const canAppend = nodeDimension.canUpdateAccumulatedHeight(
-					content,
-					Paginator.paginationInfo.accumulatedHeight,
-					this.getUsableHeight(),
-				);
+				const canAppend = nodeDimension.canUpdateAccumulatedHeight(content, this.getUsableHeight());
 				if (!canAppend) {
 					contentContainer.replaceWith(this.currentContainer);
 					await super.paginateSource(content);
@@ -62,18 +57,20 @@ export class TabsPaginator extends NodePaginator<HTMLDivElement> {
 			this._tabsContainer.appendChild(tab);
 		}
 
+		this.parentPaginator.currentContainer.appendChild(this._tabsWrapper);
 		this.setMarginBottom();
 		this.node.remove();
 	}
 
 	createPage() {
+		this.parentPaginator.currentContainer.appendChild(this._tabsWrapper);
 		const tabsContainsSomeTab = !!this._tabsContainer.childNodes.length;
 		if (!tabsContainsSomeTab) this._tabsWrapper.remove();
 
 		this.cleanHeadingElementsIfNeed();
 		throwIfAborted();
 
-		if (tabsContainsSomeTab && this.currentContainer.childNodes.length) {
+		if (tabsContainsSomeTab && this.haveChildNodes()) {
 			this._currentTabContainer = this._currentTab.cloneNode(false) as HTMLDivElement;
 			this.currentContainer = this.currentContainer.cloneNode(false) as HTMLDivElement;
 
@@ -85,8 +82,7 @@ export class TabsPaginator extends NodePaginator<HTMLDivElement> {
 		this._tabsWrapper = this.node.cloneNode(false) as HTMLDivElement;
 		this._tabsWrapper.appendChild(this._tabsContainer);
 
-		const parentPage = this.parentPaginator.createPage();
-		parentPage.appendChild(this._tabsWrapper);
+		this.parentPaginator.createPage();
 
 		this.addDimension();
 		this.addTabDimension();

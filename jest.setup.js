@@ -45,3 +45,9 @@ jest.mock("ics-ui-kit/components/textarea", () => ({
 	Textarea: "textarea",
 	AutogrowTextarea: "textarea",
 }));
+
+jest.mock("ics-ui-kit/components/dialog", () => ({
+	Dialog: "div",
+	DialogContent: "div",
+	DialogBody: "div",
+}));

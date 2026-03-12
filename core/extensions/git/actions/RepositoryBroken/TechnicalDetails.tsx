@@ -4,16 +4,16 @@ import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import { Button } from "@ui-kit/Button";
 import {
-	Modal,
-	ModalBody,
-	ModalClose,
-	ModalContent,
-	ModalDescription,
-	ModalFooter,
-	ModalHeader,
-	ModalTitle,
-	ModalTrigger,
-} from "@ui-kit/Modal";
+	Dialog,
+	DialogBody,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@ui-kit/Dialog";
 
 export type TechnicalDetailsProps = PropsOf<typeof Button> & {
 	error: Error;
@@ -40,26 +40,26 @@ const StyledButton = styled(Button)`
 
 export const TechnicalDetails = ({ children, error, ...props }: TechnicalDetailsProps) => {
 	return (
-		<Modal>
-			<ModalTrigger asChild>
+		<Dialog>
+			<DialogTrigger asChild>
 				<StyledButton className="underline" size="xl" variant="link" {...props}>
 					{children}
 				</StyledButton>
-			</ModalTrigger>
-			<ModalContent>
-				<ModalHeader>
-					<ModalTitle>{t("technical-details")}</ModalTitle>
-					<ModalDescription />
-				</ModalHeader>
-				<ModalBody className="text-primary-fg" style={{ padding: "0 0 1rem 0" }}>
+			</DialogTrigger>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>{t("technical-details")}</DialogTitle>
+					<DialogDescription />
+				</DialogHeader>
+				<DialogBody className="text-primary-fg" style={{ padding: "0 0 1rem 0" }}>
 					<CodeBlock value={error?.message || "no message"} />
-				</ModalBody>
-				<ModalFooter className="flex justify-end">
-					<ModalClose asChild>
+				</DialogBody>
+				<DialogFooter className="flex justify-end">
+					<DialogClose asChild>
 						<Button>{t("close")}</Button>
-					</ModalClose>
-				</ModalFooter>
-			</ModalContent>
-		</Modal>
+					</DialogClose>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
 	);
 };

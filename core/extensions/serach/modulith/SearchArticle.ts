@@ -1,11 +1,11 @@
 import { ContentLanguage } from "@ext/localization/core/model/Language";
-import { Article, FieldsToDotPaths } from "@ics/gx-vector-search";
-import { ArticleFilter } from "@ics/modulith-search-domain/article";
+import type { Article, ArticleFilter } from "@ics/modulith-search-domain/article";
+import type { FieldsToArrayPaths } from "@ics/modulith-utils";
 
 export type ArticleLanguage = ContentLanguage | "none";
 
 export function isArticleLanguage(str: string | undefined): str is ArticleLanguage {
-	return str != undefined && (str === "none" || ContentLanguage[str] != undefined);
+	return str != null && (str === "none" || ContentLanguage[str] != null);
 }
 
 export type SearchArticleMetadataBase = {
@@ -27,6 +27,9 @@ export type SearchArticleCatalogMetadata = SearchArticleMetadataBase & {
 
 export type SearchArticleFileMetadata = SearchArticleMetadataBase & {
 	type: "file";
+	id: string;
+	hash: string;
+	articleId: string;
 	properties: Record<string, unknown>;
 };
 
@@ -37,4 +40,5 @@ export type SearchArticleMetadata =
 
 export type SearchArticle = Article<SearchArticleMetadata>;
 
-export type SearchArticleFilter = ArticleFilter<FieldsToDotPaths<SearchArticleMetadata>>;
+export type SearchArticleKey = FieldsToArrayPaths<SearchArticleMetadata>;
+export type SearchArticleFilter = ArticleFilter<SearchArticleKey>;

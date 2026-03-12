@@ -4,7 +4,7 @@ import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErro
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
 import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import type StorageData from "@ext/storage/models/StorageData";
-import { Modal, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { Dialog, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { useState } from "react";
 import SelectStorageDataForm from "../../../../storage/components/SelectStorageDataForm";
 
@@ -53,9 +53,9 @@ const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: C
 	};
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
-			{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
-			<ModalContent>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			{trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+			<DialogContent>
 				<OnNetworkApiErrorService.Provider callback={() => closeForm()}>
 					<>
 						<SelectStorageDataForm
@@ -66,8 +66,8 @@ const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: C
 						/>
 					</>
 				</OnNetworkApiErrorService.Provider>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

@@ -1,7 +1,5 @@
 use gramaxgit::prelude::*;
 
-use tempdir::*;
-
 use std::fs;
 
 use test_utils::git::*;
@@ -19,7 +17,7 @@ fn file_history(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> Re
 	repo.add("file_2")?;
 	repo.commit_debug()?;
 
-	let diff = repo.history("file", 10)?;
+	let diff = repo.history("file", 0, 10)?;
 
 	assert_eq!(diff.len(), 2);
 	Ok(())
@@ -62,7 +60,7 @@ fn file_history_with_rename(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestC
 	repo.add_all()?;
 	repo.commit_debug()?;
 
-	let diff = repo.history("file_4", 10)?;
+	let diff = repo.history("file_4", 0, 10)?;
 
 	assert_eq!(diff.len(), 8);
 

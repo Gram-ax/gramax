@@ -1,17 +1,18 @@
 import Checkbox from "@components/Atoms/Checkbox";
 import DiffContent from "@components/Atoms/DiffContent";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import LeftNavViewContent, { ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
+import LeftNavViewContent, { type ViewContent } from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
 import LogsLayout from "@components/Layouts/LogsLayout";
 import ModalLayout from "@components/Layouts/Modal";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { useEffect, useState } from "react";
+import { LoadMoreTrigger } from "@ui-kit/LoadMoreTrigger";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import User from "../../../../security/components/User/User";
-import { ArticleHistoryViewModel } from "../model/ArticleHistoryViewModel";
+import type { ArticleHistoryViewModel, OffsetDataLoader } from "../model/ArticleHistoryViewModel";
 
 interface HistoryProps {
 	item: ClientArticleProps;
@@ -26,35 +27,46 @@ const History = (props: HistoryProps) => {
 	const [showDiff, setShowDiff] = useState(true);
 	const [isOpen, setIsOpen] = useState(true);
 	const [data, setData] = useState<ArticleHistoryViewModel[]>(null);
+	const [hasMore, setHasMore] = useState(true);
+	const offsetRef = useRef(0);
 	const showDiffText = t("show-diffs");
 
-	const loadData = async () => {
-		const response = await FetchService.fetch<ArticleHistoryViewModel[]>(
-			apiUrlCreator.getVersionControlFileHistoryUrl(item.ref.path),
+	const loadData = useCallback(async () => {
+		const response = await FetchService.fetch<OffsetDataLoader<ArticleHistoryViewModel>>(
+			apiUrlCreator.getVersionControlFileHistoryUrl(item.ref.path, offsetRef.current),
 		);
 		if (!response.ok) {
 			setIsOpen(false);
+			setHasMore(false);
 			return;
 		}
-		setData(await response.json());
-	};
+		const data = await response.json();
 
-	const spinnerLoader = (
-		<LogsLayout style={{ overflow: "hidden" }}>
-			<SpinnerLoader fullScreen />
-		</LogsLayout>
+		offsetRef.current = data.nextOffset;
+
+		setHasMore(data.hasMore);
+		setData((prev) => [...(prev ?? []), ...(data?.items?.filter(Boolean) ?? [])]);
+	}, [item.ref.path, apiUrlCreator.getVersionControlFileHistoryUrl]);
+
+	const spinnerLoader = useMemo(
+		() => (
+			<LogsLayout style={{ overflow: "hidden" }}>
+				<SpinnerLoader fullScreen />
+			</LogsLayout>
+		),
+		[],
 	);
 
 	useEffect(() => {
 		loadData();
-	}, []);
+	}, [loadData]);
 
-	const onCloseModal = () => {
+	const onCloseModal = useCallback(() => {
 		setShowDiff(true);
 		setIsOpen(false);
 		setData(null);
 		onClose();
-	};
+	}, [onClose]);
 
 	return (
 		<ModalLayout contentWidth={data ? "L" : null} isOpen={isOpen} onClose={onCloseModal}>
@@ -86,6 +98,9 @@ const History = (props: HistoryProps) => {
 								),
 							}),
 						)}
+						loadMoreTrigger={
+							<LoadMoreTrigger hasMore={hasMore} loadingText={t("loading")} onLoad={loadData} />
+						}
 						sideBarBottom={
 							<div className={className}>
 								<div className="show-diff-checkbox">

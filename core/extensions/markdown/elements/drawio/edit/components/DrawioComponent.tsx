@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import BlockActionPanel from "@components/BlockActionPanel";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -8,15 +10,15 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import DrawioActions from "@ext/markdown/elements/drawio/edit/components/DrawioActions";
 import getDrawioID from "@ext/markdown/elements/drawio/edit/logic/getDrawioID";
 import DiagramEditor from "@ext/markdown/elements/drawio/logic/diagram-editor";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
-import { NodeViewProps } from "@tiptap/react";
-import { ReactElement, useCallback, useRef, useState } from "react";
+import type { NodeViewProps } from "@tiptap/react";
+import { type ReactElement, useCallback, useRef, useState } from "react";
 import Drawio from "../../render/component/Drawio";
 
 const DrawioComponent = (props: NodeViewProps): ReactElement => {
@@ -85,11 +87,11 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 			const res = await FetchService.fetch(url);
 			if (res.ok) {
 				const buffer = await res.buffer();
-				const urlToImage = URL.createObjectURL(new Blob([buffer], { type: resolveFileKind(buffer) }));
+				const urlToImage = URL.createObjectURL(new Blob([buffer as any], { type: resolveFileKind(buffer) }));
 				const newSize = await getNaturalSize(urlToImage);
 				if (newSize) {
-					attributes.width = newSize.width + "px";
-					attributes.height = newSize.height + "px";
+					attributes.width = `${newSize.width}px`;
+					attributes.height = `${newSize.height}px`;
 				}
 				URL.revokeObjectURL(urlToImage);
 			}

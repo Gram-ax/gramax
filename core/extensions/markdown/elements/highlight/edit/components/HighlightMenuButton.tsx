@@ -7,14 +7,14 @@ import t from "@ext/localization/locale/translate";
 import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { useMediaQuery } from "@mui/material";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ColorTile } from "@ui-kit/ColorTile";
 import { useHoverDropdown } from "@ui-kit/Dropdown";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { MouseEvent, memo, useCallback, useState } from "react";
+import { type MouseEvent, memo, useCallback, useRef, useState } from "react";
 
 const HighlightButton = styled(ColorTile)<{ color: HIGHLIGHT_COLOR_NAMES }>`
 	background-color: ${({ color }) => `var(--color-highlight-${color})`};
@@ -31,6 +31,7 @@ const HighlightMenuButton = ({ editor }: { editor: Editor }) => {
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 	const [activeColor, setActiveColor] = useState<HIGHLIGHT_COLOR_NAMES>(editor.getAttributes("highlight")?.color);
 	const lastUsedColor = EditorService.getData("lastUsedHighlightColor");
+	const portalContainerRef = useRef<HTMLDivElement>(null);
 
 	useWatch(() => {
 		setActiveColor(attrs?.color ? (attrs.color as HIGHLIGHT_COLOR_NAMES) : HIGHLIGHT_COLOR_NAMES.DEFAULT);
@@ -72,7 +73,7 @@ const HighlightMenuButton = ({ editor }: { editor: Editor }) => {
 		const color = lastUsedColor ?? HIGHLIGHT_COLOR_NAMES.LEMON_YELLOW;
 		editor.commands.setHighlight({ color });
 		setActiveColor(color);
-	}, [isActive, disabled, editor, lastUsedColor, isMobile]);
+	}, [isActive, disabled, editor, lastUsedColor, isMobile, setIsOpen]);
 
 	const onOpenChange = useCallback(
 		(open: boolean) => {
@@ -110,6 +111,7 @@ const HighlightMenuButton = ({ editor }: { editor: Editor }) => {
 				className={cn(disabled && "pointer-events-none")}
 				onMouseEnter={handleMouseEnter}
 				onMouseLeave={onMouseLeave}
+				ref={portalContainerRef}
 			>
 				<Popover onOpenChange={onOpenChange} open={isOpen}>
 					<PopoverTrigger asChild>
@@ -129,6 +131,7 @@ const HighlightMenuButton = ({ editor }: { editor: Editor }) => {
 						className="bg-transparent px-3 py-3 pb-2 border-none w-auto"
 						onCloseAutoFocus={onAutoCloseFocus}
 						onInteractOutside={onInteractOutside}
+						portalContainer={portalContainerRef.current}
 						side="top"
 						sideOffset={0}
 						style={{ boxShadow: "none" }}

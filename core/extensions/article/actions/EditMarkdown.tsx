@@ -2,8 +2,8 @@ import FileInput from "@components/Atoms/FileInput/FileInput";
 import useTrigger from "@core-ui/triggers/useTrigger";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface FileEditorProps {
@@ -52,19 +52,19 @@ const EditMarkdown = ({ trigger, loadContent, saveContent, onClose }: FileEditor
 	}, []);
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
 			{trigger && (
-				<ModalTrigger asChild onClick={() => void onOpenChange(true)}>
+				<DialogTrigger asChild onClick={() => void onOpenChange(true)}>
 					{trigger}
-				</ModalTrigger>
+				</DialogTrigger>
 			)}
-			<ModalContent data-modal-root size="L">
+			<DialogContent data-modal-root size="L">
 				<FormHeader
 					description={t("article.markdown-edit.description")}
 					icon={"file-pen"}
 					title={t("article.markdown-edit.title")}
 				/>
-				<ModalBody className="space-y-4">
+				<DialogBody className="space-y-4">
 					<FileInput
 						height={"100%"}
 						key={key}
@@ -74,10 +74,10 @@ const EditMarkdown = ({ trigger, loadContent, saveContent, onClose }: FileEditor
 						uiKitTheme
 						value={value}
 					/>
-				</ModalBody>
+				</DialogBody>
 				<FormFooter primaryButton={<Button children={t("save")} onClick={save} variant="primary" />} />
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

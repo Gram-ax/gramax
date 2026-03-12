@@ -10,11 +10,14 @@ import { nextFrame } from "@ext/print/utils/pagination/scheduling";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { CheckboxField } from "@ui-kit/Checkbox";
+import { Description } from "@ui-kit/Description";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
+import { Icon } from "@ui-kit/Icon";
+import { FieldLabel } from "@ui-kit/Label";
 import { Loader } from "@ui-kit/Loader";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
-import { useRef } from "react";
+import { type DOMAttributes, useRef } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -26,6 +29,25 @@ interface ExportPdfProps {
 	apiUrlCreator: ApiUrlCreator;
 	templates: string[];
 }
+
+const InformationBlock = ({ className }: { className?: string }) => {
+	return (
+		<div
+			className={`${className} flex items-center gap-2.5 rounded-lg bg-muted/60 px-3.5 py-3 text-xs text-muted-foreground`}
+		>
+			<Icon icon="file" />
+			<Description>
+				<span>{t("export.pdf.form.printDialog")}</span>
+			</Description>
+		</div>
+	);
+};
+
+const StyledInformationBlock = styled(InformationBlock)`
+	padding-left: 0.875rem;
+	padding-right: 0.875rem;
+	background-color: color-mix(in oklab, var(--color-background-muted) 60%, transparent);
+`;
 
 const localStorageProvider = {
 	getProps: (): PdfPrintParams => {
@@ -51,6 +73,7 @@ const ExportPdf = (props: ExportPdfProps) => {
 		cancelTaskRef,
 	} = useExportPdf({ onClose });
 	const exportAbortRef = useRef<AbortController | null>(null);
+	const type = !itemRefPath ? "catalog" : isCategory ? "category" : "article";
 
 	const schema = z.object({
 		titlePage: z.boolean(),
@@ -83,7 +106,7 @@ const ExportPdf = (props: ExportPdfProps) => {
 		},
 	];
 
-	const formSubmit = (event) => {
+	const formSubmit: DOMAttributes<HTMLFormElement>["onSubmit"] = (event) => {
 		if (isExporting) {
 			event?.preventDefault?.();
 			return;
@@ -133,7 +156,7 @@ const ExportPdf = (props: ExportPdfProps) => {
 
 	return (
 		<StyledModal onOpenChange={onOpenChange} open={open}>
-			<ModalContent data-modal-root>
+			<DialogContent data-modal-root>
 				<Form asChild {...form}>
 					<form onSubmit={formSubmit}>
 						<FormHeader
@@ -150,88 +173,100 @@ const ExportPdf = (props: ExportPdfProps) => {
 								</div>
 							}
 							icon="file-text"
-							title={t("export.pdf.form.title")}
+							title={t(`export.pdf.form.title.${type}`)}
 						/>
-						<ModalBody>
+						<DialogBody>
 							<FormStack>
-								{checkboxConfig.map((cfg) => (
-									<Controller
-										control={form.control}
-										key={cfg.name}
-										name={cfg.name}
-										render={({ field: { value, onChange, name } }) => (
-											<CheckboxField
-												checked={!!value}
-												className="gap-2 items-start"
-												description={cfg.description}
-												disabled={isExporting}
-												label={cfg.label}
-												name={name}
-												onCheckedChange={(checked) => onChange(!!checked)}
-											/>
-										)}
-									/>
-								))}
+								<div className="flex flex-col gap-6">
+									<div className="space-y-3">
+										<FieldLabel>{t("export.pdf.form.sectionTitle")}</FieldLabel>
+										<div className="space-y-5 lg:space-y-4 p-2.5">
+											{checkboxConfig.map((cfg) => (
+												<Controller
+													control={form.control}
+													key={cfg.name}
+													name={cfg.name}
+													render={({ field: { value, onChange, name } }) => (
+														<CheckboxField
+															checked={!!value}
+															className="gap-2 items-start"
+															description={cfg.description}
+															disabled={isExporting}
+															label={cfg.label}
+															name={name}
+															onCheckedChange={(checked) => onChange(!!checked)}
+														/>
+													)}
+												/>
+											))}
+										</div>
+									</div>
 
-								{templates.length > 0 && (
-									<FormField
-										control={({ field }) => (
-											<Select
-												disabled={isExporting}
-												onValueChange={field.onChange}
-												value={field.value || null}
-											>
-												<SelectTrigger
-													onClear={field.value ? () => field.onChange(null) : undefined}
-													type="button"
+									{templates.length > 0 && (
+										<FormField
+											control={({ field }) => (
+												<Select
+													disabled={isExporting}
+													onValueChange={field.onChange}
+													value={field.value || undefined}
 												>
-													<SelectValue placeholder={t("no-selected")} />
-												</SelectTrigger>
-												<SelectContent>
-													{templates.map((template, idx) => (
-														<SelectItem
-															data-qa={"qa-clickable"}
-															key={idx + template}
-															value={template}
-														>
-															{template}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select>
-										)}
-										description={
-											<div>
-												{t("export.pdf.form.templateDescription.body")}{" "}
-												<a
-													href="https://gram.ax/resources/docs/collaboration/export-docx-pdf/add-custom-template-docx/pdf"
-													rel="noreferrer"
-													target="_blank"
-												>
-													{t("export.pdf.form.templateDescription.more")}
-												</a>
-											</div>
-										}
-										layout="vertical"
-										name="template"
-										title={t("export.pdf.form.template")}
-									/>
-								)}
+													<SelectTrigger
+														onClear={field.value ? () => field.onChange(null) : undefined}
+														type="button"
+													>
+														<SelectValue placeholder={t("no-selected")} />
+													</SelectTrigger>
+													<SelectContent>
+														{templates.map((template, idx) => (
+															<SelectItem
+																data-qa={"qa-clickable"}
+																key={idx + template}
+																value={template}
+															>
+																{template}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											)}
+											description={
+												<div>
+													{t("export.pdf.form.templateDescription.body")}{" "}
+													<a
+														href="https://gram.ax/resources/docs/collaboration/export-docx-pdf/add-custom-template/pdf"
+														rel="noreferrer"
+														target="_blank"
+													>
+														{t("more")}
+													</a>
+												</div>
+											}
+											layout="vertical"
+											name="template"
+											title={t("export.pdf.form.template")}
+										/>
+									)}
+									<StyledInformationBlock />
+								</div>
 							</FormStack>
-						</ModalBody>
+						</DialogBody>
 						<FormFooter
 							className="flex flex-col gap-4"
-							leftContent={
-								isExporting ? (
-									<div className="flex flex-row items-center">
-										<Loader className="pl-1" />
-										<span className="text-sm text-primary-fg">{progressLabel}</span>
-									</div>
-								) : undefined
-							}
 							primaryButton={
-								<Button disabled={isExporting} type="submit" variant="primary">
-									{t("export.name")}
+								<Button
+									disabled={isExporting}
+									startIcon={!isExporting ? "printer" : null}
+									type="submit"
+									variant="primary"
+								>
+									{!isExporting ? (
+										t("export.pdf.form.openPrint")
+									) : (
+										<div className="flex flex-row items-center">
+											<Loader className="pl-1 text-inverse" />
+											<span className="text-sm">{progressLabel}</span>
+										</div>
+									)}
 								</Button>
 							}
 							secondaryButton={
@@ -242,12 +277,12 @@ const ExportPdf = (props: ExportPdfProps) => {
 						/>
 					</form>
 				</Form>
-			</ModalContent>
+			</DialogContent>
 		</StyledModal>
 	);
 };
 
-const StyledModal = styled(Modal)`
+const StyledModal = styled(Dialog)`
 	@media print {
 		display: none !important;
 	}

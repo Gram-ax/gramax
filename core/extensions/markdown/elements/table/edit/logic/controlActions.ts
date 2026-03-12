@@ -1,4 +1,4 @@
-import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import type { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
 
 export const hideOldControls = (containerVertical: Element, containerHorizontal: Element, hoveredData: HoveredData) => {
 	const verticalController = containerVertical?.childNodes?.item(hoveredData.rowIndex) as HTMLElement;
@@ -18,7 +18,7 @@ export const hideOldControls = (containerVertical: Element, containerHorizontal:
 	});
 
 	const childNodes = containerHorizontal?.childNodes?.item(hoveredData.cellIndex)?.childNodes;
-	const preHorizontalController = childNodes.item(childNodes.length - 1) as HTMLElement;
+	const preHorizontalController = childNodes?.item(childNodes.length - 1) as HTMLElement;
 	if (preHorizontalController) preHorizontalController.classList.add("hidden");
 };
 

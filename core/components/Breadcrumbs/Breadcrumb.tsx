@@ -1,10 +1,10 @@
 import styled from "@emotion/styled";
-import { BaseLink } from "@ext/navigation/NavigationLinks";
-import { Fragment, ReactElement } from "react";
+import type { BaseLink } from "@ext/navigation/NavigationLinks";
+import { Fragment, type ReactElement } from "react";
 import Link from "../Atoms/Link";
 
 interface BreadcrumbProps {
-	content: { text: string; link?: BaseLink; onClick?: () => void }[];
+	content: { text: string; link?: BaseLink; onClick?: (e: React.MouseEvent) => void }[];
 	title?: string;
 	middleDots?: boolean;
 	className?: string;
@@ -21,20 +21,20 @@ const Breadcrumb = (props: BreadcrumbProps): ReactElement => {
 				</div>
 			)}
 			{content.map((c, i) => {
-				const isFirst = i == 0;
+				const isFirst = i === 0;
 				const correctLength = content.length > 2;
 				const isNotLast = content.length !== i + 1;
 				const isMiddleDots = middleDots && correctLength ? i !== 0 && isNotLast : false;
 				const text = <span className="text">{c.text}</span>;
 				return (
-					<Fragment key={i}>
+					<Fragment key={i!}>
 						{!isMiddleDots && (
 							<>
-								<div className="link" key={i + "link"} onClick={c.onClick}>
+								<div className="link" key={`${i!}link`} onClick={c.onClick}>
 									{c.link ? <Link href={c.link}>{text}</Link> : text}
 								</div>
 								{isNotLast && content.length > 1 && (
-									<span className="divider" key={i + "divider"}>
+									<span className="divider" key={`${i!}divider`}>
 										{"/"}
 									</span>
 								)}
@@ -42,10 +42,10 @@ const Breadcrumb = (props: BreadcrumbProps): ReactElement => {
 						)}
 						{isFirst && correctLength && middleDots && (
 							<>
-								<span className="dots" key={i + "dots"}>
+								<span className="dots" key={`${i!}dots`}>
 									...
 								</span>
-								<span className="divider" key={i + "divider-2"}>
+								<span className="divider" key={`${i!}divider-2`}>
 									{"/"}
 								</span>
 							</>
@@ -68,7 +68,7 @@ export default styled(Breadcrumb)`
 
 	.title {
 		font-weight: 700;
-		line-height: 100%;
+		line-height: 1.4;
 	}
 
 	a {
@@ -86,7 +86,7 @@ export default styled(Breadcrumb)`
 	.link {
 		gap: 0.26rem;
 		display: flex;
-		line-height: 100%;
+		line-height: 1.4;
 		overflow: hidden;
 		white-space: nowrap;
 		text-overflow: ellipsis;

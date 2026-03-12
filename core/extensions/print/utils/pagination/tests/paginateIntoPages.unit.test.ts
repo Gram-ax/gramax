@@ -1,4 +1,4 @@
-import { ArticlePreview, PdfPrintParams } from "@ext/print/types";
+import type { ArticlePreview, PdfPrintParams } from "@ext/print/types";
 
 jest.mock("../../tocPage/initTocPageContent", () => ({
 	initTocPageContent: jest.fn(),
@@ -38,13 +38,13 @@ describe("paginateIntoPages integration", () => {
 		const source = document.createElement("div");
 		const heading = document.createElement("h1");
 		heading.textContent = "Heading";
-		const paragraph = document.createElement("p");
-		paragraph.textContent = "Content";
+		const span = document.createElement("span");
+		span.textContent = "Content";
 		source.appendChild(heading);
-		source.appendChild(paragraph);
+		source.appendChild(span);
 
 		Object.defineProperty(heading, "offsetHeight", { value: 40, configurable: true });
-		Object.defineProperty(paragraph, "offsetHeight", { value: 60, configurable: true });
+		Object.defineProperty(span, "offsetHeight", { value: 60, configurable: true });
 
 		const pages = document.createElement("div");
 		const params: PdfPrintParams = {

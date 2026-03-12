@@ -1,4 +1,4 @@
-import { Question } from "@ext/markdown/elements/question/types";
+import type { Question } from "@ext/markdown/elements/question/types";
 import { isAnswersCorrect } from "./isAnswersCorrect";
 
 describe("isAnswersCorrect", () => {
@@ -14,7 +14,7 @@ describe("isAnswersCorrect", () => {
 			},
 		});
 
-		const answers = [{ questionId: "q1", answersIds: ["a1"] }];
+		const answers = [{ questionId: "q1", answersIds: { a1: true } }];
 		const results = isAnswersCorrect(questions, answers);
 
 		expect(results).toEqual([{ questionId: "q1", isCorrect: true }]);
@@ -32,7 +32,7 @@ describe("isAnswersCorrect", () => {
 			},
 		});
 
-		const answers = [{ questionId: "q1", answersIds: ["a2"] }];
+		const answers = [{ questionId: "q1", answersIds: { a2: true } }];
 		const results = isAnswersCorrect(questions, answers);
 
 		expect(results).toEqual([{ questionId: "q1", isCorrect: false }]);
@@ -51,7 +51,7 @@ describe("isAnswersCorrect", () => {
 			},
 		});
 
-		const answers = [{ questionId: "q1", answersIds: ["a1"] }];
+		const answers = [{ questionId: "q1", answersIds: { a1: true } }];
 		const results = isAnswersCorrect(questions, answers);
 
 		expect(results).toEqual([{ questionId: "q1", isCorrect: false }]);
@@ -63,18 +63,22 @@ describe("isAnswersCorrect", () => {
 			id: "q1",
 			title: "Question 1",
 			type: "one",
-			answers: {},
+			answers: {
+				a1: { id: "a1", type: "radio", correct: null, title: "Answer 1" },
+				a2: { id: "a2", type: "radio", correct: null, title: "Answer 2" },
+				a3: { id: "a3", type: "radio", correct: null, title: "Answer 3" },
+			},
 		});
 
-		const answers = [{ questionId: "q1", answersIds: [] }];
+		const answers = [{ questionId: "q1", answersIds: { a1: true } }];
 		const results = isAnswersCorrect(questions, answers);
 
-		expect(results).toEqual([{ questionId: "q1", isCorrect: true }]);
+		expect(results).toEqual([{ questionId: "q1", isCorrect: null }]);
 	});
 
 	it("should return false if the question is not found", () => {
 		const questions = new Map<string, Question>();
-		const answers = [{ questionId: "nonExistent", answersIds: ["a1"] }];
+		const answers = [{ questionId: "nonExistent", answersIds: { a1: true } }];
 		const results = isAnswersCorrect(questions, answers);
 
 		expect(results).toEqual([{ questionId: "nonExistent", isCorrect: false }]);
@@ -93,7 +97,7 @@ describe("isAnswersCorrect", () => {
 			},
 		});
 
-		const answers = [{ questionId: "q1", answersIds: ["a1", "a2"] }];
+		const answers = [{ questionId: "q1", answersIds: { a1: true, a2: true } }];
 		const results = isAnswersCorrect(questions, answers);
 
 		expect(results).toEqual([{ questionId: "q1", isCorrect: true }]);
@@ -112,7 +116,7 @@ describe("isAnswersCorrect", () => {
 			},
 		});
 
-		const answers = [{ questionId: "q1", answersIds: ["a1"] }];
+		const answers = [{ questionId: "q1", answersIds: { a1: true } }];
 		const results = isAnswersCorrect(questions, answers);
 
 		expect(results).toEqual([{ questionId: "q1", isCorrect: false }]);
@@ -131,7 +135,7 @@ describe("isAnswersCorrect", () => {
 			},
 		});
 
-		const answers = [{ questionId: "q1", answersIds: ["a1", "a3"] }];
+		const answers = [{ questionId: "q1", answersIds: { a1: true, a3: true } }];
 		const results = isAnswersCorrect(questions, answers);
 
 		expect(results).toEqual([{ questionId: "q1", isCorrect: false }]);
@@ -146,9 +150,43 @@ describe("isAnswersCorrect", () => {
 			answers: { a1: { id: "a1", type: "radio", correct: true, title: "Answer 1" } },
 		});
 
-		const answers = [{ questionId: "q1", answersIds: ["a1"] }];
+		const answers = [{ questionId: "q1", answersIds: { a1: true } }];
 		const results = isAnswersCorrect(questions, answers, { includeCorrectAnswersIds: true });
 
 		expect(results).toEqual([{ questionId: "q1", isCorrect: true, correctAnswersIds: ["a1"] }]);
+	});
+
+	it("should return null for questions without correct answers", () => {
+		const questions = new Map<string, Question>();
+		questions.set("q1", {
+			id: "q1",
+			title: "Question 1",
+			type: "one",
+			answers: {
+				a1: { id: "a1", type: "radio", correct: null, title: "Answer 1" },
+				a2: { id: "a2", type: "radio", correct: null, title: "Answer 2" },
+				a3: { id: "a3", type: "radio", correct: null, title: "Answer 3" },
+			},
+		});
+
+		const answers = [{ questionId: "q1", answersIds: { a1: true } }];
+		const results = isAnswersCorrect(questions, answers);
+
+		expect(results).toEqual([{ questionId: "q1", isCorrect: null }]);
+	});
+
+	it("should return null for text questions", () => {
+		const questions = new Map<string, Question>();
+		questions.set("q1", {
+			id: "q1",
+			title: "Question 1",
+			type: "text",
+			answers: {},
+		});
+
+		const answers = [{ questionId: "q1", answersIds: { a1: "some text" } }];
+		const results = isAnswersCorrect(questions, answers);
+
+		expect(results).toEqual([{ questionId: "q1", isCorrect: null }]);
 	});
 });

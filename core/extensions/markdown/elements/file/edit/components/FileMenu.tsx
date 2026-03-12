@@ -4,6 +4,7 @@ import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import Path from "@core/FileProvider/Path/Path";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import { LfsPointerError, type ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import downloadResource from "@core-ui/downloadResource";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
@@ -11,7 +12,6 @@ import FileTranscription from "@ext/ai/components/Audio/FileTranscription";
 import { ALLOWED_MEDIA_EXTENSIONS as ALLOWED_MEDIA_EXTENSIONS_AI } from "@ext/ai/models/consts";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import { LfsPointerError, type ResourceError } from "@ext/markdown/elements/copyArticles/errors";
 import { toast } from "@ui-kit/Toast";
 import Name from "./Menu/Name";
 
@@ -59,7 +59,7 @@ const FileMenu = ({ onDelete, resourcePath, aiEnabled }: FileMenuProps) => {
 		try {
 			await resolveModule("openInExplorer")?.(new Path(workspace.path).join(new Path(absolutePath)).value);
 		} catch (error) {
-			onError(error == "lfs-pointer" ? new LfsPointerError(path.value) : null);
+			onError(error === "lfs-pointer" ? new LfsPointerError(path.value) : null);
 			console.error(error);
 		}
 	};

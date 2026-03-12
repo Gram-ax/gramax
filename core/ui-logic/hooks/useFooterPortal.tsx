@@ -1,4 +1,4 @@
-import React, { createContext, PropsWithChildren, ReactNode, useContext, useState } from "react";
+import { createContext, type PropsWithChildren, type ReactNode, useContext, useState } from "react";
 
 interface FooterPortalContextType {
 	primaryButton: ReactNode;
@@ -9,7 +9,7 @@ interface FooterPortalContextType {
 
 const FooterPortalContext = createContext<FooterPortalContextType | null>(null);
 
-export const FooterPortalProvider: React.FC<PropsWithChildren> = ({ children }) => {
+export const FooterPortalProvider = ({ children }: PropsWithChildren) => {
 	const [primaryButton, setPrimaryButton] = useState<ReactNode>(null);
 	const [secondaryButton, setSecondaryButton] = useState<ReactNode>(null);
 

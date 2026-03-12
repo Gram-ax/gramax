@@ -43,7 +43,15 @@ export default withBundleAnalyzer({
 
 	transpilePackages: ["monaco-editor", "mdt-charts"],
 
-	webpack: (config, { webpack }) => {
+	webpack: (config, { webpack, isServer, nextRuntime }) => {
+		if (isServer && nextRuntime === "nodejs") {
+			// By default, Next puts /_next/ in publicPath,
+			//   which causes /_next/ to be added to "new URL()" on the server side,
+			//   which causes a runtime crash with MODULE_NOT_FOUND "<...>/_next/worker_for_example.js"
+			//   Example: new Worker(new URL("./worker_for_example", import.meta.url));
+			config.output.publicPath = "";
+		}
+
 		if (isProduction && uploadSourceMapsToBugsnag) config.plugins.push(new NextSourceMapUploader(bugsnagOptions));
 		config.devtool = isProduction ? "source-map" : "eval-source-map";
 
@@ -115,5 +123,18 @@ export default withBundleAnalyzer({
 
 		config.optimization.minimize = false;
 		return config;
+	},
+
+	rewrites: () => {
+		return [
+			{
+				source: "/robots.txt",
+				destination: "/api/robots.txt",
+			},
+			{
+				source: "/sitemap.xml",
+				destination: "/api/sitemap.xml",
+			},
+		];
 	},
 });

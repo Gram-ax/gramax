@@ -8,9 +8,9 @@
 // import Publish from "@ext/git/actions/Publish/components/Publish";
 // import { ComponentProps, useEffect, useRef } from "react";
 import t from "@ext/localization/locale/translate";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
-import GetErrorComponent from "../../../../../errorHandlers/logic/GetErrorComponent";
+import type GetErrorComponent from "../../../../../errorHandlers/logic/GetErrorComponent";
 
 const CheckoutConflictErrorComponent = ({ onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	return (

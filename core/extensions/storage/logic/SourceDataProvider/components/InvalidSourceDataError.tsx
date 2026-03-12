@@ -1,11 +1,11 @@
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import t from "@ext/localization/locale/translate";
 import useSourceData from "@ext/storage/components/useSourceData";
 import { useOpenRestoreSourceTokenModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenRestoreSourceTokenModal";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
-import { ComponentProps, useEffect } from "react";
+import { type ComponentProps, useEffect } from "react";
 
 const InvalidSourceDataError = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	const sourceDatas = SourceDataService.value;
@@ -15,7 +15,7 @@ const InvalidSourceDataError = ({ error, onCancelClick }: ComponentProps<typeof 
 		if (sourceIndex === -1) return;
 		sourceDatas[sourceIndex].isInvalid = true;
 		SourceDataService.value = [...sourceDatas];
-	}, []);
+	}, [error.props?.sourceName]);
 
 	const source = useSourceData(error.props?.sourceName as string);
 	const openRestoreSourceModal = useOpenRestoreSourceTokenModal(source);

@@ -1,7 +1,9 @@
 import GoToArticle from "@components/Actions/GoToArticle";
-import parseStorageUrl from "@core/utils/parseStorageUrl";
+import { getClientDomain } from "@core/utils/getClientDomain";
+import Workspace from "@core-ui/ContextServices/Workspace";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
@@ -39,19 +41,15 @@ const TooltipToolbarButton = (props: ComponentProps<typeof ToolbarToggleButton> 
 const CopyButton = (props: HTMLAttributes<HTMLButtonElement> & { href: string }) => {
 	const { href } = props;
 	const [isCopied, setIsCopied] = useState(false);
+	const webEditorUrl = Workspace.current()?.webEditorUrl;
 
 	const onClickHandler = () => {
 		let linkToCopy: string;
 
 		if (URL.canParse(href)) linkToCopy = new URL(href).href;
-		else {
-			const parsedUrl = parseStorageUrl(href);
-			const isArticle = parsedUrl.domain && parsedUrl.domain !== "...";
-			linkToCopy = isArticle ? href : `${window.location.origin}${href}`;
-		}
+		else linkToCopy = getClientDomain(webEditorUrl) + href;
 
-		navigator.clipboard.writeText(linkToCopy);
-		setIsCopied(true);
+		tryCopyToClipboard(linkToCopy, { showPopover: false }).then((copied) => copied && setIsCopied(true));
 	};
 
 	return (
@@ -112,6 +110,7 @@ export const ViewLinkMenu = memo(({ href, icon, onDelete, setMode, itemName, isE
 
 	return (
 		<div className="rounded-lg lg:shadow-hard-base">
+			{/** biome-ignore lint/a11y/useValidAriaRole: expected */}
 			<Toolbar
 				className="flex overflow-hidden"
 				role="link-toolbar"

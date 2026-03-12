@@ -18,8 +18,6 @@ mod settings;
 mod shared;
 mod updater;
 
-mod memory;
-
 use std::path::Path;
 
 use anyhow::Context;
@@ -74,9 +72,7 @@ pub fn run() {
 	let app = builder.build(context).expect("Can't build app");
 	ensure_required_paths_exist(app.handle());
 
-	if let Err(e) = crate::logging::init(app.handle()) {
-		eprintln!("error init logging: {e}");
-	}
+	_ = crate::logging::init_tracing(app.handle()).or_show_with_message("error init tracing");
 
 	#[cfg(any(target_os = "linux", target_os = "windows"))]
 	{
@@ -140,7 +136,8 @@ impl<R: Runtime> AppBuilder for Builder<R> {
 	}
 }
 
-pub fn open_path<S: AsRef<Path>>(uri: S) -> Result<()> {
+#[tracing::instrument]
+pub fn open_path<S: AsRef<Path> + std::fmt::Debug>(uri: S) -> Result<()> {
 	_ = uri.as_ref().metadata()?;
 
 	#[cfg(not(target_os = "windows"))]
@@ -152,7 +149,8 @@ pub fn open_path<S: AsRef<Path>>(uri: S) -> Result<()> {
 	Ok(())
 }
 
-pub fn open_url<S: AsRef<str>>(uri: S) -> Result<()> {
+#[tracing::instrument]
+pub fn open_url<S: AsRef<str> + std::fmt::Debug>(uri: S) -> Result<()> {
 	let url = Url::parse(uri.as_ref()).context("can not open invalid url in web")?;
 	open::that(url.to_string()).or_show_with_message(&t!("etc.error.open-url", url = uri.as_ref()))?;
 	Ok(())

@@ -27,6 +27,7 @@ export default class MdParser {
 	private _table: RegExp;
 	private _emptyTableCell: RegExp;
 
+	private _findLinkToIgnore = String.raw`(?:\[(?:[^\\\]]|\\.)*?\]\(\s*(?:[^)\s\\<>"']|\\.)+?\s*\))|<[^>]*:[^>]*>`;
 	private _findInlineCodeToIgnore = "`{1,2}[^`].*?`{1,2}";
 	private _findBlockCodeToIgnore = "```[^(```)]*?```[^(```)]*?```\n\r?```|```[\\s\\S]*?```[s]?|\\\\.";
 	private _findHtmlToIgnore = String.raw`\[html.*][\s\S]*?\[\/html\]|<html.*>[\s\S]*?<\/html\>`;
@@ -244,6 +245,7 @@ export default class MdParser {
 
 	private _createIgnoreRegExp(reg: string, ...additionalIgnore: string[]): RegExp {
 		const commonString = [
+			this._findLinkToIgnore,
 			this._findInlineCodeToIgnore,
 			this._findBlockCodeToIgnore,
 			this._findHtmlToIgnore,

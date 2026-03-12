@@ -26,6 +26,7 @@ const CodeMenuButton = ({ editor, isInline = false }: CodeMenuButtonProps) => {
 	return (
 		<ToolbarToggleButton
 			active={isActiveCode}
+			data-testid="tb-code"
 			disabled={isDisabledCode}
 			hotKey={isInline && "Mod-L"}
 			onClick={toggleCode}

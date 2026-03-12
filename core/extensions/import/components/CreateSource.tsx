@@ -6,13 +6,13 @@ import { getAllowedSourceTypes, getAllSourceTypes } from "@ext/import/logic/useF
 import t from "@ext/localization/locale/translate";
 import getStorageIconByData from "@ext/storage/logic/SourceDataProvider/logic/getStorageIconByData";
 import sourceComponents from "@ext/storage/logic/SourceDataProvider/logic/sourceComponents";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { Divider } from "@ui-kit/Divider";
 import { Field } from "@ui-kit/Field";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { SearchSelect } from "@ui-kit/SearchSelect";
 import { useCallback, useState } from "react";
 
@@ -75,11 +75,11 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 	};
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
-			{trigger && <ModalTrigger>{trigger}</ModalTrigger>}
-			<ModalContent data-modal-root style={{ maxWidth: "570px" }}>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			{trigger && <DialogTrigger>{trigger}</DialogTrigger>}
+			<DialogContent data-modal-root style={{ maxWidth: "570px" }}>
 				<FormHeader description={t("forms.create-source.description")} icon="plug" title={title} />
-				<ModalBody>
+				<DialogBody>
 					<Field
 						control={() => (
 							<SearchSelect
@@ -150,10 +150,10 @@ const CreateStorageContent = (props: CreateStorageContentProps) => {
 							</div>
 						</>
 					)}
-				</ModalBody>
+				</DialogBody>
 				<FormFooter primaryButton={primaryButton} secondaryButton={secondaryButton} />
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

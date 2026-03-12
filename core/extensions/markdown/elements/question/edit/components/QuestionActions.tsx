@@ -1,9 +1,8 @@
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import t from "@ext/localization/locale/translate";
-import { answerTypeByQuestionType } from "@ext/markdown/elements/question/edit/logic/answerTypeByQuestionType";
-import { QuestionType } from "@ext/markdown/elements/question/types";
-import { Node } from "@tiptap/pm/model";
-import { Editor } from "@tiptap/react";
+import type { QuestionType } from "@ext/markdown/elements/question/types";
+import type { Node } from "@tiptap/pm/model";
+import type { Editor } from "@tiptap/react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -19,33 +18,18 @@ interface QuestionActionsProps {
 }
 const QuestionActions = ({ node, getPos, editor }: QuestionActionsProps) => {
 	const setQuestionType = (type: QuestionType) => {
-		const pos = getPos();
 		editor
 			.chain()
-			.focus(pos)
-			.command(({ tr, dispatch }) => {
-				node.content.forEach((answer, offset) => {
-					if (answer.type.name !== "questionAnswer") return;
-					tr.setNodeAttribute(pos + offset + 1, "type", answerTypeByQuestionType[type]);
-					tr.setNodeAttribute(pos + offset + 1, "correct", false);
-				});
-				dispatch?.(tr);
-				return true;
-			})
-			.updateAttributes(node.type, { type })
+			.focus(getPos() + 1)
+			.setQuestionType(type)
 			.run();
 	};
 
 	const setRequired = () => {
-		const pos = getPos();
 		editor
 			.chain()
-			.focus(pos)
-			.command(({ tr, dispatch }) => {
-				tr.setNodeAttribute(pos, "required", !node.attrs.required);
-				dispatch?.(tr);
-				return true;
-			})
+			.focus(getPos() + 1)
+			.setQuestionRequired(!node.attrs.required)
 			.run();
 	};
 
@@ -65,6 +49,7 @@ const QuestionActions = ({ node, getPos, editor }: QuestionActionsProps) => {
 					<DropdownMenuRadioGroup onValueChange={setQuestionType} value={node.attrs.type}>
 						<DropdownMenuRadioItem value="many">{t("editor.question.types.many")}</DropdownMenuRadioItem>
 						<DropdownMenuRadioItem value="one">{t("editor.question.types.one")}</DropdownMenuRadioItem>
+						<DropdownMenuRadioItem value="text">{t("editor.question.types.text")}</DropdownMenuRadioItem>
 					</DropdownMenuRadioGroup>
 				</DropdownMenuContent>
 			</DropdownMenu>

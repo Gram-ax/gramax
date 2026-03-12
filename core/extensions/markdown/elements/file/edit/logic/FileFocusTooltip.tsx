@@ -2,8 +2,8 @@ import type { Environment } from "@app/resolveModule/env";
 import type PageDataContext from "@core/Context/PageDataContext";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import PlatformService from "@core-ui/ContextServices/PlatformService";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import Workspace from "@core-ui/ContextServices/Workspace";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import type { Editor } from "@tiptap/core";
 import type { Mark } from "@tiptap/pm/model";
 import type { EditorState } from "prosemirror-state";
@@ -40,7 +40,7 @@ class FileFocusTooltip extends BaseMark {
 		if (!text || !markPosition) return this._removeComponent();
 
 		const element = getFirstPatentByName(text as HTMLElement, "gr-file");
-		if (!element || element.tagName == "BODY") return;
+		if (!element || element.tagName === "BODY") return;
 
 		const aiEnabled = this._pageDataContext.conf.ai.enabled;
 
@@ -77,11 +77,11 @@ class FileFocusTooltip extends BaseMark {
 		const domReact = this._view.dom.parentElement.getBoundingClientRect();
 		const rect = element.getBoundingClientRect();
 		const left = rect.left - domReact.left;
-		this._tooltip.style.top = rect.top - domReact.top + rect.height + distance + "px";
+		this._tooltip.style.top = `${rect.top - domReact.top + rect.height + distance}px`;
 		this._tooltip.style.left = this._tooltip.style.right = null;
 		if (left + tooltipWidth > domReact.width)
-			this._tooltip.style.right = domReact.width - (left + rect.width) + "px";
-		else this._tooltip.style.left = left + "px";
+			this._tooltip.style.right = `${domReact.width - (left + rect.width)}px`;
+		else this._tooltip.style.left = `${left}px`;
 	};
 }
 

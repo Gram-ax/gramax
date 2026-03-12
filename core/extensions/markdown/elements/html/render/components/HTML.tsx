@@ -1,5 +1,5 @@
-import { ReactElement, useEffect, useMemo, useRef } from "react";
-import { HtmlOptions, useResolveHtmlOptions } from "../../logic/useResolveHtmlOptions";
+import { type ReactElement, useEffect, useMemo, useRef } from "react";
+import { type HtmlOptions, useResolveHtmlOptions } from "../../logic/useResolveHtmlOptions";
 
 type HtmlProps = { content: string; className?: string };
 
@@ -40,7 +40,7 @@ const Html = ({ content, className }: HtmlProps): ReactElement => {
 	}, [iframeId]);
 
 	return (
-		<div className={`${className ?? ""} focus-pointer-events`} data-focusable="true">
+		<div className={`${className ?? ""} focus-pointer-events`} data-focusable="true" data-testid="html-block">
 			<iframe
 				data-hover-target="true"
 				frameBorder={0}

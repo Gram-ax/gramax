@@ -6,17 +6,27 @@ import CodeMenuButton from "@ext/markdown/elements/code/edit/components/CodeMenu
 import CommentMenuButton from "@ext/markdown/elements/comment/edit/components/CommentMenuButton";
 import { FileMenuButton } from "@ext/markdown/elements/file/edit/components/FileMenuButton";
 import LinkMenuButton from "@ext/markdown/elements/link/edit/components/LinkMenuButton";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ToolbarSeparator } from "@ui-kit/Toolbar";
 import { useMemo } from "react";
+
+export interface InlineMenuGroupButtons {
+	link?: boolean;
+	file?: boolean;
+	code?: boolean;
+	comment?: boolean;
+	prettify?: boolean;
+}
 
 interface InlineMenuGroupProps {
 	editor?: Editor;
 	onClick?: () => void;
+	buttons?: InlineMenuGroupButtons;
 }
 
-const InlineMenuGroup = ({ editor, onClick }: InlineMenuGroupProps) => {
-	const syntax = useCatalogPropsStore((state) => state.data.syntax);
+const InlineMenuGroup = ({ editor, onClick, buttons }: InlineMenuGroupProps) => {
+	const { link = true, file = true, code = true, comment = true, prettify = true } = buttons || {};
+	const syntax = useCatalogPropsStore((state) => state?.data?.syntax);
 	const isGramaxAiEnabled = PageDataContext.value?.conf?.ai?.enabled;
 
 	const { isCommentSupported } = useMemo(() => {
@@ -28,18 +38,18 @@ const InlineMenuGroup = ({ editor, onClick }: InlineMenuGroupProps) => {
 
 	return (
 		<>
-			<LinkMenuButton editor={editor} onClick={onClick} />
-			<CodeMenuButton editor={editor} isInline />
-			<FileMenuButton editor={editor} onSave={onClick} />
-			{isCommentSupported && (
+			{link && <LinkMenuButton editor={editor} onClick={onClick} />}
+			{code && <CodeMenuButton editor={editor} isInline />}
+			{file && <FileMenuButton editor={editor} onSave={onClick} />}
+			{isCommentSupported && comment && (
 				<>
 					<ToolbarSeparator />
-					<CommentMenuButton editor={editor} />
+					{comment && <CommentMenuButton editor={editor} />}
 				</>
 			)}
-			{isGramaxAiEnabled && (
+			{isGramaxAiEnabled && prettify && (
 				<>
-					{!isCommentSupported && <ToolbarSeparator />}
+					{!isCommentSupported && !comment && <ToolbarSeparator />}
 					<TextPrettify editor={editor} />
 				</>
 			)}

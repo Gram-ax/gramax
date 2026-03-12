@@ -9,9 +9,11 @@ pub mod legacy;
 use tauri::http::HeaderName;
 use tauri::process::restart;
 use tauri::*;
+use tauri_otel_context::OtelContext;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_updater as inner;
 use tokio::sync::Mutex;
+use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::platform::save_windows::SaveWindowsExt as _;
 use crate::updater::download::UpdateCache;
@@ -57,16 +59,12 @@ impl<R: Runtime> Updater<R> {
 	}
 
 	pub async fn check(&self) -> Result<()> {
+		self.span_add_endpoints();
+
 		let Ok(mut update_bytes) = self.ready_update.try_lock() else {
 			info!(target: TAG, "update already in progress - tried to lock already locked `update_bytes` mutex; skip check");
 			return Ok(());
 		};
-
-		if let Some((_, update)) = update_bytes.as_ref() {
-			info!(target: TAG, "update found in memory cache: {} -> {}", update.current_version, update.version);
-			self.app.emit("update:ready", ())?;
-			return Ok(());
-		}
 
 		self.try_setup_ges_version_header().await.map_err(|e| {
 			warn!(target: TAG, "failed to check enterprise version: {}", e);
@@ -78,8 +76,23 @@ impl<R: Runtime> Updater<R> {
 			return Ok(());
 		};
 
-		info!(target: TAG, "update fetched: {} -> {}", update.current_version, update.version);
-		update_bytes.replace((self.cache.prepare_to_install(&update).await?, update));
+		match update_bytes.as_ref() {
+			Some((_, prev_update)) if Self::is_version_differs(prev_update.version.parse()?, update.version.parse()?) => {
+				info!(
+					target: TAG,
+					current = update.current_version,
+					prev = prev_update.version,
+					new = update.version,
+					"previously cached update differs from the most newest one. downloading again!"
+				);
+				update_bytes.replace((self.cache.prepare_to_install(&update).await?, update));
+			}
+			None => {
+				info!(target: TAG, current = update.current_version, new = update.version, "update fetched");
+				update_bytes.replace((self.cache.prepare_to_install(&update).await?, update));
+			}
+			_ => {}
+		}
 
 		self.app.emit("update:ready", ())?;
 		Ok(())
@@ -143,6 +156,35 @@ impl<R: Runtime> Updater<R> {
 		let pre = semver::Prerelease::new(prev.pre.split_once('.').unwrap_or_default().1).unwrap();
 		version.cmp(&semver::Version { pre, ..prev }).is_ne()
 	}
+
+	fn span_add_endpoints(&self) {
+		let Some(updater) = self.app.config().plugins.0.get("updater") else {
+			return;
+		};
+
+		let Some(endpoints) = updater.get("endpoints") else {
+			return;
+		};
+
+		let Some(endpoints) = endpoints.as_array() else {
+			return;
+		};
+
+		if endpoints.len() == 1 {
+			let Some(endpoint) = endpoints[0].as_str() else {
+				return;
+			};
+			tracing::Span::current().set_attribute("endpoint", endpoint.to_string());
+			return;
+		}
+
+		for (index, endpoint) in endpoints.iter().enumerate() {
+			let Some(endpoint) = endpoint.as_str() else {
+				continue;
+			};
+			tracing::Span::current().set_attribute(format!("endpoint.{}", index), endpoint.to_string());
+		}
+	}
 }
 
 #[command(async)]
@@ -151,27 +193,32 @@ pub fn restart_app<R: Runtime>(window: Window<R>) {
 	restart(&window.app_handle().env());
 }
 
+#[instrument(skip(app))]
 #[command(async)]
 pub async fn update_check<R: Runtime>(app: AppHandle<R>) -> Result<()> {
 	app.updater().check().await.inspect_err(|e| _ = emit_error(app, e))
 }
 
+#[instrument(skip(app))]
 #[command(async)]
 pub fn update_install<R: Runtime>(app: AppHandle<R>) -> Result<()> {
 	app.updater().install().inspect_err(|e| _ = emit_error(app, e))
 }
 
+#[instrument(skip(app))]
 #[command(async)]
 pub async fn update_reset_bytes<R: Runtime>(app: AppHandle<R>) -> Result<()> {
 	app.updater().ready_update.lock().await.take();
 	Ok(())
 }
 
+#[instrument(skip(app))]
 #[command]
 pub fn update_cache_clear<R: Runtime>(app: AppHandle<R>) -> Result<()> {
 	app.updater().cache.clear().map_err(Into::into)
 }
 
+#[instrument(skip(app))]
 #[command(async)]
 pub async fn update_install_by_path<R: Runtime>(app: AppHandle<R>) -> Result<()> {
 	let Some(path) = app

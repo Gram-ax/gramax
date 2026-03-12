@@ -27,6 +27,7 @@ import RepositoryStateProvider, {
 	type RepositoryMergeConflictState,
 	type RepositoryStashConflictState,
 } from "@ext/git/core/Repository/state/RepositoryState";
+import { trace } from "@ext/loggers/opentelemetry";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type Storage from "@ext/storage/logic/Storage";
@@ -47,6 +48,7 @@ export default class WorkdirRepository extends Repository {
 		this._state = new RepositoryStateProvider(this, this._repoPath, this._fp);
 	}
 
+	@trace()
 	subscribeFpEvents() {
 		if (!(this._fp instanceof MountFileProvider && this._fp.default() instanceof DiskFileProvider)) return;
 		if (!this._gvc) return;
@@ -67,6 +69,7 @@ export default class WorkdirRepository extends Repository {
 		return Promise.resolve({ hasCheckout: false });
 	}
 
+	@trace()
 	async attributes(): Promise<GitAttributes> {
 		return await GitAttributes.parse(this, this._fp);
 	}
@@ -94,6 +97,7 @@ export default class WorkdirRepository extends Repository {
 		return !status.length;
 	}
 
+	@trace()
 	async isShouldSync({ data, shouldFetch, onFetch, lockFetch = true }: IsShouldSyncOptions): Promise<boolean> {
 		const toPull = (await this.storage.getSyncCount()).pull;
 		if (toPull > 0) return true;
@@ -107,11 +111,13 @@ export default class WorkdirRepository extends Repository {
 		return syncCount.pull > 0;
 	}
 
+	@trace()
 	async status(cached = true): Promise<GitStatus[]> {
 		if (cached) return this.gvc.getCachedStatus("workdir");
 		return await this.gvc.getChanges("workdir");
 	}
 
+	@trace()
 	async sync({ data, onPull, onPush }: SyncOptions): Promise<SyncResult> {
 		let toPush = (await this.storage.getSyncCount()).push;
 		if (toPush > 0) {
@@ -141,6 +147,7 @@ export default class WorkdirRepository extends Repository {
 		return { mergeData: stashMergeResult, isVersionChanged, before: beforePullVersion, after: afterPushVersion };
 	}
 
+	@trace()
 	async checkout({ data, branch, onCheckout, onPull, force }: CheckoutOptions): Promise<GitMergeResultContent[]> {
 		const oldVersion = await this.gvc.getCurrentVersion();
 		const oldBranch = await this.gvc.getCurrentBranch();
@@ -185,6 +192,7 @@ export default class WorkdirRepository extends Repository {
 			throw new GitError(GitErrorCode.WorkingDirNotEmpty, null, { repositoryPath: this.gvc.getPath().value });
 	}
 
+	@trace()
 	async merge({
 		data,
 		targetBranch,
@@ -242,6 +250,7 @@ export default class WorkdirRepository extends Repository {
 		return repState;
 	}
 
+	@trace()
 	async deleteBranch(branchName: string, data: SourceData) {
 		const branch = await this.gvc.getBranch(branchName);
 		const branchRemoteName = branch.getData().remoteName;
@@ -256,9 +265,8 @@ export default class WorkdirRepository extends Repository {
 	private async _gitIndexAddFiles(p: Path[]) {
 		const paths = p.filter(
 			(x) =>
-				x &&
-				x.value.length &&
-				x.rootDirectory.value == this._repoPath.rootDirectory.value &&
+				x?.value?.length &&
+				x?.rootDirectory?.value === this._repoPath.rootDirectory.value &&
 				x.value !== this._repoPath.value &&
 				x.value !== this._repoPath.join(new Path(".git")).value,
 		);
@@ -273,6 +281,7 @@ export default class WorkdirRepository extends Repository {
 		}
 	}
 
+	@trace()
 	private async _push({
 		data,
 		onPush,
@@ -292,6 +301,7 @@ export default class WorkdirRepository extends Repository {
 		await onPush?.();
 	}
 
+	@trace()
 	private async _pull({ data, onPull }: { data: SourceData; onPull?: () => void }): Promise<GitMergeResultContent[]> {
 		let stashResult: GitMergeResult[] = [];
 		const commitHeadBefore = await this.gvc.getCurrentVersion();

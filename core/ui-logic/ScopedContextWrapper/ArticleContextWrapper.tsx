@@ -1,12 +1,12 @@
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import useGetArticleContextData from "@core-ui/ScopedContextWrapper/useGetArticleContextData";
 import {
 	CatalogStoreProvider,
 	useCatalogPropsStore,
 } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 
 type ArticleContextWrapperProps = {
 	articlePath: string;

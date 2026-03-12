@@ -1,15 +1,15 @@
-import { createEventEmitter, Event, type HasEvents } from "@core/Event/EventEmitter";
+import { createEventEmitter, type Event, type HasEvents } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
-import CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
+import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type LastVisited from "@core/SitePresenter/LastVisited";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
-import { Category } from "../../../../../logic/FileStructue/Category/Category";
-import { Item } from "../../../../../logic/FileStructue/Item/Item";
-import { ArticleLink, CatalogLink, CategoryLink, ItemLink, TitledLink } from "../../../NavigationLinks";
+import type { Category } from "../../../../../logic/FileStructue/Category/Category";
+import type { Item } from "../../../../../logic/FileStructue/Item/Item";
+import type { ArticleLink, CatalogLink, CategoryLink, ItemLink, TitledLink } from "../../../NavigationLinks";
 
 export type NavigationEvents = Event<
 	"before-build-nav-tree",
@@ -67,7 +67,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 		const link: CatalogLink = {
 			name: catalog.name,
 			pathname: await catalog.getPathname(),
-			lastVisited: lastVisited?.getLastVisitedArticle(catalog),
+			lastVisited: lastVisited?.getLastVisitedArticle(catalog) ?? null,
 			logo: catalog.props[navProps.logo] ?? null,
 			title: catalog.props[navProps.title] ?? catalog.name,
 			query: {},

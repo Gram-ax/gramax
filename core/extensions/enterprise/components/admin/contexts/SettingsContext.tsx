@@ -30,6 +30,7 @@ import type { Page, Settings } from "@ext/enterprise/types/EnterpriseAdmin";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import t from "@ext/localization/locale/translate";
+import type { CheckChunk, CheckOverrideSettings, CheckSuggestion } from "@ics/gx-vector-search";
 import type { PluginConfig } from "@plugins/types";
 import {
 	createContext,
@@ -99,6 +100,13 @@ type SettingsContextType = {
 	updateGuests: (guests: Settings["guests"]) => Promise<void>;
 	updatePlugins: (plugins: Settings["plugins"]) => Promise<void>;
 	updateStyleGuide: (styleGuide: Settings["styleGuide"]) => Promise<void>;
+	checkStyleGuide: (
+		chunks: CheckChunk[],
+		providers: ["languageTool" | "llm"],
+		overrideSettings?: CheckOverrideSettings,
+		checkSpelling?: boolean,
+		signal?: AbortSignal,
+	) => Promise<CheckSuggestion[]>;
 	healthcheckStyleGuide: () => Promise<boolean>;
 	healthcheckDataProvider: () => Promise<boolean>;
 	searchUsers: (query: string) => Promise<searchUserInfo[]>;
@@ -161,7 +169,7 @@ type SettingsContextType = {
 		query: string,
 		startDate: string,
 		endDate: string,
-		cursor?: string,
+		cursor?: number,
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
@@ -702,6 +710,30 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		[enterpriseService, token, patch, refreshWorkspace, setTabError],
 	);
 
+	const checkStyleGuide = useCallback(
+		async (
+			chunks: CheckChunk[],
+			providers: ["languageTool" | "llm"],
+			overrideSettings?: CheckOverrideSettings,
+			checkSpelling?: boolean,
+			signal?: AbortSignal,
+		) => {
+			try {
+				return await enterpriseService.checkStyleGuide(
+					chunks,
+					providers,
+					overrideSettings,
+					checkSpelling,
+					signal,
+				);
+			} catch (e) {
+				console.error("Failed to check style guide example", e);
+				throw e;
+			}
+		},
+		[enterpriseService],
+	);
+
 	const updatePlugins = async (plugins: Settings["plugins"]) => {
 		try {
 			await enterpriseService.setPlugins(token, plugins);
@@ -852,7 +884,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		query: string,
 		startDate: string,
 		endDate: string,
-		cursor?: string,
+		cursor?: number,
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
@@ -963,6 +995,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				updateGuests,
 				updatePlugins,
 				updateStyleGuide,
+				checkStyleGuide,
 				addGroup,
 				deleteGroups,
 				renameGroup,

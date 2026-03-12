@@ -118,7 +118,7 @@ const MetricsChart = <TField extends string>({
 	}
 
 	return (
-		<div className="border rounded-md p-6 w-full relative">
+		<div className="border rounded-xl p-6 w-full relative" style={{ borderColor: "hsl(var(--secondary-border))" }}>
 			<div className="flex justify-between items-start mb-4">
 				<div>
 					<h6 className="font-medium">{title}</h6>
@@ -133,7 +133,7 @@ const MetricsChart = <TField extends string>({
 
 				{axisLabelFormat && onAxisLabelFormatChange && (
 					<ToggleGroup
-						className="gap-0 rounded-lg border border-secondary-border"
+						className="gap-0 rounded-lg border border-secondary-border shadow-soft-sm"
 						onValueChange={onAxisLabelFormatChange}
 						type="single"
 						value={axisLabelFormat}

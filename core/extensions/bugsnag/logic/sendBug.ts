@@ -2,6 +2,8 @@ import { getConfig } from "@app/config/AppConfig";
 import type { Event, OnErrorCallback } from "@bugsnag/js";
 import bugsnag from "@dynamicImports/bugsnag";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
+import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
+import { getRecentSpans } from "@ext/loggers/opentelemetry";
 import DefaultError from "../../errorHandlers/logic/DefaultError";
 
 const ignoredErrors = [NetworkApiError, DefaultError];
@@ -13,11 +15,21 @@ const sendBug = async (error: Error, onError?: OnErrorCallback, silentError = tr
 	const Bugsnag = (await bugsnag()).default;
 	if (!Bugsnag.isStarted()) return;
 
+	const spans = getRecentSpans();
+
 	return new Promise((resolve, reject) =>
-		Bugsnag.notify(error, onError, (err, ev) => {
-			if (err && !silentError) reject(err);
-			return resolve(ev);
-		}),
+		Bugsnag.notify(
+			error,
+			(event) => {
+				event.addMetadata("logs", { spans });
+				if (error instanceof LibGit2Error) event.groupingHash = error.name;
+				onError?.(event, () => {});
+			},
+			(err, ev) => {
+				if (err && !silentError) reject(err);
+				return resolve(ev);
+			},
+		),
 	);
 };
 

@@ -1,11 +1,13 @@
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import useWatch from "@core-ui/hooks/useWatch";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import Toolbar from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
+import { useShouldShowInlineToolbar } from "@ext/markdown/core/edit/logic/hooks/useShouldShowInlineToolbar";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import ArticleTitleHelpers from "@ext/markdown/elements/article/edit/ArticleTitleHelpers";
 import { InlineToolbar } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
@@ -14,25 +16,27 @@ import useCommentCallbacks from "@ext/markdown/elements/comment/edit/logic/hooks
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import Controllers from "@ext/markdown/elements/controllers/controllers";
 import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { updateEditorExtensions } from "@ext/markdown/elements/diff/components/store/EditorExtensionsStore";
 import { InlineLinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/InlineLinkMenu";
 import Placeholder from "@ext/markdown/elements/placeholder/placeholder";
 import EditorService, {
-	BaseEditorContext,
-	EditorContext as EditorContextType,
-	EditorPasteHandler,
+	type BaseEditorContext,
+	type EditorContext as EditorContextType,
+	type EditorPasteHandler,
 } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import Document from "@tiptap/extension-document";
-import { EditorContent, EditorContext, Extensions, JSONContent, useEditor } from "@tiptap/react";
-import { RefObject, useEffect, useMemo, useRef } from "react";
+import { EditorContent, EditorContext, type Extensions, type JSONContent, useEditor } from "@tiptap/react";
+import { type RefObject, useEffect, useMemo, useRef } from "react";
 import { highlightFragmentInEditorByUrl } from "../../../../../components/Article/SearchHandler/ArticleSearchFragmentHander";
 import PageDataContextService from "../../../../../ui-logic/ContextServices/PageDataContext";
 import OnAddMark from "../../../elements/onAdd/OnAddMark";
 import OnDeleteMark from "../../../elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "../../../elements/onDocChange/OnDeleteNode";
-import ExtensionContextUpdater from "../../../elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
+import {
+	useExtendExtensionsWithContext,
+	useUpdateContextInExtensions,
+} from "../../../elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
 import { useGetEditorProps } from "../logic/useGetEditorProps";
 import Menu from "./Menu/Menu";
 
@@ -64,6 +68,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 		articlePropsRef.current.pathname,
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const ext = useMemo(
 		() => [
 			...extensions,
@@ -97,7 +102,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 		],
 	);
 
-	const extensionsList = ExtensionContextUpdater.useExtendExtensionsWithContext(ext);
+	const extensionsList = useExtendExtensionsWithContext(ext);
 
 	useEffect(() => {
 		updateEditorExtensions(extensionsList);
@@ -155,13 +160,14 @@ const ContentEditor = (props: ContentEditorProps) => {
 		}
 	}, [articlePropsRef.current?.template, editor]);
 
-	ExtensionContextUpdater.useUpdateContextInExtensions(editor);
+	useUpdateContextInExtensions(editor);
 
 	useEffect(() => {
 		if (!editor) return;
 		if (editor && !editor.state.doc.textContent) editor.commands.focus();
 		if (editor) {
 			EditorService.bindEditor(editor);
+			if (typeof window !== "undefined" && window.debug) window.debug.editor = editor;
 			editor.on("create", () => highlightFragmentInEditorByUrl());
 		}
 	}, [editor]);
@@ -170,7 +176,9 @@ const ContentEditor = (props: ContentEditorProps) => {
 		if (!editor) return;
 		editor.storage.ai = editor.storage.ai || {};
 		editor.storage.ai.enabled = pageDataContext.conf.ai.enabled;
-	}, [editor]);
+	}, [editor, pageDataContext?.conf?.ai?.enabled]);
+
+	const shouldShow = useShouldShowInlineToolbar();
 
 	return (
 		<EditorContext.Provider value={{ editor }}>
@@ -185,8 +193,13 @@ const ContentEditor = (props: ContentEditorProps) => {
 				<CommentEditorProvider editor={editor}>
 					<div>
 						<InlineLinkMenu editor={editor} />
-						<InlineToolbar editor={editor} />
-						<EditorContent data-iseditable={true} data-qa="article-editor" editor={editor} />
+						<InlineToolbar editor={editor} shouldShow={shouldShow} />
+						<EditorContent
+							data-iseditable={true}
+							data-qa="article-editor"
+							data-testid="article-editor"
+							editor={editor}
+						/>
 					</div>
 				</CommentEditorProvider>
 				<ArticleMat editor={editor} />

@@ -35,12 +35,12 @@ serde_json = { workspace = true }
 sysinfo = { version = "0.37", default-features = false, features = [
   "multithread",
   "system",
-  "user"
+  "user",
 ] }
-tempdir = "0.3.7"
 thiserror = { workspace = true }
 time = { version = "0.3.44", features = ["parsing", "serde"] }
-tokio = { version = "1.46.1", features = [   "rt-multi-thread",
+tokio = { version = "1.46.1", features = [
+  "rt-multi-thread",
   "signal",
   "tokio-macros",
 ] }
@@ -52,6 +52,7 @@ url = { version = "2.5.7", features = ["serde"] }
 woothee = "0.13.0"
 
 [dev-dependencies]
+tempfile = "3"
 assert2 = "0.3.16"
 bytes = "1.10.1"
 ctor = "0.2"

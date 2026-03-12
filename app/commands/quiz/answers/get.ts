@@ -4,13 +4,13 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { QuizTestCreate } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
-import { CheckAnswer } from "@ext/markdown/elements/answer/types";
+import type { QuizTestCreate } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
+import type { CheckAnswer } from "@ext/markdown/elements/answer/types";
 import { getArticleId, getTestId } from "@ext/quiz/logic/getIds";
 import { getQuizResult } from "@ext/quiz/logic/getQuizResult";
-import { QuizResult } from "@ext/quiz/models/types";
+import type { QuizResult } from "@ext/quiz/models/types";
 import assert from "assert";
 
 const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answers: CheckAnswer[] }, QuizResult> =
@@ -60,9 +60,12 @@ const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answe
 				const test: QuizTestCreate = {
 					id: testId,
 					articleId,
+					questionsCount: questions.size,
 					title: article.getTitle(),
 					questions: Array.from(questions.values()).map((question) => ({
 						id: question.id,
+						type: question.type,
+						required: question.required,
 						title: question.title,
 						answers: Object.values(question.answers).map((answer) => ({
 							id: answer.id,
@@ -86,10 +89,19 @@ const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answe
 					test_id: testId,
 					user_mail: ctx.user.info.mail,
 					answers: answers,
+					score: results.countOfCorrectAnswers,
+					successful: results.passed,
 				},
 			});
 
-			return results;
+			return {
+				passed: results.passed,
+				countOfCorrectAnswers: article.props.quiz?.countOfCorrectAnswers
+					? results.countOfCorrectAnswers
+					: undefined,
+				questions: article.props.quiz?.countOfCorrectAnswers ? results.questions : [],
+				selectedAnswers: answers,
+			};
 		},
 
 		params(ctx, q, body) {

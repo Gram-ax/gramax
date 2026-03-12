@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react";
 import { mergeConfig, type UserConfig } from "vite";
 import mkcert from "vite-plugin-mkcert";
 import env from "../../scripts/compileTimeEnv.mjs";
+import getOutputFileNames from "../../scripts/getOutputFileNames";
 import baseConfig from "../../vite.config";
 
 const { setVersion, setBuildVersion, dynamicModules } = env;
@@ -9,8 +10,6 @@ const { setVersion, setBuildVersion, dynamicModules } = env;
 process.env.VITE_ENVIRONMENT = "browser";
 setVersion("web");
 setBuildVersion("browser");
-
-const nonHashableNames = ["FileInputBundle", "markdown", "jszip.min", "SwaggerUI"];
 
 export default mergeConfig(baseConfig(), {
 	plugins: [mkcert(), react()],
@@ -30,20 +29,7 @@ export default mergeConfig(baseConfig(), {
 			alias: dynamicModules(),
 		},
 		rollupOptions: {
-			output: {
-				entryFileNames: (chunkInfo) => {
-					if (nonHashableNames.includes(chunkInfo.name)) return "assets/[name].js";
-					return "assets/[name]-[hash].js";
-				},
-				chunkFileNames: (chunkInfo) => {
-					if (nonHashableNames.includes(chunkInfo.name)) return "assets/[name].js";
-					return "assets/[name]-[hash].js";
-				},
-				assetFileNames: (assetInfo) => {
-					if (nonHashableNames.includes(assetInfo.name.replace(".css", ""))) return "assets/[name][extname]";
-					return "assets/[name]-[hash][extname]";
-				},
-			},
+			output: getOutputFileNames(),
 		},
 	},
 } as UserConfig);

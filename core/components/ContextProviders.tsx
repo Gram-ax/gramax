@@ -17,6 +17,7 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import pagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
 import PlatformService from "@core-ui/ContextServices/PlatformService";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
@@ -40,7 +41,6 @@ import PublishChangesProvider from "@ext/git/core/GitPublish/PublishChangesProvi
 import InboxService from "@ext/inbox/components/InboxService";
 import UiLanguage from "@ext/localization/core/model/Language";
 import { CommentsCounterProvider } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { QuestionsProvider } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import PropertyService from "@ext/properties/components/PropertyService";
@@ -117,6 +117,7 @@ export default function ContextProviders({
 
 		if (metrics.yandex.metricCounter && platform === "static") {
 			const url = useRouter().path;
+			// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 			useEffect(() => yandexMetricHit(metrics.yandex.metricCounter), [url]);
 		}
 	}
@@ -144,11 +145,11 @@ export default function ContextProviders({
 													path={pageProps.data.articleProps.ref.path}
 													questions={pageProps.data.articleProps.questions}
 												>
-													<ResourceService.Provider>
-														<ArticleRefService.Provider>
-															<ArticlePropsService.Provider
-																value={pageProps.data.articleProps}
-															>
+													<ArticleRefService.Provider>
+														<ArticlePropsService.Provider
+															value={pageProps.data.articleProps}
+														>
+															<ResourceService.Provider>
 																<CloudStateService.Init
 																	value={{
 																		cloudServiceUrl:
@@ -201,9 +202,9 @@ export default function ContextProviders({
 																		</PromptService.Provider>
 																	</CatalogLogoService.Init>
 																</CloudStateService.Init>
-															</ArticlePropsService.Provider>
-														</ArticleRefService.Provider>
-													</ResourceService.Provider>
+															</ResourceService.Provider>
+														</ArticlePropsService.Provider>
+													</ArticleRefService.Provider>
 												</QuestionsProvider>
 											</CatalogStoreProvider>
 										</GitIndexService.Provider>

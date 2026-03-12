@@ -1,5 +1,5 @@
 import { cn } from "@core-ui/utils/cn";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface StickyHeaderProps {
 	title: ReactNode;
@@ -15,7 +15,7 @@ export function StickyHeader({ title, actions, isScrolled, className }: StickyHe
 			style={{
 				position: "sticky",
 				top: 0,
-				zIndex: 10,
+				zIndex: 20,
 				paddingTop: "1.5rem",
 				boxShadow: isScrolled ? "var(--bar-shadow-vertical)" : "none",
 			}}

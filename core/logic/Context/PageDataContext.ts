@@ -47,6 +47,9 @@ interface PageDataContext {
 			enabled: boolean;
 		};
 		forceUiLangSync: boolean;
+		search: {
+			resourcesEnabled: boolean;
+		};
 	};
 	permissions: string;
 	shareData?: ShareData;

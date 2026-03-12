@@ -21,13 +21,7 @@ export interface UseSearchResultsArgs {
 	rows: RowSearchResult[];
 	focusItem: FocusItem | undefined;
 	setFocusItem: (item: FocusItem) => void;
-	onLinkOpen: (data: {
-		url: string;
-		searchFragmentInfo?: SearchFragmentInfo;
-		title?: string;
-		catalog?: string;
-		isRecommended?: boolean;
-	}) => void;
+	onLinkOpen: (data: { url: string; searchFragmentInfo?: SearchFragmentInfo }) => void;
 }
 
 export interface UseSearchResultsResult {
@@ -245,13 +239,7 @@ function getArticleRowItems(
 
 function createArticleBreadcrumbs(
 	row: RowArticleSearchResult,
-	onLinkOpen: (data: {
-		url: string;
-		searchFragmentInfo?: SearchFragmentInfo;
-		title?: string;
-		catalog?: string;
-		isRecommended?: boolean;
-	}) => void,
+	onLinkOpen: (data: { url: string; searchFragmentInfo?: SearchFragmentInfo }) => void,
 ) {
 	const titles: ArticleRow["breadcrumbs"]["titles"] = [];
 	const links: ArticleRow["breadcrumbs"]["links"] = [];
@@ -260,7 +248,10 @@ function createArticleBreadcrumbs(
 	row.rawResult.breadcrumbs.forEach((y) => {
 		titles.push(y.title);
 		links.push({ pathname: y.url });
-		onClicks.push(() => onLinkOpen({ url: y.url }));
+		onClicks.push((e) => {
+			e.stopPropagation();
+			onLinkOpen({ url: y.url });
+		});
 	});
 
 	return { titles, links, onClicks };

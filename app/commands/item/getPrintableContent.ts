@@ -1,9 +1,9 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
-import { PrintableContent, PrintablePage } from "@ext/print/types";
+import type { PrintableContent, PrintablePage } from "@ext/print/types";
 import collectPrintablePages from "@ext/print/utils/collectPrintablePages";
 import RuleProvider from "@ext/rules/RuleProvider";
 

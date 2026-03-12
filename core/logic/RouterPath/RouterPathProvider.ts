@@ -7,11 +7,12 @@ class RouterPathProvider {
 	private static readonly _readonlyPathPrefix = "/";
 
 	static getLogicPath(pathname: string) {
-		return RouterPathProvider.isEditorPathname(pathname)
+		const data = RouterPathProvider.isEditorPathname(pathname)
 			? new Path(RouterPathProvider.parsePath(new Path(pathname)).itemLogicPath).value
 			: pathname.startsWith(RouterPathProvider._readonlyPathPrefix)
 				? pathname.substring(1)
 				: pathname;
+		return data;
 	}
 
 	static getReadOnlyPathname(ligicPath: string) {

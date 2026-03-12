@@ -1,6 +1,6 @@
-import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
 export type MergeRequestStatus = "draft" | "in-progress" | "approved";
 
@@ -34,20 +34,29 @@ const Approved = styled(Base)`
 const Status = ({ status }: StatusProps) => {
 	if (status === "draft")
 		return (
-			<Tooltip content={t("git.merge-requests.status.draft-tooltip")}>
-				<Draft>{t("git.merge-requests.status.draft")}</Draft>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Draft>{t("git.merge-requests.status.draft")}</Draft>
+				</TooltipTrigger>
+				<TooltipContent>{t("git.merge-requests.status.draft-tooltip")}</TooltipContent>
 			</Tooltip>
 		);
 	if (status === "in-progress")
 		return (
-			<Tooltip content={t("git.merge-requests.status.in-progress-tooltip")}>
-				<InProgress>{t("git.merge-requests.status.in-progress")}</InProgress>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<InProgress>{t("git.merge-requests.status.in-progress")}</InProgress>
+				</TooltipTrigger>
+				<TooltipContent>{t("git.merge-requests.status.in-progress-tooltip")}</TooltipContent>
 			</Tooltip>
 		);
 	if (status === "approved")
 		return (
-			<Tooltip content={t("git.merge-requests.status.approved-tooltip")}>
-				<Approved>{t("git.merge-requests.status.approved")}</Approved>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Approved>{t("git.merge-requests.status.approved")}</Approved>
+				</TooltipTrigger>
+				<TooltipContent>{t("git.merge-requests.status.approved-tooltip")}</TooltipContent>
 			</Tooltip>
 		);
 };

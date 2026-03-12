@@ -62,10 +62,10 @@ fn panic_hook(#[allow(unused_variables)] bugsnag: &BugsnagNotificationBuilder, p
 	let message = format!(
 		r#"
     Unfortunately, Gramax was crashed (panicked).
-    
+
     Thread {thread_id} ({thread_name}) panicked at:
     {location}
-    
+
     With error message:
     {message}
     "#,

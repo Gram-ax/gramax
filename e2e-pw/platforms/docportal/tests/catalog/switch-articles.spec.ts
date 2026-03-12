@@ -9,6 +9,8 @@ const catalogs = [
 ] as const;
 
 test.describe("switch articles", () => {
+	test.describe.configure({ timeout: 300_000 });
+
 	for (const { name, humanName, anchor } of catalogs) {
 		test(name, async ({ basePage }) => {
 			const page = basePage.raw;

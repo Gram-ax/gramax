@@ -1,6 +1,6 @@
-import { CloneListItem } from "@ext/git/actions/Source/components/CloneFields";
-import GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
-import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import type { CloneListItem } from "@ext/git/actions/Source/components/CloneFields";
+import type GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
+import type GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 
 interface CallbackData {
 	fromPage: number;
@@ -29,8 +29,8 @@ export default class GitPaginatedProjectList {
 		const PER_PAGE = this._api.defaultPerPage;
 
 		const firstPageData = (await this._api.getPageProjects(1, 1))[0];
-		const totalPages = firstPageData.totalPages ?? 1;
-		const totalReps = firstPageData.totalPathsCount ?? totalPages * PER_PAGE;
+		const totalPages = firstPageData.totalPages || 1;
+		const totalReps = firstPageData.totalPathsCount || totalPages * PER_PAGE;
 		for (let i = 0; i < totalReps; i++) {
 			const repData = firstPageData.repDatas[i];
 			this._model.push(repData ? { path: repData.path, date: repData.lastActivity } : null);
@@ -39,7 +39,7 @@ export default class GitPaginatedProjectList {
 
 		this._triggerOnChange({ fromPage: 1, toPage: 1, totalPages, totalReps });
 		const otherPages = await this._api.getPageProjects(2, totalPages);
-		const repDatas = otherPages.map((p) => p.repDatas).flat();
+		const repDatas = otherPages.flatMap((p) => p.repDatas);
 
 		for (let i = 0; i < totalReps - PER_PAGE; i++) {
 			const repData = repDatas[i];

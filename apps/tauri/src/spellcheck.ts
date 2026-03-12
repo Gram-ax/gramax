@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "./window/commands";
 
 const isSpellcheckEnabled = () => {
 	const elem = document.getElementById("custom-style");

@@ -11,8 +11,6 @@ import getProps from "./getProps";
 import links from "./links";
 import move from "./move";
 import remove from "./remove";
-import getReviewLink from "./review/getReviewLink";
-import getReviewLinkData from "./review/getReviewLinkData";
 import setSyntax from "./setSyntax";
 import getShareLink from "./share/getShareLink";
 import getShareLinkData from "./share/getShareLinkData";
@@ -23,10 +21,8 @@ import updateProps from "./updateProps";
 const catalog = {
 	review: {
 		getShareLink,
-		getReviewLink,
 		getShareTicket,
 		getShareLinkData,
-		getReviewLinkData,
 	},
 	logo,
 	cloud: {

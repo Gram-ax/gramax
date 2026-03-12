@@ -355,6 +355,7 @@ impl<C: Creds> Repo<'_, C> {
 				reason: BadObjectReason::Generic,
 			});
 		}) else {
+			opts.on_walk(oid)?;
 			ctx.seq.pop();
 			return Ok(());
 		};

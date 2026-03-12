@@ -41,21 +41,10 @@ const getBlockMarkElems = (item: BlockItem) => {
 export function getResultElems(
 	items: ArticleRowItem[],
 	onLinkOver: (id: SearchItemRowId) => void,
-	onLinkOpen: (
-		articleInfo: {
-			url: string;
-			searchFragmentInfo?: SearchFragmentInfo;
-			title?: string;
-			catalog?: string;
-			isRecommended?: boolean;
-		},
-		clickPosition?: number,
-	) => void,
+	onFocus: (id: SearchItemRowId) => void,
+	onLinkOpen: (articleInfo: { url: string; searchFragmentInfo?: SearchFragmentInfo }) => void,
 	focusItem: FocusItem | undefined,
 	focusRef: React.RefObject<HTMLElement>,
-	catalog: string,
-	title: string,
-	clickPosition?: number,
 ) {
 	const res: React.JSX.Element[] = [];
 
@@ -68,17 +57,12 @@ export function getResultElems(
 					<Link
 						href={item.url}
 						onClick={() =>
-							onLinkOpen(
-								{
-									url: item.openSideEffect.params.pathname,
-									searchFragmentInfo: item.openSideEffect.params.fragmentInfo,
-									catalog,
-									title: item.openSideEffect.params.fragmentInfo.text,
-								},
-								clickPosition,
-							)
+							onLinkOpen({
+								url: item.openSideEffect.params.pathname,
+								searchFragmentInfo: item.openSideEffect.params.fragmentInfo,
+							})
 						}
-						onFocus={item.id ? () => onLinkOver(item.id) : undefined}
+						onFocus={() => onFocus(item.id)}
 						onMouseOver={() => onLinkOver(item.id)}
 						ref={isRef ? (focusRef as React.RefObject<HTMLAnchorElement>) : undefined}
 					>
@@ -91,24 +75,21 @@ export function getResultElems(
 		} else if (item.type === "block" || item.type === "file-block") {
 			const highlightWholeBlock = item.type === "file-block";
 			res.push(
-				// biome-ignore lint/a11y/useKeyWithMouseEvents: div onFocus
 				<div
 					className={highlightWholeBlock && isActive ? "item-active" : ""}
 					key={item.id}
+					onFocus={highlightWholeBlock ? () => onFocus(item.id) : undefined}
 					onMouseOver={highlightWholeBlock ? () => onLinkOver(item.id) : undefined}
 				>
 					<Link
 						href={item.url}
 						onClick={() =>
-							onLinkOpen(
-								{
-									url: item.openSideEffect.params.pathname,
-									searchFragmentInfo: item.openSideEffect.params.fragmentInfo,
-								},
-								clickPosition,
-							)
+							onLinkOpen({
+								url: item.openSideEffect.params.pathname,
+								searchFragmentInfo: item.openSideEffect.params.fragmentInfo,
+							})
 						}
-						onFocus={() => onLinkOver(item.id)}
+						onFocus={!highlightWholeBlock ? () => onFocus(item.id) : undefined}
 						onMouseOver={!highlightWholeBlock ? () => onLinkOver(item.id) : undefined}
 						ref={isRef ? (focusRef as React.RefObject<HTMLAnchorElement>) : undefined}
 					>
@@ -117,7 +98,7 @@ export function getResultElems(
 							data-qa="qa-clickable"
 						>
 							{item.breadcrumbs.map((x, i) => (
-								<Fragment key={`${x.type}-${i}`}>
+								<Fragment key={i!}>
 									{i > 0 ? <span className="breadcrumbs-separator">/</span> : null}
 									<span>{getBlockMarkElems(x)}</span>
 								</Fragment>
@@ -125,26 +106,17 @@ export function getResultElems(
 						</div>
 					</Link>
 					<div style={{ paddingLeft: `15px` }}>
-						{getResultElems(
-							item.children,
-							onLinkOver,
-							onLinkOpen,
-							focusItem,
-							focusRef,
-							catalog,
-							title,
-							clickPosition,
-						)}
+						{getResultElems(item.children, onLinkOver, onFocus, onLinkOpen, focusItem, focusRef)}
 					</div>
 				</div>,
 			);
 		} else if (item.type === "expander") {
 			res.push(
 				<Fragment key={item.id}>
-					{/** biome-ignore lint/a11y/useKeyWithMouseEvents: div onFocus */}
 					<div
 						className={`hidden-count-info ${isActive ? "item-active" : ""}`}
 						onClick={() => item.expand()}
+						onFocus={() => onFocus(item.id)}
 						onMouseOver={(e) => {
 							onLinkOver(item.id);
 							e.stopPropagation();

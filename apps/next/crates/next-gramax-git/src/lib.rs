@@ -67,6 +67,7 @@ impl From<CommitOptions> for gramaxgit::actions::commit::CommitOptions {
 }
 
 #[napi(string_enum)]
+#[derive(Clone)]
 pub enum TreeReadScopeObjectType {
 	Head,
 	Commit,
@@ -105,13 +106,57 @@ impl From<AccessTokenCreds> for gramaxgit::creds::AccessTokenCreds {
 	}
 }
 
-#[napi::module_init]
+#[derive(Debug)]
+struct StderrJsonExporter;
+
+impl opentelemetry_sdk::trace::SpanExporter for StderrJsonExporter {
+	async fn export(&self, batch: Vec<opentelemetry_sdk::trace::SpanData>) -> opentelemetry_sdk::error::OTelSdkResult {
+		for span in &batch {
+			let otel = gramax_opentelemetry::OtelSpan::from(span);
+			if let Ok(json) = serde_json::to_string(&otel) {
+				eprintln!("{json}");
+			}
+		}
+		Ok(())
+	}
+}
+
+pub fn setup_remote_context(span_id: Option<&str>, trace_id: Option<&str>) -> opentelemetry::ContextGuard {
+	use opentelemetry::trace::*;
+
+	let span_id = span_id.and_then(|s| SpanId::from_hex(s).ok());
+	let trace_id = trace_id.and_then(|s| TraceId::from_hex(s).ok());
+
+	let (Some(span_id), Some(trace_id)) = (span_id, trace_id) else {
+		return opentelemetry::Context::current().with_telemetry_suppressed().attach();
+	};
+
+	let context = SpanContext::new(trace_id, span_id, TraceFlags::SAMPLED, true, TraceState::default());
+	opentelemetry::Context::current().with_remote_span_context(context).attach()
+}
+
+#[napi_derive::module_init]
 fn init() {
 	use tracing_subscriber::layer::SubscriberExt;
 	use tracing_subscriber::util::SubscriberInitExt;
 
-	let env = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or(tracing_subscriber::EnvFilter::new("info"));
-	tracing_subscriber::registry().with(tracing_subscriber::fmt::layer()).with(env).init();
+	let env_filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or(tracing_subscriber::EnvFilter::new("info"));
+
+	let provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+		.with_simple_exporter(StderrJsonExporter)
+		.build();
+	opentelemetry::global::set_tracer_provider(provider);
+
+	tracing_subscriber::registry()
+		.with(env_filter)
+		.with(
+			tracing_opentelemetry::layer()
+				.with_location(false)
+				.with_threads(false)
+				.with_tracked_inactivity(false)
+				.with_tracer(opentelemetry::global::tracer("app")),
+		)
+		.init();
 }
 
 #[napi_async]
@@ -298,8 +343,8 @@ pub async fn push(repo_path: String, creds: AccessTokenCreds) -> AsyncOutput {
 }
 
 #[napi_async]
-pub fn file_history(repo_path: String, file_path: String, count: u32) -> Output {
-	git::file_history(Path::new(&repo_path), Path::new(&file_path), count as usize)
+pub fn file_history(repo_path: String, file_path: String, offset: u32, limit: u32) -> Output {
+	git::file_history(Path::new(&repo_path), Path::new(&file_path), offset as usize, limit as usize)
 }
 
 #[napi(object, use_nullable = true)]
@@ -361,6 +406,7 @@ pub struct ResetOptions {
 }
 
 #[napi(string_enum = "lowercase")]
+#[derive(Clone)]
 pub enum ResetMode {
 	Soft,
 	Mixed,

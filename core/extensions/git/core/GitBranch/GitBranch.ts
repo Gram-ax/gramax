@@ -1,7 +1,8 @@
-import Branch from "../../../VersionControl/model/branch/Branch";
-import GitBranchData from "./model/GitBranchData";
+import type { ToSpan } from "@ext/loggers/opentelemetry";
+import type Branch from "../../../VersionControl/model/branch/Branch";
+import type GitBranchData from "./model/GitBranchData";
 
-export class GitBranch implements Branch {
+export class GitBranch implements Branch, ToSpan {
 	constructor(private _data: GitBranchData) {}
 
 	getData(): GitBranchData {
@@ -14,5 +15,9 @@ export class GitBranch implements Branch {
 	compare(version: Branch): boolean {
 		if (!version) return false;
 		return this._data.name === version.toString();
+	}
+
+	toSpan() {
+		return this._data.name;
 	}
 }

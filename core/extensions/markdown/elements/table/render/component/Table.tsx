@@ -1,11 +1,11 @@
 import StickyTableWrapper from "@components/StickyWrapper/StickyTableWrapper";
-import ColGroup, { ColInfo } from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
+import ColGroup, { type ColInfo } from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
-import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import type { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import modifyChildren from "@ext/markdown/elements/table/print/modifyChildren";
 import PrintColGroup from "@ext/markdown/elements/table/print/PrintColGroup";
 import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
-import { ReactElement, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type ReactElement, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 interface TableProps {
 	children?: any;
@@ -40,7 +40,11 @@ const Table = (props: TableProps): ReactElement => {
 	}, [firstRow]);
 
 	const printColGroupData = isPrint && firstRow ? PrintColGroup({ firstRow }) : null;
-	const ColGroupComponent = isPrint ? printColGroupData?.colgroup : <ColGroup initColInfo={colInfo} tableRef={ref} />;
+	const ColGroupComponent = isPrint ? (
+		printColGroupData?.colgroup
+	) : (
+		<ColGroup init={{ colInfo: colInfo || [] }} tableRef={ref} />
+	);
 
 	const table =
 		typeof children === "string" ? (

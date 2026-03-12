@@ -1,17 +1,17 @@
 import { getCanMoves, getClampedValues, ZOOM_COUNT } from "@components/Atoms/Image/modalImage/utils";
+import { useMediaScale } from "@components/Atoms/Image/useMediaScale";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useTouchHandler } from "@core-ui/hooks/useTouchHandler";
 import styled from "@emotion/styled";
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import {
-	CSSProperties,
+	type CSSProperties,
 	forwardRef,
-	MutableRefObject,
+	type MutableRefObject,
 	memo,
 	useCallback,
 	useEffect,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from "react";
@@ -27,7 +27,7 @@ interface ImageProps {
 	html?: string | TrustedHTML;
 }
 
-type Rect = {
+export type Rect = {
 	left: number;
 	top: number;
 	scale: number;
@@ -48,20 +48,7 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		});
 	}, 100);
 
-	const onWheel = (event: WheelEvent) => {
-		const isCtrl = event.ctrlKey || event.metaKey;
-		const target = imgRef.current.parentElement;
-		event.preventDefault();
-
-		target.style.transition = "none";
-		if (!isCtrl) return moveImage(event);
-		zoomImage(event.deltaY, event.clientX, event.clientY);
-		target.style.removeProperty("transition");
-
-		if (debounceUpdateRect.timeoutIdRef.current) debounceUpdateRect.cancel();
-		debounceUpdateRect.start();
-	};
-
+	// biome-ignore lint/correctness/useExhaustiveDependencies: debounceUpdateRect.timeoutIdRef.current is always defined
 	const moveImage = useCallback((event: WheelEvent) => {
 		const target = imgRef.current.parentElement;
 		const imgRect = target.getBoundingClientRect();
@@ -78,31 +65,54 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		const clampedLeft = Math.min(Math.max(newLeft, minWidth), maxWidth);
 		const clampedTop = Math.min(Math.max(newTop, minHeight), maxHeight);
 
-		if (left && right) target.style.left = clampedLeft + "px";
-		if (top && bottom) target.style.top = clampedTop + "px";
+		if (left && right) target.style.left = `${clampedLeft}px`;
+		if (top && bottom) target.style.top = `${clampedTop}px`;
 		target.style.removeProperty("transition");
 
 		if (debounceUpdateRect.timeoutIdRef.current) debounceUpdateRect.cancel();
 		debounceUpdateRect.start();
 	}, []);
 
-	const onKeyDown = (event: KeyboardEvent) => {
-		const isCtrl = event.ctrlKey || event.metaKey;
-		if (!isCtrl) return;
-		const isZoomIn = event.key === "=";
-		const isZoomOut = event.key === "-";
+	const onKeyDown = useCallback(
+		(event: KeyboardEvent) => {
+			const isCtrl = event.ctrlKey || event.metaKey;
+			if (!isCtrl) return;
+			const isZoomIn = event.key === "=";
+			const isZoomOut = event.key === "-";
 
-		if (!isZoomIn && !isZoomOut) return;
-		zoomImage((isZoomIn && -ZOOM_COUNT) || ZOOM_COUNT);
-		event.preventDefault();
-	};
+			if (!isZoomIn && !isZoomOut) return;
+			zoomImage((isZoomIn && -ZOOM_COUNT) || ZOOM_COUNT);
+			event.preventDefault();
+		},
+		[zoomImage],
+	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: debounce func in useCallback
+	const onWheel = useCallback(
+		(event: WheelEvent) => {
+			const isCtrl = event.ctrlKey || event.metaKey;
+			const target = imgRef.current.parentElement;
+			event.preventDefault();
+
+			target.style.transition = "none";
+			if (!isCtrl) return moveImage(event);
+			zoomImage(event.deltaY, event.clientX, event.clientY);
+			target.style.removeProperty("transition");
+
+			if (debounceUpdateRect.timeoutIdRef.current) debounceUpdateRect.cancel();
+			debounceUpdateRect.start();
+		},
+		[moveImage, zoomImage],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: is a ref
 	const onStartDrag = useCallback(() => {
 		const target = ref.current;
 		target.style.transition = "none";
 		document.body.style.cursor = "grabbing";
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: is a ref
 	const onDragMove = useCallback((deltaX: number, deltaY: number) => {
 		const target = ref.current;
 		const imgRect = target.getBoundingClientRect();
@@ -117,10 +127,11 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		const clampedLeft = Math.min(Math.max(newLeft, minWidth), maxWidth);
 		const clampedTop = Math.min(Math.max(newTop, minHeight), maxHeight);
 
-		if (left && right) target.style.left = clampedLeft + "px";
-		if (top && bottom) target.style.top = clampedTop + "px";
+		if (left && right) target.style.left = `${clampedLeft}px`;
+		if (top && bottom) target.style.top = `${clampedTop}px`;
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: debounce func in useCallback
 	const onDragEnd = useCallback(() => {
 		const target = ref.current;
 		document.body.style.removeProperty("cursor");
@@ -136,6 +147,7 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		onEnd: onDragEnd,
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: src and svg are dependencies
 	useEffect(() => {
 		window.addEventListener("wheel", onWheel, { passive: false });
 		window.addEventListener("keydown", onKeyDown);
@@ -146,40 +158,7 @@ const MediaRenderer = forwardRef((props: ImageProps, ref?: MutableRefObject<HTML
 		};
 	}, [src, svg]);
 
-	useLayoutEffect(() => {
-		const maxScale = () => {
-			const container = ref.current;
-			const view = container.firstElementChild as HTMLElement;
-			const windowWidth = window.innerWidth;
-			const windowHeight = window.innerHeight;
-			const maxViewWidth = windowWidth * 0.8;
-			const maxViewHeight = windowHeight * 0.8;
-
-			const scaleWidth = maxViewWidth / view.offsetWidth;
-			const scaleHeight = maxViewHeight / view.offsetHeight;
-			const newScale = Math.min(scaleWidth, scaleHeight);
-
-			container.style.scale = `${newScale}`;
-			container.setAttribute("data-scale", `${newScale}`);
-
-			setRect({
-				left: parseFloat(container.style.left) || 0,
-				top: parseFloat(container.style.top) || 0,
-				scale: parseFloat(container.style.scale),
-			});
-		};
-
-		const element = document.createElement(svg ? "div" : "img");
-		if (src) {
-			(element as HTMLImageElement).src = src;
-			element.onload = () => maxScale();
-		} else {
-			(element as HTMLDivElement).innerHTML = svg;
-			maxScale();
-		}
-
-		element.remove();
-	}, [src, svg]);
+	useMediaScale({ ref, src, svg, onReady: setRect });
 
 	return (
 		<div className={className}>
@@ -222,7 +201,7 @@ export default styled(memo(MediaRenderer))`
 	}
 
 	.image-container img,
-	.image-container div:first-of-type {
+	.image-container div:first-of-type svg {
 		box-shadow: unset !important;
 		max-width: ${(p) =>
 			`calc(90vw - ${p.modalStyle?.paddingLeft || p.modalStyle?.padding || "0px"} - ${
@@ -232,6 +211,11 @@ export default styled(memo(MediaRenderer))`
 			`calc(90vh - ${p.modalStyle?.paddingTop || p.modalStyle?.padding || "0px"} - ${
 				p.modalStyle?.paddingBottom || p.modalStyle?.padding || "0px"
 			})`};
+	}
+
+	.image-container div:first-of-type svg {
+		width: auto !important;
+		height: auto !important;
 	}
 
 	.image-container div:first-of-type {

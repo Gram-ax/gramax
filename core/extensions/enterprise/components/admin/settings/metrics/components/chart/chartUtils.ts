@@ -53,4 +53,7 @@ export const StyledCheckboxField = styled(CheckboxField)`
 	height:14px;
 	width:14px;
 	}
+	svg {
+		height: 0.9rem;
+		}
 	`;

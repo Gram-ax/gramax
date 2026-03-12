@@ -7,8 +7,8 @@ import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { CheckboxField } from "@ui-kit/Checkbox";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { Textarea } from "@ui-kit/Textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useState } from "react";
@@ -51,8 +51,8 @@ const BugsnagModal = ({ itemLogicPath, onClose }: { itemLogicPath: string; onClo
 	};
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={open}>
-			<ModalContent data-modal-root>
+		<Dialog onOpenChange={onOpenChange} open={open}>
+			<DialogContent data-modal-root>
 				<ModalErrorHandler onClose={() => onOpenChange(false)} onError={() => {}}>
 					<Form asChild {...form}>
 						<form className="contents ui-kit" onSubmit={formSubmit}>
@@ -61,7 +61,7 @@ const BugsnagModal = ({ itemLogicPath, onClose }: { itemLogicPath: string; onClo
 								icon={"bug"}
 								title={t("bug-report.modal.title")}
 							/>
-							<ModalBody>
+							<DialogBody>
 								<FormStack>
 									<FormField
 										control={({ field }) => (
@@ -72,7 +72,7 @@ const BugsnagModal = ({ itemLogicPath, onClose }: { itemLogicPath: string; onClo
 										title={t("description")}
 									/>
 								</FormStack>
-							</ModalBody>
+							</DialogBody>
 							<FormFooter
 								leftContent={
 									<Wrapper>
@@ -97,8 +97,8 @@ const BugsnagModal = ({ itemLogicPath, onClose }: { itemLogicPath: string; onClo
 						</form>
 					</Form>
 				</ModalErrorHandler>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

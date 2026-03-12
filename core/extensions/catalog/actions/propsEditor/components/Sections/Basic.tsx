@@ -4,10 +4,10 @@ import isSystemProperty from "@ext/properties/logic/isSystemProperty";
 import { enumTypes, type Property, PropertyTypes } from "@ext/properties/models";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { feature } from "@ext/toggleFeatures/features";
+import { usePreventAutoFocusToInput } from "@ui-kit/Dialog/utils";
 import { FormField } from "@ui-kit/Form";
 import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
-import { usePreventAutoFocusToInput } from "@ui-kit/Modal/utils";
 import {
 	Select,
 	SelectContent,
@@ -43,7 +43,7 @@ const EditCatalogPropertyFilter = ({ properties, formProps }: BasicProps & { pro
 						onValueChange={field.onChange}
 						value={field.value || undefined}
 					>
-						<SelectTrigger onClear={() => field.onChange(null)}>
+						<SelectTrigger onClear={field.value ? () => field.onChange("") : undefined}>
 							<SelectValue placeholder={t("forms.catalog-edit-props.props.filterProperty.placeholder")} />
 						</SelectTrigger>
 						<SelectContent>

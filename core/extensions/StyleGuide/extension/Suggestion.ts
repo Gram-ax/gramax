@@ -1,5 +1,5 @@
 import SuggestionTooltip from "@ext/StyleGuide/extension/SuggestionTooltip";
-import { Editor, Mark, mergeAttributes } from "@tiptap/core";
+import { type Editor, Mark, mergeAttributes } from "@tiptap/core";
 import { DOMParser as TipTapDOMParser } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "prosemirror-state";
 
@@ -135,9 +135,13 @@ export const Suggestion = Mark.create({
 						if (node.isText) {
 							haveSug = node.marks.some((mark) => {
 								if (mark.type.name == Suggestion.name) {
-									if (start == -1) {
+									if (start == -1 || originalText !== mark.attrs.originalText) {
+										if (start !== -1 && text !== originalText) {
+											tr.removeMark(start, pos, currentType);
+										}
 										start = pos;
 										originalText = mark.attrs.originalText;
+										text = "";
 									}
 									text += node.text;
 									return true;

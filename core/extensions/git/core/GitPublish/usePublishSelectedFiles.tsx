@@ -1,4 +1,4 @@
-import type { DiffTree, DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useCallback, useMemo, useState } from "react";
 
@@ -22,29 +22,52 @@ const collectFilesFromTree = (diffTree: DiffTree, includeOldPathWhenAvailable = 
 	if (!diffTree) return new Map();
 
 	const paths = new Map<string, string[]>();
+	const flatTree = diffTree.data;
 
-	const collect = (diffTree: DiffTreeAnyItem[], key?: string) => {
-		diffTree.forEach((item) => {
-			if (item.type === "node") collect(item.childs);
-			if (item.type === "item") {
-				paths.set(item.filepath.new, []);
-				if (includeOldPathWhenAvailable && item.status == FileStatus.rename) paths.set(item.filepath.old, []);
+	for (let i = 0; i < flatTree.length; i++) {
+		const item = flatTree[i];
 
-				collect(item.childs, item.filepath.new);
+		if (item.type === "item") {
+			paths.set(item.filepath.new, []);
+			if (includeOldPathWhenAvailable && item.overview.status === FileStatus.rename) {
+				paths.set(item.filepath.old, []);
 			}
-			if (item.type === "resource") {
-				if (key) paths.set(key, [...(paths.get(key) || []), item.filepath.new]);
-				else paths.set(item.filepath.new, []);
 
-				if (includeOldPathWhenAvailable && item.status == FileStatus.rename) {
-					if (key) paths.set(key, [...(paths.get(key) || []), item.filepath.old]);
-					else paths.set(item.filepath.old, []);
+			for (let j = i + 1; j < flatTree.length; j++) {
+				const next = flatTree[j];
+				if (next.indent <= item.indent) break;
+
+				if (next.type === "resource") {
+					const resources = paths.get(item.filepath.new) || [];
+					resources.push(next.filepath.new);
+					paths.set(item.filepath.new, resources);
+
+					if (includeOldPathWhenAvailable && next.overview.status === FileStatus.rename) {
+						resources.push(next.filepath.old);
+						paths.set(item.filepath.new, resources);
+					}
 				}
 			}
-		});
-	};
+		}
 
-	collect(diffTree.tree);
+		if (item.type === "resource") {
+			let hasParent = false;
+			for (let k = i - 1; k >= 0; k--) {
+				const prev = flatTree[k];
+				if (prev.indent < item.indent) {
+					if (prev.type === "item") hasParent = true;
+					break;
+				}
+			}
+			if (!hasParent) {
+				paths.set(item.filepath.new, []);
+				if (includeOldPathWhenAvailable && item.overview.status === FileStatus.rename) {
+					paths.set(item.filepath.old, []);
+				}
+			}
+		}
+	}
+
 	return paths;
 };
 
@@ -53,6 +76,7 @@ const usePublishSelectedFiles = ({ diffTree }: UsePublishSelectedFilesProps): Us
 
 	const [isSelectedAll, setIsSelectedAll] = useState(true);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const files = useMemo(() => {
 		const files = collectFilesFromTree(diffTree);
 		if (isSelectedAll || !selectedFiles?.length) setSelectedFiles(Array.from(files.keys()));
@@ -87,7 +111,7 @@ const usePublishSelectedFiles = ({ diffTree }: UsePublishSelectedFilesProps): Us
 			setIsSelectedAll(select);
 			setSelectedFiles(select ? Array.from(files.keys()) : []);
 		},
-		[setIsSelectedAll, files],
+		[files],
 	);
 
 	const isSelected = useCallback(

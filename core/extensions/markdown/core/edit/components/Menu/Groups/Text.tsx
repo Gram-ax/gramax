@@ -6,17 +6,31 @@ import { getPluginComponents } from "@plugins/store";
 import type { Editor } from "@tiptap/core";
 import { ToolbarSeparator } from "@ui-kit/Toolbar";
 
-const TextMenuGroup = ({ editor, isSelectionMenu = false }: { editor?: Editor; isSelectionMenu?: boolean }) => {
+export interface TextMenuGroupButtons {
+	strong?: boolean;
+	em?: boolean;
+	strike?: boolean;
+	highlight?: boolean;
+}
+
+interface TextMenuGroupProps {
+	editor?: Editor;
+	isSelectionMenu?: boolean;
+	buttons?: TextMenuGroupButtons;
+}
+
+const TextMenuGroup = ({ editor, isSelectionMenu = false, buttons }: TextMenuGroupProps) => {
+	const { strong = true, em = true, strike = true, highlight = true } = buttons || {};
+
 	return (
 		<>
-			<StrongMenuButton editor={editor} />
-			<EmMenuButton editor={editor} />
-			<StrikeMenuButton editor={editor} />
-			{isSelectionMenu && (
+			{strong && <StrongMenuButton editor={editor} />}
+			{em && <EmMenuButton editor={editor} />}
+			{strike && <StrikeMenuButton editor={editor} />}
+			{isSelectionMenu && highlight && (
 				<>
 					<ToolbarSeparator />
 					<HighlightMenuButton editor={editor} />
-					<ToolbarSeparator />
 				</>
 			)}
 			{getPluginComponents().map((Component, index) => (

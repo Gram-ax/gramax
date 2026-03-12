@@ -1,3 +1,4 @@
+import getAppVersion from "@core/utils/getAppVersion";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
 import localUserInfo from "@ext/security/logic/User/localUserInfo";
@@ -6,7 +7,7 @@ import ToggleFeatures from "@ext/toggleFeatures/components/ToggleFeatures";
 const BottomInfo = () => {
 	const { conf, isLogged, userInfo } = PageDataContextService.value;
 	const cred = `© ${new Date().getFullYear()} Gramax`;
-	const ver = `${t("version")} ${conf?.version} ${conf?.isRelease ? "" : "dev"}`.trim();
+	const ver = `${t("version")} ${getAppVersion(conf?.version, conf?.isRelease)}`;
 	const isAdmin = userInfo?.mail === localUserInfo?.mail;
 
 	return (

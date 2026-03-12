@@ -79,6 +79,7 @@ const DiagramsMenuGroup = ({ editor, fileName }: DiagramsMenuGroupProps) => {
 						<ToolbarTrigger
 							data-open={isOpen ? "open" : "closed"}
 							data-state={isActive ? "open" : "closed"}
+							data-testid="tb-diagrams"
 							disabled={disabled}
 						>
 							<ToolbarIcon icon="diagrams" />

@@ -4,8 +4,8 @@ import ArticleViewService from "@core-ui/ContextServices/views/articleView/Artic
 import useGetHref from "@core-ui/useGetHref";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { forwardRef, MutableRefObject, useEffect, useRef } from "react";
-import { TocItem } from "../logic/createTocItems";
+import { forwardRef, type MutableRefObject, useCallback, useEffect, useRef } from "react";
+import type { TocItem } from "../logic/createTocItems";
 
 const SCROLLSPY_OFFSET = 50;
 type Pair = { hEl: HTMLElement; aEl: HTMLElement };
@@ -29,15 +29,17 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 	const { children, className, activeClassName, activeClassEl } = props;
 	const navRef = useRef(null);
 	const items = ArticlePropsService.value.tocItems;
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const el = navRef.current as HTMLElement;
-		const scrollEl = articleElementRef.current;
+		const scrollEl = articleElementRef.current?.parentElement;
 		if (!scrollEl) return;
 
 		let pairs: Pair[] = null;
 		function refreshPairs() {
 			pairs = Array.from(el.querySelectorAll("a[href]")).map((x) => {
-				const href = x.attributes["href"].value as string;
+				const href = x.getAttribute("href") as string;
 				return {
 					hEl: document.getElementById(href.substring(href.indexOf("#") + 1)),
 					aEl: x as HTMLElement,
@@ -49,9 +51,6 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 
 		function onScroll() {
 			if (!pairs || !pairs?.[0]?.hEl || !pairs?.[0]?.hEl.parentNode || !pairs?.[0]?.hEl.offsetTop) refreshPairs();
-			// If elements are unmounted (article changed), then we need to read pairs again
-			// For some reason after navigating to anchor link (href=#XXX) all DOM elements in pairs are unmounted
-
 			const y = scrollEl.scrollTop + SCROLLSPY_OFFSET;
 			let aEl = null as HTMLElement;
 
@@ -59,7 +58,7 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 				aEl = pairs[pairs.length - 1].aEl;
 			else for (let i = 0; i < pairs.length && pairs[i].hEl?.offsetTop < y; aEl = pairs[i].aEl, i++);
 
-			if (aEl != prevAEl) {
+			if (aEl !== prevAEl) {
 				if (aEl) {
 					removeActiveClassInChildren(navRef.current, activeClassName);
 					activeClassEl(aEl)?.classList.add(activeClassName);
@@ -85,8 +84,8 @@ const Scrollspy = forwardRef((props: ScrollspyProps, articleElementRef: MutableR
 const Tree = ({ items, level }: { items: TocItem[]; level: number }) => {
 	return (
 		<ul style={{ margin: "1em 0 0 0" }}>
-			{items.map((x, i) => (
-				<li key={i}>
+			{items.map((x) => (
+				<li key={x.url}>
 					{!x.items?.length ? (
 						<a
 							className={`lvl-${level}`}
@@ -112,22 +111,11 @@ const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 	return (
 		<ul>
 			<li className="expand">
-				{/* <div className={`lvl-${level}`}>
-						<Icon
-							onClick={() => {
-								setExpanded(!isExpanded);
-							}}
-							code={isExpanded ? "angle-down" : "angle-right"}
-							className="icon"
-							faFw={true}
-							style={{ fontWeight: 300, verticalAlign: "baseline" }}
-						/>
-					</div> */}
 				<a className={`lvl-${level}`} data-qa={`article-navigation-level-${level}-link`} href={href}>
 					{item.title}
 				</a>
 			</li>
-			{/* {isExpanded ? */} <Tree items={item.items} level={item.title ? level + 1 : level} /> {/* : null} */}
+			<Tree items={item.items} level={item.title ? level + 1 : level} />
 		</ul>
 	);
 };
@@ -135,16 +123,12 @@ const CategoryTree = ({ item, level }: { item: TocItem; level: number }) => {
 const TableOfContents = styled(({ className }: { className?: string }) => {
 	const items = ArticlePropsService.tocItems;
 	const articleElement = ArticleRefService.value;
+	const activeClassEl = useCallback((x: HTMLElement) => x.parentNode as HTMLElement, []);
 
 	if (!items.length || !ArticleViewService.isDefaultView) return null;
 
 	return (
-		<Scrollspy
-			activeClassEl={(x) => x.parentNode as HTMLElement}
-			activeClassName="active"
-			className={className}
-			ref={articleElement}
-		>
+		<Scrollspy activeClassEl={activeClassEl} activeClassName="active" className={className} ref={articleElement}>
 			<>
 				<div
 					className="group-header"
@@ -175,6 +159,7 @@ const TableOfContents = styled(({ className }: { className?: string }) => {
 	}
 
 	ul {
+		padding-left: 20px;
 		margin-top: 0px;
 		margin-left: -20px !important;
 	}

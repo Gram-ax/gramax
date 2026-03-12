@@ -1,16 +1,16 @@
-import SpinnerLoaderSrc from "@components/Atoms/SpinnerLoader";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
 import styled from "@emotion/styled";
 import type {
+	DiffFlattenTreeAnyItem,
 	DiffTree,
-	DiffTreeAnyItem,
 	TotalOverview,
-} from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+} from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { DiffEntries } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
 import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
 import ScrollableDiffEntriesLayout from "@ext/git/core/GitMergeRequest/components/Changes/ScrollableDiffEntriesLayout";
 import SelectAll from "@ext/git/core/GitPublish/SelectAll";
+import { Loader } from "@ui-kit/Loader";
 import { type RefObject, useCallback, useLayoutEffect, useRef } from "react";
 import { useDiffExtendedMode } from "../GitMergeRequest/components/Changes/stores/DiffExtendedModeStore";
 
@@ -27,18 +27,14 @@ export type PublishChangesProps = {
 	onDiscard: (paths?: string[]) => void;
 	canDiscard: boolean;
 
-	selectFile: (file: DiffTreeAnyItem, checked: boolean) => void;
-	isFileSelected: (file: DiffTreeAnyItem) => boolean;
+	selectFile: (file: DiffFlattenTreeAnyItem, checked: boolean) => void;
+	isFileSelected: (file: DiffFlattenTreeAnyItem) => boolean;
 	setContentHeight: (height: number) => void;
 	bottom?: JSX.Element;
 };
 
 const SelectAllWrapper = styled.div`
 	margin-bottom: 0.5rem;
-`;
-
-const SpinnerLoader = styled(SpinnerLoaderSrc)`
-	margin-bottom: 1rem;
 `;
 
 export const PublishChanges = (props: PublishChangesProps) => {
@@ -58,16 +54,16 @@ export const PublishChanges = (props: PublishChangesProps) => {
 	} = props;
 	const extendedMode = useDiffExtendedMode();
 	const containerRef = useRef<HTMLDivElement>(null);
+	const scrollableRef = useRef<HTMLDivElement>(null);
 	const setArticleDiffView = useSetArticleDiffView(false, null, "HEAD");
 
 	const onEntryDiscard = useCallback(
-		(entry: DiffTreeAnyItem) => {
+		(entry: DiffFlattenTreeAnyItem) => {
 			if (entry.type === "node") return;
 			const filePaths = [entry.filepath.new, entry.filepath.old];
-			if (entry.type === "item" && entry.childs?.length) {
-				entry.childs.forEach((c) => {
-					if (c.type !== "resource") return;
-					filePaths.push(c.filepath.new, c.filepath.old);
+			if (entry.type === "item" && entry.resources) {
+				entry.resources.forEach((resource) => {
+					filePaths.push(resource.filePath.path, resource.filePath.oldPath);
 				});
 			}
 			onDiscard(filePaths);
@@ -75,6 +71,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 		[onDiscard],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: needs to calculate height of the tab wrapper
 	useLayoutEffect(() => {
 		if (!containerRef.current || !tabWrapperRef.current || !show) return;
 		const mainElement = tabWrapperRef.current;
@@ -86,9 +83,9 @@ export const PublishChanges = (props: PublishChangesProps) => {
 			calculateTabWrapperHeight(mainElement) - parseFloat(getComputedStyle(document.documentElement).fontSize);
 
 		setContentHeight(height);
-	}, [diffTree?.tree, containerRef.current, extendedMode, tabWrapperRef.current, isLoading, show]);
+	}, [diffTree?.data, containerRef.current, extendedMode, tabWrapperRef.current, isLoading, show]);
 
-	const hasChanges = diffTree?.tree?.length > 0;
+	const hasChanges = diffTree?.data?.length > 0;
 
 	return (
 		<>
@@ -107,17 +104,18 @@ export const PublishChanges = (props: PublishChangesProps) => {
 					/>
 				</SelectAllWrapper>
 			)}
-			<ScrollableDiffEntriesLayout>
+			<ScrollableDiffEntriesLayout ref={scrollableRef}>
 				{isLoading ? (
-					<SpinnerLoader fullScreen ref={containerRef} />
+					<Loader className="py-6" ref={containerRef} size="3xl" />
 				) : (
 					<DiffEntries
 						actionIcon="reply"
-						changes={diffTree?.tree}
+						changes={diffTree?.data}
 						isFileSelected={isFileSelected}
 						onAction={onEntryDiscard}
 						ref={containerRef}
 						renderCommentsCount
+						scrollableRef={scrollableRef}
 						selectFile={selectFile}
 						setArticleDiffView={setArticleDiffView}
 					/>

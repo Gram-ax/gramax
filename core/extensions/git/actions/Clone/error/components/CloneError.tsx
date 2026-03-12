@@ -1,9 +1,9 @@
 import styled from "@emotion/styled";
-import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
 
 const Wrapper = styled.div`

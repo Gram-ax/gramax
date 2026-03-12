@@ -1,3 +1,5 @@
+#![cfg(not(target_family = "wasm"))]
+
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::str::FromStr;

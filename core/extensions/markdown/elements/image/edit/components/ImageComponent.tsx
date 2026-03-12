@@ -1,11 +1,12 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { resolveFloat } from "@ext/markdown/elements/float/edit/logic/resolveFloat";
 import Image from "@ext/markdown/elements/image/edit/components/Image";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
-import { NodeViewProps } from "@tiptap/core";
-import { ReactElement, useCallback, useRef } from "react";
+import type { NodeViewProps } from "@tiptap/core";
+import { type ReactElement, useCallback, useRef } from "react";
 
 const ImageComponent = (props: NodeViewProps): ReactElement => {
 	const { editor, node, getPos, selected, updateAttributes } = props;
@@ -14,6 +15,7 @@ const ImageComponent = (props: NodeViewProps): ReactElement => {
 	const resourceService = ResourceService.value;
 	const float = resolveFloat(node.attrs.float);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	const updateAttributesCallback = useCallback(
 		async (attributes: Record<string, any>) => {
 			const pos = getPos();
@@ -23,11 +25,13 @@ const ImageComponent = (props: NodeViewProps): ReactElement => {
 				const buffer = resourceService.getBuffer(node.attrs.src);
 
 				if (buffer) {
-					const urlToImage = URL.createObjectURL(new Blob([buffer], { type: resolveFileKind(buffer) }));
+					const urlToImage = URL.createObjectURL(
+						new Blob([buffer as any], { type: resolveFileKind(buffer) }),
+					);
 					const newSize = await getNaturalSize(urlToImage);
 					if (newSize) {
-						attributes.width = newSize.width + "px";
-						attributes.height = newSize.height + "px";
+						attributes.width = `${newSize.width}px`;
+						attributes.height = `${newSize.height}px`;
 					}
 					URL.revokeObjectURL(urlToImage);
 				}

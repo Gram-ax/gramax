@@ -1,12 +1,14 @@
 import { getConfig } from "@app/config/AppConfig";
+import resolveBackendModule from "@app/resolveModule/backend";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type Application from "@app/types/Application";
 import type DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { joinTitles } from "@core-ui/getPageTitle";
-import { createModulithService } from "@ext/serach/modulith/createModulithService";
+import { createModulithFileProviders, createModulithService } from "@ext/serach/modulith/createModulithService";
 import { getRawEnabledFeatures } from "@ext/toggleFeatures/features";
+import assert from "assert";
 import crypto from "crypto-js";
 import { dirname } from "path";
 import type { HtmlData } from "./ArticleTypes";
@@ -50,7 +52,7 @@ interface StaticSiteBuilderParams {
 	app: Application;
 	html: string;
 	getCache: {
-		fp?: () => { catceFileProvider: DiskFileProvider; articleStorageFileProvider: DiskFileProvider };
+		fp?: () => { cacheFileProvider: DiskFileProvider; articleStorageFileProvider: DiskFileProvider };
 		tree: () => DirectoryInfoBasic | Promise<DirectoryInfoBasic>;
 	};
 }
@@ -84,8 +86,10 @@ class StaticSiteBuilder {
 				};
 			},
 		);
+		const catalogDirectory = directoryTree.children.find((v) => v.name === catalogName) as DirectoryInfoBasic;
+		assert(catalogDirectory, "not found catalog directory in directory tree");
 
-		directoryTree.children.push(searchDirectoryTree);
+		catalogDirectory.children.push(searchDirectoryTree);
 
 		if (customStyles) {
 			await this._params.fp.write(targetDir.join(new Path([catalogName, CUSTOM_STYLE_FILENAME])), customStyles);
@@ -93,7 +97,7 @@ class StaticSiteBuilder {
 			this._params.html = this._params.html.replace(htmlTags.styles, `${customStyleLinkTag}\n${htmlTags.styles}`);
 		}
 
-		const dataJsContent = `window.${InitialDataKeys.DIRECTORY} = ${JSON.stringify(directoryTree)};`;
+		const dataJsContent = `window.${InitialDataKeys.DIRECTORY} = ${this._stringifyDataSafely(directoryTree)};`;
 
 		const dataJsHash = this._generateHash(dataJsContent);
 		const dataJsFilename = `data.${dataJsHash}.js`;
@@ -109,16 +113,23 @@ class StaticSiteBuilder {
 	}
 
 	private _createSearchIndexes = async (catalog: Catalog, targetDir: Path) => {
+		const { cacheFileProvider, articleStorageFileProvider } =
+			this._params.getCache.fp?.() ?? createModulithFileProviders(targetDir.join(new Path(catalog.name)));
+		const client = await resolveBackendModule("getModulithSearchClient")({
+			cacheFileProvider,
+			articleStorageFileProvider,
+		});
+
 		const modulithService = await createModulithService({
-			basePath: targetDir,
 			parser: this._params.app.parser,
 			parserContextFactory: this._params.app.parserContextFactory,
 			wm: this._params.app.wm,
-			parseResources: false,
-			fp: this._params.getCache.fp?.(),
+			resourceParseClient: undefined,
+			localClient: client,
 		});
 
 		await modulithService.updateCatalog(catalog.name, STATIC_WORKSPACE_PATH);
+		await modulithService.terminate();
 
 		const tree = await this._params.getCache.tree();
 		return tree;
@@ -137,7 +148,7 @@ class StaticSiteBuilder {
 		(config as StaticConfig).features = getRawEnabledFeatures();
 
 		const templateHtml = this._params.html
-			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ${JSON.stringify(config) ?? "{}"}`)
+			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ${this._stringifyDataSafely(config) ?? "{}"}`)
 			.replace(
 				htmlTags.fs,
 				`<script src="${catalogName}/${dataJsFilename}"></script>\n` +
@@ -147,7 +158,7 @@ class StaticSiteBuilder {
 		const generateHtmlFile = async (htmlData: HtmlData) => {
 			const is404Html = htmlData.initialData.data?.articlePageData?.articleProps?.errorCode === 404;
 			const dataKey = `window.${InitialDataKeys.DATA} = `;
-			const initialData = this._escapeDollars(JSON.stringify(htmlData.initialData) ?? "{}");
+			const initialData = this._escapeDollars(this._stringifyDataSafely(htmlData.initialData) ?? "{}");
 
 			const getLogicPath = () => {
 				const get404Path = () => {
@@ -192,6 +203,10 @@ class StaticSiteBuilder {
 		await SEOFiles.mapAsync(async ({ content, name }) => {
 			await this._params.fp.write(targetDir.join(new Path(isBrowser ? [catalog.name, name] : name)), content);
 		});
+	}
+
+	private _stringifyDataSafely(config: Parameters<JSON["stringify"]>[0]) {
+		return JSON.stringify(config).replaceAll("<", "\\u003C");
 	}
 
 	private _escapeDollars(str: string) {

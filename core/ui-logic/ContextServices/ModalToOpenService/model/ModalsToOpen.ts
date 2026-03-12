@@ -5,7 +5,6 @@ enum ModalToOpen {
 	MergeResolver = "MergeResolver",
 
 	ShareTicketHandler = "ShareTicketHandler",
-	ReviewTicketHandler = "ReviewTicketHandler",
 
 	CheckoutHandler = "CheckoutHander",
 	CloneHandler = "CloneHandler",

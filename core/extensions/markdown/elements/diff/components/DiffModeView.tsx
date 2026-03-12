@@ -2,29 +2,31 @@ import ArticleExtensions from "@components/Article/ArticleExtensions";
 import ArticleWithPreviewArticle from "@components/ArticlePage/ArticleWithPreviewArticle";
 import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
 import useGetArticleContextData from "@core-ui/ScopedContextWrapper/useGetArticleContextData";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import Menu from "@ext/markdown/core/edit/components/Menu/Menu";
 import Toolbar from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
 import getExtensions, { getTemplateExtensions } from "@ext/markdown/core/edit/logic/getExtensions";
+import { useShouldShowInlineToolbar } from "@ext/markdown/core/edit/logic/hooks/useShouldShowInlineToolbar";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import { InlineToolbar } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
 import CommentEditorProvider from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
 import useCommentCallbacks from "@ext/markdown/elements/comment/edit/logic/hooks/useCommentCallbacks";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import Controllers from "@ext/markdown/elements/controllers/controllers";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
 import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import { useEditorExtensions } from "@ext/markdown/elements/diff/components/store/EditorExtensionsStore";
@@ -35,14 +37,17 @@ import OnAddMark from "@ext/markdown/elements/onAdd/OnAddMark";
 import OnDeleteMark from "@ext/markdown/elements/onDocChange/OnDeleteMark";
 import OnDeleteNode from "@ext/markdown/elements/onDocChange/OnDeleteNode";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import ExtensionContextUpdater from "@ext/markdown/elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
+import {
+	useExtendExtensionsWithContext,
+	useUpdateContextInExtensions,
+} from "@ext/markdown/elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
 import PropertyService from "@ext/properties/components/PropertyService";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
-import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
+import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { Editor, Extensions } from "@tiptap/core";
+import type { Editor, Extensions } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
-import { EditorContent, EditorContext, JSONContent, useEditor } from "@tiptap/react";
+import { EditorContent, EditorContext, type JSONContent, useEditor } from "@tiptap/react";
 import { useEffect, useState } from "react";
 
 interface DiffModeViewProps {
@@ -121,7 +126,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		setDiffBottomBarHeight(height);
 	}, []);
 
-	const UpdatedDiffExtension = ExtensionContextUpdater.useExtendExtensionsWithContext([
+	const UpdatedDiffExtension = useExtendExtensionsWithContext([
 		DiffExtension.configure({ isPin, oldScope, newScope, articlePath: oldContextArticlePath }),
 	])[0] as typeof DiffExtension;
 
@@ -182,7 +187,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 		[extensions, newContent, articleProps, catalogProps],
 	);
 
-	ExtensionContextUpdater.useUpdateContextInExtensions(newEditor);
+	useUpdateContextInExtensions(newEditor);
 
 	const oldContentEditor = useEditor(
 		{
@@ -207,25 +212,29 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	useEffect(() => {
 		newEditor.commands.updateIsPin(isPin, true);
 		oldContentEditor.commands.updateIsPin(isPin, false);
-	}, [isPin.left, isPin.right]);
+	}, [isPin, newEditor, oldContentEditor]);
 
 	const diffViewMode = useDiffViewMode();
 
 	useEffect(() => {
 		newEditor.commands.updateDiffViewMode(diffViewMode, true);
-	}, [diffViewMode]);
+	}, [diffViewMode, newEditor]);
+
+	const shouldShow = useShouldShowInlineToolbar();
 
 	const mainArticleWrapper = isDelete ? (
 		<ArticleContextWrapper articlePath={oldContextArticlePath} scope={oldScope}>
-			<EditorContext.Provider value={{ editor: oldContentEditor }}>
-				<CommentEditorProvider editor={oldContentEditor}>
-					<div>
-						<InlineToolbar editor={oldContentEditor} />
-						<InlineLinkMenu editor={oldContentEditor} />
-						<EditorContent data-iseditable={false} data-qa="article-editor" editor={oldContentEditor} />
-					</div>
-				</CommentEditorProvider>
-			</EditorContext.Provider>
+			<ButtonStateService.Provider editor={oldContentEditor}>
+				<EditorContext.Provider value={{ editor: oldContentEditor }}>
+					<CommentEditorProvider editor={oldContentEditor}>
+						<div>
+							<InlineToolbar editor={oldContentEditor} shouldShow={shouldShow} />
+							<InlineLinkMenu editor={oldContentEditor} />
+							<EditorContent data-iseditable={false} data-qa="article-editor" editor={oldContentEditor} />
+						</div>
+					</CommentEditorProvider>
+				</EditorContext.Provider>
+			</ButtonStateService.Provider>
 		</ArticleContextWrapper>
 	) : (
 		<CommentEditorProvider editor={newEditor}>
@@ -253,7 +262,7 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 							<EditorContext.Provider value={{ editor: oldContentEditor }}>
 								<CommentEditorProvider editor={oldContentEditor}>
 									<div style={{ marginLeft: "0.5rem" }}>
-										<InlineToolbar editor={oldContentEditor} />
+										<InlineToolbar editor={oldContentEditor} shouldShow={shouldShow} />
 										<InlineLinkMenu editor={oldContentEditor} />
 										<EditorContent
 											data-iseditable={false}
@@ -300,12 +309,16 @@ const NewEditorWithDiff = (props: NewEditorWithDiffProps) => {
 			: { newEditor: null, oldEditor: null, newApiUrlCreator: null, oldApiUrlCreator: null },
 	);
 
+	const shouldShow = useShouldShowInlineToolbar();
+
 	return (
-		<div>
-			<InlineToolbar editor={newEditor} />
-			<InlineLinkMenu editor={newEditor} />
-			<EditorContent data-iseditable={!readOnly} data-qa="article-editor" editor={newEditor} />
-		</div>
+		<ButtonStateService.Provider editor={newEditor}>
+			<div>
+				<InlineToolbar editor={newEditor} shouldShow={shouldShow} />
+				<InlineLinkMenu editor={newEditor} />
+				<EditorContent data-iseditable={!readOnly} data-qa="article-editor" editor={newEditor} />
+			</div>
+		</ButtonStateService.Provider>
 	);
 };
 

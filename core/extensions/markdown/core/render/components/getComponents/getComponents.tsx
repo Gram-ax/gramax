@@ -16,7 +16,7 @@ import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListIte
 import { Question } from "@ext/markdown/elements/question/render/components/Question";
 import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
 import View from "@ext/markdown/elements/view/render/components/View";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
 import Cmd from "../../../../elements/cmd/render/Cmd";
 import Code from "../../../../elements/code/render/component/Code";

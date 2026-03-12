@@ -54,7 +54,7 @@ const MetricsAnonymousSelect: FC<MetricsAnonymousSelectProps> = ({ value, disabl
 
 	return (
 		<Select disabled={disabled} onValueChange={handleChange} value={value}>
-			<SelectTrigger className="w-auto min-w-[180px]">
+			<SelectTrigger className="gap-2">
 				<SelectValue placeholder={getDisplayValue()} />
 			</SelectTrigger>
 			<SelectContent>

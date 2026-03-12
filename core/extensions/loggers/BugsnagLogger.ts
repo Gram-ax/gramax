@@ -2,7 +2,6 @@ import type { AppConfig } from "@app/config/AppConfig";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import bugsnag from "@dynamicImports/bugsnag";
 import normalizeStacktrace from "@ext/bugsnag/logic/normalizeStacktrace";
-import PersistentLogger from "@ext/loggers/PersistentLogger";
 import sendBug from "../bugsnag/logic/sendBug";
 import BaseLogger from "./BaseLogger";
 import type Logger from "./Logger";
@@ -34,8 +33,6 @@ export default class BugsnagLogger extends BaseLogger implements Logger {
 				});
 				e.addMetadata("logic_props", {
 					"1-config": config,
-					"2-cmdLogs": PersistentLogger.getLogs(/cmd/, 15),
-					"3-gitLogs": PersistentLogger.getLogs(/git/, 100),
 				});
 			},
 		});

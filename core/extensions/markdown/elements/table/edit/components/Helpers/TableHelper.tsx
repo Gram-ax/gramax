@@ -8,13 +8,13 @@ import TablePlusActions from "@ext/markdown/elements/table/edit/components/Helpe
 import { hideOldControls, showNewControls } from "@ext/markdown/elements/table/edit/logic/controlActions";
 import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import { getHoveredData, getTableSizes } from "@ext/markdown/elements/table/edit/logic/utils";
-import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { Editor } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model";
+import type { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import type { Editor } from "@tiptap/core";
+import type { Node } from "@tiptap/pm/model";
 import {
-	MouseEvent as ReactMouseEvent,
-	ReactNode,
-	RefObject,
+	type MouseEvent as ReactMouseEvent,
+	type ReactNode,
+	type RefObject,
 	useCallback,
 	useEffect,
 	useMemo,
@@ -83,6 +83,16 @@ const TableHelper = (props: TableHelperProps) => {
 	const pos = getPos();
 	const tableSheet = useMemo(() => TableNodeSheet.createFromProseMirrorNode(node, pos), [node, pos]);
 
+	const commonParent = tableRef.current?.parentElement?.parentElement;
+
+	const hideControls = useCallback(() => {
+		const containerHorizontal = commonParent?.querySelector(".controls-container-horizontal");
+		const containerVertical = commonParent?.querySelector(".controls-container-vertical");
+
+		if (hoveredData.current) hideOldControls(containerVertical, containerHorizontal, { ...hoveredData.current });
+		hoveredData.current = null;
+	}, [commonParent]);
+
 	useEffect(() => {
 		const tableObserver = new ResizeObserver(() => {
 			const tableSizes = getTableSizes(tableRef.current);
@@ -130,17 +140,7 @@ const TableHelper = (props: TableHelperProps) => {
 			tableObserver.disconnect();
 			observer.disconnect();
 		};
-	}, [tableRef.current]);
-
-	const commonParent = tableRef.current?.parentElement.parentElement;
-
-	const hideControls = useCallback(() => {
-		const containerHorizontal = commonParent?.querySelector(".controls-container-horizontal");
-		const containerVertical = commonParent?.querySelector(".controls-container-vertical");
-
-		if (hoveredData.current) hideOldControls(containerVertical, containerHorizontal, { ...hoveredData.current });
-		hoveredData.current = null;
-	}, [tableRef.current, hoveredData, disabledWrapper]);
+	}, [tableRef.current, hideControls]);
 
 	const onMouseMove = useCallback(
 		(event: ReactMouseEvent) => {
@@ -161,7 +161,7 @@ const TableHelper = (props: TableHelperProps) => {
 
 			hoveredData.current = { rowIndex, cellIndex };
 		},
-		[tableRef.current, hoveredData.current, node.firstChild.childCount, node.childCount, disabledWrapper],
+		[commonParent, node.childCount, hideControls],
 	);
 
 	const selectNode = useCallback(() => {
@@ -175,7 +175,12 @@ const TableHelper = (props: TableHelperProps) => {
 			{isHovered && (
 				<Tooltip content={t("select-table")} delay={[1000, 0]}>
 					<TriangleButtonContainer data-table-select-all-container>
-						<TriangleButton contentEditable={false} data-qa="table-select-all" onClick={selectNode} />
+						<TriangleButton
+							contentEditable={false}
+							data-qa="table-select-all"
+							data-testid="table-select-all"
+							onClick={selectNode}
+						/>
 					</TriangleButtonContainer>
 				</Tooltip>
 			)}

@@ -6,7 +6,7 @@ import BlockCommentView from "@ext/markdown/elements/comment/edit/components/Vie
 import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import Group from "@ext/markdown/elements/view/render/components/Displays/Helpers/Table/Group";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
+import { type Property, PropertyTypes, type ViewRenderGroup } from "@ext/properties/models";
 import { useRef } from "react";
 
 interface TableProps {
@@ -26,16 +26,20 @@ const Table = ({ content, className, groupby, select, commentId }: TableProps) =
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 	const { properties } = PropertyServiceProvider.value;
 	const ref = useRef<HTMLTableElement>(null);
+
+	const standartCols = 1;
+	const colCount = (groupby?.length || 0) + standartCols + (select?.length || 0);
+
 	return (
 		<div className={className}>
 			<WidthWrapper>
 				<BlockCommentView commentId={commentId}>
 					<table data-focusable="true" ref={ref}>
-						<ColGroup tableRef={ref} />
+						<ColGroup init={{ colCount }} tableRef={ref} />
 						<tbody>
 							<tr>
 								{groupby?.map((name) => (
-									<th data-colwidth="10em" key={name} scope="col">
+									<th data-colwidth="10em" key={`groupby-${name}`} scope="col">
 										{name}
 									</th>
 								))}
@@ -43,7 +47,11 @@ const Table = ({ content, className, groupby, select, commentId }: TableProps) =
 									{t("properties.article")}
 								</th>
 								{select?.map((name) => (
-									<th data-colwidth={getWidth(properties.get(name))} key={name} scope="col">
+									<th
+										data-colwidth={getWidth(properties.get(`select-${name}`))}
+										key={name}
+										scope="col"
+									>
 										{name}
 									</th>
 								))}

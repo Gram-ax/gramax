@@ -88,14 +88,10 @@ export default styled(PreviewModal)`
 	top: 0;
 
 	.file-preview-modal {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
+		position: relative;
 		overflow: auto;
-		width: 210mm;
-		height: 297mm;
-		max-height: 95vh;
+		width: 100vw;
+		height: 100vh;
 		z-index: var(--z-index-overlay);
 	}
 

@@ -20,13 +20,14 @@ const CopyMsO = Extension.create({
 				props: {
 					transformPastedHTML(html: string, view) {
 						if (html) {
-							const newHTML = new TransformerMsO(
-								articleProps,
-								apiUrlCreator,
-								isTauri,
-								view,
-							).parseFromHTML(html);
-							return newHTML ? newHTML : "";
+							const transformer = new TransformerMsO(articleProps, apiUrlCreator, isTauri, view);
+
+							if (transformer.canTransform(html)) {
+								transformer.parseFromHTML(html);
+								return "";
+							}
+
+							return html;
 						}
 					},
 				},

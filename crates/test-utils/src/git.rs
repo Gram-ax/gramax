@@ -10,7 +10,7 @@ pub use gramaxgit::creds::ActualCreds;
 pub use gramaxgit::creds::Creds;
 pub use gramaxgit::git2::Signature;
 use rstest::fixture;
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 use crate::sandbox;
 

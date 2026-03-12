@@ -1,11 +1,12 @@
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import ActionSearcher from "@components/controls/HoverController/ActionSearcher";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import t from "@ext/localization/locale/translate";
 import {
 	getStandardCaseByLower,
 	StandardCaseLangList,
 } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
-import { Node } from "@tiptap/pm/model";
+import type { Node } from "@tiptap/pm/model";
 import { useState } from "react";
 
 interface CodeBlockActionsProps {
@@ -17,8 +18,7 @@ const CodeBlockActions = ({ node, onChange }: CodeBlockActionsProps) => {
 	const [isCopied, setIsCopied] = useState(false);
 
 	const handleCopy = () => {
-		void navigator.clipboard.writeText(node.textContent);
-		setIsCopied(true);
+		void tryCopyToClipboard(node.textContent, { showPopover: false }).then((copied) => copied && setIsCopied(true));
 	};
 
 	const onMouseLeave = () => {

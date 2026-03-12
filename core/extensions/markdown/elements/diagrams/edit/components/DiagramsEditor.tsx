@@ -5,21 +5,22 @@ import UnsavedChangesModal from "@components/UnsavedChangesModal";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import DiagramRender from "@ext/markdown/elements/diagrams/component/DiagramRender";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { FC, lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { type FC, lazy, memo, Suspense, useCallback, useEffect, useRef, useState } from "react";
 
 const LazySwaggerUI = lazy(() => import("@ext/markdown/elements/openApi/render/SwaggerUI"));
 
@@ -93,8 +94,8 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		const newSize = getNaturalSize(await DIAGRAM_FUNCTIONS?.[diagramName](contentEditState, diagramsServiceUrl));
 		if (newSize) {
 			editor.commands.updateAttributes("diagrams", {
-				width: newSize.width + "px",
-				height: newSize.height + "px",
+				width: `${newSize.width}px`,
+				height: `${newSize.height}px`,
 			});
 		}
 	};
@@ -152,6 +153,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 
 	const { start } = useDebounce(debounceSetHeight, 40);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		calculateHeights();
 	}, [calculateHeights, error]);
@@ -160,6 +162,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 		if (content) setContentState(content);
 	}, [content]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		loadContent(src);
 	}, [src]);
@@ -178,11 +181,11 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 
 	return (
 		<>
-			<Modal onOpenChange={onOpenChange} open={isOpen}>
-				<ModalTrigger asChild>{trigger}</ModalTrigger>
-				<ModalContent className="h-full" data-diagram-editor-modal data-modal-root size="L">
+			<Dialog onOpenChange={onOpenChange} open={isOpen}>
+				<DialogTrigger asChild>{trigger}</DialogTrigger>
+				<DialogContent className="h-full" data-diagram-editor-modal data-modal-root size="L">
 					<FormHeader description={t("edit-diagram-description")} icon="pen" title={t("edit-diagram")} />
-					<ModalBody className="h-full overflow-hidden">
+					<DialogBody className="h-full overflow-hidden">
 						<div className={className}>
 							<div className={classNames("window", { isMobile })}>
 								<div className={"left-item"}>
@@ -215,10 +218,10 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 								</div>
 							</div>
 						</div>
-					</ModalBody>
+					</DialogBody>
 					<FormFooter primaryButton={<Button onClick={save}>{t("save")}</Button>} />
-				</ModalContent>
-			</Modal>
+				</DialogContent>
+			</Dialog>
 			{showWarning && (
 				<UnsavedChangesModal
 					isOpen={showWarning}
@@ -231,31 +234,29 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 	);
 };
 
-const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
-	const { diagramName, error, setError, title = "", content = "" } = props;
+const SwaggerDiagramRenderer = ({ content, className }) => {
+	return (
+		<div className={classNames(className, {}, ["article"])} data-focusable="true">
+			<Suspense
+				fallback={
+					<div className="suspense">
+						<SpinnerLoader height={75} width={75} />
+					</div>
+				}
+			>
+				<LazySwaggerUI defaultModelsExpandDepth={1} spec={content} />
+			</Suspense>
+		</div>
+	);
+};
+
+const FunctionDiagramRenderer: FC<OverloadRendererProps & { className: string }> = (props) => {
+	const { className, diagramName, error, setError, title = "", content = "" } = props;
+
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
-	const { useGetResource } = ResourceService.value;
 
 	const ref = useRef<HTMLDivElement | HTMLImageElement>();
 	const [data, setData] = useState("");
-
-	const className = "diagram-background-without-lightbox";
-
-	if (!DIAGRAM_FUNCTIONS?.[diagramName]) {
-		return (
-			<div className={className + " article"} data-focusable="true">
-				<Suspense
-					fallback={
-						<div className="suspense">
-							<SpinnerLoader height={75} width={75} />
-						</div>
-					}
-				>
-					<LazySwaggerUI defaultModelsExpandDepth={1} spec={content} />
-				</Suspense>
-			</div>
-		);
-	}
 
 	useGetResource(
 		async (buffer, resourceError) => {
@@ -287,6 +288,16 @@ const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
 			title={title}
 		/>
 	);
+};
+
+const OverloadDiagramRenderer: FC<OverloadRendererProps> = memo((props) => {
+	const { diagramName, content = "" } = props;
+	const className = "diagram-background-without-lightbox";
+
+	if (!DIAGRAM_FUNCTIONS?.[diagramName]) {
+		return <SwaggerDiagramRenderer className={className} content={content} />;
+	}
+	return <FunctionDiagramRenderer {...props} className={className} />;
 });
 
 export default styled(DiagramsEditor)`

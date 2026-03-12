@@ -16,7 +16,8 @@ pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>> {
 	Ok(fs::read(path)?)
 }
 
-pub fn write_file<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, content: C) -> Result<()> {
+#[instrument(skip(content))]
+pub fn write_file<P: AsRef<Path> + std::fmt::Debug, C: AsRef<[u8]>>(path: P, content: C) -> Result<()> {
 	Ok(fs::write(path, content.as_ref())?)
 }
 
@@ -24,7 +25,8 @@ pub fn read_link<P: AsRef<Path>>(path: P) -> Result<PathBuf> {
 	Ok(fs::read_link(path)?)
 }
 
-pub fn make_dir<P: AsRef<Path>>(path: P, recursive: bool) -> Result<()> {
+#[instrument]
+pub fn make_dir<P: AsRef<Path> + std::fmt::Debug>(path: P, recursive: bool) -> Result<()> {
 	let res = match recursive {
 		true => fs::create_dir_all(path),
 		false => fs::create_dir(path),
@@ -33,7 +35,8 @@ pub fn make_dir<P: AsRef<Path>>(path: P, recursive: bool) -> Result<()> {
 	Ok(res?)
 }
 
-pub fn remove_dir<P: AsRef<Path>>(path: P, recursive: bool) -> Result<()> {
+#[instrument]
+pub fn remove_dir<P: AsRef<Path> + std::fmt::Debug>(path: P, recursive: bool) -> Result<()> {
 	let res = match recursive {
 		true => fs::remove_dir_all(path),
 		false => fs::remove_dir(path),
@@ -69,7 +72,8 @@ pub fn read_dir_stats<P: AsRef<Path>>(path: P) -> Result<Vec<DirStat>> {
 	Ok(res)
 }
 
-pub fn rmfile<P: AsRef<Path>>(path: P) -> Result<()> {
+#[instrument]
+pub fn rmfile<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<()> {
 	Ok(fs::remove_file(path)?)
 }
 
@@ -77,7 +81,8 @@ pub fn exists<P: AsRef<Path>>(path: P) -> Result<bool> {
 	Ok(path.as_ref().exists())
 }
 
-pub fn copy<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
+#[instrument]
+pub fn copy<P: AsRef<Path> + std::fmt::Debug>(from: P, to: P) -> Result<()> {
 	if fs::metadata(&from)?.is_dir() {
 		return Ok(copy_dir::copy_dir(from, to)?.into_iter().next().map(Err).unwrap_or(Ok(()))?);
 	}
@@ -86,7 +91,8 @@ pub fn copy<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
 	Ok(())
 }
 
-pub fn mv<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
+#[instrument]
+pub fn mv<P: AsRef<Path> + std::fmt::Debug>(from: P, to: P) -> Result<()> {
 	if let Some(parent) = to.as_ref().parent() {
 		if !parent.exists() {
 			fs::create_dir_all(parent)?;

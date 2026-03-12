@@ -9,6 +9,7 @@ const StrongMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<ToolbarToggleButton
 			active={isActive}
+			data-testid="tb-bold"
 			disabled={disabled}
 			hotKey={"Mod-B"}
 			onClick={() => editor.chain().focus().toggleStrong().run()}

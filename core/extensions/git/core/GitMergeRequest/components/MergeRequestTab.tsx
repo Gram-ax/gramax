@@ -1,7 +1,6 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import Icon from "@components/Atoms/Icon";
 import TabWrapper, { TAB_TRANSITION_TIME } from "@components/Layouts/LeftNavigationTabs/TabWrapper";
-import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
@@ -17,6 +16,7 @@ import { DiffEntriesLoadStage } from "@ext/git/core/GitMergeRequest/components/C
 import useOpenDeleteMergeRequestModal from "@ext/git/core/GitMergeRequest/components/DeleteMergeRequestModal";
 import { Creator, Description, MergeRequestFromWhere, Status } from "@ext/git/core/GitMergeRequest/components/Elements";
 import MergeButton from "@ext/git/core/GitMergeRequest/components/MergeButton";
+import getMrStatus from "@ext/git/core/GitMergeRequest/logic/getMrStatus";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
@@ -53,7 +53,7 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const status = useMemo(() => {
 		if (!mergeRequest) return null;
-		return isDraft ? "draft" : mergeRequest.approvers.every((a) => a.approvedAt) ? "approved" : "in-progress";
+		return getMrStatus(mergeRequest, isDraft);
 	}, [mergeRequest, isDraft]);
 
 	const [contentHeight, setContentHeight] = useState<number>(null);
@@ -107,12 +107,6 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 		};
 	}, [apiUrlCreator]);
 
-	useEffect(() => {
-		if (!tabWrapperRef.current || !show) return;
-		const height = calculateTabWrapperHeight(tabWrapperRef.current);
-		setContentHeight(height);
-	}, [tabWrapperRef.current, show, stage]);
-
 	const cached = useMemo(() => {
 		if (!mergeRequest) return null;
 		return (
@@ -122,7 +116,14 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 					<Creator created={mergeRequest.createdAt} from={mergeRequest.creator} />
 					<Description content={mergeRequest.description} />
 				</TopWrapper>
-				<Changes setStage={setStage} stage={stage} targetRef={mergeRequest.targetBranchRef} />
+				<Changes
+					setContentHeight={setContentHeight}
+					setStage={setStage}
+					show={show}
+					stage={stage}
+					tabWrapperRef={tabWrapperRef}
+					targetRef={mergeRequest.targetBranchRef}
+				/>
 				<BottomWrapper>
 					<Approvers approvers={mergeRequest.approvers} />
 					<ButtonArea>
@@ -131,7 +132,7 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 				</BottomWrapper>
 			</>
 		);
-	}, [mergeRequest, status, stage]);
+	}, [mergeRequest, status, stage, show]);
 
 	return mergeRequest ? (
 		<TabWrapper

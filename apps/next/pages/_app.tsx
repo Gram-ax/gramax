@@ -1,10 +1,8 @@
 import "../../../core/styles/main.css";
 import "../../../core/styles/chain-icon.css";
-
-import { initFrontendModules } from "@app/resolveModule/frontend";
 import ContextProviders from "@components/ContextProviders";
 import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
-import OpenGraph from "@components/OpenGraph";
+import OpenGraph from "@components/OpenGraph/OpenGraph";
 import type PageDataContext from "@core/Context/PageDataContext";
 import type { ArticlePageData, HomePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
 import Language from "@core-ui/ContextServices/Language";
@@ -19,27 +17,13 @@ import { TooltipProvider } from "@ui-kit/Tooltip";
 import Error from "next/error";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useLayoutEffect, useState } from "react";
-
-const useInitModules = () => {
-	const [isInit, setIsInit] = useState(false);
-
-	useLayoutEffect(() => {
-		initFrontendModules()
-			.then(() => setIsInit(true))
-			.catch((e) => {
-				console.error(e);
-				setIsInit(true);
-			});
-	}, []);
-
-	return isInit;
-};
+import { useEffect } from "react";
 
 export default function App({
 	Component,
 	pageProps,
 }: {
+	// biome-ignore lint/suspicious/noExplicitAny: for compatibility with Next.js App type
 	Component: any;
 	pageProps: {
 		data: HomePageData & ArticlePageData;
@@ -52,31 +36,29 @@ export default function App({
 		if (pageProps.context?.features) setFeatureList(pageProps.context.features);
 	}, [pageProps.context?.features]);
 
-	const isInit = useInitModules();
 	const router = useRouter();
 
-	const { pluginsLoaded } = usePluginLoader({
+	usePluginLoader({
 		basePath: pageProps.context?.conf?.basePath ?? "",
 		workspacePath: pageProps.context?.workspace?.current,
 		gesUrl: pageProps?.context?.conf?.enterprise?.gesUrl,
-		enabled: isInit && !!pageProps.context,
+		enabled: !!pageProps.context,
 	});
 
 	usePluginEvent("app:open", { ...pageProps, path: router.asPath });
 	usePluginEvent("app:close");
-	if (!isInit || !pluginsLoaded) return null;
 
 	if (pageProps.error) return <Error statusCode={pageProps.error} />;
 
 	const isArticle = pageProps?.context?.isArticle;
-	const iconPath = (pageProps?.context?.conf?.basePath ?? "") + "/favicon.ico";
+	const iconPath = `${pageProps?.context?.conf?.basePath ?? ""}/favicon.ico`;
 
 	return (
 		<>
 			<Head>
 				<title>{getPageTitle(isArticle, pageProps.data)}</title>
 				<link href={iconPath} rel="icon" />
-				{isArticle && <OpenGraph openGraphData={pageProps.openGraphData} />}
+				{isArticle && <OpenGraph domain={pageProps.context.domain} openGraphData={pageProps.openGraphData} />}
 			</Head>
 			<Language.Init>
 				<TooltipProvider>

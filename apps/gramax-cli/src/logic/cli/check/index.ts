@@ -2,16 +2,17 @@ import { getConfig } from "@app/config/AppConfig";
 import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
-import { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
+import type { CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
+import { ContentLanguage } from "@ext/localization/core/model/Language";
 import chalk from "chalk";
 import { basename, resolve } from "path";
 import ChalkLogger from "../../../utils/ChalkLogger";
-import { CustomSuccessLog, logStepWithErrorSuppression } from "../utils/logger";
+import { type CustomSuccessLog, logStepWithErrorSuppression } from "../utils/logger";
 import { checkExistsPath, getPathWithExtension, setRootPath } from "../utils/paths";
 import { ChalkFileLogger } from "./ChalkFileLogger";
-import { CheckOptions, defaultCheckName } from "./command";
+import { type CheckOptions, defaultCheckName } from "./command";
 
 type errorsType = Record<keyof typeof CatalogErrorGroups, string[]>;
 
@@ -22,6 +23,7 @@ enum ErrorMessages {
 	diagrams = "Incorrect diagram path",
 	unsupported = "Unsupported element",
 	content = "Incorrect syntax",
+	comments = "Unlinked comments",
 }
 
 interface ResourceError {
@@ -32,12 +34,14 @@ interface ResourceError {
 }
 
 type TransformedCatalogErrors = { totalErrors: number; resourcesErrors: ResourceError[] };
+type TransformCatalogErrorsFn = (catalogErrors: CatalogErrors, checkComments: boolean) => TransformedCatalogErrors;
 
-const transformCatalogErrorsToResourceErrors = (catalogErrors: CatalogErrors): TransformedCatalogErrors => {
+const transformCatalogErrors: TransformCatalogErrorsFn = (catalogErrors, checkComments) => {
 	const groupedByLogicPath = new Map<string, ResourceError>();
 	let totalErrors = 0;
 
 	for (const [groupKey, errors] of Object.entries(catalogErrors)) {
+		if (groupKey === CatalogErrorGroups.comments.type && !checkComments) continue;
 		for (const error of errors) {
 			const { logicPath, title, editorLink, value } = error.args;
 
@@ -88,14 +92,14 @@ const getErrorContent = async (
 	if (logger instanceof ChalkFileLogger) await logger.close();
 };
 
-const checkCatalog = async (catalogName: string) => {
+const checkCatalog = async (catalogName: string, checkComments: boolean) => {
 	const app = await getApp();
 	const ctx = await app.contextFactory.fromBrowser({
-		language: "",
+		language: ContentLanguage.en,
 	});
 	const commands = getCommands(app);
 	const catalogErrors = await commands.healthcheck.do({ ctx, catalogName });
-	const result = transformCatalogErrorsToResourceErrors(catalogErrors);
+	const result = transformCatalogErrors(catalogErrors, checkComments);
 	return result;
 };
 
@@ -108,7 +112,7 @@ export const checkCommandFunction = async (options: CheckOptions) => {
 	if (!(await check(catalogName, options.output))) process.exit(1);
 };
 
-export const check = async (catalogName: string, output?: string) => {
+export const check = async (catalogName: string, output?: string, checkComments = true) => {
 	const app = await getApp();
 	const wm = app.wm.current();
 	const catalog = await wm.getContextlessCatalog(catalogName);
@@ -121,7 +125,7 @@ export const check = async (catalogName: string, output?: string) => {
 
 	const transformedCatalogErrors = await logStepWithErrorSuppression(
 		message,
-		() => checkCatalog(catalogName),
+		() => checkCatalog(catalogName, checkComments),
 		customSuccessLog,
 	);
 	if (!transformedCatalogErrors.totalErrors) return true;

@@ -1,7 +1,9 @@
-import { QuestionResult } from "@ext/markdown/elements/question/types";
+import type { CheckAnswer } from "@ext/markdown/elements/answer/types";
+import type { QuestionResult } from "@ext/markdown/elements/question/types";
 
 export interface QuizSettings {
 	showAnswers?: boolean;
+	canRetake?: boolean;
 	countOfCorrectAnswers?: number;
 }
 
@@ -12,7 +14,7 @@ export type QuizResult = {
 };
 
 export type StoredQuizResult = QuizResult & {
-	selectedAnswers: Record<string, string[]>;
+	selectedAnswers: CheckAnswer[];
 };
 
 declare module "@core/FileStructue/Item/Item" {

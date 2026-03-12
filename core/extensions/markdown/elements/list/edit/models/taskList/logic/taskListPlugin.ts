@@ -1,10 +1,11 @@
 import { CONTAINS_TASK_LIST } from "@ext/markdown/elements/list/edit/models/bulletList/bulletListToken";
 import { LIST_ITEM_OPEN, LIST_OPEN_TYPES } from "@ext/markdown/elements/list/edit/models/listItem/logic/listPlugin";
 import { CHECKED_ATTR } from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
+import allowNonAdvancingBlockRules from "@ext/markdown/elements/list/edit/models/taskList/logic/allowNonAdvancingBlockRules";
 import type MarkdownIt from "markdown-it/lib";
-import { RuleBlock } from "markdown-it/lib/parser_block";
-import { RuleCore } from "markdown-it/lib/parser_core";
-import Token from "markdown-it/lib/token";
+import type { RuleBlock } from "markdown-it/lib/parser_block";
+import type { RuleCore } from "markdown-it/lib/parser_core";
+import type Token from "markdown-it/lib/token";
 
 const checkboxRegExp = /^\[( |x|X)\][ ]*/;
 
@@ -75,6 +76,7 @@ const todoify = (token: Token) => {
 };
 
 export default function (md: MarkdownIt) {
+	allowNonAdvancingBlockRules(md.block);
 	md.block.ruler.after("list", "detect-task-list", detectTaskList);
 	md.core.ruler.after("inline", "cleanup-task-list-inline", cleanupTaskListInline);
 }

@@ -1,6 +1,5 @@
-import { JSONContent } from "@tiptap/core";
-import { FileStatus } from "../../Watchers/model/FileStatus";
-import { DiffHunk } from "../DiffHandler/model/DiffHunk";
+import type { FileStatus } from "../../Watchers/model/FileStatus";
+import type { DiffHunk } from "../DiffHandler/model/DiffHunk";
 
 export interface DiffFilePaths {
 	path: string;
@@ -33,8 +32,6 @@ export interface DiffItem extends DiffFile {
 	order: number;
 	resources: DiffResource[];
 	logicPath?: string;
-	newEditTree?: JSONContent;
-	oldEditTree?: JSONContent;
 }
 
 export interface DiffItemResourceCollection {

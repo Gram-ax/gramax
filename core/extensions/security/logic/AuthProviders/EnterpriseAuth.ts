@@ -31,8 +31,7 @@ class EnterpriseAuth implements UserRepositoryProvider, AuthProvider {
 
 	login(req: ApiRequest, res: ApiResponse): Promise<void> | void {
 		const gesUrl = this._enterpriseConfig.gesUrl;
-		const redirectAssert = encodeURIComponent(`${apiUtils.getDomain(req)}${this._basePath}/api/auth/assert`);
-		const redirect = encodeURIComponent(`${gesUrl}/enterprise/sso/assert?redirect=${redirectAssert}`);
+		const redirect = encodeURIComponent(`${apiUtils.getDomain(req)}${this._basePath}/api/auth/assert`);
 		res.redirect(`${gesUrl}/sso/login?from=${req.query.from}&redirect=${redirect}`);
 	}
 

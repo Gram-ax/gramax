@@ -2,12 +2,12 @@ import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
-import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import SelectStorageDataForm from "@ext/storage/components/SelectStorageDataForm";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import { Modal, ModalContent, ModalTrigger } from "@ui-kit/Modal";
+import { Dialog, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { useState } from "react";
 import FetchService from "../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../ui-logic/ApiServices/Types/MimeTypes";
@@ -37,14 +37,14 @@ const InitStorage = ({ trigger }: { trigger: JSX.Element }) => {
 	};
 
 	return (
-		<Modal onOpenChange={setIsOpen} open={isOpen}>
-			<ModalTrigger asChild>{trigger}</ModalTrigger>
-			<ModalContent>
+		<Dialog onOpenChange={setIsOpen} open={isOpen}>
+			<DialogTrigger asChild>{trigger}</DialogTrigger>
+			<DialogContent>
 				<OnNetworkApiErrorService.Provider callback={() => setIsOpen(false)}>
 					<SelectStorageDataForm mode="init" onSubmit={onSubmit} title={t("connect-storage")} />
 				</OnNetworkApiErrorService.Provider>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

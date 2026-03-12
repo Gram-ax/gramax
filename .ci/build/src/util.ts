@@ -40,6 +40,8 @@ export const setupEnvs = () => {
 	if (env.exists("NDK_HOME")) {
 		process.env.PATH = `${env("NDK_HOME")}/toolchains/llvm/prebuilt/darwin-x86_64/bin:` + process.env.PATH;
 	}
+
+	process.env.UPDATE_CHANNEL = channel();
 };
 
 export const isCi = (() => {
@@ -75,6 +77,9 @@ export const version = (postfix?: string) => {
 };
 
 export const channel = () => {
+	const force = env.optional("FORCE_CHANNEL");
+	if (force) return force;
+
 	const branch = env.optional("BRANCH");
 	if (branch === "master") return "prod";
 	if (branch === "develop") return "dev";

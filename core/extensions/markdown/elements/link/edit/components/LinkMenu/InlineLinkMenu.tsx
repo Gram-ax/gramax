@@ -1,17 +1,35 @@
 import { useEscapeKeydown } from "@core-ui/hooks/useEscapeKeyDown";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
+import { LinkMenu, type LinkMenuMode } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import { useLinkMenuState } from "@ext/markdown/elements/link/edit/hooks/useLinkMenuState";
 import { getMarkEndPos } from "@ext/markdown/elementsUtils/getMarkEndPos";
 import { getMarkStartPos } from "@ext/markdown/elementsUtils/getMarkStartPos";
 import { useMediaQuery } from "@mui/material";
-import { Editor, posToDOMRect } from "@tiptap/react";
+import { type Editor, posToDOMRect } from "@tiptap/react";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
-import { useCallback } from "react";
+import type { RefObject } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import "tippy.js/animations/shift-toward.css";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { CustomBubbleMenu } from "@ext/markdown/elements/customBubbleMenu/edit/components/CustomBubbleMenu";
+import type { Instance, Placement, Props } from "tippy.js";
 
-export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
+interface InlineLinkMenuProps {
+	editor: Editor;
+	fallbackPlacements?: Placement[];
+	placement?: Placement;
+	boundary?: "viewport" | "scrollParent" | "window" | HTMLElement;
+	boundaryRef?: RefObject<HTMLElement>;
+}
+
+export const InlineLinkMenu = (props: InlineLinkMenuProps) => {
+	const {
+		editor,
+		fallbackPlacements = ["top-start", "bottom-start"],
+		placement = "bottom-start",
+		boundary = "viewport",
+		boundaryRef,
+	} = props;
 	const {
 		mark,
 		isOpen,
@@ -22,6 +40,9 @@ export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
 		handleDelete,
 	} = useLinkMenuState(editor);
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
+	const [mode, setMode] = useState<LinkMenuMode>(mark?.attrs?.href ? "view" : "edit");
+	const instanceRef = useRef<Instance<Props>>(null);
+	const articleRef = ArticleRefService.value;
 
 	const shouldShow = useCallback(() => {
 		if (isMobile) return false;
@@ -49,15 +70,52 @@ export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
 		return posToDOMRect(editor.view, startPos, endPos);
 	}, [editor, getMark]);
 
-	const onShow = useCallback((instance: any) => {
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	const onShow = useCallback(
+		(instance: Instance<Props>) => {
+			const commentBoundary = articleRef.current;
+			if (commentBoundary) {
+				instance.setProps({
+					popperOptions: {
+						modifiers: [
+							{
+								name: "flip",
+								options: { fallbackPlacements, boundary: commentBoundary },
+							},
+							{
+								name: "preventOverflow",
+								options: { boundary: commentBoundary, padding: 8 },
+							},
+						],
+					},
+				});
+			}
+
+			requestAnimationFrame(() => {
+				if (instance?.popperInstance) {
+					instance.popperInstance.update();
+				}
+			});
+		},
+		[boundaryRef, fallbackPlacements],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	useEffect(() => {
+		if (!instanceRef.current) return;
 		requestAnimationFrame(() => {
-			if (instance?.popperInstance) {
-				instance.popperInstance.update();
+			if (instanceRef.current?.popperInstance) {
+				instanceRef.current.popperInstance.update();
 			}
 		});
-	}, []);
+	}, [mode]);
 
 	useEscapeKeydown(reset);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	const appendTo = useCallback(() => {
+		return boundaryRef?.current ?? editor.view.dom.parentElement;
+	}, [editor]);
 
 	return (
 		<CustomBubbleMenu
@@ -66,7 +124,10 @@ export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
 			shouldShow={shouldShow}
 			tippyOptions={{
 				maxWidth: "unset",
-				appendTo: () => editor.view.dom.parentElement,
+				onCreate: (instance) => {
+					instanceRef.current = instance;
+				},
+				appendTo,
 				interactive: true,
 				arrow: false,
 				sticky: true,
@@ -77,14 +138,14 @@ export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
 						{
 							name: "flip",
 							options: {
-								fallbackPlacements: ["top-start", "bottom-start"],
-								boundary: "viewport",
+								fallbackPlacements,
+								boundary: boundaryRef ? "viewport" : boundary,
 							},
 						},
 						{
 							name: "preventOverflow",
 							options: {
-								boundary: "viewport",
+								boundary: boundaryRef ? "viewport" : boundary,
 								padding: 8,
 							},
 						},
@@ -93,7 +154,7 @@ export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
 				duration: [150, 150],
 				moveTransition: "transform 0.150s ease-in-out",
 				animation: "shift-toward",
-				placement: "bottom-start",
+				placement,
 				getReferenceClientRect,
 				onShow,
 				onHide: reset,
@@ -101,7 +162,15 @@ export const InlineLinkMenu = ({ editor }: { editor: Editor }) => {
 		>
 			{!isMobile && (
 				<ComponentVariantProvider variant="inverse">
-					{mark && isOpen && <LinkMenu mark={mark} onDelete={handleDelete} onUpdate={onUpdate} />}
+					{mark && isOpen && (
+						<LinkMenu
+							mark={mark}
+							mode={mode}
+							onDelete={handleDelete}
+							onUpdate={onUpdate}
+							setMode={setMode}
+						/>
+					)}
 				</ComponentVariantProvider>
 			)}
 		</CustomBubbleMenu>

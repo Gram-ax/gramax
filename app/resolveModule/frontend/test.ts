@@ -6,10 +6,11 @@ import LanguageServiceModule from "@core-ui/ContextServices/Language";
 import LocalizerModule from "@ext/localization/core/Localizer";
 import NextLink from "../../../apps/next/components/Atoms/Link";
 import NextRouter from "../../../apps/next/logic/Api/NextRouter";
+import { getPdfjs } from "../../../apps/next/pdfjs/getPdfjs";
 import useUrlImage from "../../../core/components/Atoms/Image/useUrlImage";
 import type { DynamicModules } from "..";
 
-const getTestModules = async (): Promise<DynamicModules> => {
+const getTestModules = (): DynamicModules => {
 	return {
 		Link: NextLink,
 		Router: NextRouter,
@@ -55,19 +56,14 @@ const getTestModules = async (): Promise<DynamicModules> => {
 		openInExplorer: () => undefined,
 		openWindowWithUrl: () => undefined,
 		openInWeb: () => undefined,
+		getPdfjs,
 	};
 };
 
 export { getTestModules };
 
-let modules: DynamicModules | null = null;
-
-export const initFrontendModules = async (): Promise<void> => {
-	if (modules) return;
-	modules = await getTestModules();
-};
-
 const resolveFrontendModule = <K extends keyof DynamicModules>(name: K): DynamicModules[K] => {
+	const modules = getTestModules();
 	const module = modules?.[name];
 	if (!module) throw new Error(`module ${name} not found`);
 	return module;

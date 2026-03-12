@@ -2,16 +2,16 @@ import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { useApi } from "@core-ui/hooks/useApi";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
-import { TemplateContentWarningProps } from "@ext/templates/components/TemplateContentWarning";
+import type { TemplateContentWarningProps } from "@ext/templates/components/TemplateContentWarning";
 import TemplateService from "@ext/templates/components/TemplateService";
 import {
 	DropdownMenuItem,
@@ -22,7 +22,7 @@ import {
 } from "@ui-kit/Dropdown";
 import { useCallback, useState } from "react";
 
-const TemplateItemList = ({ itemRefPath, disabled }: { itemRefPath: string; disabled: boolean }) => {
+const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 	const [list, setList] = useState<ProviderItemProps[]>([]);
 	const [isApiRequest, setIsApiRequest] = useState(false);
 
@@ -132,7 +132,7 @@ const TemplateItemList = ({ itemRefPath, disabled }: { itemRefPath: string; disa
 
 	return (
 		<DropdownMenuSub onOpenChange={onOpen}>
-			<DropdownMenuSubTrigger disabled={disabled}>
+			<DropdownMenuSubTrigger>
 				<Icon code="layout-template" />
 				{t("template.choose-template")}
 			</DropdownMenuSubTrigger>

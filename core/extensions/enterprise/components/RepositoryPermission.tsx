@@ -6,18 +6,18 @@ import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
 import { OpenProvider } from "@ext/enterprise/components/admin/contexts/OpenContext";
 import { SettingsProvider, useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import type { ResourcesSettings } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
 import { ConfirmationDialog } from "@ext/enterprise/components/admin/ui-kit/ConfirmationDialog";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import EnterpriseService from "@ext/enterprise/EnterpriseService";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
-import { DropdownMenuItem } from "@ui-kit/Dropdown";
+import { Dialog, DialogContent, DialogHeaderTemplate } from "@ui-kit/Dialog";
 import { FormFooter } from "@ui-kit/Form";
-import { Modal, ModalContent, ModalHeaderTemplate } from "@ui-kit/Modal";
+
 import { Lock } from "lucide-react";
-import { ComponentProps, ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { type ComponentProps, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import ResourceComponent from "./admin/settings/resources/components/Resource/ResourceComponent";
 
 const getItemId = (pathName: string, sourceName: string, catalogName: string) => {
@@ -56,7 +56,7 @@ export const RepositoryPermission = ({
 	);
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
 			<OpenProvider open={isOpen} setOpen={onOpenChange}>
 				<SettingsProvider enterpriseService={enterpriseService} token={token}>
 					<RepositoryPermissionModalContent
@@ -68,7 +68,7 @@ export const RepositoryPermission = ({
 					/>
 				</SettingsProvider>
 			</OpenProvider>
-		</Modal>
+		</Dialog>
 	);
 };
 
@@ -105,6 +105,7 @@ const RepositoryPermissionModalContent = ({
 		return JSON.stringify(editedRepository) !== JSON.stringify(openedRepository);
 	}, [editedRepository, openedRepository]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected!?
 	const closeResourceDialog = useCallback(() => {
 		setIsOpen(false);
 		setEditedRepository(undefined);
@@ -132,6 +133,7 @@ const RepositoryPermissionModalContent = ({
 		}
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected!?
 	useEffect(() => {
 		ensureGroupsLoaded();
 		ensureGuestsLoaded();
@@ -146,8 +148,8 @@ const RepositoryPermissionModalContent = ({
 	}, [resourceSettings]);
 
 	return (
-		<ModalContent size="M">
-			<ModalHeaderTemplate
+		<DialogContent size="M">
+			<DialogHeaderTemplate
 				description={t("enterprise.admin.resources.catalog.permission.description")}
 				icon={Lock}
 				title={t("enterprise.admin.resources.catalog.permission.title")}
@@ -196,7 +198,7 @@ const RepositoryPermissionModalContent = ({
 				onOpenChange={setShowUnsavedDialog}
 				onSave={handleSave}
 			/>
-		</ModalContent>
+		</DialogContent>
 	);
 };
 

@@ -1,13 +1,13 @@
 import BlockActionPanel from "@components/BlockActionPanel";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import DiagramActions from "@ext/markdown/elements/diagrams/edit/components/DiagramActions";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
 import { resolveFloat } from "@ext/markdown/elements/float/edit/logic/resolveFloat";
-import { NodeViewProps } from "@tiptap/react";
-import { ReactElement, useRef, useState } from "react";
+import type { NodeViewProps } from "@tiptap/react";
+import { type ReactElement, useRef, useState } from "react";
 import DiagramData from "../../component/DiagramData";
 
 const DIAGRAMS_ACTIONS_OPTIONS = {
@@ -38,9 +38,10 @@ const DiagramComponent = (props: NodeViewProps): ReactElement => {
 		if (!node.attrs.data) return;
 		const { width, height } = getNaturalSize(getBuffer(node.attrs.src).toString());
 		if (!width || !height) return;
-		return { width: width + "px", height: height + "px" };
+		return { width: `${width}px`, height: `${height}px` };
 	};
 
+	// biome-ignore lint/suspicious/noExplicitAny: it's ok
 	const updateAttributes = (attributes: Record<string, any>) => {
 		const pos = getPos();
 		if (!pos) return;

@@ -14,6 +14,7 @@ import type { GitVersion } from "@ext/git/core/model/GitVersion";
 import type RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
 import ScopedCatalogs from "@ext/git/core/ScopedCatalogs/ScopedCatalogs";
 import t from "@ext/localization/locale/translate";
+import type { ToSpan } from "@ext/loggers/opentelemetry";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type Storage from "@ext/storage/logic/Storage";
 
@@ -69,7 +70,7 @@ export type SyncResult = {
 	after: GitVersion;
 };
 
-export default abstract class Repository {
+export default abstract class Repository implements ToSpan {
 	protected _mergeRequests: MergeRequestCommands;
 	protected _diffItemContent: DiffItemContent;
 	protected _events = createEventEmitter<RepositoryEvents>();
@@ -174,4 +175,10 @@ export default abstract class Repository {
 	abstract deleteBranch(targetBranch: string, data: SourceData): Promise<void>;
 	abstract getState(): Promise<RepositoryStateProvider>;
 	abstract checkoutIfCurrentBranchNotExist(data: SourceData, force?: boolean): Promise<{ hasCheckout: boolean }>;
+
+	toSpan() {
+		return {
+			path: this._repoPath.value,
+		};
+	}
 }

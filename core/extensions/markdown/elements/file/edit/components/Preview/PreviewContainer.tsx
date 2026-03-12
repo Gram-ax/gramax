@@ -10,4 +10,10 @@ const PreviewContainerUnstyled = forwardRef<HTMLDivElement, PreviewContainerProp
 export const PreviewContainer = styled(PreviewContainerUnstyled)`
 	width: 100%;
 	height: 100%;
+	display: grid;
+	align-content: center;
+
+	&[data-loaded="false"] > div:last-of-type {
+		display: none;
+	}
 `;

@@ -1,6 +1,6 @@
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 
 const deleteOpenApi = async (nodes: Node[], resourceService: ResourceServiceType) => {
 	for (const node of nodes) {

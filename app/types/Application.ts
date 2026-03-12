@@ -72,6 +72,10 @@ interface Application {
 
 		portalAi: { enabled: boolean };
 
+		search: {
+			resourcesEnabled: boolean;
+		};
+
 		forceUiLangSync: boolean;
 	};
 }

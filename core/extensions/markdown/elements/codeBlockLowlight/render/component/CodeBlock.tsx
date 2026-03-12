@@ -1,15 +1,16 @@
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import isNavigatorAvailable from "@core-ui/isNavigatorAvailable";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import styled from "@emotion/styled";
 import translate from "@ext/localization/locale/translate";
 import { useLowlightActions } from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockComponent";
 import lowlight from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
-import { Lang, normalizeLangName } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
+import { type Lang, normalizeLangName } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
 import { splitCodeIntoLines } from "@ext/markdown/elements/codeBlockLowlight/print/splitCodeIntoLines";
 import StyledCodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/StyledCodeBlock";
 import { toJsxRuntime } from "hast-util-to-jsx-runtime";
-import { HTMLAttributes, useState } from "react";
+import { type HTMLAttributes, useState } from "react";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 
 interface CodeBlockProps {
@@ -58,8 +59,7 @@ const CodeBlock = (props: CodeBlockProps) => {
 	const copiedText = translate("copied");
 
 	const coppedText = () => {
-		setCopped(true);
-		void navigator.clipboard.writeText(trimVal);
+		void tryCopyToClipboard(trimVal, { showPopover: false }).then((copied) => copied && setCopped(true));
 	};
 
 	if (withoutHighlight) {

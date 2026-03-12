@@ -1,5 +1,5 @@
-import { Token } from "@ext/markdown/core/render/logic/Markdoc";
-import MarkdownIt from "markdown-it";
+import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
+import type MarkdownIt from "markdown-it";
 
 const isImage = (token: Token) => token.type === "image";
 
@@ -38,7 +38,7 @@ const processTokensRecursively = (tokens: Token[]) => {
 };
 
 function imgSizePlugin(md: MarkdownIt) {
-	md.core.ruler.push("image-size", function (state) {
+	md.core.ruler.push("image-size", (state) => {
 		processTokensRecursively(state.tokens);
 	});
 }

@@ -8,8 +8,8 @@ import SnippetActions from "@ext/markdown/elements/snippet/edit/components/Snipp
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import Snippet from "@ext/markdown/elements/snippet/render/components/Snippet";
-import { NodeViewProps } from "@tiptap/react";
-import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { NodeViewProps } from "@tiptap/react";
+import { type ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const StyledBlockCommentView = styled(BlockCommentView)`
 	margin: -4px -8px 0.2em -8px;

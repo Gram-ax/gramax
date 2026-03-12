@@ -1,6 +1,12 @@
-export type AnswerType = "checkbox" | "radio";
+import type { QuizCorrect } from "../question/types";
 
-export type AnswerValueType<T extends AnswerType> = T extends "checkbox" | "radio" ? boolean : unknown;
+export type AnswerType = "checkbox" | "radio" | "text";
+
+export type AnswerValueType<T extends AnswerType> = T extends "checkbox" | "radio"
+	? boolean
+	: T extends "text"
+		? string
+		: unknown;
 
 export interface TypedAnswer<T extends AnswerType = AnswerType> {
 	id: string;
@@ -8,14 +14,16 @@ export interface TypedAnswer<T extends AnswerType = AnswerType> {
 	value: AnswerValueType<T>;
 }
 
+export type StoredAnswer = Record<string, AnswerValueType<AnswerType>>;
+
 export type Answer = {
 	id: string;
 	title: string;
 	type: AnswerType;
-	correct: boolean;
+	correct: QuizCorrect;
 };
 
 export type CheckAnswer = {
 	questionId: string;
-	answersIds: string[];
+	answersIds: StoredAnswer;
 };

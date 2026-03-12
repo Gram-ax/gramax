@@ -1,15 +1,15 @@
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
-import { LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
+import type { LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
 import { Button } from "@ui-kit/Button";
 import { Checkbox } from "@ui-kit/Checkbox";
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
 import { Loader } from "@ui-kit/Loader";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
-import { SearchSelectOption } from "@ui-kit/SearchSelect";
+import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import { ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useState } from "react";
 
 interface FilterMultiSelectProps {
 	existingOptions: string[];
@@ -18,6 +18,7 @@ interface FilterMultiSelectProps {
 	loadingPlaceholder?: string;
 	emptyPlaceholder?: string;
 	disabled: boolean;
+	icon?: string;
 	loadOptions: (params: { searchQuery: string }) => Promise<LoadOptionsResult<SearchSelectOption>>;
 	onAdd: (tests: string[]) => void;
 	onRemove: (tests: string[]) => void;
@@ -34,6 +35,7 @@ export const FilterMultiSelect = (props: FilterMultiSelectProps) => {
 		loadingPlaceholder = t("loading2"),
 		emptyPlaceholder = t("empty"),
 		disabled,
+		icon = "book-check",
 	} = props;
 	const [isLoading, setIsLoading] = useState(false);
 	const [options, setOptions] = useState<SearchSelectOption[]>([]);
@@ -95,7 +97,7 @@ export const FilterMultiSelect = (props: FilterMultiSelectProps) => {
 		<>
 			<Popover onOpenChange={handleOpenChange}>
 				<PopoverTrigger asChild>
-					<Button disabled={disabled} endIcon="chevron-down" startIcon="book-check" variant="outline">
+					<Button disabled={disabled} endIcon="chevron-down" startIcon={icon} variant="outline">
 						{trigger} {selectedOptions.length > 0 ? `(${selectedOptions.length})` : ""}
 					</Button>
 				</PopoverTrigger>

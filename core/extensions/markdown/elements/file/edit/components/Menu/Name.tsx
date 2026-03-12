@@ -1,8 +1,8 @@
 import type Path from "@core/FileProvider/Path/Path";
+import type { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import styled from "@emotion/styled";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import type { ResourceError } from "@ext/markdown/elements/copyArticles/errors/ResourceError";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import { openFilePreview } from "@ext/markdown/elements/file/edit/logic/openFilePreview";
 
 const Anchor = styled.a`

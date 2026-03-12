@@ -10,19 +10,19 @@ export const useAnswerProps = (questionId: string, answerId: string) => {
 			return {
 				isCorrected: undefined,
 				setAnswer: () => {},
-				isSelected: false,
+				value: undefined,
 				state: "answering",
 			};
 		}
 
 		const state = store.state?.type;
-		const isSelected = question.selectedAnswers.includes(answerId);
+		const value = question.selectedAnswers[answerId];
 		const isCorrected = getIsCorrected(question, answerId, state);
 
 		return {
 			isCorrected,
 			setAnswer: store.selectAnswer,
-			isSelected,
+			value,
 			state,
 		};
 	}, shallow);

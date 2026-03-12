@@ -66,6 +66,7 @@ const PlusActions = (props: PlusActionsProps) => {
 		<div
 			className={classNames(className, { vertical: vertical, horizontal: !vertical }, ["hidden"])}
 			data-qa={dataQa}
+			data-testid={dataQa}
 			onMouseEnter={preOnMouseEnter}
 			onMouseLeave={preOnMouseLeave}
 		>

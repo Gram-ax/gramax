@@ -1,11 +1,11 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
-import PageDataContext from "@core/Context/PageDataContext";
+import type Context from "@core/Context/Context";
+import type PageDataContext from "@core/Context/PageDataContext";
 import Path from "@core/FileProvider/Path/Path";
 import getPageDataByPathname, { PageDataType } from "@core/RouterPath/logic/getPageDataByPathname";
 import getShareDataFromPathnameData from "@core/RouterPath/logic/getShareDataFromRouterPath";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import homeSections from "@core/utils/homeSections";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { Command } from "../../types/Command";
@@ -17,6 +17,8 @@ const getPageData: Command<
 	path: "page/getPageData",
 
 	kind: ResponseKind.json,
+
+	flags: ["otel-omit-result"],
 
 	async do({ path, ctx }) {
 		const getHomePageData = (path?: string) => this._commands.page.getHomePageData.do({ ctx, path });
@@ -46,9 +48,9 @@ const getPageData: Command<
 		if (data) return data;
 
 		if (pageDataType === PageDataType.article) return getArticlePageData(itemLogicPath, path);
-		else if (pageDataType === PageDataType.notFound)
+		if (pageDataType === PageDataType.notFound)
 			return getNotFoundCatalog(path, Path.join(...pathnameData.itemLogicPath));
-		else if (pageDataType === PageDataType.home) {
+		if (pageDataType === PageDataType.home) {
 			const { sourceType } = getPartGitSourceDataByStorageName(pathnameData.sourceName);
 
 			const shareData = getShareDataFromPathnameData(pathnameData, sourceType);

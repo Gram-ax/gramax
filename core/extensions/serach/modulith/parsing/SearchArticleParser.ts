@@ -1,24 +1,36 @@
-import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
-import resolveModule from "@app/resolveModule/backend";
-import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Path from "@core/FileProvider/Path/Path";
+import type Path from "@core/FileProvider/Path/Path";
 import type { Article, ArticleProps, Content } from "@core/FileStructue/Article/Article";
-import { getExtractHeader } from "@core/FileStructue/Article/parseContent";
+import { extractHeader } from "@core/FileStructue/Article/extractHeader";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import mammothModule from "@dynamicImports/mammoth";
-import pdfParse from "@dynamicImports/pdf-parse";
+import { XxHash } from "@core/Hash/Hasher";
+import type ResourceManager from "@core/Resource/ResourceManager";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import { getArticleId, getResourceArticleId } from "@ext/serach/modulith/parsing/getArticleId";
 import SearchArticleContentParser from "@ext/serach/modulith/parsing/SearchArticleContentParser";
-import SearchArticleContentParserHTML from "@ext/serach/modulith/parsing/SearchArticleContentParserHTML";
-import type { SearchArticle, SearchArticleArticleMetadata } from "@ext/serach/modulith/SearchArticle";
+import {
+	isResourceParseFormat,
+	type ResourceParseClient,
+} from "@ext/serach/modulith/resourceParse/ResourceParseClient";
+import type {
+	SearchArticle,
+	SearchArticleArticleMetadata,
+	SearchArticleFileMetadata,
+} from "@ext/serach/modulith/SearchArticle";
+import type { FoundArticle } from "@ext/serach/modulith/search/ModulithSearchClient";
 import { getLang } from "@ext/serach/modulith/utils/getLang";
 import { getValidCatalogItems } from "@ext/serach/modulith/utils/getValidCatalogItems";
-import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { AggregateProgress, type ProgressCallback } from "@ics/modulith-utils";
-import type { TypedArray } from "pdfjs-dist/types/display/api";
+import type { Article as ModulithArticle } from "@ics/modulith-search-domain/article";
+import { AggregateProgress, type MultiLock, type ProgressCallback } from "@ics/modulith-utils";
+
+export type ResourcesInfo = {
+	article: Article;
+	resources: Path[];
+	parsedContent: Content | undefined;
+	properties: Record<string, unknown>;
+};
 
 export type CatalogNameWithSearchArticle = [string, SearchArticle[]];
 
@@ -26,37 +38,17 @@ export class SearchArticleParser {
 	constructor(
 		private readonly _parser: MarkdownParser,
 		private readonly _parserContextFactory: ParserContextFactory,
-		private readonly _parseResources: boolean,
+		private readonly _resourceParseClient: ResourceParseClient | undefined,
 	) {}
-
-	async getAllCatalogSearchArticles(
-		ws: Workspace,
-		progressCallback?: ProgressCallback,
-	): Promise<CatalogNameWithSearchArticle[]> {
-		const catalogNames = [...ws.getAllCatalogs().keys()];
-
-		const aggProgress = new AggregateProgress({
-			progress: {
-				count: catalogNames.length,
-			},
-			onChange: (p) => progressCallback?.(p),
-		});
-
-		const promises = catalogNames.map<Promise<[string, SearchArticle[]]>>(async (catalogName, i) => {
-			const catalog = await ws.getContextlessCatalog(catalogName);
-			const articles = await this.getSearchArticles(ws.path(), catalog, aggProgress.getProgressCallback(i));
-			return [catalogName, articles];
-		});
-		return await Promise.all(promises);
-	}
 
 	async getSearchArticles(
 		wsPath: WorkspacePath,
 		catalog: ReadonlyCatalog,
 		progressCallback?: ProgressCallback,
-	): Promise<SearchArticle[]> {
+	): Promise<{ searchArticles: SearchArticle[]; resourcesInfo: ResourcesInfo[] }> {
 		const articles = getValidCatalogItems(catalog);
 		const searchArticlesByPath: Map<string, SearchArticle> = new Map();
+		const resourcesInfo: ResourcesInfo[] = [];
 
 		const aggProgress = new AggregateProgress({
 			progress: {
@@ -66,7 +58,7 @@ export class SearchArticleParser {
 		});
 
 		await articles.mapAsync(async (article, i) => {
-			const searchArticle = await this._createSearchArticle(
+			const { searchArticle, parsedContent, resources } = await this._createSearchArticle(
 				wsPath,
 				catalog,
 				article,
@@ -74,50 +66,10 @@ export class SearchArticleParser {
 			);
 
 			searchArticlesByPath.set(article.logicPath, searchArticle);
+			resourcesInfo.push({ article, resources, parsedContent, properties: searchArticle.metadata.properties });
 		});
 
 		const searchArticles: SearchArticle[] = [];
-
-		if (catalog.props.title) {
-			const lang = catalog.props.language ?? "none";
-			searchArticles.push({
-				id: this._getCatalogId(wsPath, catalog.name, lang),
-				title: catalog.props.title,
-				children: [],
-				items: [],
-				metadata: {
-					type: "catalog",
-					wsPath,
-					catalogId: catalog.name,
-					lang,
-				},
-			});
-		}
-
-		if (catalog.props.supportedLanguages?.length) {
-			const rootCategoryPath = catalog.getRootCategoryPath();
-
-			for (const supLang of catalog.props.supportedLanguages) {
-				if (supLang === catalog.props.language) continue;
-
-				const path = rootCategoryPath.join(new Path(supLang), new Path(CATEGORY_ROOT_FILENAME));
-
-				const langCategory = catalog.findItemByItemPath(path);
-				if (!langCategory || !langCategory.props.title) continue;
-				searchArticles.push({
-					id: this._getCatalogId(wsPath, catalog.name, supLang),
-					title: langCategory.props.title,
-					children: [],
-					items: [],
-					metadata: {
-						type: "catalog",
-						wsPath,
-						catalogId: catalog.name,
-						lang: supLang,
-					},
-				});
-			}
-		}
 
 		articles.forEach((article) => {
 			const searchArticle = searchArticlesByPath.get(article.logicPath);
@@ -126,7 +78,88 @@ export class SearchArticleParser {
 			else searchArticlesByPath.get(article.parent.logicPath).children.push(searchArticle);
 		});
 
-		return searchArticles;
+		return { searchArticles, resourcesInfo };
+	}
+
+	async parseResourceArticles(
+		resources: Path[],
+		rm: ResourceManager,
+		wsPath: WorkspacePath,
+		article: Article<ArticleProps>,
+		catalog: ReadonlyCatalog,
+		properties: Record<string, unknown>,
+		payloads: FoundArticle<SearchArticleFileMetadata>[],
+		resLock: MultiLock,
+		progressCallback?: ProgressCallback,
+	): Promise<{ searchArticles: ModulithArticle<SearchArticleFileMetadata>[]; unchangedResources: string[] }> {
+		const aggProgress = new AggregateProgress({
+			progress: {
+				count: resources.length,
+			},
+			onChange: (p) => progressCallback?.(p),
+		});
+
+		const articleId = getArticleId(wsPath, article.logicPath);
+		const hashById = new Map<string, string>(payloads.map((x) => [x.id, x.metadata.hash]));
+
+		const unchangedResources: string[] = [];
+		const searchArticles = (
+			await resources.mapAsync<ModulithArticle<SearchArticleFileMetadata>>(async (x, i) => {
+				const pc = aggProgress.getProgressCallback(i);
+				const release = await resLock.lock(`${catalog.name}#${x.nameWithExtension}`);
+				try {
+					if (!isResourceParseFormat(x.extension) || !this._resourceParseClient) return null;
+
+					const data = await rm.getContent(x);
+					if (!data) return null;
+
+					const id = getResourceArticleId(wsPath, article.logicPath, x.nameWithExtension);
+					const hash = String(XxHash.single(data));
+					const exHash = hashById.get(id);
+					if (exHash && exHash === hash) {
+						unchangedResources.push(id);
+						return null;
+					}
+
+					const items = await this._resourceParseClient.parseResource(x.extension, data, pc);
+					if (!items) return null;
+
+					hashById.set(id, hash);
+
+					return {
+						id,
+						title: x.nameWithExtension,
+						children: [],
+						items,
+						metadata: {
+							type: "file" as const,
+							id,
+							hash,
+							articleId,
+							wsPath,
+							catalogId: catalog.name,
+							lang: getLang(article.logicPath, catalog.props.language),
+							properties,
+						},
+					};
+				} catch (e) {
+					console.error(e);
+					return null;
+				} finally {
+					pc(1);
+					release();
+				}
+			})
+		).filter((x) => x != null);
+
+		return {
+			searchArticles,
+			unchangedResources,
+		};
+	}
+
+	async terminate(): Promise<void> {
+		await this._resourceParseClient?.terminate();
 	}
 
 	private async _createSearchArticle(
@@ -134,16 +167,13 @@ export class SearchArticleParser {
 		catalog: ReadonlyCatalog,
 		article: Article,
 		progressCallback?: ProgressCallback,
-	): Promise<SearchArticle> {
+	): Promise<{
+		searchArticle: ModulithArticle<SearchArticleArticleMetadata>;
+		parsedContent: Content;
+		resources: Path[];
+	}> {
 		const parsedContent = await this._parseArticleContent(article, catalog);
-		const title = parsedContent ? (getExtractHeader(parsedContent) ?? article.getTitle()) : article.getTitle();
-
-		const aggProgress = new AggregateProgress({
-			progress: {
-				count: 2,
-			},
-			onChange: (p) => progressCallback?.(p),
-		});
+		const title = parsedContent ? (extractHeader(parsedContent) ?? article.getTitle()) : article.getTitle();
 
 		const { searchArticle, resources } = await this._parseItem(
 			wsPath,
@@ -151,169 +181,20 @@ export class SearchArticleParser {
 			title,
 			parsedContent,
 			catalog,
-			aggProgress.getProgressCallback(0),
+			progressCallback,
 		);
 
-		if (resources.length === 0) {
-			aggProgress.setProgress(1, 1);
-		} else {
-			const resourcesProgress = new AggregateProgress({
-				progress: {
-					count: resources.length,
-				},
-				onChange: (p) => aggProgress.setProgress(1, p),
-			});
-
-			const rm = parsedContent.parsedContext.getResourceManager();
-
-			const resourceArticles = (
-				await resources.mapAsync(async (x, i) => {
-					const pc = resourcesProgress.getProgressCallback(i);
-
-					try {
-						if (x.extension === "docx") {
-							return await this._parseResourceDocx(
-								wsPath,
-								article,
-								x.nameWithExtension,
-								await rm.getContent(x),
-								catalog,
-								(searchArticle.metadata as SearchArticleArticleMetadata).properties,
-								pc,
-							);
-						}
-						if (x.extension === "pdf") {
-							return await this._parseResourcePdf(
-								wsPath,
-								article,
-								x.nameWithExtension,
-								await rm.getContent(x),
-								catalog,
-								(searchArticle.metadata as SearchArticleArticleMetadata).properties,
-								pc,
-							);
-						}
-					} catch (e) {
-						console.error(e);
-						return null;
-					} finally {
-						pc(1);
-					}
-				})
-			)
-				.flat()
-				.filter((x) => x != null);
-
-			searchArticle.children = resourceArticles;
-		}
-
-		return searchArticle;
-	}
-
-	private async _parseResourceDocx(
-		wsPath: WorkspacePath,
-		article: Article<ArticleProps>,
-		file: string,
-		data: Buffer,
-		catalog: ReadonlyCatalog,
-		properties: Record<string, unknown>,
-		progressCallback?: ProgressCallback,
-	): Promise<SearchArticle | null> {
-		if (!data) return null;
-
-		const mammoth = await mammothModule();
-		const html = (
-			await mammoth.convertToHtml({
-				...(getExecutingEnvironment() !== "next"
-					? {
-							arrayBuffer: data.buffer as ArrayBuffer,
-						}
-					: {
-							buffer: data,
-						}),
-			})
-		).value;
-
-		progressCallback?.(0.75);
-		const domParser = resolveModule("getDOMParser")();
-		const doc = domParser.parseFromString(`<root>${html}</root>`, "text/xml");
-		const parsed = await new SearchArticleContentParserHTML(doc.firstChild.childNodes).parse();
-		progressCallback?.(1);
-		return {
-			id: this._getResourceArticleId(wsPath, article.logicPath, file),
-			title: file,
-			children: [],
-			items: parsed,
-			metadata: {
-				type: "file",
-				wsPath,
-				catalogId: catalog.name,
-				lang: getLang(article.logicPath, catalog.props.language),
-				properties,
-			},
-		};
-	}
-
-	private async _parseResourcePdf(
-		wsPath: WorkspacePath,
-		article: Article<ArticleProps>,
-		file: string,
-		data: Buffer,
-		catalog: ReadonlyCatalog,
-		properties: Record<string, unknown>,
-		progressCallback?: ProgressCallback,
-	): Promise<SearchArticle | null> {
-		if (!data) return null;
-
-		const aggProgress = new AggregateProgress({
-			progress: {
-				weights: [95, 5],
-			},
-			onChange: (p) => progressCallback?.(p),
-		});
-
-		const pdf = await pdfParse();
-		const text: string = await pdf.pdfToMarkdown(data as unknown as TypedArray, aggProgress.getProgressCallback(0));
-		const parseCtx = await this._parserContextFactory.fromArticle(article, catalog, resolveLanguage(), true);
-
-		try {
-			const mdParsed = (await this._parser.parse(text, parseCtx)).editTree;
-			const items = await new SearchArticleContentParser(
-				mdParsed.content,
-				() => null,
-				() => null,
-				() => null,
-			).parse();
-
-			aggProgress.setProgress(1, 1);
-			return {
-				id: this._getResourceArticleId(wsPath, article.logicPath, file),
-				title: file,
-				children: [],
-				items,
-				metadata: {
-					type: "file",
-					wsPath,
-					catalogId: catalog.name,
-					lang: getLang(article.logicPath, catalog.props.language),
-					properties,
-				},
-			};
-		} catch (error) {
-			console.error(error);
-			console.log({ path: article.ref.path.toString(), file });
-			return null;
-		}
+		return { searchArticle, parsedContent, resources };
 	}
 
 	private async _parseItem(
 		wsPath: WorkspacePath,
 		article: Article<ArticleProps>,
 		title: string,
-		parsedContent: Content,
+		parsedContent: Content | undefined,
 		catalog: ReadonlyCatalog,
 		progressCallback?: ProgressCallback,
-	): Promise<{ searchArticle: SearchArticle; resources: Path[] }> {
+	): Promise<{ searchArticle: ModulithArticle<SearchArticleArticleMetadata>; resources: Path[] }> {
 		const resources: Path[] = [];
 
 		const getSnippetItems = async (id: string) => {
@@ -328,16 +209,16 @@ export class SearchArticleParser {
 		};
 
 		const getLinkId = (fileName: Path) => {
-			if (!this._parseResources || (fileName.extension !== "docx" && fileName.extension !== "pdf")) {
+			if (!isResourceParseFormat(fileName.extension) || !this._resourceParseClient) {
 				return undefined;
 			}
 
 			resources.push(fileName);
-			return this._getResourceArticleId(wsPath, article.logicPath, fileName.nameWithExtension);
+			return getResourceArticleId(wsPath, article.logicPath, fileName.nameWithExtension);
 		};
 
-		const res: SearchArticle = {
-			id: this._getArticleId(wsPath, article.logicPath),
+		const res: ModulithArticle<SearchArticleArticleMetadata> = {
+			id: getArticleId(wsPath, article.logicPath),
 			title,
 			children: [],
 			items: parsedContent
@@ -380,17 +261,5 @@ export class SearchArticleParser {
 		} catch {
 			return;
 		}
-	}
-
-	private _getResourceArticleId(wsPath: WorkspacePath, articleLogicPath: string, resourceName: string) {
-		return `${this._getArticleId(wsPath, articleLogicPath)}#file#${resourceName}`;
-	}
-
-	private _getArticleId(wsPath: WorkspacePath, articleLogicPath: string) {
-		return `${wsPath}#${articleLogicPath}`;
-	}
-
-	private _getCatalogId(wsPath: WorkspacePath, catalogName: string, lang: string) {
-		return `catalog#${wsPath}#${catalogName}#${lang}`;
 	}
 }

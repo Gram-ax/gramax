@@ -3,8 +3,9 @@ import { healthcheckEvents } from "@ext/git/core/GitCommands/errors/HealthcheckE
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import { type CredsArgs, progress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
-import { convertFileSrc, invoke } from "@tauri-apps/api/core";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { invoke } from "../../../apps/tauri/src/window/commands";
 
 void listen("remote-progress", (ev) => {
 	const payload = ev.payload as any;

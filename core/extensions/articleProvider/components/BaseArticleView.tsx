@@ -6,13 +6,13 @@ import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import BaseArticleBreadcrumb from "@ext/articleProvider/components/BaseArticleBreadcrumb";
 import CustomArticleEditor from "@ext/articleProvider/components/CustomArticleEditor";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
-import { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
-import { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
+import type { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
+import type { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
-import { Extensions, JSONContent } from "@tiptap/react";
+import type { Extensions, JSONContent } from "@tiptap/react";
 import { useState } from "react";
 
 interface BaseArticleViewProps {

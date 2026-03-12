@@ -8,6 +8,7 @@ const StrikeMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<ToolbarToggleButton
 			active={isActive}
+			data-testid="tb-strikethrough"
 			disabled={disabled}
 			hotKey={"Mod-Shift-X"}
 			onClick={() => editor.chain().focus().toggleStrike().run()}

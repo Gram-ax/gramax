@@ -99,7 +99,7 @@ interface ProgressBlockProps {
 
 const ProgressBlock = ({ indeterminate, title, onCancel, value, speed, total }: ProgressBlockProps) => {
 	return (
-		<div className="flex w-full flex-col gap-1 max-w-full overflow-hidden">
+		<div className="flex w-full flex-col gap-1 max-w-full overflow-hidden" data-qa="loader">
 			<div className="flex items-center gap-2 justify-between">
 				<div className="flex items-center justify-between gap-1" style={{ maxWidth: "85%" }}>
 					<div className="text-xs text-primary-fg font-normal whitespace-nowrap">{title}</div>

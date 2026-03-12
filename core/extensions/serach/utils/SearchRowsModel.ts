@@ -170,16 +170,7 @@ function getSearchRows(
 				item: SearchResultParagraphItem,
 				getLinkInfo: (text: string) => SearchFragmentInfo,
 			) => {
-				let fragmentInfo: SearchFragmentInfo | undefined = overrideFragmentInfo;
-
-				if (!fragmentInfo) {
-					let linkFragment = item.items.map((i) => i.text).join("");
-					if (linkFragment) {
-						if (linkFragment.startsWith("...")) linkFragment = linkFragment.slice(3);
-						if (linkFragment.endsWith("...")) linkFragment = linkFragment.slice(0, -3);
-						fragmentInfo = getLinkInfo(linkFragment);
-					}
-				}
+				const fragmentInfo = overrideFragmentInfo ?? getLinkInfo(item.searchText);
 
 				const href = createLinkRefUrl(baseUrl, fragmentInfo);
 				const openSideEffect: LinkOpenSideEffectOptions = {
@@ -205,15 +196,6 @@ function getSearchRows(
 
 			if (item.type === "paragraph") {
 				handleParagraph(item, (text) => articleFragmentCounter.initFragmentInfo(text));
-			} else if (item.type === "paragraph_group") {
-				let linkInfoForWholeGroup: SearchFragmentInfo | undefined;
-				item.paragraphs.forEach((p) => {
-					handleParagraph(p, (text) => {
-						if (linkInfoForWholeGroup === undefined)
-							linkInfoForWholeGroup = articleFragmentCounter.initFragmentInfo(text);
-						return linkInfoForWholeGroup;
-					});
-				});
 			} else if (item.type === "block") {
 				let fragmentInfo: SearchFragmentInfo | undefined = overrideFragmentInfo;
 				let overrideFragmentInfoForChildren: SearchFragmentInfo | undefined = overrideFragmentInfo;

@@ -1,17 +1,19 @@
 import { CATEGORY_ROOT_FILENAME, GRAMAX_EDITOR_URL } from "@app/config/const";
 import { LucideIcon } from "@components/Atoms/Icon/LucideIcon";
-import { Article } from "@core/FileStructue/Article/Article";
-import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
+import type Context from "@core/Context/Context";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import safeDecode from "@core/utils/safeDecode";
 import t from "@ext/localization/locale/translate";
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import type { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { collapseTocItems } from "@ext/navigation/article/logic/createTocItems";
 import RuleProvider from "@ext/rules/RuleProvider";
-import FileProvider from "../../../logic/FileProvider/model/FileProvider";
+import type FileProvider from "../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../logic/FileProvider/Path/Path";
-import { Item } from "../../../logic/FileStructue/Item/Item";
+import type { Item } from "../../../logic/FileStructue/Item/Item";
 import ResourceExtensions from "../../../logic/Resource/ResourceExtensions";
 
 export type CatalogErrors = Record<keyof typeof CatalogErrorGroups, CatalogError[]>;
@@ -41,8 +43,9 @@ class Healthcheck {
 
 	async checkCatalog(): Promise<CatalogErrors> {
 		if (!this._catalog) return {};
-		this._errors = { icons: [], links: [], images: [], diagrams: [], unsupported: [], content: [] };
+		this._errors = { icons: [], links: [], images: [], diagrams: [], unsupported: [], content: [], comments: [] };
 		const rp = new RuleProvider(this._catalog.ctx);
+		const ctx = this._catalog.ctx;
 		const filters = rp.getItemFilters();
 
 		this._catalogContentItems = this._catalog.getContentItems();
@@ -68,6 +71,7 @@ class Healthcheck {
 				const { linkResources, resources } = manager;
 
 				for (const resource of p.parsedContext.getResourceManager().resources) {
+					if (resource.value.endsWith(".comments.yaml")) await this._checkComments(item, ctx);
 					await this._checkResource(item, resource);
 				}
 
@@ -102,7 +106,7 @@ class Healthcheck {
 			if (refs) {
 				for (const key of Object.keys(refs)) {
 					const refPath = new Path(refs[key]);
-					const fileNamePath = new Path(refPath.name + ".md");
+					const fileNamePath = new Path(`${refPath.name}.md`);
 					const directoryPath = refPath.parentDirectoryPath;
 					const filePath = category.ref.path.parentDirectoryPath.join(directoryPath, fileNamePath);
 					if (!(await this._fp.exists(filePath))) {
@@ -140,7 +144,7 @@ class Healthcheck {
 		);
 
 		let index = 0;
-		let article: Article = undefined;
+		let article: Article;
 		while (index < this._catalogContentItems.length - 1) {
 			const item = this._catalogContentItems[index];
 			if (item?.ref?.path?.value === absolutePath.value) {
@@ -175,7 +179,7 @@ class Healthcheck {
 			if (!article) return pushError();
 
 			const tocItems = collapseTocItems(await article.parsedContent.read((p) => p?.tocItems ?? []));
-			if (!tocItems.length || !tocItems.some(({ url }) => url === decodeURIComponent(hash))) return pushError();
+			if (!tocItems.length || !tocItems.some(({ url }) => url === safeDecode(hash))) return pushError();
 		}
 	}
 
@@ -196,7 +200,7 @@ class Healthcheck {
 	};
 
 	private _getErrorLink = async (catalog: ReadonlyBaseCatalog, item: Item): Promise<string> => {
-		return GRAMAX_EDITOR_URL + "/" + RouterPathProvider.getPathname(await catalog.getPathnameData(item)).value;
+		return `${GRAMAX_EDITOR_URL}/${RouterPathProvider.getPathname(await catalog.getPathnameData(item)).value}`;
 	};
 
 	private async _checkIcons(item: Article, code: string) {
@@ -211,10 +215,39 @@ class Healthcheck {
 		);
 	}
 
+	private async _checkComments(item: Article, ctx: Context) {
+		const commentProvider = this._catalog.customProviders.commentProvider;
+		const comments = await commentProvider.getComments(item.ref.path);
+		if (!comments) return;
+		const formatter = new Intl.DateTimeFormat(ctx.contentLanguage, {
+			year: "numeric",
+			month: "numeric",
+			day: "numeric",
+			hour: "2-digit",
+			minute: "2-digit",
+			second: "2-digit",
+		});
+
+		for (const id of Object.keys(comments)) {
+			if (commentProvider.isAssigned(id, item.ref.path)) continue;
+			const comment = comments[id].parsedData;
+			const value = `${comment.comment.user.name}<${comment.comment.user.mail}> ${formatter.format(new Date(comment.comment.dateTime))}`;
+
+			this._errors.comments.push(
+				this._getRefCatalogError({
+					value,
+					logicPath: item.logicPath,
+					title: item.getTitle(),
+					editorLink: await this._getErrorLink(this._catalog, item),
+				}),
+			);
+		}
+	}
+
 	private _checkUnsupported = async (item: Article, tree: RenderableTreeNode) => {
 		if (!tree || typeof tree === "string") return;
 
-		if (tree.name == "Unsupported") {
+		if (tree.name === "Unsupported") {
 			this._errors.unsupported.push(
 				this._getRefCatalogError({
 					value: tree?.attributes?.type,

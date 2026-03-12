@@ -1,6 +1,7 @@
 use std::cell::Cell;
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::io::ErrorKind;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::atomic::AtomicU64;
@@ -201,6 +202,7 @@ fn create_file_lock(_repo: &git2::Repository, lock_path: PathBuf, cmd: &str) -> 
 			FileLock::unlock(&lock_path)?;
 			Ok(FileLock::lock_with_ctx(lock_path, FileLockData { cmd, ctx: &() })?)
 		}
+		Err(FileLockError::Other(e)) if e.kind() == ErrorKind::PermissionDenied => Ok(FileLock::dummy()),
 		Err(e) => Err(e.into()),
 	}
 }
@@ -229,13 +231,15 @@ pub fn reset_repo() {
 
 #[cfg(test)]
 mod tests {
+	use tempfile::tempdir;
+
 	use super::*;
 	use std::thread;
 	use std::time::Duration;
 
 	#[test]
 	fn test_read_uses_local_cache() {
-		let tmp = tempdir::TempDir::new("test_repo").unwrap();
+		let tmp = tempdir().unwrap();
 		git2::Repository::init(tmp.path()).unwrap();
 
 		let path = tmp.path().to_path_buf();
@@ -250,7 +254,7 @@ mod tests {
 
 	#[test]
 	fn test_write_uses_global_cache() {
-		let tmp = tempdir::TempDir::new("test_repo").unwrap();
+		let tmp = tempdir().unwrap();
 		git2::Repository::init(tmp.path()).unwrap();
 
 		let path = tmp.path().to_path_buf();
@@ -267,7 +271,7 @@ mod tests {
 
 	#[test]
 	fn test_reset_clears_all_caches() {
-		let tmp = tempdir::TempDir::new("test_repo").unwrap();
+		let tmp = tempdir().unwrap();
 		git2::Repository::init(tmp.path()).unwrap();
 
 		let path = tmp.path().to_path_buf();
@@ -288,7 +292,7 @@ mod tests {
 
 	#[test]
 	fn test_generation_invalidates_other_threads() {
-		let tmp = tempdir::TempDir::new("test_repo").unwrap();
+		let tmp = tempdir().unwrap();
 		git2::Repository::init(tmp.path()).unwrap();
 
 		let path = tmp.path().to_path_buf();
@@ -315,7 +319,7 @@ mod tests {
 
 	#[test]
 	fn test_concurrent_read_lock_free() {
-		let tmp = tempdir::TempDir::new("test_repo").unwrap();
+		let tmp = tempdir().unwrap();
 		git2::Repository::init(tmp.path()).unwrap();
 
 		let path = tmp.path().to_path_buf();

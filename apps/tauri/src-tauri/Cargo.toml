@@ -21,7 +21,9 @@ tauri-plugin-shell = { workspace = true }
 
 plugin-gramax-fs = { path = "../plugins/plugin-gramax-fs" }
 plugin-gramax-git = { path = "../plugins/plugin-gramax-git" }
+tauri-otel-context = { path = "../plugins/tauri-otel-context" }
 bugsnag = { path = "../../../crates/bugsnag" }
+gramax-opentelemetry = { path = "../../../crates/opentelemetry" }
 
 dotenvy = "0.15.7"
 tiny_http = "0.12.0"
@@ -51,6 +53,9 @@ chrono = { workspace = true }
 thiserror = { workspace = true }
 humansize = { workspace = true }
 sysinfo = { workspace = true }
+tracing-opentelemetry = { workspace = true }
+opentelemetry = { workspace = true }
+opentelemetry_sdk = { workspace = true }
 
 
 [target.'cfg(target_os = "windows")'.dependencies]

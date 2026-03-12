@@ -28,10 +28,10 @@ function createImportMap(): Record<string, string> {
 
 export class EsModuleShimsLoader {
 	private get _isLoaded(): boolean {
-		return (
-			!!document.head.querySelector('script[type="importmap-shim"]') &&
-			!!document.head.querySelector('script[src*="es-module-shims"]')
-		);
+		const hasImportMap = !!document.head.querySelector('script[type="importmap-shim"]');
+		const hasShimScript = !!document.head.querySelector('script[src*="es-module-shims"]');
+		const hasImportShim = typeof (window as any).importShim === "function";
+		return hasImportMap && hasShimScript && hasImportShim;
 	}
 
 	async load(): Promise<void> {

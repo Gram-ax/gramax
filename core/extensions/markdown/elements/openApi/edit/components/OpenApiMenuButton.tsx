@@ -1,9 +1,9 @@
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import t from "@ext/localization/locale/translate";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import createOpenApi from "@ext/markdown/elements/openApi/edit/logic/createOpenApi";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { Icon } from "@ui-kit/Icon";
 import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
 

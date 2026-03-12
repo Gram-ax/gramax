@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
-import { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, forwardRef, type ReactNode, type RefObject } from "react";
 import { DndProvider } from "react-dnd";
 import Scrollable from "../ScrollableElement";
 
@@ -16,7 +16,7 @@ interface LeftSidebarProps {
 	className?: string;
 }
 
-const LeftSidebar = (props: LeftSidebarProps) => {
+const LeftSidebar = forwardRef((props: LeftSidebarProps, ref: RefObject<HTMLDivElement>) => {
 	const { children, shadow = true, boxShadowStyles, sidebarTop, sidebarBottom, style, className } = props;
 	const { onContentMouseEnter, onContentMouseLeave } = props;
 	const { backend, options } = useDragDrop();
@@ -29,6 +29,7 @@ const LeftSidebar = (props: LeftSidebarProps) => {
 					boxShadowStyles={boxShadowStyles}
 					onMouseEnter={onContentMouseEnter}
 					onMouseLeave={onContentMouseLeave}
+					ref={ref}
 					showTopBottomShadow={shadow}
 					style={style}
 				>
@@ -38,7 +39,7 @@ const LeftSidebar = (props: LeftSidebarProps) => {
 			{sidebarBottom}
 		</div>
 	);
-};
+});
 
 export default styled(LeftSidebar)`
 	display: flex;

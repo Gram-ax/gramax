@@ -1,4 +1,5 @@
 use tauri::*;
+use tauri_otel_context::OtelContext;
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -25,7 +26,7 @@ struct SettingsStateInner {
 type SettingsState = Mutex<SettingsStateInner>;
 
 #[command]
-pub fn get_settings<R: Runtime>(manager: AppHandle<R>) -> Result<Settings> {
+pub fn get_settings<R: Runtime>(_otel: OtelContext, manager: AppHandle<R>) -> Result<Settings> {
 	let path = manager.path().app_data_dir()?.join(SETTINGS_FILE_NAME);
 
 	match manager.try_state::<SettingsState>() {
@@ -38,7 +39,7 @@ pub fn get_settings<R: Runtime>(manager: AppHandle<R>) -> Result<Settings> {
 }
 
 #[command]
-pub fn set_settings<R: Runtime>(manager: AppHandle<R>, data: HashMap<String, String>) -> Result<()> {
+pub fn set_settings<R: Runtime>(_otel: OtelContext, manager: AppHandle<R>, data: HashMap<String, String>) -> Result<()> {
 	let path = manager.path().app_data_dir()?.join(SETTINGS_FILE_NAME);
 
 	std::fs::write(path, serde_json::to_string(&data)?)?;

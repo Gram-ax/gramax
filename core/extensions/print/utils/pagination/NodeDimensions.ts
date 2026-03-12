@@ -1,3 +1,4 @@
+import Paginator from "@ext/print/utils/pagination/Paginator";
 import assert from "assert";
 
 export interface NodeDimensionsData {
@@ -48,12 +49,18 @@ export class NodeDimensions {
 		return this._dimensions.get(node);
 	}
 
-	canUpdateAccumulatedHeight(node: HTMLElement, accumulatedHeight: AccumulatedHeight, height: number): boolean {
+	canUpdateAccumulatedHeight(node: HTMLElement, height: number): boolean {
 		const dims = this.get(node);
 		if (!dims) return true;
+		return this.canUpdateAccumulatedHeightDim(dims, height);
+	}
 
-		const collapsedMargin = Math.max(accumulatedHeight.marginBottom, dims.marginTop);
-		const newHeight = accumulatedHeight.height + collapsedMargin + dims.height + dims.marginBottom;
+	canUpdateAccumulatedHeightDim(nodeDimensionsData: NodeDimensionsData, height: number): boolean {
+		const accumulatedHeight = Paginator.paginationInfo.accumulatedHeight;
+		const collapsedMargin = Math.max(accumulatedHeight.marginBottom, nodeDimensionsData.marginTop);
+		const newHeight =
+			accumulatedHeight.height + collapsedMargin + nodeDimensionsData.height + nodeDimensionsData.marginBottom;
+
 		return newHeight <= height;
 	}
 

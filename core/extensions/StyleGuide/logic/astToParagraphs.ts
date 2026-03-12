@@ -1,12 +1,23 @@
 import type { CheckChunk } from "@ics/gx-vector-search";
-import { JSONContent } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/react";
 
 function extractSentences(text: string): string[] {
-	const texts = text.split(/(\.+\s+)/).reduce((acc: string[], part: string) => {
+	const listItemPattern = /^\s*(?:[IVXLCDM]+|\d+)$/;
+
+	const texts = text.split(/(\.+\s+)/).reduce((acc: string[], part: string, i: number, arr: string[]) => {
 		if (part.match(/(\.+\s+)/)) {
+			const prev = acc[acc.length - 1];
+			if (prev && listItemPattern.test(prev.trim())) {
+				return acc;
+			}
 			acc[acc.length - 1] += part;
 		} else if (part) {
-			acc.push(part);
+			const prev = acc[acc.length - 1];
+			if (prev && listItemPattern.test(prev.trim())) {
+				acc[acc.length - 1] += arr[i - 1] + part;
+			} else {
+				acc.push(part);
+			}
 		}
 		return acc;
 	}, []);

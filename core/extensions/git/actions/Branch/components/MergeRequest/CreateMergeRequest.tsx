@@ -7,7 +7,7 @@ import styled from "@emotion/styled";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import SelectGES from "@ext/git/actions/Branch/components/MergeRequest/SelectGES";
 import SelectGitCommitAuthors from "@ext/git/actions/Branch/components/MergeRequest/SelectGitCommitAuthors";
-import {
+import type {
 	ApprovalSignature,
 	CreateMergeRequest,
 	MergeRequestOptions,
@@ -16,8 +16,8 @@ import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { CheckboxField } from "@ui-kit/Checkbox";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
-import { Modal, ModalBody, ModalContent } from "@ui-kit/Modal";
 import { Textarea } from "@ui-kit/Textarea";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -88,8 +88,8 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 	}, [isOpen]);
 
 	return (
-		<Modal onOpenChange={setIsOpen} open={isOpen}>
-			<ModalContent data-modal-root size="M">
+		<Dialog onOpenChange={setIsOpen} open={isOpen}>
+			<DialogContent data-modal-root size="M">
 				<Form asChild {...form}>
 					<form className="contents ui-kit" onSubmit={formSubmit}>
 						<FormHeader
@@ -106,7 +106,7 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 							icon={"git-pull-request-arrow"}
 							title={t("git.merge-requests.create")}
 						/>
-						<ModalBody>
+						<DialogBody>
 							<FormStack>
 								<FormField
 									control={({ field }) => (
@@ -198,7 +198,7 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 									title={t("other")}
 								/>
 							</FormStack>
-						</ModalBody>
+						</DialogBody>
 						<FormFooter
 							primaryButton={
 								<Button disabled={isLoading} type="submit">
@@ -209,8 +209,8 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 						/>
 					</form>
 				</Form>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

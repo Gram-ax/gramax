@@ -1,5 +1,5 @@
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { Mark } from "@tiptap/pm/model";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
+import type { Mark } from "@tiptap/pm/model";
 
 const deleteFiles = async (marks: Mark[], resourceService: ResourceServiceType) => {
 	for (const mark of marks) {

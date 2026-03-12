@@ -1,10 +1,15 @@
-import ContextService from "@core-ui/ContextServices/ContextService";
-import { AudioRecorderActions, AudioRecorderState, isActive, useAudioRecorder } from "@core-ui/hooks/useAudioRecorder";
-import { MicrophoneActions, MicrophoneState, useMicrophone } from "@core-ui/hooks/useMicrophone";
+import type ContextService from "@core-ui/ContextServices/ContextService";
+import {
+	type AudioRecorderActions,
+	type AudioRecorderState,
+	isActive,
+	useAudioRecorder,
+} from "@core-ui/hooks/useAudioRecorder";
+import { type MicrophoneActions, type MicrophoneState, useMicrophone } from "@core-ui/hooks/useMicrophone";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
-import { AudioHistoryItem } from "@ext/ai/models/types";
-import { createContext, MutableRefObject, ReactElement, useContext, useRef } from "react";
+import type { AudioHistoryItem } from "@ext/ai/models/types";
+import { createContext, type MutableRefObject, type ReactElement, useContext, useRef } from "react";
 
 export type AudioRecorderServiceType = {
 	micState: MicrophoneState;
@@ -29,6 +34,7 @@ class AudioRecorderService implements ContextService {
 		const { isStatic, isStaticCli } = usePlatform();
 
 		if (isStatic || isStaticCli) return <>{children}</>;
+		// biome-ignore-start lint/correctness/useHookAtTopLevel: expected
 		const [micState, micActions] = useMicrophone();
 		const [recorderState, recorderActions] = useAudioRecorder();
 
@@ -36,10 +42,12 @@ class AudioRecorderService implements ContextService {
 		const startTime = useRef<number>(null);
 
 		useWatch(() => {
+			if (typeof window === "undefined") return;
 			if (!isActive(recorderState)) startTime.current = null;
 			if (isActive(recorderState)) window.onbeforeunload = () => true;
 			else window.onbeforeunload = undefined;
 		}, [recorderState.state]);
+		//biome-ignore-end lint/correctness/useHookAtTopLevel: expected
 
 		return (
 			<AudioRecorderContext.Provider

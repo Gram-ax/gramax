@@ -1,12 +1,14 @@
-import { Answer, TypedAnswer } from "@ext/markdown/elements/answer/types";
+import type { Answer, TypedAnswer } from "@ext/markdown/elements/answer/types";
+import type { SelectedAnswer } from "./render/logic/QuestionsStore";
 
-export type QuestionType = "many" | "one";
+export type QuestionType = "many" | "one" | "text";
 
 export type Question = {
 	id: string;
 	title: string;
 	type: QuestionType;
 	answers: Record<string, Answer>;
+	required?: boolean;
 };
 
 export type SavedQuestion = {
@@ -14,10 +16,12 @@ export type SavedQuestion = {
 	answers: TypedAnswer[];
 };
 
-export type QuestionLocalStorageData = Record<string, Record<string, string[]>>;
+export type QuizCorrect = boolean | null;
+
+export type QuestionLocalStorageData = Record<string, Record<string, SelectedAnswer>>;
 
 export type QuestionResult = {
 	questionId: string;
-	isCorrect: boolean;
+	isCorrect: QuizCorrect;
 	correctAnswersIds?: string[];
 };

@@ -1,33 +1,28 @@
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
-import Paginator from "@ext/print/utils/pagination/Paginator";
 
 export class SnippetPaginator extends NodePaginator<HTMLDivElement> {
-	constructor(snippetElement: HTMLDivElement, parentPaginator: Paginator) {
-		super(snippetElement, parentPaginator);
-	}
-
 	async paginateNode() {
 		this.currentContainer = this.node.cloneNode(false) as HTMLDivElement;
-		this.parentPaginator.currentContainer.appendChild(this.currentContainer);
 
 		this.addDimension();
 		await super.paginateSource(this.node);
 
+		this.parentPaginator.currentContainer.appendChild(this.currentContainer);
 		this.setMarginBottom();
 		this.node.remove();
 	}
 
 	createPage() {
+		this.parentPaginator.currentContainer.appendChild(this.currentContainer);
 		this.cleanHeadingElementsIfNeed();
 		throwIfAborted();
 
-		if (this.currentContainer.childNodes.length) {
+		if (this.haveChildNodes()) {
 			this.currentContainer = this.node.cloneNode(false) as HTMLDivElement;
 		} else this.currentContainer.remove();
 
-		const parentPage = this.parentPaginator.createPage();
-		parentPage.appendChild(this.currentContainer);
+		this.parentPaginator.createPage();
 
 		this.addDimension();
 		this.setHeadings();

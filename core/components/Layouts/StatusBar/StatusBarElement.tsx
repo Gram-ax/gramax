@@ -1,7 +1,8 @@
+import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
-import React, { CSSProperties, ReactNode } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import React, { type CSSProperties, type ReactNode } from "react";
 import Icon from "../../Atoms/Icon";
-import Tooltip from "../../Atoms/Tooltip";
 
 const StatusBarElement = styled(
 	React.forwardRef(
@@ -16,6 +17,7 @@ const StatusBarElement = styled(
 				iconClassName,
 				disable = false,
 				tooltipArrow = true,
+				showTooltip,
 				className,
 			}: {
 				onClick?: () => void;
@@ -27,30 +29,41 @@ const StatusBarElement = styled(
 				disable?: boolean;
 				iconClassName?: string;
 				tooltipArrow?: boolean;
+				showTooltip?: boolean;
 				reverse?: boolean;
 				className?: string;
 				changeBackgroundOnHover?: boolean;
 			},
 			ref: React.LegacyRef<HTMLDivElement>,
 		) => {
+			const statusBarElement = (
+				<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
+					{iconCode && (
+						<div className={cn("status-bar-icon", iconClassName)}>
+							<Icon code={iconCode} strokeWidth={iconStrokeWidth} style={iconStyle} />
+						</div>
+					)}
+					{children && (
+						<div className="status-bar-text">
+							<div className="content">{children}</div>
+						</div>
+					)}
+				</div>
+			);
+
 			return (
 				<div className={className} onClick={disable ? undefined : onClick} ref={ref}>
-					<Tooltip arrow={tooltipArrow} content={tooltipText}>
-						<div style={{ height: "100%" }}>
-							<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
-								{iconCode && (
-									<div className={"status-bar-icon" + (iconClassName ? " " + iconClassName : "")}>
-										<Icon code={iconCode} strokeWidth={iconStrokeWidth} style={iconStyle} />
-									</div>
-								)}
-								{children && (
-									<div className="status-bar-text">
-										<div className="content">{children}</div>
-									</div>
-								)}
-							</div>
-						</div>
-					</Tooltip>
+					<div style={{ height: "100%" }}>
+						{tooltipText && (
+							<Tooltip open={showTooltip}>
+								<TooltipTrigger asChild>{statusBarElement}</TooltipTrigger>
+								<TooltipContent side={tooltipArrow ? "bottom" : undefined}>
+									{tooltipText}
+								</TooltipContent>
+							</Tooltip>
+						)}
+						{!tooltipText && statusBarElement}
+					</div>
 				</div>
 			);
 		},

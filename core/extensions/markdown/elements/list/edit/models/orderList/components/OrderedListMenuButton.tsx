@@ -8,6 +8,7 @@ const OrderedListMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<ToolbarToggleButton
 			active={isActive}
+			data-testid="tb-ordered-list"
 			disabled={disabled}
 			hotKey={"Mod-Shift-7"}
 			onClick={() => editor.chain().focus().toggleOrderedList().run()}

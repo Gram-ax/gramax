@@ -1,6 +1,10 @@
-import { ImageObject, ImageObjectTypes, SquareObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import {
+	type ImageObject,
+	ImageObjectTypes,
+	type SquareObject,
+} from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import UnifiedComponent from "@ext/markdown/elements/image/render/components/ImageEditor/Unified";
-import { RefObject, useEffect, useState } from "react";
+import { type RefObject, useLayoutEffect, useState } from "react";
 
 interface ObjectRendererProps {
 	imageRef: RefObject<HTMLImageElement>;
@@ -11,9 +15,11 @@ interface ObjectRendererProps {
 	selectedIndex?: number;
 	hasOffset?: boolean;
 	percentToPx?: boolean;
-	changeData?: (index: number, data: any) => void;
+	changeData?: (index: number, data: unknown) => void;
 	onClick?: (index: number) => void;
 }
+
+const getObjectKey = (index: number) => `object-${index}`;
 
 const ObjectRenderer = (props: ObjectRendererProps) => {
 	const {
@@ -21,7 +27,6 @@ const ObjectRenderer = (props: ObjectRendererProps) => {
 		parentRef,
 		editable,
 		objects,
-		originalWidth,
 		selectedIndex,
 		changeData,
 		onClick,
@@ -30,12 +35,12 @@ const ObjectRenderer = (props: ObjectRendererProps) => {
 	} = props;
 	const [scaleFactor, setScaleFactor] = useState<number>(1);
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		const containerWidth = parentRef.current?.clientWidth;
-		const newOriginalWidth = originalWidth ? parseFloat(originalWidth) : imageRef.current?.naturalWidth;
+		const newOriginalWidth = imageRef.current?.naturalWidth;
 
 		if (containerWidth && newOriginalWidth) setScaleFactor(containerWidth / newOriginalWidth);
-	}, [parentRef.current, originalWidth]);
+	}, [parentRef.current, imageRef.current]);
 
 	if (!objects?.length) return null;
 
@@ -50,7 +55,7 @@ const ObjectRenderer = (props: ObjectRendererProps) => {
 			<UnifiedComponent
 				index={index}
 				isPixels={percentToPx}
-				key={index}
+				key={getObjectKey(index)}
 				parentRef={parentRef}
 				{...newData}
 				changeData={changeData}

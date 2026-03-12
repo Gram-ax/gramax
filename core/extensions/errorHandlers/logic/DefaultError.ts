@@ -1,6 +1,12 @@
 import ErrorType from "../model/ErrorTypes";
 
-type DefaultErrorProps = { [key: string]: any } & { errorCode?: string; showCause?: boolean; logCause?: boolean };
+// biome-ignore lint/suspicious/noExplicitAny: support GitErrorProps
+type DefaultErrorProps = { [key: string]: any } & {
+	errorCode?: string;
+	showCause?: boolean;
+	logCause?: boolean;
+	version?: string;
+};
 
 export default class DefaultError extends Error {
 	constructor(
@@ -15,7 +21,7 @@ export default class DefaultError extends Error {
 		super(message ?? cause?.message, { cause });
 	}
 
-	setProps(props: { [key: string]: any }): void {
+	setProps(props: DefaultErrorProps): void {
 		this._props = { ...this.props, ...props };
 	}
 

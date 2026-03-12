@@ -9,8 +9,13 @@ const debounceFunction = (id: symbol, func: () => void | Promise<void>, time: nu
 	};
 	cancel();
 
+	const callback = async () => {
+		await func();
+		cancel();
+	};
+
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
-	symbols[id] = setTimeout(func, time);
+	symbols[id] = setTimeout(callback, time);
 
 	return cancel;
 };

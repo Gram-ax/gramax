@@ -7,7 +7,7 @@ import { useNodeViewContext } from "@ext/markdown/core/element/NodeViewContextab
 import FloatActions from "@ext/markdown/elements/float/edit/components/FloatActions";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { NodeSelection } from "@tiptap/pm/state";
-import { ReactNode, useCallback, useMemo } from "react";
+import { type ReactNode, useCallback, useMemo } from "react";
 
 export interface UseDefaultActionsOptions {
 	// Button for adding a comment to the node. Need to add node type in Comment extension.
@@ -59,7 +59,14 @@ const useDefaultActions = (right: ReactNode, left: ReactNode, options: UseDefaul
 						tooltipText={hasComment ? t("show-comment") : t("leave-comment")}
 					/>
 				)}
-				{deleteAction && <ActionButton icon="trash" onClick={handleDelete} tooltipText={t("delete")} />}
+				{deleteAction && (
+					<ActionButton
+						dataTestId="action-delete"
+						icon="trash"
+						onClick={handleDelete}
+						tooltipText={t("delete")}
+					/>
+				)}
 			</>
 		),
 		[right, handleAddComment, handleDelete, comment, deleteAction, disabledComment, hasComment],

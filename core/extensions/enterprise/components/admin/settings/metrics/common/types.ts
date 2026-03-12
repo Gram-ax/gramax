@@ -1,20 +1,20 @@
 import type { ColumnDef } from "@ui-kit/DataTable";
 import type { DependencyList } from "react";
 
-export type PaginatedDataLoader<TRow> = (
-	cursor?: string,
+export type PaginatedDataLoader<TRow, TCursor = string> = (
+	cursor?: TCursor,
 	sortBy?: string,
 	sortOrder?: string,
 	limit?: number,
 ) => Promise<{
 	data: TRow[];
-	nextCursor: string | null;
+	nextCursor: TCursor | null;
 	hasMore: boolean;
 } | null>;
 
-export interface InitialTableData<TRow> {
+export interface InitialTableData<TRow, TCursor = string> {
 	rows: TRow[];
-	cursor: string | null;
+	cursor: TCursor | null;
 	hasMore: boolean;
 }
 

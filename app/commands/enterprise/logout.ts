@@ -24,12 +24,12 @@ const logout: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.creat
 		if (enterpriseSource) await new EnterpriseApi(gesUrl).logout(enterpriseSource.token);
 
 		const isBrowser = getExecutingEnvironment() === "browser";
-		if (isBrowser) {
-			await this._commands.storage.removeSourceData.do({
-				ctx,
-				sourceName: getStorageNameByData(enterpriseSource),
-			});
-		} else await this._commands.workspace.remove.do({ ctx, id });
+		await this._commands.storage.removeSourceData.do({
+			ctx,
+			sourceName: getStorageNameByData(enterpriseSource),
+		});
+		const isCloud = this._app.em.getConfig().isCloud;
+		if (!isBrowser || isCloud) await this._commands.workspace.remove.do({ ctx, id });
 
 		await this._commands.ai.server.removeAiData.do({ ctx, workspacePath: id });
 		await this._app.am.logout(ctx.cookie);

@@ -1,3 +1,4 @@
+import styled from "@emotion/styled";
 import { Icon } from "@ui-kit/Icon";
 import { MenuItemIconButton } from "@ui-kit/MenuItem/MenuItemIconButton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
@@ -21,12 +22,16 @@ export interface MenuItemInteractiveTemplateProps
 	indicatorTooltip?: string;
 }
 
+const StyledIndicator = styled(Indicator)`
+	left: 2.75rem;
+`;
+
 const IndicatorComponent = (props: { className?: string; tooltip?: string }) => {
 	const { className, tooltip } = props;
 
 	const IndicatorComponent = (
-		<Indicator
-			className={`${className} h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error left-[2.75rem] top-1`}
+		<StyledIndicator
+			className={`${className} h-1.5 w-1.5 rounded-full absolute m-0.5 bg-status-error top-1`}
 			rounded
 		/>
 	);

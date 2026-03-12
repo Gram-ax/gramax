@@ -1,4 +1,4 @@
-import { DiffHunk } from "../../../../VersionControl/DiffHandler/model/DiffHunk";
+import type { DiffHunk } from "../../../../VersionControl/DiffHandler/model/DiffHunk";
 
 export interface ArticleHistoryViewModel {
 	version: string;
@@ -10,4 +10,10 @@ export interface ArticleHistoryViewModel {
 		oldPath?: string;
 		diff?: DiffHunk[];
 	};
+}
+
+export interface OffsetDataLoader<T> {
+	items: T[];
+	nextOffset: number;
+	hasMore: boolean;
 }

@@ -3,7 +3,7 @@ import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import type { Catalog } from "../../../../../../logic/FileStructue/Catalog/Catalog";
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import type ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 
 interface LinkResult {
 	href: string;
@@ -20,7 +20,7 @@ const emptyResult = (href: string): LinkResult => ({
 
 class LinkCreator {
 	isExternalLink(href: string): boolean {
-		return !!(href?.match(/^#/) || href?.match(/^\w+:/) || href?.slice(1, 4) == "api");
+		return !!(href?.match(/^#/) || href?.match(/^\w+:/) || href?.slice(1, 4) === "api");
 	}
 
 	async getLink(href: string, context: ParserContext): Promise<LinkResult> {
@@ -106,7 +106,7 @@ class LinkCreator {
 		const resourcePath = new Path(path);
 
 		if (hrefPath.extension) {
-			return { hrefPath, relativeHrefPath, resourcePath };
+			return { hrefPath: absoluteHrefPath, relativeHrefPath, resourcePath };
 		}
 
 		const testHrefPath = new Path(hrefPath.value);

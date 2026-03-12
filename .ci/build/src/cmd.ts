@@ -28,6 +28,7 @@ export const makeConfigFromEnvs = (skipSign: boolean = false): b.BuildOptions =>
 			productId: "gramax.app",
 			version: version(),
 			updateChannel: channel(),
+			updateHost: env.optional("FORCE_HOST"),
 
 			useDevelopmentProfile: false,
 			useSign: isCi && !skipSign,
@@ -40,6 +41,7 @@ export const makeConfigFromEnvs = (skipSign: boolean = false): b.BuildOptions =>
 		productId: "gramax.dev",
 		version: version(),
 		updateChannel: channel(),
+		updateHost: env.optional("FORCE_HOST"),
 
 		useDevelopmentProfile: true,
 		useSign: isCi && !skipSign,

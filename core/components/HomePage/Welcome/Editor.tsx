@@ -1,5 +1,6 @@
 import resolveModule from "@app/resolveModule/frontend";
-import useUrlImage from "@components/Atoms/Image/useUrlImage";
+import getLogo from "@components/HomePage/logos/getLogo";
+import { getSrc } from "@components/HomePage/logos/utils";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -78,7 +79,7 @@ const Container = styled.div`
 	}
 `;
 
-const TopContainerWrapper = styled.div`
+export const TopContainerWrapper = styled.div`
 	> :not([hidden]) ~ :not([hidden]) {
 		--tw-space-y-reverse: 0;
 		margin-top: calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));
@@ -92,15 +93,9 @@ const TopContainerWrapper = styled.div`
 	}
 `;
 
-const Logo = memo(({ isMobile }: { isMobile: boolean }) => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
+export const Logo = memo(({ isMobile }: { isMobile: boolean }) => {
 	const theme = ThemeService.value;
-	return (
-		<img
-			className={cn(!isMobile && "w-12 h-12", isMobile && "w-11 h-11")}
-			src={useUrlImage(apiUrlCreator.getLogo(theme, true))}
-		/>
-	);
+	return <img className={cn(!isMobile && "w-12 h-12", isMobile && "w-11 h-11")} src={getSrc(getLogo(theme, true))} />;
 });
 
 const WorkspacePath = () => {
@@ -143,7 +138,8 @@ export const EditorWelcome = () => {
 	const { onCloneClick, onImportClick } = useButtonsHandlers();
 
 	const canEditCatalog = workspacePath
-		? PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName)
+		? // biome-ignore lint/correctness/useHookAtTopLevel: expected
+			PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName)
 		: true;
 
 	const canAddCatalog = (() => {

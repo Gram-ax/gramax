@@ -5,13 +5,11 @@ mod ffi;
 mod fs;
 mod git;
 mod git_http_error;
-mod logging;
+mod opentelemetry;
 mod threading;
 mod utils;
 
 use ffi::*;
-
-use tracing::*;
 
 #[repr(C)]
 struct Buffer {
@@ -69,12 +67,12 @@ unsafe fn main() -> i32 {
 	assert!(!backend.is_null());
 	let create_status = wasmfs_create_directory(mountpoint, 0o777, backend);
 
-	if let Err(err) = logging::init() {
+	if let Err(err) = opentelemetry::init() {
 		println!("failed to initialize logging: {}", err);
 		return 1;
 	}
 
 	assert_eq!(create_status, 0, "failed to create directory {MOUNTPOINT}");
-	info!("opfs was mounted on {MOUNTPOINT}");
+	println!("opfs was mounted on {MOUNTPOINT}");
 	0
 }

@@ -2,9 +2,9 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
+import type Context from "@core/Context/Context";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { Command } from "../../types/Command";
 
 const create: Command<{ props: CatalogEditProps; ctx: Context }, ClientCatalogProps> = Command.create({
@@ -18,7 +18,12 @@ const create: Command<{ props: CatalogEditProps; ctx: Context }, ClientCatalogPr
 		const { wm, sitePresenterFactory } = this._app;
 		const workspace = await wm.currentOrDefault();
 
-		if (Array.from(workspace.getAllCatalogs().keys()).includes(props.url)) return;
+		const hasSiblingCatalog = workspace
+			.getAllCatalogs()
+			.keys()
+			.some((name) => name.toLowerCase() === props.url.toLowerCase());
+
+		if (hasSiblingCatalog) return;
 		const fs = workspace.getFileStructure();
 		const catalog = await fs.createCatalog(props);
 		if (!catalog) return null;

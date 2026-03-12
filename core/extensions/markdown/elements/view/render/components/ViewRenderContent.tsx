@@ -1,7 +1,6 @@
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import t from "@ext/localization/locale/translate";
 import getCountArticles from "@ext/markdown/elements/view/render/logic/getCountArticles";
-import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
+import type { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/display";
 import { getDisplayComponent } from "@ext/properties/models/displays";
 import { memo } from "react";
@@ -37,7 +36,7 @@ const ViewRenderContent = memo(
 		if (!Component) return null;
 
 		return (
-			<div>
+			<div data-component="view">
 				<Component
 					{...otherProps}
 					className={className}

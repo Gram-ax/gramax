@@ -1,15 +1,15 @@
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { copy } from "@ext/markdown/elements/copyArticles/handlers/copy";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
 import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
-import { Editor, Extension } from "@tiptap/core";
-import { Node, Slice } from "@tiptap/pm/model";
-import { Plugin, Transaction } from "@tiptap/pm/state";
+import { type Editor, Extension } from "@tiptap/core";
+import { type Node, Slice } from "@tiptap/pm/model";
+import { Plugin, type Transaction } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 import { Fragment } from "prosemirror-model";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 
 const mapFragment = (fragment: Fragment, transform: (node: Node) => Node) => {
 	const mapContent = (content: Fragment) => {
@@ -145,7 +145,30 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 						);
 					},
 				},
-				appendTransaction: (transactions: Transaction[]) => {
+				appendTransaction: (transactions: Transaction[], oldState, newState) => {
+					const isPaste = transactions.some((tr) => tr.getMeta("paste") || tr.getMeta("uiEvent") === "paste");
+					// Only extract content to title if title is empty and cursor was in the title
+					if (isPaste && newState.doc.childCount >= 2) {
+						const firstNode = newState.doc.firstChild;
+						const secondNode = newState.doc.child(1);
+
+						// Only proceed if cursor was inside the title node before the paste
+						const cursorWasInTitle =
+							oldState.doc.childCount > 0 && oldState.selection.$from.node(1) === oldState.doc.firstChild;
+
+						if (firstNode.content.size === 0 && secondNode.isTextblock && cursorWasInTitle) {
+							const tr = newState.tr;
+							// Insert content of second node into title (position 1 = inside first paragraph)
+							tr.insert(1, secondNode.content);
+							// Remove the text block from second position
+							tr.delete(
+								firstNode.nodeSize + secondNode.content.size,
+								firstNode.nodeSize + secondNode.nodeSize + secondNode.content.size,
+							);
+							return tr;
+						}
+					}
+
 					transactions.forEach((tr: Transaction) => {
 						const $history = tr.getMeta("history$");
 						if (!tr.docChanged || !$history) return;

@@ -4,7 +4,7 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
-import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { useCallback, useMemo, useState } from "react";
 
 export type UsePublishProps = {
@@ -44,7 +44,7 @@ const usePublish = ({ diffTree, selectedFiles, onPublished }: UsePublishProps): 
 
 		BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Publish);
 		return res.ok;
-	}, [apiUrlCreator, diffTree, message, messageFallback, selectedFiles]);
+	}, [apiUrlCreator, message, messageFallback, selectedFiles, onPublished]);
 
 	return {
 		placeholder: messageFallback?.split("\n\n")[0],

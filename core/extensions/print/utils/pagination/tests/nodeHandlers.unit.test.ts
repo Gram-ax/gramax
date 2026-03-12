@@ -1,4 +1,4 @@
-import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
+import type { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import PagePaginator from "@ext/print/utils/pagination/PagePaginator";
 import Paginator from "@ext/print/utils/pagination/Paginator";
 import { AbortController } from "abort-controller";
@@ -204,9 +204,7 @@ describe("nodeHandlers", () => {
 				"@ext/markdown/elements/codeBlockLowlight/print/codeBlockHandler"
 			);
 
-			const result = await codeBlockHandler.handle(pre, mockPaginator);
-
-			expect(result).toBe(false);
+			await expect(codeBlockHandler.handle(pre, mockPaginator)).rejects.toThrow();
 		});
 	});
 

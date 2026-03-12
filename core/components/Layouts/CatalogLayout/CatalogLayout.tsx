@@ -19,6 +19,21 @@ const CatalogLayout = styled(
 	}
 
 	@media print {
+		overflow: visible;
+		height: auto;
+
+		.left-nav-wrapper,
+		.right-nav-wrapper {
+			display: none !important;
+		}
+
+		.article-fixed-container {
+			height: auto !important;
+			overflow: visible !important;
+			padding-left: 0 !important;
+			padding-right: 0 !important;
+		}
+
 		* {
 			overflow: visible !important;
 			transition: none !important;

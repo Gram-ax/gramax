@@ -1,11 +1,12 @@
-import ActionConfirm, { type ActionConfirmProps } from "@components/Atoms/ActionConfirm";
+import type ActionConfirm from "@components/Atoms/ActionConfirm";
+import type { ActionConfirmProps } from "@components/Atoms/ActionConfirm";
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import { ComponentProps, MouseEvent } from "react";
+import type { ComponentProps, MouseEvent } from "react";
 
 export type DeleteItemProps = Partial<ActionConfirmProps> & {
 	buttonText?: string;

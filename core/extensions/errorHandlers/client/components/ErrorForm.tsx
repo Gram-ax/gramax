@@ -4,12 +4,13 @@ import Icon from "@components/Atoms/Icon";
 import FormStyle from "@components/Form/FormStyle";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import t from "@ext/localization/locale/translate";
-import { Property } from "csstype";
-import { ReactNode } from "react";
+import type { Property } from "csstype";
+import type { ReactNode } from "react";
 
 export interface InfoModalFormProps {
 	title: string;
 	children: ReactNode;
+	version?: ReactNode;
 	onCancelClick?: () => void;
 	isWarning?: boolean;
 	icon?: { color?: Property.Color; code: string };
@@ -23,6 +24,7 @@ const InfoModalForm = (props: InfoModalFormProps) => {
 	const {
 		title,
 		children,
+		version,
 		onCancelClick,
 		isWarning = false,
 		icon,
@@ -50,6 +52,7 @@ const InfoModalForm = (props: InfoModalFormProps) => {
 					<div className="form-group field field-string" />
 					{!noButtons && (
 						<div className="buttons">
+							{version && <span className="text-muted mr-auto text-xs">{version}</span>}
 							{onCancelClick && (
 								<Button
 									buttonStyle={actionButton ? ButtonStyle.underline : ButtonStyle.default}

@@ -16,7 +16,7 @@ const get: Command<{ catalogName: string }, MergeRequest> = Command.create({
 		const vc = catalog?.repo?.gvc;
 		if (!vc) return;
 
-		return catalog.repo.mergeRequests.tryGetDraft();
+		return await catalog.repo.mergeRequests.tryGetDraft();
 	},
 
 	params(_, q) {

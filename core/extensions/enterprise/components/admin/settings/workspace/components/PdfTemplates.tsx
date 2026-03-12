@@ -1,12 +1,12 @@
 import { Button, IconButton } from "@ui-kit/Button";
 import { Description } from "@ui-kit/Description";
+import { Dialog, DialogBody, DialogContent, DialogFooterTemplate, DialogHeaderTemplate } from "@ui-kit/Dialog";
 import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
-import { Modal, ModalBody, ModalContent, ModalFooterTemplate, ModalHeaderTemplate } from "@ui-kit/Modal";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { ConfirmationDialog } from "../../../ui-kit/ConfirmationDialog";
 import { useTemplateManagement } from "../hooks/useTemplateManagement";
-import { WorkspaceSettings } from "../types/WorkspaceComponent";
+import type { WorkspaceSettings } from "../types/WorkspaceComponent";
 
 interface PdfTemplatesProps {
 	localSettings: WorkspaceSettings;
@@ -102,18 +102,21 @@ export function PdfTemplates({ localSettings, setLocalSettings }: PdfTemplatesPr
 								<button
 									className="w-full text-left px-3 py-2 hover:bg-secondary-bg-hover text-sm rounded"
 									onClick={() => downloadTemplate(template)}
+									type="button"
 								>
 									Скачать
 								</button>
 								<button
 									className="w-full text-left px-3 py-2 hover:bg-secondary-bg-hover text-sm rounded"
 									onClick={() => openRenameDialog(template.title)}
+									type="button"
 								>
 									Переименовать
 								</button>
 								<button
 									className="w-full text-left px-3 py-2 hover:bg-secondary-bg-hover text-sm rounded text-red-600"
 									onClick={() => handleDeleteTemplate(template.title)}
+									type="button"
 								>
 									Удалить
 								</button>
@@ -160,27 +163,27 @@ interface RenameTemplateDialogProps {
 
 function RenameTemplateDialog({ open, onOpenChange, newTitle, setNewTitle, onSave }: RenameTemplateDialogProps) {
 	return (
-		<Modal onOpenChange={onOpenChange} open={open}>
-			<ModalContent>
-				<ModalHeaderTemplate className="pb-0 lg:pb-0 border-b-0" title="Переименовать шаблон" />
+		<Dialog onOpenChange={onOpenChange} open={open}>
+			<DialogContent>
+				<DialogHeaderTemplate className="pb-0 lg:pb-0 border-b-0" title="Переименовать шаблон" />
 
-				<ModalBody>
+				<DialogBody>
 					<Input
 						className="mt-2"
 						onChange={(e) => setNewTitle(e.target.value)}
 						placeholder="Введите новое имя"
 						value={newTitle}
 					/>
-				</ModalBody>
+				</DialogBody>
 
-				<ModalFooterTemplate
+				<DialogFooterTemplate
 					className="pt-0 lg:pt-0 border-t-0"
 					primaryButton="Сохранить"
 					primaryButtonProps={{ disabled: !newTitle.trim(), onClick: onSave }}
 					secondaryButton="Отмена"
 					secondaryButtonProps={{ variant: "outline", onClick: () => onOpenChange(false) }}
 				/>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 }

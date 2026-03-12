@@ -68,7 +68,7 @@ const getStore = (key: number) => {
 };
 
 Object.assign(Module, {
-	em_lfs_http_init: function (url, buffersize, method, access_token) {
+	em_lfs_http_init: (url, buffersize, method, access_token) => {
 		const connId = parseInt(Math.random() * 1000000);
 
 		if (!method) method = "GET";
@@ -85,7 +85,9 @@ Object.assign(Module, {
 		xhr.open(method, url, true);
 
 		const headers = {
-			"Content-Type": "application/vnd.git-lfs+json, charset=utf-8",
+			"Content-Type": "application/vnd.git-lfs+json; charset=utf-8",
+			Accept: "application/vnd.git-lfs+json",
+			"User-Agent": "gx-lfs/0.0.0",
 		};
 
 		if (token) headers["x-private-token"] = token;
@@ -94,7 +96,6 @@ Object.assign(Module, {
 
 		xhr.responseType = "arraybuffer";
 		xhr.withCredentials = true;
-		if (access_token) headers["Authorization"] = `Bearer ${access_token}`;
 
 		self.emscriptenhttpconnections[connId] = {
 			xhr: xhr,
@@ -108,12 +109,12 @@ Object.assign(Module, {
 		return connId;
 	},
 
-	em_lfs_http_set_header: function (connId, header, value) {
+	em_lfs_http_set_header: (connId, header, value) => {
 		const connection = self.emscriptenhttpconnections[connId];
 		connection.headers[header] = value;
 	},
 
-	em_lfs_http_send: function (connId, body): Promise<number> {
+	em_lfs_http_send: (connId, body): Promise<number> => {
 		const result = new Promise((resolve) => {
 			const connection = self.emscriptenhttpconnections[connId];
 
@@ -125,15 +126,15 @@ Object.assign(Module, {
 				xhr.setRequestHeader(header, value);
 			}
 
-			xhr.onload = async function () {
+			xhr.onload = async () => {
 				const set = await trySetLastHttpError(xhr.status, xhr.response);
 				resolve(set ? -xhr.status : connId);
 			};
-			xhr.onerror = async function () {
+			xhr.onerror = async () => {
 				await trySetLastHttpError(xhr.status, xhr.response, url);
 				resolve(-xhr.status);
 			};
-			xhr.onabort = function () {
+			xhr.onabort = () => {
 				resolve(-999);
 			};
 			xhr.send(body);
@@ -141,7 +142,7 @@ Object.assign(Module, {
 		return result;
 	},
 
-	em_git_http_init: async function (url, buffersize, method, headers) {
+	em_git_http_init: async (url, buffersize, method, headers) => {
 		const result = new Promise((resolve) => {
 			const connId = parseInt(Math.random() * 1000000);
 
@@ -201,15 +202,15 @@ Object.assign(Module, {
 			});
 
 			if (method === "GET") {
-				xhr.onload = async function () {
+				xhr.onload = async () => {
 					await trySetLastHttpError(xhr.status, xhr.response);
 					resolve(connId);
 				};
-				xhr.onerror = async function () {
+				xhr.onerror = async () => {
 					await trySetLastHttpError(xhr.status, xhr.response, url);
 					resolve(connId);
 				};
-				xhr.onabort = function () {
+				xhr.onabort = () => {
 					resolve(connId);
 				};
 				xhr.send();
@@ -220,7 +221,7 @@ Object.assign(Module, {
 		return result;
 	},
 
-	em_http_write: function (connectionNo, buffer, length) {
+	em_http_write: (connectionNo, buffer, length) => {
 		const connection = self.emscriptenhttpconnections[connectionNo];
 		const buf = new Uint8Array(Module.HEAPU8.buffer, buffer, length).slice(0);
 		if (!connection.content) {
@@ -233,7 +234,7 @@ Object.assign(Module, {
 		}
 	},
 
-	em_http_read: function (connectionNo, buffer, buffersize) {
+	em_http_read: (connectionNo, buffer, buffersize) => {
 		function handleResponse(buffer, buffersize) {
 			const connection = self.emscriptenhttpconnections[connectionNo];
 
@@ -254,14 +255,14 @@ Object.assign(Module, {
 		const result = new Promise((resolve) => {
 			const connection = self.emscriptenhttpconnections[connectionNo];
 			if (connection.content) {
-				connection.xhr.onload = async function () {
+				connection.xhr.onload = async () => {
 					const set = await trySetLastHttpError(connection.xhr.status, connection.xhr.response);
 					resolve(set ? -connection.xhr.status : handleResponse(buffer, buffersize));
 				};
-				connection.xhr.onabort = function () {
+				connection.xhr.onabort = () => {
 					resolve(-999);
 				};
-				connection.xhr.onerror = function () {
+				connection.xhr.onerror = () => {
 					void trySetLastHttpError(connection.xhr.status, connection.xhr.response);
 					resolve(-connection.xhr.status);
 				};
@@ -275,7 +276,7 @@ Object.assign(Module, {
 		return result;
 	},
 
-	em_http_free: function (connectionNo) {
+	em_http_free: (connectionNo) => {
 		delete self.emscriptenhttpconnections[connectionNo];
 	},
 });

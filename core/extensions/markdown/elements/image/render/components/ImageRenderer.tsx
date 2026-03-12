@@ -3,29 +3,34 @@ import Image from "@components/Atoms/Image/Image";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import Path from "@core/FileProvider/Path/Path";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
+import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import { isExternalLink } from "@core-ui/hooks/useExternalLink";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import styled from "@emotion/styled";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
-import { ResourceError } from "@ext/markdown/elements/copyArticles/errors/ResourceError";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ImageResizer from "@ext/markdown/elements/image/edit/components/ImageResizer";
-import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import { isNonCropped } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
+import type { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import ImageError from "@ext/markdown/elements/image/render/components/ImageError";
 import { ImageSkeleton } from "@ext/markdown/elements/image/render/components/ImageSkeleton";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import { cropImage } from "@ext/markdown/elements/image/render/logic/cropImage";
+import type { Attrs } from "@tiptap/pm/model";
 import {
-	CSSProperties,
+	type CSSProperties,
 	createContext,
 	forwardRef,
 	memo,
-	ReactElement,
-	ReactEventHandler,
-	RefObject,
+	type ReactElement,
+	type ReactEventHandler,
+	type RefObject,
 	useCallback,
 	useContext,
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
@@ -34,7 +39,7 @@ interface ImageContextType {
 	imageContainerRef: RefObject<HTMLDivElement>;
 	mainContainerRef: RefObject<HTMLDivElement>;
 	imgRef: RefObject<HTMLImageElement>;
-	attrs: Record<string, any>;
+	attrs: Attrs;
 	isLoaded: boolean;
 }
 
@@ -113,7 +118,7 @@ interface ImageProps {
 	onError?: ReactEventHandler<HTMLImageElement>;
 	hoverElementRef?: RefObject<HTMLDivElement>;
 	getBuffer?: (src: string) => Buffer;
-	updateAttributes?: (attributes: Record<string, any>, transaction?: boolean) => void;
+	updateAttributes?: (attributes: Attrs, transaction?: boolean) => void;
 	width?: string;
 	height?: string;
 	showResizer?: boolean;
@@ -124,6 +129,7 @@ interface ImageProps {
 	float?: string;
 	hasParentPath?: boolean;
 	isPrint?: boolean;
+	renderSrc?: string;
 }
 
 const ImageRenderer = memo((props: ImageProps): ReactElement => {
@@ -150,17 +156,22 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		float,
 		hasParentPath = true,
 		isPrint,
+		renderSrc: propRenderSrc,
 	} = props;
+	const renderSrc = isPrint ? null : propRenderSrc;
+
+	const [error, setError] = useState<ResourceError | null>(null);
+	const isNonCroppedValue = isNonCropped(crop);
+	const shouldSkipLoadResource = renderSrc && isNonCroppedValue;
 
 	const articleRef = ArticleRefService.value;
 
-	const [error, setError] = useState<ResourceError | null>(null);
-	const [imageSrc, setImageSrc] = useState<string>(null);
+	const [imageSrc, setImageSrc] = useState<string>(isNonCroppedValue ? renderSrc || null : null);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
 	const [size, setSize] = useState<{ width: string; height: string }>(null);
 
-	const isGif = new Path(realSrc).extension == "gif";
-	const { useGetResource, getBuffer } = ResourceService.value;
+	const isGif = new Path(realSrc).extension === "gif";
+	const { getBuffer } = ResourceService.value;
 
 	const mainContainerRef = useRef<HTMLDivElement>(null);
 	const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -169,7 +180,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 
 	const onError = useCallback(() => {
 		setError(new ResourceError("Image error", realSrc));
-	}, []);
+	}, [realSrc]);
 
 	const onLoad = useCallback(() => {
 		if (!imageSrc) return;
@@ -199,8 +210,9 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		[updateAttributes],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
-		if (!isLoaded) return;
+		if (!isLoaded || renderSrc) return;
 		const buffer = getBuffer(realSrc);
 
 		if (!buffer) return;
@@ -208,13 +220,21 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		void cropImg(buffer, crop);
 	}, [crop]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
+		if (renderSrc) return;
 		const buffer = getBuffer(realSrc);
 		if (!buffer?.byteLength) return;
 		if (isLoaded) setIsLoaded(false);
 		initialLoadDoneRef.current = true;
 		void cropImg(buffer, crop);
 	}, []);
+
+	const externalLink = useMemo(() => {
+		if (!shouldSkipLoadResource) return;
+		if (isExternalLink(renderSrc).isUrl || typeof document === "undefined") return renderSrc;
+		return new URL(renderSrc, document.baseURI).href;
+	}, [renderSrc, shouldSkipLoadResource]);
 
 	useGetResource(
 		async (buffer, resourceError) => {
@@ -227,18 +247,21 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 
 			await cropImg(buffer, crop);
 		},
-		realSrc,
+		externalLink || realSrc,
 		undefined,
 		hasParentPath,
 		isPrint,
+		shouldSkipLoadResource,
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		if (!width?.endsWith("px")) return;
-		if (!mainContainerRef.current) return;
+		if (!mainContainerRef.current && !articleRef?.current) return;
+
 		const parentWidth =
 			mainContainerRef.current?.clientWidth ||
-			articleRef.current?.firstElementChild?.firstElementChild?.clientWidth;
+			articleRef?.current?.firstElementChild?.firstElementChild?.clientWidth;
 
 		if (!parentWidth) return;
 		const newWidth = (parseFloat(width) * (crop?.w || 100)) / 100;
@@ -246,8 +269,8 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		const newSize = getAdjustedSize(newWidth, newHeight, parentWidth, scale);
 
 		setSize({
-			width: newSize.width + "px",
-			height: newSize.height + "px",
+			width: `${newSize.width}px`,
+			height: `${newSize.height}px`,
 		});
 	}, [width, height, mainContainerRef.current]);
 
@@ -287,6 +310,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		>
 			<div
 				className={className}
+				data-component="image"
 				data-float={float ? float : undefined}
 				data-resize-container={float ? float : undefined}
 			>

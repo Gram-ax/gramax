@@ -22,9 +22,6 @@ const env = {
 	GES_REFRESH_INTERVAL: null,
 };
 
-if (process.env.PRODUCTION && !process.env.COOKIE_SECRET)
-	console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");
-
 const getBuiltInVariables = () => Object.keys(env).reduce((obj, x) => ({ ...obj, [x]: process.env[x] ?? env[x] }), {});
 
 const getVersionData = (filePath = "./gramaxVersionData.json") => {

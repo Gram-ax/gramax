@@ -8,8 +8,8 @@ import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { isInDropdown } from "@ui-kit/Dropdown";
-import { HTMLAttributes } from "react";
-import { CategoryLink, ItemLink } from "../../../NavigationLinks";
+import type { HTMLAttributes } from "react";
+import type { CategoryLink, ItemLink } from "../../../NavigationLinks";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -174,6 +174,7 @@ const StyledItem = styled(Item)`
 			overflow: hidden;
 			white-space: nowrap;
 			text-overflow: ellipsis;
+			line-height: 1.4;
 		}
 	}
 
@@ -232,12 +233,12 @@ const StyledItem = styled(Item)`
 const LevNavItem = (props: LevNavItemProps) => {
 	const { item } = props;
 	const articleProps = ArticlePropsService.value;
-	const title = item ? (articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : item?.title) : null;
-	const currentTitle = articleProps?.ref?.path == item?.ref?.path ? articleProps?.title : null;
+	const title = item ? (articleProps?.ref?.path === item?.ref?.path ? articleProps?.title : item?.title) : null;
+	const currentTitle = articleProps?.ref?.path === item?.ref?.path ? articleProps?.title : null;
 	const existsContent = item?.type === ItemType.category ? (item as CategoryLink)?.existContent : true;
 	const status = GitIndexService.getStatusByPath(item?.ref?.path);
 
-	if (!item || articleProps?.ref?.path == item?.ref?.path || !existsContent) {
+	if (!item || articleProps?.ref?.path === item?.ref?.path || !existsContent) {
 		return <StyledItem {...props} currentTitle={currentTitle} isActive={true} status={status} title={title} />;
 	}
 

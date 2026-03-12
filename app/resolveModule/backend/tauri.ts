@@ -3,6 +3,9 @@ import TauriGetImageByPath from "../../../apps/browser/src/logic/BrowserGetImage
 import TauriGetImageFromDom from "../../../apps/browser/src/logic/BrowserGetImageFromDom";
 import TauriGetImageSizeFromImageData from "../../../apps/browser/src/logic/BrowserGetImageSizeFromImageData";
 import TauriSvgToPng from "../../../apps/browser/src/logic/BrowserSvgToPng";
+import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
+import { WebWorkerResourceParseClient } from "../../../apps/browser/src/search/modulith/WebResourceParseWorkerClient";
+import { WebWorkerModulithSearchClient } from "../../../apps/browser/src/search/modulith/WebWorkerModulithSearchClient";
 import TauriCookie from "../../../apps/tauri/src/cookie/TauriCookie";
 import * as tauriCommands from "../../../apps/tauri/src/window/commands";
 import type { BackendDynamicModules } from "..";
@@ -20,6 +23,10 @@ export const getTauriModules = async (): Promise<BackendDynamicModules> => {
 		setSessionData: tauriCommands.setSessionData,
 		pdfLoadFont: browserLoadFont,
 		getImageByPath: TauriGetImageByPath,
+		getModulithSearchClient: async ({ cacheFileProvider, articleStorageFileProvider }) =>
+			await WebWorkerModulithSearchClient.create({ cacheFileProvider, articleStorageFileProvider }),
+		getResourceParseClient: async () => await WebWorkerResourceParseClient.create(),
+		getPdfjs,
 	};
 };
 

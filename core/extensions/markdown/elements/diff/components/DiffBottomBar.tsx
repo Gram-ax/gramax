@@ -1,6 +1,6 @@
 import DiffContent from "@components/Atoms/DiffContent";
 import Icon from "@components/Atoms/Icon";
-import TooltipIfOveflow from "@core-ui/TooltipIfOveflow";
+import TooltipIfOverflow from "@core-ui/TooltipIfOverflow";
 import styled from "@emotion/styled";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import DiffViewPicker from "@ext/markdown/elements/diff/components/DiffViewPicker";
@@ -114,7 +114,7 @@ const DiffBottomBar = ({
 
 	const DiffContentElement = (
 		<DiffContentWrapper showDiffViewChanger={showDiffViewChanger}>
-			<TooltipIfOveflow
+			<TooltipIfOverflow
 				childrenRef={wrapperRef}
 				content={
 					<DiffContentComponent
@@ -127,7 +127,7 @@ const DiffBottomBar = ({
 				<div>
 					<DiffContentComponent changes={changes} ref={wrapperRef} unchangedColor="var(--color-primary)" />
 				</div>
-			</TooltipIfOveflow>
+			</TooltipIfOverflow>
 		</DiffContentWrapper>
 	);
 

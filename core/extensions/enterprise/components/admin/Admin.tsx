@@ -22,8 +22,8 @@ import t from "@ext/localization/locale/translate";
 import { styled } from "@mui/material";
 import { Alert, AlertDescription } from "@ui-kit/Alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@ui-kit/Collapsible";
+import { Dialog, DialogContent, DialogHeaderTemplate } from "@ui-kit/Dialog";
 import { Icon } from "@ui-kit/Icon";
-import { Modal, ModalContent, ModalHeaderTemplate } from "@ui-kit/Modal";
 import {
 	Sidebar,
 	SidebarContent,
@@ -208,6 +208,15 @@ function MainContent() {
 										<span>{getAdminPageTitle(Page.GUESTS)}</span>
 									</SidebarMenuButton>
 								</SidebarMenuItem>
+								{/* <SidebarMenuItem>
+									<SidebarMenuButton
+										isActive={page === Page.ROLES}
+										onClick={() => void tryNavigate(Page.ROLES)}
+									>
+										<Icon icon="shield" />
+										<span>{getAdminPageTitle(Page.ROLES)}</span>
+									</SidebarMenuButton>
+								</SidebarMenuItem> */}
 								<Collapsible className="group/sidebar-menu">
 									<CollapsibleTrigger asChild>
 										<SidebarMenuSubItem>
@@ -356,8 +365,8 @@ const AdminModalContent = ({ enterpriseService, token, onRequestClose, guardedCl
 	if (forbidden) return <ForbiddenPage />;
 
 	return (
-		<ModalContent size="FS">
-			<ModalHeaderTemplate
+		<DialogContent size="FS">
+			<DialogHeaderTemplate
 				description={t("enterprise.admin.settings-description")}
 				icon={Settings}
 				title={t("enterprise.admin.settings-title")}
@@ -371,7 +380,7 @@ const AdminModalContent = ({ enterpriseService, token, onRequestClose, guardedCl
 					</SettingsProvider>
 				</GuardProvider>
 			</AdminNavigationProvider>
-		</ModalContent>
+		</DialogContent>
 	);
 };
 
@@ -432,7 +441,7 @@ export const Admin = ({ onClose, gesUrl }: { onClose: () => void; gesUrl: string
 	);
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
 			<OpenProvider open={isOpen} setOpen={setIsOpen}>
 				<AdminModalContent
 					enterpriseService={enterpriseService}
@@ -441,6 +450,6 @@ export const Admin = ({ onClose, gesUrl }: { onClose: () => void; gesUrl: string
 					token={token}
 				/>
 			</OpenProvider>
-		</Modal>
+		</Dialog>
 	);
 };

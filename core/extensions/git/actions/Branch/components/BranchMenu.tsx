@@ -112,24 +112,39 @@ const BranchMenu = (props: BranchMenuProps) => {
 					<Icon code="ellipsis-vertical" isAction tooltipContent={t("actions")} />
 				</DropdownMenuTrigger>
 				<DropdownMenuContent align="start">
-					<Tooltip>
-						<TooltipContent>{t("git.merge.error.merge-request-instant-merge")}</TooltipContent>
-						<TooltipTrigger className="cursor-default block w-full">
+					{hasMergeRequest ? (
+						<>
+							<Tooltip>
+								<TooltipContent>{t("git.merge.error.merge-request-instant-merge")}</TooltipContent>
+								<TooltipTrigger className="cursor-default block w-full">
+									<DropdownMenuItem disabled={hasMergeRequest} onSelect={instantMerge}>
+										<Icon code="merge" />
+										{t("git.merge.instant-merge")}
+									</DropdownMenuItem>
+								</TooltipTrigger>
+							</Tooltip>
+							<Tooltip>
+								<TooltipContent>{t("git.merge.error.merge-request-exists")}</TooltipContent>
+								<TooltipTrigger className="cursor-default block w-full">
+									<DropdownMenuItem disabled={hasMergeRequest} onSelect={setCreateMergeRequestModal}>
+										<Icon code="git-pull-request-arrow" />
+										{t("git.merge-requests.create")}
+									</DropdownMenuItem>
+								</TooltipTrigger>
+							</Tooltip>
+						</>
+					) : (
+						<>
 							<DropdownMenuItem disabled={hasMergeRequest} onSelect={instantMerge}>
 								<Icon code="merge" />
 								{t("git.merge.instant-merge")}
 							</DropdownMenuItem>
-						</TooltipTrigger>
-					</Tooltip>
-					<Tooltip>
-						<TooltipContent>{t("git.merge.error.merge-request-exists")}</TooltipContent>
-						<TooltipTrigger className="cursor-default block w-full">
 							<DropdownMenuItem disabled={hasMergeRequest} onSelect={setCreateMergeRequestModal}>
 								<Icon code="git-pull-request-arrow" />
 								{t("git.merge-requests.create")}
 							</DropdownMenuItem>
-						</TooltipTrigger>
-					</Tooltip>
+						</>
+					)}
 					<DeleteItem
 						confirmBody={
 							<span

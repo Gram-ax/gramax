@@ -9,7 +9,7 @@ const questionAnswerSchema = {
 		questionId: { default: null },
 		type: { default: "checkbox" },
 		answerId: { default: null },
-		correct: { default: false },
+		correct: { default: null },
 	},
 };
 

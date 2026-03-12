@@ -3,25 +3,17 @@ import ItemMenu from "@ext/item/EditMenu";
 import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import { Button } from "@ui-kit/Button";
-import React from "react";
 import CreateArticle from "../../../../article/actions/CreateArticle";
-import { ItemLink } from "../../../NavigationLinks";
+import type { ItemLink } from "../../../NavigationLinks";
 
 interface RightExtensionsProps {
 	item: ItemLink;
-	isCategory: boolean;
 	setThisItem: (item: ItemLink) => void;
 	onMenuOpen?: () => void;
 	onMenuClose?: () => void;
 }
 
-const RightExtensions: React.FC<RightExtensionsProps> = ({
-	item,
-	isCategory,
-	setThisItem,
-	onMenuOpen,
-	onMenuClose,
-}) => {
+const RightExtensions = ({ item, setThisItem, onMenuOpen, onMenuClose }: RightExtensionsProps) => {
 	return (
 		<>
 			<CreateArticle item={item} />
@@ -36,7 +28,7 @@ const RightExtensions: React.FC<RightExtensionsProps> = ({
 					</Button>
 				}
 			>
-				<ItemMenu isCategory={isCategory} itemLink={item} setItemLink={setThisItem} />
+				<ItemMenu itemLink={item} setItemLink={setThisItem} />
 			</NavigationDropdown>
 		</>
 	);

@@ -77,11 +77,19 @@
 .template.docker.base:
   image: gitlab.ics-it.ru:4567/ics/doc-reader:dind-bun-$BRANCH
   stage: build
-  interruptible: true
   variables:
     GIT_DEPTH: 600
   tags:
     - kubernetes01-gramax
+  artifacts:
+    when: always
+    expire_in: '7 days'
+    paths:
+      - trivy-report.txt
+  cache:
+    - key: trivy
+      paths:
+        - .cache/trivy
   before_script:
     # TODO: REMOVE
     - dockerd --tls=false > /dockerd.log 2>&1 &
@@ -124,6 +132,7 @@
       --build-arg CLOUD_UPLOAD_TOKEN=${CLOUD_UPLOAD_TOKEN}
       --build-arg APP_VERSION=${APP_VERSION}
       .
+    - ./.ci/trivy/trivy-image-scan.sh $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
     - docker push $CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH
     - ./.ci/apps/sign.sh --container-legacy
 
@@ -169,6 +178,8 @@
         --build-arg CLOUD_SERVICE_URL=${CLOUD_SERVICE_URL} \
         --build-arg CLOUD_UPLOAD_TOKEN=${CLOUD_UPLOAD_TOKEN} \
         --build-arg APP_VERSION=${APP_VERSION} .
+
+    - ./.ci/trivy/trivy-image-scan.sh $CI_REGISTRY_IMAGE/$SERVICE_NAME:$TAG
 
     - |
       if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
@@ -257,7 +268,6 @@
 
 .template.build.apps:
   stage: build
-  interruptible: true
   rules: !reference [.condition, build, base, rules]
   variables:
     GIT_DEPTH: 600

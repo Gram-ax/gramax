@@ -1,9 +1,9 @@
-import PageDataContext from "@core/Context/PageDataContext";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
 import getNaturalSize from "@ext/markdown/elements/diagrams/logic/getNaturalSize";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import { startMermaid } from "../diagrams/mermaid/mermaidData";
 import { startPlantUmlText } from "../diagrams/plantUml/plantUmlData";

@@ -9,6 +9,7 @@ const BulletListMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<ToolbarToggleButton
 			active={isActive}
+			data-testid="tb-bullet-list"
 			disabled={disabled}
 			hotKey={"Mod-Shift-8"}
 			onClick={() => editor.chain().focus().toggleBulletList().run()}

@@ -11,15 +11,13 @@ RUN rm -r services
 RUN ["./install-deps.sh", "--ci"]
 
 ARG BUGSNAG_API_KEY
-ARG COOKIE_SECRET
 ARG PRODUCTION
 ARG BRANCH
 
 ENV NODE_OPTIONS=--max_old_space_size=8192 \
     BUGSNAG_API_KEY=${BUGSNAG_API_KEY} \
     BRANCH=${BRANCH} \
-    PRODUCTION=${PRODUCTION} \
-    COOKIE_SECRET=${COOKIE_SECRET} 
+    PRODUCTION=${PRODUCTION}
 
 RUN [ "npm", "--prefix", "apps/browser", "run", "build" ]
 

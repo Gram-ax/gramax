@@ -1,0 +1,6 @@
+CVE-2025-9287 # cipher-base (package.json): Cipher-base hash manipulation
+CVE-2025-6545 # pbkdf2: pbkdf2 silently returns predictable key material
+CVE-2025-6547 # pbkdf2: pbkdf2 silently returns static keys
+
+CVE-2024-24790 # golang: net/netip: Unexpected behavior from Is methods for IPv4-mapped IPv6 addresses
+CVE-2025-68121 # crypto/tls: Unexpected session resumption in crypto/tls

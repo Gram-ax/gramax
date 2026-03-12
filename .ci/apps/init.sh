@@ -63,7 +63,7 @@ export VERSION_IOS=$(generate_version "ios")
 export VERSION_DOCPORTAL=$(generate_version "docportal")
 export VERSION_WEB=$(generate_version "web")
 export VERSION_GIT_PROXY=$(generate_version "git-proxy")
-
+export VERSION_DIAGRAM_RENDERER=$(generate_version "diagram-renderer")
 
 export PROFILE="release"
 export PROFILE_FLAGS=""

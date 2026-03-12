@@ -66,6 +66,7 @@ export const pageDataLoaders: PageDataLoader = {
 	[Page.SEARCH_METRICS]: async ({ ensureMetricsLoaded, ensureSearchMetricsLoaded }) => {
 		await Promise.all([ensureMetricsLoaded(), ensureSearchMetricsLoaded()]);
 	},
+	[Page.ROLES]: async () => {},
 };
 
 export const getPageDataLoader = (page: Page): PageDataLoader[Page] => {

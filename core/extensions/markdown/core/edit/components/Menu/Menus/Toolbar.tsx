@@ -5,11 +5,11 @@ import AIGroup from "@ext/markdown/core/edit/components/Menu/Groups/AIGroup";
 import PropertyMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Property";
 import ToolbarWrapper from "@ext/markdown/core/edit/components/Menu/ToolbarWrapper";
 import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
-import { InlineToolbarOptions } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
+import type { InlineToolbarOptions } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
 import { LinkMenuMobilePopover } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenuMobilePopover";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import { useMediaQuery } from "@mui/material";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { Toolbar, ToolbarSeparator } from "@ui-kit/Toolbar";
 import { CellSelection, isInTable } from "prosemirror-tables";
 import { memo, useEffect, useState } from "react";
@@ -33,10 +33,10 @@ interface MainToolbarMenuProps extends ToolbarMenuProps {
 
 type ToolbarButtonsVariant = "inline" | "main";
 const MainToolbarButtons = (props: MainToolbarMenuProps) => {
-	const { editor, includeResources = true, isTemplate, fileName, isSmallEditor, isGramaxAiEnabled, isMobile } = props;
+	const { editor, includeResources = true, isTemplate, fileName, isSmallEditor, isGramaxAiEnabled } = props;
 
 	return (
-		<Toolbar role="article-toolbar">
+		<Toolbar data-testid="editor-toolbar">
 			<HeadersMenuGroup editor={editor} />
 			<ToolbarSeparator />
 			<TextMenuGroup editor={editor} />
@@ -46,7 +46,6 @@ const MainToolbarButtons = (props: MainToolbarMenuProps) => {
 					<PropertyMenuGroup editor={editor} />
 				</>
 			)}
-			{!isMobile && <ToolbarSeparator />}
 			<ListMenuGroup editor={editor} />
 			<ToolbarSeparator />
 			<AnyMenuGroup

@@ -1,8 +1,8 @@
 import Card from "@components/HomePage/Card";
 import Folder from "@components/HomePage/Folder";
-import { Sections } from "@core/SitePresenter/SitePresenter";
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
-import { type Dispatch, type SetStateAction } from "react";
+import type { Sections } from "@core/SitePresenter/SitePresenter";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
+import type { Dispatch, SetStateAction } from "react";
 
 interface GroupProps {
 	catalogLinks: CatalogLink[];
@@ -20,14 +20,8 @@ const Group = ({ title, catalogLinks, setIsAnyCardLoading, sections }: GroupProp
 			<div className="group-container">
 				{sectionKeys.length !== 0 && (
 					<div className="group-content">
-						{sectionKeys.map((sectionKey, index) => {
-							return (
-								<Folder
-									key={sectionKey + index}
-									section={sections[sectionKey]}
-									sectionKey={sectionKey}
-								/>
-							);
+						{sectionKeys.map((sectionKey) => {
+							return <Folder key={sectionKey} section={sections[sectionKey]} sectionKey={sectionKey} />;
 						})}
 					</div>
 				)}

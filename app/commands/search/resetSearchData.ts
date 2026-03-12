@@ -1,23 +1,15 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import { genNDJson } from "@core/utils/genNDJson";
-import { isSearcherType, SearcherType } from "@ext/serach/SearcherManager";
+import { isSearcherType, type SearcherType } from "@ext/serach/SearcherManager";
 import { Command } from "../../types/Command";
 
-const resetSearchData: Command<
-	{ type?: SearcherType; force?: boolean; catalogName?: string },
-	{ mime: string; iterator: AsyncGenerator<string, void, void> }
-> = Command.create({
+const resetSearchData: Command<{ type?: SearcherType; force?: boolean; catalogName?: string }, void> = Command.create({
 	path: "search/resetSearchData",
 
-	kind: ResponseKind.stream,
+	kind: ResponseKind.none,
 
 	async do({ type, force, catalogName }) {
-		const progressGen = this._app.searcherManager.getSearcher(type).updateIndex({ force, catalogName });
-
-		return {
-			mime: "application/x-ndjson",
-			iterator: genNDJson(progressGen),
-		};
+		const searcher = this._app.searcherManager.getSearcher(type);
+		await searcher.updateIndex({ force, catalogName });
 	},
 
 	params(_, q) {

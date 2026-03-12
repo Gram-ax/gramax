@@ -4,7 +4,7 @@ import validateLinkPlugin from "@ext/markdown/elements/link/render/logic/validat
 import listPlugin from "@ext/markdown/elements/list/edit/models/listItem/logic/listPlugin";
 import taskListPlugin from "@ext/markdown/elements/list/edit/models/taskList/logic/taskListPlugin";
 import notePlugin from "@ext/markdown/elements/note/logic/noteBlock";
-import MarkdownIt from "markdown-it/lib";
+import MarkdownIt from "markdown-it";
 import type { Token } from "../types";
 import annotations from "./plugins/annotations";
 import disableencodeuri from "./plugins/disableencodeuri";

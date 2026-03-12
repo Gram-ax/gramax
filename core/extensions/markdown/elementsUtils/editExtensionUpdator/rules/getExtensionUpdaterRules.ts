@@ -1,5 +1,5 @@
 import type { Environment } from "@app/resolveModule/env";
-import type { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
 import getArticleRefRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/articleRef";
 import getCatalogPropsRule from "@ext/markdown/elementsUtils/editExtensionUpdator/rules/extensionRules/catalogProps";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";

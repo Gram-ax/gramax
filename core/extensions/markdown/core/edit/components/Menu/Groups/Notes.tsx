@@ -54,6 +54,7 @@ const NotesMenuGroup = ({ editor }: { editor?: Editor }) => {
 						<ToolbarToggleButton
 							active={note.isActive}
 							data-open={isOpen ? "open" : "closed"}
+							data-testid="tb-note"
 							disabled={disabled}
 							onClick={() => !isMobile && editor.chain().focus().toggleNote(NoteType.info).run()}
 						>

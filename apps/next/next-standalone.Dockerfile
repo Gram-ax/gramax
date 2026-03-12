@@ -43,7 +43,7 @@ ENV PORT=80 \
 # ENV SSO_SERVICE_URL=http://localhost:3000
 
 RUN apt-get update && \
-  apt-get install -y git bash && \
+  apt-get install -y --no-install-recommends git bash && \
   apt-get clean && \
   mkdir -p $ROOT_PATH
 

@@ -4,11 +4,12 @@ import TauriLink from "../../../apps/browser/src/components/Atoms/Link";
 import useUrlObjectImage2 from "../../../apps/browser/src/hooks/useUrlObjectImage";
 import TauriFetcher from "../../../apps/browser/src/logic/Api/BrowserFetchService";
 import TauriRouter from "../../../apps/browser/src/logic/Api/BrowserRouter";
+import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
 import * as tauriCommands from "../../../apps/tauri/src/window/commands";
 import enterpriseLogin from "../../../apps/tauri/src/window/enterpriseLogin";
 import type { DynamicModules } from "..";
 
-export const getTauriModules = async (): Promise<DynamicModules> => {
+export const getTauriModules = (): DynamicModules => {
 	return {
 		Link: TauriLink,
 		Router: TauriRouter,
@@ -24,17 +25,12 @@ export const getTauriModules = async (): Promise<DynamicModules> => {
 		openInExplorer: tauriCommands.openInExplorer,
 		openWindowWithUrl: tauriCommands.openWindowWithUrl,
 		openInWeb: tauriCommands.openInWeb,
+		getPdfjs,
 	};
 };
 
-let modules: DynamicModules | null = null;
-
-export const initFrontendModules = async (): Promise<void> => {
-	if (modules) return;
-	modules = await getTauriModules();
-};
-
 const resolveFrontendModule = <K extends keyof DynamicModules>(name: K): DynamicModules[K] => {
+	const modules = getTauriModules();
 	const module = modules?.[name];
 	if (!module) throw new Error(`module ${name} not found`);
 	return module;

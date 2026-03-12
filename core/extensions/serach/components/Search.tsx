@@ -1,4 +1,3 @@
-import type { ResponseStreamItem } from "@app/commands/search/chat";
 import { TextSize } from "@components/Atoms/Button/Button";
 import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
@@ -13,7 +12,7 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
-import debounceFunction from "@core-ui/debounceFunction";
+import { useDebounceValue } from "@core-ui/hooks/useDebounceValue";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -24,29 +23,38 @@ import getComponents from "@ext/markdown/core/render/components/getComponents/ge
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 import { FilteredPropertyBlock } from "@ext/serach/components/FilteredPropertyBlock";
 import { IndexingProgress } from "@ext/serach/components/IndexingProgress";
 import { PropertyFilter as PropertyFilterComponent } from "@ext/serach/components/PropertyFilter";
 import { SearchResults } from "@ext/serach/components/SearchResults";
 import { usePropertyFilter } from "@ext/serach/components/usePropertyFilter";
+import { chatStream } from "@ext/serach/components/utils/chatStream";
+import { getSearchData } from "@ext/serach/components/utils/getSearchData";
 import type { SearchFragmentInfo } from "@ext/serach/utils/ArticleFragmentCounter/ArticleFragmentCounter";
 import type { FocusItem } from "@ext/serach/utils/FocusItemsCollector";
 import { emitPluginEvent } from "@plugins/api/events";
 import { useMediaQuery } from "@react-hook/media-query";
 import { IconButton } from "@ui-kit/Button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
+	DropdownMenuTriggerButton,
+} from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	highlightFragmentInDocportal,
 	highlightFragmentInEditor,
 } from "../../../components/Article/SearchHandler/ArticleSearchFragmentHander";
-import type { ProgressItem, PropertyFilter, SearchResult } from "../Searcher";
-import { buildArticleRows, type RowIdLinkMap, type RowSearchResult } from "../utils/SearchRowsModel";
+import type { ProgressItem, PropertyFilter, ResourceFilter } from "../Searcher";
+import chatCitations from "../utils/chatCitations/chatCitations";
+import type { RowSearchResult } from "../utils/SearchRowsModel";
 
 const DEBOUNCE_DELAY = 400;
 const CHAT_DEBOUNCE_DELAY = DEBOUNCE_DELAY * 2;
-const SEARCH_SYMBOL = Symbol();
 const parser = new SimpleMarkdownParser();
 
 export interface SearchProps {
@@ -55,14 +63,17 @@ export interface SearchProps {
 }
 
 type SearchComponentData =
-	| { type: "search"; rows: RowSearchResult[]; rowIdLinkMap: RowIdLinkMap }
-	| { type: "chat"; chatData: RenderableTreeNodes };
+	| { type: "search"; rows: RowSearchResult[] }
+	| {
+			type: "chat";
+			chatData: RenderableTreeNodes;
+	  };
 
 const Search = (props: SearchProps) => {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	const { isHomePage, className } = props;
 	const isMac = IsMacService.value;
-	const query = SearchQueryService.value;
+	const { query, resourceFilter, setQuery, setResourceFilter } = SearchQueryService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { properties: catalogProperties } = PropertyServiceProvider.value;
 	const { catalogName, catalogDefaultLanguage } = useCatalogPropsStore(
@@ -78,14 +89,13 @@ const Search = (props: SearchProps) => {
 	const { isNext, isStatic, isBrowser, isTauri } = usePlatform();
 	const vectorSearchEnabled = (isNext && PageDataContextService.value?.conf?.ai?.enabled) ?? false;
 	const isCatalogExist = !!catalogName;
-	const cancelDebouncingRef = useRef<() => void>(null);
-	const abortControllerRef = useRef<AbortController>(null);
 
 	const narrowMedia = useMediaQuery(cssMedia.JSnarrow);
 	const blockRef = useRef<HTMLDivElement>(null);
 	const inputRef = useRef<HTMLInputElement>(null);
 	const responseRef = useRef<HTMLDivElement>(null);
-	const propertyFilterRef = useRef<HTMLDivElement>(null);
+	const resultsKeyHandlerRef = useRef<((e: React.KeyboardEvent) => boolean) | undefined>(undefined);
+	const abortControllerRef = useRef<AbortController>(new AbortController());
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [focusItem, setFocusItem] = useState<FocusItem | undefined>(undefined);
@@ -93,9 +103,19 @@ const Search = (props: SearchProps) => {
 	const [searchAll, _setSearchAll] = useState(isHomePage);
 	const [chatSearch, setChatSearch] = useState(false);
 
+	// Wrap query into an object so debounce triggers even if the value
+	//   changes and then reverts back before the debounce delay
+	// Without this, q1 -> q2 -> q1 won't trigger a re-render
+	//   because React sees the value as unchanged
+	const queryObj = useMemo(() => ({ query }), [query]);
+
+	const queryDebounce = useDebounceValue(queryObj, chatSearch ? CHAT_DEBOUNCE_DELAY : DEBOUNCE_DELAY);
+	const debouncedQueryObj = queryDebounce.value;
+	const cancelQueryDebounce = queryDebounce.cancel;
+
 	// Search analytics state
-	const [searchSessionId, setSearchSessionId] = useState<string | null>(null);
-	const [currentSearchAnalyticsId, setCurrentSearchAnalyticsId] = useState<number | null>(null);
+	const searchSessionId = useRef<string | null>(null);
+	const currentSearchAnalyticsId = useRef<number | null>(null);
 
 	const [indexProgress, setIndexProgress] = useState<number>(1);
 	const indexing = indexProgress !== 1;
@@ -135,40 +155,36 @@ const Search = (props: SearchProps) => {
 		isCatalogExist && !searchAll ? (currentArticleLanguage ?? catalogDefaultLanguage ?? "none") : undefined;
 
 	const currentPathname = ArticlePropsService.value?.pathname;
+	const isResourcesSearchEnabled = PageDataContextService.value?.conf?.search?.resourcesEnabled && !chatSearch;
 
-	const onLinkOpen = (articleInfo: {
-		url: string;
-		searchFragmentInfo?: SearchFragmentInfo;
-		title?: string;
-		catalog?: string;
-		isRecommended?: boolean;
-	}) => {
-		if (currentSearchAnalyticsId) {
-			emitPluginEvent("search:click", {
-				searchAnalyticsId: currentSearchAnalyticsId,
-				articleUrl: articleInfo.url,
-			});
-			setCurrentSearchAnalyticsId(null);
-		}
+	const onLinkOpen = useCallback(
+		(articleInfo: { url: string; searchFragmentInfo?: SearchFragmentInfo }) => {
+			if (currentSearchAnalyticsId.current) {
+				emitPluginEvent("search:click", {
+					searchAnalyticsId: currentSearchAnalyticsId.current,
+					articleUrl: articleInfo.url,
+				});
+				currentSearchAnalyticsId.current = null;
+			}
 
-		setIsOpen(false);
-		if (!isHomePage && articleInfo.url === currentPathname && articleInfo.searchFragmentInfo) {
-			if (isBrowser || isTauri)
-				highlightFragmentInEditor(
-					articleInfo.searchFragmentInfo.text,
-					articleInfo.searchFragmentInfo.indexInArticle,
-				);
-			else if (isStatic)
-				highlightFragmentInDocportal(
-					articleInfo.searchFragmentInfo.text,
-					articleInfo.searchFragmentInfo.indexInArticle,
-				);
-		}
-	};
+			setIsOpen(false);
+			if (!isHomePage && articleInfo.url === currentPathname && articleInfo.searchFragmentInfo) {
+				if (isBrowser || isTauri)
+					highlightFragmentInEditor(
+						articleInfo.searchFragmentInfo.text,
+						articleInfo.searchFragmentInfo.indexInArticle,
+					);
+				else if (isStatic)
+					highlightFragmentInDocportal(
+						articleInfo.searchFragmentInfo.text,
+						articleInfo.searchFragmentInfo.indexInArticle,
+					);
+			}
+		},
+		[isHomePage, currentPathname, isBrowser, isTauri, isStatic],
+	);
 
 	const keydownHandler = (e: KeyboardEvent) => {
-		if (propertyFilterRef.current?.contains(document.activeElement)) return;
-
 		if (e.code === "Slash" && (e.ctrlKey || e.metaKey)) {
 			setIsOpen((prev) => !prev);
 			return;
@@ -178,147 +194,10 @@ const Search = (props: SearchProps) => {
 			return;
 		}
 	};
-
-	const loadData = async (query: string) => {
-		if (!query && !hasPropertyFilter) return;
-
-		const abortController = new AbortController();
-		abortControllerRef.current = abortController;
-
-		try {
-			if (chatSearch) {
-				if (!query) return;
-				await chatStream(query);
-				return;
-			}
-
-			const data = await getSearchData(query);
-			if (!data || abortController.signal.aborted) return;
-			setData(data);
-
-			// Track search start with analytics
-			if (data.type === "search" && query && searchSessionId) {
-				emitPluginEvent("search:start", {
-					query,
-					searchSessionId,
-					onSuccess: (searchAnalyticsId: number) => {
-						setCurrentSearchAnalyticsId(searchAnalyticsId);
-						const results = data.rows.map((row, index) => ({
-							url: row.rawResult.url,
-							title: row.rawResult.title.map((t) => t.text).join(""),
-							catalog: row.type === "article" ? row.rawResult.catalog?.name : undefined,
-							position: index + 1,
-							isRecommended: row.type === "article" ? row.rawResult.isRecommended : false,
-						}));
-
-						emitPluginEvent("search:results", {
-							searchAnalyticsId,
-							results,
-						});
-					},
-				});
-			}
-		} catch (error) {
-			console.error("Search error:", error);
-		}
-	};
-	const getSearchData = async (query: string): Promise<SearchComponentData | null> => {
-		const abortController = abortControllerRef.current;
-		const propertyFilter: PropertyFilter = {
-			op: "and",
-			filters: filteredProperties.map<PropertyFilter>((x) => {
-				const catalogProperty = catalogProperties.get(x.name);
-				if (catalogProperty !== undefined && catalogProperty.type === PropertyTypes.flag) {
-					return {
-						op: "or",
-						// TODO: Hack. Should go away when switch to FilterMenu
-						filters: x.value.map<PropertyFilter>((y) =>
-							y === t("yes")
-								? {
-										op: "eq",
-										key: x.name,
-										value: true,
-									}
-								: {
-										op: "isEmpty",
-										key: x.name,
-									},
-						),
-					};
-				}
-
-				return {
-					op: "contains",
-					key: x.name,
-					list: x.value,
-				};
-			}),
-		};
-
-		const res = await FetchService.fetch<SearchResult[]>(
-			apiUrlCreator.getSearchDataUrl(query, searchAll ? null : catalogName, undefined, articlesLanguage),
-			canUsePropertyFilter ? JSON.stringify({ propertyFilter }) : undefined,
-			undefined,
-			undefined,
-			undefined,
-			undefined,
-			abortController.signal,
-		);
-		if (!res.ok || abortController.signal.aborted) return;
-
-		const searchData = await res.json();
-		const articleSearchData = searchData.filter((d) => searchAll || d.type === "article");
-
-		const { rows, rowIdLinkMap } = buildArticleRows(articleSearchData);
-
-		return {
-			type: "search",
-			rows,
-			rowIdLinkMap,
-		};
-	};
-
-	const chatStream = async (query: string) => {
-		if (!query) return;
-		const abortController = abortControllerRef.current;
-		const responseLanguage = isCatalogExist ? (currentArticleLanguage ?? catalogDefaultLanguage) : undefined;
-		const res = await FetchService.fetch<unknown>(
-			apiUrlCreator.getSearchChatUrl(
-				query,
-				searchAll ? undefined : catalogName,
-				articlesLanguage,
-				responseLanguage,
-			),
-			undefined,
-			undefined,
-			undefined,
-			undefined,
-			undefined,
-			abortController.signal,
-		);
-		if (!res.ok || abortController.signal.aborted) return;
-
-		let chatResponse = "";
-		const itemGenerator = readNDJson<ResponseStreamItem>(res.body.getReader());
-
-		for await (const item of itemGenerator) {
-			if (abortController.signal.aborted) break;
-
-			chatResponse += item.text;
-			const chatData = await parser.parse(chatResponse);
-			setData({
-				type: "chat",
-				chatData,
-			});
-		}
-	};
-
 	const handleProgressResponse = useCallback(async (stream: NDJsonReadStream, signal: AbortSignal) => {
-		const itemGenerator = readNDJson<ProgressItem>(stream);
+		const itemGenerator = readNDJson<ProgressItem>(stream, signal);
 
 		for await (const item of itemGenerator) {
-			if (signal.aborted) continue;
-
 			const type = item.type;
 			switch (type) {
 				case "progress":
@@ -333,28 +212,38 @@ const Search = (props: SearchProps) => {
 		}
 	}, []);
 
-	const updateIndex = useCallback(
-		async (signal: AbortSignal) => {
-			const res = await FetchService.fetch<unknown>(
-				apiUrlCreator.getResetSearchDataUrl(searchAll ? undefined : catalogName),
-			);
-			if (!res.ok) return;
-			await handleProgressResponse(res.body.getReader(), signal);
-		},
-		[apiUrlCreator, catalogName, searchAll, handleProgressResponse],
-	);
+	const updateIndex = useCallback(async () => {
+		await FetchService.fetch<unknown>(apiUrlCreator.getResetSearchDataUrl(searchAll ? undefined : catalogName));
+	}, [apiUrlCreator, catalogName, searchAll]);
 
 	const loadIndexProgress = useCallback(
 		async (signal: AbortSignal) => {
-			const res = await FetchService.fetch<unknown>(apiUrlCreator.getIndexingProgressUrl());
-			if (!res.ok) return;
-			await handleProgressResponse(res.body.getReader(), signal);
+			try {
+				const res = await FetchService.fetch<unknown>(
+					apiUrlCreator.getIndexingProgressUrl(resourceFilter),
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					undefined,
+					signal,
+				);
+				if (!res.ok) return;
+				await handleProgressResponse(res.body.getReader(), signal);
+			} catch (error) {
+				if (!(error instanceof DOMException && error.name === "AbortError")) {
+					throw error;
+				}
+			}
 		},
-		[apiUrlCreator, handleProgressResponse],
+		[apiUrlCreator, handleProgressResponse, resourceFilter],
 	);
+
 	const onClose = useCallback(() => {
-		setSearchSessionId(null);
-		setCurrentSearchAnalyticsId(null);
+		searchSessionId.current = null;
+		currentSearchAnalyticsId.current = null;
+		abortControllerRef.current?.abort();
+		abortControllerRef.current = undefined;
 		setFocusItem(undefined);
 		setIsOpen(false);
 	}, []);
@@ -362,37 +251,23 @@ const Search = (props: SearchProps) => {
 	useEffect(() => {
 		const controller = new AbortController();
 		if (!initiateIndexingOnOpen || !isOpen) return;
-		updateIndex(controller.signal);
+		updateIndex();
+		loadIndexProgress(controller.signal);
 
 		return () => {
 			controller.abort();
 		};
-	}, [initiateIndexingOnOpen, isOpen, updateIndex]);
+	}, [initiateIndexingOnOpen, isOpen, updateIndex, loadIndexProgress]);
 
 	useEffect(() => {
-		if (initiateIndexingOnOpen) return;
-
-		let timeoutId: ReturnType<typeof setTimeout> | null = null;
-		const controller = new AbortController();
-
-		if (!isOpen || isStatic) {
-			controller.abort();
-			if (timeoutId) clearTimeout(timeoutId);
-			return;
+		if (isOpen) {
+			const controller = new AbortController();
+			loadIndexProgress(controller.signal);
+			return () => {
+				controller.abort();
+			};
 		}
-
-		const tick = async () => {
-			await loadIndexProgress(controller.signal);
-			if (controller.signal.aborted) return;
-			timeoutId = setTimeout(tick, 1000);
-		};
-		timeoutId = setTimeout(tick, 1000);
-
-		return () => {
-			controller.abort();
-			if (timeoutId) clearTimeout(timeoutId);
-		};
-	}, [initiateIndexingOnOpen, isOpen, isStatic, loadIndexProgress]);
+	}, [isOpen, loadIndexProgress]);
 
 	useEffect(() => {
 		document.addEventListener("keydown", keydownHandler, false);
@@ -401,23 +276,120 @@ const Search = (props: SearchProps) => {
 		};
 	});
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: blockRef.current
-	useEffect(() => {
-		if (isHomePage) return;
+	let searchParamsChanged = false;
+	// biome-ignore lint/correctness/useExhaustiveDependencies(searchParamsChanged): always false, never triggers useMemo
+	const loadData = useMemo(() => {
+		searchParamsChanged = true;
 
-		if (isOpen && blockRef.current) {
-			blockRef.current.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-		}
-	}, [blockRef.current, isOpen, isHomePage]);
+		return async (query: string, signal: AbortSignal) => {
+			if (!query && !hasPropertyFilter) {
+				return;
+			}
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: TODO: fixed in next MR
+			try {
+				const urlCatalogName = searchAll ? undefined : catalogName;
+
+				if (chatSearch) {
+					const responseLanguage = isCatalogExist
+						? (currentArticleLanguage ?? catalogDefaultLanguage)
+						: undefined;
+
+					let chatResponseBuffer = "";
+					await chatStream({
+						url: apiUrlCreator.getSearchChatUrl(query, urlCatalogName, articlesLanguage, responseLanguage),
+						query,
+						onData: async (data) => {
+							chatResponseBuffer += data;
+							const chatDataRaw = await parser.parse(chatResponseBuffer);
+							const chatData = chatCitations(chatDataRaw);
+
+							setData({
+								type: "chat",
+								chatData,
+							});
+						},
+						signal,
+					});
+				} else {
+					const propertyFilter = !canUsePropertyFilter
+						? undefined
+						: buildPropertyFilter(filteredProperties, catalogProperties);
+
+					const rows = await getSearchData({
+						url: apiUrlCreator.getSearchDataUrl(query, urlCatalogName, undefined, articlesLanguage),
+						onlyArticles: !searchAll,
+						signal,
+						resourceFilter: isResourcesSearchEnabled ? resourceFilter : undefined,
+						propertyFilter,
+					});
+
+					if (rows) {
+						setData({
+							type: "search",
+							rows,
+						});
+
+						trackSearchMetric(query, searchSessionId.current, currentSearchAnalyticsId, rows);
+					}
+				}
+			} catch (e) {
+				if (!(e instanceof DOMException && e.name === "AbortError")) {
+					console.error(e);
+				}
+			}
+		};
+	}, [
+		apiUrlCreator,
+		canUsePropertyFilter,
+		articlesLanguage,
+		isCatalogExist,
+		currentArticleLanguage,
+		catalogDefaultLanguage,
+		catalogName,
+		setData,
+		searchAll,
+		resourceFilter,
+		chatSearch,
+		filteredProperties,
+		catalogProperties,
+		hasPropertyFilter,
+		isResourcesSearchEnabled,
+	]);
+
+	if (searchParamsChanged) {
+		cancelQueryDebounce();
+		debouncedQueryObj.query = query;
+	}
+
 	useEffect(() => {
-		cancelDebouncingRef.current?.();
-		cancelDebouncingRef.current = null;
+		void queryObj;
+		void loadData;
 		abortControllerRef.current?.abort();
+		abortControllerRef.current = undefined;
+	}, [queryObj, loadData]);
+
+	useEffect(() => {
+		const query = debouncedQueryObj.query;
 		setData(null);
-		loadData(query);
-	}, [searchAll, chatSearch, filteredProperties, setData]);
+		const controller = new AbortController();
+		abortControllerRef.current = controller;
+		loadData(query, controller.signal);
+		return () => {
+			controller.abort();
+		};
+	}, [debouncedQueryObj, setData, loadData]);
+
+	const onInputKeyDown = (e: React.KeyboardEvent) => {
+		if (e.ctrlKey) return;
+
+		if (resultsKeyHandlerRef.current?.(e)) {
+			e.preventDefault();
+		}
+	};
+
+	const registerKeyHandler = useCallback((fn: typeof resultsKeyHandlerRef.current) => {
+		resultsKeyHandlerRef.current = fn;
+	}, []);
 
 	return (
 		<ModalLayout
@@ -426,7 +398,7 @@ const Search = (props: SearchProps) => {
 			onClose={onClose}
 			onOpen={() => {
 				const sessionId = crypto.randomUUID();
-				setSearchSessionId(sessionId);
+				searchSessionId.current = sessionId;
 				setIsOpen(true);
 				if (inputRef.current && query) {
 					inputRef.current.value = query;
@@ -469,23 +441,11 @@ const Search = (props: SearchProps) => {
 									<Input
 										data-qa={t("search.placeholder")}
 										onChange={(e) => {
-											abortControllerRef.current?.abort();
-											abortControllerRef.current = null;
 											const query = e.target.value;
-											SearchQueryService.value = query;
+											setQuery(query);
 											setData(null);
-											const debounceDelay = chatSearch ? CHAT_DEBOUNCE_DELAY : DEBOUNCE_DELAY;
-											cancelDebouncingRef.current = debounceFunction(
-												SEARCH_SYMBOL,
-												() => loadData(query),
-												debounceDelay,
-											);
 										}}
-										onKeyDown={(e) => {
-											if (e.code === "ArrowUp" || e.code === "ArrowDown") {
-												e.preventDefault();
-											}
-										}}
+										onKeyDown={onInputKeyDown}
 										placeholder={t("search.placeholder")}
 										ref={inputRef}
 										type="text"
@@ -495,7 +455,6 @@ const Search = (props: SearchProps) => {
 											<PropertyFilterComponent
 												filteredProperties={filteredProperties}
 												properties={shownFilterableProperties.array}
-												ref={propertyFilterRef}
 												togglePropertyValue={togglePropertyValue}
 											/>
 										)}
@@ -503,9 +462,8 @@ const Search = (props: SearchProps) => {
 											<button
 												className="search-icon"
 												onClick={() => {
-													abortControllerRef.current?.abort();
-													SearchQueryService.value = "";
-													setFocusItem(undefined);
+													setQuery("");
+													setData(null);
 													clearFilteredProperties();
 													inputRef.current.value = "";
 													inputRef.current.focus();
@@ -592,7 +550,7 @@ const Search = (props: SearchProps) => {
 													containerRef={responseRef}
 													focusItem={focusItem}
 													onLinkOpen={onLinkOpen}
-													rowIdLinkMap={data.rowIdLinkMap}
+													registerKeyHandler={registerKeyHandler}
 													rows={data.rows}
 													searchAll={searchAll}
 													setFocusItem={setFocusItem}
@@ -606,7 +564,7 @@ const Search = (props: SearchProps) => {
 					</ModalLayoutLight>
 					<div className="bottom-content">
 						<div className="absolute-bg " />
-						<div className="prompt article">
+						<div className="bottom-content-content prompt article">
 							{!isHomePage && isCatalogExist && (
 								<div className="bottomCheckbox">
 									<div className={"text"}>
@@ -639,6 +597,37 @@ const Search = (props: SearchProps) => {
 										<p>{t("search.ai")}</p>
 									</Checkbox>
 								</div>
+							)}
+							{isResourcesSearchEnabled && (
+								<DropdownMenu>
+									<DropdownMenuTriggerButton
+										className="bottom-content-resource-filter"
+										variant="text"
+									>
+										{resourceFilter === "without"
+											? t("search.resource-filter.without-resources")
+											: resourceFilter === "with"
+												? t("search.resource-filter.with-resources")
+												: t("search.resource-filter.only-resources")}
+										<Icon code="chevron-down" />
+									</DropdownMenuTriggerButton>
+									<DropdownMenuContent>
+										<DropdownMenuRadioGroup
+											onValueChange={(v) => setResourceFilter(v as ResourceFilter)}
+											value={resourceFilter}
+										>
+											<DropdownMenuRadioItem value="without">
+												{t("search.resource-filter.without-resources")}
+											</DropdownMenuRadioItem>
+											<DropdownMenuRadioItem value="with">
+												{t("search.resource-filter.with-resources")}
+											</DropdownMenuRadioItem>
+											<DropdownMenuRadioItem value="only">
+												{t("search.resource-filter.only-resources")}
+											</DropdownMenuRadioItem>
+										</DropdownMenuRadioGroup>
+									</DropdownMenuContent>
+								</DropdownMenu>
 							)}
 							{!narrowMedia && (
 								<>
@@ -798,9 +787,7 @@ export default styled(Search)`
         background: var(--color-contextmenu-bg);
 
         .breadcrumb {
-          margin-top: 0 !important;
-          align-items: baseline !important;
-          flex-shrink: 0;
+          align-items: baseline;
         }
 
         .chat-title {
@@ -812,29 +799,54 @@ export default styled(Search)`
         }
 
         .item-title {
-          display: flex;
-          flex-wrap: wrap;
-          font-weight: 400;
-          align-items: center;
-          justify-content: space-between;
-          row-gap: 0.3em;
           padding: 3px 0;
+          cursor: pointer;
 
-          > div:first-of-type {
+          .item-title-badges {
+            float: right;
             display: flex;
+            gap: 0.3em;
+            white-space: nowrap;
+            margin-left: 1rem;
+
+            .item-title-badge {
+              box-shadow: none;
+              font-weight: 400;
+              border: none;
+            }
+
+            .item-title-badge-current {
+              background-color: var(--search-badge-current-bg);
+              color: var(--search-badge-current-text);
+            }
+
+            .item-title-badge-recommended {
+              background-color: var(--search-badge-recommended-bg);
+              color: var(--search-badge-recommended-text);
+            }
+          }
+
+          .item-title-content {
+            display: flex;
+            flex-wrap: wrap;
+            font-weight: 400;
+            row-gap: 0.3em;
             align-items: baseline;
             gap: 1.5rem;
-          }
+            flex-wrap: wrap;
+            row-gap: 0.3em;
+            min-width: 0;
 
-          .article-breadcrumb {
-            margin-top: 0;
-          }
+            .article-breadcrumb {
+              margin-top: 0;
+            }
 
-          .breadcrumb-catalog {
-            color: var(--color-breadcrumb-catalog-text);
+            .breadcrumb-catalog {
+              color: var(--color-breadcrumb-catalog-text);
 
-            &:hover {
-              color: var(--color-primary);
+              &:hover {
+                color: var(--color-primary);
+              }
             }
           }
         }
@@ -849,10 +861,8 @@ export default styled(Search)`
           padding: 3px 0;
 
           .cut-content {
-            white-space: nowrap;
-            overflow: hidden;
+            white-space: normal;
             display: block;
-            text-overflow: ellipsis;
             width: 100%;
           }
         }
@@ -946,6 +956,19 @@ export default styled(Search)`
     }
   }
 
+	.bottom-content-content {
+		height: 17px;
+		
+		.bottom-content-resource-filter {
+			width: auto;
+			height: 100%;
+			font-size: 10px;
+			font-weight: 400;
+			padding-left: 0rem;
+			padding-right: 0rem;
+		}
+	}
+
   .prompt {
     display: flex;
     gap: 1rem;
@@ -995,8 +1018,77 @@ export default styled(Search)`
     .cut-content {
       display: inline !important;
       white-space: normal !important;
-      overflow: hidden !important;
-      text-overflow: ellipsis !important;
     }
   }
 `;
+
+function buildPropertyFilter(
+	filteredProperties: Property[],
+	catalogProperties: Map<string, Property>,
+): PropertyFilter | undefined {
+	if (filteredProperties.length === 0) {
+		return undefined;
+	}
+
+	return {
+		op: "and",
+		filters: filteredProperties.map<PropertyFilter>((x) => {
+			const catalogProperty = catalogProperties.get(x.name);
+			if (catalogProperty !== undefined && catalogProperty.type === PropertyTypes.flag) {
+				return {
+					op: "or",
+					// TODO: Hack. Should go away when switch to FilterMenu
+					filters: x.value.map<PropertyFilter>((y) =>
+						y === t("yes")
+							? {
+									op: "eq",
+									key: x.name,
+									value: true,
+								}
+							: {
+									op: "isEmpty",
+									key: x.name,
+								},
+					),
+				};
+			}
+
+			return {
+				op: "contains",
+				key: x.name,
+				list: x.value,
+			};
+		}),
+	};
+}
+
+function trackSearchMetric(
+	query: string,
+	searchSessionId: string,
+	currentSearchAnalyticsId: MutableRefObject<number>,
+	rows: RowSearchResult[],
+) {
+	if (!query || !searchSessionId) return;
+
+	// Track search start with analytics
+	emitPluginEvent("search:start", {
+		query,
+		searchSessionId,
+		onSuccess: (searchAnalyticsId: number) => {
+			currentSearchAnalyticsId.current = searchAnalyticsId;
+			const results = rows.map((row, index) => ({
+				url: row.rawResult.url,
+				title: row.rawResult.title.map((t) => t.text).join(""),
+				catalog: row.type === "article" ? row.rawResult.catalog?.title : undefined,
+				type: row.type,
+				position: index + 1,
+				isRecommended: row.type === "article" ? row.rawResult.isRecommended : false,
+			}));
+
+			emitPluginEvent("search:results", {
+				searchAnalyticsId,
+				results,
+			});
+		},
+	});
+}

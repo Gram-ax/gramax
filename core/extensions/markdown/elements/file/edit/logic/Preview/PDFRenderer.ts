@@ -1,5 +1,7 @@
-import pdfjs from "@dynamicImports/pdfjs";
-import type { PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist/types/display/api";
+import type { DynamicModules } from "@app/resolveModule";
+import resolveFrontendModule from "@app/resolveModule/frontend";
+import type { PDFDocumentLoadingTask, PDFDocumentProxy, PDFPageProxy } from "pdfjs-dist";
+import type { IPDFLinkService } from "pdfjs-dist/types/web/interfaces";
 
 interface PDFRendererRefs {
 	container: HTMLDivElement;
@@ -18,8 +20,10 @@ type ExplicitDest = [PDFRef, { name: string }, ...number[]];
 type Destination = string | ExplicitDest;
 
 export class PDFRenderer {
+	private _destroyed = false;
+	private _pdfLoadingTask: PDFDocumentLoadingTask;
 	private _pdf: PDFDocumentProxy;
-	private _pdfjsLib: Awaited<ReturnType<typeof pdfjs>>;
+	private _pdfjsLib: Awaited<ReturnType<DynamicModules["getPdfjs"]>>;
 	private _renderingPages = new Map<number, Promise<void>>();
 	private _observer: IntersectionObserver = null;
 	private _isNavigating = false;
@@ -30,13 +34,22 @@ export class PDFRenderer {
 	) {}
 
 	async loadDocument() {
-		this._pdfjsLib = await pdfjs();
+		this._pdfjsLib = await resolveFrontendModule("getPdfjs")();
+		if (this._destroyed) return;
 
 		const arrayBuffer = await this.file.arrayBuffer();
-		const loadingTask = this._pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
-		this._pdf = await loadingTask.promise;
+		if (this._destroyed) return;
+		this._pdfLoadingTask = this._pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer), verbosity: 0 });
+		if (this._destroyed) await this._pdfLoadingTask.destroy();
+		this._pdf = await this._pdfLoadingTask.promise;
 
 		return this._pdf.numPages;
+	}
+
+	async destroy() {
+		this._destroyed = true;
+		if (!this._pdfLoadingTask || this._pdfLoadingTask.destroyed) return;
+		await this._pdfLoadingTask.destroy();
 	}
 
 	async render() {
@@ -183,6 +196,7 @@ export class PDFRenderer {
 		canvas.style.width = `${scaledViewport.width / devicePixelRatio}px`;
 
 		const renderContext = {
+			canvas,
 			canvasContext: context,
 			viewport: scaledViewport,
 		};
@@ -190,55 +204,76 @@ export class PDFRenderer {
 		await page.render(renderContext).promise;
 	}
 
-	private async _renderTextLayer(page: PDFPageProxy, textLayer: HTMLDivElement, scale: number) {
-		const { renderTextLayer } = this._pdfjsLib;
+	private async _renderTextLayer(page: PDFPageProxy, textContainer: HTMLDivElement, scale: number) {
+		const { TextLayer } = this._pdfjsLib;
 		const textLayerViewport = page.getViewport({ scale: scale });
 		const textContent = await page.getTextContent();
 
-		textLayer.innerHTML = "";
-		textLayer.style.width = `${textLayerViewport.width}px`;
-		textLayer.style.height = `${textLayerViewport.height}px`;
+		textContainer.innerHTML = "";
+		textContainer.style.setProperty("--total-scale-factor", String(scale));
+		textContainer.style.setProperty("--scale-round-x", "1px");
+		textContainer.style.setProperty("--scale-round-y", "1px");
 
-		await renderTextLayer({
-			textContent: textContent,
-			container: textLayer,
+		const textLayer = new TextLayer({
+			textContentSource: textContent,
+			container: textContainer,
 			viewport: textLayerViewport,
-			textDivs: [],
-		}).promise;
+		});
+
+		await textLayer.render();
 	}
 
-	private async _renderAnnotationLayer(page: PDFPageProxy, annotationLayer: HTMLDivElement, scale: number) {
+	private async _renderAnnotationLayer(page: PDFPageProxy, annotationContainer: HTMLDivElement, scale: number) {
 		const { AnnotationLayer: PDFAnnotationLayer } = this._pdfjsLib;
-		const textLayerViewport = page.getViewport({ scale: scale });
+		const viewport = page.getViewport({ scale });
 		const annotations = await page.getAnnotations();
 
-		annotationLayer.innerHTML = "";
-		annotationLayer.style.width = `${textLayerViewport.width}px`;
-		annotationLayer.style.height = `${textLayerViewport.height}px`;
+		annotationContainer.innerHTML = "";
+		annotationContainer.style.setProperty("--total-scale-factor", String(scale));
+		annotationContainer.style.setProperty("--scale-round-x", "1px");
+		annotationContainer.style.setProperty("--scale-round-y", "1px");
 
 		if (annotations.length === 0) return;
 
 		const handleInternalLink = this._createInternalLinkHandler();
 
-		PDFAnnotationLayer.render({
-			viewport: textLayerViewport.clone({ dontFlip: true }),
-			div: annotationLayer,
-			annotations: annotations,
-			page: page,
-			linkService: {
-				externalLinkTarget: 2,
-				externalLinkEnabled: true,
-				getDestinationHash: () => "",
-				addLinkAttributes: () => {},
-				goToDestination: handleInternalLink,
-				navigateTo: handleInternalLink,
-			},
-			downloadManager: null,
-			renderInteractiveForms: false,
+		const linkService: IPDFLinkService = {
+			pagesCount: 0,
+			page: 0,
+			rotation: 0,
+			isInPresentationMode: false,
+			externalLinkEnabled: true,
+			goToDestination: handleInternalLink,
+			goToPage: () => {},
+			addLinkAttributes: () => {},
+			getDestinationHash: () => "",
+			getAnchorUrl: () => "",
+			setHash: () => {},
+			executeNamedAction: () => {},
+			executeSetOCGState: () => {},
+		};
+
+		const annotationLayer = new PDFAnnotationLayer({
+			div: annotationContainer,
+			page,
+			viewport,
+			accessibilityManager: null,
+			annotationCanvasMap: null,
+			annotationEditorUIManager: null,
+			structTreeLayer: null,
+		});
+
+		await annotationLayer.render({
+			viewport: viewport.clone({ dontFlip: true }),
+			div: annotationContainer,
+			annotations,
+			page,
+			linkService,
+			renderForms: false,
 			imageResourcesPath: "",
 		});
 
-		this._addAnnotationClickHandler(annotationLayer);
+		this._addAnnotationClickHandler(annotationContainer);
 	}
 
 	private _createInternalLinkHandler() {

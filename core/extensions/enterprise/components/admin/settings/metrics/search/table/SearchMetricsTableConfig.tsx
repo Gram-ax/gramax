@@ -12,6 +12,7 @@ export interface SearchMetricsTableRow {
 	mostClickedTitle: string | null;
 	mostClickedUrl: string | null;
 	mostClickedCatalog: string | null;
+	mostClickedType: "article" | "catalog";
 	avgClickPosition: number;
 	refinementPercent: number;
 }
@@ -48,8 +49,48 @@ export const createSearchMetricsTableColumns = (sortConfig: SearchSortConfig): C
 			cell: ({ row }) => <TruncatedText className="text-left" text={row.original.normalizedQuery} />,
 		},
 		{
+			accessorKey: "mostClickedTitle",
+			size: 250,
+			header: () => (
+				<SortableHeader<SearchSortByColumn>
+					align="left"
+					columnKey="mostClickedTitle"
+					currentSortBy={sortBy}
+					label={t("metrics.table.most-clicked-item")}
+					onSortChange={onSortChange}
+					sortOrder={sortOrder}
+				/>
+			),
+			cell: ({ row }) => {
+				const { mostClickedTitle, mostClickedUrl, mostClickedType } = row.original;
+
+				if (!mostClickedTitle || !mostClickedUrl) {
+					return <div className="text-left px-2 text-gray-400">—</div>;
+				}
+
+				const itemType =
+					mostClickedType === "catalog" ? t("metrics.table.catalog") : t("metrics.table.article");
+				const displayText = `${mostClickedTitle} (${itemType})`;
+
+				return (
+					<div className="text-left px-2" style={{ maxWidth: "200px" }}>
+						<a
+							className="text-blue-600 hover:text-blue-800 hover:underline block overflow-hidden text-ellipsis whitespace-nowrap"
+							href={mostClickedUrl}
+							rel="noopener noreferrer"
+							style={{ maxWidth: "100%" }}
+							target="_blank"
+							title={displayText}
+						>
+							<TruncatedText text={displayText} />
+						</a>
+					</div>
+				);
+			},
+		},
+		{
 			accessorKey: "searchCount",
-			size: 120,
+			size: 150,
 			header: () => (
 				<SortableHeader<SearchSortByColumn>
 					align="right"
@@ -64,7 +105,7 @@ export const createSearchMetricsTableColumns = (sortConfig: SearchSortConfig): C
 		},
 		{
 			accessorKey: "uniqueVisitors",
-			size: 140,
+			size: 200,
 			header: () => (
 				<SortableHeader<SearchSortByColumn>
 					align="right"
@@ -94,46 +135,8 @@ export const createSearchMetricsTableColumns = (sortConfig: SearchSortConfig): C
 			cell: ({ row }) => <div className="text-right">{Math.round(row.original.ctrPercent)}%</div>,
 		},
 		{
-			accessorKey: "mostClickedTitle",
-			size: 200,
-			header: () => (
-				<SortableHeader<SearchSortByColumn>
-					align="left"
-					columnKey="mostClickedTitle"
-					currentSortBy={sortBy}
-					label={t("metrics.table.most-clicked-item")}
-					onSortChange={onSortChange}
-					sortOrder={sortOrder}
-				/>
-			),
-			cell: ({ row }) => {
-				const { mostClickedTitle, mostClickedUrl, mostClickedCatalog } = row.original;
-
-				if (!mostClickedTitle || !mostClickedUrl) {
-					return <div className="text-left px-2 text-gray-400">—</div>;
-				}
-
-				const itemType = mostClickedCatalog ? t("metrics.table.catalog") : t("metrics.table.article");
-				const displayText = `${mostClickedTitle} (${itemType})`;
-
-				return (
-					<div className="text-left px-2">
-						<a
-							className="text-blue-600 hover:text-blue-800 hover:underline"
-							href={mostClickedUrl}
-							rel="noopener noreferrer"
-							target="_blank"
-							title={displayText}
-						>
-							<TruncatedText text={displayText} />
-						</a>
-					</div>
-				);
-			},
-		},
-		{
 			accessorKey: "avgClickPosition",
-			size: 140,
+			size: 200,
 			header: () => (
 				<SortableHeader<SearchSortByColumn>
 					align="right"
@@ -153,7 +156,7 @@ export const createSearchMetricsTableColumns = (sortConfig: SearchSortConfig): C
 		},
 		{
 			accessorKey: "refinementPercent",
-			size: 140,
+			size: 150,
 			header: () => (
 				<SortableHeader<SearchSortByColumn>
 					align="right"
@@ -165,7 +168,7 @@ export const createSearchMetricsTableColumns = (sortConfig: SearchSortConfig): C
 					tooltip={t("metrics.table.tooltips.refinement-rate-percent")}
 				/>
 			),
-			cell: ({ row }) => <div className="text-right	">{Math.round(row.original.refinementPercent)}%</div>,
+			cell: ({ row }) => <div className="text-right">{Math.round(row.original.refinementPercent)}%</div>,
 		},
 	];
 };

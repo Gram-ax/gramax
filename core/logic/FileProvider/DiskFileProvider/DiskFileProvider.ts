@@ -7,6 +7,7 @@ import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type { FileProviderEvents } from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import { trace } from "@ext/loggers/opentelemetry";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import type Watcher from "@ext/Watchers/model/Watcher";
 import assert from "assert";
@@ -110,6 +111,7 @@ export default class DiskFileProvider implements FileProvider {
 		} as FileInfo);
 	}
 
+	@trace()
 	async delete(path: Path, preferTrash?: boolean) {
 		if (preferTrash && isDesktop) {
 			try {
@@ -123,6 +125,7 @@ export default class DiskFileProvider implements FileProvider {
 		await DiskFileProvider.events.emit("delete", { path });
 	}
 
+	@trace()
 	async write(path: Path, data: string | Buffer) {
 		this._watcher?.stop();
 		try {

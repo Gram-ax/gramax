@@ -31,6 +31,7 @@ export const createMetricsTableColumns = (sortConfig: SortConfig): ColumnDef<Met
 	const allColumns: ColumnDef<MetricsTableRow>[] = [
 		{
 			id: TABLE_SELECT_COLUMN_CODE,
+			size: 30,
 			header: ({ table }) => {
 				const { allSelectableSelected, someSelectableSelected, handleSelectAll } = useTableSelection({
 					table,
@@ -38,19 +39,25 @@ export const createMetricsTableColumns = (sortConfig: SortConfig): ColumnDef<Met
 				});
 
 				return (
-					<Checkbox
-						aria-label="Select all"
-						checked={(allSelectableSelected || (someSelectableSelected && "indeterminate")) as CheckedState}
-						onCheckedChange={handleSelectAll}
-					/>
+					<div className="flex items-center justify-center">
+						<Checkbox
+							aria-label="Select all"
+							checked={
+								(allSelectableSelected || (someSelectableSelected && "indeterminate")) as CheckedState
+							}
+							onCheckedChange={handleSelectAll}
+						/>
+					</div>
 				);
 			},
 			cell: ({ row }) => (
-				<Checkbox
-					checked={row.getIsSelected()}
-					onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
-					onClick={(e) => e.stopPropagation()}
-				/>
+				<div className="flex items-center justify-center">
+					<Checkbox
+						checked={row.getIsSelected()}
+						onCheckedChange={(value: boolean) => row.toggleSelected(!!value)}
+						onClick={(e) => e.stopPropagation()}
+					/>
+				</div>
 			),
 			enableSorting: false,
 			enableHiding: false,
@@ -151,6 +158,7 @@ export const createMetricsTableColumns = (sortConfig: SortConfig): ColumnDef<Met
 			size: 90,
 			header: () => (
 				<SortableHeader
+					align="right"
 					columnKey="visitors"
 					currentSortBy={sortBy}
 					label={t("metrics.table.visitors")}
@@ -158,13 +166,14 @@ export const createMetricsTableColumns = (sortConfig: SortConfig): ColumnDef<Met
 					sortOrder={sortOrder}
 				/>
 			),
-			cell: ({ row }) => <span className="block text-center">{row.original.visitors}</span>,
+			cell: ({ row }) => <span className="block text-right">{row.original.visitors}</span>,
 		},
 		{
 			accessorKey: "visits",
 			size: 90,
 			header: () => (
 				<SortableHeader
+					align="right"
 					columnKey="visits"
 					currentSortBy={sortBy}
 					label={t("metrics.table.visits")}
@@ -172,13 +181,14 @@ export const createMetricsTableColumns = (sortConfig: SortConfig): ColumnDef<Met
 					sortOrder={sortOrder}
 				/>
 			),
-			cell: ({ row }) => <span className="block text-center">{row.original.visits}</span>,
+			cell: ({ row }) => <span className="block text-right">{row.original.visits}</span>,
 		},
 		{
 			accessorKey: "pageviews",
 			size: 100,
 			header: () => (
 				<SortableHeader
+					align="right"
 					columnKey="pageviews"
 					currentSortBy={sortBy}
 					label={t("metrics.table.pageviews")}
@@ -186,7 +196,7 @@ export const createMetricsTableColumns = (sortConfig: SortConfig): ColumnDef<Met
 					sortOrder={sortOrder}
 				/>
 			),
-			cell: ({ row }) => <span className="block text-center">{row.original.pageviews}</span>,
+			cell: ({ row }) => <span className="block text-right">{row.original.pageviews}</span>,
 		},
 	];
 

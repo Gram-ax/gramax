@@ -1,8 +1,8 @@
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { Category } from "@core/FileStructue/Category/Category";
-import { Item } from "@core/FileStructue/Item/Item";
-import { Workspace } from "@ext/workspace/Workspace";
+import type { Item } from "@core/FileStructue/Item/Item";
+import type { Workspace } from "@ext/workspace/Workspace";
 
 class SEOGenerator {
 	constructor(
@@ -57,8 +57,9 @@ Sitemap: ${sitemapUrl}\n`;
 		let sitemap = "";
 		for (const item of items) {
 			if (!this._filters.every((f) => f(item, catalog))) continue;
+			const pathname = await catalog.getPathname(item);
 			sitemap += `  <url>\n`;
-			sitemap += `    <loc>${domain}/${await catalog.getPathname(item)}</loc>\n`;
+			sitemap += `    <loc>${domain}${pathname}</loc>\n`;
 			sitemap += `  </url>\n`;
 
 			if (item instanceof Category && item.items) {

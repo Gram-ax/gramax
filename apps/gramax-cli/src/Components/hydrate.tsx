@@ -1,14 +1,13 @@
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
 import type { AppConfig } from "@app/config/AppConfig";
-import { initFrontendModules } from "@app/resolveModule/frontend";
 import type Application from "@app/types/Application";
 import type Query from "@core/Api/Query";
 import { parserQuery } from "@core/Api/Query";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
-import type { HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import getPageTitle from "@core-ui/getPageTitle";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
@@ -34,16 +33,19 @@ if (window.location.hash && window.location.pathname.length > 1 && window.locati
 }
 
 const initialData: InitialData = (window as ExtendedWindow)[InitialDataKeys.DATA];
+const catalogName = getCatalogNameFromInitialData();
+const handle404 = async () => {
+	if (initialData.context.isArticle && initialData.data?.articlePageData?.articleProps?.errorCode === 404) {
+		const article404 = new CustomArticlePresenter().getArticle("Article404", {
+			pathname: window.location.pathname,
+		});
+		initialData.data.articlePageData.content = JSON.stringify(
+			(await new MarkdownParser().parse(article404.content)).renderTree,
+		);
+		initialData.data.articlePageData.articleProps.title = article404.getTitle();
+	}
+};
 
-if (initialData.context.isArticle && initialData.data?.articlePageData?.articleProps?.errorCode === 404) {
-	const article404 = new CustomArticlePresenter().getArticle("Article404", {
-		pathname: window.location.pathname,
-	});
-	initialData.data.articlePageData.articleContentRender = JSON.stringify(
-		(await new MarkdownParser().parse(article404.content)).renderTree,
-	);
-	initialData.data.articlePageData.articleProps.title = article404.getTitle();
-}
 const getBasePath = () => {
 	const basePath = new URL(document.baseURI).pathname;
 	return basePath === "/" ? Path.empty : new Path(basePath);
@@ -52,13 +54,12 @@ global.config = (window as ExtendedWindow)[InitialDataKeys.CONFIG];
 setFeatureList();
 (global.config as AppConfig).paths = {
 	base: getBasePath(),
-	data: new Path("/"),
+	data: new Path(`/${catalogName}`),
 	default: new Path("/"),
 	root: new Path("/"),
 };
 
 const onAppInit = (app: Application) => {
-	const catalogName = getCatalogNameFromInitialData();
 	const workspace = app.wm.current();
 	workspace.getContextlessCatalog(catalogName);
 };
@@ -92,11 +93,12 @@ const Component = () => {
 		path,
 		data: initialData.context.isArticle
 			? {
-					articleContentEdit: "",
+					content: "",
+					mode: "read",
 					...initialData.data.articlePageData,
 					catalogProps: initialData.data.catalogProps,
 				}
-			: (initialData.data as any as HomePageData),
+			: (initialData.data as unknown as HomePageData),
 		context: initialData.context,
 	});
 	const [error, setError] = useState<DefaultError>();
@@ -119,7 +121,7 @@ const Component = () => {
 	}, [path, query]);
 
 	useEffect(() => {
-		document.title = getPageTitle(data.context.isArticle, data.data as any);
+		document.title = getPageTitle(data.context.isArticle, data.data as ArticlePageData);
 	}, [data]);
 
 	useEffect(() => void refresh(), [refresh]);
@@ -140,4 +142,4 @@ const Component = () => {
 
 const root = createRoot(document.getElementById("root"));
 
-initFrontendModules().then(() => root.render(<Component />));
+handle404().then(() => root.render(<Component />));

@@ -399,7 +399,7 @@ describe("Paginator System", () => {
 
 			const mockParentPaginator = {
 				createPage: jest.fn(() => document.createElement("div")),
-				currentContainer: {},
+				currentContainer: document.createElement("div"),
 			};
 
 			const paginator = new SnippetPaginator(snippet, mockParentPaginator as any);
@@ -451,7 +451,7 @@ describe("Paginator System", () => {
 
 			const mockParentPaginator = {
 				createPage: jest.fn(() => document.createElement("div")),
-				currentContainer: {},
+				currentContainer: document.createElement("div"),
 			};
 
 			const paginator = new NotePaginator(note, mockParentPaginator as any);
@@ -494,7 +494,7 @@ describe("Paginator System", () => {
 
 			const mockParentPaginator = {
 				createPage: jest.fn(() => document.createElement("div")),
-				currentContainer: {},
+				currentContainer: document.createElement("div"),
 			};
 
 			const paginator = new TabsPaginator(tabs, mockParentPaginator as any);

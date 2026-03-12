@@ -9,7 +9,6 @@ import * as git from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import GitStash from "@ext/git/core/model/GitStash";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import { LogLevel } from "@ext/loggers/Logger";
-import PersistentLogger from "@ext/loggers/PersistentLogger";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 export const clear = async () => {
@@ -79,12 +78,6 @@ export const intoPath = (path: string) => new Path(path);
 export { env };
 
 export const logger = new ConsoleLogger();
-
-export const logs = (filter?: RegExp, max = 9999) => {
-	console.log(PersistentLogger.getLogs(filter, max));
-};
-
-export const clearLogs = PersistentLogger.clearLogs.bind(this);
 
 logger.setLogLevel(LogLevel.error);
 

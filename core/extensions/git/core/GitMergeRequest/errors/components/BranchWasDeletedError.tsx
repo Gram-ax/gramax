@@ -1,10 +1,10 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import t from "@ext/localization/locale/translate";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 const BranchWasDeletedErrorComponent = ({ onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;

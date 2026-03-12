@@ -1,20 +1,18 @@
+/** biome-ignore-all lint/correctness/useHookAtTopLevel: hooks are used correctly */
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { useQuestionsStore } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
-import {
+import type {
 	FocusState,
 	QuestionsStoreState,
 	StoredQuestion,
-	useCheckAnswers,
 } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
 import { GroupHeader } from "@ext/navigation/article/render/GroupHeader";
-import { Button } from "@ui-kit/Button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@ui-kit/Collapsible";
 import { Icon } from "@ui-kit/Icon";
 import { FieldLabel } from "@ui-kit/Label";
-import { toast } from "@ui-kit/Toast";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { memo, useCallback, useMemo, useState } from "react";
 import { shallow } from "zustand/shallow";
@@ -108,10 +106,12 @@ const CollapsibleInfo = ({ answeredCount, totalCount, state, questions, setFocus
 								</FieldLabel>
 								{state === "finished" && (
 									<div>
-										{question.isCorrected ? (
+										{question.isCorrected === true ? (
 											<Icon className="text-status-success" icon="check" />
-										) : (
+										) : question.isCorrected === false ? (
 											<Icon className="text-status-error" icon="x" />
+										) : (
+											<Icon className="text-status-info" icon="check" size="sm" />
 										)}
 									</div>
 								)}
@@ -132,6 +132,9 @@ const Statistics = () => {
 		}),
 		shallow,
 	);
+
+	if (passed === null) return null;
+
 	return (
 		<>
 			<GroupHeader style={{ marginTop: 0 }}>
@@ -148,19 +151,19 @@ const Statistics = () => {
 						</FieldLabel>
 					</div>
 				</StyledListItem>
-				{passed ? (
+				{passed === true ? (
 					<StyledListItem>
 						<FieldLabel className="text-xs font-normal" data-status="success">
 							{t("quiz.info.statistics.passed")}
 						</FieldLabel>
 					</StyledListItem>
-				) : (
+				) : passed === false ? (
 					<StyledListItem>
 						<FieldLabel className="text-xs font-normal" data-status="error">
 							{t("quiz.info.statistics.failed")}
 						</FieldLabel>
 					</StyledListItem>
-				)}
+				) : null}
 			</ul>
 		</>
 	);
@@ -174,46 +177,20 @@ export const QuizNavigationInfo = memo(() => {
 
 	if (!workspace?.enterprise?.gesUrl) return null;
 
-	const { state, questions, setFocusedQuestion, isAllRequiredAnswered } = useQuestionsStore(
+	const { state, questions, setFocusedQuestion } = useQuestionsStore(
 		(store) => ({
 			state: store.state.type,
 			questions: store.questions,
 			setFocusedQuestion: store.setFocusedQuestion,
-			isAllRequiredAnswered: Object.values(store.questions)
-				.filter((question) => question.isRequired)
-				.every((question) => question.selectedAnswers.length > 0),
 		}),
 		shallow,
 	);
 
 	const questionsArray = useMemo(() => Object.values(questions), [questions]);
 	const answeredQuestions = useMemo(
-		() => questionsArray.filter((question) => question.selectedAnswers.length),
+		() => questionsArray.filter((question) => Object.values(question.selectedAnswers).length),
 		[questionsArray],
 	);
-	const checkAnswers = useCheckAnswers();
-
-	const scrollToFirstRequiredQuestion = useCallback(() => {
-		const index = questionsArray.findIndex((question) => question.isRequired && !question.selectedAnswers.length);
-		if (index === -1) return;
-
-		const allQuestions = Array.from(document.querySelectorAll(".question"));
-		allQuestions[index].scrollIntoView({ behavior: "smooth", block: "center" });
-		setFocusedQuestion(questionsArray[index].id, "error");
-	}, [questionsArray, setFocusedQuestion]);
-
-	const checkAnswersHandler = () => {
-		if (!isAllRequiredAnswered) {
-			scrollToFirstRequiredQuestion();
-			return toast(t("quiz.required-questions"), {
-				status: "error",
-				icon: "triangle-alert",
-				duration: 5000,
-				position: "top-right",
-			});
-		}
-		checkAnswers();
-	};
 
 	if (!questionsArray.length || !workspace?.enterprise?.modules?.quiz) return null;
 
@@ -227,20 +204,6 @@ export const QuizNavigationInfo = memo(() => {
 				totalCount={questionsArray.length}
 			/>
 			{state === "finished" && <Statistics />}
-			{isNext && (
-				<>
-					<Button
-						className="w-full"
-						disabled={state !== "answering"}
-						onClick={checkAnswersHandler}
-						size="sm"
-						startIcon="check"
-						variant="text"
-					>
-						{t("quiz.info.send")}
-					</Button>
-				</>
-			)}
 		</div>
 	);
 });

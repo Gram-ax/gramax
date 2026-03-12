@@ -1,13 +1,12 @@
-import React from "react";
 import CommentCountNavExtension from "../../../../markdown/elements/comment/edit/components/CommentCountNavExtension";
-import { ItemLink } from "../../../NavigationLinks";
+import type { ItemLink } from "../../../NavigationLinks";
 import IconExtension from "../../main/render/IconExtension";
 
 interface LeftExtensionsProps {
 	item: ItemLink;
 }
 
-const LeftExtensions: React.FC<LeftExtensionsProps> = ({ item }) => {
+const LeftExtensions = ({ item }: LeftExtensionsProps) => {
 	return (
 		<>
 			<IconExtension item={item} />

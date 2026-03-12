@@ -46,4 +46,4 @@ impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {
 	}
 }
 
-pub const ALLOWED_DOMAINS: [&str; 5] = ["tauri.localhost", "gramax", "localhost", "app.gram.ax", "dev.gram.ax"];
+pub const ALLOWED_DOMAINS: [&str; 6] = ["tauri.localhost", "gram.ax", "gramax", "localhost", "app.gram.ax", "dev.gram.ax"];

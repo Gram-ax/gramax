@@ -30,10 +30,11 @@ describe("SearchRowsModel", () => {
 			items: [
 				{
 					type: "paragraph",
+					searchText: "set the logo using the button",
 					items: [
-						{ type: "text", text: "...установить " },
-						{ type: "highlight", text: "логотип" },
-						{ type: "text", text: " можно с помощью кнопки..." },
+						{ type: "text", text: "...set the " },
+						{ type: "highlight", text: "logo" },
+						{ type: "text", text: " using the button..." },
 					],
 				},
 			],
@@ -52,20 +53,20 @@ describe("SearchRowsModel", () => {
 						url: Url.from({
 							pathname: "release-notes",
 							query: {
-								highlightFragment: "установить логотип можно с помощью кнопки",
+								highlightFragment: "set the logo using the button",
 								highlightFragmentIndex: "0",
 							},
 						}),
 						marks: [
-							{ type: "text", text: "...установить " },
-							{ type: "highlight", text: "логотип" },
-							{ type: "text", text: " можно с помощью кнопки..." },
+							{ type: "text", text: "...set the " },
+							{ type: "highlight", text: "logo" },
+							{ type: "text", text: " using the button..." },
 						],
 						openSideEffect: {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "установить логотип можно с помощью кнопки",
+									text: "set the logo using the button",
 									indexInArticle: 0,
 								},
 							},
@@ -102,33 +103,37 @@ describe("SearchRowsModel", () => {
 			items: [
 				{
 					type: "paragraph",
+					searchText: "set the logo using the button",
 					items: [
-						{ type: "text", text: "...установить " },
-						{ type: "highlight", text: "логотип" },
-						{ type: "text", text: " можно с помощью кнопки..." },
+						{ type: "text", text: "...set the " },
+						{ type: "highlight", text: "logo" },
+						{ type: "text", text: " using the button..." },
 					],
 				},
 				{
 					type: "paragraph",
+					searchText: "make logo",
 					items: [
-						{ type: "text", text: "...сделать " },
-						{ type: "highlight", text: "логотип" },
+						{ type: "text", text: "...make " },
+						{ type: "highlight", text: "logo" },
 					],
 				},
 				{
 					type: "paragraph",
+					searchText: "show logo in title",
 					items: [
-						{ type: "text", text: "...показать " },
-						{ type: "highlight", text: "логотип" },
-						{ type: "text", text: " в заголовке..." },
+						{ type: "text", text: "...show " },
+						{ type: "highlight", text: "logo" },
+						{ type: "text", text: " in title..." },
 					],
 				},
 				{
 					type: "paragraph",
+					searchText: " remove logo from title",
 					items: [
-						{ type: "text", text: "...удалить " },
-						{ type: "highlight", text: "логотип" },
-						{ type: "text", text: " из заголовка..." },
+						{ type: "text", text: "...remove " },
+						{ type: "highlight", text: "logo" },
+						{ type: "text", text: " from title..." },
 					],
 				},
 			],
@@ -147,20 +152,20 @@ describe("SearchRowsModel", () => {
 						url: Url.from({
 							pathname: "release-notes",
 							query: {
-								highlightFragment: "установить логотип можно с помощью кнопки",
+								highlightFragment: "set the logo using the button",
 								highlightFragmentIndex: "0",
 							},
 						}),
 						marks: [
-							{ type: "text", text: "...установить " },
-							{ type: "highlight", text: "логотип" },
-							{ type: "text", text: " можно с помощью кнопки..." },
+							{ type: "text", text: "...set the " },
+							{ type: "highlight", text: "logo" },
+							{ type: "text", text: " using the button..." },
 						],
 						openSideEffect: {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "установить логотип можно с помощью кнопки",
+									text: "set the logo using the button",
 									indexInArticle: 0,
 								},
 							},
@@ -172,19 +177,19 @@ describe("SearchRowsModel", () => {
 						url: Url.from({
 							pathname: "release-notes",
 							query: {
-								highlightFragment: "сделать логотип",
+								highlightFragment: "make logo",
 								highlightFragmentIndex: "0",
 							},
 						}),
 						marks: [
-							{ type: "text", text: "...сделать " },
-							{ type: "highlight", text: "логотип" },
+							{ type: "text", text: "...make " },
+							{ type: "highlight", text: "logo" },
 						],
 						openSideEffect: {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "сделать логотип",
+									text: "make logo",
 									indexInArticle: 0,
 								},
 							},
@@ -196,20 +201,20 @@ describe("SearchRowsModel", () => {
 						url: Url.from({
 							pathname: "release-notes",
 							query: {
-								highlightFragment: "показать логотип в заголовке",
+								highlightFragment: "show logo in title",
 								highlightFragmentIndex: "0",
 							},
 						}),
 						marks: [
-							{ type: "text", text: "...показать " },
-							{ type: "highlight", text: "логотип" },
-							{ type: "text", text: " в заголовке..." },
+							{ type: "text", text: "...show " },
+							{ type: "highlight", text: "logo" },
+							{ type: "text", text: " in title..." },
 						],
 						openSideEffect: {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "показать логотип в заголовке",
+									text: "show logo in title",
 									indexInArticle: 0,
 								},
 							},
@@ -221,148 +226,21 @@ describe("SearchRowsModel", () => {
 						url: Url.from({
 							pathname: "release-notes",
 							query: {
-								highlightFragment: "удалить логотип из заголовка",
+								highlightFragment: " remove logo from title",
 								highlightFragmentIndex: "0",
 							},
 						}),
 						marks: [
-							{ type: "text", text: "...удалить " },
-							{ type: "highlight", text: "логотип" },
-							{ type: "text", text: " из заголовка..." },
+							{ type: "text", text: "...remove " },
+							{ type: "highlight", text: "logo" },
+							{ type: "text", text: " from title..." },
 						],
 						openSideEffect: {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "удалить логотип из заголовка",
+									text: " remove logo from title",
 									indexInArticle: 0,
-								},
-							},
-						},
-					},
-				],
-				openSideEffect: {
-					params: {
-						pathname: "release-notes",
-					},
-				},
-			},
-		] satisfies RowSearchResult[]);
-	});
-
-	it("should handle correct paragraph group", () => {
-		const searchData: SearchResult = {
-			type: "article",
-			url: "release-notes",
-			title: [
-				{
-					type: "text",
-					text: "Release Notes",
-				},
-			],
-			properties: [],
-			breadcrumbs: [],
-			isRecommended: false,
-			catalog: {
-				name: "Gramax",
-				title: "Gramax Docs",
-				url: "gramax-docs",
-			},
-			items: [
-				{
-					type: "paragraph",
-					items: [
-						{ type: "text", text: "...установить " },
-						{ type: "highlight", text: "логотип" },
-						{ type: "text", text: " можно с помощью кнопки..." },
-					],
-				},
-				{
-					type: "paragraph_group",
-					paragraphs: [
-						{
-							type: "paragraph",
-							items: [{ type: "text", text: "Логотип" }],
-						},
-						{
-							type: "paragraph",
-							items: [{ type: "text", text: "Логотип" }],
-						},
-					],
-				},
-			],
-		};
-		const result = buildArticleRows([searchData]);
-		expect(result.rows).toEqual([
-			{
-				type: "article",
-				rawResult: searchData,
-				id: "0",
-				url: Url.from({ pathname: "release-notes" }),
-				items: [
-					{
-						type: "link",
-						id: "1",
-						url: Url.from({
-							pathname: "release-notes",
-							query: {
-								highlightFragment: "установить логотип можно с помощью кнопки",
-								highlightFragmentIndex: "0",
-							},
-						}),
-						marks: [
-							{ type: "text", text: "...установить " },
-							{ type: "highlight", text: "логотип" },
-							{ type: "text", text: " можно с помощью кнопки..." },
-						],
-						openSideEffect: {
-							params: {
-								pathname: "release-notes",
-								fragmentInfo: {
-									text: "установить логотип можно с помощью кнопки",
-									indexInArticle: 0,
-								},
-							},
-						},
-					},
-					{
-						type: "link",
-						id: "2",
-						url: Url.from({
-							pathname: "release-notes",
-							query: {
-								highlightFragment: "Логотип",
-								highlightFragmentIndex: "1",
-							},
-						}),
-						marks: [{ type: "text", text: "Логотип" }],
-						openSideEffect: {
-							params: {
-								pathname: "release-notes",
-								fragmentInfo: {
-									text: "Логотип",
-									indexInArticle: 1,
-								},
-							},
-						},
-					},
-					{
-						type: "link",
-						id: "3",
-						url: Url.from({
-							pathname: "release-notes",
-							query: {
-								highlightFragment: "Логотип",
-								highlightFragmentIndex: "1",
-							},
-						}),
-						marks: [{ type: "text", text: "Логотип" }],
-						openSideEffect: {
-							params: {
-								pathname: "release-notes",
-								fragmentInfo: {
-									text: "Логотип",
-									indexInArticle: 1,
 								},
 							},
 						},
@@ -399,31 +277,29 @@ describe("SearchRowsModel", () => {
 				{
 					type: "block",
 					title: [
-						{ type: "text", text: "Л" },
-						{ type: "highlight", text: "оготи" },
-						{ type: "text", text: "п" },
+						{ type: "text", text: "L" },
+						{ type: "highlight", text: "og" },
+						{ type: "text", text: "o" },
 					],
 					items: [
 						{
 							type: "paragraph",
+							searchText: "set the logo using the button",
 							items: [
-								{ type: "text", text: "...установить " },
-								{ type: "highlight", text: "логотип" },
-								{ type: "text", text: " можно с помощью кнопки..." },
+								{ type: "text", text: "...set the " },
+								{ type: "highlight", text: "logo" },
+								{ type: "text", text: " using the button..." },
 							],
 						},
 						{
-							type: "paragraph_group",
-							paragraphs: [
-								{
-									type: "paragraph",
-									items: [{ type: "text", text: "Логотип" }],
-								},
-								{
-									type: "paragraph",
-									items: [{ type: "text", text: "Логотип" }],
-								},
-							],
+							type: "paragraph",
+							searchText: "Logo",
+							items: [{ type: "text", text: "Logo" }],
+						},
+						{
+							type: "paragraph",
+							searchText: "Logo",
+							items: [{ type: "text", text: "Logo" }],
 						},
 					],
 				},
@@ -442,13 +318,13 @@ describe("SearchRowsModel", () => {
 						id: "1",
 						url: Url.from({
 							pathname: "release-notes",
-							query: { highlightFragment: "Логотип", highlightFragmentIndex: "0" },
+							query: { highlightFragment: "Logo", highlightFragmentIndex: "0" },
 						}),
 						openSideEffect: {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "Логотип",
+									text: "Logo",
 									indexInArticle: 0,
 								},
 							},
@@ -457,9 +333,9 @@ describe("SearchRowsModel", () => {
 							{
 								type: "header",
 								title: [
-									{ type: "text", text: "Л" },
-									{ type: "highlight", text: "оготи" },
-									{ type: "text", text: "п" },
+									{ type: "text", text: "L" },
+									{ type: "highlight", text: "og" },
+									{ type: "text", text: "o" },
 								],
 							},
 						],
@@ -470,20 +346,20 @@ describe("SearchRowsModel", () => {
 								url: Url.from({
 									pathname: "release-notes",
 									query: {
-										highlightFragment: "установить логотип можно с помощью кнопки",
+										highlightFragment: "set the logo using the button",
 										highlightFragmentIndex: "0",
 									},
 								}),
 								marks: [
-									{ type: "text", text: "...установить " },
-									{ type: "highlight", text: "логотип" },
-									{ type: "text", text: " можно с помощью кнопки..." },
+									{ type: "text", text: "...set the " },
+									{ type: "highlight", text: "logo" },
+									{ type: "text", text: " using the button..." },
 								],
 								openSideEffect: {
 									params: {
 										pathname: "release-notes",
 										fragmentInfo: {
-											text: "установить логотип можно с помощью кнопки",
+											text: "set the logo using the button",
 											indexInArticle: 0,
 										},
 									},
@@ -495,16 +371,16 @@ describe("SearchRowsModel", () => {
 								url: Url.from({
 									pathname: "release-notes",
 									query: {
-										highlightFragment: "Логотип",
+										highlightFragment: "Logo",
 										highlightFragmentIndex: "2",
 									},
 								}),
-								marks: [{ type: "text", text: "Логотип" }],
+								marks: [{ type: "text", text: "Logo" }],
 								openSideEffect: {
 									params: {
 										pathname: "release-notes",
 										fragmentInfo: {
-											text: "Логотип",
+											text: "Logo",
 											indexInArticle: 2,
 										},
 									},
@@ -516,17 +392,17 @@ describe("SearchRowsModel", () => {
 								url: Url.from({
 									pathname: "release-notes",
 									query: {
-										highlightFragment: "Логотип",
-										highlightFragmentIndex: "2",
+										highlightFragment: "Logo",
+										highlightFragmentIndex: "3",
 									},
 								}),
-								marks: [{ type: "text", text: "Логотип" }],
+								marks: [{ type: "text", text: "Logo" }],
 								openSideEffect: {
 									params: {
 										pathname: "release-notes",
 										fragmentInfo: {
-											text: "Логотип",
-											indexInArticle: 2,
+											text: "Logo",
+											indexInArticle: 3,
 										},
 									},
 								},
@@ -547,33 +423,37 @@ describe("SearchRowsModel", () => {
 		const paragraphs: SearchResultItem[] = [
 			{
 				type: "paragraph",
+				searchText: "set the logo using the button",
 				items: [
-					{ type: "text", text: "...установить " },
-					{ type: "highlight", text: "логотип" },
-					{ type: "text", text: " можно с помощью кнопки..." },
+					{ type: "text", text: "...set the " },
+					{ type: "highlight", text: "logo" },
+					{ type: "text", text: " using the button..." },
 				],
 			},
 			{
 				type: "paragraph",
+				searchText: "make logo",
 				items: [
-					{ type: "text", text: "...сделать " },
-					{ type: "highlight", text: "логотип" },
+					{ type: "text", text: "...make " },
+					{ type: "highlight", text: "logo" },
 				],
 			},
 			{
 				type: "paragraph",
+				searchText: "show logo in title",
 				items: [
-					{ type: "text", text: "...показать " },
-					{ type: "highlight", text: "логотип" },
-					{ type: "text", text: " в заголовке..." },
+					{ type: "text", text: "...show " },
+					{ type: "highlight", text: "logo" },
+					{ type: "text", text: " in title..." },
 				],
 			},
 			{
 				type: "paragraph",
+				searchText: " remove logo from title",
 				items: [
-					{ type: "text", text: "...удалить " },
-					{ type: "highlight", text: "логотип" },
-					{ type: "text", text: " из заголовка..." },
+					{ type: "text", text: "...remove " },
+					{ type: "highlight", text: "logo" },
+					{ type: "text", text: " from title..." },
 				],
 			},
 		];
@@ -599,9 +479,9 @@ describe("SearchRowsModel", () => {
 				{
 					type: "block",
 					title: [
-						{ type: "text", text: "Л" },
-						{ type: "highlight", text: "оготи" },
-						{ type: "text", text: "п" },
+						{ type: "text", text: "L" },
+						{ type: "highlight", text: "og" },
+						{ type: "text", text: "o" },
 					],
 					items: [],
 				},
@@ -614,31 +494,31 @@ describe("SearchRowsModel", () => {
 		expect(rowIdLinkMap.get("1").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
-				query: { highlightFragment: "установить логотип можно с помощью кнопки", highlightFragmentIndex: "0" },
+				query: { highlightFragment: "set the logo using the button", highlightFragmentIndex: "0" },
 			}),
 		);
 		expect(rowIdLinkMap.get("2").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
-				query: { highlightFragment: "сделать логотип", highlightFragmentIndex: "0" },
+				query: { highlightFragment: "make logo", highlightFragmentIndex: "0" },
 			}),
 		);
 		expect(rowIdLinkMap.get("3").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
-				query: { highlightFragment: "показать логотип в заголовке", highlightFragmentIndex: "0" },
+				query: { highlightFragment: "show logo in title", highlightFragmentIndex: "0" },
 			}),
 		);
 		expect(rowIdLinkMap.get("4").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
-				query: { highlightFragment: "удалить логотип из заголовка", highlightFragmentIndex: "0" },
+				query: { highlightFragment: " remove logo from title", highlightFragmentIndex: "0" },
 			}),
 		);
 		expect(rowIdLinkMap.get("5").url).toEqual(
 			Url.from({
 				pathname: "release-notes",
-				query: { highlightFragment: "Логотип", highlightFragmentIndex: "4" },
+				query: { highlightFragment: "Logo", highlightFragmentIndex: "4" },
 			}),
 		);
 	});
@@ -665,10 +545,11 @@ describe("SearchRowsModel", () => {
 				items: [
 					{
 						type: "paragraph",
+						searchText: "set the logo using the button",
 						items: [
-							{ type: "text", text: "...установить " },
-							{ type: "highlight", text: "логотип" },
-							{ type: "text", text: " можно с помощью кнопки..." },
+							{ type: "text", text: "...set the " },
+							{ type: "highlight", text: "logo" },
+							{ type: "text", text: " using the button..." },
 						],
 					},
 				],
@@ -711,20 +592,20 @@ describe("SearchRowsModel", () => {
 						url: Url.from({
 							pathname: "release-notes",
 							query: {
-								highlightFragment: "установить логотип можно с помощью кнопки",
+								highlightFragment: "set the logo using the button",
 								highlightFragmentIndex: "0",
 							},
 						}),
 						marks: [
-							{ type: "text", text: "...установить " },
-							{ type: "highlight", text: "логотип" },
-							{ type: "text", text: " можно с помощью кнопки..." },
+							{ type: "text", text: "...set the " },
+							{ type: "highlight", text: "logo" },
+							{ type: "text", text: " using the button..." },
 						],
 						openSideEffect: {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "установить логотип можно с помощью кнопки",
+									text: "set the logo using the button",
 									indexInArticle: 0,
 								},
 							},
@@ -775,22 +656,23 @@ describe("SearchRowsModel", () => {
 					title: [
 						{
 							type: "text",
-							text: "Фрагмент с файлом",
+							text: "Fragment with file",
 						},
 					],
 					embeddedLinkTitle: [
 						{
 							type: "text",
-							text: "Какой-то файл",
+							text: "Some file",
 						},
 					],
 					items: [
 						{
 							type: "paragraph",
+							searchText: "set the logo using the button",
 							items: [
-								{ type: "text", text: "...установить " },
-								{ type: "highlight", text: "логотип" },
-								{ type: "text", text: " можно с помощью кнопки..." },
+								{ type: "text", text: "...set the " },
+								{ type: "highlight", text: "logo" },
+								{ type: "text", text: " using the button..." },
 							],
 						},
 						{
@@ -798,13 +680,14 @@ describe("SearchRowsModel", () => {
 							title: [
 								{
 									type: "text",
-									text: "Блок внутри файла",
+									text: "Block inside file",
 								},
 							],
 							items: [
 								{
 									type: "paragraph",
-									items: [{ type: "text", text: "Контент" }],
+									searchText: "Content",
+									items: [{ type: "text", text: "Content" }],
 								},
 							],
 						},
@@ -827,14 +710,14 @@ describe("SearchRowsModel", () => {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "Фрагмент с файлом",
+									text: "Fragment with file",
 									indexInArticle: 0,
 								},
 							},
 						},
 						url: Url.from({
 							pathname: "release-notes",
-							query: { highlightFragment: "Фрагмент с файлом", highlightFragmentIndex: "0" },
+							query: { highlightFragment: "Fragment with file", highlightFragmentIndex: "0" },
 						}),
 						breadcrumbs: [
 							{
@@ -843,7 +726,7 @@ describe("SearchRowsModel", () => {
 								fileName: [
 									{
 										type: "text",
-										text: "Какой-то файл",
+										text: "Some file",
 									},
 								],
 							},
@@ -854,18 +737,18 @@ describe("SearchRowsModel", () => {
 								id: "2",
 								url: Url.from({
 									pathname: "release-notes",
-									query: { highlightFragment: "Фрагмент с файлом", highlightFragmentIndex: "0" },
+									query: { highlightFragment: "Fragment with file", highlightFragmentIndex: "0" },
 								}),
 								marks: [
-									{ type: "text", text: "...установить " },
-									{ type: "highlight", text: "логотип" },
-									{ type: "text", text: " можно с помощью кнопки..." },
+									{ type: "text", text: "...set the " },
+									{ type: "highlight", text: "logo" },
+									{ type: "text", text: " using the button..." },
 								],
 								openSideEffect: {
 									params: {
 										pathname: "release-notes",
 										fragmentInfo: {
-											text: "Фрагмент с файлом",
+											text: "Fragment with file",
 											indexInArticle: 0,
 										},
 									},
@@ -880,7 +763,7 @@ describe("SearchRowsModel", () => {
 										title: [
 											{
 												type: "text",
-												text: "Блок внутри файла",
+												text: "Block inside file",
 											},
 										],
 									},
@@ -892,16 +775,16 @@ describe("SearchRowsModel", () => {
 										url: Url.from({
 											pathname: "release-notes",
 											query: {
-												highlightFragment: "Фрагмент с файлом",
+												highlightFragment: "Fragment with file",
 												highlightFragmentIndex: "0",
 											},
 										}),
-										marks: [{ type: "text", text: "Контент" }],
+										marks: [{ type: "text", text: "Content" }],
 										openSideEffect: {
 											params: {
 												pathname: "release-notes",
 												fragmentInfo: {
-													text: "Фрагмент с файлом",
+													text: "Fragment with file",
 													indexInArticle: 0,
 												},
 											},
@@ -912,14 +795,14 @@ describe("SearchRowsModel", () => {
 									params: {
 										pathname: "release-notes",
 										fragmentInfo: {
-											text: "Фрагмент с файлом",
+											text: "Fragment with file",
 											indexInArticle: 0,
 										},
 									},
 								},
 								url: Url.from({
 									pathname: "release-notes",
-									query: { highlightFragment: "Фрагмент с файлом", highlightFragmentIndex: "0" },
+									query: { highlightFragment: "Fragment with file", highlightFragmentIndex: "0" },
 								}),
 							},
 						],
@@ -958,11 +841,11 @@ describe("SearchRowsModel", () => {
 					title: [
 						{
 							type: "text",
-							text: "Глава с ",
+							text: "Chapter with ",
 						},
 						{
 							type: "highlight",
-							text: "файлом",
+							text: "file",
 						},
 					],
 					items: [
@@ -971,25 +854,25 @@ describe("SearchRowsModel", () => {
 							title: [
 								{
 									type: "text",
-									text: "Это текст к которому прикреплен ",
+									text: "text attached to the ",
 								},
 								{
 									type: "highlight",
-									text: "файл",
+									text: "file",
 								},
 							],
 							embeddedLinkTitle: [
 								{
 									type: "text",
-									text: "Это ",
+									text: "This is ",
 								},
 								{
 									type: "highlight",
-									text: "название",
+									text: "name",
 								},
 								{
 									type: "text",
-									text: " самого файла.pdf",
+									text: " of file.pdf",
 								},
 							],
 							items: [
@@ -998,24 +881,25 @@ describe("SearchRowsModel", () => {
 									title: [
 										{
 											type: "text",
-											text: "Это глава ",
+											text: "This is chapter ",
 										},
 										{
 											type: "highlight",
-											text: "внутри файла",
+											text: "inside file",
 										},
 									],
 									items: [
 										{
 											type: "paragraph",
+											searchText: "This is paragraph",
 											items: [
 												{
 													type: "highlight",
-													text: "Это уже сам",
+													text: "This is",
 												},
 												{
 													type: "text",
-													text: " абзац",
+													text: " paragraph",
 												},
 											],
 										},
@@ -1042,7 +926,7 @@ describe("SearchRowsModel", () => {
 							params: {
 								pathname: "release-notes",
 								fragmentInfo: {
-									text: "Это текст к которому прикреплен файл",
+									text: "text attached to the file",
 									indexInArticle: 0,
 								},
 							},
@@ -1050,7 +934,7 @@ describe("SearchRowsModel", () => {
 						url: Url.from({
 							pathname: "release-notes",
 							query: {
-								highlightFragment: "Это текст к которому прикреплен файл",
+								highlightFragment: "text attached to the file",
 								highlightFragmentIndex: "0",
 							},
 						}),
@@ -1060,11 +944,11 @@ describe("SearchRowsModel", () => {
 								title: [
 									{
 										type: "text",
-										text: "Глава с ",
+										text: "Chapter with ",
 									},
 									{
 										type: "highlight",
-										text: "файлом",
+										text: "file",
 									},
 								],
 							},
@@ -1073,25 +957,25 @@ describe("SearchRowsModel", () => {
 								title: [
 									{
 										type: "text",
-										text: "Это текст к которому прикреплен ",
+										text: "text attached to the ",
 									},
 									{
 										type: "highlight",
-										text: "файл",
+										text: "file",
 									},
 								],
 								fileName: [
 									{
 										type: "text",
-										text: "Это ",
+										text: "This is ",
 									},
 									{
 										type: "highlight",
-										text: "название",
+										text: "name",
 									},
 									{
 										type: "text",
-										text: " самого файла.pdf",
+										text: " of file.pdf",
 									},
 								],
 							},
@@ -1100,11 +984,11 @@ describe("SearchRowsModel", () => {
 								title: [
 									{
 										type: "text",
-										text: "Это глава ",
+										text: "This is chapter ",
 									},
 									{
 										type: "highlight",
-										text: "внутри файла",
+										text: "inside file",
 									},
 								],
 							},
@@ -1116,19 +1000,19 @@ describe("SearchRowsModel", () => {
 								url: Url.from({
 									pathname: "release-notes",
 									query: {
-										highlightFragment: "Это текст к которому прикреплен файл",
+										highlightFragment: "text attached to the file",
 										highlightFragmentIndex: "0",
 									},
 								}),
 								marks: [
-									{ type: "highlight", text: "Это уже сам" },
-									{ type: "text", text: " абзац" },
+									{ type: "highlight", text: "This is" },
+									{ type: "text", text: " paragraph" },
 								],
 								openSideEffect: {
 									params: {
 										pathname: "release-notes",
 										fragmentInfo: {
-											text: "Это текст к которому прикреплен файл",
+											text: "text attached to the file",
 											indexInArticle: 0,
 										},
 									},

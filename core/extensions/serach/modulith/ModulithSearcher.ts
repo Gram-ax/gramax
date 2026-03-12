@@ -1,5 +1,7 @@
-import { ModulithService, SearchBatchArgs } from "@ext/serach/modulith/ModulithService";
-import Searcher, {
+import type { ModulithService, SearchBatchArgs } from "@ext/serach/modulith/ModulithService";
+import type Searcher from "@ext/serach/Searcher";
+import type {
+	ProgressArgs,
 	SearchAllArgs,
 	SearchArgs,
 	SearcherProgressGenerator,
@@ -10,21 +12,19 @@ import Searcher, {
 export class ModulithSearcher implements Searcher {
 	constructor(private readonly _service: ModulithService) {}
 
-	progress(): SearcherProgressGenerator {
-		return this._service.progress();
+	progress(args: ProgressArgs): SearcherProgressGenerator {
+		return this._service.progress(args);
 	}
 
-	updateIndex({ force, catalogName }: UpdateIndexArgs): SearcherProgressGenerator {
-		return this._service.updateIndex({
-			force,
-			catalogName,
-		});
+	async updateIndex({ force, catalogName }: UpdateIndexArgs): Promise<void> {
+		return await this._service.updateIndex({ force, catalogName });
 	}
 
 	async searchAll({
 		query,
 		catalogToArticleIds,
 		propertyFilter,
+		resourceFilter,
 		articlesLanguage,
 	}: SearchAllArgs): Promise<SearchResult[]> {
 		const catalogNames = [];
@@ -42,6 +42,7 @@ export class ModulithSearcher implements Searcher {
 							query,
 							catalogNames,
 							propertyFilter,
+							resourceFilter,
 							articlesLanguage,
 						},
 					],
@@ -58,6 +59,7 @@ export class ModulithSearcher implements Searcher {
 		catalogName,
 		articleIds,
 		propertyFilter,
+		resourceFilter,
 		articlesLanguage,
 	}: SearchArgs): Promise<SearchResult[]> {
 		return (
@@ -68,6 +70,7 @@ export class ModulithSearcher implements Searcher {
 							query,
 							catalogNames: [catalogName],
 							propertyFilter,
+							resourceFilter,
 							articlesLanguage,
 						},
 					],
@@ -95,6 +98,7 @@ export class ModulithSearcher implements Searcher {
 
 					return {
 						type: "article",
+						refPath: x.refPath,
 						isRecommended: x.isRecommended,
 						catalog: x.catalog,
 						title: x.title,

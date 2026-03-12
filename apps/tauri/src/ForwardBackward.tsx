@@ -1,12 +1,18 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { IconButton } from "@ui-kit/Button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useEffect, useState } from "react";
-import { historyBackForwardCanGo, historyBackForwardGo } from "./window/commands";
+
+interface HistoryButtonProps {
+	canGo: boolean;
+	icon: string;
+	tooltipText: string;
+	onClick: () => void;
+}
 
 const isMacOsDesktop = getExecutingEnvironment() === "tauri" && navigator.userAgent.includes("Mac");
 
@@ -36,19 +42,23 @@ const Wrapper = styled.div<{ leftPad?: number; fixedPad?: boolean }>`
 	}
 `;
 
-const OpacityIcon = styled(Icon)<{ disabled?: boolean }>`
-	color: var(--color-primary);
-
-	cursor: pointer;
-	opacity: 0.5;
-
-	${({ disabled }) =>
-		disabled &&
-		css`
-			opacity: 0.2;
-			cursor: unset;
-		`}
-`;
+const HistoryButton = ({ canGo, icon, tooltipText, onClick }: HistoryButtonProps) => {
+	return (
+		<Tooltip>
+			<TooltipTrigger asChild>
+				<IconButton
+					className="h-auto p-0"
+					disabled={!canGo}
+					icon={icon}
+					onClick={onClick}
+					size="sm"
+					variant="text"
+				/>
+			</TooltipTrigger>
+			<TooltipContent>{tooltipText}</TooltipContent>
+		</Tooltip>
+	);
+};
 
 const ForwardBackward = () => {
 	if (!isMacOsDesktop) return null;
@@ -66,26 +76,55 @@ const ForwardBackward = () => {
 		};
 	}, []);
 
-	window.onNavigate = useCallback(async (path: string) => {
-		const [canGoBack, canGoForward] = await historyBackForwardCanGo();
-		setCanGoBack(canGoBack);
-		setCanGoForward(canGoForward);
+	const updateCanGo = useCallback(() => {
+		const nav =
+			"navigation" in window
+				? (window as Window & { navigation?: { canGoBack: boolean; canGoForward: boolean } }).navigation
+				: undefined;
+		if (nav) {
+			setCanGoBack(nav.canGoBack);
+			setCanGoForward(nav.canGoForward);
+		} else {
+			setCanGoBack(true);
+			setCanGoForward(false);
+		}
 	}, []);
 
-	const navigate = useCallback(async (direction: "forward" | "backward") => {
-		if (direction === "backward") await historyBackForwardGo(false);
-		if (direction === "forward") await historyBackForwardGo(true);
+	window.onNavigate = useCallback(
+		(_path: string) => {
+			updateCanGo();
+		},
+		[updateCanGo],
+	);
+
+	useEffect(() => {
+		updateCanGo();
+		window.addEventListener("popstate", updateCanGo);
+		return () => window.removeEventListener("popstate", updateCanGo);
+	}, [updateCanGo]);
+
+	const navigate = useCallback((direction: "forward" | "backward") => {
+		if (direction === "backward") history.back();
+		if (direction === "forward") history.forward();
 	}, []);
 
 	return (
-		<Wrapper fixedPad leftPad={isFullscreen ? 0.7 : 5.3}>
-			<Tooltip content={t("backward")}>
-				<OpacityIcon code="arrow-left" disabled={!canGoBack} onClick={() => navigate("backward")} />
-			</Tooltip>
-			<Tooltip content={t("forward")}>
-				<OpacityIcon code="arrow-right" disabled={!canGoForward} onClick={() => navigate("forward")} />
-			</Tooltip>
-		</Wrapper>
+		<TooltipProvider>
+			<Wrapper fixedPad leftPad={isFullscreen ? 0.7 : 5.3}>
+				<HistoryButton
+					canGo={canGoBack}
+					icon="arrow-left"
+					onClick={() => navigate("backward")}
+					tooltipText={t("backward")}
+				/>
+				<HistoryButton
+					canGo={canGoForward}
+					icon="arrow-right"
+					onClick={() => navigate("forward")}
+					tooltipText={t("forward")}
+				/>
+			</Wrapper>
+		</TooltipProvider>
 	);
 };
 

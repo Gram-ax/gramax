@@ -1,13 +1,13 @@
 import Image from "@components/Atoms/Image/Image";
 import Skeleton from "@components/Atoms/ImageSkeleton";
+import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import { forwardRef, MutableRefObject, ReactElement, useLayoutEffect, useRef, useState } from "react";
+import { forwardRef, type MutableRefObject, type ReactElement, useLayoutEffect, useRef, useState } from "react";
 
 interface DrawioProps {
 	id: string;
@@ -24,7 +24,6 @@ interface DrawioProps {
 
 const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageElement>): ReactElement => {
 	const { id, src, title, width, height, className, openEditor, noEm, commentId, isPrint } = props;
-	const { useGetResource } = ResourceService.value;
 
 	const ref = refT || useRef<HTMLImageElement>(null);
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -44,6 +43,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 		setIsLoaded(true);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: ref.current is always defined
 	useLayoutEffect(() => {
 		if (!width?.endsWith("px")) return;
 		const parentWidth = parentRef.current?.clientWidth;
@@ -52,7 +52,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 		const newSize = getAdjustedSize(parseFloat(width), parseFloat(height), parentWidth);
 		const computedStyle = window.getComputedStyle(ref.current.parentElement);
 		const offset = parseFloat(computedStyle.marginTop) + parseFloat(computedStyle.paddingTop);
-		setSize({ width: newSize.width + "px", height: newSize.height + offset + "px" });
+		setSize({ width: `${newSize.width}px`, height: `${newSize.height + offset}px` });
 	}, [width, height]);
 
 	useGetResource(
@@ -62,7 +62,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 			}
 			if (!buffer || !buffer.byteLength) return setIsError(true);
 			setIsLoaded(false);
-			setSrc(new Blob([buffer], { type: resolveFileKind(buffer) }));
+			setSrc(new Blob([buffer as BlobPart], { type: resolveFileKind(buffer) }));
 		},
 		src,
 		undefined,
@@ -74,7 +74,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 		return <DiagramError diagramName="diagrams.net" error={{ message: t("diagram.error.cannot-get-data") }} />;
 
 	return (
-		<div data-qa="qa-drawio" ref={parentRef}>
+		<div data-qa="qa-drawio" data-testid="drawio" ref={parentRef}>
 			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
 				<Skeleton height={size?.height} isLoaded={isLoaded} width="100%">
 					<div className={className} data-focusable="true">

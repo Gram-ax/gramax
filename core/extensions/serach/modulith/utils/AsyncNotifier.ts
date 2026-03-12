@@ -8,9 +8,17 @@ export class AsyncNotifier {
 		}
 	}
 
-	waitNext(): Promise<void> {
+	waitNext(timeout?: number): Promise<void> {
 		return new Promise((resolve) => {
-			this.resolveNext = resolve;
+			const timeoutId = timeout
+				? setTimeout(() => {
+						resolve();
+					}, timeout)
+				: undefined;
+			this.resolveNext = () => {
+				clearTimeout(timeoutId);
+				resolve();
+			};
 		});
 	}
 }

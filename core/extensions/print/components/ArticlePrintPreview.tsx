@@ -1,11 +1,11 @@
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorProvider from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import { ArticlePreview } from "@ext/print/types";
-import { ReactNode } from "react";
+import type { ArticlePreview } from "@ext/print/types";
+import type { ReactNode } from "react";
 
 const ArticleServices = ({
 	apiUrlCreator,
@@ -18,17 +18,18 @@ const ArticleServices = ({
 }) => {
 	return (
 		<ApiUrlCreatorProvider.Provider value={apiUrlCreator}>
-			<ResourceService.Provider>
-				<ArticlePropsService.Provider value={articleProps}>
+			<ArticlePropsService.Provider value={articleProps}>
+				<ResourceService.Provider>
 					<>{children}</>
-				</ArticlePropsService.Provider>
-			</ResourceService.Provider>
+				</ResourceService.Provider>
+			</ArticlePropsService.Provider>
 		</ApiUrlCreatorProvider.Provider>
 	);
 };
 
 type ArticlePrintPreviewProps = {
 	item: ArticlePreview;
+	// biome-ignore lint/suspicious/noExplicitAny: it's ok
 	components: Record<string, (...props: any) => ReactNode>;
 	onRender?: VoidFunction;
 };

@@ -30,7 +30,7 @@ FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/node:2
 WORKDIR /app
 
 RUN apt-get update && apt-get upgrade -y && \
-  apt-get install -y git bash fontconfig && \
+  apt-get install -y --no-install-recommends git bash fontconfig ca-certificates && \
   apt-get clean && \
   rm -rf /var/lib/apt/lists/*
 

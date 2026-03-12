@@ -9,7 +9,7 @@ use tracing_subscriber::EnvFilter;
 
 pub use rstest::fixture;
 pub use rstest::rstest;
-pub use tempdir::TempDir;
+pub use tempfile::TempDir;
 
 pub use tracing::*;
 
@@ -35,5 +35,5 @@ pub fn sandbox() -> TempDir {
 
 	let path = Path::new(&std::env::temp_dir()).join("testing");
 	std::fs::create_dir_all(&path).unwrap();
-	TempDir::new_in(path, "tmp").unwrap()
+	tempfile::Builder::new().prefix("tmp").tempdir_in(path).unwrap()
 }

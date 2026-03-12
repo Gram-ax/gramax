@@ -1,13 +1,8 @@
-import { AiServerConfig } from "@ext/ai/models/types";
+import type { AiServerConfig } from "@ext/ai/models/types";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
-import { PluginConfig } from "@plugins/types";
-
-export enum AuthMethod {
-	SSO = "sso",
-	GUEST_MAIL = "guest_mail",
-}
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import type { PluginConfig } from "@plugins/types";
 
 type SVG = string;
 
@@ -36,8 +31,6 @@ export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
 	plugins?: PluginConfig[];
 	wordTemplates?: ExportTemplate[];
 	pdfTemplates?: ExportTemplate[];
-	/** @deprecated use modules.guests instead */
-	authMethods?: AuthMethod[];
 }
 
 interface UserSettings {

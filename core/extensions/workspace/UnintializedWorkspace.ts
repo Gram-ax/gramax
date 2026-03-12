@@ -4,6 +4,7 @@ import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import FileStructure from "@core/FileStructue/FileStructure";
 import type Repository from "@ext/git/core/Repository/Repository";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type { ToSpan } from "@ext/loggers/opentelemetry";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 export type UnintializedWorkspaceProps = {
@@ -16,7 +17,7 @@ export type CatalogSummary = {
 	name: string;
 } & Pick<CatalogProps, "title">;
 
-export default class UnintializedWorkspace {
+export default class UnintializedWorkspace implements ToSpan {
 	private _repos: Map<string, Repository> = new Map();
 
 	constructor(
@@ -73,5 +74,12 @@ export default class UnintializedWorkspace {
 
 		const sourceName = await repo?.storage?.getSourceName?.();
 		return this._rp.getSourceData(ctx, sourceName, this._path);
+	}
+
+	toSpan() {
+		return {
+			path: this._path,
+			repo: Array.from(this._repos.values()),
+		};
 	}
 }

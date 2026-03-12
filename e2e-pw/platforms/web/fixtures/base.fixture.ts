@@ -40,7 +40,11 @@ export const baseTest = test.extend<TestBaseFixture, WorkerBaseFixture>({
 
 	sharedContext: [
 		async ({ browser }, use) => {
-			const context = await browser.newContext();
+			const context = await browser.newContext({
+				locale: "en-US",
+				acceptDownloads: true,
+				permissions: ["clipboard-read", "clipboard-write"],
+			});
 			await use(context);
 			await context.close();
 		},

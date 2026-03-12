@@ -102,7 +102,7 @@ impl ToTokens for BindingFn {
 		} = self;
 
 		let args_fields = args.iter().map(|(ident, ty)| quote! { #ident: #ty }).collect::<Vec<_>>();
-		let args = args.iter().map(|(ident, _)| ident).collect::<Vec<_>>();
+		let args_idents = args.iter().map(|(ident, _)| ident).collect::<Vec<_>>();
 
 		let pascal_case_fn_name = fn_name.to_string().from_case(Case::Snake).to_case(Case::Pascal);
 		let args_struct_name = format_ident!("{}Args", pascal_case_fn_name);
@@ -111,7 +111,11 @@ impl ToTokens for BindingFn {
 			#[derive(serde::Deserialize)]
 			#[serde(rename_all = "camelCase")]
 			struct #args_struct_name {
-				#(#args_fields),*
+				#(#args_fields,)*
+				#[serde(default)]
+				span_id: Option<String>,
+				#[serde(default)]
+				trace_id: Option<String>,
 			}
 		};
 
@@ -147,12 +151,13 @@ impl ToTokens for BindingFn {
 			},
 		};
 
+		let args = &args_idents;
+
 		*tokens = quote! {
 			#args_struct
 
 			#[no_mangle]
 			unsafe extern "C" fn #fn_name(len: usize, ptr: *const u8) -> crate::threading::JobCallbackId {
-
 				let send_ptr = ptr as usize;
 
 				crate::threading::run(move || {
@@ -160,8 +165,10 @@ impl ToTokens for BindingFn {
 					let raw_data = Vec::from_raw_parts(ptr, len, len);
 					match serde_json::from_slice::<#args_struct_name>(&raw_data) {
 						Ok(args) => {
-							let #args_struct_name { #(#args),* } = args;
+							let #args_struct_name { #(#args,)* span_id, trace_id } = args;
+							let _otel_guard = crate::opentelemetry::setup_remote_context(span_id.as_deref(), trace_id.as_deref());
 							let res: #return_type = #fn_body;
+							crate::opentelemetry::flush_spans();
 							#ret
 						},
 						Err(err) => {

@@ -2,8 +2,6 @@ use gramaxgit::creds::Creds;
 use gramaxgit::creds::DummyCreds;
 use gramaxgit::prelude::*;
 
-use tempdir::*;
-
 use std::fs;
 
 use test_utils::git::*;

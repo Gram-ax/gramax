@@ -1,10 +1,10 @@
-import Tooltip from "@components/Atoms/Tooltip";
 import UserCircle from "@components/Atoms/UserCircle";
 import styled from "@emotion/styled";
 import { Accent } from "@ext/git/core/GitMergeRequest/components/Elements";
 import type { Signature } from "@ext/git/core/model/Signature";
 import t from "@ext/localization/locale/translate";
 import VersionControlCommentCount from "@ext/markdown/elements/comment/edit/components/CommentCount";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
 const Comments = styled(VersionControlCommentCount)`
 	margin-left: 0;
@@ -30,12 +30,15 @@ const Author = ({ author, comments, you }: { author: Signature; comments?: numbe
 
 	return (
 		<Inline>
-			<Tooltip content={author.email || "unknown"} interactive>
-				<Inline>
-					<Avatar name={author.name || author.email || "Unknown"} />
-					<Accent bold>{author.name || author.email || "Unknown"}</Accent>
-					{you && <span>({t("git.merge-requests.you")})</span>}
-				</Inline>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Inline>
+						<Avatar name={author.name || author.email || "Unknown"} />
+						<Accent bold>{author.name || author.email || "Unknown"}</Accent>
+						{you && <span>({t("git.merge-requests.you")})</span>}
+					</Inline>
+				</TooltipTrigger>
+				<TooltipContent>{author.email}</TooltipContent>
 			</Tooltip>
 			<Comments count={comments} />
 		</Inline>

@@ -5,9 +5,10 @@ use crate::error::ShowError;
 use crate::platform::desktop::menu::MenuBuilder;
 use crate::shared::MainWindowBuilder;
 use tauri::*;
+use tauri_otel_context::OtelContext;
 
 #[command]
-pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: WebviewWindow<R>) -> Result<()> {
+pub fn close_current_window<R: Runtime>(_otel: OtelContext, app: AppHandle<R>, window: WebviewWindow<R>) -> Result<()> {
 	let url = window.url()?;
 	let query = url.query();
 	app.emit_to(window.label(), "on_window_close", query)?;
@@ -16,7 +17,7 @@ pub fn close_current_window<R: Runtime>(app: AppHandle<R>, window: WebviewWindow
 }
 
 #[command]
-pub fn new_window<R: Runtime>(app: AppHandle<R>) -> Result<()> {
+pub fn new_window<R: Runtime>(_otel: OtelContext, app: AppHandle<R>) -> Result<()> {
 	std::thread::spawn(move || {
 		MainWindowBuilder::default()
 			.build(&app)
@@ -27,18 +28,18 @@ pub fn new_window<R: Runtime>(app: AppHandle<R>) -> Result<()> {
 }
 
 #[command]
-pub fn minimize_window<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
+pub fn minimize_window<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>) -> Result<()> {
 	window.minimize()?;
 	Ok(())
 }
 
 #[command(async)]
-pub fn open_directory() -> Option<PathBuf> {
+pub fn open_directory(_otel: OtelContext) -> Option<PathBuf> {
 	rfd::FileDialog::new().pick_folder()
 }
 
 #[command]
-pub fn open_in_explorer(path: &Path) -> Result<()> {
+pub fn open_in_explorer(_otel: OtelContext, path: &Path) -> Result<()> {
 	if plugin_gramax_git::utils::is_lfs_pointer(path)? {
 		return Err(anyhow::anyhow!("lfs-pointer").into());
 	}
@@ -49,12 +50,12 @@ pub fn open_in_explorer(path: &Path) -> Result<()> {
 
 #[cfg(target_os = "macos")]
 #[command]
-pub fn show_print<R: Runtime>(window: WebviewWindow<R>) -> Result<()> {
+pub fn show_print<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>) -> Result<()> {
 	window.print()
 }
 
 #[command]
-pub fn set_language<R: Runtime>(app: AppHandle<R>, language: &str) -> Result<()> {
+pub fn set_language<R: Runtime>(_otel: OtelContext, app: AppHandle<R>, language: &str) -> Result<()> {
 	if !["ru", "en"].contains(&language) {
 		let err = anyhow::anyhow!("invalid language provided; available `ru`, `en` but got: `{}`", language);
 		return Err(err.into());
@@ -77,28 +78,28 @@ pub fn set_language<R: Runtime>(app: AppHandle<R>, language: &str) -> Result<()>
 }
 
 #[command(async)]
-pub fn open_window_with_url<R: Runtime>(app: AppHandle<R>, url: Url) -> Result<()> {
+pub fn open_window_with_url<R: Runtime>(_otel: OtelContext, app: AppHandle<R>, url: Url) -> Result<()> {
 	MainWindowBuilder::default().url(url.path()).build(&app)?;
 	Ok(())
 }
 
 #[cfg(any(target_os = "macos", target_os = "linux"))]
 #[command]
-pub fn set_badge<R: Runtime>(window: WebviewWindow<R>, count: Option<i64>) -> Result<()> {
+pub fn set_badge<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>, count: Option<i64>) -> Result<()> {
 	window.set_badge_count(count)?;
 	Ok(())
 }
 
 #[cfg(target_os = "windows")]
 #[command]
-pub fn set_badge<R: Runtime>(window: WebviewWindow<R>, count: Option<usize>) -> Result<()> {
+pub fn set_badge<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>, count: Option<usize>) -> Result<()> {
 	super::init::Badges::set_badge(&window, count)?;
 	Ok(())
 }
 
 #[cfg(target_os = "macos")]
 #[command]
-pub fn history_back_forward_go<R: Runtime>(window: WebviewWindow<R>, forward: bool) -> Result<()> {
+pub fn history_back_forward_go<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>, forward: bool) -> Result<()> {
 	window.with_webview(move |webview| unsafe {
 		let webview: &objc2_web_kit::WKWebView = &*webview.inner().cast();
 		if forward {
@@ -112,7 +113,8 @@ pub fn history_back_forward_go<R: Runtime>(window: WebviewWindow<R>, forward: bo
 
 #[cfg(target_os = "macos")]
 #[command]
-pub async fn history_back_forward_can_go<R: Runtime>(window: WebviewWindow<R>) -> Result<(bool, bool)> {
+pub async fn history_back_forward_can_go<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>) -> Result<(bool, bool)> {
+	drop(_otel);
 	let (sender, receiver) = tokio::sync::oneshot::channel();
 
 	window.with_webview(move |webview| unsafe {
@@ -124,7 +126,7 @@ pub async fn history_back_forward_can_go<R: Runtime>(window: WebviewWindow<R>) -
 }
 
 #[command]
-pub fn move_to_trash<R: Runtime>(window: Window<R>, path: &Path) -> std::result::Result<(), String> {
+pub fn move_to_trash<R: Runtime>(_otel: OtelContext, window: Window<R>, path: &Path) -> std::result::Result<(), String> {
 	use std::sync::OnceLock;
 	use tauri_plugin_dialog::DialogExt;
 	use tauri_plugin_dialog::MessageDialogButtons;

@@ -12,9 +12,10 @@ import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { useCallback, useMemo } from "react";
 
 export const getGesSignInUrl = (gesUrl: string, isBrowser: boolean) => {
-	const from = encodeURIComponent(isBrowser ? window.location.href : `http://localhost:52054`);
-	const redirect = encodeURIComponent(`${gesUrl}/enterprise/sso/assert`);
-	const url = `${gesUrl}/sso/login?redirect=${redirect}&from=${from}`;
+	const redirect = encodeURIComponent(
+		isBrowser ? (typeof window !== "undefined" ? window.location.href : "") : `http://localhost:52054`,
+	);
+	const url = `${gesUrl}/sso/login?redirect=${redirect}&from=${redirect}`;
 	return url;
 };
 
@@ -47,6 +48,7 @@ type UseEnterpriseSignInParams = {
 const useEnterpriseSignIn = ({ gesUrl, isBrowser, isTauri, apiUrlCreator, router }: UseEnterpriseSignInParams) => {
 	const { enterpriseWorkspace, switchWorkspace } = useEnterpriseWorkspaceSwitch(gesUrl);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	return useCallback(async () => {
 		if (enterpriseWorkspace && isTauri) {
 			try {

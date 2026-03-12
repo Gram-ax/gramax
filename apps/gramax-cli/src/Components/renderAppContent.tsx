@@ -1,5 +1,5 @@
-import PageDataContext from "@core/Context/PageDataContext";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import createEmotionCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import ReactDOMServer from "react-dom/server";
@@ -26,10 +26,7 @@ export const renderAppContent = (data: ArticlePageData, context: PageDataContext
 			<Router base="./" ssrPath={data.articleProps.logicPath}>
 				<Gramax
 					data={{
-						data: {
-							articleContentEdit: "",
-							...data,
-						},
+						data,
 						context,
 						path: data.articleProps.logicPath,
 					}}

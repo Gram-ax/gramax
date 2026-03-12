@@ -12,6 +12,10 @@ const getArticlePageData: Command<
 	{ path: string[]; pathname: string; ctx: Context },
 	{ data: ArticlePageData; openGraphData: OpenGraphData; context: PageDataContext }
 > = Command.create({
+	path: "page/getArticlePageData",
+
+	flags: ["otel-omit-result"],
+
 	async do({ path, pathname, ctx }) {
 		const { wm, customArticlePresenter, logger, sitePresenterFactory } = this._app;
 

@@ -1,6 +1,6 @@
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { Editor } from "@tiptap/core";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
+import type { Editor } from "@tiptap/core";
 import OpenApiData from "./OpenApiData";
 
 const createOpenApi = async (

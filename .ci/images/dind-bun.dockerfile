@@ -1,10 +1,11 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 
 FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:28.5.1-dind
- 
-RUN apk add git curl bash libstdc++ libgcc gcompat
+
+RUN apk add --no-cache git curl bash libstdc++ libgcc gcompat && \
+	curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
 ENV PATH="/root/.bun/bin:${PATH}"
 
 RUN curl -fsSL https://bun.com/install | bash && \
-    bun --version
+	bun --version

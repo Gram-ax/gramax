@@ -1,165 +1,398 @@
-import useCheck from "@core-ui/hooks/useCheck";
+import styled from "@emotion/styled";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
 import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
 import { StyleGuideComponentImportButton } from "@ext/enterprise/components/admin/settings/styleGuide/components/StyleGuideComponentImportButton";
 import { StyleGuideComponentSaveButton } from "@ext/enterprise/components/admin/settings/styleGuide/components/StyleGuideComponentSaveButton";
+import {
+	DEFAULT_SYSTEM_PROMPT,
+	StyleGuidePromptModal,
+} from "@ext/enterprise/components/admin/settings/styleGuide/components/StyleGuidePromptModal";
+import { TestSection } from "@ext/enterprise/components/admin/settings/styleGuide/components/StyleGuideTestSection";
+import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
+import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
+import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
-import { Card, CardSubTitle, CardTitle } from "@ui-kit/Card";
-import { PageState, PageStateButtonGroup, PageStateDescription, PageStateTitle } from "@ui-kit/PageState";
-import {
-	Sidebar,
-	SidebarContent,
-	SidebarGroup,
-	SidebarGroupContent,
-	SidebarMenu,
-	SidebarMenuButton,
-	SidebarMenuItem,
-	SidebarProvider,
-} from "@ui-kit/Sidebar";
+import { Card } from "@ui-kit/Card";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { Loader } from "@ui-kit/Loader";
+import { PageState, PageStateDescription } from "@ui-kit/PageState";
+import { SidebarProvider } from "@ui-kit/Sidebar";
 import { SwitchField } from "@ui-kit/Switch";
-import { AutogrowTextarea } from "@ui-kit/Textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useCallback, useEffect, useState } from "react";
-import { FloatingAlert } from "../../ui-kit/FloatingAlert";
-import { Spinner } from "../../ui-kit/Spinner";
-import { TabErrorBlock } from "../../ui-kit/TabErrorBlock";
-import { TabInitialLoader } from "../../ui-kit/TabInitialLoader";
+import { Ban, FastForward, LoaderCircle, MoreVertical } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import StyleGuideEditor from "./components/StyleGuideEditor";
+import { StyleGuideSidebar } from "./components/StyleGuideSidebar";
+import { createHandlers } from "./hooks/createHandlers";
+import { useActiveRule } from "./hooks/useActiveRule";
+import { useRuleStorage } from "./hooks/useRuleStorage";
+import { useTestManager } from "./hooks/useTestManager";
 
-type ForType = "heading" | "codeBlock" | "plainText";
+export type ForType = "heading" | "plainText";
+export type ForTypeObject = { code: ForType };
+
+export type ExampleRunResult = {
+	result: { suggestions: { text: string; id: number }[] };
+	statusCode: "success" | "failed";
+	dateTimeIso8601: string;
+};
+
+export type RuleExample = {
+	isCorrect: boolean;
+	text: string;
+	runResult?: ExampleRunResult;
+};
+
+export type LgtRule = {
+	guid: string;
+	xml: string;
+	forTypes?: ForTypeObject[];
+	enabled?: boolean;
+	testCases?: RuleExample[];
+};
+
+export type LlmRule = {
+	guid: string;
+	name: string;
+	llmPrompt: string;
+	enabled?: boolean;
+	testCases?: RuleExample[];
+	forTypes?: ForTypeObject[];
+};
 
 export type StyleGuideSettings = {
 	enabled: boolean;
-	lgt: { rules: { xml: string; forTypes: ForType[] }[] };
+	lgt: { rules: LgtRule[] };
+	llm?: { rules: LlmRule[] };
+	systemPrompt?: { text: string };
 };
 
-const getTitle = (xml?: string) => {
-	const nameRegex =
-		/<(?:rule|rulegroup)(?:\s+[^>]*?)?(?:\s+name="([^"]*)"|\s+id="[^"]*"\s+name="([^"]*)"|\s+name="([^"]*)"\s+id="[^"]*")(?:\s+[^>]*?)?>/;
-	const match = (xml ?? "").match(nameRegex);
-	if (match) return match[1] || match[2] || match[3] || "";
-	return "";
-};
+export function generateGuid(): string {
+	const S4 = () => (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+	return `${S4()}${S4()}-4${S4().substring(0, 3)}-${S4()}-${S4()}${S4()}${S4()}`.toLowerCase();
+}
 
-const FOR_TYPE_NAMES: Record<ForType, string> = {
-	heading: "Заголовки",
-	codeBlock: "Блоки кода",
-	plainText: "Простой текст",
-};
-const getForTypeName = (forType: ForType) => {
-	if (!FOR_TYPE_NAMES[forType]) return "";
-	return FOR_TYPE_NAMES[forType];
-};
+const useCheck = (original, current) => {
+	return useMemo(() => {
+		const checkSettings = JSON.stringify(original);
+		const localSettings = JSON.stringify(current);
+		return checkSettings === localSettings;
+	}, [original, current]);
+}; //TODO_RM: change it to a flag that will always show that something is chmaged if form field was changed
 
-const StyleGuideComponent = () => {
+const StyleGuideComponent = ({ className }: { className?: string }) => {
 	const {
 		settings,
 		updateStyleGuide,
+		checkStyleGuide,
 		ensureStyleGuideLoaded,
 		isInitialLoading,
 		isRefreshing,
 		getTabError,
+		clearTabError,
 		healthcheckStyleGuide,
 	} = useSettings();
+
 	const checkSettings = settings?.styleGuide;
 	const [localSettings, setLocalSettings] = useState<StyleGuideSettings>({
 		enabled: false,
 		lgt: { rules: [] },
+		llm: { rules: [] },
 	});
-	const [currentIndex, setCurrentIndex] = useState(0);
+
+	const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
 	const [isSaving, setIsSaving] = useState(false);
-	const [saveError, setSaveError] = useState<string | null>(null);
-	const [isHealthy, setIsHealthy] = useState(null);
+	const [runningTests, setRunningTests] = useState<Set<string>>(new Set());
+	const [isRunningAllTests, setIsRunningAllTests] = useState(false);
+	const [isEnabling, setIsEnabling] = useState(false);
+	const [isRetrying, setIsRetrying] = useState(false);
+	const [runtimeError, setRuntimeError] = useState<string | null>(null);
+	const [hasAttemptedDisable, setHasAttemptedDisable] = useState(false);
 	const isEqual = useCheck(checkSettings, localSettings);
-	const { isScrolled } = useScrollShadow();
+	const hasUnsavedChanges = !isEqual;
+	const isUiLocked = isInitialLoading("styleGuide") || isRefreshing("styleGuide") || isSaving || isEnabling;
+
+	const activeRule = useActiveRule();
+	const ruleStorage = useRuleStorage(activeRule, localSettings, setLocalSettings);
+	const testManager = useTestManager(
+		localSettings,
+		setLocalSettings,
+		checkStyleGuide,
+		setRunningTests,
+		setIsRunningAllTests,
+	);
+
+	const isAnyTestRunning = runningTests.size > 0 || isRunningAllTests;
+
+	const handlers = createHandlers(activeRule, ruleStorage, testManager);
 
 	useEffect(() => {
 		setLocalSettings(checkSettings || { enabled: false, lgt: { rules: [] } });
 	}, [checkSettings]);
 
 	useEffect(() => {
-		if (!localSettings?.lgt?.rules?.length || !isEqual) return;
-		void healthcheckStyleGuide().then((res) => setIsHealthy(res));
-	}, [localSettings?.lgt?.rules?.length, isEqual]);
+		const runHealthcheck = async () => {
+			try {
+				const result = await healthcheckStyleGuide();
+				setIsHealthy(result);
+				if (!result && checkSettings?.enabled && !hasAttemptedDisable) {
+					setHasAttemptedDisable(true);
+					try {
+						await updateStyleGuide({ ...checkSettings, enabled: false });
+					} catch (e) {
+						console.error("Failed to disable module:", e);
+						setRuntimeError(
+							"Возникла проблема при подключении к сервису, обратитесь в техническую поддержку",
+						);
+					}
+				}
+			} catch {
+				setIsHealthy(false);
+				if (checkSettings?.enabled && !hasAttemptedDisable) {
+					setHasAttemptedDisable(true);
+					try {
+						await updateStyleGuide({ ...checkSettings, enabled: false });
+					} catch (e) {
+						console.error("Failed to disable module:", e);
+						setRuntimeError(
+							"Возникла проблема при подключении к сервису, обратитесь в техническую поддержку",
+						);
+					}
+				}
+			}
+		};
+		runHealthcheck();
+	}, [healthcheckStyleGuide, hasAttemptedDisable, checkSettings, updateStyleGuide]);
+
+	const handleRetry = useCallback(async () => {
+		setIsRetrying(true);
+		setRuntimeError(null);
+		setHasAttemptedDisable(false);
+
+		try {
+			const result = await healthcheckStyleGuide();
+			setIsHealthy(result);
+			if (result) {
+				clearTabError("styleGuide");
+			} else if (checkSettings?.enabled) {
+				try {
+					await updateStyleGuide({ ...checkSettings, enabled: false });
+				} catch (e) {
+					console.error("Failed to disable module:", e);
+					setRuntimeError("Возникла проблема при подключении к сервису, обратитесь в техническую поддержку");
+				}
+			}
+		} catch (_e) {
+			setIsHealthy(false);
+			if (checkSettings?.enabled) {
+				try {
+					await updateStyleGuide({ ...checkSettings, enabled: false });
+				} catch (e) {
+					console.error("Failed to disable module:", e);
+					setRuntimeError("Возникла проблема при подключении к сервису, обратитесь в техническую поддержку");
+				}
+			}
+		} finally {
+			setIsRetrying(false);
+		}
+	}, [checkSettings, clearTabError, healthcheckStyleGuide, updateStyleGuide]);
 
 	const handleSave = useCallback(async () => {
 		setIsSaving(true);
 		try {
 			await updateStyleGuide(localSettings);
-		} catch (e: any) {
-			setSaveError(e?.message);
+		} catch (e) {
+			setRuntimeError(e?.message || "Ошибка при сохранении настроек");
 		} finally {
 			setIsSaving(false);
 		}
 	}, [localSettings, updateStyleGuide]);
 
-	useEffect(() => {
-		if (!saveError) return;
-		const t = setTimeout(() => setSaveError(null), 4000);
-		return () => clearTimeout(t);
-	}, [saveError]);
+	const handleToggle = useCallback(
+		async (enabled: boolean) => {
+			if (enabled) {
+				setIsEnabling(true);
+				try {
+					const healthy = await healthcheckStyleGuide();
+					if (!healthy) {
+						setIsEnabling(false);
+						return;
+					}
+					await ensureStyleGuideLoaded(true);
+					await updateStyleGuide({
+						...localSettings,
+						enabled: true,
+						systemPrompt: localSettings.systemPrompt ?? { text: DEFAULT_SYSTEM_PROMPT },
+					});
+				} catch (e) {
+					setRuntimeError(e?.message || "Возникла проблема при включении модуля");
+				} finally {
+					setIsEnabling(false);
+				}
+			} else {
+				setIsSaving(true);
+				try {
+					await updateStyleGuide({ ...localSettings, enabled: false });
+				} catch (e) {
+					setRuntimeError(e?.message || "Ошибка при отключении модуля");
+				} finally {
+					setIsSaving(false);
+				}
+			}
+		},
+		[localSettings, healthcheckStyleGuide, ensureStyleGuideLoaded, updateStyleGuide],
+	);
 
 	useTabGuard({
 		page: Page.STYLEGUIDE,
 		hasChanges: () => {
-			if (isInitialLoading("styleGuide") || !checkSettings) {
-				return false;
-			}
-			return !isEqual;
+			if (isInitialLoading("styleGuide") || !checkSettings) return false;
+			return hasUnsavedChanges;
 		},
 		onSave: handleSave,
 		onDiscard: () => {
-			if (checkSettings) {
-				setLocalSettings(checkSettings);
-			}
+			if (checkSettings) setLocalSettings(checkSettings);
 		},
 	});
 
+	useEffect(() => {
+		const normalized = checkSettings
+			? {
+					...checkSettings,
+					lgt: {
+						rules: checkSettings.lgt.rules.map((r) => ({
+							...r,
+							guid: r.guid || generateGuid(),
+							testCases: r.testCases ?? [],
+						})),
+					},
+					llm: checkSettings.llm
+						? {
+								rules: checkSettings.llm.rules.map((r) => ({
+									...r,
+									guid: r.guid || generateGuid(),
+									testCases: r.testCases ?? [],
+								})),
+							}
+						: { rules: [] },
+				}
+			: { enabled: false, lgt: { rules: [] }, llm: { rules: [] } };
+
+		setLocalSettings(normalized);
+	}, [checkSettings]);
+
+	useEffect(() => {
+		const handler = (event: BeforeUnloadEvent) => {
+			if (hasUnsavedChanges) {
+				event.preventDefault();
+			}
+		};
+		window.addEventListener("beforeunload", handler);
+		return () => window.removeEventListener("beforeunload", handler);
+	}, [hasUnsavedChanges]);
+
+	const selectedLgtRule = localSettings.lgt.rules.find((r) => r.guid === activeRule.selectedLgtGuid);
+	const selectedLlmRule = localSettings.llm?.rules?.find((r) => r.guid === activeRule.selectedLlmGuid);
+
 	const tabError = getTabError("styleGuide");
+	const hasRules = localSettings.lgt.rules.length > 0 || (localSettings.llm?.rules?.length ?? 0) > 0;
 
-	if (isInitialLoading("styleGuide")) {
-		return <TabInitialLoader />;
+	const hasValidTests = useCallback(() => {
+		const lgtRules = localSettings.lgt.rules.filter((r) => r.enabled ?? true);
+		const llmRules = (localSettings.llm?.rules ?? []).filter((r) => r.enabled ?? true);
+
+		const hasLgtTests = lgtRules.some((rule) => rule.testCases?.some((tc) => tc.text?.trim()));
+
+		const hasLlmTests = llmRules.some((rule) => rule.testCases?.some((tc) => tc.text?.trim()));
+
+		return hasLgtTests || hasLlmTests;
+	}, [localSettings]);
+
+	if (isInitialLoading("styleGuide") || isHealthy === null) {
+		return (
+			<div className="flex items-center justify-center h-[60vh]">
+				<TabInitialLoader />
+			</div>
+		);
 	}
-
-	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensureStyleGuideLoaded(true)} />;
-	}
-
-	const handleToggle = async (enabled: boolean) => {
-		setIsSaving(true);
-		try {
-			await updateStyleGuide({ enabled, lgt: { rules: [] } });
-		} catch (e: any) {
-			setSaveError(e?.message);
-		} finally {
-			setIsSaving(false);
-		}
-	};
 
 	const Title = (
 		<>
 			<StickyHeader
 				actions={
 					<>
-						{localSettings.lgt.rules.length > 0 && (
+						{localSettings.enabled && isHealthy ? (
 							<>
-								<StyleGuideComponentImportButton setLocalSettings={setLocalSettings} />
-								<StyleGuideComponentSaveButton
-									handleSave={handleSave}
-									isEqual={isEqual}
-									isSaving={isSaving}
-								/>
+								{hasRules && (
+									<>
+										{isAnyTestRunning ? (
+											<Button
+												className="abort-test-button"
+												disabled={isUiLocked}
+												onClick={handlers.test.abort}
+												variant="outline"
+											>
+												<LoaderCircle className="abort-loader animate-spin h-4 w-4 mr-1" />
+												<Ban className="abort-stop h-4 w-4 mr-1" />
+												Остановить проверку
+											</Button>
+										) : (
+											<Button
+												disabled={isUiLocked || !hasValidTests()}
+												onClick={handlers.test.runAllGlobal}
+												variant="outline"
+											>
+												<FastForward className="h-4 w-4 mr-1" />
+												Запустить все
+											</Button>
+										)}
+										<StyleGuideComponentSaveButton
+											disabled={isUiLocked}
+											handleSave={handleSave}
+											isEqual={isEqual}
+											isSaving={isSaving}
+										/>
+									</>
+								)}
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button disabled={isUiLocked} size="sm" variant="ghost">
+											<MoreVertical className="h-4 w-4" />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent>
+										<StyleGuideComponentImportButton
+											asDropdownItem
+											setLocalSettings={setLocalSettings}
+										/>
+										<StyleGuidePromptModal
+											onChange={(value) =>
+												setLocalSettings((prev) => ({
+													...prev,
+													systemPrompt: { text: value },
+												}))
+											}
+											prompt={localSettings.systemPrompt?.text ?? DEFAULT_SYSTEM_PROMPT}
+											title="Системный промпт"
+											trigger={
+												<DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+													Системный промпт
+												</DropdownMenuItem>
+											}
+										/>
+									</DropdownMenuContent>
+								</DropdownMenu>
 							</>
-						)}
+						) : null}
 						<SwitchField
 							alignment="right"
 							checked={localSettings.enabled}
 							className="gap-2"
-							disabled={isSaving || isHealthy === false}
+							disabled={!isHealthy}
 							label={
 								localSettings.enabled
 									? t("enterprise.admin.check.switch.on")
@@ -169,7 +402,6 @@ const StyleGuideComponent = () => {
 						/>
 					</>
 				}
-				isScrolled={isScrolled}
 				title={
 					<>
 						{getAdminPageTitle(Page.STYLEGUIDE)} <Spinner show={isRefreshing("styleGuide")} size="small" />
@@ -190,87 +422,133 @@ const StyleGuideComponent = () => {
 					</>
 				}
 			/>
-			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 		</>
 	);
 
-	if (!localSettings.enabled) return Title;
+	if (isEnabling || isRetrying) {
+		return (
+			<>
+				{Title}
+				<div className="flex items-center justify-center h-[60vh]">
+					<Loader size="xl" />
+				</div>
+			</>
+		);
+	}
+
+	if (localSettings.enabled && runtimeError) {
+		return <TabErrorBlock message={runtimeError} onRetry={handleRetry} />;
+	}
+
+	if (tabError) {
+		return <TabErrorBlock message={tabError.message} onRetry={() => ensureStyleGuideLoaded(true)} />;
+	}
 
 	return (
-		<>
+		<div className={`flex flex-col ${className}`} style={{ height: "100%", maxHeight: "100%" }}>
 			{Title}
-			<div className="px-6">
-				{!localSettings.lgt.rules.length && (
-					<PageState>
-						<PageStateTitle>{t("enterprise.admin.check.no-rules")}</PageStateTitle>
-						<PageStateDescription>{t("enterprise.admin.check.no-rules-description")}</PageStateDescription>
-						<PageStateButtonGroup>
-							<StyleGuideComponentImportButton setLocalSettings={setLocalSettings} />
-							<StyleGuideComponentSaveButton
-								handleSave={handleSave}
-								isEqual={isEqual}
-								isSaving={isSaving}
+
+			{localSettings.enabled && isHealthy === true && (
+				<div className="px-6 flex flex-1 overflow-hidden gap-2" style={{ minHeight: 0 }}>
+					{" "}
+					<SidebarProvider className="flex-1 flex gap-2" style={{ minHeight: 0 }}>
+						{" "}
+						<div style={{ overflowY: "auto", maxHeight: "100%" }}>
+							<StyleGuideSidebar
+								activeProvider={activeRule.activeProvider}
+								lgtRules={localSettings.lgt.rules}
+								llmRules={localSettings.llm?.rules ?? []}
+								onActivate={activeRule.activate}
+								onAddLgt={handlers.rule.add.lgt}
+								onAddLlm={handlers.rule.add.llm}
+								selectedLgtGuid={activeRule.selectedLgtGuid}
+								selectedLlmGuid={activeRule.selectedLlmGuid}
 							/>
-						</PageStateButtonGroup>
-					</PageState>
-				)}
+						</div>
+						<main className="flex-1" style={{ maxHeight: "100%", display: "flex" }}>
+							{!hasRules && (
+								<main className="flex-1" style={{ maxHeight: "100%" }}>
+									{" "}
+									<Card className="mx-4">
+										<PageState>
+											<PageStateDescription>
+												У вас пока нет настроенных правил проверки текста. Импортируйте файл с
+												правилами или создайте их вручную, чтобы начать работу с проверкой
+												орфографии и грамматики.
+											</PageStateDescription>
+										</PageState>
+									</Card>
+								</main>
+							)}
+							{activeRule.activeProvider === "lgt" && selectedLgtRule && (
+								<StyleGuideEditor
+									handleRuleChange={handlers.rule.updateXml}
+									handleRuleDelete={handlers.rule.delete}
+									handleRuleNameChange={() => {}}
+									handleRuleToggle={handlers.rule.toggle}
+									handleTypeChange={handlers.rule.updateTypes}
+									isTestRunning={isAnyTestRunning}
+									provider="lgt"
+									rule={selectedLgtRule}
+									TestSection={
+										<TestSection
+											isAnyTestRunning={isAnyTestRunning}
+											onAdd={handlers.test.add}
+											onChange={handlers.test.update}
+											onDelete={handlers.test.delete}
+											onRun={handlers.test.run}
+											onRunAll={handlers.test.runAllForRule}
+											runningTests={runningTests}
+											testCases={selectedLgtRule.testCases}
+											testKeyPrefix={selectedLgtRule.guid}
+										/>
+									}
+								/>
+							)}
 
-				{localSettings.lgt.rules.length > 0 && (
-					<SidebarProvider className="min-h-auto">
-						<Sidebar className="min-w-[400px] rounded-md" collapsible="none">
-							<SidebarContent>
-								<SidebarGroup>
-									<SidebarGroupContent>
-										<SidebarMenu>
-											<div className="flex flex-col gap-1 min-w-[250px] overflow-y-auto h-[calc(100vh-100px)]">
-												{localSettings.lgt.rules.map((rule, index) => (
-													<SidebarMenuItem key={index}>
-														<SidebarMenuButton
-															isActive={currentIndex === index}
-															onClick={() => setCurrentIndex(index)}
-														>
-															<span>{`${index + 1}. ${getTitle(rule.xml)}`}</span>
-														</SidebarMenuButton>
-													</SidebarMenuItem>
-												))}
-											</div>
-										</SidebarMenu>
-									</SidebarGroupContent>
-								</SidebarGroup>
-							</SidebarContent>
-						</Sidebar>
-						<main className="flex-1 ml-2">
-							{localSettings.lgt.rules?.[currentIndex] && (
-								<Card className="mx-4">
-									<CardTitle className="text-xl">
-										{getTitle(localSettings.lgt.rules[currentIndex].xml)}
-									</CardTitle>
-
-									<CardSubTitle className="text-sm">{t("enterprise.admin.check.rule")}</CardSubTitle>
-
-									<AutogrowTextarea
-										className="font-mono mt-2 max-h-96"
-										readOnly
-										value={localSettings.lgt.rules[currentIndex].xml}
-									/>
-									{localSettings.lgt.rules[currentIndex]?.forTypes?.length > 0 && (
-										<div className="space-y-2 mt-6">
-											<strong>{t("enterprise.admin.check.rule-types-description")}</strong>
-											<ol className="ml-5 list-decimal">
-												{localSettings.lgt.rules[currentIndex].forTypes.map((type, idx) => (
-													<li key={type + idx}>{getForTypeName(type)}</li>
-												))}
-											</ol>
-										</div>
-									)}
-								</Card>
+							{activeRule.activeProvider === "llm" && selectedLlmRule && (
+								<StyleGuideEditor
+									handleRuleChange={handlers.rule.updatePrompt}
+									handleRuleDelete={handlers.rule.delete}
+									handleRuleNameChange={handlers.rule.updateName}
+									handleRuleToggle={handlers.rule.toggle}
+									handleTypeChange={handlers.rule.updateTypes}
+									isTestRunning={isAnyTestRunning}
+									provider="llm"
+									rule={selectedLlmRule}
+									TestSection={
+										<TestSection
+											isAnyTestRunning={isAnyTestRunning}
+											onAdd={handlers.test.add}
+											onChange={handlers.test.update}
+											onDelete={handlers.test.delete}
+											onRun={handlers.test.run}
+											onRunAll={handlers.test.runAllForRule}
+											runningTests={runningTests}
+											testCases={selectedLlmRule.testCases}
+											testKeyPrefix={selectedLlmRule.guid}
+										/>
+									}
+								/>
 							)}
 						</main>
 					</SidebarProvider>
-				)}
-			</div>
-		</>
+				</div>
+			)}
+		</div>
 	);
 };
 
-export default StyleGuideComponent;
+export default styled(StyleGuideComponent)`
+	.abort-test-button .abort-stop {
+		display: none;
+	}
+
+	.abort-test-button:hover .abort-loader {
+		display: none;
+	}
+
+	.abort-test-button:hover .abort-stop {
+		display: inline;
+	}
+`;

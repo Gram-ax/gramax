@@ -50,6 +50,32 @@ biome:
   after_script:
     - cat .changed_files
 
+trivy:
+  extends: .template.tests
+  stage: test
+  image: aquasec/trivy:latest
+  rules:
+    - !reference [.condition, tests, base, rules]
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      changes:
+        - "**/package.json"
+        - "**/package-lock.json"
+        - "**/bun.lock"
+        - "**/Cargo.lock"
+        - "**/Cargo.toml"
+  script:
+    - trivy fs --config trivy.yaml . | tee trivy-report.txt
+    - trivy fs --exit-code 1 --config trivy.yaml --severity CRITICAL . > /dev/null
+  cache:
+    key: trivy-cache
+    paths:
+      - .cache/trivy/**/*
+  artifacts:
+    when: always
+    expire_in: '7 days'
+    paths:
+      - trivy-report.txt
+
 unit-tests:
   extends: .template.tests
   stage: test
@@ -58,8 +84,6 @@ unit-tests:
     - kubernetes01-gramax-5ghz
   rules:
     - !reference [.condition, tests, base, rules]
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-    - !reference [.condition, core, rules]
   variables:
     CARGO_HOME: '$CI_PROJECT_DIR/.cargo'
     GES_URL: https://enterprise.gramax.local
@@ -99,6 +123,7 @@ static-e2e-pw:
   variables:
     PORT: 6002
   script:
+    - rm -rf services
     - git clone https://git:$GX_E2E_GITLAB_TOKEN@$GX_E2E_GITLAB_URL/$GX_E2E_GITLAB_GROUP/$GX_E2E_GITLAB_TEST_REPO.git
     - nice -n 20 ionice -c 3 bun run --cwd apps/gramax-cli build
     - nice -n 20 ionice -c 3 bun run apps/gramax-cli/dist/index.js build -s "$GX_E2E_GITLAB_TEST_REPO" --skip-check
@@ -114,6 +139,7 @@ docportal-e2e-pw:
     ADMIN_PASSWORD: 1
     ADMIN_LOGIN: 1
   script:
+    - rm -rf services
     - nice -n 10 ionice -c 3 bun run --cwd e2e-pw docportal:build-git
     - nice -n 10 ionice -c 3 bun run --cwd e2e-pw docportal:build
     - bun run --cwd e2e-pw docportal:start &

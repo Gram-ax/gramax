@@ -4,6 +4,6 @@
 		"next-gramax-git"
 	],
 	"dependencies": {
-		"@napi-rs/cli": "^2.18.4"
+		"@napi-rs/cli": "^3.5.1"
 	}
 }

@@ -17,7 +17,7 @@ import { ErrorMessage, TechnicalDetails } from "@ext/git/actions/RepositoryBroke
 import t from "@ext/localization/locale/translate";
 import { AlertConfirm } from "@ui-kit/AlertDialog/AlertConfirm";
 import { Button } from "@ui-kit/Button";
-import { Modal, ModalBody, ModalContent, ModalTitle, ModalTrigger } from "@ui-kit/Modal";
+import { Dialog, DialogBody, DialogContent, DialogTitle, DialogTrigger } from "@ui-kit/Dialog";
 import { type ComponentProps, useCallback, useState } from "react";
 
 const FooterWrapper = styled.div`
@@ -109,13 +109,13 @@ export const RepositoryHealthcheckFailed = ({ trigger, error }: RepositoryHealth
 	});
 
 	return (
-		<Modal modal onOpenChange={setOpen} open={open}>
-			<ModalTrigger asChild>{trigger}</ModalTrigger>
-			<ModalContent showCloseButton={!inProgress}>
-				<ModalBody className="flex flex-row items-start gap-4 lg:py-6">
+		<Dialog modal onOpenChange={setOpen} open={open}>
+			<DialogTrigger asChild>{trigger}</DialogTrigger>
+			<DialogContent showCloseButton={!inProgress}>
+				<DialogBody className="flex flex-row items-start gap-4 lg:py-6">
 					<Icon className="text-status-warning" code="triangle-alert" size="24px" />
 					<div className="space-y-2">
-						<ModalTitle className="text-lg">{t("git.error.broken.healthcheck.title")}</ModalTitle>
+						<DialogTitle className="text-lg">{t("git.error.broken.healthcheck.title")}</DialogTitle>
 						<div className="text-primary-fg">
 							{t("git.error.broken.healthcheck.body")},&nbsp;
 							<TechnicalDetails error={(error.cause as Error) || error}>
@@ -133,7 +133,7 @@ export const RepositoryHealthcheckFailed = ({ trigger, error }: RepositoryHealth
 							</div>
 						</div>
 					</div>
-				</ModalBody>
+				</DialogBody>
 				<FooterWrapper>
 					<AlertConfirm
 						description={t("git.error.broken.healthcheck.ignore.confirm.description")}
@@ -165,7 +165,7 @@ export const RepositoryHealthcheckFailed = ({ trigger, error }: RepositoryHealth
 						</AlertConfirm>
 					</div>
 				</FooterWrapper>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };

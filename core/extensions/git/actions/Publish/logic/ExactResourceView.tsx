@@ -1,12 +1,12 @@
 import ExactResourceViewWithContent, {
 	DIAGRAM_FILE_TYPES,
 	IMG_FILE_TYPES,
-	UseResourceArticleViewType,
+	type UseResourceArticleViewType,
 } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
 import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
 import useFetchDiffData from "@ext/markdown/elements/diff/logic/hooks/useFetchDiffData";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" | "oldContent" | "type">) => {
 	const { resourcePath, newScope, oldScope, status, oldResourcePath, filePath } = props;
@@ -38,18 +38,18 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 		isResource: true,
 	});
 
-	const getNewData = async () => {
+	const getNewData = useCallback(async () => {
 		setIsLoading(true);
 		const { newData, oldData } = await fetchDiffData(null);
 		setNewContent(newData?.content);
 		setOldContent(oldData?.content);
 		setIsLoading(false);
-	};
+	}, [fetchDiffData]);
 
 	useEffect(() => {
 		if (type === "image") return;
 		void getNewData();
-	}, []);
+	}, [getNewData, type]);
 
 	if (isLoading) return <LoadingWithDiffBottomBar filePath={filePath} />;
 

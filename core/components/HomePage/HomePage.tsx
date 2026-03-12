@@ -8,48 +8,145 @@ import FavoriteCatalogLinkService from "@ext/article/Favorite/components/Favorit
 import { getGesSignInUrl } from "@ext/enterprise/components/SignInEnterprise";
 import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
 import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
+import { SignInEnterpriseCloudForm } from "@ext/enterprise-cloud/components/SignInEnterpriseCloudForm";
 import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
+import type React from "react";
+import type { Environment } from "../../../app/resolveModule/env";
 import BottomInfo from "./BottomInfo";
 import Groups from "./Groups";
 import NoneGroups from "./NoneGroups";
 import TopMenu from "./TopMenu";
 
-const HomePage = ({ data, className }: { data: HomePageData; className?: string }) => {
-	const { isStatic, isStaticCli, isNext } = usePlatform();
+interface HomePageProps {
+	data: HomePageData;
+	className?: string;
+}
+
+const homePageWrapperClassName = "bg-primary-bg flex flex-col";
+
+const HomePageWrapper = ({ children, className }: { children: React.ReactNode; className?: string }) => {
+	const breakpoint = useBreakpoint();
+
+	return <div className={`${className} breakpoint-${breakpoint} ${homePageWrapperClassName}`}>{children}</div>;
+};
+
+const HomePageContentContainer = ({ children }: { children: React.ReactNode }) => {
+	return (
+		<ScrollShadowContainer shadowTopClassName="top-shadow" wrapperClassName="flex flex-col shadow-scroll h-full">
+			<TopMenu />
+			{children}
+			<BottomInfo />
+		</ScrollShadowContainer>
+	);
+};
+
+const HomePageCatalogListContent = ({ data }: { data: HomePageData }) => {
 	const catalogCount = data.catalogsLinks.length;
+
+	return catalogCount ? (
+		<FavoriteCatalogLinkService.Init value={data.catalogsLinks}>
+			<Groups breadcrumb={data.breadcrumb} className="groups" group={data.group} section={data.section} />
+		</FavoriteCatalogLinkService.Init>
+	) : (
+		<NoneGroups />
+	);
+};
+
+const components: Record<Environment, (props: HomePageProps) => React.ReactNode> = {
+	tauri: (props) => <TauriEditorHomePage className={props.className} data={props.data} />,
+	next: (props) => <DocportalEditorHomePage className={props.className} data={props.data} />,
+	static: (props) => <StaticHomePage className={props.className} data={props.data} />,
+	browser: (props) => <BaseEditorHomePage className={props.className} data={props.data} />,
+	cli: (props) => <CliHomePage className={props.className} data={props.data} />,
+	test: () => null,
+};
+
+const HomePage = ({ data, className }: HomePageProps) => {
+	const { environment } = usePlatform();
+	return components[environment]({ data, className });
+};
+
+const OpenSourceEditorHomePage = ({ data, className }: HomePageProps) => {
+	return (
+		<HomePageWrapper className={className}>
+			<HomePageContentContainer>
+				<HomePageCatalogListContent data={data} />
+			</HomePageContentContainer>
+			<GlobalAudioToolbar />
+		</HomePageWrapper>
+	);
+};
+
+const TauriEditorHomePage = ({ data, className }: HomePageProps) => {
+	return <OpenSourceEditorHomePage className={className} data={data} />;
+};
+
+const StaticHomePage = ({ data, className }: HomePageProps) => {
+	return (
+		<HomePageWrapper className={className}>
+			<HomePageContentContainer>
+				<HomePageCatalogListContent data={data} />
+			</HomePageContentContainer>
+		</HomePageWrapper>
+	);
+};
+
+const CliHomePage = ({ data, className }: HomePageProps) => {
+	return <StaticHomePage className={className} data={data} />;
+};
+
+const DocportalEditorHomePage = ({ data, className }: HomePageProps) => {
+	return <StaticHomePage className={className} data={data} />;
+};
+
+const BaseEditorHomePage = ({ data, className }: HomePageProps) => {
+	const { gesUrl, isCloud } = PageDataContextService.value.conf.enterprise;
+	const isEnterprise = !!gesUrl;
+
+	if (isEnterprise && isCloud) return <GesCloudEditorHomePage className={className} data={data} />;
+	if (isEnterprise && !isCloud) return <GesEditorHomePage className={className} data={data} />;
+	return <OpenSourceEditorHomePage className={className} data={data} />;
+};
+
+const GesEditorHomePage = ({ data, className }: HomePageProps) => {
 	const { gesUrl } = PageDataContextService.value.conf.enterprise;
 	const authUrl = getGesSignInUrl(gesUrl, true);
 	const isGesUnauthorized = PageDataContextService.value.isGesUnauthorized;
-	const breakpoint = useBreakpoint();
 	const signInEnterpriseProps = useSignInEnterprise({ authUrl });
 
 	return (
-		<div className={`${className} breakpoint-${breakpoint} bg-primary-bg flex flex-col`}>
-			<ScrollShadowContainer
-				shadowTopClassName="top-shadow"
-				wrapperClassName="flex flex-col shadow-scroll h-full"
-			>
-				<TopMenu />
+		<HomePageWrapper className={className}>
+			<HomePageContentContainer>
 				{isGesUnauthorized ? (
-					<div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+					<div className="flex justify-center items-center h-screen">
 						<SignInEnterpriseForm authUrl={authUrl} {...signInEnterpriseProps} onlySSO />
 					</div>
-				) : catalogCount ? (
-					<FavoriteCatalogLinkService.Init value={data.catalogsLinks}>
-						<Groups
-							breadcrumb={data.breadcrumb}
-							className="groups"
-							group={data.group}
-							section={data.section}
-						/>
-					</FavoriteCatalogLinkService.Init>
 				) : (
-					<NoneGroups />
+					<HomePageCatalogListContent data={data} />
 				)}
-				<BottomInfo />
-			</ScrollShadowContainer>
-			{!(isStatic || isStaticCli || isNext) && <GlobalAudioToolbar />}
-		</div>
+			</HomePageContentContainer>
+			<GlobalAudioToolbar />
+		</HomePageWrapper>
+	);
+};
+
+const GesCloudEditorHomePage = ({ data, className }: HomePageProps) => {
+	const { gesUrl } = PageDataContextService.value.conf.enterprise;
+	const isGesUnauthorized = PageDataContextService.value.isGesUnauthorized;
+
+	return (
+		<HomePageWrapper className={className}>
+			<HomePageContentContainer>
+				{isGesUnauthorized ? (
+					<div className="flex justify-center items-center h-screen">
+						<SignInEnterpriseCloudForm allowContinueWithoutAccount={true} gesUrl={gesUrl} />
+					</div>
+				) : (
+					<HomePageCatalogListContent data={data} />
+				)}
+			</HomePageContentContainer>
+			<GlobalAudioToolbar />
+		</HomePageWrapper>
 	);
 };
 

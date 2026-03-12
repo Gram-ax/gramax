@@ -1,10 +1,10 @@
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import DefaultError from "../../extensions/errorHandlers/logic/DefaultError";
+import type MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import type DefaultError from "../../extensions/errorHandlers/logic/DefaultError";
 import Path from "../FileProvider/Path/Path";
-import HashItemProvider from "../Hash/HashItemProvider";
-import HashItem from "../Hash/HashItems/HashItem";
-import ApiRequest from "./ApiRequest";
-import ApiResponse from "./ApiResponse";
+import type HashItemProvider from "../Hash/HashItemProvider";
+import type HashItem from "../Hash/HashItems/HashItem";
+import type ApiRequest from "./ApiRequest";
+import type ApiResponse from "./ApiResponse";
 
 export const apiUtils = {
 	sendError(res: ApiResponse, error: DefaultError, code = 500) {
@@ -40,7 +40,7 @@ export const apiUtils = {
 
 	getDomain(req: ApiRequest): string {
 		const { protocol, host } = apiUtils.getProtocolHost(req);
-		return protocol + "://" + host;
+		return `${protocol}://${host}`;
 	},
 
 	getDomainByBasePath(req: ApiRequest, basePath: string): string {
@@ -61,13 +61,12 @@ export const apiUtils = {
 	): Promise<boolean> {
 		const etag = req.headers["if-none-match"];
 		const hash = await hashes.getHash(hashItem);
-		if (etag && etag == hash) {
+		if (etag && etag === hash) {
 			res.statusCode = 304;
 			return false;
-		} else {
-			res.setHeader("ETag", await hashes.setHash(hashItem));
-			return true;
 		}
+		res.setHeader("ETag", await hashes.setHash(hashItem));
+		return true;
 	},
 
 	sendPlainText(res: ApiResponse, text: string) {
@@ -76,7 +75,7 @@ export const apiUtils = {
 		res.send(text);
 	},
 
-	sendJson(res: ApiResponse, json: any) {
+	sendJson(res: ApiResponse, json: unknown) {
 		res.statusCode = 200;
 		res.setHeader("Content-type", "application/json");
 		res.send(json);

@@ -2,7 +2,7 @@ import { ARCHIVE_MERGE_REQUEST_PATH, MERGE_REQUEST_DIRECTORY_PATH, OPEN_MERGE_RE
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { MergeRequestErrorCode } from "@ext/git/core/GitMergeRequest/errors/getMergeRequestErrors";
+import { MergeRequestErrorCode } from "@ext/git/core/GitMergeRequest/errors/types";
 import LibGit2MergeRequestCommands from "@ext/git/core/GitMergeRequest/logic/LibGit2MergeRequestCommands";
 import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import type { MergeRequestCommandsModel } from "@ext/git/core/GitMergeRequest/model/MergeRequestCommandsModel";

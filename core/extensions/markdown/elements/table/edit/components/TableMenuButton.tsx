@@ -11,6 +11,7 @@ const TableMenuButton = ({ editor }: { editor: Editor }) => {
 	return (
 		<ToolbarToggleButton
 			active={isActive}
+			data-testid="tb-table"
 			disabled={isActive ? true : disabled}
 			onClick={() => {
 				if (!readyToPlace(editor.state, "table", [...BlockPlusAndSubNodes, ...ListGroupAndItem])) return false;

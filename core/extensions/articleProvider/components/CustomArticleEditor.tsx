@@ -1,10 +1,10 @@
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
-import Main, { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
-import getExtensions, { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
+import Main, { type ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
+import getExtensions, { type GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
-import { Editor, Extensions, JSONContent } from "@tiptap/core";
+import type { Editor, Extensions, JSONContent } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import { useMemo } from "react";
 

@@ -28,6 +28,7 @@ export type PageParams = {
 	[Page.PLUGINS]: undefined;
 	[Page.METRICS]: undefined;
 	[Page.VIEW_METRICS]: undefined;
+	[Page.ROLES]: undefined;
 	[Page.SEARCH_METRICS]: undefined;
 };
 
@@ -36,6 +37,7 @@ const getDefaultPageParams = (): Partial<PageParams> => ({
 	[Page.USER_GROUPS]: { entityId: "" },
 	[Page.RESOURCES]: { groupId: "" },
 });
+
 interface AdminNavigationContextValue {
 	page: Page;
 	pageParams: PageParams[Page];

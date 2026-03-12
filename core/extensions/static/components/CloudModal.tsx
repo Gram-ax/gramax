@@ -1,11 +1,11 @@
 import CloudStateService from "@core-ui/ContextServices/CloudState";
 import useWatch from "@core-ui/hooks/useWatch";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import LoginGoogle from "@ext/static/components/LoginGoogle";
 import UploadCloud from "@ext/static/components/UploadCloud";
 import Uploaded from "@ext/static/components/Uploaded";
-import { Modal, ModalContent } from "@ui-kit/Modal";
+import { Dialog, DialogContent } from "@ui-kit/Dialog";
 import { useEffect, useRef, useState } from "react";
 
 enum CloudModalState {
@@ -36,7 +36,7 @@ const CloudModal = ({ onClose }: { onClose: () => void }) => {
 	useEffect(closeIfError, []);
 
 	return (
-		<Modal
+		<Dialog
 			onOpenChange={(isOpen) => {
 				if (!isOpen) {
 					onClose();
@@ -44,7 +44,7 @@ const CloudModal = ({ onClose }: { onClose: () => void }) => {
 			}}
 			open
 		>
-			<ModalContent data-modal-root>
+			<DialogContent data-modal-root>
 				{state === CloudModalState.notLoggedIn && (
 					<LoginGoogle
 						onLogin={() => {
@@ -61,8 +61,8 @@ const CloudModal = ({ onClose }: { onClose: () => void }) => {
 					/>
 				)}
 				{state === CloudModalState.uploaded && <Uploaded />}
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

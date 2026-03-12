@@ -1,12 +1,21 @@
-import ModalLayout from "@components/Layouts/Modal";
+import formateName from "@core/utils/formateName";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
-import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "@ui-kit/AlertDialog";
 import { useState } from "react";
 
 interface SignOutEnterpriseProps {
@@ -26,36 +35,39 @@ const SignOutEnterprise = ({ workspaceConfig, onClose }: SignOutEnterpriseProps)
 		SourceDataService.refresh();
 	};
 
+	const onOpenChange = (open: boolean) => {
+		setIsOpen(open);
+		if (!open) onClose();
+	};
+
 	return (
-		<ModalLayout
-			closeOnCmdEnter={false}
-			contentWidth="S"
-			isOpen={isOpen}
-			onClose={() => {
-				setIsOpen(false);
-				onClose();
-			}}
-			onOpen={() => {
-				setIsOpen(true);
-			}}
-		>
-			<InfoModalForm
-				actionButton={{
-					onClick: () => removeWorkspace(),
-					text: t("exit"),
-				}}
-				closeButton={{ text: t("cancel") }}
-				icon={{ code: "circle-alert", color: "var(--color-warning)" }}
-				onCancelClick={() => {
-					setIsOpen(false);
-					onClose();
-					refreshPage();
-				}}
-				title={t("enterprise.workspace-exit")}
-			>
-				<div>{t("enterprise.workspace-exit-warning")}</div>
-			</InfoModalForm>
-		</ModalLayout>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
+			<AlertDialogContent status="info">
+				<AlertDialogHeader>
+					<AlertDialogTitle>
+						{`${t("enterprise.workspace-exit")} «${formateName(workspaceConfig.name, {
+							replaceHyphensWithNonBreaking: true,
+						})}»?`}
+					</AlertDialogTitle>
+					<AlertDialogDescription>
+						<div dangerouslySetInnerHTML={{ __html: t("enterprise.workspace-exit-warning") }} />
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel onClick={() => onOpenChange(false)}>{t("cancel")}</AlertDialogCancel>
+					<AlertDialogAction
+						onClick={() => {
+							onOpenChange(false);
+							removeWorkspace();
+						}}
+						type="button"
+						variant="primary"
+					>
+						{t("exit")}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 };
 

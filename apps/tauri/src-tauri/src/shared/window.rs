@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use tauri::*;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct MainWindowBuilder {
 	label: Option<String>,
 	path: Option<PathBuf>,
@@ -26,8 +26,11 @@ impl MainWindowBuilder {
 		self
 	}
 
+	#[tracing::instrument(skip_all)]
 	pub fn build<R: Runtime, M: Manager<R>>(self, manager: &M) -> Result<WebviewWindow<R>> {
 		let label = self.get_unique_label(manager);
+
+		tracing::Span::current().record("label", &label);
 
 		let builder = WebviewWindowBuilder::new(manager, label.clone(), WebviewUrl::App(self.get_url()))
 			.auto_resize()
@@ -133,15 +136,19 @@ impl MainWindowBuilder {
 	}
 }
 
+#[tracing::instrument(skip_all)]
 pub fn handle_ping_server<R: Runtime>(req: &tiny_http::Request, app: &AppHandle<R>) {
 	use crate::shared::AppHandleExt;
 
 	let path = req.url();
+
 	if path.is_empty() || path == "/" || *req.method() != tiny_http::Method::Get {
 		return;
 	};
-
 	let window = app.get_focused_or_default_webview();
+
+	tracing::Span::current().record("path", path);
+	tracing::Span::current().record("window", window.as_ref().map(|w| w.label().to_string()));
 
 	if let Some(window) = window {
 		let _ = window

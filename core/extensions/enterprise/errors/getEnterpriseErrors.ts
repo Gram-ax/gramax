@@ -1,6 +1,6 @@
 import WorkspaceExist from "@ext/enterprise/errors/WorkspaceExist";
-import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
-import { ComponentProps, ReactNode } from "react";
+import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import type { ComponentProps, ReactNode } from "react";
 
 export enum EnterpriseErrorCode {
 	WorkspaceExist = "WorkspaceExist",

@@ -1,10 +1,10 @@
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import useHandleItemClick from "@core-ui/hooks/useHandleItemClick";
 import useHover from "@core-ui/hooks/useHover";
 import useWatch from "@core-ui/hooks/useWatch";
-import useHandleItemClick from "@ext/navigation/catalog/main/logic/handleClick";
-import { NodeModel, RenderParams, useDragOver } from "@minoru/react-dnd-treeview";
+import { type NodeModel, type RenderParams, useDragOver } from "@minoru/react-dnd-treeview";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { CategoryLink, ItemLink } from "../../../NavigationLinks";
+import type { CategoryLink, ItemLink } from "../../../NavigationLinks";
 import NavigationItem from "../../main/render/Item";
 import LeftExtensions from "./LeftExtensions";
 import RightExtensions from "./RightExtensions";
@@ -42,6 +42,7 @@ const NavItem = React.memo(
 			setThisItem(node.data);
 		}, [node.data]);
 
+		// biome-ignore lint/correctness/useExhaustiveDependencies: fix todo
 		useEffect(() => {
 			if ((node.data as CategoryLink)?.isExpanded && !isOpen) currentOnToggle();
 		}, [(node.data as CategoryLink)?.isExpanded]);
@@ -54,6 +55,7 @@ const NavItem = React.memo(
 			});
 		}, [isSelected]);
 
+		// biome-ignore lint/correctness/useExhaustiveDependencies: maybe need fix, but think it's only need on mount
 		useEffect(() => {
 			if (!isSelected) return;
 			containerRef.current?.scrollIntoView({
@@ -88,7 +90,6 @@ const NavItem = React.memo(
 			() =>
 				shouldShowRightExtensions ? (
 					<RightExtensions
-						isCategory={isCategory}
 						item={thisItem}
 						onMenuClose={handleMenuClose}
 						onMenuOpen={handleMenuOpen}

@@ -1,8 +1,9 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { lazy, Suspense, useState } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
@@ -26,7 +27,7 @@ const OpenApi = (props: OpenApiProps) => {
 
 	if (typeof window === "undefined" || !apiUrlCreator || !resourceService) return null;
 
-	resourceService.useGetResource(
+	useGetResource(
 		(buffer, resourceError) => {
 			if (resourceError || !buffer || !buffer?.byteLength) return setIsError(true);
 			setData(buffer.toString());

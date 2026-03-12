@@ -1,5 +1,5 @@
 import { getConfig } from "@app/config/AppConfig";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import UiLanguage, { ContentLanguage } from "@ext/localization/core/model/Language";
 import AllPermission from "@ext/security/logic/Permission/AllPermission";
 import User from "@ext/security/logic/User/User";
@@ -24,6 +24,10 @@ const ctx: Context = {
 	},
 	get domain() {
 		return "";
+	},
+
+	toSpan() {
+		return this;
 	},
 };
 

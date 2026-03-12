@@ -1,65 +1,100 @@
+import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
+import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type { Item } from "@core/FileStructue/Item/Item";
+import debounceFunction from "@core-ui/debounceFunction";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import type { PropertyValue } from "@ext/properties/models";
 import type { KeyPhraseArticleSearcherItem } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
-import type { ModulithSearchClient } from "@ext/serach/modulith/ModulithSearchClient";
-import type { SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleParser";
+import { CombinedProgressManager, type ProgressManager } from "@ext/serach/modulith/ProgressManager";
+import { getArticleId, getCatalogId } from "@ext/serach/modulith/parsing/getArticleId";
+import type { ResourcesInfo, SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleParser";
 import type {
 	ArticleLanguage,
 	SearchArticle,
+	SearchArticleCatalogMetadata,
+	SearchArticleFileMetadata,
 	SearchArticleFilter,
-	SearchArticleMetadata,
+	SearchArticleKey,
 } from "@ext/serach/modulith/SearchArticle";
+import type {
+	SearchResultItem as ClientSearchResultItem,
+	ModulithSearchClient,
+} from "@ext/serach/modulith/search/ModulithSearchClient";
+import type { RemoteModulithSearchClient } from "@ext/serach/modulith/search/RemoteModulithSearchClient";
 import { AsyncNotifier } from "@ext/serach/modulith/utils/AsyncNotifier";
+import { collectText } from "@ext/serach/modulith/utils/collectText";
 import { getLang } from "@ext/serach/modulith/utils/getLang";
 import { getValidCatalogItems } from "@ext/serach/modulith/utils/getValidCatalogItems";
+import { trimAroundHighlights } from "@ext/serach/modulith/utils/trimAroundHighlights";
 import { WorkspaceState } from "@ext/serach/modulith/WorkspaceState";
 import type {
-	ProgressItem,
+	InProgressItem,
+	ProgressArgs,
 	PropertyFilter,
+	ResourceFilter,
 	SearcherProgressGenerator,
 	SearchResultItem,
 	SearchResultMarkItem,
+	SearchResultParagraphItem,
 } from "@ext/serach/Searcher";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { AggregateProgress, type FieldsToDotPaths, type ProgressCallback } from "@ics/modulith-utils";
-
-const PROMISES_RESOLVED_MARK = Symbol();
+import type { Article as ModulithArticle } from "@ics/modulith-search-domain/article";
+import {
+	AggregateProgress,
+	andFilter,
+	containsFilter,
+	eqFilter,
+	type Filter,
+	inFilter,
+	isEmptyFilter,
+	notFilter,
+	orFilter,
+	type ProgressCallback,
+} from "@ics/modulith-utils";
 
 export interface ModulithServiceOptions {
-	client: ModulithSearchClient;
+	localClient: ModulithSearchClient;
+	remoteClient?: RemoteModulithSearchClient;
 	wm: WorkspaceManager;
 	sap: SearchArticleParser;
 	immediateIndexing?: boolean;
 }
 
+const PROGRESS_UPDATE_TIMEOUT_MS = 500;
+
+const RESOURCE_ARTICLES_UPDATE_BUFFER_SIZE = 20;
+
+const COMMIT_DEBOUNCE_TIME_MS = 5000;
+const COMMIT_DEBOUNCE_SYMBOL = Symbol();
+const REQUIRED_COMMIT_DEBOUNCE_TIME_MS = 30 * 1000;
+const REQUIRED_COMMIT_DEBOUNCE_SYMBOL = Symbol();
+
 export class ModulithService {
+	private _cancelDebounceCommit: (() => void) | undefined;
+	private _cancelRequiredCommit: (() => void) | undefined;
 	private readonly _stateByWorkspace = new Map<WorkspacePath, WorkspaceState>();
 
 	constructor(private readonly _options: ModulithServiceOptions) {
-		_options.wm.onCatalogChange((change) => {
-			const ws = this._options.wm.current();
-			const state = this._getOrCreateState(ws.path());
-			if (_options.immediateIndexing) {
-				void this._actualizeCatalog(state, change.catalog);
-			} else {
-				state.resetIndexedCatalog(change.catalog.name);
-			}
+		// Because of events handling cli process unnecessarily hangs
+		//   until all events are processed
+		// TODO: refactor event handling
+		if (getExecutingEnvironment() === "cli") return;
+
+		_options.wm.onCatalogChange(({ catalog }) => {
+			void this.onCatalogChange(catalog);
 		});
 
 		_options.wm.onCatalogAdd(({ catalog }) => {
-			const ws = this._options.wm.current();
-			const state = this._getOrCreateState(ws.path());
-			if (_options.immediateIndexing) {
-				void this._actualizeCatalog(state, catalog);
-			} else {
-				state.resetIndexedCatalog(catalog.name);
-			}
+			void this.onCatalogChange(catalog);
+		});
+
+		_options.wm.onCatalogRemove(({ name }) => {
+			void this.onCatalogRemove(name);
 		});
 
 		if (_options.immediateIndexing) {
@@ -67,14 +102,14 @@ export class ModulithService {
 		}
 	}
 
-	async *updateIndex({ force, catalogName }: UpdateIndexArgs): SearcherProgressGenerator {
+	async updateIndex({ force, catalogName }: UpdateIndexArgs): Promise<void> {
 		const curWs = this._options.wm.current();
 		const state = this._getOrCreateState(curWs.path());
 		const release = await state.lockIndexing();
 
 		try {
 			const catalogNames = catalogName ? [catalogName] : [...curWs.getAllCatalogs().keys()];
-			yield* this._updateIndexImpl(state, curWs, catalogNames, force !== true);
+			await this._updateIndexImpl(state, curWs, catalogNames, force !== true);
 		} finally {
 			release();
 		}
@@ -84,13 +119,34 @@ export class ModulithService {
 		const ws = this._options.wm.current();
 		const state = this._getOrCreateState(ws.path());
 		const catalog = await ws.getContextlessCatalog(catalogName);
-		await this._actualizeCatalog(state, catalog, undefined, overridePath);
+		await this._actualizeCatalog(state, overridePath ?? state.path, catalog);
 	}
 
-	async *progress(): SearcherProgressGenerator {
+	async *progress({ resourceFilter, signal }: ProgressArgs): SearcherProgressGenerator {
+		if (signal?.aborted) {
+			return;
+		}
+
 		const curWs = this._options.wm.current();
 		const state = this._getOrCreateState(curWs.path());
-		if (!state.hasProgresses()) {
+		let pms: ProgressManager[] = [];
+		switch (resourceFilter) {
+			case "without": {
+				pms = [state.indexingProgressManager];
+				break;
+			}
+			case "only": {
+				pms = [state.resourceIndexingProgressManager];
+				break;
+			}
+			default: {
+				pms = [state.indexingProgressManager, state.resourceIndexingProgressManager];
+				break;
+			}
+		}
+
+		const pm = new CombinedProgressManager(pms);
+		if (!pm.hasProgresses()) {
 			yield {
 				type: "done",
 			};
@@ -100,9 +156,9 @@ export class ModulithService {
 
 		const notifier = new AsyncNotifier();
 
-		let cur: ProgressItem = {
+		let cur: InProgressItem | undefined = {
 			type: "progress",
-			progress: state.getTotalProgress(),
+			progress: pm.getTotalProgress(),
 		};
 
 		const handler = (p: number) => {
@@ -110,35 +166,34 @@ export class ModulithService {
 			notifier.notify();
 		};
 
-		state.addProgressSubscriber(handler);
+		pm.addProgressSubscriber(handler);
 
 		try {
-			while (state.hasProgresses() || cur != undefined) {
-				if (cur != undefined) {
+			while (pm.hasProgresses() || cur !== undefined) {
+				if (signal?.aborted) {
+					return;
+				}
+
+				if (cur !== undefined) {
 					const oldCur = cur;
 					cur = undefined;
 					yield oldCur;
 				} else {
-					await notifier.waitNext();
+					await notifier.waitNext(PROGRESS_UPDATE_TIMEOUT_MS);
 				}
 			}
 		} finally {
-			state.removeProgressSubscriber(handler);
+			pm.removeProgressSubscriber(handler);
 		}
+
+		yield {
+			type: "done",
+		};
 	}
 
 	async searchBatch({ items, signal }: SearchBatchArgs): Promise<SearchResult[][]> {
 		const curWs = this._options.wm.current();
 		const state = this._getOrCreateState(curWs.path());
-
-		if (getExecutingEnvironment() !== "static") {
-			await this._indexNotIndexedCatalogs(
-				state,
-				curWs,
-				items.flatMap((x) => x.catalogNames),
-				signal,
-			);
-		}
 
 		const catalogs = new Map<string, ReadonlyCatalog>();
 		const pathnamesByLogicPath = new Map<string, string>();
@@ -157,7 +212,9 @@ export class ModulithService {
 			let catalog = catalogs.get(catalogName);
 			if (catalog === undefined) {
 				catalog = await curWs.getContextlessCatalog(catalogName);
-				catalogs.set(catalogName, catalog);
+				if (catalog != null) {
+					catalogs.set(catalogName, catalog);
+				}
 			}
 
 			return catalog;
@@ -189,45 +246,33 @@ export class ModulithService {
 			};
 		};
 
-		const getArticleOtherFieldsByLogicPath = async (
-			catalog: ReadonlyCatalog,
-			logicPath: string,
-			lang: ArticleLanguage,
-		) => {
-			const article = catalog.findArticle(logicPath, []);
-			return await getArticleOtherFields(catalog, article, lang);
-		};
-
-		const searchRes = await this._options.client.searchBatch({
+		const searchRes = await this._options.localClient.searchBatch({
 			signal,
 			items: items.map((x) => {
-				const metadataFilters: SearchArticleFilter["metadata"][] = [
-					{
-						op: "in",
-						key: "catalogId",
-						list: x.catalogNames,
-					},
-				];
+				const metadataFilters: Filter<SearchArticleKey>[] = [inFilter(["catalogId"], x.catalogNames)];
 
 				if (x.articlesLanguage) {
-					metadataFilters.push({
-						op: "eq",
-						key: "lang",
-						value: x.articlesLanguage,
-					});
+					metadataFilters.push(eqFilter(["lang"], x.articlesLanguage));
 				}
 
 				if (x.propertyFilter) {
 					metadataFilters.push(convertPropertyFilter(x.propertyFilter));
 				}
 
+				if (x.resourceFilter && x.resourceFilter !== "with") {
+					let filter: Filter<SearchArticleKey> = eqFilter(["type"], "file");
+
+					if (x.resourceFilter === "without") {
+						filter = notFilter(filter);
+					}
+
+					metadataFilters.push(filter);
+				}
+
 				return {
 					query: x.query,
 					filter: {
-						metadata: {
-							op: "and",
-							filters: metadataFilters,
-						},
+						metadata: andFilter(metadataFilters),
 					},
 				};
 			}),
@@ -250,11 +295,12 @@ export class ModulithService {
 			);
 			const catalogs: SearchResult[] = [];
 			const batch: SearchResult[] = [];
-			let i = 0;
-			for (const item of searchBatch) {
-				i++;
+			for (let i = 0; i < searchBatch.length; i++) {
+				const item = searchBatch[i];
 
 				const catalog = await getCatalog(item.article.metadata.catalogId);
+				if (catalog == null) continue;
+
 				const catalogTitle = catalog.props.title ?? catalog.name;
 				const catalogPathname = await catalog.getPathname();
 				if (item.article.metadata.type === "catalog") {
@@ -265,9 +311,12 @@ export class ModulithService {
 						title: item.title,
 					});
 				} else if (item.article.metadata.type === "article") {
-					if (i > maxSearchResult) {
+					if (i + 1 > maxSearchResult) {
 						continue;
 					}
+
+					const article = catalog.findArticle(item.article.metadata.logicPath, []);
+					if (article == null) continue;
 
 					const isRecommended = recsByLogicPath.delete(item.article.metadata.logicPath);
 
@@ -280,13 +329,9 @@ export class ModulithService {
 							title: catalogTitle,
 							url: catalogPathname,
 						},
-						...(await getArticleOtherFieldsByLogicPath(
-							catalog,
-							item.article.metadata.logicPath,
-							item.article.metadata.lang,
-						)),
+						...(await getArticleOtherFields(catalog, article, item.article.metadata.lang)),
 						title: item.title,
-						items: item.items,
+						items: processArticleItems(item.items),
 					};
 
 					if (isRecommended) {
@@ -330,128 +375,167 @@ export class ModulithService {
 		return res;
 	}
 
-	private async _indexNotIndexedCatalogs(
-		state: WorkspaceState,
-		ws: Workspace,
-		catalogNames: string[],
-		signal?: AbortSignal,
-	): Promise<void> {
+	async terminate(): Promise<void> {
+		await this._flushCommitClient();
+		await this._options.localClient.terminate();
+		await this._options.sap.terminate();
+	}
+
+	private async onCatalogChange(catalog: ReadonlyCatalog): Promise<void> {
+		const ws = this._options.wm.current();
+		const state = this._getOrCreateState(ws.path());
+		if (this._options.immediateIndexing) {
+			const pm = state.indexingProgressManager;
+			const rpm = state.resourceIndexingProgressManager;
+			const prid = pm.addProgress();
+			const rprid = rpm.addProgress();
+			try {
+				const pc = pm.getProgressCallback(prid);
+				const rpc = rpm.getProgressCallback(rprid);
+				await this._actualizeCatalog(state, state.path, catalog, pc, rpc);
+			} finally {
+				pm.doneProgress(prid);
+				rpm.doneProgress(rprid);
+			}
+		} else {
+			state.resetIndexedCatalog(catalog.name);
+		}
+	}
+
+	private async onCatalogRemove(catalogName: string): Promise<void> {
+		const ws = this._options.wm.current();
+		const state = this._getOrCreateState(ws.path());
+		await this._removeCatalogFromIndex(state, catalogName);
+		state.keyPhraseSearcher.removeCatalog(catalogName);
+		state.resetIndexedCatalog(catalogName);
+	}
+
+	private async _removeCatalogFromIndex(state: WorkspaceState, catalogName: string): Promise<void> {
 		const release = await state.lockIndexing();
 		try {
-			if (signal?.aborted) return;
-			const gen = this._updateIndexImpl(state, ws, catalogNames, true);
-			// eslint-disable-next-line no-unused-vars
-			for await (const _ of gen) {
-			}
+			await this._updateBothClients([], {
+				metadata: eqFilter(["catalogId"], catalogName),
+			});
+
+			this._debounceCommitClient();
 		} finally {
 			release();
 		}
 	}
 
-	private async *_updateIndexImpl(
+	private async _updateIndexImpl(
 		state: WorkspaceState,
 		ws: Workspace,
 		catalogNames: string[],
 		checkIndexed: boolean,
-	): SearcherProgressGenerator {
-		const prid = state.addProgress();
+	): Promise<void> {
+		const indexingCatalogNames =
+			checkIndexed === true ? catalogNames.filter((x) => !state.hasIndexedCatalog(x)) : catalogNames;
+
+		if (indexingCatalogNames.length === 0) {
+			return;
+		}
+
+		const pm = state.indexingProgressManager;
+		const rpm = state.resourceIndexingProgressManager;
+		const prid = pm.addProgress();
+		const rprid = rpm.addProgress();
 
 		try {
-			const pc = state.getProgressCallback(prid);
-
-			if (checkIndexed === true) {
-				catalogNames = catalogNames.filter((x) => !state.hasIndexedCatalog(x));
-			}
-
-			if (catalogNames.length === 0) {
-				yield {
-					type: "done",
-				};
-
-				return;
-			}
-
-			const notifier = new AsyncNotifier();
-
-			let cur: ProgressItem = {
-				type: "progress",
-				progress: 0,
-			};
-
-			yield cur;
-
-			const handler = (p: number) => {
-				cur = { type: "progress", progress: p };
-				notifier.notify();
-			};
+			const pc = pm.getProgressCallback(prid);
+			const rpc = rpm.getProgressCallback(rprid);
 
 			const aggProgress = new AggregateProgress({
 				progress: {
-					count: catalogNames.length,
+					count: indexingCatalogNames.length,
 				},
 				onChange: (p) => {
 					pc(p);
-					handler(p);
 				},
 			});
-			const promises = catalogNames.forEachAsync(
+
+			const resourceAggProgress = new AggregateProgress({
+				progress: {
+					count: indexingCatalogNames.length,
+				},
+				onChange: (p) => {
+					rpc(p);
+				},
+			});
+
+			await indexingCatalogNames.forEachAsync(
 				async (catalogName, i) => {
 					const catalog = await ws.getContextlessCatalog(catalogName);
-					await this._actualizeCatalog(state, catalog, aggProgress.getProgressCallback(i));
+					await this._actualizeCatalog(
+						state,
+						state.path,
+						catalog,
+						aggProgress.getProgressCallback(i),
+						resourceAggProgress.getProgressCallback(i),
+					);
 				},
 				5,
 				true,
 			);
-
-			let done = false;
-			while (!done) {
-				if (cur) {
-					const old = cur;
-					cur = undefined;
-					yield old;
-				}
-
-				const raceRes = await Promise.race([promises.then(() => PROMISES_RESOLVED_MARK), notifier.waitNext()]);
-				done = raceRes === PROMISES_RESOLVED_MARK;
-			}
-
-			yield {
-				type: "done",
-			};
 		} finally {
-			state.doneProgress(prid);
+			pm.doneProgress(prid);
+			rpm.doneProgress(rprid);
 		}
 	}
 
 	private async _actualizeCatalog(
 		state: WorkspaceState,
+		wsPath: WorkspacePath,
 		catalog?: ReadonlyCatalog,
 		progressCallback?: ProgressCallback,
-		overridePath?: string,
+		resourceProgressCallback?: ProgressCallback,
+	): Promise<void> {
+		try {
+			await this._actualizeCatalogImpl(state, wsPath, catalog, progressCallback, resourceProgressCallback);
+		} catch (error) {
+			console.error(error);
+			throw error;
+		}
+	}
+
+	private async _actualizeCatalogImpl(
+		state: WorkspaceState,
+		wsPath: WorkspacePath,
+		catalog?: ReadonlyCatalog,
+		progressCallback?: ProgressCallback,
+		resourceProgressCallback?: ProgressCallback,
 	): Promise<void> {
 		if (!catalog) {
 			progressCallback?.(1);
+			resourceProgressCallback?.(1);
 			return;
 		}
 
 		const aggProgress = new AggregateProgress({
 			progress: {
-				weights: [90, 10],
+				weights: [5, 95],
 			},
 			onChange: (p) => progressCallback?.(p),
 		});
 
-		const articles = await this._options.sap.getSearchArticles(
-			overridePath || state.path,
-			catalog,
-			aggProgress.getProgressCallback(0),
-		);
+		await this._updateCatalogSearchArticles(catalog, wsPath, aggProgress.getProgressCallback(0));
+		aggProgress.setProgress(0, 1);
 
-		await this._updateArticles(articles, catalog.name, aggProgress.getProgressCallback(1));
+		await this._updateSearchArticles(
+			state,
+			catalog,
+			wsPath,
+			aggProgress.getProgressCallback(1),
+			resourceProgressCallback,
+		);
+		aggProgress.setProgress(1, 1);
+
 		const catalogArticles = getValidCatalogItems(catalog);
+		const currentArticleIds = new Set(catalogArticles.map((x) => `${wsPath}#${x.logicPath}`));
+		state.keyPhraseSearcher.removeArticlesNotIn(catalog.name, currentArticleIds);
 		catalogArticles.forEach((x) =>
 			state.keyPhraseSearcher.updateArticle({
-				id: `${overridePath || state.path}#${x.logicPath}`,
+				id: `${wsPath}#${x.logicPath}`,
 				article: x,
 				catalog,
 			}),
@@ -460,20 +544,306 @@ export class ModulithService {
 		state.markIndexedCatalog(catalog.name);
 	}
 
-	private async _updateArticles(articles: SearchArticle[], catalogName: string, progressCallback: ProgressCallback) {
-		const filter: SearchArticleFilter = {
-			metadata: {
-				op: "eq",
-				key: "catalogId",
-				value: catalogName,
+	private async _updateCatalogSearchArticles(
+		catalog: ReadonlyCatalog,
+		wsPath: WorkspacePath,
+		progressCallback?: ProgressCallback,
+	) {
+		const searchArticles: ModulithArticle<SearchArticleCatalogMetadata>[] = [];
+
+		if (catalog.props.title) {
+			const lang = catalog.props.language ?? "none";
+			searchArticles.push({
+				id: getCatalogId(wsPath, catalog.name, lang),
+				title: catalog.props.title,
+				children: [],
+				items: [],
+				metadata: {
+					type: "catalog",
+					wsPath,
+					catalogId: catalog.name,
+					lang,
+				},
+			});
+		}
+
+		progressCallback?.(0.2);
+		if (catalog.props.supportedLanguages?.length) {
+			const rootCategoryPath = catalog.getRootCategoryPath();
+
+			for (const supLang of catalog.props.supportedLanguages) {
+				if (supLang === catalog.props.language) continue;
+
+				const path = rootCategoryPath.join(new Path(supLang), new Path(CATEGORY_ROOT_FILENAME));
+
+				const langCategory = catalog.findItemByItemPath(path);
+				if (!langCategory || !langCategory.props.title) continue;
+				searchArticles.push({
+					id: getCatalogId(wsPath, catalog.name, supLang),
+					title: langCategory.props.title,
+					children: [],
+					items: [],
+					metadata: {
+						type: "catalog",
+						wsPath,
+						catalogId: catalog.name,
+						lang: supLang,
+					},
+				});
+			}
+		}
+
+		progressCallback?.(0.5);
+		await this._options.localClient.update({
+			articles: searchArticles,
+			filter: {
+				metadata: andFilter<SearchArticleKey>([
+					eqFilter(["catalogId"], catalog.name),
+					eqFilter(["type"], "catalog"),
+				]),
 			},
+		});
+
+		progressCallback?.(1);
+		this._debounceCommitClient();
+	}
+
+	private async _updateSearchArticles(
+		state: WorkspaceState,
+		catalog: ReadonlyCatalog,
+		wsPath: WorkspacePath,
+		progressCallback?: ProgressCallback,
+		resourceProgressCallback?: ProgressCallback,
+	) {
+		const aggProgress = new AggregateProgress({
+			progress: {
+				weights: [60, 40],
+			},
+			onChange: (p) => progressCallback?.(p),
+		});
+
+		const { searchArticles, resourcesInfo } = await this._options.sap.getSearchArticles(
+			wsPath,
+			catalog,
+			aggProgress.getProgressCallback(0),
+		);
+		aggProgress.setProgress(0, 1);
+
+		const updateResourceArticlesPromise = this._updateResourceSearchArticles(
+			state,
+			wsPath,
+			catalog,
+			resourcesInfo,
+			resourceProgressCallback,
+		);
+
+		const filter: SearchArticleFilter = {
+			metadata: andFilter<SearchArticleKey>([
+				eqFilter(["catalogId"], catalog.name),
+				eqFilter(["type"], "article"),
+			]),
 		};
 
-		await this._options.client.update({
-			articles,
-			filter,
-			progressCallback,
+		await this._updateBothClients(searchArticles, filter, aggProgress.getProgressCallback(1));
+		aggProgress.setProgress(1, 1);
+		this._debounceCommitClient();
+
+		const currentArticleIds = getValidCatalogItems(catalog).map((a) => getArticleId(wsPath, a.logicPath));
+		await this._options.localClient.update({
+			articles: [],
+			filter: {
+				metadata: andFilter<SearchArticleKey>([
+					eqFilter(["catalogId"], catalog.name),
+					eqFilter(["type"], "file"),
+					notFilter(inFilter(["articleId"], currentArticleIds)),
+				]),
+			},
 		});
+
+		await updateResourceArticlesPromise;
+	}
+
+	private async _updateResourceSearchArticles(
+		state: WorkspaceState,
+		wsPath: WorkspacePath,
+		catalog: ReadonlyCatalog,
+		resourceInfos: ResourcesInfo[],
+		progressCallback?: ProgressCallback,
+	) {
+		const release = await state.lockResourceIndexing(catalog.name);
+		try {
+			await this._updateResourceSearchArticlesImpl(state, wsPath, catalog, resourceInfos, progressCallback);
+		} finally {
+			release();
+		}
+	}
+
+	private async _updateResourceSearchArticlesImpl(
+		state: WorkspaceState,
+		wsPath: WorkspacePath,
+		catalog: ReadonlyCatalog,
+		resourceInfos: ResourcesInfo[],
+		progressCallback?: ProgressCallback,
+	) {
+		const aggProgress = new AggregateProgress({
+			progress: {
+				count: resourceInfos.length,
+			},
+			onChange: (p) => progressCallback?.(p),
+		});
+
+		const articlePayloads =
+			resourceInfos.length === 0
+				? []
+				: await this._options.localClient
+						.getArticlePayloads<SearchArticleFileMetadata>({
+							items: resourceInfos.map((x) => ({
+								filter: {
+									metadata: andFilter<SearchArticleKey>([
+										eqFilter(["catalogId"], catalog.name),
+										eqFilter(["type"], "file"),
+										eqFilter(["articleId"], getArticleId(wsPath, x.article.logicPath)),
+									]),
+								},
+							})),
+						})
+						.then((x) => x.articles);
+
+		let bufferSize = 0;
+		const articleIdBuffer: string[] = [];
+		const articleBuffer: ModulithArticle<SearchArticleFileMetadata>[] = [];
+		const unchangedResourcesBuffer: string[] = [];
+
+		const flushBuffer = async (progressCallback?: ProgressCallback) => {
+			const copyArticleBuffer = [...articleBuffer];
+			const copyArticleIdBuffer = [...articleIdBuffer];
+			const copyUnchangedResourcesBuffer = [...unchangedResourcesBuffer];
+
+			bufferSize = 0;
+			articleBuffer.length = 0;
+			articleIdBuffer.length = 0;
+			unchangedResourcesBuffer.length = 0;
+
+			await this._options.localClient.update({
+				articles: copyArticleBuffer,
+				filter: {
+					metadata: andFilter<SearchArticleKey>([
+						eqFilter(["catalogId"], catalog.name),
+						eqFilter(["type"], "file"),
+						inFilter(["articleId"], copyArticleIdBuffer),
+						notFilter(inFilter(["id"], copyUnchangedResourcesBuffer)),
+					]),
+				},
+				progressCallback: progressCallback,
+			});
+
+			this._debounceCommitClient();
+		};
+
+		await resourceInfos.forEachAsync(
+			async (x, i) => {
+				const resAggProgress = new AggregateProgress({
+					progress: {
+						weights: [50, 50],
+					},
+					onChange: (p) => aggProgress.setProgress(i, p),
+				});
+
+				const articleId = getArticleId(wsPath, x.article.logicPath);
+
+				const payloads = articlePayloads[i];
+				const { searchArticles, unchangedResources } = await this._options.sap.parseResourceArticles(
+					x.resources,
+					x.parsedContent.parsedContext.getResourceManager(),
+					wsPath,
+					x.article,
+					catalog,
+					x.properties,
+					payloads,
+					state.resourceParsingLock,
+					resAggProgress.getProgressCallback(0),
+				);
+				resAggProgress.setProgress(0, 1);
+
+				bufferSize++;
+				articleIdBuffer.push(articleId);
+				articleBuffer.push(...searchArticles);
+				unchangedResourcesBuffer.push(...unchangedResources);
+
+				if (bufferSize >= RESOURCE_ARTICLES_UPDATE_BUFFER_SIZE) {
+					await flushBuffer(resAggProgress.getProgressCallback(1));
+				}
+
+				resAggProgress.setProgress(1, 1);
+			},
+			20,
+			true,
+		);
+
+		if (bufferSize > 0) {
+			await flushBuffer();
+		}
+
+		progressCallback?.(1);
+	}
+
+	private async _updateBothClients(
+		articles: SearchArticle[],
+		filter: SearchArticleFilter,
+		progressCallback?: ProgressCallback,
+	) {
+		const aggProgress = new AggregateProgress({
+			progress: {
+				weights: this._options.remoteClient ? [50, 50] : [100],
+			},
+			onChange: (p) => progressCallback?.(p),
+		});
+
+		await Promise.allSettled([
+			this._options.localClient.update({
+				articles,
+				filter,
+				progressCallback: aggProgress.getProgressCallback(0),
+			}),
+			this._options.remoteClient?.update({
+				articles,
+				filter,
+				progressCallback: aggProgress.getProgressCallback(1),
+			}),
+		]);
+
+		aggProgress.setProgress(0, 1);
+		if (this._options.remoteClient) {
+			aggProgress.setProgress(1, 1);
+		}
+	}
+
+	private _debounceCommitClient() {
+		// Committing saves data in storage
+		// If storage is slow, we dont want to commit too often
+		this._cancelDebounceCommit = debounceFunction(
+			COMMIT_DEBOUNCE_SYMBOL,
+			() => this._flushCommitClient(),
+			COMMIT_DEBOUNCE_TIME_MS,
+		);
+
+		// With this we can commit periodically
+		// In case of many frequent updates
+		if (this._cancelRequiredCommit == null) {
+			this._cancelRequiredCommit = debounceFunction(
+				REQUIRED_COMMIT_DEBOUNCE_SYMBOL,
+				() => this._flushCommitClient(),
+				REQUIRED_COMMIT_DEBOUNCE_TIME_MS,
+			);
+		}
+	}
+
+	private async _flushCommitClient() {
+		this._cancelDebounceCommit?.();
+		this._cancelDebounceCommit = undefined;
+		this._cancelRequiredCommit?.();
+		this._cancelRequiredCommit = undefined;
+		await this._options.localClient.commit();
 	}
 
 	private _getOrCreateState(wsPath: WorkspacePath): WorkspaceState {
@@ -497,6 +867,7 @@ export interface SearchBatchArgs {
 		query?: string;
 		catalogNames: string[];
 		propertyFilter?: PropertyFilter;
+		resourceFilter?: ResourceFilter;
 		articlesLanguage?: ArticleLanguage;
 	}[];
 	signal?: AbortSignal;
@@ -532,51 +903,50 @@ export interface UpdateIndexArgs {
 	catalogName?: string;
 }
 
-function convertPropertyFilter(propertyFilter: PropertyFilter): SearchArticleFilter["metadata"] {
+function convertPropertyFilter(propertyFilter: PropertyFilter): Filter<SearchArticleKey> {
 	const op = propertyFilter.op;
 	switch (op) {
 		case "eq": {
-			return {
-				op: "eq",
-				key: getPropertyKeyName(propertyFilter.key),
-				value: propertyFilter.value,
-			};
+			return eqFilter(getPropertyKeyName(propertyFilter.key), propertyFilter.value);
 		}
-
 		case "contains": {
-			return {
-				op: "contains",
-				key: getPropertyKeyName(propertyFilter.key),
-				list: propertyFilter.list,
-			};
+			return containsFilter(getPropertyKeyName(propertyFilter.key), propertyFilter.list);
 		}
-
 		case "isEmpty": {
-			return {
-				op: "isEmpty",
-				key: getPropertyKeyName(propertyFilter.key),
-			};
+			return isEmptyFilter(getPropertyKeyName(propertyFilter.key));
 		}
-
 		case "and": {
-			return {
-				op: "and",
-				filters: propertyFilter.filters.map((x) => convertPropertyFilter(x)),
-			};
+			return andFilter(propertyFilter.filters.map((x) => convertPropertyFilter(x)));
 		}
-
 		case "or": {
-			return {
-				op: "or",
-				filters: propertyFilter.filters.map((x) => convertPropertyFilter(x)),
-			};
+			return orFilter(propertyFilter.filters.map((x) => convertPropertyFilter(x)));
 		}
-
 		default:
 			throw new Error(`Unexpected property filter operation ${op}`);
 	}
 }
 
-function getPropertyKeyName(property: string): FieldsToDotPaths<SearchArticleMetadata> {
-	return `properties.${property}`;
+function getPropertyKeyName(property: string): SearchArticleKey {
+	return ["properties", property];
+}
+
+function processArticleItems(items: ClientSearchResultItem[]): SearchResultItem[] {
+	items.forEach((x) => {
+		const type = x.type;
+		switch (type) {
+			case "paragraph": {
+				(x as SearchResultParagraphItem).searchText = collectText(x.items);
+				x.items = trimAroundHighlights(x.items);
+				break;
+			}
+			case "block": {
+				processArticleItems(x.items);
+				break;
+			}
+			default:
+				throw new Error(`Unexpected article item type ${type}`);
+		}
+	});
+
+	return items as SearchResultItem[];
 }

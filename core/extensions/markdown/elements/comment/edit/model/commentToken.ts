@@ -1,5 +1,5 @@
-import { ParseSpec } from "../../../../core/edit/logic/Prosemirror/from_markdown";
-import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
+import type { ParseSpec } from "../../../../core/edit/logic/Prosemirror/from_markdown";
+import type PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
 
 function commentToken(context?: PrivateParserContext): ParseSpec {
 	return {
@@ -7,13 +7,12 @@ function commentToken(context?: PrivateParserContext): ParseSpec {
 		getAttrs: (tok) => {
 			if (!tok.attrs.id || !context) return null;
 			const rm = context.getResourceManager();
-			rm.set(
-				rm.rootPath
-					.join(rm.basePath)
-					.getRelativePath(
-						context.getCatalog().customProviders.commentProvider.getFilePath(context.getArticle().ref.path),
-					),
-			);
+			const commentProvider = context.getCatalog().customProviders.commentProvider;
+			const articlePath = context.getArticle().ref.path;
+
+			commentProvider.assignComment(tok.attrs.id, articlePath);
+			rm.set(rm.rootPath.join(rm.basePath).getRelativePath(commentProvider.getFilePath(articlePath)));
+
 			return { ...tok.attrs };
 		},
 	};

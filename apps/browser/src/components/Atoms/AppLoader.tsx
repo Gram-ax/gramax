@@ -7,14 +7,14 @@ import t from "@ext/localization/locale/translate";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
 import { useState } from "react";
-import DarkLogo from "../../../../../core/public/images/gramax-logo-dark.svg";
-import LightLogo from "../../../../../core/public/images/gramax-logo-light.svg";
+import DarkLogo from "./logos/gramax-logo-dark.svg";
+import LightLogo from "./logos/gramax-logo-light.svg";
 
 const useCustomLogo = (theme: Theme) => {
 	const defaultLogo = theme === Theme.light ? LightLogo : DarkLogo;
 	const customLogo = CustomLogoDriver.getLogoWithCheckDark(theme);
 
-	return { logo: customLogo || defaultLogo, custom: Boolean(customLogo) };
+	return { logo: customLogo || (defaultLogo as string), custom: Boolean(customLogo) };
 };
 
 const AppLoader = ({ className }: { className?: string }) => {

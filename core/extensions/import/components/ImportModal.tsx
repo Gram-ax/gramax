@@ -11,19 +11,19 @@ import CreateSource from "@ext/import/components/CreateSource";
 import UnsupportedElementsModal from "@ext/import/components/UnsupportedElementsModal";
 import { useFilteredSourceData } from "@ext/import/logic/useFilteredSourceData";
 import { importModalFields } from "@ext/import/model/ImportModalFields";
-import { getImportModalFormSchema, ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
-import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
+import { getImportModalFormSchema, type ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
+import type { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
 import SourceOption from "@ext/storage/components/SourceOption";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { Loader } from "@ui-kit/Loader";
 import { MenuItem, MenuItemAction } from "@ui-kit/MenuItem";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import {
 	Select,
 	SelectContent,
@@ -33,7 +33,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@ui-kit/Select";
-import { ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface ImportModalProps {
@@ -166,9 +166,9 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 
 	return (
 		<>
-			<Modal onOpenChange={onOpenChange} open={isOpen}>
-				{trigger && <ModalTrigger asChild>{trigger}</ModalTrigger>}
-				<ModalContent>
+			<Dialog onOpenChange={onOpenChange} open={isOpen}>
+				{trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
+				<DialogContent>
 					<FormHeader
 						description={t("import.modal.description")}
 						icon="cloud-download"
@@ -177,7 +177,7 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 					<OnNetworkApiErrorService.Provider callback={() => onOpenChange(false)}>
 						<Form asChild {...form}>
 							<form className="contents ui-kit" onSubmit={onSubmit}>
-								<ModalBody>
+								<DialogBody>
 									<FormStack>
 										<FormField
 											control={({ field }) => (
@@ -239,7 +239,7 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 											<ModalFields form={form} sourceData={sourceData} />
 										)}
 									</FormStack>
-								</ModalBody>
+								</DialogBody>
 								<FormFooter
 									primaryButton={
 										<Button disabled={isLoading}>
@@ -257,8 +257,8 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 							</form>
 						</Form>
 					</OnNetworkApiErrorService.Provider>
-				</ModalContent>
-			</Modal>
+				</DialogContent>
+			</Dialog>
 			{isCreateSourceOpen && (
 				<CreateSource
 					data={invalidSourceData}

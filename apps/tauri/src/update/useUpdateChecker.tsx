@@ -87,12 +87,36 @@ const useUpdateChecker = () => {
 		setAcceptance(UpdateAcceptance.None);
 	}, []);
 
+	const install = useCallback(async () => {
+		await updateCheck(false);
+		await updateInstall();
+		resetUpdate();
+	}, [resetUpdate]);
+
+	const decline = useCallback(
+		(noemit?: boolean) => {
+			if (!noemit) broadcast.postMessage({ type: "update:set-accept", payload: UpdateAcceptance.Declined });
+			if (ref.current.state === UpdateStatus.Ready) return resetUpdate();
+			setAcceptance(() => UpdateAcceptance.Declined);
+		},
+		[resetUpdate],
+	);
+
+	const accept = useCallback(
+		async (noemit?: boolean) => {
+			if (!noemit) broadcast.postMessage({ type: "update:set-accept", payload: UpdateAcceptance.Accepted });
+			if (ref.current.state === UpdateStatus.Ready) return install();
+			setAcceptance(UpdateAcceptance.Accepted);
+		},
+		[install],
+	);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentionally
 	useEffect(() => {
 		const current = getCurrentWebviewWindow();
 
 		current.listen("update:incoming", (ev) => {
 			setState(() => {
-				setAcceptance(UpdateAcceptance.None);
 				ref.current = { state: UpdateStatus.Incoming, info: ev.payload as UpdateIncoming };
 				return ref.current;
 			});
@@ -148,29 +172,6 @@ const useUpdateChecker = () => {
 			}, 800);
 		}
 	}, []);
-
-	const install = useCallback(async () => {
-		await updateInstall();
-		resetUpdate();
-	}, [resetUpdate]);
-
-	const decline = useCallback(
-		(noemit?: boolean) => {
-			if (!noemit) broadcast.postMessage({ type: "update:set-accept", payload: UpdateAcceptance.Declined });
-			if (ref.current.state === UpdateStatus.Ready) return resetUpdate();
-			setAcceptance(() => UpdateAcceptance.Declined);
-		},
-		[resetUpdate],
-	);
-
-	const accept = useCallback(
-		async (noemit?: boolean) => {
-			if (!noemit) broadcast.postMessage({ type: "update:set-accept", payload: UpdateAcceptance.Accepted });
-			if (ref.current.state === UpdateStatus.Ready) return install();
-			setAcceptance(UpdateAcceptance.Accepted);
-		},
-		[install],
-	);
 
 	useWatch(() => {
 		if (ref.current.state !== UpdateStatus.Ready) return;

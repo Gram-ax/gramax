@@ -7,7 +7,11 @@ import { resolve } from "path";
 declare global {
 	interface Window {
 		app?: Promise<Application>;
-		debug?: typeof import("@gramax/apps/browser/src/debug");
+		debug: typeof import("@gramax/apps/browser/src/debug") & {
+			forceSave?: (() => Promise<void>) | null;
+			editor?: import("@tiptap/core").Editor | null;
+		};
+		refreshPage: () => Promise<void>;
 	}
 }
 
@@ -27,13 +31,13 @@ export const createFileTree = async (page: PlaywrightPage, tree: FileTree, baseP
 				if (typeof node === "string") {
 					const path = intoPath(currentPath);
 					const encoder = new TextEncoder();
-					await fp.write(path, encoder.encode(node) as Buffer);
+					await fp.write(path, encoder.encode(node) as unknown as Buffer);
 					return;
 				}
 
 				if (Array.isArray(node)) {
 					const path = intoPath(currentPath);
-					await fp.write(path, new Uint8Array(node) as Buffer);
+					await fp.write(path, new Uint8Array(node) as unknown as Buffer);
 					return;
 				}
 
@@ -78,7 +82,7 @@ export const uploadAndExtractZip = async (page: PlaywrightPage, zip: string): Pr
 			} else {
 				const content = await entry.async("uint8array");
 				const path = intoPath(relativePath);
-				await fp.write(path, new Uint8Array(content) as Buffer);
+				await fp.write(path, new Uint8Array(content) as unknown as Buffer);
 			}
 		}
 	}, zipData);
@@ -140,7 +144,7 @@ export const readDirToFileTree = async (dirPath: string | URL): Promise<FileTree
 		const entries = await fs.readdir(path, { withFileTypes: true });
 
 		for (const entry of entries) {
-			const fullPath = resolve(entry.parentPath, entry.name);
+			const fullPath = resolve(path instanceof URL ? path.pathname : path, entry.name);
 
 			if (entry.isDirectory()) {
 				tree[entry.name] = await readDir(fullPath);

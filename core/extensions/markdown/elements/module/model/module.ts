@@ -1,8 +1,10 @@
-import { Schema } from "../../../core/render/logic/Markdoc/index";
+import type { Schema } from "@ext/markdown/core/render/logic/Markdoc/src/types";
 
-export const module: Schema = {
+const mdModule: Schema = {
 	render: "Module",
 	attributes: {
 		id: { type: String },
 	},
 };
+
+export { mdModule as module };

@@ -1,11 +1,12 @@
-import Path from "@core/FileProvider/Path/Path";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type Path from "@core/FileProvider/Path/Path";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import { MarkdownExtension } from "@core/FileStructue/Item/ItemExtensions";
-import SitePresenter from "@core/SitePresenter/SitePresenter";
-import { DiffTree2TreeFile, DiffTree2TreeInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type SitePresenter from "@core/SitePresenter/SitePresenter";
+import schedulerYield from "@core-ui/utils/schedulerYield";
+import type { DiffTree2TreeFile, DiffTree2TreeInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import GitDiffItemAliasApplier from "@ext/git/core/GitDiffItemCreator/GitDiffItemAliasApplier";
-import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import { getDiff } from "@ext/VersionControl/DiffHandler/DiffHandler";
 import type {
 	DiffFilePaths,
@@ -38,7 +39,11 @@ export default abstract class GitDiffItemCreator {
 		const files = await this._getChangedFiles();
 		this._mergeBase = files.mergeBase;
 
+		await schedulerYield();
+
 		const { items, resources } = await this._resolveDiffItems(files.items, files.resources);
+
+		await schedulerYield();
 
 		if (resources.length === 0) {
 			GitDiffItemAliasApplier.apply(items);
@@ -46,6 +51,8 @@ export default abstract class GitDiffItemCreator {
 		}
 
 		const remainingResources = await this._assignResourcesToItems(resources, items);
+
+		await schedulerYield();
 
 		GitDiffItemAliasApplier.apply(items);
 		GitDiffItemAliasApplier.apply(remainingResources);
@@ -59,7 +66,9 @@ export default abstract class GitDiffItemCreator {
 	): Promise<{ items: DiffItem[]; resources: DiffTree2TreeFile[] }> {
 		const diffItems: DiffItem[] = [];
 
-		for (const file of files) {
+		for (let i = 0; i < files.length; i++) {
+			const file = files[i];
+
 			if (file.status === FileStatus.delete) {
 				const oldDiffItem = await this._getOldDiffItem(file);
 				if (!oldDiffItem) {
@@ -78,6 +87,10 @@ export default abstract class GitDiffItemCreator {
 			}
 
 			diffItems.push(diffItem);
+
+			if ((i + 1) % 10 === 0) {
+				await schedulerYield();
+			}
 		}
 		return { items: diffItems.filter(Boolean), resources };
 	}

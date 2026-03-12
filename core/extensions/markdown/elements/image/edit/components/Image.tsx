@@ -1,15 +1,16 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import Caption from "@components/controls/Caption";
 import Path from "@core/FileProvider/Path/Path";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import useWatch from "@core-ui/hooks/useWatch";
 import toggleSignature from "@core-ui/toggleSignature";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
 import ImageActions from "@ext/markdown/elements/image/edit/components/ImageActions";
 import ImageEditor from "@ext/markdown/elements/image/edit/components/ImageEditor";
-import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import ImageRenderer from "@ext/markdown/elements/image/render/components/ImageRenderer";
 import { getBlobFromBuffer } from "@ext/markdown/elements/image/render/logic/cropImage";
-import { Editor } from "@tiptap/core";
-import { ReactElement, RefObject, useCallback, useRef, useState } from "react";
+import type { Editor } from "@tiptap/core";
+import { type ReactElement, type RefObject, useCallback, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 interface ImageDataProps {
@@ -27,6 +28,7 @@ interface ImageDataProps {
 	hoverElementRef: RefObject<HTMLDivElement>;
 	commentId?: string;
 	getPos: () => number;
+	// biome-ignore lint/suspicious/noExplicitAny: it's ok
 	updateAttributes?: (attributes: Record<string, any>) => void;
 	className?: string;
 }
@@ -56,7 +58,7 @@ const Image = (props: ImageDataProps): ReactElement => {
 	const signatureRef = useRef<HTMLInputElement>(null);
 	const [hasSignature, setHasSignature] = useState(isEditable && title?.length > 0);
 	const [isHovered, setIsHovered] = useState(false);
-	const isGif = new Path(src).extension == "gif";
+	const isGif = new Path(src).extension === "gif";
 	const showResizer = selected && isEditable;
 
 	useWatch(() => {

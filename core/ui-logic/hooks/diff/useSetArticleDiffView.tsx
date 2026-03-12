@@ -1,20 +1,18 @@
 import Path from "@core/FileProvider/Path/Path";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useWatch from "@core-ui/hooks/useWatch";
 import { css } from "@emotion/react";
 import getSideBarData from "@ext/git/actions/Publish/logic/getSideBarData";
 import getSideBarElementByModelIdx, {
-	SideBarElementData,
+	type SideBarElementData,
 } from "@ext/git/actions/Publish/logic/getSideBarElementByModelIdx";
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
-import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
-import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type SideBarData from "@ext/git/actions/Publish/model/SideBarData";
+import type SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { DiffFlattenTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import ArticleDiffViewWrapper from "@ext/markdown/elements/diff/components/ArticleDiffViewWrapper";
 import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
-import type { DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
 import { useCallback, useRef } from "react";
 
 const diffStyles = css`
@@ -44,12 +42,11 @@ const diffStyles = css`
 `.styles;
 
 const getUniqueKey = (path: string, scope: TreeReadScope, deleteScope: TreeReadScope) => {
-	return path + (scope ? "-" + JSON.stringify(scope) : "") + (deleteScope ? "-" + JSON.stringify(deleteScope) : "");
+	return `${path}${scope ? `-${JSON.stringify(scope)}` : ""}${deleteScope ? `-${JSON.stringify(deleteScope)}` : ""}`;
 };
 
 const setArticleView = (
 	data: SideBarElementData,
-	apiUrlCreator: ApiUrlCreator,
 	useDefaultStyles: boolean,
 	isReadOnly: boolean,
 	scope?: TreeReadScope,
@@ -62,13 +59,12 @@ const setArticleView = (
 		const relativeTo = new Path(parentPath.path);
 		const oldRelativeTo = parentPath.oldPath ? new Path(parentPath.oldPath) : undefined;
 
+		// biome-ignore lint/correctness/useHookAtTopLevel: expected
 		const resourceView = useResourceView({
 			parentPath,
 			id: data.relativeIdx ?? data.idx,
 			resourcePath: new Path(data.sideBarDataElement.data.filePath.path),
 			oldResourcePath: new Path(data.sideBarDataElement.data.filePath.oldPath),
-			newContent: sideBarResourceData.data.content,
-			oldContent: sideBarResourceData.data.oldContent,
 			relativeTo,
 			oldRelativeTo,
 			filePath: data.sideBarDataElement.data.filePath,
@@ -96,36 +92,20 @@ const setArticleView = (
 };
 
 interface SetArticleDiffViewProps {
-	diff: DiffItem | DiffResource;
-	apiUrlCreator: ApiUrlCreator;
+	diff: DiffFlattenTreeAnyItem;
 	useDefaultStyles: boolean;
 	isReadOnly: boolean;
 	scope?: TreeReadScope;
 	deleteScope?: TreeReadScope;
 }
 
-const SetArticleDiffView = ({
-	diff,
-	apiUrlCreator,
-	useDefaultStyles,
-	scope,
-	deleteScope,
-	isReadOnly,
-}: SetArticleDiffViewProps) => {
+const SetArticleDiffView = ({ diff, useDefaultStyles, scope, deleteScope, isReadOnly }: SetArticleDiffViewProps) => {
 	const sideBarData = getSideBarData(diff ? [diff] : [], true, diff.type === "resource");
-	setArticleView(
-		getSideBarElementByModelIdx(0, sideBarData),
-		apiUrlCreator,
-		useDefaultStyles,
-		isReadOnly,
-		scope,
-		deleteScope,
-	);
+	setArticleView(getSideBarElementByModelIdx(0, sideBarData), useDefaultStyles, isReadOnly, scope, deleteScope);
 };
 
 const useSetArticleDiffView = (isReadOnly: boolean, scope?: TreeReadScope, deleteScope?: TreeReadScope) => {
 	const diffViewMode = useDiffViewMode();
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isWysiwyg = diffViewMode === "wysiwyg-single" || diffViewMode === "wysiwyg-double";
 	const useDefaultStylesRef = useRef(isWysiwyg);
 
@@ -133,11 +113,11 @@ const useSetArticleDiffView = (isReadOnly: boolean, scope?: TreeReadScope, delet
 		useDefaultStylesRef.current = isWysiwyg;
 	}, [diffViewMode]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const SetArticleDiffViewMemo = useCallback(
-		(diff: DiffItem | DiffResource) => {
+		(diff: DiffFlattenTreeAnyItem) => {
 			return SetArticleDiffView({
 				diff,
-				apiUrlCreator,
 				useDefaultStyles: useDefaultStylesRef.current,
 				isReadOnly,
 				scope,

@@ -1,9 +1,9 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import { NodeType } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
+import type { NodeType } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { NoteType, noteIcons } from "@ext/markdown/elements/note/render/component/Note";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { Icon } from "@ui-kit/Icon";
 import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
 

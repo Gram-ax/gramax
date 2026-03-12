@@ -47,10 +47,19 @@ const muteWarningsPlugin = (warningsToIgnore: string[][]): Plugin => {
 	};
 };
 
+const cacheDir = path.resolve(__dirname, ".cache/vite");
+
 export default (): UserConfig => ({
-	cacheDir: ".vite-cache",
+	cacheDir,
 	logLevel: "info",
 	appType: "spa",
+
+	esbuild: {
+		keepNames: true,
+		supported: {
+			"async-await": false,
+		},
+	},
 
 	plugins: [
 		muteWarningsPlugin([

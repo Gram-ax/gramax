@@ -7,27 +7,27 @@ import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorks
 import { getStorageDataByForm } from "@ext/git/actions/Clone/logic/getStorageDataByForm";
 import SelectGitStorageDataFields from "@ext/git/actions/Source/Git/components/SelectGitStorageDataFields";
 import SelectGiteaStorageDataFields from "@ext/git/actions/Source/Gitea/components/SelectGiteaStorageDataFields";
-import GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
-import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
-import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import type GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
+import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
+import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import SelectGitVerseStorageDataFields from "@ext/git/actions/Source/GitVerse/components/SelectGitVerseStorageDataFields";
-import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/model/GitVerseSourceData.schema";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GitVerseSourceData from "@ext/git/actions/Source/GitVerse/model/GitVerseSourceData.schema";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import CreateStorage from "@ext/storage/components/CreateStorage";
 import SourceOption from "@ext/storage/components/SourceOption";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import {
 	getSelectStorageFormSchema,
-	SelectFormSchemaType,
+	type SelectFormSchemaType,
 } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
 import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
+import { DialogBody } from "@ui-kit/Dialog";
 import { Form, FormField, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
 import { MenuItem, MenuItemAction } from "@ui-kit/MenuItem";
-import { ModalBody } from "@ui-kit/Modal";
 import {
 	Select,
 	SelectContent,
@@ -38,10 +38,10 @@ import {
 	SelectValue,
 } from "@ui-kit/Select";
 import { useCallback, useMemo, useState } from "react";
-import { UseFormReturn, useForm } from "react-hook-form";
+import { type UseFormReturn, useForm } from "react-hook-form";
 import SelectGitHubStorageDataFields from "../../git/actions/Source/GitHub/components/SelectGitHubStorageDataFields";
 import SelectGitLabStorageDataFields from "../../git/actions/Source/GitLab/components/SelectGitLabStorageDataFields";
-import SourceData from "../logic/SourceDataProvider/model/SourceData";
+import type SourceData from "../logic/SourceDataProvider/model/SourceData";
 import SourceType from "../logic/SourceDataProvider/model/SourceType";
 import getStorageNameByData from "../logic/utils/getStorageNameByData";
 
@@ -160,7 +160,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 						icon="git-pull-request"
 						title={formProps.title ?? t("forms.clone-repo.name")}
 					/>
-					<ModalBody>
+					<DialogBody>
 						<FormStack>
 							<FormField
 								control={({ field }) => (
@@ -221,7 +221,7 @@ const SelectStorageDataForm = (props: SelectStorageDataFormProps) => {
 							/>
 							{sourceKey && getFormLowerPart(form, sourceData)}
 						</FormStack>
-					</ModalBody>
+					</DialogBody>
 					<FormFooter
 						primaryButton={
 							<Button disabled={isLoading}>

@@ -110,10 +110,10 @@ impl<C: ActualCreds> Lfs for Repo<'_, C> {
 		let head = local_branch.get();
 
 		let objects_to_push = match upstream {
-			Some(upstream) => self.0.find_lfs_objects_to_push(head, Some(upstream.get()))?,
+			Some(upstream) => self.0.find_lfs_objects_to_push(head, Some(upstream.get()), 100)?,
 			None => {
 				let default_branch = self.default_branch()?;
-				self.0.find_lfs_objects_to_push(head, default_branch.as_ref().map(|b| b.get()))?
+				self.0.find_lfs_objects_to_push(head, default_branch.as_ref().map(|b| b.get()), 50)?
 			}
 		};
 
@@ -415,14 +415,6 @@ pub mod wasm {
 
 			*self.active_conn_id.lock().unwrap() = conn_id;
 
-			unsafe {
-				em_lfs_http_set_header(
-					conn_id,
-					std::ffi::CString::new("User-Agent").unwrap().as_ptr(),
-					std::ffi::CString::new(USER_AGENT).unwrap().as_ptr(),
-				)
-			};
-
 			let res = unsafe { em_lfs_http_send(conn_id, body_cstr.as_ptr(), 0) };
 			handle_http_error(res)?;
 
@@ -464,14 +456,6 @@ pub mod wasm {
 				let value_cstr = std::ffi::CString::from_str(value).unwrap();
 				unsafe { em_lfs_http_set_header(conn_id, header_cstr.as_ptr(), value_cstr.as_ptr()) };
 			}
-
-			unsafe {
-				em_lfs_http_set_header(
-					conn_id,
-					std::ffi::CString::new("User-Agent").unwrap().as_ptr(),
-					std::ffi::CString::new(USER_AGENT).unwrap().as_ptr(),
-				)
-			};
 
 			unsafe { em_lfs_http_send(conn_id, std::ptr::null(), 0) };
 			handle_http_error(conn_id)?;
@@ -518,14 +502,6 @@ pub mod wasm {
 				let value_cstr = std::ffi::CString::from_str(value).unwrap();
 				unsafe { em_lfs_http_set_header(conn_id, header_cstr.as_ptr(), value_cstr.as_ptr()) };
 			}
-
-			unsafe {
-				em_lfs_http_set_header(
-					conn_id,
-					std::ffi::CString::new("User-Agent").unwrap().as_ptr(),
-					std::ffi::CString::new(USER_AGENT).unwrap().as_ptr(),
-				)
-			};
 
 			let res = unsafe { em_lfs_http_send(conn_id, blob.as_ptr().cast(), blob.len()) };
 			handle_http_error(res)?;

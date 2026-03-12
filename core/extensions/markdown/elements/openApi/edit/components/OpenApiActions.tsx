@@ -1,10 +1,10 @@
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import t from "@ext/localization/locale/translate";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import { Editor } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model";
+import type { Editor } from "@tiptap/core";
+import type { Node } from "@tiptap/pm/model";
 
 interface OpenApiActionsProps {
 	editor: Editor;

@@ -1,15 +1,17 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
+/** biome-ignore-all lint/correctness/useHookAtTopLevel: expected */
 import type { ClientGitStatus } from "@app/commands/versionControl/statuses";
 import type { UnsubscribeToken } from "@core/Event/EventEmitter";
 import type Path from "@core/FileProvider/Path/Path";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService, { type OnDidCommandEv } from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useApiEvent } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import type { TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import type { TotalOverview } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { createContext, ReactElement, useCallback, useContext, useLayoutEffect, useState } from "react";
+import { createContext, type ReactElement, useCallback, useContext, useLayoutEffect, useState } from "react";
 
 const GitIndexContext = createContext<{ index: Map<string, FileStatus>; overview: TotalOverview }>({
 	index: new Map(),
@@ -112,20 +114,20 @@ export default abstract class GitIndexService {
 	}
 
 	private static _onDidCommand({ command }: OnDidCommandEv) {
-		if (!this._interestedCommands.has(command)) return;
+		if (!GitIndexService._interestedCommands.has(command)) return;
 
-		const lastRun = Date.now() - this._lastRun;
-		if (this._timeout || lastRun < this._debounceTime) {
-			clearTimeout(this._timeout);
-			this._timeout = setTimeout(() => void this._update(), this._debounceTime);
+		const lastRun = Date.now() - GitIndexService._lastRun;
+		if (GitIndexService._timeout || lastRun < GitIndexService._debounceTime) {
+			clearTimeout(GitIndexService._timeout);
+			GitIndexService._timeout = setTimeout(() => void GitIndexService._update(), GitIndexService._debounceTime);
 			return;
 		}
 
-		void this._update();
+		void GitIndexService._update();
 	}
 
 	private static async _update() {
-		const endpoint = this._apiUrlCreator.getVersionControlStatuses();
+		const endpoint = GitIndexService._apiUrlCreator.getVersionControlStatuses();
 		const res = await FetchService.fetch<ClientGitStatus[]>(endpoint);
 		const data = await res.json();
 
@@ -143,6 +145,6 @@ export default abstract class GitIndexService {
 
 		GitIndexService._setIndex?.(new Map(iter));
 		GitIndexService._setOverview?.(overview);
-		this._lastRun = Date.now();
+		GitIndexService._lastRun = Date.now();
 	}
 }

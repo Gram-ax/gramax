@@ -1,13 +1,13 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
-import Context from "@core/Context/Context";
-import Path from "@core/FileProvider/Path/Path";
+import type Context from "@core/Context/Context";
+import type Path from "@core/FileProvider/Path/Path";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
 import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import assert from "assert";
 import { Command } from "../../../types/Command";
 
@@ -57,6 +57,8 @@ const getCommentsByAuthors: Command<{ ctx: Context; catalogName: string }, Autho
 	kind: ResponseKind.json,
 
 	middlewares: [new AuthorizeMiddleware(), new DesktopModeMiddleware()],
+
+	flags: ["otel-omit-result"],
 
 	async do({ ctx, catalogName }) {
 		const { parserContextFactory, parser } = this._app;

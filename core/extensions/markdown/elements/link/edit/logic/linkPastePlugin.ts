@@ -35,7 +35,7 @@ export function linkPastePlugin(editor) {
 
 				const pastedText = clipboardData.getData("text").trim();
 				const isVideo = isVideoSupported(pastedText);
-				if (!isValidURL(pastedText) && !isVideo) return false;
+				if (!isValidURL(pastedText) || !isVideo) return false;
 
 				if (isVideo) return addVideo(editor, pastedText);
 				if (wrapSelectionWithLink(view, pastedText)) return editor.commands.toggleMark("link");

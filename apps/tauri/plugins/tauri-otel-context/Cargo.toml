@@ -1,0 +1,9 @@
+[package]
+name = "tauri-otel-context"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+tauri = { workspace = true }
+anyhow = { workspace = true }
+opentelemetry = "0.31.0"

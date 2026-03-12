@@ -4,11 +4,12 @@ import { useRouter } from "@core/Api/useRouter";
 import { getClientDomain } from "@core/utils/getClientDomain";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import { showPopover } from "@core-ui/showPopover";
-import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
+import type ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
-import { ComponentProps, ReactNode, useCallback, useMemo } from "react";
+import { type ComponentProps, type ReactNode, useCallback, useMemo } from "react";
 
 const SHARE_SKIP_MODAL = "share.skip";
 
@@ -31,6 +32,7 @@ const setShareSkipModal = (flag: boolean) => {
 
 const ShareAction = ({ path, isArticle, children, variant = "MenuItem" }: ShareActionProps) => {
 	const router = useRouter();
+	const webEditorUrl = WorkspaceService.current()?.webEditorUrl;
 	const shouldShowModal = useMemo(() => {
 		return shouldShowShareModal();
 	}, []);
@@ -38,17 +40,12 @@ const ShareAction = ({ path, isArticle, children, variant = "MenuItem" }: ShareA
 	const shareUrl = useMemo(() => {
 		let newPath = path || router.path;
 		newPath = newPath.startsWith("/") ? newPath : `/${newPath}`;
-		return `${getClientDomain()}${newPath}`;
-	}, [path]);
+		return `${getClientDomain(webEditorUrl)}${newPath}`;
+	}, [webEditorUrl, path, router.path]);
 
 	const onClick = useCallback(() => {
-		try {
-			void navigator.clipboard.writeText(shareUrl);
-			showPopover(`${t("share.popover")}`);
-		} catch (error) {
-			showPopover("Failed to copy link");
-		}
-	}, [isArticle, shareUrl]);
+		void tryCopyToClipboard(shareUrl);
+	}, [shareUrl]);
 
 	const openModal = () => {
 		ModalToOpenService.setValue<ComponentProps<typeof ShareModal>>(ModalToOpen.Share, {

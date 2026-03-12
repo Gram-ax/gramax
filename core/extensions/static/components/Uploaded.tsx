@@ -1,14 +1,14 @@
 import Icon from "@components/Atoms/Icon";
 import Anchor from "@components/controls/Anchor";
-import { showPopover } from "@core-ui/showPopover";
+import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import CloudModalBody from "@ext/static/components/CloudModalBody";
 import useGetCatalogCloudUrl from "@ext/static/utils/cloudUrl";
 import { Button } from "@ui-kit/Button";
 import { Description } from "@ui-kit/Description";
+import { DialogClose, DialogHeader, DialogTitle } from "@ui-kit/Dialog";
 import { FormFooter } from "@ui-kit/Form";
-import { ModalClose, ModalHeader, ModalTitle } from "@ui-kit/Modal";
 
 const IconComponent = ({ className }: { className?: string }) => {
 	return (
@@ -32,21 +32,20 @@ const Uploaded = () => {
 	const url = useGetCatalogCloudUrl();
 
 	const onCopyClick = () => {
-		navigator.clipboard.writeText(url);
-		showPopover(t("share.popover"));
+		void tryCopyToClipboard(url);
 	};
 
 	return (
 		<>
-			<ModalHeader>
+			<DialogHeader>
 				<div className="flex items-center">
 					<StyledIconComponent className="text-primary-fg" />
-					<ModalTitle>{t("cloud.uploaded-modal.title")}</ModalTitle>
+					<DialogTitle>{t("cloud.uploaded-modal.title")}</DialogTitle>
 				</div>
-			</ModalHeader>
+			</DialogHeader>
 			<CloudModalBody>
 				<p>
-					{t("cloud.uploaded-modal.link") + ": "}
+					{`${t("cloud.uploaded-modal.link")}: `}
 					<br />
 					<Anchor className="anchor" data-qa="qa-clickable" href={url}>
 						{url}
@@ -56,11 +55,11 @@ const Uploaded = () => {
 			</CloudModalBody>
 			<FormFooter
 				primaryButton={
-					<ModalClose>
+					<DialogClose>
 						<Button onClick={onCopyClick} startIcon="copy">
 							{`${t("copy")} ${t("link2").toLowerCase()}`}
 						</Button>
-					</ModalClose>
+					</DialogClose>
 				}
 			/>
 		</>

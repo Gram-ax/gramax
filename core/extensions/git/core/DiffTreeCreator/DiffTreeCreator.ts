@@ -4,9 +4,10 @@ import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import type SitePresenter from "@core/SitePresenter/SitePresenter";
+import schedulerYield from "@core-ui/utils/schedulerYield";
 import type { CommitScope, DiffCompareOptions, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import RevisionDiffItemCreator from "@ext/git/core/GitDiffItemCreator/RevisionDiffItemCreator";
-import RevisionDiffTreePresenter, { type DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
+import RevisionDiffPresenter, { type DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
 import Navigation from "@ext/navigation/catalog/main/logic/Navigation";
@@ -33,7 +34,11 @@ export default class DiffTreeCreator {
 	async getDiffTree(): Promise<DiffTree> {
 		await this._gitIndexAddInDesktop();
 
+		await schedulerYield();
+
 		const { oldCatalog, newCatalog, diffOpts } = await this._getScopedCatalogsAndDiffOpts();
+
+		await schedulerYield();
 
 		const gitDiffItemCreator = new RevisionDiffItemCreator(
 			this._catalog,
@@ -48,14 +53,18 @@ export default class DiffTreeCreator {
 		const diffItems = await gitDiffItemCreator.getDiffItems();
 		this._mergeBase = gitDiffItemCreator.getMergeBase();
 
+		await schedulerYield();
+
 		const nav = new Navigation();
-		const diffTreePresenter = new RevisionDiffTreePresenter({
+		const diffTreePresenter = new RevisionDiffPresenter({
 			diffItems,
 			newRoot: newCatalog.name,
 			oldRoot: oldCatalog.name,
 			newItems: await nav.getCatalogNav(newCatalog, null),
 			oldItems: await nav.getCatalogNav(oldCatalog, null),
 		});
+
+		await schedulerYield();
 
 		return diffTreePresenter.present();
 	}

@@ -1,7 +1,6 @@
-import TooltipIfOveflow from "@core-ui/TooltipIfOveflow";
 import styled from "@emotion/styled";
-import type { DiffTreeBreadcrumb } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
-import { useRef } from "react";
+import type { DiffTreeBreadcrumb } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
 
 const Wrapper = styled.div<{ marginLeft?: number }>`
 	> div {
@@ -22,20 +21,12 @@ const Wrapper = styled.div<{ marginLeft?: number }>`
 `;
 
 const Breadcrumbs = ({ breadcrumb, marginLeft }: { breadcrumb: DiffTreeBreadcrumb[]; marginLeft?: number }) => {
-	const wrapperRef = useRef<HTMLDivElement>(null);
-
 	if (!breadcrumb.length) return null;
 	const breadcrumbString = breadcrumb.map((b) => b.name).join("/");
 
 	return (
 		<Wrapper marginLeft={marginLeft}>
-			<TooltipIfOveflow childrenRef={wrapperRef} content={breadcrumbString} interactive>
-				<div ref={wrapperRef}>
-					{breadcrumb.map((b, id) => (
-						<span key={id}>{b.name}</span>
-					))}
-				</div>
-			</TooltipIfOveflow>
+			<TextOverflowTooltip className="truncate">{breadcrumbString}</TextOverflowTooltip>
 		</Wrapper>
 	);
 };

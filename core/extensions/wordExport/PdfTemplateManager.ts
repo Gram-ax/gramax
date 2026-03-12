@@ -1,6 +1,6 @@
-import { Workspace } from "@ext/workspace/Workspace";
+import type { Workspace } from "@ext/workspace/Workspace";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { Buffer } from "buffer";
+import type { Buffer } from "buffer";
 
 export const PDF_TEMPLATES_DIR = "pdf";
 const PDF_TEMPLATE_FORMATS = ["css"];

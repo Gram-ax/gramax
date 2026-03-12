@@ -4,11 +4,14 @@ import type DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFi
 import type FileInput from "@components/Atoms/FileInput/FileInputProps";
 import type useUrlImage from "@components/Atoms/Image/useUrlImage";
 import type { Router } from "@core/Api/Router";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import type {
 	GetImageByPathOptions,
 	GetImageByPathResult,
 } from "@ext/markdown/elements/image/export/NextImageProcessor";
+import type { ResourceParseClient } from "@ext/serach/modulith/resourceParse/ResourceParseClient";
+import type { ModulithSearchClient } from "@ext/serach/modulith/search/ModulithSearchClient";
 import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import type useUrlObjectImage from "apps/browser/src/hooks/useUrlObjectImage";
 import type BrowserCookie from "apps/browser/src/logic/BrowserCookie";
@@ -42,6 +45,7 @@ export interface DynamicModules {
 	}) => Promise<Window> | Window;
 	httpFetch: typeof httpFetch;
 	setBadge: (count: number | null) => void | Promise<void>;
+	getPdfjs: () => Promise<typeof import("pdfjs-dist")>;
 }
 
 export interface BackendDynamicModules {
@@ -56,4 +60,13 @@ export interface BackendDynamicModules {
 	setSessionData: (key: string, data: string) => Promise<void>;
 	pdfLoadFont: (fontPath: string) => Promise<ArrayBuffer>;
 	getImageByPath: (options: GetImageByPathOptions) => Promise<GetImageByPathResult>;
+	getModulithSearchClient: ({
+		cacheFileProvider,
+		articleStorageFileProvider,
+	}: {
+		cacheFileProvider: FileProvider;
+		articleStorageFileProvider: FileProvider;
+	}) => Promise<ModulithSearchClient>;
+	getResourceParseClient: () => Promise<ResourceParseClient>;
+	getPdfjs: () => Promise<typeof import("pdfjs-dist")>;
 }

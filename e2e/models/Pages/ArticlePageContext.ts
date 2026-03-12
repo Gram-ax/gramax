@@ -1,7 +1,7 @@
-import { Aliases } from "e2e/steps/utils/aliases";
-import { Page } from "playwright";
-import { ReplaceAlias } from "../World";
-import PageContext, { PageInfo } from "./PageContext";
+import type { Aliases } from "e2e/steps/utils/aliases";
+import type { Page } from "playwright";
+import type { ReplaceAlias } from "../World";
+import PageContext, { type PageInfo } from "./PageContext";
 
 export default class ArticlePageContext extends PageContext {
 	private _previousPath: string;
@@ -27,7 +27,7 @@ export default class ArticlePageContext extends PageContext {
 	}
 
 	async forceSave() {
-		await this._page.evaluate(async () => await window.forceSave?.());
+		await this._page.evaluate(async () => await window.debug.forceSave?.());
 		return this;
 	}
 

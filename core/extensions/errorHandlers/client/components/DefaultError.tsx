@@ -1,9 +1,9 @@
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { ComponentProps } from "react";
-import GetErrorComponent from "../../logic/GetErrorComponent";
+import type { ComponentProps } from "react";
+import type GetErrorComponent from "../../logic/GetErrorComponent";
 import InfoModalForm from "./ErrorForm";
 
 export const getIcon = (error: DefaultError) => {
@@ -29,7 +29,7 @@ export const ErrorBody = ({ error }: { error: DefaultError }) => {
 	);
 };
 
-const DefaultErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
+const DefaultErrorComponent = ({ appVersionLabel, error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	const isCommandError = error.title === t("app.error.command-failed.title");
 	const onActionClick = () => {
 		onCancelClick();
@@ -44,6 +44,7 @@ const DefaultErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof G
 			isWarning={error.isWarning}
 			onCancelClick={onCancelClick}
 			title={error.title ?? (error.isWarning ? t("warning") : t("error"))}
+			version={appVersionLabel}
 		>
 			<ErrorBody error={error} />
 		</InfoModalForm>

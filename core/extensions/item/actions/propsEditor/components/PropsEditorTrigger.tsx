@@ -1,22 +1,27 @@
 import Icon from "@components/Atoms/Icon";
 import {
-	UsePropsEditorActionsParams,
+	type UsePropsEditorActionsParams,
 	usePropsEditorActions,
 } from "@ext/item/actions/propsEditor/logic/usePropsEditorAcitions";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import { FC } from "react";
+import { type FC, useCallback } from "react";
 
 interface PropsEditorTriggerProps extends Omit<UsePropsEditorActionsParams, "onExternalClose"> {
-	onUpdate?: () => void;
 	onOpenChange?: (open: boolean) => void;
+	setItemPropsData: (path: string) => void;
 }
 
 const PropsEditorTrigger: FC<PropsEditorTriggerProps> = (props) => {
-	const { onOpenChange, onUpdate, ...hookParams } = props;
+	const { onOpenChange, setItemPropsData, itemLink, ...hookParams } = props;
+
+	const onUpdate = useCallback(() => {
+		setItemPropsData(itemLink.ref.path);
+	}, [itemLink.ref.path, setItemPropsData]);
 
 	const { openModal } = usePropsEditorActions({
 		...hookParams,
+		itemLink,
 		onExternalClose: () => onOpenChange?.(false),
 		onUpdate,
 	});

@@ -2,6 +2,7 @@ import { onFSWasmCallback } from "@app/resolveModule/fscall/wasm";
 import { onGitWasmCallback } from "@app/resolveModule/gitcall/wasm";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { progress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import { handleWasmSpans } from "@ext/loggers/opentelemetry";
 import setWorkerProxy from "../../../src/logic/setWorkerProxy";
 
 const notSupported = () => new DefaultError(undefined, undefined, { errorCode: "wasmNotSupported" });
@@ -45,6 +46,7 @@ export const initWasm = async (corsProxy: string) => {
 					if (!payload?.data) return;
 					progress[payload.data.id]?.(payload);
 				}
+				if (ev.data.type == "otel") void handleWasmSpans(ev.data.spans);
 
 				if (ev.data.type == "ready") resolve(w.wasm);
 				if (ev.data.type == "timeout") resolve(null);

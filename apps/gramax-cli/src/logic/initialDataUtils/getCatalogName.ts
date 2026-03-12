@@ -1,12 +1,15 @@
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import assert from "assert";
-import { ExtendedWindow, InitialDataKeys } from "./types";
+import { type ExtendedWindow, InitialDataKeys } from "./types";
 
 export const getCatalogNameFromInitialData = (): string => {
 	const extendedWindow = window as ExtendedWindow;
 	const data = extendedWindow[InitialDataKeys.DATA];
 
 	assert(data, "Initial data not found");
+
+	const isHomePage = !data.data.catalogProps;
+	if (isHomePage) return "";
 	return data.data.catalogProps.name;
 };
 

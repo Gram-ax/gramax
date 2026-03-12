@@ -40,6 +40,10 @@ const StyledSwitchField = styled(SwitchField)`
 		width: 100%;
 		max-width: 15rem;
 	}
+
+	label {
+		line-height: 1.5;
+	}
 `;
 
 const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolean }) => {

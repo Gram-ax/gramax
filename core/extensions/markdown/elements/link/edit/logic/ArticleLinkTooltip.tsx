@@ -1,23 +1,24 @@
 import MiniArticle from "@components/Article/MiniArticle";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
-import PageDataContext from "@core/Context/PageDataContext";
-import { ClientArticleProps, type ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import safeDecode from "@core/utils/safeDecode";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
-import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
+import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { Mark } from "@tiptap/pm/model";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import type { Mark } from "@tiptap/pm/model";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 
 type dataType = {
 	path: string;
@@ -77,6 +78,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	const addClosedClass = useDebounce(() => setCanClose(false), 150);
 	const closeComponent = useDebounce(closeHandler, 80);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const close = useCallback(() => {
 		if (isVisible) {
 			debounceClose.start();
@@ -98,7 +100,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		}, [apiUrlCreator, getMark, resourcePath]),
 		onDone: () => {
 			const mark = getMark();
-			if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(decodeURIComponent(mark.attrs.hash));
+			if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(safeDecode(mark.attrs.hash));
 		},
 	});
 
@@ -121,6 +123,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		},
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const clearHandler = useCallback(() => {
 		debounceClose.cancel();
 		addClosedClass.cancel();
@@ -139,6 +142,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		};
 	}, [fetchData, fetchCatalogProps]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const handleMouseLeave = () => close();
 		const handleMouseEnter = () => clearHandler();
@@ -246,15 +250,16 @@ const TooltipContent = (props: TooltipContent) => {
 		};
 	}, [start, clear]);
 
-	if (!data) return null;
-
 	useEffect(() => {
-		if (!hash) return;
-		const anchor = document.querySelector(`.tooltip-article [id="${hash.slice(1)}"]`);
+		const decodedHash = safeDecode(hash);
+		if (!decodedHash) return;
+		const anchor = document.querySelector(`.tooltip-article [id="${decodedHash.slice(1)}"]`);
 		if (!anchor) return;
 
 		anchor.scrollIntoView();
-	}, [articleRef?.current]);
+	}, [hash]);
+
+	if (!data) return null;
 
 	return (
 		<div ref={articleRef}>

@@ -1,4 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
+import { span } from "@ext/loggers/opentelemetry";
+import { type InvokeArgs, type InvokeOptions, invoke as rawInvoke } from "@tauri-apps/api/core";
 import { once } from "@tauri-apps/api/event";
 import { getAllWebviews } from "@tauri-apps/api/webview";
 
@@ -10,6 +11,18 @@ export interface HttpListenOnceOptions {
 	callbackName: string;
 }
 
+export const invoke = <T>(cmd: string, args?: InvokeArgs, options?: InvokeOptions): Promise<T> => {
+	const ctx = span()?.spanContext();
+
+	return rawInvoke<T>(cmd, args, {
+		...options,
+		headers: {
+			"span-id": ctx?.spanId,
+			"trace-id": ctx?.traceId,
+		},
+	});
+};
+
 export const httpListenOnce = async ({ action, callbackName, url }: HttpListenOnceOptions) => {
 	await invoke("http_listen_once", {
 		url,
@@ -20,7 +33,7 @@ export const httpListenOnce = async ({ action, callbackName, url }: HttpListenOn
 
 export const openChildWindow = async (opts: { url: string; redirect?: string }): Promise<Window> => {
 	const dummy = { onLoadApp: undefined, focus: () => {} };
-	await once("on_done", (ev) => dummy.onLoadApp({ search: "?" + (ev.payload as string) }));
+	await once("on_done", (ev) => dummy.onLoadApp({ search: `?${ev.payload as string}` }));
 
 	if (opts.redirect) {
 		void httpListenOnce({
@@ -32,7 +45,7 @@ export const openChildWindow = async (opts: { url: string; redirect?: string }):
 		window.location.replace(opts.url);
 	}
 
-	return dummy as any as Window;
+	return dummy as unknown as Window;
 };
 
 export const openDirectory = () => invoke<string>("open_directory");

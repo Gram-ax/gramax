@@ -1,5 +1,5 @@
-import { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { Node } from "prosemirror-model";
+import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
+import type { Node } from "prosemirror-model";
 
 const deleteImages = async (nodes: Node[], resourceService: ResourceServiceType) => {
 	for (const node of nodes) {

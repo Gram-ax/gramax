@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import call from "@app/resolveModule/gitcall";
 import Path from "@core/FileProvider/Path/Path";
@@ -67,11 +68,13 @@ export type UpstreamCountFileChanges = {
 	hasChanges: boolean;
 };
 
-export type MergeResult = {
+export type MergeConflictInfo = {
 	ours?: string;
 	theirs?: string;
 	ancestor?: string;
-}[];
+};
+
+export type MergeResult = MergeConflictInfo[];
 
 export type CommitOptions = {
 	message: string;
@@ -137,7 +140,7 @@ export const getAllCancelTokens = () => call<number[]>("get_all_cancel_tokens", 
 
 export const init = (args: CredsArgs) => call<Oid>("init_new", args);
 
-export const fileHistory = async (args: Args & { filePath: string; count: number }) => {
+export const fileHistory = async (args: Args & { filePath: string; offset: number; limit: number }) => {
 	const infos = await call<any[]>("file_history", args);
 	return infos.map(
 		(i): VersionControlInfo => ({
@@ -197,7 +200,7 @@ export const diff = (args: Args & { opts: DiffConfig }) => call<DiffTree2TreeInf
 export const branchInfo = async (
 	args: Args & { name?: string },
 ): Promise<GitBranchData & { lastCommitOid: string }> => {
-	if (args.name == "HEAD") delete args.name;
+	if (args.name === "HEAD") delete args.name;
 	const data = await call<any>("branch_info", args);
 	return intoGitBranchData(data);
 };

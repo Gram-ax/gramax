@@ -12,7 +12,7 @@ import t from "@ext/localization/locale/translate";
 import useStorage from "@ext/storage/logic/utils/useStorage";
 import { AlertConfirm } from "@ui-kit/AlertDialog/AlertConfirm";
 import { Button } from "@ui-kit/Button";
-import { Modal, ModalBody, ModalContent, ModalTitle, ModalTrigger } from "@ui-kit/Modal";
+import { Dialog, DialogBody, DialogContent, DialogTitle, DialogTrigger } from "@ui-kit/Dialog";
 import { useMemo, useState } from "react";
 
 export type RepositoryNotFullyClonedProps = {
@@ -69,13 +69,13 @@ export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyC
 	const [open, setOpen] = useState(false);
 
 	return (
-		<Modal onOpenChange={setOpen} open={open}>
-			<ModalTrigger asChild>{trigger}</ModalTrigger>
-			<ModalContent>
-				<ModalBody className="flex flex-row items-start gap-4 lg:py-6">
+		<Dialog onOpenChange={setOpen} open={open}>
+			<DialogTrigger asChild>{trigger}</DialogTrigger>
+			<DialogContent>
+				<DialogBody className="flex flex-row items-start gap-4 lg:py-6">
 					<Icon className="text-status-error" code="circle-alert" size="24px" />
 					<div className="space-y-2">
-						<ModalTitle className="text-lg">{t("git.error.broken.clone-failed.title")}</ModalTitle>
+						<DialogTitle className="text-lg">{t("git.error.broken.clone-failed.title")}</DialogTitle>
 						<p style={{ paddingBottom: "1rem" }}>{t("git.error.broken.clone-failed.body")}</p>
 						{removeCatalogError && (
 							<ErrorMessage className="text-status-error">
@@ -83,7 +83,7 @@ export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyC
 							</ErrorMessage>
 						)}
 					</div>
-				</ModalBody>
+				</DialogBody>
 				<FooterWrapper>
 					<TechnicalDetails error={error}>
 						<Button className="p-0 h-auto underline" size="xl" variant="link">
@@ -117,7 +117,7 @@ export const RepositoryNotFullyCloned = ({ trigger, error }: RepositoryNotFullyC
 						</AlertConfirm>
 					</div>
 				</FooterWrapper>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };

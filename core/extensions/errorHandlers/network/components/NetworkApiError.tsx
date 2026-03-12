@@ -1,10 +1,10 @@
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
-import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
+import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import type NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 const NetworkApiErrorComponent = ({ error: defaultError, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	const error = defaultError as NetworkApiError;

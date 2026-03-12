@@ -2,7 +2,8 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
+import { span } from "@ext/loggers/opentelemetry";
 import { Command } from "../../types/Command";
 
 const haveToPull: Command<{ ctx: Context; shouldFetch: boolean; catalogName: string }, boolean> = Command.create({
@@ -13,7 +14,7 @@ const haveToPull: Command<{ ctx: Context; shouldFetch: boolean; catalogName: str
 	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
 
 	async do({ ctx, shouldFetch, catalogName }) {
-		const { wm, logger, rp } = this._app;
+		const { wm, rp } = this._app;
 		const workspace = wm.current();
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
@@ -23,12 +24,12 @@ const haveToPull: Command<{ ctx: Context; shouldFetch: boolean; catalogName: str
 		return catalog.repo.isShouldSync({
 			data,
 			shouldFetch,
-			onFetch: () => logger.logTrace(`Fetched in catalog "${catalogName}".`),
+			onFetch: () => span()?.addEvent("fetched", { catalogName }),
 		});
 	},
 
 	params(ctx, q) {
-		return { ctx, catalogName: q.catalogName, shouldFetch: q.shouldFetch == "true" };
+		return { ctx, catalogName: q.catalogName, shouldFetch: q.shouldFetch === "true" };
 	},
 });
 

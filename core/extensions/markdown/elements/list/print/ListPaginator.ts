@@ -43,7 +43,7 @@ export class ListPaginator extends NodePaginator<ListElement> {
 	}
 
 	createPage() {
-		const isSplitedItem = this.currentContainer.childNodes.length;
+		const isSplitedItem = this.haveChildNodes();
 		if (!this._listContainer.childNodes.length && !isSplitedItem) this._listContainer.remove();
 		this.cleanHeadingElementsIfNeed();
 

@@ -42,20 +42,13 @@
 	--distance-actions-mobile: 1rem;
 	--default-form-width: 540px;
 	--medium-form-width: 840px;
-	--heading-row-width-admonition: 28px;
+	--heading-row-width-admonition: 1.75em;
 
 	--bar-shadow: 0px 0px 12px -5px rgba(0, 0, 0, 0.16);
 	--bar-shadow-vertical: -3px 0px 12px -5px rgba(0, 0, 0, 0.16);
 	--menu-tooltip-shadow: rgb(6 6 6 / 18%) -1px 2px 10px;
 	--comment-tooltip-shadow: 0px 0px 12px 1px rgba(13, 13, 13, 0.19);
 	--inline-element-shadow: 0px 1px 2px 0px rgba(15, 23, 42, 0.05);
-
-	--color-admonition-dropdown-quote: hsla(210, 40%, 98%, 1);
-	--color-admonition-dropdown-lab: hsla(268, 100%, 83%, 1);
-	--color-admonition-dropdown-tip: hsla(205, 90%, 73%, 1);
-	--color-admonition-dropdown-note: hsla(18, 100%, 74%, 1);
-	--color-admonition-dropdown-info: hsla(241, 100%, 86%, 1);
-	--color-admonition-dropdown-danger: hsla(318, 94%, 80%, 1);
 
 	--color-comment-border: #facc15;
 	--color-comment-bg: #ffd9b7;
@@ -115,9 +108,9 @@
 	--z-index-nav-layout: 49;
 	--z-index-overlay: 50;
 	--z-index-top-menu: 50;
-	--z-index-header-navigation: 50;
 	--z-index-ui-kit-modal: 50;
-	--z-index-top-menu-dragable-area: 51;
+	--z-index-top-menu-dragable-area: 50;
+	--z-index-header-navigation: 51;
 	--z-index-base: 100;
 	--z-index-popover: 150;
 	--z-index-article-modal: 200;
@@ -127,6 +120,10 @@
 	--z-index-modal-overlay: 190;
 
 	--search-fragment-highlight-bg: #fff59e;
+	--search-badge-recommended-bg: #dbeafe;
+	--search-badge-recommended-text: #193cb8;
+	--search-badge-current-bg: #e5e7eb;
+	--search-badge-current-text: #27272b;
 }
 
 [data-theme] {
@@ -134,12 +131,21 @@
 	--inverse-accent-hover: 214 32% 91%;
 	--inverse-accent-text: 229 84% 5%;
 
+	--color-background-muted: #f5f5f5;
+
 	--color-lev-sidebar-hover: #ffffffa3;
 	--color-skeleton-bg: 222 47% 11%;
 	--color-table-plus-bg: rgba(0, 0, 0, 0.13);
 	--color-table-plus-border: rgba(0, 0, 0, 0.4);
 	--color-table-action-add: var(--color-table-plus-border);
 	--color-table-action-delete: rgba(255, 0, 0, 0.2);
+
+	--color-admonition-dropdown-quote: hsla(210, 40%, 98%, 1);
+	--color-admonition-dropdown-lab: hsla(268, 100%, 83%, 1);
+	--color-admonition-dropdown-tip: hsla(205, 90%, 73%, 1);
+	--color-admonition-dropdown-note: hsla(18, 100%, 74%, 1);
+	--color-admonition-dropdown-info: hsla(241, 100%, 86%, 1);
+	--color-admonition-dropdown-danger: hsla(318, 94%, 80%, 1);
 
 	--color-block: hsl(0deg 0% 98%);
 	--color-block-hover: #ffffff;
@@ -180,7 +186,7 @@
 	--color-article-hotkey-search-bg: #ffd500a0;
 	--color-article-hotkey-search-bg-active: #ffa800ef;
 	--color-table-border: rgba(0, 0, 0, 0.13);
-	--color-table-row-hover: #f5f5f5;
+	--color-table-row-hover: var(--color-background-muted);
 
 	--color-placeholder: #a9a9a9;
 
@@ -315,6 +321,8 @@
 		--inverse-accent-hover: 217 33% 17%;
 		--inverse-accent-text: 210 40% 98%;
 
+		--color-background-muted: #1e293b;
+
 		--color-primary: white;
 		--color-primary-inverse: var(--color-black);
 		--color-block: #182b39cf;
@@ -325,6 +333,13 @@
 		--color-table-plus-border: rgba(255, 255, 255, 0.4);
 		--color-table-action-add: var(--color-table-plus-border);
 		--color-table-action-delete: rgba(255, 0, 0, 0.2);
+
+		--color-admonition-dropdown-quote: hsl(var(--inverse-primary-fg));
+		--color-admonition-dropdown-lab: hsla(267, 77%, 56%, 1);
+		--color-admonition-dropdown-tip: hsla(208, 100%, 45%, 0.73);
+		--color-admonition-dropdown-note: hsla(18, 90%, 47%, 1);
+		--color-admonition-dropdown-info: hsla(242, 81%, 58%, 1);
+		--color-admonition-dropdown-danger: hsla(317, 87%, 49%, 1);
 
 		--color-line: hsl(230deg 15% 35%);
 		--color-scroll: hsl(230deg 15% 35% / 50%);
@@ -339,7 +354,7 @@
 		--color-article-hotkey-search-bg: rgba(255, 213, 0, 0.94);
 		--color-article-hotkey-search-bg-active: rgb(255, 136, 0);
 		--color-table-border: rgba(255, 255, 255, 0.13);
-		--color-table-row-hover: #1e293b;
+		--color-table-row-hover: var(--color-background-muted);
 
 		--color-tooltip-text: #1d2135;
 		--color-tooltip-background: #f4f4f5;
@@ -493,6 +508,10 @@
 		--color-highlight-border-grayish-blue: #5a636b;
 
 		--search-fragment-highlight-bg: #8c7b2c;
+		--search-badge-recommended-bg: #1c398e;
+		--search-badge-recommended-text: #bedbff;
+		--search-badge-current-bg: #364153;
+		--search-badge-current-text: #e5e7eb;
 	}
 }
 

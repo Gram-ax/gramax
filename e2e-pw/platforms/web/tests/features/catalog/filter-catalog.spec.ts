@@ -66,9 +66,7 @@ catalogTest.describe("Catalog Filter", () => {
 
 			const select = new Select(
 				sharedPage,
-				catalogPage.modal
-					.getByRole("combobox")
-					.filter({ hasText: "Select a property for filtering" }), // TODO: fix
+				catalogPage.modal.getByRole("combobox").filter({ hasText: "Select a property" }),
 			);
 			await select.open();
 			await select.assertHasItems(allProps.map((title) => ({ title })));
@@ -76,11 +74,7 @@ catalogTest.describe("Catalog Filter", () => {
 			const selectValue = await select.findItemByTitle(targetProperty);
 			await selectValue.click();
 
-			await expect(
-				catalogPage.modal
-					.getByRole("combobox")
-					.filter({ hasText: targetProperty }), // TODO: fix
-			).toBeVisible();
+			await expect(catalogPage.modal.getByRole("combobox").filter({ hasText: targetProperty })).toBeVisible();
 
 			await sharedPage.getByRole("button", { name: "Save" }).click();
 

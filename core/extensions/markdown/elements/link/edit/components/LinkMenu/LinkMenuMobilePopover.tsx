@@ -1,10 +1,10 @@
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { LinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
+import { LinkMenu, type LinkMenuMode } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import { useLinkMenuState } from "@ext/markdown/elements/link/edit/hooks/useLinkMenuState";
 import { useMediaQuery } from "@mui/material";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
 import { useCallback, useEffect, useState } from "react";
 
@@ -35,6 +35,7 @@ export const LinkMenuMobilePopover = (props: LinkMenuMobilePopoverProps) => {
 	const { mark, isOpen, setIsOpen, updateMarkState, onUpdate, handleDelete } = useLinkMenuState(editor);
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 	const [options, setOptions] = useState<{ bottom: number }>({ bottom: 0 });
+	const [mode, setMode] = useState<LinkMenuMode>("edit");
 
 	useEffect(() => {
 		if (!editor || !isMobile) return;
@@ -92,7 +93,7 @@ export const LinkMenuMobilePopover = (props: LinkMenuMobilePopoverProps) => {
 				}}
 			>
 				<Container className={cn("bg-transparent border-none lg:shadow-hard-base")}>
-					<LinkMenu mark={mark} onDelete={onDelete} onUpdate={onUpdate} />
+					<LinkMenu mark={mark} mode={mode} onDelete={onDelete} onUpdate={onUpdate} setMode={setMode} />
 				</Container>
 			</div>
 		</ComponentVariantProvider>

@@ -18,6 +18,7 @@ import PromptProvider from "@ext/ai/logic/PromptProvider";
 import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import type Repository from "@ext/git/core/Repository/Repository";
 import InboxProvider from "@ext/inbox/logic/InboxProvider";
+import { trace } from "@ext/loggers/opentelemetry";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
@@ -429,6 +430,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		return category;
 	}
 
+	@trace()
 	async parseEveryItem(ctx: Context, parser: MarkdownParser, parserContextFactory: ParserContextFactory) {
 		if (this._parsedOnce) return;
 		this._parsedOnce = true;

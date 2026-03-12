@@ -1,14 +1,14 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import InputFile from "@components/Atoms/InputFile";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import ResourceService, { type ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
 import t from "@ext/localization/locale/translate";
-import ResourceService, { ResourceServiceType } from "@ext/markdown/elements/copyArticles/resourceService";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { Icon } from "@ui-kit/Icon";
 import { ToolbarDropdownMenuItem, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
-import { ChangeEvent, useCallback } from "react";
+import { type ChangeEvent, useCallback } from "react";
 import createFile from "../logic/createFile";
 
 interface FileMenuButtonProps {

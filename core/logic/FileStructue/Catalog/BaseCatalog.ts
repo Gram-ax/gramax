@@ -13,6 +13,7 @@ import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/Catalo
 import type GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import type Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type { ToSpan } from "@ext/loggers/opentelemetry";
 import { SystemProperties } from "@ext/properties/models";
 import type Permission from "@ext/security/logic/Permission/Permission";
 
@@ -29,7 +30,7 @@ export type BaseCatalogInitProps = {
 export type CatalogType = "catalog" | "entry";
 
 export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps, I extends ItemProps = ItemProps>
-	implements ReadonlyBaseCatalog<P, I>
+	implements ReadonlyBaseCatalog<P, I>, ToSpan
 {
 	protected abstract readonly _type: CatalogType;
 
@@ -138,7 +139,9 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 		};
 		Object.keys(newProps)
 			.filter((k: keyof typeof newProps) => !ExcludedProps.includes(k))
-			.forEach((k) => (this.props[k] = newProps[k]));
+			.forEach((k) => {
+				this.props[k] = newProps[k];
+			});
 	}
 
 	upgrade<T extends CatalogType, L extends boolean = false>(to: T, load?: L) {
@@ -158,4 +161,14 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 
 	abstract setRepository(repo: Repository): void;
 	abstract getRootCategoryDirectoryPath(): Path;
+
+	toSpan() {
+		return {
+			name: this.name,
+			type: this._type,
+			isReadOnly: this._isReadOnly,
+			basePath: this._basePath.value,
+			repo: this._repo,
+		};
+	}
 }

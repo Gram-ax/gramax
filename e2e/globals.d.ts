@@ -16,6 +16,5 @@ declare global {
 		app: Promise<App>;
 		commands: CommandTree;
 		refreshPage: () => Promise<void>;
-		forceSave: () => Promise<void> | void;
 	}
 }

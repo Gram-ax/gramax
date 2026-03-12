@@ -2,24 +2,26 @@ import { MinimizedArticleStyled } from "@components/Article/MiniArticle";
 import BoxResizeWrapper from "@components/Atoms/BoxResizeWrapper";
 import DragWrapper from "@components/Atoms/DragWrapper";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import TopBarControllers from "@ext/articleProvider/components/TopBarControllers";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import { PopoverPosition, PopoverRect } from "@ext/articleProvider/logic/Popover";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type { PopoverPosition, PopoverRect } from "@ext/articleProvider/logic/Popover";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
-import getExtensions, { GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
+import getExtensions, { type GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
+import type { InlineToolbarButtons } from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import Document from "@tiptap/extension-document";
-import { Extensions, JSONContent } from "@tiptap/react";
+import type { Extensions, JSONContent } from "@tiptap/react";
+import { TooltipProvider } from "@ui-kit/Tooltip";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type ItemProps = ProviderItemProps & {
-	props: Record<string, any>;
+	props: Record<string, unknown>;
 };
 
 interface TooltipContentProps {
@@ -86,6 +88,18 @@ const getTooltipExtensions = (extensions: Extensions, options?: GetExtensionsPro
 	...extensions,
 ];
 
+const editorButtons: InlineToolbarButtons = {
+	textGroup: {
+		highlight: false,
+	},
+	inlineGroup: {
+		file: false,
+		comment: false,
+		prettify: false,
+		link: false,
+	},
+};
+
 const TooltipContent = ({ item, articleType, extensions, onUpdate, onClose, options }: TooltipContentProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
@@ -110,34 +124,38 @@ const TooltipContent = ({ item, articleType, extensions, onUpdate, onClose, opti
 		setIsLoading(false);
 	}, [item.id, item.title, apiUrlCreator, articleType]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		fetchContent();
 	}, []);
 
 	return (
-		<TooltipWrapper>
-			<TooltipContentWrapper className="tooltip-content">
-				<TopBarControllers onClose={onClose} />
-				<MinimizedArticleStyled>
-					{isLoading ? (
-						<SpinnerLoader />
-					) : (
-						<SmallEditor
-							articleType={articleType}
-							content={content}
-							extensions={getTooltipExtensions(extensions, options)}
-							id={item.id}
-							props={{
-								title: item.title,
-								...(item.props || {}),
-								content,
-							}}
-							updateCallback={updateCallback}
-						/>
-					)}
-				</MinimizedArticleStyled>
-			</TooltipContentWrapper>
-		</TooltipWrapper>
+		<TooltipProvider>
+			<TooltipWrapper>
+				<TooltipContentWrapper className="tooltip-content">
+					<TopBarControllers onClose={onClose} />
+					<MinimizedArticleStyled>
+						{isLoading ? (
+							<SpinnerLoader />
+						) : (
+							<SmallEditor
+								articleType={articleType}
+								content={content}
+								extensions={getTooltipExtensions(extensions, options)}
+								id={item.id}
+								inlineToolbarButtons={editorButtons}
+								props={{
+									title: item.title,
+									...(item.props || {}),
+									content,
+								}}
+								updateCallback={updateCallback}
+							/>
+						)}
+					</MinimizedArticleStyled>
+				</TooltipContentWrapper>
+			</TooltipWrapper>
+		</TooltipProvider>
 	);
 };
 
@@ -168,8 +186,8 @@ const TooltipArticleView = (props: TooltipEditorProps) => {
 		const wrapper = wrapperRef.current;
 		if (!wrapper) return;
 
-		const x = parseInt(wrapper.style.left);
-		const y = parseInt(wrapper.style.top);
+		const x = parseInt(wrapper.style.left, 10);
+		const y = parseInt(wrapper.style.top, 10);
 		setIsPinned(true);
 
 		updateRect({ x, y, width: rect?.width, height: rect?.height });
@@ -183,8 +201,8 @@ const TooltipArticleView = (props: TooltipEditorProps) => {
 		const wrapper = wrapperRef.current;
 		if (!wrapper) return;
 
-		const x = rect?.x && parseInt(wrapper.style.left);
-		const y = rect?.y && parseInt(wrapper.style.top);
+		const x = rect?.x && parseInt(wrapper.style.left, 10);
+		const y = rect?.y && parseInt(wrapper.style.top, 10);
 		const width = wrapper.clientWidth;
 		const height = wrapper.clientHeight;
 
@@ -193,6 +211,7 @@ const TooltipArticleView = (props: TooltipEditorProps) => {
 		updateRect({ x, y, width, height });
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (isPinned) return;
 

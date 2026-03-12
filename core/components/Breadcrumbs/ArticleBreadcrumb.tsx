@@ -1,6 +1,5 @@
 import Icon from "@components/Atoms/Icon";
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -11,7 +10,7 @@ import getArticleItemLink from "@ext/article/LinkCreator/logic/getArticleItemLin
 import ItemMenu from "@ext/item/EditMenu";
 import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
 import Properties from "@ext/properties/components/Properties";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { Button } from "@ui-kit/Button";
@@ -58,11 +57,7 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 								</Button>
 							}
 						>
-							<ItemMenu
-								isCategory={itemLink?.type === ItemType.category}
-								itemLink={itemLink}
-								setItemLink={setItemLink}
-							/>
+							<ItemMenu itemLink={itemLink} setItemLink={setItemLink} />
 						</NavigationDropdown>
 					</div>
 				</>

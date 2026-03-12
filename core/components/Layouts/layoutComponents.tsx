@@ -66,7 +66,7 @@ const Links = (props: {
 	} = props;
 	return (
 		<ul className={className}>
-			{articleLinks?.length || isArticleActionsVisible ? <Divider /> : null}
+			{articleLinks?.length || isArticleActionsVisible ? <Divider className="mt-4 mb-4" /> : null}
 			<ul className={className}>
 				<RenderTitledLinks isCatalog={false} links={articleLinks} />
 				{articleChildren}
@@ -112,7 +112,6 @@ export default styled(Links)`
 	> ul > li,
 	.divider {
 		line-height: 1.2em;
-		margin-bottom: 0.9rem;
 	}
 
 	.fa-fw {

@@ -11,10 +11,6 @@ export class RowPaginator extends NodePaginator<HTMLTableRowElement> {
 	private _emptyAccumulatedHeight: number;
 	public accumulated: { height: number; rows: number }[] = [];
 
-	constructor(row: HTMLTableRowElement, parentPaginator: Paginator) {
-		super(row, parentPaginator);
-	}
-
 	async paginateNode() {
 		throwIfAborted(Paginator.controlInfo.signal);
 
@@ -64,7 +60,7 @@ export class RowPaginator extends NodePaginator<HTMLTableRowElement> {
 		this._rowIndex++;
 		const nextRow = this._rows[this._rowIndex];
 
-		if (this.currentContainer.childNodes.length || this._cellIndex) {
+		if (this.haveChildNodes() || this._cellIndex) {
 			this._currentTr.appendChild(this.currentContainer);
 		}
 

@@ -23,6 +23,8 @@ interface SearchMetricsTableProps {
 	tableKey: string;
 	onRowClick: (row: SearchMetricsTableRow) => void;
 	selectedQuery: string | null;
+	startDate: string;
+	endDate: string;
 }
 
 const getRowId = (row: SearchMetricsTableRow) => row.normalizedQuery;
@@ -36,11 +38,9 @@ const SearchMetricsTableInner = ({
 	tableKey,
 	onRowClick,
 	selectedQuery,
+	startDate,
+	endDate,
 }: SearchMetricsTableProps) => {
-	console.log("searchmetricstable rendered");
-
-	const dependencies = useMemo(() => [sortBy, sortOrder], [sortBy, sortOrder]);
-
 	const rowInteraction = useMemo(
 		() => ({
 			onRowClick,
@@ -64,7 +64,7 @@ const SearchMetricsTableInner = ({
 	return (
 		<UnifiedMetricsTable
 			dataLoader={getSearchTableData}
-			dependencies={dependencies}
+			dependencies={[startDate, endDate, sortBy, sortOrder]}
 			getRowId={getRowId}
 			initialData={initialData}
 			responsive={false}

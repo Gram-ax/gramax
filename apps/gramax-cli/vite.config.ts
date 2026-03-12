@@ -3,6 +3,7 @@ import { join, resolve } from "path";
 import { defineConfig, mergeConfig, type Plugin, type UserConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import env from "../../scripts/compileTimeEnv.mjs";
+import getOutputFileNames from "../../scripts/getOutputFileNames.js";
 import browserConfig from "../browser/vite.config";
 
 const { setVersion, setBuildVersion, dynamicModules } = env;
@@ -10,7 +11,17 @@ const { setVersion, setBuildVersion, dynamicModules } = env;
 setVersion("static");
 setBuildVersion("static");
 
-export default defineConfig(({ isSsrBuild }) => {
+const getAssetPath = (): string => {
+	const isProduction = process.env.PRODUCTION === "true";
+	const gramaxVersion = process.env.GRAMAX_NPM_VERSION || process.env.ASSETS_VERSION;
+
+	if (isProduction && !gramaxVersion) throw new Error("GRAMAX_NPM_VERSION must be specified in production build");
+
+	const date = new Date().toISOString().split("T")[0].replace(/-/g, "");
+	return `${process.env.ASSETS_VERSION ? "versioned-assets" : "assets"}/${gramaxVersion || `dev_${date}`}`;
+};
+
+export default defineConfig(async ({ isSsrBuild }) => {
 	process.env.VITE_ENVIRONMENT = isSsrBuild ? "cli" : "static";
 
 	// eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -25,6 +36,8 @@ export default defineConfig(({ isSsrBuild }) => {
 		);
 	}
 
+	const assetsDir = isSsrBuild ? undefined : getAssetPath();
+
 	return mergeConfig(browserConfig, {
 		resolve: {
 			alias: dynamicModules(),
@@ -33,15 +46,18 @@ export default defineConfig(({ isSsrBuild }) => {
 		ssr: {
 			noExternal: /^(?!shelljs$|graceful-fs$)/,
 		},
+		...(isSsrBuild ? { publicDir: "./public" } : { publicDir: false }),
 		build: {
 			emptyOutDir: !isSsrBuild,
 			rollupOptions: {
 				external: ["./package.json", "sharp", "canvas"],
 				output: {
 					importAttributesKey: "with",
+					...(assetsDir ? getOutputFileNames(assetsDir) : {}),
 				},
 			},
 			sourcemap: false,
+			assetsDir,
 		},
 		plugins: [
 			...(isSsrBuild
@@ -81,7 +97,16 @@ export default defineConfig(({ isSsrBuild }) => {
 							],
 						}),
 					]
-				: []),
+				: [
+						viteStaticCopy({
+							targets: [
+								{
+									src: "../../core/public/favicon.ico",
+									dest: "./",
+								},
+							],
+						}),
+					]),
 		],
 		define: {
 			"process.builtIn": { READ_ONLY: "true", SERVER_APP: "true" },

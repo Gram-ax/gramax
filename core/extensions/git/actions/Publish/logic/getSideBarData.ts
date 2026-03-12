@@ -1,78 +1,60 @@
-import type { DiffFilePaths, DiffItem, DiffResource } from "@ext/VersionControl/model/Diff";
-import { JSONContent } from "@tiptap/core";
-import SideBarData from "../model/SideBarData";
-import SideBarResourceData from "../model/SideBarResourceData";
+import type {
+	DiffFlattenTreeAnyItem,
+	DiffFlattenTreeResourceType,
+} from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
+import type SideBarData from "../model/SideBarData";
+import type SideBarResourceData from "../model/SideBarResourceData";
 
 const getSideBarData = (
-	diffFiles: (DiffItem | DiffResource)[],
+	diffFiles: DiffFlattenTreeAnyItem[],
 	isChecked: boolean,
 	isResource: boolean,
 ): SideBarData[] => {
 	const sideBarData: SideBarData[] = [];
 	diffFiles.map((diffFile) => {
-		const { title, filePath, isChanged, status } = diffFile;
+		if (diffFile.type === "node") return;
+		const title = diffFile.name;
+		const filePath = diffFile.filepath.new;
+		const isChanged = diffFile.isChanged;
+		const status = diffFile.overview.status;
 		let logicPath: string;
 		let resources: SideBarResourceData[] = [];
 		if (diffFile.type === "item") {
-			logicPath = diffFile.logicPath;
+			logicPath = diffFile.logicpath;
 			resources = diffFile.resources
 				? diffFile.resources
 						.filter((x) => x)
-						.map(
-							({
-								title,
-								filePath,
-								hunks,
-								status,
+						.map(({ title, filePath, status, parentPath }): SideBarResourceData => {
+							return {
 								parentPath,
-								content,
-								oldContent,
-							}): SideBarResourceData => {
-								return {
-									parentPath,
-									isResource: true,
-									data: {
-										status,
-										filePath,
-										title,
-										content,
-										oldContent,
-									},
-									hunks,
-								};
-							},
-						)
+								isResource: true,
+								data: {
+									status,
+									filePath,
+									title,
+								},
+							};
+						})
 				: [];
 		}
 
-		let parentPath: DiffFilePaths;
-		let newEditTree: JSONContent;
-		let oldEditTree: JSONContent;
-		if (isResource) parentPath = (diffFile as DiffResource).parentPath;
-		else {
-			newEditTree = (diffFile as DiffItem).newEditTree;
-			oldEditTree = (diffFile as DiffItem).oldEditTree;
-		}
-
 		sideBarData.push({
-			parentPath,
+			parentPath: isResource ? (diffFile as DiffFlattenTreeResourceType).parentPath : undefined,
 			isResource,
 			data: {
 				title,
-				filePath,
+				filePath: {
+					path: filePath,
+					oldPath: diffFile.filepath.old,
+				},
 				isChanged,
 				logicPath,
 				resources,
 				status,
 				isChecked,
-				newEditTree,
-				oldEditTree,
-				oldContent: diffFile.oldContent,
-				content: diffFile.content,
-				added: diffFile.added,
-				deleted: diffFile.deleted,
+				added: diffFile.overview.added,
+				deleted: diffFile.overview.removed,
 			},
-			hunks: diffFile.hunks,
 		});
 	});
 

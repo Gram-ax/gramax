@@ -4,6 +4,7 @@ import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import { resetFileLock } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import BareRepository from "@ext/git/core/Repository/BareRepository";
+import { trace } from "@ext/loggers/opentelemetry";
 import type { SharedCloneProgress } from "@ext/storage/logic/SharedCloneProgress";
 import type { GitStorageCloneResult } from "@ext/storage/logic/StorageProvider";
 
@@ -24,6 +25,7 @@ export default class BrokenRepository extends BareRepository {
 		return this;
 	}
 
+	@trace()
 	async recover(opts: RecoverOptions): Promise<GitStorageCloneResult> {
 		const { data, progress } = opts;
 

@@ -1,5 +1,6 @@
-import { QuestionStorage } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
-import { QuestionLocalStorageData } from "@ext/markdown/elements/question/types";
+import type { QuestionStorage } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
+import type { QuestionLocalStorageData } from "@ext/markdown/elements/question/types";
+import type { SelectedAnswer } from "./QuestionsStore";
 
 const localStorage = typeof window !== "undefined" ? window.localStorage : null;
 const LOCAL_QUESTIONS_STORAGE_KEY = "local-questions-storage";
@@ -19,16 +20,16 @@ export class LocalQuestionsStorage implements QuestionStorage {
 		this._path = path;
 	}
 
-	getQuestion(questionId: string): string[] {
+	getQuestion(questionId: string): SelectedAnswer {
 		const questions = this._read() || {};
-		return questions[this._path]?.[questionId] ?? [];
+		return questions[this._path]?.[questionId] ?? {};
 	}
 
-	saveQuestion(questionId: string, answers: string[]): void {
+	saveQuestion(questionId: string, answers: SelectedAnswer): void {
 		const questions = this._read() || {};
 
 		if (!questions[this._path]) questions[this._path] = {};
-		questions[this._path][questionId] = answers;
+		questions[this._path][questionId] = answers ?? {};
 		this._write(questions);
 	}
 

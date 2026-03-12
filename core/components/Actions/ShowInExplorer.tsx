@@ -8,19 +8,21 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import t from "@ext/localization/locale/translate";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
 
 interface ShowInExplorerProps {
-	item?: ClientArticleProps;
+	item?: ClientArticleProps | ItemLink;
 	children?: React.ReactNode;
 }
 
 export default ({ item, children }: ShowInExplorerProps) => {
 	const { isTauri } = usePlatform();
-	if (!isTauri) return;
-	const catalogName = useCatalogPropsStore((state) => state.data.name);
+	if (!isTauri) return null;
 
 	const isMac = IsMacService.value;
 	const workspace = WorkspaceService.current();
+
+	const catalogName = useCatalogPropsStore((state) => state.data.name);
 
 	if (!workspace) return null;
 

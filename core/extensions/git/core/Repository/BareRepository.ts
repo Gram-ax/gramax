@@ -3,9 +3,13 @@ import type Path from "@core/FileProvider/Path/Path";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
-import Repository, { type CheckoutOptions, type SyncOptions, SyncResult } from "@ext/git/core/Repository/Repository";
+import Repository, {
+	type CheckoutOptions,
+	type SyncOptions,
+	type SyncResult,
+} from "@ext/git/core/Repository/Repository";
 import RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type Storage from "@ext/storage/logic/Storage";
 
 export default class BareRepository extends Repository {

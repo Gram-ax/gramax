@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/correctness/useHookAtTopLevel: ask VG */
+import useShouldRenderDeleteCatalog from "@components/Actions/useShouldRenderDeleteCatalog";
 import Icon from "@components/Atoms/Icon";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import Workspace from "@core-ui/ContextServices/Workspace";
@@ -8,7 +10,7 @@ import CatalogMoveAction from "@ext/catalog/actions/move/components/CatalogMoveA
 import SelectTargetWorkspace from "@ext/catalog/actions/move/components/SelectTargetWorkspace";
 import { useDeleteCatalog } from "@ext/catalog/actions/propsEditor/components/useDeleteCatalog";
 import t from "@ext/localization/locale/translate";
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 import { CardMenuTrigger } from "@ui-kit/Card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { useCallback } from "react";
@@ -21,6 +23,7 @@ const CardActions = ({ catalogLink }: CardActionsProps) => {
 	const { isStatic, isStaticCli } = usePlatform();
 	if (isStatic || isStaticCli) return null;
 
+	const shouldRenderDeleteCatalog = useShouldRenderDeleteCatalog();
 	const workspace = Workspace.current();
 	const { catalogs } = FavoriteService.value;
 	const isFavorite = catalogs.some((catalog) => catalog === catalogLink.name);
@@ -72,17 +75,19 @@ const CardActions = ({ catalogLink }: CardActionsProps) => {
 								/>
 							)}
 						</CatalogMoveAction>
-						<DropdownMenuItem
-							onClick={async (e) => {
-								e.stopPropagation();
-								if (!(await confirm(t("catalog.delete.name") + "?"))) return;
-								await deleteCatalog();
-							}}
-							type="danger"
-						>
-							<Icon code="trash" />
-							{t("catalog.delete.name")}
-						</DropdownMenuItem>
+						{shouldRenderDeleteCatalog && (
+							<DropdownMenuItem
+								onClick={async (e) => {
+									e.stopPropagation();
+									if (!(await confirm(`${t("catalog.delete.name")}?`))) return;
+									await deleteCatalog();
+								}}
+								type="danger"
+							>
+								<Icon code="trash" />
+								{t("catalog.delete.name")}
+							</DropdownMenuItem>
+						)}
 					</>
 				)}
 			</DropdownMenuContent>

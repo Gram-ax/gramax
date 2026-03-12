@@ -5,12 +5,12 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import type EditEnterpriseConfig from "@ext/enterprise/components/EditEnterpriseConfig";
 import UiLanguage from "@ext/localization/core/model/Language";
-import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow, type WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import type { ComponentProps } from "react";
 import TauriCookie from "./cookie/TauriCookie";
 import { attachConsole } from "./logging";
 import { initSpellcheck, toggleSpellcheck } from "./spellcheck";
+import { invoke } from "./window/commands";
 import { initZoom } from "./window/zoom";
 
 const subscribeEnterpriseEvents = async (current: WebviewWindow) => {

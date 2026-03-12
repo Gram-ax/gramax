@@ -41,13 +41,13 @@ import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
 import TemplateContentWarning from "@ext/templates/components/TemplateContentWarning";
 import CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
 import EditWorkspaceForm from "@ext/workspace/components/EditWorkspaceForm";
-import { ReactNode } from "react";
-import ReviewTicketHandler from "../../../../extensions/catalog/actions/review/components/ReviewTicketHandler";
+import type { ReactNode } from "react";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import DefaultModal from "../components/DefaultModal";
 import ModalToOpen from "../model/ModalsToOpen";
 
 const getModalComponentToRender: {
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
 } = {
 	[ModalToOpen.DuplicateCatalogDialog]: DuplicateCatalogDialog,
@@ -56,7 +56,6 @@ const getModalComponentToRender: {
 	[ModalToOpen.MergeResolver]: MergeResolver,
 
 	[ModalToOpen.ShareTicketHandler]: ShareTicketHandler,
-	[ModalToOpen.ReviewTicketHandler]: ReviewTicketHandler,
 
 	[ModalToOpen.CheckoutHandler]: CheckoutHandler,
 	[ModalToOpen.PullHandler]: PullHandler,

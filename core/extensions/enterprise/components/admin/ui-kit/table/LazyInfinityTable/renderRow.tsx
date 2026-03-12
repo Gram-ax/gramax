@@ -39,26 +39,38 @@ export const renderRow = <T,>({
 			key={row.id}
 			onClick={isClickable ? () => onRowClick(row) : undefined}
 		>
-			{row.getVisibleCells().map((cell, idx) => (
-				<TableCell
-					className={cn(
-						columnThClassName[cell.column.id as keyof typeof columnThClassName] ||
-							columnThClassName[TABLE_COLUMN_CODE_DEFAULT],
-						idx === 0 ? "pl-3" : "",
-						"overflow-hidden",
-					)}
-					key={cell.id}
-					onClick={
-						cell.column.id === TABLE_SELECT_COLUMN_CODE
-							? (e) => e.stopPropagation()
-							: cell.column.id === TABLE_EDIT_COLUMN_CODE
-								? () => onRowClick?.(row)
+			{row.getVisibleCells().map((cell, idx) => {
+				const columnDef = cell.column.columnDef as { size?: number };
+				return (
+					<TableCell
+						className={cn(
+							columnThClassName[cell.column.id as keyof typeof columnThClassName] ||
+								columnThClassName[TABLE_COLUMN_CODE_DEFAULT],
+							idx === 0 ? "pl-3" : "",
+							"overflow-hidden whitespace-nowrap text-ellipsis",
+						)}
+						key={cell.id}
+						onClick={
+							cell.column.id === TABLE_SELECT_COLUMN_CODE
+								? (e) => e.stopPropagation()
+								: cell.column.id === TABLE_EDIT_COLUMN_CODE
+									? () => onRowClick?.(row)
+									: undefined
+						}
+						style={
+							columnDef?.size
+								? {
+										width: `${columnDef.size}px`,
+										minWidth: `${columnDef.size}px`,
+										maxWidth: `${columnDef.size}px`,
+									}
 								: undefined
-					}
-				>
-					{flexRender(cell.column.columnDef.cell, cell.getContext())}
-				</TableCell>
-			))}
+						}
+					>
+						{flexRender(cell.column.columnDef.cell, cell.getContext())}
+					</TableCell>
+				);
+			})}
 		</TableRow>
 	);
 };

@@ -1,12 +1,12 @@
 import { type Environment, getExecutingEnvironment } from "@app/resolveModule/env";
-import ContextProviders from "@components/ContextProviders";
+import ContextProviders, { type PageProps } from "@components/ContextProviders";
 import HomePage from "@components/HomePage/HomePage";
 import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
 import type PageDataContext from "@core/Context/PageDataContext";
 import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/ArticleViewContainer";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
-import { type Dispatch, memo, type SetStateAction } from "react";
+import { type Dispatch, memo, type SetStateAction, useCallback } from "react";
 
 export interface GramaxData {
 	data: HomePageData | ArticlePageData;
@@ -22,13 +22,15 @@ interface GramaxProps {
 }
 
 const Gramax = ({ data, refresh, setData, platform }: GramaxProps) => {
+	const clearData = useCallback(() => {
+		const prev = data;
+		setTimeout(() => setData((data) => (data === prev ? null : data)), 500);
+	}, [data, setData]);
+
 	return (
 		<ContextProviders
-			clearData={() => {
-				const prev = data;
-				setTimeout(() => setData((data) => (data == prev ? null : data)), 500);
-			}}
-			pageProps={data as any}
+			clearData={clearData}
+			pageProps={data as unknown as PageProps}
 			platform={platform || getExecutingEnvironment()}
 			refreshPage={refresh}
 		>

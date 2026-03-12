@@ -6,8 +6,9 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SignInEnterpriseModal from "@ext/enterprise/components/SignInEnterpriseModal";
 import SignInOutEnterprise from "@ext/enterprise/components/SignInOutEnterprise";
-import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
+import type SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
 import t from "@ext/localization/locale/translate";
+import type UserInfo from "@ext/security/logic/User/UserInfo";
 import {
 	Avatar,
 	AvatarFallback,
@@ -24,25 +25,29 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTriggerButton,
 } from "@ui-kit/Dropdown";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 interface UserAvatarProps {
 	logOutComponent: React.ReactNode;
 	onLogOutClick?: () => void;
 }
 
-export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) => {
-	const pageDataContext = PageDataContextService.value;
-	const userInfo = pageDataContext?.userInfo;
+const getCode = (user: UserInfo): string => {
+	let code = user?.name
+		?.split(" ")
+		?.filter(Boolean)
+		?.map((n) => n[0])
+		?.join("");
 
-	const code =
-		userInfo?.name
-			?.split(" ")
-			?.map((name) => name[0])
-			?.join("")
-			?.toUpperCase() ||
-		userInfo?.mail?.[0]?.toUpperCase() ||
-		"";
+	if (!code) code = user?.mail?.[0] ?? "";
+	if (!code) code = "";
+
+	return code.toUpperCase().slice(0, 2);
+};
+
+export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) => {
+	const userInfo = PageDataContextService.value?.userInfo;
+	const code = getCode(userInfo);
 
 	return (
 		<DropdownMenu>
@@ -55,7 +60,7 @@ export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) 
 			<DropdownMenuContent align="end">
 				<DropdownMenuGroup>
 					<DropdownMenuItem className="pointer-events-none">
-						<AvatarLabel size="sm">
+						<AvatarLabel size="md">
 							<AvatarLabelAvatar>
 								{/* <AvatarImage src="https://github.com/shadcn.png" /> */}
 								<AvatarFallback>{code}</AvatarFallback>
@@ -75,16 +80,19 @@ export const UserAvatar = ({ logOutComponent, onLogOutClick }: UserAvatarProps) 
 const SingInOut = () => {
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const isLogged = PageDataContextService.value.isLogged;
-	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
+	const pageDataContext = PageDataContextService.value;
+
+	const isLogged = pageDataContext.isLogged;
+	const isReadOnly = pageDataContext.conf.isReadOnly;
+	const enterprise = pageDataContext.conf.enterprise;
+	const workspaceContext = pageDataContext.workspace;
+	const currentWorkspaceName = pageDataContext.workspace.current;
+
+	const showEnterpriseSignIn = enterprise.gesUrl && !isReadOnly;
 	const authUrl = apiUrlCreator.getAuthUrl(router, isLogged).toString();
-	const enterprise = PageDataContextService.value.conf.enterprise;
-	const workspaceContext = PageDataContextService.value.workspace;
-	const currentWorkspaceName = PageDataContextService.value.workspace.current;
 	const workspaceConfig = workspaceContext.workspaces.find(
 		(workspaceConfig) => workspaceConfig.path === currentWorkspaceName,
 	);
-	const showEnterpriseSignIn = enterprise.gesUrl && !isReadOnly;
 
 	const onLogoutClick = () => {
 		ModalToOpenService.setValue<ComponentProps<typeof SignOutEnterprise>>(ModalToOpen.EnterpriseLogout, {

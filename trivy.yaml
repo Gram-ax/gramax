@@ -1,0 +1,42 @@
+global:
+  no-progress: false
+
+telemetry:
+  disabled: true
+
+pkg:
+  include-dev-deps: true
+
+scan:
+  skip-dirs:
+    - "**/target"
+    - "**/.cache"
+    - "**/dist"
+    - "**/build"
+    - "**/out"
+    - "**/.next"
+    - "**/gen"
+    - "**/.xwin-cache"
+    - .git
+    - .cargo
+    - apps-build-artifacts
+    - IndexCaches
+    - testFiles
+
+  scanners:
+    - vuln
+    - secret
+
+ignorefile: .trivyignore
+
+secret:
+  config: trivy-secret.yaml
+
+vulnerability:
+  ignore-unfixed: true
+
+misconfiguration:
+  include-non-failures: false
+
+cache:
+  dir: .cache/trivy

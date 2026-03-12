@@ -1,4 +1,4 @@
-import { ServicesConfig } from "@app/config/AppConfig";
+import type { ServicesConfig } from "@app/config/AppConfig";
 import type { ModuleOptions } from "@ext/enterprise/types/UserSettings";
 
 export enum WorkspaceView {
@@ -19,6 +19,7 @@ export interface WorkspaceConfig {
 	name: string;
 	id?: string;
 	icon?: string;
+	webEditorUrl?: string;
 	groups?: Record<string, WorkspaceSection>;
 	sections?: Record<string, WorkspaceSection>;
 	services?: ServicesConfig;
@@ -32,8 +33,10 @@ export interface WorkspaceConfig {
 	/** @deprecated use enterprise.gesUrl instead */
 	gesUrl?: string; // legacy
 	/** @deprecated delete this field after 01.03.2026 */
+	// biome-ignore lint/suspicious/noExplicitAny: <legacy field>
 	pdfTemplates?: any;
 	/** @deprecated delete this field after 01.03.2026 */
+	// biome-ignore lint/suspicious/noExplicitAny: <legacy field>
 	wordTemplates?: any;
 }
 

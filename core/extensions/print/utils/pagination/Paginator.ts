@@ -1,18 +1,18 @@
-import { NodeDimensionsData } from "@ext/print/utils/pagination/NodeDimensions";
-import { ControlInfo, PaginationInfo, PrintPageInfo } from "@ext/print/utils/pagination/types";
+import type { NodeDimensionsData } from "@ext/print/utils/pagination/NodeDimensions";
+import type { ControlInfo, PaginationInfo, PrintPageInfo } from "@ext/print/utils/pagination/types";
 import { throwIfAborted } from "./abort";
 
-abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElement = HTMLElement> {
+abstract class Paginator<Node extends HTMLElement = HTMLElement, CurrentContainer extends HTMLElement = HTMLElement> {
 	static paginationInfo: PaginationInfo;
 	static printPageInfo: PrintPageInfo = {};
 	static controlInfo: ControlInfo;
 
-	public currentContainer: N;
+	public currentContainer: CurrentContainer;
 	public headingElements: HTMLHeadingElement[] = [];
 
 	private _marginBottom: number;
 
-	constructor(protected node: T) {}
+	constructor(protected node: Node) {}
 
 	protected async paginateSource(source: HTMLElement, withProgress = false): Promise<void> {
 		while (source.firstElementChild) {
@@ -34,26 +34,32 @@ abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElem
 		this.headingElements = [];
 	}
 
-	getUsableHeight() {
+	public getUsableHeight() {
 		return Paginator.printPageInfo.usablePageHeight;
 	}
 
 	public tryFitElement(node: HTMLElement, force = false): boolean {
 		const nodeDimension = Paginator.paginationInfo.nodeDimension;
-		const accumulatedHeight = Paginator.paginationInfo.accumulatedHeight;
 
-		if (!force && !nodeDimension.canUpdateAccumulatedHeight(node, accumulatedHeight, this.getUsableHeight()))
-			return false;
+		if (!force && !nodeDimension.canUpdateAccumulatedHeight(node, this.getUsableHeight())) return false;
 
 		this.currentContainer.appendChild(node);
 		this.updateAccumulatedHeightNode(node);
 		return true;
 	}
 
-	processNodeForPage(node: HTMLElement) {
+	public processNodeForPage(node: HTMLElement) {
 		const isNewPage = this._createIfNeadNewPage(node);
 		const tryFit = this.tryFitElement(node);
 		return { isNewPage, tryFit };
+	}
+
+	public hasOnlyHeadingElements() {
+		return this.currentContainer.childNodes.length === this.headingElements.length;
+	}
+
+	public haveChildNodes() {
+		return !!this.currentContainer.childNodes.length;
 	}
 
 	protected updateAccumulatedHeightNode(node: HTMLElement) {
@@ -80,8 +86,7 @@ abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElem
 
 	protected get nodeDimension() {
 		const nodeDimension = Paginator.paginationInfo.nodeDimension;
-		const tablePadding = nodeDimension.get(this.node);
-		return tablePadding;
+		return nodeDimension.get(this.node);
 	}
 
 	protected lastChildNodeIsHeading() {
@@ -89,14 +94,6 @@ abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElem
 		if (childNodes.length === this.headingElements.length) return true;
 		return childNodes[childNodes.length - 1] === this.headingElements[this.headingElements.length - 1];
 	}
-
-	public hasOnlyHeadingElements() {
-		return this.currentContainer.childNodes.length === this.headingElements.length;
-	}
-
-	abstract paginateNode(): void | Promise<void>;
-	abstract createPage(): HTMLElement;
-	protected abstract cleanHeadingElementsIfNeed(): void;
 
 	private async _handleNode(node: HTMLElement) {
 		const printHandlers = Paginator.paginationInfo.printHandlers;
@@ -125,10 +122,14 @@ abstract class Paginator<T extends HTMLElement = HTMLElement, N extends HTMLElem
 		const breakBefore = nodeDimension.get(node).breakBefore;
 		throwIfAborted(Paginator.controlInfo.signal);
 		if (breakBefore !== "page") return;
-		if (this.currentContainer.childElementCount === 0 && this.currentContainer.childNodes.length === 0) return true;
+		if (this.currentContainer.childElementCount === 0 && !this.haveChildNodes()) return true;
 		this.createPage();
 		return true;
 	}
+
+	abstract paginateNode(): void | Promise<void>;
+	abstract createPage(): HTMLElement;
+	protected abstract cleanHeadingElementsIfNeed(): void;
 }
 
 export default Paginator;

@@ -12,6 +12,7 @@ const imageSchema = {
 		objects: { default: [] },
 		width: { default: null },
 		height: { default: null },
+		renderSrc: { default: null },
 	},
 };
 

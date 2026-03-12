@@ -1,9 +1,13 @@
-import { RefObject, useEffect, useState } from "react";
+import { cssMedia } from "@core-ui/utils/cssUtils";
+import { useMediaQuery } from "@mui/material";
+import { type RefObject, useEffect, useState } from "react";
 
 const useHover = <T extends HTMLElement = HTMLElement>(ref: RefObject<T>): boolean => {
 	const [isHovered, setIsHovered] = useState(false);
+	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 
 	useEffect(() => {
+		if (isMobile) return;
 		const element = ref.current;
 		if (!element) return;
 
@@ -17,7 +21,7 @@ const useHover = <T extends HTMLElement = HTMLElement>(ref: RefObject<T>): boole
 			element.removeEventListener("mouseenter", handleMouseEnter);
 			element.removeEventListener("mouseleave", handleMouseLeave);
 		};
-	}, [ref]);
+	}, [ref, isMobile]);
 
 	return isHovered;
 };

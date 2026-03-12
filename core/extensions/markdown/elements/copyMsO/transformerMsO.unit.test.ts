@@ -13,7 +13,7 @@ describe("transformerMsO правильно трансформирует html", 
 	});
 
 	describe("lineBreakers", () => {
-		test("lineBreakers", () => {
+		test("lineBreakers", async () => {
 			const testHTML = `<html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
                     <p class="MsoListParagraphCxSpFirst">
@@ -27,14 +27,14 @@ describe("transformerMsO правильно трансформирует html", 
 			const expectHTML =
 				'<p class="MsoListParagraphCxSpFirst"> <b>Техническое задание на выбор системы Master Data Management (MDM) для ГК Ренна (FMCG сектор)</b></p><p></p><p> <b>1. Общие сведения</b></p><p> Название проекта: Выбор и внедрение системы Master Data Management (MDM) для управления данными в компании FMCG-сектора.<o:p></o:p> </p>';
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 	});
 
 	describe("список", () => {
-		test("маркированный список", () => {
+		test("маркированный список", async () => {
 			const testHTML = `
                 <html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
@@ -83,12 +83,12 @@ describe("transformerMsO правильно трансформирует html", 
 			const expectHTML =
 				'<ul><li><span style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family: Symbol"><span style="mso-list:Ignore"></span></span>Ejtkhrwjt<o:p></o:p></li><li><span style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family: Symbol"><span style="mso-list:Ignore"></span></span>Rwtlhrkjwtlrw<o:p></o:p></li><li><span style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family: Symbol"><span style="mso-list:Ignore"></span></span>Rwtbrhwkjjlrw<o:p></o:p></li><ul><li><span style="font-family:&quot;Courier New&quot;;mso-fareast-font-family:&quot;Courier New&quot;"><span style="mso-list:Ignore"></span></span>Rwjbthjrwkt<o:p></o:p></li><li><span style="font-family:&quot;Courier New&quot;;mso-fareast-font-family:&quot;Courier New&quot;"><span style="mso-list:Ignore"></span></span>Rwtjrwbjhbtkn<o:p></o:p></li><li><span style="font-family:&quot;Courier New&quot;;mso-fareast-font-family:&quot;Courier New&quot;"><span style="mso-list:Ignore"></span></span>Wrlgjrwhbkngfm<o:p></o:p></li><ul><li><span style="font-family:Wingdings;mso-fareast-font-family:Wingdings;mso-bidi-font-family: Wingdings"><span style="mso-list:Ignore"></span></span>Emngtkeg<o:p></o:p></li></ul></ul><li><span style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family: Symbol"><span style="mso-list:Ignore"></span></span>Lrjwbtjhgr sf gms<o:p></o:p></li></ul>';
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 
-		test("не создает список внутри списка", () => {
+		test("не создает список внутри списка", async () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
@@ -107,14 +107,14 @@ mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal
                 </body>
             </html>`;
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 
 			const expectHTML = `<ol><li><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;mso-fareast-font-family:Arial; mso-fareast-language:EN-US;font-weight:normal"><span style="mso-list:Ignore"></span></span><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif; mso-fareast-font-family:Calibri;mso-fareast-theme-font:minor-latin;mso-fareast-language: EN-US;font-weight:normal">Исполнитель обязуется оказывать устные, письменные консультации, в том числе по вопросам функционирования ПО, развития функционала ПО, создания нового функционала ПО, исправления инцидентов (далее – Услуги). </span><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;font-weight:normal">Порядок оказания Услуг, состав и содержание Услуг, технические требования к Услугам, сроки оказания Услуг, а также иные условия оказания Услуг определяются в соответствии с условиями Договора, Приложения № 7 к Договору.</span><span lang="RU" style="font-family:&quot;Arial&quot;,sans-serif;mso-fareast-font-family:Calibri; mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal"><o:p></o:p></span></li></ol>`;
 
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 
-		test("нумерованный список", () => {
+		test("нумерованный список", async () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
@@ -185,12 +185,12 @@ mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal
 			const expectHTML =
 				'<ol><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Ejtkhrwjt<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwtlhrkjwtlrw<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwtbrhwkjjlrw<o:p></o:p></li><ol><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwjbthjrwkt<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwtjrwbjhbtkn<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Wrlgjrwhbkngfm<o:p></o:p></li><ol><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Wrbjhfw<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwfhrkjnwf<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>wrljfhrkwjlfw<o:p></o:p></li></ol><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Emngtkeg<o:p></o:p></li></ol><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Lrjwbtjhgr sf gms<o:p></o:p></li></ol>';
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 
-		test("смешанный список", () => {
+		test("смешанный список", async () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
@@ -263,13 +263,13 @@ mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal
             </html>`;
 			const expectHTML =
 				'<ol><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Ejtkhrwjt<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwtlhrkjwtlrw<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwtbrhwkjjlrw<o:p></o:p></li><ol><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwjbthjrwkt<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Rwtjrwbjhbtkn<o:p></o:p></li><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Wrlgjrwhbkngfm<o:p></o:p></li><ul><li><span style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family: Symbol"><span style="mso-list:Ignore"></span></span>Wrbjhfw<o:p></o:p></li><li><span style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family: Symbol"><span style="mso-list:Ignore"></span></span>Rwfhrkjnwf<o:p></o:p></li><li><span style="font-family:Symbol;mso-fareast-font-family:Symbol;mso-bidi-font-family: Symbol"><span style="mso-list:Ignore"></span></span>wrljfhrkwjlfw<o:p></o:p></li></ul><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>Emngtkeg<o:p></o:p></li></ol><li><span style="mso-bidi-font-family:Calibri;mso-bidi-theme-font:minor-latin"><span style="mso-list:Ignore"></span></span>qejrhqkejr<o:p></o:p></li></ol>';
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 	});
 
 	describe("марки", () => {
-		test("италик", () => {
+		test("италик", async () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
@@ -278,11 +278,11 @@ mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal
             </html>`;
 			const expectHTML = '<p class="MsoNormal"><i>aaa<o:p></o:p></i></p>';
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 
-		test("жирный", () => {
+		test("жирный", async () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
@@ -291,11 +291,11 @@ mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal
             </html>`;
 			const expectHTML = '<p class="MsoNormal"><b>bbb<o:p></o:p></b></p>';
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 
-		test("ссылка", () => {
+		test("ссылка", async () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
@@ -305,13 +305,13 @@ mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal
 			const expectHTML =
 				'<p class="MsoNormal"><a href="https://www.youtube.com/watch?v=XXYlFuWEuKI">link</a><o:p></o:p></p>';
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 	});
 
 	describe("блок без контента", () => {
-		test("видео", () => {
+		test("видео", async () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">
                 <body>
@@ -326,13 +326,13 @@ mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal
 			const expectHTML =
 				'<video-react-component path="https://www.youtube.com/embed/MH7054uHjb8?start=449&amp;feature=oembed" title=""></video-react-component>';
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 	});
 
 	describe("блок с контентом", () => {
-		test("таблица", () => {
+		test("таблица", async () => {
 			const testHTML = `
             <html xmlns:v="urn:schemas-microsoft-com:vml">
             <body>
@@ -446,14 +446,14 @@ mso-fareast-theme-font:minor-latin;mso-fareast-language:EN-US;font-weight:normal
 			const expectHTML =
 				'<table class="MsoTableGrid" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt; mso-yfti-tbllook:1184;mso-padding-alt:0in 5.4pt 0in 5.4pt"> <tbody><tr style="mso-yfti-irow:0;mso-yfti-firstrow:yes"> <td width="312" colspan="2" valign="top" style="width:233.7pt;border:solid windowtext 1.0pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 1<o:p></o:p></span></p> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 2<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border:solid windowtext 1.0pt; border-left:none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt: solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 3<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border:solid windowtext 1.0pt; border-left:none;mso-border-left-alt:solid windowtext .5pt;mso-border-alt: solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 4<o:p></o:p></span></p> </td> </tr> <tr style="mso-yfti-irow:1"> <td width="156" valign="top" style="width:116.8pt;border:solid windowtext 1.0pt; border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt; padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 5<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border-top:none;border-left: none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt; mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 6<o:p></o:p></span></p> </td> <td width="156" rowspan="2" valign="top" style="width:116.9pt;border-top:none; border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt; mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тесто<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border-top:none;border-left: none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt; mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 7<o:p></o:p></span></p> </td> </tr> <tr style="mso-yfti-irow:2"> <td width="156" valign="top" style="width:116.8pt;border:solid windowtext 1.0pt; border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt; padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 8<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border-top:none;border-left: none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt; mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 9<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border-top:none;border-left: none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt; mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 10<o:p></o:p></span></p> </td> </tr> <tr style="mso-yfti-irow:3;mso-yfti-lastrow:yes"> <td width="156" valign="top" style="width:116.8pt;border:solid windowtext 1.0pt; border-top:none;mso-border-top-alt:solid windowtext .5pt;mso-border-alt:solid windowtext .5pt; padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 11<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border-top:none;border-left: none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt; mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 12<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border-top:none;border-left: none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt; mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 13<o:p></o:p></span></p> </td> <td width="156" valign="top" style="width:116.9pt;border-top:none;border-left: none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt; mso-border-top-alt:solid windowtext .5pt;mso-border-left-alt:solid windowtext .5pt; mso-border-alt:solid windowtext .5pt;padding:0in 5.4pt 0in 5.4pt"> <p class="MsoNormal" style="margin-bottom:0in;line-height:normal"><span lang="RU" style="mso-ansi-language:RU">Тест 14<o:p></o:p></span></p> </td> </tr> </tbody></table>';
 
-			const html = transformer.parseFromHTML(testHTML);
+			const html = await transformer.parseFromHTML(testHTML);
 			expect(normalize(html)).toBe(normalize(expectHTML));
 		});
 	});
 
-	test("tr height=0", () => {
+	test("tr height=0", async () => {
 		const testHTML = `<html xmlns:v="urn:schemas-microsoft-com:vml"><body><table class="MsoNormalTable" border="1" cellspacing="0" cellpadding="0" width="100%" style="width:100.0%;border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;mso-padding-alt:0cm 3.5pt 0cm 3.5pt;mso-border-insideh:.5pt solid windowtext;mso-border-insidev:.5pt solid windowtext"><tbody></tr><!--[if !supportMisalignedColumns]--><tr height="0"><td width="157" style="border:none"></td><td width="157" style="border:none"></td><td width="629" style="border:none"></td></tr><!--[endif]--></tbody></table></tr></body></html>`;
-		const html = transformer.parseFromHTML(testHTML);
+		const html = await transformer.parseFromHTML(testHTML);
 		expect(html).toBe(
 			'<table class="MsoNormalTable" border="1" cellspacing="0" cellpadding="0" width="100%" style="width:100.0%;border-collapse:collapse;border:none;mso-border-alt:solid windowtext .5pt;mso-padding-alt:0cm 3.5pt 0cm 3.5pt;mso-border-insideh:.5pt solid windowtext;mso-border-insidev:.5pt solid windowtext"><tbody><!--[if !supportMisalignedColumns]--><!--[endif]--></tbody></table>',
 		);

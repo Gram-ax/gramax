@@ -1,9 +1,9 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { Button as UiKitButton } from "ics-ui-kit/components/button";
 import { forwardRef } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
-type UiKitButtonProps = ExtractComponentGeneric<typeof UiKitButton>;
+export type UiKitButtonProps = ExtractComponentGeneric<typeof UiKitButton>;
 
 export interface ButtonProps extends Omit<UiKitButtonProps, "startIcon" | "endIcon"> {
 	startIcon?: string;

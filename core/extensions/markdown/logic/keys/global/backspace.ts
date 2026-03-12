@@ -1,16 +1,20 @@
 import { isNodeSelectable } from "@ext/markdown/elementsUtils/isNodeSelectable";
 import getNodeByPos from "../../../elementsUtils/getNodeByPos";
 import isTypeOf from "../../../elementsUtils/isTypeOf";
-import KeyboardRule from "../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
-import KeyboardShortcut from "../../../elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
+import type KeyboardRule from "../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
+import type KeyboardShortcut from "../../../elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
 
 const betweenNoteOrCut: KeyboardRule = ({ editor }) => {
 	const { state } = editor;
-	const { node, position } = getNodeByPos(state.selection.anchor, state.doc, (node) => node.type.name == "paragraph");
+	const { node, position } = getNodeByPos(
+		state.selection.anchor,
+		state.doc,
+		(node) => node.type.name === "paragraph",
+	);
 	const { node: nodeBefore } = getNodeByPos(position - 1, state.doc, (node) => isTypeOf(node, ["note", "cut"]));
 	const { node: nodeAfter } = getNodeByPos(position + 2, state.doc, (node) => isTypeOf(node, ["note", "cut"]));
 
-	if (!(nodeBefore && nodeAfter && nodeAfter !== nodeBefore && node.textContent == "")) return false;
+	if (!(nodeBefore && nodeAfter && nodeAfter !== nodeBefore && node.textContent === "")) return false;
 	return editor
 		.chain()
 		.deleteNode("paragraph")
@@ -21,20 +25,20 @@ const betweenNoteOrCut: KeyboardRule = ({ editor }) => {
 const headingAfterNode: KeyboardRule = ({ editor, nodePosition, node }): boolean => {
 	const selection = editor.state.selection;
 
-	if (nodePosition <= 3 || selection.from !== selection.to) return;
+	if (nodePosition <= 3 || selection.from !== selection.to) return false;
 
 	const isEmptyHeading = node.type.name === "heading" && !node.content.content.length;
-	if (!(nodePosition === selection.from || isEmptyHeading)) return;
+	if (!(nodePosition === selection.from || isEmptyHeading)) return false;
 
 	const doc = editor.state.doc;
 	const headingPosition = isEmptyHeading ? nodePosition : nodePosition - 1;
 	const headingNode = doc.nodeAt(headingPosition);
-	if (!headingNode || headingNode.type.name !== "heading") return;
+	if (!headingNode || headingNode.type.name !== "heading") return false;
 
 	const nodeBefore = getNodeByPos(headingPosition - 1, doc, (node) => isTypeOf(node, ["note", "listItem"]));
-	if (!nodeBefore) return;
+	if (!nodeBefore?.node) return false;
 
-	editor.chain().toggleHeading({ level: headingNode.attrs.level }).run();
+	return editor.chain().toggleHeading({ level: headingNode.attrs.level }).run();
 };
 
 // Focus on before selectable block node if current node has content
@@ -56,10 +60,47 @@ const focusOnPrevousBlockNode: KeyboardRule = ({ editor, node: currentNode }) =>
 	return editor.commands.setNodeSelection(previousNodePos);
 };
 
+const beforeArticleTitle: KeyboardRule = ({ editor }) => {
+	const { state } = editor;
+	const { $anchor, from, to } = state.selection;
+
+	if (from !== to) return false;
+
+	const anchorParent = $anchor.parent;
+	if (anchorParent !== state.doc.content.child(1)) return false;
+	if (state.doc.childCount !== 2 || !anchorParent.isTextblock) return false;
+
+	const offset = $anchor.parentOffset;
+
+	if (offset) return false;
+
+	if (anchorParent.childCount > 0) {
+		let textContent = "";
+
+		anchorParent.content.forEach((node) => {
+			textContent += node.textContent;
+		});
+
+		const newTextNode = state.schema.text(textContent);
+
+		const secondNodeStartPos = state.doc.firstChild.nodeSize;
+		const secondNodeEndPos = secondNodeStartPos + anchorParent.nodeSize;
+
+		return editor
+			.chain()
+			.deleteRange({ from: secondNodeStartPos, to: secondNodeEndPos })
+			.insertContentAt(state.doc.firstChild.nodeSize - 1, newTextNode)
+			.focus(state.doc.firstChild.nodeSize - 1 - newTextNode.content.size)
+			.run();
+	}
+
+	return editor.commands.focus(state.doc.firstChild.nodeSize - 1);
+};
+
 const getBackspaceShortcuts = (): KeyboardShortcut => {
 	return {
 		key: "Backspace",
-		rules: [betweenNoteOrCut, headingAfterNode, focusOnPrevousBlockNode],
+		rules: [betweenNoteOrCut, headingAfterNode, focusOnPrevousBlockNode, beforeArticleTitle],
 	};
 };
 

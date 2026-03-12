@@ -1,108 +1,39 @@
-import { STORAGE_DIR_NAME } from "@app/config/const";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import Path from "@core/FileProvider/Path/Path";
-import Cache from "@ext/Cache";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
+import type Path from "@core/FileProvider/Path/Path";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import { AggregateModulithSearchClient } from "@ext/serach/modulith/AggregateModulithSearchClient";
-import { LocalModulithSearchClient } from "@ext/serach/modulith/LocalModulithSearchClient";
-import { FileFsProvider } from "@ext/serach/modulith/local/FileFsProvider";
-import type { ModulithSearchClient } from "@ext/serach/modulith/ModulithSearchClient";
 import { ModulithService } from "@ext/serach/modulith/ModulithService";
 import { SearchArticleParser } from "@ext/serach/modulith/parsing/SearchArticleParser";
-import type { RemoteModulithSearchClient } from "@ext/serach/modulith/RemoteModulithSearchClient";
+import type { ResourceParseClient } from "@ext/serach/modulith/resourceParse/ResourceParseClient";
+import type { ModulithSearchClient } from "@ext/serach/modulith/search/ModulithSearchClient";
+import type { RemoteModulithSearchClient } from "@ext/serach/modulith/search/RemoteModulithSearchClient";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { FsArticleStorageProvider, FsSimpleArticleStorage } from "@ics/modulith-search-infra/article";
-import type { ChunkStore } from "@ics/modulith-search-infra/chunking";
-import { DefaultSearchService, SearchStore } from "@ics/modulith-search-infra/search";
-import { FuseSearcher } from "@ics/modulith-search-infra-fuse";
-import {
-	CachedMemoryArticleRepo,
-	CachedMemoryChunkRepo,
-	CachedMemoryEmbLinkRepo,
-	CachedMemoryTenantRepo,
-} from "@ics/modulith-search-infra-memory";
-import { NullLogger } from "@ics/modulith-utils";
+import { CACHE_DIR, MODULITH_BASE } from "./consts";
 
 export interface CreateModulithServiceArgs {
-	basePath: Path;
 	wm: WorkspaceManager;
 	parser: MarkdownParser;
 	parserContextFactory: ParserContextFactory;
+	resourceParseClient: ResourceParseClient | undefined;
+	localClient: ModulithSearchClient;
 	remoteClient?: RemoteModulithSearchClient;
-	parseResources: boolean;
-	fp?: { catceFileProvider: DiskFileProvider; articleStorageFileProvider: DiskFileProvider };
+	immediateIndexing?: boolean;
 }
 
-export const MODULITH_BASE = new Path(`${STORAGE_DIR_NAME}/.modulith`);
-export const CACHE_DIR = new Path(".cache");
-
 export async function createModulithService({
-	basePath,
 	wm,
 	parser,
 	parserContextFactory,
+	resourceParseClient,
+	localClient,
 	remoteClient,
-	// biome-ignore lint/correctness/noUnusedFunctionParameters: fix later
-	parseResources,
-	fp,
+	immediateIndexing,
 }: CreateModulithServiceArgs): Promise<ModulithService> {
-	const modulithBase = basePath.join(MODULITH_BASE);
-
-	const modulithCacheBase = modulithBase.join(CACHE_DIR);
-	const modulithCache = new Cache(fp?.catceFileProvider || new DiskFileProvider(modulithCacheBase));
-
-	// `createArticleStorageProvider` may delete and recreate the target directory,
-	// so it must be called before any code that relies on its contents
-	const articleStorageProvider = await createArticleStorageProvider(
-		fp?.articleStorageFileProvider || new DiskFileProvider(modulithBase),
-	);
-
-	const { tenantRepo, articleRepo, chunkRepo, embLinkRepo } = await createRepos(modulithCache);
-
-	const logger = new NullLogger();
-
-	const chunkStore = new SearchStore({
-		articleRepo,
-		chunkRepo,
-		tenantRepo,
-		embLinkRepo,
-		logger,
-	});
-
-	const storeWrapper: ChunkStore = {
-		update: async (args) => {
-			const res = await chunkStore.update(args);
-			await Promise.all([tenantRepo.commit(), articleRepo.commit(), chunkRepo.commit(), embLinkRepo.commit()]);
-
-			return res;
-		},
-	};
-
-	let modulithClient: ModulithSearchClient = new LocalModulithSearchClient({
-		searchService: new DefaultSearchService({
-			logger,
-			searcher: new FuseSearcher({
-				tenantRepo,
-				articleRepo,
-				chunkRepo,
-				embLinkRepo,
-			}),
-			store: storeWrapper,
-			articleStorageProvider,
-		}),
-	});
-
-	let immediateIndexing = false;
-
-	if (remoteClient) {
-		immediateIndexing = true;
-		modulithClient = new AggregateModulithSearchClient(modulithClient, remoteClient);
-	}
-
-	const sap = new SearchArticleParser(parser, parserContextFactory, /*parseResources*/ false);
+	const sap = new SearchArticleParser(parser, parserContextFactory, resourceParseClient);
 	const service = new ModulithService({
-		client: modulithClient,
+		localClient,
+		remoteClient,
 		wm,
 		sap,
 		immediateIndexing,
@@ -111,71 +42,15 @@ export async function createModulithService({
 	return service;
 }
 
-async function createArticleStorageProvider(fp: DiskFileProvider) {
-	const create = async () =>
-		await FsArticleStorageProvider.create({
-			fsProvider: new FileFsProvider(fp),
-			storageFactory: (fs) => FsSimpleArticleStorage.create(fs),
-		});
+export function createModulithFileProviders(basePath: Path): {
+	cacheFileProvider: FileProvider;
+	articleStorageFileProvider: FileProvider;
+} {
+	const modulithBase = basePath.join(MODULITH_BASE);
+	const modulithCacheBase = modulithBase.join(CACHE_DIR);
 
-	try {
-		return await create();
-	} catch (e) {
-		console.error("Error creating article storage provider; retrying after cleanup:", e);
-		await fp.delete(new Path("."));
-		return await create();
-	}
-}
-
-const tenantCacheName = "tenant";
-const articleCacheName = "article";
-const chunkCacheName = "chunk";
-const embLinkCacheName = "embLink";
-
-async function createRepos(cache: Cache): Promise<{
-	tenantRepo: CachedMemoryTenantRepo;
-	articleRepo: CachedMemoryArticleRepo;
-	chunkRepo: CachedMemoryChunkRepo;
-	embLinkRepo: CachedMemoryEmbLinkRepo;
-}> {
-	const tenantSetCache = (v: string) => cache.set(tenantCacheName, v);
-	const articleSetCache = (v: string) => cache.set(articleCacheName, v);
-	const chunkSetCache = (v: string) => cache.set(chunkCacheName, v);
-	const embLinkSetCache = (v: string) => cache.set(embLinkCacheName, v);
-
-	try {
-		return {
-			tenantRepo: await CachedMemoryTenantRepo.create({
-				cachedValue: await cache.get(tenantCacheName),
-				setCache: tenantSetCache,
-			}),
-			articleRepo: await CachedMemoryArticleRepo.create({
-				cachedValue: await cache.get(articleCacheName),
-				setCache: articleSetCache,
-			}),
-			chunkRepo: await CachedMemoryChunkRepo.create({
-				cachedValue: await cache.get(chunkCacheName),
-				setCache: chunkSetCache,
-			}),
-			embLinkRepo: await CachedMemoryEmbLinkRepo.create({
-				cachedValue: await cache.get(embLinkCacheName),
-				setCache: embLinkSetCache,
-			}),
-		};
-	} catch {
-		return {
-			tenantRepo: await CachedMemoryTenantRepo.create({
-				setCache: tenantSetCache,
-			}),
-			articleRepo: await CachedMemoryArticleRepo.create({
-				setCache: articleSetCache,
-			}),
-			chunkRepo: await CachedMemoryChunkRepo.create({
-				setCache: chunkSetCache,
-			}),
-			embLinkRepo: await CachedMemoryEmbLinkRepo.create({
-				setCache: embLinkSetCache,
-			}),
-		};
-	}
+	return {
+		cacheFileProvider: new DiskFileProvider(modulithCacheBase),
+		articleStorageFileProvider: new DiskFileProvider(modulithBase),
+	};
 }

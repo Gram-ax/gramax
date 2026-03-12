@@ -1,5 +1,4 @@
 import "../../../core/styles/main.css";
-
 import styled from "@emotion/styled";
 import { createRoot } from "react-dom/client";
 import App from "../../browser/src/App";
@@ -23,7 +22,7 @@ const DragableArea = styled.div`
 	}
 `;
 
-window.debug = debug;
+window.debug = { ...debug };
 
 window.addEventListener("load", async () => {
 	await subscribeEvents();

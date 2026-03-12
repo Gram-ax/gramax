@@ -1,10 +1,15 @@
 export type NDJsonReadStream = ReadableStreamDefaultReader<Uint8Array<ArrayBufferLike>>;
 
-export async function* readNDJson<T>(reader: NDJsonReadStream): AsyncGenerator<T, void, void> {
+export async function* readNDJson<T>(reader: NDJsonReadStream, signal?: AbortSignal): AsyncGenerator<T, void, void> {
 	const decoder = new TextDecoder("utf-8");
 	let buffer = "";
 
 	for (;;) {
+		if (signal?.aborted) {
+			reader.cancel(signal.reason);
+			signal.throwIfAborted();
+		}
+
 		const { value, done } = await reader.read();
 		if (done) {
 			break;
@@ -32,7 +37,7 @@ function parseItem<T>(line: string): T | undefined {
 	if (line.trim()) {
 		try {
 			return JSON.parse(line);
-		} catch (err) {
+		} catch {
 			console.warn("invalid ndjson: ", line);
 		}
 	}

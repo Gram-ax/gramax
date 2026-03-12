@@ -164,12 +164,12 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 
 	async diff(opts: DiffConfig): Promise<DiffTree2TreeInfo> {
 		if (opts.compare.type === "tree") {
-			if (opts.compare.old) opts.compare.old = opts.compare.old.toString() as any;
-			if (opts.compare.new) opts.compare.new = opts.compare.new.toString() as any;
+			if (opts.compare.old) opts.compare.old = opts.compare.old.toString();
+			if (opts.compare.new) opts.compare.new = opts.compare.new.toString();
 		}
 
 		if (opts.compare.type === "workdir" || opts.compare.type === "index") {
-			if (opts.compare.tree) opts.compare.tree = opts.compare.tree.toString() as any;
+			if (opts.compare.tree) opts.compare.tree = opts.compare.tree.toString();
 		}
 
 		const info = await git.diff({ repoPath: this._repoPath, opts });
@@ -188,8 +188,8 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		return info;
 	}
 
-	getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]> {
-		return git.fileHistory({ repoPath: this._repoPath, filePath: filePath.value, count });
+	getFileHistory(filePath: Path, offset: number, limit: number): Promise<VersionControlInfo[]> {
+		return git.fileHistory({ repoPath: this._repoPath, filePath: filePath.value, offset, limit });
 	}
 
 	async getCommitInfo(oid: string, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]> {

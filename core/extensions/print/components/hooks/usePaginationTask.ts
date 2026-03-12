@@ -1,6 +1,6 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import ResourceService from "@ext/markdown/elements/copyArticles/resourceService";
-import { ArticlePreview, PdfExportProgress, PdfPrintParams, PrintableContent } from "@ext/print/types";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import type { ArticlePreview, PdfExportProgress, PdfPrintParams, PrintableContent } from "@ext/print/types";
 import paginateIntoPages from "@ext/print/utils/paginateIntoPages";
 import { isPaginationAbortError } from "@ext/print/utils/pagination/abort";
 import { waitForNextPaint } from "@ext/print/utils/pagination/scheduling";
@@ -81,7 +81,8 @@ export const usePaginationTask = ({
 
 				await waitForNextPaint(controller.signal);
 				await ResourceService.waitForAllLoads(controller.signal);
-				await waitForNextPaint(controller.signal);
+				await waitForNextPaint(controller.signal); // set image src
+				await waitForNextPaint(controller.signal); // set isLoaded
 
 				onProgress?.({ stage: "exporting", ratio: 0.05 });
 

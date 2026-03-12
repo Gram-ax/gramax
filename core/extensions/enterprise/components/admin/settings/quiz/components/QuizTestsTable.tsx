@@ -16,7 +16,7 @@ import { TABLE_EDIT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
 import { type ColumnDef, getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
-import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+import { TextOverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { QuizTest } from "../types/QuizComponentTypes";
 
@@ -39,6 +39,39 @@ const columns: ColumnDef<QuizTest>[] = [
 		cell: ({ row }) => (
 			<TextOverflowTooltip className="align-middle">{row.original.test_title}</TextOverflowTooltip>
 		),
+	},
+	{
+		accessorKey: "result",
+		header: () => t("enterprise.admin.quiz.users-test-table.result.name"),
+		cell: ({ row }) => {
+			const isNullQuestion = row.original.successful === null;
+			return (
+				<div className="flex items-center gap-2">
+					<TextOverflowTooltip className="align-middle">
+						{row.original.successful === true || row.original.successful === null
+							? t("enterprise.admin.quiz.users-test-table.result.passed")
+							: t("enterprise.admin.quiz.users-test-table.result.failed")}
+					</TextOverflowTooltip>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<IconButton
+								className="p-0 rounded-none align-middle h-auto"
+								icon="info"
+								size="sm"
+								variant="text"
+							/>
+						</TooltipTrigger>
+						<TooltipContent>
+							{isNullQuestion
+								? t("enterprise.admin.quiz.users-test-table.result.free")
+								: t("enterprise.admin.quiz.users-test-table.result.tooltip")
+										.replace("{countOfCorrectAnswers}", row.original.score.toString())
+										.replace("{countQuestions}", row.original.questions_count.toString())}
+						</TooltipContent>
+					</Tooltip>
+				</div>
+			);
+		},
 	},
 	{
 		accessorKey: "version",
@@ -64,7 +97,7 @@ export const QuizTestsTable = ({ isHealthy }: { isHealthy: boolean }) => {
 	const { getQuizUsersAnswers } = useSettings();
 	const [isOpen, setIsOpen] = useState(false);
 	const [tests, setTests] = useState<QuizTest[]>([]);
-	const [filters, setFilters] = useState<QuizTableFilters>({ users: [], tests: [] });
+	const [filters, setFilters] = useState<QuizTableFilters>({ users: [], tests: [], result: ["passed", "failed"] });
 	const cursorRef = useRef<RequestCursor>(null);
 	const hasMoreRef = useRef(true);
 

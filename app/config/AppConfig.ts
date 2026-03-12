@@ -16,14 +16,13 @@ export interface ServicesConfig {
 	gitProxy: { url: string };
 	auth: { url: string };
 	cloud?: { url: string };
-	review?: { url: string };
 	diagramRenderer: { url: string };
 }
 
 export interface EnterpriseConfig {
 	isCloud?: boolean;
-	gesUrl: string;
-	refreshInterval: number;
+	gesUrl?: string;
+	refreshInterval?: number;
 }
 
 export interface MetricsConfig {
@@ -84,10 +83,7 @@ const getServices = (): ServicesConfig => {
 			url: env("AUTH_SERVICE_URL") || "https://gram.ax/auth",
 		},
 		diagramRenderer: {
-			url: env("DIAGRAM_RENDERER_SERVICE_URL") || null,
-		},
-		review: {
-			url: env("REVIEW_SERVICE_URL") || null,
+			url: env("DIAGRAM_RENDERER_SERVICE_URL") || "https://app.gram.ax/diagram-renderer",
 		},
 		cloud: {
 			url: env("CLOUD_SERVICE_URL") || null,
@@ -198,6 +194,10 @@ export const getConfig = (): AppConfig => {
 
 		allowedGramaxUrls: (env("ALLOWED_GRAMAX_URLS") || null)?.split(",").map((origin) => origin.trim()) || [],
 	} as AppConfig;
+
+	if (getExecutingEnvironment() === "next" && !global.config.tokens.cookie) {
+		console.warn("WARNING: You need to set COOKIE_SECRET if you run gramax in production.");
+	}
 
 	return global.config;
 };

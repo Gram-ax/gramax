@@ -1,9 +1,6 @@
 import { useScrollContainer } from "@ext/enterprise/components/admin/contexts/ScrollContainerContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import {
-	AuthMethod,
-	WorkspaceSettings,
-} from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import { useCallback, useEffect, useState } from "react";
 
 const defaultSettings: WorkspaceSettings = {
@@ -70,25 +67,12 @@ export function useWorkspaceSettings() {
 		}
 	};
 
-	const handleAuthMethodChange = (
-		selectedLabel: string,
-		authOptions: Array<{ label: string; value: AuthMethod[] }>,
-	) => {
-		const selectedOption = authOptions.find((opt) => opt.label === selectedLabel);
-		if (selectedOption) {
-			setLocalSettings((prev) => ({
-				...prev,
-				authMethods: selectedOption.value,
-			}));
-		}
-	};
-
 	const handleSave = useCallback(async () => {
 		setIsSaving(true);
 		try {
 			await updateWorkspace(localSettings);
-		} catch (e: any) {
-			setSaveError(e?.message);
+		} catch (e: unknown) {
+			setSaveError(e instanceof Error ? e.message : String(e));
 		} finally {
 			setIsSaving(false);
 		}
@@ -104,7 +88,6 @@ export function useWorkspaceSettings() {
 		isSaving,
 		isScrolled,
 		handleInputChange,
-		handleAuthMethodChange,
 		handleSave,
 		updateSettings,
 		saveError,

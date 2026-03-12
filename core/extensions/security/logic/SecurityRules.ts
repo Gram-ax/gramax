@@ -21,6 +21,10 @@ export default class SecurityRules implements RuleCollection, EventHandlerCollec
 		this._environment = getExecutingEnvironment();
 	}
 
+	static canReadCatalog(user: User, catalogPerms: IPermission, catalogName: string): boolean {
+		return canReadImpl(getExecutingEnvironment(), user, catalogName, catalogPerms);
+	}
+
 	mount(): void {
 		this._nav.events.on("filter-item", ({ catalog, item, link }) => {
 			if (this._isPrivate(item)) link.icon = "lock-open";
@@ -60,18 +64,22 @@ export default class SecurityRules implements RuleCollection, EventHandlerCollec
 	}
 
 	private _canRead(itemPermission: IPermission, catalogName: string): boolean {
-		if (this._environment !== "next" && this._environment !== "test") return true;
-		if (!this._currentUser) return false;
-		if (this._currentUser.type === "base") return true;
-		const baseCatalogName = BaseCatalog.parseName(catalogName).name;
-
-		if (this._currentUser.workspacePermission.someEnough(configureWorkspacePermission)) return true;
-		if (this._currentUser.catalogPermission.enough(baseCatalogName, readPermission)) return true;
-		if (this._currentUser.catalogPermission.enough(baseCatalogName, itemPermission)) return true;
-		return false;
+		return canReadImpl(this._environment, this._currentUser, catalogName, itemPermission);
 	}
 
 	private _isPrivate(item: Item): boolean {
 		return item.neededPermission.isWorked();
 	}
+}
+
+function canReadImpl(environment: Environment, user: User, catalogName: string, itemPermission: IPermission): boolean {
+	if (environment !== "next" && environment !== "test") return true;
+	if (!user) return false;
+	if (user.type === "base") return true;
+	const baseCatalogName = BaseCatalog.parseName(catalogName).name;
+
+	if (user.workspacePermission.someEnough(configureWorkspacePermission)) return true;
+	if (user.catalogPermission.enough(baseCatalogName, readPermission)) return true;
+	if (user.catalogPermission.enough(baseCatalogName, itemPermission)) return true;
+	return false;
 }

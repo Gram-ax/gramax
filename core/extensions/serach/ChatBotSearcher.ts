@@ -1,12 +1,13 @@
-import { Article } from "@core/FileStructue/Article/Article";
-import { ContentLanguage } from "@ext/localization/core/model/Language";
-import { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { ContentLanguage } from "@ext/localization/core/model/Language";
+import type { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 
 export interface SearchArgsBase {
 	query: string;
-	catalogName: string;
+	catalogNames: string[];
 	articlesLanguage: ArticleLanguage;
 	responseLanguage: ContentLanguage;
+	restrictedLogicPaths?: string[];
 	signal?: AbortSignal;
 }
 

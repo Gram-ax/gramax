@@ -1,20 +1,19 @@
 import { findCommand } from "@app/commands";
 import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
-import Application from "@app/types/Application";
+import type Application from "@app/types/Application";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { applyCors } from "@components/libs/cors";
-import ApiRequest from "@core/Api/ApiRequest";
-import ApiResponse from "@core/Api/ApiResponse";
+import type ApiRequest from "@core/Api/ApiRequest";
+import type ApiResponse from "@core/Api/ApiResponse";
 import { apiUtils } from "@core/Api/apiUtils";
 import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
 import buildMiddleware from "@core/Api/middleware/buildMiddleware";
-import Middleware from "@core/Api/middleware/Middleware";
-import Query from "@core/Api/Query";
+import type Middleware from "@core/Api/middleware/Middleware";
+import type Query from "@core/Api/Query";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import PersistentLogger from "@ext/loggers/PersistentLogger";
 import { withContext } from "apps/next/logic/Context/ContextHook";
-import { NextApiResponse } from "next";
+import type { NextApiResponse } from "next";
 
 export default async (req: ApiRequest, res: ApiResponse) => {
 	const controller = new AbortController();
@@ -39,15 +38,20 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
 		const ctx = await app.contextFactory.from({ req, res });
-		const params = command.params(ctx, req.query as Query, parseBody(req.body), controller.signal);
-		PersistentLogger.info(`executing command ${path}`, "cmd", { ...req.query });
+		try {
+			const params = command.params(ctx, req.query as Query, parseBody(req.body), controller.signal);
 
-		const result = await withContext(ctx, async () => await command.do(params));
-		if (controller.signal.aborted) {
-			return;
+			const result = await withContext(ctx, async () => await command.do(params));
+			if (controller.signal.aborted) {
+				return;
+			}
+
+			await respond(app, req, res, command.kind, result);
+		} catch (e) {
+			if (!(e instanceof DOMException && e.name === "AbortError")) {
+				throw e;
+			}
 		}
-
-		await respond(app, req, res, command.kind, result);
 	});
 
 	await buildMiddleware(app, commands, command.middlewares, process).Process(req, res);

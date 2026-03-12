@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import { TextSize } from "@components/Atoms/Button/Button";
 import Checkbox from "@components/Atoms/Checkbox";
 import Input from "@components/Atoms/Input";
@@ -6,16 +7,16 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
+import type { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
 import { isElementNearEdges } from "@ext/markdown/elements/find/edit/logic/elementNearEdges";
 import {
 	replaceHighlightedText,
 	replaceSpecificHighlightedText,
 } from "@ext/markdown/elements/find/edit/logic/replaceText";
 import { searchPlugin } from "@ext/markdown/elements/find/edit/models/ArticleSearch";
-import { Editor } from "@tiptap/core";
-import { EditorView } from "prosemirror-view";
-import React, { ChangeEvent, RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { Editor } from "@tiptap/core";
+import type { EditorView } from "prosemirror-view";
+import { type ChangeEvent, type RefObject, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 
 interface FindReplaceModalProps {
 	onClose: () => void;
@@ -37,7 +38,7 @@ interface FindReplaceModalProps {
 	parentRef?: RefObject<HTMLDivElement>;
 }
 
-const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
+const FindReplaceModal = (props: FindReplaceModalProps) => {
 	const {
 		onClose,
 		editor,
@@ -162,7 +163,9 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 
 			try {
 				view.updateState(newState);
-			} catch (e) {}
+			} catch (error) {
+				console.error(error);
+			}
 		},
 		[],
 	);
@@ -209,7 +212,7 @@ const FindReplaceModal: React.FC<FindReplaceModalProps> = (props) => {
 		const userRightIndex = activeElementIndex + 1;
 		if (!length) setCounterText("0/0");
 		else {
-			const v = userRightIndex + "/" + length;
+			const v = `${userRightIndex}/${length}`;
 			setCounterText(v);
 		}
 	}, [decorations.length, findText, activeElementIndex]);

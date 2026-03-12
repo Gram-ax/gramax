@@ -1,4 +1,6 @@
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useMediaQuery } from "@react-hook/media-query";
+import { useLayoutEffect, useState } from "react";
 
 const breakpoints = {
 	sm: "640px",
@@ -17,11 +19,21 @@ const useIsXl = () => useMediaQuery(`(min-width: ${breakpoints.xl})`);
 const useIs2Xl = () => useMediaQuery(`(min-width: ${breakpoints["2xl"]})`);
 
 export const useBreakpoint = (): Breakpoint => {
+	const { environment } = usePlatform();
+	const isSsr = environment !== "browser" && environment !== "tauri";
+	const [rendered, setRendered] = useState(!isSsr);
+
 	const is2Xl = useIs2Xl();
 	const isXl = useIsXl();
 	const isLg = useIsLg();
 	const isMd = useIsMd();
 	const isSm = useIsSm();
+
+	useLayoutEffect(() => {
+		setRendered(true);
+	}, []);
+
+	if (!rendered) return "lg";
 
 	if (is2Xl) return "2xl";
 	if (isXl) return "xl";

@@ -12,6 +12,10 @@ const SENT_OTP_REQUEST_DELAY = 60;
 const MINUTE = 60;
 const SECOND = 1000;
 
+export function relocateToUrl(url: string) {
+	window.location.href = url;
+}
+
 export const useSignInEnterprise = ({ authUrl }: { authUrl: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const [isLoading, setIsLoading] = useState(false);
@@ -181,7 +185,7 @@ export const useSignInEnterprise = ({ authUrl }: { authUrl: string }) => {
 	);
 
 	const relocateToAuthUrl = useCallback(() => {
-		window.location.href = authUrl;
+		relocateToUrl(authUrl);
 	}, [authUrl]);
 
 	const isResendButtonDisabled = useMemo(() => {

@@ -12,6 +12,7 @@ const HeadingMenuButton = ({ level, editor }: HeadingMenuButtonProps) => {
 	return (
 		<ToolbarToggleItem
 			active={editor.isActive("heading", { level })}
+			data-testid={`tb-heading-${level}`}
 			hotKey={`Mod-Alt-${level}`}
 			onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
 			tooltipText={`${t("editor.heading")} ${level}`}

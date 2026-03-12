@@ -1,14 +1,13 @@
 import findDiffItemByPath from "@components/Layouts/StatusBar/Extensions/logic/findDiffItemByPath";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useWatch from "@core-ui/hooks/useWatch";
-import { DiffTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffTreePresenter";
-import { DiffItemOrResource } from "@ext/VersionControl/model/Diff";
+import type { DiffFlattenTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { useRef } from "react";
 
 interface UseUpdateArticleViewProps {
-	changes: DiffTreeAnyItem[];
+	changes: DiffFlattenTreeAnyItem[];
 	currentSelectedPath: string;
-	setArticleDiffView: (item: DiffItemOrResource) => void;
+	setArticleDiffView: (item: DiffFlattenTreeAnyItem) => void;
 }
 
 const useUpdateArticleDiffView = (props: UseUpdateArticleViewProps) => {
@@ -29,7 +28,7 @@ const useUpdateArticleDiffView = (props: UseUpdateArticleViewProps) => {
 		if (!currentSelectedPath || ArticleViewService.isDefaultView()) return;
 		const entry = findDiffItemByPath(changes, currentSelectedPath);
 		if (!entry || entry.type === "node") return;
-		setArticleDiffView(entry.rawItem);
+		setArticleDiffView(entry);
 	};
 
 	useWatch(() => {

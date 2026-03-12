@@ -1,7 +1,8 @@
+import { getRenderSrc } from "@ext/markdown/elements/image/edit/model/imageToken";
 import { parse } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
-import { Config, Node, Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
+import type PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
+import { type Config, type Node, type Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
 import linkCreator from "../../link/render/logic/linkCreator";
 
 export function image(context: PrivateParserContext): Schema {
@@ -17,11 +18,13 @@ export function image(context: PrivateParserContext): Schema {
 			width: { type: String },
 			height: { type: String },
 			float: { type: String },
+			renderSrc: { type: String },
 		},
 		type: SchemaType.block,
 		transform: async (node: Node, config: Config) => {
-			if (!linkCreator.isExternalLink(node.attributes.src))
-				context.getResourceManager().set(new Path(node.attributes.src));
+			const isExternalLink = linkCreator.isExternalLink(node.attributes.src);
+			if (!isExternalLink) context.getResourceManager().set(new Path(node.attributes.src));
+			const renderSrc = isExternalLink ? node.attributes.src : getRenderSrc(context, node.attributes.src);
 
 			const { crop, objects, scale, width, height, float } = parse(
 				node.attributes.crop ?? "0,0,100,100",
@@ -44,6 +47,7 @@ export function image(context: PrivateParserContext): Schema {
 					width: width,
 					height: height,
 					float: float,
+					renderSrc,
 				},
 				await node.transformChildren(config),
 			);

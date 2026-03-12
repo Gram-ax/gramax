@@ -15,6 +15,7 @@ import type { Item } from "@core/FileStructue/Item/Item";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
+import { trace } from "@ext/loggers/opentelemetry";
 import assert from "assert";
 import matter from "gray-matter";
 import * as yaml from "js-yaml";
@@ -96,17 +97,20 @@ export default class FileStructure {
 		return this._events;
 	}
 
+	@trace()
 	async getCatalogEntries(): Promise<CatalogEntry[]> {
 		const dirs = await FileStructure.getCatalogDirs(this._fp);
 		const catalogs = await dirs.mapAsync((dir) => this.getCatalogEntryByPath(dir.path));
 		return catalogs.filter((c) => c);
 	}
 
+	@trace()
 	async getCatalogByPath(path: Path, checkIsExists = true): Promise<Catalog> {
 		const entry = await this.getCatalogEntryByPath(path, checkIsExists, {});
 		return await entry.load();
 	}
 
+	@trace()
 	async getCatalogEntryByPath(path: Path, checkIsExists = true, initProps: CatalogProps = {}): Promise<CatalogEntry> {
 		await this._events.emit("before-catalog-entry-read", { path, checkIsExists, initProps });
 
@@ -132,6 +136,7 @@ export default class FileStructure {
 		return entry;
 	}
 
+	@trace()
 	async createCatalog(props: CatalogEditProps, base?: Path): Promise<Catalog> {
 		const url = new Path(props.url);
 		const path = base ? url.join(base) : url;
@@ -187,6 +192,7 @@ export default class FileStructure {
 		catalog.repo?.resetCachedStatus();
 	}
 
+	@trace()
 	async saveArticle(path: Path, content: string, props: ArticleProps): Promise<void> {
 		const mutable = { content, props };
 		await this.events.emit("item-serialize", { mutable });
@@ -421,6 +427,7 @@ export default class FileStructure {
 		return mutableItem.item;
 	}
 
+	@trace()
 	private async _search(root: Path, search: RegExp, depth = 5): Promise<Path> {
 		const queue = [];
 		const explored = new Set<string>();

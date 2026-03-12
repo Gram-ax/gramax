@@ -1,11 +1,10 @@
 import Link from "@components/Atoms/Link";
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
+import { useRouter } from "@core/Api/useRouter";
 import Url from "@core-ui/ApiServices/Types/Url";
+import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { css } from "@emotion/react";
 import t from "@ext/localization/locale/translate";
-import { ArticlePropertyWrapper } from "@ext/properties/components/ArticlePropertyWrapper";
-import PropertyComponent from "@ext/properties/components/Property";
-import { PropertyTypes } from "@ext/properties/models";
 import BreadcrumbCatalog from "@ext/serach/components/BreadcrumbCatalog";
 import { CatalogResultItem } from "@ext/serach/components/CatalogResultItem";
 import { getMarkElems, getResultElems } from "@ext/serach/components/searchUtils";
@@ -13,33 +12,32 @@ import { useSearchResults } from "@ext/serach/components/useSearchResults";
 import { type CurrentScrollData, scrollToElement } from "@ext/serach/components/utils/scrollToElement";
 import type { SearchFragmentInfo } from "@ext/serach/utils/ArticleFragmentCounter/ArticleFragmentCounter";
 import type { FocusItem } from "@ext/serach/utils/FocusItemsCollector";
-import type { RowIdLinkMap, RowSearchResult } from "@ext/serach/utils/SearchRowsModel";
-import { type RefObject, useEffect, useRef, useState } from "react";
+import type { RowSearchResult } from "@ext/serach/utils/SearchRowsModel";
+import { Badge } from "@ui-kit/Badge";
+import { type RefObject, useEffect, useRef } from "react";
 
 export interface SearchResultsProps {
-	rowIdLinkMap: RowIdLinkMap;
 	rows: RowSearchResult[];
 	searchAll: boolean;
 	containerRef: RefObject<HTMLElement>;
 	focusItem: FocusItem | undefined;
 	setFocusItem: (item: FocusItem) => void;
-	onLinkOpen: (data: {
-		url: string;
-		searchFragmentInfo?: SearchFragmentInfo;
-		title?: string;
-		catalog?: string;
-		isRecommended?: boolean;
-	}) => void;
+	onLinkOpen: (data: { url: string; searchFragmentInfo?: SearchFragmentInfo }) => void;
+	registerKeyHandler: (fn: ((e: React.KeyboardEvent) => boolean) | undefined) => void;
 }
 
 export const SearchResults = (props: SearchResultsProps) => {
-	const { rows, searchAll, containerRef, onLinkOpen, focusItem, setFocusItem, rowIdLinkMap } = props;
+	const { rows, searchAll, containerRef: listRef, onLinkOpen, focusItem, setFocusItem, registerKeyHandler } = props;
+
+	const currentRefPath = ArticlePropsService.value?.ref.path;
 	const focusRef = useRef<HTMLAnchorElement>(null);
 	const scrollAnimRef = useRef<CurrentScrollData>({});
-	const [cursorFlag, setCursorFlag] = useState(true);
+	const cursorFlagRef = useRef<boolean>(true);
+	const router = useRouter();
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: TODO: fix
 	useEffect(() => {
+		void rows;
+
 		focusRef.current = null;
 	}, [rows]);
 
@@ -50,26 +48,31 @@ export const SearchResults = (props: SearchResultsProps) => {
 		onLinkOpen,
 	});
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: TODO: fix
 	useEffect(() => {
-		if (!cursorFlag && focusRef.current && containerRef.current) {
-			scrollToElement(containerRef.current, focusRef.current, scrollAnimRef);
+		void focus.current;
+
+		if (!cursorFlagRef.current && focusRef.current && listRef.current) {
+			scrollToElement(listRef.current, focusRef.current, scrollAnimRef);
 		}
-	}, [focusRef.current, containerRef.current]);
+	}, [focus.current, listRef.current]);
 
 	const mousemoveHandler = () => {
-		setCursorFlag(true);
+		cursorFlagRef.current = true;
 	};
 
-	const keydownHandler = (e: KeyboardEvent) => {
+	const keyboardHandler = (e: React.KeyboardEvent) => {
 		if (e.code === "ArrowUp") {
-			setCursorFlag(false);
+			cursorFlagRef.current = false;
 			focus.move(-1);
+			return true;
 		}
+
 		if (e.code === "ArrowDown") {
-			setCursorFlag(false);
+			cursorFlagRef.current = false;
 			focus.move(1);
+			return true;
 		}
+
 		if (e.code === "Enter" && focus.current) {
 			const type = focus.current.type;
 			switch (type) {
@@ -78,14 +81,11 @@ export const SearchResults = (props: SearchResultsProps) => {
 					break;
 				}
 				case "link": {
-					const infoById = rowIdLinkMap.get(focus.current.id);
-					if (infoById) {
-						onLinkOpen({
-							url: infoById.openSideEffect.params.pathname,
-							searchFragmentInfo: infoById.openSideEffect.params.fragmentInfo,
-							isRecommended: false,
-						});
-					}
+					router.setUrl(focus.current.url);
+					onLinkOpen({
+						url: focus.current.pathname,
+						searchFragmentInfo: focus.current.fragmentInfo,
+					});
 					break;
 				}
 				case "temp": {
@@ -94,112 +94,120 @@ export const SearchResults = (props: SearchResultsProps) => {
 				default:
 					throw new Error(`Unexpected focus item type ${type}`);
 			}
+
+			return true;
 		}
+
+		return false;
 	};
 
 	useEffect(() => {
-		document.addEventListener("keydown", keydownHandler, false);
+		registerKeyHandler(keyboardHandler);
 		document.addEventListener("mousemove", mousemoveHandler, false);
 		return () => {
-			document.removeEventListener("keydown", keydownHandler, false);
 			document.removeEventListener("mousemove", mousemoveHandler, false);
+			registerKeyHandler(undefined);
 		};
 	});
 
 	return results.map((d) => (
-		<div className="item" key={d.id} style={{ overflow: "hidden" }}>
-			{/** biome-ignore lint/a11y/useKeyWithMouseEvents: div onMouseOver */}
+		<div
+			className="item"
+			key={d.id}
+			onKeyDown={(e) => {
+				if (keyboardHandler(e)) {
+					e.preventDefault();
+				}
+			}}
+			style={{ overflow: "hidden" }}
+		>
 			<div
 				className={`item-title ${focus.current?.id === d.id ? "item-active" : ""}`}
 				data-qa="qa-clickable"
+				onClick={() => {
+					router.setUrl(d.url);
+					onLinkOpen({
+						url: d.openSideEffect.params.pathname,
+						searchFragmentInfo: d.openSideEffect.params.fragmentInfo,
+					});
+				}}
+				onFocus={() => {
+					if (!cursorFlagRef.current) focus.set(d.id);
+				}}
 				onMouseOver={() => {
-					if (cursorFlag) focus.set(d.id);
+					if (cursorFlagRef.current) focus.set(d.id);
 				}}
 			>
-				<div>
-					<Link
-						className="flex item-center"
-						href={d.url}
-						onClick={() => {
-							const title =
-								d.type === "catalog"
-									? d.rawResult.title.map((x) => x.text).join("")
-									: d.rawResult.title.map((x) => x.text).join("");
-
-							onLinkOpen({
-								url: d.openSideEffect.params.pathname,
-								searchFragmentInfo: d.openSideEffect.params.fragmentInfo,
-								catalog: d.type === "catalog" ? undefined : d.rawResult.catalog?.title,
-								title: title,
-								isRecommended: d.type === "article" ? d.rawResult.isRecommended : false,
-							});
-						}}
-						onMouseOver={() => {
-							if (cursorFlag) focus.set(d.id);
-						}}
-						ref={focus.current?.id === d.id ? (focusRef as RefObject<HTMLAnchorElement>) : null}
-					>
-						{d.type === "article" ? (
-							<span className="line-clamp-1 item-title-text">{getMarkElems(d.rawResult.title)}</span>
-						) : (
-							<CatalogResultItem
-								catalog={{
-									name: d.rawResult.name,
-									title: d.rawResult.title,
-								}}
-							/>
+				{d.type === "article" && (d.rawResult.isRecommended || d.rawResult.refPath === currentRefPath) ? (
+					<div className="item-title-badges">
+						{d.rawResult.refPath === currentRefPath && (
+							<Badge className="item-title-badge item-title-badge-current" size="sm">
+								{t("search.current")}
+							</Badge>
 						)}
-					</Link>
-
-					{searchAll && d.type === "article" && (
-						<Link
-							className="breadcrumb-catalog"
-							href={Url.from({
-								pathname: d.rawResult.catalog.url,
-							})}
-							onClick={() =>
-								onLinkOpen({
-									url: d.openSideEffect.params.pathname,
-									searchFragmentInfo: d.openSideEffect.params.fragmentInfo,
-									catalog: d.rawResult.catalog?.title,
-									title: d.rawResult.title.map((x) => x.text).join(""),
-								})
-							}
+						{d.rawResult.isRecommended && (
+							<Badge
+								className="item-title-badge item-title-badge-recommended"
+								size="sm"
+								startIcon={"star"}
+							>
+								{t("search.recommended")}
+							</Badge>
+						)}
+					</div>
+				) : null}
+				<div>
+					<div className="item-title-content">
+						<span
+							className="flex item-center"
+							ref={focus.current?.id === d.id ? (focusRef as RefObject<HTMLSpanElement>) : null}
 						>
-							<BreadcrumbCatalog catalog={d.rawResult.catalog} variant={breadcrumbCatalogVariant} />
-						</Link>
-					)}
+							{d.type === "article" ? (
+								<span className="line-clamp-1 item-title-text">{getMarkElems(d.rawResult.title)}</span>
+							) : (
+								<CatalogResultItem
+									catalog={{
+										name: d.rawResult.name,
+										title: d.rawResult.title,
+									}}
+								/>
+							)}
+						</span>
 
-					{d.type === "article" && d.breadcrumbs && <LinksBreadcrumb readyData={d.breadcrumbs} />}
+						{searchAll && d.type === "article" && (
+							<Link
+								className="breadcrumb-catalog"
+								href={Url.from({
+									pathname: d.rawResult.catalog.url,
+								})}
+								onClick={(e) => {
+									e.stopPropagation();
+									onLinkOpen({
+										url: d.openSideEffect.params.pathname,
+										searchFragmentInfo: d.openSideEffect.params.fragmentInfo,
+									});
+								}}
+							>
+								<BreadcrumbCatalog catalog={d.rawResult.catalog} variant={breadcrumbCatalogVariant} />
+							</Link>
+						)}
+
+						{d.type === "article" && d.breadcrumbs && <LinksBreadcrumb readyData={d.breadcrumbs} />}
+					</div>
 				</div>
-				{d.type === "article" && d.rawResult.isRecommended && (
-					<ArticlePropertyWrapper>
-						<PropertyComponent
-							icon={"star"}
-							name={t("search.recommended")}
-							propertyStyle={"blue"}
-							shouldShowValue={false}
-							style={{
-								cursor: "default",
-							}}
-							type={PropertyTypes.flag}
-							value={undefined}
-						/>
-					</ArticlePropertyWrapper>
-				)}
 			</div>
 			{d.type === "article" &&
 				getResultElems(
 					d.items,
 					(id) => {
-						if (cursorFlag) focus.set(id);
+						if (cursorFlagRef.current) focus.set(id);
+					},
+					(id) => {
+						if (!cursorFlagRef.current) focus.set(id);
 					},
 					onLinkOpen,
 					focus.current,
 					focusRef,
-					d.rawResult.catalog.title,
-					d.rawResult.title.map((x) => x.text).join(""),
-					+d.id + 1,
 				)}
 		</div>
 	));

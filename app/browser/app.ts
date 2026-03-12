@@ -1,5 +1,4 @@
 import resolveBackendModule, { initBackendModules } from "@app/resolveModule/backend";
-import { initFrontendModules } from "@app/resolveModule/frontend";
 import { ContextFactory } from "@core/Context/ContextFactory";
 import { TableDB } from "@core/components/tableDB/table";
 import type VideoUrlRepository from "@core/components/video/videoUrlRepository";
@@ -22,19 +21,19 @@ import HtmlParser from "@ext/html/HtmlParser";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import type Logger from "@ext/loggers/Logger";
+import { registerOtel } from "@ext/loggers/opentelemetry";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import type AuthManager from "@ext/security/logic/AuthManager";
 import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
-import { createModulithService } from "@ext/serach/modulith/createModulithService";
-import { ModulithSearcher } from "@ext/serach/modulith/ModulithSearcher";
-import SearcherManager from "@ext/serach/SearcherManager";
+import { createBrowserSearcherManager } from "@ext/serach/createSearcherManager";
 import WorkspaceCheckIsCatalogCloning from "@ext/storage/events/WorkspaceCheckIsCatalogCloning";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import FSTemplateEvents from "@ext/templates/logic/FSTemplateEvents";
+import { feature } from "@ext/toggleFeatures/features";
 import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
 import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 import WorkspaceManager from "@ext/workspace/WorkspaceManager";
@@ -43,7 +42,10 @@ import { type AppConfig, type AppGlobalConfig, getConfig } from "../config/AppCo
 import type Application from "../types/Application";
 
 const _init = async (config: AppConfig): Promise<Application> => {
-	await initFrontendModules();
+	if (feature("opentelemetry-logs")) {
+		await registerOtel();
+	}
+
 	await initBackendModules();
 
 	const vur: VideoUrlRepository = null;
@@ -111,17 +113,15 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const am: AuthManager = enterpriseConfig.gesUrl ? new ClientAuthManager(enterpriseConfig) : null;
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
 
-	const searcherManager = new SearcherManager(
-		new ModulithSearcher(
-			await createModulithService({
-				basePath: config.paths.data,
-				wm,
-				parser,
-				parserContextFactory,
-				parseResources: Boolean(enterpriseConfig.gesUrl),
-			}),
-		),
-	);
+	const searchResourcesEnabled = Boolean(enterpriseConfig.gesUrl);
+
+	const searcherManager = await createBrowserSearcherManager({
+		searchResourcesEnabled,
+		parser,
+		parserContextFactory,
+		wm,
+		config,
+	});
 	const wtm = new WordTemplateManager(wm);
 	const ptm = new PdfTemplateManager(wm);
 
@@ -168,6 +168,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 			portalAi: {
 				enabled: false,
+			},
+
+			search: {
+				resourcesEnabled: searchResourcesEnabled,
 			},
 
 			forceUiLangSync: config.forceUiLangSync,

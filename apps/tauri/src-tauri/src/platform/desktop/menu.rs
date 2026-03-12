@@ -4,6 +4,7 @@ use std::sync::Mutex;
 
 use tauri::menu::*;
 use tauri::*;
+use tauri_otel_context::OtelContext;
 
 use crate::error::ShowError;
 use crate::shared::AppHandleExt;
@@ -94,7 +95,7 @@ pub fn search_menu<R: Runtime>(menu: &Menu<R>, id: MenuItemId) -> Option<MenuIte
 static SPELLCHECK_ENABLED: Mutex<bool> = Mutex::new(false);
 
 #[command]
-pub fn set_menuitem_spellcheck_enabled<R: Runtime>(window: WebviewWindow<R>, new_enabled: bool) -> Result<()> {
+pub fn set_menuitem_spellcheck_enabled<R: Runtime>(_otel: OtelContext, window: WebviewWindow<R>, new_enabled: bool) -> Result<()> {
 	let mut enabled = SPELLCHECK_ENABLED.lock().unwrap();
 
 	if *enabled == new_enabled {

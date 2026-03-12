@@ -1,3 +1,4 @@
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import linkCreater from "./linkCreator";
 
@@ -225,6 +226,42 @@ describe("linkCreator", () => {
 
 				expect(result).toEqual(new Path("kc-docs/bi/6.DWH/eCompass_Export/Products/_index.md"));
 			});
+		});
+	});
+
+	describe("correctly resolves href path", () => {
+		test("returns article link when href points to a same-extension file", async () => {
+			const articlePath = new Path("catalog/docs/parantCategory/article.md");
+			const parantCategoryRefPath = new Path("catalog/docs/parantCategory/_index.md");
+			const parantCategoryReadOnlyPathname = "catalog/docs/parantCategory";
+
+			const path = articlePath.getRelativePath(parantCategoryRefPath);
+			expect(path.value).toEqual("./_index.md");
+
+			const catalog = {
+				name: "catalog",
+				getRootCategoryRef: () => ({ path: new Path("catalog/docs/_index.md") }),
+				findItemByItemPath: (hrefPath: Path) => {
+					expect(hrefPath.value).toEqual(parantCategoryRefPath.value);
+					return { ref: { path: hrefPath } };
+				},
+				getPathname: async (item: { ref: { path: Path } }) => {
+					expect(item.ref.path.value).toEqual(parantCategoryRefPath.value);
+					return parantCategoryReadOnlyPathname;
+				},
+			};
+			const context = {
+				getCatalog: () => catalog,
+				getArticle: () => ({ ref: { path: articlePath } }),
+				getBasePath: () => ({ value: "" }),
+			};
+
+			const result = await linkCreater.getLink(path.value, context as unknown as ParserContext);
+
+			expect(result.isFile).toBeFalsy();
+			expect(result.resourcePath.value).toEqual(path.value);
+			expect(result.hash).toBeFalsy();
+			expect(result.href).toEqual(parantCategoryReadOnlyPathname);
 		});
 	});
 

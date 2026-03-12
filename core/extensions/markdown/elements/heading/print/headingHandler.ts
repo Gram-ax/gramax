@@ -1,22 +1,5 @@
-import { throwIfAborted } from "@ext/print/utils/pagination/abort";
 import type { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
-import PagePaginator from "@ext/print/utils/pagination/PagePaginator";
-import Paginator from "@ext/print/utils/pagination/Paginator";
-
-const articleHeaderHandler = (node: HTMLHeadingElement, paginator: Paginator) => {
-	const { currentContainer } = paginator;
-	throwIfAborted(Paginator.controlInfo.signal);
-
-	if (currentContainer.childElementCount > 0 || currentContainer.childNodes.length > 0) {
-		paginator.headingElements = [];
-		paginator.createPage();
-	}
-	Paginator.paginationInfo.accumulatedHeight = Paginator.paginationInfo.nodeDimension.updateAccumulatedHeightNode(
-		node,
-		Paginator.paginationInfo.accumulatedHeight,
-	);
-	paginator.currentContainer.appendChild(node);
-};
+import type Paginator from "@ext/print/utils/pagination/Paginator";
 
 const headingInArticleHandler = (heading: HTMLHeadingElement, paginator: Paginator) => {
 	const lenght = paginator.headingElements.length;

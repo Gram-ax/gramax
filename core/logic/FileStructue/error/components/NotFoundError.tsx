@@ -5,10 +5,10 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { defaultRefreshPage } from "@core-ui/utils/initGlobalFuncs";
 import t from "@ext/localization/locale/translate";
-import BranchData from "@ext/VersionControl/model/branch/BranchData";
-import { ComponentProps } from "react";
+import type BranchData from "@ext/VersionControl/model/branch/BranchData";
+import type { ComponentProps } from "react";
 import InfoModalForm from "../../../../extensions/errorHandlers/client/components/ErrorForm";
-import GetErrorComponent from "../../../../extensions/errorHandlers/logic/GetErrorComponent";
+import type GetErrorComponent from "../../../../extensions/errorHandlers/logic/GetErrorComponent";
 import { useRouter } from "../../../Api/useRouter";
 
 const ArticleNotFoundErrorComponent = (args: ComponentProps<typeof GetErrorComponent>) => {

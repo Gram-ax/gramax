@@ -1,12 +1,11 @@
 import FileInput from "@components/Atoms/FileInput/FileInput";
 import PureLink, { LinkTheme } from "@components/Atoms/PureLink";
 import LanguageService from "@core-ui/ContextServices/Language";
-import { usePlatform } from "@core-ui/hooks/usePlatform";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
-import { ReactElement, useCallback, useState } from "react";
+import { type ReactElement, useCallback, useState } from "react";
 
 interface EditStylesProps {
 	children: ReactElement;
@@ -63,11 +62,11 @@ const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss }: Edit
 	}, []);
 
 	return (
-		<Modal onOpenChange={onOpenChange} open={isOpen}>
-			{children && <ModalTrigger asChild>{children}</ModalTrigger>}
-			<ModalContent className={"monaco-form-old-width"} data-modal-root size="L">
-				<FormHeader description={description as any} icon={"palette"} title={t("workspace.editing-css")} />
-				<ModalBody>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			{children && <DialogTrigger asChild>{children}</DialogTrigger>}
+			<DialogContent className={"monaco-form-old-width"} data-modal-root size="L">
+				<FormHeader description={description} icon={"palette"} title={t("workspace.editing-css")} />
+				<DialogBody>
 					<FormStack className="h-full">
 						<FileInput
 							height={"100%"}
@@ -78,13 +77,21 @@ const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss }: Edit
 							value={customCss}
 						/>
 					</FormStack>
-				</ModalBody>
+				</DialogBody>
 				<FormFooter
-					primaryButton={<Button children={t("continue")} onClick={closeEditor} variant="primary" />}
-					secondaryButton={<Button children={t("cancel")} onClick={cancelEdit} variant="text" />}
+					primaryButton={
+						<Button onClick={closeEditor} variant="primary">
+							{t("continue")}
+						</Button>
+					}
+					secondaryButton={
+						<Button onClick={cancelEdit} variant="text">
+							{t("cancel")}
+						</Button>
+					}
 				/>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

@@ -1,5 +1,5 @@
-import Context from "@core/Context/Context";
-import Cookie from "@ext/cookie/Cookie";
+import type Context from "@core/Context/Context";
+import type Cookie from "@ext/cookie/Cookie";
 import UiLanguage, { ContentLanguage } from "@ext/localization/core/model/Language";
 import User from "@ext/security/logic/User/User";
 import Theme from "@ext/Theme/Theme";
@@ -33,6 +33,10 @@ class TestContext implements Context {
 
 	get domain(): string {
 		return "test://";
+	}
+
+	toSpan() {
+		return "<test ctx>";
 	}
 }
 

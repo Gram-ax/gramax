@@ -13,7 +13,7 @@ pub use axum::http::Request;
 pub use rstest::rstest;
 
 use spa::updater::Updater;
-use tempdir::TempDir;
+use tempfile::TempDir;
 
 use testcontainers::core::ContainerPort;
 use testcontainers::core::Mount;
@@ -127,7 +127,7 @@ pub async fn create_minio() -> anyhow::Result<ContainerAsync<GenericImage>> {
 	static MINIO_DATA_DIR: OnceCell<TempDir> = OnceCell::const_new();
 
 	let data_dir = MINIO_DATA_DIR
-		.get_or_init(|| async { TempDir::new("minio-data").unwrap() })
+		.get_or_init(|| async { TempDir::with_prefix("minio-data").unwrap() })
 		.await
 		.path()
 		.to_path_buf();

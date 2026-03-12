@@ -1,20 +1,20 @@
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type {
 	CommitAuthorInfo,
 	ConfigValue,
 	MergeResult,
 	UpstreamCountFileChanges,
 } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
-import GitStash from "@ext/git/core/model/GitStash";
-import GitVersionData from "@ext/git/core/model/GitVersionData";
+import type GitStash from "@ext/git/core/model/GitStash";
+import type GitVersionData from "@ext/git/core/model/GitVersionData";
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
-import Path from "../../../../../logic/FileProvider/Path/Path";
-import SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
-import { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
-import { GitBranch } from "../../GitBranch/GitBranch";
-import { GitStatus } from "../../GitWatcher/model/GitStatus";
-import GitSourceData from "../../model/GitSourceData.schema";
-import { GitVersion } from "../../model/GitVersion";
+import type Path from "../../../../../logic/FileProvider/Path/Path";
+import type SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
+import type { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
+import type { GitBranch } from "../../GitBranch/GitBranch";
+import type { GitStatus } from "../../GitWatcher/model/GitStatus";
+import type GitSourceData from "../../model/GitSourceData.schema";
+import type { GitVersion } from "../../model/GitVersion";
 
 export type CancelToken = number;
 
@@ -189,7 +189,7 @@ interface GitCommandsModel {
 	newBranch(name: string): Promise<void>;
 	getCommitHash(ref: string): Promise<GitVersion>;
 
-	getFileHistory(filePath: Path, count: number): Promise<VersionControlInfo[]>;
+	getFileHistory(filePath: Path, offset: number, limit: number): Promise<VersionControlInfo[]>;
 	getCommitInfo(oid: string, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]>;
 	countChangedFiles(searchIn: string): Promise<UpstreamCountFileChanges>;
 

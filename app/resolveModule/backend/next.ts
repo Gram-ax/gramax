@@ -7,6 +7,9 @@ import NextGetImageByPath from "../../../apps/next/logic/NextGetImageByPath";
 import NextGetImageFromDom from "../../../apps/next/logic/NextGetImageFromDom";
 import NextGetImageSizeFromImageData from "../../../apps/next/logic/NextGetImageSizeFromImageData";
 import NextSvgToPng from "../../../apps/next/logic/NextSvgToPng";
+import { getPdfjs } from "../../../apps/next/pdfjs/getPdfjs";
+import { NodeWorkerResourceParseClient } from "../../../apps/next/search/modulith/NodeResourceParseWorkerClient";
+import { NodeWorkerModulithSearchClient } from "../../../apps/next/search/modulith/NodeWorkerModulithSearchClient";
 import type { BackendDynamicModules } from "..";
 
 export const getNextModules = (): Promise<BackendDynamicModules> => {
@@ -22,6 +25,10 @@ export const getNextModules = (): Promise<BackendDynamicModules> => {
 		setSessionData: () => Promise.resolve(),
 		pdfLoadFont: nextLoadFont(),
 		getImageByPath: NextGetImageByPath,
+		getModulithSearchClient: async ({ cacheFileProvider, articleStorageFileProvider }) =>
+			await NodeWorkerModulithSearchClient.create({ cacheFileProvider, articleStorageFileProvider }),
+		getResourceParseClient: async () => await NodeWorkerResourceParseClient.create(),
+		getPdfjs,
 	});
 };
 

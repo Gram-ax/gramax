@@ -905,4 +905,14 @@ describe("MdParser корректно парсит", () => {
 			expect(testParseStr).toEqual(parsedStr);
 		});
 	});
+
+	test("ссылки игнорируются", async () => {
+		const mdParser = await getMdParser();
+		const str =
+			"[http://example.com/asdasd\\$](http://example.com/asdasd$) <http://example.com> [https://regex101.com/\\*\\~\\[\\]\\_\\$%7B%3C](https://regex101.com/*~[]_$%7B%3C)";
+
+		const testParseStr = mdParser.preParse(str);
+
+		expect(testParseStr).toEqual(str);
+	});
 });

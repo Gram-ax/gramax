@@ -4,14 +4,15 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
-import { Property, PropertyUsage } from "@ext/properties/models";
+import type { Property, PropertyUsage } from "@ext/properties/models";
 import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
 import { Label } from "@ui-kit/Label";
-import { Modal, ModalBody, ModalContent, ModalTrigger } from "@ui-kit/Modal";
 import { useState } from "react";
 
 export type ActionWarningProps = {
+	// biome-ignore lint/suspicious/noExplicitAny: expected
 	action: (...args: any[]) => void;
 	children?: JSX.Element;
 	isCatalog?: boolean;
@@ -36,13 +37,14 @@ const ActionWarning = (props: ActionWarningProps) => {
 		onLinkClick,
 		shouldShowWarning,
 	} = props;
-	if (!shouldShowWarning) return children;
-
-	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const [isOpen, setIsOpen] = useState(initialIsOpen);
 	const [usages, setUsages] = useState<PropertyUsage[]>([]);
 
+	if (!shouldShowWarning) return children;
+	const apiUrlCreator = ApiUrlCreatorService.value;
+
+	// biome-ignore lint/correctness/useHookAtTopLevel: expected
 	useWatch(() => {
 		if (!data || !editData || !data?.values?.length) return;
 		const deletedValues = isCatalog
@@ -67,9 +69,9 @@ const ActionWarning = (props: ActionWarningProps) => {
 	};
 
 	return (
-		<Modal onOpenChange={setIsOpen} open={isOpen}>
-			<ModalTrigger asChild>{children}</ModalTrigger>
-			<ModalContent>
+		<Dialog onOpenChange={setIsOpen} open={isOpen}>
+			<DialogTrigger asChild>{children}</DialogTrigger>
+			<DialogContent>
 				<form>
 					<FormHeader
 						description={
@@ -80,7 +82,7 @@ const ActionWarning = (props: ActionWarningProps) => {
 						icon="alert-circle"
 						title={t("delete")}
 					/>
-					<ModalBody>
+					<DialogBody>
 						<div>
 							<Label>
 								{isCatalog
@@ -97,7 +99,7 @@ const ActionWarning = (props: ActionWarningProps) => {
 									<div style={{ paddingLeft: "1.25em", maxHeight: "25vh", overflowY: "auto" }}>
 										<ul>
 											{usages.map((usage, index) => (
-												<li key={usage.title + index}>
+												<li key={`${usage.title}-${index}`}>
 													<Label>
 														<Anchor
 															href={usage.linkPath}
@@ -119,7 +121,7 @@ const ActionWarning = (props: ActionWarningProps) => {
 								</>
 							</ArticleTooltipService.Provider>
 						)}
-					</ModalBody>
+					</DialogBody>
 					<FormFooter
 						primaryButton={
 							<Button onClick={onClick} type="button">
@@ -133,8 +135,8 @@ const ActionWarning = (props: ActionWarningProps) => {
 						}
 					/>
 				</form>
-			</ModalContent>
-		</Modal>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

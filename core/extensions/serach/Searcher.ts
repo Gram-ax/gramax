@@ -1,11 +1,16 @@
-import { PropertyValue } from "@ext/properties/models";
-import { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
+import type { PropertyValue } from "@ext/properties/models";
+import type { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 
 export default interface Searcher {
-	progress: () => SearcherProgressGenerator;
-	updateIndex: (args: UpdateIndexArgs) => SearcherProgressGenerator;
+	progress: (args: ProgressArgs) => SearcherProgressGenerator;
+	updateIndex: (args: UpdateIndexArgs) => Promise<void>;
 	searchAll: (args: SearchAllArgs) => Promise<SearchResult[]>;
 	search: (args: SearchArgs) => Promise<SearchResult[]>;
+}
+
+export interface ProgressArgs {
+	resourceFilter?: ResourceFilter;
+	signal?: AbortSignal;
 }
 
 export interface UpdateIndexArgs {
@@ -16,6 +21,7 @@ export interface UpdateIndexArgs {
 export interface SearchArgsBase {
 	query?: string;
 	propertyFilter?: PropertyFilter;
+	resourceFilter?: ResourceFilter;
 	articlesLanguage?: ArticleLanguage;
 	signal?: AbortSignal;
 }
@@ -46,6 +52,7 @@ export type SearchResult = SearchArticleResult | SearchCatalogResult;
 
 export interface SearchArticleResult {
 	type: "article";
+	refPath: string;
 	isRecommended: boolean;
 	catalog: {
 		name: string;
@@ -66,7 +73,7 @@ export interface SearchCatalogResult {
 	title: SearchResultMarkItem[];
 }
 
-export type SearchResultItem = SearchResultBlockItem | SearchResultParagraphItem | SearchResultParagraphGroupItem;
+export type SearchResultItem = SearchResultBlockItem | SearchResultParagraphItem;
 
 export interface SearchResultBlockItem {
 	type: "block";
@@ -78,11 +85,7 @@ export interface SearchResultBlockItem {
 export interface SearchResultParagraphItem {
 	type: "paragraph";
 	items: SearchResultMarkItem[];
-}
-
-export interface SearchResultParagraphGroupItem {
-	type: "paragraph_group";
-	paragraphs: SearchResultParagraphItem[];
+	searchText: string;
 }
 
 export type SearchResultMarkItem = SearchResultTextMarkItem | SearchResultHighlightMarkItem;
@@ -130,3 +133,5 @@ export type PropertyFilter =
 	| IsEmptyPropertyFilter
 	| AndPropertyFilter
 	| OrPropertyFilter;
+
+export type ResourceFilter = "without" | "with" | "only";
