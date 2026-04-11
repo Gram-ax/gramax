@@ -64,6 +64,11 @@ const PromptList = ({ onClick }: PromptListProps) => {
 					{list.length > 0 && <CommandInput placeholder={t("ai.search-prompts")} />}
 					<CommandList>
 						<CommandEmpty>{t("ai.no-prompts")}</CommandEmpty>
+						{list.length === 0 && (
+							<div className="py-4 text-center text-muted-foreground text-sm">
+								{t("ai.no-prompts")}
+							</div>
+						)}
 						{list.map((prompt, idx) => (
 							<CommandItem
 								key={prompt.id}

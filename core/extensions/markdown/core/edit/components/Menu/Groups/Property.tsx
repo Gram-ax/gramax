@@ -108,6 +108,11 @@ const Button = (props: ButtonProps) => {
 							{properties.length > 0 && <CommandInput placeholder={t("properties.find")} />}
 							<CommandList>
 								<CommandEmpty>{t("properties.no-properties")}</CommandEmpty>
+								{properties.length === 0 && (
+									<div className="py-4 text-center text-muted-foreground text-sm">
+										{t("properties.no-properties")}
+									</div>
+								)}
 								<CommandGroup className="overflow-y-auto text-xs" style={{ maxHeight: "11rem" }}>
 									{properties.map((item) => (
 										<CommandItem
