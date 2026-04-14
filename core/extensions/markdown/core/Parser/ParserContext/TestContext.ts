@@ -1,16 +1,16 @@
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { TableDB } from "../../../../../logic/components/tableDB/table";
-import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import type { TableDB } from "../../../../../logic/components/tableDB/table";
+import type FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import { Article } from "../../../../../logic/FileStructue/Article/Article";
+import type { Article } from "../../../../../logic/FileStructue/Article/Article";
 import UiLanguage from "../../../../localization/core/model/Language";
-import UserInfo from "../../../../security/logic/User/UserInfo";
-import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
-import MarkdownParser from "../Parser";
-import ParserContext from "./ParserContext";
+import type UserInfo from "../../../../security/logic/User/UserInfo";
+import type MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
+import type MarkdownParser from "../Parser";
+import type ParserContext from "./ParserContext";
 
 export default class TestContext implements ParserContext {
 	constructor(
@@ -55,10 +55,6 @@ export default class TestContext implements ParserContext {
 
 	getBasePath(): Path {
 		return new Path("/testBasePath");
-	}
-
-	getIsLogged(): boolean {
-		return true;
 	}
 
 	getLanguage(): UiLanguage {

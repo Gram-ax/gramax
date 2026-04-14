@@ -1,7 +1,3 @@
-/**
- * @jest-environment node
- */
-
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
@@ -36,7 +32,8 @@ describe("GitCommands", () => {
 		await GitVersionControl.init(dfp, path("testRep"), mockGitSourceData);
 		git = new GitCommands(dfp, path("testRep"));
 		const testFile = await writeFile("testFile", "testFile content");
-		await git.add([testFile]), await git.commit("init", mockGitSourceData);
+		await git.add([testFile]);
+		await git.commit("init", mockGitSourceData);
 	});
 
 	afterEach(async () => {
@@ -106,7 +103,8 @@ describe("GitCommands", () => {
 		const wouldBeModified = await writeFile("wouldBeModified", "wouldBeModified content");
 		const wouldBeDeleted = await writeFile("wouldBeDeleted", "wouldBeDeleted content");
 		const unchangedFile = await writeFile("unchangedFile", "unchangedFile content");
-		await git.add([wouldBeDeleted, unchangedFile, wouldBeModified]), await git.commit("", mockGitSourceData);
+		await git.add([wouldBeDeleted, unchangedFile, wouldBeModified]);
+		await git.commit("", mockGitSourceData);
 		expect((await git.status()).length).toBe(0);
 
 		await writeFile("wouldBeModified", "new wouldBeModified content");
@@ -174,7 +172,8 @@ describe("GitCommands", () => {
 	describe("Показывает контент файла по его пути", () => {
 		test("в последнем коммите", async () => {
 			const file1 = await writeFile("1", "old");
-			await git.add([file1]), await git.commit("", mockGitSourceData);
+			await git.add([file1]);
+			await git.commit("", mockGitSourceData);
 			await dfp.write(repPath("1"), "new");
 
 			const commitContent = await git.showFileContent(path("1"));

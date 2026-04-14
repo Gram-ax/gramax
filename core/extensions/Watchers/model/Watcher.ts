@@ -1,5 +1,5 @@
-import FileProvider from "../../../logic/FileProvider/model/FileProvider";
-import { ItemRefStatus } from "./ItemStatus";
+import type FileProvider from "../../../logic/FileProvider/model/FileProvider";
+import type { ItemRefStatus } from "./ItemStatus";
 
 export default interface Watcher {
 	init(fs: FileProvider): void;

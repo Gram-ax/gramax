@@ -1,4 +1,4 @@
-import { WordTableChild } from "./transformer/WordTableExportTypes";
+import type { WordTableChild } from "./transformer/WordTableExportTypes";
 
 export const trWordLayout: WordTableChild = async (state, tag, wordTableExport, addOptions) => {
 	return await wordTableExport.renderRow(tag, addOptions);

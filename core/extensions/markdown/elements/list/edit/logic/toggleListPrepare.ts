@@ -1,7 +1,7 @@
 import { listTypes } from "@ext/markdown/elements/joinLists/joinLists";
 import getNodeByPos from "@ext/markdown/elementsUtils/getNodeByPos";
 import isTypeOf from "@ext/markdown/elementsUtils/isTypeOf";
-import { ChainedCommands, Editor } from "@tiptap/core";
+import type { ChainedCommands, Editor } from "@tiptap/core";
 
 const toggleListPrepare = (editor: Editor, chain: ChainedCommands) => {
 	const { from, to } = editor.state.selection;

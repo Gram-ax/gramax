@@ -1,7 +1,7 @@
 import { useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
-import { SerializedStyles } from "@emotion/react";
+import type { SerializedStyles } from "@emotion/react";
 import styled from "@emotion/styled";
-import { forwardRef, MutableRefObject, ReactNode } from "react";
+import { forwardRef, type MutableRefObject, type ReactNode } from "react";
 
 interface BreadcrumbCatalogProps {
 	catalog: { name: string; title: ReactNode };

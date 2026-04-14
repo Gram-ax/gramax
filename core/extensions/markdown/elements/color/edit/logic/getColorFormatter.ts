@@ -1,6 +1,6 @@
 import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
-import { MarkSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
-import ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
+import type { MarkSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
+import type ParserContext from "../../../../core/Parser/ParserContext/ParserContext";
 
 const getColorFormatter = (context?: ParserContext): MarkSerializerSpec => {
 	const formatter = getFormatterTypeByContext(context);

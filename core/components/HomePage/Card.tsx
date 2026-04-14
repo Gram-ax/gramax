@@ -135,6 +135,7 @@ const GxCard = ({ link, className, onClick, name }: CardProps) => {
 			</a>
 		);
 
+	if (typeof window === "undefined") return card;
 	return (
 		<Link data-catalog-card={name} href={Url.from({ pathname })}>
 			{card}

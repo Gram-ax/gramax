@@ -2,7 +2,7 @@ import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/l
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import RevisionsListLayout from "@ext/git/actions/Revisions/components/RevisionsListLayout";
 import FromWhere from "@ext/git/core/GitMergeRequest/components/Elements/FromWhere";
-import GitVersionData from "@ext/git/core/model/GitVersionData";
+import type GitVersionData from "@ext/git/core/model/GitVersionData";
 
 interface RevisionsWhomWhereProps {
 	revisions: GitVersionData[];

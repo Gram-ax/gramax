@@ -8,8 +8,8 @@ import {
 	underscorePasteRegex as underscoreStrongPasteRegex,
 } from "@ext/markdown/elements/strong/edit/strong";
 import { Slice } from "@tiptap/pm/model";
-import { Transaction } from "@tiptap/pm/state";
-import { EditorView } from "@tiptap/pm/view";
+import type { Transaction } from "@tiptap/pm/state";
+import type { EditorView } from "@tiptap/pm/view";
 import { handlePaste } from "prosemirror-tables";
 
 const bulletRegex = /^\s*([-+*])\s.*/gm;

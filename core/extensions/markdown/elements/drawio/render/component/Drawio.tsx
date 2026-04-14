@@ -1,10 +1,10 @@
 import Image from "@components/Atoms/Image/Image";
 import Skeleton from "@components/Atoms/ImageSkeleton";
+import type { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import styled from "@emotion/styled";
-import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { forwardRef, type MutableRefObject, type ReactElement, useLayoutEffect, useRef, useState } from "react";
@@ -30,7 +30,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 
 	const [imageSrc, setImageSrc] = useState<string>(null);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
-	const [isError, setIsError] = useState<boolean>(false);
+	const [error, setError] = useState<ResourceError>(null);
 	const [size, setSize] = useState<{ width: string; height: string }>(null);
 
 	const setSrc = (newSrc: Blob) => {
@@ -57,10 +57,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 
 	useGetResource(
 		(buffer, resourceError) => {
-			if (resourceError) {
-				return setIsError(true);
-			}
-			if (!buffer || !buffer.byteLength) return setIsError(true);
+			if (resourceError) return setError(resourceError);
 			setIsLoaded(false);
 			setSrc(new Blob([buffer as BlobPart], { type: resolveFileKind(buffer) }));
 		},
@@ -70,8 +67,7 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 		isPrint,
 	);
 
-	if (!src || isError)
-		return <DiagramError diagramName="diagrams.net" error={{ message: t("diagram.error.cannot-get-data") }} />;
+	if (!src || error) return <DiagramError diagramName="diagrams.net" error={error} />;
 
 	return (
 		<div data-qa="qa-drawio" data-testid="drawio" ref={parentRef}>

@@ -1,4 +1,4 @@
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
 const inlineImageFormatter: NodeSerializerSpec = (state, node) => {
 	const hasSize = node.attrs?.width && node.attrs?.height;

@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 export default abstract class FocusService {
 	private static _setFocusPosition: Dispatch<SetStateAction<number>>;

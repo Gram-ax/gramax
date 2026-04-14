@@ -1,6 +1,6 @@
-import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
-import { MergeResult } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
+import type { MergeResult } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 
 const gitMergeConverter = (mergeResult: MergeResult): GitMergeResult[] => {
 	return mergeResult.map((r) => {

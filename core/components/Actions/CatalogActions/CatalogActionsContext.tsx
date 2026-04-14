@@ -3,23 +3,23 @@ import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
-import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
+import { configureCatalogPermission, editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import type { MenuContext } from "@gramax/sdk/ui";
 import assert from "assert";
-import { createContext, ReactNode, SetStateAction, useCallback, useContext, useMemo } from "react";
+import { createContext, type ReactNode, type SetStateAction, useCallback, useContext, useMemo } from "react";
 
 export interface CatalogActionsContextValue {
 	catalogName: string;
 	sourceName?: string;
 	pathName?: string;
-	gesUrl?: string;
+	workspaceGesUrl?: string;
 
 	canConfigure: boolean;
 	hasSource: boolean;
-	hasGesUrl: boolean;
+	hasWorkspaceGesUrl: boolean;
 	isArticleExist: boolean;
 	isAiEnabled: boolean;
 	renderDeleteCatalog: boolean;
@@ -70,11 +70,17 @@ export function CatalogActionsProvider({
 	const isStorageConnected = useIsStorageConnected();
 	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath);
 	const canConfigureNewCatalog = canEditCatalog && !isStorageConnected;
-	const canConfigure = canEditCatalog || canConfigureNewCatalog;
+	const canConfigureCatalog = PermissionService.useCheckPermission(
+		configureCatalogPermission,
+		workspacePath,
+		catalogName,
+	);
+	const canConfigure = canConfigureCatalog || canConfigureNewCatalog;
 
-	const gesUrl = pageData.conf.enterprise.gesUrl;
+	const currentWorkspace = WorkspaceService.current();
+	const workspaceGesUrl = currentWorkspace?.enterprise?.gesUrl;
 	const hasSource = !!sourceName;
-	const hasGesUrl = !!gesUrl;
+	const hasWorkspaceGesUrl = !!workspaceGesUrl;
 	const isArticleExist = !!itemLinks.length;
 	const isAiEnabled = pageData.conf.ai.enabled;
 	const isMac = IsMacService.value;
@@ -117,10 +123,10 @@ export function CatalogActionsProvider({
 		catalogName,
 		sourceName,
 		pathName,
-		gesUrl,
+		workspaceGesUrl,
 		canConfigure,
 		hasSource,
-		hasGesUrl,
+		hasWorkspaceGesUrl,
 		isArticleExist,
 		isAiEnabled,
 		renderDeleteCatalog,

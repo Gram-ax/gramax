@@ -5,7 +5,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { useCallback } from "react";
-import StorageData from "../../../../storage/models/StorageData";
+import type StorageData from "../../../../storage/models/StorageData";
 
 export type StartCloneResponse = { alreadyExist: boolean };
 

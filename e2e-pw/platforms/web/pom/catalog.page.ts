@@ -36,4 +36,12 @@ export default class CatalogPage extends BasePage {
 		await dropdown.assertTriggerVisible();
 		return dropdown;
 	}
+
+	async getNavTreeState(catalogName: string): Promise<string[]> {
+		return this._page.evaluate((catalogName) => {
+			const raw = window.localStorage.getItem("nav-tree-state");
+			const stored = raw ? JSON.parse(raw) : {};
+			return (stored?.state?.catalogs ?? {})[catalogName] ?? [];
+		}, catalogName);
+	}
 }

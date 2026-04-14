@@ -1,6 +1,6 @@
 import { Skeleton as UiKitSkeleton } from "ics-ui-kit/components/skeleton";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitSkeletonProps = ExtractComponentGeneric<typeof UiKitSkeleton>;
 

@@ -1,7 +1,7 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import ModalLayout from "@components/Layouts/Modal";
 import t from "@ext/localization/locale/translate";
-import { ComponentProps, useEffect, useRef, useState } from "react";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "../../../../../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
@@ -9,8 +9,8 @@ import ModalToOpen from "../../../../../ui-logic/ContextServices/ModalToOpenServ
 import InfoModalForm from "../../../../errorHandlers/client/components/ErrorForm";
 import BranchUpdaterService from "../../Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import MergeConflictCaller from "../model/MergeConflictCaller";
-import MergeData from "../model/MergeData";
-import MergeResolver from "./MergeResolver";
+import type MergeData from "../model/MergeData";
+import type MergeResolver from "./MergeResolver";
 
 const MergeConflictConfirm = ({
 	mergeData,

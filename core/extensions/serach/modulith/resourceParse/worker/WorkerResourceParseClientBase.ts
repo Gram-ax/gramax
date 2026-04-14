@@ -3,8 +3,12 @@ import type {
 	ResourceParseWorkerInMessage,
 	ResourceParseWorkerOutMessage,
 } from "@ext/serach/modulith/resourceParse/worker/types";
-import type { ArticleItem } from "@ics/gx-vector-search";
+import { type PoolWorker, WorkerPool } from "@ext/serach/modulith/utils/WorkerPool";
+import type { ArticleItem } from "@ics/modulith-search-domain/article";
 import type { Buffer } from "buffer";
+
+const MAX_WORKERS = 3;
+const WORKER_IDLE_TIMEOUT_MS = 15 * 1000;
 
 type PendingRequest = {
 	resolve: (value: ArticleItem[] | null) => void;
@@ -12,39 +16,43 @@ type PendingRequest = {
 	progressCallback?: (progress: number) => void;
 };
 
-export interface ResourceParseWorker {
+export interface ResourceParseWorker extends PoolWorker {
 	postMessage(message: ResourceParseWorkerInMessage): void;
-	terminate(): Promise<void>;
 }
 
 export abstract class WorkerResourceParseClientBase implements ResourceParseClient {
 	private _requestSeq = 0;
-	protected _worker!: ResourceParseWorker;
 	private readonly _pending = new Map<string, PendingRequest>();
+	private readonly _workerPool = new WorkerPool<ResourceParseWorker>(MAX_WORKERS, WORKER_IDLE_TIMEOUT_MS, () =>
+		this.createWorker(),
+	);
 
-	parseResource(
+	async parseResource(
 		format: ResourceParseFormat,
 		data: Buffer,
 		progressCallback?: (progress: number) => void,
 	): Promise<ArticleItem[] | null> {
 		const requestId = this._nextRequestId();
-		return new Promise<ArticleItem[] | null>((resolve, reject) => {
-			this._pending.set(requestId, { resolve, reject, progressCallback });
-			this._worker.postMessage({ type: "parseResource", requestId, format, data });
-		});
+		try {
+			return await this._workerPool.run((worker) => {
+				return new Promise<ArticleItem[] | null>((resolve, reject) => {
+					this._pending.set(requestId, { resolve, reject, progressCallback });
+					worker.postMessage({ type: "parseResource", requestId, format, data });
+				});
+			});
+		} catch (e) {
+			this._pending.delete(requestId);
+			throw e;
+		}
 	}
 
 	async terminate(): Promise<void> {
-		await this._worker.terminate();
+		await this._workerPool.terminate();
 	}
 
-	protected async _init(): Promise<void> {
-		this._worker = this._createWorker();
-	}
+	protected abstract createWorker(): ResourceParseWorker;
 
-	protected abstract _createWorker(): ResourceParseWorker;
-
-	protected async _handleMessage(data: ResourceParseWorkerOutMessage) {
+	protected async handleMessage(data: ResourceParseWorkerOutMessage) {
 		const type = data.type;
 		switch (type) {
 			case "progress":

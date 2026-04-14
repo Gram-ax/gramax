@@ -1,6 +1,6 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { lazy, Suspense } from "react";
-import DiffFileInputType from "./DiffFileInputProps";
+import type DiffFileInputType from "./DiffFileInputProps";
 
 const DiffFileInput = lazy(() => import("@components/Atoms/FileInput/DiffFileInput/DiffFileInputBundle"));
 

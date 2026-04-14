@@ -1,5 +1,5 @@
 import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT } from "@ext/pdfExport/config";
-import { ContentText } from "pdfmake/interfaces";
+import type { ContentText } from "pdfmake/interfaces";
 
 export const alfaHandler = (): ContentText[] => {
 	return [

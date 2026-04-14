@@ -1,6 +1,6 @@
-import Cookie from "../../../../cookie/Cookie";
+import type Cookie from "../../../../cookie/Cookie";
 import { Encoder } from "../../../../Encoder/Encoder";
-import WorkspaceManager from "../../../../workspace/WorkspaceManager";
+import type WorkspaceManager from "../../../../workspace/WorkspaceManager";
 import { SourceDataProvider } from "./SourceDataProvider";
 
 describe("SourceDataProvider", () => {

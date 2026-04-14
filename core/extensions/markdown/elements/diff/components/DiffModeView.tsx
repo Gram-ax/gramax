@@ -11,6 +11,7 @@ import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceSe
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+import useWatch from "@core-ui/hooks/useWatch";
 import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
 import useGetArticleContextData from "@core-ui/ScopedContextWrapper/useGetArticleContextData";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
@@ -48,7 +49,7 @@ import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { Editor, Extensions } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
 import { EditorContent, EditorContext, type JSONContent, useEditor } from "@tiptap/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface DiffModeViewProps {
 	oldContent: JSONContent;
@@ -87,6 +88,12 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const isGES = !!workspace?.enterprise?.gesUrl;
 
 	const articleProps = ArticlePropsService.value;
+	const articlePropsRef = useRef(articleProps);
+
+	useWatch(() => {
+		articlePropsRef.current = articleProps;
+	}, [articleProps]);
+
 	const catalogProps = useCatalogPropsStore((state) => state?.data);
 	const oldContextArticlePath = Path.join(catalogProps?.name, oldArticlePath ?? articlePath);
 
@@ -133,9 +140,8 @@ const DiffModeViewInternal = (props: DiffModeViewProps) => {
 	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
 	const isStorageConnected = useIsStorageConnected();
 
-	const { onMarkAdded: onMarkAddedComment, onMarkDeleted: onMarkDeletedComment } = useCommentCallbacks(
-		articleProps.pathname,
-	);
+	const { onMarkAdded: onMarkAddedComment, onMarkDeleted: onMarkDeletedComment } =
+		useCommentCallbacks(articlePropsRef);
 
 	const getNewEditorExtensions = () => {
 		if (!extensions)

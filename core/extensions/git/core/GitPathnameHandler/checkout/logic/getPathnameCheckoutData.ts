@@ -1,8 +1,6 @@
-import Path from "@core/FileProvider/Path/Path";
-import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import BranchData from "@ext/VersionControl/model/branch/BranchData";
+import type BranchData from "@ext/VersionControl/model/branch/BranchData";
 
 const getPathnameCheckoutData = async (
 	apiUrlCreator: ApiUrlCreator,

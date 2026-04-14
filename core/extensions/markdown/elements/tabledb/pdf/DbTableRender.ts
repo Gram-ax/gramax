@@ -1,8 +1,8 @@
 import t from "@ext/localization/locale/translate";
 import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT, ICON_SIZE } from "@ext/pdfExport/config";
 import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
-import { Content } from "pdfmake/interfaces";
-import { Field, Table as TableDB } from "../../../../../logic/components/tableDB/table";
+import type { Content } from "pdfmake/interfaces";
+import type { Field, Table as TableDB } from "../../../../../logic/components/tableDB/table";
 
 export class DbTableRenderer {
 	private readonly _defaultWidths = ["auto", "auto", "auto"];

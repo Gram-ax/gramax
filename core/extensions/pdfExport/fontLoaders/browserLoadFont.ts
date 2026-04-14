@@ -1,5 +1,4 @@
 import { getConfig } from "@app/config/AppConfig";
-import PathUtils from "path";
 
 export const browserLoadFont = async (fontPath: string): Promise<ArrayBuffer> => {
 	try {

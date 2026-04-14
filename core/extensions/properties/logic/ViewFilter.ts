@@ -1,17 +1,23 @@
-import Context from "@core/Context/Context";
-import { Article } from "@core/FileStructue/Article/Article";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type Context from "@core/Context/Context";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { Category } from "@core/FileStructue/Category/Category";
-import { Item } from "@core/FileStructue/Item/Item";
+import type { Category } from "@core/FileStructue/Category/Category";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
 import ViewSorter from "@ext/properties/logic/ViewSorter";
-import { Property, PropertyTypes, PropertyValue, SystemProperties, ViewRenderGroup } from "@ext/properties/models";
+import {
+	type Property,
+	PropertyTypes,
+	type PropertyValue,
+	SystemProperties,
+	type ViewRenderGroup,
+} from "@ext/properties/models";
 import { Display } from "../models/display";
 
 export interface ProcessedArticle {
@@ -133,7 +139,6 @@ class ViewFilter extends ViewSorter {
 					article,
 					this._catalog,
 					convertContentToUiLanguage(this._ctx.contentLanguage || this._catalog.props.language),
-					this._ctx.user.isLogged,
 				);
 
 				const content = await this._parser.parse(prop.value?.[0], context);
@@ -186,7 +191,7 @@ class ViewFilter extends ViewSorter {
 					if (!groupedArticles[value]) groupedArticles[value] = [];
 				});
 
-			const sortedKeys = values.filter((value) => Object.prototype.hasOwnProperty.call(groupedArticles, value));
+			const sortedKeys = values.filter((value) => Object.hasOwn(groupedArticles, value));
 
 			const sortedGroupedArticles = {};
 			sortedKeys.forEach((key) => {
@@ -248,11 +253,9 @@ class ViewFilter extends ViewSorter {
 						);
 					}),
 			);
-		else {
-			(this._curArticle as Category)?.items?.map((article) => {
-				uniqueArticles.add(article.ref.path.value);
-			});
-		}
+		(this._curArticle as Category)?.items?.map((article) => {
+			uniqueArticles.add(article.ref.path.value);
+		});
 
 		return [];
 	}

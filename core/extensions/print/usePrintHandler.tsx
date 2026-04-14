@@ -2,7 +2,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import PrintView from "@ext/print/components/PrintView";
-import { CliOnProgress, PdfExportProgress, PdfPrintParams } from "@ext/print/types";
+import type { CliOnProgress, PdfExportProgress, PdfPrintParams } from "@ext/print/types";
 import { useEffect } from "react";
 
 const wrapCliOnProgress = (cliOnProgress?: CliOnProgress) => (p: PdfExportProgress) => {

@@ -1,7 +1,7 @@
-import { KeyboardShortcutCommand } from "@tiptap/core";
+import type { KeyboardShortcutCommand } from "@tiptap/core";
 import getFocusNode from "../getFocusNode";
 import isTypeOf from "../isTypeOf";
-import KeyboardRule from "./model/KeyboardRule";
+import type KeyboardRule from "./model/KeyboardRule";
 
 const applyKeyboardRules = (
 	keyboardRules: KeyboardRule[],

@@ -69,6 +69,30 @@ export default defineConfig({
 			},
 		},
 		{
+			name: "web-enterprise",
+			testDir: "./platforms/web/enterprise/tests",
+			use: {
+				...devices["Desktop Chrome"],
+				bypassCSP: true,
+				baseURL: isDev ? "https://localhost:6001" : "http://localhost:6001",
+				screenshot: "on-first-failure",
+				ignoreHTTPSErrors: true,
+				launchOptions: {
+					args: [
+						"--disable-web-security",
+						"--disable-features=IsolateOrigins,site-per-process,CertVerifierBuiltinFeatureUsage",
+						"--ignore-certificate-errors",
+						"--ignore-certificate-errors-spki-list",
+						"--allow-insecure-localhost",
+						"--disable-dev-shm-usage",
+						"--no-sandbox",
+						"--disable-setuid-sandbox",
+					],
+				},
+			},
+		},
+
+		{
 			name: "static",
 			testDir: "./platforms/static/tests",
 			use: {

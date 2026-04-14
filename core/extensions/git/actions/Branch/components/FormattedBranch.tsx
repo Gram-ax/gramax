@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const Wrapper = styled.span<{ changeColorOnHover?: boolean }>`
 	background: var(--merge-branch-code-bg);

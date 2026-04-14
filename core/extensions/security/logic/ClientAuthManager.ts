@@ -33,7 +33,7 @@ export default class ClientAuthManager extends AuthManager {
 	}
 
 	async getUser(cookie: Cookie): Promise<User> {
-		if (!this._enterpriseConfig.gesUrl) return localUser;
+		if (!this._em.getConfig().gesUrl) return localUser;
 
 		const userData = cookie.get(this._COOKIE_USER);
 		if (!userData) return localUser;
@@ -47,7 +47,7 @@ export default class ClientAuthManager extends AuthManager {
 	}
 
 	async forceUpdateEnterpriseUser(cookie: Cookie, user: EnterpriseUser) {
-		if (!this._enterpriseConfig?.gesUrl || !user || user.type !== "enterprise") return;
+		if (!this._em.getConfig().gesUrl || !user || user.type !== "enterprise") return;
 
 		const updatedUser = await user.updatePermissions(true);
 		if (!updatedUser) return;
@@ -56,7 +56,7 @@ export default class ClientAuthManager extends AuthManager {
 	}
 
 	protected _getEnterpriseUser(cookie: Cookie, json: EnterpriseUserJSONData): EnterpriseUser {
-		const user = EnterpriseUser.initInJSON(json, this._enterpriseConfig);
+		const user = EnterpriseUser.initInJSON(json, this._em.getConfig());
 		const info = this._getUsersEnterpriseInfo(user, cookie);
 		if (info) user.setEnterpriseInfo(info);
 		void this._updateEnterpriseUser(cookie, user); // Run the update asynchronously without awaiting it to avoid blocking the homepage render/load when GES responses are slow (large timeout)

@@ -19,6 +19,11 @@ class EnterpriseManager {
 		await this._config?.save();
 	}
 
+	async clearGesUrl() {
+		this._config?.delete("gesUrl");
+		await this._config?.save();
+	}
+
 	off() {
 		this._isOff = true;
 	}

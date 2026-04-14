@@ -1,10 +1,10 @@
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
-import GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
+import type GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
-import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
+import type { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import assert from "assert";
 
 export default class GiteaSourceAPI extends GitSourceApi {

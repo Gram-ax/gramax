@@ -1,4 +1,4 @@
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 function extractCodeFromAc(el: Element): string {
 	if (!el) return "";

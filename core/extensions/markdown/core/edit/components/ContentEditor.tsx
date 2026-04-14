@@ -64,9 +64,8 @@ const ContentEditor = (props: ContentEditorProps) => {
 	const catalogPropsRef = useRef(catalogProps);
 
 	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
-	const { onMarkAdded: onMarkAddedComment, onMarkDeleted: onMarkDeletedComment } = useCommentCallbacks(
-		articlePropsRef.current.pathname,
-	);
+	const { onMarkAdded: onMarkAddedComment, onMarkDeleted: onMarkDeletedComment } =
+		useCommentCallbacks(articlePropsRef);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const ext = useMemo(

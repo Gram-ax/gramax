@@ -1,6 +1,6 @@
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import StorageData from "../../../storage/models/StorageData";
-import GitSourceData from "./GitSourceData.schema";
+import type StorageData from "../../../storage/models/StorageData";
+import type GitSourceData from "./GitSourceData.schema";
 
 export interface PublicGitStorageData extends StorageData {
 	url?: string;

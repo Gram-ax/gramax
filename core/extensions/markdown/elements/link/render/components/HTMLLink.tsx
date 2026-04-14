@@ -1,5 +1,5 @@
-import React from "react";
-import HTMLComponents from "../../../../core/render/components/getComponents/HTMLComponents";
+import type React from "react";
+import type HTMLComponents from "../../../../core/render/components/getComponents/HTMLComponents";
 
 export interface HTMLLinkProps {
 	children: React.ReactNode;

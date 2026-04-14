@@ -2,7 +2,7 @@ import { cn } from "@core-ui/utils/cn";
 import { Tooltip, TooltipContent, TooltipShortcut, TooltipTrigger } from "@ui-kit/Tooltip";
 import { ToolbarToggleItem as UiKitToolbarToggleItem } from "ics-ui-kit/components/toolbar";
 import { forwardRef, useCallback } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitToolbarToggleItemProps = ExtractComponentGeneric<typeof UiKitToolbarToggleItem>;
 

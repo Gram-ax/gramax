@@ -3,8 +3,8 @@ import { classNames } from "@components/libs/classNames";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { handleMove, objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import { CSSProperties, ReactElement, RefObject, useEffect, useRef, useState } from "react";
-import { SquareObject } from "../../../edit/model/imageEditorTypes";
+import { type CSSProperties, type ReactElement, type RefObject, useEffect, useRef, useState } from "react";
+import type { SquareObject } from "../../../edit/model/imageEditorTypes";
 
 interface SquareObjectProps extends SquareObject {
 	parentRef: RefObject<HTMLDivElement>;
@@ -70,7 +70,7 @@ const Square = (props: SquareObjectProps): ReactElement => {
 			onClick?.(index);
 			return true;
 		},
-		onMouseUpCallback: function (newX, newY, newW, newH): void {
+		onMouseUpCallback: (newX, newY, newW, newH): void => {
 			const isNotEqual =
 				Math.round(newX) !== x || Math.round(newY) !== y || Math.round(newW) !== w || Math.round(newH) !== h;
 

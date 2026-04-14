@@ -3,6 +3,7 @@ import type { Page as PlaywrightPage } from "@playwright/test";
 import fs from "fs/promises";
 import type JsZip from "jszip";
 import { resolve } from "path";
+import { fileURLToPath } from "url";
 
 declare global {
 	interface Window {
@@ -144,7 +145,7 @@ export const readDirToFileTree = async (dirPath: string | URL): Promise<FileTree
 		const entries = await fs.readdir(path, { withFileTypes: true });
 
 		for (const entry of entries) {
-			const fullPath = resolve(path instanceof URL ? path.pathname : path, entry.name);
+			const fullPath = resolve(path instanceof URL ? fileURLToPath(path) : path, entry.name);
 
 			if (entry.isDirectory()) {
 				tree[entry.name] = await readDir(fullPath);

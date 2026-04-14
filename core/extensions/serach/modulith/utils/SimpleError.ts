@@ -10,12 +10,13 @@ export function createSimpleError(error: Error): SimpleError {
 		name: error.name,
 		message: error.message,
 		stack: error.stack,
-		cause:
-			error.cause instanceof Error
+		cause: error.cause
+			? error.cause instanceof Error
 				? createSimpleError(error.cause)
 				: {
 						name: "Unknown",
 						message: String(error.cause),
-					},
+					}
+			: undefined,
 	};
 }

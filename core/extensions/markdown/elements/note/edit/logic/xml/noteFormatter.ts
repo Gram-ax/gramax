@@ -1,7 +1,7 @@
 import XmlFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/XmlFormatter";
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { Node } from "@tiptap/pm/model";
+import type { Node } from "@tiptap/pm/model";
 
 export const getNoteAttributes = (node: Node) => {
 	return {

@@ -1,8 +1,8 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type Context from "@core/Context/Context";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ScopedPageData from "@ext/git/core/ScopedCatalogs/ScopedPageData";
 import assert from "assert";
 

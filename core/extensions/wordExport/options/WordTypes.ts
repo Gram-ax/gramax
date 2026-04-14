@@ -1,16 +1,16 @@
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import LinkResourceManager from "@core/Link/LinkResourceManager";
-import ResourceManager from "@core/Resource/ResourceManager";
-import UiLanguage from "@ext/localization/core/model/Language";
-import { ExportType } from "@ext/wordExport/ExportType";
-import { FileChild } from "@ext/wordExport/types";
-import { JSONContent } from "@tiptap/core";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import type LinkResourceManager from "@core/Link/LinkResourceManager";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import type UiLanguage from "@ext/localization/core/model/Language";
+import type { ExportType } from "@ext/wordExport/ExportType";
+import type { FileChild } from "@ext/wordExport/types";
+import type { JSONContent } from "@tiptap/core";
 import type { IParagraphOptions, IRunPropertiesOptions, ParagraphChild } from "docx";
-import ParserContext from "../../markdown/core/Parser/ParserContext/ParserContext";
-import { RenderableTreeNode, Tag } from "../../markdown/core/render/logic/Markdoc";
-import { WordSerializerState } from "../WordExportState";
+import type ParserContext from "../../markdown/core/Parser/ParserContext/ParserContext";
+import type { RenderableTreeNode, Tag } from "../../markdown/core/render/logic/Markdoc";
+import type { WordSerializerState } from "../WordExportState";
 
 export type WordBlockChildren = Record<string, WordBlockChild>;
 

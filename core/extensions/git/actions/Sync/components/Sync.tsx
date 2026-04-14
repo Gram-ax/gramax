@@ -6,7 +6,7 @@ import SyncLayout from "@ext/git/actions/Sync/components/SyncLayout";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import useSourceData from "@ext/storage/components/useSourceData";
 import { useOpenRestoreSourceTokenModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenRestoreSourceTokenModal";
-import { CSSProperties, useCallback, useEffect } from "react";
+import { type CSSProperties, useCallback, useEffect } from "react";
 
 const Sync = ({ style }: { style?: CSSProperties }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;

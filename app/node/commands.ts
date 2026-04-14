@@ -1,5 +1,5 @@
-import { CommandTree, createCommands } from "@app/commands";
-import Application from "@app/types/Application";
+import { type CommandTree, createCommands } from "@app/commands";
+import type Application from "@app/types/Application";
 
 const getCommands = (app: Application): CommandTree => {
 	if (global.commands) return global.commands;

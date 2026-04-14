@@ -1,9 +1,10 @@
 import {
-	BubbleMenuPluginProps,
+	type BubbleMenuPluginProps,
 	CustomBubbleMenuPlugin,
 } from "@ext/markdown/elements/customBubbleMenu/edit/logic/customBubbleMenuPlugin";
 import { useCurrentEditor } from "@tiptap/react";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 
 type Optional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 

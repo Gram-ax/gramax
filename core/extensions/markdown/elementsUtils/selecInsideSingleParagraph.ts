@@ -1,4 +1,4 @@
-import { EditorState, TextSelection } from "prosemirror-state";
+import { type EditorState, TextSelection } from "prosemirror-state";
 
 export function selecInsideSingleParagraph(state: EditorState) {
 	const { selection, doc } = state;

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const BlockProperty = ({ children }: { children: ReactNode }) => {
 	return <>{children}</>;

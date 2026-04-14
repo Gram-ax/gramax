@@ -1,6 +1,6 @@
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
-import { ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 
 export enum AlertType {
 	warning = "warning",

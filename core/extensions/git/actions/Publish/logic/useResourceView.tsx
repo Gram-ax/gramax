@@ -1,8 +1,8 @@
 import ExactResourceView from "@ext/git/actions/Publish/logic/ExactResourceView";
-import { UseResourceArticleViewType } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
+import type { UseResourceArticleViewType } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
 
 interface UseResourceViewType extends Omit<UseResourceArticleViewType, "type"> {}
 
 export const useResourceView = (props: UseResourceViewType) => {
-	return <ExactResourceView {...props} key={props.resourcePath.value} />;
+	return <ExactResourceView key={props.resourcePath.value} {...props} />;
 };

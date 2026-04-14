@@ -10,7 +10,7 @@ import askQuestion from "../../utils/askQuestion";
 import { logStep } from "../../utils/logger";
 import { checkExistsPath } from "../../utils/paths";
 import detectPackageManager from "./detectPackageManager";
-import { HELPER_PKG, packageManagers, RunGramaxExportPdfProps } from "./exportConfig";
+import { HELPER_PKG, packageManagers, type RunGramaxExportPdfProps } from "./exportConfig";
 import runGramaxExportPdf from "./runGramaxExportPdf";
 
 const installPakage = async (skipConfirm: boolean) => {
@@ -79,7 +79,8 @@ export const runPdfCli = async (props: RunGramaxExportPdfProps & { skipConfirm: 
 		} catch (e) {
 			if (e instanceof DefaultError) {
 				throw new DefaultError(`Error in module '${HELPER_PKG}': ${e.message}`);
-			} else throw e;
+			}
+			throw e;
 		}
 	};
 

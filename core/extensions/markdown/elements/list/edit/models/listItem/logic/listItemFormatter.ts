@@ -1,4 +1,4 @@
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
 const listItemFormatter: NodeSerializerSpec = async (state, node) => {
 	const { isTaskItem, checked } = node.attrs;

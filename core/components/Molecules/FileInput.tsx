@@ -1,6 +1,6 @@
-import ButtonLink, { ButtonLinkProps } from "@components/Molecules/ButtonLink";
+import ButtonLink, { type ButtonLinkProps } from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
-import { HTMLProps } from "react";
+import type { HTMLProps } from "react";
 
 interface InputProps extends HTMLProps<HTMLInputElement> {
 	dataQa?: string;

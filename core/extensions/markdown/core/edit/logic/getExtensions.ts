@@ -61,7 +61,7 @@ import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import { modifyEditorExtensions } from "@plugins/store";
 import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
-import { Extensions } from "@tiptap/react";
+import type { Extensions } from "@tiptap/react";
 
 export interface GetExtensionsPropsOptions {
 	includeResources?: boolean;

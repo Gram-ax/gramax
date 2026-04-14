@@ -1,5 +1,4 @@
-import Url from "@core-ui/ApiServices/Types/Url";
-import React from "react";
+import type React from "react";
 
 export interface Crop {
 	x: number;

@@ -1,6 +1,6 @@
 import { SelectValue as UiKitSelectValue } from "ics-ui-kit/components/select";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 interface UiKitSelectValueProps extends ExtractComponentGeneric<typeof UiKitSelectValue> {}
 

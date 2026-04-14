@@ -1,6 +1,6 @@
 import isMobileService from "@core-ui/ContextServices/isMobileService";
-import { TitleItem, useFetchArticleHeaders } from "@core-ui/ContextServices/LinkTitleTooltip";
-import LinkItem from "@ext/article/LinkCreator/models/LinkItem";
+import { type TitleItem, useFetchArticleHeaders } from "@core-ui/ContextServices/LinkTitleTooltip";
+import type LinkItem from "@ext/article/LinkCreator/models/LinkItem";
 import t from "@ext/localization/locale/translate";
 import {
 	DropdownMenu,

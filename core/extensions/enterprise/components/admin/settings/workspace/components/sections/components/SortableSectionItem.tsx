@@ -5,7 +5,7 @@ import { Badge } from "@ui-kit/Badge";
 import { IconButton } from "@ui-kit/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
-import { WorkspaceSection } from "../../../types/WorkspaceComponent";
+import type { WorkspaceSection } from "../../../types/WorkspaceComponent";
 
 const MAX_VISIBLE_CATALOGS = 6;
 

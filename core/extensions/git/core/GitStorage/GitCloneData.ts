@@ -1,8 +1,8 @@
 import type FileStructure from "@core/FileStructue/FileStructure";
 import type { CancelToken, RemoteProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import Path from "../../../../logic/FileProvider/Path/Path";
-import GitSourceData from "../model/GitSourceData.schema";
-import GitStorageData from "../model/GitStorageData";
+import type Path from "../../../../logic/FileProvider/Path/Path";
+import type GitSourceData from "../model/GitSourceData.schema";
+import type GitStorageData from "../model/GitStorageData";
 
 interface GitCloneData {
 	fs: FileStructure;

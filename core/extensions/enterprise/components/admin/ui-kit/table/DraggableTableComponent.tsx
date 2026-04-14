@@ -1,7 +1,7 @@
 import { closestCenter, DndContext } from "@dnd-kit/core";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { ColumnDef, Row, useReactTable, useSortableCatalogs } from "@ui-kit/DataTable";
+import { type ColumnDef, type Row, type useReactTable, useSortableCatalogs } from "@ui-kit/DataTable";
 import { Table } from "@ui-kit/Table";
 import { useMemo } from "react";
 import { DraggableTableRow } from "./DraggableTableRow";

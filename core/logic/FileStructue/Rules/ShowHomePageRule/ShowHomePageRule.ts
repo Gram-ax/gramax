@@ -1,6 +1,6 @@
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import type RuleCollection from "@ext/events/RuleCollection";
-import Navigation from "@ext/navigation/catalog/main/logic/Navigation";
+import type Navigation from "@ext/navigation/catalog/main/logic/Navigation";
 
 const SHOW_HOMEPAGE_PROP_NAME = "showHomePage";
 

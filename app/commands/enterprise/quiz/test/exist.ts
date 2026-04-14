@@ -1,9 +1,9 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 const existTest: Command<{ ctx: Context; workspaceId: WorkspacePath; testId: number }, boolean> = Command.create({
 	path: "enterprise/quiz/test/exist",

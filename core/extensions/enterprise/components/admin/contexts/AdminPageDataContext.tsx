@@ -1,6 +1,6 @@
 import useWatch from "@core-ui/hooks/useWatch";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
-import { ModuleOptions } from "@ext/enterprise/types/UserSettings";
+import { Page } from "@ext/enterprise/types/Page";
+import type { ModuleOptions } from "@ext/enterprise/types/UserSettings";
 import { createContext, memo, useContext, useRef } from "react";
 import { create } from "zustand";
 import { shallow } from "zustand/shallow";

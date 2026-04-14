@@ -1,6 +1,6 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { MenuItemRichTemplate as UiKitMenuItemRichTemplate } from "ics-ui-kit/components/menu-item";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitMenuItemRichTemplateProps = ExtractComponentGeneric<typeof UiKitMenuItemRichTemplate>;
 

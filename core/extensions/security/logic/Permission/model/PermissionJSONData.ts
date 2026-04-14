@@ -1,4 +1,4 @@
-import PermissionType from "./PermissionType";
+import type PermissionType from "./PermissionType";
 
 interface PermissionJSONData {
 	permissions: string;

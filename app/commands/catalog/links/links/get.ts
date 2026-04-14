@@ -1,7 +1,7 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
-import { Link } from "@ext/properties/logic/CatalogLinksProvider";
+import type Context from "@core/Context/Context";
+import type { Link } from "@ext/properties/logic/CatalogLinksProvider";
 
 const get: Command<{ ctx: Context; catalogName: string; articlePath: string }, Link[]> = Command.create({
 	path: "catalog/links/links/get",

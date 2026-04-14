@@ -1,5 +1,6 @@
 import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
+import LucideIconComponent from "@components/Atoms/Icon/LucideIcon";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
@@ -15,8 +16,7 @@ import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { Dialog, DialogContent, DialogHeaderTemplate } from "@ui-kit/Dialog";
 import { FormFooter } from "@ui-kit/Form";
-
-import { Lock } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { type ComponentProps, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import ResourceComponent from "./admin/settings/resources/components/Resource/ResourceComponent";
 
@@ -105,7 +105,7 @@ const RepositoryPermissionModalContent = ({
 		return JSON.stringify(editedRepository) !== JSON.stringify(openedRepository);
 	}, [editedRepository, openedRepository]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected!?
+	// biome-ignore lint/correctness/useExhaustiveDependencies: close the dialog and reset the state
 	const closeResourceDialog = useCallback(() => {
 		setIsOpen(false);
 		setEditedRepository(undefined);
@@ -133,7 +133,7 @@ const RepositoryPermissionModalContent = ({
 		}
 	};
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected!?
+	// biome-ignore lint/correctness/useExhaustiveDependencies: ensure data is loaded before opening the dialog
 	useEffect(() => {
 		ensureGroupsLoaded();
 		ensureGuestsLoaded();
@@ -151,7 +151,7 @@ const RepositoryPermissionModalContent = ({
 		<DialogContent size="M">
 			<DialogHeaderTemplate
 				description={t("enterprise.admin.resources.catalog.permission.description")}
-				icon={Lock}
+				icon={LucideIconComponent("lock") as LucideIcon}
 				title={t("enterprise.admin.resources.catalog.permission.title")}
 			/>
 

@@ -1,4 +1,4 @@
-import { LaunchOptions } from "playwright";
+import type { LaunchOptions } from "playwright";
 
 const ci = (b: boolean) => (process.env.CI ? false : b);
 const addr = (b: string) => process.env.URL ?? b;

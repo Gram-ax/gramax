@@ -1,4 +1,4 @@
-import Path from "@core/FileProvider/Path/Path";
+import type Path from "@core/FileProvider/Path/Path";
 
 export interface ItemRef {
 	storageId: string;

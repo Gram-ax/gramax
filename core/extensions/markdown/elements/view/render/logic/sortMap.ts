@@ -1,4 +1,4 @@
-import { Property } from "@ext/properties/models";
+import type { Property } from "@ext/properties/models";
 
 const sortMapByName = (keys: string[], sortObject: Property[]) =>
 	sortObject.sort((a, b) => {

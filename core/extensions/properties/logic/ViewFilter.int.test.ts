@@ -1,8 +1,8 @@
 import getApplication from "@app/node/app";
-import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import ViewFilter, { OrderValue } from "@ext/properties/logic/ViewFilter";
-import { PropertyValue } from "@ext/properties/models";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import ViewFilter, { type OrderValue } from "@ext/properties/logic/ViewFilter";
+import type { PropertyValue } from "@ext/properties/models";
 
 const getCatalogData = async () => {
 	const app = await getApplication();

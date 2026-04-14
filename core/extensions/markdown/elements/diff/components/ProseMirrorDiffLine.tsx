@@ -4,12 +4,12 @@ import { classNames } from "@components/libs/classNames";
 import useWatch from "@core-ui/hooks/useWatch";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
 import ProseMirrorDiffLineContent from "@ext/markdown/elements/diff/components/ProseMirrorDiffLineContent";
 import { generateCommentTooltip } from "@ext/markdown/elements/diff/logic/commentsDiff/generateCommentTooltip";
-import { DiffLineType } from "@ext/markdown/elements/diff/logic/model/DiffLine";
-import { ProseMirrorDiffLine } from "@ext/markdown/elements/diff/logic/model/ProseMirrorDiffLine";
+import type { DiffLineType } from "@ext/markdown/elements/diff/logic/model/DiffLine";
+import type { ProseMirrorDiffLine } from "@ext/markdown/elements/diff/logic/model/ProseMirrorDiffLine";
 import { useState } from "react";
 
 interface DiffLineProps {

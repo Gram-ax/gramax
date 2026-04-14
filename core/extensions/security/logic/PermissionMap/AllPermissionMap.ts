@@ -1,4 +1,5 @@
-import IPermissionMap, { PermissionMapJSONData, PermissionMapType } from "./IPermissionMap";
+import type IPermissionMap from "./IPermissionMap";
+import { type PermissionMapJSONData, PermissionMapType } from "./IPermissionMap";
 
 class AllPermissionMap implements IPermissionMap {
 	get type() {

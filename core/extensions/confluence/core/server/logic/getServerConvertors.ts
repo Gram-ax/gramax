@@ -25,7 +25,7 @@ import time from "@ext/confluence/core/server/logic/HTMLElements/time";
 import tr from "@ext/confluence/core/server/logic/HTMLElements/tr";
 import ul from "@ext/confluence/core/server/logic/HTMLElements/ul";
 import widget from "@ext/confluence/core/server/logic/HTMLElements/widget";
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 const getServerConvertors = (): Record<string, HTMLNodeConverter> => {
 	return {

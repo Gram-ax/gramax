@@ -1,11 +1,11 @@
-import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import parseStorageUrl from "../../../../logic/utils/parseStorageUrl";
-import ShareData from "../../../catalog/actions/share/model/ShareData";
-import GitShareData from "../../../git/core/model/GitShareData";
-import GitSourceData from "../../../git/core/model/GitSourceData.schema";
-import SourceData from "../SourceDataProvider/model/SourceData";
+import type ShareData from "../../../catalog/actions/share/model/ShareData";
+import type GitShareData from "../../../git/core/model/GitShareData";
+import type GitSourceData from "../../../git/core/model/GitSourceData.schema";
+import type SourceData from "../SourceDataProvider/model/SourceData";
 
 const STORAGE_GET_NAME: { [type in SourceType]: (data: SourceData | ShareData) => string } = {
 	Git: (data) => parseStorageUrl(`${(data as GitSourceData | GitShareData).domain}`).domain,

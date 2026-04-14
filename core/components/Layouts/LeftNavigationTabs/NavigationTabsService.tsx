@@ -1,5 +1,5 @@
-import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
-import React, { ReactElement, SetStateAction, useContext, useState } from "react";
+import type { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
+import React, { type ReactElement, type SetStateAction, useContext, useState } from "react";
 
 type NavigationTabs = {
 	topTab: LeftNavigationTab;

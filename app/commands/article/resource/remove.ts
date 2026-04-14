@@ -1,10 +1,10 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import ArticleProvider, { type ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import { Command } from "../../../types/Command";
 
 const remove: Command<

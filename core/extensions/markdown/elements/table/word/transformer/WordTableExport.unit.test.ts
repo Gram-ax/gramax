@@ -116,9 +116,9 @@ const createTableTag = () =>
 						attributes: {},
 						children: [
 							{
-								name: "td",
-								attributes: { colwidth: [400] },
-								children: [
+								type: "tableCell",
+								attrs: { colwidth: [400] },
+								content: [
 									{
 										name: "Image",
 										attributes: {},
@@ -127,9 +127,9 @@ const createTableTag = () =>
 								],
 							},
 							{
-								name: "td",
-								attributes: { colwidth: [400] },
-								children: [
+								type: "tableCell",
+								attrs: { colwidth: [400] },
+								content: [
 									{
 										name: "p",
 										attributes: {},
@@ -164,6 +164,7 @@ describe("WordTableExport", () => {
 		expect(resultOptions.options.columnWidths).toEqual([2500, 2500]);
 
 		const imageCall = renderBlock.mock.calls.find(([node]) => node?.name === "Image");
+		console.log({ imageCall });
 		expect(imageCall).toBeDefined();
 
 		const [, addOptions] = imageCall as [unknown, { maxPictureWidth: number }];

@@ -4,9 +4,9 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useWorkspaceSections } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSections";
 import { Button } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
-import React from "react";
+import type React from "react";
 import { useSortableSections } from "../../hooks/useSortableSections";
-import { WorkspaceSettings } from "../../types/WorkspaceComponent";
+import type { WorkspaceSettings } from "../../types/WorkspaceComponent";
 import { SectionDialog } from "./components/SectionDialog";
 import { SortableSectionItem } from "./components/SortableSectionItem";
 

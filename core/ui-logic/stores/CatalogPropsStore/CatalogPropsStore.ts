@@ -1,4 +1,4 @@
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { createStore } from "zustand/vanilla";
 
 export type CatalogPropsStore = {

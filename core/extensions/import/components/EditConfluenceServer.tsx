@@ -1,7 +1,7 @@
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import type ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
 import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { zodResolver } from "@hookform/resolvers/zod";

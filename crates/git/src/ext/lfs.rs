@@ -136,7 +136,15 @@ impl<C: ActualCreds> Lfs for Repo<'_, C> {
 			.push("lfs");
 
 		#[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
-		reqwest::push(&self.0, url, Some(self.1.access_token().to_string()), &objects_to_push, callback, cancel)?;
+		reqwest::push(
+			&self.0,
+			url,
+			Some(self.1.access_token().to_string()),
+			reqwest::make_proxy_batch_headers(&self.1),
+			&objects_to_push,
+			callback,
+			cancel,
+		)?;
 
 		#[cfg(target_family = "wasm")]
 		wasm::push(&self.0, url, Some(self.1.access_token().to_string()), &objects_to_push, callback, cancel)?;
@@ -234,7 +242,15 @@ impl<C: ActualCreds> Lfs for Repo<'_, C> {
 			.push("lfs");
 
 		#[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
-		reqwest::pull(&self.0, url, Some(self.1.access_token().to_string()), &objects, callback, cancel)?;
+		reqwest::pull(
+			&self.0,
+			url,
+			Some(self.1.access_token().to_string()),
+			reqwest::make_proxy_batch_headers(&self.1),
+			&objects,
+			callback,
+			cancel,
+		)?;
 
 		#[cfg(target_family = "wasm")]
 		wasm::pull(&self.0, url, Some(self.1.access_token().to_string()), &objects, callback, cancel)?;
@@ -245,26 +261,53 @@ impl<C: ActualCreds> Lfs for Repo<'_, C> {
 
 #[cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))]
 mod reqwest {
+	use ::reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 	use git2_lfs::remote::reqwest::ReqwestLfsClient;
 	use git2_lfs::remote::LfsClient;
 	use git2_lfs::Pointer;
-
 	use url::Url;
 
 	use crate::cancel_token::CancelToken;
+	use crate::prelude::ActualCreds;
 	use crate::Result;
 
 	use super::OnProgress;
+
+	pub fn make_proxy_batch_headers<C: ActualCreds>(creds: &C) -> HeaderMap {
+		let mut headers = HeaderMap::new();
+
+		if !creds.access_token().is_empty() {
+			headers.insert(
+				HeaderName::from_static("x-private-token"),
+				HeaderValue::from_str(creds.access_token()).expect("access token header value must be valid"),
+			);
+		}
+
+		headers.insert(
+			HeaderName::from_static("x-git-username"),
+			HeaderValue::from_str(creds.username()).expect("username header value must be valid"),
+		);
+
+		if let Some(protocol) = creds.protocol() {
+			headers.insert(
+				HeaderName::from_static("x-protocol"),
+				HeaderValue::from_str(protocol).expect("protocol header value must be valid"),
+			);
+		}
+
+		headers
+	}
 
 	pub fn pull(
 		repo: &git2::Repository,
 		url: Url,
 		access_token: Option<String>,
+		headers: HeaderMap,
 		missing: &[Pointer],
 		callback: OnProgress,
 		cancel: CancelToken,
 	) -> Result<()> {
-		let client = ReqwestLfsClient::new(url, access_token);
+		let client = ReqwestLfsClient::new(url, access_token).headers(headers);
 		let lfs_client = LfsClient::new(repo, client)
 			.concurrency_limit(super::CONCURRENCY_LIMIT)
 			.on_progress(callback);
@@ -290,11 +333,12 @@ mod reqwest {
 		repo: &git2::Repository,
 		url: Url,
 		access_token: Option<String>,
+		headers: HeaderMap,
 		objects: &[Pointer],
 		callback: OnProgress,
 		cancel: CancelToken,
 	) -> Result<()> {
-		let client = ReqwestLfsClient::new(url, access_token);
+		let client = ReqwestLfsClient::new(url, access_token).headers(headers);
 		let lfs_client = LfsClient::new(repo, client)
 			.concurrency_limit(super::CONCURRENCY_LIMIT)
 			.on_progress(callback);

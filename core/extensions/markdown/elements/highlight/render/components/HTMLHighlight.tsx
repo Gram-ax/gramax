@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 const HTMLHighlight = (props: { color?: string; children?: React.ReactNode }) => (
 	<mark data-color={props.color} data-component="highlight">

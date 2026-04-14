@@ -1,10 +1,10 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ScopedPageData from "@ext/git/core/ScopedCatalogs/ScopedPageData";
 import assert from "assert";
 

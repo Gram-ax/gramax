@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import getNearestNodeWithSameCommentId from "@ext/markdown/elements/comment/edit/logic/utils/getNearestNodeWithSameCommentId";
-import { useMediaQuery } from "@mui/material";
 import { useCurrentEditor } from "@tiptap/react";
 import { type CSSProperties, type HTMLAttributes, memo, type ReactNode, useCallback } from "react";
 

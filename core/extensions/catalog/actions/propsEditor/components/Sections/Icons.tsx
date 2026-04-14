@@ -2,8 +2,8 @@ import t from "@ext/localization/locale/translate";
 import UploadArticleIcon from "@ext/markdown/elements/icon/edit/components/UploadArticleIcon";
 import { Description } from "@ui-kit/Description";
 import { FieldLabel } from "@ui-kit/Label";
-import { UseFormReturn } from "react-hook-form";
-import { FormData } from "../../logic/createFormSchema";
+import type { UseFormReturn } from "react-hook-form";
+import type { FormData } from "../../logic/createFormSchema";
 
 export const EditIconsProps = ({ form }: { form: UseFormReturn<FormData> }) => {
 	return (

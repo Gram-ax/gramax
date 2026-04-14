@@ -2,6 +2,7 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { EventEmitter } from "@core/Event/EventEmitter";
 import type * as DFPIntermediateCommands from "@core/FileProvider/DiskFileProvider/DFPIntermediateCommands";
+import type CompressOptions from "@core/FileProvider/model/CompressOptions";
 import type FileInfo from "@core/FileProvider/model/FileInfo";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type { FileProviderEvents } from "@core/FileProvider/model/FileProvider";
@@ -126,16 +127,14 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	@trace()
-	async write(path: Path, data: string | Buffer) {
+	async write(path: Path, data: string | Buffer, compress?: CompressOptions) {
 		this._watcher?.stop();
 		try {
 			const absolutePath = this.toAbsolute(path);
-			if (await this.exists(path.parentDirectoryPath))
-				await fs.writeFile(absolutePath, data as string | DataView);
-			else {
+			if (!(await this.exists(path.parentDirectoryPath))) {
 				await fs.mkdir(this.toAbsolute(path.parentDirectoryPath), { recursive: true });
-				await fs.writeFile(absolutePath, data as string | DataView);
 			}
+			await (fs as unknown as typeof DFPIntermediateCommands).writeFile(absolutePath, data, compress);
 			await DiskFileProvider.events.emit("write", { path, data });
 		} finally {
 			this._watcher?.start();

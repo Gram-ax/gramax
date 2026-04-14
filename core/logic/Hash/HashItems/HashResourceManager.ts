@@ -1,5 +1,5 @@
 import type Context from "@core/Context/Context";
-import { Buffer } from "buffer";
+import type { Buffer } from "buffer";
 import type Path from "../../FileProvider/Path/Path";
 import type ResourceManager from "../../Resource/ResourceManager";
 import HashItem from "./HashItem";
@@ -26,6 +26,6 @@ export default class HashResourceManager extends HashItem {
 	}
 
 	public async getContentAsBinary(): Promise<Buffer> {
-		return (await this._resourceManager.getContent(this._path, this._ctx)) ?? Buffer.from("");
+		return (await this._resourceManager.getContent(this._path, this._ctx)) ?? null;
 	}
 }

@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { DiffFile } from "@ext/VersionControl/model/Diff";
+import type { DiffFile } from "@ext/VersionControl/model/Diff";
 
 type Aliases = {
 	[path: string]:

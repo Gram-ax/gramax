@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import ArticleProvider, { type ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import { Command } from "../../../types/Command";
 
 const getBrotherNames: Command<

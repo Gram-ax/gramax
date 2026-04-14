@@ -1,7 +1,7 @@
 import { useCatalogActionsContext } from "@components/Actions/CatalogActions/CatalogActionsContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import HealthcheckTrigger from "@ext/healthcheck/components/HealthcheckTrigger";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface HealthcheckItemProps {
 	children?: ReactNode;

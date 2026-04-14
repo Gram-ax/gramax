@@ -1,7 +1,7 @@
 import { Given, Then, When } from "@cucumber/cucumber";
 import { expect } from "playwright/test";
 import GramaxApi from "../models/GramaxApi";
-import E2EWorld from "../models/World";
+import type E2EWorld from "../models/World";
 import config from "../setup/config";
 import { checkForErrorModal, sleep } from "./utils/utils";
 

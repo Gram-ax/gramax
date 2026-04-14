@@ -1,4 +1,4 @@
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 const heading: HTMLNodeConverter = (headingNode) => {
 	if (headingNode.textContent)

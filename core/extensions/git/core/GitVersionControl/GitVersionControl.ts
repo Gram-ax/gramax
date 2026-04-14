@@ -1,6 +1,6 @@
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
-import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import BrowserStashCache from "@ext/git/core/BrowserStashCache/BrowserStashCache";
 import type { CommitAuthorInfo, ConfigValue } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import type {
@@ -12,16 +12,16 @@ import type {
 	RefInfo,
 	ResetOptions,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import GitStash from "@ext/git/core/model/GitStash";
-import GitVersionData from "@ext/git/core/model/GitVersionData";
-import FileProvider from "../../../../logic/FileProvider/model/FileProvider";
+import type GitStash from "@ext/git/core/model/GitStash";
+import type GitVersionData from "@ext/git/core/model/GitVersionData";
+import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../logic/FileProvider/Path/Path";
-import SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
-import { GitBranch } from "../GitBranch/GitBranch";
+import type { GitBranch } from "../GitBranch/GitBranch";
 import { GitCommands } from "../GitCommands/GitCommands";
 import GitWatcher from "../GitWatcher/GitWatcher";
-import { GitStatus } from "../GitWatcher/model/GitStatus";
+import type { GitStatus } from "../GitWatcher/model/GitStatus";
 import type GitSourceData from "../model/GitSourceData.schema";
 import { GitVersion } from "../model/GitVersion";
 

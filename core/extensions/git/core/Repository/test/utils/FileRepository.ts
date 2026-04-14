@@ -3,7 +3,7 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import Path from "@core/FileProvider/Path/Path";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import BareRepository from "@ext/git/core/Repository/BareRepository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";

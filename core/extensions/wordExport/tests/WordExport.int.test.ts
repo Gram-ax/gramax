@@ -5,7 +5,7 @@ import RuleProvider from "@ext/rules/RuleProvider";
 import buildDocumentTree from "@ext/wordExport/DocumentTree/buildDocumentTree";
 import { ExportType } from "@ext/wordExport/ExportType";
 import { getExportedKeys } from "@ext/wordExport/layouts";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import type { TitleInfo } from "@ext/wordExport/options/WordTypes";
 import ctx from "@ext/wordExport/tests/ContextMock";
 import { MainWordExport } from "@ext/wordExport/WordExport";
 import getItemRef from "@ext/workspace/test/getItemRef";

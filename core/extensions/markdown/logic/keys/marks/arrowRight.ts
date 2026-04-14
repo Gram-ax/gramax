@@ -1,6 +1,6 @@
 import getFocusMark from "@ext/markdown/elementsUtils/getFocusMark";
-import KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
-import { UnionCommands } from "@tiptap/core";
+import type KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
+import type { UnionCommands } from "@tiptap/core";
 
 const arrowRight = (toggleCommand: keyof UnionCommands): KeyboardRule => {
 	return ({ typeName, editor }) => {

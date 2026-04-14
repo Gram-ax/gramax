@@ -1,8 +1,8 @@
-import UiLanguage from "@ext/localization/core/model/Language";
-import { getCurrentLanguage, TranslationKey } from "@ext/localization/locale/translate";
+import type UiLanguage from "@ext/localization/core/model/Language";
+import { getCurrentLanguage, type TranslationKey } from "@ext/localization/locale/translate";
 import { initializeSdk } from "@plugins/api/sdk";
-import { SdkDependencies } from "@plugins/api/sdk/core";
-import { PluginContainer, ServiceKey } from "@plugins/core/PluginContainer";
+import type { SdkDependencies } from "@plugins/api/sdk/core";
+import { type PluginContainer, ServiceKey } from "@plugins/core/PluginContainer";
 
 export class SdkDependencyLoader {
 	private initialized = false;

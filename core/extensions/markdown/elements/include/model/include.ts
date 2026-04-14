@@ -1,7 +1,7 @@
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import { Article } from "../../../../../logic/FileStructue/Article/Article";
-import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
-import { Node, Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
+import type { Article } from "../../../../../logic/FileStructue/Article/Article";
+import type PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
+import { type Node, type Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
 
 export function include(context: PrivateParserContext): Schema {
 	return {
@@ -23,8 +23,6 @@ export function include(context: PrivateParserContext): Schema {
 			if (!article) {
 				return new Tag("Error", {
 					error: { message: "The path specified in the include is not correct" },
-					isLogged: context.getIsLogged(),
-					lang: context.getLanguage(),
 				});
 			}
 

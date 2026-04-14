@@ -1,6 +1,6 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import Tooltip from "@components/Atoms/Tooltip";
-import { ItemContent, ListItem } from "@components/List/Item";
+import type { ItemContent, ListItem } from "@components/List/Item";
 import ItemsByUikit from "@components/List/ItemsByUikit";
 import RequestValueNotFound from "@components/List/RequestValueNotFound";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";

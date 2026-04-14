@@ -1,7 +1,7 @@
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 
 describe("multiLayoutSearcher ищет", () => {
-	const searcher = function (query: string) {
+	const searcher = (query: string) => {
 		switch (query) {
 			case "qwer":
 				return "1";

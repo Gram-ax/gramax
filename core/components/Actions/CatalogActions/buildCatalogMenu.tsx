@@ -77,15 +77,23 @@ export type MenuItemDescriptorApp = {
 }[CoreMenuItemIdApp];
 
 export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescriptorApp[] {
-	const { canConfigure, hasGesUrl, isAiEnabled, renderDeleteCatalog, isMac, isReadOnly, cloudServiceUrl, hasSource } =
-		ctx;
+	const {
+		canConfigure,
+		hasWorkspaceGesUrl,
+		isAiEnabled,
+		renderDeleteCatalog,
+		isMac,
+		isReadOnly,
+		cloudServiceUrl,
+		hasSource,
+	} = ctx;
 	const platform = PlatformServiceNew;
 
 	const showMainMenu =
 		(!platform.isStatic && !platform.isStaticCli) || !platform.isDocPortal || (canConfigure && !isReadOnly);
 
 	const showAccessMenu =
-		(hasGesUrl && canConfigure && (platform.isBrowser || platform.isDesktop)) ||
+		(hasWorkspaceGesUrl && canConfigure && (platform.isBrowser || platform.isDesktop)) ||
 		(canConfigure && platform.isDocPortal);
 
 	const showToolsMenu = !isReadOnly;
@@ -148,7 +156,7 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 		{
 			id: "repository-permission",
 			component: (children) => <RepositoryPermissionItem>{children}</RepositoryPermissionItem>,
-			visible: hasGesUrl && canConfigure && (platform.isBrowser || platform.isDesktop),
+			visible: hasWorkspaceGesUrl && canConfigure && (platform.isBrowser || platform.isDesktop),
 		},
 		{
 			id: "separator",

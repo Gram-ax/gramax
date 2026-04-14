@@ -1,4 +1,4 @@
-import { GetSpacesOptions } from "@ext/confluence/core/api/model/ConfluenceAPI";
+import type { GetSpacesOptions } from "@ext/confluence/core/api/model/ConfluenceAPI";
 
 const buildCqlQuery = (options: GetSpacesOptions) => {
 	const { type, title, spaceKey, orderBy, sortDirection = "desc" } = options;

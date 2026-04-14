@@ -1,15 +1,15 @@
-import { type Event, type EventEmitter } from "@core/Event/EventEmitter";
-import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { Event, EventEmitter } from "@core/Event/EventEmitter";
+import type { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import { digitsAfterDot } from "@core/FileStructue/Item/ItemOrderUtils";
 import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
-import ResourceUpdater from "@core/Resource/ResourceUpdater";
+import type ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import Path from "../../FileProvider/Path/Path";
-import { Article, type ArticleEvents, ArticleInitProps, type ArticleProps } from "../Article/Article";
-import { Item, type ItemEvents, ORDERING_MAX_PRECISION } from "../Item/Item";
-import { ItemRef } from "../Item/ItemRef";
+import { Article, type ArticleEvents, type ArticleInitProps, type ArticleProps } from "../Article/Article";
+import { type Item, type ItemEvents, ORDERING_MAX_PRECISION } from "../Item/Item";
+import type { ItemRef } from "../Item/ItemRef";
 import { ItemType } from "../Item/ItemType";
 
 export type CategoryEvents = ItemEvents &

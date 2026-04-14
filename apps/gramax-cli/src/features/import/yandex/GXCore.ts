@@ -1,6 +1,6 @@
 import { dump } from "js-yaml";
 import ChalkLogger from "../../../utils/ChalkLogger";
-import Article, { ArticleItem, ArticleProps, Articles, Resource } from "./entities/article";
+import Article, { type ArticleItem, type ArticleProps, type Articles, type Resource } from "./entities/article";
 import DownloadResource from "./entities/downloadResource";
 import FileProvider from "./entities/fileProvider";
 import LinkTransformer from "./Replacer/linkReplacer";

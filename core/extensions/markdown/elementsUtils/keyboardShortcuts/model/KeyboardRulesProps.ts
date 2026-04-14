@@ -1,5 +1,5 @@
-import { Editor } from "@tiptap/core";
-import { Node as ProseMirrorNode } from "prosemirror-model";
+import type { Editor } from "@tiptap/core";
+import type { Node as ProseMirrorNode } from "prosemirror-model";
 
 export default interface KeyboardRulesProps {
 	editor: Editor;

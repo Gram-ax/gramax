@@ -1,6 +1,6 @@
 import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 import { getPropertyValue } from "@ext/properties/logic/getPropertyValue";
-import { isHasValue, isManyProperty, Property, PropertyValue } from "@ext/properties/models";
+import { isHasValue, isManyProperty, type Property, type PropertyValue } from "@ext/properties/models";
 
 const deleteProperty = (
 	propertyName: string,
@@ -79,22 +79,21 @@ const updateProperty = (
 	if (existedPropertyIndex === -1) {
 		const newProperties = addOrUpdateProperty(properties, property, newValue, returnFull) as Property[];
 		return sortMapByName(Array.from(catalogProperties.keys()), newProperties);
-	} else {
-		const updatedProperties = returnFull ? [...properties] : properties.map((prop) => getPropertyValue(prop));
-
-		const newProperties = updateExistingProperty(
-			updatedProperties,
-			existedPropertyIndex,
-			newValue,
-			isMany,
-			value,
-			propertyName,
-			catalogProperties,
-			properties,
-		);
-
-		return sortMapByName(Array.from(catalogProperties.keys()), newProperties as Property[]);
 	}
+	const updatedProperties = returnFull ? [...properties] : properties.map((prop) => getPropertyValue(prop));
+
+	const newProperties = updateExistingProperty(
+		updatedProperties,
+		existedPropertyIndex,
+		newValue,
+		isMany,
+		value,
+		propertyName,
+		catalogProperties,
+		properties,
+	);
+
+	return sortMapByName(Array.from(catalogProperties.keys()), newProperties as Property[]);
 };
 
 export { deleteProperty, updateProperty };

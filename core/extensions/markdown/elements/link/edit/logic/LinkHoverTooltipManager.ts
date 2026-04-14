@@ -1,13 +1,16 @@
-import PageDataContext from "@core/Context/PageDataContext";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { Environment } from "@app/resolveModule/env";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import LinkHoverTooltip from "./LinkHoverTooltip";
 
 export class LinkHoverTooltipManager {
-	private tooltips: Set<LinkHoverTooltip> = new Set();
+	private _tooltips: Set<LinkHoverTooltip> = new Set();
 
 	constructor(
-		private parentElement: HTMLElement,
-		private pageDataContext: PageDataContext,
+		private _parentElement: HTMLElement,
+		private _pageDataContext: PageDataContext,
+		private _environment?: Environment,
+		private _basePath?: string,
 	) {}
 
 	createTooltip({
@@ -27,10 +30,16 @@ export class LinkHoverTooltipManager {
 		apiUrlCreator: ApiUrlCreator;
 		href?: string;
 	}) {
-		const tooltip = new LinkHoverTooltip(this.parentElement, apiUrlCreator, this.pageDataContext);
+		const tooltip = new LinkHoverTooltip(
+			this._parentElement,
+			apiUrlCreator,
+			this._pageDataContext,
+			this._environment,
+			this._basePath,
+		);
 
 		tooltip.onDestroy = () => {
-			this.tooltips.delete(tooltip);
+			this._tooltips.delete(tooltip);
 		};
 
 		if (markData) tooltip.setMarkData(markData);
@@ -39,27 +48,27 @@ export class LinkHoverTooltipManager {
 
 		tooltip.setComponent(linkElement);
 
-		this.tooltips.add(tooltip);
+		this._tooltips.add(tooltip);
 		return tooltip;
 	}
 
 	removeTooltip(tooltip: LinkHoverTooltip) {
-		if (this.tooltips.has(tooltip)) {
+		if (this._tooltips.has(tooltip)) {
 			tooltip.unMount();
-			this.tooltips.delete(tooltip);
+			this._tooltips.delete(tooltip);
 		}
 	}
 
 	updateAnchorPos(pos: number | null) {
-		this.tooltips.forEach((tooltip) => tooltip.updateAnchorPos(pos));
+		this._tooltips.forEach((tooltip) => tooltip.updateAnchorPos(pos));
 	}
 
 	getTooltip(resourcePath: string) {
-		return Array.from(this.tooltips.values()).find((tooltip) => tooltip.resourcePath === resourcePath);
+		return Array.from(this._tooltips.values()).find((tooltip) => tooltip.resourcePath === resourcePath);
 	}
 
 	destroyAll() {
-		this.tooltips.forEach((tooltip) => tooltip.unMount());
-		this.tooltips.clear();
+		this._tooltips.forEach((tooltip) => tooltip.unMount());
+		this._tooltips.clear();
 	}
 }

@@ -1,6 +1,6 @@
 import { FormField as UiKitFormField } from "ics-ui-kit/components/form";
-import { FC, ReactNode } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC, ReactNode } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitFormFieldProps = ExtractComponentGeneric<typeof UiKitFormField>;
 

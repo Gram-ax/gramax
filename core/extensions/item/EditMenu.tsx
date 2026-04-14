@@ -5,7 +5,9 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
 import BugsnagTrigger from "@ext/bugsnag/components/BugsnagTrigger";
+import { NotificationSettingsButton } from "@ext/enterprise/components/NotificationSettingsButton";
 import { DeleteItemTrigger } from "@ext/item/actions/DeleteArticleTrigger";
+import { SearchInScopeTrigger } from "@ext/item/actions/SearchInScopeTrigger";
 import { ArticleEditMarkdownTrigger } from "@ext/item/actions/ToolsArticleActions";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuLabel, DropdownMenuSeparator } from "@ui-kit/Dropdown";
@@ -16,12 +18,12 @@ import ShowInExplorer from "../../components/Actions/ShowInExplorer";
 import { usePlatform } from "../../ui-logic/hooks/usePlatform";
 import ArticleMoveAction from "../article/actions/move/ArticleMoveAction";
 import ShareAction from "../catalog/actions/share/components/ShareAction";
+import { ArticleFavoriteSettingsButton } from "../enterprise/components/ArticleFavoriteSettingsButton";
 import EnterpriseCheckStyleGuide from "../enterprise/components/EnterpriseCheckStyleGuide";
 import HistoryTrigger from "../git/actions/History/component/HistoryTrigger";
 import type { CategoryLink, ItemLink } from "../navigation/NavigationLinks";
 import ArticleLinks from "../properties/components/Helpers/ArticleLinks";
 import TemplateItemList from "../templates/components/TemplateItemList";
-import { ArticleFavoriteSettingsButton } from "./actions/ArticleFavoriteSettingsButton";
 import PropsEditorTrigger from "./actions/propsEditor/components/PropsEditorTrigger";
 
 interface EditMenuProps {
@@ -41,6 +43,7 @@ const components: Record<Environment, (props: EditMenuProps) => React.ReactNode>
 	next: (props) => <ReadonlyEditMenu {...props} />,
 	static: (props) => <StaticEditMenu {...props} />,
 	cli: (props) => <StaticEditMenu {...props} />,
+	docportal: (props) => <ReadonlyEditMenu {...props} />,
 	test: () => null,
 };
 
@@ -83,6 +86,7 @@ const ReadonlyEditMenu = ({ itemLink }: EditMenuProps) => {
 		<>
 			<HeaderLabel />
 			<DropdownMenuSeparator />
+			<SearchInScopeTrigger isCategory={isCategory} itemLink={itemLink} />
 			<ArticleFavoriteSettingsButton itemLinkPath={itemLink.ref.path} />
 			<DropdownMenuSeparator />
 			<ExportToDocxOrPdf fileName={itemProps.fileName} isCategory={isCategory} itemRefPath={itemLink.ref.path} />
@@ -98,6 +102,8 @@ const StaticEditMenu = ({ itemLink }: EditMenuProps) => {
 	return (
 		<>
 			<HeaderLabel />
+			<DropdownMenuSeparator />
+			<SearchInScopeTrigger isCategory={isCategory} itemLink={itemLink} />
 			<DropdownMenuSeparator />
 			<ExportToDocxOrPdf fileName={itemProps.fileName} isCategory={isCategory} itemRefPath={itemLink.ref.path} />
 		</>
@@ -132,6 +138,7 @@ const EditorEditMenu = ({ itemLink, setItemLink }: EditMenuProps) => {
 			)}
 			<ArticleMoveAction articlePath={itemProps?.ref?.path} />
 			{isLinkToValidArticle && <ArticleFavoriteSettingsButton itemLinkPath={itemLink.ref.path} />}
+			{isLinkToValidArticle && <SearchInScopeTrigger isCategory={isCategory} itemLink={itemLink} />}
 			<DropdownMenuSeparator />
 			{isLinkToValidArticle && (
 				<>
@@ -154,6 +161,12 @@ const EditorEditMenu = ({ itemLink, setItemLink }: EditMenuProps) => {
 					isCategory={isCategory}
 					itemRefPath={itemLink.ref.path}
 				/>
+			)}
+			{PageDataContextService.value.conf.enterprise.gesUrl && (
+				<>
+					<DropdownMenuSeparator />
+					<NotificationSettingsButton itemRefPath={itemLink.ref.path} />
+				</>
 			)}
 			<ShowInExplorer item={itemLink} />
 			<DropdownMenuSeparator />

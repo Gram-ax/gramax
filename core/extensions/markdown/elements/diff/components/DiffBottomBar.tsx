@@ -6,9 +6,9 @@ import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch"
 import DiffViewPicker from "@ext/markdown/elements/diff/components/DiffViewPicker";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
-import { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
+import type { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
-import { FileStatus } from "@ext/Watchers/model/FileStatus";
+import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { forwardRef, useRef } from "react";
 
 export type DiffViewMode = "wysiwyg-single" | "wysiwyg-double" | "single-panel" | "double-panel";

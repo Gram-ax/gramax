@@ -1,4 +1,6 @@
+import type { Environment } from "@app/resolveModule/env";
 import MiniArticle from "@components/Article/MiniArticle";
+import BoxResizeWrapper from "@components/Atoms/BoxResizeWrapper";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import type PageDataContext from "@core/Context/PageDataContext";
@@ -9,6 +11,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import PlatformService from "@core-ui/ContextServices/PlatformService";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
@@ -16,9 +19,16 @@ import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import styled from "@emotion/styled";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
+import {
+	setLinkTooltipHeight,
+	setLinkTooltipWidth,
+	useTooltipSize,
+} from "@ext/markdown/elements/link/edit/logic/store/LinkTooltipSizeStore";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import type { Mark } from "@tiptap/pm/model";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { TooltipProvider } from "@ui-kit/Tooltip";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Router } from "wouter";
 
 type dataType = {
 	path: string;
@@ -38,15 +48,17 @@ type TooltipContent = {
 	hash?: string;
 };
 
-type TooltipProviderProps = {
+type ArticleTooltipProviderProps = {
 	data: dataType;
 	children: ReactNode;
 	catalogProps: ClientCatalogProps;
 	apiUrlCreator: ApiUrlCreator;
 	pageDataContext: PageDataContext;
+	environment: Environment;
+	basePath?: string;
 };
 
-export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" | "data" | "catalogProps"> {
+export interface LinkTooltipProps extends Omit<ArticleTooltipProviderProps, "children" | "data" | "catalogProps"> {
 	closeHandler: () => void;
 	className?: string;
 	element: HTMLElement;
@@ -54,7 +66,19 @@ export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" 
 	getMark: () => Mark | undefined;
 	hash?: string;
 	href?: string;
+	environment: Environment;
+	basePath?: string;
 }
+
+const components: Record<Environment, (props: { basePath; children }) => React.ReactNode> = {
+	tauri: ({ children }) => children,
+	next: ({ children }) => children,
+	static: ({ basePath, children }) => <Router base={basePath}>{children}</Router>,
+	browser: ({ children }) => children,
+	cli: ({ basePath, children }) => <Router base={basePath}>{children}</Router>,
+	test: ({ children }) => children,
+	docportal: ({ basePath, children }) => <Router base={basePath}>{children}</Router>,
+};
 
 const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	const {
@@ -177,7 +201,7 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 			arrow={false}
 			content={
 				isVisible && (
-					<TooltipProvider
+					<ArticleTooltipProvider
 						apiUrlCreator={apiUrlCreator}
 						catalogProps={catalogProps}
 						data={data}
@@ -192,12 +216,13 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 							position={tooltipPlace}
 							start={close}
 						/>
-					</TooltipProvider>
+					</ArticleTooltipProvider>
 				)
 			}
-			contentClassName={classNames("tooltip-wrapper", {}, [className])}
+			contentClassName={className}
 			hideOnClick={undefined}
 			interactive={true}
+			maxWidth={window.innerWidth * 0.8}
 			setPlaceCallback={(place) => setTooltipPlace(place)}
 			visible={isVisible}
 		>
@@ -206,46 +231,63 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	);
 };
 
-const TooltipProvider = (props: TooltipProviderProps) => {
-	const { pageDataContext, apiUrlCreator, catalogProps, data, children } = props;
+const ArticleTooltipProvider = (props: ArticleTooltipProviderProps) => {
+	const { pageDataContext, apiUrlCreator, catalogProps, data, children, basePath, environment = "browser" } = props;
+
 	if (!data) return null;
+	const RouterComponent = components[environment];
 
 	return (
-		<ApiUrlCreatorService.Provider value={apiUrlCreator.fromNewArticlePath(data.path, catalogProps?.name)}>
-			<ResourceService.Provider>
-				<PageDataContextService.Provider value={pageDataContext}>
-					<CatalogStoreProvider data={catalogProps}>
-						<ArticlePropsService.Provider value={data?.articleProps}>
-							<PropertyServiceProvider.Provider>
-								<ArticleRefService.Provider>
-									<>{children}</>
-								</ArticleRefService.Provider>
-							</PropertyServiceProvider.Provider>
-						</ArticlePropsService.Provider>
-					</CatalogStoreProvider>
-				</PageDataContextService.Provider>
-			</ResourceService.Provider>
-		</ApiUrlCreatorService.Provider>
+		<PlatformService.Provider value={environment}>
+			<RouterComponent basePath={basePath}>
+				<TooltipProvider>
+					<ApiUrlCreatorService.Provider
+						value={apiUrlCreator.fromNewArticlePath(data.path, catalogProps?.name)}
+					>
+						<ResourceService.Provider>
+							<PageDataContextService.Provider value={pageDataContext}>
+								<CatalogStoreProvider data={catalogProps}>
+									<ArticlePropsService.Provider value={data?.articleProps}>
+										<PropertyServiceProvider.Provider>
+											<ArticleRefService.Provider>
+												<>{children}</>
+											</ArticleRefService.Provider>
+										</PropertyServiceProvider.Provider>
+									</ArticlePropsService.Provider>
+								</CatalogStoreProvider>
+							</PageDataContextService.Provider>
+						</ResourceService.Provider>
+					</ApiUrlCreatorService.Provider>
+				</TooltipProvider>
+			</RouterComponent>
+		</PlatformService.Provider>
 	);
 };
 
 const TooltipContent = (props: TooltipContent) => {
 	const { data, start, clear, className, hash } = props;
 	const articleRef = ArticleRefService.value;
+	const isResizeRef = useRef(false);
+	const { width, height } = useTooltipSize();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
-		const handleMouseLeave = () => start();
+		const handleMouseLeave = () => {
+			if (isResizeRef.current) return;
+			start();
+		};
 		const handleMouseEnter = () => clear();
+		const tooltipWrapper = articleRef.current?.closest(".tippy-content");
 
-		if (articleRef.current) {
-			articleRef.current.addEventListener("mouseleave", handleMouseLeave);
-			articleRef.current.addEventListener("mouseenter", handleMouseEnter);
+		if (tooltipWrapper) {
+			tooltipWrapper.addEventListener("mouseleave", handleMouseLeave);
+			tooltipWrapper.addEventListener("mouseenter", handleMouseEnter);
 		}
 
 		return () => {
-			if (articleRef.current) {
-				articleRef.current.removeEventListener("mouseleave", handleMouseLeave);
-				articleRef.current.removeEventListener("mouseenter", handleMouseEnter);
+			if (tooltipWrapper) {
+				tooltipWrapper.removeEventListener("mouseleave", handleMouseLeave);
+				tooltipWrapper.removeEventListener("mouseenter", handleMouseEnter);
 			}
 		};
 	}, [start, clear]);
@@ -259,31 +301,61 @@ const TooltipContent = (props: TooltipContent) => {
 		anchor.scrollIntoView();
 	}, [hash]);
 
+	const onResizeEnd = useCallback((event: MouseEvent) => {
+		const wrapper = (event.target as HTMLDivElement)?.parentElement?.parentElement;
+		if (!wrapper) return;
+
+		const width = wrapper.clientWidth;
+		const height = wrapper.clientHeight;
+
+		setLinkTooltipWidth(width);
+		setLinkTooltipHeight(height);
+
+		isResizeRef.current = false;
+	}, []);
+
+	const onResizeStart = useCallback(() => {
+		isResizeRef.current = true;
+	}, []);
+
 	if (!data) return null;
 
 	return (
 		<div ref={articleRef}>
 			<div className={className}>
-				<MiniArticle content={data.content} title={data.title} />
+				<BoxResizeWrapper
+					className={"article tooltip-size"}
+					maxHeight={window.innerHeight * 0.8}
+					maxWidth={window.innerWidth * 0.8}
+					minHeight={window.innerHeight * 0.15}
+					minWidth={window.innerWidth * 0.15}
+					onResizeEnd={onResizeEnd}
+					onResizeStart={onResizeStart}
+					style={
+						width && height
+							? { width: `${width}px`, height: `${height}px` }
+							: { width: "400px", height: "250px" }
+					}
+				>
+					<MiniArticle content={data.content} title={data.title} />
+				</BoxResizeWrapper>
 			</div>
 		</div>
 	);
 };
 
 export default styled(ArticleLinkTooltip)`
-	&.tooltip-wrapper {
-		padding: 0 !important;
-		font-size: 14px !important;
-		line-height: 1.4 !important;
-		background: transparent !important;
-		color: var(--color-article-text) !important;
-	}
+	font-size: 14px !important;
+	line-height: 1.4 !important;
+	padding: 0 !important;
+	background: transparent !important;
+	color: var(--color-article-text) !important;
 
-	&.tooltip-open {
+	.tooltip-open {
 		animation: TooltipAppend 50ms linear forwards;
 	}
 
-	&.tooltip-closed {
+	.tooltip-closed {
 		animation: TooltipClosed 50ms linear forwards;
 	}
 
@@ -312,8 +384,6 @@ export default styled(ArticleLinkTooltip)`
 	}
 
 	.tooltip-size {
-		width: 400px;
-		height: 250px;
 		padding: 1rem;
 		overflow-y: scroll;
 		overflow-x: auto;

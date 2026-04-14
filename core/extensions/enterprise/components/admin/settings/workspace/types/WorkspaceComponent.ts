@@ -1,4 +1,4 @@
-import { Access } from "../../components/roles/Access";
+import type { Access } from "../../components/roles/Access";
 
 export type SVG = string;
 

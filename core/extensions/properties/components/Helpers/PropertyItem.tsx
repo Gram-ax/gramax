@@ -1,12 +1,13 @@
 import Icon from "@components/Atoms/Icon";
 import t from "@ext/localization/locale/translate";
 import { CustomInputRenderer, getInputComponent } from "@ext/properties/components/Helpers/CustomInputRenderer";
+import PropertiesScrollContainer from "@ext/properties/components/Helpers/PropertiesScrollContainer";
 import getFormatValue from "@ext/properties/logic/getFormatValue";
-import { isHasValue, Property } from "@ext/properties/models";
+import { isHasValue, type Property } from "@ext/properties/models";
 import { Button } from "@ui-kit/Button";
 import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
 import { MenuItemIconButton } from "@ui-kit/MenuItem";
-import { ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 export interface GetItemComponentArgs {
 	key?: React.JSX.Element["key"];
@@ -76,21 +77,24 @@ const PropertyItem = ({ property, disabled, onClick, onEditClick, getItemCompone
 			{isSubMenu ? <DropdownMenuSubTrigger>{TriggerContent}</DropdownMenuSubTrigger> : TriggerContent}
 			{isSubMenu && (
 				<DropdownMenuSubContent>
-					{!InputComponent &&
-						property.values?.map((value) =>
-							getItemComponent({
-								key: value,
-								item: {
-									property,
-									value,
-								},
-								children: [value],
-								onSelect: (e) => {
-									e.preventDefault();
-									onSubItemSelect(value);
-								},
-							}),
-						)}
+					{!InputComponent && (
+						<PropertiesScrollContainer>
+							{property.values?.map((value) =>
+								getItemComponent({
+									key: value,
+									item: {
+										property,
+										value,
+									},
+									children: [value],
+									onSelect: (e) => {
+										e.preventDefault();
+										onSubItemSelect(value);
+									},
+								}),
+							)}
+						</PropertiesScrollContainer>
+					)}
 					{InputComponent && (
 						<div>
 							<CustomInputRenderer

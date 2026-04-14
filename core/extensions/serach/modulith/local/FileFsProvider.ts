@@ -1,6 +1,6 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { FsProvider } from "@ics/modulith-search-infra";
+import type { FsProvider } from "@ics/modulith-search-infra";
 
 export class FileFsProvider implements FsProvider {
 	constructor(

@@ -3,9 +3,18 @@ import { classNames } from "@components/libs/classNames";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useOutsideClick } from "@core-ui/hooks/useOutsideClick";
 import styled from "@emotion/styled";
-import { CSSProperties, memo, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react";
-import { Instance } from "tippy.js";
-import useDefaultActions, { UseDefaultActionsOptions } from "./hooks/useDefaultActions";
+import {
+	type CSSProperties,
+	memo,
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react";
+import type { Instance } from "tippy.js";
+import useDefaultActions, { type UseDefaultActionsOptions } from "./hooks/useDefaultActions";
 
 type Placement = "top" | "inner";
 

@@ -1,7 +1,7 @@
 import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
 import Icon from "@ext/markdown/elements/icon/render/components/Icon";
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { memo, ReactElement } from "react";
+import { type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { memo, type ReactElement } from "react";
 
 const IconMemoized = memo(
 	({ code, svg, color, commentId }: { code: string; svg: string; color: string; commentId: string }) => {

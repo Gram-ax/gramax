@@ -4,7 +4,7 @@ import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import GitVerseSourceAPI from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceAPI";
-import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
+import type GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
 import handleFormApiError from "@ext/git/actions/Source/logic/handleApiError";
 import validateToken from "@ext/git/actions/Source/logic/validateToken";
 import t from "@ext/localization/locale/translate";
@@ -15,7 +15,7 @@ import { Retry } from "@ui-kit/ErrorState";
 import { Form, FormField, FormFieldSet, FormSectionHeaderButton, FormSectionTitle, FormStack } from "@ui-kit/Form";
 import { SecretInput, TextInput } from "@ui-kit/Input";
 import { Skeleton } from "@ui-kit/Skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { Tooltip, TooltipContent, TooltipLinkButton, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -34,7 +34,7 @@ const getFormSchema = () =>
 		authorName: z.string({ message: t("must-be-not-empty") }),
 		authorEmail: z.string({ message: t("must-be-not-empty") }),
 		token: z.string({ message: t("must-be-not-empty") }).refine((val) => validateToken(val), {
-			message: t("invalid2") + " " + t("token"),
+			message: `${t("invalid2")} ${t("token")}`,
 		}),
 	});
 
@@ -75,8 +75,8 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 	);
 
 	useEffect(() => {
-		if (data?.isInvalid) form.setError("token", { type: "invalid", message: t("invalid2") + " " + t("token") });
-	}, [data?.isInvalid]);
+		if (data?.isInvalid) form.setError("token", { type: "invalid", message: `${t("invalid2")} ${t("token")}` });
+	}, [data?.isInvalid, form.setError]);
 
 	const onChangeAuthFields = () => {
 		const formValues = form.getValues();
@@ -91,7 +91,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 		setIsLoading(true);
 		const hasProtocol = formValues.url.includes("://");
 		const { protocol, origin, pathname } = parseStorageUrl(
-			hasProtocol ? formValues.url : "https://" + formValues.url,
+			hasProtocol ? formValues.url : `https://${formValues.url}`,
 		);
 
 		startCheck(
@@ -113,7 +113,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 	const formSubmit = (e) => {
 		form.handleSubmit((data) => {
 			const hasProtocol = data.url.includes("://");
-			const { protocol } = parseStorageUrl(hasProtocol ? data.url : "https://" + data.url);
+			const { protocol } = parseStorageUrl(hasProtocol ? data.url : `https://${data.url}`);
 			const isInvalid = !!form.formState.errors.token?.message || !!form.formState.errors.url?.message;
 
 			onSubmit({
@@ -129,6 +129,7 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 		})(e);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		const primaryButton = (
 			<Button onClick={formSubmit} type="submit">
@@ -160,9 +161,18 @@ const EditGitVerse = ({ onSubmit, data }: EditGitVerseProps) => {
 								<TooltipContent>
 									<span
 										dangerouslySetInnerHTML={{
+											// biome-ignore lint/style/useNamingConvention: expected
 											__html: t("git.source.gitverse.info"),
 										}}
 									/>
+									<br />
+									<a
+										href="https://gitverse.ru/docs/collaborative/authentification/tokens"
+										rel="noopener"
+										target="_blank"
+									>
+										<TooltipLinkButton size="xs">{t("more")}</TooltipLinkButton>
+									</a>
 								</TooltipContent>
 							</Tooltip>
 						</FormSectionHeaderButton>

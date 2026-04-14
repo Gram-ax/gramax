@@ -1,4 +1,4 @@
-import NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
+import type NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
 
 const paragraphNodeTransformer: NodeTransformerFunc = (node) => {
 	if (node?.type !== "paragraph") return;

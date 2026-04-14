@@ -1,4 +1,4 @@
-import type { PageProps } from "@components/ContextProviders";
+import type { PageProps } from "@components/Pages/models/Pages";
 import type ContextService from "@core-ui/ContextServices/ContextService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";

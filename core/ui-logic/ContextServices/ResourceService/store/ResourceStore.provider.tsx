@@ -2,7 +2,6 @@ import Path from "@core/FileProvider/Path/Path";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import {
 	createResourceStore,
 	type ResourceStoreState,
@@ -12,10 +11,8 @@ import {
 	loadInternalData,
 	type ResourceFetchResult,
 } from "@core-ui/ContextServices/ResourceService/utils/utils";
-import fileNameUtils from "@core-ui/fileNameUtils";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import getArticleFileBrotherNames from "@ext/markdown/elementsUtils/AtricleResource/getAtricleResourceNames";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
@@ -67,7 +64,6 @@ interface ResourceServiceProviderProps {
 }
 
 const ResourceServiceProvider = ({ children, id, provider }: ResourceServiceProviderProps) => {
-	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogName = useCatalogPropsStore((state) => state.data?.name);
 
@@ -78,25 +74,18 @@ const ResourceServiceProvider = ({ children, id, provider }: ResourceServiceProv
 
 	const setResource: SetResource = useCallback(
 		async (name, file, path, force) => {
-			const pathedName = new Path(name);
-			const extension = pathedName.extension?.toLowerCase();
-
-			const names = force ? [] : await getArticleFileBrotherNames(apiUrlCreator, id, provider);
-			const newName = fileNameUtils.getNewName(names, pathedName.name ?? articleProps.fileName, extension);
-
-			const fullResourcePath = new Path([path, newName]);
-			const url = apiUrlCreator.setArticleResource(fullResourcePath.value, id, provider);
+			const fullResourcePath = new Path([path, name]);
+			const url = apiUrlCreator.setArticleResource(fullResourcePath.value, id, provider, force);
 
 			const res = await FetchService.fetch(url, file as unknown as BodyInit, MimeTypes.text);
 			if (!res.ok) return;
 
-			update(newName, typeof file === "string" ? Buffer.from(file) : file);
+			const json = await res.json();
 
-			names.push(newName);
-
-			return newName;
+			update(json.path, typeof file === "string" ? Buffer.from(file) : file);
+			return json.path;
 		},
-		[apiUrlCreator, articleProps?.fileName, update, provider, id],
+		[apiUrlCreator, update, provider, id],
 	);
 
 	const deleteResource: DeleteResource = useCallback(

@@ -1,4 +1,4 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const listMapping: Record<string, string> = {
 	bulleted_list_item: "bulletList",

@@ -2,7 +2,7 @@ import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
-import { ChangeEvent, MouseEvent, memo, useCallback, useRef } from "react";
+import { type ChangeEvent, type MouseEvent, memo, useCallback, useRef } from "react";
 
 interface ActionInputProps {
 	icon: string;

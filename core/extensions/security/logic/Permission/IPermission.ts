@@ -1,4 +1,4 @@
-import PermissionJSONData from "./model/PermissionJSONData";
+import type PermissionJSONData from "./model/PermissionJSONData";
 import PermissionType from "./model/PermissionType";
 
 abstract class IPermission {

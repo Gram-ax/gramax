@@ -4,7 +4,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import t from "@ext/localization/locale/translate";
 import useUploadProgress from "@ext/static/components/useUploadProgress";
-import { UploadStatus } from "@ext/static/logic/CloudUploadStatus";
+import type { UploadStatus } from "@ext/static/logic/CloudUploadStatus";
 import { Button } from "@ui-kit/Button";
 import { useState } from "react";
 

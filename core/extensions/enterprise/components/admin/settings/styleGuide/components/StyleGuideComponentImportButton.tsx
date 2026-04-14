@@ -20,9 +20,9 @@ export const StyleGuideComponentImportButton = ({
 			const file = e.target.files?.[0];
 			if (file) {
 				const text = await file.text();
-				const { importedLanguageToolRules, importedLlmRules } = JSON.parse(text);
+				const { languageToolRules, rules: importedLlmRules } = JSON.parse(text);
 
-				const lgtRules = (importedLanguageToolRules ?? []).map((rule) => ({
+				const lgtRules = (languageToolRules ?? []).map((rule) => ({
 					guid: rule.guid || generateGuid(),
 					xml: rule.xml,
 					forTypes: rule?.forTypes ?? [],

@@ -1,4 +1,4 @@
-import { PluginConfig, PluginMetadata } from "@plugins/types";
+import type { PluginConfig, PluginMetadata } from "@plugins/types";
 import assert from "assert";
 
 export const PLUGIN_FILE_NAMES = {

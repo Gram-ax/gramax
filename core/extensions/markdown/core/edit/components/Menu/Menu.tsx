@@ -1,14 +1,14 @@
 import Portal from "@components/Portal";
 import { isActive } from "@core-ui/hooks/useAudioRecorder";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import { ArticleAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
 import canDisplayMenu from "@ext/markdown/elements/article/edit/helpers/canDisplayMenu";
-import { useMediaQuery } from "@mui/material";
-import { Editor } from "@tiptap/react";
-import { ReactNode, useEffect, useState } from "react";
+import type { Editor } from "@tiptap/react";
+import { type ReactNode, useEffect, useState } from "react";
 
 interface MenuProps {
 	editor: Editor;

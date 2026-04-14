@@ -3,9 +3,11 @@ import checkEditWorkspace from "./checkEditWorkspace";
 import cloneCatalogs from "./cloneCatalogs";
 import logout from "./logout";
 import modules from "./modules";
-import offEnterprise from "./off";
+import getNotifications from "./notifications/get";
+import updateNotifications from "./notifications/update";
 import quiz from "./quiz";
 import refreshWorkspace from "./refreshWorkspace";
+import setGesUrl from "./setGesUrl";
 
 const enterprise = {
 	addWorkspace,
@@ -15,7 +17,11 @@ const enterprise = {
 	quiz,
 	modules,
 	refreshWorkspace,
-	offEnterprise,
+	setGesUrl,
+	notifications: {
+		get: getNotifications,
+		update: updateNotifications,
+	},
 };
 
 export default enterprise;

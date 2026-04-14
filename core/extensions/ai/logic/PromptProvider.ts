@@ -1,8 +1,8 @@
 import { PROMPT_DIRECTORY } from "@app/config/const";
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
 
 declare module "@ext/articleProvider/logic/ArticleProvider" {

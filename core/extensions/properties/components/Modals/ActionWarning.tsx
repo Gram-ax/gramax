@@ -2,16 +2,27 @@ import Anchor from "@components/controls/Anchor";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
-import useWatch from "@core-ui/hooks/useWatch";
+import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import type { Property, PropertyUsage } from "@ext/properties/models";
-import { Button } from "@ui-kit/Button";
-import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
-import { FormFooter, FormHeader } from "@ui-kit/Form";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "@ui-kit/AlertDialog";
 import { Label } from "@ui-kit/Label";
-import { useState } from "react";
+import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
+import { Table, TableBody, TableCell, TableRow } from "@ui-kit/Table";
+import { useEffect, useState } from "react";
 
-export type ActionWarningProps = {
+export interface ActionWarningProps {
 	// biome-ignore lint/suspicious/noExplicitAny: expected
 	action: (...args: any[]) => void;
 	children?: JSX.Element;
@@ -23,7 +34,11 @@ export type ActionWarningProps = {
 	data: Property;
 	editData: { name: string; values?: string[] };
 	shouldShowWarning?: boolean;
-};
+}
+
+const ScrollShadowContainerStyled = styled(ScrollShadowContainer)`
+	max-height: 25vh;
+`;
 
 const ActionWarning = (props: ActionWarningProps) => {
 	const {
@@ -37,106 +52,96 @@ const ActionWarning = (props: ActionWarningProps) => {
 		onLinkClick,
 		shouldShowWarning,
 	} = props;
-
 	const [isOpen, setIsOpen] = useState(initialIsOpen);
 	const [usages, setUsages] = useState<PropertyUsage[]>([]);
-
-	if (!shouldShowWarning) return children;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	// biome-ignore lint/correctness/useHookAtTopLevel: expected
-	useWatch(() => {
+	const fetchPropertyUsages = async () => {
 		if (!data || !editData || !data?.values?.length) return;
 		const deletedValues = isCatalog
 			? data?.values?.toString()
 			: data?.values?.filter((value) => !editData.values.includes(value))?.toString();
 
-		FetchService.fetch(apiUrlCreator.getPropertyUsages(data.name, deletedValues)).then(async (res) => {
-			if (res.ok) setUsages(await res.json());
-		});
+		const res = await FetchService.fetch(apiUrlCreator.getPropertyUsages(data.name, deletedValues));
+		if (!res.ok) return;
+		setUsages(await res.json());
+	};
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	useEffect(() => {
+		void fetchPropertyUsages();
 	}, [data, editData]);
 
-	const onClick = () => {
+	const onOpenChange = (value: boolean) => {
+		setIsOpen(value);
+		if (!value) onClose?.();
+	};
+
+	const onActionClick = () => {
 		setIsOpen(false);
 		onClose?.();
 		action();
 	};
 
-	const onArchiveClick = () => {
-		setIsOpen(false);
-		onClose?.();
-		action(true);
-	};
+	if (!shouldShowWarning) return children;
 
 	return (
-		<Dialog onOpenChange={setIsOpen} open={isOpen}>
-			<DialogTrigger asChild>{children}</DialogTrigger>
-			<DialogContent>
-				<form>
-					<FormHeader
-						description={
-							isCatalog
-								? t("properties.warning.delete-tag-from-catalog.title")
-								: t("properties.warning.delete-value-from-catalog.title")
-						}
-						icon="alert-circle"
-						title={t("delete")}
-					/>
-					<DialogBody>
-						<div>
-							<Label>
-								{isCatalog
-									? t("properties.warning.delete-tag-from-catalog.body")
-									: t("properties.warning.delete-value-from-catalog.body")}
-							</Label>
-						</div>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
+			<AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+			<AlertDialogContent status="warning">
+				<AlertDialogHeader>
+					<AlertDialogIcon icon="alert-circle" />
+					<AlertDialogTitle>{t("confirmation.delete.title")}</AlertDialogTitle>
+					<AlertDialogDescription>
+						{isCatalog
+							? t("properties.warning.delete-tag-from-catalog.body")
+							: t("properties.warning.delete-value-from-catalog.body")}
+						<br />
 						{usages?.length > 0 && (
 							<ArticleTooltipService.Provider>
 								<>
-									<Label>
-										{usages.length} {t("properties.update-affected-articles")}:
-									</Label>
-									<div style={{ paddingLeft: "1.25em", maxHeight: "25vh", overflowY: "auto" }}>
-										<ul>
-											{usages.map((usage, index) => (
-												<li key={`${usage.title}-${index}`}>
-													<Label>
-														<Anchor
-															href={usage.linkPath}
-															onClick={() => {
-																setIsOpen(false);
-																onLinkClick?.();
-															}}
-															resourcePath={usage.resourcePath}
-														>
-															<span style={{ color: "var(--color-link)" }}>
-																{usage.title || t("article.no-name")}
-															</span>
-														</Anchor>
-													</Label>
-												</li>
-											))}
-										</ul>
-									</div>
+									{usages.length} {t("properties.update-affected-articles")}:
+									<ScrollShadowContainerStyled className="py-2">
+										<div className="rounded-lg border">
+											<Table>
+												<TableBody className="[&_tr:last-child]:border-0">
+													{usages.map((usage, index) => (
+														<TableRow key={`${usage.title}-${index}`}>
+															<TableCell>
+																<Label>
+																	<Anchor
+																		href={usage.linkPath}
+																		onClick={() => {
+																			setIsOpen(false);
+																			onLinkClick?.();
+																		}}
+																		resourcePath={usage.resourcePath}
+																	>
+																		<span style={{ color: "var(--color-link)" }}>
+																			{usage.title || t("article.no-name")}
+																		</span>
+																	</Anchor>
+																</Label>
+															</TableCell>
+														</TableRow>
+													))}
+												</TableBody>
+											</Table>
+										</div>
+									</ScrollShadowContainerStyled>
 								</>
 							</ArticleTooltipService.Provider>
 						)}
-					</DialogBody>
-					<FormFooter
-						primaryButton={
-							<Button onClick={onClick} type="button">
-								{t("continue")}
-							</Button>
-						}
-						secondaryButton={
-							<Button onClick={onArchiveClick} type="button" variant="outline">
-								{t("properties.archive")}
-							</Button>
-						}
-					/>
-				</form>
-			</DialogContent>
-		</Dialog>
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel variant="outline">{t("cancel")}</AlertDialogCancel>
+					<AlertDialogAction onClick={onActionClick} variant="primary">
+						{t("continue")}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 };
 

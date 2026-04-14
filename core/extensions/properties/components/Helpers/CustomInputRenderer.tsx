@@ -2,7 +2,7 @@ import Input from "@components/Atoms/Input";
 import t from "@ext/localization/locale/translate";
 import { PropertyTypes } from "@ext/properties/models";
 import { Calendar } from "@ui-kit/Calendar";
-import { ComponentType, useEffect, useState } from "react";
+import { type ComponentType, useEffect, useState } from "react";
 
 type BaseValue = string | number | Date;
 export type InputValue = BaseValue | Array<BaseValue>;

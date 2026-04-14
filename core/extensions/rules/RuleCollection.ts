@@ -1,4 +1,4 @@
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
 export interface ItemFilterOptions {
 	requireExactLanguageMatch: boolean;

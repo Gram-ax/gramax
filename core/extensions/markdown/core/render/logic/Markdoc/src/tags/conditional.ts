@@ -1,4 +1,6 @@
-import type { Node, Schema, Value } from "../types";
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+import type Node from "../ast/node";
+import type { Schema, Value } from "../types";
 
 type Condition = { condition: Value; children: Node[] };
 

@@ -1,10 +1,10 @@
 import { listTypes } from "@ext/markdown/elements/joinLists/joinLists";
 import getNodeByPos from "@ext/markdown/elementsUtils/getNodeByPos";
-import KeyboardRulesProps from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRulesProps";
-import KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
-import { Editor } from "@tiptap/core";
-import { TextSelection, Transaction } from "@tiptap/pm/state";
-import { Node } from "prosemirror-model";
+import type KeyboardRulesProps from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRulesProps";
+import type KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
+import type { Editor } from "@tiptap/core";
+import { TextSelection, type Transaction } from "@tiptap/pm/state";
+import type { Node } from "prosemirror-model";
 
 type NodesWithParent = { node: Node; pos: number; parent: Node }[];
 

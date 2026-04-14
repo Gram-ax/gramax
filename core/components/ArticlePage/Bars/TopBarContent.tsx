@@ -5,7 +5,7 @@ import NotificationIcon from "@components/Layouts/LeftNavigationTabs/Notificatio
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useRouter } from "@core/Api/useRouter";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -123,7 +123,7 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarCont
 						tooltipText={t("ai.ai-prompts")}
 					/>
 				)}
-				<Search isHomePage={false} />
+				<Search isHomePage={false} itemLinks={data.itemLinks} />
 				<CatalogActions currentTab={currentTab} isCatalogExist={isCatalogExist} itemLinks={data.itemLinks} />
 			</div>
 		</div>

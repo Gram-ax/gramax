@@ -1,6 +1,5 @@
 import getIssueLink from "@ext/markdown/elements/issue/logic/getIssueLink";
-import React from "react";
-import HTMLComponents from "../../../core/render/components/getComponents/HTMLComponents";
+import type HTMLComponents from "../../../core/render/components/getComponents/HTMLComponents";
 
 export interface HTMLIssueProps {
 	id: string;

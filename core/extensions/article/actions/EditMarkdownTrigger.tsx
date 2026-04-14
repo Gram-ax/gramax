@@ -5,8 +5,8 @@ import { cn } from "@core-ui/utils/cn";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ComponentProps } from "react";
-import EditMarkdown from "./EditMarkdown";
+import type { ComponentProps } from "react";
+import type EditMarkdown from "./EditMarkdown";
 
 interface EditMarkdownTriggerProps {
 	loadContent: () => Promise<string>;

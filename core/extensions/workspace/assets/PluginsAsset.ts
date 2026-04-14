@@ -1,5 +1,6 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
+import asyncUtils from "@core/utils/asyncUtils";
 import { PluginFileParser } from "@plugins/core/PluginFileParser";
 import type { PluginConfig, PluginMetadata } from "@plugins/types";
 import { Asset } from "./Asset";
@@ -103,7 +104,12 @@ export class PluginsAsset extends Asset {
 		for (const id of existing) {
 			if (!newIds.has(id)) await this.delete(id);
 		}
-		await plugins.forEachAsync(async (plugin) => {
+
+		// fetch().json() (from EnterpriceApi.getClientWorkspace()) in Jest can return arrays with different prototype
+		//   so Array.prototype.forEachAsync doesn't work
+		// Probably related to Node vm contexts, like fetch().json() runs in its own context
+		//   while we modify Array.prototype in our test script context (created by Jest)
+		await asyncUtils.forEachConcurrent(plugins, async (plugin) => {
 			await this.addFromConfig(plugin);
 		});
 	}

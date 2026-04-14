@@ -18,8 +18,6 @@ const Container = styled.div<{ width: string; height: string; borderColor: strin
 	border-radius: var(--radius-small);
 	background-color: ${({ backgroundColor }) => backgroundColor};
 
-	width: ${({ width }) => width} !important;
-
 	min-width: fit-content;
 	min-height: fit-content;
 

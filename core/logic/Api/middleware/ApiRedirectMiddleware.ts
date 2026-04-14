@@ -1,6 +1,6 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import ApiRequest from "../ApiRequest";
-import ApiResponse from "../ApiResponse";
+import type ApiRequest from "../ApiRequest";
+import type ApiResponse from "../ApiResponse";
 import Middleware from "./Middleware";
 
 const redirectServerURL = "https://docs.ics-it.ru/-develop/";

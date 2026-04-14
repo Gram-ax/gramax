@@ -1,5 +1,5 @@
 import Icon from "@components/Atoms/Icon";
-import { ButtonItem, ListItem } from "@components/List/Item";
+import type { ButtonItem, ListItem } from "@components/List/Item";
 import styled from "@emotion/styled";
 
 export const parseButton = (button: ButtonItem & { isLastButton: boolean }): ListItem => {

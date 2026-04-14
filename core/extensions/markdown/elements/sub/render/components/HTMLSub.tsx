@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 const HTMLSub = (props: { children?: React.ReactNode }) => <sub data-component="sub">{props.children}</sub>;
 

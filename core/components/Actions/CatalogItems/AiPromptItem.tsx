@@ -3,7 +3,7 @@ import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import t from "@ext/localization/locale/translate";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface AiPromptItemProps {
 	children?: ReactNode;

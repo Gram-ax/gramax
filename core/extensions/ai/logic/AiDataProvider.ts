@@ -1,7 +1,7 @@
 import type Context from "@core/Context/Context";
 import { Encoder } from "@ext/Encoder/Encoder";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { AiServerConfig } from "../models/types";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import type { AiServerConfig } from "../models/types";
 
 export class AiDataProvider {
 	protected secret = "rJej4ekU2j";

@@ -33,6 +33,6 @@ export default class Portal extends Component<{ parentId: string; className?: st
 
 	override render() {
 		if (this.modalRoot) return ReactDOM.createPortal(this.props.children, this.el);
-		else return null;
+		return null;
 	}
 }

@@ -14,7 +14,7 @@ import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
-import { MouseEvent, useMemo, useRef, useState } from "react";
+import { type MouseEvent, useMemo, useRef, useState } from "react";
 
 interface ShareProps {
 	path: string;

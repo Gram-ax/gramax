@@ -1,5 +1,5 @@
-import { TitleItem } from "@core-ui/ContextServices/LinkTitleTooltip";
-import { TocItem } from "@ext/navigation/article/logic/createTocItems";
+import type { TitleItem } from "@core-ui/ContextServices/LinkTitleTooltip";
+import type { TocItem } from "@ext/navigation/article/logic/createTocItems";
 
 const getTitleItemsByTocItems = (items: TocItem[]): TitleItem[] => {
 	if (!items.length) return [];

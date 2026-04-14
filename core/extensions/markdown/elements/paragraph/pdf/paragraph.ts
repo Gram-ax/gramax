@@ -1,9 +1,9 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { ZERO_WIDTH_SPACE } from "@ext/pdfExport/config";
-import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { extractContent } from "@ext/pdfExport/utils/extractTextForCases";
-import { JSONContent } from "@tiptap/core";
-import { Content } from "pdfmake/interfaces";
+import type { JSONContent } from "@tiptap/core";
+import type { Content } from "pdfmake/interfaces";
 
 export async function paragraphCase(node: Tag | JSONContent, context: pdfRenderContext): Promise<Content[]> {
 	const children = "children" in node ? node.children : node.content;

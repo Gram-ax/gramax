@@ -2,11 +2,11 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 const updateContent: Command<{ ctx: Context; articlePath: Path; catalogName: string; editTree: JSONContent }, void> =
 	Command.create({
@@ -30,7 +30,6 @@ const updateContent: Command<{ ctx: Context; articlePath: Path; catalogName: str
 				article,
 				catalog,
 				convertContentToUiLanguage(ctx.contentLanguage || catalog.props.language),
-				ctx.user.isLogged,
 			);
 			const markdown = await formatter.render(editTree, context);
 			await article.updateContent(markdown);

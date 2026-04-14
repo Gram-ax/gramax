@@ -1,10 +1,10 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { PopoverManager } from "@ext/articleProvider/logic/PopoverManager";
 import InboxNoteTooltipEditor from "@ext/inbox/components/InboxNoteTooltipEditor";
 import { INBOX_LOCALSTORAGE_KEY } from "@ext/inbox/models/consts";
-import { InboxArticle } from "@ext/inbox/models/types";
+import type { InboxArticle } from "@ext/inbox/models/types";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 export type InboxContextType = {

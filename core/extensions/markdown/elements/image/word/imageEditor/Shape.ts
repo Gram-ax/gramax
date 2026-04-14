@@ -1,6 +1,6 @@
 import t from "@ext/localization/locale/translate";
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 abstract class Shape {
 	protected _radius = 9;

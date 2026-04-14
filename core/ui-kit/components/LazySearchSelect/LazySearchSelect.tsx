@@ -1,11 +1,11 @@
 import t from "@ext/localization/locale/translate";
 import {
 	LazySearchSelect as UiKitLazySearchSelect,
-	SearchSelectOption as UiKitLazySearchSelectOption,
+	type SearchSelectOption as UiKitLazySearchSelectOption,
 } from "ics-ui-kit/components/search-select";
-import { RenderOptionProps as UiKitRenderOptionProps } from "ics-ui-kit/components/search-select/async-search-select/types";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { RenderOptionProps as UiKitRenderOptionProps } from "ics-ui-kit/components/search-select/async-search-select/types";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitLazySearchSelectProps = ExtractComponentGeneric<typeof UiKitLazySearchSelect>;
 

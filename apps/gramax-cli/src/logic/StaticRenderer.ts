@@ -37,6 +37,7 @@ class StaticRenderer {
 				const articleData = {
 					...articlePageData,
 					catalogProps,
+					openGraphData: null,
 				};
 
 				const htmlContent = renderAppContent(articleData, articlePageDataContext);

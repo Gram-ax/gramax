@@ -1,9 +1,9 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import Localizer from "@ext/localization/core/Localizer";
-import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 
 export interface RenderContent {
 	title: string;

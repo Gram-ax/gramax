@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { memo, ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 
 interface ActionButtonContainerProps {
 	children: ReactNode;

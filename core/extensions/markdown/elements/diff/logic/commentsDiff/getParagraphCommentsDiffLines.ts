@@ -1,6 +1,6 @@
-import AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
-import { DiffAstComment } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
-import { CommentDiffLine, Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
+import type AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
+import type { DiffAstComment } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
+import type { CommentDiffLine, Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 const getParagraphCommentsDiffLines = (

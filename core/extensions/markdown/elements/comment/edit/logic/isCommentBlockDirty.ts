@@ -1,4 +1,4 @@
-import { Instance, Props } from "tippy.js";
+import type { Instance, Props } from "tippy.js";
 
 export const isCommentBlockDirty = (instance: Instance<Props>) => {
 	const comment = instance.popper;

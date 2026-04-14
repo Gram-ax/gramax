@@ -1,19 +1,19 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemType } from "@core/FileStructue/Item/ItemType";
 import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
-import ResourceUpdater from "@core/Resource/ResourceUpdater";
-import { InboxProps } from "@ext/inbox/models/types";
+import type ResourceUpdater from "@core/Resource/ResourceUpdater";
+import type { InboxProps } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import IPermission from "../../../extensions/security/logic/Permission/IPermission";
+import type IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
-import { ClientArticleProps } from "../../SitePresenter/SitePresenter";
-import { Category } from "../Category/Category";
+import type { ClientArticleProps } from "../../SitePresenter/SitePresenter";
+import type { Category } from "../Category/Category";
 
 export type ItemEvents = Event<"item-order-updated", { item: Item }> &
 	Event<"item-pre-save", { item: Item; mutable: { content: string; props: ItemProps } }> &
@@ -37,6 +37,7 @@ declare module "@core/FileStructue/Item/Item" {
 		shouldBeCreated?: boolean;
 
 		searchPhrases?: string[];
+		notifications?: { state?: string; groups?: string[]; users?: string[] };
 	}
 }
 

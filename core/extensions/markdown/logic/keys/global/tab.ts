@@ -1,6 +1,6 @@
 import { listTypes } from "@ext/markdown/elements/joinLists/joinLists";
-import KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
-import KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
+import type KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
+import type KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
 
 const blockToListItem: KeyboardRule = ({ editor, node, parentNode, nodePosition }) => {
 	if (!parentNode || parentNode.type.name === "listItem") return false;

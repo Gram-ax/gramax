@@ -1,10 +1,10 @@
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import ScrollableElement from "@components/Layouts/ScrollableElement";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import { classNames } from "@components/libs/classNames";
+import { useRouter } from "@core/Api/useRouter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
@@ -13,11 +13,12 @@ import { BranchStatusEnum } from "@ext/git/actions/Branch/components/BranchStatu
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
 import validateBranchError from "@ext/git/actions/Branch/components/logic/validateBranchError";
 import Search from "@ext/git/actions/Branch/components/Search";
-import ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
+import type ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import t from "@ext/localization/locale/translate";
-import { RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Loader } from "@ui-kit/Loader";
+import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const BranchActionsWrapper = styled.div`
 	padding-top: 0.52em;
@@ -109,6 +110,7 @@ const BranchActions = (props: BranchActionsProps) => {
 		setIsInitNewBranch,
 	} = props;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const router = useRouter();
 
 	const [initNewBranchName, setInitNewBranchName] = useState("");
 	const [isInitNewBranchNameExist, setIsInitNewBranchNameExist] = useState(false);
@@ -145,7 +147,7 @@ const BranchActions = (props: BranchActionsProps) => {
 		const a = await response.json();
 		setNewBranches(a);
 		setIsLoadingData(false);
-	}, [apiUrlCreator]);
+	}, [apiUrlCreator, setShow]);
 
 	const validateBranchName = useCallback(
 		(value: string): string => {
@@ -171,12 +173,15 @@ const BranchActions = (props: BranchActionsProps) => {
 				return;
 			}
 
+			const newPathname = await response.text();
+			router.pushPath(newPathname);
+
 			onSwitchBranch?.(false);
 			setIsInitNewBranch(false);
 			await getNewBranches();
 			setApiProcess(false);
 		},
-		[onSwitchBranch, apiUrlCreator, getNewBranches],
+		[onSwitchBranch, apiUrlCreator, getNewBranches, router, setIsInitNewBranch],
 	);
 
 	const initNewBranch = useCallback(
@@ -195,12 +200,15 @@ const BranchActions = (props: BranchActionsProps) => {
 			await getNewBranches();
 			setApiProcess(false);
 		},
-		[onSwitchBranch, apiUrlCreator, getNewBranches],
+		[onSwitchBranch, apiUrlCreator, getNewBranches, setIsInitNewBranch],
 	);
 
-	const canSwitchBranch = (branchName: string) => {
-		return !isInitNewBranch && branchName && !isInitNewBranch && currentBranch !== branchName && !apiProcess;
-	};
+	const canSwitchBranch = useCallback(
+		(branchName: string) => {
+			return !isInitNewBranch && branchName && !isInitNewBranch && currentBranch !== branchName && !apiProcess;
+		},
+		[isInitNewBranch, currentBranch, apiProcess],
+	);
 
 	const items = useMemo(
 		() =>
@@ -213,14 +221,14 @@ const BranchActions = (props: BranchActionsProps) => {
 				switchBranch,
 				onMergeRequestCreate,
 			),
-		[branches, currentBranch, switchBranch, canSwitchBranch, getNewBranches],
+		[branches, currentBranch, switchBranch, getNewBranches, onMergeRequestCreate, canSwitchBranch],
 	);
 
 	useEffect(() => {
 		setIsInitNewBranchNameExist(
 			[currentBranch, ...branches.map((otherBranch) => otherBranch.name)].includes(initNewBranchName),
 		);
-	}, [initNewBranchName]);
+	}, [initNewBranchName, currentBranch, branches]);
 
 	useEffect(() => {
 		if (isInitNewBranch) initNewBranchInputRef.current?.focus();
@@ -231,16 +239,17 @@ const BranchActions = (props: BranchActionsProps) => {
 	useEffect(() => {
 		if (areNewBranchesLoading) return;
 		if (isInitNewBranch) initNewBranchInputRef.current?.focus();
-	}, [areNewBranchesLoading]);
+	}, [areNewBranchesLoading, isInitNewBranch]);
 
 	useEffect(() => {
 		if (!newBranches) return;
 		if (!newBranches.length) return;
-		const branches = newBranches.filter((b) => b.name != currentBranch);
+		const branches = newBranches.filter((b) => b.name !== currentBranch);
 		setAllBranches(branches);
 		setBranches(branches);
-	}, [newBranches]);
+	}, [newBranches, currentBranch]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!containerRef.current || !tabWrapperRef.current || !show || searchValue.length || isLoadingSearch) return;
 		const mainElement = tabWrapperRef.current;
@@ -249,7 +258,16 @@ const BranchActions = (props: BranchActionsProps) => {
 
 		if (!mainElement && !isSpinner) return;
 		setContentHeight(calculateTabWrapperHeight(mainElement));
-	}, [containerRef.current, apiProcess, items, tabWrapperRef.current, isInitNewBranch, searchValue, isLoadingSearch]);
+	}, [
+		containerRef.current,
+		apiProcess,
+		items,
+		tabWrapperRef.current,
+		isInitNewBranch,
+		searchValue,
+		isLoadingSearch,
+		setContentHeight,
+	]);
 
 	const modalOnCloseHandler = useCallback(() => {
 		setIsInitNewBranch(false);
@@ -265,12 +283,13 @@ const BranchActions = (props: BranchActionsProps) => {
 		if (!mergeData.current.ok) tryOpenMergeConflict({ mergeData: { ...mergeData.current } });
 
 		mergeData.current = { ok: true };
-	}, []);
+	}, [allBranches, setContentHeight, setIsInitNewBranch]);
 
 	const modalOnOpenHandler = useCallback(() => {
 		void getNewBranches();
 	}, [getNewBranches]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (show) modalOnOpenHandler();
 		else modalOnCloseHandler();
@@ -284,7 +303,7 @@ const BranchActions = (props: BranchActionsProps) => {
 		[allBranches],
 	);
 
-	if (apiProcess || isLoadingData) return <SpinnerLoader fullScreen ref={containerRef} />;
+	if (apiProcess || isLoadingData) return <Loader className="py-6" ref={containerRef} size="3xl" />;
 
 	return (
 		<BranchActionsWrapper ref={containerRef}>

@@ -1,20 +1,16 @@
-import MarkdownIt from "markdown-it";
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+import type MarkdownIt from "markdown-it";
 import Ast from "./src/ast/index";
-import Node from "./src/ast/node";
+import type Node from "./src/ast/node";
 import Tag from "./src/ast/tag";
 import functions from "./src/functions/index";
 import parser from "./src/parser";
 import renderers from "./src/renderers/index";
 import * as nodes from "./src/schema";
-import { truthy } from "./src/tags/conditional";
 import tags from "./src/tags/index";
 import Tokenizer from "./src/tokenizer";
-import transformer from "./src/transformer";
-import transforms from "./src/transforms/index";
 import type { Config, RenderableTreeNode, Token, ValidateError } from "./src/types";
 import validator from "./src/validator";
-
-export * from "./src/types";
 
 const tokenizer = new Tokenizer({ linkify: true });
 
@@ -87,25 +83,5 @@ export function createElement(name: string | { key?: string | number }, attribut
 	return { name, attributes, children };
 }
 
-export default {
-	nodes,
-	tags,
-	functions,
-	renderers,
-	transforms,
-	tokenizer,
-	Ast,
-	Tag,
-	Tokenizer,
-	transformer,
-	validator,
-	parse,
-	renderMarkdownItHtml,
-	transform,
-	validate,
-	createElement,
-	use,
-	truthy,
-};
-
-export { Ast, Tag, Tokenizer, functions, nodes, renderers, tags, transformer, transforms, truthy, validator };
+export { Tag, Node, Tokenizer, renderers };
+export * from "./src/types";

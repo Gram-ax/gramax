@@ -1,15 +1,16 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { TableDB } from "../../../../../logic/components/tableDB/table";
-import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import type { TableDB } from "../../../../../logic/components/tableDB/table";
+import type FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import { Article } from "../../../../../logic/FileStructue/Article/Article";
-import { Item } from "../../../../../logic/FileStructue/Item/Item";
-import UiLanguage from "../../../../localization/core/model/Language";
-import UserInfo from "../../../../security/logic/User/UserInfo";
-import MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
-import MarkdownParser from "../Parser";
+import type { Article } from "../../../../../logic/FileStructue/Article/Article";
+import type { Item } from "../../../../../logic/FileStructue/Item/Item";
+import type UiLanguage from "../../../../localization/core/model/Language";
+import type UserInfo from "../../../../security/logic/User/UserInfo";
+import type MarkdownFormatter from "../../edit/logic/Formatter/Formatter";
+import type MarkdownParser from "../Parser";
 
 export default interface ParserContext {
 	getItemByPath(itemPath: Path): Item;
@@ -19,7 +20,6 @@ export default interface ParserContext {
 	getStorageId(): string;
 	getRootPath(): Path;
 	getBasePath(): Path;
-	getIsLogged(): boolean;
 	getLanguage(): UiLanguage;
 	getDiagramRendererServerUrl(): string;
 	getProp(propName: string): any;
@@ -39,7 +39,6 @@ export class ArticleParserContext implements ParserContext {
 		private _catalog: ReadonlyCatalog,
 		private _basePath: Path,
 		private _language: UiLanguage,
-		private _isLogged: boolean,
 		private _diagramRendererServerUrl: string,
 		private _tablesManager: TableDB,
 		private _getUserByMail: (mail: string) => Promise<UserInfo> | UserInfo,
@@ -82,10 +81,6 @@ export class ArticleParserContext implements ParserContext {
 		return this._basePath;
 	}
 
-	getIsLogged() {
-		return this._isLogged;
-	}
-
 	getLanguage() {
 		return this._language;
 	}
@@ -112,7 +107,6 @@ export class ArticleParserContext implements ParserContext {
 			this._catalog,
 			this._basePath,
 			this._language,
-			this._isLogged,
 			this._diagramRendererServerUrl,
 			this._tablesManager,
 			this._getUserByMail,

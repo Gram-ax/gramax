@@ -1,29 +1,25 @@
-import Tooltip from "@components/Atoms/Tooltip";
 import t from "@ext/localization/locale/translate";
-import { TippyProps } from "@tippyjs/react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
 
 interface EditMarkdownProps {
 	visible: boolean;
-	children: TippyProps["children"];
+	children: React.ReactNode;
 }
 
 const EditMarkdown = ({ visible, children }: EditMarkdownProps) => {
-	const zIndex = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--z-index-base"), 10);
 	return (
-		<Tooltip
-			appendTo={"parent"}
-			content={
-				<span>
-					{t("click")}
-					<em>{" " + t("article.edit-markdown") + " "}</em>
-					{t("to-make-changes")}
-				</span>
-			}
-			visible={visible}
-			zIndex={zIndex}
-		>
-			{children}
-		</Tooltip>
+		<TooltipProvider>
+			<Tooltip open={visible}>
+				<TooltipTrigger asChild>{children}</TooltipTrigger>
+				<TooltipContent>
+					<span>
+						{t("click")}
+						<em>{` ${t("article.edit-markdown")} `}</em>
+						{t("to-make-changes")}
+					</span>
+				</TooltipContent>
+			</Tooltip>
+		</TooltipProvider>
 	);
 };
 

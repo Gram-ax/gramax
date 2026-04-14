@@ -1,7 +1,7 @@
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 import CloudApi from "@ext/static/logic/CloudApi";
-import CloudUploadStatus, { UploadStatus } from "@ext/static/logic/CloudUploadStatus";
+import CloudUploadStatus, { type UploadStatus } from "@ext/static/logic/CloudUploadStatus";
 
 class VersionedCloudApi extends CloudApi {
 	private _version: string;
@@ -82,19 +82,19 @@ class VersionedCloudApi extends CloudApi {
 				});
 			}
 
-			xhr.upload.onloadstart = function (event) {
+			xhr.upload.onloadstart = (event) => {
 				if (handlers.onProgress) {
 					handlers.onProgress({ current: 0, total: event.total });
 				}
 			};
 
-			xhr.upload.onprogress = function (event) {
+			xhr.upload.onprogress = (event) => {
 				if (event.lengthComputable && handlers.onProgress) {
 					handlers.onProgress({ current: event.loaded, total: event.total });
 				}
 			};
 
-			xhr.onload = function () {
+			xhr.onload = () => {
 				if (xhr.status >= 200 && xhr.status < 300) {
 					handlers.onSuccess?.();
 					resolve(xhr.response);

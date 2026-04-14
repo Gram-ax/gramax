@@ -5,9 +5,9 @@ import InlineProperty from "@ext/markdown/elements/inlineProperty/edit/component
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
 import combineProperties from "@ext/properties/logic/combineProperties";
-import { Property } from "@ext/properties/models";
+import type { Property } from "@ext/properties/models";
 import { NodeSelection } from "@tiptap/pm/state";
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { useCallback } from "react";
 
 const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, selected }: NodeViewProps) => {

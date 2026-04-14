@@ -1,4 +1,4 @@
-import { CustomAttributeTypeInterface, ValidationError } from "../types";
+import type { CustomAttributeTypeInterface, ValidationError } from "../types";
 
 export class Class implements CustomAttributeTypeInterface {
 	validate(value: any): ValidationError[] {

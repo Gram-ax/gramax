@@ -1,5 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
 
 const getTemplates: Command<{ ctx: Context }, string[]> = Command.create({

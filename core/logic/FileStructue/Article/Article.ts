@@ -1,20 +1,20 @@
-import Path from "@core/FileProvider/Path/Path";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type Path from "@core/FileProvider/Path/Path";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type FileStructure from "@core/FileStructue/FileStructure";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type Hasher from "@core/Hash/Hasher";
-import ResourceUpdater from "@core/Resource/ResourceUpdater";
+import type ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import { RwLock } from "@core/utils/rwlock";
-import { InboxProps } from "@ext/inbox/models/types";
-import { ParsedContext } from "@ext/markdown/core/Parser/ParserContext/ParsedContext";
+import type { InboxProps } from "@ext/inbox/models/types";
+import type { ParsedContext } from "@ext/markdown/core/Parser/ParserContext/ParsedContext";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { JSONContent } from "@tiptap/core";
-import { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
-import { TocItem } from "../../../extensions/navigation/article/logic/createTocItems";
-import { Category } from "../Category/Category";
-import { Item, type ItemEvents, type ItemProps, UpdateItemProps } from "../Item/Item";
+import type { JSONContent } from "@tiptap/core";
+import type { RenderableTreeNode } from "../../../extensions/markdown/core/render/logic/Markdoc";
+import type { TocItem } from "../../../extensions/navigation/article/logic/createTocItems";
+import type { Category } from "../Category/Category";
+import { Item, type ItemEvents, type ItemProps, type UpdateItemProps } from "../Item/Item";
 
 export type ArticleEvents = ItemEvents;
 

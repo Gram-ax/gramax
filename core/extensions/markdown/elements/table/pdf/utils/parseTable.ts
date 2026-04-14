@@ -1,10 +1,10 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { aggregateTable, setCellAlignment } from "@ext/markdown/elements/table/edit/logic/exportUtils";
 import { parseRow } from "@ext/markdown/elements/table/pdf/tableRow";
 import { MAX_WIDTH } from "@ext/pdfExport/config";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { JSONContent } from "@tiptap/core";
-import { TableBody } from "../types";
+import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { JSONContent } from "@tiptap/core";
+import type { TableBody } from "../types";
 
 export const parseTable = async (
 	rows: Tag[] | JSONContent[],

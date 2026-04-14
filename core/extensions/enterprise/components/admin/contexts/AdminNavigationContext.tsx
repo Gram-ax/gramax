@@ -1,4 +1,4 @@
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import assert from "assert";
 import { createContext, type ReactNode, useCallback, useContext, useState } from "react";
 
@@ -30,6 +30,7 @@ export type PageParams = {
 	[Page.VIEW_METRICS]: undefined;
 	[Page.ROLES]: undefined;
 	[Page.SEARCH_METRICS]: undefined;
+	[Page.ROLES]: undefined;
 };
 
 const getDefaultPageParams = (): Partial<PageParams> => ({

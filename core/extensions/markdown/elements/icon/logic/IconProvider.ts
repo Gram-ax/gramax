@@ -1,9 +1,9 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import { uniqueName } from "@core/utils/uniqueName";
-import { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
+import type { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 
 const ICONS_FOLDER = ".icons";
 const ALLOWED_EXTENSIONS = ["svg"];

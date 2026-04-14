@@ -1,5 +1,5 @@
 import Path from "@core/FileProvider/Path/Path";
-import { addScopeToPath } from "../utils";
+import { addScopeToPath } from "../addScopeToPath";
 
 describe("addGitTreeScopeToPath", () => {
 	test("обрабатывает путь без скопа", () => {

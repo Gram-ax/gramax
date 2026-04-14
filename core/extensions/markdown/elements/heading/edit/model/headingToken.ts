@@ -1,4 +1,4 @@
-import { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
+import type { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
 
 const heading: ParseSpec = {
 	block: "heading",

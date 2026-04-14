@@ -74,6 +74,24 @@ export const upload = async (channel: string, version: string) => {
 			const latest = path.join(channel, "latest", `gramax.${platform}.${pack}.version`);
 			const innerLatest = path.join(channel, v1, "latest", `gramax.${platform}.${pack}.version`);
 
+			const uploadLatest = async (latestPath: string) => {
+				const serverVersion = await s3
+					.file(latestPath)
+					.text()
+					.catch((e) => {
+						console.warn(`failed to get version from ${latestPath}: ${e}; using 0.0.0 instead`);
+						return "0.0.0";
+					});
+
+				if (semver.order(serverVersion, version) < 0) {
+					await s3.write(latestPath, version);
+					console.log(`uploaded latest ${latestPath}: ${version}`);
+				} else {
+					const msg = `on-server version ${serverVersion} (${platform}, ${pack}) >= ${version}, skipping uploading new file to ${latestPath}`;
+					console.log(msg);
+				}
+			};
+
 			for (const file of files) {
 				if (!(await fs.exists(path.join(artifactsDir, platform, file)))) {
 					missing = true;
@@ -98,22 +116,8 @@ export const upload = async (channel: string, version: string) => {
 				continue;
 			}
 
-			const serverVersion = await s3
-				.file(latest)
-				.text()
-				.catch((e) => {
-					console.warn(`failed to get version from ${latest}: ${e}; using 0.0.0 instead`);
-					return "0.0.0";
-				});
-
-			if (semver.order(serverVersion, version) < 0) {
-				await s3.write(latest, version);
-				await s3.write(innerLatest, version);
-				console.log(`uploaded ${latest}: ${version}`);
-			} else {
-				const msg = `on-server version ${serverVersion} (${platform}, ${pack}) >= ${version}, skipping uploading new file`;
-				console.log(msg);
-			}
+			await uploadLatest(latest);
+			await uploadLatest(innerLatest);
 		}
 	}
 

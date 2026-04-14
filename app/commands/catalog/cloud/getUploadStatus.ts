@@ -1,7 +1,7 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
-import CloudUploadStatus, { UploadStatus } from "@ext/static/logic/CloudUploadStatus";
+import CloudUploadStatus, { type UploadStatus } from "@ext/static/logic/CloudUploadStatus";
 
 const getUploadStatus: Command<{ catalogName: string }, UploadStatus> = Command.create({
 	path: "catalog/cloud/getUploadStatus",

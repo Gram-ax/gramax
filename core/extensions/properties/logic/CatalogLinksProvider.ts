@@ -1,7 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
 
 export type ArticlePath = string;
 export type ArticleLinks = Set<Path>;

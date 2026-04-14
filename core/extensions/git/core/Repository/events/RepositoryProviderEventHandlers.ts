@@ -1,6 +1,6 @@
 import EventHandlerProvider from "@core/Event/EventHandlerProvider";
-import FileStructure from "@core/FileStructue/FileStructure";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import RepositoryProviderCatalogEntryAttachGit from "@ext/versioning/events/RepositoryProviderCatalogEntryAttachGit";
 
 export default class RepositoryProviderEventHandlers extends EventHandlerProvider {

@@ -6,7 +6,7 @@ import Timer from "@ext/ai/components/Audio/Timer";
 import AudioHistory from "@ext/ai/components/Audio/Visualizer/AudioHistory";
 import CanvasVisualizator from "@ext/ai/components/Audio/Visualizer/CanvasVisualizator";
 import { AiToolbarButton } from "@ext/ai/components/Helpers/AiToolbarButton";
-import { AudioHistoryItem } from "@ext/ai/models/types";
+import type { AudioHistoryItem } from "@ext/ai/models/types";
 import t from "@ext/localization/locale/translate";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { useCallback, useEffect, useRef, useState } from "react";

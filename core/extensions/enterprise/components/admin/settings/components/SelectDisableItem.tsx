@@ -2,7 +2,7 @@ import { cn } from "@core-ui/utils/cn";
 import t from "@ext/localization/locale/translate";
 import { Icon } from "@ui-kit/Icon";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 interface SelectDisableItemProps {
 	text: string;

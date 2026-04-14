@@ -1,3 +1,4 @@
+import LucideIconComponent from "@components/Atoms/Icon/LucideIcon";
 import t from "@ext/localization/locale/translate";
 import {
 	AlertDialog,
@@ -11,7 +12,7 @@ import {
 	AlertDialogTrigger,
 } from "ics-ui-kit/components/alert-dialog";
 import { Button } from "ics-ui-kit/components/button";
-import { AlertCircle } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { type ComponentProps, useState } from "react";
 
 export type AlertConfirmProps = {
@@ -48,7 +49,7 @@ export const AlertConfirm = (props: AlertConfirmProps) => {
 			<AlertDialogTrigger asChild={asChild}>{children}</AlertDialogTrigger>
 			<AlertDialogContent status={status}>
 				<AlertDialogHeader>
-					<AlertDialogIcon icon={AlertCircle} />
+					<AlertDialogIcon icon={LucideIconComponent("loader-circle") as LucideIcon} />
 					<AlertDialogTitle>{title}</AlertDialogTitle>
 					<AlertDialogDescription>{description}</AlertDialogDescription>
 				</AlertDialogHeader>

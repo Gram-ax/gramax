@@ -1,4 +1,4 @@
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 
 function hasMarkInSelection(state: EditorState, markName?: string): boolean {
 	const { from, to } = state.selection;

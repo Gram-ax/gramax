@@ -6,7 +6,7 @@ import FormStyle from "@components/Form/FormStyle";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { useEffect, useState } from "react";
 
 const HTMLEditor = ({ content, editor, onClose }: { content?: string; editor: Editor; onClose: () => void }) => {

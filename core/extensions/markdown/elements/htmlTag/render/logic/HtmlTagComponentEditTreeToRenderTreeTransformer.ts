@@ -1,4 +1,4 @@
-import { EditTreeToRenderTreeTransformer } from "@ext/markdown/core/Parser/EditTreeToRenderTree";
+import type { EditTreeToRenderTreeTransformer } from "@ext/markdown/core/Parser/EditTreeToRenderTree";
 
 const HTML_TAG_COMPONENTS = ["blockHtmlTagComponent", "inlineHtmlTagComponent"];
 

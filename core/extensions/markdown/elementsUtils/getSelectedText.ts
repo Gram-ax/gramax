@@ -1,5 +1,5 @@
-import { Node } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
 import inlineMdLeafText from "../elements/md/logic/inlineMdLeafText";
 
 const leafTextFuncs: ((n: Node) => string)[] = [inlineMdLeafText];

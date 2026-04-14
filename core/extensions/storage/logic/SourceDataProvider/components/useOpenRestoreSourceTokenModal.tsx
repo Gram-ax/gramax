@@ -6,9 +6,9 @@ import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSo
 import type GitLabSourceData from "@ext/git/core/model/GitLabSourceData.schema";
 import t from "@ext/localization/locale/translate";
 import type NotionSourceData from "@ext/notion/model/NotionSourceData";
-import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
+import type CreateStorageModal from "@ext/storage/components/CreateStorageModal";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
-import { ComponentProps, useCallback } from "react";
+import { type ComponentProps, useCallback } from "react";
 import type SourceData from "../model/SourceData";
 
 export const useOpenRestoreSourceTokenModal = (source: SourceData) => {

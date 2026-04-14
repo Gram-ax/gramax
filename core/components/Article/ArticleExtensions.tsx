@@ -1,7 +1,7 @@
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { useToolbarViewport } from "@ext/markdown/core/edit/logic/Toolbar/useToolbarViewport";
-import { useMediaQuery } from "@mui/material";
 
 const ToolbarHeight = styled.div`
 	height: var(--keyboard-height, 0px);

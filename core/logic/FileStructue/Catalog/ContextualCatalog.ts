@@ -1,9 +1,9 @@
 import type Context from "@core/Context/Context";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
-import { type ArticleFilter, Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { ArticleFilter, Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";

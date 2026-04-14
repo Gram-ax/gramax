@@ -6,7 +6,7 @@ import { parseArgs } from "util";
 import * as b from "./builder";
 import * as s from "./sign";
 import * as u from "./upload";
-import { channel, env, isCi, project, version } from "./util";
+import { channel, env, isCi, project, version, versionShort } from "./util";
 
 export const makeConfigFromEnvs = (skipSign: boolean = false): b.BuildOptions => {
 	if (env.optional("IS_MERGE_REQUEST") === "true") {
@@ -22,28 +22,27 @@ export const makeConfigFromEnvs = (skipSign: boolean = false): b.BuildOptions =>
 		};
 	}
 
-	if (env.optional("BRANCH") === "master") {
+	if (env.optional("BRANCH") === "develop") {
 		return {
-			productName: "Gramax",
-			productId: "gramax.app",
+			productName: "Gramax Dev",
+			productId: "gramax.dev",
 			version: version(),
 			updateChannel: channel(),
 			updateHost: env.optional("FORCE_HOST"),
 
-			useDevelopmentProfile: false,
+			useDevelopmentProfile: true,
 			useSign: isCi && !skipSign,
 			useSignVerify: isCi && !skipSign,
 		};
-	}
+	};
 
 	return {
-		productName: "Gramax Dev",
-		productId: "gramax.dev",
+		productName: "Gramax",
+		productId: "gramax.app",
 		version: version(),
 		updateChannel: channel(),
 		updateHost: env.optional("FORCE_HOST"),
-
-		useDevelopmentProfile: true,
+		useDevelopmentProfile: false,
 		useSign: isCi && !skipSign,
 		useSignVerify: isCi && !skipSign,
 	};
@@ -224,7 +223,15 @@ export const printVersion = async () => {
 	const args = parseArgs({
 		args: process.argv.slice(3),
 		allowPositionals: true,
+		options: {
+			short: { type: "boolean" },
+		}
 	});
+
+	if (args.values?.short) {
+		console.log(versionShort(args.positionals?.join("-").replaceAll(" ", "-").trim()));
+		return;
+	}
 
 	const v = version(args.positionals?.join("-").replaceAll(" ", "-").trim());
 	console.log(v);

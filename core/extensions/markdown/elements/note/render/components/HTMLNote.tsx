@@ -1,6 +1,6 @@
 import { NoteType, noteIcons } from "@ext/markdown/elements/note/render/component/Note";
-import React from "react";
-import HTMLComponents from "../../../../core/render/components/getComponents/HTMLComponents";
+import type React from "react";
+import type HTMLComponents from "../../../../core/render/components/getComponents/HTMLComponents";
 
 interface HTMLNoteProps {
 	type?: string;

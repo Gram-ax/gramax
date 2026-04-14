@@ -1,6 +1,6 @@
 import { useCatalogActionsContext } from "@components/Actions/CatalogActions/CatalogActionsContext";
 import CatalogExport from "@ext/catalog/actions/propsEditor/components/CatalogExport";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface ExportCatalogItemProps {
 	children?: () => ReactNode;

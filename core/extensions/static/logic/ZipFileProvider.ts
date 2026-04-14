@@ -67,11 +67,11 @@ class ZipFileProvider extends DiskFileProvider {
 
 	/* eslint-disable @typescript-eslint/require-await, @typescript-eslint/no-unused-vars*/
 	async getItems(path: Path): Promise<FileInfo[]> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("getItems"));
 	}
 
 	async isFolder(path: Path): Promise<boolean> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("isFolder"));
 	}
 
 	async exists(path: Path): Promise<boolean> {
@@ -79,15 +79,16 @@ class ZipFileProvider extends DiskFileProvider {
 	}
 
 	async getStat(path: Path, lstat = false): Promise<FileInfo> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("getStat"));
 	}
 
 	async delete(path: Path, preferTrash?: boolean): Promise<void> {
-		throw new Error("Not Supported");
+		const pathname = path.value;
+		this.currentFolder.remove(pathname === "." || pathname === "/" ? "" : pathname);
 	}
 
 	async move(from: Path, to: Path): Promise<void> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("move"));
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
@@ -95,39 +96,43 @@ class ZipFileProvider extends DiskFileProvider {
 	}
 
 	async readdir(path: Path): Promise<string[]> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("readdir"));
 	}
 
 	async readlink(path: Path): Promise<string> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("readlink"));
 	}
 
 	async symlink(target: Path, path: Path): Promise<void> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("symlink"));
 	}
 
 	async deleteEmptyFolders(folderPath: Path): Promise<void> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("deleteEmptyFolders"));
 	}
 
 	watch(callback: (changeItems: ItemRefStatus[]) => void): void {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("watch"));
 	}
 
 	stopWatch(): void {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("stopWatch"));
 	}
 
 	startWatch(): void {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("startWatch"));
 	}
 
 	async createRootPathIfNeed(): Promise<void> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("createRootPathIfNeed"));
 	}
 
 	async isRootPathExists(): Promise<boolean> {
-		throw new Error("Not Supported");
+		throw new Error(this._getMsgNotImplemented("isRootPathExists"));
+	}
+
+	private _getMsgNotImplemented(method: string) {
+		return `${method} is not supported in RpcFileProvider`;
 	}
 }
 

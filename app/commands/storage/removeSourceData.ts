@@ -1,4 +1,4 @@
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
 
 const removeSourceData: Command<{ ctx: Context; sourceName: string }, void> = Command.create({

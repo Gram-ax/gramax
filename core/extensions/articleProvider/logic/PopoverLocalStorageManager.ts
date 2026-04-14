@@ -1,5 +1,5 @@
-import { PopoverRect } from "@ext/articleProvider/logic/Popover";
-import { ItemID } from "@ext/articleProvider/models/types";
+import type { PopoverRect } from "@ext/articleProvider/logic/Popover";
+import type { ItemID } from "@ext/articleProvider/models/types";
 
 export type PopoverLocalStorageData<T> = T & {
 	[key: ItemID]: PopoverItemStorageData;

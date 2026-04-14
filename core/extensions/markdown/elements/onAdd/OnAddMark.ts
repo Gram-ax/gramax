@@ -1,5 +1,5 @@
 import { Extension } from "@tiptap/core";
-import { Mark } from "@tiptap/pm/model";
+import type { Mark } from "@tiptap/pm/model";
 import { Plugin, PluginKey } from "prosemirror-state";
 
 const OnAddMark = Extension.create({

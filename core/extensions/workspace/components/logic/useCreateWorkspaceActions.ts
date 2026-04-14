@@ -3,7 +3,7 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { clearData } from "@core-ui/utils/initGlobalFuncs";
-import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { useCallback, useState } from "react";
 
 export const useCreateWorkspaceActions = () => {

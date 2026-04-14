@@ -4,14 +4,14 @@ import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMi
 import Path from "@core/FileProvider/Path/Path";
 import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import getConfluenceUnsupportedElements from "@ext/confluence/core/logic/getConfluenceUnsupportedElements";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
+import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import type { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import NotionAPI from "@ext/notion/api/NotionAPI";
 import getNotionUnsupportedElements from "@ext/notion/logic/getNotionUnsupportedElements";
 import NotionStorage from "@ext/notion/logic/NotionStorage";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import StorageData from "@ext/storage/models/StorageData";
+import type StorageData from "@ext/storage/models/StorageData";
 
 const getUnsupportedElements: Command<
 	{ storageDataName: Path; sourceType: SourceType; data: StorageData },

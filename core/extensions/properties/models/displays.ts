@@ -2,7 +2,7 @@ import Kanban from "@ext/markdown/elements/view/render/components/Displays/Kanba
 import List from "@ext/markdown/elements/view/render/components/Displays/List";
 import Table from "@ext/markdown/elements/view/render/components/Displays/Table";
 import { Display } from "@ext/properties/models/display";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export const getDisplayComponent: {
 	[type in Display]: (args: { [name: string]: any }) => ReactNode;

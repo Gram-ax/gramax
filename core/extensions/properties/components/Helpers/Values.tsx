@@ -2,7 +2,7 @@ import Input from "@components/Atoms/Input";
 import {
 	closestCenter,
 	DndContext,
-	DragEndEvent,
+	type DragEndEvent,
 	KeyboardSensor,
 	MouseSensor,
 	TouchSensor,
@@ -14,11 +14,11 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from "@dnd-kit/utilities";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
-import { ColumnDef, flexRender, getCoreRowModel, Row, useReactTable } from "@ui-kit/DataTable";
+import { type ColumnDef, flexRender, getCoreRowModel, type Row, useReactTable } from "@ui-kit/DataTable";
 import { EmptyState } from "@ui-kit/EmptyState";
 import { Table, TableBody, TableCell, TableRow } from "@ui-kit/Table";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 
 interface ValuesProps {
 	data: string[];

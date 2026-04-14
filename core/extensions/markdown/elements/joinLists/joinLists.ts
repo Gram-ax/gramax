@@ -1,6 +1,6 @@
 import { Extension } from "@tiptap/core";
-import { Node } from "prosemirror-model";
-import { Plugin, PluginKey, Transaction } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import { Plugin, PluginKey, type Transaction } from "prosemirror-state";
 
 export const listTypes = ["orderedList", "bulletList", "taskList"];
 

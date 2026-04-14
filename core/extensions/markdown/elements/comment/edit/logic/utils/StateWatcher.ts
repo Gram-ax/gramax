@@ -1,16 +1,16 @@
-import { CommentOptions, CommentStorage } from "@ext/markdown/elements/comment/edit/model/types";
+import type { CommentOptions, CommentStorage } from "@ext/markdown/elements/comment/edit/model/types";
 import {
-	ChangedRange,
+	type ChangedRange,
 	combineTransactionSteps,
-	Editor,
+	type Editor,
 	getChangedRanges,
-	MarkConfig,
-	ParentConfig,
-	Range,
+	type MarkConfig,
+	type ParentConfig,
+	type Range,
 } from "@tiptap/core";
-import { MarkType, Node } from "@tiptap/pm/model";
-import { EditorState, Plugin, PluginKey, Transaction } from "@tiptap/pm/state";
-import { AddMarkStep, AttrStep, RemoveMarkStep, Transform } from "@tiptap/pm/transform";
+import type { MarkType, Node } from "@tiptap/pm/model";
+import { type EditorState, Plugin, PluginKey, type Transaction } from "@tiptap/pm/state";
+import { AddMarkStep, AttrStep, RemoveMarkStep, type Transform } from "@tiptap/pm/transform";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 
 const processCommentPositions = (doc: Node): Map<string, Range[]> => {

@@ -4,7 +4,7 @@ import fixMerge from "@ext/git/actions/MergeConflictHandler/logic/FixConflictLib
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const path = (path: string) => new Path(path);

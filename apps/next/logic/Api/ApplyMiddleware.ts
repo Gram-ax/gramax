@@ -1,11 +1,11 @@
-import { CommandTree } from "@app/commands";
+import type { CommandTree } from "@app/commands";
 import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
-import Application from "@app/types/Application";
-import ApiRequest from "@core/Api/ApiRequest";
-import ApiResponse from "@core/Api/ApiResponse";
+import type Application from "@app/types/Application";
+import type ApiRequest from "@core/Api/ApiRequest";
+import type ApiResponse from "@core/Api/ApiResponse";
 import ApiMiddleware from "@core/Api/middleware/ApiMiddleware";
-import Middleware from "@core/Api/middleware/Middleware";
+import type Middleware from "@core/Api/middleware/Middleware";
 
 export const ApplyApiMiddleware = (
 	api: (this: { app: Application; commands: CommandTree }, req: ApiRequest, res: ApiResponse) => void | Promise<void>,

@@ -5,7 +5,7 @@ import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import Alert, { AlertType } from "@ext/markdown/elements/alert/render/component/Alert";
-import { addScopeToPath } from "@ext/versioning/utils";
+import { addScopeToPath } from "@ext/versioning/addScopeToPath";
 import type { HTMLAttributes } from "react";
 
 export type NotActualRevisionWarningProps = HTMLAttributes<HTMLDivElement>;

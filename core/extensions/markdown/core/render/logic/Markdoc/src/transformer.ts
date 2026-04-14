@@ -1,6 +1,8 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+import type Node from "./ast/node";
 import Tag from "./ast/tag";
 import { Class } from "./schema-types/class";
-import type { Config, Node, NodeType, RenderableTreeNode, RenderableTreeNodes, Schema, SchemaAttribute } from "./types";
+import type { Config, NodeType, RenderableTreeNode, RenderableTreeNodes, Schema, SchemaAttribute } from "./types";
 
 type AttributesSchema = Schema["attributes"];
 
@@ -27,7 +29,7 @@ export default {
 
 		const attrs = { ...globalAttributes, ...schema.attributes };
 		for (const [key, attr] of Object.entries(attrs)) {
-			if ((attr as SchemaAttribute).render == false) continue;
+			if ((attr as SchemaAttribute).render === false) continue;
 
 			const name = typeof (attr as SchemaAttribute).render === "string" ? (attr as SchemaAttribute).render : key;
 

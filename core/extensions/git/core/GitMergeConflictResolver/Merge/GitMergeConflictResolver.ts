@@ -1,8 +1,8 @@
 import type Repository from "@ext/git/core/Repository/Repository";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
-import Path from "../../../../../logic/FileProvider/Path/Path";
+import type FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
+import type Path from "../../../../../logic/FileProvider/Path/Path";
 import GitBaseConflictResolver from "../Base/GitBaseConflictResolver";
 
 export default class GitMergeConflictResolver extends GitBaseConflictResolver {

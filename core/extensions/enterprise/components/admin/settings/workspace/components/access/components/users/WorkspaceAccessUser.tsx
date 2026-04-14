@@ -1,8 +1,8 @@
-import { AccessEntry, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import type { AccessEntry, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { UserToolbarAddBtn } from "@ext/enterprise/components/admin/settings/components/UserToolbarAddBtn";
 import { useWorkspaceAccess } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceAccess";
-import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
-import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
@@ -10,7 +10,7 @@ import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/t
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
 import { usersTableColumns } from "./config/UserTableConfig";
-import { User } from "./types/UserTypes";
+import type { User } from "./types/UserTypes";
 
 interface WorkspaceAccessUserProps {
 	localSettings: WorkspaceSettings;
@@ -41,6 +41,7 @@ export function WorkspaceAccessUser({ localSettings, setLocalSettings, ownerRole
 		},
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: delete button wont appear without this
 	const usersSelectedCount = useMemo(
 		() => usersTable.getFilteredSelectedRowModel().rows.length,
 		[usersTable, usersRowSelection],
@@ -103,9 +104,9 @@ export function WorkspaceAccessUser({ localSettings, setLocalSettings, ownerRole
 					/>
 				}
 			>
-				<AlertDeleteDialog
+				<DeleteSelectedButton
 					hidden={!usersSelectedCount}
-					onConfirm={handleDeleteSelectedUsers}
+					onClick={handleDeleteSelectedUsers}
 					selectedCount={usersSelectedCount}
 				/>
 				<UserToolbarAddBtn

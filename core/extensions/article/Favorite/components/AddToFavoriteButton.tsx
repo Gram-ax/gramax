@@ -1,7 +1,7 @@
 import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
 import t from "@ext/localization/locale/translate";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface AddToFavoriteButtonProps {
 	isFavorite: boolean;

@@ -1,11 +1,10 @@
 import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
-import { Plus } from "lucide-react";
 
 interface PluginsHeaderProps {
 	isRefreshing: boolean;
@@ -33,7 +32,7 @@ export const PluginsHeader = ({
 						</Button>
 					)}
 					<Button onClick={onAddClick}>
-						<Plus size={16} />
+						<Icon icon="plus" size="md" />
 						{t("plugins.list.add-button")}
 					</Button>
 				</>

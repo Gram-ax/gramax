@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { forwardRef, HTMLAttributes, MutableRefObject } from "react";
+import { forwardRef, type HTMLAttributes, type MutableRefObject } from "react";
 
 export enum LinkTheme {
 	INHERIT = "inherit",

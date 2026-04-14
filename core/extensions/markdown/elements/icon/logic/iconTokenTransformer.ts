@@ -1,4 +1,4 @@
-import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
+import type TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 
 const iconTokenTransformer: TokenTransformerFunc = ({ token, transformer, parent }) => {
 	if (token.tag == "icon" && !parent)

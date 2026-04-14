@@ -1,6 +1,5 @@
 import styled from "@emotion/styled";
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import React from "react";
+import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
 const PrintAnnotationsWrap = styled.div`
 	margin-top: 0.5em;

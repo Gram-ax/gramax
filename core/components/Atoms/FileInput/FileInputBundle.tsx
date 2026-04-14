@@ -1,6 +1,6 @@
 import Editor, { loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
-import FileInputType from "./FileInputProps";
+import type FileInputType from "./FileInputProps";
 
 import "monaco-editor/esm/vs/basic-languages/markdown/markdown";
 

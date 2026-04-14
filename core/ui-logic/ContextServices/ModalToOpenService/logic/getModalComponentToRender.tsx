@@ -11,9 +11,10 @@ import DuplicateCatalogDialog from "@ext/catalog/actions/move/components/Duplica
 import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
 import { Admin } from "@ext/enterprise/components/admin/Admin";
-import EditEnterpriseConfig from "@ext/enterprise/components/EditEnterpriseConfig";
+import NotificationSettingsModal from "@ext/enterprise/components/NotificationSettingsModal";
 import { RepositoryPermission } from "@ext/enterprise/components/RepositoryPermission";
-import SignOutEnterprise from "@ext/enterprise/components/SignOutEnterprise";
+import { SignInEnterpriseTauriForm } from "@ext/enterprise/components/SingInOut/SignInEnterpriseTauriForm";
+import SignOutEnterprise from "@ext/enterprise/components/SingInOut/SignOutEnterprise";
 import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
 import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
 import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
@@ -41,13 +42,13 @@ import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
 import TemplateContentWarning from "@ext/templates/components/TemplateContentWarning";
 import CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
 import EditWorkspaceForm from "@ext/workspace/components/EditWorkspaceForm";
-import type { ReactNode } from "react";
+import { lazy, type ReactNode } from "react";
 import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import DefaultModal from "../components/DefaultModal";
 import ModalToOpen from "../model/ModalsToOpen";
 
 const getModalComponentToRender: {
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	// biome-ignore lint/suspicious/noExplicitAny: it's ok
 	[type in ModalToOpen]: (args: { [name: string]: any }) => ReactNode;
 } = {
 	[ModalToOpen.DuplicateCatalogDialog]: DuplicateCatalogDialog,
@@ -79,8 +80,6 @@ const getModalComponentToRender: {
 
 	[ModalToOpen.CreateStorage]: CreateStorageModal,
 
-	[ModalToOpen.EditEnterpriseConfig]: EditEnterpriseConfig,
-
 	[ModalToOpen.TemplateContentWarning]: TemplateContentWarning,
 	[ModalToOpen.PropertySettings]: PropertyEditor,
 
@@ -102,6 +101,7 @@ const getModalComponentToRender: {
 	[ModalToOpen.History]: HistoryModal,
 	[ModalToOpen.UnsupportedElements]: CommonUnsupportedElementsModal,
 	[ModalToOpen.Share]: ShareModal,
+	[ModalToOpen.NotificationSettings]: NotificationSettingsModal,
 
 	[ModalToOpen.CatalogPropsEditor]: CatalogPropsEditor,
 	[ModalToOpen.GetSharedTicket]: GetSharedTicket,
@@ -111,13 +111,21 @@ const getModalComponentToRender: {
 
 	[ModalToOpen.ExportPdf]: ExportPdf,
 
-	[ModalToOpen.GesAdmin]: Admin,
+	[ModalToOpen.GesAdmin]: lazy(() =>
+		import("@ext/enterprise/components/admin/Admin").then((module) => ({ default: module.Admin })),
+	),
 
 	[ModalToOpen.DefaultModal]: DefaultModal,
 	[ModalToOpen.UnsavedChangesModal]: UnsavedChangesModal,
 	[ModalToOpen.UnsavedCommentModal]: AlertComment,
 
-	[ModalToOpen.RepositoryPermission]: RepositoryPermission,
+	[ModalToOpen.RepositoryPermission]: lazy(() =>
+		import("@ext/enterprise/components/RepositoryPermission").then((module) => ({
+			default: module.RepositoryPermission,
+		})),
+	),
+
+	[ModalToOpen.TauriGesSignIn]: SignInEnterpriseTauriForm,
 };
 
 export default getModalComponentToRender;

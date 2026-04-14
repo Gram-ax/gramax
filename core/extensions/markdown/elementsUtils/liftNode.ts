@@ -1,5 +1,5 @@
-import { Node as ProseMirrorNode } from "prosemirror-model";
-import { EditorState, Transaction } from "prosemirror-state";
+import type { Node as ProseMirrorNode } from "prosemirror-model";
+import type { EditorState, Transaction } from "prosemirror-state";
 import { liftTarget } from "prosemirror-transform";
 
 const liftNode = (state: EditorState, tr: Transaction, node: ProseMirrorNode, pos: number) => {

@@ -1,5 +1,5 @@
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { Extension } from "@tiptap/core";
 import { AddMarkStep } from "@tiptap/pm/transform";
 import { Plugin, PluginKey } from "prosemirror-state";

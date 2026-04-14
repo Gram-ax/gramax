@@ -7,9 +7,9 @@
 		"build-sdk": "node ../../scripts/plugins/build-sdk.mjs",
 		"build": "npm run build-sdk && next build",
 		"build:standalone": "NEXT_OUTPUT_TYPE='standalone' next build",
-		"start": "next start -p ${PORT}",
+		"start": "next start",
 		"run": "npm run build && npm run start",
-		"dev": "next dev -p ${PORT}",
+		"dev": "next dev",
 		"lint": "next lint",
 		"prune": "node-prune",
 		"analyze": "cross-env ANALYZE=true next build"

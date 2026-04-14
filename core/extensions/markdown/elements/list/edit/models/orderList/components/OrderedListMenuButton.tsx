@@ -1,6 +1,6 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 
 const OrderedListMenuButton = ({ editor }: { editor: Editor }) => {

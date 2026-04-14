@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import MimeTypes from "../../../../../ui-logic/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
-import ShareData from "../model/ShareData";
+import type ShareData from "../model/ShareData";
 
 const ShareTicketHandler = ({ ticket }: { ticket: string }) => {
 	const [shareLinkData, setShareLinkData] = useState<ShareData>(null);

@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import DefaultGramaxAi from "@ext/ai/logic/GramaxAi";
 import assert from "assert";
 import { Command } from "../../../types/Command";

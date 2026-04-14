@@ -32,19 +32,25 @@ const useDefaultActions = (right: ReactNode, left: ReactNode, options: UseDefaul
 
 	const handleAddComment = useCallback(async () => {
 		if (!editor || !(editor.state.selection instanceof NodeSelection)) return;
-		const $pos = editor.state.selection.$anchor;
+		const anchorPosition = editor.state.selection.$anchor;
 		const node = editor.state.selection.node;
 
 		const commentId = node.attrs.comment?.id;
 		if (commentId) {
-			editor.commands.openComment(commentId, { from: $pos.pos, to: $pos.pos + node.nodeSize });
+			editor.commands.openComment(commentId, {
+				from: anchorPosition.pos,
+				to: anchorPosition.pos + node.nodeSize,
+			});
 			return;
 		}
 
 		const res = await FetchService.fetch(apiUrlCreator.getNewCommentId());
 		if (!res.ok) return;
 
-		editor.commands.toggleComment({ id: await res.text() }, { from: $pos.pos, to: $pos.pos + node.nodeSize });
+		editor.commands.toggleComment(
+			{ id: await res.text() },
+			{ from: anchorPosition.pos, to: anchorPosition.pos + node.nodeSize },
+		);
 	}, [editor, apiUrlCreator]);
 
 	const memoRight = useMemo(
@@ -69,7 +75,19 @@ const useDefaultActions = (right: ReactNode, left: ReactNode, options: UseDefaul
 				)}
 			</>
 		),
-		[right, handleAddComment, handleDelete, comment, deleteAction, disabledComment, hasComment],
+		[
+			right,
+			handleAddComment,
+			handleDelete,
+			comment,
+			deleteAction,
+			disabledComment,
+			hasComment,
+			editor,
+			float,
+			getPos,
+			node,
+		],
 	);
 
 	if (!editor.isEditable) return {};

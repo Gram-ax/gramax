@@ -4,6 +4,7 @@ import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import EditTabs from "../../components/EditTabs";
+import tabsBackspace from "../../logic/keymaps/tabsBackspace";
 
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
@@ -24,6 +25,12 @@ const Tabs = Node.create({
 
 	addNodeView() {
 		return ReactNodeViewRenderer(EditTabs);
+	},
+
+	addKeyboardShortcuts() {
+		return {
+			Backspace: tabsBackspace,
+		};
 	},
 
 	addCommands() {

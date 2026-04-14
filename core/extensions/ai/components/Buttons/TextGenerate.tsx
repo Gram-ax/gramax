@@ -1,6 +1,6 @@
 import AiWritingPopover from "@ext/ai/components/AiWritingPopover";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { memo, useCallback, useEffect, useState } from "react";
 
 const TextGenerateButton = ({ editor }: { editor?: Editor }) => {

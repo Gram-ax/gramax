@@ -19,6 +19,7 @@ export interface WorkerBaseFixture {
 	dir: string | URL | undefined;
 	source: "env" | GitSourceData | SourceData | undefined;
 	isolated: boolean;
+	isReadOnly: boolean;
 	startUrl: string;
 	sharedContext: BrowserContext;
 	sharedPage: Page;
@@ -37,6 +38,7 @@ export const baseTest = test.extend<TestBaseFixture, WorkerBaseFixture>({
 	experimentalFeatures: [undefined, { option: true, scope: "worker" }],
 	startUrl: ["/", { option: true, scope: "worker" }],
 	isolated: [true, { option: true, scope: "worker" }],
+	isReadOnly: [false, { option: true, scope: "worker" }],
 
 	sharedContext: [
 		async ({ browser }, use) => {
@@ -96,6 +98,7 @@ const preparePage = async ({
 	dir,
 	source,
 	experimentalFeatures,
+	isReadOnly,
 }: Partial<WorkerBaseFixture>) => {
 	if (zip) {
 		await uploadAndExtractZip(page!, zip);
@@ -114,9 +117,13 @@ const preparePage = async ({
 		await setStorage(page!, source === "env" ? getSourceDataFromEnv() : source);
 	}
 
-	await page!.evaluate((experimentalFeatures) => {
-		window.localStorage.setItem("NO_DESKTOP", "1");
+	await page!.evaluate(
+		({ experimentalFeatures, isReadOnly }) => {
+			window.localStorage.setItem("NO_DESKTOP", "1");
 
-		if (experimentalFeatures) window.localStorage.setItem("enabled-features", experimentalFeatures.join(","));
-	}, experimentalFeatures);
+			if (experimentalFeatures) window.localStorage.setItem("enabled-features", experimentalFeatures.join(","));
+			if (isReadOnly) window.localStorage.setItem("READ_ONLY", "1");
+		},
+		{ experimentalFeatures, isReadOnly },
+	);
 };

@@ -3,15 +3,16 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { useAdminNavigation } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { Page, PluginsSettings } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
+import type { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { deletePlugin, togglePluginState } from "@plugins/store";
 import { Button } from "@ui-kit/Button";
+import { Icon } from "@ui-kit/Icon";
 import { FieldLabel } from "@ui-kit/Label";
 import { PageState, PageStateDescription, PageStateTitle } from "@ui-kit/PageState";
 import { SwitchField } from "@ui-kit/Switch";
-import { Trash2 } from "lucide-react";
 import type { ComponentProps } from "react";
 import { useCallback, useMemo, useState } from "react";
 import { FloatingAlert } from "../../../ui-kit/FloatingAlert";
@@ -136,7 +137,7 @@ const PluginDetailComponent = () => {
 							status="error"
 							variant="secondary"
 						>
-							<Trash2 size={16} />
+							<Icon icon="trash-2" size="md" />
 							{t("plugins.detail.delete")}
 						</Button>
 					</ButtonsContainer>

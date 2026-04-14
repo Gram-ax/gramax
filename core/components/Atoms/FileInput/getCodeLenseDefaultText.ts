@@ -1,4 +1,4 @@
-import { CodeLensText } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
+import type { CodeLensText } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
 import t from "@ext/localization/locale/translate";
 
 const getCodeLensDefaultText = (): CodeLensText => {

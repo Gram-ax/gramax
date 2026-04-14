@@ -1,5 +1,5 @@
-import { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
-import { Node } from "prosemirror-model";
+import type { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
+import type { Node } from "prosemirror-model";
 
 export function updateColumnsOnResize(
 	node: Node,

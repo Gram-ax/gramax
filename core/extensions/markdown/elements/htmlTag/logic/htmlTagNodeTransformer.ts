@@ -1,4 +1,4 @@
-import NodeTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/NodeTransformerFunc";
+import type NodeTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/NodeTransformerFunc";
 import { isBlockHtmlTag, isInlineHtmlTag } from "@ext/markdown/elements/htmlTag/edit/logic/isHtmlTag";
 import HtmlTagToComponent from "@ext/markdown/elements/htmlTag/logic/htmlTagToComponent/htmlTagToComponent";
 

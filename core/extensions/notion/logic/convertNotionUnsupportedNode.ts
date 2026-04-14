@@ -1,4 +1,4 @@
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 const convertNotionUnsupportedNode = (unsupportedNode: JSONContent, currentPageUrl: string): JSONContent[] => {
 	return [

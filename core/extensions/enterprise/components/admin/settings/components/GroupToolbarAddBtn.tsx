@@ -1,17 +1,18 @@
-import { GroupInfo } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/types/GroupTypes";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
-import { ButtonProps } from "@ui-kit/Button";
+import type { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
+import type { ButtonProps } from "@ui-kit/Button";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { MultiSelect } from "@ui-kit/MultiSelect";
-import { SearchSelectOption } from "@ui-kit/SearchSelect";
+import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ModalComponent } from "../../ui-kit/ModalComponent";
-import { SelectDisableItem } from "./SelectDisableItem";
+import type { Group } from "../workspace/components/access/components/group/types/GroupTypes";
+import { GroupSelectItem } from "./GroupSelectItem";
 import { TriggerAddButtonTemplate } from "./TriggerAddButtonTemplate";
+import { type GroupSelectOption, useGroups } from "./useGroups";
 
 const createFormSchema = () =>
 	z.object({
@@ -22,13 +23,15 @@ type FormData = z.infer<ReturnType<typeof createFormSchema>>;
 
 interface GroupToolbarAddBtnProps {
 	disable?: boolean;
-	onAdd: (groups: string[]) => void;
-	groups: GroupInfo[];
+	onAdd: (groups: Group[]) => void;
+	groups: Group[];
 	existingGroups: string[];
 }
 
 export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: GroupToolbarAddBtnProps) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [selectedOptions, setSelectedOptions] = useState<GroupSelectOption[]>([]);
+	const { hasGroups, loadOptions, resolveSelectedGroups } = useGroups({ groups, existingGroups });
 
 	const formSchema = createFormSchema();
 	const form = useForm<FormData>({
@@ -38,46 +41,49 @@ export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: G
 		},
 	});
 
-	const loadOptions = useCallback(
-		async ({ searchQuery }: { searchQuery: string }) => {
-			const filteredGroups = groups.filter((group) =>
-				group.name.toLowerCase().includes(searchQuery.toLowerCase()),
-			);
-
-			return {
-				options: filteredGroups.map((group) => ({
-					value: group.id,
-					label: group.name,
-					disabled: existingGroups.includes(group.id),
-				})),
-			};
-		},
-		[groups, existingGroups],
-	);
-
 	const handleGroupsChange = (options: SearchSelectOption[]) => {
-		const groupValues = options.map((option) => String(option.value));
+		const groupOptions = options as GroupSelectOption[];
+		setSelectedOptions(groupOptions);
+		const groupValues = groupOptions.map((option) => String(option.value));
 		form.setValue("groups", groupValues);
 	};
 
 	const handleAddSelectedGroups = form.handleSubmit((values) => {
 		if (values.groups.length > 0) {
-			onAdd(values.groups);
+			const selectedGroups = resolveSelectedGroups(selectedOptions);
+
+			if (!selectedGroups.length) return;
+			onAdd(selectedGroups);
+			setSelectedOptions([]);
 			form.reset();
 			setIsModalOpen(false);
 		}
 	});
 
+	const closeModal = useCallback(() => {
+		setSelectedOptions([]);
+		form.reset();
+		setIsModalOpen(false);
+	}, [form]);
+
+	const handleOpenChange = useCallback(
+		(open: boolean) => {
+			if (!open) {
+				closeModal();
+				return;
+			}
+			setIsModalOpen(true);
+		},
+		[closeModal],
+	);
+
 	const cancelButtonProps = useMemo(
 		() =>
 			({
 				variant: "outline",
-				onClick: () => {
-					form.reset();
-					setIsModalOpen(false);
-				},
+				onClick: closeModal,
 			}) as ButtonProps,
-		[form],
+		[closeModal],
 	);
 
 	const confirmButtonProps = useMemo(
@@ -106,19 +112,21 @@ export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: G
 									<MultiSelect
 										emptyText={t("enterprise.admin.resources.groups.not-found")}
 										errorText={t("enterprise.admin.resources.groups.error-search")}
+										loadMode={hasGroups ? "auto" : undefined}
 										loadOptions={loadOptions}
 										onChange={handleGroupsChange}
 										placeholder={t("enterprise.admin.resources.groups.select-groups")}
-										renderOption={(props: RenderOptionProps<SearchSelectOption>) => {
+										renderOption={(props: RenderOptionProps<GroupSelectOption>) => {
 											if (props.type === "trigger") return;
 											return (
-												<SelectDisableItem
+												<GroupSelectItem
 													isDisabled={props.option.disabled}
 													isSelected={props.isSelected}
-													text={props.option.label}
+													option={props.option}
 												/>
 											);
 										}}
+										searchPlaceholder={t("enterprise.admin.resources.groups.search-placeholder")}
 										value={field.value?.map((value) => ({ value, label: value })) || []}
 									/>
 								)}
@@ -131,7 +139,7 @@ export const GroupToolbarAddBtn = ({ disable, onAdd, groups, existingGroups }: G
 					</form>
 				</Form>
 			}
-			onOpenChange={setIsModalOpen}
+			onOpenChange={handleOpenChange}
 			title={t("enterprise.admin.resources.groups.select")}
 			trigger={<TriggerAddButtonTemplate disabled={disable} />}
 		/>

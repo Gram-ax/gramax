@@ -108,4 +108,85 @@ editorTest.describe("Note", () => {
 			</note>
 		`);
 	});
+
+	editorTest("delete at end of list item merges next list item with note into current", async ({ editor }) => {
+		await editor.setMarkdown(md`
+			-  gerger
+
+			-  ergerr(*)
+
+			-  <note type="lab">
+
+			   ergregrg
+
+			   </note>
+		`);
+		await editor.press("Delete");
+		await editor.assertMarkdown(md`
+			-  gerger
+
+			-  ergerr
+
+			   <note type="lab">
+
+			   ergregrg
+
+			   </note>
+		`);
+	});
+
+	editorTest("note lifts when backspace is pressed at start of note after list", async ({ editor }) => {
+		await editor.setMarkdown(md`
+			- list item
+
+			<note>
+
+			(*)text
+
+			</note>
+		`);
+		await editor.press("Backspace");
+		await editor.assertMarkdown(md`
+			-  list item
+
+			text
+		`);
+	});
+
+	editorTest(
+		"notes doesn't merge with other notes when backspace is pressed between them in paragraph",
+		async ({ editor }) => {
+			await editor.setMarkdown(md`
+			<note>
+
+			text123
+
+			</note>
+
+			(*)text
+
+			<note>
+
+			text456
+
+			</note>
+		`);
+			await editor.press("Backspace");
+			await editor.assertMarkdown(md`
+			<note>
+
+			text123
+
+			text
+
+			</note>
+
+			<note>
+
+			text456
+
+			</note>
+		`);
+		},
+	);
 });

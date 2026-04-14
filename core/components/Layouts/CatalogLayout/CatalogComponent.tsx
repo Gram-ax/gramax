@@ -1,13 +1,13 @@
-import DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
+import type DocRootMissingModal from "@components/Layouts/CatalogLayout/DocRootMissingModal";
 import RightNavigationComponent from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationComponent";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useMediaQuery } from "@react-hook/media-query";
-import { ComponentProps, useEffect } from "react";
+import { type ComponentProps, useEffect } from "react";
 import ArticleComponent from "./ArticleLayout/ArticleComponent";
 import CatalogLayout from "./CatalogLayout";
 import LeftNavigationComponent from "./LeftNavigation/LeftNavigationComponent";

@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import { Command } from "../../types/Command";
 

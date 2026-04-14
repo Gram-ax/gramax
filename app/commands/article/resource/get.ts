@@ -1,13 +1,13 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HashResourceManager from "@core/Hash/HashItems/HashResourceManager";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import ArticleProvider, { type ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import assert from "assert";
-import { Article } from "../../../../core/logic/FileStructue/Article/Article";
+import type { Article } from "../../../../core/logic/FileStructue/Article/Article";
 
 const get: Command<
 	{

@@ -8,36 +8,36 @@ import type UserInfo from "../../extensions/security/logic/User/UserInfo";
 import type Theme from "../../extensions/Theme/Theme";
 
 interface PageDataContext {
-	language: {
-		content: ContentLanguage;
-		ui: UiLanguage;
-	};
-	theme: Theme;
-	isLogged: boolean;
-	userInfo: UserInfo;
 	domain: string;
+	isLogged: boolean;
 	isArticle: boolean;
-	isGesUnauthorized?: boolean;
 	pdfTemplates: string[];
 	wordTemplates: string[];
+	theme: Theme;
+	userInfo: UserInfo;
+	language: {
+		ui: UiLanguage;
+		content: ContentLanguage;
+	};
 	workspace: {
-		workspaces: ClientWorkspaceConfig[];
 		current: WorkspacePath;
 		defaultPath: WorkspacePath;
+		workspaces: ClientWorkspaceConfig[];
 	};
 	conf: {
 		version: string;
-		buildVersion: string;
 		basePath: string;
-		isRelease: boolean;
-		isReadOnly: boolean;
-		isProduction: boolean;
+		buildVersion: string;
+		bugsnagApiKey: string;
 		authServiceUrl: string;
 		cloudServiceUrl: string;
 		diagramsServiceUrl: string;
-		bugsnagApiKey: string;
-		enterprise: EnterpriseConfig;
+		isRelease: boolean;
+		isReadOnly: boolean;
+		isProduction: boolean;
+		forceUiLangSync: boolean;
 		metrics: MetricsConfig;
+		enterprise: EnterpriseConfig;
 		logo: {
 			imageUrl: string;
 			linkUrl: string;
@@ -46,7 +46,6 @@ interface PageDataContext {
 		ai: {
 			enabled: boolean;
 		};
-		forceUiLangSync: boolean;
 		search: {
 			resourcesEnabled: boolean;
 		};

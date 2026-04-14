@@ -1,5 +1,5 @@
 import DiagramType from "../../../../../../logic/components/Diagram/DiagramType";
-import NodeTransformerFunc from "../../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
+import type NodeTransformerFunc from "../../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
 import getDiagramDataByLang from "../getDiagramDataByLang";
 import isDiagramName from "../isDiagramName";
 

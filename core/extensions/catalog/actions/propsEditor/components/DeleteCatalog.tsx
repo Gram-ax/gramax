@@ -5,7 +5,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { useDeleteCatalog, useDeleteCloudCatalog } from "@ext/catalog/actions/propsEditor/components/useDeleteCatalog";
 import t from "@ext/localization/locale/translate";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export const DeleteCatalog = ({ children }: { children: ReactNode }) => {
 	const router = useRouter();

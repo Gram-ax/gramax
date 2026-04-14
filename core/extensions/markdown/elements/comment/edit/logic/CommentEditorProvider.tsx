@@ -1,10 +1,10 @@
-import { createEventEmitter, Event, EventEmitter } from "@core/Event/EventEmitter";
+import { createEventEmitter, type Event, type EventEmitter } from "@core/Event/EventEmitter";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { CommentBlock } from "@core-ui/CommentBlock";
+import type { CommentBlock } from "@core-ui/CommentBlock";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import CommentView from "@ext/markdown/elements/comment/edit/components/View/CommentView";
 import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
-import { Editor, Range } from "@tiptap/core";
+import type { Editor, Range } from "@tiptap/core";
 import { createContext, memo, useCallback, useEffect, useState } from "react";
 
 interface CommentEditorProviderProps {

@@ -48,7 +48,7 @@ import videoSchema from "@ext/markdown/elements/video/edit/model/videoSchema";
 import viewSchema from "@ext/markdown/elements/view/edit/models/viewSchema";
 import suggestion from "@ext/StyleGuide/extension/suggestionSchema";
 import { getPluginSchemas } from "@plugins/store";
-import { Schema, SchemaSpec } from "prosemirror-model";
+import { Schema, type SchemaSpec } from "prosemirror-model";
 
 type SchemaModifier = (schema: SchemaSpec<any, any>) => void;
 

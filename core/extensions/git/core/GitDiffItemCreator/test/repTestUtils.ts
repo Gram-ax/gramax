@@ -1,5 +1,5 @@
-import GitCommands from "@ext/git/core/GitCommands/GitCommands";
-import DiskFileProvider from "../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
+import type GitCommands from "@ext/git/core/GitCommands/GitCommands";
+import type DiskFileProvider from "../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 
 const repTestUtils = {

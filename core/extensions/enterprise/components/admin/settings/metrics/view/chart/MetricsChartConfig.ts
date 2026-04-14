@@ -1,5 +1,5 @@
 import LanguageService from "@core-ui/ContextServices/Language";
-import { getChartColors } from "@ext/enterprise/components/admin/settings/metrics/utils";
+import { VIEW_CHART_COLORS } from "@ext/enterprise/components/admin/settings/metrics/view/chart/viewMetricsConfig";
 import t from "@ext/localization/locale/translate";
 import type { DesignerConfig, MdtChartsConfig } from "mdt-charts";
 
@@ -87,7 +87,13 @@ export const createChartConfig = (width: number, visibleFields?: MetricField[]):
 					isSegmented: false,
 					embeddedLabels: "none",
 					markers: { show: false },
-					data: { valueFields: [...fields] },
+					data: {
+						valueFields: fields.map((field) => ({
+							color: VIEW_CHART_COLORS[field.name],
+							...field,
+						})),
+						valueGroup: "secondary" as const,
+					},
 					valueLabels: { on: false },
 					areaStyles: {
 						gradient: {
@@ -106,8 +112,7 @@ export const createChartConfig = (width: number, visibleFields?: MetricField[]):
 export const createDesignerConfig = (visibleFields?: MetricField[]): DesignerConfig => {
 	const allFields = getValueFields();
 	const fields = visibleFields ? allFields.filter((f) => visibleFields.includes(f.name)) : [...allFields];
-	const chartColors = getChartColors();
-	const colors = fields.map((field) => chartColors[field.name]);
+	const colors = fields.map((field) => VIEW_CHART_COLORS[field.name]);
 
 	return {
 		canvas: {

@@ -2,8 +2,8 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type Context from "@core/Context/Context";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../types/Command";
 
 const updateProps: Command<{ ctx: Context; catalogName: string; props: ClientArticleProps }, { pathname: string }> =

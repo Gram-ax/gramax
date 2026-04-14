@@ -78,7 +78,7 @@ export const UserAndRoleToolbarAddBtn = ({
 	const formSchema = createFormSchema(inSelectInput, isExternal, existingUsers, settings.guests);
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
-		defaultValues: { users: [] },
+		defaultValues: { users: [], role: "reader" },
 	});
 
 	const currentCount = existingUsers.length;
@@ -112,15 +112,18 @@ export const UserAndRoleToolbarAddBtn = ({
 	};
 
 	const handleAddSelectedUsers = form.handleSubmit((values) => {
-		if (values.role === "reviewer" && !values.branches?.length) {
+		const branches = values.branches ?? [];
+		const role = values.role ?? "reader";
+
+		if (role === "reviewer" && !branches.length) {
 			form.setError("branches", { message: t("enterprise.admin.resources.branches.required") });
 			return;
 		}
 		if (values.users.length > 0) {
 			if (typeof values.users === "string") {
-				onAdd([values.users], REPOSITORY_EXTERNAL_USERS_ROLES[0], values.branches);
+				onAdd([values.users], REPOSITORY_EXTERNAL_USERS_ROLES[0], branches);
 			} else {
-				onAdd(values.users, values.role, values.branches);
+				onAdd(values.users, role, branches);
 			}
 			form.reset();
 			setIsModalOpen(false);

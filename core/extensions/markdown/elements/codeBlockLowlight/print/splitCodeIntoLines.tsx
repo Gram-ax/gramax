@@ -1,5 +1,4 @@
 import { toHtml } from "hast-util-to-html";
-import React from "react"; // for unit test
 
 export interface CodeLine {
 	key: string;

@@ -1,4 +1,3 @@
-import { ZOOM_COUNT } from "@components/Atoms/Image/modalImage/utils";
 import { classNames } from "@components/libs/classNames";
 import Path from "@core/FileProvider/Path/Path";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -43,10 +42,10 @@ const Header = (props: HeaderProps): ReactElement => {
 					</TooltipElement>
 				)}
 				<TooltipElement content={t("zoom-in")}>
-					<IconButton icon="zoom-in" onClick={() => zoomImage(-ZOOM_COUNT)} variant="text" />
+					<IconButton icon="zoom-in" onClick={() => zoomImage(-1)} variant="text" />
 				</TooltipElement>
 				<TooltipElement content={t("zoom-out")}>
-					<IconButton icon="zoom-out" onClick={() => zoomImage(ZOOM_COUNT)} variant="text" />
+					<IconButton icon="zoom-out" onClick={() => zoomImage(1)} variant="text" />
 				</TooltipElement>
 				{downloadSrc && !rs.id && (
 					<TooltipElement content={t("download")}>

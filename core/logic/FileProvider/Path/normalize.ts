@@ -133,7 +133,8 @@ const normalizeString = (path: string, allowAboveRoot: boolean, isPosix: boolean
 						lastSlash = i;
 						dots = 0;
 						continue;
-					} else if (res.length !== 0) {
+					}
+					if (res.length !== 0) {
 						res = "";
 						lastSegmentLength = 0;
 						lastSlash = i;

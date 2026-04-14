@@ -8,7 +8,8 @@ import ScrollableDiffEntriesLayout from "@ext/git/core/GitMergeRequest/component
 import { useDiffEntries } from "@ext/git/core/GitMergeRequest/components/Changes/useDiffEntries";
 import { Section } from "@ext/git/core/GitMergeRequest/components/Elements";
 import t from "@ext/localization/locale/translate";
-import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { Loader } from "@ui-kit/Loader";
+import { type RefObject, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 export type ChangesProps = {
 	targetRef: string;
@@ -34,9 +35,16 @@ export const Changes = ({ targetRef, stage, setStage, show, tabWrapperRef, setCo
 	const setArticleDiffView = useSetArticleDiffView(false, null, deleteScope);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
-	useEffect(() => {
-		if (!tabWrapperRef.current || !show) return;
-		const height = calculateTabWrapperHeight(tabWrapperRef.current);
+	useLayoutEffect(() => {
+		if (!containerRef.current || !tabWrapperRef.current || !show) return;
+		const mainElement = tabWrapperRef.current;
+		const firstChild = containerRef.current.firstElementChild as HTMLElement;
+		const isSpinner = firstChild?.dataset?.qa === "loader";
+
+		if (!mainElement && !isSpinner) return;
+		const height =
+			calculateTabWrapperHeight(mainElement) - parseFloat(getComputedStyle(document.documentElement).fontSize);
+
 		setContentHeight(height);
 	}, [containerRef.current, tabWrapperRef.current, show, stage, changes?.data, scrollbarRef.current]);
 
@@ -54,16 +62,18 @@ export const Changes = ({ targetRef, stage, setStage, show, tabWrapperRef, setCo
 			chevron={false}
 			headerStyles="padding-left: 1rem; padding-right: 1rem;"
 			isCollapsed={false}
-			isLoading={stage === DiffEntriesLoadStage.Loading}
+			isLoading={changes && stage === DiffEntriesLoadStage.Loading}
 			isNotLoaded={!changes}
 			right={changes && <Overview fontSize="12px" showTotal {...(changes?.overview || {})} />}
 			title={t("git.merge-requests.diff")}
 		>
-			<ScrollableDiffEntriesLayout ref={scrollbarRef}>
-				{newStage === DiffEntriesLoadStage.Ready && (
+			<ScrollableDiffEntriesLayout maxHeight="15rem" ref={scrollbarRef}>
+				{!changes && stage !== DiffEntriesLoadStage.Ready ? (
+					<Loader className="py-6" ref={containerRef} size="3xl" />
+				) : (
 					<DiffEntries
-						changes={changes.data}
-						key={changes.data.length}
+						actionIcon="reply"
+						changes={changes?.data}
 						ref={containerRef}
 						renderCommentsCount
 						scrollableRef={scrollbarRef}

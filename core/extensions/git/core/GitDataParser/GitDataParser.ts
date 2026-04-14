@@ -1,7 +1,7 @@
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
-import { GitStatus } from "../GitWatcher/model/GitStatus";
+import type { GitStatus } from "../GitWatcher/model/GitStatus";
 
 export class GitDataParser {
 	getDiffChanges(gitDiff: string, isUntracked: boolean): GitStatus[] {

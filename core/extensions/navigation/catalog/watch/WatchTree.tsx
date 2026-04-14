@@ -1,6 +1,8 @@
 import Icon from "@components/Atoms/Icon";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import { useNavTreePersistence } from "@core/SitePresenter/NavTreeStateManager";
 import useHandleItemClick from "@core-ui/hooks/useHandleItemClick";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import EditMenu from "@ext/item/EditMenu";
 import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
@@ -12,9 +14,12 @@ import LevNavItem from "../main/render/Item";
 
 const LevNavWatchTree = React.memo(
 	({ items, closeNavigation }: { items: ItemLink[]; closeNavigation?: () => void }) => {
+		const catalogName = useCatalogPropsStore((state) => state.data?.name);
+		const { effectiveItems, handleToggle } = useNavTreePersistence(catalogName, items);
+
 		return (
 			<div>
-				<Tree closeNavigation={closeNavigation} items={items} level={0} />
+				<Tree closeNavigation={closeNavigation} items={effectiveItems} level={0} onToggleItem={handleToggle} />
 			</div>
 		);
 	},
@@ -23,23 +28,28 @@ const LevNavWatchTree = React.memo(
 	},
 );
 
-const Tree = ({
-	items,
-	level,
-	filter,
-	closeNavigation,
-}: {
+interface WatchTreeProps {
 	items: ItemLink[];
 	level: number;
 	filter?: LinkFilter;
 	closeNavigation?: () => void;
-}) => {
+	onToggleItem?: (refPath: string, isOpen: boolean) => void;
+}
+
+const Tree = ({ items, level, filter, closeNavigation, onToggleItem }: WatchTreeProps) => {
 	const [isFiltered, setFiltered] = useState(true);
 	return (
 		<ul className={level === 0 ? "tree-root" : ""}>
 			{items.map((item, key) => {
 				return !isFiltered || isVisible(filter, item as ArticleLink, key, items.length) ? (
-					<Item closeNavigation={closeNavigation} item={item} key={key} level={level} />
+					<Item
+						closeNavigation={closeNavigation}
+						item={item}
+						// biome-ignore lint/suspicious/noArrayIndexKey: watchtree is readonly and not reorderable, so index is fine as key
+						key={key}
+						level={level}
+						onToggleItem={onToggleItem}
+					/>
 				) : null;
 			})}
 			{filter && isFiltered ? (
@@ -55,7 +65,17 @@ const Tree = ({
 	);
 };
 
-const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number; closeNavigation: () => void }) => {
+const Item = ({
+	item,
+	level,
+	closeNavigation,
+	onToggleItem,
+}: {
+	item: ItemLink;
+	level: number;
+	closeNavigation: () => void;
+	onToggleItem?: (refPath: string, isOpen: boolean) => void;
+}) => {
 	const ref = useRef<HTMLLIElement>(null);
 	const [scrollFlag, setScrollFalag] = useState(true);
 	const [isHover, setIsHover] = useState(false);
@@ -65,18 +85,23 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 	const isCategory = item.type === ItemType.category && (item as CategoryLink)?.items?.length !== 0;
 	const existsContent = item.type === ItemType.category ? (item as CategoryLink).existContent : true;
 
-	const [isOpen, setIsOpen] = useState(level == 0 || (item as CategoryLink).isExpanded);
+	const [isOpen, setIsOpen] = useState(level === 0 || (item as CategoryLink).isExpanded);
 
 	const onToggle = () => {
-		setIsOpen(!isOpen);
+		const newIsOpen = !isOpen;
+		setIsOpen(newIsOpen);
+		if (isCategory) onToggleItem?.(item.ref.path, newIsOpen);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: was this way before,  either need to fix or intentionally not include onToggle in deps
 	const toggleFunction = useCallback(() => {
 		if (isActive || !isOpen) onToggle();
+		// biome-ignore lint/correctness/useExhaustiveDependencies: above
 	}, [onToggle]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: the same with onToggle, need to verify if this is intentional or not
 	const handleCloseNavigation = useCallback(() => {
-		if (existsContent || item.type == ItemType.article) closeNavigation?.();
+		if (existsContent || item.type === ItemType.article) closeNavigation?.();
 	}, [closeNavigation]);
 
 	const handleClick = useHandleItemClick({
@@ -92,6 +117,7 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 		setScrollFalag(false);
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: was this way before, either need to fix or intentionally not include handleClick in deps
 	useEffect(() => {
 		if ((item as CategoryLink).isExpanded) setIsOpen((item as CategoryLink).isExpanded);
 	}, [(item as CategoryLink).isExpanded]);
@@ -132,6 +158,7 @@ const Item = ({ item, level, closeNavigation }: { item: ItemLink; level: number;
 					filter={(item as CategoryLink).filter}
 					items={(item as CategoryLink).items}
 					level={level + 1}
+					onToggleItem={onToggleItem}
 				/>
 			)}
 		</li>

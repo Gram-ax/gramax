@@ -1,5 +1,5 @@
 import ThemeService from "@ext/Theme/components/ThemeService";
-import Theme from "@ext/Theme/Theme";
+import type Theme from "@ext/Theme/Theme";
 import { useMemo } from "react";
 
 export type HtmlOptions = {

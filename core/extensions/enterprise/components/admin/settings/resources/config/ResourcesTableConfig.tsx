@@ -3,11 +3,11 @@ import {
 	TABLE_SELECT_COLUMN_CODE,
 } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import t from "@ext/localization/locale/translate";
-import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
-import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
+import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
+import { type ColumnDef, useTableSelection } from "@ui-kit/DataTable";
 import { Icon } from "@ui-kit/Icon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ResourceItem } from "../types/ResourcesComponent";
+import type { ResourceItem } from "../types/ResourcesComponent";
 
 export const resourcesTableColumns: ColumnDef<ResourceItem>[] = [
 	{

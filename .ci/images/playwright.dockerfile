@@ -1,17 +1,22 @@
 ARG BRANCH
-FROM --platform=$TARGETPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:spa-$BRANCH AS spa
+ARG USE_IMAGE_TAG="latest-dev"
 
-FROM --platform=$TARGETPLATFORM mcr.microsoft.com/playwright:v1.57.0-noble
+FROM gitlab.ics-it.ru:4567/ics/doc-reader/spa:${USE_IMAGE_TAG:-latest-dev} AS spa
+
+FROM mcr.microsoft.com/playwright:v1.57.0-noble
 
 RUN apt-get update && apt-get upgrade -y && \
-	apt-get install -y --no-install-recommends \
-	git \
+	apt-get install -y \
 	make \
 	unzip \
 	curl \
 	pkg-config \
 	build-essential \
 	git && \
+ 	apt-get install -y debian-keyring debian-archive-keyring apt-transport-https && \
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && \
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list && \
+  apt-get update && apt-get install -y caddy && \
 	rm -rf /var/lib/apt/lists/* && \
 	apt-get clean
 
@@ -26,18 +31,11 @@ RUN curl -fsSL https://bun.com/install | bash && \
 
 ENV PATH="/root/.bun/bin:/root/.cargo/bin:${PATH}"
 
-ARG GITHUB_ANTI_RATELIMIT_SSH_KEY
-RUN --mount=type=secret,id=GITHUB_ANTI_RATELIMIT_SSH_KEY,dst=/root/.ssh/github-private-key,required=false \
-	if [ -s /root/.ssh/github-private-key ]; then \
-	ssh-keyscan github.com > /root/.ssh/known_hosts && \
-	printf "Host github.com\n  PreferredAuthentications publickey\n  User git\n  IdentityFile /root/.ssh/github-private-key\n" > /root/.ssh/config && \
-	chmod -R 700 /root/.ssh && chmod 600 /root/.ssh/config && \
-	ssh -T git@github.com || echo "Ssh auth to github"; \
-	fi
-
 RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc && chmod a+r /etc/apt/keyrings/docker.asc && \
 	echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
 	$(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" > /etc/apt/sources.list.d/docker.list && \
-	apt-get update && apt-get install -y --no-install-recommends docker-ce-cli docker-compose-plugin
+	apt-get update && apt-get install -y --no-install-recommends docker-ce docker-ce-cli containerd.io docker-compose-plugin && \
+	rm -rf /var/lib/apt/lists/* && \
+	apt-get clean
 
 COPY --from=spa /usr/bin/spa /usr/bin/spa

@@ -7,7 +7,7 @@ import t from "@ext/localization/locale/translate";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { useState } from "react";
 import Popup from "reactjs-popup";
-import { Table, TableWithRefs } from "../../../../../logic/components/tableDB/table";
+import type { Table, TableWithRefs } from "../../../../../logic/components/tableDB/table";
 
 interface TableDBProps {
 	object: Table | TableWithRefs;

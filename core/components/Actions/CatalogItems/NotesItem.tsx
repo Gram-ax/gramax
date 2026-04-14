@@ -4,7 +4,7 @@ import Icon from "@components/Atoms/Icon";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import t from "@ext/localization/locale/translate";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface NotesItemProps {
 	children?: ReactNode;

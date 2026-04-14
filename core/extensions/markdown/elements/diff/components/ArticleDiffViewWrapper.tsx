@@ -4,13 +4,13 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import debounceFunction from "@core-ui/debounceFunction";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type SideBarData from "@ext/git/actions/Publish/model/SideBarData";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import ArticleDiffModeView from "@ext/markdown/elements/diff/components/ArticleDiffModeView";
 import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
 import useFetchDiffData from "@ext/markdown/elements/diff/logic/hooks/useFetchDiffData";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import { useEffect, useRef, useState } from "react";
 
 const DEBOUNCE_TIME = 200;

@@ -1,5 +1,5 @@
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 
 const convertToSharePointDir = (catalog: ReadonlyCatalog, articleRef: ItemRef, path: string): Path => {

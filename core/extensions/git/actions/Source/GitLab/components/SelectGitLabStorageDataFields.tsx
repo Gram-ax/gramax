@@ -2,14 +2,14 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
 import ConnectFields from "@ext/git/actions/Source/GitLab/components/ConnectFields";
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
-import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import type GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { useMakeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import t from "@ext/localization/locale/translate";
-import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import type { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
 import { FormField } from "@ui-kit/Form";
 import { useMemo } from "react";
-import { UseFormReturn } from "react-hook-form";
-import GitStorageData from "../../../../core/model/GitStorageData";
+import type { UseFormReturn } from "react-hook-form";
+import type GitStorageData from "../../../../core/model/GitStorageData";
 import CloneFields from "../../components/CloneFields";
 
 interface SelectGitLabStorageDataFieldsProps {

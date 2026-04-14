@@ -1,4 +1,4 @@
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 
 const getIsSelected = (state: EditorState) => {
 	return state.selection?.content().content.size !== 0;

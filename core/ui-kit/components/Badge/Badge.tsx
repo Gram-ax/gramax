@@ -1,5 +1,5 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
-import { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "core/ui-kit/lib/extractComponentGeneric";
 import { Badge as UiKitBadge } from "ics-ui-kit/components/badge";
 
 type UiKitBadgeProps = ExtractComponentGeneric<typeof UiKitBadge>;

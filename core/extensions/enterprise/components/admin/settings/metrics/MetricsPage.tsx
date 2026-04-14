@@ -3,7 +3,7 @@ import { useHealthCheck } from "@ext/enterprise/components/admin/settings/Health
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";

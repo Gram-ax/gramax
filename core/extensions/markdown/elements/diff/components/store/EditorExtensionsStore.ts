@@ -1,4 +1,4 @@
-import { Extensions } from "@tiptap/react";
+import type { Extensions } from "@tiptap/react";
 
 import { create } from "zustand";
 

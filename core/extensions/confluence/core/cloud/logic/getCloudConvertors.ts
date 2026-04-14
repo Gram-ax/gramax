@@ -1,4 +1,4 @@
-import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
+import type NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 import doc from "@ext/markdown/elements/article/confluence/doc";
 import mediaGroup from "@ext/markdown/elements/attachment/confluence/mediaGroup";
 import mediaInline from "@ext/markdown/elements/attachment/confluence/mediaInline";

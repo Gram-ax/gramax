@@ -1,4 +1,4 @@
-import { type XXHash, type XXHashAPI } from "xxhash-wasm";
+import type { XXHash, XXHashAPI } from "xxhash-wasm";
 
 export interface Hashable {
 	hash(hash: Hasher, recursive?: boolean): Promise<Hasher>;

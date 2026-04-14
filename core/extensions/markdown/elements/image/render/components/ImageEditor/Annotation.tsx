@@ -3,8 +3,8 @@ import { classNames } from "@components/libs/classNames";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import { CSSProperties, RefObject, useEffect, useRef, useState } from "react";
-import { AnnotationObject } from "../../../edit/model/imageEditorTypes";
+import { type CSSProperties, type RefObject, useEffect, useRef, useState } from "react";
+import type { AnnotationObject } from "../../../edit/model/imageEditorTypes";
 
 interface AnnotationObjectProps extends AnnotationObject {
 	parentRef: RefObject<HTMLDivElement>;

@@ -1,6 +1,6 @@
 import LanguageService from "@core-ui/ContextServices/Language";
 import UiLanguage from "@ext/localization/core/model/Language";
-import { RenderableTreeNode } from "../render/logic/Markdoc";
+import type { RenderableTreeNode } from "../render/logic/Markdoc";
 import { getParserTestData } from "./test/getParserTestData";
 import MarkdownTestData from "./test/MarkdownTestData.json";
 

@@ -1,5 +1,6 @@
+import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import { useRouter } from "@core/Api/useRouter";
-import { UnsubscribeToken } from "@core/Event/EventEmitter";
+import type { UnsubscribeToken } from "@core/Event/EventEmitter";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -12,17 +13,17 @@ import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useWatch from "@core-ui/hooks/useWatch";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
-import CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
+import type CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
 import getPathnameCheckoutData from "@ext/git/core/GitPathnameHandler/checkout/logic/getPathnameCheckoutData";
 import useOnPathnameUpdateBranch from "@ext/git/core/GitPathnameHandler/checkout/logic/useOnPathnameUpdateBranch";
-import PullHandler from "@ext/git/core/GitPathnameHandler/pull/components/PullHandler";
+import type PullHandler from "@ext/git/core/GitPathnameHandler/pull/components/PullHandler";
 import getPathnamePullData from "@ext/git/core/GitPathnameHandler/pull/logic/getPathnamePullData";
 import t from "@ext/localization/locale/translate";
 import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
 import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
-import { ComponentProps, useEffect, useRef } from "react";
+import { type ComponentProps, useEffect, useRef } from "react";
 
 const usePathnameHandler = (isFirstLoad: boolean) => {
 	const router = useRouter();
@@ -39,6 +40,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 		if (isFirstLoad) haveBeenFirstLoad.current = true;
 	}, [isFirstLoad]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!isArticle || !isRepoOk || !haveBeenFirstLoad.current) return;
 
@@ -70,6 +72,12 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 				}).value;
 
 				router.pushPath(newPath);
+			}
+
+			if (mergeData?.stashRestored) {
+				await ArticleUpdaterService.update(apiUrlCreator);
+				await refreshPage();
+				return exit();
 			}
 
 			if (!mergeData || !mergeData.ok) {

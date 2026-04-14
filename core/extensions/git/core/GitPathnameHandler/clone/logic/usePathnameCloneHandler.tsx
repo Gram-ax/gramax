@@ -4,12 +4,12 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
-import CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
+import type CloneHandler from "@ext/git/core/GitPathnameHandler/clone/components/CloneHandler";
 import getUrlFromShareData from "@ext/git/core/GitPathnameHandler/clone/logic/getUrlFromShareData";
 import type GitShareData from "@ext/git/core/model/GitShareData";
 import type { PublicGitStorageData } from "@ext/git/core/model/GitStorageData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import { ComponentProps, useCallback, useEffect } from "react";
+import { type ComponentProps, useCallback, useEffect } from "react";
 
 const useClonePublic = () => {
 	const router = useRouter();

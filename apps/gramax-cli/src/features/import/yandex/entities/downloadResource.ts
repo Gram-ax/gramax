@@ -1,6 +1,6 @@
 import FetchActions from "../FetchActions";
 import { getPathBySlug, getPathsFromMdLink, hasHttp } from "../utils";
-import { Articles, Resource } from "./article";
+import type { Articles, Resource } from "./article";
 import FileProvider from "./fileProvider";
 
 class DownloadResource {

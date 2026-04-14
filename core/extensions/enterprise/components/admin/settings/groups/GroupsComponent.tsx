@@ -5,7 +5,7 @@ import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingA
 import { SheetComponent } from "@ext/enterprise/components/admin/ui-kit/SheetComponent";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
@@ -15,7 +15,7 @@ import { TextInput } from "@ui-kit/Input";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { GroupValue } from "../components/roles/Access";
+import type { GroupValue } from "../components/roles/Access";
 import { GroupsTable } from "./components/GroupsTable";
 import { GroupsUserTable } from "./components/GroupsUserTable";
 

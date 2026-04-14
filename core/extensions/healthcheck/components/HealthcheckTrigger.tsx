@@ -3,9 +3,9 @@ import Icon from "@components/Atoms/Icon";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import t from "@ext/localization/locale/translate";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import { ComponentProps, ReactNode } from "react";
-import Healthcheck from "./Healthcheck";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
+import type { ComponentProps, ReactNode } from "react";
+import type Healthcheck from "./Healthcheck";
 
 const HealthcheckTrigger = ({ itemLinks, children }: { itemLinks: ItemLink[]; children?: ReactNode }) => {
 	const onSelect = () => {

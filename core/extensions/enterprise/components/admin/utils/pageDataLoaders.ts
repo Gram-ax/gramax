@@ -1,4 +1,4 @@
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 
 export type PageDataLoader = {
 	[K in Page]: (loaders: {
@@ -36,8 +36,8 @@ export const pageDataLoaders: PageDataLoader = {
 			ensureResourcesLoaded(),
 		]);
 	},
-	[Page.USER_GROUPS]: async ({ ensureResourcesLoaded, ensureGroupsLoaded }) => {
-		await Promise.all([ensureResourcesLoaded(), ensureGroupsLoaded()]);
+	[Page.USER_GROUPS]: async ({ ensureWorkspaceLoaded, ensureResourcesLoaded, ensureGroupsLoaded }) => {
+		await Promise.all([ensureWorkspaceLoaded(), ensureResourcesLoaded(), ensureGroupsLoaded()]);
 	},
 	[Page.STYLEGUIDE]: async ({ ensureStyleGuideLoaded }) => {
 		await ensureStyleGuideLoaded();

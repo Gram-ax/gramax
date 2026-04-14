@@ -1,7 +1,7 @@
-import { Editor } from "@tiptap/core";
-import { EditorState } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
-import { createRoot, Root } from "react-dom/client";
+import type { Editor } from "@tiptap/core";
+import type { EditorState } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
+import { createRoot, type Root } from "react-dom/client";
 
 abstract class Base {
 	protected _root: Root;

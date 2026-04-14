@@ -4,8 +4,8 @@ import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewC
 import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import TableHelper from "@ext/markdown/elements/table/edit/components/Helpers/TableHelper";
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
-import TableWrapper from "@ext/markdown/elements/table/render/component/TableWrapper";
-import { NodeViewProps, useReactNodeView } from "@tiptap/react";
+import TableWrapper from "@ext/markdown/elements/table/render/components/TableWrapper";
+import { type NodeViewProps, useReactNodeView } from "@tiptap/react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const TableComponent = (props: NodeViewProps) => {

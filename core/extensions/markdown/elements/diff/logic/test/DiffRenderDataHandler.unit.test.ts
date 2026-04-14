@@ -1,11 +1,11 @@
 import AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
 import ProsemirrorAstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/ProseMirrorAstDiffTransformer";
 import DiffRenderDataHandler from "@ext/markdown/elements/diff/logic/DiffRenderDataHandler";
-import { DiffLine } from "@ext/markdown/elements/diff/logic/model/DiffLine";
+import type { DiffLine } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 import createDiffDocs from "@ext/markdown/elements/diff/logic/test/utils/createDiffDocs";
 import DocCreator from "@ext/markdown/elements/diff/logic/test/utils/DocCreator";
-import { Node } from "prosemirror-model";
-import { Decoration } from "prosemirror-view";
+import type { Node } from "prosemirror-model";
+import type { Decoration } from "prosemirror-view";
 
 const getDiffData = (oldDoc: Node, newDoc: Node) => {
 	const astDiffTransformer = new ProsemirrorAstDiffTransformer(oldDoc, newDoc);

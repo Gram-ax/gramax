@@ -1,7 +1,7 @@
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { useMediaQuery } from "@mui/material";
 import { useCurrentEditor } from "@tiptap/react";
 import { type CSSProperties, memo, type ReactNode, useCallback } from "react";
 

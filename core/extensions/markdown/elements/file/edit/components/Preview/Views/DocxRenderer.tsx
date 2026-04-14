@@ -1,13 +1,11 @@
-import { docxPreview } from "@dynamicImports/docx-preview";
 import styled from "@emotion/styled";
 import { useCallback, useEffect, useRef } from "react";
 import type { RendererProps } from "../FilePreview";
 
 const DocxContainer = styled.div`
-	width: 210mm;
-	height: 297mm;
+	width: min(95vw, 210mm);
+	height: min(85vh, 297mm);
 	overflow: auto;
-	max-height: 95vh;
 	justify-self: center;
 
 	.docx-wrapper {
@@ -27,7 +25,7 @@ const DocxRenderer = ({ file, onLoad, onError }: RendererProps) => {
 		async (file: File) => {
 			if (!ref.current) return;
 			try {
-				const { renderAsync } = await docxPreview();
+				const { renderAsync } = await import("docx-preview");
 				await renderAsync(file, ref.current);
 			} catch (error) {
 				onError?.(error);

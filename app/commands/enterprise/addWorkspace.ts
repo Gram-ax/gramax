@@ -8,12 +8,16 @@ import { EnterpriseErrorCode } from "@ext/enterprise/errors/getEnterpriseErrors"
 import type UserSettings from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
+import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
 import Permission from "@ext/security/logic/Permission/Permission";
 import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
 import type UserInfo from "@ext/security/logic/User/UserInfo";
 import Theme from "@ext/Theme/Theme";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { Command } from "../../types/Command";
+
+const hasTemplateBuffer = (template: { bufferBase64?: string | null }): template is { bufferBase64: string } =>
+	typeof template.bufferBase64 === "string" && template.bufferBase64.length > 0;
 
 const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings> = Command.create({
 	path: "enterprise/addWorkspace",
@@ -90,6 +94,9 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			sourceData.token,
 		);
 		am.setUser(ctx.cookie, user);
+		if (am instanceof ClientAuthManager) {
+			await am.forceUpdateEnterpriseUser(ctx.cookie, user);
+		}
 
 		if (userSettings.ai) {
 			await this._commands.ai.server.setAiData.do({ ctx, workspacePath: path, ...userSettings.ai });
@@ -120,13 +127,16 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			const currentWorkspace = this._app.wm.current();
 			const templates: { name: string; buffer: Buffer }[] = [];
 			for (const template of userSettings.workspace.wordTemplates) {
+				if (!hasTemplateBuffer(template)) continue;
 				templates.push({
 					name: template.title,
 					buffer: Buffer.from(template.bufferBase64, "base64"),
 				});
 			}
 
-			await this._app.wtm.addTemplates(currentWorkspace, templates);
+			if (templates.length) {
+				await this._app.wtm.addTemplates(currentWorkspace, templates);
+			}
 		}
 
 		if (userSettings.workspace.pdfTemplates?.length) {
@@ -134,13 +144,16 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 
 			const templates: { name: string; buffer: Buffer }[] = [];
 			for (const template of userSettings.workspace.pdfTemplates) {
+				if (!hasTemplateBuffer(template)) continue;
 				templates.push({
 					name: template.title,
 					buffer: Buffer.from(template.bufferBase64, "utf-8"),
 				});
 			}
 
-			await this._app.ptm.addTemplates(currentWorkspace, templates);
+			if (templates.length) {
+				await this._app.ptm.addTemplates(currentWorkspace, templates);
+			}
 		}
 
 		if (userSettings.workspace.modules) {

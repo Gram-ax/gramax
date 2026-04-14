@@ -1,9 +1,9 @@
 import Path from "@core/FileProvider/Path/Path";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { PDFImageExporter } from "@ext/markdown/elements/image/pdf/PdfImageProcessor";
 import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { ContentStack, ContentTable } from "pdfmake/interfaces";
+import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { ContentStack, ContentTable } from "pdfmake/interfaces";
 
 export async function drawioHandler(
 	node: Tag,

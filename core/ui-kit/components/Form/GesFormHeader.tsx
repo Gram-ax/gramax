@@ -1,16 +1,17 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import styled from "@emotion/styled";
 import { FormHeaderBase, FormTitle } from "@ui-kit/Form";
 
-export interface GesFormHeaderProps<T> {
+export interface GesFormHeaderProps {
 	icon: any;
 	title: string;
 	className?: string;
-	iconProps?: T;
+	iconProps?: any;
 }
 
-const GesFormHeader = <T = NonNullable<unknown>>({ icon, title, className, iconProps }: GesFormHeaderProps<T>) => {
-	const CustomerIcon = LucideIcon<T>(icon);
+const GesFormHeader = ({ icon, title, className, iconProps }: GesFormHeaderProps) => {
+	const CustomerIcon = LucideIcon(icon);
 
 	return (
 		<FormHeaderBase className={className}>

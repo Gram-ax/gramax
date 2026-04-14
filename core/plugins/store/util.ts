@@ -1,6 +1,6 @@
 import type { PlatformEnvironmentKey } from "@plugins/api/sdk/utilities";
 import { pluginValidator } from "@plugins/core/PluginValidator";
-import { PluginConfig, PluginData } from "@plugins/types";
+import type { PluginConfig, PluginData } from "@plugins/types";
 
 export const createBlobUrl = (script: string): string => {
 	const blob = new Blob([script], { type: "application/javascript" });

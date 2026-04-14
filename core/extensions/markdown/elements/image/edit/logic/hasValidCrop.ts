@@ -1,4 +1,4 @@
-import { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
 const hasValidCrop = (crop?: Partial<Crop>): crop is Crop => {
 	if (!crop) return false;

@@ -25,8 +25,9 @@ import type {
 	RequestData,
 } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
 import type EnterpriseService from "@ext/enterprise/EnterpriseService";
-import type { searchUserInfo } from "@ext/enterprise/EnterpriseService";
-import type { Page, Settings } from "@ext/enterprise/types/EnterpriseAdmin";
+import type { searchGroupInfo, searchUserInfo } from "@ext/enterprise/EnterpriseService";
+import type { Settings } from "@ext/enterprise/types/EnterpriseAdmin";
+import type { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import t from "@ext/localization/locale/translate";
@@ -88,6 +89,7 @@ type SettingsContextType = {
 	error: Error | null;
 	users: string[] | null;
 	hasUsers: boolean;
+	hasGroups: boolean;
 	updateEditors: (editors: Settings["editors"]) => Promise<void>;
 	addGroup: (group: { groupId: string; groupValue: GroupValue[]; groupName?: string }) => Promise<void>;
 	deleteGroups: (groupIds: string[]) => Promise<void>;
@@ -110,6 +112,7 @@ type SettingsContextType = {
 	healthcheckStyleGuide: () => Promise<boolean>;
 	healthcheckDataProvider: () => Promise<boolean>;
 	searchUsers: (query: string) => Promise<searchUserInfo[]>;
+	searchGroups: (query: string) => Promise<searchGroupInfo[]>;
 	searchBranches: (repoName: string) => Promise<string[]>;
 	updateQuiz: (quiz: Settings["quiz"]) => Promise<void>;
 	updateMetrics: (metrics: { enabled: boolean }) => Promise<void>;
@@ -202,6 +205,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 	const [error, setError] = useState<Error | null>(null);
 	const [users] = useState<string[] | null>(null);
 	const [hasUsers, setHasUsers] = useState(false);
+	const [hasGroups, setHasGroups] = useState(false);
 	const sourceDatas = SourceDataService.value;
 	// ETags per tab
 	const [mailEtag, setMailEtag] = useState<string | null>(null);
@@ -287,9 +291,19 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		}
 	}, [enterpriseService]);
 
+	const checkHasGroups = useCallback(async () => {
+		try {
+			const hasGroupsCheck = await enterpriseService.checkGroupsConnector();
+			setHasGroups(hasGroupsCheck);
+		} catch (e) {
+			setError(e as Error);
+		}
+	}, [enterpriseService]);
+
 	useEffect(() => {
 		checkHasUsers();
-	}, [checkHasUsers]);
+		checkHasGroups();
+	}, [checkHasGroups, checkHasUsers]);
 
 	useEffect(() => {
 		(async () => {
@@ -833,14 +847,28 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		return await enterpriseService.getQuizDetailedUserAnswers(token, testId);
 	};
 
-	const searchUsers = async (query: string): Promise<searchUserInfo[]> => {
-		const enterpriseSource = getEnterpriseSourceData(sourceDatas, enterpriseService.getGesUrl());
-		return await enterpriseService.getUsers(query, enterpriseSource?.token ?? "");
-	};
+	const searchUsers = useCallback(
+		async (query: string): Promise<searchUserInfo[]> => {
+			const enterpriseSource = getEnterpriseSourceData(sourceDatas, enterpriseService.getGesUrl());
+			return await enterpriseService.getUsers(query, enterpriseSource?.token ?? "");
+		},
+		[enterpriseService],
+	);
 
-	const searchBranches = async (repoName: string): Promise<string[]> => {
-		return await enterpriseService.getBranches(token, repoName);
-	};
+	const searchGroups = useCallback(
+		async (query: string): Promise<searchGroupInfo[]> => {
+			const enterpriseSource = getEnterpriseSourceData(sourceDatas, enterpriseService.getGesUrl());
+			return await enterpriseService.getGroups(query, enterpriseSource?.token ?? "");
+		},
+		[enterpriseService],
+	);
+
+	const searchBranches = useCallback(
+		async (repoName: string): Promise<string[]> => {
+			return await enterpriseService.getBranches(token, repoName);
+		},
+		[enterpriseService, token],
+	);
 
 	const getSearchTableData = async (
 		cursor?: string,
@@ -989,6 +1017,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				error,
 				users,
 				hasUsers,
+				hasGroups,
 				updateEditors,
 				updateWorkspace,
 				updateMail,
@@ -1003,6 +1032,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				addResource,
 				deleteResources,
 				searchUsers,
+				searchGroups,
 				searchBranches,
 				ensureWorkspaceLoaded,
 				healthcheckStyleGuide,

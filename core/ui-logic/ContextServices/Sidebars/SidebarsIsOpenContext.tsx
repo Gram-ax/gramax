@@ -1,7 +1,7 @@
 import isMobileService from "@core-ui/ContextServices/isMobileService";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useMediaQuery } from "@react-hook/media-query";
 import {
 	createContext,
 	type Dispatch,

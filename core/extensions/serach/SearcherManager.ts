@@ -1,5 +1,5 @@
-import ChatBotSearcher from "@ext/serach/ChatBotSearcher";
-import Searcher from "@ext/serach/Searcher";
+import type ChatBotSearcher from "@ext/serach/ChatBotSearcher";
+import type Searcher from "@ext/serach/Searcher";
 import assert from "assert";
 
 const searcherTypes = ["vector"] as const;

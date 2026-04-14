@@ -3,9 +3,9 @@ import Tooltip from "@components/Atoms/Tooltip";
 import HotKey from "@components/GetHotKey";
 import { classNames } from "@components/libs/classNames";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import { NodeValues } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
+import type { NodeValues } from "@core-ui/ContextServices/ButtonStateService/hooks/types";
 import styled from "@emotion/styled";
-import { CSSProperties, ForwardedRef, forwardRef, HTMLAttributes } from "react";
+import { type CSSProperties, type ForwardedRef, forwardRef, type HTMLAttributes } from "react";
 
 export interface ButtonProps extends HTMLAttributes<HTMLDivElement> {
 	isActive?: boolean;

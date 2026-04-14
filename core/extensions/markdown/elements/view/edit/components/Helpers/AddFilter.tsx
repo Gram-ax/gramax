@@ -1,9 +1,8 @@
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import FilterMenu from "@ext/markdown/elements/view/edit/components/Helpers/FilterMenu";
 import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/ViewButton";
-import { Property, PropertyTypes, PropertyValue, SystemProperties } from "@ext/properties/models";
-import { ReactNode, useCallback, useMemo } from "react";
+import { type Property, PropertyTypes, type PropertyValue, SystemProperties } from "@ext/properties/models";
+import { type ReactNode, useCallback, useMemo } from "react";
 
 export type Mode = "single" | "multiple";
 

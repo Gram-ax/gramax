@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import { uniqueNameWithIndex } from "@core/utils/uniqueName";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import assert from "assert";

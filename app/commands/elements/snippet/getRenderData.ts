@@ -4,7 +4,7 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
+import type { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
 
 const getRenderData: Command<{ ctx: Context; snippetId: string; catalogName: string }, SnippetRenderData> =
 	Command.create({
@@ -28,7 +28,6 @@ const getRenderData: Command<{ ctx: Context; snippetId: string; catalogName: str
 				snippet,
 				catalog,
 				convertContentToUiLanguage(ctx.contentLanguage || catalog?.props?.language),
-				ctx.user?.isLogged,
 			);
 
 			return catalog.customProviders.snippetProvider.getRenderData(snippetId, context);

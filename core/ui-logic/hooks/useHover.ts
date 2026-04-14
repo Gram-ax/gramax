@@ -1,5 +1,5 @@
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useMediaQuery } from "@mui/material";
 import { type RefObject, useEffect, useState } from "react";
 
 const useHover = <T extends HTMLElement = HTMLElement>(ref: RefObject<T>): boolean => {

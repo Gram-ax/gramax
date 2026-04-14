@@ -1,4 +1,4 @@
-import { CommentBlock } from "@core-ui/CommentBlock";
+import type { CommentBlock } from "@core-ui/CommentBlock";
 import { getParserTestData } from "../../../../core/Parser/test/getParserTestData";
 import { transformModelToNode, transformNodeToModel } from "./Transformer";
 

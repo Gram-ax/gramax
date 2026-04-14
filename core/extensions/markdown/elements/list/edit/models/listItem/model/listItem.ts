@@ -5,7 +5,7 @@ import taskListPlugin from "@ext/markdown/elements/list/edit/models/listItem/log
 import { listItem } from "@ext/markdown/elements/list/edit/models/listItem/model/listItemSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import { wrappingInputRule } from "@tiptap/core";
-import ListItem, { ListItemOptions } from "@tiptap/extension-list-item";
+import ListItem, { type ListItemOptions } from "@tiptap/extension-list-item";
 import { TaskItem } from "@tiptap/extension-task-item";
 
 export const CHECKED_ATTR = "checked";

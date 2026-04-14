@@ -1,7 +1,7 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import { ModuleOptions } from "@ext/enterprise/types/UserSettings";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import type { ModuleOptions } from "@ext/enterprise/types/UserSettings";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 const setModules: Command<{ workspacePath: WorkspacePath; modules: ModuleOptions }, void> = Command.create({
 	path: "enterprise/modules/set",

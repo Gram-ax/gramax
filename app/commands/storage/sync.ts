@@ -2,14 +2,14 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
 import type ClientSyncResult from "@ext/git/core/model/ClientSyncResult";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import { AuthorizeMiddleware } from "../../../core/logic/Api/middleware/AuthorizeMiddleware";
-import Context from "../../../core/logic/Context/Context";
+import type Context from "../../../core/logic/Context/Context";
 import { Command } from "../../types/Command";
 
 const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, ClientSyncResult> = Command.create({

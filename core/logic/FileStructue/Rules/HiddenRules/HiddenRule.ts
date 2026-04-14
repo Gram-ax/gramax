@@ -1,7 +1,7 @@
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import { Item } from "@core/FileStructue/Item/Item";
-import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { Item } from "@core/FileStructue/Item/Item";
+import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import type RuleCollection from "@ext/events/RuleCollection";
 import type Navigation from "@ext/navigation/catalog/main/logic/Navigation";
 

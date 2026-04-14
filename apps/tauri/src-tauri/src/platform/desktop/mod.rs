@@ -1,9 +1,13 @@
+use opentelemetry::trace::Status;
 use std::path::Path;
+use tauri::webview::PageLoadEvent;
+use tauri::webview::PageLoadPayload;
 use tauri::*;
+use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use crate::error::ShowError;
 
-use crate::shared::should_allow_navigation;
+use crate::platform::init::DefaultFallbackUrl;
 use crate::shared::AppHandleExt;
 use crate::shared::ALLOWED_DOMAINS;
 
@@ -22,8 +26,51 @@ pub use menu::MenuBuilder;
 
 use save_windows::SaveWindowsExt;
 
+// on_navigation callback doesn't distinguish iframe and window's webview
+// on_page_load callback is being fired only when main webview loads a new page
+pub fn make_on_page_load_callback<R: Runtime>() -> Box<dyn Fn(WebviewWindow<R>, PageLoadPayload) + Send + Sync> {
+	Box::new(|wv, payload| {
+		if payload.event() != PageLoadEvent::Started {
+			return;
+		}
+
+		let url = payload.url();
+
+		info_span!("on_page_load", url = url.as_str()).in_scope(|| {
+			let ok = matches!(url.scheme(), "blob" | "about" | "tauri") || url.domain().is_some_and(|domain| ALLOWED_DOMAINS.contains(&domain));
+
+			tracing::Span::current().set_attribute("allowed", ok);
+
+			if ok {
+				return;
+			}
+
+			let res = match wv.app_handle().try_state::<DefaultFallbackUrl>() {
+				Some(url) => {
+					info!(url = url.0.as_str(), "navigating to default fallback url");
+					wv.navigate(url.0.clone())
+				}
+				None => {
+					error!("didn't find default fallback url; closing window");
+					wv.close()
+				}
+			}
+			.or_show();
+
+			if let Err(err) = res {
+				tracing::Span::current().set_status(Status::Error {
+					description: err.to_string().into(),
+				});
+			}
+		})
+	})
+}
+
 pub fn make_on_navigate_callback<R: Runtime>(_: String, _: AppHandle<R>) -> Box<dyn Fn(&url::Url) -> bool + Send + Sync> {
-	Box::new(move |url| should_allow_navigation(url, &ALLOWED_DOMAINS))
+	Box::new(move |url| {
+		trace_span!("on_navigate", url = url.as_str());
+		true
+	})
 }
 
 #[cfg(target_os = "macos")]

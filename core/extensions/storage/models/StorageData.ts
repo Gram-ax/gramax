@@ -1,4 +1,4 @@
-import SourceData from "../logic/SourceDataProvider/model/SourceData";
+import type SourceData from "../logic/SourceDataProvider/model/SourceData";
 
 interface StorageData {
 	name: string;

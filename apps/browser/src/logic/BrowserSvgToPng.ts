@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 const svgToPngBlob = async (svg: string, size: ImageDimensions, scale: number): Promise<Blob | null> => {
 	const image = new Image();

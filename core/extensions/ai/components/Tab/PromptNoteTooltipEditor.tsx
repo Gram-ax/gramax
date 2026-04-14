@@ -1,10 +1,10 @@
 import PromptService from "@ext/ai/components/Tab/PromptService";
-import TooltipArticleView, { TooltipEditorProps } from "@ext/articleProvider/components/TooltipArticleView";
+import TooltipArticleView, { type TooltipEditorProps } from "@ext/articleProvider/components/TooltipArticleView";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
-import { JSONContent } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/react";
 import { useCallback } from "react";
 
 interface PromptNoteTooltipEditorProps extends TooltipEditorProps {

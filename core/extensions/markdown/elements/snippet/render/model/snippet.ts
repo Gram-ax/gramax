@@ -1,6 +1,6 @@
-import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
-import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
-import { Node, Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
+import type { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
+import type PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
+import { type Node, type Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
 
 export function snippet(context: PrivateParserContext): Schema {
 	return {

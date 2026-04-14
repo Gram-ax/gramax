@@ -1,9 +1,9 @@
 import generateUniqueID from "@core/utils/generateUniqueID";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { ProviderContextService, ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderContextService, ProviderItemProps } from "@ext/articleProvider/models/types";
 import ArticleTemplate from "@ext/templates/components/ArticleTemplate";
 import { createContext, useContext, useState } from "react";
 

@@ -21,17 +21,15 @@ class EnterpriseApi {
 	async check() {
 		try {
 			if (!this._gesUrl.includes("http")) return false;
-			const controller = new AbortController();
-			const timeoutId = setTimeout(() => controller.abort(), 5000);
-			let res: Response;
+
+			const signal = AbortSignal.timeout(5000);
+
 			try {
-				res = await fetch(`${this._gesUrl}/enterprise/health-hwREfnmK`, { signal: controller.signal });
+				const res = await fetch(`${this._gesUrl}/enterprise/health-hwREfnmK`, { signal });
+				return res.ok;
 			} catch {
 				return false;
-			} finally {
-				clearTimeout(timeoutId);
 			}
-			return res?.ok ?? false;
 		} catch {
 			return false;
 		}
@@ -109,6 +107,25 @@ class EnterpriseApi {
 
 	async isEnabledGetUsers(): Promise<boolean> {
 		const res = await fetch(`${this._gesUrl}/sso/connectors/enabled`, { credentials: "include" });
+		return res.ok && res.status === 200;
+	}
+
+	async getGroups(search: string, token: string): Promise<{ id: string; name: string }[]> {
+		const res = await fetch(`${this._gesUrl}/sso/connectors/getGroups`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+			body: JSON.stringify({ groupName: search }),
+			credentials: "include",
+		});
+		if (!res.ok) {
+			console.error(await res.json());
+			return [];
+		}
+		return res.json();
+	}
+
+	async isEnabledGetGroups(): Promise<boolean> {
+		const res = await fetch(`${this._gesUrl}/sso/connectors/groups/enabled`, { credentials: "include" });
 		return res.ok && res.status === 200;
 	}
 

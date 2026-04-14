@@ -1,10 +1,10 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import FileStructueErrorCode from "@core/FileStructue/error/model/FileStructueErrorCode";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import DefaultError from "../../../../core/extensions/errorHandlers/logic/DefaultError";
 import { Command } from "../../../types/Command";
 

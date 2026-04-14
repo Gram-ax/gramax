@@ -1,12 +1,12 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import { Router } from "@core/Api/Router";
+import type { Router } from "@core/Api/Router";
 import { useRouter } from "@core/Api/useRouter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { Link } from "@ext/properties/logic/CatalogLinksProvider";
+import type { Link } from "@ext/properties/logic/CatalogLinksProvider";
 import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
 import { useState } from "react";
 

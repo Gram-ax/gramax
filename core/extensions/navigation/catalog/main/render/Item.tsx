@@ -131,7 +131,6 @@ const StyledItem = styled(Item)`
 	font-weight: 500;
 `}
 
-	&:hover,
 	&:has([data-state="open"]) {
 		background: var(--color-lev-sidebar-hover);
 
@@ -203,12 +202,12 @@ const StyledItem = styled(Item)`
 		`}
 
 	${cssMedia.moreThanNarrow} {
-		:hover {
+		&:hover {
 			background: var(--color-lev-sidebar-hover);
 
 			.right-extensions {
 				opacity: 1;
-				pointer-events: auto;
+				pointer-events: auto !important;
 			}
 		}
 

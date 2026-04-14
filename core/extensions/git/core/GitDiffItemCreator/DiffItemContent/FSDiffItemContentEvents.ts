@@ -1,4 +1,4 @@
-import { UnsubscribeToken } from "@core/Event/EventEmitter";
+import type { UnsubscribeToken } from "@core/Event/EventEmitter";
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import DiffItemContent from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";

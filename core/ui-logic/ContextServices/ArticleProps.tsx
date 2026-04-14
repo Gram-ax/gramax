@@ -1,6 +1,6 @@
-import React, { ReactElement, useContext, useEffect, useState } from "react";
-import { TocItem } from "../../extensions/navigation/article/logic/createTocItems";
-import { ClientArticleProps } from "../../logic/SitePresenter/SitePresenter";
+import React, { type ReactElement, useContext, useEffect, useState } from "react";
+import type { TocItem } from "../../extensions/navigation/article/logic/createTocItems";
+import type { ClientArticleProps } from "../../logic/SitePresenter/SitePresenter";
 
 interface ArticlePropsContextType {
 	articleProps: ClientArticleProps;

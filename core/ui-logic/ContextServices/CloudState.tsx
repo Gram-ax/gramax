@@ -1,8 +1,8 @@
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import CloudApi from "@ext/static/logic/CloudApi";
 import { feature } from "@ext/toggleFeatures/features";
-import React, { ReactElement, useContext, useEffect, useMemo, useState } from "react";
+import React, { type ReactElement, useContext, useEffect, useMemo, useState } from "react";
 
 const CatalogPropsContext = React.createContext<CloudStateServiceContextProps>(undefined);
 

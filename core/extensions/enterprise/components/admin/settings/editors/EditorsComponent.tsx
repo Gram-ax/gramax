@@ -3,7 +3,7 @@ import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingA
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
@@ -14,7 +14,7 @@ import { TableInfoBlock } from "../../ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "../../ui-kit/table/TableToolbar";
 import { UserToolbarAddBtn } from "../components/UserToolbarAddBtn";
 import { editorsTableColumns } from "./config/EditorsTableConfig";
-import { Editor } from "./types/EditorsComponentTypes";
+import type { Editor } from "./types/EditorsComponentTypes";
 
 const EditorsComponent = () => {
 	const { settings, updateEditors, ensureEditorsLoaded, getTabError, isInitialLoading } = useSettings();

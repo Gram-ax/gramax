@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
-import { InboxArticle } from "@ext/inbox/models/types";
+import type Context from "@core/Context/Context";
+import type { InboxArticle } from "@ext/inbox/models/types";
 import { Command } from "../../types/Command";
 
 const create: Command<

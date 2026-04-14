@@ -1,25 +1,25 @@
 import { CATEGORY_ROOT_FILENAME, DOC_ROOT_FILENAME } from "@app/config/const";
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
-import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
+import type ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import type ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
 import makeConfluenceConvertor from "@ext/confluence/core/logic/makeConfluenceConvertor";
-import { ConfluenceArticle, ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
-import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
-import ConfluenceImportData from "@ext/confluence/core/model/ConfluenceImportData";
+import type { ConfluenceArticle, ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
+import type ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
+import type ConfluenceImportData from "@ext/confluence/core/model/ConfluenceImportData";
 import type ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import t from "@ext/localization/locale/translate";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import generateUnsupportedMd from "@ext/markdown/elements/unsupported/logic/generateUnsupportedMd";
 import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import { sortConfluenceArticles } from "./utils/sortConfluenceArticles";
 
 export default class ConfluenceStorage {

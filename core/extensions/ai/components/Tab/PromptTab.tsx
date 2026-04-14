@@ -5,7 +5,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PromptService from "@ext/ai/components/Tab/PromptService";
 import ItemList from "@ext/articleProvider/components/ItemList";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";

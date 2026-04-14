@@ -1,6 +1,6 @@
-import LinkResourceManager from "@core/Link/LinkResourceManager";
-import ResourceManager from "@core/Resource/ResourceManager";
-import { Question } from "@ext/markdown/elements/question/types";
+import type LinkResourceManager from "@core/Link/LinkResourceManager";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import type { Question } from "@ext/markdown/elements/question/types";
 
 export interface ParsedContext {
 	icons: Set<string>;

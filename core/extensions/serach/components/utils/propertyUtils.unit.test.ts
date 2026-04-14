@@ -1,5 +1,5 @@
 import Style from "@components/HomePage/Cards/model/Style";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 import { cloneProperty, filterPropertiesBySearch, togglePropertyValue } from "./propertyUtils";
 
 const baseProperty = (overrides?: Partial<Property>): Property => ({

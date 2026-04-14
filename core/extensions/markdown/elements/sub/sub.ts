@@ -1,4 +1,4 @@
-import { Schema, Tag } from "../../core/render/logic/Markdoc";
+import { type Schema, Tag } from "../../core/render/logic/Markdoc";
 
 export const sub: Schema = {
 	render: "Sub",

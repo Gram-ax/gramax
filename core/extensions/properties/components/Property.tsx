@@ -2,9 +2,9 @@ import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import styled from "@emotion/styled";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
-import { PropertyTypes } from "@ext/properties/models";
+import type { PropertyTypes } from "@ext/properties/models";
 import { IconButton } from "@ui-kit/Button";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 interface PropertyProps {
 	name: string;

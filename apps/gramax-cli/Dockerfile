@@ -1,4 +1,6 @@
-FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image AS deps
+ARG USE_IMAGE_TAG="latest-dev"
+
+FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader/base-image:${USE_IMAGE_TAG:-latest-dev} AS deps
 
 WORKDIR /src
 
@@ -6,7 +8,7 @@ RUN [ "apt-get", "install", "-y", "--no-install-recommends", "git", "bash" ]
 
 COPY . .
 
-RUN rm -r services
+RUN rm -rf services
 
 RUN ["./install-deps.sh", "--ci"]
 

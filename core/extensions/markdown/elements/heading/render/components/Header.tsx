@@ -1,14 +1,15 @@
+import Icon from "@components/Atoms/Icon";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import isNavigatorAvailable from "@core-ui/isNavigatorAvailable";
 import useGetHref from "@core-ui/useGetHref";
 import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import styled from "@emotion/styled";
-import React, { type MouseEvent } from "react";
+import React, { type MouseEvent, type ReactNode, useCallback } from "react";
 
 export interface HeaderProps {
 	level: number;
 	id?: string;
-	children?: any;
+	children?: ReactNode;
 	copyLinkIcon?: boolean;
 	className?: string;
 	dataQa?: string;
@@ -22,12 +23,15 @@ const Header = (props: HeaderProps) => {
 	const href = useGetHref(hash);
 	const articleProps = ArticlePropsService.value;
 
-	const onClickHandler = (e: MouseEvent<HTMLAnchorElement>) => {
-		if (!copyAllowed) return;
-		if (!id) e.preventDefault();
-		const clipboardLink = window.location.origin + window.location.pathname + hash;
-		void tryCopyToClipboard(clipboardLink);
-	};
+	const onClickHandler = useCallback(
+		(e: MouseEvent<HTMLAnchorElement>) => {
+			if (!copyAllowed) return;
+			e.preventDefault();
+			const clipboardLink = window.location.origin + window.location.pathname + hash;
+			void tryCopyToClipboard(clipboardLink);
+		},
+		[copyAllowed, hash],
+	);
 
 	const headerId = !isPrint ? id : articleProps.logicPath + hash;
 
@@ -36,13 +40,13 @@ const Header = (props: HeaderProps) => {
 			{children}
 			{copyLinkIcon && !!children && (
 				<a className="anchor" contentEditable={false} data-mdignore={true} href={href} onClick={onClickHandler}>
-					<i className="link-icon chain-icon" />
+					<Icon className="link-icon" code="link" />
 				</a>
 			)}
 		</>
 	);
 
-	return React.createElement("h" + level, { id: headerId, className, "data-qa": dataQa }, header);
+	return React.createElement(`h${level}`, { id: headerId, className, "data-qa": dataQa }, header);
 };
 
 const getFontSize = (level: number) => {

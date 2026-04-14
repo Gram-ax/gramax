@@ -1,7 +1,7 @@
 import { StyledField } from "@ext/enterprise/components/admin/ui-kit/StyledField";
 import t from "@ext/localization/locale/translate";
 import { Input } from "@ui-kit/Input";
-import { WorkspaceSettings } from "../types/WorkspaceComponent";
+import type { WorkspaceSettings } from "../types/WorkspaceComponent";
 
 interface WorkspaceInfoProps {
 	localSettings: WorkspaceSettings;

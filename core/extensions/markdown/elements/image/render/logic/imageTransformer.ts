@@ -1,10 +1,10 @@
-import { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
+import type { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
 import {
-	AnnotationObject,
-	Crop,
-	ImageObject,
+	type AnnotationObject,
+	type Crop,
+	type ImageObject,
 	ImageObjectTypes,
-	SquareObject,
+	type SquareObject,
 } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
 export const parse = (
@@ -49,7 +49,7 @@ const transformToObjects = (objects: string): ImageObject[] => {
 	objects.split("&").forEach((object) => {
 		const data = object.split(",");
 		const type: ImageObjectTypes = data[0] as ImageObjectTypes;
-		let newObject;
+		let newObject: ImageObject;
 
 		switch (type) {
 			case ImageObjectTypes.Annotation:
@@ -73,7 +73,7 @@ const transformToObjects = (objects: string): ImageObject[] => {
 				} as SquareObject;
 				break;
 			default:
-				console.warn(`Unknown object type: ${data[2]}`);
+				console.warn(`TransformToObjects: Unknown object type, objects: ${objects}`);
 		}
 
 		newObjects.push(newObject);
@@ -90,6 +90,7 @@ export const format = (
 	scale?: number,
 	float?: FloatAlign,
 ) => {
+	// biome-ignore lint/suspicious/noExplicitAny: it's ok
 	const result: Record<string, any> = {};
 
 	result.crop = Object.values(crop).join(",");
@@ -98,7 +99,7 @@ export const format = (
 
 	if (Array.isArray(objects) && objects.length > 0) {
 		result.objects = objects
-			.filter((data) => data && data.type)
+			.filter((data) => data?.type)
 			.map((data, index) => (index !== 0 ? "&" : "") + Object.values(data).join(","))
 			.join("");
 	}

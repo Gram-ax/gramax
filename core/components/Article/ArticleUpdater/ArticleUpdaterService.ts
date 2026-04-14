@@ -1,8 +1,8 @@
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { setComments } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 let _flag: boolean;
 let _data: ArticlePageData;

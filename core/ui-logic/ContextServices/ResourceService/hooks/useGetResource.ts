@@ -1,6 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import {
+	ResourceEmptyError,
 	type ResourceError,
 	ResourceLoadError,
 	ResourceNotFoundError,
@@ -115,9 +116,14 @@ export const useGetResource: UseGetResource = (callback, src, content?, havePare
 				return { error: result.error };
 			}
 
-			if (!result.buffer || !result.buffer.length) {
+			if (!result.buffer) {
 				return { error: new ResourceNotFoundError(src) };
 			}
+
+			if (!result.buffer.length) {
+				return { error: new ResourceEmptyError(src) };
+			}
+
 			update(src, result.buffer);
 		},
 		[update, haveParentPath, isPrint, apiUrlCreator, loadInternalDataCallback, loadingPromises],

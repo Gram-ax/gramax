@@ -6,12 +6,12 @@ export class NGramIndex<TItem extends { id: unknown }> {
 	constructor(private readonly _N = 3) {}
 
 	setTexts(item: TItem, texts: string[]): void {
-		const tokenized = texts.map((t) => this.tokenize(t));
+		const tokenized = texts.map((t) => this._tokenize(t));
 
 		const oldTexts = this._documents.get(item.id);
 		if (oldTexts !== undefined) {
 			for (const tokens of oldTexts) {
-				this.removeFromIndex(item, tokens);
+				this._removeFromIndex(item, tokens);
 			}
 		}
 
@@ -19,7 +19,7 @@ export class NGramIndex<TItem extends { id: unknown }> {
 		this._items.set(item.id, item);
 
 		for (const tokens of tokenized) {
-			this.addToIndex(item, tokens);
+			this._addToIndex(item, tokens);
 		}
 	}
 
@@ -28,7 +28,7 @@ export class NGramIndex<TItem extends { id: unknown }> {
 		if (!texts) return;
 
 		for (const tokens of texts) {
-			this.removeFromIndex(item, tokens);
+			this._removeFromIndex(item, tokens);
 		}
 		this._documents.delete(item.id);
 		this._items.delete(item.id);
@@ -41,11 +41,11 @@ export class NGramIndex<TItem extends { id: unknown }> {
 		}
 	}
 
-	search(query: string, threshold = 0.6): TItem[] {
-		const tokens = this.tokenize(query);
+	search(query: string, threshold = 0.6, filter?: (item: TItem) => boolean): TItem[] {
+		const tokens = this._tokenize(query);
 		if (tokens.length === 0) return [];
 
-		const qgrams = tokens.flatMap((t) => this.ngrams(t));
+		const qgrams = tokens.flatMap((t) => this._ngrams(t));
 
 		const candidates = new Set<TItem>();
 		for (const g of qgrams) {
@@ -56,12 +56,16 @@ export class NGramIndex<TItem extends { id: unknown }> {
 		const result: TItem[] = [];
 
 		for (const item of candidates) {
+			if (filter && !filter(item)) {
+				continue;
+			}
+
 			const itemTexts = this._documents.get(item.id)!;
 
 			let matched = false;
 
 			for (const tokens of itemTexts) {
-				const docGrams = new Set(tokens.flatMap((t) => this.ngrams(t)));
+				const docGrams = new Set(tokens.flatMap((t) => this._ngrams(t)));
 
 				const intersection = qgrams.filter((g) => docGrams.has(g)).length;
 				const union = new Set([...qgrams, ...docGrams]).size;
@@ -79,7 +83,7 @@ export class NGramIndex<TItem extends { id: unknown }> {
 		return result;
 	}
 
-	private tokenize(text: string): string[] {
+	private _tokenize(text: string): string[] {
 		return text
 			.toLowerCase()
 			.normalize("NFKD")
@@ -88,9 +92,9 @@ export class NGramIndex<TItem extends { id: unknown }> {
 			.filter(Boolean);
 	}
 
-	private addToIndex(item: TItem, words: string[]) {
+	private _addToIndex(item: TItem, words: string[]) {
 		for (const w of words) {
-			for (const gram of this.ngrams(w)) {
+			for (const gram of this._ngrams(w)) {
 				const ex = this._index.get(gram);
 				if (ex === undefined) this._index.set(gram, new Set([item]));
 				else ex.add(item);
@@ -98,9 +102,9 @@ export class NGramIndex<TItem extends { id: unknown }> {
 		}
 	}
 
-	private removeFromIndex(item: TItem, words: string[]) {
+	private _removeFromIndex(item: TItem, words: string[]) {
 		for (const w of words) {
-			for (const gram of this.ngrams(w)) {
+			for (const gram of this._ngrams(w)) {
 				const set = this._index.get(gram);
 				if (!set) continue;
 				set.delete(item);
@@ -109,7 +113,7 @@ export class NGramIndex<TItem extends { id: unknown }> {
 		}
 	}
 
-	private ngrams(word: string): string[] {
+	private _ngrams(word: string): string[] {
 		if (word.length <= this._N) return [word];
 		const grams: string[] = [];
 		for (let i = 0; i <= word.length - this._N; i++) {

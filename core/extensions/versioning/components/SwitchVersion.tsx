@@ -7,7 +7,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import t from "@ext/localization/locale/translate";
-import { addScopeToPath } from "@ext/versioning/utils";
+import { addScopeToPath } from "@ext/versioning/addScopeToPath";
 import {
 	DropdownMenu,
 	DropdownMenuContent,

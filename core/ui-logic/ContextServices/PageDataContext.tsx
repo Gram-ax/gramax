@@ -1,12 +1,11 @@
-import { PageProps } from "@components/ContextProviders";
-import ContextService from "@core-ui/ContextServices/ContextService";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext } from "react";
-import PageDataContext from "../../logic/Context/PageDataContext";
+import type { PageProps } from "@components/Pages/models/Pages";
+import type ContextService from "@core-ui/ContextServices/ContextService";
+import { createContext, type ReactElement, useContext } from "react";
+import type PageDataContext from "../../logic/Context/PageDataContext";
 
 export const PageDataContextContext = createContext<PageDataContext>(undefined);
 
 class PageDataContextService implements ContextService {
-	private _setPageDataContext: Dispatch<SetStateAction<PageDataContext>>;
 	private _pageDataContextRef: { value: PageDataContext } = { value: null };
 
 	Init({ children, pageProps }: { children: ReactElement; pageProps: PageProps }): ReactElement {

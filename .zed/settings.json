@@ -51,6 +51,10 @@
 	},
 	"lsp": {
 		"yaml-language-server": {
+			"binary": {
+				"path": "~/Source/repos/yaml-language-server/bin/yaml-language-server",
+				"arguments": ["--stdio"]
+			},
 			"settings": {
 				"yaml": {
 					"customTags": ["!reference sequence"],
@@ -69,9 +73,6 @@
 		},
 		"rust-analyzer": {
 			"initialization_options": {
-				"rust": {
-					"analyzerTargetDir": true
-				},
 				"imports": {
 					"granularity": {
 						"enforce": true,
@@ -80,7 +81,7 @@
 					"group": {
 						"enable": true
 					}
-				}
+				},
 				// "cargo": {
 				// 	"target": "wasm32-unknown-emscripten",
 				// 	"features": [],
@@ -90,6 +91,10 @@
 				// 	}
 				// },
 				// "check": { "targets": "wasm32-unknown-emscripten", "allTargets": true }
+				"check": {
+					"command": "clippy"
+				}
+				// }
 			}
 		}
 	}

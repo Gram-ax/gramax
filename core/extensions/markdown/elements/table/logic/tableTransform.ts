@@ -1,4 +1,4 @@
-import { Token } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
 import { COL_MIN_WIDTH } from "@ext/markdown/elements/table/edit/model/nodes/customTable";
 
 const tableTransform = (tokens: Token[]) => {

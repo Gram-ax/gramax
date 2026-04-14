@@ -1,5 +1,5 @@
-import { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import getCodeFormatter from "@ext/markdown/elements/code/edit/logic/getCodeFormatter";
 import getColorFormatter from "@ext/markdown/elements/color/edit/logic/getColorFormatter";
 import getCommentFormatter from "@ext/markdown/elements/comment/edit/logic/getCommentFormatter";

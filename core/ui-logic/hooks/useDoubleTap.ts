@@ -1,24 +1,29 @@
-import { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent, useCallback, useRef } from "react";
+import { type MouseEvent as ReactMouseEvent, type RefObject, useCallback, useEffect, useRef } from "react";
 
 interface DoubleTapConfig {
 	onDoubleTap: () => void;
+	elementRef: RefObject<HTMLElement>;
 	delay?: number;
 	threshold?: number;
 }
 
 interface DoubleTapHandlers {
-	onTouchStart: (event: ReactTouchEvent<HTMLElement>) => void;
 	onDoubleClick: (event: ReactMouseEvent<HTMLElement>) => void;
 }
 
 export const useDoubleTap = (config: DoubleTapConfig): DoubleTapHandlers => {
-	const { onDoubleTap, delay = 300, threshold = 50 } = config;
+	const { onDoubleTap, elementRef, delay = 300, threshold = 50 } = config;
 
 	const lastTapTimeRef = useRef<number>(0);
 	const lastTapPositionRef = useRef<{ x: number; y: number }>(null);
+	const onDoubleTapRef = useRef(onDoubleTap);
+	onDoubleTapRef.current = onDoubleTap;
 
-	const onTouchStart = useCallback(
-		(event: ReactTouchEvent<HTMLElement>) => {
+	useEffect(() => {
+		const element = elementRef.current;
+		if (!element) return;
+
+		const handleTouchStart = (event: TouchEvent) => {
 			const currentTime = Date.now();
 			const touch = event.touches[0];
 			const currentPosition = { x: touch.clientX, y: touch.clientY };
@@ -26,14 +31,14 @@ export const useDoubleTap = (config: DoubleTapConfig): DoubleTapHandlers => {
 			if (lastTapTimeRef.current && lastTapPositionRef.current) {
 				const timeDiff = currentTime - lastTapTimeRef.current;
 				const distance = Math.sqrt(
-					Math.pow(currentPosition.x - lastTapPositionRef.current.x, 2) +
-						Math.pow(currentPosition.y - lastTapPositionRef.current.y, 2),
+					(currentPosition.x - lastTapPositionRef.current.x) ** 2 +
+						(currentPosition.y - lastTapPositionRef.current.y) ** 2,
 				);
 
 				if (timeDiff <= delay && distance <= threshold) {
 					if (event.cancelable) event.preventDefault();
 
-					onDoubleTap();
+					onDoubleTapRef.current();
 					lastTapTimeRef.current = 0;
 					lastTapPositionRef.current = null;
 					return;
@@ -49,9 +54,11 @@ export const useDoubleTap = (config: DoubleTapConfig): DoubleTapHandlers => {
 					lastTapPositionRef.current = null;
 				}
 			}, delay);
-		},
-		[onDoubleTap, delay, threshold],
-	);
+		};
+
+		element.addEventListener("touchstart", handleTouchStart, { passive: false });
+		return () => element.removeEventListener("touchstart", handleTouchStart);
+	}, [elementRef, delay, threshold]);
 
 	const onDoubleClick = useCallback(
 		(event: ReactMouseEvent<HTMLElement>) => {
@@ -63,7 +70,6 @@ export const useDoubleTap = (config: DoubleTapConfig): DoubleTapHandlers => {
 	);
 
 	return {
-		onTouchStart,
 		onDoubleClick,
 	};
 };

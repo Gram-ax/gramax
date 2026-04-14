@@ -1,4 +1,4 @@
-import { Transaction } from "prosemirror-state";
+import type { Transaction } from "prosemirror-state";
 
 const titleRule = (transaction: Transaction): boolean => {
 	const doc = transaction.doc;

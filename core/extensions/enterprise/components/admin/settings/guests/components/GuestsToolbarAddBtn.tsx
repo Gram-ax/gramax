@@ -1,6 +1,6 @@
 import { ModalComponent } from "@ext/enterprise/components/admin/ui-kit/ModalComponent";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ButtonProps } from "@ui-kit/Button";
+import type { ButtonProps } from "@ui-kit/Button";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { TextInput } from "@ui-kit/Input";
 import { useMemo, useState } from "react";

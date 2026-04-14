@@ -2,10 +2,10 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
-import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
+import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import t from "@ext/localization/locale/translate";
 import User2 from "@ext/security/components/User/User2";
-import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import type { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
 import { FormField } from "@ui-kit/Form";
 import { MenuItem, MenuItemAction } from "@ui-kit/MenuItem";
 import {
@@ -19,11 +19,11 @@ import {
 	SelectValue,
 } from "@ui-kit/Select";
 import { useMemo, useRef, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import parseStorageUrl from "../../../../../../logic/utils/parseStorageUrl";
 import CloneFields from "../../components/CloneFields";
 import { useMakeSourceApi } from "../../makeSourceApi";
-import GithubSourceAPI from "../logic/GithubSourceAPI";
+import type GithubSourceAPI from "../logic/GithubSourceAPI";
 
 type SelectOptionType = {
 	label: string;

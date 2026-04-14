@@ -1,6 +1,6 @@
 import t from "@ext/localization/locale/translate";
-import { Level } from "@ext/markdown/elements/heading/edit/model/heading";
-import { Editor } from "@tiptap/core";
+import type { Level } from "@ext/markdown/elements/heading/edit/model/heading";
+import type { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleItem } from "@ui-kit/Toolbar";
 
 interface HeadingMenuButtonProps {

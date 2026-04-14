@@ -32,10 +32,9 @@ const healthcheck: Command<{ ctx: Context; catalogName: string }, CatalogErrors>
 				article,
 				catalog,
 				convertContentToUiLanguage(ctx.contentLanguage || catalog?.props?.language),
-				ctx.user?.isLogged,
 			);
 
-		await commentProvider.parseCatalogCommenrs(articles, getParserContextFromArticle);
+		await commentProvider.parseCatalogComments(articles, getParserContextFromArticle);
 
 		const healthcheck = new Healthcheck(fp, catalog);
 

@@ -1,5 +1,5 @@
 import { useDataCache } from "ics-ui-kit";
-import { LoadOptionsParams, LoadOptionsResult, SearchSelectOption } from "ics-ui-kit/components/search-select";
+import type { LoadOptionsParams, LoadOptionsResult, SearchSelectOption } from "ics-ui-kit/components/search-select";
 import { useMemo } from "react";
 
 export const useCache = <T extends SearchSelectOption>(

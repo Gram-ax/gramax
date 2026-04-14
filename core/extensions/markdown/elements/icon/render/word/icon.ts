@@ -1,5 +1,5 @@
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
-import { WordInlineChild } from "@ext/wordExport/options/WordTypes";
+import type { WordInlineChild } from "@ext/wordExport/options/WordTypes";
 import { ICON_SIZE } from "@ext/wordExport/options/wordExportSettings";
 import React from "react";
 import ReactDOMServer from "react-dom/server";

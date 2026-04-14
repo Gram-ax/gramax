@@ -8,9 +8,8 @@ import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
-import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import { ComponentProps, ReactNode, useEffect, useState } from "react";
+import type GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
+import { type ComponentProps, type ReactNode, useEffect, useState } from "react";
 
 interface SharedTicketTriggerProps {
 	children?: ReactNode;

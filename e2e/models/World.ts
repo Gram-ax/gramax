@@ -1,6 +1,6 @@
-import { ITestCaseHookParameter, IWorldOptions, World } from "@cucumber/cucumber";
-import { Page as PlaywrightPage } from "playwright";
-import { Aliases, globalAlias } from "../steps/utils/aliases";
+import { type ITestCaseHookParameter, type IWorldOptions, World } from "@cucumber/cucumber";
+import type { Page as PlaywrightPage } from "playwright";
+import { type Aliases, globalAlias } from "../steps/utils/aliases";
 import { FPContext } from "./Contexts/FPContext";
 import PageContext from "./Pages/PageContext";
 

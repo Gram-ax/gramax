@@ -1,22 +1,18 @@
-import type { Category } from "@core/FileStructue/Category/Category";
-
 import type Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import type BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type { ArticleFilter, Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item, ItemProps } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type PathnameData from "@core/RouterPath/model/PathnameData";
 import type Repository from "@ext/git/core/Repository/Repository";
+import type InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
 import type SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import type IPermission from "@ext/security/logic/Permission/IPermission";
-import type InboxProvider from "@ext/inbox/logic/InboxProvider";
 import type TemplateProvider from "@ext/templates/logic/TemplateProvider";
-import PromptProvider from "@ext/ai/logic/PromptProvider";
-import CatalogLinksProvider from "@ext/properties/logic/CatalogLinksProvider";
-import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
 
 export interface ReadonlyCatalog<P extends CatalogProps = CatalogProps> extends ReadonlyBaseCatalog<P> {
 	get deref(): Catalog<P>;

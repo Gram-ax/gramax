@@ -1,10 +1,10 @@
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import type { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { BASE_CONFIG } from "@ext/pdfExport/config";
 import { inlineLayouts } from "@ext/pdfExport/layouts";
-import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { isTag } from "@ext/pdfExport/utils/isTag";
-import { JSONContent } from "@tiptap/core";
-import { ContentText } from "pdfmake/interfaces";
+import type { JSONContent } from "@tiptap/core";
+import type { ContentText } from "pdfmake/interfaces";
 
 export const extractContent = async (
 	node: RenderableTreeNode | JSONContent,

@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 const HTMLBlockField = (props: { children?: React.ReactNode }) => (
 	<div data-component="block-field">{props.children}</div>

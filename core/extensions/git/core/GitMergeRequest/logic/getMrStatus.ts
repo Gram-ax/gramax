@@ -1,5 +1,5 @@
-import { MergeRequestStatus } from "@ext/git/core/GitMergeRequest/components/Elements/Status";
-import { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { MergeRequestStatus } from "@ext/git/core/GitMergeRequest/components/Elements/Status";
+import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 
 const getMrStatus = (mr: MergeRequest, isDraft: boolean): MergeRequestStatus => {
 	if (!mr) return null;

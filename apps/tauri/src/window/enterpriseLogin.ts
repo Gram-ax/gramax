@@ -1,14 +1,13 @@
-import { Router } from "@core/Api/Router";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { Router } from "@core/Api/Router";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import initEnterprise from "@ext/enterprise/utils/initEnterprise";
 import { once } from "@tauri-apps/api/event";
 import { httpListenOnce } from "./commands";
 
 const enterpriseLogin = async (url: string, apiUrlCreator: ApiUrlCreator, router: Router) => {
-	const callbackName = "done_" + Date.now();
-	const unlisten = {
-		once: null,
-	};
+	const callbackName = `done_${Date.now()}`;
+	const unlisten = { once: null };
 
 	const timeout = setTimeout(
 		() => {
@@ -19,6 +18,7 @@ const enterpriseLogin = async (url: string, apiUrlCreator: ApiUrlCreator, router
 
 	unlisten.once = await once<string>(callbackName, (ev) => {
 		const oneTimeCode = ev.payload?.replace?.("&from=http://localhost:52054", "")?.replace("oneTimeCode=", "");
+		ModalToOpenService.resetValue();
 		void initEnterprise(oneTimeCode, apiUrlCreator, router);
 		clearTimeout(timeout);
 	});

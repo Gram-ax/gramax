@@ -1,6 +1,6 @@
 import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
 import { editName as blockPropertyEditName } from "@ext/markdown/elements/blockProperty/consts";
-import { EditorState } from "@tiptap/pm/state";
+import type { EditorState } from "@tiptap/pm/state";
 
 export const readyToPlace = (editor: EditorState, nodeName: string, additional?: string[]) => {
 	const { nodeReadyToPlace } = test(editor, nodeName, [

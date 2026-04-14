@@ -1,21 +1,22 @@
-import PrivateParserContext from "../../core/Parser/ParserContext/PrivateParserContext";
-import { Node, RenderableTreeNodes, Schema, SchemaType, Tag } from "../../core/render/logic/Markdoc/index";
+import {
+	type Node,
+	type RenderableTreeNodes,
+	type Schema,
+	SchemaType,
+	Tag,
+} from "../../core/render/logic/Markdoc/index";
 
-export function error(context: PrivateParserContext): Schema {
-	return {
-		render: "Error",
-		attributes: {
-			message: { type: String },
-			stack: { type: String },
-		},
-		selfClosing: false,
-		type: SchemaType.block,
-		transform: (node: Node): RenderableTreeNodes => {
-			return new Tag("Error", {
-				error: { message: node.attributes.message, stack: node.children[0].attributes.content },
-				isLogged: context.getIsLogged(),
-				lang: context.getLanguage(),
-			});
-		},
-	};
-}
+export const error: Schema = {
+	render: "Error",
+	attributes: {
+		message: { type: String },
+		stack: { type: String },
+	},
+	selfClosing: false,
+	type: SchemaType.block,
+	transform: (node: Node): RenderableTreeNodes => {
+		return new Tag("Error", {
+			error: { message: node.attributes.message, stack: node.children[0].attributes.content },
+		});
+	},
+};

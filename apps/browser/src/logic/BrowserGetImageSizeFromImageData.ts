@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 const getImageSizeFromImageData = async (
 	imageBuffer: Buffer,

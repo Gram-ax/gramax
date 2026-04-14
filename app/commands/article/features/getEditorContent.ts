@@ -1,10 +1,10 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 const getEditorContent: Command<{ ctx: Context; articlePath: Path; catalogName: string }, JSONContent> = Command.create(
 	{

@@ -1,5 +1,5 @@
 import Paginator from "@ext/print/utils/pagination/Paginator";
-import { ReactElement, useLayoutEffect, useState } from "react";
+import { type ReactElement, useLayoutEffect, useState } from "react";
 
 const getColWidths = (firstRow: ReactElement, pageWidth: number) => {
 	const children = firstRow?.props?.children as ReactElement | ReactElement[];

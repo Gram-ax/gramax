@@ -43,7 +43,6 @@ const createLinkFromHref: Command<
 			currentArticle,
 			currentCatalog,
 			convertContentToUiLanguage(ctx.contentLanguage || currentCatalog.props.language),
-			ctx.user.isLogged,
 		);
 		const relativePath = currentArticle.ref.path.getRelativePath(targetArticle.ref.path).value.replace(".md", "");
 

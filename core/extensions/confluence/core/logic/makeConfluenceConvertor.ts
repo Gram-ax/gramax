@@ -1,11 +1,11 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import ConfluenceCloudConverter from "@ext/confluence/core/cloud/logic/ConfluenceCloudConverter";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
-import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
-import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
+import type ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
+import type ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
+import type ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
 import ConfluenceServerConverter from "@ext/confluence/core/server/logic/ConfluenceServerConverter";
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 type IncludeTypes<T> = T extends SourceType.confluenceCloud | SourceType.confluenceServer ? T : never;
 

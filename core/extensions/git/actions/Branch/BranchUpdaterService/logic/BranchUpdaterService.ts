@@ -1,6 +1,6 @@
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
-import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
 import FetchService from "../../../../../../ui-logic/ApiServices/FetchService";
 
 export type OnBranchUpdateListener = (branch: GitBranchData, caller: OnBranchUpdateCaller) => void | Promise<void>;

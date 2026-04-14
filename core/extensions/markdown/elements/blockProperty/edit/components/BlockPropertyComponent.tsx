@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import BlockWrapper from "@ext/markdown/elements/blockContentField/edit/components/BlockWrapper";
-import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { NodeViewContent, type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import { useState } from "react";
 
 const Wrapper = styled.div<{ readOnly?: boolean }>`

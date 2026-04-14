@@ -1,7 +1,7 @@
 import DiffContent from "@components/Atoms/DiffContent";
 import styled from "@emotion/styled";
-import { DiffFile } from "../../../../VersionControl/model/Diff";
-import { FileStatus } from "../../../../Watchers/model/FileStatus";
+import type { DiffFile } from "../../../../VersionControl/model/Diff";
+import type { FileStatus } from "../../../../Watchers/model/FileStatus";
 
 const SidebarArticleLink = styled(
 	({

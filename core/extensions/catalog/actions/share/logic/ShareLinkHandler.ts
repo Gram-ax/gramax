@@ -1,6 +1,6 @@
 import t from "@ext/localization/locale/translate";
 import { Encoder } from "../../../../Encoder/Encoder";
-import ShareData from "../model/ShareData";
+import type ShareData from "../model/ShareData";
 
 export default class ShareLinkHandler {
 	private _accessToken = "reviewToken";

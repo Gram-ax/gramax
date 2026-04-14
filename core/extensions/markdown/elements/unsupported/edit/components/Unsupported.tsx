@@ -1,6 +1,6 @@
 import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { ReactElement } from "react";
+import { type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import type { ReactElement } from "react";
 
 const EditUnsupported = ({ node }: NodeViewProps): ReactElement => {
 	return (

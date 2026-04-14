@@ -27,6 +27,7 @@ export const createSearcherManager = async ({
 				localClient: await resolveBackendModule("getModulithSearchClient")(
 					createModulithFileProviders(config.paths.data),
 				),
+				diagramRendererServerUrl: (await wm.maybeCurrent()?.config())?.services?.diagramRenderer?.url,
 			}),
 		),
 	);

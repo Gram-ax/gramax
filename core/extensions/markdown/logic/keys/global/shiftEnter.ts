@@ -1,5 +1,5 @@
-import KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
-import KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
+import type KeyboardRule from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardRule";
+import type KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
 
 const createParagraphInListItem: KeyboardRule = ({ editor, node, parentNode, nodePosition }) => {
 	if (!parentNode || parentNode.type.name !== "listItem") return false;

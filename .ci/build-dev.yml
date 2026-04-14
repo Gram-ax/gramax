@@ -33,11 +33,10 @@ build-docportal-dev:
     - kubernetes01-gramax
   when: manual
   extends: .template.docker.base
-  rules: !reference [.condition, build, merge_request, rules]
+  rules: !reference [.rules, build, merge_request]
   needs: []
   variables:
     GIT_DEPTH: 2000
-    NEED_TO_SIGN: true
     UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
   script:
     - apk add bash git
@@ -62,7 +61,7 @@ deploy-docportal-dev:
   needs:
     - job: build-docportal-dev
   when: on_success
-  rules: !reference [.condition, build, merge_request, rules]
+  rules: !reference [.rules, build, merge_request]
   before_script:
     - mkdir -p ~/.kube
     - echo "$KUBECONFIG_TEST_WEB_DEPLOY" > ~/.kube/config
@@ -92,7 +91,7 @@ build-web-dev:
   tags:
     - kubernetes01-gramax
   extends: .template.docker.base
-  rules: !reference [.condition, build, merge_request, rules]
+  rules: !reference [.rules, build, merge_request]
   variables:
     DOCKERFILE_PATH: './apps/browser/Dockerfile'
   script:
@@ -113,7 +112,7 @@ deploy-web-dev:
   needs:
     - job: build-web-dev
   when: on_success
-  rules: !reference [.condition, build, merge_request, rules]
+  rules: !reference [.rules, build, merge_request]
   before_script:
     - mkdir -p ~/.kube
     - echo "$KUBECONFIG_TEST_WEB_DEPLOY" > ~/.kube/config

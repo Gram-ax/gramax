@@ -5,7 +5,7 @@ import { Badge } from "@ui-kit/Badge";
 import { ErrorState } from "@ui-kit/ErrorState";
 import { Icon } from "@ui-kit/Icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface MiniTooltipProps {
 	trigger: ReactNode;

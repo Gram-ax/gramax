@@ -1,6 +1,6 @@
-import { ItemProps } from "@core/FileStructue/Item/Item";
-import { PopoverRect } from "@ext/articleProvider/logic/Popover";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ItemProps } from "@core/FileStructue/Item/Item";
+import type { PopoverRect } from "@ext/articleProvider/logic/Popover";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 
 export type InboxDragItemData = { draggedId: string };
 export type InboxDropItemData = { droppedId: string };

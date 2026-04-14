@@ -1,5 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import BranchData from "@ext/VersionControl/model/branch/BranchData";
+import type BranchData from "@ext/VersionControl/model/branch/BranchData";
 import { Command } from "../../../types/Command";
 
 const get: Command<

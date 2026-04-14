@@ -1,4 +1,4 @@
-import { NodeSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
 
 const codeBlockFormatter: NodeSerializerSpec = (state, node) => {
 	state.write("```" + (node.attrs.language || "") + "\n");

@@ -2,7 +2,7 @@
  * @jest-environment node
  */
 
-import ApiRequest from "@core/Api/ApiRequest";
+import type ApiRequest from "@core/Api/ApiRequest";
 import { apiUtils } from "@core/Api/apiUtils";
 
 describe("apiUtils", () => {

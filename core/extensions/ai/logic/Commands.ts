@@ -1,10 +1,10 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { RESTORE_SELECTION_META_KEY, SAVE_SELECTION_META_KEY } from "@ext/ai/logic/plugins/BlurSelection/consts";
 import TiptapGramaxAi from "@ext/ai/logic/TiptapGramaxAi";
 import { createLoadingDecoration } from "@ext/ai/logic/utils";
-import { AiGenerateOptions, AiPrettifyOptions, AiTranscribeOptions } from "@ext/ai/models/types";
+import type { AiGenerateOptions, AiPrettifyOptions, AiTranscribeOptions } from "@ext/ai/models/types";
 import t from "@ext/localization/locale/translate";
-import { CommandProps } from "@tiptap/core";
+import type { CommandProps } from "@tiptap/core";
 
 const getInsertContentOptions = () => {
 	return {

@@ -1,6 +1,6 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { errorWordLayout } from "@ext/wordExport/error";
-import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
+import type { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import { snippetString } from "@ext/wordExport/options/wordExportSettings";
 
 export const snippetWordLayout: WordBlockChild = async ({ state, tag, addOptions, wordRenderContext }) => {
@@ -12,10 +12,9 @@ export const snippetWordLayout: WordBlockChild = async ({ state, tag, addOptions
 			snippetId: attrs.id,
 		};
 		return (await Promise.all(children.map((child) => state.renderBlock(child as Tag, snippetAddOptions)))).flat();
-	} else {
-		return errorWordLayout(
-			snippetString(wordRenderContext.parserContext.getLanguage()),
-			wordRenderContext.parserContext.getLanguage(),
-		);
 	}
+	return errorWordLayout(
+		snippetString(wordRenderContext.parserContext.getLanguage()),
+		wordRenderContext.parserContext.getLanguage(),
+	);
 };

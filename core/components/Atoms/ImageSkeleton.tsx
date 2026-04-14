@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CSSProperties, ElementType, ReactNode } from "react";
+import type { CSSProperties, ElementType, ReactNode } from "react";
 
 interface SkeletonProps {
 	width: string;

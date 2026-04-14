@@ -1,5 +1,5 @@
-import { NodeModel } from "@minoru/react-dnd-treeview";
-import { CategoryLink, ItemLink } from "../../../NavigationLinks";
+import type { NodeModel } from "@minoru/react-dnd-treeview";
+import type { CategoryLink, ItemLink } from "../../../NavigationLinks";
 
 const getOpenItemsIds = (items: NodeModel<ItemLink>[]): (number | string)[] => {
 	const ids: (number | string)[] = [];

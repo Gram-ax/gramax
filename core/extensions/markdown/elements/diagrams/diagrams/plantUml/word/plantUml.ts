@@ -1,6 +1,6 @@
 import DiagramType from "@core/components/Diagram/DiagramType";
 import getWordResourceManager from "@ext/wordExport/getWordResourceManager";
-import { WordBlockChild } from "../../../../../../wordExport/options/WordTypes";
+import type { WordBlockChild } from "../../../../../../wordExport/options/WordTypes";
 import { WordDiagramRenderer } from "../../../word/WordDiagramRenderer";
 
 export const plantUMLWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {

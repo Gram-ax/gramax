@@ -31,13 +31,38 @@ import type {
 	RequestCursor,
 	RequestData,
 } from "@ext/enterprise/components/admin/ui-kit/table/LazyInfinityTable/LazyInfinityTable";
-import type { PluginsSettings } from "@ext/enterprise/types/EnterpriseAdmin";
 import t from "@ext/localization/locale/translate";
+import { span, trace } from "@ext/loggers/opentelemetry";
 import type { CheckChunk, CheckOverrideSettings, CheckSuggestion } from "@ics/gx-vector-search";
+import type { PluginsSettings } from "./types/PluginsSettings";
 
 export interface searchUserInfo {
 	email: string;
 	name: string;
+}
+
+export interface searchGroupInfo {
+	id: string;
+	name: string;
+}
+
+export interface NotificationItemFromAPI {
+	id: number;
+	article_title: string;
+	article_url: string;
+	catalog_name: string;
+	preview_text?: string;
+	created_at: string;
+	is_read: boolean;
+	user_email: string;
+	read_at?: string;
+	delivered_at?: string;
+}
+
+export interface NotificationHistoryResponse {
+	items: NotificationItemFromAPI[];
+	hasMore: boolean;
+	cursor: { created_at: string; id: number } | null;
 }
 
 class EnterpriseService {
@@ -98,6 +123,61 @@ class EnterpriseService {
 		} catch (error) {
 			console.error(error);
 			return false;
+		}
+	}
+
+	@trace()
+	async markNotificationsAsRead(userEmail: string, notificationIds: number[], token: string): Promise<boolean> {
+		try {
+			const res = await fetch(`${this._url}/enterprise/notifications/mark-read`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				credentials: "include",
+				body: JSON.stringify({
+					email: userEmail,
+					notificationIds,
+				}),
+			});
+
+			this.checkUnauthorized(res);
+			return res.ok;
+		} catch (error) {
+			span()?.addEvent("error", { error: String(error) });
+			return false;
+		}
+	}
+
+	@trace()
+	async fetchNotificationHistory(
+		userEmail: string,
+		token: string,
+		opts?: { cursor?: { created_at: string; id: number }; limit?: number },
+	): Promise<NotificationHistoryResponse | null> {
+		try {
+			let url = `${this._url}/enterprise/notifications/history?email=${encodeURIComponent(userEmail)}&unreadOnly=false&limit=${opts?.limit ?? 10}`;
+			if (opts?.cursor) {
+				url += `&cursor=${encodeURIComponent(JSON.stringify(opts.cursor))}`;
+			}
+
+			const res = await fetch(url, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				credentials: "include",
+			});
+
+			this.checkUnauthorized(res);
+			if (!res.ok) return null;
+
+			return (await res.json()) as NotificationHistoryResponse;
+		} catch (error) {
+			span()?.addEvent("error", { error: String(error) });
+			return null;
 		}
 	}
 
@@ -185,6 +265,32 @@ class EnterpriseService {
 	}> {
 		const url = `${this._url}/enterprise/config/resources/get`;
 		return this._getWithEtag<ResourcesSettings[]>(url, token, etag);
+	}
+
+	@trace()
+	async getResourceConfig(token: string, resourceId: string): Promise<ResourcesSettings | null> {
+		if (!this._url || !token) return null;
+		try {
+			const url = `${this._url}/enterprise/config/resources/getOne?resourceId=${encodeURIComponent(resourceId)}`;
+			const res = await fetch(url, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+				credentials: "include",
+			});
+
+			await this.checkUnauthorized(res);
+
+			if (!res.ok) {
+				span()?.addEvent("error", { error: `Failed to get resource config: ${res.status}` });
+				return null;
+			}
+
+			return await res.json();
+		} catch (error) {
+			span()?.addEvent("error", { error: String(error) });
+			return null;
+		}
 	}
 
 	async getMailConfig(
@@ -915,6 +1021,17 @@ class EnterpriseService {
 		}
 	}
 
+	async checkGroupsConnector(): Promise<boolean> {
+		if (!this._url) return false;
+		try {
+			const res = await fetch(`${this._url}/sso/connectors/groups/enabled`, { credentials: "include" });
+			return res.ok;
+		} catch (error) {
+			console.error(error);
+			return false;
+		}
+	}
+
 	async getQuizUsersAnswers(
 		token: string,
 		limit: number,
@@ -1033,6 +1150,25 @@ class EnterpriseService {
 					Authorization: `Bearer ${token}`,
 				},
 				body: JSON.stringify({ emailOrCn: query }),
+				credentials: "include",
+			});
+
+			return res.ok ? await res.json() : [];
+		} catch (error) {
+			console.error(error);
+			return [];
+		}
+	}
+
+	async getGroups(query: string, token: string): Promise<searchGroupInfo[]> {
+		try {
+			const res = await fetch(`${this._url}/sso/connectors/getGroups`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({ groupName: query }),
 				credentials: "include",
 			});
 

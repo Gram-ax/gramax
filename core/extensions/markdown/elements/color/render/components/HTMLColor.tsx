@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 const HTMLColor = (props: { color: string; children?: React.ReactNode }) => (
 	<span data-color={props.color} data-component="color" style={{ color: props.color }}>

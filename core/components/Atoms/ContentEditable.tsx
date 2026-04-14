@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { DependencyList, KeyboardEventHandler, useEffect, useState } from "react";
+import { type DependencyList, type KeyboardEventHandler, useEffect, useState } from "react";
 
 const ContentEditable = ({
 	value,

@@ -2,7 +2,7 @@ import type { MenuItem as MenuItemSDK, ModalProps, Modal as ModalSdk } from "@gr
 import type { ReactNode } from "react";
 import { getDeps, type ModalInstance } from "./core";
 
-export const Modal: typeof ModalSdk = new Proxy(function () {} as any, {
+export const Modal: typeof ModalSdk = new Proxy((() => {}) as any, {
 	construct() {
 		const ModalClass = getDeps().Modal;
 		return new ModalClass();

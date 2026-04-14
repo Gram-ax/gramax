@@ -1,8 +1,8 @@
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import type { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { BASE_CONFIG, HEADING_MARGINS } from "@ext/pdfExport/config";
 import { inlineLayouts } from "@ext/wordExport/layouts";
-import { JSONContent } from "@tiptap/core";
-import { ContentText } from "pdfmake/interfaces";
+import type { JSONContent } from "@tiptap/core";
+import type { ContentText } from "pdfmake/interfaces";
 
 const MARGIN_CONFIG: { [key: string]: { top?: number; bottom?: number } } = {
 	Heading: { top: BASE_CONFIG.FONT_SIZE * 1.5, bottom: BASE_CONFIG.FONT_SIZE * 0.75 },

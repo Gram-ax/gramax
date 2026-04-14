@@ -1,4 +1,4 @@
-import { RenderableTreeNode, Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
+import { type RenderableTreeNode, type Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
 import getChildTextId from "../../logic/getChildTextId";
 
 export const heading: Schema = {

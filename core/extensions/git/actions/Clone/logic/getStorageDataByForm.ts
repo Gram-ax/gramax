@@ -1,19 +1,19 @@
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
-import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
-import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
-import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import { ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
-import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
+import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import type ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import type GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
+import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
+import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import type GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type { ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
+import type { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
-import StorageData from "@ext/storage/models/StorageData";
+import type StorageData from "@ext/storage/models/StorageData";
 
 const TYPES_GETTERS: Record<
 	Partial<SourceType>,

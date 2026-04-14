@@ -1,4 +1,4 @@
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 
 const convertCatalogLink = (catalogName: string, catalogLink: CatalogLink): CatalogLink => {
 	// todo: think about lastVisited

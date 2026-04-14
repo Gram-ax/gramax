@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import Card from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/Card";
-import { Column as ColumnType, DragItems } from "@ext/properties/models/kanban";
+import { type Column as ColumnType, DragItems } from "@ext/properties/models/kanban";
 import { useDrop } from "react-dnd";
 
 interface ColumnProps extends ColumnType {

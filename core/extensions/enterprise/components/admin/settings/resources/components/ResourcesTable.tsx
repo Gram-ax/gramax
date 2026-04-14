@@ -4,13 +4,13 @@ import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/Ta
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import { getCoreRowModel, getFilteredRowModel, useReactTable, useTableSelection } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
 import { TriggerAddButtonTemplate } from "../../components/TriggerAddButtonTemplate";
 import { resourcesTableColumns } from "../config/ResourcesTableConfig";
-import { ResourceItem, ResourcesSettings } from "../types/ResourcesComponent";
+import type { ResourceItem, ResourcesSettings } from "../types/ResourcesComponent";
 
 interface ResourcesTableProps {
 	items: ResourcesSettings[] | undefined;

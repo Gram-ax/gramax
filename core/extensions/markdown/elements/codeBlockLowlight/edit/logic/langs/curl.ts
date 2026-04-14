@@ -1,4 +1,4 @@
-import { LanguageFn } from "highlight.js";
+import type { LanguageFn } from "highlight.js";
 
 const curl: LanguageFn = (hljs) => {
 	const QUOTE_STRING = {

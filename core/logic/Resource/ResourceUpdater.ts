@@ -1,15 +1,15 @@
-import Path from "@core/FileProvider/Path/Path";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import ResourceMovements from "@core/Resource/models/ResourceMovements";
+import type Path from "@core/FileProvider/Path/Path";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type ResourceMovements from "@core/Resource/models/ResourceMovements";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
-import { JSONContent } from "@tiptap/core";
-import MarkdownFormatter from "../../extensions/markdown/core/edit/logic/Formatter/Formatter";
-import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
-import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
-import Context from "../Context/Context";
-import { Article } from "../FileStructue/Article/Article";
+import type { JSONContent } from "@tiptap/core";
+import type MarkdownFormatter from "../../extensions/markdown/core/edit/logic/Formatter/Formatter";
+import type MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
+import type ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type Context from "../Context/Context";
+import type { Article } from "../FileStructue/Article/Article";
 import parseContent from "../FileStructue/Article/parseContent";
 
 export default class ResourceUpdater {
@@ -54,7 +54,6 @@ export default class ResourceUpdater {
 					item,
 					this._catalog,
 					convertContentToUiLanguage(this._rc.contentLanguage),
-					this._rc.user.isLogged,
 				);
 				const markdown = await this._formatter.render(newEditTree, context);
 				await item.updateContent(markdown, false);
@@ -103,7 +102,6 @@ export default class ResourceUpdater {
 				newArticle,
 				this._catalog,
 				convertContentToUiLanguage(this._rc.contentLanguage || this._catalog.props.language),
-				this._rc.user.isLogged,
 			);
 			const markdown = await this._formatter.render(newEditTree, context);
 			await newArticle.updateContent(markdown, false);

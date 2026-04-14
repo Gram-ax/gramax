@@ -1,7 +1,7 @@
 import ViewComponent from "@ext/markdown/elements/view/edit/components/ViewComponent";
 import viewSchema from "@ext/markdown/elements/view/edit/models/viewSchema";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { PropertyValue } from "@ext/properties/models";
+import type { PropertyValue } from "@ext/properties/models";
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 

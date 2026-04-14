@@ -2,6 +2,7 @@ import GoToArticle from "@components/Actions/GoToArticle";
 import { getClientDomain } from "@core/utils/getClientDomain";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useCtrlKey } from "@core-ui/hooks/useCtrlKey";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -9,7 +10,6 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import type { LinkMenuMode } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
-import { useMediaQuery } from "@mui/material";
 import { Toolbar, ToolbarIcon, ToolbarText, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { type ComponentProps, type HTMLAttributes, memo, useState } from "react";
 

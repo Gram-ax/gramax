@@ -1,7 +1,7 @@
 import ModalLayout from "@components/Layouts/Modal";
+import canShowVersion from "@core/utils/canShowVersion";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
-import localUserInfo from "@ext/security/logic/User/localUserInfo";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 import type DefaultError from "../../logic/DefaultError";
 import GetErrorComponent from "../../logic/GetErrorComponent";
@@ -9,10 +9,9 @@ import ErrorConfirmService from "../ErrorConfirmService";
 
 const ErrorModal = ({ error, setError }: { error: DefaultError; setError: Dispatch<SetStateAction<Error>> }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const { conf, isLogged, userInfo } = PageDataContextService.value ?? {};
-	const isAdmin = userInfo?.mail === localUserInfo?.mail;
-	const canShowVersion = !!conf && (!conf.enterprise?.gesUrl || (isLogged && !isAdmin));
-	const appVer = canShowVersion ? error?.props?.version : undefined;
+	const { conf, isLogged } = PageDataContextService.value ?? {};
+	const canShowVer = !!conf && canShowVersion(conf?.enterprise?.gesUrl, isLogged);
+	const appVer = canShowVer ? error?.props?.version : undefined;
 	const appVersionLabel = appVer ? `${t("version")} ${appVer}` : undefined;
 
 	useEffect(() => {

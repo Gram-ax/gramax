@@ -1,10 +1,8 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/PermissionParser";
 import AllPermissionMap from "@ext/security/logic/PermissionMap/AllPermissionMap";
-import IPermissionMap, {
-	PermissionMapJSONData,
-	PermissionMapType,
-} from "@ext/security/logic/PermissionMap/IPermissionMap";
+import type IPermissionMap from "@ext/security/logic/PermissionMap/IPermissionMap";
+import { type PermissionMapJSONData, PermissionMapType } from "@ext/security/logic/PermissionMap/IPermissionMap";
 import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
 
 const parsePermissionMapFromJSON = (data: PermissionMapJSONData): IPermissionMap => {

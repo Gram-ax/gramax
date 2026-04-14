@@ -1,8 +1,8 @@
 import Diagrams from "@core/components/Diagram/Diagrams";
-import DiagramType from "@core/components/Diagram/DiagramType";
+import type DiagramType from "@core/components/Diagram/DiagramType";
 import Path from "@core/FileProvider/Path/Path";
-import ResourceManager from "@core/Resource/ResourceManager";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { PDFImageExporter } from "@ext/markdown/elements/image/pdf/PdfImageProcessor";
 
 export class pdfDiagramRenderer {

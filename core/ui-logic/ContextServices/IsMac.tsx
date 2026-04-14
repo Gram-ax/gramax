@@ -1,5 +1,13 @@
-import ContextService from "@core-ui/ContextServices/ContextService";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useState } from "react";
+import type ContextService from "@core-ui/ContextServices/ContextService";
+import {
+	createContext,
+	type Dispatch,
+	type ReactElement,
+	type SetStateAction,
+	useContext,
+	useEffect,
+	useState,
+} from "react";
 
 const IsMacContext = createContext<boolean>(undefined);
 

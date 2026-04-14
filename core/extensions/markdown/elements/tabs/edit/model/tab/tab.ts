@@ -1,9 +1,9 @@
 import EditTab from "@ext/markdown/elements/tabs/edit/components/EditTab";
 import tabSchema from "@ext/markdown/elements/tabs/edit/model/tab/tabSchema";
-import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
+import type TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import { Editor, mergeAttributes, Node } from "@tiptap/core";
+import { type Editor, mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 
 declare module "@tiptap/core" {

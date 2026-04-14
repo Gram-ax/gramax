@@ -35,7 +35,7 @@ const getMergeData: Command<{ catalogName: string }, MergeData> = Command.create
 				reverseMerge: state.inner.data.reverseMerge,
 			};
 		}
-		return { ok: true };
+		return { ok: true, stashRestored: state.stashRestored };
 	},
 
 	params(ctx, q) {

@@ -1,42 +1,41 @@
-import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
 import isNavigatorAvailable from "@core-ui/isNavigatorAvailable";
 import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
 import t from "@ext/localization/locale/translate";
-import { useState } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { type MouseEvent, useCallback, useState } from "react";
 
 export default function Code({ children }: { children: string }) {
-	const [copped, setCopped] = useState(false);
-	const clickToCopyText = t("click-to-copy");
-	const copiedText = t("copied");
+	const [isCopied, setIsCopied] = useState(false);
 	const copyAllowed = isNavigatorAvailable();
 
-	const onClickHandler = () => {
-		if (!copyAllowed) return;
+	const onClickHandler = useCallback(
+		(event: MouseEvent<HTMLSpanElement>) => {
+			if (!copyAllowed) return;
+			event.preventDefault();
+			tryCopyToClipboard(children, { showPopover: false }).then((copied) => setIsCopied(copied));
+		},
+		[children, copyAllowed],
+	);
 
-		tryCopyToClipboard(children, {
-			showPopover: false,
-		}).then((copied) => copied && setCopped(true));
-	};
-
-	const onMouseLeaveHandler = () => {
-		setCopped(false);
-	};
-
-	const getTooltipContent = () => {
-		return !copped ? clickToCopyText : copiedText;
-	};
+	const onOpenChange = useCallback((open: boolean) => {
+		if (!open) return;
+		setIsCopied(false);
+	}, []);
 
 	return (
-		<span className="inline-code" onClick={onClickHandler} onMouseLeave={onMouseLeaveHandler}>
-			<code>{children}</code>
-			{copyAllowed && (
-				<Tooltip content={getTooltipContent()}>
-					<span className="copy">
-						<Icon code={!copped ? "copy" : "check"} />
-					</span>
-				</Tooltip>
-			)}
-		</span>
+		<Tooltip delayDuration={0} onOpenChange={onOpenChange}>
+			<TooltipTrigger asChild>
+				<span
+					className="inline-code"
+					onClick={onClickHandler}
+					onPointerDown={(event) => event.preventDefault()}
+				>
+					<code>{children}</code>
+				</span>
+			</TooltipTrigger>
+			<TooltipContent onPointerDownOutside={(event) => event.preventDefault()}>
+				{isCopied ? t("copied") : t("click-to-copy")}
+			</TooltipContent>
+		</Tooltip>
 	);
 }

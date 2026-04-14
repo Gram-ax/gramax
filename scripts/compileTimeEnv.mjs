@@ -24,14 +24,31 @@ const env = {
 
 const getBuiltInVariables = () => Object.keys(env).reduce((obj, x) => ({ ...obj, [x]: process.env[x] ?? env[x] }), {});
 
+const parseReleaseBranch = () => {
+	const branch = process.env.CI_COMMIT_BRANCH || "";
+	const match = branch.match(/^release\/(\d{4})-(\d{2})$/);
+	if (!match) return null;
+	const [, year, month] = match;
+	const lastDay = new Date(Number(year), Number(month), 0).getDate();
+	return { year, month, lastDay };
+};
+
 const getVersionData = (filePath = "./gramaxVersionData.json") => {
 	if (process.env.PRODUCTION && fs.existsSync(filePath)) return JSON.parse(fs.readFileSync(filePath));
 
-	const commitCount = execSync('git rev-list --count --date=local --after="$(date +"%Y-%m-01T00:00:00")" HEAD', {
-		shell: "bash",
-	}).toString();
+	const release = parseReleaseBranch();
+	let commitCount, currentDate;
 
-	const currentDate = execSync("date +%Y.%-m.%-d", { shell: "bash" }).toString();
+	if (release) {
+		const after = `${release.year}-${release.month}-01T00:00:00`;
+		commitCount = execSync(`git rev-list --count --date=local --after="${after}" HEAD`, { shell: "bash" }).toString();
+		currentDate = `${release.year}.${Number(release.month)}.${release.lastDay}\n`;
+	} else {
+		commitCount = execSync('git rev-list --count --date=local --after="$(date +"%Y-%m-01T00:00:00")" HEAD', {
+			shell: "bash",
+		}).toString();
+		currentDate = execSync("date +%Y.%-m.%-d", { shell: "bash" }).toString();
+	}
 
 	const versionData = { commitCount, currentDate };
 	if (process.env.PRODUCTION) fs.writeFileSync(filePath, JSON.stringify(versionData));

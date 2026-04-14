@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
-import { SourceAiData } from "@ext/ai/models/types";
+import type Context from "@core/Context/Context";
+import type { SourceAiData } from "@ext/ai/models/types";
 import { Command } from "../../../types/Command";
 
 const setAiData: Command<{ ctx: Context; workspacePath: string; token: string } & SourceAiData, void> = Command.create({

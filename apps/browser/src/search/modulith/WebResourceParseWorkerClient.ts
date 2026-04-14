@@ -9,21 +9,27 @@ export class WebWorkerResourceParseClient extends WorkerResourceParseClientBase 
 	}
 
 	static async create(): Promise<WebWorkerResourceParseClient> {
-		const client = new WebWorkerResourceParseClient();
-		await client._init();
-		return client;
+		return new WebWorkerResourceParseClient();
 	}
 
-	protected _createWorker(): ResourceParseWorker {
+	protected override createWorker(): ResourceParseWorker {
 		const worker = new Worker(new URL("./resourceParse.web.worker", import.meta.url), {
 			type: "module",
 		});
 
-		worker.addEventListener("message", (event) => this._handleMessage(event.data));
+		worker.addEventListener("message", (event) => this.handleMessage(event.data));
 		return {
-			postMessage: worker.postMessage.bind(worker),
+			postMessage: (message) => {
+				worker.postMessage(message);
+			},
 			terminate: async () => {
 				worker.terminate();
+			},
+			addEventListener: (type, listener) => {
+				worker.addEventListener(type, listener);
+			},
+			removeEventListener: (type, listener) => {
+				worker.removeEventListener(type, listener);
 			},
 		};
 	}

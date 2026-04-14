@@ -1,5 +1,5 @@
-import GitLabSourceData from "@ext/git/core/model/GitLabSourceData.schema";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type GitLabSourceData from "@ext/git/core/model/GitLabSourceData.schema";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 export const getEnterpriseSourceData = (sourceDatas: SourceData[], gesUrl: string) => {
 	return sourceDatas.find((data) => {

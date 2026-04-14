@@ -1,7 +1,5 @@
-/** biome-ignore-all lint/correctness/useHookAtTopLevel: ask VG */
 import useShouldRenderDeleteCatalog from "@components/Actions/useShouldRenderDeleteCatalog";
 import Icon from "@components/Atoms/Icon";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
@@ -19,14 +17,13 @@ interface CardActionsProps {
 	catalogLink: CatalogLink;
 }
 
-const CardActions = ({ catalogLink }: CardActionsProps) => {
-	const { isStatic, isStaticCli } = usePlatform();
-	if (isStatic || isStaticCli) return null;
+const CardActionsComponent = ({ catalogLink }: CardActionsProps) => {
+	const { catalogs } = FavoriteService.value;
+	const workspace = Workspace.current();
+	const isFavorite = catalogs.some((catalog) => catalog === catalogLink.name);
 
 	const shouldRenderDeleteCatalog = useShouldRenderDeleteCatalog();
-	const workspace = Workspace.current();
-	const { catalogs } = FavoriteService.value;
-	const isFavorite = catalogs.some((catalog) => catalog === catalogLink.name);
+	const deleteCatalog = useDeleteCatalog({ name: catalogLink.name });
 
 	const toggleFavorite = useCallback(() => {
 		const favoriteProvider = new FavoriteProvider(workspace.path);
@@ -40,10 +37,6 @@ const CardActions = ({ catalogLink }: CardActionsProps) => {
 		FavoriteService.setCatalogs(newCatalogs);
 		favoriteProvider.setFavoriteCatalogNames(newCatalogs);
 	}, [catalogs, catalogLink, workspace]);
-
-	const isLogged = PageDataContextService.value.isLogged;
-
-	const deleteCatalog = useDeleteCatalog({ name: catalogLink.name });
 
 	return (
 		<DropdownMenu>
@@ -60,39 +53,42 @@ const CardActions = ({ catalogLink }: CardActionsProps) => {
 					<Icon code={isFavorite ? "star-off" : "star"} />
 					{isFavorite ? t("remove-favorite") : t("add-favorite")}
 				</DropdownMenuItem>
-				{isLogged && (
-					<>
-						<CatalogMoveAction catalogName={catalogLink.name}>
-							{({ targetWorkspaceRef, checkAndMove }) => (
-								<SelectTargetWorkspace
-									excludeCurrent
-									onClick={(workspace) => {
-										targetWorkspaceRef.current = workspace;
-										checkAndMove({
-											url: (api) => api.getCatalogNameAfterMove(catalogLink.name, workspace.path),
-										});
-									}}
-								/>
-							)}
-						</CatalogMoveAction>
-						{shouldRenderDeleteCatalog && (
-							<DropdownMenuItem
-								onClick={async (e) => {
-									e.stopPropagation();
-									if (!(await confirm(`${t("catalog.delete.name")}?`))) return;
-									await deleteCatalog();
-								}}
-								type="danger"
-							>
-								<Icon code="trash" />
-								{t("catalog.delete.name")}
-							</DropdownMenuItem>
-						)}
-					</>
+				<CatalogMoveAction catalogName={catalogLink.name}>
+					{({ targetWorkspaceRef, checkAndMove }) => (
+						<SelectTargetWorkspace
+							excludeCurrent
+							onClick={(workspace) => {
+								targetWorkspaceRef.current = workspace;
+								checkAndMove({
+									url: (api) => api.getCatalogNameAfterMove(catalogLink.name, workspace.path),
+								});
+							}}
+						/>
+					)}
+				</CatalogMoveAction>
+				{shouldRenderDeleteCatalog && (
+					<DropdownMenuItem
+						onClick={async (e) => {
+							e.stopPropagation();
+							if (!(await confirm(`${t("catalog.delete.name")}?`))) return;
+							await deleteCatalog();
+						}}
+						type="danger"
+					>
+						<Icon code="trash" />
+						{t("catalog.delete.name")}
+					</DropdownMenuItem>
 				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
 	);
+};
+
+const CardActions = (props: CardActionsProps) => {
+	const { isStatic, isStaticCli } = usePlatform();
+	if (isStatic || isStaticCli) return null;
+
+	return <CardActionsComponent {...props} />;
 };
 
 export default CardActions;

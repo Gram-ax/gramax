@@ -1,6 +1,12 @@
 import Path from "../../../../../../logic/FileProvider/Path/Path";
-import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
-import { Node, RenderableTreeNodes, Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
+import type PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
+import {
+	type Node,
+	type RenderableTreeNodes,
+	type Schema,
+	SchemaType,
+	Tag,
+} from "../../../../core/render/logic/Markdoc/index";
 
 export function OpenApi(context: PrivateParserContext): Schema {
 	return {

@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface ArticlePreviewProps extends React.HTMLAttributes<HTMLDivElement> {
 	mainArticle: ReactNode;

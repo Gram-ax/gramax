@@ -1,9 +1,10 @@
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import SilentError from "@ext/errorHandlers/silent/SilentError";
 import t from "@ext/localization/locale/translate";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import yaml from "js-yaml";
-import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
+import type MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
 
 export type LocalizedString = { [lang: string]: string; default: string };
 
@@ -48,49 +49,27 @@ export interface Link {
 }
 
 export class TableDB {
+	private _wm: WorkspaceManager;
 	private _tables: Map<string, Table[]> = new Map();
 	private _parseToHtml: (content: string) => Promise<string>;
 
-	constructor(
-		parser: MarkdownParser,
-		private _wm: WorkspaceManager,
-	) {
+	constructor(parser: MarkdownParser) {
 		this._parseToHtml = parser.parseToHtml.bind(parser);
+	}
+
+	mountWorkspaceManager(wm: WorkspaceManager): void {
+		this._wm = wm;
 		this._wm.onCatalogChange(this._onChange.bind(this));
-	}
-
-	private _onChange(): void {
-		this._tables = new Map();
-	}
-
-	private async _parseToMd(str: string): Promise<string> {
-		return str ? String(await this._parseToHtml(str)) : str;
-	}
-
-	private async _parseTableToMd(table: Table): Promise<void> {
-		table.subtitle = (await this._parseToMd(table.subtitle)) ?? null;
-		for (const lang in table.description) {
-			table.description[lang] = await this._parseToMd(table.description[lang]);
-		}
-		for (const field of table.fields) {
-			for (const lang in field.description) {
-				field.description[lang] = await this._parseToMd(field.description[lang]);
-			}
-		}
-	}
-
-	private _getRefUID(ref: ItemRef): string {
-		return ref.storageId + "@" + ref.path;
 	}
 
 	async getTableWithRefs(ref: ItemRef, tableName: string): Promise<TableWithRefs> {
 		const tables = await this.getTables(ref);
-		const table = tables.find((table) => table.code == tableName);
+		const table = tables.find((table) => table.code === tableName);
 		if (!table) throw new Error(`${t("diagram.error.tabledb-not-found")}: "${tableName}"`);
 		const tableWithRefs: TableWithRefs = { ...table, refs: {} };
 		table.fields.forEach((field) => {
 			if (field.refObject) {
-				tableWithRefs.refs[field.code] = tables.find((table) => table.code == field.refObject);
+				tableWithRefs.refs[field.code] = tables.find((table) => table.code === field.refObject);
 			}
 		});
 		return tableWithRefs;
@@ -106,7 +85,8 @@ export class TableDB {
 			await this._parseTableToMd(table);
 			table.fields.forEach((field) => {
 				if (!field.description.default && field.refObject)
-					field.description.default = tables.find((table) => table.code == field.refObject)?.subtitle ?? null;
+					field.description.default =
+						tables.find((table) => table.code === field.refObject)?.subtitle ?? null;
 			});
 		}
 		this._tables.set(refUid, tables);
@@ -141,7 +121,7 @@ export class TableDB {
 			});
 		}
 
-		let objects;
+		let objects: any[];
 		if (!Array.isArray(file)) {
 			objects = [];
 			for (const key in file as object) {
@@ -172,47 +152,10 @@ export class TableDB {
 						field[key] = newField[key];
 					});
 				}
-				if (field.nullable == undefined) field.nullable = true;
+				if (field.nullable === undefined) field.nullable = true;
 			});
 		}
 		return objects;
-	}
-
-	private _recursiveAssign(...obj: any[]) {
-		function newAssign(obj1: any, obj2: any) {
-			const keys = Object.keys(obj2);
-			keys.forEach((key) => {
-				let value = obj2[key];
-				if (value == null || value == undefined) return;
-				if (typeof value === "object") {
-					value = newAssign({}, value);
-					if (Object.keys(value).length) obj1[key] = value;
-				} else obj1[key] = value;
-			});
-			return obj1;
-		}
-		return obj.reduce((prev, current) => newAssign(prev, current));
-	}
-
-	_localize(obj): void {
-		const localizedTitle: LocalizedString = { default: null },
-			localizedDescription: LocalizedString = { default: null };
-		localizedTitle.default = obj.title ?? null;
-		localizedDescription.default = obj.description ?? null;
-		const titleProp = "title_";
-		const descriptionProp = "description_";
-		for (const key in obj) {
-			if (key.startsWith(titleProp) && key.length == titleProp.length + 2) {
-				const lang = key.slice(titleProp.length);
-				localizedTitle[lang] = obj[key];
-			}
-			if (key.startsWith(descriptionProp) && key.length == descriptionProp.length + 2) {
-				const lang = key.slice(descriptionProp.length);
-				localizedDescription[lang] = obj[key];
-			}
-		}
-		obj.title = localizedTitle;
-		obj.description = localizedDescription;
 	}
 
 	async readDiagram(ref: ItemRef): Promise<Diagram> {
@@ -224,7 +167,7 @@ export class TableDB {
 			return null;
 		}
 		const diagram = yaml.load(file) as Diagram;
-		let positions;
+		let positions: TablePosition[];
 		if (!Array.isArray(diagram.tables)) {
 			positions = [];
 			for (const key in diagram.tables as object) {
@@ -248,5 +191,66 @@ export class TableDB {
 		}
 		diagram.tables = positions;
 		return diagram;
+	}
+
+	private _onChange(): void {
+		this._tables = new Map();
+	}
+
+	private async _parseToMd(str: string): Promise<string> {
+		return str ? String(await this._parseToHtml(str)) : str;
+	}
+
+	private async _parseTableToMd(table: Table): Promise<void> {
+		table.subtitle = (await this._parseToMd(table.subtitle)) ?? null;
+		for (const lang in table.description) {
+			table.description[lang] = await this._parseToMd(table.description[lang]);
+		}
+		for (const field of table.fields) {
+			for (const lang in field.description) {
+				field.description[lang] = await this._parseToMd(field.description[lang]);
+			}
+		}
+	}
+
+	private _getRefUID(ref: ItemRef): string {
+		return `${ref.storageId}@${ref.path}`;
+	}
+
+	private _recursiveAssign(...obj: any[]) {
+		function newAssign(obj1: any, obj2: any) {
+			const keys = Object.keys(obj2);
+			keys.forEach((key) => {
+				let value = obj2[key];
+				if (value == null || value === undefined) return;
+				if (typeof value === "object") {
+					value = newAssign({}, value);
+					if (Object.keys(value).length) obj1[key] = value;
+				} else obj1[key] = value;
+			});
+			return obj1;
+		}
+		return obj.reduce((prev, current) => newAssign(prev, current));
+	}
+
+	private _localize(obj): void {
+		const localizedTitle: LocalizedString = { default: null },
+			localizedDescription: LocalizedString = { default: null };
+		localizedTitle.default = obj.title ?? null;
+		localizedDescription.default = obj.description ?? null;
+		const titleProp = "title_";
+		const descriptionProp = "description_";
+		for (const key in obj) {
+			if (key.startsWith(titleProp) && key.length === titleProp.length + 2) {
+				const lang = key.slice(titleProp.length);
+				localizedTitle[lang] = obj[key];
+			}
+			if (key.startsWith(descriptionProp) && key.length === descriptionProp.length + 2) {
+				const lang = key.slice(descriptionProp.length);
+				localizedDescription[lang] = obj[key];
+			}
+		}
+		obj.title = localizedTitle;
+		obj.description = localizedDescription;
 	}
 }

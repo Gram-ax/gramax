@@ -22,6 +22,7 @@ describe("SearchRowsModel", () => {
 			properties: [],
 			breadcrumbs: [],
 			isRecommended: false,
+			refPath: "",
 			catalog: {
 				name: "Gramax",
 				title: "Gramax Docs",
@@ -95,6 +96,7 @@ describe("SearchRowsModel", () => {
 			properties: [],
 			breadcrumbs: [],
 			isRecommended: false,
+			refPath: "",
 			catalog: {
 				name: "Gramax",
 				title: "Gramax Docs",
@@ -265,6 +267,7 @@ describe("SearchRowsModel", () => {
 					text: "Release Notes",
 				},
 			],
+			refPath: "",
 			properties: [],
 			breadcrumbs: [],
 			isRecommended: false,
@@ -466,6 +469,7 @@ describe("SearchRowsModel", () => {
 					text: "Release Notes",
 				},
 			],
+			refPath: "",
 			properties: [],
 			breadcrumbs: [],
 			isRecommended: false,
@@ -534,6 +538,7 @@ describe("SearchRowsModel", () => {
 						text: "Release Notes",
 					},
 				],
+				refPath: "",
 				properties: [],
 				breadcrumbs: [],
 				isRecommended: false,
@@ -633,7 +638,7 @@ describe("SearchRowsModel", () => {
 	});
 
 	it("should handle paragraphs and blocks inside block with embedded link title", () => {
-		const searchData: SearchResult = {
+		const searchData: SearchArticleResult = {
 			type: "article",
 			url: "release-notes",
 			title: [
@@ -644,6 +649,7 @@ describe("SearchRowsModel", () => {
 			],
 			properties: [],
 			breadcrumbs: [],
+			refPath: "",
 			isRecommended: false,
 			catalog: {
 				name: "Gramax",
@@ -818,7 +824,7 @@ describe("SearchRowsModel", () => {
 	});
 
 	it("should handle breadcrumbs with file", () => {
-		const searchData: SearchResult = {
+		const searchData: SearchArticleResult = {
 			type: "article",
 			url: "release-notes",
 			title: [
@@ -827,6 +833,7 @@ describe("SearchRowsModel", () => {
 					text: "Release Notes",
 				},
 			],
+			refPath: "",
 			properties: [],
 			breadcrumbs: [],
 			isRecommended: false,

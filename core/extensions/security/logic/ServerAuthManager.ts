@@ -1,5 +1,5 @@
-import type { EnterpriseConfig } from "@app/config/AppConfig";
 import type Query from "@core/Api/Query";
+import type EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import EnterpriseUser, { type EnterpriseInfo } from "@ext/enterprise/EnterpriseUser";
 import type EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
 import AuthManager from "@ext/security/logic/AuthManager";
@@ -19,11 +19,11 @@ export default class ServerAuthManager extends AuthManager {
 	protected _usersEnterprisePermissionInfo: Record<string, EnterpriseInfo> = {};
 
 	constructor(
+		em: EnterpriseManager,
 		private _ap: AuthProvider,
 		private _ticketManager: TicketManager,
-		enterpriseConfig: EnterpriseConfig,
 	) {
-		super(enterpriseConfig);
+		super(em);
 	}
 
 	async login(req: ApiRequest, res: ApiResponse) {
@@ -62,7 +62,7 @@ export default class ServerAuthManager extends AuthManager {
 
 		const user = await this._getUser(cookie);
 
-		if (!this._enterpriseConfig?.gesUrl) {
+		if (!this._em.getConfig().gesUrl) {
 			this.setUser(cookie, user);
 			return user;
 		}
@@ -70,7 +70,7 @@ export default class ServerAuthManager extends AuthManager {
 		const authorizationToken = this._extractAuthorizationToken(headers);
 		if (authorizationToken) {
 			const userTicket = decodeURIComponent(authorizationToken);
-			const ticketUser = await this._ticketManager.checkUserTicket(userTicket, this._enterpriseConfig);
+			const ticketUser = await this._ticketManager.checkUserTicket(userTicket, this._em.getConfig());
 			if (!ticketUser) throw new TokenValidationError("Invalid token");
 			return ticketUser;
 		}
@@ -98,17 +98,17 @@ export default class ServerAuthManager extends AuthManager {
 	}
 
 	private async _getAnonymousUser(): Promise<User> {
-		if (!this._enterpriseConfig?.gesUrl) {
+		if (!this._em.getConfig().gesUrl) {
 			return new User();
 		}
 
-		const user = new EnterpriseUser(false, null, null, null, null, this._enterpriseConfig);
+		const user = new EnterpriseUser(false, null, null, null, null, this._em.getConfig());
 		await this._updateEnterpriseUser(user);
 		return user;
 	}
 
 	protected async _getEnterpriseUser(json: EnterpriseUserJSONData): Promise<EnterpriseUser> {
-		const user = EnterpriseUser.initInJSON(json, this._enterpriseConfig);
+		const user = EnterpriseUser.initInJSON(json, this._em.getConfig());
 		await this._updateEnterpriseUser(user);
 		return user;
 	}

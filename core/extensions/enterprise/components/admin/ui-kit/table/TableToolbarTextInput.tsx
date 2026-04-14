@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { Icon } from "@ui-kit/Icon";
-import { TextInput, TextInputProps } from "@ui-kit/Input";
+import { TextInput, type TextInputProps } from "@ui-kit/Input";
 
 const StyledTextInput = styled(TextInput)`
 	flex: 1;

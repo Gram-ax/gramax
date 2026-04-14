@@ -1,10 +1,9 @@
-import Query from "@core/Api/Query";
-import { Router, RouterRule } from "@core/Api/Router";
-import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
+import type Query from "@core/Api/Query";
+import { Router, type RouterRule } from "@core/Api/Router";
 import { RouterContext } from "next/dist/shared/lib/router-context.shared-runtime";
-import { NextRouter as DefaultNextRouter } from "next/router";
+import type { NextRouter as DefaultNextRouter } from "next/router";
 import { useContext, useEffect } from "react";
-import Url from "../../../../core/ui-logic/ApiServices/Types/Url";
+import type Url from "../../../../core/ui-logic/ApiServices/Types/Url";
 
 export default class NextRouter extends Router {
 	private _hash?: string;
@@ -42,7 +41,7 @@ export default class NextRouter extends Router {
 
 	pushPath(path: string) {
 		const transformed = this._transform(path);
-		void this._router.push({ pathname: transformed }).then(refreshPage).catch(null);
+		void this._router.push({ pathname: transformed }).catch(null);
 		return this;
 	}
 

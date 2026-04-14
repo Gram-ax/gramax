@@ -36,15 +36,16 @@ import HTMLNote from "@ext/markdown/elements/note/render/components/HTMLNote";
 import See from "@ext/markdown/elements/see/render/See";
 import HTMLSnippet from "@ext/markdown/elements/snippet/render/components/HTMLSnippet";
 import HTMLSub from "@ext/markdown/elements/sub/render/components/HTMLSub";
-import HTMLTable from "@ext/markdown/elements/table/render/components/HTMLTable";
+import HTMLTable from "@ext/markdown/elements/table/render/HtmlComponents/HTMLTable";
+import HTMLTableCell from "@ext/markdown/elements/table/render/HtmlComponents/HTMLTableCell";
 import { TableDB } from "@ext/markdown/elements/tabledb/render/DbTable";
 import HTMLTabs from "@ext/markdown/elements/tabs/render/components/HTMLTabs";
 import HTMLTerm from "@ext/markdown/elements/term/render/HTMLTerm";
 import HTMLVideo from "@ext/markdown/elements/video/render/components/HTMLVideo";
 import HTMLWhen from "@ext/markdown/elements/whowhen/render/HTMLWhen";
 import HTMLWho from "@ext/markdown/elements/whowhen/render/HTMLWho";
-import { ReactNode } from "react";
-import ParserContext from "../../../Parser/ParserContext/ParserContext";
+import type { ReactNode } from "react";
+import type ParserContext from "../../../Parser/ParserContext/ParserContext";
 import HTMLComponents, { unSupportedElements } from "./HTMLComponents";
 
 const getComponentsHTML = (
@@ -107,6 +108,7 @@ const getComponentsHTML = (
 		Term: HTMLTerm,
 		Error: HTMLError,
 		Table: HTMLTable,
+		tableCell: HTMLTableCell,
 		Include: HTMLInclude,
 		"Db-table": TableDB,
 		"Db-diagram": html.getNullComponent(unSupportedElements["db-diagram"]),

@@ -3,7 +3,7 @@ import generateUniqueID from "@core/utils/generateUniqueID";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ItemList from "@ext/articleProvider/components/ItemList";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
 import TemplateService from "@ext/templates/components/TemplateService";

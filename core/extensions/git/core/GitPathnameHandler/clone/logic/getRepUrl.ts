@@ -1,5 +1,5 @@
-import ShareData from "@ext/catalog/actions/share/model/ShareData";
-import GitShareData from "@ext/git/core/model/GitShareData";
+import type ShareData from "@ext/catalog/actions/share/model/ShareData";
+import type GitShareData from "@ext/git/core/model/GitShareData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const getRepUrl = (shareData: ShareData): { href: string; value: string } => {

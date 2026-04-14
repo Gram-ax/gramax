@@ -1,15 +1,14 @@
-import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
-import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
 import t from "@ext/localization/locale/translate";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
-import { GroupValue } from "../../components/roles/Access";
+import type { GroupValue } from "../../components/roles/Access";
 import { UserToolbarAddBtn } from "../../components/UserToolbarAddBtn";
 import { groupUserTableColumns } from "../config/GroupsUserTableConfig";
-import { GroupUser } from "../types/GroupsUserComponentTypes";
+import type { GroupUser } from "../types/GroupsUserComponentTypes";
 
 interface GroupsUserTableProps {
 	users: GroupValue[];
@@ -63,6 +62,7 @@ export const GroupsUserTable = ({ users, onChange }: GroupsUserTableProps) => {
 		[usersTable],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: delete button wont appear without this
 	const selectedUsersCount = useMemo(
 		() => usersTable.getFilteredSelectedRowModel().rows.length,
 		[usersTable, userRowSelection],
@@ -70,10 +70,10 @@ export const GroupsUserTable = ({ users, onChange }: GroupsUserTableProps) => {
 
 	return (
 		<>
-			<label className="text-primary-fg flex h-4 min-w-0 items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+			<div className="text-primary-fg flex h-4 min-w-0 items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
 				<span>{t("enterprise.admin.users.users")}</span>
 				<span>{users.length}</span>
-			</label>
+			</div>
 
 			<TableToolbar
 				input={
@@ -84,9 +84,9 @@ export const GroupsUserTable = ({ users, onChange }: GroupsUserTableProps) => {
 					/>
 				}
 			>
-				<AlertDeleteDialog
+				<DeleteSelectedButton
 					hidden={!selectedUsersCount}
-					onConfirm={handleDeleteSelectedUsers}
+					onClick={handleDeleteSelectedUsers}
 					selectedCount={selectedUsersCount}
 				/>
 

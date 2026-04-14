@@ -2,7 +2,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import type StorageData from "@ext/storage/models/StorageData";

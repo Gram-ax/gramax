@@ -1,5 +1,5 @@
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import t from "@ext/localization/locale/translate";
 import { Avatar, AvatarImage } from "@ui-kit/Avatar";
 import { Field } from "@ui-kit/Field";

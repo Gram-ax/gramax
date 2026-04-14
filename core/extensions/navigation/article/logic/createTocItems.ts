@@ -1,6 +1,6 @@
-import { JSONContent } from "@tiptap/core";
-import { Node } from "prosemirror-model";
-import { RenderableTreeNode } from "../../../markdown/core/render/logic/Markdoc";
+import type { JSONContent } from "@tiptap/core";
+import type { Node } from "prosemirror-model";
+import type { RenderableTreeNode } from "../../../markdown/core/render/logic/Markdoc";
 import getChildTextId from "../../../markdown/elements/heading/logic/getChildTextId";
 
 export interface TocItem {

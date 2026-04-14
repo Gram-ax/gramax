@@ -1,9 +1,9 @@
-import useSWR, { BareFetcher, SWRConfiguration, SWRResponse } from "swr";
+import useSWR, { type BareFetcher, type SWRConfiguration, type SWRResponse } from "swr";
 import FetchService from "./FetchService";
 import Fetcher from "./Types/Fetcher";
 import Method from "./Types/Method";
 import MimeTypes from "./Types/MimeTypes";
-import Url from "./Types/Url";
+import type Url from "./Types/Url";
 
 const fetchers: { [fetcher in Fetcher]: (url: Url) => Promise<any> } = {
 	json: async (url: Url) => (await FetchService.fetch(url)).json(),

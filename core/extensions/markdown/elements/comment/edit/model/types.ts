@@ -1,4 +1,4 @@
-import { Range } from "@tiptap/core";
+import type { Range } from "@tiptap/core";
 
 interface CommentStorage {
 	openedComment: { id: string; position: Range };

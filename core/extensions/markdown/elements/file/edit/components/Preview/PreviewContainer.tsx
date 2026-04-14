@@ -14,6 +14,7 @@ export const PreviewContainer = styled(PreviewContainerUnstyled)`
 	align-content: center;
 
 	&[data-loaded="false"] > div:last-of-type {
-		display: none;
+		opacity: 0;
+		pointer-events: none;
 	}
 `;

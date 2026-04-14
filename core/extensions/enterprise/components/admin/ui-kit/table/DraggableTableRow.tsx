@@ -1,8 +1,8 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Row } from "@ui-kit/DataTable";
+import type { Row } from "@ui-kit/DataTable";
 import { TableRow } from "@ui-kit/Table";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 export function DraggableTableRow<T>({
 	row,

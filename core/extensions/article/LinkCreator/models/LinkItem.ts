@@ -1,4 +1,4 @@
-import { ItemType } from "@core/FileStructue/Item/ItemType";
+import type { ItemType } from "@core/FileStructue/Item/ItemType";
 
 interface LinkItem {
 	title: string;

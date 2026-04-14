@@ -23,7 +23,7 @@ import {
 } from "@ui-kit/Form";
 import { Input, SecretInput, TextInput } from "@ui-kit/Input";
 import { Skeleton } from "@ui-kit/Skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { Tooltip, TooltipContent, TooltipLinkButton, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -39,13 +39,13 @@ const getFormSchema = () =>
 		authorName: z.string({ message: t("must-be-not-empty") }),
 		authorEmail: z.string({ message: t("must-be-not-empty") }),
 		token: z.string({ message: t("must-be-not-empty") }).refine((val) => validateToken(val), {
-			message: t("invalid2") + " " + t("token"),
+			message: `${t("invalid2")} ${t("token")}`,
 		}),
 	});
 
 const getGiteaSettingsUrl = (domain: string) => {
 	const hasProtocol = domain.includes("://");
-	return `${hasProtocol ? domain : "https://" + domain}/user/settings/applications`;
+	return `${hasProtocol ? domain : `https://${domain}`}/user/settings/applications`;
 };
 
 const EditGitea = ({ onSubmit, data }: EditGiteaProps) => {
@@ -87,8 +87,8 @@ const EditGitea = ({ onSubmit, data }: EditGiteaProps) => {
 	);
 
 	useEffect(() => {
-		if (data?.isInvalid) form.setError("token", { type: "invalid", message: t("invalid2") + " " + t("token") });
-	}, [data?.isInvalid]);
+		if (data?.isInvalid) form.setError("token", { type: "invalid", message: `${t("invalid2")} ${t("token")}` });
+	}, [data?.isInvalid, form.setError]);
 
 	const onChangeAuthFields = () => {
 		const formValues = form.getValues();
@@ -102,7 +102,7 @@ const EditGitea = ({ onSubmit, data }: EditGiteaProps) => {
 		setIsLoading(true);
 		const hasProtocol = formValues.url.includes("://");
 		const { domain, protocol, origin, pathname } = parseStorageUrl(
-			hasProtocol ? formValues.url : "https://" + formValues.url,
+			hasProtocol ? formValues.url : `https://${formValues.url}`,
 		);
 		startCheck(
 			{
@@ -123,7 +123,7 @@ const EditGitea = ({ onSubmit, data }: EditGiteaProps) => {
 	const formSubmit = (e) => {
 		form.handleSubmit((formData) => {
 			const hasProtocol = formData.url.includes("://");
-			const { domain, protocol } = parseStorageUrl(hasProtocol ? formData.url : "https://" + formData.url);
+			const { domain, protocol } = parseStorageUrl(hasProtocol ? formData.url : `https://${formData.url}`);
 			const isInvalid = !!form.formState.errors.token?.message || !!form.formState.errors.url?.message;
 
 			onSubmit({
@@ -139,6 +139,7 @@ const EditGitea = ({ onSubmit, data }: EditGiteaProps) => {
 		})(e);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		const primaryButton = (
 			<Button onClick={formSubmit} type="submit">
@@ -196,9 +197,18 @@ const EditGitea = ({ onSubmit, data }: EditGiteaProps) => {
 								<TooltipContent>
 									<span
 										dangerouslySetInnerHTML={{
+											// biome-ignore lint/style/useNamingConvention: expected
 											__html: t("git.source.gitea.info"),
 										}}
 									/>
+									<br />
+									<a
+										href="https://docs.gitea.com/development/oauth2-provider#scopes"
+										rel="noopener"
+										target="_blank"
+									>
+										<TooltipLinkButton size="xs">{t("more")}</TooltipLinkButton>
+									</a>
 								</TooltipContent>
 							</Tooltip>
 						</FormSectionHeaderButton>

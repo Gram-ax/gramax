@@ -1,4 +1,4 @@
-import { Attrs, Mark, MarkType, Node, NodeType, Schema } from "prosemirror-model";
+import { type Attrs, Mark, type MarkType, type Node, type NodeType, type Schema } from "prosemirror-model";
 
 // import markdownit from "markdown-it";
 // import { schema } from "./schema";
@@ -96,8 +96,8 @@ class MarkdownParseState {
 async function attrs(spec: ParseSpec, token: Token, tokens: Token[], i: number) {
 	if (spec.getAttrs) return { ...(await spec.getAttrs(token, tokens, i)) };
 	// For backwards compatibility when `attrs` is a Function
-	else if (spec.attrs instanceof Function) return { ...spec.attrs(token) };
-	else return { ...spec.attrs };
+	if (spec.attrs instanceof Function) return { ...spec.attrs(token) };
+	return { ...spec.attrs };
 }
 
 // Code content is represented as a single token with a `content`

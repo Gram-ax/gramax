@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { forwardRef, MutableRefObject, memo, TextareaHTMLAttributes } from "react";
+import { forwardRef, type MutableRefObject, memo, type TextareaHTMLAttributes } from "react";
 import Tooltip from "./Tooltip";
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {

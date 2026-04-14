@@ -2,7 +2,7 @@ import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import WorkspaceAssetsService, { useLogoManager } from "@core-ui/ContextServices/WorkspaceAssetsService";
 import useWatch from "@core-ui/hooks/useWatch";
 import Theme from "@ext/Theme/Theme";
-import { UpdateResource } from "@ext/workspace/components/LogoUploader";
+import type { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { useCallback, useMemo, useState } from "react";
 
 export const useWorkspaceLogo = (workspacePath: string) => {
@@ -37,13 +37,13 @@ export const useWorkspaceLogo = (workspacePath: string) => {
 		setDarkLogo(null);
 	}, []);
 
-	const updateLightLogo: UpdateResource = useCallback(({ content }) => {
-		const base64Logo = CustomLogoDriver.logoToBase64(content);
+	const updateLightLogo: UpdateResource = useCallback(({ content, type }) => {
+		const base64Logo = type === "png" ? content : CustomLogoDriver.logoToBase64(content);
 		setLightLogo(base64Logo);
 	}, []);
 
-	const updateDarkLogo: UpdateResource = useCallback(({ content }) => {
-		const base64Logo = CustomLogoDriver.logoToBase64(content);
+	const updateDarkLogo: UpdateResource = useCallback(({ content, type }) => {
+		const base64Logo = type === "png" ? content : CustomLogoDriver.logoToBase64(content);
 		setDarkLogo(base64Logo);
 	}, []);
 
@@ -63,7 +63,17 @@ export const useWorkspaceLogo = (workspacePath: string) => {
 		}
 
 		if (needRefreshLogo) await refreshHomeLogo();
-	}, [initialLightLogo, lightLogo, initialDarkLogo, darkLogo]);
+	}, [
+		initialLightLogo,
+		lightLogo,
+		initialDarkLogo,
+		darkLogo,
+		deleteDark,
+		deleteLight,
+		refreshHomeLogo,
+		updateDark,
+		updateLight,
+	]);
 
 	const haveChanges = useMemo(
 		() => initialDarkLogo !== darkLogo || initialLightLogo !== lightLogo,

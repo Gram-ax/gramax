@@ -1,6 +1,6 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
-import { validataionTokenErrorMessages } from "@ext/publicApi/ExceptionsResponse";
+import type { validataionTokenErrorMessages } from "@ext/publicApi/ExceptionsResponse";
 
 class TokenValidationError extends DefaultError {
 	constructor(message: keyof typeof validataionTokenErrorMessages) {

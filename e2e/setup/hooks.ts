@@ -3,7 +3,7 @@ import {
 	AfterStep,
 	Before,
 	BeforeAll,
-	ITestCaseHookParameter,
+	type ITestCaseHookParameter,
 	setDefaultTimeout,
 	setWorldConstructor,
 } from "@cucumber/cucumber";
@@ -48,7 +48,7 @@ const shouldClearContext = (left: ITestCaseHookParameter, right: ITestCaseHookPa
 	return false;
 };
 
-BeforeAll({ timeout: config.timeouts.long * 10 }, async function () {
+BeforeAll({ timeout: config.timeouts.long * 10 }, async () => {
 	await fs.rm(path.resolve(__dirname, "../report"), { recursive: true }).catch(() => undefined);
 	global.browser = await chromium.launch(config.launch);
 	await makeGlobalContext();
@@ -68,7 +68,7 @@ AfterStep(async function (this: E2EWorld) {
 	if ((await checkForErrorModal(this)) && !this.allowErrorModal) throw new Error("An error modal found");
 });
 
-AfterAll({ timeout: config.timeouts.long * 4 }, async function () {
+AfterAll({ timeout: config.timeouts.long * 4 }, async () => {
 	await context.tracing.stop({ path: "report/tracing/trace-" + ++TRACE_DUMP_COUNT + ".zip" });
 	await context.pages().at(0).screenshot({ path: "report/screenshot.png", fullPage: true, caret: "initial" });
 });

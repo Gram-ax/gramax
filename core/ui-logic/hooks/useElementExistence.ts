@@ -1,4 +1,4 @@
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { type MutableRefObject, useEffect, useRef, useState } from "react";
 
 const useElementExistence = (ref: MutableRefObject<Element>) => {
 	const observerRef = useRef<MutationObserver>(null);

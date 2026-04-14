@@ -1,10 +1,10 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { listItemHandler } from "@ext/markdown/elements/list/pdf/listItem";
 import { BASE_CONFIG, FONT_SIZE_COEFFICIENT } from "@ext/pdfExport/config";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { isTag } from "@ext/pdfExport/utils/isTag";
-import { JSONContent } from "@tiptap/core";
-import { ContentOrderedList } from "pdfmake/interfaces";
+import type { JSONContent } from "@tiptap/core";
+import type { ContentOrderedList } from "pdfmake/interfaces";
 
 export const orderedListHandler = async (
 	node: Tag | JSONContent,

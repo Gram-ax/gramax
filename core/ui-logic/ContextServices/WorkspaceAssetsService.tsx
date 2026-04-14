@@ -1,21 +1,21 @@
-import { GetPluginsResponse } from "@app/commands/workspace/assets/plugins/getPlugins";
+import type { GetPluginsResponse } from "@app/commands/workspace/assets/plugins/getPlugins";
 import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
+import type FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import { CallApi, useApi } from "@core-ui/hooks/useApi";
+import { type CallApi, useApi } from "@core-ui/hooks/useApi";
 import useUpdateEffect from "@core-ui/hooks/useUpdateEffect";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
 import useTrigger from "@core-ui/triggers/useTrigger";
 import t from "@ext/localization/locale/translate";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import Theme from "@ext/Theme/Theme";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import { clearAllPlugins, loadPlugins, makePluginReady } from "@plugins/store";
 import { toast } from "@ui-kit/Toast";
-import { createContext, ReactElement, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, type ReactElement, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 interface WorkspaceAssetsInterface {
 	updateStyle: (newStyles: string) => void;

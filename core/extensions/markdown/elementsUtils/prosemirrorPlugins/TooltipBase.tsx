@@ -1,5 +1,5 @@
 import ReactRenderer from "@ext/markdown/elementsUtils/prosemirrorPlugins/ReactRenderer";
-import { FC } from "react";
+import type { FC } from "react";
 
 abstract class TooltipBase extends ReactRenderer {
 	protected _element: HTMLElement;

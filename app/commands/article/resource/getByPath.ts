@@ -1,6 +1,6 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import HashResourceByPathManager from "@core/Hash/HashItems/HashResourceByPathManager";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";

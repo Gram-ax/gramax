@@ -93,7 +93,7 @@ class Replacer {
 			const preRaw = parts[0];
 			const preTrim = preRaw.trim();
 
-			const bulletOnly = /^[*+\\-]$|^\d+\.$/.test(preTrim);
+			const bulletOnly = /^[*+-]$|^\d+\.$/.test(preTrim);
 
 			if (bulletOnly) {
 				const bulletIndent = indent + preRaw;
@@ -129,7 +129,7 @@ class Replacer {
 		let text = sourceText;
 
 		text = text.replace(this._checkboxItemRegExp, (match, indent, numPrefix, mark, content) => {
-			let prefix = numPrefix ? numPrefix + " * [ ] " : "* [ ] ";
+			const prefix = numPrefix ? numPrefix + " * [ ] " : "* [ ] ";
 			return indent + prefix + content;
 		});
 
@@ -139,9 +139,9 @@ class Replacer {
 	replaceTabs(sourceText: string) {
 		let text = sourceText;
 		// eslint-disable-next-line
-		text = text.replace(/\{\%\s*list\s+tabs\s*\%\}/g, "[tabs]");
+		text = text.replace(/\{%\s*list\s+tabs\s*%\}/g, "[tabs]");
 		// eslint-disable-next-line
-		text = text.replace(/\{\%\s*endlist\s*\%\}/g, "[/tabs]");
+		text = text.replace(/\{%\s*endlist\s*%\}/g, "[/tabs]");
 
 		const tabBlockRegex = /^-\s+(.*)(\r?\n(?:(?!^-\s+|\[\/tabs\]).*\r?\n?)*)/gm;
 

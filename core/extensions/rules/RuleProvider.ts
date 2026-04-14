@@ -1,10 +1,11 @@
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
 import ShowHomePageRules from "@core/FileStructue/Rules/ShowHomePageRule/ShowHomePageRule";
-import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LocalizationRules from "@ext/localization/core/events/LocalizationEvents";
 import type Navigation from "@ext/navigation/catalog/main/logic/Navigation";
-import RuleCollection, { ItemFilterOptions } from "@ext/rules/RuleCollection";
+import type RuleCollection from "@ext/rules/RuleCollection";
+import type { ItemFilterOptions } from "@ext/rules/RuleCollection";
 import SecurityRules from "@ext/security/logic/SecurityRules";
 
 class RuleProvider {

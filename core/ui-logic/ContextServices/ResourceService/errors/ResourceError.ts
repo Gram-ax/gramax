@@ -25,6 +25,13 @@ export class ResourceLoadError extends ResourceError {
 	}
 }
 
+export class ResourceEmptyError extends ResourceError {
+	constructor(src: string) {
+		super(`Resource "${src}" is empty`, src);
+		this.name = "ResourceEmptyError";
+	}
+}
+
 export class ResourceNotFoundError extends ResourceError {
 	constructor(src: string) {
 		super(`Resource "${src}" not found`, src);

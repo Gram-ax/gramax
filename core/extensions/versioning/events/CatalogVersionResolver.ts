@@ -5,8 +5,8 @@ import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type CatalogEntry from "@core/FileStructue/Catalog/CatalogEntry";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import { addScopeToPath } from "@ext/versioning/addScopeToPath";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
-import { addScopeToPath } from "@ext/versioning/utils";
 import type { Workspace } from "@ext/workspace/Workspace";
 
 export default class CatalogVersionResolver implements EventHandlerCollection {

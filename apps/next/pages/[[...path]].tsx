@@ -1,22 +1,21 @@
 import HomePage from "@components/HomePage/HomePage";
-import PageDataContext from "@core/Context/PageDataContext";
-import { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { PageProps } from "@components/Pages/models/Pages";
 import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/ArticleViewContainer";
 import Localizer from "@ext/localization/core/Localizer";
 import { withContext } from "apps/next/logic/Context/ContextHook";
 import { ApplyPageMiddleware } from "../logic/Api/ApplyMiddleware";
 
-export default function Home({ data, context }: { data: ArticlePageData & HomePageData; context: PageDataContext }) {
-	return context.isArticle ? <ArticleViewContainer data={data} /> : <HomePage data={data} />;
+export default function Home({ data, page }: PageProps) {
+	return page === "article" ? <ArticleViewContainer data={data} /> : <HomePage data={data} />;
 }
 
 export function getServerSideProps({ req, res, query }) {
 	return ApplyPageMiddleware(async function ({ req, res, query }) {
-		const articlePath = query?.path ? "/" + query.path.map((p) => p.replaceAll("/", "%2F")).join("/") : "";
+		const articlePath = query?.path ? `/${query.path.map((p) => p.replaceAll("/", "%2F")).join("/")}` : "";
 		query.l = Localizer.extract(articlePath);
-		const ctx = await this.app.contextFactory.from({ req, res, query });
+		const ctx = await this.app.contextFactory.fromNode({ req, res, query });
 
-		const props = await withContext(
+		const props = await withContext<PageProps>(
 			ctx,
 			async () =>
 				await this.commands.page.getPageData.do({
@@ -24,6 +23,9 @@ export function getServerSideProps({ req, res, query }) {
 					ctx,
 				}),
 		);
+
+		const errorCode = props?.data?.articleProps?.errorCode;
+		if (errorCode) res.statusCode = errorCode;
 
 		return {
 			props,

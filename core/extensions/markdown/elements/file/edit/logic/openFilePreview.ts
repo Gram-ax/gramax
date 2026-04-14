@@ -7,7 +7,7 @@ import type FilePreviewModal from "@ext/markdown/elements/file/edit/components/P
 import type { ComponentProps } from "react";
 
 const MEDIA_EXTENSIONS = ["png", "jpg", "jpeg", "webp"];
-const FILE_EXTENSIONS = ["docx", "pdf", "xls", "xlsx"];
+const FILE_EXTENSIONS = ["docx", "pdf", "xls", "xlsx", "pptx"];
 
 interface OpenPreviewOptions {
 	onError: () => void;
@@ -23,7 +23,7 @@ export const openFilePreview = (buffer: Buffer, path: Path, options: OpenPreview
 	if (!buffer?.byteLength) return onError();
 
 	if (isImagePreview) {
-		const url = URL.createObjectURL(new Blob([buffer], { type: resolveFileKind(buffer) }));
+		const url = URL.createObjectURL(new Blob([buffer as BlobPart], { type: resolveFileKind(buffer) }));
 		return ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
 			id: path.value,
 			src: url,
@@ -38,7 +38,7 @@ export const openFilePreview = (buffer: Buffer, path: Path, options: OpenPreview
 			path,
 			openInSupportedApp,
 			onError,
-			file: new File([buffer], path.nameWithExtension, { type: resolveFileKind(buffer) }),
+			file: new File([buffer as BlobPart], path.nameWithExtension, { type: resolveFileKind(buffer) }),
 			onClose: () => {
 				ModalToOpenService.resetValue();
 			},

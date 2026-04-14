@@ -2,6 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 
+use crate::compress::CompressOptions;
 use crate::error::Result;
 use crate::DirStat;
 use crate::FileInfo;
@@ -17,8 +18,12 @@ pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>> {
 }
 
 #[instrument(skip(content))]
-pub fn write_file<P: AsRef<Path> + std::fmt::Debug, C: AsRef<[u8]>>(path: P, content: C) -> Result<()> {
-	Ok(fs::write(path, content.as_ref())?)
+pub fn write_file<P: AsRef<Path> + std::fmt::Debug, C: AsRef<[u8]>>(path: P, content: C, compress: Option<CompressOptions>) -> Result<()> {
+	if let Some(compress) = compress {
+		Ok(crate::compress::write_compressed(path, content, compress)?)
+	} else {
+		Ok(fs::write(path, content.as_ref())?)
+	}
 }
 
 pub fn read_link<P: AsRef<Path>>(path: P) -> Result<PathBuf> {

@@ -1,4 +1,4 @@
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 import { getNoteAttributes } from "@ext/markdown/elements/note/edit/logic/xml/noteFormatter";
 
 const noteFormatter: NodeSerializerSpec = async (state, node) => {

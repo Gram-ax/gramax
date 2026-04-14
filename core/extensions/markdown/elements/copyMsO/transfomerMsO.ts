@@ -29,15 +29,14 @@ class TransformerMsO {
 		return regexp && regexp?.[0] !== null;
 	};
 
+	public parseFromHTMLSync = (html: string): string => {
+		if (!this.canTransform(html)) return html;
+		return this._prepareDoc(html).body.innerHTML;
+	};
+
 	public parseFromHTML = async (html: string) => {
 		if (!this.canTransform(html)) return html;
-		this._changeAttrs(html);
-
-		const newHTML = this._lineBreakers(html);
-		const doc = new DOMParser().parseFromString(newHTML, "text/html");
-		this._removeTrash(doc);
-		this._lists(doc);
-		this._links(doc);
+		const doc = this._prepareDoc(html);
 
 		if (this._isTauri) {
 			await this._images(doc.body, (oldImage, newImage) => {
@@ -49,6 +48,15 @@ class TransformerMsO {
 
 		this._insertContent(doc);
 		return doc.body.innerHTML;
+	};
+
+	private _prepareDoc = (html: string): Document => {
+		const newHTML = this._lineBreakers(this._changeAttrs(html));
+		const doc = new DOMParser().parseFromString(newHTML, "text/html");
+		this._removeTrash(doc);
+		this._lists(doc);
+		this._links(doc);
+		return doc;
 	};
 
 	public getResourcePath = (src: string) => {
@@ -72,10 +80,11 @@ class TransformerMsO {
 		return newHTML;
 	};
 
-	private _changeAttrs = (html: string) => {
-		html.replaceAll("colspan", "colSpan");
-		html.replaceAll("rowspan", "rowSpan");
-		html.replaceAll("urn:schemas-microsoft-com", "");
+	private _changeAttrs = (html: string): string => {
+		return html
+			.replaceAll("colspan", "colSpan")
+			.replaceAll("rowspan", "rowSpan")
+			.replaceAll("urn:schemas-microsoft-com", "");
 	};
 
 	private _removeTrash = (doc: Document) => {

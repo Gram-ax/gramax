@@ -1,7 +1,7 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import Sidebar from "@components/Layouts/Sidebar";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { DateType } from "@core-ui/utils/dateUtils";
+import type { DateType } from "@core-ui/utils/dateUtils";
 import styled from "@emotion/styled";
 import BranchMenu from "@ext/git/actions/Branch/components/BranchMenu";
 import { BranchStatusEnum, LocalIcon, MergeRequestIcon } from "@ext/git/actions/Branch/components/BranchStatus";
@@ -10,7 +10,7 @@ import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequ
 import t from "@ext/localization/locale/translate";
 import InlineUser from "@ext/security/components/User/InlineUser";
 import { isInDropdown } from "@ui-kit/Dropdown";
-import { MouseEvent } from "react";
+import type { MouseEvent } from "react";
 
 interface BranchLayoutProps {
 	title: string;

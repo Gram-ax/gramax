@@ -1,7 +1,7 @@
-import Style from "@components/HomePage/Cards/model/Style";
+import type Style from "@components/HomePage/Cards/model/Style";
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
-import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
-import { Property } from "@ext/properties/models";
+import type { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
+import type { Property } from "@ext/properties/models";
 
 export interface CatalogEditProps {
 	title: string;

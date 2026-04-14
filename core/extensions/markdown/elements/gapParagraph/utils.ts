@@ -1,6 +1,6 @@
-import { ResolvedPos } from "@tiptap/pm/model";
+import type { ResolvedPos } from "@tiptap/pm/model";
 import { NodeSelection, Plugin, TextSelection } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 
 const nodeHandlerNativeClick = ["TABLE"];
 const notAllowedGap = ["tableCell", "tableHeader"];

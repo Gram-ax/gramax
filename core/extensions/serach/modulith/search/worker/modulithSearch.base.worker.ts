@@ -1,3 +1,4 @@
+import { STORAGE_DIR_NAME } from "@app/config/const";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import { createSearchService } from "@ext/serach/modulith/createSearchService";
@@ -106,6 +107,10 @@ class RpcFileProvider implements FileProvider {
 		return this._callFs("read", { path: this._toFsPath(path) });
 	}
 
+	async readAsArrayBuffer(path: Path): Promise<ArrayBuffer> {
+		return this._callFs("readAsArrayBuffer", { path: this._toFsPath(path) });
+	}
+
 	async readdir(path: Path): Promise<string[]> {
 		return this._callFs("readdir", { path: this._toFsPath(path) });
 	}
@@ -115,7 +120,7 @@ class RpcFileProvider implements FileProvider {
 	}
 
 	async write(path: Path, data: string | Buffer): Promise<void> {
-		await this._callFs("write", { path: this._toFsPath(path), data: data?.toString() ?? "" });
+		await this._callFs("write", { path: this._toFsPath(path), data });
 	}
 
 	async mkdir(path: Path, mode?: number): Promise<void> {
@@ -225,7 +230,15 @@ async function initSearchService(
 	const articleFp = new RpcFileProvider(msg.articleStorageRoot, "articleStorage", postMessage);
 
 	const serviceAndCommit = await createSearchService({
-		cacheFileProvider: cacheFp,
+		cache: {
+			get: async (key) => {
+				const data = await cacheFp.readAsArrayBuffer(getCachePath(key));
+				return new Uint8Array(data);
+			},
+			set: async (key, data) => {
+				await cacheFp.write(getCachePath(key), Buffer.from(data));
+			},
+		},
 		articleStorageFileProvider: articleFp,
 	});
 
@@ -238,6 +251,10 @@ async function initSearchService(
 		type: "ok",
 		requestId: msg.requestId,
 	});
+}
+
+function getCachePath(path: string): Path {
+	return new Path(Path.join(STORAGE_DIR_NAME, path));
 }
 
 async function handleUpdate(

@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 const HTMLKbd = (props: { children?: React.ReactNode; text?: string }) => (
 	<kbd data-component="kbd">{props.text || props.children}</kbd>

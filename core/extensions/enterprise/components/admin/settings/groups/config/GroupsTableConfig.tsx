@@ -3,10 +3,11 @@ import {
 	TABLE_SELECT_COLUMN_CODE,
 } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import t from "@ext/localization/locale/translate";
-import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
-import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
+import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
+import { type ColumnDef, useTableSelection } from "@ui-kit/DataTable";
 import { Icon } from "@ui-kit/Icon";
-import { Group } from "../types/GroupsComponentTypes";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
+import type { Group } from "../types/GroupsComponentTypes";
 
 export const groupTableColumns: ColumnDef<Group>[] = [
 	{
@@ -24,14 +25,30 @@ export const groupTableColumns: ColumnDef<Group>[] = [
 				/>
 			);
 		},
-		cell: ({ row }) => (
-			<Checkbox
-				aria-label="Select row"
-				checked={row.getIsSelected()}
-				disabled={row.original.disabled}
-				onCheckedChange={(value) => row.toggleSelected(!!value)}
-			/>
-		),
+		cell: ({ row }) => {
+			const checkboxProps = {
+				"aria-label": "Select row",
+				checked: row.getIsSelected(),
+				onCheckedChange: (value: boolean) => row.toggleSelected(!!value),
+			};
+
+			if (row.original.disabled) {
+				return (
+					<TooltipProvider>
+						<Tooltip>
+							<TooltipTrigger asChild>
+								<Checkbox {...checkboxProps} disabled={true} />
+							</TooltipTrigger>
+							<TooltipContent>
+								<p>{row.original.disabledTooltip}</p>
+							</TooltipContent>
+						</Tooltip>
+					</TooltipProvider>
+				);
+			}
+
+			return <Checkbox {...checkboxProps} />;
+		},
 		enableSorting: false,
 		enableHiding: false,
 	},

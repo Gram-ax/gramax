@@ -1,12 +1,12 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
-import { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
-import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
+import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import SecurityRules from "@ext/security/logic/SecurityRules";
 

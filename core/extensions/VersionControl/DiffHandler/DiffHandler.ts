@@ -1,10 +1,10 @@
-import { Change, diffLines } from "diff";
+import { type Change, diffLines } from "diff";
 import { distance } from "fastest-levenshtein";
 import { FileStatus } from "../../Watchers/model/FileStatus";
 import DiffMatchPatch from "./diffMatchLib";
 import getChanges from "./logic/DiffConverter";
-import { DiffHunk } from "./model/DiffHunk";
-import { VersionControlDiff } from "./model/VersionControlDiff";
+import type { DiffHunk } from "./model/DiffHunk";
+import type { VersionControlDiff } from "./model/VersionControlDiff";
 
 export const getDiff = (
 	oldContent: string,

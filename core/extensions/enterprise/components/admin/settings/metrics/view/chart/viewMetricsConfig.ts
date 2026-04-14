@@ -10,7 +10,7 @@ const CHART_HEIGHT = 300;
 export const VIEW_FIELD_NAMES = ["visitors", "visits", "views"] as const;
 export type ViewMetricField = (typeof VIEW_FIELD_NAMES)[number];
 
-const VIEW_CHART_COLORS: Record<ViewMetricField, string> = {
+export const VIEW_CHART_COLORS: Record<ViewMetricField, string> = {
 	views: "#60A5FA",
 	visits: "#A78BFA",
 	visitors: "#34D399",

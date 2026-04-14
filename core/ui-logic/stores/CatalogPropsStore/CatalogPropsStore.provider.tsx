@@ -1,5 +1,5 @@
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import { CatalogPropsStore, createCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import { type CatalogPropsStore, createCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore";
 import { createContext, type ReactNode, useContext, useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";

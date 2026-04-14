@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { IconButton } from "@ui-kit/Button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { MouseEvent, ReactElement } from "react";
+import type { MouseEvent, ReactElement } from "react";
 
 interface MediaHeaderButtonProps {
 	icon: string;

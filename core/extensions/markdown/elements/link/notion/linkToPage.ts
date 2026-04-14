@@ -1,4 +1,4 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const linkToPage: NotionNodeConverter = (linkNode, ctx) => {
 	const idType = linkNode.link_to_page.type;

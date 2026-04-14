@@ -1,6 +1,6 @@
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 
 const InlinePropertyMenuButton = ({ editor }: { editor: Editor }) => {
 	return (

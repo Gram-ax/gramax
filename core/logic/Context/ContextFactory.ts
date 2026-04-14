@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import resolveModule from "@app/resolveModule/backend";
 import LanguageService from "@core-ui/ContextServices/Language";
 import type Cookie from "../../extensions/cookie/Cookie";
@@ -32,20 +33,19 @@ export class ContextFactory {
 	constructor(
 		private _tm: ThemeManager,
 		private _cookieSecret: string,
-		private _isReadOnly: boolean,
-		private _am?: AuthManager,
+		private _am: AuthManager,
 	) {}
 
-	async from({ req, res, query }: FromArgs): Promise<Context> {
+	async fromNode({ req, res, query }: FromArgs): Promise<Context> {
 		const ResolveCookie = resolveModule("Cookie");
-		const cookie = new ResolveCookie(this._cookieSecret, req, res);
+		const cookie = new ResolveCookie(this._cookieSecret, req as any, res as any);
 		if (!query) query = {};
 
 		query.ui =
 			cookie.get("ui") || overriddenLanguage || UiLanguage[req.headers["accept-language"]?.split(",")?.[0]];
 		if (!query.l) query.l = ContentLanguage[req.headers["x-gramax-language"]];
 
-		const user = this._isReadOnly ? await this._am?.getUser(cookie, query, req.headers) : localUser;
+		const user = await this._am.getUser(cookie, query, req.headers);
 
 		return this._getContext({ cookie, user, query, domain: apiUtils.getDomain(req) });
 	}
@@ -57,7 +57,7 @@ export class ContextFactory {
 		query.l = language;
 		query.ui = LanguageService.currentUi();
 
-		const user = this._am ? await this._am.getUser(cookie, query) : localUser;
+		const user = this._am.isEnterprise() ? await this._am.getUser(cookie, query) : localUser;
 		return this._getContext({ cookie, user, query, domain: getClientDomain() });
 	}
 

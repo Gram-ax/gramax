@@ -1,5 +1,5 @@
 import { DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 type CatalogItemPropsWithChildren = {
 	children: ReactNode | ((props?: any) => ReactNode);

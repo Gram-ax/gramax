@@ -13,6 +13,8 @@ pub static INITED: AtomicBool = AtomicBool::new(false);
 
 pub struct OpenUrl(pub Mutex<Option<String>>);
 
+pub struct DefaultFallbackUrl(pub Url);
+
 type InitResult = std::result::Result<(), Box<dyn std::error::Error>>;
 
 #[tracing::instrument(skip_all)]
@@ -23,6 +25,8 @@ pub fn window_post_init<R: Runtime>(w: &WebviewWindow<R>) -> Result<()> {
 		// webview.setAllowsBackForwardNavigationGestures(true);
 		webview.setAllowsMagnification(true);
 	})?;
+
+	w.app_handle().manage(DefaultFallbackUrl(w.url()?));
 
 	crate::logging::force_find_processes(&w.app_handle())?;
 

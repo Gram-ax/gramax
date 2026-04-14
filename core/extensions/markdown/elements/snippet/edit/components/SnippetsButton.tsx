@@ -4,14 +4,14 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
-import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
-import { useMediaQuery } from "@mui/material";
-import { Editor } from "@tiptap/core";
+import type { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
+import type { Editor } from "@tiptap/core";
 import {
 	Command,
 	CommandEmpty,

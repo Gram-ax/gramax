@@ -1,4 +1,5 @@
 import { useExternalLink } from "@core-ui/hooks/useExternalLink";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -9,7 +10,6 @@ import {
 	LinkMenuCatalogChooser,
 } from "@ext/markdown/elements/link/edit/components/LinkMenu/EditLinkMenu/LinkMenuChoosers";
 import { LinkMenuInput } from "@ext/markdown/elements/link/edit/components/LinkMenu/EditLinkMenu/LinkMenuInput";
-import { useMediaQuery } from "@mui/material";
 import { Command, CommandEmpty, CommandItem, CommandList, CommandSeparator } from "@ui-kit/Command";
 import { Icon } from "@ui-kit/Icon";
 import { type FormEvent, memo, useCallback, useEffect, useState } from "react";

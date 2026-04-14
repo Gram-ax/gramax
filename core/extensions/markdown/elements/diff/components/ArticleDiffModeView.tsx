@@ -5,16 +5,16 @@ import ArticleViewService from "@core-ui/ContextServices/views/articleView/Artic
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import { DiffModeView } from "@ext/markdown/elements/diff/components/DiffModeView";
 import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
 import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
-import { EditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import type { EditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
-import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
+import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 interface ArticleDiffModeViewProps {

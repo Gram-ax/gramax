@@ -1,4 +1,4 @@
-import { topMenuItemClassName } from "@components/HomePage/TopMenu";
+import { topMenuItemClassName } from "@components/HomePage/TopMenu/const";
 import { classNames } from "@components/libs/classNames";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import t from "@ext/localization/locale/translate";

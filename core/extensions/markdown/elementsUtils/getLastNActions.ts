@@ -1,4 +1,4 @@
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 
 const getLastNActions = (editor: Editor, n: number) => {
 	const historyPlugin = editor.view.state.plugins.find(

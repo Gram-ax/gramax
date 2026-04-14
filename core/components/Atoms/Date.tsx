@@ -1,4 +1,4 @@
-import DateUtils, { DateType } from "@core-ui/utils/dateUtils";
+import DateUtils, { type DateType } from "@core-ui/utils/dateUtils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 
 interface DateProps {

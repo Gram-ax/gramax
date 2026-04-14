@@ -1,9 +1,9 @@
 import { InvalidEmailCell } from "@ext/enterprise/components/admin/settings/components/InvalidEmailCell";
 import t from "@ext/localization/locale/translate";
-import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
-import { ColumnDef } from "@ui-kit/DataTable";
+import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
+import type { ColumnDef } from "@ui-kit/DataTable";
 import { TABLE_SELECT_COLUMN_CODE } from "../../../ui-kit/table/TableComponent";
-import { Editor } from "../types/EditorsComponentTypes";
+import type { Editor } from "../types/EditorsComponentTypes";
 
 export const editorsTableColumns: ColumnDef<Editor>[] = [
 	{

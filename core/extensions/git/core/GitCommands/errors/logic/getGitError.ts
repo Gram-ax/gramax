@@ -1,6 +1,6 @@
-import { Caller } from "../../../GitCommands/errors/model/Caller";
+import type { Caller } from "../../../GitCommands/errors/model/Caller";
 import GitErrorCode from "../../../GitCommands/errors/model/GitErrorCode";
-import GitErrorContextProps from "../../../GitCommands/errors/model/GitErrorContextProps";
+import type GitErrorContextProps from "../../../GitCommands/errors/model/GitErrorContextProps";
 import GitError from "../GitError";
 
 const getGitError = (

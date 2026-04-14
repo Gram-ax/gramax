@@ -3,8 +3,8 @@ import useWatch from "@core-ui/hooks/useWatch";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import NoteHeadEditor from "@ext/markdown/elements/note/edit/components/NoteHeadEditor";
 import NoteMenuActions from "@ext/markdown/elements/note/edit/components/NoteMenuActions";
-import { NodeViewContent, NodeViewProps } from "@tiptap/react";
-import { ReactElement, useRef, useState } from "react";
+import { NodeViewContent, type NodeViewProps } from "@tiptap/react";
+import { type ReactElement, useRef, useState } from "react";
 import Note from "../../render/component/Note";
 
 const EditNote = (props: NodeViewProps): ReactElement => {

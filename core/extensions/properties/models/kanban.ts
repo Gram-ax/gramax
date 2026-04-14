@@ -1,4 +1,4 @@
-import { ViewRenderData } from "./index";
+import type { ViewRenderData } from "./index";
 
 export interface Column {
 	name: string;

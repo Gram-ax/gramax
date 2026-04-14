@@ -11,6 +11,7 @@ export const callInternal = async (command: string, args?: any): Promise<number>
 				path: args.path,
 				contentLen: buf.byteLength,
 				contentPtr: await alloc(buf),
+				compress: args.compress ?? null,
 			}),
 		);
 	} else {

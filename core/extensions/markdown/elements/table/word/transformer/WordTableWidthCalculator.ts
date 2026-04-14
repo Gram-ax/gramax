@@ -1,6 +1,6 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { STANDARD_PAGE_WIDTH } from "@ext/wordExport/options/wordExportSettings";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 export const TWIPS_PER_PIXEL = 15;
 

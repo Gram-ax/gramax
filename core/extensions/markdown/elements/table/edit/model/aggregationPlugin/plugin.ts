@@ -1,5 +1,5 @@
 import getFocusNode from "@ext/markdown/elementsUtils/getFocusNode";
-import { Plugin, PluginKey, Transaction } from "@tiptap/pm/state";
+import { Plugin, PluginKey, type Transaction } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 
 const pluginKey = new PluginKey("aggregation$");

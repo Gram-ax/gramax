@@ -12,18 +12,18 @@ import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { Card } from "@ui-kit/Card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { Icon } from "@ui-kit/Icon";
 import { Loader } from "@ui-kit/Loader";
 import { PageState, PageStateDescription } from "@ui-kit/PageState";
 import { SidebarProvider } from "@ui-kit/Sidebar";
 import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Ban, FastForward, LoaderCircle, MoreVertical } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import StyleGuideEditor from "./components/StyleGuideEditor";
 import { StyleGuideSidebar } from "./components/StyleGuideSidebar";
@@ -336,8 +336,12 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 												onClick={handlers.test.abort}
 												variant="outline"
 											>
-												<LoaderCircle className="abort-loader animate-spin h-4 w-4 mr-1" />
-												<Ban className="abort-stop h-4 w-4 mr-1" />
+												<Icon
+													className="abort-loader animate-spin mr-1"
+													icon="loader-circle"
+													size="md"
+												/>
+												<Icon className="abort-stop mr-1" icon="ban" size="md" />
 												Остановить проверку
 											</Button>
 										) : (
@@ -346,7 +350,7 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 												onClick={handlers.test.runAllGlobal}
 												variant="outline"
 											>
-												<FastForward className="h-4 w-4 mr-1" />
+												<Icon className="mr-1" icon="fast-forward" size="md" />
 												Запустить все
 											</Button>
 										)}
@@ -361,7 +365,7 @@ const StyleGuideComponent = ({ className }: { className?: string }) => {
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<Button disabled={isUiLocked} size="sm" variant="ghost">
-											<MoreVertical className="h-4 w-4" />
+											<Icon icon="ellipsis-vertical" size="md" />
 										</Button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent>

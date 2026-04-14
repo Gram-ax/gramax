@@ -56,14 +56,55 @@ export const project = (() => {
 	return project;
 })();
 
+const parseReleaseBranch = () => {
+	const branch = process.env.CI_COMMIT_BRANCH || "";
+	const match = branch.match(/^release\/(\d{4}).(\d{1,2})$/);
+	if (!match) return null;
+	const [, year, month] = match;
+	const numYear = Number(year);
+	const numMonth = Number(month);
+	const lastDay = new Date(numYear, numMonth, 0).getDate();
+	return { year: numYear, month: numMonth,  lastDay };
+};
+
+const getToday = () => {
+	const date = new Date();
+	return {
+		year: date.getFullYear(),
+		month: date.getMonth() + 1,
+		day: date.getDate(),
+	};
+}
+
 export const buildDate = await (async () => {
-	return await $`date "+%Y.%-m.%-d"`
+	const release = parseReleaseBranch();
+	if(!release) return await $`date "+%Y.%-m.%-d"`.quiet().text().then((text) => text.trim());
+	
+	const today = getToday();
+	if(today.year === release.year && today.month === release.month) return `${today.year}.${today.month}.${today.day}`;
+
+	return `${release.year}.${release.month}.${release.lastDay}`;
+	
+})();
+
+export const buildDateShort = await (async () => {
+	const release = parseReleaseBranch();
+	if (release) return `${release.year}.${Number(release.month)}`;
+	return await $`date "+%Y.%-m"`
 		.quiet()
 		.text()
 		.then((text) => text.trim());
 })();
 
 export const commitCount = await (async () => {
+	const release = parseReleaseBranch();
+	if (release) {
+		const after = `${release.year}-${release.month}-01T00:00:00`;
+		return await $`git rev-list --count --date=local --after="${after}" HEAD`
+			.quiet()
+			.text()
+			.then((text) => text.trim());
+	}
 	return await $`git rev-list --count --date=local --after="$(date +"%Y-%m-01T00:00:00")" HEAD`
 		.quiet()
 		.text()
@@ -76,12 +117,16 @@ export const version = (postfix?: string) => {
 	return `${buildDate}-${postfix ? `${postfix}.` : ""}${commitCount}`;
 };
 
+export const versionShort = (postfix?: string) => {
+	return `${buildDateShort}${postfix ? `-${postfix}` : ""}`;
+};
+
 export const channel = () => {
 	const force = env.optional("FORCE_CHANNEL");
 	if (force) return force;
 
-	const branch = env.optional("BRANCH");
-	if (branch === "master") return "prod";
+	const branch = env.optional("BRANCH")
+	if (env.optional("CI_COMMIT_BRANCH")?.match(/^release\//)) return "prod";
 	if (branch === "develop") return "dev";
 	return "test";
 };

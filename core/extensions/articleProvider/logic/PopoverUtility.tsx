@@ -1,5 +1,5 @@
-import { PopoverManager } from "@ext/articleProvider/logic/PopoverManager";
-import { InboxArticle } from "@ext/inbox/models/types";
+import type { PopoverManager } from "@ext/articleProvider/logic/PopoverManager";
+import type { InboxArticle } from "@ext/inbox/models/types";
 
 type SortableItem<T> = T & {
 	props: {

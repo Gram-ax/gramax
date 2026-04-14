@@ -1,4 +1,4 @@
-import { ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
+import type { ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
 import { sortConfluenceArticles } from "./sortConfluenceArticles";
 
 const RU_ALPHA = "\u0410\u043b\u044c\u0444\u0430";

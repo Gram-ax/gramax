@@ -1,7 +1,7 @@
 import BaseMark from "@ext/markdown/elementsUtils/prosemirrorPlugins/BaseMark";
-import Replacer, { ReplacerProps } from "@ext/StyleGuide/components/Replacer";
-import { Editor } from "@tiptap/core";
-import { EditorView } from "prosemirror-view";
+import Replacer, { type ReplacerProps } from "@ext/StyleGuide/components/Replacer";
+import type { Editor } from "@tiptap/core";
+import type { EditorView } from "prosemirror-view";
 
 class SuggestionTooltip extends BaseMark {
 	constructor(view: EditorView, editor: Editor) {

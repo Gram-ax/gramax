@@ -1,7 +1,7 @@
 import { css } from "@emotion/react";
 import BreadcrumbCatalog from "@ext/serach/components/BreadcrumbCatalog";
 import { getMarkElems } from "@ext/serach/components/searchUtils";
-import { SearchResultMarkItem } from "@ext/serach/Searcher";
+import type { SearchResultMarkItem } from "@ext/serach/Searcher";
 
 const catalogResultItemVariant = css`
 	img {

@@ -2,8 +2,8 @@ import ActionButton from "@components/controls/HoverController/ActionButton";
 import ActionInput from "@components/controls/HoverController/ActionInput";
 import toggleSignature from "@core-ui/toggleSignature";
 import t from "@ext/localization/locale/translate";
-import { Node } from "@tiptap/pm/model";
-import { ChangeEvent, Dispatch, ReactElement, RefObject, SetStateAction } from "react";
+import type { Node } from "@tiptap/pm/model";
+import type { ChangeEvent, Dispatch, ReactElement, RefObject, SetStateAction } from "react";
 
 interface VideoActionsProps {
 	signatureRef: RefObject<HTMLInputElement>;

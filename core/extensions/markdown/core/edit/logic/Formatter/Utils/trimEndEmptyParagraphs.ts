@@ -1,4 +1,4 @@
-import { JSONContent } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/react";
 
 const trimEndEmptyParagraphs = (content: JSONContent[]) => {
 	if (!Array.isArray(content)) return;

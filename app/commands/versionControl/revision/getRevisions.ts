@@ -1,7 +1,7 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { GitVersionDataSet } from "@ext/git/core/GitVersionControl/GitVersionControl";
+import type { GitVersionDataSet } from "@ext/git/core/GitVersionControl/GitVersionControl";
 import { GitVersion } from "@ext/git/core/model/GitVersion";
 import assert from "assert";
 

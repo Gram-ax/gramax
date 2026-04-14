@@ -1,4 +1,4 @@
-import { CustomEditTreeToRenderTree } from "@ext/markdown/core/Parser/EditTreeToRenderTree";
+import type { CustomEditTreeToRenderTree } from "@ext/markdown/core/Parser/EditTreeToRenderTree";
 
 const mdEditTreeToRenderTree: CustomEditTreeToRenderTree = (node) => {
 	if (!node.attrs?.tag) return;

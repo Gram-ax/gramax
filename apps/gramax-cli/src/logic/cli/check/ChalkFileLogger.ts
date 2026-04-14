@@ -1,4 +1,4 @@
-import { createWriteStream, mkdirSync, WriteStream } from "fs-extra";
+import { createWriteStream, mkdirSync, type WriteStream } from "fs-extra";
 import { dirname } from "path";
 import stripAnsi from "strip-ansi";
 import ChalkLogger from "../../../utils/ChalkLogger";

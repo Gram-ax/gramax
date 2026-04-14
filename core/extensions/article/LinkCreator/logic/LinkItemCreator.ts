@@ -1,12 +1,12 @@
 import type Context from "@core/Context/Context";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { Category } from "@core/FileStructue/Category/Category";
-import { Item } from "@core/FileStructue/Item/Item";
+import type { Category } from "@core/FileStructue/Category/Category";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import RuleProvider from "@ext/rules/RuleProvider";
-import Path from "../../../../logic/FileProvider/Path/Path";
+import type Path from "../../../../logic/FileProvider/Path/Path";
 
 class LinkItemCreator {
 	constructor(
@@ -70,9 +70,8 @@ class LinkItemCreator {
 			if (isExactMatch || isPrefix) {
 				if (!(i as Category)?.items || isExactMatch) {
 					return categories.map((c) => c.getTitle());
-				} else {
-					return this._getBreadcrumb((i as Category).items, [...categories, i as Category], normalizedUrl);
 				}
+				return this._getBreadcrumb((i as Category).items, [...categories, i as Category], normalizedUrl);
 			}
 		}
 		return undefined;

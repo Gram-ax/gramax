@@ -1,8 +1,8 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { CommentBlock } from "@core-ui/CommentBlock";
-import { AstComment } from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
-import CommentsDiff, { HaveDiffFunction } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
+import type { CommentBlock } from "@core-ui/CommentBlock";
+import type { AstComment } from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
+import CommentsDiff, { type HaveDiffFunction } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
 import isCommentBlocksEqual from "@ext/markdown/elements/diff/logic/commentsDiff/isCommentBlocksEqual";
 import { useCallback } from "react";
 

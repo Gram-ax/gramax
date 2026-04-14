@@ -1,5 +1,5 @@
 import { basename, join, resolve } from "path";
-import { Resource } from "./entities/article";
+import type { Resource } from "./entities/article";
 
 export const getChildrenByRequestChildren = (data: any) => {
 	if (!data || !data.children || !data.children.results) return;

@@ -1,6 +1,15 @@
 import isMobileService from "@core-ui/ContextServices/isMobileService";
-import { useMediaQuery } from "@react-hook/media-query";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useEffect, useMemo, useState } from "react";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
+import {
+	createContext,
+	type Dispatch,
+	type ReactElement,
+	type SetStateAction,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import { cssMedia } from "../../utils/cssUtils";
 
 export interface SidebarsIsPinValue {

@@ -1,9 +1,9 @@
-import ActionConfirm from "@components/Atoms/ActionConfirm";
+import type ActionConfirm from "@components/Atoms/ActionConfirm";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import useWatch from "@core-ui/hooks/useWatch";
 import t from "@ext/localization/locale/translate";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 interface DeleteMergeRequestModalProps {
 	isOpen: boolean;

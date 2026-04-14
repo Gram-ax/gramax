@@ -1,10 +1,10 @@
 import { useEscapeKeydown } from "@core-ui/hooks/useEscapeKeyDown";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { LinkMenu, type LinkMenuMode } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import { useLinkMenuState } from "@ext/markdown/elements/link/edit/hooks/useLinkMenuState";
 import { getMarkEndPos } from "@ext/markdown/elementsUtils/getMarkEndPos";
 import { getMarkStartPos } from "@ext/markdown/elementsUtils/getMarkStartPos";
-import { useMediaQuery } from "@mui/material";
 import { type Editor, posToDOMRect } from "@tiptap/react";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
 import type { RefObject } from "react";

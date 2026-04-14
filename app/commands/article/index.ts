@@ -6,6 +6,7 @@ import update from "@app/commands/article/property/update";
 import provider from "@app/commands/article/provider";
 import createFromPath from "@app/commands/article/resource/createFromPath";
 import getPath from "@app/commands/article/resource/getPath";
+import getPathByCatalogPath from "@app/commands/article/resource/getPathByCatalogPath";
 import create from "./create";
 import app from "./editOn/app";
 import source from "./editOn/source";
@@ -55,6 +56,7 @@ const article = {
 		removeResource,
 		getBrotherNames,
 		getPath,
+		getPathByCatalogPath,
 	},
 	property: {
 		getProperty,

@@ -1,2 +1,2 @@
 export { default } from "./MetricsUserFilter";
-export { type PaginatedUsersResponse } from "./useInfiniteScroll";
+export type { PaginatedUsersResponse } from "./useInfiniteScroll";

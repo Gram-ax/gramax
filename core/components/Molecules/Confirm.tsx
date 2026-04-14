@@ -2,7 +2,6 @@ import { ModalWidth } from "@components/Layouts/Modal";
 import styled from "@emotion/styled";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
-import React from "react";
 
 export interface ConfirmProps {
 	className?: string;

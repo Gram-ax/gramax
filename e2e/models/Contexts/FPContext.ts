@@ -1,5 +1,5 @@
 import type FileProvider from "core/logic/FileProvider/model/FileProvider";
-import { JSHandle } from "playwright";
+import type { JSHandle } from "playwright";
 
 export class FPContext {
 	private _handle: FileProvider;

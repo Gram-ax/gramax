@@ -1,10 +1,10 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import type { RepositoryMergeConflictState } from "@ext/git/core/Repository/state/RepositoryState";
 import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/AuthorizeMiddleware";
-import Context from "../../../../core/logic/Context/Context";
+import type Context from "../../../../core/logic/Context/Context";
 import { Command } from "../../../types/Command";
 
 export type MergeIntoParams = {
@@ -40,6 +40,7 @@ const mergeInto: Command<MergeIntoParams, MergeData> = Command.create({
 			squash,
 			isMergeRequest,
 		});
+
 		const state = await catalog.repo.getState();
 		if (!mergeResult.length) await catalog.update();
 

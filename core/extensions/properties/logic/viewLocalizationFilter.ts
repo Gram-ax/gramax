@@ -1,6 +1,6 @@
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
-import { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import { Item } from "@core/FileStructue/Item/Item";
+import type { Catalog, ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { Item } from "@core/FileStructue/Item/Item";
 import type RuleCollection from "@ext/events/RuleCollection";
 
 export default class ViewLocalizationFilter implements RuleCollection, EventHandlerCollection {

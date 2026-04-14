@@ -30,6 +30,7 @@ export type SearchArticleFileMetadata = SearchArticleMetadataBase & {
 	id: string;
 	hash: string;
 	articleId: string;
+	refPath: string;
 	properties: Record<string, unknown>;
 };
 

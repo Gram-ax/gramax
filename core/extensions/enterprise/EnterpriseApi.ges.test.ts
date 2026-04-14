@@ -30,6 +30,7 @@ describe("EnterpriseApi", () => {
 			expect(Object.keys(user.catalogsPermissions).sort()).toEqual([
 				"catalog-owner",
 				"editor",
+				"lfs",
 				"reader",
 				"reviewer",
 				"test-catalog",

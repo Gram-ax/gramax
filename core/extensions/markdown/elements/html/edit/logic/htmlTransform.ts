@@ -1,4 +1,4 @@
-import { Token } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
 
 const htmlTransform = (tokens: Token[]) => {
 	let idx = 0;

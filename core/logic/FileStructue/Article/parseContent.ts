@@ -36,7 +36,6 @@ async function parseContent(
 		article,
 		catalog,
 		convertContentToUiLanguage(ctx.contentLanguage || catalog?.props?.language),
-		ctx.user?.isLogged,
 	);
 
 	await article.parsedContent.write(async () => {

@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import ModalToOpen from "./ModalsToOpen";
+import type { ReactNode } from "react";
+import type ModalToOpen from "./ModalsToOpen";
 
 export interface ModalControls<T = void> {
 	close: () => void;

@@ -1,4 +1,4 @@
-import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
+import type PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
 import linkCreator from "../../render/logic/linkCreator";
 
 function linkToken(context?: PrivateParserContext) {

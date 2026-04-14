@@ -1,4 +1,4 @@
-import { Alignment, Margins, Style } from "pdfmake/interfaces";
+import type { Alignment, Margins, Style } from "pdfmake/interfaces";
 
 export const BASE_CONFIG = {
 	FONT_SIZE: 16,

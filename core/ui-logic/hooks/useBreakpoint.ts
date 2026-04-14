@@ -1,5 +1,5 @@
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { useMediaQuery } from "@react-hook/media-query";
 import { useLayoutEffect, useState } from "react";
 
 const breakpoints = {

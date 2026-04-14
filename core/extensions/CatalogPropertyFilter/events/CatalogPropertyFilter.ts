@@ -11,8 +11,8 @@ import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
 import { enumTypes, PropertyTypes } from "@ext/properties/models";
 import { feature } from "@ext/toggleFeatures/features";
+import { addScopeToPath } from "@ext/versioning/addScopeToPath";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
-import { addScopeToPath } from "@ext/versioning/utils";
 import type { Workspace } from "@ext/workspace/Workspace";
 
 export default class CatalogPropertyFilter implements EventHandlerCollection {

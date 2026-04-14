@@ -1,6 +1,6 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { lazy, Suspense } from "react";
-import FileInputType from "./FileInputProps";
+import type FileInputType from "./FileInputProps";
 
 const FileInput = lazy(() => import("@components/Atoms/FileInput/FileInputBundle"));
 

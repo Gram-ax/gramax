@@ -20,7 +20,7 @@ import { Form, FormField, FormFooter, FormStack } from "@ui-kit/Form";
 import { Input, InputGroup, InputGroupInput, InputGroupText } from "@ui-kit/Input";
 import { TagInput } from "@ui-kit/TagInput";
 import { Tooltip, TooltipArrow, TooltipContent, TooltipTrigger, useOverflowTooltip } from "@ui-kit/Tooltip";
-import { type FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type FC, type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -37,7 +37,7 @@ const OverflowContainer = styled.div`
 	white-space: nowrap;
 `;
 
-const getSchema = (brotherFileNames: string[]) => {
+const getSchema = (brotherFileNames: RefObject<string[]>) => {
 	return z.object({
 		title: z.string().min(1, { message: t("must-be-not-empty") }),
 		fileName: z
@@ -46,7 +46,7 @@ const getSchema = (brotherFileNames: string[]) => {
 			.refine((val) => /^[\w\d\-_]+$/m.test(val), {
 				message: t("no-encoding-symbols-in-url"),
 			})
-			.refine((val) => !brotherFileNames?.includes(val), {
+			.refine((val) => !brotherFileNames.current?.includes(val.toLowerCase()), {
 				message: t("cant-be-same-name"),
 			}),
 		quiz: z
@@ -88,7 +88,7 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 	const formRef = useRef<HTMLFormElement>(null);
 	const brotherFileNames = useRef<string[]>([]);
 
-	const formSchema = useMemo(() => getSchema(brotherFileNames.current), []);
+	const formSchema = useMemo(() => getSchema(brotherFileNames), []);
 
 	const form = useForm<PropsEditorFormValues>({
 		resolver: zodResolver(formSchema),

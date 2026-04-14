@@ -1,7 +1,8 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import Ast from "./ast/index";
+import type Node from "./ast/node";
 import { globalAttributes } from "./transformer";
-
-import type { Config, Function, Node, SchemaAttribute, ValidationError, Value } from "./types";
+import type { Config, Function, SchemaAttribute, ValidationError, Value } from "./types";
 
 const TypeMappings = {
 	String: String,
@@ -15,30 +16,31 @@ type TypeParam = NonNullable<SchemaAttribute["type"]>;
 
 export function validateType(type: TypeParam, value: Value, config: Config): boolean | ValidationError[] {
 	if (!type) return true;
+	let thisType = type;
 
 	if (Ast.isFunction(value) && config.validation?.validateFunctions) {
 		const schema = config.functions?.[value.name];
 		return !schema?.returns
 			? true
 			: Array.isArray(schema.returns)
-				? schema.returns.find((t) => t === type) !== undefined
-				: schema.returns === type;
+				? schema.returns.find((t) => t === thisType) !== undefined
+				: schema.returns === thisType;
 	}
 
 	if (Ast.isAst(value)) return true;
 
-	if (Array.isArray(type)) return type.some((t) => validateType(t, value, config));
+	if (Array.isArray(thisType)) return thisType.some((t) => validateType(t, value, config));
 
-	if (typeof type === "string") type = TypeMappings[type];
+	if (typeof thisType === "string") thisType = TypeMappings[thisType];
 
-	if (typeof type === "function") {
-		const instance: any = new type();
+	if (typeof thisType === "function") {
+		const instance: any = new thisType();
 		if (instance.validate) {
 			return instance.validate(value, config);
 		}
 	}
 
-	return value != null && value.constructor === type;
+	return value != null && value.constructor === thisType;
 }
 
 function typeToString(type: TypeParam): string {

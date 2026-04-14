@@ -1,7 +1,7 @@
-import { CommandTree } from "@app/commands";
-import Application from "@app/types/Application";
-import ApiRequest from "../ApiRequest";
-import ApiResponse from "../ApiResponse";
+import type { CommandTree } from "@app/commands";
+import type Application from "@app/types/Application";
+import type ApiRequest from "../ApiRequest";
+import type ApiResponse from "../ApiResponse";
 
 export default abstract class Middleware {
 	protected _app: Application = {} as any;

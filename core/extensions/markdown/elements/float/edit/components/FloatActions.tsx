@@ -1,9 +1,9 @@
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import t from "@ext/localization/locale/translate";
 import { FLOAT_ALIGN_ICONS } from "@ext/markdown/elements/float/edit/model/consts";
-import { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
-import { Node } from "@tiptap/pm/model";
-import { Editor } from "@tiptap/react";
+import type { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
+import type { Node } from "@tiptap/pm/model";
+import type { Editor } from "@tiptap/react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,

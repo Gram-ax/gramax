@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
-import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
-import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
-import StorageData from "@ext/storage/models/StorageData";
+import type GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
+import type { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
+import type { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
+import type StorageData from "@ext/storage/models/StorageData";
 import assert from "assert";
 
 export default class GitVerseSourceAPI extends GitSourceApi {

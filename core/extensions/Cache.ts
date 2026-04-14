@@ -1,5 +1,5 @@
 import { STORAGE_DIR_NAME } from "@app/config/const";
-import FileProvider from "../logic/FileProvider/model/FileProvider";
+import type FileProvider from "../logic/FileProvider/model/FileProvider";
 import Path from "../logic/FileProvider/Path/Path";
 
 class Cache {
@@ -39,6 +39,10 @@ class Cache {
 
 	private _getKeyPath(key: string): Path {
 		return new Path(Path.join(this._pathPrefix, key));
+	}
+
+	static getCacheDirPath(...parts: string[]): Path {
+		return new Path(Path.join(STORAGE_DIR_NAME, ...parts));
 	}
 }
 

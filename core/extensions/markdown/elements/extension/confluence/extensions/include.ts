@@ -1,9 +1,9 @@
-import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import type ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
 import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
-import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import type NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
+import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 const include: NodeConverter = async (includeNode, ctx) => {
 	const value = includeNode?.attrs?.parameters?.macroParams[""]?.value;

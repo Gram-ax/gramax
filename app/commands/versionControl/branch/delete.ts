@@ -1,11 +1,11 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
-import GitStorage from "@ext/git/core/GitStorage/GitStorage";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitStorage from "@ext/git/core/GitStorage/GitStorage";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import assert from "assert";
 import { Command } from "../../../types/Command";

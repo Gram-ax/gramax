@@ -1,5 +1,5 @@
 import { COLOR_CONFIG } from "@ext/pdfExport/config";
-import { ContentCanvas } from "pdfmake/interfaces";
+import type { ContentCanvas } from "pdfmake/interfaces";
 
 export function hrHandler(): ContentCanvas {
 	return {

@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use gramaxfs::commands as fs;
+use gramaxfs::compress::CompressOptions;
 use gramaxfs::DirStat;
 use std::path::{Path, PathBuf};
 
@@ -18,10 +19,10 @@ pub enum WriteContent {
 }
 
 #[command(async)]
-pub fn write_file(_otel: OtelContext, path: &Path, content: WriteContent) -> Result<()> {
+pub fn write_file(_otel: OtelContext, path: &Path, content: WriteContent, compress: Option<CompressOptions>) -> Result<()> {
 	match content {
-		WriteContent::Bytes(bytes) => fs::write_file(path, bytes),
-		WriteContent::String(string) => fs::write_file(path, string),
+		WriteContent::Bytes(bytes) => fs::write_file(path, bytes, compress),
+		WriteContent::String(string) => fs::write_file(path, string, compress),
 	}
 }
 

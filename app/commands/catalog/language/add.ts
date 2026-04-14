@@ -5,7 +5,7 @@ import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddlewar
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
 import type { Category } from "@core/FileStructue/Category/Category";
-import { Item } from "@core/FileStructue/Item/Item";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { addExternalItems } from "@ext/localization/core/addExternalItems";
 import { ContentLanguage } from "@ext/localization/core/model/Language";

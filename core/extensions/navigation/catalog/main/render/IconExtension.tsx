@@ -1,6 +1,6 @@
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
-import { ItemLink } from "../../../NavigationLinks";
+import type { ItemLink } from "../../../NavigationLinks";
 
 const IconExtension = styled(({ item, className }: { item: ItemLink; className?: string }) => {
 	return item?.icon ? <Icon className={className} code={item.icon} strokeWidth="2" /> : null;

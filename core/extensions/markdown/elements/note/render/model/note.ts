@@ -1,4 +1,4 @@
-import { Schema, SchemaType } from "@ext/markdown/core/render/logic/Markdoc";
+import { type Schema, SchemaType } from "@ext/markdown/core/render/logic/Markdoc";
 import getNoteAttrs from "@ext/markdown/elements/note/logic/getNoteAttrs";
 import Tag from "../../../../core/render/logic/Markdoc/src/ast/tag";
 

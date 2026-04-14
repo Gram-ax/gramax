@@ -1,12 +1,12 @@
 import { NEW_CATALOG_NAME } from "@app/config/const";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { uniqueName } from "@core/utils/uniqueName";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
+import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import t from "@ext/localization/locale/translate";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import { useRouter } from "../../../logic/Api/useRouter";

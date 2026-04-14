@@ -1,12 +1,136 @@
-build-image:
-  extends: .template.docker.build.image
-  needs:
-    - job: build-image-dind-bun
-      optional: true
-  stage: build-images
-  parallel:
-    matrix:
-      - IMAGE_NAME: ["linux-tauri", "playwright", "dind-bun"] # TEMP: removed 'build-dev'
+.template.docker.build:
+  extends: .template.docker.base
+  variables:
+    PUSH_ENTERPRISE: "true"
+  script:
+    - |
+      TAGS="$TAG"
+      if [ "$CI_COMMIT_REF_NAME" = "develop" ]; then
+        TAGS="$TAGS latest-dev"
+      elif echo "$CI_COMMIT_REF_NAME" | grep -qE '^release/'; then
+        if [ "$CI_COMMIT_REF_NAME" = "$PROD_BRANCH" ]; then
+          TAGS="$TAGS latest prod"
+        fi
+      fi
+
+      echo "CURRENT_VERSION: $CURRENT_VERSION"
+      echo "TAGS: $TAGS"
+
+      BUILD_TAGS=""
+
+      for TAG in $TAGS; do
+        BUILD_TAGS="$BUILD_TAGS -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:$TAG"
+
+        if [ "$PUSH_ENTERPRISE" = "true" ]; then
+          BUILD_TAGS="$BUILD_TAGS -t gitlab.ics-it.ru:4567/gx/enterprise/main/$IMAGE_NAME:$TAG"
+        fi
+      done
+
+      docker build --rm $BUILD_TAGS \
+        -f $DOCKERFILE_PATH --progress=plain --metadata-file build-metadata.json \
+        --build-arg BRANCH=$BRANCH \
+        --build-arg USE_IMAGE_TAG=$USE_IMAGE_TAG \
+        --build-arg BASE_PATH=${BASE_PATH} \
+        --build-arg PRODUCTION=$PRODUCTION \
+        --build-arg AUTH_SERVICE_URL=$AUTH_SERVICE_URL \
+        --build-arg SSO_SERVICE_URL=$SSO_SERVICE_URL \
+        --build-arg SSO_SERVICE_ENCRYPTION_KEY=$SSO_SERVICE_ENCRYPTION_KEY \
+        --build-arg REVIEW_SERVICE_URL=$REVIEW_SERVICE_URL \
+        --build-arg GIT_PROXY_SERVICE_URL=$GIT_PROXY_SERVICE_URL \
+        --build-arg DIAGRAM_RENDERER_SERVICE_URL=$DIAGRAM_RENDERER_SERVICE_URL \
+        --build-arg BUGSNAG_API_KEY=$BUGSNAG_API_KEY \
+        --build-arg COOKIE_SECRET=${COOKIE_SECRET} \
+        --build-arg SHARE_ACCESS_TOKEN=${SHARE_ACCESS_TOKEN} \
+        --build-arg UPLOAD_SOURCE_MAPS_TO_BUGSNAG=${UPLOAD_SOURCE_MAPS_TO_BUGSNAG} \
+        --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX} \
+        --build-arg CLOUD_SERVICE_URL=${CLOUD_SERVICE_URL} \
+        --build-arg CLOUD_UPLOAD_TOKEN=${CLOUD_UPLOAD_TOKEN} \
+        --build-arg APP_VERSION=${APP_VERSION} .
+
+    # - ./.ci/trivy/trivy-image-scan.sh $CI_REGISTRY_IMAGE/$IMAGE_NAME:$TAG
+
+    - |
+      for TAG in $TAGS; do
+        docker push "$CI_REGISTRY_IMAGE/$IMAGE_NAME:$TAG"
+      done
+
+      if [ "$PUSH_ENTERPRISE" = "true" ]; then
+        docker logout gitlab.ics-it.ru:4567
+        docker login gitlab.ics-it.ru:4567 -u "$GX_USER" -p "$GX_TOKEN"
+
+        for TAG in $TAGS; do
+          docker push "gitlab.ics-it.ru:4567/gx/enterprise/main/$IMAGE_NAME:$TAG"
+        done
+      fi
+
+    - ./.ci/apps/sign.sh --container
+
+.template.docker.build.service:
+  extends: .template.docker.build
+  variables:
+    IMAGE_NAME: $SERVICE_NAME
+    DOCKERFILE_PATH: "services/target/$SERVICE_NAME/Dockerfile"
+    GIT_DEPTH: 600
+    KUBERNETES_MEMORY_REQUEST: "0.5Gi"
+    KUBERNETES_CPU_REQUEST: "0.8"
+    KUBERNETES_CPU_LIMIT: "2"
+  rules: !reference [.rules, build, service]
+
+.template.docker.build.image:
+  extends: .template.docker.base
+  variables:
+    DOCKERFILE_PATH: ".ci/images/$IMAGE_NAME.dockerfile"
+    KUBERNETES_MEMORY_REQUEST: "1Gi"
+    KUBERNETES_CPU_REQUEST: "1"
+    KUBERNETES_CPU_LIMIT: "3"
+  rules:
+    - !reference [.rules, build, image]
+  script:
+    - docker build --rm
+      -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:$TAG_SHORT
+      -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
+      -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest-dev
+      -f $DOCKERFILE_PATH
+      --progress=plain
+      --metadata-file build-metadata.json
+      --build-arg BRANCH=$BRANCH
+      --build-arg USE_IMAGE_TAG=$USE_IMAGE_TAG
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX} .
+
+    - |
+      PUSH_TAGS="$TAG_SHORT"
+      if [ "$CI_COMMIT_REF_NAME" = "$PROD_BRANCH" ]; then
+        PUSH_TAGS="$PUSH_TAGS latest"
+      elif [ "$CI_COMMIT_REF_NAME" = "develop" ]; then
+        PUSH_TAGS="$PUSH_TAGS latest-dev"
+      fi
+
+      for TAG in $PUSH_TAGS; do
+        docker push "$CI_REGISTRY_IMAGE/$IMAGE_NAME:$TAG"
+      done
+
+.template.docker.build.opensource:
+  extends: .template.docker.base
+  rules:
+    - !reference [.rules, build, if-prod]
+  script:
+    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
+    - .ci/sync/delete-secrets.sh
+    - docker build --rm
+      -f $DOCKERFILE_PATH
+      --build-arg BRANCH=$BRANCH
+      --build-arg USE_IMAGE_TAG=$USE_IMAGE_TAG
+      --build-arg PRODUCTION=$PRODUCTION
+      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
+      --tag $DOCKERHUB_IMAGE:$TAG
+      --tag $DOCKERHUB_IMAGE:latest
+      .
+    # - ./.ci/trivy/trivy-image-scan.sh $DOCKERHUB_IMAGE:$TAG
+    - |
+      docker push $DOCKERHUB_IMAGE:$TAG
+      if [ "$CI_COMMIT_REF_NAME" = "$PROD_BRANCH" ]; then
+        docker push $DOCKERHUB_IMAGE:latest
+      fi
 
 bootstrap-dind-bun:
   extends: .template.docker.build.image
@@ -14,11 +138,23 @@ bootstrap-dind-bun:
   stage: build-images
   variables:
     IMAGE_NAME: "dind-bun"
+    NO_TRIVY: "1"
+  before_script:
+    - |
+      apk add --no-cache git curl bash libstdc++ libgcc gcompat
+      curl -fsSL https://bun.com/install | bash
+      export BUN_INSTALL="$HOME/.bun"
+      export PATH="$BUN_INSTALL/bin:$PATH"
+      bun --version
+    - !reference [.template.docker.build.image, before_script]
 
 build-image-spa:
   extends: .template.docker.build.image
   stage: build-images
-  rules: !reference [.condition, build, rust, rules]
+  needs:
+    - job: bootstrap-dind-bun
+      optional: true
+  rules: !reference [.rules, build, rust]
   variables:
     IMAGE_NAME: "spa"
     DOCKERFILE_PATH: "./crates/spa/Dockerfile"
@@ -26,76 +162,44 @@ build-image-spa:
 build-image-multiplatform:
   extends: .template.docker.build.image
   stage: build-images
+  needs:
+    - job: build-image-spa
+      optional: true
   variables:
-    BUILD_PLATFORMS: "linux/amd64,linux/arm64"
+    BUILD_PLATFORMS: "linux/amd64,linux/arm64,linux/arm64/v8"
   parallel:
     matrix:
-      - IMAGE_NAME: ["base-image"]
+      - IMAGE_NAME: ["base-image", "playwright", "dind-bun"]
+
+build-image:
+  extends: .template.docker.build.image
+  variables:
+    NO_TRIVY: "1"
+  needs:
+    - job: bootstrap-dind-bun
+      optional: true
+  stage: build-images
+  parallel:
+    matrix:
+      - IMAGE_NAME: ["linux-tauri"] # TEMP: removed 'build-dev'
 
 build-web:
-  extends: .template.docker.base
-  stage: build
-  rules: !reference [.condition, build, base, rules]
+  extends: .template.docker.build
+  rules: !reference [.rules, build, base]
   variables:
-    SERVICE_NAME: "web"
+    IMAGE_NAME: "web"
     DOCKERFILE_PATH: "./apps/browser/Dockerfile"
     KUBERNETES_MEMORY_REQUEST: "0.3Gi"
     KUBERNETES_CPU_REQUEST: "0.8"
     KUBERNETES_CPU_LIMIT: "1.2"
-  script:
-    - |
-      if [ "$CI_COMMIT_REF_NAME" == "develop" ]; then
-        TAG="${APP_VERSION}-dev"
-      fi
-      if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
-        TAG="${APP_VERSION}"
-      fi
-      echo $TAG
-    - docker build --rm
-      -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:$TAG
-      -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest
-      -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:latest-dev
-      -t $CI_REGISTRY_IMAGE/$SERVICE_NAME:prod
-      -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:$TAG
-      -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:latest
-      -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:latest-dev
-      -t gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:prod
-      -f $DOCKERFILE_PATH
-      --metadata-file build-metadata.json
-      --build-arg PRODUCTION=$PRODUCTION
-      --build-arg BRANCH=$BRANCH
-      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
-      .
-    - ./.ci/trivy/trivy-image-scan.sh $CI_REGISTRY_IMAGE/$SERVICE_NAME:$TAG
-    - |
-      if [ "$CI_COMMIT_REF_NAME" = "master" ]; then
-        TAGS="$TAG latest prod"
-      elif [ "$CI_COMMIT_REF_NAME" = "develop" ]; then
-        TAGS="$TAG latest-dev"
-      fi
-
-      for t in $TAGS; do
-        docker push "$CI_REGISTRY_IMAGE/$SERVICE_NAME:$t"
-      done
-
-      docker logout gitlab.ics-it.ru:4567
-      docker login gitlab.ics-it.ru:4567 \
-        -u "$GX_USER" \
-        -p "$GX_TOKEN"
-
-      for t in $TAGS; do
-        docker push "gitlab.ics-it.ru:4567/gx/enterprise/main/$SERVICE_NAME:$t"
-      done
-    - ./.ci/apps/sign.sh --container
 
 build-docportal:
-  extends: .template.docker.build.new.version
-  rules: !reference [.condition, build, base, rules]
+  extends: .template.docker.build
+  rules: !reference [.rules, build, if-prod]
   variables:
     GIT_DEPTH: 2000
-    # NEED_TO_SIGN: true
     UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "true"
-    SERVICE_NAME: "docportal"
+    IMAGE_NAME: "docportal"
     DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
     KUBERNETES_MEMORY_REQUEST: "1Gi"
     KUBERNETES_CPU_REQUEST: "1"
@@ -103,41 +207,46 @@ build-docportal:
 
 build-blog:
   extends: .template.docker.build
-  rules:
-    - !reference [.condition, build, onlymaster, rules]
+  rules: !reference [.rules, build, if-prod]
   variables:
     GIT_DEPTH: 2000
-    SERVICE_NAME: "blog"
+    PUSH_ENTERPRISE: "false"
+    IMAGE_NAME: "blog"
     BASE_PATH: "/resources"
     UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "false"
     DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
 
 build-partners:
   extends: .template.docker.build
-  rules:
-    - !reference [.condition, build, onlymaster, rules]
+  rules: !reference [.rules, build, if-prod]
   variables:
     GIT_DEPTH: 2000
-    SERVICE_NAME: "partners"
+    PUSH_ENTERPRISE: "false"
+    IMAGE_NAME: "partners"
     BASE_PATH: "/docs"
     UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "false"
     DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
 
 build-services:
-  extends: .template.docker.build.new.version.service
+  extends: .template.docker.build.service
   parallel:
     matrix:
       - SERVICE_NAME:
-          ["auth", "git-proxy", "enterprise", "diagram-renderer", "cloud"]
+          - auth
+          - git-proxy
+          - enterprise
+          - diagram-renderer
+          - cloud
 
 publish-cli:
   tags:
     - kubernetes01-gramax
   stage: build
-  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
-  rules: !reference [.condition, build, onlymaster, rules]
+  image: gitlab.ics-it.ru:4567/ics/doc-reader/base-image:$USE_IMAGE_TAG
+  rules: !reference [.rules, build, if-prod]
   when: manual
   before_script:
+    - !reference [.template.github-ssh-key, before_script]
     - echo "//registry.npmjs.org/:_authToken=${NPM_PUBLISH_TOKEN}" > ~/.npmrc
   script:
     - npm whoami
@@ -150,95 +259,33 @@ publish-cli:
 
 build-assets-cloud:
   extends: .template.docker.build
-  rules: !reference [.condition, build, onlymaster, rules]
+  rules: !reference [.rules, build, if-prod]
   variables:
-    SERVICE_NAME: "assets-cloud"
+    PUSH_ENTERPRISE: "false"
+    IMAGE_NAME: "assets-cloud"
     DOCKERFILE_PATH: "./services/target/cloud/Dockerfile.assets"
 
 build-web-opensource:
-  extends: .template.docker.base
-  stage: build
-  rules:
-    - !reference [.condition, build, onlymaster, rules]
+  extends: .template.docker.build.opensource
   variables:
-    SERVICE_NAME: "web"
-  script:
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-    - apk add bash git
-    - . ./.ci/apps/init.sh --only-env
-    - docker build --rm
-      -f ./apps/browser/Dockerfile
-      --build-arg BRANCH=$BRANCH
-      --build-arg PRODUCTION=$PRODUCTION
-      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
-      --tag gramax/editor:${VERSION_WEB}
-      --tag gramax/editor:latest
-      .
-    - ./.ci/trivy/trivy-image-scan.sh gramax/editor:${VERSION_WEB}
-    - docker push gramax/editor:${VERSION_WEB}
-    - docker push gramax/editor:latest
+    DOCKERFILE_PATH: "./apps/browser/Dockerfile"
+    DOCKERHUB_IMAGE: "gramax/editor"
 
 build-docportal-opensource:
-  extends: .template.docker.base
-  rules:
-    - !reference [.condition, build, onlymaster, rules]
+  extends: .template.docker.build.opensource
   variables:
     GIT_DEPTH: 2000
-    NEED_TO_SIGN: true
-    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "false"
-  stage: build
-  script:
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-    - apk add bash git
-    - . ./.ci/apps/init.sh --only-env
-    - .ci/sync/delete-secrets.sh
-    - docker build --rm
-      -f apps/next/next.Dockerfile
-      --build-arg BRANCH=${BRANCH}
-      --build-arg BUGSNAG_API_KEY=$BUGSNAG_API_KEY
-      --build-arg PRODUCTION=$PRODUCTION
-      --build-arg UPLOAD_SOURCE_MAPS_TO_BUGSNAG=$UPLOAD_SOURCE_MAPS_TO_BUGSNAG
-      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
-      --tag gramax/docportal:${VERSION_DOCPORTAL}
-      --tag gramax/docportal:latest
-      .
-    - ./.ci/trivy/trivy-image-scan.sh gramax/docportal:${VERSION_DOCPORTAL}
-    - docker push gramax/docportal:${VERSION_DOCPORTAL}
-    - docker push gramax/docportal:latest
+    DOCKERFILE_PATH: "apps/next/next.Dockerfile"
+    DOCKERHUB_IMAGE: "gramax/docportal"
 
 build-git-proxy-opensource:
-  extends: .template.docker.build.service
-  stage: build
-  rules:
-    - !reference [.condition, build, onlymaster, rules]
-  script:
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-    - apk add bash git
-    - . ./.ci/apps/init.sh --only-env
-    - docker build --rm
-      -f ./services/target/git-proxy/Dockerfile
-      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
-      --tag gramax/git-proxy:${VERSION_GIT_PROXY}
-      --tag gramax/git-proxy:latest
-      .
-    - ./.ci/trivy/trivy-image-scan.sh gramax/git-proxy:${VERSION_GIT_PROXY}
-    - docker push gramax/git-proxy:${VERSION_GIT_PROXY}
-    - docker push gramax/git-proxy:latest
+  extends: .template.docker.build.opensource
+  variables:
+    DOCKERFILE_PATH: "./services/target/git-proxy/Dockerfile"
+    DOCKERHUB_IMAGE: "gramax/git-proxy"
 
 build-diagram-renderer-opensource:
-  extends: .template.docker.build.service
-  stage: build
-  rules:
-    - !reference [.condition, build, onlymaster, rules]
-  script:
-    - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-    - apk add bash git
-    - . ./.ci/apps/init.sh --only-env
-    - docker build --rm
-      -f ./services/target/diagram-renderer/Dockerfile
-      --build-arg CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}
-      --tag gramax/diagram-renderer:${VERSION_DIAGRAM_RENDERER}
-      --tag gramax/diagram-renderer:latest
-      .
-    - docker push gramax/diagram-renderer:${VERSION_DIAGRAM_RENDERER}
-    - docker push gramax/diagram-renderer:latest
+  extends: .template.docker.build.opensource
+  variables:
+    DOCKERFILE_PATH: "./services/target/diagram-renderer/Dockerfile"
+    DOCKERHUB_IMAGE: "gramax/diagram-renderer"

@@ -1,17 +1,36 @@
+##################### TEMPLATES #####################
+
+.template.build.apps:
+  stage: build
+  rules: !reference [.rules, build, base]
+  variables:
+    GIT_DEPTH: 600
+    CARGO_HOME: '$CI_PROJECT_DIR/.cargo'
+    ANDROID_HOME: '/opt/homebrew/share/android-commandlinetools'
+    NDK_HOME: '/opt/homebrew/share/android-commandlinetools/ndk/25.2.9519653'
+    APPLE_SIGNING_IDENTITY: 'Developer ID Application: INTELLEKTUALNYE KORPORATIVNYE RESHENIYA, OOO (V9C959AY94)'
+
+################## JOBS ##################
+
 build-desktop-web:
   extends: .template.build.apps
-  image: gitlab.ics-it.ru:4567/ics/doc-reader:base-image-$BRANCH
+  image: gitlab.ics-it.ru:4567/ics/doc-reader/base-image:$USE_IMAGE_TAG
   tags:
     - kubernetes01-gramax
   variables:
-    KUBERNETES_MEMORY_REQUEST: '4Gi'
+    KUBERNETES_MEMORY_REQUEST: '8Gi'
     KUBERNETES_CPU_REQUEST: '1.5'
     KUBERNETES_CPU_LIMIT: '2'
+    NODE_OPTIONS: "--max-old-space-size=6144"
+  before_script:
+    - !reference [.template.github-ssh-key, before_script]
   script:
     - rm -r ./services
     - ./install-deps.sh --ci
     - ./gx build --web
   artifacts:
+    when: on_success
+    expire_in: 8h
     paths:
       - ./apps-build-artifacts
 
@@ -39,7 +58,7 @@ build-desktop-macos:
 
 build-desktop-linux:
   extends: .template.build.apps
-  image: gitlab.ics-it.ru:4567/ics/doc-reader:linux-tauri-$BRANCH
+  image: gitlab.ics-it.ru:4567/ics/doc-reader/linux-tauri:$USE_IMAGE_TAG
   needs:
     - job: build-desktop-web
       artifacts: true
@@ -51,6 +70,7 @@ build-desktop-linux:
     KUBERNETES_CPU_REQUEST: '2'
     KUBERNETES_CPU_LIMIT: '5'
   script:
+    - !reference [.template.github-ssh-key, before_script]
     - ./gx make-icons
     - ./gx build --linux-x86_64 --upload
 

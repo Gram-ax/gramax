@@ -1,4 +1,4 @@
-import { Token } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
 import { MAX_INLINE_IMAGE_HEIGHT } from "@ext/markdown/elements/inlineImage/edit/models/node";
 
 const processImage = (parent: Token, tokens: Token[], idx: number, hasText: boolean) => {

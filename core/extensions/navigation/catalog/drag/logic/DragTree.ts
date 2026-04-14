@@ -1,15 +1,15 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
-import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
+import type Path from "@core/FileProvider/Path/Path";
+import type { Article } from "@core/FileStructue/Article/Article";
 import type { Category } from "@core/FileStructue/Category/Category";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import { NodeModel } from "@minoru/react-dnd-treeview";
-import { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
+import type { NodeModel } from "@minoru/react-dnd-treeview";
+import type { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import itemRefUtils from "../../../../../logic/utils/itemRefUtils";
-import { ItemLink } from "../../../NavigationLinks";
+import type { ItemLink } from "../../../NavigationLinks";
 import DragTreeTransformer from "./DragTreeTransformer";
 import getMovements from "./Movement/getMovements";
 

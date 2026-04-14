@@ -1,18 +1,18 @@
 import { useCatalogActionsContext } from "@components/Actions/CatalogActions/CatalogActionsContext";
 import RepositoryPermissionTrigger from "@ext/enterprise/components/RepositoryPermission";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface RepositoryPermissionItemProps {
 	children?: ReactNode;
 }
 
 const RepositoryPermissionItem = ({ children }: RepositoryPermissionItemProps) => {
-	const { gesUrl, catalogName, sourceName, pathName } = useCatalogActionsContext();
+	const { workspaceGesUrl, catalogName, sourceName, pathName } = useCatalogActionsContext();
 
 	return (
 		<RepositoryPermissionTrigger
 			catalogName={catalogName}
-			gesUrl={gesUrl}
+			gesUrl={workspaceGesUrl}
 			pathName={pathName}
 			sourceName={sourceName}
 		>

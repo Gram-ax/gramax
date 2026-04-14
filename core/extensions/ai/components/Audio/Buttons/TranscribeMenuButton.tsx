@@ -3,7 +3,7 @@ import { MicrophonePermission } from "@core-ui/hooks/useMicrophone";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { useCallback, useMemo } from "react";
 

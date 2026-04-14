@@ -7,6 +7,8 @@ import BaseLogger from "./BaseLogger";
 import type Logger from "./Logger";
 
 export default class BugsnagLogger extends BaseLogger implements Logger {
+	private static readonly REDACTED = "<redacted>";
+
 	private constructor() {
 		super();
 	}
@@ -32,11 +34,38 @@ export default class BugsnagLogger extends BaseLogger implements Logger {
 					normalizeStacktrace(e.stacktrace);
 				});
 				e.addMetadata("logic_props", {
-					"1-config": config,
+					"1-config": this._getSanitizedConfig(config),
 				});
 			},
 		});
 		return true;
+	}
+
+	private static _getSanitizedConfig(config: AppConfig) {
+		const sanitizedConfig: AppConfig = {
+			...config,
+			tokens: {
+				cookie: this._redactIfPresent(config.tokens.cookie),
+				share: this._redactIfPresent(config.tokens.share),
+			},
+			admin: {
+				login: this._redactIfPresent(config.admin.login),
+				password: this._redactIfPresent(config.admin.password),
+			},
+			mail: {
+				user: this._redactIfPresent(config.mail.user),
+				password: this._redactIfPresent(config.mail.password),
+			},
+			portalAi: {
+				...config.portalAi,
+				token: this._redactIfPresent(config.portalAi.token),
+			},
+		};
+		return sanitizedConfig;
+	}
+
+	private static _redactIfPresent(value: string | null): string | null {
+		return value ? this.REDACTED : value;
 	}
 
 	logError(e: Error, errorDisplayed?: boolean) {

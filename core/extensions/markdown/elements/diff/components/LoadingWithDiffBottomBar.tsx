@@ -1,7 +1,7 @@
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import styled from "@emotion/styled";
 import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
-import { DiffFilePaths } from "@ext/VersionControl/model/Diff";
+import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 
 interface LoadingWithDiffBottomBarProps {
 	filePath: DiffFilePaths;

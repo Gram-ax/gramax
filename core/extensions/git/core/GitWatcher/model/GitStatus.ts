@@ -1,5 +1,5 @@
-import Path from "../../../../../logic/FileProvider/Path/Path";
-import { FileStatus } from "../../../../Watchers/model/FileStatus";
+import type Path from "../../../../../logic/FileProvider/Path/Path";
+import type { FileStatus } from "../../../../Watchers/model/FileStatus";
 
 export interface GitStatus {
 	path: Path;

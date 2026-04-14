@@ -1,4 +1,4 @@
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 const pre: HTMLNodeConverter = (preNode) => {
 	const codeNode = preNode.querySelector("code");
@@ -11,31 +11,29 @@ const pre: HTMLNodeConverter = (preNode) => {
 			type: "code_block",
 			content: [{ type: "text", text: codeText }],
 		};
-	} else {
-		const lines = codeText.split(/<br\s*\/?>/i);
-		return lines.map((line) => {
-			if (line) {
-				return {
-					type: "paragraph",
-					content: [
-						{
-							type: "text",
-							text: line.trim(),
-							marks: [
-								{
-									type: "code",
-								},
-							],
-						},
-					],
-				};
-			} else {
-				return {
-					type: "paragraph",
-				};
-			}
-		});
 	}
+	const lines = codeText.split(/<br\s*\/?>/i);
+	return lines.map((line) => {
+		if (line) {
+			return {
+				type: "paragraph",
+				content: [
+					{
+						type: "text",
+						text: line.trim(),
+						marks: [
+							{
+								type: "code",
+							},
+						],
+					},
+				],
+			};
+		}
+		return {
+			type: "paragraph",
+		};
+	});
 };
 
 export default pre;

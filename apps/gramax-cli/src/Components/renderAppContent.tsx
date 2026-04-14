@@ -26,6 +26,7 @@ export const renderAppContent = (data: ArticlePageData, context: PageDataContext
 			<Router base="./" ssrPath={data.articleProps.logicPath}>
 				<Gramax
 					data={{
+						page: "article",
 						data,
 						context,
 						path: data.articleProps.logicPath,

@@ -3,11 +3,11 @@ import "../../../core/styles/chain-icon.css";
 import ContextProviders from "@components/ContextProviders";
 import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
 import OpenGraph from "@components/OpenGraph/OpenGraph";
-import type PageDataContext from "@core/Context/PageDataContext";
-import type { ArticlePageData, HomePageData, OpenGraphData } from "@core/SitePresenter/SitePresenter";
+import type { PageProps } from "@components/Pages/models/Pages";
 import Language from "@core-ui/ContextServices/Language";
 import getPageTitle from "@core-ui/getPageTitle";
 import { defaultRefreshPage } from "@core-ui/utils/initGlobalFuncs";
+import { NotificationsInit } from "@ext/enterprise/notifications/NotificationsInit";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
 import { setFeatureList } from "@ext/toggleFeatures/features";
 import { usePluginEvent } from "@plugins/api/events";
@@ -19,18 +19,17 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
+type NextPageProps = PageProps & {
+	error?: number;
+};
+
 export default function App({
 	Component,
 	pageProps,
 }: {
 	// biome-ignore lint/suspicious/noExplicitAny: for compatibility with Next.js App type
 	Component: any;
-	pageProps: {
-		data: HomePageData & ArticlePageData;
-		context: PageDataContext;
-		error?: number;
-		openGraphData?: OpenGraphData;
-	};
+	pageProps: NextPageProps;
 }) {
 	useEffect(() => {
 		if (pageProps.context?.features) setFeatureList(pageProps.context.features);
@@ -50,7 +49,8 @@ export default function App({
 
 	if (pageProps.error) return <Error statusCode={pageProps.error} />;
 
-	const isArticle = pageProps?.context?.isArticle;
+	const isArticle = pageProps?.page === "article";
+	const isReadonlyArticle = isArticle && pageProps.data.mode === "read";
 	const iconPath = `${pageProps?.context?.conf?.basePath ?? ""}/favicon.ico`;
 
 	return (
@@ -58,23 +58,28 @@ export default function App({
 			<Head>
 				<title>{getPageTitle(isArticle, pageProps.data)}</title>
 				<link href={iconPath} rel="icon" />
-				{isArticle && <OpenGraph domain={pageProps.context.domain} openGraphData={pageProps.openGraphData} />}
+				{isArticle && isReadonlyArticle && (
+					<OpenGraph domain={pageProps.context.domain} openGraphData={pageProps.data.openGraphData} />
+				)}
 			</Head>
 			<Language.Init>
 				<TooltipProvider>
 					<Toaster />
 					<ContextProviders pageProps={pageProps} platform="next" refreshPage={defaultRefreshPage}>
-						<ErrorBoundary context={pageProps.context}>
-							{isArticle ? (
-								<>
-									<CatalogComponent data={pageProps.data}>
-										<Component {...pageProps} />
-									</CatalogComponent>
-								</>
-							) : (
-								<Component {...pageProps} />
-							)}
-						</ErrorBoundary>
+						<>
+							<NotificationsInit pageProps={pageProps} />
+							<ErrorBoundary context={pageProps.context}>
+								{isArticle ? (
+									<>
+										<CatalogComponent data={pageProps.data}>
+											<Component {...pageProps} />
+										</CatalogComponent>
+									</>
+								) : (
+									<Component {...pageProps} />
+								)}
+							</ErrorBoundary>
+						</>
 					</ContextProviders>
 				</TooltipProvider>
 			</Language.Init>

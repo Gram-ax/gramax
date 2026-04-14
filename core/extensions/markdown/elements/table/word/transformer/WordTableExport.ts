@@ -85,7 +85,7 @@ export class WordTableExport {
 			await Promise.all(
 				parentChildren.map(async (child) => {
 					if (!child || typeof child === "string") return;
-					return await this._tableConfig[child.name]?.(
+					return await this._tableConfig[child.type]?.(
 						this._wordSerializerState,
 						child,
 						this._createChildExport(),

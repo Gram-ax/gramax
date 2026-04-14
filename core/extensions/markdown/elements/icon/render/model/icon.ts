@@ -1,5 +1,5 @@
-import PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
-import { Node, Schema, Tag } from "../../../../core/render/logic/Markdoc/index";
+import type PrivateParserContext from "../../../../core/Parser/ParserContext/PrivateParserContext";
+import { type Node, type Schema, Tag } from "../../../../core/render/logic/Markdoc/index";
 
 export function icon(context: PrivateParserContext): Schema {
 	return {

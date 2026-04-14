@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import Context from "@core/Context/Context";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type Context from "@core/Context/Context";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../types/Command";
 
 const getProps: Command<{ ctx: Context; catalogName: string }, ClientCatalogProps> = Command.create({

@@ -1,6 +1,6 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import {
+import type {
 	DiffItemContentData,
 	DiffItemContentScope,
 } from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
@@ -47,7 +47,7 @@ const useFetchDiffData = (props: UseFetchDiffDataProps) => {
 
 			return data;
 		},
-		[apiUrlCreator],
+		[apiUrlCreator, isAdded, isDeleted, scope, oldScope, newPath, oldPath, isResource],
 	);
 };
 

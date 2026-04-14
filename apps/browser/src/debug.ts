@@ -1,6 +1,7 @@
 import getApp from "@app/browser/app";
 import getCommands from "@app/browser/commands";
 import { env } from "@app/resolveModule/env";
+import type CompressOptions from "@core/FileProvider/model/CompressOptions";
 import Path from "@core/FileProvider/Path/Path";
 import { downloadZipArchive } from "@core/FileProvider/utils/createZipArchive";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
@@ -151,3 +152,5 @@ export const setSourceData = async (data: SourceData) => {
 	const ctx = await app.contextFactory.fromBrowser({ language: "ru" });
 	return app.rp.setSourceData(ctx, data);
 };
+
+export const compressOptions: CompressOptions = { type: "image", target: "jpeg", quality: 50, effort: 6 };

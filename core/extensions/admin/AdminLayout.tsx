@@ -1,10 +1,11 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@ui-kit/Button";
 import { Form, FormBody, FormField, FormFooter, FormHeaderBase, FormStack } from "@ui-kit/Form";
 import { Input, SecretInput } from "@ui-kit/Input";
-import { FormEvent, useCallback, useEffect } from "react";
+import { type FormEvent, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useRouter } from "../../logic/Api/useRouter";
@@ -17,11 +18,12 @@ const formSchema = z.object({
 	password: z.string({ message: t("must-be-not-empty") }),
 });
 
-const AdminLoginLayout = ({ redirectCallback }: { redirectCallback: () => void }) => {
+const AdminLoginLayout = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isLogged = PageDataContextService.value.isLogged;
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 	const router = useRouter();
+	const redirectCallback = useCallback(() => router.pushPath("/"), [router]);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -61,7 +63,7 @@ const AdminLoginLayout = ({ redirectCallback }: { redirectCallback: () => void }
 			<div className="m-auto" style={{ width: "min(90%, 30em)" }}>
 				<Form {...form}>
 					<form className="contents ui-kit" onSubmit={onSubmit}>
-						<div className="form-layout">
+						<div className="form-layout" data-testid="modal">
 							<h2>
 								<FormHeaderBase className="font-sans text-xl font-medium tracking-tight text-primary-fg">
 									{t("forms.admin-login-props.name")}

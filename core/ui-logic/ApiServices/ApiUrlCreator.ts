@@ -170,12 +170,13 @@ export default class ApiUrlCreator {
 		});
 	}
 
-	public setArticleResource(src: string, articlePath?: string, providerType?: ArticleProviderType) {
+	public setArticleResource(src: string, articlePath?: string, providerType?: ArticleProviderType, force?: boolean) {
 		return Url.fromBasePath(`/api/article/resource/set`, this._basePath, {
 			articlePath: articlePath ?? this._articlePath,
 			catalogName: this._catalogName,
 			src,
 			providerType,
+			force: force ? "true" : undefined,
 		});
 	}
 
@@ -308,8 +309,8 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`api/enterprise/refreshWorkspace`, this._basePath);
 	}
 
-	public offEnterpriseUrl() {
-		return Url.fromBasePath(`api/enterprise/off`, this._basePath);
+	public setGesUrl(gesUrl: string) {
+		return Url.fromBasePath(`api/enterprise/setGesUrl`, this._basePath, { gesUrl });
 	}
 
 	public getAuthSsoUrl(data: string, sign: string, from: string) {
@@ -586,6 +587,7 @@ export default class ApiUrlCreator {
 		return Url.fromBasePath(`/api/versionControl/branch/checkout`, this._basePath, {
 			branch: encodeURIComponent(branch),
 			catalogName: this._catalogName,
+			articlePath: this._articlePath,
 		});
 	}
 
@@ -840,6 +842,20 @@ export default class ApiUrlCreator {
 
 	public getItemProps(itemPath: string) {
 		return Url.fromBasePath(`/api/article/getProps`, this._basePath, {
+			catalogName: this._catalogName,
+			path: itemPath,
+		});
+	}
+
+	public getNotifications(itemPath: string) {
+		return Url.fromBasePath(`/api/enterprise/notifications/get`, this._basePath, {
+			catalogName: this._catalogName,
+			path: itemPath,
+		});
+	}
+
+	public updateNotifications(itemPath: string) {
+		return Url.fromBasePath(`/api/enterprise/notifications/update`, this._basePath, {
 			catalogName: this._catalogName,
 			path: itemPath,
 		});
@@ -1312,6 +1328,13 @@ export default class ApiUrlCreator {
 			articlePath: this._articlePath,
 			catalogName: this._catalogName,
 			path: url,
+		});
+	}
+
+	public getResourcePathByCatalog(path: string) {
+		return Url.fromBasePath(`/api/article/resource/getPathByCatalogPath`, this._basePath, {
+			catalogName: this._catalogName,
+			path,
 		});
 	}
 

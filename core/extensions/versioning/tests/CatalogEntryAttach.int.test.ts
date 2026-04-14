@@ -23,7 +23,7 @@ describe("CatalogEntryAttach", () => {
 		wm = new WorkspaceManager(
 			(path) => MountFileProvider.fromDefault(new Path(path)),
 			(fs) => new FileStructureEventHandlers(fs).mount(),
-			() => {},
+			() => [] as never,
 			rp,
 			{} as AppConfig,
 			YamlFileConfig.dummy(),

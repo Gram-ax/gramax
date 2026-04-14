@@ -1,21 +1,36 @@
 import type { SortByColumn, SortOrder } from "@ext/enterprise/components/admin/settings/metrics/filters";
 import { MetricsTooltipHelper } from "@ext/enterprise/components/admin/settings/metrics/search/helpers/TooltipHelper";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "ics-ui-kit/components/tooltip";
-import { ArrowDown, ArrowUp, HelpCircle } from "lucide-react";
+import { Icon } from "@ui-kit/Icon";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useEffect, useRef, useState } from "react";
 
-export const TruncatedText = ({ text, className = "" }: { text: string; className?: string }) => {
+export const TruncatedText = ({
+	text,
+	className = "",
+	lines = 1,
+	showTooltip = true,
+}: {
+	text: string;
+	className?: string;
+	lines?: number;
+	showTooltip?: boolean;
+}) => {
 	const textRef = useRef<HTMLSpanElement>(null);
 	const [isTruncated, setIsTruncated] = useState(false);
+	const isSingleLine = lines === 1;
 
 	useEffect(() => {
 		const element = textRef.current;
-		if (element) {
-			setIsTruncated(element.scrollWidth > element.clientWidth);
-		}
-	}, []);
+		if (!element) return;
 
-	const content = (
+		const truncated = isSingleLine
+			? element.scrollWidth > element.clientWidth
+			: element.scrollHeight > element.clientHeight;
+
+		setIsTruncated(truncated);
+	}, [isSingleLine]);
+
+	const content = isSingleLine ? (
 		<span
 			className={`${className} truncate block`}
 			ref={textRef}
@@ -27,9 +42,24 @@ export const TruncatedText = ({ text, className = "" }: { text: string; classNam
 		>
 			{text}
 		</span>
+	) : (
+		<span
+			className={`${className} block`}
+			ref={textRef}
+			style={{
+				display: "-webkit-box",
+				WebkitLineClamp: lines,
+				WebkitBoxOrient: "vertical",
+				overflow: "hidden",
+				wordBreak: "break-word",
+				overflowWrap: "break-word",
+			}}
+		>
+			{text}
+		</span>
 	);
 
-	if (!isTruncated) {
+	if (!isTruncated || !showTooltip) {
 		return content;
 	}
 
@@ -65,7 +95,6 @@ export const SortableHeader = <T extends string = SortByColumn>({
 	align = "center",
 }: SortableHeaderProps<T>) => {
 	const isActive = currentSortBy === columnKey;
-	const SortIcon = sortOrder === "asc" ? ArrowUp : ArrowDown;
 	const justifyClass = align === "left" ? "justify-start" : align === "right" ? "justify-end" : "justify-center";
 
 	return (
@@ -79,7 +108,9 @@ export const SortableHeader = <T extends string = SortByColumn>({
 			) : (
 				<span className="text-muted">{label}</span>
 			)}
-			{isActive && <SortIcon className="flex-shrink-0" size={14} />}
+			{isActive && (
+				<Icon className="flex-shrink-0" icon={sortOrder === "asc" ? "arrow-up" : "arrow-down"} size="sm" />
+			)}
 		</button>
 	);
 };
@@ -101,7 +132,7 @@ export const ColumnHeaderWithTooltip = ({ label, tooltip, align = "center" }: Co
 			<TooltipProvider>
 				<Tooltip>
 					<TooltipTrigger asChild>
-						<HelpCircle className="flex-shrink-0 cursor-help" size={14} />
+						<Icon className="flex-shrink-0 cursor-help" icon="help-circle" size="sm" />
 					</TooltipTrigger>
 					<TooltipContent>
 						<p className="max-w-xs">{tooltip}</p>

@@ -1,4 +1,4 @@
-import { FileStatus } from "../../../Watchers/model/FileStatus";
+import type { FileStatus } from "../../../Watchers/model/FileStatus";
 
 export interface DiffHunk {
 	value: string;

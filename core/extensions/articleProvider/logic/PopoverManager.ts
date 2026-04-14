@@ -1,8 +1,8 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import Popover from "@ext/articleProvider/logic/Popover";
 import PopoverLocalStorageManager from "@ext/articleProvider/logic/PopoverLocalStorageManager";
-import { FC } from "react";
+import type { FC } from "react";
 
 export class PopoverManager<T> {
 	private _tooltips: Set<Popover<T>> = new Set();

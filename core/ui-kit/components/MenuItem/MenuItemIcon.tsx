@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { MenuItemIcon as UiKitMenuItemIcon } from "ics-ui-kit/components/menu-item";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitMenuItemIconProps = ExtractComponentGeneric<typeof UiKitMenuItemIcon>;
 

@@ -1,4 +1,4 @@
-import { Schema, SchemaType } from "../../../core/render/logic/Markdoc/index";
+import { type Schema, SchemaType } from "../../../core/render/logic/Markdoc/index";
 
 export const hr: Schema = {
 	render: "hr",

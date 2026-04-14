@@ -1,5 +1,5 @@
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import GitSourceType from "@ext/git/core/model/GitSourceType";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitSourceType from "@ext/git/core/model/GitSourceType";
 import SourceType from "../SourceDataProvider/model/SourceType";
 
 const getPartGitSourceDataByStorageName = (

@@ -15,13 +15,15 @@ import YamlFileConfig from "@core/utils/YamlFileConfig";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 import { Encoder } from "@ext/Encoder/Encoder";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
+import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
+import MergeNotificationHandler from "@ext/enterprise/notifications/MergeNotificationHandler";
 import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import type Logger from "@ext/loggers/Logger";
-import { registerOtel } from "@ext/loggers/opentelemetry";
+import { registerOtel } from "@ext/loggers/opentelemetry/registerOtel";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
@@ -29,7 +31,6 @@ import type AuthManager from "@ext/security/logic/AuthManager";
 import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import { createBrowserSearcherManager } from "@ext/serach/createSearcherManager";
-import WorkspaceCheckIsCatalogCloning from "@ext/storage/events/WorkspaceCheckIsCatalogCloning";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
 import FSTemplateEvents from "@ext/templates/logic/FSTemplateEvents";
@@ -63,6 +64,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const rp = new RepositoryProvider(config);
 	const em = new EnterpriseManager(config.enterprise, fileConfig);
 	const templateEventHandlers = new FSTemplateEvents();
+	const parser = new MarkdownParser();
+	const formatter = new MarkdownFormatter();
+	const tablesManager = new TableDB(parser);
+	const parserContextFactory = new ParserContextFactory(config.paths.base, tablesManager, parser, formatter, rp);
 
 	const wm = new WorkspaceManager(
 		(path) => MountFileProvider.fromDefault(new Path(path)),
@@ -71,11 +76,18 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			new RepositoryProviderEventHandlers(fs, rp).mount();
 			templateEventHandlers.mount(fs);
 		},
-		(workspace) => new WorkspaceCheckIsCatalogCloning(workspace, rp).mount(),
+		(workspace) => {
+			if (workspace instanceof EnterpriseWorkspace) {
+				return [new MergeNotificationHandler(workspace, parser, parserContextFactory)];
+			}
+			return [];
+		},
 		rp,
 		config,
 		fileConfig,
 	);
+	tablesManager.mountWorkspaceManager(wm); // TODO: remove
+	parserContextFactory.mountWorkspaceManager(wm); // TODO: remove
 
 	const sdp = new SourceDataProvider(wm);
 	rp.addSourceDataProvider(sdp);
@@ -91,12 +103,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const tm = new ThemeManager();
 	const encoder = new Encoder();
 	const ticketManager = new TicketManager(encoder, config.tokens.share);
-	const parser = new MarkdownParser();
-	const formatter = new MarkdownFormatter();
-	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
-
-	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter, rp);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 	const logger: Logger = config.isProduction ? await BugsnagLogger.init(config) : new ConsoleLogger();
 	const sitePresenterFactory = new SitePresenterFactory(
@@ -109,10 +116,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	);
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
-	const enterpriseConfig = em.getConfig();
-	const am: AuthManager = enterpriseConfig.gesUrl ? new ClientAuthManager(enterpriseConfig) : null;
-	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
+	const am: AuthManager = new ClientAuthManager(em);
+	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am);
 
+	const enterpriseConfig = em.getConfig();
 	const searchResourcesEnabled = Boolean(enterpriseConfig.gesUrl);
 
 	const searcherManager = await createBrowserSearcherManager({

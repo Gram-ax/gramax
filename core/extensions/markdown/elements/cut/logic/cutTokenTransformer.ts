@@ -1,4 +1,4 @@
-import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
+import type TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 
 const cutTokenTransformer: TokenTransformerFunc = ({ token, parent }) => {
 	if (token && token.tag === "cut" && parent?.type === "inline") {

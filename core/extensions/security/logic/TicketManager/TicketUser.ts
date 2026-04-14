@@ -1,7 +1,7 @@
 import parsePermissionFromJSON from "@ext/security/logic/Permission/logic/PermissionParser";
 import parsePermissionMapFromJSON from "@ext/security/logic/PermissionMap/parsePermissionMapFromJSON";
-import User, { UserType } from "@ext/security/logic/User/User";
-import UserJSONData from "@ext/security/logic/User/UserJSONData";
+import User, { type UserType } from "@ext/security/logic/User/User";
+import type UserJSONData from "@ext/security/logic/User/UserJSONData";
 
 class TicketUser extends User {
 	get type(): UserType {

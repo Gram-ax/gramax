@@ -2,7 +2,6 @@ import type { ModulithService, SearchBatchArgs } from "@ext/serach/modulith/Modu
 import type Searcher from "@ext/serach/Searcher";
 import type {
 	ProgressArgs,
-	SearchAllArgs,
 	SearchArgs,
 	SearcherProgressGenerator,
 	SearchResult,
@@ -20,94 +19,53 @@ export class ModulithSearcher implements Searcher {
 		return await this._service.updateIndex({ force, catalogName });
 	}
 
-	async searchAll({
-		query,
-		catalogToArticleIds,
-		propertyFilter,
-		resourceFilter,
-		articlesLanguage,
-	}: SearchAllArgs): Promise<SearchResult[]> {
-		const catalogNames = [];
-		const articleIds = [];
-		for (const catalogName in catalogToArticleIds) {
-			catalogNames.push(catalogName);
-			articleIds.push(...catalogToArticleIds[catalogName]);
-		}
-
-		const result = (
-			await this._searchImpl(
-				{
-					items: [
-						{
-							query,
-							catalogNames,
-							propertyFilter,
-							resourceFilter,
-							articlesLanguage,
-						},
-					],
-				},
-				[articleIds],
-			)
-		)[0];
-
-		return result;
-	}
-
 	async search({
 		query,
-		catalogName,
-		articleIds,
+		articleRefPaths,
 		propertyFilter,
 		resourceFilter,
 		articlesLanguage,
 	}: SearchArgs): Promise<SearchResult[]> {
 		return (
-			await this._searchImpl(
-				{
-					items: [
-						{
-							query,
-							catalogNames: [catalogName],
-							propertyFilter,
-							resourceFilter,
-							articlesLanguage,
-						},
-					],
-				},
-				[articleIds],
-			)
+			await this._searchImpl({
+				items: [
+					{
+						query,
+						articleRefPaths,
+						propertyFilter,
+						resourceFilter,
+						articlesLanguage,
+					},
+				],
+			})
 		)[0];
 	}
 
-	private async _searchImpl(args: SearchBatchArgs, articleIdsByBatch: string[][]): Promise<SearchResult[][]> {
+	private async _searchImpl(args: SearchBatchArgs): Promise<SearchResult[][]> {
 		const dbResults = await this._service.searchBatch(args);
-		return dbResults.map((dbResult, i) => {
-			const articleIds = articleIdsByBatch[i];
-			return dbResult
-				.filter((x) => x.type === "catalog" || (x.type === "article" && articleIds.includes(x.refPath)))
-				.map<SearchResult>((x) => {
-					if (x.type === "catalog") {
-						return {
-							type: "catalog",
-							name: x.catalogName,
-							title: x.title,
-							url: x.url,
-						};
-					}
-
+		return dbResults.map((dbResult) => {
+			return dbResult.map<SearchResult>((x) => {
+				if (x.type === "catalog") {
 					return {
-						type: "article",
-						refPath: x.refPath,
-						isRecommended: x.isRecommended,
-						catalog: x.catalog,
+						type: "catalog",
+						name: x.catalogName,
 						title: x.title,
-						items: x.items,
 						url: x.url,
-						breadcrumbs: x.breadcrumbs,
-						properties: x.properties,
 					};
-				});
+				}
+
+				return {
+					type: "article",
+					refPath: x.refPath,
+					isRecommended: x.isRecommended,
+					catalog: x.catalog,
+					title: x.title,
+					items: x.items,
+					url: x.url,
+					breadcrumbs: x.breadcrumbs,
+					properties: x.properties,
+				};
+			});
 		});
 	}
 }

@@ -1,5 +1,5 @@
 import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 
 const getAllCatalogProperties = (catalog: ReadonlyBaseCatalog): Property[] => {
 	return [

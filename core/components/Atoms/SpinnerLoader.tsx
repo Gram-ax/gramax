@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { CSSProperties, forwardRef } from "react";
+import { type CSSProperties, forwardRef } from "react";
 
 interface SpinnerLoaderProps {
 	fullScreen?: boolean;

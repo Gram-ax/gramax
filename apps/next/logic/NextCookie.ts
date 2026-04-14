@@ -1,5 +1,5 @@
-import ApiRequest from "@core/Api/ApiRequest";
-import ApiResponse from "@core/Api/ApiResponse";
+import type ApiRequest from "@core/Api/ApiRequest";
+import type ApiResponse from "@core/Api/ApiResponse";
 import Cookie from "@ext/cookie/Cookie";
 import { parseCookies, setCookie } from "nookies";
 

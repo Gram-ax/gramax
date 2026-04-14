@@ -1,5 +1,9 @@
-import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
-import { AccessEntry, RoleId } from "../../components/roles/Access";
+import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import type { AccessEntry, RoleId } from "../../components/roles/Access";
+
+const EMPTY_GROUP_IDS: string[] = [];
+const EMPTY_USERS_VALUES: AccessEntry["users"] = [];
+const EMPTY_SSO_GROUPS: NonNullable<AccessEntry["ssoGroups"]> = [];
 
 export function useWorkspaceAccess(
 	localSettings: WorkspaceSettings,
@@ -7,9 +11,13 @@ export function useWorkspaceAccess(
 ) {
 	const getAccessForRole = (role: RoleId) => {
 		if (!localSettings?.access?.[role]) {
-			return { gxGroups: [], users: [] };
+			return { gxGroups: EMPTY_GROUP_IDS, ssoGroups: EMPTY_SSO_GROUPS, users: EMPTY_USERS_VALUES };
 		}
-		return localSettings.access[role];
+		return {
+			gxGroups: localSettings.access[role].gxGroups ?? EMPTY_GROUP_IDS,
+			ssoGroups: localSettings.access[role].ssoGroups ?? EMPTY_SSO_GROUPS,
+			users: localSettings.access[role].users ?? EMPTY_USERS_VALUES,
+		};
 	};
 
 	const handleRoleUpdate = (role: RoleId, access: AccessEntry) => {

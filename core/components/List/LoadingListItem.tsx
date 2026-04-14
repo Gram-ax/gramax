@@ -1,5 +1,5 @@
 import SpinnerLoader from "../Atoms/SpinnerLoader";
-import { ListItem } from "./Item";
+import type { ListItem } from "./Item";
 
 const LoadingListItem: ListItem = {
 	element: <SpinnerLoader fullScreen style={{ margin: "1rem" }} />,

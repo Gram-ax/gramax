@@ -1,4 +1,5 @@
-import { topMenuItemClassName } from "@components/HomePage/TopMenu";
+import setLanguage from "@app/commands/language/set";
+import { topMenuItemClassName } from "@components/HomePage/TopMenu/const";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import LanguageService from "@core-ui/ContextServices/Language";
@@ -19,16 +20,16 @@ import { useCallback } from "react";
 
 const SwitchUiLanguage = ({ size = "md" }: { size?: "md" | "lg" }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { isNext } = usePlatform();
+	const { isNext, isDocportal } = usePlatform();
 
 	const setLanguage = useCallback(
 		async (language: UiLanguage) => {
-			if (!isNext) return LanguageService.setUiLanguage(language);
+			if (!isNext && !isDocportal) return LanguageService.setUiLanguage(language);
 
 			const r = await FetchService.fetch(apiUrlCreator.getSetLanguageURL(language));
 			if (r.ok) LanguageService.setUiLanguage(language);
 		},
-		[apiUrlCreator, isNext],
+		[apiUrlCreator, isNext, isDocportal],
 	);
 
 	const current = LanguageService.currentUi();

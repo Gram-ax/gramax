@@ -1,6 +1,6 @@
 import cryptoJS from "crypto-js";
-import { AccountSettings } from "../components/StyleGuideAccountSettings";
-import { CheckSettings } from "../components/StyleGuideCheckSettings";
+import type { AccountSettings } from "../components/StyleGuideAccountSettings";
+import type { CheckSettings } from "../components/StyleGuideCheckSettings";
 
 const SECRET = "styleGuide";
 const STORAGE_CHECK_KEY = "styleGuideCheckSettings";

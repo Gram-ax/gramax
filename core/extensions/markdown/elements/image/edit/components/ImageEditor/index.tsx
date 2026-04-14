@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import ButtonsLayout from "@components/Layouts/ButtonLayout";
 import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
-import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import type UnsavedChangesModal from "@components/UnsavedChangesModal";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -17,24 +17,24 @@ import {
 } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import {
-	ComponentProps,
-	CSSProperties,
-	MouseEventHandler,
-	ReactEventHandler,
+	type ComponentProps,
+	type CSSProperties,
+	type MouseEventHandler,
+	type ReactEventHandler,
 	useEffect,
 	useRef,
 	useState,
 } from "react";
 import {
-	AdditionData,
-	AnnotationObject,
-	Crop,
-	DirectionType,
-	EditorProps,
-	ImageObject,
+	type AdditionData,
+	type AnnotationObject,
+	type Crop,
+	type DirectionType,
+	type EditorProps,
+	type ImageObject,
 	ImageObjectTypes,
-	ImageProps,
-	SquareObject,
+	type ImageProps,
+	type SquareObject,
 } from "../../model/imageEditorTypes";
 import ImageCropper from "./ImageCropper";
 

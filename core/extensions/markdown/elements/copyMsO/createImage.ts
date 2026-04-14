@@ -1,7 +1,7 @@
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import fileNameUtils from "@core-ui/fileNameUtils";
 import getImageFromBlob from "@ext/markdown/elements/copyMsO/getImageFromBlob";
 

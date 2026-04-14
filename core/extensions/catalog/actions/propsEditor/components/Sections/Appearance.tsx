@@ -3,10 +3,9 @@ import t from "@ext/localization/locale/translate";
 import { FormField } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import { FORM_DATA_QA } from "../../consts/form";
-import type { FormProps } from "../../logic/createFormSchema";
-import { FormData } from "../../logic/createFormSchema";
+import type { FormData, FormProps } from "../../logic/createFormSchema";
 import UploadCatalogLogo from "../UploadCatalogLogo";
 
 export type AppearanceProps = {

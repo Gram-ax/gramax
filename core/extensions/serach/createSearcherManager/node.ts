@@ -39,6 +39,7 @@ export const createSearcherManager = async ({
 		localClient: modulithClient,
 		remoteClient: aiAvailable ? remoteModulithClient : undefined,
 		immediateIndexing: true,
+		diagramRendererServerUrl: (await wm.current()?.config())?.services?.diagramRenderer?.url,
 	});
 
 	const searcherManager = new SearcherManager(

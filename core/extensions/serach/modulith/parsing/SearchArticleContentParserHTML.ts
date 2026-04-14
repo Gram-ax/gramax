@@ -1,5 +1,5 @@
 import SearchArticleContentParserBase from "@ext/serach/modulith/parsing/SearchArticleContentParserBase";
-import { ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
+import type { ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
 
 export default class SearchArticleContentParserHTML extends SearchArticleContentParserBase {
 	constructor(private readonly _items: NodeList) {

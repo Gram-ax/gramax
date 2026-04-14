@@ -13,7 +13,7 @@ import {
 	AlertDialogPrimitiveCancel,
 	AlertDialogTitle,
 } from "@ui-kit/AlertDialog";
-import { AsyncSearchSelect, LoadOptionsParams, LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
+import { AsyncSearchSelect, type LoadOptionsParams, type LoadOptionsResult } from "@ui-kit/AsyncSearchSelect";
 import { Button } from "@ui-kit/Button";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { Description } from "@ui-kit/Description";
@@ -21,10 +21,11 @@ import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { Input } from "@ui-kit/Input";
 import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { AutogrowTextarea } from "@ui-kit/Textarea";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { AlertDeleteDialog } from "../../../../../ui-kit/AlertDeleteDialog";
+import { DeleteSelectedButton } from "../../../../../ui-kit/DeleteSelectedButton";
 import { DraggableTableComponent } from "../../../../../ui-kit/table/DraggableTableComponent";
 import { TableToolbar } from "../../../../../ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "../../../../../ui-kit/table/TableToolbarTextInput";
@@ -32,11 +33,11 @@ import {
 	getLabelByView,
 	getViewByLabel,
 	viewOptions,
-	WorkspaceFormData,
+	type WorkspaceFormData,
 	WorkspaceView,
 } from "../../../types/WorkspaceComponent";
 import { catalogsTableColumns } from "../config/CatalogsTableConfig";
-import { Catalog } from "../types/CatalogTypes";
+import type { Catalog } from "../types/CatalogTypes";
 import { CatalogToolbarAddBtn } from "./CatalogToolbarAddBtn";
 
 const StyledAlertDialogContent = styled(AlertDialogContent)`
@@ -147,7 +148,7 @@ export function SectionDialog({
 		[],
 	);
 
-	const [originalForm, setOriginalForm] = useState<any>(null);
+	const [originalForm, setOriginalForm] = useState(null);
 	const [originalCatalogs, setOriginalCatalogs] = useState<string[]>([]);
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 	const [pendingClose, setPendingClose] = useState<(() => void) | null>(null);
@@ -165,6 +166,7 @@ export function SectionDialog({
 		},
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: delete button wont appear without this
 	const selectedCount = useMemo(() => table.getFilteredSelectedRowModel().rows.length, [table, rowSelection]);
 
 	const handleAddCatalogs = useCallback(
@@ -389,9 +391,9 @@ export function SectionDialog({
 												/>
 											}
 										>
-											<AlertDeleteDialog
+											<DeleteSelectedButton
 												hidden={!selectedCount}
-												onConfirm={handleDeleteSelected}
+												onClick={handleDeleteSelected}
 												selectedCount={selectedCount}
 											/>
 

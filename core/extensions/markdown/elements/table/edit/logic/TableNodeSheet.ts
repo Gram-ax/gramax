@@ -1,5 +1,5 @@
-import Sheet, { ExtendedSheetType, MergedCell, MergedCellReference } from "@core-ui/utils/Sheet";
-import { Node } from "prosemirror-model";
+import Sheet, { type ExtendedSheetType, type MergedCell, type MergedCellReference } from "@core-ui/utils/Sheet";
+import type { Node } from "prosemirror-model";
 
 export interface TablePositionMap {
 	getPosition: (row: number, column: number) => number | null;

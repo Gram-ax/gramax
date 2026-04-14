@@ -1,9 +1,9 @@
-import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type Path from "@core/FileProvider/Path/Path";
+import type { Article } from "@core/FileStructue/Article/Article";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
+import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
-import { Property, PropertyUsage, PropertyValue, SystemProperties } from "@ext/properties/models";
+import { type Property, type PropertyUsage, type PropertyValue, SystemProperties } from "@ext/properties/models";
 
 class CatalogProperty {
 	private _catalogMap: Map<string, Property>;

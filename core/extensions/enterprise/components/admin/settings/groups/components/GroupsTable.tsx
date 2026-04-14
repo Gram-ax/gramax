@@ -5,18 +5,20 @@ import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/Ta
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { getCoreRowModel, getFilteredRowModel, useReactTable, useTableSelection } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
 import { TriggerAddButtonTemplate } from "../../components/TriggerAddButtonTemplate";
 import { groupTableColumns } from "../config/GroupsTableConfig";
-import { Group } from "../types/GroupsComponentTypes";
+import type { Group } from "../types/GroupsComponentTypes";
 
 interface GroupsTableProps {
 	onDelete: (groupIds: string[]) => Promise<void>;
 }
+
+const isGroupId = (value: unknown): value is string => typeof value === "string" && value.length > 0;
 
 export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 	const { settings } = useSettings();
@@ -26,18 +28,36 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 	const [groupsRowSelection, setGroupsRowSelection] = useState({});
 
 	const groupsInUse = useMemo(() => {
-		return settings?.resources?.flatMap((resource) =>
-			Object.values(resource.access).flatMap((access) => (access as any).gxGroups),
-		);
-	}, [settings]);
+		const usedGroups = new Set<string>();
+
+		Object.values(settings?.workspace?.access ?? {}).forEach((access) => {
+			access?.gxGroups?.forEach((groupId) => {
+				if (isGroupId(groupId)) usedGroups.add(groupId);
+			});
+		});
+
+		settings?.resources?.forEach((resource) => {
+			resource?.access?.groups?.forEach((group) => {
+				if (isGroupId(group?.id)) usedGroups.add(group.id);
+			});
+		});
+
+		return usedGroups;
+	}, [settings?.resources, settings?.workspace?.access]);
 
 	const groups = useMemo(() => {
 		if (!groupSettings) return [];
-		return Object.entries(groupSettings).map(([groupId, groupData]) => ({
-			id: groupId,
-			group: groupData.name,
-			disabled: groupsInUse?.includes(groupId),
-		}));
+		return Object.entries(groupSettings).map(
+			([groupId, groupData]) =>
+				({
+					id: groupId,
+					group: groupData.name,
+					disabled: groupsInUse.has(groupId),
+					disabledTooltip: groupsInUse.has(groupId)
+						? t("enterprise.admin.groups.delete-disabled-in-use")
+						: undefined,
+				}) as Group,
+		);
 	}, [groupSettings, groupsInUse]);
 
 	const groupsTable = useReactTable({
@@ -67,11 +87,14 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 
 	const handleAdd = useCallback(() => {
 		navigate(Page.USER_GROUPS, { entityId: "new" });
-	}, []);
+	}, [navigate]);
 
-	const handleEdit = useCallback((groupId: string) => {
-		navigate(Page.USER_GROUPS, { entityId: groupId });
-	}, []);
+	const handleEdit = useCallback(
+		(groupId: string) => {
+			navigate(Page.USER_GROUPS, { entityId: groupId });
+		},
+		[navigate],
+	);
 
 	const handleFilterChange = useCallback(
 		(value: string | null) => {

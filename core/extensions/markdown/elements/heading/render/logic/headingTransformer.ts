@@ -1,4 +1,4 @@
-import { Child } from "@ext/markdown/core/Parser/EditTreeToRenderTree";
+import type { Child } from "@ext/markdown/core/Parser/EditTreeToRenderTree";
 import { getHeaderTitle } from "@ext/markdown/elements/heading/render/model/heading";
 import getChildTextId from "../../logic/getChildTextId";
 

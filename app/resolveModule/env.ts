@@ -3,7 +3,7 @@ import assert from "assert";
 import { defaultVariables, type EnvironmentVariable } from "../config/env";
 import viteEnv from "../config/viteenv";
 
-export type Environment = "next" | "tauri" | "browser" | "test" | "static" | "cli";
+export type Environment = "next" | "tauri" | "browser" | "test" | "static" | "cli" | "docportal";
 
 let _env: (name: keyof EnvironmentVariable) => string;
 
@@ -33,6 +33,12 @@ const initEnv = () => {
 		};
 	}
 
+	if (executing === "docportal") {
+		_env = (name: string) => {
+			return process.env?.[name];
+		};
+	}
+
 	if (executing === "test") {
 		_env = (name: string) => {
 			return process.env?.[name];
@@ -57,7 +63,9 @@ const builtIn = { ...(process as any).builtIn, ...viteEnv };
 export const env = <T extends keyof EnvironmentVariable>(name: T): EnvironmentVariable[T] =>
 	builtIn?.[name] || _env(name) || defaultVariables[name] || "";
 
-export const getExecutingEnvironment = (): Environment => executing;
+export const getExecutingEnvironment = (): Environment => {
+	return executing === "docportal" ? "next" : executing;
+};
 
 export const isTauriMobile = () => {
 	return executing === "tauri" && !!_env("IS_MOBILE");

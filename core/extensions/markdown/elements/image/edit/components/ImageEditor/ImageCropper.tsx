@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { handleMove, objectMove } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import React, { RefObject, useEffect, useRef, useState } from "react";
-import { Crop, Cropper } from "../../model/imageEditorTypes";
+import { type RefObject, useEffect, useRef, useState } from "react";
+import type { Crop, Cropper } from "../../model/imageEditorTypes";
 
 const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObject<HTMLDivElement> }) => {
 	const { crop, cropEnabled, setCrop, handleUpdateArea, className, parentRef } = props;
@@ -15,7 +15,7 @@ const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObjec
 		parentRef,
 		setDraggable,
 		mainRef: cropperRef,
-		onMouseUpCallback: function (newX, newY, newW, newH): void {
+		onMouseUpCallback: (newX, newY, newW, newH): void => {
 			const rect = {
 				x: newX,
 				y: newY,
@@ -38,7 +38,7 @@ const ImageCropper = (props: Cropper & { className?: string; parentRef: RefObjec
 		setDraggable,
 		parentRef,
 		mainRef: cropperRef,
-		onMouseUpCallback: function (newX, newY, newW, newH): void {
+		onMouseUpCallback: (newX, newY, newW, newH): void => {
 			const rect = {
 				x: newX,
 				y: newY,

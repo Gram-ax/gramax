@@ -5,7 +5,7 @@ import EditStyles from "@ext/workspace/components/EditStyles";
 import { Button, IconButton } from "@ui-kit/Button";
 import { FileInput, type FileValue, Input } from "@ui-kit/Input";
 import { useRef } from "react";
-import { WorkspaceSettings } from "../types/WorkspaceComponent";
+import type { WorkspaceSettings } from "../types/WorkspaceComponent";
 
 const StyledFileInput = styled(FileInput)`
 	width: 20rem;

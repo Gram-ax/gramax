@@ -3,7 +3,7 @@ import type { ALL_ROLES } from "@ext/enterprise/components/admin/settings/compon
 import RoleComponent from "@ext/enterprise/components/admin/settings/roles/RoleComponent";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { ALL_PERMISSIONS, type PermissionType } from "@ext/security/logic/Permission/Permissions";

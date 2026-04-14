@@ -2,8 +2,13 @@ import Anchor from "@components/controls/Anchor";
 import t from "@ext/localization/locale/translate";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 import Property from "@ext/properties/components/Property";
-import { Property as PropertyType, PropertyTypes, ViewRenderData, ViewRenderGroup } from "@ext/properties/models";
-import { Fragment, ReactNode } from "react";
+import {
+	type Property as PropertyType,
+	PropertyTypes,
+	type ViewRenderData,
+	type ViewRenderGroup,
+} from "@ext/properties/models";
+import { Fragment, type ReactNode } from "react";
 
 const renderGroup = (
 	group: ViewRenderGroup,

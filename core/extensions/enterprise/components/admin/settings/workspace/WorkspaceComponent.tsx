@@ -2,27 +2,26 @@ import useCheck from "@core-ui/hooks/useCheck";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { useWorkspaceSections } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSections";
 import { useWorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSettings";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useTabGuard } from "../../hooks";
 import { FloatingAlert } from "../../ui-kit/FloatingAlert";
 import { Spinner } from "../../ui-kit/Spinner";
 import { StickyHeader } from "../../ui-kit/StickyHeader";
 import { TabErrorBlock } from "../../ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "../../ui-kit/TabInitialLoader";
-import { RoleId } from "../components/roles/Access";
+import type { RoleId } from "../components/roles/Access";
 import { getGroupsWithNames } from "./components/access/components/group/utils/groupUtils";
 import { WorkspaceAccess } from "./components/access/WorkspaceAccess";
-import { PdfTemplates } from "./components/PdfTemplates";
 import { WorkspaceRepositories } from "./components/repositories/WorkspaceRepositories";
 import { WorkspaceSections } from "./components/sections/WorkspaceSections";
-import { WordTemplates } from "./components/WordTemplates";
 import { WorkspaceInfo } from "./components/WorkspaceInfo";
 import { WorkspaceStyling } from "./components/WorkspaceStyling";
+import { WorkspaceTemplateUploads } from "./components/WorkspaceTemplateUploads";
 
 const ownerRole: RoleId = "workspaceOwner";
 
@@ -36,20 +35,25 @@ const WorkspaceComponent = () => {
 	const isEqual = useCheck(workspaceSettings, localSettings);
 	const { hasSectionsOrderChanged, setOriginalSectionsOrder } = useWorkspaceSections(localSettings, setLocalSettings);
 
-	const selectGroups = getGroupsWithNames(settings?.groups);
-	const selectResources = settings?.resources?.map((resource) => resource.id) ?? [];
+	const selectGroups = useMemo(() => getGroupsWithNames(settings?.groups), [settings?.groups]);
+	const selectResources = useMemo(
+		() => settings?.resources?.map((resource) => resource.id) ?? [],
+		[settings?.resources],
+	);
 
-	const sectionResources =
-		selectResources
-			?.map((resource) => resource.split("/").pop() || "")
-			.filter((id, index, self) => self.indexOf(id) === index) ?? [];
+	const sectionResources = useMemo(
+		() =>
+			selectResources
+				?.map((resource) => resource.split("/").pop() || "")
+				.filter((id, index, self) => self.indexOf(id) === index) ?? [],
+		[selectResources],
+	);
 
 	useEffect(() => {
 		if (workspaceSettings) {
 			setOriginalSectionsOrder(Object.keys(workspaceSettings.sections || {}).join(","));
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [workspaceSettings]);
+	}, [workspaceSettings, setOriginalSectionsOrder]);
 
 	useTabGuard({
 		page: Page.WORKSPACE,
@@ -132,8 +136,7 @@ const WorkspaceComponent = () => {
 
 				<WorkspaceStyling localSettings={localSettings} setLocalSettings={setLocalSettings} />
 
-				<WordTemplates localSettings={localSettings} setLocalSettings={setLocalSettings} />
-				<PdfTemplates localSettings={localSettings} setLocalSettings={setLocalSettings} />
+				<WorkspaceTemplateUploads localSettings={localSettings} setLocalSettings={setLocalSettings} />
 			</div>
 		</>
 	);

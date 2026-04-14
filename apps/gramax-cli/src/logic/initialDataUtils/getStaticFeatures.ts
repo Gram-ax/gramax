@@ -1,4 +1,4 @@
-import { ExtendedWindow, InitialDataKeys } from "./types";
+import { type ExtendedWindow, InitialDataKeys } from "./types";
 
 const getStaticFeatures = () => {
 	const extendedWindow = window as ExtendedWindow;

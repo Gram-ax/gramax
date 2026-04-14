@@ -1,5 +1,5 @@
 import { useCatalogActionsContext } from "@components/Actions/CatalogActions/CatalogActionsContext";
-import ItemExport, { ExportFormat } from "@ext/wordExport/components/ItemExport";
+import ItemExport, { type ExportFormat } from "@ext/wordExport/components/ItemExport";
 
 interface ExportMenuItemProps {
 	exportFormat: ExportFormat;

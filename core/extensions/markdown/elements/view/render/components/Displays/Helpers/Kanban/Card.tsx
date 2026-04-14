@@ -1,9 +1,9 @@
 import { useRouter } from "@core/Api/useRouter";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CardPreview from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CardPreview";
-import { ViewRenderData } from "@ext/properties/models";
+import type { ViewRenderData } from "@ext/properties/models";
 import { DragItems } from "@ext/properties/models/kanban";
-import { CSSProperties, MouseEvent, useEffect, useMemo, useRef } from "react";
+import { type CSSProperties, type MouseEvent, useEffect, useMemo, useRef } from "react";
 import { useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 

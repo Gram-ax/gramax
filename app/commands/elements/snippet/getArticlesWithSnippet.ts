@@ -2,7 +2,7 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 
 const getArticlesWithSnippet: Command<
 	{ catalogName: string; snippetId: string; ctx: Context },

@@ -4,7 +4,7 @@ import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/Butt
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { memo, useCallback, useEffect, useState } from "react";
 

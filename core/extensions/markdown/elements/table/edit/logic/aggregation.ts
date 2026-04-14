@@ -1,13 +1,13 @@
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import Sheet, { SheetType } from "@core-ui/utils/Sheet";
+import Sheet, { type SheetType } from "@core-ui/utils/Sheet";
 import parseNumber from "@ext/markdown/elements/table/edit/logic/parseNumber";
 import {
-	AggregationData,
+	type AggregationData,
 	AggregationMethod,
 	AlignEnumTypes,
-	ColumnData,
+	type ColumnData,
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { DependencyList, RefObject, useEffect } from "react";
+import { type DependencyList, type RefObject, useEffect } from "react";
 
 const NULL_VALUE = "-";
 

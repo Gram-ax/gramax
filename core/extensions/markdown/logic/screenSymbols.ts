@@ -15,7 +15,7 @@ const screenSymbols = (str: string): string => {
 	let result = "";
 
 	for (let i = 0; i < str.length; i++) {
-		if (Object.prototype.hasOwnProperty.call(specialCharacters, str[i])) result += specialCharacters[str[i]];
+		if (Object.hasOwn(specialCharacters, str[i])) result += specialCharacters[str[i]];
 		else result += str[i];
 	}
 

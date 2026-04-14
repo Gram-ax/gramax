@@ -1,5 +1,5 @@
 import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { questionAnswerFormatter } from "@ext/markdown/elements/answer/edit/logic/questionAnswerFormatter";
 import blockFieldFormatter from "@ext/markdown/elements/blockContentField/edit/logic/BlockFieldFormatter";
 import blockPropertyFormatter from "@ext/markdown/elements/blockProperty/edit/logic/blockPropertyFormatter";
@@ -38,7 +38,7 @@ import textFormatter from "@ext/markdown/elements/text/edit/logic/textFormatter"
 import unsupportedFormatter from "@ext/markdown/elements/unsupported/edit/logic/unsupportedFormatter";
 import videoFormatter from "@ext/markdown/elements/video/edit/logic/videoFormatter";
 import viewNodeFormatter from "@ext/markdown/elements/view/edit/logic/viewNodeFormatter";
-import { NodeSerializerSpec } from "../../Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "../../Prosemirror/to_markdown";
 
 type NodeFormatterModifier = (formatters: { [node: string]: NodeSerializerSpec }) => void;
 

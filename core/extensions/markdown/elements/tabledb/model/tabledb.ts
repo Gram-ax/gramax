@@ -1,6 +1,6 @@
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
-import { Node, Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
+import type PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
+import { type Node, type Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
 
 export function tabledb(context: PrivateParserContext): Schema {
 	return {
@@ -30,15 +30,9 @@ export function tabledb(context: PrivateParserContext): Schema {
 					},
 					name,
 				);
-				attributes = {
-					lang: context.getLanguage(),
-					isLogged: context.getIsLogged(),
-					object: object,
-				};
+				attributes = { object };
 			} catch (e) {
 				attributes = {
-					lang: context.getLanguage(),
-					isLogged: context.getIsLogged(),
 					error: { message: e.message, stack: e.stack },
 				};
 			}

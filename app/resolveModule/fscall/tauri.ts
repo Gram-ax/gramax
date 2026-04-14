@@ -7,7 +7,7 @@ const CUSTOM_PROTOCOL_COMMANDS = isTauriMobile() ? ["read_file"] : ["read_file",
 
 const callAsCustomProtocol = async <O>(
 	command: string,
-	args: InvokeArgs & { path: string; content?: Buffer },
+	args: InvokeArgs & { path: string; content?: Buffer; compress?: object },
 ): Promise<O> => {
 	switch (command) {
 		case "read_file": {
@@ -23,13 +23,19 @@ const callAsCustomProtocol = async <O>(
 		}
 
 		case "write_file": {
-			const writeRes = await fetch(convertFileSrc(args.path, "gramax-fs-stream"), {
+			let url = convertFileSrc(args.path, "gramax-fs-stream");
+			if (args.compress) {
+				url += `?compress=${encodeURIComponent(JSON.stringify(args.compress))}`;
+			}
+
+			const writeRes = await fetch(url, {
 				method: "POST",
 				body: args.content,
 			});
 
 			if (writeRes.ok) return;
 			const writeerr = await writeRes.json();
+			delete args.content;
 			throw new IoError({
 				name: "IO (gramax-fs-stream / write_file)",
 				code: writeerr.name,

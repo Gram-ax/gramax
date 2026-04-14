@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { Property } from "csstype";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import type { Property } from "csstype";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 interface CheckboxProps {
 	children?: ReactNode;

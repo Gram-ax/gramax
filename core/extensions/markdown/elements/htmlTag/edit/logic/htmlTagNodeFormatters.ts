@@ -1,6 +1,6 @@
 import XmlFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/XmlFormatter";
 import { getSchema } from "@ext/markdown/core/edit/logic/Prosemirror/schema";
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 import { Node } from "prosemirror-model";
 
 const inlineHtmlTag: NodeSerializerSpec = async (state, node) => {

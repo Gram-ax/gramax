@@ -1,5 +1,5 @@
-import { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
-import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
+import type { ClientArticleProps } from "../../../../../../logic/SitePresenter/SitePresenter";
+import type ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const getArticlePropsRule = (articleProps: ClientArticleProps): ExtensionUpdaterRules => {
 	const filterNames = ["selectionMenu", "copyArticles", "copyMsO", "ArticleTitleHelpers"];

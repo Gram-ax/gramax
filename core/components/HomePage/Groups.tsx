@@ -1,5 +1,5 @@
 import { useRouter } from "@core/Api/useRouter";
-import { HomePageBreadcrumb, Section, Sections } from "@core/SitePresenter/SitePresenter";
+import type { HomePageBreadcrumb, Section, Sections } from "@core/SitePresenter/SitePresenter";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import FavoriteCatalogLinkService from "@ext/article/Favorite/components/FavoriteCatalogLinkService";
@@ -15,7 +15,7 @@ import {
 	BreadcrumbSeparator,
 } from "@ui-kit/Breadcrumb";
 import { ContentDivider } from "@ui-kit/Divider";
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useRef, useState } from "react";
 import Group from "./Group";
 
 interface GroupsProps {

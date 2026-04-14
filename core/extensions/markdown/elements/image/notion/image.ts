@@ -1,4 +1,4 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const image: NotionNodeConverter = async (imageNode, ctx) => {
 	const fileLink = imageNode?.image[imageNode?.image?.type]?.url;

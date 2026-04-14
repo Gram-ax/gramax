@@ -2,7 +2,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import VersionControlCommentCountSrc from "@ext/markdown/elements/comment/edit/components/CommentCount";
 import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
-import { ItemLink } from "../../../../../navigation/NavigationLinks";
+import type { ItemLink } from "../../../../../navigation/NavigationLinks";
 
 const VersionControlCommentCount = styled(VersionControlCommentCountSrc)`
 	margin: 0 var(--distance-i-span);

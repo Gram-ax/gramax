@@ -1,4 +1,4 @@
-import { JSONContent } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/react";
 
 const parseContent = (dom: JSONContent) => {
 	const stack = [];

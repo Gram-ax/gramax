@@ -1,10 +1,10 @@
-import TooltipArticleView, { TooltipEditorProps } from "@ext/articleProvider/components/TooltipArticleView";
+import TooltipArticleView, { type TooltipEditorProps } from "@ext/articleProvider/components/TooltipArticleView";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import InboxService from "@ext/inbox/components/InboxService";
-import { InboxArticle } from "@ext/inbox/models/types";
+import type { InboxArticle } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
-import { JSONContent } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/react";
 import { useCallback } from "react";
 
 interface InboxNoteTooltipEditorProps extends TooltipEditorProps {
@@ -13,7 +13,7 @@ interface InboxNoteTooltipEditorProps extends TooltipEditorProps {
 }
 
 const Tooltip = ({ item, ...rest }: InboxNoteTooltipEditorProps) => {
-	const { selectedIds, items: items } = InboxService.value;
+	const { selectedIds, items } = InboxService.value;
 
 	const onOutsideClick = useCallback(() => {
 		const newPaths = PopoverUtility.removeSelectedIds(selectedIds, item.id);

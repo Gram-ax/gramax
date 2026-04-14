@@ -1,4 +1,4 @@
-import { AppConfig } from "@app/config/AppConfig";
+import type { AppConfig } from "@app/config/AppConfig";
 import { exists, readFile } from "fs-extra";
 import { parse } from "yaml";
 import ChalkLogger from "../../../utils/ChalkLogger";

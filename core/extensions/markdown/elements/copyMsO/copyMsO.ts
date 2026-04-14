@@ -18,17 +18,26 @@ const CopyMsO = Extension.create({
 		return [
 			new Plugin({
 				props: {
-					transformPastedHTML(html: string, view) {
-						if (html) {
-							const transformer = new TransformerMsO(articleProps, apiUrlCreator, isTauri, view);
+					handlePaste(view, event) {
+						if (!isTauri) return false;
+						const html = event.clipboardData?.getData("text/html");
+						if (!html) return false;
 
-							if (transformer.canTransform(html)) {
-								transformer.parseFromHTML(html);
-								return "";
-							}
+						const transformer = new TransformerMsO(articleProps, apiUrlCreator, isTauri, view);
+						if (!transformer.canTransform(html)) return false;
 
-							return html;
+						transformer.parseFromHTML(html);
+						return true;
+					},
+					transformPastedHTML(html: string) {
+						if (!html || isTauri) return html;
+
+						const transformer = new TransformerMsO(articleProps, apiUrlCreator, false, null);
+						if (transformer.canTransform(html)) {
+							return transformer.parseFromHTMLSync(html);
 						}
+
+						return html;
 					},
 				},
 			}),

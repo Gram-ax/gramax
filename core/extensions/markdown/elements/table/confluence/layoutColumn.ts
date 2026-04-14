@@ -1,4 +1,4 @@
-import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
+import type NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const CONFLUENCE_LAYOUT_SCALE = 7.8;
 

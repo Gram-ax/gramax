@@ -1,4 +1,4 @@
-import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
+import type GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
 
 interface GitMergeResult {
 	status: GitMergeStatus;

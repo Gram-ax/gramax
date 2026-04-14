@@ -1,7 +1,7 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import Url from "@core-ui/ApiServices/Types/Url";
-import { DOMSerializer, Fragment, Schema } from "@tiptap/pm/model";
+import type Url from "@core-ui/ApiServices/Types/Url";
+import { DOMSerializer, Fragment, type Schema } from "@tiptap/pm/model";
 import assert from "assert";
 
 class TiptapGramaxAi {

@@ -11,9 +11,9 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
-import { MergeRequestStatus } from "@ext/git/core/GitMergeRequest/components/Elements/Status";
-import { MergeRequestConfirmProps } from "@ext/git/core/GitMergeRequest/components/MergeRequestConfirm";
-import { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { MergeRequestStatus } from "@ext/git/core/GitMergeRequest/components/Elements/Status";
+import type { MergeRequestConfirmProps } from "@ext/git/core/GitMergeRequest/components/MergeRequestConfirm";
+import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
 import { useCallback } from "react";
 

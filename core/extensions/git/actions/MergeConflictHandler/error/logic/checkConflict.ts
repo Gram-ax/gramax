@@ -1,7 +1,7 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import t from "@ext/localization/locale/translate";
 
 type CheckConflictProps = {

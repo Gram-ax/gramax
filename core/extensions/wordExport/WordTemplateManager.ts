@@ -1,6 +1,6 @@
-import { Workspace } from "@ext/workspace/Workspace";
+import type { Workspace } from "@ext/workspace/Workspace";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import { Buffer } from "buffer";
+import type { Buffer } from "buffer";
 
 export const WORD_TEMPLATES_DIR = "word";
 const WORD_TEMPLATE_FORMATS = ["doc", "dot"];

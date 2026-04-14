@@ -1,20 +1,19 @@
 import Icon from "@components/Atoms/Icon";
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import t from "@ext/localization/locale/translate";
 import AddFilter from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
 import Menu from "@ext/markdown/elements/view/edit/components/Helpers/Orderby/Menu";
 import ViewButton from "@ext/markdown/elements/view/edit/components/Helpers/ViewButton";
 import { getInputComponent } from "@ext/properties/components/Helpers/CustomInputRenderer";
-import { isHasValue, Property, PropertyTypes, PropertyValue } from "@ext/properties/models";
+import { isHasValue, type Property, PropertyTypes, type PropertyValue } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/display";
-import { Node } from "@tiptap/pm/model";
+import type { Node } from "@tiptap/pm/model";
 import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
 import { useCallback } from "react";
 
 interface ViewActionsProps {
 	node: Node;
 	updateDisplay: (display: Display) => void;
-	updateAttributes: (attributes: Record<string, any>) => void;
+	updateAttributes: (attributes: Record<string, unknown>) => void;
 }
 
 const ViewActions = ({ node, updateDisplay, updateAttributes }: ViewActionsProps) => {
@@ -97,7 +96,7 @@ const ViewActions = ({ node, updateDisplay, updateAttributes }: ViewActionsProps
 				updateAttributes={updateAttributes}
 			/>
 			<ViewButton icon="eye" tooltipText={t("properties.view.displays.name")}>
-				<DropdownMenuRadioGroup indicatorIconPosition="start" onValueChange={updateDisplay} value={displayType}>
+				<DropdownMenuRadioGroup indicatorIconPosition="end" onValueChange={updateDisplay} value={displayType}>
 					<DropdownMenuRadioItem value={Display.List}>
 						<Icon code="list" />
 						{t("properties.view.displays.list")}

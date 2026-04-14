@@ -5,9 +5,8 @@ import "pdfjs-dist/web/pdf_viewer.css";
 import { PDFRenderer } from "@ext/markdown/elements/file/edit/logic/Preview/PDFRenderer";
 
 const Container = styled.div`
-	width: 210mm;
-	height: 297mm;
-	max-height: 95vh;
+	width: min(95vw, 210mm);
+	height: min(85vh, 297mm);
 	justify-self: center;
 	overflow: auto;
 	display: flex;
@@ -21,7 +20,7 @@ const Container = styled.div`
 
 const PageWrapper = styled.div`
 	position: relative;
-	margin-bottom: 30px;
+	margin-bottom: min(2em, 30px);
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 	background: white;
 

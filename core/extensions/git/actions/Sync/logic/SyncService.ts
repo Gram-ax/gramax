@@ -1,9 +1,9 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
-import ClientSyncResult from "@ext/git/core/model/ClientSyncResult";
+import type ClientSyncResult from "@ext/git/core/model/ClientSyncResult";
 
 export type SyncServiceEvents = Event<"start"> & Event<"finish", { syncData: ClientSyncResult }> & Event<"error">;
 

@@ -1,9 +1,9 @@
-import { PageProps } from "@components/ContextProviders";
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type { PageProps } from "@components/Pages/models/Pages";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import FavoriteProvider from "@ext/article/Favorite/logic/FavoriteProvider";
-import { FavoriteArticle, FavoriteCatalog } from "@ext/article/Favorite/models/types";
+import type { FavoriteArticle, FavoriteCatalog } from "@ext/article/Favorite/models/types";
 import { createContext, useContext, useLayoutEffect, useState } from "react";
 
 export type FavoriteServiceType = {
@@ -20,7 +20,7 @@ class FavoriteService implements ContextService {
 	private _setFavoriteArticles: (favoriteArticles: FavoriteArticle[]) => void = () => {};
 	private _setFavoriteCatalogs: (favoriteCatalogs: FavoriteCatalog[]) => void = () => {};
 
-	Init({ children, pageProps }: { children: JSX.Element; pageProps: PageProps }): JSX.Element {
+	Init({ children, pageProps }: { children: JSX.Element; pageProps?: PageProps }): JSX.Element {
 		const [articles, setArticles] = useState<FavoriteArticle[]>([]);
 		const [catalogs, setCatalogs] = useState<FavoriteCatalog[]>([]);
 
@@ -30,7 +30,8 @@ class FavoriteService implements ContextService {
 		const setAndUpdateFavoriteArticles = (favoriteArticles: FavoriteArticle[]) => {
 			setArticles(favoriteArticles);
 			const provider = new FavoriteProvider(workspace.path);
-			provider.setFavoriteArticlePaths(pageProps.data.catalogProps.name, favoriteArticles);
+			const catalogName = pageProps?.page === "article" ? pageProps.data.catalogProps.name : "";
+			provider.setFavoriteArticlePaths(catalogName, favoriteArticles);
 		};
 
 		const setAndUpdateFavoriteCatalogs = (favoriteCatalogs: FavoriteCatalog[]) => {

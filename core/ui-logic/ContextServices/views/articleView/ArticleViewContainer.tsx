@@ -1,4 +1,4 @@
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";

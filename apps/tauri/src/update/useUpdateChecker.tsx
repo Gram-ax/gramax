@@ -117,7 +117,8 @@ const useUpdateChecker = () => {
 
 		current.listen("update:incoming", (ev) => {
 			setState(() => {
-				ref.current = { state: UpdateStatus.Incoming, info: ev.payload as UpdateIncoming };
+				if (ref.current?.state !== UpdateStatus.Ready)
+					ref.current = { state: UpdateStatus.Incoming, info: ev.payload as UpdateIncoming };
 				return ref.current;
 			});
 		});

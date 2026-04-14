@@ -1,5 +1,5 @@
 import Skeleton from "@components/Atoms/ImageSkeleton";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface ImageSkeletonProps {
 	width: string;

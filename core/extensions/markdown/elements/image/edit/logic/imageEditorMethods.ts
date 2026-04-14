@@ -1,6 +1,6 @@
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
-import { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
-import { MouseEventHandler } from "react";
+import type { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { MouseEventHandler } from "react";
 
 const getPixels = (num: number, percent: number) => {
 	return (num * percent) / 100;

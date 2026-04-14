@@ -8,7 +8,7 @@ import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHead
 import { StyledField } from "@ext/enterprise/components/admin/ui-kit/StyledField";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";

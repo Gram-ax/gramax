@@ -1,6 +1,6 @@
-const SIGNATURE = Buffer.from("version https://git-lfs.github.com/spec/v1");
-
 export const isLikelyLfsPointer = (buf: Buffer): boolean => {
+	const SIGNATURE = Buffer.from("version https://git-lfs.github.com/spec/v1");
+
 	if (!buf) return false;
 
 	if (buf.length < 100 || buf.length > 200) return false;

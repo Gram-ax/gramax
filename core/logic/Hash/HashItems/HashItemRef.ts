@@ -1,6 +1,6 @@
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type { Workspace } from "@ext/workspace/Workspace";
-import { Buffer } from "buffer";
+import type { Buffer } from "buffer";
 import HashItem from "./HashItem";
 
 export default class HashItemRef extends HashItem {

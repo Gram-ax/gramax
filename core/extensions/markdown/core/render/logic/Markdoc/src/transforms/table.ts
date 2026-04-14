@@ -1,6 +1,6 @@
 import Ast from "../ast/index";
 
-import type { Node } from "../types";
+import type Node from "../ast/node";
 
 function convertToRow(node: Node, cellType = "td") {
 	node.type = "tr";

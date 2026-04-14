@@ -1,13 +1,13 @@
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
-import GithubInstallation from "@ext/git/actions/Source/GitHub/model/GithubInstallation";
-import GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
+import type GithubInstallation from "@ext/git/actions/Source/GitHub/model/GithubInstallation";
+import type GithubStorageData from "@ext/git/actions/Source/GitHub/model/GithubStorageData";
 import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
-import { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type { GitRepData, GitRepsPageData } from "@ext/git/actions/Source/model/GitRepsApiData";
+import type { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import parseGithubLink from "@ext/git/actions/Storage/GitHub/logic/utils/getTotalPages";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import assert from "assert";
 

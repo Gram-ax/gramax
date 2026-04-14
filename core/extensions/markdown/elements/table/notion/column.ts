@@ -1,4 +1,4 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const column: NotionNodeConverter = (columnNode) => {
 	return {

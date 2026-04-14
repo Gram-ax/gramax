@@ -1,11 +1,11 @@
 import Path from "@core/FileProvider/Path/Path";
 import DbDiagram from "@core-ui/DbDiagram";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { PDFImageExporter } from "@ext/markdown/elements/image/pdf/PdfImageProcessor";
 import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, MAX_WIDTH } from "@ext/pdfExport/config";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { ContentStack } from "pdfmake/interfaces";
+import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { ContentStack } from "pdfmake/interfaces";
 
 export async function diagramdbHandler(
 	node: Tag,

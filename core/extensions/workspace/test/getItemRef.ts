@@ -1,4 +1,4 @@
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import Path from "../../../logic/FileProvider/Path/Path";
 import type { ReadonlyCatalog } from "../../../logic/FileStructue/Catalog/ReadonlyCatalog";
 

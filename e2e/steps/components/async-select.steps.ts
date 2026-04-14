@@ -1,5 +1,5 @@
 import { Given, When } from "@cucumber/cucumber";
-import E2EWorld from "../../models/World";
+import type E2EWorld from "../../models/World";
 import { replaceMultiple } from "../utils/utils";
 
 const SELECT_SELECTOR = '[role="dialog"] > [cmdk-root]';

@@ -1,5 +1,5 @@
 import { XxHash } from "@core/Hash/Hasher";
-import HashItem from "./HashItems/HashItem";
+import type HashItem from "./HashItems/HashItem";
 
 export default class HashItemProvider {
 	private _hashes = new Map<string, string>();

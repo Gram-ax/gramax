@@ -10,7 +10,6 @@ import { parentPort } from "worker_threads";
 
 const handlerContext: HandlerContext = {
 	isNode: true,
-	initPdfJs: async () => {},
 	postMessage: (message: ResourceParseWorkerOutMessage) => {
 		parentPort!.postMessage(message);
 	},

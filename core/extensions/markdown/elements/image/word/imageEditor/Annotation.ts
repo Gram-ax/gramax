@@ -1,6 +1,6 @@
-import { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import Shape from "@ext/markdown/elements/image/word/imageEditor/Shape";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 
 class Annotation extends Shape {
 	draw(ctx: CanvasRenderingContext2D, object: ImageObject, text: string, size: ImageDimensions, isText: boolean) {

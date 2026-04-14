@@ -1,6 +1,6 @@
-import Path from "@core/FileProvider/Path/Path";
-import { PathsMapValue } from "@ext/notion/model/NotionTypes";
-import { JSONContent } from "@tiptap/core";
+import type Path from "@core/FileProvider/Path/Path";
+import type { PathsMapValue } from "@ext/notion/model/NotionTypes";
+import type { JSONContent } from "@tiptap/core";
 
 type NotionNodeConverter = (
 	node: JSONContent,

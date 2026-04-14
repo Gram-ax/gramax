@@ -1,5 +1,5 @@
-import { Dispatch, ReactElement, SetStateAction, useState } from "react";
-import DefaultError from "../logic/DefaultError";
+import { type Dispatch, type ReactElement, type SetStateAction, useState } from "react";
+import type DefaultError from "../logic/DefaultError";
 import ErrorModal from "./components/ErrorModal";
 
 let _setError: Dispatch<SetStateAction<DefaultError>>;

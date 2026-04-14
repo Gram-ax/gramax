@@ -1,6 +1,6 @@
-import { Editor } from "@tiptap/core";
-import { EditorState } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { Editor } from "@tiptap/core";
+import type { EditorState } from "prosemirror-state";
+import type { EditorView } from "prosemirror-view";
 import getFocusNode from "../../../../elementsUtils/getFocusNode";
 import getChildTextId from "../../logic/getChildTextId";
 

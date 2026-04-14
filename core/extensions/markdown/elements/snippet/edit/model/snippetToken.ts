@@ -1,6 +1,6 @@
-import { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
-import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
-import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
+import type { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
+import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import type { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
 
 const snippetToken = (context?: PrivateParserContext): ParseSpec => {
 	return {

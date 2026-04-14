@@ -30,6 +30,7 @@ const DiagramActions = ({ editor, node, setHasSignature, signatureRef, openEdito
 	return (
 		<>
 			<ActionButton
+				dataTestId="edit-diagram"
 				disabled={disabledEdit}
 				icon="pencil"
 				onClick={openEditor}

@@ -1,8 +1,8 @@
 import BlockActionPanel from "@components/BlockActionPanel";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import VideoActions from "@ext/markdown/elements/video/edit/components/VideoActions";
-import { NodeViewProps } from "@tiptap/react";
-import { ReactElement, useRef, useState } from "react";
+import type { NodeViewProps } from "@tiptap/react";
+import { type ReactElement, useRef, useState } from "react";
 import Video from "../../render/components/Video";
 
 const EditVideo = (props: NodeViewProps): ReactElement => {

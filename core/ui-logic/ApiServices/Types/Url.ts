@@ -1,6 +1,6 @@
 import PathUtils from "path";
-import { BaseLink } from "../../../extensions/navigation/NavigationLinks";
-import { Router } from "../../../logic/Api/Router";
+import type { BaseLink } from "../../../extensions/navigation/NavigationLinks";
+import type { Router } from "../../../logic/Api/Router";
 
 class Url implements BaseLink {
 	pathname: string;

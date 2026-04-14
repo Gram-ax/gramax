@@ -1,5 +1,6 @@
 import Icon from "@components/Atoms/Icon";
 import t from "@ext/localization/locale/translate";
+import PropertiesScrollContainer from "@ext/properties/components/Helpers/PropertiesScrollContainer";
 import ValueHandler from "@ext/properties/components/Helpers/ValueHandler";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
 import { memo, useCallback } from "react";
@@ -30,7 +31,9 @@ const Menu = memo(({ name, data, defaultData, updateData }: MenuProps) => {
 				{t("reset")}
 			</DropdownMenuItem>
 			<DropdownMenuSeparator />
-			<ValueHandler data={data} onChange={onChange} />
+			<PropertiesScrollContainer>
+				<ValueHandler data={data} onChange={onChange} />
+			</PropertiesScrollContainer>
 		</>
 	);
 });

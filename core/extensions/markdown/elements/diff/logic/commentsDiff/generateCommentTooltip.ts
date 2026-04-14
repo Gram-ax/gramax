@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { DiffAstComment } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
+import type { DiffAstComment } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 export const generateCommentTooltip = (comments: DiffAstComment[]): string => {

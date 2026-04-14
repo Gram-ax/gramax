@@ -5,8 +5,10 @@ import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item, UpdateItemProps } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
+import type { GitVersion } from "@ext/git/core/model/GitVersion";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import { ItemRefStatus, ItemStatus } from "@ext/Watchers/model/ItemStatus";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type { ItemRefStatus, ItemStatus } from "@ext/Watchers/model/ItemStatus";
 
 export type CatalogItemsUpdated = {
 	catalog: Catalog;
@@ -47,6 +49,7 @@ type CatalogEvents = Event<"update", { catalog: Catalog }> &
 			makeResourceUpdater: MakeResourceUpdater;
 		}
 	> &
-	Event<"repository-set", { catalog: Catalog }>;
+	Event<"repository-set", { catalog: Catalog }> &
+	Event<"merge", { catalog: Catalog; targetBranch: string; sourceData: SourceData; beforeMergeCommit: GitVersion }>;
 
 export default CatalogEvents;

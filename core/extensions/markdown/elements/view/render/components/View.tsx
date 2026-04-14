@@ -2,8 +2,8 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
 import ViewRenderContent from "@ext/markdown/elements/view/render/components/ViewRenderContent";
-import { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
-import { Display } from "@ext/properties/models/display";
+import type { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
+import type { Display } from "@ext/properties/models/display";
 import { useCallback, useState } from "react";
 
 interface ViewProps {

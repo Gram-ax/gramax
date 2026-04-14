@@ -1,5 +1,5 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
-import Path from "@core/FileProvider/Path/Path";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
+import type Path from "@core/FileProvider/Path/Path";
 import ResourceManager from "@core/Resource/ResourceManager";
 
 class LinkResourceManager extends ResourceManager {

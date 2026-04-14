@@ -9,10 +9,6 @@ menu:
       ru: 'Новое окно'
       en: 'New Window'
 
-    configure:
-      ru: 'Gramax Enterprise Server'
-      en: 'Gramax Enterprise Server'
-
     close-window:
       ru: 'Закрыть окно'
       en: 'Close Window'

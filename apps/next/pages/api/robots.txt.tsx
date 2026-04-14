@@ -8,7 +8,7 @@ import path from "path";
 export default ApplyApiMiddleware(
 	async function (req, res) {
 		const filePath = path.join(process.cwd(), "../../public", "robots.txt");
-		const ctx = await this.app.contextFactory.from({ req, res, query: req.query as Query });
+		const ctx = await this.app.contextFactory.fromNode({ req, res, query: req.query as Query });
 		const basePath = this.app.conf.basePath ?? "";
 		const workspace = this.app.wm.current();
 		const sg = new SEOGenerator(workspace);

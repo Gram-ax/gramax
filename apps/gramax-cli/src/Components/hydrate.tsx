@@ -89,18 +89,25 @@ const removeBasePath = (path: string) => {
 const Component = () => {
 	const isFirstRender = useRef(true);
 	const [path, setLocation, query] = useLocation();
-	const [data, setData] = useState<GramaxData>({
-		path,
-		data: initialData.context.isArticle
+	const [data, setData] = useState<GramaxData>(
+		initialData.context.isArticle
 			? {
-					content: "",
-					mode: "read",
-					...initialData.data.articlePageData,
-					catalogProps: initialData.data.catalogProps,
+					path,
+					page: "article",
+					data: {
+						...initialData.data.articlePageData,
+						catalogProps: initialData.data.catalogProps,
+						openGraphData: null,
+					},
+					context: initialData.context,
 				}
-			: (initialData.data as unknown as HomePageData),
-		context: initialData.context,
-	});
+			: {
+					path,
+					page: "home",
+					data: initialData.data as unknown as HomePageData,
+					context: initialData.context,
+				},
+	);
 	const [error, setError] = useState<DefaultError>();
 
 	const refresh = useCallback(async () => {

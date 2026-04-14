@@ -3,8 +3,8 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import { ComponentProps } from "react";
-import BugsnagModal from "./BugsnagModal";
+import type { ComponentProps } from "react";
+import type BugsnagModal from "./BugsnagModal";
 
 const BugsnagTrigger = ({ itemLogicPath }: { itemLogicPath: string }) => {
 	const onSelect = () => {

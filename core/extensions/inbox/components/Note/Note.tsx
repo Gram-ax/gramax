@@ -6,7 +6,7 @@ import styled from "@emotion/styled";
 import BaseRightExtensions from "@ext/articleProvider/components/BaseRightExtensions";
 import InboxService from "@ext/inbox/components/InboxService";
 import { INBOX_DRAG_TYPE } from "@ext/inbox/models/consts";
-import { InboxArticle, InboxDragDropData, InboxDragItemData } from "@ext/inbox/models/types";
+import type { InboxArticle, InboxDragDropData, InboxDragItemData } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";

@@ -1,4 +1,5 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -8,8 +9,7 @@ import { FileMenuButtonDropdown } from "@ext/markdown/elements/file/edit/compone
 import IconMenuButton from "@ext/markdown/elements/icon/edit/components/IconMenuButton";
 import ImageMenuButton from "@ext/markdown/elements/image/edit/components/ImageMenuButton";
 import VideoMenuButton from "@ext/markdown/elements/video/edit/components/VideoMenuButton";
-import { useMediaQuery } from "@mui/material";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
 import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarTrigger } from "@ui-kit/Toolbar";

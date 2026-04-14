@@ -1,7 +1,7 @@
-import IPermission from "@ext/security/logic/Permission/IPermission";
+import type IPermission from "@ext/security/logic/Permission/IPermission";
 import PermissionType from "@ext/security/logic/Permission/model/PermissionType";
 import AllPermission from "../AllPermission";
-import PermissionJSONData from "../model/PermissionJSONData";
+import type PermissionJSONData from "../model/PermissionJSONData";
 import Permission from "../Permission";
 
 const parsePermissionFromJSON = (json: PermissionJSONData): IPermission => {

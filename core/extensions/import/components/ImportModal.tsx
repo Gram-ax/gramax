@@ -62,10 +62,13 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 	const apiUrlCreator = ApiUrlCreator.value;
 	const sourceDatasContext = SourceDataService.value;
 
-	const onOpenChange = (open: boolean) => {
-		setIsOpen(open);
-		if (!open) onClose?.();
-	};
+	const onOpenChange = useCallback(
+		(open: boolean) => {
+			setIsOpen(open);
+			if (!open) onClose?.();
+		},
+		[onClose],
+	);
 
 	const form = useForm<ImportModalFormSchema>({
 		resolver: zodResolver(getImportModalFormSchema(sourceDatasContext)),
@@ -114,33 +117,28 @@ const ImportModal = ({ trigger, onClose }: ImportModalProps) => {
 			const elements = await res.json();
 			setIsLoading(false);
 
-			if (!elements?.length) {
+			setUnsupportedElements(elements);
+			return false;
+		},
+		[apiUrlCreator, form],
+	);
+
+	const onSubmit = useCallback(
+		(e: React.FormEvent) => {
+			form.handleSubmit(async () => {
+				const elements = await loadUnsupportedElements(sourceData);
+				if (!elements) return;
+
+				const storageData = getStorageDataByForm(sourceData, form.getValues());
 				startCloneRepo({
 					storageData,
 					skipCheck: true,
 					isBare: isNext,
 				});
-
-				return true;
-			}
-
-			setUnsupportedElements(elements);
-			return false;
-		},
-		[apiUrlCreator, startCloneRepo, isNext, onOpenChange, form],
-	);
-
-	const onSubmit = useCallback(
-		(e) => {
-			form.handleSubmit(async () => {
-				const elements = await loadUnsupportedElements(sourceData);
-				if (!elements) return;
-
-				startClone(sourceData);
 				onOpenChange(false);
 			})(e);
 		},
-		[loadUnsupportedElements, startClone, onOpenChange, form, sourceData],
+		[loadUnsupportedElements, startCloneRepo, onOpenChange, form, sourceData, isNext],
 	);
 
 	useWatch(() => {

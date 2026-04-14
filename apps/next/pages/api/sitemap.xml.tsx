@@ -7,7 +7,7 @@ import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req, res) {
-		const ctx = await this.app.contextFactory.from({ req, res, query: req.query as Query });
+		const ctx = await this.app.contextFactory.fromNode({ req, res, query: req.query as Query });
 		const filters = [new HiddenRules().getItemFilter(), new SecurityRules(ctx.user).getItemFilter()];
 		const basePath = this.app.conf.basePath ?? "";
 		const workspace = this.app.wm.current();

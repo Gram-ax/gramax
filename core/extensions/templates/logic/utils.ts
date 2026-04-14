@@ -1,6 +1,6 @@
-import { Property, PropertyValue } from "@ext/properties/models";
-import { TemplateField } from "@ext/templates/models/types";
-import { JSONContent } from "@tiptap/core";
+import type { Property, PropertyValue } from "@ext/properties/models";
+import type { TemplateField } from "@ext/templates/models/types";
+import type { JSONContent } from "@tiptap/core";
 
 export const recursiveFindNode = (node: JSONContent, type: string): JSONContent[] => {
 	const nodes: JSONContent[] = node.type === type ? [node] : [];

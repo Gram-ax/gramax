@@ -1,11 +1,11 @@
 import { MAX_ICON_SIZE } from "@app/config/const";
 import Path from "@core/FileProvider/Path/Path";
 import { formatBytes } from "@core-ui/utils/formatBytes";
-import { FormData } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
+import type { FormData } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import t from "@ext/localization/locale/translate";
 import { type FileMetadata, FileUploadCompact, type FileValue } from "@ui-kit/FileUpload";
 import { useCallback, useMemo } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 export const useUploadIcon = (form: UseFormReturn<FormData>) => {
 	const onAddFile = useCallback(

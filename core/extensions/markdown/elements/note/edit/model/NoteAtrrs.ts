@@ -1,4 +1,4 @@
-import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import type { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 
 type NoteAttrs = { type?: NoteType; title?: string; collapsed?: boolean };
 

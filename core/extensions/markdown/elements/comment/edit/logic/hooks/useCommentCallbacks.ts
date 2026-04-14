@@ -1,14 +1,15 @@
+import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { CommentBlock } from "@core-ui/CommentBlock";
+import type { CommentBlock } from "@core-ui/CommentBlock";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { addComment, deleteComment } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import UserInfo from "@ext/security/logic/User/UserInfo";
-import { Range } from "@tiptap/core";
-import { useCallback } from "react";
+import type UserInfo from "@ext/security/logic/User/UserInfo";
+import type { Range } from "@tiptap/core";
+import { type RefObject, useCallback } from "react";
 
-const useCommentCallbacks = (articlePathname: string) => {
+const useCommentCallbacks = (articlePropsRef: RefObject<ClientArticleProps>) => {
 	const pageData = PageDataContextService.value;
 	const apiUrlCreator = ApiUrlCreator.value;
 
@@ -31,13 +32,13 @@ const useCommentCallbacks = (articlePathname: string) => {
 
 			const data = editor.storage.comments?.find((comment) => comment.id === id);
 			const user = (data?.comment?.user as UserInfo) || pageData.userInfo;
-			addComment(articlePathname, user, id);
+			addComment(articlePropsRef.current.pathname, user, id);
 			if (!data) return;
 
 			const url = apiUrlCreator.updateComment(id);
 			void FetchService.fetch(url, JSON.stringify(data.comment));
 		},
-		[apiUrlCreator, articlePathname, addComment, pageData.userInfo],
+		[apiUrlCreator, articlePropsRef, pageData.userInfo],
 	);
 
 	const onMarkDeleted = useCallback(
@@ -52,13 +53,13 @@ const useCommentCallbacks = (articlePathname: string) => {
 			}
 
 			const user = (data?.comment?.user as UserInfo) || pageData.userInfo;
-			deleteComment(articlePathname, user, id);
+			deleteComment(articlePropsRef.current.pathname, user, id);
 
 			if (positions.length) return;
 			const url = apiUrlCreator.deleteComment(id);
 			await FetchService.fetch(url);
 		},
-		[apiUrlCreator, loadComment, articlePathname, deleteComment, pageData.userInfo],
+		[apiUrlCreator, loadComment, articlePropsRef, pageData.userInfo],
 	);
 
 	return {

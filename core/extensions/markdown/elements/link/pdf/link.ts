@@ -1,10 +1,10 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { extractNameAndAnchor } from "@ext/markdown/elements/link/word/link";
 import { COLOR_CONFIG } from "@ext/pdfExport/config";
-import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { parseInlineContent } from "@ext/pdfExport/utils/parseInlineContent";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import { ContentText } from "pdfmake/interfaces";
+import type { ContentText } from "pdfmake/interfaces";
 
 export const linkHandler = async (node: Tag, context: pdfRenderContext): Promise<ContentText[]> => {
 	const contentPromises = parseInlineContent(node);

@@ -1,4 +1,4 @@
-import { Node } from "prosemirror-model";
+import type { Node } from "prosemirror-model";
 
 const getNodeFromPath = (doc: Node, path: string) => {
 	const pathArray = path.split("/").map((x) => parseInt(x));

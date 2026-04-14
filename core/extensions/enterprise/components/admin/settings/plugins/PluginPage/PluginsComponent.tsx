@@ -10,7 +10,7 @@ import {
 } from "@ext/enterprise/components/admin/settings/plugins/PluginPage/components";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { PluginsSettings } from "@ext/enterprise/types/EnterpriseAdmin";
+import { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
 import t from "@ext/localization/locale/translate";
 import { PluginFileParser } from "@plugins/core/PluginFileParser";
 import { pluginValidator } from "@plugins/core/PluginValidator";

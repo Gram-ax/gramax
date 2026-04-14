@@ -1,14 +1,14 @@
 import { classNames } from "@components/libs/classNames";
 import useDragScrolling from "@core-ui/hooks/useDragScrolling";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import scrollUtils from "@core-ui/utils/scrollUtils";
 import styled from "@emotion/styled";
-import { useMediaQuery } from "@react-hook/media-query";
 import {
-	CSSProperties,
+	type CSSProperties,
 	forwardRef,
-	MutableRefObject,
-	ReactNode,
+	type MutableRefObject,
+	type ReactNode,
 	useEffect,
 	useLayoutEffect,
 	useRef,

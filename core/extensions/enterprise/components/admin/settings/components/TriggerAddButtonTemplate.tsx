@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { Button, ButtonProps } from "@ui-kit/Button";
+import { Button, type ButtonProps } from "@ui-kit/Button";
 import { forwardRef } from "react";
 
 export const TriggerAddButtonTemplate = forwardRef<HTMLButtonElement, ButtonProps>(({ ...props }, ref) => {

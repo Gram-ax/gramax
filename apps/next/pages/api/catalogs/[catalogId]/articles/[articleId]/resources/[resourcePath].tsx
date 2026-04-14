@@ -12,7 +12,7 @@ import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
-		const context = await this.app.contextFactory.from({ req, res });
+		const context = await this.app.contextFactory.fromNode({ req, res });
 		const dataProvider = this.app.sitePresenterFactory.fromContext(context);
 		const catalogName = req.query.catalogId as string;
 		const articleId = req.query.articleId as string;
@@ -39,7 +39,7 @@ export default ApplyApiMiddleware(
 		}
 
 		if (mime) res.setHeader("Content-Type", mime);
-		if (mime == MimeTypes.xml || mime == MimeTypes.xls || MimeTypes.xlsx)
+		if (mime === MimeTypes.xml || mime === MimeTypes.xls || mime === MimeTypes.xlsx)
 			res.setHeader("Content-Disposition", `attachment; filename=${encodeURIComponent(src)}`);
 
 		if (req.method === "HEAD") {

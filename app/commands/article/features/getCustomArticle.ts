@@ -1,6 +1,6 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
+import type CustomArticle from "@core/SitePresenter/customArticles/model/CustomArticle";
 
 const getCustomArticle: Command<{ name: CustomArticle; props: any }, { title: string; content: string }> =
 	Command.create({

@@ -14,9 +14,6 @@
 		"analyze": "vite-bundle-visualizer",
 		"prune": "node-prune"
 	},
-	"dependencies": {
-		"wouter": "^3.7.0"
-	},
 	"devDependencies": {
 		"fake-indexeddb": "^6.0.0",
 		"vite": "^7.3.1",

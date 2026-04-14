@@ -1,7 +1,7 @@
 import { MergeConflictParser } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
-import { IDocumentMergeConflictDescriptor } from "@ext/git/actions/MergeConflictHandler/Monaco/model/interfaces";
-import Theme from "@ext/Theme/Theme";
-import { editor } from "monaco-editor";
+import type { IDocumentMergeConflictDescriptor } from "@ext/git/actions/MergeConflictHandler/Monaco/model/interfaces";
+import type Theme from "@ext/Theme/Theme";
+import type { editor } from "monaco-editor";
 import type * as monacoType from "monaco-editor/esm/vs/editor/editor.api";
 
 interface CodeLenseCommandProps {
@@ -187,9 +187,7 @@ export default class FileInputMergeConflict {
 		if (this._mergeConfilctDescriptor.length === 0) {
 			this._monaco.languages.registerCodeLensProvider(this._editorLanguage, {
 				provideCodeLenses: () => ({ lenses: [], dispose: () => {} }),
-				resolveCodeLens: function (_, x) {
-					return x;
-				},
+				resolveCodeLens: (_, x) => x,
 			});
 			return [];
 		}
@@ -203,9 +201,7 @@ export default class FileInputMergeConflict {
 						? this._getDeletionCodeLenses(this._mergeConfilctDescriptor[idx], codeLensLine, idx)
 						: this._getDefaultCodeLenses(codeLensLine, idx);
 				},
-				resolveCodeLens: function (_, x) {
-					return x;
-				},
+				resolveCodeLens: (_, x) => x,
 			});
 		});
 	}

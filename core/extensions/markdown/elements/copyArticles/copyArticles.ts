@@ -1,49 +1,18 @@
 import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import type { ResourceServiceType } from "@core-ui/ContextServices/ResourceService/ResourceService";
-import { copy } from "@ext/markdown/elements/copyArticles/handlers/copy";
-import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
-import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
+import { handleCopy, handleCut } from "@ext/markdown/elements/copyArticles/plugins/copyCutHandlers";
+import { headingPaste } from "@ext/markdown/elements/copyArticles/plugins/headingPaste";
+import { pasteBetweenMark } from "@ext/markdown/elements/copyArticles/plugins/pasteBetweenMark";
+import { resourcePaste } from "@ext/markdown/elements/copyArticles/plugins/resourcePaste";
+import {
+	transformPasted,
+	transformPastedHTML,
+	transformPastedText,
+} from "@ext/markdown/elements/copyArticles/plugins/transformPastedTypes";
 import { type Editor, Extension } from "@tiptap/core";
-import { type Node, Slice } from "@tiptap/pm/model";
 import { Plugin, type Transaction } from "@tiptap/pm/state";
-import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
-import { Fragment } from "prosemirror-model";
 import type { EditorView } from "prosemirror-view";
-
-const mapFragment = (fragment: Fragment, transform: (node: Node) => Node) => {
-	const mapContent = (content: Fragment) => {
-		const children = [];
-
-		content.forEach((node) => {
-			let newContent = node.content;
-			if (newContent && newContent.size > 0) newContent = mapContent(newContent);
-
-			const newNode = transform(node.copy(newContent));
-			children.push(newNode);
-		});
-
-		return Fragment.fromArray(children);
-	};
-
-	return mapContent(fragment);
-};
-
-const processNode = (childNode: Node, resourceService: ResourceServiceType, notDeletedSrc?: Set<string>) => {
-	if (
-		!childNode.isText &&
-		Object.keys(childNode.attrs).length !== 0 &&
-		childNode.attrs.src &&
-		!notDeletedSrc.has(childNode.attrs.src)
-	) {
-		const name = childNode.attrs.src.slice(2);
-		void resourceService.setResource(name, resourceService.getBuffer(childNode.attrs.src));
-	}
-
-	for (let index = 0; index < childNode.content.childCount; index++) {
-		processNode(childNode.content.child(index), resourceService, notDeletedSrc);
-	}
-};
 
 const selectNodes = (editor: Editor): boolean => {
 	const { doc, selection } = editor.state;
@@ -117,86 +86,23 @@ const CopyArticles = Extension.create<CopyArticlesOptions>({
 			new Plugin({
 				props: {
 					handleDOMEvents: {
-						copy: (view: EditorView, event: ClipboardEvent) => {
-							event.preventDefault();
-							copy(view, event, this.options.articleProps, this.options.resourceService);
-						},
-						cut: (view: EditorView, event: ClipboardEvent) => {
-							event.preventDefault();
-							copy(view, event, this.options.articleProps, this.options.resourceService, {
-								cut: view.editable,
-							});
-						},
+						copy: (view: EditorView, event: ClipboardEvent) =>
+							handleCopy(view, event, this.options.articleProps, this.options.resourceService),
+						cut: (view: EditorView, event: ClipboardEvent) =>
+							handleCut(view, event, this.options.articleProps, this.options.resourceService),
 					},
-					transformPastedHTML(html) {
-						return html?.replaceAll("[object Object]", "");
-					},
-					transformPasted(slice, view) {
-						const headingAllowed = readyToPlace(view.state, "heading");
-						if (headingAllowed) return slice;
-
-						return new Slice(
-							mapFragment(slice.content, (node) => {
-								if (node.type.name !== "heading") return node;
-								return headingPasteFormatter(view.state, node);
-							}),
-							slice.openStart,
-							slice.openEnd,
-						);
+					transformPastedHTML,
+					transformPastedText,
+					transformPasted: (slice, view) => {
+						const withTypes = transformPasted(slice, view.state);
+						return pasteBetweenMark(withTypes, view.state);
 					},
 				},
 				appendTransaction: (transactions: Transaction[], oldState, newState) => {
-					const isPaste = transactions.some((tr) => tr.getMeta("paste") || tr.getMeta("uiEvent") === "paste");
-					// Only extract content to title if title is empty and cursor was in the title
-					if (isPaste && newState.doc.childCount >= 2) {
-						const firstNode = newState.doc.firstChild;
-						const secondNode = newState.doc.child(1);
+					const titleTr = headingPaste(transactions, oldState, newState);
+					if (titleTr) return titleTr;
 
-						// Only proceed if cursor was inside the title node before the paste
-						const cursorWasInTitle =
-							oldState.doc.childCount > 0 && oldState.selection.$from.node(1) === oldState.doc.firstChild;
-
-						if (firstNode.content.size === 0 && secondNode.isTextblock && cursorWasInTitle) {
-							const tr = newState.tr;
-							// Insert content of second node into title (position 1 = inside first paragraph)
-							tr.insert(1, secondNode.content);
-							// Remove the text block from second position
-							tr.delete(
-								firstNode.nodeSize + secondNode.content.size,
-								firstNode.nodeSize + secondNode.nodeSize + secondNode.content.size,
-							);
-							return tr;
-						}
-					}
-
-					transactions.forEach((tr: Transaction) => {
-						const $history = tr.getMeta("history$");
-						if (!tr.docChanged || !$history) return;
-
-						const notDeletedSrc = new Set<string>();
-						const historyState = $history.historyState;
-						const items = $history.redo ? historyState.done.items : historyState.undone.items;
-						const values = items?.values || [];
-
-						values.forEach((item) => {
-							const slice: Slice = item.step.slice;
-							if (!slice?.content?.childCount) return;
-
-							slice.content.forEach((node) => {
-								if (!node.attrs.src) return;
-								notDeletedSrc.add(node.attrs.src);
-							});
-						});
-
-						tr.steps.forEach((step) => {
-							if (step instanceof ReplaceStep || step instanceof ReplaceAroundStep) {
-								step.slice.content.forEach((node: Node) => {
-									processNode(node, this.options.resourceService, notDeletedSrc);
-								});
-							}
-						});
-					});
-
+					resourcePaste(transactions, this.options.resourceService);
 					return null;
 				},
 			}),

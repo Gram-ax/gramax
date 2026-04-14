@@ -3,7 +3,7 @@ import attachmentLink from "@ext/confluence/core/server/logic/HTMLElements/attac
 import image from "@ext/confluence/core/server/logic/HTMLElements/image";
 import pageLink from "@ext/confluence/core/server/logic/HTMLElements/pageLink";
 import user from "@ext/confluence/core/server/logic/HTMLElements/user";
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 const link: HTMLNodeConverter = async (linkNode, ctx) => {
 	const riTypes = {

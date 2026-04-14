@@ -1,14 +1,15 @@
 import type { EventArgs } from "@core/Event/EventEmitter";
-import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import { ItemEvents } from "@core/FileStructue/Item/Item";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { ItemEvents } from "@core/FileStructue/Item/Item";
 import { defaultLanguage } from "@ext/localization/core/model/Language";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { editName as BLOCK_PROPERTY } from "@ext/markdown/elements/blockProperty/consts";
 import { fillMarkdownTemplate, recursiveFindNode } from "@ext/templates/logic/utils";
-import FileStructure, { type FSEvents } from "../../../logic/FileStructue/FileStructure";
+import type FileStructure from "../../../logic/FileStructue/FileStructure";
+import type { FSEvents } from "../../../logic/FileStructue/FileStructure";
 
 type ItemPreSaveEventArgs = EventArgs<ItemEvents, "item-pre-save"> & { catalog: Catalog };
 type ItemGetContentEventArgs = EventArgs<ItemEvents, "item-get-content"> & { catalog: Catalog };
@@ -78,12 +79,7 @@ export default class FSTemplateEvents {
 	private async _onItemPreSave({ item, catalog, mutable }: ItemPreSaveEventArgs) {
 		if (!mutable.props?.template) return;
 
-		const parserContext = await this._parserContextFactory.fromArticle(
-			item as Article,
-			catalog,
-			defaultLanguage,
-			true,
-		);
+		const parserContext = await this._parserContextFactory.fromArticle(item as Article, catalog, defaultLanguage);
 
 		const content = await this._parser.parse(mutable.content, parserContext);
 

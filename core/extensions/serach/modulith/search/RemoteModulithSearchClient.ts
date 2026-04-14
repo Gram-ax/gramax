@@ -9,6 +9,7 @@ import type {
 	SearchArticleMetadata,
 } from "@ext/serach/modulith/SearchArticle";
 import type { UpdateArgs } from "@ext/serach/modulith/search/ModulithSearchClient";
+import type { PropertyFilter } from "@ext/serach/Searcher";
 import {
 	type ArticleFilter,
 	type ChatResponse,
@@ -21,7 +22,14 @@ import {
 	type LegacyArticleFilter,
 	RagApiClient,
 } from "@ics/gx-vector-search";
-import type { ProgressCallback } from "@ics/modulith-utils";
+import {
+	andFilter,
+	containsFilter,
+	eqFilter,
+	isEmptyFilter,
+	orFilter,
+	type ProgressCallback,
+} from "@ics/modulith-utils";
 import { SemVer } from "semver";
 
 export interface RemoteModulithSearcherOptions {
@@ -32,6 +40,7 @@ export interface RemoteModulithSearcherOptions {
 
 const RAG_PLUGIN_NAME = "@ics/modulith-rag";
 const RAG_PLUGIN_VERSION_0_0_6 = new SemVer("0.0.6");
+const RAG_PLUGIN_VERSION_0_0_8 = new SemVer("0.0.8");
 
 const STATUS_POLLING_INTERVAL_MS = 500;
 const STATUS_POLLING_TIMEOUT_MS = 60 * 5 * 1000; // 5 min
@@ -53,6 +62,10 @@ export class RemoteModulithSearchClient {
 		const { serverAvailable, authAvailable } = await client._checkConnectionImpl();
 		if (serverAvailable && authAvailable) await client._initRagVersion();
 		return client;
+	}
+
+	get version(): SemVer | null {
+		return this._ragVersion;
 	}
 
 	async checkConnection(): Promise<boolean> {
@@ -89,7 +102,16 @@ export class RemoteModulithSearchClient {
 	async chat(args: SearchStreamArgs): Promise<ChatStreamResponse>;
 	async chat(args: SearchArgs | SearchStreamArgs): Promise<ChatResponse | ChatStreamResponse>;
 	async chat(args: SearchArgs | SearchStreamArgs): Promise<ChatResponse | ChatStreamResponse> {
-		const { query, catalogNames, articlesLanguage, responseLanguage, restrictedLogicPaths, signal, stream } = args;
+		const {
+			query,
+			catalogNames,
+			articlesLanguage,
+			responseLanguage,
+			restrictedLogicPaths,
+			propertyFilter,
+			signal,
+			stream,
+		} = args;
 		const filters: Filter<FieldsToDotPaths<SearchArticleMetadata>>[] = [];
 
 		if (catalogNames) {
@@ -129,6 +151,10 @@ export class RemoteModulithSearchClient {
 				key: "lang",
 				value: articlesLanguage,
 			});
+
+		if (propertyFilter && this._ragVersion.compare(RAG_PLUGIN_VERSION_0_0_8) >= 0) {
+			filters.push(convertPropertyFilter(propertyFilter));
+		}
 
 		try {
 			const res = await this._apiClient.chat({
@@ -265,4 +291,31 @@ function convertFilterToLegacy(filter?: SearchArticleFilter): LegacyArticleFilte
 		default:
 			throw new Error(`Unexpected filter operation ${op}`);
 	}
+}
+
+function convertPropertyFilter(propertyFilter: PropertyFilter): Filter<FieldsToDotPaths<SearchArticleMetadata>> {
+	const op = propertyFilter.op;
+	switch (op) {
+		case "eq": {
+			return eqFilter(getPropertyKeyName(propertyFilter.key), propertyFilter.value);
+		}
+		case "contains": {
+			return containsFilter(getPropertyKeyName(propertyFilter.key), propertyFilter.list);
+		}
+		case "isEmpty": {
+			return isEmptyFilter(getPropertyKeyName(propertyFilter.key));
+		}
+		case "and": {
+			return andFilter(propertyFilter.filters.map((x) => convertPropertyFilter(x)));
+		}
+		case "or": {
+			return orFilter(propertyFilter.filters.map((x) => convertPropertyFilter(x)));
+		}
+		default:
+			throw new Error(`Unexpected property filter operation ${op}`);
+	}
+}
+
+function getPropertyKeyName(property: string): FieldsToDotPaths<SearchArticleMetadata> {
+	return `properties.${property}`;
 }

@@ -1,4 +1,4 @@
-import { Config, Node, Schema, SchemaType, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { type Config, type Node, type Schema, SchemaType, Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { renderName } from "@ext/markdown/elements/question/consts";
 
 export function question(): Schema {

@@ -425,6 +425,7 @@ const locale = {
 		"clone-repo": {
 			name: "Clone Git Repository",
 			description: "Select a storage or add a new one",
+			"enterprise-description": "Select a repository",
 			props: {
 				storage: {
 					name: "Storage",
@@ -468,6 +469,19 @@ const locale = {
 					placeholder: "Select a source type",
 					description: "Some options are available only in the desktop app",
 				},
+			},
+		},
+		"sign-in-ges-tauri": {
+			props: {
+				gesUrl: {
+					name: "Gramax Enterprise Server URL",
+					placeholder: "https://enterprise.gram.ax",
+					description: "Specify the address of your Gramax Enterprise Server",
+				},
+			},
+			errors: {
+				urlIsNotValid: "URL is not valid",
+				enterpriseServerIsNotAvailable: "Enterprise server is not available at this URL",
 			},
 		},
 	},
@@ -942,6 +956,7 @@ title: Unable to display the article
 			"tabledb-file-not-found": "Error displaying item. Schema file not found at the path",
 			"tabledb-not-found": "Error displaying item. Table not found",
 			specification: "Failed to render specification",
+			"content-empty": "Diagram file is empty",
 			"mermaid-export-next-error": "Mermaid diagram will be rendered as diagram content",
 		},
 	},
@@ -977,7 +992,7 @@ title: Unable to display the article
 			resendPasswordButton: "Resend code",
 			confirmButton: "Confirm",
 			resendPasswordButtonWithCooldown: "Resend code in {seconds} sec",
-			corporateLoginButton: "Corporate login (SSO)",
+			corporateLoginButton: "Sign in with SSO",
 		},
 		fields: {
 			emailLabel: "Email",
@@ -1058,6 +1073,8 @@ title: Unable to display the article
 	search: {
 		name: "Search",
 		open: "Open search",
+		"search-in-article": "Search in this article",
+		"search-in-category": "Search in this section",
 		placeholder: "Enter query",
 		desc: '<ul><li>Use <code>"</code> for exact matches. Example:&nbsp;<code><nobr>"word"</nobr></code> or <code><nobr>"search phrase"</nobr></code>.</li><li>Use <code>-</code> to exclude. Example:&nbsp;<code><nobr>-word</nobr></code> or <code><nobr>-"excluded phrase"</nobr></code>.</li><li>Use <code>+</code> to force inclusion. Example:&nbsp;<code><nobr>+word</nobr></code> or <code><nobr>+"exact phrase"</nobr></code>.</li></ul>',
 		"articles-not-found": "No articles found",
@@ -1075,6 +1092,14 @@ title: Unable to display the article
 			"with-resources": "With files",
 			"without-resources": "Without files",
 			"only-resources": "Only in files",
+			tooltip: "Search in files",
+		},
+		"scope-filter": {
+			all: "In all catalogs",
+			catalog: "In this catalog",
+			article: "In this article",
+			category: "In this section",
+			tooltip: "Search scope",
 		},
 	},
 	list: {
@@ -1100,13 +1125,13 @@ title: Unable to display the article
 	git: {
 		source: {
 			gitlab: {
-				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>.<br><a style="color: hsl(201 96% 32%)" target="_blank" rel="noopener noreferrer" href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Learn more</a>`,
+				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>.`,
 			},
 			gitverse: {
-				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>Репозитории</code>, <code>Пользователи</code>. <a style="color: hsl(201 96% 32%)" target="_blank" rel="noopener noreferrer" href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Learn more</a>`,
+				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>Репозитории</code>, <code>Пользователи</code>.`,
 			},
 			gitea: {
-				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>repository</code>, <code>user</code> (Read and Write).<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitea.com/development/oauth2-provider#scopes'>Learn more</a>`,
+				info: `Token for reading and modifying repositories in storage. Specify the token permissions: <code>repository</code>, <code>user</code> (Read and Write).`,
 			},
 			error: {
 				"cannot-create-repo": "Unable to create repository",
@@ -1526,6 +1551,8 @@ title: Unable to display the article
 	diff: {
 		"source-text": "Source text",
 		"double-panel": "Double panel",
+		"file-too-large-for-preview": "File exceeds 1 MB and cannot be displayed",
+		"unknown-extension": "Preview is not supported for this file type",
 		type: {
 			added: "Added",
 			modified: "Modified",
@@ -1973,6 +2000,12 @@ title: Unable to display the article
 				"group-name-placeholder": "Enter the group name",
 				"name-error": "Group name is required",
 				"group-name-exists": "Group with this name already exists",
+				"delete-disabled-in-use": "Deletion is not available: the group is used",
+				badges: {
+					sso: "SSO",
+					custom: "Local",
+					system: "System",
+				},
 				errors: {
 					add: "Failed to add group",
 					delete: "Failed to delete groups",
@@ -2017,6 +2050,19 @@ title: Unable to display the article
 				"workspace-code": "Workspace code",
 				"source-url": "Source URL (GitLab)",
 				"source-type": "Source type",
+				templates: {
+					title: "Templates",
+					description:
+						"Upload templates in supported formats here. When exporting an article from Gramax, you can choose one of them to automatically format the document in your corporate style.",
+					word: {
+						title: "Word templates",
+						description: "Supported formats: .doc, .docx, .docm, .dot, .dotx, .dotm.",
+					},
+					pdf: {
+						title: "PDF templates",
+						description: "Supported format: .css.",
+					},
+				},
 				errors: {
 					update: "Failed to update workspace data",
 				},
@@ -2050,6 +2096,26 @@ title: Unable to display the article
 			unstable: "This feature is unstable and likely contains bugs",
 			beta: "This feature is not yet fully stabilized and still may contain bugs",
 		},
+	},
+	notifications: {
+		title: "Notifications",
+		"mark-all-as-read": "Mark all as read",
+		loading: "Loading...",
+		error: "Failed to load notifications",
+		"no-notifications": "No notifications",
+		"loading-more": "Loading more...",
+		"mailing-list": "Mailing list",
+		"mailing-list-description": "Manage your mailing list subscriptions.",
+		"mailing-list-groups": "Groups",
+		"mailing-list-users": "Users",
+		"mailing-list-select-groups": "Select groups...",
+		"mailing-list-search-users": "Search users...",
+		settings: "Notification settings",
+		"settings-description": "Select when you want to receive notifications for this article.",
+		"on-create": "Notify on creation",
+		"on-change": "Notify on change",
+		"on-both": "Notify on creation or change",
+		disabled: "Do not notify",
 	},
 	export: {
 		name: "Export",
@@ -2313,8 +2379,7 @@ title: Unable to display the article
 	"delete-file": "Delete file",
 	"delete-snippet-confirm": "Are you sure you want to delete the snippet?",
 	"delete-snippet-confirm-not-use": "This snippet is not used in any articles",
-	"delete-snippet-desc": "You are about to delete a snippet that is currently used in one or more articles",
-	"delete-snippet-list-desc": "This snippet is used in the following articles:",
+	"delete-snippet-desc": "You are about to delete a snippet that is currently used in the following articles:",
 	"delete-snippet-warn":
 		"After deleting the snippet, articles where it was used will display errors instead of the removed snippet",
 	"deleting-snippet-in-use": "Deleting snippet in use",
@@ -2478,11 +2543,11 @@ title: Unable to display the article
 		},
 		warning: {
 			"delete-tag-from-catalog": {
-				title: "Confirm Property Deletion",
+				title: "Delete property from catalog",
 				body: "Are you sure you want to delete this property? It will be removed from all articles.",
 			},
 			"delete-value-from-catalog": {
-				title: "Confirm Value Deletion",
+				title: "Delete value from property",
 				body: "Are you sure you want to delete this value? It will be removed from all articles.",
 			},
 		},
@@ -2509,6 +2574,7 @@ title: Unable to display the article
 			Array: "Array",
 			BlockMd: "Block of text",
 			InlineMd: "Inline Markdown",
+			News: "News",
 		},
 		options: {
 			docportalVisible: {
@@ -2691,6 +2757,10 @@ title: Unable to display the article
 		"single-file-too-large": "File exceeds the maximum size of ${maxSizeBytes}.",
 		"some-files-too-large": "Some files exceed the maximum size of ${maxSizeBytes}",
 		"too-many-files": "You can only upload a maximum of ${maxFiles} files",
+	},
+	"file-preview": {
+		"preview-error": "Unfortunately, file {fileName} is not supported for preview",
+		"render-error": "Failed to render this file",
 	},
 	empty: "Empty",
 	pagination: {

@@ -1,4 +1,4 @@
-import StorageUrl from "../../../storage/models/StorageUrl";
+import type StorageUrl from "../../../storage/models/StorageUrl";
 
 type GitStorageUrl = StorageUrl;
 

@@ -4,11 +4,11 @@ import Url from "@core-ui/ApiServices/Types/Url";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import Icon from "../Atoms/Icon";
 import Link from "../Atoms/Link";
 
-interface AnchorProps {
+export interface AnchorProps {
 	href: string;
 	resourcePath?: string;
 	children?: ReactNode;

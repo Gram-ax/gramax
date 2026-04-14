@@ -1,12 +1,9 @@
-import { xlsx } from "@dynamicImports/xlsx";
 import styled from "@emotion/styled";
 import type { RendererProps } from "@ext/markdown/elements/file/edit/components/Preview/FilePreview";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import createExcelWorker from "./createExcelWorker";
+import type { ExcelParseResponse } from "./excelParse.worker";
 import { type AOAColumn, type Row, VirtualTable } from "./VirtualTable";
-
-type CellData = {
-	value: string | number;
-};
 
 const ExcelContainer = styled.div`
 	display: flex;
@@ -17,94 +14,78 @@ const ExcelContainer = styled.div`
 `;
 
 const DataGridContainer = styled.div`
-	width: 100%;
-	height: 100%;
-	max-height: 85vh;
-	max-width: 95vw;
+	width: min(95vw, 100%);
+	height: min(85vh, 100%);
 
 	> div:first-of-type {
 		height: 100%;
 	}
 `;
 
+const encodeCol = (n: number): string => {
+	let name = "";
+
+	for (let col = n; col >= 0; col = Math.floor(col / 26) - 1) {
+		name = String.fromCharCode(65 + (col % 26)) + name;
+	}
+
+	return name;
+};
+
 const ExcelRenderer = ({ file, onLoad, onError }: RendererProps) => {
-	const [xlsxLib, setXlsxLib] = useState<Awaited<ReturnType<typeof xlsx>>>(null);
-	const [data, setData] = useState<CellData[][]>([]);
+	const [rows, setRows] = useState<Row[]>([]);
+	const [maxCols, setMaxCols] = useState(0);
+	const workerRef = useRef<Worker>(null);
 
 	useEffect(() => {
-		const loadExcel = async () => {
-			try {
-				const xlsxLib = await xlsx();
-				setXlsxLib(xlsxLib);
-			} catch (err) {
-				onError?.(err);
+		const worker = createExcelWorker();
+		workerRef.current = worker;
+
+		worker.onmessage = (event: MessageEvent<ExcelParseResponse>) => {
+			const response = event.data;
+
+			if ("error" in response) {
+				onError?.(new Error(response.error));
+				return;
 			}
-		};
-		loadExcel();
-	}, [onError]);
 
-	useEffect(() => {
-		if (!xlsxLib) return;
+			const colCount = response.data.reduce<number>((max, row) => Math.max(max, Object.keys(row).length), 0);
+			setRows(response.data);
+			setMaxCols(colCount);
+			onLoad?.();
+		};
+
+		worker.onerror = (e) => {
+			onError?.(e);
+		};
 
 		const loadData = async () => {
 			try {
 				const buffer = await file.arrayBuffer();
-				const workbook = xlsxLib.read(buffer, {
-					type: "array",
-				});
-
-				const firstSheetName = workbook.SheetNames[0];
-				const worksheet = workbook.Sheets[firstSheetName];
-
-				const rawData = xlsxLib.utils.sheet_to_json(worksheet, {
-					header: 1,
-					raw: false,
-					rawNumbers: false,
-				});
-
-				const formattedData = rawData.map((row) => {
-					if (Array.isArray(row)) {
-						return row.map((cell) => ({ value: cell ?? "" }));
-					}
-
-					return [];
-				});
-
-				setData(formattedData);
-				onLoad?.();
+				worker.postMessage(buffer, [buffer]);
 			} catch (err) {
 				onError?.(err);
 			}
 		};
-		loadData();
-	}, [file, xlsxLib, onLoad, onError]);
+
+		void loadData();
+
+		return () => {
+			worker.terminate();
+			workerRef.current = null;
+		};
+	}, [file, onLoad, onError]);
 
 	const columns: AOAColumn[] = useMemo(
 		() =>
-			xlsxLib
-				? Array.from({ length: Math.max(...data.map((row) => row.length)) }, (_, i) => ({
-						key: String(i),
-						name: xlsxLib.utils.encode_col(i),
-						flex: 1,
-					}))
-				: [],
-		[xlsxLib, data],
+			Array.from({ length: maxCols }, (_, i) => ({
+				key: String(i),
+				name: encodeCol(i),
+				flex: 1,
+			})),
+		[maxCols],
 	);
 
-	const rows: Row[] = useMemo(
-		() =>
-			data
-				.filter((row) => row.length > 0)
-				.map((row) =>
-					row.reduce((acc, cell, i) => {
-						acc[String(i)] = cell.value;
-						return acc;
-					}, {} as Row),
-				),
-		[data],
-	);
-
-	if (!xlsxLib) return null;
 	return (
 		<ExcelContainer>
 			<DataGridContainer>

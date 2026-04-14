@@ -1,5 +1,6 @@
 import resolveModule from "@app/resolveModule/backend";
 import call from "@app/resolveModule/fscall";
+import type CompressOptions from "@core/FileProvider/model/CompressOptions";
 import type FileInfo from "@core/FileProvider/model/FileInfo";
 import { Buffer } from "buffer";
 
@@ -11,8 +12,8 @@ export const unlink = (path: string) => {
 	return call<void>("rmfile", { path });
 };
 
-export const writeFile = async (path: string, content: string | Buffer) => {
-	return call<void>("write_file", { path, content });
+export const writeFile = async (path: string, content: string | Buffer, compress?: CompressOptions) => {
+	return call<void>("write_file", { path, content, compress });
 };
 
 export const stat = async (path: string, followLink = false) => {

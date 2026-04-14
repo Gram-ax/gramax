@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { ColumnDef } from "@ui-kit/DataTable";
+import type { ColumnDef } from "@ui-kit/DataTable";
 import { TableCell, TableRow } from "@ui-kit/Table";
 
 interface TableEmptyRowProps<T> {

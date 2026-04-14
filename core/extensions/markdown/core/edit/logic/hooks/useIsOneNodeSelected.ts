@@ -1,5 +1,5 @@
 import getIsSelectedOneNode from "@ext/markdown/elementsUtils/getIsSelectedOneNode";
-import { Editor } from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
 import { useEffect, useState } from "react";
 
 export const useIsOneNodeSelected = (editor: Editor) => {

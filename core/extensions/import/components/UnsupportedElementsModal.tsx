@@ -1,9 +1,9 @@
 import Anchor from "@components/controls/Anchor";
 import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsupportedElementsModal";
 import sourceTypeConfig from "@ext/import/logic/unsupportedModalConfig";
-import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
+import type { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import t from "@ext/localization/locale/translate";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { Button } from "@ui-kit/Button";
 import { useState } from "react";
 

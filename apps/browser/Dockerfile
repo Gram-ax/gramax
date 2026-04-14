@@ -1,12 +1,12 @@
-ARG BRANCH="develop"
+ARG USE_IMAGE_TAG="latest-dev"
 
-FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH} AS deps
+FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader/base-image:${USE_IMAGE_TAG:-latest-dev} AS deps
 
 WORKDIR /src
 
 COPY . .
 
-RUN rm -r services
+RUN rm -rf services
 
 RUN ["./install-deps.sh", "--ci"]
 
@@ -21,7 +21,7 @@ ENV NODE_OPTIONS=--max_old_space_size=8192 \
 
 RUN [ "npm", "--prefix", "apps/browser", "run", "build" ]
 
-FROM gitlab.ics-it.ru:4567/ics/doc-reader:spa-${BRANCH} AS run
+FROM gitlab.ics-it.ru:4567/ics/doc-reader/spa:${USE_IMAGE_TAG:-latest-dev} AS run
 
 WORKDIR /app
 

@@ -1,3 +1,4 @@
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import TranscribeButton from "@ext/ai/components/Audio/Buttons/TranscribeMenuButton";
@@ -8,7 +9,6 @@ import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineE
 import type { InlineToolbarOptions } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
 import { LinkMenuMobilePopover } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenuMobilePopover";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
-import { useMediaQuery } from "@mui/material";
 import type { Editor } from "@tiptap/core";
 import { Toolbar, ToolbarSeparator } from "@ui-kit/Toolbar";
 import { CellSelection, isInTable } from "prosemirror-tables";

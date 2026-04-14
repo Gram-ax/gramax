@@ -1,15 +1,15 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
-import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
-import ArticleParser from "@core/FileStructue/Article/ArticleParser";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
-import { CommitScope, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
+import type Path from "@core/FileProvider/Path/Path";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import type { CommitScope, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { GitVersion } from "@ext/git/core/model/GitVersion";
-import Repository from "@ext/git/core/Repository/Repository";
+import type Repository from "@ext/git/core/Repository/Repository";
 import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import assert from "assert";
 
 export interface DiffItemContentData {

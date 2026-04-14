@@ -1,5 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
 
 const removeField: Command<{ catalogName: string; ctx: Context; articlePath: string; field: string }, void> =

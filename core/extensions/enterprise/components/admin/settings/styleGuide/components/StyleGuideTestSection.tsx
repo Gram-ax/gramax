@@ -1,12 +1,12 @@
 import { Badge } from "@ui-kit/Badge";
 import { Button } from "@ui-kit/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { Icon } from "@ui-kit/Icon";
 import { Label } from "@ui-kit/Label";
 import { Loader } from "@ui-kit/Loader";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { AutogrowTextarea } from "@ui-kit/Textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Check, FastForward, MoreVertical, Play, Plus, Trash2, X } from "lucide-react";
 import type { RuleExample } from "../StyleGuideComponent";
 
 interface TestSectionProps {
@@ -64,7 +64,7 @@ const TestSectionHeader = ({
 				size="sm"
 				variant="outline"
 			>
-				<FastForward className="h-4 w-4 mr-2" />
+				<Icon className="mr-2" icon="fast-forward" size="md" />
 				Запустить все
 			</Button>
 		</div>
@@ -91,7 +91,7 @@ const TestExample = ({ index, example, onChange, onDelete, onRun, isRunning, isA
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button disabled={isRunning || isAnyTestRunning} onClick={onRun} size="sm" variant="ghost">
-							<Play className="h-4 w-4" />
+							<Icon icon="play" size="md" />
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent>Запустить тест</TooltipContent>
@@ -105,9 +105,9 @@ const TestExample = ({ index, example, onChange, onDelete, onRun, isRunning, isA
 							<button type="button">
 								<Badge status={badgeStatus}>
 									{badgeStatus === "success" ? (
-										<Check className="h-5 w-5" />
+										<Icon icon="check" size="md" />
 									) : (
-										<X className="h-5 w-5" />
+										<Icon icon="x" size="md" />
 									)}
 								</Badge>
 							</button>
@@ -142,7 +142,7 @@ const TestExample = ({ index, example, onChange, onDelete, onRun, isRunning, isA
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button size="sm" variant="ghost">
-							<MoreVertical className="h-4 w-4" />
+							<Icon icon="ellipsis-vertical" size="md" />
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent>
@@ -153,7 +153,7 @@ const TestExample = ({ index, example, onChange, onDelete, onRun, isRunning, isA
 								if (confirmed) onDelete();
 							}}
 						>
-							<Trash2 className="h-4 w-4 mr-2" />
+							<Icon className="mr-2" icon="trash-2" size="md" />
 							Удалить тест
 						</DropdownMenuItem>
 					</DropdownMenuContent>
@@ -181,7 +181,7 @@ const TestExampleGroup = ({
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<Button onClick={onAdd} size="sm" variant="ghost">
-						<Plus className="h-4 w-4" />
+						<Icon icon="plus" size="md" />
 					</Button>
 				</TooltipTrigger>
 				<TooltipContent>Добавить тест</TooltipContent>

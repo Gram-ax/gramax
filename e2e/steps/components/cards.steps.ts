@@ -1,6 +1,6 @@
 import { When } from "@cucumber/cucumber";
 import { expect } from "@playwright/test";
-import E2EWorld from "../../models/World";
+import type E2EWorld from "../../models/World";
 import { replaceMultiple } from "../utils/utils";
 
 const CARD_SELECTOR = ".group\\/card";

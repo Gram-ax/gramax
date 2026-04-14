@@ -1,6 +1,6 @@
 import { cn } from "@core-ui/utils/cn";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import type { HTMLAttributes } from "react";
+import { Fragment, type HTMLAttributes } from "react";
 
 const CommandLabel = (props: HTMLAttributes<HTMLDivElement>) => {
 	const { children, className, ...rest } = props;
@@ -25,16 +25,16 @@ export const LinkMenuBreadcrumb = (props: HTMLAttributes<HTMLDivElement> & { bre
 		>
 			{!isLongBreadcrumb &&
 				breadcrumb.map((breadcrumb, index) => (
-					<>
+					<Fragment key={breadcrumb}>
 						{index > 0 && (
 							<CommandLabel className="flex-shrink-0">
 								<span>/</span>
 							</CommandLabel>
 						)}
-						<CommandLabel className="inline-flex" key={breadcrumb}>
+						<CommandLabel className="inline-flex">
 							<TextOverflowTooltip>{breadcrumb}</TextOverflowTooltip>
 						</CommandLabel>
-					</>
+					</Fragment>
 				))}
 
 			{isLongBreadcrumb && lastBreadcrumb && (

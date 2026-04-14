@@ -1,4 +1,4 @@
-import { ContentText } from "pdfmake/interfaces";
+import type { ContentText } from "pdfmake/interfaces";
 
 export function brHandler(): ContentText[] {
 	return [

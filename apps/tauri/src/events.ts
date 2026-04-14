@@ -1,31 +1,12 @@
-import getApp from "@app/browser/app";
 import { isTauriMobile } from "@app/resolveModule/env";
 import LanguageService from "@core-ui/ContextServices/Language";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import type EditEnterpriseConfig from "@ext/enterprise/components/EditEnterpriseConfig";
 import UiLanguage from "@ext/localization/core/model/Language";
-import { getCurrentWebviewWindow, type WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import type { ComponentProps } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import TauriCookie from "./cookie/TauriCookie";
 import { attachConsole } from "./logging";
 import { initSpellcheck, toggleSpellcheck } from "./spellcheck";
-import { invoke } from "./window/commands";
 import { initZoom } from "./window/zoom";
-
-const subscribeEnterpriseEvents = async (current: WebviewWindow) => {
-	const app = await getApp().catch(() => null);
-	await current.listen("enterprise-configure", () => {
-		if (!app?.em) return;
-		ModalToOpenService.setValue<ComponentProps<typeof EditEnterpriseConfig>>(ModalToOpen.EditEnterpriseConfig, {
-			config: app.em.getConfig(),
-			onSave: (config) => {
-				void invoke("update_reset_bytes");
-				void app.em.setGesUrl(config).then(() => window.location.reload());
-			},
-		});
-	});
-};
 
 const initSettings = async () => {
 	const data = await invoke("get_settings");
@@ -52,7 +33,6 @@ const subscribeEvents = async () => {
 		current.listen("on_toggle_spellcheck", toggleSpellcheck),
 		current.listen("reload", () => location.reload()),
 		current.listen("refresh", () => void refreshPage()),
-		subscribeEnterpriseEvents(current),
 		current.listen("settings-data-updated", (ev) => {
 			const data = ev.payload;
 			TauriCookie.setEncoded(new Map(data ? Object.entries(data as Record<string, string>) : []));

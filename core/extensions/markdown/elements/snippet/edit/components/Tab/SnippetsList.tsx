@@ -1,16 +1,16 @@
 import Icon from "@components/Atoms/Icon";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import ItemList from "@ext/articleProvider/components/ItemList";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
-import { SnippetAlreadyUseWarnProps } from "@ext/markdown/elements/snippet/edit/components/SnippetAlreadyUseWarn";
+import type { SnippetAlreadyUseWarnProps } from "@ext/markdown/elements/snippet/edit/components/SnippetAlreadyUseWarn";
 import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
 import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import SnippetUsages from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetUsages";
-import { RefObject, useCallback, useEffect } from "react";
+import { type RefObject, useCallback, useEffect } from "react";
 
 interface SnippetsListProps {
 	apiUrlCreator: ApiUrlCreator;

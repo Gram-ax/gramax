@@ -1,4 +1,4 @@
-import { PdfExportProgress } from "@ext/print/types";
+import type { PdfExportProgress } from "@ext/print/types";
 
 export type ProgressReporter = (progress: PdfExportProgress) => void;
 

@@ -1,4 +1,4 @@
-import BranchData from "./BranchData";
+import type BranchData from "./BranchData";
 
 export default interface Branch {
 	toString(): string;

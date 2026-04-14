@@ -1,13 +1,13 @@
-import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
+import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import Repository from "@ext/git/core/Repository/Repository";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type Repository from "@ext/git/core/Repository/Repository";
 import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
+import { addScopeToPath } from "@ext/versioning/addScopeToPath";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
-import { addScopeToPath } from "@ext/versioning/utils";
 
 export default class ScopedCatalogs {
 	private _scopedCatalogs: Map<string, Catalog> = new Map();

@@ -3,7 +3,7 @@ import Alert, { AlertType } from "@ext/markdown/elements/alert/render/component/
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 
-import { ReactElement } from "react";
+import type { ReactElement } from "react";
 
 interface AlertErrorProps {
 	title?: string;

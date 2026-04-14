@@ -1,4 +1,4 @@
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import { Command } from "../../../types/Command";
 
 const removeAiData: Command<{ ctx: Context; workspacePath: string }, void> = Command.create({

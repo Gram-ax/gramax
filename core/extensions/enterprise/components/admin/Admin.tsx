@@ -1,4 +1,6 @@
+import LucideIconComponent from "@components/Atoms/Icon/LucideIcon";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
+import styled from "@emotion/styled";
 import {
 	AdminNavigationProvider,
 	type PluginDetailParams,
@@ -14,12 +16,12 @@ import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { getPageDataLoader } from "@ext/enterprise/components/admin/utils/pageDataLoaders";
 import EnterpriseService from "@ext/enterprise/EnterpriseService";
-import { Page, PageComponents } from "@ext/enterprise/types/EnterpriseAdmin";
+import { PageComponents } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
 import { useAdminGate } from "@ext/enterprise/utils/useAdminGate";
 import t from "@ext/localization/locale/translate";
-import { styled } from "@mui/material";
 import { Alert, AlertDescription } from "@ui-kit/Alert";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@ui-kit/Collapsible";
 import { Dialog, DialogContent, DialogHeaderTemplate } from "@ui-kit/Dialog";
@@ -39,7 +41,7 @@ import {
 	SidebarRail,
 	SidebarSeparator,
 } from "@ui-kit/Sidebar";
-import { Settings } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface BaseProps {
@@ -368,7 +370,7 @@ const AdminModalContent = ({ enterpriseService, token, onRequestClose, guardedCl
 		<DialogContent size="FS">
 			<DialogHeaderTemplate
 				description={t("enterprise.admin.settings-description")}
-				icon={Settings}
+				icon={LucideIconComponent("settings") as LucideIcon}
 				title={t("enterprise.admin.settings-title")}
 			/>
 			<AdminNavigationProvider>

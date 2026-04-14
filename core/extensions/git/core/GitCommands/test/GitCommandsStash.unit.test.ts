@@ -1,13 +1,9 @@
-/**
- * @jest-environment node
- */
-
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const path = (path: string) => new Path(path);
@@ -33,9 +29,11 @@ describe("GitCommands", () => {
 		await GitVersionControl.init(dfp, path("testRep"), mockUserData);
 		git = new GitCommands(dfp, path("testRep"));
 		const testFile = await writeFile("testFile", "testFile content");
-		await git.add([testFile]), await git.commit("init", mockUserData);
+		await git.add([testFile]);
+		await git.commit("init", mockUserData);
 		const file = await writeFile("1.txt", "1.txt content\nline 2\nline 3");
-		await git.add([file]), await git.commit("init", mockUserData);
+		await git.add([file]);
+		await git.commit("init", mockUserData);
 	});
 
 	afterEach(async () => {
@@ -52,7 +50,8 @@ describe("GitCommands", () => {
 				const stashHash = await git.stash(mockUserData);
 
 				const fileB = await writeFile("1.txt", "content A\nline 2\nline 3");
-				await git.add([fileB]), await git.commit("", mockUserData);
+				await git.add([fileB]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.applyStash(stashHash);
 
@@ -68,7 +67,8 @@ describe("GitCommands", () => {
 					const stashHash = await git.stash(mockUserData);
 
 					await dfp.delete(repPath("1.txt"));
-					await git.add([path("1.txt")]), await git.commit("", mockUserData);
+					await git.add([path("1.txt")]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.applyStash(stashHash);
 
@@ -81,7 +81,8 @@ describe("GitCommands", () => {
 					const stashHash = await git.stash(mockUserData);
 
 					const fileA = await writeFile("1.txt", "content A\nline 2\nline 3");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.applyStash(stashHash);
 
@@ -97,7 +98,8 @@ describe("GitCommands", () => {
 					const stashHash = await git.stash(mockUserData);
 
 					const fileA = await writeFile("1.txt", "content A\nline2\nline3");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.applyStash(stashHash);
 
@@ -111,7 +113,8 @@ describe("GitCommands", () => {
 
 					await dfp.move(repPath("1.txt"), repPath("2.txt"));
 					await writeFile("2.txt", "content A\nline 2\nline 3");
-					await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+					await git.add([path("1.txt"), path("2.txt")]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.applyStash(stashHash);
 
@@ -128,7 +131,8 @@ describe("GitCommands", () => {
 				const stashHash = await git.stash(mockUserData);
 
 				await dfp.delete(repPath("1.txt"));
-				await git.add([path("1.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.applyStash(stashHash);
 
@@ -143,7 +147,8 @@ describe("GitCommands", () => {
 				const stashHash = await git.stash(mockUserData);
 
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.applyStash(stashHash);
 
@@ -162,7 +167,8 @@ describe("GitCommands", () => {
 					const stashHash = await git.stash(mockUserData);
 
 					const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.applyStash(stashHash);
 
@@ -177,7 +183,8 @@ describe("GitCommands", () => {
 					const stashHash = await git.stash(mockUserData);
 
 					const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.applyStash(stashHash);
 
@@ -195,7 +202,8 @@ describe("GitCommands", () => {
 						const stashHash = await git.stash(mockUserData);
 
 						const fileA = await writeFile("2.txt", "1.txt content\nline 2\nline 3");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -210,7 +218,8 @@ describe("GitCommands", () => {
 						const stashHash = await git.stash(mockUserData);
 
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -227,7 +236,8 @@ describe("GitCommands", () => {
 						const stashHash = await git.stash(mockUserData);
 
 						const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -245,7 +255,8 @@ describe("GitCommands", () => {
 						const stashHash = await git.stash(mockUserData);
 
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -265,7 +276,8 @@ describe("GitCommands", () => {
 						const stashHash = await git.stash(mockUserData);
 
 						const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -283,7 +295,8 @@ describe("GitCommands", () => {
 						const stashHash = await git.stash(mockUserData);
 
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -306,7 +319,8 @@ describe("GitCommands", () => {
 						const stashHash = await git.stash(mockUserData);
 
 						const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -324,7 +338,8 @@ describe("GitCommands", () => {
 
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
 						await writeFile("2.txt", "content A\nline 2\nline 3");
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -344,7 +359,8 @@ describe("GitCommands", () => {
 						const stashHash = await git.stash(mockUserData);
 
 						const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -362,7 +378,8 @@ describe("GitCommands", () => {
 
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
 						await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.applyStash(stashHash);
 
@@ -384,7 +401,8 @@ describe("GitCommands", () => {
 				const stashHash = await git.stash(mockUserData);
 
 				await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
-				await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2_A.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.applyStash(stashHash);
 
@@ -403,7 +421,8 @@ describe("GitCommands", () => {
 							const stashHash = await git.stash(mockUserData);
 
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.applyStash(stashHash);
 
@@ -423,7 +442,8 @@ describe("GitCommands", () => {
 
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
 							await writeFile("2.txt", "content A\nline 2\nline 3");
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.applyStash(stashHash);
 
@@ -445,7 +465,8 @@ describe("GitCommands", () => {
 							const stashHash = await git.stash(mockUserData);
 
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.applyStash(stashHash);
 
@@ -465,7 +486,8 @@ describe("GitCommands", () => {
 
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
 							await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.applyStash(stashHash);
 
@@ -489,7 +511,8 @@ describe("GitCommands", () => {
 							const stashHash = await git.stash(mockUserData);
 
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
-							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_A.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.applyStash(stashHash);
 
@@ -507,7 +530,8 @@ describe("GitCommands", () => {
 
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
 							await writeFile("2_A.txt", "content A\nline 2\nline 3\n");
-							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_A.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.applyStash(stashHash);
 
@@ -527,7 +551,8 @@ describe("GitCommands", () => {
 							const stashHash = await git.stash(mockUserData);
 
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
-							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_A.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.applyStash(stashHash);
 
@@ -545,7 +570,8 @@ describe("GitCommands", () => {
 
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
 							await writeFile("2_A.txt", "content A\nline 2 A\nline 3 A\n");
-							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_A.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.applyStash(stashHash);
 
@@ -570,7 +596,8 @@ describe("GitCommands", () => {
 
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
 				await writeFile("2.txt", "content A\nline 2\nline 3");
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.applyStash(stashHash);
 
@@ -589,7 +616,8 @@ describe("GitCommands", () => {
 
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
 				await writeFile("2.txt", "content A\nline 2 A\nline 3 A\nline 4");
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.applyStash(stashHash);
 

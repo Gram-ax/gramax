@@ -1,7 +1,7 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import { BaseLink } from "@ext/navigation/NavigationLinks";
-import { forwardRef, HTMLAttributes, ReactNode, RefObject } from "react";
-import { Link, LinkProps } from "wouter";
+import type { BaseLink } from "@ext/navigation/NavigationLinks";
+import { forwardRef, type HTMLAttributes, type ReactNode, type RefObject } from "react";
+import { Link, type LinkProps } from "wouter";
 
 export const WouterLink: (props: LinkProps & { ref: RefObject<HTMLAnchorElement> }) => ReactNode = Link;
 export interface BrowserLinkProps extends HTMLAttributes<HTMLAnchorElement> {

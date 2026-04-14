@@ -1,5 +1,5 @@
 import { XxHash } from "@core/Hash/Hasher";
-import { PluginReadResult } from "@ext/workspace/assets";
+import type { PluginReadResult } from "@ext/workspace/assets";
 
 export function calcPluginsHash(plugins: PluginReadResult[]): number {
 	return plugins.reduce((acc, plugin) => {

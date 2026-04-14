@@ -15,12 +15,10 @@ export class TestWorkerResourceParseClient extends WorkerResourceParseClientBase
 	}
 
 	static async create(): Promise<TestWorkerResourceParseClient> {
-		const client = new TestWorkerResourceParseClient();
-		await client._init();
-		return client;
+		return new TestWorkerResourceParseClient();
 	}
 
-	async parseResource(
+	override async parseResource(
 		format: ResourceParseFormat,
 		data: Buffer,
 		progressCallback?: (progress: number) => void,
@@ -29,25 +27,26 @@ export class TestWorkerResourceParseClient extends WorkerResourceParseClientBase
 		return await super.parseResource(format, data, progressCallback);
 	}
 
-	protected async _init(): Promise<void> {
-		this._worker = this._createWorker();
-	}
-
-	protected _createWorker(): ResourceParseWorker {
+	protected override createWorker(): ResourceParseWorker {
 		return {
 			postMessage: (msg) => {
 				void this._handleInMessage(msg);
 			},
 			terminate: async () => {},
+			addEventListener: () => {
+				throw new Error("Not implemented");
+			},
+			removeEventListener: () => {
+				throw new Error("Not implemented");
+			},
 		};
 	}
 
 	private async _initHandler(): Promise<void> {
 		const ctx: HandlerContext = {
 			isNode: true,
-			initPdfJs: async () => {},
 			postMessage: (msg) => {
-				void this._handleMessage(msg);
+				void this.handleMessage(msg);
 			},
 		};
 
@@ -57,7 +56,5 @@ export class TestWorkerResourceParseClient extends WorkerResourceParseClientBase
 		this._handleInMessage = (msg) => {
 			handleMessage(msg, ctx);
 		};
-
-		await super._init();
 	}
 }

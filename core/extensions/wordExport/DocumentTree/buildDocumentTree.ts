@@ -1,20 +1,20 @@
-import Context from "@core/Context/Context";
-import { Article } from "@core/FileStructue/Article/Article";
+import type Context from "@core/Context/Context";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { Category } from "@core/FileStructue/Category/Category";
-import { Item } from "@core/FileStructue/Item/Item";
+import type { Category } from "@core/FileStructue/Category/Category";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { SystemProperties } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/display";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import { DocumentTree } from "./DocumentTree";
+import type { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import type { DocumentTree } from "./DocumentTree";
 
 const buildDocumentTree = async (
 	isCategory: boolean,
@@ -50,12 +50,7 @@ const buildDocumentTree = async (
 				content: filter.getSupportedTree(p?.renderTree),
 				resourceManager: p?.parsedContext?.getResourceManager(),
 				linkResourceManager: p?.parsedContext?.getLinkManager(),
-				parserContext: await parserContextFactory.fromArticle(
-					item as Article,
-					catalog,
-					resolveLanguage(),
-					true,
-				),
+				parserContext: await parserContextFactory.fromArticle(item as Article, catalog, resolveLanguage()),
 			}));
 
 			heading.content = parsedData.content;

@@ -1,5 +1,5 @@
-import { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
-import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import type { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
+import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 
 const iconToken = (context?: PrivateParserContext): ParseSpec => {
 	return {

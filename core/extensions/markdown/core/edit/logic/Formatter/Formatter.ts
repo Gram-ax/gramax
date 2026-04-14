@@ -1,12 +1,12 @@
 import trimEndEmptyParagraphs from "@ext/markdown/core/edit/logic/Formatter/Utils/trimEndEmptyParagraphs";
 import MdParser from "@ext/markdown/core/Parser/MdParser/MdParser";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { createPrivateParserContext } from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import getTagElementRenderModels from "@ext/markdown/core/render/logic/getRenderElements/getTagElementRenderModels";
-import { Schema } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Schema } from "@ext/markdown/core/render/logic/Markdoc";
 import commentModifyFormatters from "@ext/markdown/elements/comment/edit/logic/commentModifyFormatters";
 import filesFormatterTransformer from "@ext/markdown/elements/file/edit/logic/filesFormatterTransformer";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import { Node } from "prosemirror-model";
 import { ProsemirrorMarkdownSerializer } from "../Prosemirror";
 import JSONTransformer from "../Prosemirror/JSONTransformer";

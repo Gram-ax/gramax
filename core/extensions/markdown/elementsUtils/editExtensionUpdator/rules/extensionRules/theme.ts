@@ -1,5 +1,5 @@
-import Theme from "../../../../../Theme/Theme";
-import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
+import type Theme from "../../../../../Theme/Theme";
+import type ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const getThemeRule = (theme: Theme): ExtensionUpdaterRules => {
 	const filterNames = ["comment"];

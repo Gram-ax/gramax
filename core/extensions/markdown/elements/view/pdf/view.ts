@@ -1,17 +1,17 @@
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import t from "@ext/localization/locale/translate";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { extractNameAndAnchor } from "@ext/markdown/elements/link/word/link";
 import { getViewListContent } from "@ext/markdown/elements/view/pdf/viewList";
 import { getTableWithGrouping, getTableWithoutGrouping } from "@ext/markdown/elements/view/pdf/viewTable";
 import { BASE_CONFIG, COLOR_CONFIG } from "@ext/pdfExport/config";
-import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { errorCase } from "@ext/pdfExport/utils/getErrorElement";
 import ViewFilter from "@ext/properties/logic/ViewFilter";
-import { ViewRenderData } from "@ext/properties/models";
+import type { ViewRenderData } from "@ext/properties/models";
 import { Display } from "@ext/properties/models/display";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import { Content } from "pdfmake/interfaces";
+import type { Content } from "pdfmake/interfaces";
 
 export async function viewCase(node: Tag, context: pdfRenderContext): Promise<Content> {
 	const item = context.parserContext.getArticle();

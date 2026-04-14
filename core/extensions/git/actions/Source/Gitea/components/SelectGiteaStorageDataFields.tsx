@@ -1,17 +1,17 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import CloneFields, { CloneListItem } from "@ext/git/actions/Source/components/CloneFields";
+import CloneFields, { type CloneListItem } from "@ext/git/actions/Source/components/CloneFields";
 import ReadOnlyUserField from "@ext/git/actions/Source/components/ReadOnlyUserField";
 import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
 import type GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
-import GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
+import type GitSourceApi from "@ext/git/actions/Source/GitSourceApi";
 import { useMakeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
-import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import type { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
 import { FormField } from "@ui-kit/Form";
 import { useEffect, useMemo, useState } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 interface SelectGiteaStorageDataFieldsProps {
 	source: GiteaSourceData;

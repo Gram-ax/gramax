@@ -5,10 +5,10 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import InboxService from "@ext/inbox/components/InboxService";
 import Note from "@ext/inbox/components/Note/Note";
-import { InboxArticle, InboxDragDropData } from "@ext/inbox/models/types";
+import type { InboxArticle, InboxDragDropData } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
-import { RefObject, useCallback, useEffect, useMemo, useRef } from "react";
+import { type RefObject, useCallback, useEffect, useMemo, useRef } from "react";
 import { DndProvider } from "react-dnd";
 
 interface InboxProps {

@@ -1,6 +1,6 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 
 const getArticleFileBrotherNames = async (
 	apiUrlCreator: ApiUrlCreator,

@@ -2,7 +2,7 @@ import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
 import { ToolbarTrigger as UiKitToolbarTrigger } from "ics-ui-kit/components/toolbar";
 import { forwardRef } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitToolbarTriggerProps = ExtractComponentGeneric<typeof UiKitToolbarTrigger>;
 

@@ -21,29 +21,9 @@ import StyleGuideComponent, {
 } from "@ext/enterprise/components/admin/settings/styleGuide/StyleGuideComponent";
 import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import WorkspaceComponent from "@ext/enterprise/components/admin/settings/workspace/WorkspaceComponent";
-import type { PluginConfig } from "@plugins/types";
+import { Page } from "@ext/enterprise/types/Page";
+import { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
 import type { ComponentType } from "react";
-
-export interface PluginsSettings {
-	plugins: PluginConfig[];
-}
-
-export enum Page {
-	PLUGINS = "plugins",
-	PLUGIN_DETAIL = "pluginDetail",
-	METRICS = "metrics",
-	VIEW_METRICS = "viewMetrics",
-	SEARCH_METRICS = "searchMetrics",
-	STYLEGUIDE = "styleGuide",
-	QUIZ = "quiz",
-	EDITORS = "editors",
-	WORKSPACE = "workspace",
-	RESOURCES = "resources",
-	USER_GROUPS = "groups",
-	MAIL = "mail",
-	GUESTS = "guests",
-	ROLES = "roles",
-}
 
 export type Settings = {
 	workspace: WorkspaceSettings;

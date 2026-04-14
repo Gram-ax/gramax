@@ -1,9 +1,9 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { parseCell } from "@ext/markdown/elements/table/pdf/tableCell";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { isTag } from "@ext/pdfExport/utils/isTag";
-import { JSONContent } from "@tiptap/core";
-import { TableRow } from "./types";
+import type { JSONContent } from "@tiptap/core";
+import type { TableRow } from "./types";
 
 export const parseRow = async (
 	row: Tag | JSONContent,

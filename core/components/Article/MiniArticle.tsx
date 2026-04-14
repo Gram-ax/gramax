@@ -92,20 +92,19 @@ export const MinimizedArticleStyled = styled(MinimizedArticle)`
 export type MiniArticleProps = {
 	title: string;
 	content: RenderableTreeNodes;
-	className?: string;
 };
 
-const MiniArticle = ({ title, content, className }: MiniArticleProps) => {
+const MiniArticle = ({ title, content }: MiniArticleProps) => {
 	const renderedContent = useMemo(() => Renderer(content, { components: getComponents() }), [content]);
 	return (
-		<div className={classNames("article", {}, ["tooltip-size", className])}>
+		<>
 			<Header className={classNames("article-title", {}, ["link-popup-title"])} copyLinkIcon={false} level={1}>
 				{title}
 			</Header>
 			<MinimizedArticleStyled>
 				<div className={classNames("article-body", {}, ["popup-article"])}>{renderedContent}</div>
 			</MinimizedArticleStyled>
-		</div>
+		</>
 	);
 };
 

@@ -1,5 +1,5 @@
 import GitDiffItemAliasApplier from "@ext/git/core/GitDiffItemCreator/GitDiffItemAliasApplier";
-import { DiffFile } from "@ext/VersionControl/model/Diff";
+import type { DiffFile } from "@ext/VersionControl/model/Diff";
 
 type TestDiffFile = Pick<DiffFile, "filePath" | "title">;
 

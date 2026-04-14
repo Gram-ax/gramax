@@ -1,7 +1,7 @@
 import { Badge } from "@ui-kit/Badge";
 import { Button } from "@ui-kit/Button";
+import { Icon } from "@ui-kit/Icon";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Plus } from "lucide-react";
 import type { LgtRule, LlmRule } from "../StyleGuideComponent";
 
 export type BadgeInfo = { status: "default" | "success" | "error"; label: string };
@@ -48,7 +48,7 @@ export const StyleGuideHeader = ({ title, onAdd, testCases }: StyleGuideHeaderPr
 				<Tooltip>
 					<TooltipTrigger asChild>
 						<Button disabled={!onAdd} onClick={onAdd} size="xs" variant="ghost">
-							<Plus />
+							<Icon icon="plus" size="md" />
 						</Button>
 					</TooltipTrigger>
 					<TooltipContent>Добавить {title} правило</TooltipContent>

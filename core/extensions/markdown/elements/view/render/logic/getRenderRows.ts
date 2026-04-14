@@ -1,7 +1,7 @@
 import getCountArticles from "@ext/markdown/elements/view/render/logic/getCountArticles";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
-import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
-import { TableCell, TableRow } from "@ext/properties/models/table";
+import { type Property, PropertyTypes, type ViewRenderGroup } from "@ext/properties/models";
+import type { TableCell, TableRow } from "@ext/properties/models/table";
 
 const getWidth = (property: Property) => {
 	if (property.type === PropertyTypes.blockMd) return "20em";

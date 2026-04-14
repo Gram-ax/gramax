@@ -1,5 +1,5 @@
-import ContextService from "@core-ui/ContextServices/ContextService";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useState } from "react";
+import type ContextService from "@core-ui/ContextServices/ContextService";
+import { createContext, type Dispatch, type ReactElement, type SetStateAction, useContext, useState } from "react";
 
 const IsOpenModalContext = createContext<boolean>(undefined);
 

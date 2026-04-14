@@ -9,7 +9,7 @@ import {
 	getStandardCaseByLower,
 } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
 import StyledCodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/StyledCodeBlock";
-import { Editor, NodeViewProps } from "@tiptap/core";
+import type { Editor, NodeViewProps } from "@tiptap/core";
 import { NodeViewContent } from "@tiptap/react";
 import { useLayoutEffect, useRef, useState } from "react";
 

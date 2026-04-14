@@ -10,7 +10,7 @@ interface SelectTargetWorkspace {
 
 const SelectTargetWorkspace = ({ onClick: onSelect, excludeCurrent = true }: SelectTargetWorkspace) => {
 	const currentWorkspace = WorkspaceService.current();
-	const allWorkspaces = WorkspaceService.workspaces();
+	const allWorkspaces = WorkspaceService.workspaces().filter((w) => !w.enterprise?.gesUrl);
 
 	const workspaces =
 		excludeCurrent && currentWorkspace

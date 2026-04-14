@@ -8,7 +8,7 @@ import { CustomDragLayer } from "@ext/markdown/elements/view/render/components/D
 import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
-import { Property, ViewRenderGroup } from "@ext/properties/models";
+import type { Property, ViewRenderGroup } from "@ext/properties/models";
 import { useCallback, useState } from "react";
 import { DndProvider } from "react-dnd";
 

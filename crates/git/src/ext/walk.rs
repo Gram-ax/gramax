@@ -149,17 +149,19 @@ impl<C: Creds> Walk for Repo<'_, C> {
 		let bad_objects = RefCell::new(Vec::new());
 		let visited_objects = RefCell::new(IndexSet::new());
 
-		for submodule in self.0.submodules()? {
-			if let Some(head_id) = submodule.head_id() {
-				visited_objects.borrow_mut().insert(dbg!(head_id));
-			}
+		if !self.0.is_bare() {
+			for submodule in self.0.submodules()? {
+				if let Some(head_id) = submodule.head_id() {
+					visited_objects.borrow_mut().insert(head_id);
+				}
 
-			if let Some(index_id) = submodule.index_id() {
-				visited_objects.borrow_mut().insert(dbg!(index_id));
-			}
+				if let Some(index_id) = submodule.index_id() {
+					visited_objects.borrow_mut().insert(index_id);
+				}
 
-			if let Some(workdir_id) = submodule.workdir_id() {
-				visited_objects.borrow_mut().insert(workdir_id);
+				if let Some(workdir_id) = submodule.workdir_id() {
+					visited_objects.borrow_mut().insert(workdir_id);
+				}
 			}
 		}
 

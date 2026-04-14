@@ -1,7 +1,7 @@
 import "@core/utils/asyncUtils"; // Import for extending Array.prototype
-import { AstComment } from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
-import CommentsDiff, { HaveDiffFunction } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
-import { Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
+import type { AstComment } from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
+import CommentsDiff, { type HaveDiffFunction } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
+import type { Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 describe("CommentsDiff", () => {

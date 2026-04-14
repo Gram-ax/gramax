@@ -1,5 +1,6 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { type Dispatch, type ReactElement, type SetStateAction, useState } from "react";
+import { type Dispatch, type ReactElement, type SetStateAction, Suspense, useState } from "react";
 import getModalComponentToRender from "./logic/getModalComponentToRender";
 import type ModalToOpen from "./model/ModalsToOpen";
 
@@ -31,7 +32,11 @@ export default abstract class ModalToOpenService {
 				{children}
 				{modalStack.map((entry) => {
 					const Component = getModalComponentToRender[entry.modalType];
-					return Component ? <Component key={entry.id} {...entry.args} /> : null;
+					return Component ? (
+						<Suspense fallback={<div>Loading...</div>} key={entry.id}>
+							<Component {...entry.args} />
+						</Suspense>
+					) : null;
 				})}
 			</>
 		);

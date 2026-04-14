@@ -1,14 +1,10 @@
-/**
- * @jest-environment node
- */
-
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const path = (path: string) => new Path(path);
@@ -42,9 +38,11 @@ describe("GitCommands", () => {
 		await GitVersionControl.init(dfp, path("testRep"), mockUserData);
 		git = new GitCommands(dfp, path("testRep"));
 		const testFile = await writeFile("testFile", "testFile content");
-		await git.add([testFile]), await git.commit("init", mockUserData);
+		await git.add([testFile]);
+		await git.commit("init", mockUserData);
 		const file = await writeFile("1.txt", "1.txt content\nline 2\nline 3");
-		await git.add([file]), await git.commit("init", mockUserData);
+		await git.add([file]);
+		await git.commit("init", mockUserData);
 
 		await git.createNewBranch("A");
 		await git.createNewBranch("B");
@@ -60,11 +58,13 @@ describe("GitCommands", () => {
 		describe("Модификация и", () => {
 			test("модификация", async () => {
 				const fileA = await writeFile("1.txt", "content B\nline 2\nline 3");
-				await git.add([fileA]), await git.commit("", mockUserData);
+				await git.add([fileA]);
+				await git.commit("", mockUserData);
 
 				await git.checkout(mockGitSourceData, "A");
 				const fileB = await writeFile("1.txt", "content A\nline 2\nline 3");
-				await git.add([fileB]), await git.commit("", mockUserData);
+				await git.add([fileB]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -76,11 +76,13 @@ describe("GitCommands", () => {
 			describe("удаление", () => {
 				test("файл удален в ветке A и модифицирован в ветке B ", async () => {
 					const fileA = await writeFile("1.txt", "content B\nline 2\nline 3");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					await git.checkout(mockGitSourceData, "A");
 					await dfp.delete(repPath("1.txt"));
-					await git.add([path("1.txt")]), await git.commit("", mockUserData);
+					await git.add([path("1.txt")]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -89,11 +91,13 @@ describe("GitCommands", () => {
 				});
 				test("файл удален в ветке B и модифицирован в ветке A ", async () => {
 					await dfp.delete(repPath("1.txt"));
-					await git.add([path("1.txt")]), await git.commit("", mockUserData);
+					await git.add([path("1.txt")]);
+					await git.commit("", mockUserData);
 
 					await git.checkout(mockGitSourceData, "A");
 					const fileA = await writeFile("1.txt", "content A\nline 2\nline 3");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -105,11 +109,13 @@ describe("GitCommands", () => {
 				test("файл модифицирован в ветке A и переименован с модификацией в ветке B", async () => {
 					await dfp.move(repPath("1.txt"), repPath("2.txt"));
 					await writeFile("2.txt", "content B\nline 2\nline 3");
-					await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+					await git.add([path("1.txt"), path("2.txt")]);
+					await git.commit("", mockUserData);
 
 					await git.checkout(mockGitSourceData, "A");
 					const fileA = await writeFile("1.txt", "content A\nline2\nline3");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -118,12 +124,14 @@ describe("GitCommands", () => {
 				});
 				test("файл модифицирован в ветке B и переименован с модификацией в ветке A", async () => {
 					const fileA = await writeFile("1.txt", "content B\nline2\nline3");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					await git.checkout(mockGitSourceData, "A");
 					await dfp.move(repPath("1.txt"), repPath("2.txt"));
 					await writeFile("2.txt", "content A\nline 2\nline 3");
-					await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+					await git.add([path("1.txt"), path("2.txt")]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -136,11 +144,13 @@ describe("GitCommands", () => {
 		describe("Удаление и переименование", () => {
 			test("файл удален в ветке A и переименован в ветке B", async () => {
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				await git.checkout(mockGitSourceData, "A");
 				await dfp.delete(repPath("1.txt"));
-				await git.add([path("1.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -151,11 +161,13 @@ describe("GitCommands", () => {
 			});
 			test("файл удален в ветке B и переименован в ветке A", async () => {
 				await dfp.delete(repPath("1.txt"));
-				await git.add([path("1.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt")]);
+				await git.commit("", mockUserData);
 
 				await git.checkout(mockGitSourceData, "A");
 				await dfp.move(repPath("1.txt"), repPath("1_moved.txt"));
-				await git.add([path("1.txt"), path("1_moved.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("1_moved.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -170,11 +182,13 @@ describe("GitCommands", () => {
 			describe("добавление", () => {
 				test("котент совпадает больше 50%", async () => {
 					const fileB = await writeFile("2.txt", "content B\nline 2\nline 3");
-					await git.add([fileB]), await git.commit("", mockUserData);
+					await git.add([fileB]);
+					await git.commit("", mockUserData);
 
 					await git.checkout(mockGitSourceData, "A");
 					const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -185,11 +199,13 @@ describe("GitCommands", () => {
 				});
 				test("котент совпадает меньше 50%", async () => {
 					const fileB = await writeFile("2.txt", "content B\nline 2 B\nline 3 B");
-					await git.add([fileB]), await git.commit("", mockUserData);
+					await git.add([fileB]);
+					await git.commit("", mockUserData);
 
 					await git.checkout(mockGitSourceData, "A");
 					const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-					await git.add([fileA]), await git.commit("", mockUserData);
+					await git.add([fileA]);
+					await git.commit("", mockUserData);
 
 					const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -203,11 +219,13 @@ describe("GitCommands", () => {
 				describe("контент совпадает больше 50%", () => {
 					test("файл добавлен в ветке A и переименован в ветке B", async () => {
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						await git.checkout(mockGitSourceData, "A");
 						const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 						expect(conflictFiles).toContainEqual({ ancestor: null, ours: "2.txt", theirs: "2.txt" });
@@ -220,11 +238,13 @@ describe("GitCommands", () => {
 					});
 					test("файл добавлен в ветке B и переименован в ветке A", async () => {
 						const fileB = await writeFile("2.txt", "content B\nline 2\nline 3");
-						await git.add([fileB]), await git.commit("", mockUserData);
+						await git.add([fileB]);
+						await git.commit("", mockUserData);
 
 						await git.checkout(mockGitSourceData, "A");
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -240,11 +260,13 @@ describe("GitCommands", () => {
 				describe("контент совпадает меньше 50%", () => {
 					test("файл добавлен в ветке A и переименован в ветке B", async () => {
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						await git.checkout(mockGitSourceData, "A");
 						const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -258,11 +280,13 @@ describe("GitCommands", () => {
 					});
 					test("файл добавлен в ветке B и переименован в ветке A", async () => {
 						const fileB = await writeFile("2.txt", "content B\nline 2 B\nline 3 B");
-						await git.add([fileB]), await git.commit("", mockUserData);
+						await git.add([fileB]);
+						await git.commit("", mockUserData);
 
 						await git.checkout(mockGitSourceData, "A");
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -281,11 +305,13 @@ describe("GitCommands", () => {
 					test("файл добавлен в ветке A и переименован с модификацией в ветке B", async () => {
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
 						await writeFile("2.txt", "content B\nline 2\nline 3");
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						await git.checkout(mockGitSourceData, "A");
 						const fileA = await writeFile("2.txt", "content A\nline 2\nline 3");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -298,12 +324,14 @@ describe("GitCommands", () => {
 					});
 					test("файл добавлен в ветке B и переименован с модификацией в ветке A", async () => {
 						const fileB = await writeFile("2.txt", "content B\nline 2\nline 3");
-						await git.add([fileB]), await git.commit("", mockUserData);
+						await git.add([fileB]);
+						await git.commit("", mockUserData);
 
 						await git.checkout(mockGitSourceData, "A");
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
 						await writeFile("2.txt", "content A\nline 2\nline 3");
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -319,11 +347,13 @@ describe("GitCommands", () => {
 					test("файл добавлен в ветке A и переименован с модификацией в ветке B", async () => {
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
 						await writeFile("2.txt", "content B\nline 2 B\nline 3 B");
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						await git.checkout(mockGitSourceData, "A");
 						const fileA = await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-						await git.add([fileA]), await git.commit("", mockUserData);
+						await git.add([fileA]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -336,12 +366,14 @@ describe("GitCommands", () => {
 					});
 					test("файл добавлен в ветке B и переименован с модификацией в ветке A", async () => {
 						const fileB = await writeFile("2.txt", "content B\nline 2 B\nline 3 B");
-						await git.add([fileB]), await git.commit("", mockUserData);
+						await git.add([fileB]);
+						await git.commit("", mockUserData);
 
 						await git.checkout(mockGitSourceData, "A");
 						await dfp.move(repPath("1.txt"), repPath("2.txt"));
 						await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-						await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+						await git.add([path("1.txt"), path("2.txt")]);
+						await git.commit("", mockUserData);
 
 						const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -359,11 +391,13 @@ describe("GitCommands", () => {
 		describe("Переименование и", () => {
 			test("переименование в разные файлы", async () => {
 				await dfp.move(repPath("1.txt"), repPath("2_B.txt"));
-				await git.add([path("1.txt"), path("2_B.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2_B.txt")]);
+				await git.commit("", mockUserData);
 
 				await git.checkout(mockGitSourceData, "A");
 				await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
-				await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2_A.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -377,11 +411,13 @@ describe("GitCommands", () => {
 						test("файл переименван в ветке A и переименован с модификацией в ветке B", async () => {
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
 							await writeFile("2.txt", "content B\nline 2\nline 3");
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							await git.checkout(mockGitSourceData, "A");
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -395,12 +431,14 @@ describe("GitCommands", () => {
 						});
 						test("файл переименван в ветке B и переименован с модификацией в ветке A", async () => {
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							await git.checkout(mockGitSourceData, "A");
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
 							await writeFile("2.txt", "content A\nline 2\nline 3");
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -417,11 +455,13 @@ describe("GitCommands", () => {
 						test("файл переименван в ветке A и переименован с модификацией в ветке B", async () => {
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
 							await writeFile("2.txt", "content B\nline 2 B\nline 3 B");
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							await git.checkout(mockGitSourceData, "A");
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -435,12 +475,14 @@ describe("GitCommands", () => {
 						});
 						test("файл переименован в ветке B и переименован с модификацией в ветке A", async () => {
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							await git.checkout(mockGitSourceData, "A");
 							await dfp.move(repPath("1.txt"), repPath("2.txt"));
 							await writeFile("2.txt", "content A\nline 2 A\nline 3 A");
-							await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -459,11 +501,13 @@ describe("GitCommands", () => {
 						test("файл переименован в ветке A и переименован с модификацией в ветке B", async () => {
 							await dfp.move(repPath("1.txt"), repPath("2_B.txt"));
 							await writeFile("2_B.txt", "content B\nline 2\nline 3\n");
-							await git.add([path("1.txt"), path("2_B.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_B.txt")]);
+							await git.commit("", mockUserData);
 
 							await git.checkout(mockGitSourceData, "A");
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
-							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_A.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -475,12 +519,14 @@ describe("GitCommands", () => {
 						});
 						test("файл переименован в ветке B и переименован с модификацией в ветке A", async () => {
 							await dfp.move(repPath("1.txt"), repPath("2_B.txt"));
-							await git.add([path("1.txt"), path("2_B.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_B.txt")]);
+							await git.commit("", mockUserData);
 
 							await git.checkout(mockGitSourceData, "A");
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
 							await writeFile("2_A.txt", "content A\nline 2\nline 3\n");
-							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_A.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -495,11 +541,13 @@ describe("GitCommands", () => {
 						test("файл переименован в ветке A и переименован с модификацией в ветке B", async () => {
 							await dfp.move(repPath("1.txt"), repPath("2_B.txt"));
 							await writeFile("2_B.txt", "content B\nline 2 B\nline 3 B\n");
-							await git.add([path("1.txt"), path("2_B.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_B.txt")]);
+							await git.commit("", mockUserData);
 
 							await git.checkout(mockGitSourceData, "A");
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
-							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_A.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -511,12 +559,14 @@ describe("GitCommands", () => {
 						});
 						test("файл переименован в ветке B и переименован с модификацией в ветке A", async () => {
 							await dfp.move(repPath("1.txt"), repPath("2_B.txt"));
-							await git.add([path("1.txt"), path("2_B.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_B.txt")]);
+							await git.commit("", mockUserData);
 
 							await git.checkout(mockGitSourceData, "A");
 							await dfp.move(repPath("1.txt"), repPath("2_A.txt"));
 							await writeFile("2_A.txt", "content A\nline 2 A\nline 3 A\n");
-							await git.add([path("1.txt"), path("2_A.txt")]), await git.commit("", mockUserData);
+							await git.add([path("1.txt"), path("2_A.txt")]);
+							await git.commit("", mockUserData);
 
 							const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -535,12 +585,14 @@ describe("GitCommands", () => {
 			test("контент совпадает больше 50%", async () => {
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
 				await writeFile("2.txt", "content B\nline 2\nline 3");
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				await git.checkout(mockGitSourceData, "A");
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
 				await writeFile("2.txt", "content A\nline 2\nline 3");
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -554,12 +606,14 @@ describe("GitCommands", () => {
 			test("контент совпадает меньше 50%", async () => {
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
 				await writeFile("2.txt", "content B\nline 2 B\nline 3 B\nline 4");
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				await git.checkout(mockGitSourceData, "A");
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
 				await writeFile("2.txt", "content A\nline 2 A\nline 3 A\nline 4");
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -576,11 +630,13 @@ describe("GitCommands", () => {
 		describe("Добавление и переименование, контент совпадает", () => {
 			test("файл добавлен в ветке A и переименован в ветке B", async () => {
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				await git.checkout(mockGitSourceData, "A");
 				const fileA = await writeFile("2.txt", "1.txt content\nline 2\nline 3");
-				await git.add([fileA]), await git.commit("", mockUserData);
+				await git.add([fileA]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 
@@ -588,11 +644,13 @@ describe("GitCommands", () => {
 			});
 			test("файл добавлен в ветке B и переименован в ветке A", async () => {
 				const fileB = await writeFile("2.txt", "1.txt content\nline 2\nline 3");
-				await git.add([fileB]), await git.commit("", mockUserData);
+				await git.add([fileB]);
+				await git.commit("", mockUserData);
 
 				await git.checkout(mockGitSourceData, "A");
 				await dfp.move(repPath("1.txt"), repPath("2.txt"));
-				await git.add([path("1.txt"), path("2.txt")]), await git.commit("", mockUserData);
+				await git.add([path("1.txt"), path("2.txt")]);
+				await git.commit("", mockUserData);
 
 				const conflictFiles = await git.merge(mockGitSourceData, { theirs: "B" });
 

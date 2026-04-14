@@ -1,10 +1,10 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
-import { QuizTestCreate } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
+import type Context from "@core/Context/Context";
+import type { QuizTestCreate } from "@ext/enterprise/components/admin/settings/quiz/types/QuizComponentTypes";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
-import { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
+import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 const addTest: Command<{ ctx: Context; workspaceId: WorkspacePath; test: QuizTestCreate }, boolean> = Command.create({
 	path: "enterprise/quiz/test/add",

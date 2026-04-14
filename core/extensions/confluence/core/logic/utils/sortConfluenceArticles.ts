@@ -1,4 +1,4 @@
-import { ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
+import type { ConfluenceArticleTree } from "@ext/confluence/core/model/ConfluenceArticle";
 
 const latinCollator = new Intl.Collator("en", { sensitivity: "base" });
 const cyrillicCollator = new Intl.Collator("ru", { sensitivity: "base" });

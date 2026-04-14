@@ -1,6 +1,6 @@
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 import { createContext, useContext, useLayoutEffect, useState } from "react";
 
 export const GroupsServiceContext = createContext<CatalogLink[]>([]);

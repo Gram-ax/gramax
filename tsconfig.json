@@ -84,6 +84,7 @@
 		"apps/tauri/src-tauri",
 		"gx",
 		"**/build",
-		"apps/next/tsconfig.json"
+		"apps/next/tsconfig.json",
+		"apps/docportal/tsconfig.json"
 	]
 }

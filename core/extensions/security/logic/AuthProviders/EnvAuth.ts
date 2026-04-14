@@ -1,12 +1,14 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import localUser from "@ext/security/logic/User/localUser";
+import AllPermission from "@ext/security/logic/Permission/AllPermission";
+import AllPermissionMap from "@ext/security/logic/PermissionMap/AllPermissionMap";
+import localUserInfo from "@ext/security/logic/User/localUserInfo";
 import type ApiRequest from "../../../../logic/Api/ApiRequest";
 import type ApiResponse from "../../../../logic/Api/ApiResponse";
 import { apiUtils } from "../../../../logic/Api/apiUtils";
 import type Path from "../../../../logic/FileProvider/Path/Path";
 import ApiUrlCreator from "../../../../ui-logic/ApiServices/ApiUrlCreator";
 import type Cookie from "../../../cookie/Cookie";
-import type User from "../User/User";
+import User from "../User/User";
 import type { AuthProvider } from "./AuthProvider";
 
 class EnvAuth implements AuthProvider {
@@ -42,7 +44,10 @@ class EnvAuth implements AuthProvider {
 			return;
 		}
 
-		await setUser(cookie, localUser);
+		await setUser(
+			cookie,
+			new User(true, localUserInfo, new AllPermission(), new AllPermissionMap(), new AllPermissionMap()),
+		);
 		res.send({});
 	}
 

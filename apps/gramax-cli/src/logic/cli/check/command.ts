@@ -1,5 +1,5 @@
-import { Command } from "commander";
-import { addOptionsToCommand, OptionProps } from "../build/command";
+import type { Command } from "commander";
+import { addOptionsToCommand, type OptionProps } from "../build/command";
 
 export interface CheckOptions {
 	destination: string;

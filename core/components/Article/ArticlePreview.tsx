@@ -43,7 +43,9 @@ const ArticlePreview = ({ logicPath, className }: ArticlePreviewProps) => {
 			<ApiUrlCreatorService.Provider value={newApiUrlCreator}>
 				<ResourceService.Provider>
 					<ArticleTooltipService.Provider>
-						<MiniArticle content={data.content} title={data.title} />
+						<div className="article tooltip-size">
+							<MiniArticle content={data.content} title={data.title} />
+						</div>
 					</ArticleTooltipService.Provider>
 				</ResourceService.Provider>
 			</ApiUrlCreatorService.Provider>

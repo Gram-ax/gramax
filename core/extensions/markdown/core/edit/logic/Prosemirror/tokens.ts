@@ -34,8 +34,8 @@ import drawioToken from "../../../../elements/drawio/edit/model/drawioToken";
 import imageToken from "../../../../elements/image/edit/model/imageToken";
 import linkToken from "../../../../elements/link/edit/model/linkToken";
 import video from "../../../../elements/video/edit/model/videoToken";
-import PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
-import { ParseSpec } from "./from_markdown";
+import type PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
+import type { ParseSpec } from "./from_markdown";
 import tokensModifier from "./tokensModifier";
 
 function listIsTight(tokens, i) {

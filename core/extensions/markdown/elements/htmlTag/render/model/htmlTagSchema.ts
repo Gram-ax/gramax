@@ -1,5 +1,5 @@
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
-import { NodeSpec } from "@tiptap/pm/model";
+import type { NodeSpec } from "@tiptap/pm/model";
 
 const htmlTagSchema = {
 	attrs: {

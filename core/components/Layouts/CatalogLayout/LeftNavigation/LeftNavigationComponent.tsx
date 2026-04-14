@@ -5,7 +5,7 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import LeftNavigationBottom from "./LeftNavigationBottom";
 import LeftNavigationLayout from "./LeftNavigationLayout";
 import LeftNavigationTop from "./LeftNavigationTop";
@@ -54,7 +54,7 @@ const LeftNavigationComponent = ({
 		<div
 			onMouseEnter={() => (isLeftNavHover.current = true)}
 			onMouseLeave={() => (isLeftNavHover.current = false)}
-			style={{ width: "fit-content" }}
+			style={{ width: isPin ? "var(--left-nav-width)" : "fit-content" }}
 		>
 			<LeftNavigationLayout
 				isOpen={isOpen}

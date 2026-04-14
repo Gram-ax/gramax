@@ -1,6 +1,6 @@
 import { WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { parseListContinuationBookmark, parseListContinuationCaption } from "@ext/wordExport/utils/listContinuation";
-import { ListLevelIndent, TemplateStylesInfo } from "./types";
+import type { ListLevelIndent, TemplateStylesInfo } from "./types";
 
 export type ListLevelFormat = {
 	indent?: ListLevelIndent;

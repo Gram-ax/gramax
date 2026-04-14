@@ -1,9 +1,9 @@
-import { SettingsTab } from "@ext/catalog/actions/propsEditor/components/Sections";
+import type { SettingsTab } from "@ext/catalog/actions/propsEditor/components/Sections";
 import { EditAppearanceProps } from "@ext/catalog/actions/propsEditor/components/Sections/Appearance";
-import { BasicProps, EditBasicProps } from "@ext/catalog/actions/propsEditor/components/Sections/Basic";
+import { type BasicProps, EditBasicProps } from "@ext/catalog/actions/propsEditor/components/Sections/Basic";
 import { EditIconsProps } from "@ext/catalog/actions/propsEditor/components/Sections/Icons";
-import { FormData, FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
-import { UseFormReturn } from "react-hook-form";
+import type { FormData, FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
+import type { UseFormReturn } from "react-hook-form";
 import { EditLfsProps } from "./Lfs";
 
 interface SectionComponentProps {

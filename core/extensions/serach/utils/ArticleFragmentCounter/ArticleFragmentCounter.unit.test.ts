@@ -1,4 +1,4 @@
-import { ArticleFragmentCounter, SearchFragmentInfo } from "./ArticleFragmentCounter";
+import { ArticleFragmentCounter, type SearchFragmentInfo } from "./ArticleFragmentCounter";
 
 describe("ArticleFragmentCounter", () => {
 	it("should return link info for multiple calls with same text fragment", () => {

@@ -1,6 +1,6 @@
 import type { ResourceParseFormat } from "@ext/serach/modulith/resourceParse/ResourceParseClient";
 import type { SimpleError } from "@ext/serach/modulith/utils/SimpleError";
-import type { ArticleItem } from "@ics/gx-vector-search";
+import type { ArticleItem } from "@ics/modulith-search-domain/article";
 import type { Buffer } from "buffer";
 
 export type ResourceParseWorkerInMessage = ResourceParseParseResourceInMessage;

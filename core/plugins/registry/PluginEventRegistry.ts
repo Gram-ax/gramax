@@ -1,6 +1,6 @@
-import { EventEmitter, EventPlaceholder, UnsubscribeToken } from "@core/Event/EventEmitter";
+import { EventEmitter, type EventPlaceholder, type UnsubscribeToken } from "@core/Event/EventEmitter";
 import type { PluginEventMap } from "@gramax/sdk/events";
-import { EventRegistryInterface } from "@plugins/types";
+import type { EventRegistryInterface } from "@plugins/types";
 
 type PluginEvent = PluginEventMap extends EventPlaceholder ? PluginEventMap : EventPlaceholder;
 

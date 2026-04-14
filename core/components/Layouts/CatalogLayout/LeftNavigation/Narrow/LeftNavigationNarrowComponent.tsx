@@ -1,7 +1,7 @@
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import LeftNavViewContentContainer from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContainer";
 import { useCallback } from "react";
-import { ArticlePageData } from "../../../../../logic/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "../../../../../logic/SitePresenter/SitePresenter";
 import LeftNavigationBottom from "../LeftNavigationBottom";
 import LeftNavigationTop from "../LeftNavigationTop";
 import LeftNavigationNarrowLayout from "./LeftNavigationNarrowLayout";

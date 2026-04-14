@@ -19,6 +19,7 @@ export interface CreateModulithServiceArgs {
 	localClient: ModulithSearchClient;
 	remoteClient?: RemoteModulithSearchClient;
 	immediateIndexing?: boolean;
+	diagramRendererServerUrl?: string;
 }
 
 export async function createModulithService({
@@ -29,8 +30,15 @@ export async function createModulithService({
 	localClient,
 	remoteClient,
 	immediateIndexing,
+	diagramRendererServerUrl,
 }: CreateModulithServiceArgs): Promise<ModulithService> {
-	const sap = new SearchArticleParser(parser, parserContextFactory, resourceParseClient);
+	const sap = new SearchArticleParser({
+		parser,
+		parserContextFactory,
+		resourceParseClient,
+		diagramRendererServerUrl,
+		remoteVersion: remoteClient?.version,
+	});
 	const service = new ModulithService({
 		localClient,
 		remoteClient,

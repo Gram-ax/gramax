@@ -1,5 +1,5 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
-import { JSONContent } from "@tiptap/core";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type { JSONContent } from "@tiptap/core";
 
 const embed: NotionNodeConverter = (embedNode) => {
 	const text = embedNode?.[embedNode.type]?.caption?.[0]?.text?.content;

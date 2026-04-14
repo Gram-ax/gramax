@@ -1,14 +1,14 @@
-import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
-import { WorkspaceSettings } from "../../types/WorkspaceComponent";
+import type { WorkspaceSettings } from "../../types/WorkspaceComponent";
 import { RepositoryToolbarAddBtn } from "./components/RepositoriesToolbarAddBtn";
 import { repositoriesTableColumns } from "./config/RepositoriesTableConfig";
-import { Repository } from "./types/RepositoriesTypes";
+import type { Repository } from "./types/RepositoriesTypes";
 
 interface WorkspaceRepositoriesProps {
 	localSettings: WorkspaceSettings;
@@ -39,6 +39,7 @@ export function WorkspaceRepositories({
 		},
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: delete button wont appear without this
 	const selectedCount = useMemo(() => table.getFilteredSelectedRowModel().rows.length, [table, rowSelection]);
 
 	const handleFilterChange = useCallback(
@@ -50,7 +51,7 @@ export function WorkspaceRepositories({
 
 	const handleDeleteSelectedRepos = useCallback(() => {
 		const selectedRows = table.getFilteredSelectedRowModel().rows;
-		const selectedRepositoryIds = selectedRows.map((row: any) => row.original.id);
+		const selectedRepositoryIds = selectedRows.map((row) => row.original.id);
 
 		setLocalSettings((prev) => ({
 			...prev,
@@ -89,9 +90,9 @@ export function WorkspaceRepositories({
 						/>
 					}
 				>
-					<AlertDeleteDialog
+					<DeleteSelectedButton
 						hidden={!selectedCount}
-						onConfirm={handleDeleteSelectedRepos}
+						onClick={handleDeleteSelectedRepos}
 						selectedCount={selectedCount}
 					/>
 					<RepositoryToolbarAddBtn

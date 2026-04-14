@@ -1,10 +1,10 @@
-import MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
+import type MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import { classNames } from "@components/libs/classNames";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import { ComponentProps, forwardRef, MutableRefObject } from "react";
+import { type ComponentProps, forwardRef, type MutableRefObject } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 
 interface DiagramProps {
@@ -38,7 +38,6 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 				justifyContent: "center",
 				backgroundColor: diagramName === DiagramType.mermaid ? "var(--color-diagram-bg)" : "transparent",
 				borderRadius: "var(--radius-large)",
-				width: diagramName === DiagramType.mermaid ? "30em" : "fit-content",
 			},
 			onClose: () => {
 				ModalToOpenService.resetValue();

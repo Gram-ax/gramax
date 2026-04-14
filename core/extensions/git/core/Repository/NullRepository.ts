@@ -1,6 +1,6 @@
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
-import Repository, { SyncResult } from "@ext/git/core/Repository/Repository";
+import Repository, { type SyncResult } from "@ext/git/core/Repository/Repository";
 import type RepositoryStateProvider from "@ext/git/core/Repository/state/RepositoryState";
 
 export default class NullRepository extends Repository {

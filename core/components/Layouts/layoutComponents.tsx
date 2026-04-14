@@ -1,7 +1,7 @@
 import ButtonLink from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
-import { TitledLink } from "@ext/navigation/NavigationLinks";
-import { Fragment, ReactNode } from "react";
+import type { TitledLink } from "@ext/navigation/NavigationLinks";
+import { Fragment, type ReactNode } from "react";
 import Divider from "../Atoms/Divider";
 
 interface RenderTitledLinks {

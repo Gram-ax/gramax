@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { Icon as UiKitIcon } from "ics-ui-kit/components/icon";
 import { forwardRef } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitIconProps = ExtractComponentGeneric<typeof UiKitIcon>;
 

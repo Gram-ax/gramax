@@ -1,5 +1,6 @@
 export {
 	LfsPointerError,
+	ResourceEmptyError,
 	ResourceError,
 	ResourceLoadError,
 	ResourceNotFoundError,

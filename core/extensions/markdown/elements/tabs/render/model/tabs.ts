@@ -1,4 +1,4 @@
-import { CustomAttributeType, Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
+import { type CustomAttributeType, type Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
 
 export const tabs: Schema = {
 	render: "tabs",

@@ -1,5 +1,5 @@
-import SideBarData from "@ext/git/actions/Publish/model/SideBarData";
-import SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
+import type SideBarData from "@ext/git/actions/Publish/model/SideBarData";
+import type SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
 
 export interface SideBarElementData {
 	idx: number;

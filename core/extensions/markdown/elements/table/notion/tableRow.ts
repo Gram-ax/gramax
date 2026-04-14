@@ -1,4 +1,4 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const tableRow: NotionNodeConverter = (tableRowNode) => {
 	const cells = tableRowNode.table_row?.cells.map((cell, index) => ({

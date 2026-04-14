@@ -22,15 +22,16 @@ interface LogoUploaderProps {
 }
 
 const ALLOWED_SVG = ["image/svg+xml"];
-const ALLOWED_PNG_SVG = ["image/svg+xml", "image/png"];
+const ALLOWED_PNG_SVG = ["image/svg+xml", "image/png", "image/webp"];
 const getAllowedTypes = (svgOnly?: boolean) => (svgOnly ? ALLOWED_SVG : ALLOWED_PNG_SVG);
+
+const validateFile = (file: File, svgOnly?: boolean) => {
+	if (!getAllowedTypes(svgOnly).includes(file.type)) return "workspace.invalid-logo-format-body";
+	if (file.size > MAX_ICON_SIZE) return "workspace.logo-size-exceeded";
+};
 
 const useLogoUploader = (props: Pick<LogoUploaderProps, "svgOnly" | "updateResource" | "onError" | "onChange">) => {
 	const { svgOnly, updateResource, onError, onChange } = props;
-	const validateFile = (file: File, svgOnly?: boolean) => {
-		if (!getAllowedTypes(svgOnly).includes(file.type as any)) return "workspace.invalid-logo-format-body";
-		if (file.size > MAX_ICON_SIZE) return "workspace.logo-size-exceeded";
-	};
 
 	const handleUpload = useCallback(
 		(file: File) => {
@@ -91,7 +92,7 @@ const LogoUploaderComponent = memo((props: LogoUploaderProps) => {
 	return (
 		<Wrapper className={className}>
 			<FileInput
-				accept={svgOnly ? "image/svg+xml" : "image/svg+xml, image/png"}
+				accept={svgOnly ? "image/svg+xml" : "image/svg+xml, image/png, image/webp"}
 				chooseButtonText={t("file-input.select-file")}
 				className="overflow-hidden"
 				defaultValue={defaultFileInfo as FileValue}

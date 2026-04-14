@@ -1,7 +1,7 @@
 import {
-	MouseEvent as ReactMouseEvent,
-	PointerEvent as ReactPointerEvent,
-	TouchEvent as ReactTouchEvent,
+	type MouseEvent as ReactMouseEvent,
+	type PointerEvent as ReactPointerEvent,
+	type TouchEvent as ReactTouchEvent,
 	useCallback,
 	useRef,
 } from "react";
@@ -10,6 +10,7 @@ interface TouchHandlerConfig {
 	onStart?: (clientX: number, clientY: number) => void;
 	onMove: (deltaX: number, deltaY: number, clientX: number, clientY: number) => void;
 	onEnd?: () => void;
+	onPinch?: (deltaDistance: number, centerX: number, centerY: number) => void;
 	preventDefault?: boolean;
 	stopPropagation?: boolean;
 	capturePointer?: boolean;
@@ -39,9 +40,19 @@ interface TouchHandlers {
 }
 
 export const useTouchHandler = (config: TouchHandlerConfig): TouchHandlers => {
-	const { onStart, onMove, onEnd, preventDefault = true, stopPropagation = true, capturePointer = true } = config;
+	const {
+		onStart,
+		onMove,
+		onEnd,
+		onPinch,
+		preventDefault = true,
+		stopPropagation = true,
+		capturePointer = true,
+	} = config;
 
 	const isTouchingRef = useRef(false);
+	const isPinchingRef = useRef(false);
+	const lastPinchDistanceRef = useRef<number>(null);
 	const initialPositionRef = useRef<{ x: number; y: number }>(null);
 	const capturedElementRef = useRef<HTMLElement>(null);
 	const capturedPointerIdRef = useRef<number>(null);
@@ -81,10 +92,12 @@ export const useTouchHandler = (config: TouchHandlerConfig): TouchHandlers => {
 				if (capturedPointerIdRef.current !== null && capturedElementRef.current) {
 					try {
 						capturedElementRef.current.releasePointerCapture(capturedPointerIdRef.current);
-					} catch (e) {}
+					} catch {}
 				}
 
 				isTouchingRef.current = false;
+				isPinchingRef.current = false;
+				lastPinchDistanceRef.current = null;
 				initialPositionRef.current = null;
 				capturedElementRef.current = null;
 				capturedPointerIdRef.current = null;
@@ -108,10 +121,25 @@ export const useTouchHandler = (config: TouchHandlerConfig): TouchHandlers => {
 				if (preventDefault && e.cancelable) e.preventDefault();
 
 				if (e.touches.length === 1) {
+					if (isPinchingRef.current) return;
 					handleMove(e.touches[0].clientX, e.touches[0].clientY);
 				} else if (e.touches.length === 2) {
 					const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
 					const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+
+					const dx = e.touches[0].clientX - e.touches[1].clientX;
+					const dy = e.touches[0].clientY - e.touches[1].clientY;
+					const distance = Math.sqrt(dx * dx + dy * dy);
+
+					if (onPinch && lastPinchDistanceRef.current !== null) {
+						isPinchingRef.current = true;
+						const deltaDistance = distance - lastPinchDistanceRef.current;
+						onPinch(deltaDistance, centerX, centerY);
+						lastPinchDistanceRef.current = distance;
+						return;
+					}
+
+					lastPinchDistanceRef.current = distance;
 					handleMove(centerX, centerY);
 				}
 			};
@@ -144,10 +172,10 @@ export const useTouchHandler = (config: TouchHandlerConfig): TouchHandlers => {
 			if (capturePointer && pointerId !== undefined && element) {
 				try {
 					element.setPointerCapture(pointerId);
-				} catch (e) {}
+				} catch {}
 			}
 		},
-		[onStart, onMove, onEnd, preventDefault, capturePointer],
+		[onStart, onMove, onEnd, onPinch, preventDefault, capturePointer],
 	);
 
 	const onPointerDown = useCallback(
@@ -172,6 +200,11 @@ export const useTouchHandler = (config: TouchHandlerConfig): TouchHandlers => {
 			} else if (event.touches.length === 2) {
 				const centerX = (event.touches[0].clientX + event.touches[1].clientX) / 2;
 				const centerY = (event.touches[0].clientY + event.touches[1].clientY) / 2;
+
+				const dx = event.touches[0].clientX - event.touches[1].clientX;
+				const dy = event.touches[0].clientY - event.touches[1].clientY;
+				lastPinchDistanceRef.current = Math.sqrt(dx * dx + dy * dy);
+
 				startTouch(centerX, centerY, event.currentTarget);
 			}
 		},

@@ -1,6 +1,6 @@
 import type { Extension as ExtensionSDK } from "@gramax/sdk/editor";
-import { ExtensionRegistryInterface, ExtensionType, ExtensionTypeMapper } from "@plugins/types";
-import { MarkSpec, NodeSpec } from "@tiptap/pm/model";
+import { type ExtensionRegistryInterface, ExtensionType, type ExtensionTypeMapper } from "@plugins/types";
+import type { MarkSpec, NodeSpec } from "@tiptap/pm/model";
 import { PluginRegistry } from "./PluginRegistry";
 
 function isNodeSpec(

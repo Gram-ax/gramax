@@ -1,4 +1,4 @@
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import type { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 
 export interface SnippetEditorProps {
 	title: string;

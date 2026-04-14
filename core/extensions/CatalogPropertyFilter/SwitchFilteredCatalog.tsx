@@ -9,7 +9,7 @@ import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import t from "@ext/localization/locale/translate";
 import { enumTypes, PropertyTypes } from "@ext/properties/models";
 import { feature } from "@ext/toggleFeatures/features";
-import { addScopeToPath } from "@ext/versioning/utils";
+import { addScopeToPath } from "@ext/versioning/addScopeToPath";
 import {
 	DropdownMenu,
 	DropdownMenuContent,

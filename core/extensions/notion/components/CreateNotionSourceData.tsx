@@ -1,11 +1,12 @@
 import Button, { TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import Query, { parserQuery } from "@core/Api/Query";
+import type Query from "@core/Api/Query";
+import { parserQuery } from "@core/Api/Query";
 import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import t from "@ext/localization/locale/translate";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
 import User2 from "@ext/security/components/User/User2";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { useState } from "react";

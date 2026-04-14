@@ -51,6 +51,10 @@
 	cursor: text !important;
 }
 
+.ProseMirror[contentEditable="true"] [data-component="view"] a {
+	cursor: pointer !important;
+}
+
 .ProseMirror p:empty::after {
 	content: "\00A0" !important;
 }

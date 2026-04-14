@@ -20,7 +20,6 @@ export interface ServicesConfig {
 }
 
 export interface EnterpriseConfig {
-	isCloud?: boolean;
 	gesUrl?: string;
 	refreshInterval?: number;
 }
@@ -121,13 +120,13 @@ export const getConfig = (): AppConfig => {
 	const aiInstanceName = env("AI_INSTANCE_NAME");
 	const aiToken = env("AI_TOKEN");
 	const aiEnabled = Boolean(aiApiUrl && aiInstanceName && aiToken);
-	if (aiEnabled && (!aiApiUrl || !aiInstanceName || !aiToken)) {
+	if (!aiEnabled && (aiApiUrl || aiInstanceName || aiToken)) {
 		if (!aiApiUrl) requiredEnvVars.push("AI_SERVER_URL");
 		if (!aiInstanceName) requiredEnvVars.push("AI_INSTANCE_NAME");
 		if (!aiToken) requiredEnvVars.push("AI_TOKEN");
 	}
 	if (requiredEnvVars.length > 0) {
-		throw new Error(`Environment variable(s) must have value: [${requiredEnvVars.join(", ")}]`);
+		console.warn(`To enable AI, also environment variable(s) must have value: [${requiredEnvVars.join(", ")}]`);
 	}
 
 	global.config = {
@@ -136,7 +135,8 @@ export const getConfig = (): AppConfig => {
 		isReadOnly:
 			getExecutingEnvironment() === "next" ||
 			getExecutingEnvironment() === "static" ||
-			getExecutingEnvironment() === "cli",
+			getExecutingEnvironment() === "cli" ||
+			getExecutingEnvironment() === "docportal",
 
 		portalAi: {
 			enabled: aiEnabled,
@@ -180,7 +180,6 @@ export const getConfig = (): AppConfig => {
 
 		enterprise: {
 			gesUrl: env("GES_URL"),
-			isCloud: env("GES_IS_CLOUD") === "true",
 			refreshInterval: (getNumber(env("GES_REFRESH_INTERVAL")) || 10 * 60) * 1000, // 10 minutes by default
 		},
 

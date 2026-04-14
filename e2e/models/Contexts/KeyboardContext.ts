@@ -1,4 +1,4 @@
-import { Locator } from "playwright";
+import type { Locator } from "playwright";
 
 const REPLACE_META_KEY = process.platform == "darwin" ? "Control" : "Meta";
 const REPLACE_META_KEY_TO = process.platform == "darwin" ? "Meta" : "Control";

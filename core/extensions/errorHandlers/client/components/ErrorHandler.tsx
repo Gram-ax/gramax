@@ -1,5 +1,5 @@
 import Error from "@components/Error";
-import React, { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import sendBug from "../../../bugsnag/logic/sendBug";
 
 export interface ErrorHandlerProps {

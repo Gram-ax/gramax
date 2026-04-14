@@ -1,7 +1,7 @@
 import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
-import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 
 export default class RepositoryProviderCatalogEntryAttachGit implements EventHandlerCollection {

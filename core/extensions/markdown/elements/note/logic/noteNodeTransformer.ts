@@ -1,7 +1,7 @@
 import { GFMAlerts } from "@ext/markdown/elements/note/edit/logic/github/noteFormatter";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { JSONContent } from "@tiptap/core";
-import NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
+import type { JSONContent } from "@tiptap/core";
+import type NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
 
 const noteNodeTransformer: NodeTransformerFunc = (node) => {
 	if (node && node.type === "blockquote") {

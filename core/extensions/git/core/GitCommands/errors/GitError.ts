@@ -1,10 +1,10 @@
-import GitErrorProps from "@ext/git/core/GitCommands/errors/model/GitErrorProps";
+import type GitErrorProps from "@ext/git/core/GitCommands/errors/model/GitErrorProps";
 import DefaultError from "../../../../errorHandlers/logic/DefaultError";
 import ErrorType from "../../../../errorHandlers/model/ErrorTypes";
 import gitErrorLocalization from "./GitErrorLocalization";
-import { Caller } from "./model/Caller";
-import GitErrorCode from "./model/GitErrorCode";
-import GitErrorContextProps from "./model/GitErrorContextProps";
+import type { Caller } from "./model/Caller";
+import type GitErrorCode from "./model/GitErrorCode";
+import type GitErrorContextProps from "./model/GitErrorContextProps";
 
 export default class GitError extends DefaultError {
 	private _caller: Caller;

@@ -1,9 +1,8 @@
 import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
-import { DropOptions, NodeModel, Tree } from "@minoru/react-dnd-treeview";
-import { CssBaseline } from "@mui/material";
-import React, { memo, useCallback, useMemo, useState } from "react";
-import { ItemLink } from "../../../NavigationLinks";
+import { type DropOptions, type NodeModel, Tree } from "@minoru/react-dnd-treeview";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ItemLink } from "../../../NavigationLinks";
 import DragTreeTransformer from "../logic/DragTreeTransformer";
 import getOpenItemsIds from "../logic/getOpenItemsIds";
 import NavItem from "./NavItem";
@@ -20,16 +19,25 @@ interface LevNavDragTreeProps {
 	closeNavigation?: () => void;
 	canDrag?: boolean;
 	className?: string;
+	onOpenChange?: (openIds: Set<number | string>, items: NodeModel<ItemLink>[]) => void;
 }
 
 const LevNavDragTree = (props: LevNavDragTreeProps) => {
-	const { items = [], onDrop, closeNavigation, canDrag = true, className } = props;
+	const { items = [], onDrop, closeNavigation, canDrag = true, className, onOpenChange } = props;
 	const [initialOpen, setInitialOpen] = useState(() => new Set<number | string>(getOpenItemsIds(items)));
 	const [draggedItemPath, setDraggedItemPath] = useState<string>();
 
+	// To keep toggleOpen stable without deps
+	const itemsRef = useRef(items);
+	itemsRef.current = items;
+	const onOpenChangeRef = useRef(onOpenChange);
+	useEffect(() => {
+		onOpenChangeRef.current = onOpenChange;
+	}, [onOpenChange]);
+
 	useWatch(() => {
 		setInitialOpen(new Set<number | string>(getOpenItemsIds(items)));
-	}, [items?.length]);
+	}, [items]);
 
 	const toggleOpen = useCallback((id: number | string, shouldOpen: boolean) => {
 		setInitialOpen((prev) => {
@@ -38,7 +46,22 @@ const LevNavDragTree = (props: LevNavDragTreeProps) => {
 				next.add(id);
 			} else {
 				next.delete(id);
+				const descendants: (number | string)[] = [];
+				const collect = (parentId: number | string) => {
+					for (const node of itemsRef.current) {
+						if (node.parent === parentId) {
+							descendants.push(node.id);
+							collect(node.id);
+						}
+					}
+				};
+				collect(id);
+				for (const d of descendants) next.delete(d);
 			}
+			// Guard: skip saving if items haven't loaded yet (prevents wiping state on mount)
+			if (itemsRef.current.length === 0) return next;
+
+			onOpenChangeRef.current?.(next, itemsRef.current);
 			return next;
 		});
 	}, []);
@@ -65,41 +88,38 @@ const LevNavDragTree = (props: LevNavDragTreeProps) => {
 	const initialOpenArray = useMemo(() => Array.from(initialOpen), [initialOpen]);
 
 	return (
-		<>
-			<CssBaseline />
-			<div className={className}>
-				<Tree<ItemLink>
-					canDrag={canDragCheck}
-					canDrop={handleCanDrop}
-					classes={{
-						root: "tree-root",
-						draggingSource: "dragging-source",
-						placeholder: "placeholder-container",
-					}}
-					dropTargetOffset={6}
-					initialOpen={initialOpenArray}
-					insertDroppableFirst={false}
-					onDragEnd={handleDragEnd}
-					onDragStart={handleDragStart}
-					onDrop={onDropHandler}
-					placeholderRender={(_, { depth }) => {
-						return <div className={"placeholder depth-" + depth} />;
-					}}
-					render={(node, params) => (
-						<NavItem
-							closeNavigation={closeNavigation}
-							draggedItemPath={draggedItemPath}
-							node={node}
-							params={params}
-							toggleOpen={toggleOpen}
-						/>
-					)}
-					rootId={DragTreeTransformer.getRootId()}
-					sort={false}
-					tree={items}
-				/>
-			</div>
-		</>
+		<div className={className}>
+			<Tree<ItemLink>
+				canDrag={canDragCheck}
+				canDrop={handleCanDrop}
+				classes={{
+					root: "tree-root",
+					draggingSource: "dragging-source",
+					placeholder: "placeholder-container",
+				}}
+				dropTargetOffset={6}
+				initialOpen={initialOpenArray}
+				insertDroppableFirst={false}
+				onDragEnd={handleDragEnd}
+				onDragStart={handleDragStart}
+				onDrop={onDropHandler}
+				placeholderRender={(_, { depth }) => {
+					return <div className={`placeholder depth-${depth}`} />;
+				}}
+				render={(node, params) => (
+					<NavItem
+						closeNavigation={closeNavigation}
+						draggedItemPath={draggedItemPath}
+						node={node}
+						params={params}
+						toggleOpen={toggleOpen}
+					/>
+				)}
+				rootId={DragTreeTransformer.getRootId()}
+				sort={false}
+				tree={items}
+			/>
+		</div>
 	);
 };
 

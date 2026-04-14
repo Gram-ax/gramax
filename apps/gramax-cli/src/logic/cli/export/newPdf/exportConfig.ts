@@ -1,4 +1,4 @@
-import { PdfPrintParams } from "@ext/print/types";
+import type { PdfPrintParams } from "@ext/print/types";
 
 export interface RunGramaxExportPdfProps {
 	source: string;

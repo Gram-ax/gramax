@@ -1,11 +1,11 @@
 import { InvalidEmailCell } from "@ext/enterprise/components/admin/settings/components/InvalidEmailCell";
-import { REPOSITORY_USER_ROLES, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import { REPOSITORY_USER_ROLES, type RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import t from "@ext/localization/locale/translate";
-import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
-import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
+import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
+import { type ColumnDef, useTableSelection } from "@ui-kit/DataTable";
 import { MultiSelect } from "@ui-kit/MultiSelect";
-import { SearchSelectOption } from "@ui-kit/SearchSelect";
+import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 
 export type UsersTableColumn = {

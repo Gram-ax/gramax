@@ -1,8 +1,8 @@
 import { useCatalogLogo, useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import { UpdateResource } from "@ext/workspace/components/LogoUploader";
-import { createContext, ReactElement, useCallback, useContext, useState } from "react";
+import type { UpdateResource } from "@ext/workspace/components/LogoUploader";
+import { createContext, type ReactElement, useCallback, useContext, useState } from "react";
 
 interface CatalogLogoInterface {
 	isLoadingLight: boolean;

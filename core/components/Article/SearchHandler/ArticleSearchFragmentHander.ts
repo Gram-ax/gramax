@@ -1,3 +1,4 @@
+import { textSelector } from "@ext/serach/utils/svgTextExtract";
 import { noteFoundElementBeforeHighlightHandler } from "../../../extensions/markdown/elements/note/render/component/Note";
 import { tabsFoundElementBeforeHighlightHandler } from "../../../extensions/markdown/elements/tabs/render/component/Tabs";
 
@@ -20,7 +21,8 @@ export function highlightFragmentInEditorByUrl() {
 	highlightFragmentInEditor(highlightFragment, highlightFragmentIndex);
 }
 
-export function highlightFragmentInEditor(highlightFragment: string, highlightFragmentIndex: number) {
+export async function highlightFragmentInEditor(highlightFragment: string, highlightFragmentIndex: number) {
+	await waitRenderedElements();
 	const promiseMirrorElSelector = ".tiptap.ProseMirror";
 	const articleContentWrapper = document.querySelector<HTMLElement>(`.article-body ${promiseMirrorElSelector}`);
 
@@ -78,15 +80,22 @@ export function highlightFragmentInEditor(highlightFragment: string, highlightFr
 				const substringCount = findSubstringCountForSearchFragment(inputHeaderValue, highlightFragment);
 				return { substringCount, elWithContentFound: inputHeader };
 			}
+			if (
+				contentEl.classList.contains("react-renderer") &&
+				(contentEl.classList.contains("node-diagrams") || contentEl.classList.contains("node-drawio"))
+			) {
+				const diagramTitle = contentEl.querySelector<HTMLInputElement>("input.resource-caption");
+				const titleText = diagramTitle?.value ?? "";
+				const substringCount = findSubstringCountForSearchFragment(titleText, highlightFragment);
+				return { substringCount, elWithContentFound: diagramTitle };
+			}
 		},
 	);
 }
 
-export async function highlightFragmentInDocportalByUrl(waitBeforeCheckMs: number | undefined) {
+export async function highlightFragmentInDocportalByUrl() {
 	if (typeof document === "undefined") return;
-	if (waitBeforeCheckMs) {
-		await new Promise((resolve) => setTimeout(resolve, waitBeforeCheckMs));
-	}
+	await waitRenderedElements();
 
 	const { highlightFragment, highlightFragmentIndex } = getHighlightFragmentFromUrl();
 
@@ -166,9 +175,10 @@ function findElementToHighlight(
 		contentEls: HTMLCollectionOf<HTMLElement>,
 		prevElementsFragmentCount: number,
 	): HTMLElement | undefined => {
-		const tagNamesToDontSearchInside = ["P", "H1", "H2", "H3", "H4", "H5", "H6"];
+		const tagNamesToDontSearchInside = ["p", "h1", "h2", "h3", "h4", "h5", "h6"];
 
 		for (const contentEl of contentEls) {
+			const tagName = contentEl.tagName.toLowerCase();
 			const elementPreHandleResult = elementPreHandle?.(contentEl);
 			if (elementPreHandleResult) {
 				const { substringCount, elWithContentFound: foundEl } = elementPreHandleResult;
@@ -178,7 +188,16 @@ function findElementToHighlight(
 				prevElementsFragmentCount += substringCount;
 			}
 
-			const textContent = contentEl.textContent;
+			let textContent: string | undefined;
+			if (tagName === "svg") {
+				// svg text nodes are not included in innerText
+				textContent = Array.from(contentEl.querySelectorAll(textSelector))
+					.map((text) => text.textContent ?? "")
+					.join("\n");
+			} else {
+				textContent = contentEl.innerText;
+			}
+
 			const substringCount = findSubstringCountForSearchFragment(textContent, highlightFragment);
 
 			if (prevElementsFragmentCount + substringCount - 1 >= highlightFragmentIndex) {
@@ -187,7 +206,10 @@ function findElementToHighlight(
 				const overrideResult = overrideHighlightElement(foundEl);
 
 				if (overrideResult.overrode) foundEl = overrideResult.overrideEl;
-				else if (!tagNamesToDontSearchInside.includes(foundEl.tagName) && contentEl.children.length > 0)
+				// taking svg parent so diagrams also can be highlighted
+				else if (tagName === "svg")
+					foundEl = foundEl.parentElement?.parentElement ?? foundEl.parentElement ?? foundEl;
+				else if (!tagNamesToDontSearchInside.includes(tagName) && contentEl.children.length > 0)
 					foundEl = findElementWithFragmentRecursively(
 						contentEl.children as HTMLCollectionOf<HTMLElement>,
 						prevElementsFragmentCount,
@@ -206,6 +228,7 @@ function findElementToHighlight(
 }
 
 function findSubstringCountForSearchFragment(str: string, substr: string) {
+	if (!str) return 0;
 	const escapedSubstr = substr.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 	const matches = str.match(new RegExp(escapedSubstr, "gi"));
 	return matches ? matches.length : 0;
@@ -252,4 +275,10 @@ function highlightElements(els: HTMLElement[], setAnimation: (el: HTMLElement[])
 	if (!animationStarted) {
 		document.addEventListener("visibilitychange", tryStartAnimation);
 	}
+}
+
+async function waitRenderedElements() {
+	// waiting for elements to be rendered (diagrams for example)
+	// TODO: better solution
+	await new Promise((resolve) => setTimeout(resolve, 200));
 }

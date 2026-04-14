@@ -1,11 +1,11 @@
-import { PageProps } from "@components/ContextProviders";
+import type { PageProps } from "@components/Pages/models/Pages";
 import Path from "@core/FileProvider/Path/Path";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import ContextService from "@core-ui/ContextServices/ContextService";
+import type ContextService from "@core-ui/ContextServices/ContextService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { createContext, ReactElement, useContext, useMemo } from "react";
+import { createContext, type ReactElement, useContext, useMemo } from "react";
 
 const WorkspaceServiceContext = createContext<ClientWorkspaceConfig>(null);
 
@@ -14,7 +14,7 @@ class WorkspaceService implements ContextService {
 		const workspaces = pageProps?.context?.workspace?.workspaces;
 		const currentPath = pageProps?.context?.workspace?.current;
 
-		const current = useMemo(() => workspaces.find((w) => w.path == currentPath), [workspaces, currentPath]);
+		const current = useMemo(() => workspaces.find((w) => w.path === currentPath), [workspaces, currentPath]);
 
 		return <WorkspaceServiceContext.Provider value={current}>{children}</WorkspaceServiceContext.Provider>;
 	}
@@ -36,6 +36,7 @@ class WorkspaceService implements ContextService {
 	}
 
 	async setActive(workspace: WorkspacePath, apiUrlCreator: ApiUrlCreator, refresh = true) {
+		// biome-ignore lint/correctness/noUndeclaredVariables: expected
 		if (refresh) clearData();
 		await FetchService.fetch(apiUrlCreator.switchWorkspace(workspace));
 		if (refresh) await refreshPage();

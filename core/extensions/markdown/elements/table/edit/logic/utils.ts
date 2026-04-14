@@ -1,10 +1,10 @@
-import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
-import { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { Editor } from "@tiptap/core";
-import { Attrs, Node } from "@tiptap/pm/model";
-import { Transaction } from "@tiptap/pm/state";
+import type TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
+import type { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import type { Editor } from "@tiptap/core";
+import type { Attrs, Node } from "@tiptap/pm/model";
+import type { Transaction } from "@tiptap/pm/state";
 import { Decoration } from "@tiptap/pm/view";
-import { MouseEvent } from "react";
+import type { MouseEvent } from "react";
 import { TableHeaderTypes } from "../model/tableTypes";
 
 export const workHeaderType = (

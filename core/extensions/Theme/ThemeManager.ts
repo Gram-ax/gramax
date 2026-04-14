@@ -1,5 +1,5 @@
-import BrowserCookie from "@app/../apps/browser/src/logic/BrowserCookie";
-import Cookie from "@ext/cookie/Cookie";
+import type BrowserCookie from "@app/../apps/browser/src/logic/BrowserCookie";
+import type Cookie from "@ext/cookie/Cookie";
 import Theme from "./Theme";
 
 const COOKIE_THEME = "theme";

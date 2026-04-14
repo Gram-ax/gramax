@@ -1,5 +1,5 @@
 import { DECO_CLASS, DECO_NAME } from "@ext/ai/logic/plugins/BlurSelection/consts";
-import { Editor, isNodeSelection } from "@tiptap/core";
+import { type Editor, isNodeSelection } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import { Decoration, DecorationSet } from "@tiptap/pm/view";
 

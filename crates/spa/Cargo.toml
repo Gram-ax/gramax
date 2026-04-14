@@ -52,7 +52,7 @@ url = { version = "2.5.7", features = ["serde"] }
 woothee = "0.13.0"
 
 [dev-dependencies]
-tempfile = "3"
+tempfile = { workspace = true }
 assert2 = "0.3.16"
 bytes = "1.10.1"
 ctor = "0.2"

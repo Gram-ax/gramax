@@ -3,12 +3,12 @@ import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { Card, CardSubTitle, CardTitle } from "@ui-kit/Card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
+import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
 import { Label } from "@ui-kit/Label";
 import { MultiSelect } from "@ui-kit/MultiSelect";
 import { Switch } from "@ui-kit/Switch";
 import { AutogrowTextarea } from "@ui-kit/Textarea";
-import { Edit2, MoreVertical, Trash2 } from "lucide-react";
 import { useState } from "react";
 import type { ForType } from "../StyleGuideComponent";
 
@@ -80,7 +80,7 @@ const StyleGuideEditor = ({
 											size="sm"
 											variant="ghost"
 										>
-											<Edit2 className="h-4 w-4" />
+											<Icon icon="credit-card" size="md" />
 										</Button>
 									</div>
 								)}
@@ -99,7 +99,7 @@ const StyleGuideEditor = ({
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
 									<Button size="sm" variant="ghost">
-										<MoreVertical className="h-4 w-4" />
+										<Icon icon="more-vertical" size="md" />
 									</Button>
 								</DropdownMenuTrigger>
 								<DropdownMenuContent>
@@ -107,7 +107,7 @@ const StyleGuideEditor = ({
 										className="text-red-500 hover:!text-red-600"
 										onClick={handleRuleDelete}
 									>
-										<Trash2 className="h-4 w-4 mr-2" />
+										<Icon className="mr-2" icon="trash-2" size="md" />
 										Удалить правило
 									</DropdownMenuItem>
 								</DropdownMenuContent>

@@ -1,4 +1,4 @@
-import { topMenuItemClassName } from "@components/HomePage/TopMenu";
+import { topMenuItemClassName } from "@components/HomePage/TopMenu/const";
 import { classNames } from "@components/libs/classNames";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";

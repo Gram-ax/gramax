@@ -2,8 +2,8 @@ import { useRouter } from "@core/Api/useRouter";
 import { useApi } from "@core-ui/hooks/useApi";
 import useInterval from "@core-ui/hooks/useInterval";
 import useWatch from "@core-ui/hooks/useWatch";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { RemoteProgress, type RemoteProgressPercentage } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type { RemoteProgress, RemoteProgressPercentage } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { useCallback, useEffect, useState } from "react";
 
 const getPercent = (progress: RemoteProgress, firstReceived: number) => {

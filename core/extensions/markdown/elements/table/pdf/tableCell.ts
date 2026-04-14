@@ -1,8 +1,8 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { BASE_CONFIG } from "@ext/pdfExport/config";
-import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { JSONContent } from "@tiptap/core";
-import { TableCell } from "./types";
+import { type NodeOptions, parseNodeToPDFContent, type pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { JSONContent } from "@tiptap/core";
+import type { TableCell } from "./types";
 
 export const parseCell = async (
 	cell: Tag | JSONContent,

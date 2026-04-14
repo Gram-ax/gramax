@@ -1,4 +1,5 @@
-import E2EWorld, { ReplaceAlias } from "../../models/World";
+import type E2EWorld from "../../models/World";
+import type { ReplaceAlias } from "../../models/World";
 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

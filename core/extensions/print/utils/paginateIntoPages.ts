@@ -1,8 +1,13 @@
-import type { PaginateIntoPagesOptions } from "@ext/print/types";
-import { ArticlePreview, PdfExportProgress, PdfPrintParams, PrintableContent } from "@ext/print/types";
+import type {
+	ArticlePreview,
+	PaginateIntoPagesOptions,
+	PdfExportProgress,
+	PdfPrintParams,
+	PrintableContent,
+} from "@ext/print/types";
 import { NodeDimensions } from "@ext/print/utils/pagination/NodeDimensions";
 import printHandlers from "@ext/print/utils/pagination/nodeHandlers";
-import { ControlInfo } from "@ext/print/utils/pagination/types";
+import type { ControlInfo } from "@ext/print/utils/pagination/types";
 // import { countTopLevelTableRows } from "../../markdown/elements/table/print/tablePagination";
 import { throwIfAborted } from "./pagination/abort";
 import PagePaginator from "./pagination/PagePaginator";

@@ -1,6 +1,6 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT } from "@ext/pdfExport/config";
-import { ContentStack } from "pdfmake/interfaces";
+import type { ContentStack } from "pdfmake/interfaces";
 
 export function videoHandler(node: Tag): ContentStack {
 	return {

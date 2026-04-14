@@ -1,8 +1,8 @@
 import { createDataValue } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/XmlFormatter";
 import { createToken } from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/annotations";
-import MarkdownIt from "markdown-it";
-import ParserBlock from "markdown-it/lib/parser_block";
-import StateBlock from "markdown-it/lib/rules_block/state_block";
+import type MarkdownIt from "markdown-it";
+import type ParserBlock from "markdown-it/lib/parser_block";
+import type StateBlock from "markdown-it/lib/rules_block/state_block";
 
 const blockType = "note";
 const noteTag = ":::";

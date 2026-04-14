@@ -1,5 +1,5 @@
-import { AstComment } from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
-import { Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
+import type { AstComment } from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
+import type { Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 export type AddedAstComment = { type: FileStatus.new; id: string; pos: Pos };

@@ -1,8 +1,8 @@
-import DefaultModal from "@core-ui/ContextServices/ModalToOpenService/components/DefaultModal";
+import type DefaultModal from "@core-ui/ContextServices/ModalToOpenService/components/DefaultModal";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import { ModalProps } from "@gramax/sdk/ui";
-import { ComponentProps } from "react";
+import type { ModalProps } from "@gramax/sdk/ui";
+import type { ComponentProps } from "react";
 
 export class Modal {
 	title: ModalProps["title"];

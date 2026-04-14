@@ -11,11 +11,11 @@ import PropertyServiceProvider from "@ext/properties/components/PropertyService"
 import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
 import combineProperties from "@ext/properties/logic/combineProperties";
 import { shouldPropertyVisible } from "@ext/properties/logic/shouldPropertyVisible";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 import { isComplexProperty } from "@ext/templates/models/properties";
 import { IconButton } from "@ui-kit/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import { Dispatch, SetStateAction, useCallback, useEffect, useMemo } from "react";
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useMemo } from "react";
 
 interface PropertiesProps {
 	properties: Property[];
@@ -29,15 +29,18 @@ const Properties = ({ properties, setProperties, hideList, isReadOnly }: Propert
 	const { properties: catalogProperties } = PropertyServiceProvider.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (catalogProperties?.size > 0) setProperties(combineProperties(properties, catalogProperties));
 	}, [catalogProperties]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (articleProps?.properties && catalogProperties?.size > 0)
 			setProperties(combineProperties(articleProps.properties, catalogProperties));
 	}, [articleProps?.properties]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const deleteHandler = useCallback(
 		(id: string) => {
 			setProperties((prevProps: Property[]) => {
@@ -56,9 +59,10 @@ const Properties = ({ properties, setProperties, hideList, isReadOnly }: Propert
 				return combineProperties(newProps, catalogProperties);
 			});
 		},
-		[articleProps, properties, catalogProperties],
+		[articleProps, properties, catalogProperties, apiUrlCreator],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const updateHandler = useCallback(
 		(id: string, value?: string) => {
 			setProperties((prevProps: Property[]) => {
@@ -77,7 +81,7 @@ const Properties = ({ properties, setProperties, hideList, isReadOnly }: Propert
 				return combineProperties(newProps, catalogProperties);
 			});
 		},
-		[articleProps, properties, catalogProperties],
+		[articleProps, properties, catalogProperties, apiUrlCreator],
 	);
 
 	const onSubmit = useCallback(
@@ -125,7 +129,7 @@ const Properties = ({ properties, setProperties, hideList, isReadOnly }: Propert
 				/>
 			);
 		});
-	}, [properties, onSubmit, hideList]);
+	}, [properties, onSubmit, hideList, filterProperties, isReadOnly]);
 
 	return (
 		<div className="flex gap-2 ml-auto">
@@ -141,7 +145,7 @@ const Properties = ({ properties, setProperties, hideList, isReadOnly }: Propert
 							variant="text"
 						/>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start">
+					<DropdownMenuContent align="start" style={{ maxHeight: "max(45dvh, 30rem)" }}>
 						<AddProperty
 							canAdd
 							catalogProperties={catalogProperties}

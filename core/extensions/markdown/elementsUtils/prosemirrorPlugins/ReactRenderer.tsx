@@ -1,5 +1,5 @@
-import { FC } from "react";
-import { createRoot, Root } from "react-dom/client";
+import type { FC } from "react";
+import { createRoot, type Root } from "react-dom/client";
 
 class ReactRenderer {
 	private Component: FC;

@@ -1,7 +1,7 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { COLOR_CONFIG } from "@ext/pdfExport/config";
 import { parseInlineContent } from "@ext/pdfExport/utils/parseInlineContent";
-import { ContentText } from "pdfmake/interfaces";
+import type { ContentText } from "pdfmake/interfaces";
 
 export const colorHandler = async (node: Tag): Promise<ContentText[]> => {
 	const contentPromises = parseInlineContent(node);

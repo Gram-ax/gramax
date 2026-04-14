@@ -5,7 +5,7 @@ import ModalLayout from "@components/Layouts/Modal";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import MergeConflictCaller from "@ext/git/actions/MergeConflictHandler/model/MergeConflictCaller";
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 import t from "@ext/localization/locale/translate";
 import { useRef, useState } from "react";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";

@@ -1,7 +1,7 @@
 import GitHubFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/GitHubFormatter";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import LegacyFormatter from "./LegacyFormatter";
 import XmlFormatter from "./XmlFormatter";
 

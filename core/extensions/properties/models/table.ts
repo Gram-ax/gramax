@@ -1,4 +1,4 @@
-import { ViewRenderData } from "@ext/properties/models";
+import type { ViewRenderData } from "@ext/properties/models";
 
 export interface TableRow {
 	name?: string;

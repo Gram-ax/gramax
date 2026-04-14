@@ -1,9 +1,9 @@
 import parseContent from "@core/FileStructue/Article/parseContent";
-import MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
-import ParserContextFactory from "../../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
-import Context from "../../Context/Context";
-import { type ReadonlyCatalog } from "../Catalog/ReadonlyCatalog";
-import { Article } from "./Article";
+import type MarkdownParser from "../../../extensions/markdown/core/Parser/Parser";
+import type ParserContextFactory from "../../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type Context from "../../Context/Context";
+import type { ReadonlyCatalog } from "../Catalog/ReadonlyCatalog";
+import type { Article } from "./Article";
 
 class ArticleParser {
 	constructor(

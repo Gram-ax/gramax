@@ -1,5 +1,5 @@
-import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
-import { JSONContent } from "@tiptap/core";
+import type ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
+import type { JSONContent } from "@tiptap/core";
 
 type NodeConverter = (
 	node: JSONContent,

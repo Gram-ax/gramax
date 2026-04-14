@@ -1,5 +1,5 @@
-import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
-import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
+import type ArticleRefService from "@core-ui/ContextServices/ArticleRef";
+import type ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const getArticleRefRule = (articleRef: ArticleRefService): ExtensionUpdaterRules => {
 	const filterNames = ["DragScroller", "diff"];

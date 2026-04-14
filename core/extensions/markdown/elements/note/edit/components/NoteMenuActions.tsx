@@ -2,8 +2,8 @@ import Icon from "@components/Atoms/Icon";
 import ActionButton from "@components/controls/HoverController/ActionButton";
 import t from "@ext/localization/locale/translate";
 import { NoteType, noteIcons } from "@ext/markdown/elements/note/render/component/Note";
-import { Editor } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model";
+import type { Editor } from "@tiptap/core";
+import type { Node } from "@tiptap/pm/model";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -11,7 +11,7 @@ import {
 	DropdownMenuRadioItem,
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
-import { RefObject } from "react";
+import type { RefObject } from "react";
 
 interface NoteMenuActionsProps {
 	editor: Editor;

@@ -1,4 +1,4 @@
-import { Node } from "@tiptap/pm/model";
+import type { Node } from "@tiptap/pm/model";
 
 export const getMarkEndPos = (doc: Node, markName: string, to: number) => {
 	let pos = to;

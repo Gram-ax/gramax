@@ -1,6 +1,6 @@
-import { Editor } from "@tiptap/core";
-import { Node } from "prosemirror-model";
-import { EditorView } from "prosemirror-view";
+import type { Editor } from "@tiptap/core";
+import type { Node } from "prosemirror-model";
+import type { EditorView } from "prosemirror-view";
 import Base from "./Base";
 
 abstract class BaseNode extends Base {

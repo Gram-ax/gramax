@@ -8,9 +8,7 @@ import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceSe
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import CreateFirstArticle from "@ext/article/actions/CreateFirstArticle";
 import ArticleErrorHandler from "@ext/errorHandlers/client/components/ArticleErrorHandler";
-import t from "@ext/localization/locale/translate";
 import { useEffect } from "react";
 import Article from "../Article/Article";
 
@@ -21,19 +19,10 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => clear(), [data.articleProps.logicPath]);
 
-	if (data.articleProps.welcome)
-		return (
-			<Welcome
-				actions={<CreateFirstArticle data={data} />}
-				article
-				body={<span>{t("article.create.body")}</span>}
-				title={t("so-far-its-empty")}
-			/>
-		);
-
+	if (data.articleProps.welcome) return <Welcome data={data} />;
 	return (
 		<div className={className}>
-			<ArticleErrorHandler>
+			<ArticleErrorHandler key={data.articleProps.logicPath}>
 				<ArticleBreadcrumb hasPreview={isShowMainLangContentPreview} itemLinks={data.itemLinks} />
 				<ArticleWithPreviewArticle
 					mainArticle={<Article data={data} />}

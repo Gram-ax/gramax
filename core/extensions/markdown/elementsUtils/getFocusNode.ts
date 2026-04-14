@@ -1,5 +1,5 @@
-import { Node } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import type { Node } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
 import getNodeByPos from "./getNodeByPos";
 
 const getFocusNode = (state: EditorState, filter?: (node: Node, parentNode?: Node) => boolean, isDeepest = true) => {

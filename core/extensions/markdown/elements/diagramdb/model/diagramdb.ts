@@ -1,7 +1,7 @@
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
-import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
-import { Node, Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
+import type PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
+import { type Node, type Schema, SchemaType, Tag } from "../../../core/render/logic/Markdoc/index";
 
 export function dbDiagram(context: PrivateParserContext): Schema {
 	return {

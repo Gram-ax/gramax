@@ -1,14 +1,14 @@
-import Context from "@core/Context/Context";
-import { Article } from "@core/FileStructue/Article/Article";
+import type Context from "@core/Context/Context";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
-import { Category } from "@core/FileStructue/Category/Category";
-import { Item } from "@core/FileStructue/Item/Item";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type { Category } from "@core/FileStructue/Category/Category";
+import type { Item } from "@core/FileStructue/Item/Item";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import { PrintablePage } from "@ext/print/types";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type { PrintablePage } from "@ext/print/types";
 
 async function collectPrintablePages(
 	item: Item,

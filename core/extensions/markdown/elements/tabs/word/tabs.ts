@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: To access private properties */
 import docx from "@dynamicImports/docx";
 import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { createParagraph } from "@ext/wordExport/createParagraph";
@@ -19,6 +20,7 @@ export const tabsWordLayout: WordBlockChild = async ({ state, tag, addOptions })
 	const { Table, TableCell, TableRow, WidthType, ImportedXmlComponent } = await docx();
 	const wordBordersType = await getWordBordersType();
 	const tabs = "children" in tag ? tag.children : tag.content;
+	if (!tabs || tabs.length === 0) return [];
 
 	const rows: InstanceType<typeof TableRow>[] = [];
 

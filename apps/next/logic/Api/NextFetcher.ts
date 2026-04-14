@@ -4,18 +4,38 @@ import type Url from "@core-ui/ApiServices/Types/Url";
 import LanguageServiceModule from "@core-ui/ContextServices/Language";
 import LocalizerModule from "@ext/localization/core/Localizer";
 
+type NextResponse = Response & { buffer: () => Promise<Buffer> };
+
+const getResponseMock = () => {
+	return {
+		ok: true,
+		status: 200,
+		headers: new Headers(),
+		body: null,
+		buffer: async () => Buffer.from([]),
+		json: async () => ({}),
+		text: async () => "",
+		arrayBuffer: async () => new Uint8Array(),
+		clone: () => getResponseMock(),
+		redirect: () => {},
+		redirected: false,
+		statusText: "OK",
+		toString: () => "OK",
+	} as unknown as NextResponse;
+};
+
 const nextFetch = async (
 	url: Url,
 	body?: BodyInit,
 	mime?: any,
 	method?: any,
 	signal?: AbortSignal,
-): Promise<Response & { buffer: () => Promise<Buffer> }> => {
+): Promise<NextResponse> => {
+	if (typeof window === "undefined") return getResponseMock();
+
 	let pathname = "";
-	if (typeof window !== "undefined") {
-		if (!url?.basePath) pathname = window.location.pathname;
-		else pathname = window.location.pathname.replace(url.basePath, "");
-	}
+	if (!url?.basePath) pathname = window.location.pathname;
+	else pathname = window.location.pathname.replace(url.basePath, "");
 	const l = LocalizerModule.extract(pathname);
 	const headers = {
 		"Content-Type": mime,

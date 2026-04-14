@@ -1,6 +1,6 @@
 import { TabsTrigger as UiKitTabsTrigger } from "ics-ui-kit/components/tabs";
 import { forwardRef } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitTabsTriggerProps = ExtractComponentGeneric<typeof UiKitTabsTrigger>;
 

@@ -1,4 +1,4 @@
-import { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
 function backticksFor(node, side) {
 	const ticks = /`+/g;

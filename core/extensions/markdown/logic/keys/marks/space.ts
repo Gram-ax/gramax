@@ -1,6 +1,6 @@
-import { UnionCommands } from "@tiptap/core";
+import type { UnionCommands } from "@tiptap/core";
 import getFocusMark from "../../../elementsUtils/getFocusMark";
-import KeyboardRule from "../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
+import type KeyboardRule from "../../../elementsUtils/keyboardShortcuts/model/KeyboardRule";
 
 const markCommandsMap = new Map<string, keyof UnionCommands>();
 const space = (toggleCommand: keyof UnionCommands, markName: string): KeyboardRule => {

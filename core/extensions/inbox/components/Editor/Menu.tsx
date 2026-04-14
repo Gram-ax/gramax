@@ -1,5 +1,5 @@
 import Toolbar from "@ext/markdown/core/edit/components/Menu/Menu";
-import { Editor } from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
 
 const Menu = ({ id, menu, editor }: { id: string; menu: (editor: Editor) => JSX.Element; editor: Editor }) => {
 	if (!menu) return null;

@@ -1,5 +1,5 @@
 import isMobileService from "@core-ui/ContextServices/isMobileService";
-import { EditorProps } from "@tiptap/pm/view";
+import type { EditorProps } from "@tiptap/pm/view";
 import { useMemo } from "react";
 
 const getDesktopProps = () => ({

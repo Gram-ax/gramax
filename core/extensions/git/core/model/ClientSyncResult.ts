@@ -1,4 +1,4 @@
-import MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
 
 type ClientSyncResult = { mergeData: MergeData; isVersionChanged: boolean; before: string; after: string };
 

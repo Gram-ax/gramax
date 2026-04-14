@@ -1,12 +1,12 @@
-import DiagramType from "@core/components/Diagram/DiagramType";
-import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
-import { editName as blockPropertyEditName } from "@ext/markdown/elements/blockProperty/consts";
-import { Level } from "@ext/markdown/elements/heading/edit/model/heading";
-import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
-import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
-import { editName as questionEditName } from "@ext/markdown/elements/question/consts";
-import { Selection } from "@tiptap/pm/state";
+import type DiagramType from "@core/components/Diagram/DiagramType";
+import type { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
+import type { editName as blockPropertyEditName } from "@ext/markdown/elements/blockProperty/consts";
+import type { Level } from "@ext/markdown/elements/heading/edit/model/heading";
+import type { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
+import type { NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import type OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
+import type { editName as questionEditName } from "@ext/markdown/elements/question/consts";
+import type { Selection } from "@tiptap/pm/state";
 
 export type Attrs = {
 	level: Level;

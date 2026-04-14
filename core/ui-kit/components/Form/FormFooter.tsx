@@ -1,6 +1,6 @@
 import { classNames } from "@components/libs/classNames";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import t from "@ext/localization/locale/translate";
-import { useMediaQuery } from "@react-hook/media-query";
 import { Button } from "@ui-kit/Button";
 import { FormFooter as UiKitFormFooter } from "ics-ui-kit/components/form";
 import type { FC, ReactNode } from "react";

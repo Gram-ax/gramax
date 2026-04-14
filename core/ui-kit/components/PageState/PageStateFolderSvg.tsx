@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { PageStateFolderSvg as UiKitPageStateFolderSvg } from "ics-ui-kit/components/page-state";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitPageStateFolderSvgProps = ExtractComponentGeneric<typeof UiKitPageStateFolderSvg>;
 

@@ -1,17 +1,19 @@
-import AstDiffTransformer, { AstComment } from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
-import {
+import AstDiffTransformer, {
+	type AstComment,
+} from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
+import type {
 	AddedDiffLine,
 	DeletedDiffLine,
 	DiffLine,
 	ModifiedDiffLine,
 } from "@ext/markdown/elements/diff/logic/model/DiffLine";
-import {
+import type {
 	ProseMirrorDeletedDiffLine,
 	ProseMirrorDiffLine,
 	ProseMirrorModifiedDiffLine,
 } from "@ext/markdown/elements/diff/logic/model/ProseMirrorDiffLine";
-import { JSONContent } from "@tiptap/core";
-import { Node } from "prosemirror-model";
+import type { JSONContent } from "@tiptap/core";
+import type { Node } from "prosemirror-model";
 import { Decoration } from "prosemirror-view";
 
 export default class ProsemirrorAstDiffTransformer extends AstDiffTransformer {

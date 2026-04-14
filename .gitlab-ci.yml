@@ -18,55 +18,24 @@ include:
   - local: .ci/build-apps.yml
   - local: .ci/sync.yml
 
-# renovate:
-#   image: renovate/renovate:latest
-#   stage: renovate
-#   when: manual
-#   variables:
-#     RENOVATE_PLATFORM: 'gitlab'
-#     RENOVATE_ENDPOINT: '${RENOVATE_ENDPOINT}'
-#     RENOVATE_TOKEN: '${RENOVATE_TOKEN}'
-#     RENOVATE_CONFIG_FILE: 'renovate.json'
-#     RENOVATE_REPOSITORIES: 'ics/doc-reader'
-#   script:
-#     - renovate --dry-run
-
-variables:
-  TRIVY_MAX_SEVERITY: "CRITICAL"
-  BRANCH: ""
-  GRAMAX_SITE_PROTOCOL: https
-  GRAMAX_SITE_DOMAIN: develop.gram.ax
-  GRAMAX_SITE_URL: $GRAMAX_SITE_PROTOCOL://$GRAMAX_SITE_DOMAIN
-  AUTH_SERVICE_URL: ${GRAMAX_SITE_URL}/auth
-  REVIEW_SERVICE_URL: ${GRAMAX_SITE_URL}/review
-  GIT_PROXY_SERVICE_URL: ${GRAMAX_SITE_URL}/git-proxy
-  DIAGRAM_RENDERER_SERVICE_URL: ${GRAMAX_SITE_URL}/diagram-renderer
-  NODE_OPTIONS: --max_old_space_size=8192
-  KUBERNETES_NAMESPACE: gramax
-  BUILD_IMAGES:
-    value: "true"
-    options:
-      - "true"
-      - "false"
-
 workflow:
   auto_cancel:
     on_new_commit: interruptible
   rules:
-    - if: $CI_COMMIT_BRANCH == "master"
+    - if: $CI_COMMIT_BRANCH =~ /^release\//
       variables:
         PRODUCTION: "true"
         BRANCH: "master"
         S3_ENV_FOLDER: release
         UPDATER_CHANNEL: "prod"
-        GRAMAX_SITE_DOMAIN: gram.ax
-        # DEPLOYMENT_ENVIRONMENT: 'prod'
         BUGSNAG_API_KEY: $BUGSNAG_API_KEY_MASTER
         GITHUB_CLIENT_ID: $GITHUB_CLIENT_ID_MASTER
         GITHUB_CLIENT_SECRET: $GITHUB_CLIENT_SECRET_MASTER
         CONFLUENCE_CLIENT_ID: $CONFLUENCE_CLIENT_ID_MASTER
         CONFLUENCE_CLIENT_SECRET: $CONFLUENCE_CLIENT_SECRET_MASTER
         IS_MERGE_REQUEST: "false"
+        BUILD_IMAGES: "true"
+        USE_IMAGE_TAG: $PROD_VERSION # TODO: remove 
 
     - if: $CI_COMMIT_BRANCH == "develop"
       variables:
@@ -75,14 +44,14 @@ workflow:
         S3_ENV_FOLDER: dev
         S3_BASE_PATH: public/gramax
         UPDATER_CHANNEL: "dev"
-        GRAMAX_SITE_DOMAIN: develop.gram.ax
-        # DEPLOYMENT_ENVIRONMENT: 'dev'
         BUGSNAG_API_KEY: $BUGSNAG_API_KEY_DEVELOP
         GITHUB_CLIENT_ID: $GITHUB_CLIENT_ID_DEVELOP
         GITHUB_CLIENT_SECRET: $GITHUB_CLIENT_SECRET_DEVELOP
         CONFLUENCE_CLIENT_ID: $CONFLUENCE_CLIENT_ID_DEVELOP
         CONFLUENCE_CLIENT_SECRET: $CONFLUENCE_CLIENT_SECRET_DEVELOP
         IS_MERGE_REQUEST: "false"
+        USE_IMAGE_TAG: "latest-dev"
+        BUILD_IMAGES: "true"
 
     - if: "$CI_COMMIT_TAG"
 
@@ -95,13 +64,13 @@ workflow:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
       variables:
         BRANCH: "master"
-        GRAMAX_SITE_DOMAIN: gram.ax
         IS_MERGE_REQUEST: "true"
+        USE_IMAGE_TAG: latest
 
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       variables:
         BRANCH: "develop"
-        GRAMAX_SITE_DOMAIN: develop.gram.ax
         IS_MERGE_REQUEST: "true"
+        USE_IMAGE_TAG: latest-dev
 
     - when: never

@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import { ChangeEvent, forwardRef, HTMLProps, MutableRefObject } from "react";
+import { type ChangeEvent, forwardRef, type HTMLProps, type MutableRefObject } from "react";
 import Icon from "./Icon";
 import Tooltip from "./Tooltip";
 

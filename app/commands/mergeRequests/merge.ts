@@ -1,8 +1,8 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
-import Context from "@core/Context/Context";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type Context from "@core/Context/Context";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 
 const merge: Command<
 	{

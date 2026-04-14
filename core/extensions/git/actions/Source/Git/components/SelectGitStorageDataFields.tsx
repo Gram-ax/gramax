@@ -1,11 +1,11 @@
 import getExampleStorageLink from "@ext/git/actions/Clone/logic/getExampleStorageLink";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
-import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import type { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
 import { FormField } from "@ui-kit/Form";
 import { TextInput } from "@ui-kit/Input";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 interface SelectGitStorageDataFieldsProps {
 	mode?: "init" | "clone";

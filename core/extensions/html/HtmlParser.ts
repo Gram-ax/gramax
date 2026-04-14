@@ -1,8 +1,8 @@
-import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 
 export default class HtmlParser {
 	constructor(
@@ -16,7 +16,6 @@ export default class HtmlParser {
 				article,
 				catalog,
 				convertContentToUiLanguage(article.props.language || catalog.props.language),
-				true,
 			);
 
 			return await this._markdownParser.parseToHtml(article.content, parserContext);

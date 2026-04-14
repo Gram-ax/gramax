@@ -8,16 +8,16 @@ import baseConfig from "../../vite.config";
 const { setVersion, setBuildVersion, dynamicModules } = env;
 
 process.env.VITE_ENVIRONMENT = "browser";
+const noMkCert = !!process.env.NO_MKCERT;
+
 setVersion("web");
 setBuildVersion("browser");
 
 export default mergeConfig(baseConfig(), {
-	plugins: [mkcert(), react()],
+	plugins: [!noMkCert && mkcert(), react()],
 	publicDir: "../../core/public",
 	server: {
-		hmr: {
-			protocol: "wss",
-		},
+		hmr: { protocol: "wss", host: "localhost", clientPort: 5173, port: 5173 },
 		headers: {
 			"Cross-Origin-Opener-Policy": "same-origin",
 			"Cross-Origin-Embedder-Policy": "require-corp",

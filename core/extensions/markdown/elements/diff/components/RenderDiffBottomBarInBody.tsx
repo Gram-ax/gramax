@@ -2,7 +2,7 @@ import { classNames } from "@components/libs/classNames";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import styled from "@emotion/styled";
 import DiffBottomBar from "@ext/markdown/elements/diff/components/DiffBottomBar";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import { createPortal } from "react-dom";
 
 const DiffBottomBarWrapper = styled.div`

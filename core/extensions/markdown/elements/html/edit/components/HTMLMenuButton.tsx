@@ -1,5 +1,5 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 

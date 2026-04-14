@@ -1,7 +1,7 @@
 import { LevenshteinStrings } from "@ext/markdown/elements/diff/logic/levenshteinStrings/LevenshteinStrings";
 import FindMatrixCrossMax from "@ext/markdown/elements/diff/logic/matrixCrossMax/FindMatrixCrossMax";
 import { getDiff, getLevenshteinMatching } from "@ext/VersionControl/DiffHandler/DiffHandler";
-import { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
+import type { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 
 const DEFAULT_SIMILARITY_THRESHOLD = 0.5;
 

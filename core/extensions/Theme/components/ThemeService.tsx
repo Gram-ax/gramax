@@ -1,6 +1,14 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { createContext, Dispatch, ReactElement, SetStateAction, useContext, useLayoutEffect, useState } from "react";
+import {
+	createContext,
+	type Dispatch,
+	type ReactElement,
+	type SetStateAction,
+	useContext,
+	useLayoutEffect,
+	useState,
+} from "react";
 import Theme from "../Theme";
 
 const ThemeContext = createContext<Theme>(undefined);

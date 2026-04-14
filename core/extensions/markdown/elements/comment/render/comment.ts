@@ -1,4 +1,4 @@
-import { Schema } from "../../../core/render/logic/Markdoc";
+import type { Schema } from "../../../core/render/logic/Markdoc";
 
 export const comment: Schema = {
 	render: "Comment",

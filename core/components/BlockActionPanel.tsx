@@ -1,9 +1,9 @@
 import Caption from "@components/controls/Caption";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import { UseDefaultActionsOptions } from "@components/controls/HoverController/hooks/useDefaultActions";
+import type { UseDefaultActionsOptions } from "@components/controls/HoverController/hooks/useDefaultActions";
 import useWatch from "@core-ui/hooks/useWatch";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { FocusEvent, ReactElement, RefObject, useCallback, useState } from "react";
+import { type FocusEvent, type ReactElement, type RefObject, useCallback, useState } from "react";
 
 interface BlockActionPanelProps {
 	updateAttributes: (attributes: Record<string, any>) => void;

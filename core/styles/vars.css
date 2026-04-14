@@ -110,7 +110,8 @@
 	--z-index-top-menu: 50;
 	--z-index-ui-kit-modal: 50;
 	--z-index-top-menu-dragable-area: 50;
-	--z-index-header-navigation: 51;
+	--z-index-header-navigation: 50;
+	--z-index-forward-backward: 51;
 	--z-index-base: 100;
 	--z-index-popover: 150;
 	--z-index-article-modal: 200;

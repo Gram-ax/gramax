@@ -3,7 +3,7 @@
 export default function yandexMetric(counter: string) {
 	if (!counter) return;
 	if (typeof window != "undefined") {
-		(function (m, e, t, r, i, k, a) {
+		((m, e, t, r, i, k, a) => {
 			m[i] =
 				m[i] ||
 				function () {
@@ -17,7 +17,7 @@ export default function yandexMetric(counter: string) {
 				a.parentNode.insertBefore(k, a);
 		})(window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
 
-		// @ts-ignore
+		// @ts-expect-error
 		ym(counter, "init", {
 			clickmap: true,
 			trackLinks: true,
@@ -29,7 +29,7 @@ export default function yandexMetric(counter: string) {
 
 export const yandexHit = (counter: string) => {
 	if (typeof window !== "undefined" && (window as any).ym) {
-		// @ts-ignore
+		// @ts-expect-error
 		ym(counter, "hit");
 	}
 };

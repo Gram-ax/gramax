@@ -1,4 +1,4 @@
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 
 interface RuleCollection {
 	getItemFilter(): ItemFilter;

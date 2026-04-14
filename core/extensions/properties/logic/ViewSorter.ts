@@ -1,5 +1,5 @@
-import { OrderValue, ProcessedArticle } from "@ext/properties/logic/ViewFilter";
-import { Property, PropertyTypes, ViewRenderGroup } from "@ext/properties/models";
+import type { OrderValue, ProcessedArticle } from "@ext/properties/logic/ViewFilter";
+import { type Property, PropertyTypes, type ViewRenderGroup } from "@ext/properties/models";
 
 class ViewSorter {
 	constructor() {}

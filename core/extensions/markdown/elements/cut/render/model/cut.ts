@@ -1,5 +1,5 @@
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { Config, Node, Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
+import { type Config, type Node, type Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
 import isInline from "../../../../elementsUtils/isInlineChildren";
 
 export const cut: Schema = {
@@ -16,8 +16,7 @@ export const cut: Schema = {
 		const text = node.attributes.text ?? "";
 		if (inline) {
 			return new Tag("Cut", { text, isInline: true, expanded: node.attributes.expanded === "true" }, children);
-		} else {
-			return new Tag("Note", { title: text, collapsed: true, type: NoteType.hotfixes }, children);
 		}
+		return new Tag("Note", { title: text, collapsed: true, type: NoteType.hotfixes }, children);
 	},
 };

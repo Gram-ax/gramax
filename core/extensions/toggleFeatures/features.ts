@@ -116,6 +116,7 @@ const target: Record<ReturnType<typeof getExecutingEnvironment>, FeatureTarget> 
 	static: FeatureTarget.static,
 	test: FeatureTarget.none,
 	cli: FeatureTarget.static,
+	docportal: FeatureTarget.docportal,
 };
 
 export const feature = (name: keyof typeof features): boolean => {
@@ -157,13 +158,30 @@ export const features = {
 		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
 		default: false,
 	},
+	"compress-images": {
+		title: {
+			ru: "Сжатие изображений",
+			en: "Image Compression",
+		},
+		desc: {
+			ru: "Автоматическое сжатие и конвертация изображений",
+			en: "Automatically compress and convert images",
+		},
+		url: {
+			ru: null,
+			en: null,
+		},
+		icon: "image",
+		targets: FeatureTarget.web | FeatureTarget.desktop,
+		default: false,
+	},
 	"opentelemetry-logs": {
 		title: {
 			ru: "Подробное логгирование",
 			en: "Verbose Logging",
 		},
 		desc: {
-			ru: "Негативно влияет на производительность. Выводится в F12 → Console → Debug",
+			ru: "Выводится в F12 → Console → Debug",
 			en: "Has a negative impact on performance. Logs are exported to F12 → Console → Debug",
 		},
 		url: {

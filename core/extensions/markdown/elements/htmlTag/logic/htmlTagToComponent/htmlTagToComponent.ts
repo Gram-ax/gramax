@@ -1,5 +1,5 @@
 import { parse } from "@ext/markdown/elements/image/render/logic/imageTransformer";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 type HtmlTagToComponentType = (node: JSONContent) => JSONContent;
 

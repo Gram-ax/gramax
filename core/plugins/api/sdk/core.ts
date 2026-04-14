@@ -1,7 +1,7 @@
-import { PlatformServiceNew } from "@core-ui/PlatformService";
-import { t as tSdk } from "@gramax/sdk/localization";
+import type { PlatformServiceNew } from "@core-ui/PlatformService";
+import type { t as tSdk } from "@gramax/sdk/localization";
 import type { ModalProps, Modal as ModalSdk } from "@gramax/sdk/ui";
-import { EventRegistryInterface, ExtensionRegistryInterface, MenuRegistryInterface } from "@plugins/types";
+import type { EventRegistryInterface, ExtensionRegistryInterface, MenuRegistryInterface } from "@plugins/types";
 
 export enum ExtensionType {
 	MarkSchema = "markSchema",

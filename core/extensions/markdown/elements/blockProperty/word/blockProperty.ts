@@ -1,4 +1,4 @@
-import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const blockPropertyWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {
 	const children = "children" in tag ? tag.children : tag.content;

@@ -1,4 +1,4 @@
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 const filesFormatterTransformer = (node: JSONContent): JSONContent | JSONContent[] => {
 	if (node?.type == "text" && node.marks) {

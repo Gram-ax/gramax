@@ -1,7 +1,7 @@
 import {
 	closestCenter,
 	DndContext,
-	DragEndEvent,
+	type DragEndEvent,
 	KeyboardSensor,
 	MouseSensor,
 	TouchSensor,
@@ -14,7 +14,7 @@ import { CSS } from "@dnd-kit/utilities";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
-import { CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useMemo, useState } from "react";
 
 interface Value {
 	id: string;

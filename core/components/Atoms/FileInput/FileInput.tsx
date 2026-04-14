@@ -2,6 +2,10 @@ import resolveModule from "@app/resolveModule/frontend";
 import type { FileInputProps } from "@components/Atoms/FileInput/FileInputProps";
 import getCodeLensDefaultText from "@components/Atoms/FileInput/getCodeLenseDefaultText";
 import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInputDefaultLanguage";
+import {
+	ensureMonacoLanguageConfigured,
+	syncEditorModelLanguage,
+} from "@components/Atoms/FileInput/languageConfig/monacoLanguageConfig";
 import MergeConflictStyles from "@ext/git/actions/MergeConflictHandler/Monaco/components/MergeConflictStyles";
 import FileInputMergeConflict from "@ext/git/actions/MergeConflictHandler/Monaco/logic/FileInputMergeConflict";
 import t from "@ext/localization/locale/translate";
@@ -53,6 +57,9 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 							onChange?.(value, e, fileInputMergeConflict.current);
 						}}
 						onMount={(editor, monaco) => {
+							ensureMonacoLanguageConfigured(monaco, language);
+							syncEditorModelLanguage(editor, monaco, language);
+
 							if (readOnly) {
 								onMount?.(editor, monaco, null);
 								return;
@@ -73,7 +80,7 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 							wordWrap: "on",
 							...options,
 						}}
-						theme={theme == Theme.dark ? monacoDarkTheme : "light"}
+						theme={theme === Theme.dark ? monacoDarkTheme : "light"}
 						{...otherProps}
 					/>
 				</MergeConflictStyles>

@@ -1,10 +1,10 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
-import {
+import type {
 	DiffItemContentData,
 	DiffItemContentScope,
 } from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";

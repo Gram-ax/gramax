@@ -1,14 +1,18 @@
-import { REPOSITORY_GROUPS_ROLES, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
-import { SelectDisableItem } from "@ext/enterprise/components/admin/settings/components/SelectDisableItem";
+import { GroupSelectItem } from "@ext/enterprise/components/admin/settings/components/GroupSelectItem";
+import {
+	REPOSITORY_GROUPS_ROLES,
+	type RoleId,
+} from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { TriggerAddButtonTemplate } from "@ext/enterprise/components/admin/settings/components/TriggerAddButtonTemplate";
-import { GroupInfo } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/types/GroupTypes";
+import { type GroupSelectOption, useGroups } from "@ext/enterprise/components/admin/settings/components/useGroups";
+import type { Group } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/types/GroupTypes";
 import t from "@ext/localization/locale/translate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
-import { ButtonProps } from "@ui-kit/Button";
+import type { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
+import type { ButtonProps } from "@ui-kit/Button";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { MultiSelect } from "@ui-kit/MultiSelect";
-import { SearchSelectOption } from "@ui-kit/SearchSelect";
+import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -25,8 +29,8 @@ type FormData = z.infer<ReturnType<typeof createFormSchema>>;
 
 interface GroupAndRoleToolbarAddBtnProps {
 	disable?: boolean;
-	onAdd: (groups: string[], role: RoleId) => void;
-	groups: GroupInfo[];
+	onAdd: (groups: Group[], role: RoleId) => void;
+	groups: Group[];
 	existingGroups: string[];
 }
 
@@ -37,55 +41,58 @@ export const GroupAndRoleToolbarAddBtn = ({
 	existingGroups,
 }: GroupAndRoleToolbarAddBtnProps) => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [selectedOptions, setSelectedOptions] = useState<GroupSelectOption[]>([]);
+	const { hasGroups, loadOptions, resolveSelectedGroups } = useGroups({ groups, existingGroups });
 
 	const formSchema = createFormSchema();
 	const form = useForm<FormData>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			groups: [],
+			role: "reader",
 		},
 	});
 
-	const loadOptions = useCallback(
-		async ({ searchQuery }: { searchQuery: string }) => {
-			const filteredGroups = groups.filter((group) =>
-				group.name.toLowerCase().includes(searchQuery.toLowerCase()),
-			);
-
-			return {
-				options: filteredGroups.map((group) => ({
-					value: group.id,
-					label: group.name,
-					disabled: existingGroups.includes(group.id),
-				})),
-			};
-		},
-		[groups, existingGroups],
-	);
-
 	const handleGroupsChange = (options: SearchSelectOption[]) => {
-		const groupValues = options.map((option) => String(option.value));
+		const groupOptions = options as GroupSelectOption[];
+		setSelectedOptions(groupOptions);
+		const groupValues = groupOptions.map((option) => String(option.value));
 		form.setValue("groups", groupValues);
 	};
 
 	const handleAddSelectedGroups = form.handleSubmit((values) => {
 		if (values.groups.length > 0) {
-			onAdd(values.groups, values.role);
+			onAdd(resolveSelectedGroups(selectedOptions), values.role);
+			setSelectedOptions([]);
 			form.reset();
 			setIsModalOpen(false);
 		}
 	});
 
+	const closeModal = useCallback(() => {
+		setSelectedOptions([]);
+		form.reset();
+		setIsModalOpen(false);
+	}, [form]);
+
+	const handleOpenChange = useCallback(
+		(open: boolean) => {
+			if (!open) {
+				closeModal();
+				return;
+			}
+			setIsModalOpen(true);
+		},
+		[closeModal],
+	);
+
 	const cancelButtonProps = useMemo(
 		() =>
 			({
 				variant: "outline",
-				onClick: () => {
-					form.reset();
-					setIsModalOpen(false);
-				},
+				onClick: closeModal,
 			}) as ButtonProps,
-		[form],
+		[closeModal],
 	);
 
 	const confirmButtonProps = useMemo(
@@ -114,19 +121,21 @@ export const GroupAndRoleToolbarAddBtn = ({
 									<MultiSelect
 										emptyText={t("enterprise.admin.resources.groups.not-found")}
 										errorText={t("enterprise.admin.resources.groups.error-search")}
+										loadMode={hasGroups ? "auto" : undefined}
 										loadOptions={loadOptions}
 										onChange={handleGroupsChange}
 										placeholder={t("enterprise.admin.resources.groups.select")}
-										renderOption={(props: RenderOptionProps<SearchSelectOption>) => {
+										renderOption={(props: RenderOptionProps<GroupSelectOption>) => {
 											if (props.type === "trigger") return;
 											return (
-												<SelectDisableItem
+												<GroupSelectItem
 													isDisabled={props.option.disabled}
 													isSelected={props.isSelected}
-													text={props.option.label}
+													option={props.option}
 												/>
 											);
 										}}
+										searchPlaceholder={t("enterprise.admin.resources.groups.search-placeholder")}
 										value={field.value?.map((value) => ({ value, label: value })) || []}
 									/>
 								)}
@@ -161,7 +170,7 @@ export const GroupAndRoleToolbarAddBtn = ({
 					</form>
 				</Form>
 			}
-			onOpenChange={setIsModalOpen}
+			onOpenChange={handleOpenChange}
 			title={t("enterprise.admin.resources.groups.select")}
 			trigger={<TriggerAddButtonTemplate disabled={disable} />}
 		/>

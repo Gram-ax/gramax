@@ -1,4 +1,4 @@
-import { Schemes } from "@ext/markdown/core/Parser/Parser";
+import type { Schemes } from "@ext/markdown/core/Parser/Parser";
 import { OPEN as gitConflictOpen } from "@ext/markdown/core/render/logic/Markdoc/src/tokenizer/plugins/gitConflictPlugin";
 import {
 	blockElements,
@@ -27,6 +27,7 @@ const getHtmlTagType = (name: string) => {
 	return null;
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: it's ok
 const transformUnschemedTag = (meta: any, options?: { tags?: Schemes["tags"]; allowHtmlFallback?: boolean }) => {
 	if (!meta.tag || !options?.tags) return meta;
 
@@ -49,7 +50,7 @@ const transformUnschemedTag = (meta: any, options?: { tags?: Schemes["tags"]; al
 export const createToken = (
 	state: StateBlock | StateInline,
 	content: string,
-	contentStart?: number,
+	_?: number,
 	options?: { tags?: Schemes["tags"]; allowHtmlFallback?: boolean },
 ): Token => {
 	try {

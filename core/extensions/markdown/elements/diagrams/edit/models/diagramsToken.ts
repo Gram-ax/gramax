@@ -1,5 +1,5 @@
 import Path from "@core/FileProvider/Path/Path";
-import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 
 const diagramsToken = (context?: PrivateParserContext) => ({
 	node: "diagrams",

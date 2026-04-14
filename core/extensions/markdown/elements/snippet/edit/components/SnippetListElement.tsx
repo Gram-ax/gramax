@@ -1,8 +1,8 @@
 import Icon from "@components/Atoms/Icon";
 import Sidebar from "@components/Layouts/Sidebar";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
-import { MouseEvent } from "react";
+import type { MouseEvent } from "react";
 
 interface SnippetListElementProps {
 	snippet: ProviderItemProps;

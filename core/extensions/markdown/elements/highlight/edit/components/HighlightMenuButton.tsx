@@ -1,4 +1,5 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import useWatch from "@core-ui/hooks/useWatch";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -6,7 +7,6 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
 import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { useMediaQuery } from "@mui/material";
 import type { Editor } from "@tiptap/core";
 import { ColorTile } from "@ui-kit/ColorTile";
 import { useHoverDropdown } from "@ui-kit/Dropdown";

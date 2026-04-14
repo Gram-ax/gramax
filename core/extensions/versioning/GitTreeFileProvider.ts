@@ -4,9 +4,9 @@ import Path from "@core/FileProvider/Path/Path";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
 import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
-import GitCommands from "@ext/git/core/GitCommands/GitCommands";
+import type GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import { addScopeToPath } from "@ext/versioning/utils";
+import { addScopeToPath } from "@ext/versioning/addScopeToPath";
 
 const decoder = new TextDecoder();
 
@@ -140,7 +140,8 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 				unscoped: new Path(beforeIdx).join(new Path(scopedPath.value.slice(idx + 5)).removeExtraSymbols),
 				scope: "HEAD",
 			};
-		} else if ("commit" in scope) {
+		}
+		if ("commit" in scope) {
 			const commitLength = scope.commit.length;
 			return {
 				unscoped: new Path(beforeIdx).join(
@@ -148,7 +149,8 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 				),
 				scope,
 			};
-		} else if ("reference" in scope) {
+		}
+		if ("reference" in scope) {
 			const referenceLength = encodeURIComponent(scope.reference).length;
 			return {
 				unscoped: new Path(beforeIdx).join(

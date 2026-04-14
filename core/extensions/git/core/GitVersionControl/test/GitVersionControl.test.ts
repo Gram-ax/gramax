@@ -2,7 +2,6 @@
  * @jest-environment node
  */
 
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import { TEST_GIT_FIXTURES_PATH } from "@ext/git/test/testGitFixturesPath";
 import DiskFileProvider from "../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";

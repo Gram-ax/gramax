@@ -1,5 +1,5 @@
 import CONFLUENCE_EXTENSION_TYPES from "@ext/confluence/core/cloud/model/confluenceExtensionTypes";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 const convertUnsupportedNode = (unsupportedNode: JSONContent, currentPageUrl: string): JSONContent[] => {
 	return [

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 import Tooltip from "./Tooltip";
 
 const TeamsEmailAnchorLayout = styled(

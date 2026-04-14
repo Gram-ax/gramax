@@ -1,4 +1,4 @@
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 
 const getIsSelectedOneNode = (state: EditorState) => {
 	const { $from, $to } = state.selection;

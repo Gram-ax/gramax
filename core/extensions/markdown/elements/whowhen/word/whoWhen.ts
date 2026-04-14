@@ -1,9 +1,9 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { getIconFromString } from "@ext/markdown/elements/icon/render/word/icon";
 import { NON_BREAKING_SPACE, WordFontColors, WordFontStyles } from "@ext/wordExport/options/wordExportSettings";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
-import { JSONContent } from "@tiptap/core";
-import { AddOptionsWord, WordInlineChild } from "../../../../wordExport/options/WordTypes";
+import type { JSONContent } from "@tiptap/core";
+import type { AddOptionsWord, WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const whoWordLayout: WordInlineChild = async ({ tag }) => {
 	return await whoWhenWordLayout("/ ", tag, { style: WordFontStyles.who }, "circle-user");

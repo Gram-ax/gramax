@@ -1,4 +1,4 @@
-import { NodeModel } from "@minoru/react-dnd-treeview";
+import type { NodeModel } from "@minoru/react-dnd-treeview";
 
 type TreeNode<T = unknown> = {
 	model: NodeModel<T>;

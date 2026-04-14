@@ -1,5 +1,5 @@
-import { MutableArray } from "core/utils/types";
-import { File, ISectionOptions } from "docx";
+import type { MutableArray } from "core/utils/types";
+import type { File, ISectionOptions } from "docx";
 
 export type FileChild = MutableArray<ISectionOptions["children"][number]>;
 

@@ -1,12 +1,12 @@
 import Path from "@core/FileProvider/Path/Path";
-import ResourceManager from "@core/Resource/ResourceManager";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { WordImageExporter } from "@ext/markdown/elements/image/word/WordImageProcessor";
 import { errorWordLayout } from "@ext/wordExport/error";
-import { AddOptionsWord, WordInlineChild } from "@ext/wordExport/options/WordTypes";
+import type { AddOptionsWord, WordInlineChild } from "@ext/wordExport/options/WordTypes";
 import { imageString } from "@ext/wordExport/options/wordExportSettings";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 export const renderInlineImageWordLayout: WordInlineChild = async ({ tag, addOptions, wordRenderContext }) => {
 	return imageWordLayout(tag, addOptions, wordRenderContext.parserContext, wordRenderContext.resourceManager);

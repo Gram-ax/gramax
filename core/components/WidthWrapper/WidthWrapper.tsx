@@ -7,8 +7,8 @@ import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContent
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { VERTICAL_TOP_OFFSET } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
-import { PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/component/TableWrapper";
-import { CSSProperties, RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
+import { PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/components/TableWrapper";
+import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
 
 export const CELL_MIN_WIDTH = "3em";
 
@@ -47,14 +47,14 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 	const setWidth = useCallback(() => {
 		const scroll = scrollContainerRef.current;
 
-		if (scroll && scroll.firstElementChild) {
+		if (scroll?.firstElementChild) {
 			const containerRect = scroll.getBoundingClientRect();
 			const childRect = scroll.firstElementChild.getBoundingClientRect();
 
 			setLeftWidth(containerRect.left - childRect.left);
 			setRightWidth(childRect.right - containerRect.right);
 		}
-	}, [scrollContainerRef.current]);
+	}, []);
 
 	const resizeWrapper = useCallback(() => {
 		const first = articleRef?.current?.firstElementChild;
@@ -71,7 +71,7 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 
 		setHeight(scrollContainer.clientHeight);
 		setWrapperSize(scrollContentRefWidth >= editorWidth ? newWrapperSize : 0);
-	}, [articleRef, scrollContainerRef.current]);
+	}, [articleRef]);
 
 	useLayoutEffect(() => {
 		if (!scrollContainerRef.current) return;
@@ -90,12 +90,13 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 			observer.disconnect();
 			window.removeEventListener("resize", handleResize);
 		};
-	}, [scrollContainerRef.current]);
+	}, [setWidth, resizeWrapper]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		resizeWrapper();
 		setWidth();
-	}, [isPin, leftNavigation]);
+	}, [isPin, leftNavigation, setWidth, resizeWrapper]);
 
 	const getWidth = useCallback((): CSSProperties => {
 		if (isShowMainLangContentPreview) return {};
@@ -153,7 +154,7 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 
 export default styled(WidthWrapper)`
 	position: relative;
-	z-index: 1;
+	z-index: 0;
 
 	&:has(.scrollableContent > div[data-table-wrapper]) {
 		padding-bottom: calc(${PADDING_TOP_BOTTOM} - ${VERTICAL_TOP_OFFSET});

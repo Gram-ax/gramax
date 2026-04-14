@@ -1,6 +1,6 @@
 import LeftNavigationContent from "@components/Layouts/CatalogLayout/LeftNavigation/LeftNavigationContent";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import { createContext, ReactElement, useContext, useState } from "react";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
+import { createContext, type ReactElement, useContext, useState } from "react";
 
 export type LeftNavViewContentComponent = ({
 	itemLinks,

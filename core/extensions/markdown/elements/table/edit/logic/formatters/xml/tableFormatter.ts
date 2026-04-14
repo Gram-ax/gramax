@@ -1,5 +1,5 @@
 import XmlFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/XmlFormatter";
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
 const tableFormatter: NodeSerializerSpec = async (state, node) => {
 	state.write(`${XmlFormatter.openTag("table", { header: node.attrs.header })}\n`);

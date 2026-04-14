@@ -221,3 +221,31 @@ fn healthcheck_error_context(_sandbox: TempDir, #[with(&_sandbox)] mut repo: Rep
 
 	Ok(())
 }
+
+#[rstest]
+fn healthcheck_bare_repository(_sandbox: TempDir, #[with(&_sandbox)] mut repo: Repo<TestCreds>) -> Result {
+	let file_name = "test_file.txt";
+
+	fs::write(_sandbox.path().join(file_name), "initial content")?;
+	repo.add(file_name)?;
+	let mut submodule = repo
+		.repo()
+		.submodule("https://github.com/Gram-ax/git2-lfs.git", Path::new("git2-lfs.git"), true)?;
+	submodule.clone(None)?;
+	submodule.add_finalize()?;
+	drop(submodule);
+
+	assert_eq!(repo.repo().submodules()?.len(), 1);
+	repo.commit_debug()?;
+
+	assert!(!repo.repo().is_bare());
+	repo.repo().config().unwrap().set_bool("core.bare", true).unwrap();
+	repo.reopen()?;
+	assert!(repo.repo().is_bare());
+
+	let bad_objects = repo.healthcheck()?;
+
+	assert_eq!(bad_objects.len(), 0, "healthcheck should be ok for bare repository");
+
+	Ok(())
+}

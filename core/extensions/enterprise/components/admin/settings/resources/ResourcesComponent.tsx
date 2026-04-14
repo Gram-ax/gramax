@@ -3,7 +3,7 @@ import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsC
 import ResourceComponent from "@ext/enterprise/components/admin/settings/resources/components/Resource/ResourceComponent";
 import { ConfirmationDialog } from "@ext/enterprise/components/admin/ui-kit/ConfirmationDialog";
 import { SheetComponent } from "@ext/enterprise/components/admin/ui-kit/SheetComponent";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { FormFooter } from "@ui-kit/Form";
@@ -13,7 +13,7 @@ import { FloatingAlert } from "../../ui-kit/FloatingAlert";
 import { TabErrorBlock } from "../../ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "../../ui-kit/TabInitialLoader";
 import { ResourcesTable } from "./components/ResourcesTable";
-import { ResourcesSettings } from "./types/ResourcesComponent";
+import type { ResourcesSettings } from "./types/ResourcesComponent";
 
 export default function ResourcesComponent() {
 	const { settings, addResource, deleteResources, ensureResourcesLoaded, getTabError, isInitialLoading } =

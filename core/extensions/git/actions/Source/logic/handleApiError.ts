@@ -1,6 +1,6 @@
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import t from "@ext/localization/locale/translate";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 const handleFormApiError = (error: NetworkApiError, form: UseFormReturn) => {
 	if (!(error instanceof NetworkApiError)) return;

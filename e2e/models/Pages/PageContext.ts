@@ -1,10 +1,10 @@
-import { Aliases } from "e2e/steps/utils/aliases";
-import { Locator, Page } from "playwright";
+import type { Aliases } from "e2e/steps/utils/aliases";
+import type { Locator, Page } from "playwright";
 import config from "../../setup/config";
 import { replaceMultiple } from "../../steps/utils/utils";
 import { KeyboardContext } from "../Contexts/KeyboardContext";
 import SearcherContext from "../Contexts/SearcherContext";
-import { ReplaceAlias } from "../World";
+import type { ReplaceAlias } from "../World";
 import ArticlePageContext from "./ArticlePageContext";
 
 export class PageInfo {

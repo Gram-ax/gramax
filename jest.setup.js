@@ -39,6 +39,15 @@ if (!process.env.DEBUG_JEST) {
 
 delete process.env.GIT_PROXY_SERVICE_URL;
 
+global.Worker = class {
+	postMessage() {}
+	terminate() {}
+	addEventListener() {}
+	removeEventListener() {}
+	set onmessage(_fn) {}
+	set onerror(_fn) {}
+};
+
 jest.setTimeout(15000);
 
 jest.mock("ics-ui-kit/components/textarea", () => ({

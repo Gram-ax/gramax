@@ -3,7 +3,7 @@ import ArticleViewService from "@core-ui/ContextServices/views/articleView/Artic
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import { PdfExportProgress } from "@ext/print/types";
+import type { PdfExportProgress } from "@ext/print/types";
 import { useCallback, useRef, useState } from "react";
 
 const clampPercent = (ratio?: number | null) => {

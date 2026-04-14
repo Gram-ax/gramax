@@ -1,7 +1,7 @@
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import type { DiffTree2TreeInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
-import { GitVersion } from "../model/GitVersion";
+import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import type { GitVersion } from "../model/GitVersion";
 
 export type GitWatcherEvents = Event<"update", DiffTree2TreeInfo>;
 

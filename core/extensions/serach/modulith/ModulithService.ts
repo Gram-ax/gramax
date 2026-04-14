@@ -2,6 +2,7 @@ import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
+import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type { Item } from "@core/FileStructue/Item/Item";
 import debounceFunction from "@core-ui/debounceFunction";
@@ -80,21 +81,23 @@ export class ModulithService {
 	private readonly _stateByWorkspace = new Map<WorkspacePath, WorkspaceState>();
 
 	constructor(private readonly _options: ModulithServiceOptions) {
-		// Because of events handling cli process unnecessarily hangs
+		// Because of events handling cli and test process unnecessarily hangs
 		//   until all events are processed
+		// getExecutingEnvironment() returns "next" for test environment
+		//   so we need to check global.VITE_ENVIRONMENT instead
 		// TODO: refactor event handling
-		if (getExecutingEnvironment() === "cli") return;
+		if (getExecutingEnvironment() === "cli" || global?.VITE_ENVIRONMENT === "test") return;
 
 		_options.wm.onCatalogChange(({ catalog }) => {
-			void this.onCatalogChange(catalog);
+			void this._onCatalogChange(catalog);
 		});
 
 		_options.wm.onCatalogAdd(({ catalog }) => {
-			void this.onCatalogChange(catalog);
+			void this._onCatalogChange(catalog);
 		});
 
 		_options.wm.onCatalogRemove(({ name }) => {
-			void this.onCatalogRemove(name);
+			void this._onCatalogRemove(name);
 		});
 
 		if (_options.immediateIndexing) {
@@ -108,7 +111,9 @@ export class ModulithService {
 		const release = await state.lockIndexing();
 
 		try {
-			const catalogNames = catalogName ? [catalogName] : [...curWs.getAllCatalogs().keys()];
+			const catalogNames = catalogName
+				? [BaseCatalog.parseName(catalogName).name]
+				: [...curWs.getAllCatalogs().keys()];
 			await this._updateIndexImpl(state, curWs, catalogNames, force !== true);
 		} finally {
 			release();
@@ -118,7 +123,7 @@ export class ModulithService {
 	async updateCatalog(catalogName: string, overridePath?: string) {
 		const ws = this._options.wm.current();
 		const state = this._getOrCreateState(ws.path());
-		const catalog = await ws.getContextlessCatalog(catalogName);
+		const catalog = await ws.getContextlessCatalog(BaseCatalog.parseName(catalogName).name);
 		await this._actualizeCatalog(state, overridePath ?? state.path, catalog);
 	}
 
@@ -193,7 +198,8 @@ export class ModulithService {
 
 	async searchBatch({ items, signal }: SearchBatchArgs): Promise<SearchResult[][]> {
 		const curWs = this._options.wm.current();
-		const state = this._getOrCreateState(curWs.path());
+		const wsPath = curWs.path();
+		const state = this._getOrCreateState(wsPath);
 
 		const catalogs = new Map<string, ReadonlyCatalog>();
 		const pathnamesByLogicPath = new Map<string, string>();
@@ -249,7 +255,11 @@ export class ModulithService {
 		const searchRes = await this._options.localClient.searchBatch({
 			signal,
 			items: items.map((x) => {
-				const metadataFilters: Filter<SearchArticleKey>[] = [inFilter(["catalogId"], x.catalogNames)];
+				const metadataFilters: Filter<SearchArticleKey>[] = [eqFilter(["wsPath"], wsPath)];
+
+				if (x.articleRefPaths) {
+					metadataFilters.push(inFilter(["refPath"], x.articleRefPaths));
+				}
 
 				if (x.articlesLanguage) {
 					metadataFilters.push(eqFilter(["lang"], x.articlesLanguage));
@@ -281,7 +291,23 @@ export class ModulithService {
 		// To prevent unnecessary execution of keyPhraseSearcher
 		if (signal?.aborted) return [];
 
-		const keyPhraseRes = items.map((x) => (x.query ? state.keyPhraseSearcher.search(x.query) : []));
+		const keyPhraseRes = items.map((x) => {
+			if (!x.query) {
+				return [];
+			}
+
+			return state.keyPhraseSearcher.search(x.query, (item) => {
+				if (item.wsPath !== wsPath) {
+					return false;
+				}
+
+				if (x.articleRefPaths && !x.articleRefPaths.has(item.article.ref.path.value)) {
+					return false;
+				}
+
+				return true;
+			});
+		});
 
 		const res: SearchResult[][] = [];
 		const maxSearchResult = 50;
@@ -381,7 +407,7 @@ export class ModulithService {
 		await this._options.sap.terminate();
 	}
 
-	private async onCatalogChange(catalog: ReadonlyCatalog): Promise<void> {
+	private async _onCatalogChange(catalog: ReadonlyCatalog): Promise<void> {
 		const ws = this._options.wm.current();
 		const state = this._getOrCreateState(ws.path());
 		if (this._options.immediateIndexing) {
@@ -402,7 +428,7 @@ export class ModulithService {
 		}
 	}
 
-	private async onCatalogRemove(catalogName: string): Promise<void> {
+	private async _onCatalogRemove(catalogName: string): Promise<void> {
 		const ws = this._options.wm.current();
 		const state = this._getOrCreateState(ws.path());
 		await this._removeCatalogFromIndex(state, catalogName);
@@ -536,6 +562,7 @@ export class ModulithService {
 		catalogArticles.forEach((x) =>
 			state.keyPhraseSearcher.updateArticle({
 				id: `${wsPath}#${x.logicPath}`,
+				wsPath,
 				article: x,
 				catalog,
 			}),
@@ -598,6 +625,7 @@ export class ModulithService {
 			articles: searchArticles,
 			filter: {
 				metadata: andFilter<SearchArticleKey>([
+					eqFilter(["wsPath"], wsPath),
 					eqFilter(["catalogId"], catalog.name),
 					eqFilter(["type"], "catalog"),
 				]),
@@ -622,9 +650,10 @@ export class ModulithService {
 			onChange: (p) => progressCallback?.(p),
 		});
 
-		const { searchArticles, resourcesInfo } = await this._options.sap.getSearchArticles(
+		const { searchArticles, resourcesInfo, remoteSearchArticles } = await this._options.sap.getSearchArticles(
 			wsPath,
 			catalog,
+			Boolean(this._options.remoteClient),
 			aggProgress.getProgressCallback(0),
 		);
 		aggProgress.setProgress(0, 1);
@@ -639,20 +668,24 @@ export class ModulithService {
 
 		const filter: SearchArticleFilter = {
 			metadata: andFilter<SearchArticleKey>([
+				eqFilter(["wsPath"], wsPath),
 				eqFilter(["catalogId"], catalog.name),
 				eqFilter(["type"], "article"),
 			]),
 		};
 
-		await this._updateBothClients(searchArticles, filter, aggProgress.getProgressCallback(1));
+		await this._updateBothClients(searchArticles, filter, remoteSearchArticles, aggProgress.getProgressCallback(1));
 		aggProgress.setProgress(1, 1);
 		this._debounceCommitClient();
 
-		const currentArticleIds = getValidCatalogItems(catalog).map((a) => getArticleId(wsPath, a.logicPath));
+		// Remove files from index whose articles are not in catalog
+		const currentArticleIds = new Set<string>();
+		getValidCatalogItems(catalog).forEach((a) => currentArticleIds.add(getArticleId(wsPath, a.logicPath)));
 		await this._options.localClient.update({
 			articles: [],
 			filter: {
 				metadata: andFilter<SearchArticleKey>([
+					eqFilter(["wsPath"], wsPath),
 					eqFilter(["catalogId"], catalog.name),
 					eqFilter(["type"], "file"),
 					notFilter(inFilter(["articleId"], currentArticleIds)),
@@ -700,6 +733,7 @@ export class ModulithService {
 							items: resourceInfos.map((x) => ({
 								filter: {
 									metadata: andFilter<SearchArticleKey>([
+										eqFilter(["wsPath"], wsPath),
 										eqFilter(["catalogId"], catalog.name),
 										eqFilter(["type"], "file"),
 										eqFilter(["articleId"], getArticleId(wsPath, x.article.logicPath)),
@@ -710,24 +744,25 @@ export class ModulithService {
 						.then((x) => x.articles);
 
 		let bufferSize = 0;
-		const articleIdBuffer: string[] = [];
+		let articleIdBuffer = new Set<string>();
 		const articleBuffer: ModulithArticle<SearchArticleFileMetadata>[] = [];
-		const unchangedResourcesBuffer: string[] = [];
+		let unchangedResourcesBuffer = new Set<string>();
 
 		const flushBuffer = async (progressCallback?: ProgressCallback) => {
 			const copyArticleBuffer = [...articleBuffer];
-			const copyArticleIdBuffer = [...articleIdBuffer];
-			const copyUnchangedResourcesBuffer = [...unchangedResourcesBuffer];
+			const copyArticleIdBuffer = articleIdBuffer;
+			const copyUnchangedResourcesBuffer = unchangedResourcesBuffer;
 
 			bufferSize = 0;
 			articleBuffer.length = 0;
-			articleIdBuffer.length = 0;
-			unchangedResourcesBuffer.length = 0;
+			articleIdBuffer = new Set<string>();
+			unchangedResourcesBuffer = new Set<string>();
 
 			await this._options.localClient.update({
 				articles: copyArticleBuffer,
 				filter: {
 					metadata: andFilter<SearchArticleKey>([
+						eqFilter(["wsPath"], wsPath),
 						eqFilter(["catalogId"], catalog.name),
 						eqFilter(["type"], "file"),
 						inFilter(["articleId"], copyArticleIdBuffer),
@@ -766,9 +801,9 @@ export class ModulithService {
 				resAggProgress.setProgress(0, 1);
 
 				bufferSize++;
-				articleIdBuffer.push(articleId);
+				articleIdBuffer.add(articleId);
 				articleBuffer.push(...searchArticles);
-				unchangedResourcesBuffer.push(...unchangedResources);
+				unchangedResources.forEach((x) => unchangedResourcesBuffer.add(x));
 
 				if (bufferSize >= RESOURCE_ARTICLES_UPDATE_BUFFER_SIZE) {
 					await flushBuffer(resAggProgress.getProgressCallback(1));
@@ -790,6 +825,7 @@ export class ModulithService {
 	private async _updateBothClients(
 		articles: SearchArticle[],
 		filter: SearchArticleFilter,
+		remoteArticles?: SearchArticle[],
 		progressCallback?: ProgressCallback,
 	) {
 		const aggProgress = new AggregateProgress({
@@ -806,7 +842,7 @@ export class ModulithService {
 				progressCallback: aggProgress.getProgressCallback(0),
 			}),
 			this._options.remoteClient?.update({
-				articles,
+				articles: remoteArticles ?? articles,
 				filter,
 				progressCallback: aggProgress.getProgressCallback(1),
 			}),
@@ -865,7 +901,7 @@ export class ModulithService {
 export interface SearchBatchArgs {
 	items: {
 		query?: string;
-		catalogNames: string[];
+		articleRefPaths?: Set<string>;
 		propertyFilter?: PropertyFilter;
 		resourceFilter?: ResourceFilter;
 		articlesLanguage?: ArticleLanguage;

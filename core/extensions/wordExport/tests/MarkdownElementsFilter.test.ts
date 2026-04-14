@@ -1,8 +1,8 @@
 import getApplication from "@app/node/app";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import t from "@ext/localization/locale/translate";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { getExportedKeys } from "@ext/wordExport/layouts";
 import MarkdownElementsFilter from "@ext/wordExport/MarkdownElementsFilter";
 import ctx from "@ext/wordExport/tests/ContextMock";

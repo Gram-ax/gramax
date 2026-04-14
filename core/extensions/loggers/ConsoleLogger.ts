@@ -1,5 +1,5 @@
 import BaseLogger from "./BaseLogger";
-import Logger from "./Logger";
+import type Logger from "./Logger";
 
 export default class ConsoleLogger extends BaseLogger implements Logger {
 	constructor() {

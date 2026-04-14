@@ -1,8 +1,9 @@
-import PageDataContext from "@core/Context/PageDataContext";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { Environment } from "@app/resolveModule/env";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ArticleLinkTooltip from "@ext/markdown/elements/link/edit/logic/ArticleLinkTooltip";
 import TooltipBase from "@ext/markdown/elementsUtils/prosemirrorPlugins/TooltipBase";
-import { Mark } from "@tiptap/pm/model";
+import type { Mark } from "@tiptap/pm/model";
 
 class LinkHoverTooltip extends TooltipBase {
 	private _destroyTimeout: NodeJS.Timeout;
@@ -18,13 +19,21 @@ class LinkHoverTooltip extends TooltipBase {
 	mark: Mark;
 	hash?: string;
 
-	constructor(parentElement: HTMLElement, apiUrlCreator: ApiUrlCreator, pageDataContext: PageDataContext) {
+	constructor(
+		parentElement: HTMLElement,
+		apiUrlCreator: ApiUrlCreator,
+		pageDataContext: PageDataContext,
+		environment: Environment,
+		basePath?: string,
+	) {
 		const props = {
 			isOpen: false,
 			apiUrlCreator,
 			pageDataContext,
 			closeHandler: () => this.closeComponent(),
 			getMark: () => this.getMark(),
+			environment,
+			basePath,
 		};
 
 		super(ArticleLinkTooltip, props, parentElement);

@@ -4,7 +4,6 @@ import type { Category } from "@core/FileStructue/Category/Category";
 import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import LastVisited from "@core/SitePresenter/LastVisited";
 import homeSections from "@core/utils/homeSections";
-import htmlToText from "@dynamicImports/htmlToText";
 import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
 import type GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
@@ -15,6 +14,7 @@ import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdo
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import { getStoredQuestionsByContent } from "@ext/markdown/elements/question/render/logic/getStoredQuestionsByContent";
 import type { StoredQuestion } from "@ext/markdown/elements/question/render/logic/QuestionsStore";
+import extractPreviewFromEditTree from "@ext/markdown/elementsUtils/extractPreviewFromEditTree";
 import NavigationEventHandlers from "@ext/navigation/events/NavigationEventHandlers";
 import getAllCatalogProperties from "@ext/properties/logic/getAllCatalogProps";
 import type { Property, PropertyID, PropertyValue } from "@ext/properties/models";
@@ -127,6 +127,7 @@ export type EditArticlePageData = BaseArticlePageData & {
 };
 
 export type ReadonlyArticlePageData = BaseArticlePageData & {
+	openGraphData: OpenGraphData;
 	content: RenderableTreeNodes;
 	mode: "read";
 };
@@ -136,6 +137,7 @@ export type ArticlePageData = EditArticlePageData | ReadonlyArticlePageData;
 export type OpenGraphData = {
 	title: string;
 	description: string;
+	pathname: string;
 };
 
 export default class SitePresenter {
@@ -176,7 +178,7 @@ export default class SitePresenter {
 		return { section, catalogsLinks, breadcrumb, group: group ?? null };
 	}
 
-	async getArticlePageData(article: Article, catalog: ReadonlyCatalog): Promise<ArticlePageData> {
+	async getArticlePageData(article: Article, catalog?: ReadonlyCatalog): Promise<ArticlePageData> {
 		await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 
 		const itemLinks = catalog ? await this._nav.getCatalogNav(catalog, article.ref.path.value) : [];
@@ -187,7 +189,15 @@ export default class SitePresenter {
 
 		if (isReadOnly) {
 			const content = await this._getReadonlyArticleContent(article);
-			return { content, articleProps, catalogProps, rootRef, itemLinks, mode: "read" };
+			return {
+				content,
+				articleProps,
+				catalogProps,
+				rootRef,
+				itemLinks,
+				mode: "read",
+				openGraphData: await this.getOpenGraphData(article, catalog),
+			};
 		}
 
 		const content = await this._getEditArticleContent(article);
@@ -206,44 +216,28 @@ export default class SitePresenter {
 	}
 
 	async getCatalogNav(catalog: ReadonlyCatalog, currentItemPath: string): Promise<ItemLink[]> {
+		await this._parseUntitledItems(catalog);
 		return (await this._nav.getCatalogNav(catalog, currentItemPath)) ?? [];
-	}
-
-	async getHtml(path: string[], ApiRequestUrl?: string): Promise<string> {
-		const { article, catalog } = await this.getArticleByPathOfCatalog(path);
-		if (!article || !catalog) return null;
-		const parsedContext = await this._parserContextFactory.fromArticle(
-			article,
-			catalog,
-			this._getLang(catalog),
-			this._isLogged(),
-		);
-		return await this._parser.parseToHtml(article.content, parsedContext, ApiRequestUrl);
 	}
 
 	getFilters(): ArticleFilter[] {
 		return this._filters;
 	}
 
-	async getOpenGraphData(path: string[], readyArticle?: Article, readyCatalog?: Catalog): Promise<OpenGraphData> {
+	async getOpenGraphData(article: Article, catalog?: ReadonlyCatalog): Promise<OpenGraphData> {
 		if (getExecutingEnvironment() !== "next") return null;
-		const { article, catalog } = readyArticle
-			? { article: readyArticle, catalog: readyCatalog }
-			: await this.getArticleByPathOfCatalog(path, [this._filters[1], this._filters[2]]);
 
 		if (!article) return null;
 		if (await article.parsedContent.isNull()) {
 			await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
 		}
 
-		const { convert } = await htmlToText();
-		const htmlValue = await article.parsedContent.read((p) => p?.getHtmlValue.get());
-		let description = convert(htmlValue, {
-			selectors: ["h1", "h2", "h3", "h4"].map((v) => ({ selector: v, options: { uppercase: false } })),
-		});
-
-		if (description.length > 150) description = `${description.slice(0, 150)}...`;
+		const editTree = await article.parsedContent.read((p) => p?.editTree);
+		const preview = extractPreviewFromEditTree(editTree, 151);
+		const description = preview.length > 150 ? `${preview.slice(0, 150)}...` : preview;
+		const pathname = (await catalog?.getPathname(article))?.toString() ?? article?.logicPath ?? "";
 		return {
+			pathname,
 			title: article.props.title ?? "",
 			description,
 		};
@@ -372,6 +366,15 @@ export default class SitePresenter {
 		return catalog.getPathname(item.parent);
 	}
 
+	private async _parseUntitledItems(catalog: ReadonlyCatalog) {
+		const untitled = catalog.getContentItems().filter((a) => !a.props.title);
+		await untitled.forEachAsync(async (article) => {
+			try {
+				await parseContent(article, catalog, this._context, this._parser, this._parserContextFactory);
+			} catch {}
+		});
+	}
+
 	private _getSection(
 		catalogLinks: CatalogLink[],
 		sectionsInfo: Record<string, WorkspaceSection>,
@@ -434,10 +437,6 @@ export default class SitePresenter {
 
 		const group = pathSections.pop();
 		return { ...homeSections.findSection(pathSections, mainSection), group };
-	}
-
-	private _isLogged(): boolean {
-		return this._context.user?.isLogged ?? false;
 	}
 
 	private _getLang(catalog: ReadonlyCatalog): UiLanguage {

@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { IconTooltip as UiKitIconTooltip } from "ics-ui-kit/components/icon-tooltip";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitIconTooltipProps = ExtractComponentGeneric<typeof UiKitIconTooltip>;
 

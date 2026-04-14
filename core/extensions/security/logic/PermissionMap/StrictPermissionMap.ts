@@ -1,5 +1,6 @@
-import IPermission from "@ext/security/logic/Permission/IPermission";
-import IPermissionMap, { PermissionMapJSONData, PermissionMapType } from "./IPermissionMap";
+import type IPermission from "@ext/security/logic/Permission/IPermission";
+import type IPermissionMap from "./IPermissionMap";
+import { type PermissionMapJSONData, PermissionMapType } from "./IPermissionMap";
 
 class StrictPermissionMap implements IPermissionMap {
 	constructor(private _permissions: { [key: string]: IPermission }) {}

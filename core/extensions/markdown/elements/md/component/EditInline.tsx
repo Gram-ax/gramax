@@ -1,6 +1,6 @@
 import InlineCommentView from "@ext/markdown/elements/comment/edit/components/View/InlineCommentView";
 import EditMarkdown from "@ext/markdown/elements/md/component/EditMarkdown";
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 import getComponents from "../../../core/render/components/getComponents/getComponents";
 import Renderer from "../../../core/render/components/Renderer";
 

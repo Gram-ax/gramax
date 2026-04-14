@@ -1,7 +1,7 @@
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import useWatch from "@core-ui/hooks/useWatch";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { zodResolver } from "@hookform/resolvers/zod";

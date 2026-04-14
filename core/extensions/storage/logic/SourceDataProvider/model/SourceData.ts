@@ -1,4 +1,4 @@
-import SourceType from "./SourceType";
+import type SourceType from "./SourceType";
 
 interface SourceData {
 	/**

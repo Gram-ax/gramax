@@ -3,7 +3,7 @@ import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import AggregationPopup from "@ext/markdown/elements/table/edit/components/Helpers/AggregationPopup";
-import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
+import type TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import {
 	addColumnDecoration,
 	addRowDecoration,
@@ -12,8 +12,8 @@ import {
 	workHeaderType,
 } from "@ext/markdown/elements/table/edit/logic/utils";
 import { AlignEnumTypes, TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { Editor } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model";
+import type { Editor } from "@tiptap/core";
+import type { Node } from "@tiptap/pm/model";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,

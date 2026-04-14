@@ -1,4 +1,4 @@
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 const MAX_WIDTH = 780;
 
@@ -10,7 +10,8 @@ const getWidthFromParams = (columnNode: HTMLElement): number => {
 		if (widthValue?.endsWith("%")) {
 			const percentage = parseFloat(widthValue);
 			return (MAX_WIDTH * percentage) / 100;
-		} else if (widthValue?.endsWith("px")) {
+		}
+		if (widthValue?.endsWith("px")) {
 			return parseFloat(widthValue);
 		}
 	}

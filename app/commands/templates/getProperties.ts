@@ -2,7 +2,7 @@ import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import type Context from "@core/Context/Context";
-import { Property } from "@ext/properties/models";
+import type { Property } from "@ext/properties/models";
 
 const getProperties: Command<
 	{

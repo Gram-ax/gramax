@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { RichButton as UiKitRichButton } from "ics-ui-kit/components/button";
 import { forwardRef } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitRichButtonProps = ExtractComponentGeneric<typeof UiKitRichButton>;
 

@@ -1,7 +1,7 @@
+import type PageDataContext from "@core/Context/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import BugsnagErrorBoundary from "@ext/bugsnag/components/BugsnagErrorBoundary";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
-import PageDataContext from "../../../../logic/Context/PageDataContext";
-import BugsnagErrorBoundary from "../../../bugsnag/components/BugsnagErrorBoundary";
 import ErrorConfirmService from "../ErrorConfirmService";
 
 export type ErrorBoundaryProps = { context?: PageDataContext; children: JSX.Element };

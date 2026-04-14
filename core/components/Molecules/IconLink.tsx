@@ -1,7 +1,6 @@
 import Icon from "@components/Atoms/Icon";
-import PureLink, { LinkTheme, PureLinkProps } from "@components/Atoms/PureLink";
+import PureLink, { LinkTheme, type PureLinkProps } from "@components/Atoms/PureLink";
 import styled from "@emotion/styled";
-import React from "react";
 
 interface IconLinkProps extends PureLinkProps {
 	afterIconCode?: string;

@@ -4,7 +4,6 @@ import type { ArticleLanguage } from "@ext/serach/modulith/SearchArticle";
 export default interface Searcher {
 	progress: (args: ProgressArgs) => SearcherProgressGenerator;
 	updateIndex: (args: UpdateIndexArgs) => Promise<void>;
-	searchAll: (args: SearchAllArgs) => Promise<SearchResult[]>;
 	search: (args: SearchArgs) => Promise<SearchResult[]>;
 }
 
@@ -18,21 +17,13 @@ export interface UpdateIndexArgs {
 	catalogName?: string;
 }
 
-export interface SearchArgsBase {
+export interface SearchArgs {
 	query?: string;
 	propertyFilter?: PropertyFilter;
 	resourceFilter?: ResourceFilter;
 	articlesLanguage?: ArticleLanguage;
 	signal?: AbortSignal;
-}
-
-export interface SearchAllArgs extends SearchArgsBase {
-	catalogToArticleIds: { [catalogName: string]: string[] };
-}
-
-export interface SearchArgs extends SearchArgsBase {
-	catalogName: string;
-	articleIds: string[];
+	articleRefPaths?: Set<string>;
 }
 
 export type SearcherProgressGenerator = AsyncGenerator<ProgressItem, void, void>;

@@ -1,6 +1,6 @@
 import Path from "@core/FileProvider/Path/Path";
 import FileRepository from "@ext/git/core/Repository/test/utils/FileRepository";
-import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
+import type WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import fs from "fs";
 
 const fr = new FileRepository(__dirname);

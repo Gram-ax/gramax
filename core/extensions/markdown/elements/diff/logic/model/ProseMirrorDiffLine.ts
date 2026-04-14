@@ -1,11 +1,11 @@
-import {
+import type {
 	AddedDiffLine,
 	CommentDiffLine,
 	DeletedDiffLine,
 	ModifiedDiffLine,
 } from "@ext/markdown/elements/diff/logic/model/DiffLine";
-import { JSONContent } from "@tiptap/core";
-import { Decoration } from "prosemirror-view";
+import type { JSONContent } from "@tiptap/core";
+import type { Decoration } from "prosemirror-view";
 
 type OldContent = {
 	oldContent: JSONContent;

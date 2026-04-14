@@ -1,20 +1,20 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
 import fileNameUtils from "@core-ui/fileNameUtils";
 import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
-import ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
+import type ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
 import convertUnsupportedNode from "@ext/confluence/core/cloud/logic/convertUnsupportedNode";
 import getCloudConvertors from "@ext/confluence/core/cloud/logic/getCloudConvertors";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
+import type ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
 import CONFLUENCE_EXTENSION_TYPES from "@ext/confluence/core/cloud/model/confluenceExtensionTypes";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
-import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
-import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
+import type { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
+import type ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
 import t from "@ext/localization/locale/translate";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import getConfluenceExtension from "../../api/getConfluenceExtension";
-import NodeConverter from "../model/NodeConverter";
+import type NodeConverter from "../model/NodeConverter";
 
 export default class ConfluenceCloudConverter implements ConfluenceConverter {
 	private _confluencePageUrl: string;

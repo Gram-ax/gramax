@@ -1,9 +1,11 @@
 import Item from "@components/Layouts/LeftNavigationTabs/Item";
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import styled from "@emotion/styled";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
-import { ReactNode, RefObject, useEffect, useMemo, useRef } from "react";
+import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
+import { type ReactNode, type RefObject, useEffect, useMemo, useRef } from "react";
 import BaseRightExtensions from "./BaseRightExtensions";
 
 interface ItemListProps<T = ProviderItemProps> {
@@ -21,6 +23,11 @@ interface ItemListProps<T = ProviderItemProps> {
 	preDelete?: (id: string) => Promise<boolean>;
 	rightActions?: (id: string) => ReactNode;
 }
+
+const ItemContainer = styled(ScrollShadowContainer)`
+	max-height: 40vh;
+	overflow-x: hidden;
+`;
 
 const ItemList = <T extends ProviderItemProps>(props: ItemListProps<T>) => {
 	const {
@@ -40,6 +47,7 @@ const ItemList = <T extends ProviderItemProps>(props: ItemListProps<T>) => {
 	} = props;
 	const ref = useRef<HTMLDivElement>(null);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!ref.current || !tabWrapperRef.current || !show) return;
 		const mainElement = tabWrapperRef.current;
@@ -71,14 +79,24 @@ const ItemList = <T extends ProviderItemProps>(props: ItemListProps<T>) => {
 				title={item.title.length ? item.title : t("article.no-name")}
 			/>
 		));
-	}, [items, selectedId, onItemClick, providerType, rightActions, confirmDeleteText]);
+	}, [
+		items,
+		selectedId,
+		onItemClick,
+		onDelete,
+		onMarkdownChange,
+		preDelete,
+		providerType,
+		rightActions,
+		confirmDeleteText,
+	]);
 
 	if (!show) return;
 
 	return (
-		<div ref={ref}>
+		<ItemContainer ref={ref}>
 			{items.length ? itemList : <div style={{ paddingLeft: "1rem", paddingRight: "1rem" }}>{noItemsText}</div>}
-		</div>
+		</ItemContainer>
 	);
 };
 

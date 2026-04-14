@@ -1,4 +1,5 @@
-import type { Config, Node, Schema } from "../types";
+import type Node from "../ast/node";
+import type { Config, Schema } from "../types";
 
 export const partial: Schema = {
 	selfClosing: true,

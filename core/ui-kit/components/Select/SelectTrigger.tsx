@@ -1,6 +1,6 @@
 import { SelectTrigger as UiKitSelectTrigger } from "ics-ui-kit/components/select";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitSelectPropsProps = ExtractComponentGeneric<typeof UiKitSelectTrigger>;
 

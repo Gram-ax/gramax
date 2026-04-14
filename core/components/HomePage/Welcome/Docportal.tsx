@@ -4,9 +4,9 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
-import SignInEnterpriseForm from "@ext/enterprise/components/SignInEnterpriseForm";
-import { useSignInEnterprise } from "@ext/enterprise/components/useSignInEnterprise";
-import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
+import { useSignIn } from "@ext/enterprise/components/SingInOut/hooks/useSignIn";
+import SignInEnterpriseForm from "@ext/enterprise/components/SingInOut/SignInEnterpriseForm";
+import type CloneModal from "@ext/git/actions/Clone/components/CloneModal";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { configureWorkspacePermission } from "@ext/security/logic/Permission/Permissions";
@@ -21,17 +21,17 @@ import {
 	PageStateFolderSvg,
 	PageStateTitle,
 } from "@ui-kit/PageState";
-import { ComponentProps } from "react";
+import type { ComponentProps } from "react";
 
 const EnterpriseSignIn = () => {
-	const apiUrlCreator = ApiUrlCreatorService.value;
 	const router = useRouter();
+	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isLogged = PageDataContextService.value.isLogged;
 	const authUrl = apiUrlCreator.getAuthUrl(router, isLogged).toString();
 
 	return (
 		<PageState>
-			<SignInEnterpriseForm authUrl={authUrl} {...useSignInEnterprise({ authUrl })} />
+			<SignInEnterpriseForm authUrl={authUrl} {...useSignIn({ authUrl })} />
 		</PageState>
 	);
 };
@@ -61,11 +61,9 @@ export const DocportalWelcome = () => {
 	if (isEnterprise && !isLogged) return <EnterpriseSignIn />;
 	if (!isLogged || !canConfigureWorkspace) return <EmptyWelcome />;
 
-	const logoIcon = ThemeService.value === Theme.dark ? "gramax-dark" : "gramax-light";
-
 	return (
 		<PageState>
-			<Icon className="w-12 h-12" icon={logoIcon} />
+			<Icon className="w-12 h-12" icon={ThemeService.value === Theme.dark ? "gramax-dark" : "gramax-light"} />
 			<PageStateTitle className="text-2xl sm:text-lg text-center">
 				{t("welcome.empty-clone.title")}
 			</PageStateTitle>

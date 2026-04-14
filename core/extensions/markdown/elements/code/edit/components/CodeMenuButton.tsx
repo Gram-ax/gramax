@@ -2,7 +2,7 @@ import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/Butt
 import t from "@ext/localization/locale/translate";
 import { useIsOneNodeSelected } from "@ext/markdown/core/edit/logic/hooks/useIsOneNodeSelected";
 import getIsSelected from "@ext/markdown/elementsUtils/getIsSelected";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { memo, useCallback } from "react";
 

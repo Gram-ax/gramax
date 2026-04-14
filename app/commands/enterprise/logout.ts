@@ -16,20 +16,26 @@ const logout: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.creat
 	middlewares: [new DesktopModeMiddleware()],
 
 	async do({ ctx, id }) {
-		const sourceDatas = this._app.rp.getSourceDatas(ctx, id);
 		const workspaceConfig = this._app.wm.getWorkspaceConfig(id);
-		const gesUrl = workspaceConfig.config.inner().enterprise?.gesUrl;
+		const gesUrl = workspaceConfig?.config?.inner?.().enterprise?.gesUrl;
+		const activeGesUrl = this._app.em.getConfig().gesUrl;
+
+		if (!gesUrl || !activeGesUrl || gesUrl !== activeGesUrl) return;
+
+		const sourceDatas = this._app.rp.getSourceDatas(ctx, id);
 		const enterpriseSource = getEnterpriseSourceData(sourceDatas, gesUrl);
 
 		if (enterpriseSource) await new EnterpriseApi(gesUrl).logout(enterpriseSource.token);
 
-		const isBrowser = getExecutingEnvironment() === "browser";
+		const isTauri = getExecutingEnvironment() === "tauri";
 		await this._commands.storage.removeSourceData.do({
 			ctx,
 			sourceName: getStorageNameByData(enterpriseSource),
 		});
-		const isCloud = this._app.em.getConfig().isCloud;
-		if (!isBrowser || isCloud) await this._commands.workspace.remove.do({ ctx, id });
+		if (isTauri) {
+			await this._commands.workspace.remove.do({ ctx, id });
+			await this._app.em.clearGesUrl();
+		}
 
 		await this._commands.ai.server.removeAiData.do({ ctx, workspacePath: id });
 		await this._app.am.logout(ctx.cookie);

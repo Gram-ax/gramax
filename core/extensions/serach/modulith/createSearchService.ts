@@ -1,8 +1,10 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import Cache from "@ext/Cache";
 import { FileFsProvider } from "@ext/serach/modulith/local/FileFsProvider";
-import { FsArticleStorageProvider, FsSimpleArticleStorage } from "@ics/modulith-search-infra/article";
+import {
+	FsCommitableArticleStorageProvider,
+	FsCommitableSimpleArticleStorage,
+} from "@ics/modulith-search-infra/article";
 import {
 	DefaultSearcher,
 	DefaultSearchService,
@@ -20,23 +22,26 @@ import {
 } from "@ics/modulith-search-infra-memory";
 import { Stemmer } from "@ics/modulith-search-infra-stemmer";
 import { NullLogger } from "@ics/modulith-utils";
-import { OLD_TENANT_NAME } from "./consts";
+import { TENANT_NAME } from "./consts";
+
+export interface ReposCache {
+	get(key: string): Promise<Uint8Array | undefined>;
+	set(key: string, data: Uint8Array): Promise<void>;
+}
 
 export const createSearchService = async ({
-	cacheFileProvider,
+	cache,
 	articleStorageFileProvider,
 }: {
-	cacheFileProvider: FileProvider;
+	cache: ReposCache;
 	articleStorageFileProvider: FileProvider;
 }): Promise<{ searchService: DefaultSearchService; commit: () => Promise<void> }> => {
-	const modulithCache = new Cache(cacheFileProvider);
-
 	// `createArticleStorageProvider` may delete and recreate the target directory,
 	// so it must be called before any code that relies on its contents
 	const articleStorageProvider = await createArticleStorageProvider(articleStorageFileProvider);
 
 	const { tenantRepo, articleRepo, chunkRepo, embLinkRepo, dictWordRepo, chunkWordRepo, chunkSearchWordRepo } =
-		await createRepos(modulithCache);
+		await createRepos(cache);
 
 	const logger = new NullLogger();
 	const tokenizer = await createTokenizer();
@@ -72,23 +77,26 @@ export const createSearchService = async ({
 	return {
 		searchService,
 		commit: async () => {
-			await tenantRepo.commit();
-			await articleRepo.commit();
-			await chunkRepo.commit();
-			await embLinkRepo.commit();
-			await dictWordRepo.commit();
-			await chunkWordRepo.commit();
-			await chunkSearchWordRepo.commit();
+			await Promise.all([
+				chunkRepo.commit(),
+				tenantRepo.commit(),
+				articleRepo.commit(),
+				embLinkRepo.commit(),
+				dictWordRepo.commit(),
+				chunkWordRepo.commit(),
+				chunkSearchWordRepo.commit(),
+				articleStorageProvider.commit(),
+			]);
 		},
 	};
 };
 
 async function createArticleStorageProvider(fp: FileProvider) {
 	const create = async () =>
-		await FsArticleStorageProvider.create({
+		await FsCommitableArticleStorageProvider.create({
 			fsProvider: new FileFsProvider(fp),
 			storageFactory: (fs) =>
-				FsSimpleArticleStorage.create({
+				FsCommitableSimpleArticleStorage.create({
 					fsProvider: fs,
 				}),
 		});
@@ -106,20 +114,16 @@ async function createArticleStorageProvider(fp: FileProvider) {
 
 		return storageProvider;
 	} catch (e) {
-		console.error("Error creating article storage provider; retrying after cleanup:", e);
+		console.warn("Error creating article storage provider; retrying after cleanup:", e);
 		await cleanup();
 		return await create();
 	}
 }
 
-async function needReindex(storageProvider: FsArticleStorageProvider): Promise<boolean> {
-	try {
-		// New version has changed search indexing algorithm
-		const oldTenant = await storageProvider.get(OLD_TENANT_NAME);
-		return oldTenant !== undefined;
-	} catch (_error) {
-		return false;
-	}
+async function needReindex(storageProvider: FsCommitableArticleStorageProvider): Promise<boolean> {
+	// New version has changed search indexing algorithm
+	const tenant = await storageProvider.tryGet(TENANT_NAME);
+	return tenant === undefined;
 }
 
 async function createTokenizer(): Promise<DefaultSearchTokenizer> {
@@ -144,7 +148,7 @@ const dictWordCacheName = "dictWord";
 const chunkWordCacheName = "chunkWord";
 const chunkSearchWordCacheName = "chunkSearchWord";
 
-async function createRepos(cache: Cache): Promise<{
+async function createRepos(cache: ReposCache): Promise<{
 	tenantRepo: CachedMemoryTenantRepo;
 	articleRepo: CachedMemoryArticleRepo;
 	chunkRepo: CachedMemoryChunkRepo;
@@ -153,13 +157,13 @@ async function createRepos(cache: Cache): Promise<{
 	chunkWordRepo: CachedMemoryChunkWordRepo;
 	chunkSearchWordRepo: CachedMemoryChunkSearchWordRepo;
 }> {
-	const tenantSetCache = (v: string) => cache.set(tenantCacheName, v);
-	const articleSetCache = (v: string) => cache.set(articleCacheName, v);
-	const chunkSetCache = (v: string) => cache.set(chunkCacheName, v);
-	const embLinkSetCache = (v: string) => cache.set(embLinkCacheName, v);
-	const dictWordSetCache = (v: string) => cache.set(dictWordCacheName, v);
-	const chunkWordSetCache = (v: string) => cache.set(chunkWordCacheName, v);
-	const chunkSearchWordSetCache = (v: string) => cache.set(chunkSearchWordCacheName, v);
+	const tenantSetCache = (v: Uint8Array) => cache.set(tenantCacheName, v);
+	const articleSetCache = (v: Uint8Array) => cache.set(articleCacheName, v);
+	const chunkSetCache = (v: Uint8Array) => cache.set(chunkCacheName, v);
+	const embLinkSetCache = (v: Uint8Array) => cache.set(embLinkCacheName, v);
+	const dictWordSetCache = (v: Uint8Array) => cache.set(dictWordCacheName, v);
+	const chunkWordSetCache = (v: Uint8Array) => cache.set(chunkWordCacheName, v);
+	const chunkSearchWordSetCache = (v: Uint8Array) => cache.set(chunkSearchWordCacheName, v);
 
 	try {
 		return {
@@ -192,7 +196,8 @@ async function createRepos(cache: Cache): Promise<{
 				setCache: chunkSearchWordSetCache,
 			}),
 		};
-	} catch {
+	} catch (e) {
+		console.warn("Error creating repos; retrying with empty:", e);
 		return {
 			tenantRepo: await CachedMemoryTenantRepo.create({
 				setCache: tenantSetCache,

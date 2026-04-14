@@ -1,7 +1,7 @@
-import { PageProps } from "@components/ContextProviders";
-import { createEventEmitter, Event } from "@core/Event/EventEmitter";
-import ContextService from "@core-ui/ContextServices/ContextService";
-import { ReactElement, useEffect } from "react";
+import type { PageProps } from "@components/Pages/models/Pages";
+import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
+import type ContextService from "@core-ui/ContextServices/ContextService";
+import { type ReactElement, useEffect } from "react";
 
 export type PageDataUpdateEvents = Event<"update">;
 

@@ -2,7 +2,7 @@ import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import styled from "@emotion/styled";
 import PullPushCounter from "@ext/git/actions/Sync/components/PullPushCounter";
 import t from "@ext/localization/locale/translate";
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 const Wrapper = styled.span`
 	display: flex;

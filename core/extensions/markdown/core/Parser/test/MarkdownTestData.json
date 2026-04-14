@@ -435,15 +435,14 @@
 								"attributes": {},
 								"children": [
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -451,18 +450,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -470,18 +468,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -489,7 +486,7 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									}
 								],
 								"name": "tr"
@@ -499,15 +496,14 @@
 								"attributes": {},
 								"children": [
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -515,18 +511,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -534,18 +529,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -553,7 +547,7 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									}
 								],
 								"name": "tr"
@@ -563,15 +557,14 @@
 								"attributes": {},
 								"children": [
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -579,18 +572,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -598,18 +590,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -617,7 +608,7 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									}
 								],
 								"name": "tr"
@@ -650,15 +641,14 @@
 								"attributes": {},
 								"children": [
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 2,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -666,18 +656,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -685,7 +674,7 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									}
 								],
 								"name": "tr"
@@ -695,15 +684,14 @@
 								"attributes": {},
 								"children": [
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -711,18 +699,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -730,18 +717,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 2
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -804,7 +790,7 @@
 												"type": "bulletList"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									}
 								],
 								"name": "tr"
@@ -814,15 +800,14 @@
 								"attributes": {},
 								"children": [
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -830,18 +815,17 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									},
 									{
-										"$$mdtype": "Tag",
-										"attributes": {
+										"attrs": {
 											"aggregation": null,
 											"align": null,
 											"colspan": 1,
 											"colwidth": null,
 											"rowspan": 1
 										},
-										"children": [
+										"content": [
 											{
 												"$$mdtype": "Tag",
 												"attributes": {},
@@ -849,7 +833,7 @@
 												"name": "p"
 											}
 										],
-										"name": "td"
+										"type": "tableCell"
 									}
 								],
 								"name": "tr"

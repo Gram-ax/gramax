@@ -1,5 +1,5 @@
-import { CommitScope, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
-import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
+import type { CommitScope, TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 
 const convertScopeToCommitScope = async (
 	scope: TreeReadScope,

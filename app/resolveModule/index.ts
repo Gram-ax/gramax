@@ -15,6 +15,7 @@ import type { ModulithSearchClient } from "@ext/serach/modulith/search/ModulithS
 import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import type useUrlObjectImage from "apps/browser/src/hooks/useUrlObjectImage";
 import type BrowserCookie from "apps/browser/src/logic/BrowserCookie";
+import type DocportalCookie from "apps/docportal/server/logic/DocportalCookie";
 import type NextCookie from "apps/next/logic/NextCookie";
 import type TauriCookie from "apps/tauri/src/cookie/TauriCookie";
 import type { httpFetch } from "../../apps/tauri/src/window/commands";
@@ -49,7 +50,7 @@ export interface DynamicModules {
 }
 
 export interface BackendDynamicModules {
-	Cookie: typeof BrowserCookie | typeof TauriCookie | typeof NextCookie;
+	Cookie: typeof BrowserCookie | typeof TauriCookie | typeof NextCookie | typeof DocportalCookie;
 	initWasm: (corsProxy: string) => Promise<void>;
 	svgToPng: (svg: string, size: ImageDimensions, scale: number) => Promise<Buffer>;
 	getImageSizeFromImageData: (imageBuffer: Buffer, maxWidth?: number, maxHeight?: number) => Promise<ImageDimensions>;
@@ -60,6 +61,7 @@ export interface BackendDynamicModules {
 	setSessionData: (key: string, data: string) => Promise<void>;
 	pdfLoadFont: (fontPath: string) => Promise<ArrayBuffer>;
 	getImageByPath: (options: GetImageByPathOptions) => Promise<GetImageByPathResult>;
+	mermaidExtractText: (definition: string) => Promise<string[]>;
 	getModulithSearchClient: ({
 		cacheFileProvider,
 		articleStorageFileProvider,

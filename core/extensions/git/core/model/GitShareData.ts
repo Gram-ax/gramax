@@ -1,5 +1,5 @@
-import GitSourceType from "@ext/git/core/model/GitSourceType";
-import ShareData from "../../../catalog/actions/share/model/ShareData";
+import type GitSourceType from "@ext/git/core/model/GitSourceType";
+import type ShareData from "../../../catalog/actions/share/model/ShareData";
 
 export default interface GitShareData extends ShareData {
 	domain: string;

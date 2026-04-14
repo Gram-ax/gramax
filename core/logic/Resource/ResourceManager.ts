@@ -1,5 +1,6 @@
 import type Context from "@core/Context/Context";
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
+import type CompressOptions from "@core/FileProvider/model/CompressOptions";
 import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
 import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
@@ -101,9 +102,10 @@ class ResourceManager implements Hashable {
 		return { oldResources, newResources };
 	}
 
-	async setContent(path: Path, data: string | Buffer) {
+	async setContent(path: Path, data: string | Buffer, compress?: CompressOptions) {
 		this._assertMaxFileSize(data);
-		return await this._fp.write(this.getAbsolutePath(path), data);
+		const out = { data };
+		return await this._fp.write(this.getAbsolutePath(path), out.data, compress);
 	}
 
 	async getContent(path: Path, ctx?: Context, silent?: boolean): Promise<Buffer> {
@@ -115,7 +117,7 @@ class ResourceManager implements Hashable {
 		const out = { out: null };
 		if (!silent) await this._events.emit("content-read", { path: this._basePath.join(path), ctx, content, out });
 
-		if (out.out == true) return await this.getContent(path, ctx, true);
+		if (out.out === true) return await this.getContent(path, ctx, true);
 		return out.out ?? content;
 	}
 

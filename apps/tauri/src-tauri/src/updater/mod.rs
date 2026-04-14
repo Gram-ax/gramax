@@ -9,7 +9,6 @@ pub mod legacy;
 use tauri::http::HeaderName;
 use tauri::process::restart;
 use tauri::*;
-use tauri_otel_context::OtelContext;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_updater as inner;
 use tokio::sync::Mutex;

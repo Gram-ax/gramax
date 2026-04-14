@@ -1,5 +1,5 @@
 import { XxHash } from "@core/Hash/Hasher";
-import { ExportTemplate } from "@ext/enterprise/types/UserSettings";
+import type { ExportTemplate } from "@ext/enterprise/types/UserSettings";
 
 export function calcTemplatesHash(templates: ExportTemplate[]): number {
 	return templates.reduce((acc, { title, bufferBase64 }) => {

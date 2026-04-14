@@ -4,10 +4,10 @@
 
 import Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import { MergeRequest, MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
+import type { MergeRequest, MergeRequestOptions } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import FileRepository from "@ext/git/core/Repository/test/utils/FileRepository";
-import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
+import type WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
 import fs from "fs";
 
 const path = (path: string) => new Path(path);

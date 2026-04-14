@@ -1,7 +1,7 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { JSONContent } from "@tiptap/core";
-import { Content } from "pdfmake/interfaces";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { parseNodeToPDFContent, type pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { JSONContent } from "@tiptap/core";
+import type { Content } from "pdfmake/interfaces";
 
 export const tabsHandler = async (node: Tag | JSONContent, context: pdfRenderContext): Promise<Content[]> => {
 	const name = "name" in node ? node.name : node.type;

@@ -1,11 +1,11 @@
 import { classNames } from "@components/libs/classNames";
 import useElementExistence from "@core-ui/hooks/useElementExistence";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { mediaQueries } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { useMediaQuery } from "@react-hook/media-query";
-import Tippy, { TippyProps } from "@tippyjs/react";
-import { forwardRef, ReactNode, RefObject, useEffect, useRef, useState } from "react";
-import { Placement } from "tippy.js";
+import Tippy, { type TippyProps } from "@tippyjs/react";
+import { forwardRef, type ReactNode, type RefObject, useEffect, useRef, useState } from "react";
+import type { Placement } from "tippy.js";
 
 interface TooltipProps extends TippyProps {
 	place?: Placement;
@@ -49,6 +49,7 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 		inverseStyle,
 		appendTo = () => document.body,
 		onMount,
+		maxWidth = "30em",
 		...otherProps
 	} = props;
 
@@ -59,8 +60,9 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 
 	useEffect(() => {
 		setPlaceCallback(finalPlace);
-	}, [finalPlace]);
+	}, [finalPlace, setPlaceCallback]);
 
+	if (typeof window === "undefined") return null;
 	if (!content || (hideInMobile && isNarrow)) return children;
 
 	return (
@@ -84,7 +86,7 @@ const Tooltip = forwardRef((props: TooltipProps, ref?: RefObject<Element>) => {
 			hideOnClick={visible !== undefined && !hideOnClick ? undefined : hideOnClick}
 			interactive={interactive}
 			interactiveBorder={interactiveBorder}
-			maxWidth="30em"
+			maxWidth={maxWidth}
 			offset={[0, distance]}
 			onMount={(instance) => {
 				onMount?.(instance);

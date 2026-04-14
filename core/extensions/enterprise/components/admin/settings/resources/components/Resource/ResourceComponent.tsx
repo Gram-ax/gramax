@@ -74,9 +74,9 @@ export default function ResourceComponent({
 
 	const loadBranchOptions = useCallback(
 		async ({ searchQuery }: LoadOptionsParams): Promise<LoadOptionsResult<SearchSelectOption>> => {
-			if (!resourceSettings) return { options: [] };
+			if (!resourceSettings?.id) return { options: [] };
 			try {
-				const branches = await searchBranches(resourceSettings?.id ?? "");
+				const branches = await searchBranches(resourceSettings.id);
 				const filteredOptions = branches
 					.filter((branch) => branch.toLowerCase().includes(searchQuery.toLowerCase()))
 					.map((branch) => ({
@@ -104,7 +104,7 @@ export default function ResourceComponent({
 			? { value: resourceSettings.mainBranch, label: resourceSettings.mainBranch }
 			: undefined;
 		form.setValue("mainBranch", value);
-	}, [resourceSettings?.mainBranch]);
+	}, [form, resourceSettings?.mainBranch]);
 
 	useEffect(() => {
 		if (showUnsavedDialog) setShowUnsavedDialog(showUnsavedDialog);
@@ -136,6 +136,7 @@ export default function ResourceComponent({
 																	access: {
 																		users: [],
 																		groups: [],
+																		ssoGroups: [],
 																		externalUsers: [],
 																	},
 																});
@@ -209,9 +210,9 @@ export default function ResourceComponent({
 							</div>
 						</div>
 						<div className={!resourceSettings?.id ? "opacity-50 pointer-events-none mt-2" : "mt-2"}>
-							<label className="text-primary-fg flex h-4 min-w-0 items-center gap-x-0.5 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
+							<p className="text-primary-fg flex h-4 min-w-0 items-center gap-x-0.5 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 mb-2">
 								<span>{t("enterprise.admin.resources.access")}</span>
-							</label>
+							</p>
 							<Tabs defaultValue="users">
 								<TabsList className="w-full">
 									<TabsTrigger className="flex-1" value="users">
@@ -223,7 +224,10 @@ export default function ResourceComponent({
 									<TabsTrigger className="flex-1" value="groups">
 										<span className="font-medium">
 											{t("enterprise.admin.client-access-keys.groups")}{" "}
-											<Counter variant="text">{`${(resourceSettings?.access?.groups ?? []).length}`}</Counter>
+											<Counter variant="text">{`${
+												(resourceSettings?.access?.groups ?? []).length +
+												(resourceSettings?.access?.ssoGroups ?? []).length
+											}`}</Counter>
 										</span>
 									</TabsTrigger>
 									<TabsTrigger className="flex-1" value="externalUsers">
@@ -248,12 +252,13 @@ export default function ResourceComponent({
 								<TabsContent key={"groups"} value={"groups"}>
 									<GroupsTable
 										groups={resourceSettings?.access?.groups ?? []}
-										onChange={(groups) => {
+										onChange={({ groups, ssoGroups }) => {
 											onChange({
 												...resourceSettings,
-												access: { ...resourceSettings?.access, groups },
+												access: { ...resourceSettings?.access, groups, ssoGroups },
 											});
 										}}
+										ssoGroups={resourceSettings?.access?.ssoGroups ?? []}
 									/>
 								</TabsContent>
 								<TabsContent key={"externalUsers"} value={"externalUsers"}>

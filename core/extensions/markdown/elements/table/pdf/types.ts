@@ -1,5 +1,5 @@
-import { AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { Content, TableCellProperties } from "pdfmake/interfaces";
+import type { AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import type { Content, TableCellProperties } from "pdfmake/interfaces";
 
 export interface TableCell extends TableCellProperties {
 	text?: string;

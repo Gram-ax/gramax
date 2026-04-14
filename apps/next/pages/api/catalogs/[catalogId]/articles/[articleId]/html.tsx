@@ -13,7 +13,7 @@ import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
 		const { contextFactory, parser, sitePresenterFactory, parserContextFactory } = this.app;
-		const context = await contextFactory.from({ req, res });
+		const context = await contextFactory.fromNode({ req, res });
 		const catalogName = req.query.catalogId as string;
 		const articleId = req.query.articleId as string;
 		const dataProvider = sitePresenterFactory.fromContext(context);
@@ -29,7 +29,6 @@ export default ApplyApiMiddleware(
 			article,
 			catalog,
 			convertContentToUiLanguage(context.contentLanguage || catalog?.props?.language),
-			context.user?.isLogged,
 		);
 		const htmlContent = parser.getHtml(
 			(await article.parsedContent.read()).renderTree,

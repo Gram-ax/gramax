@@ -1,6 +1,6 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import { Buffer } from "buffer";
-import Path from "../../FileProvider/Path/Path";
+import type Path from "../../FileProvider/Path/Path";
 import HashItem from "./HashItem";
 
 export default class HashResourceByPathManager extends HashItem {

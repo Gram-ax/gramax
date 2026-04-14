@@ -1,6 +1,6 @@
-import { Range } from "@tiptap/core";
-import { Attrs, MarkType, Node } from "@tiptap/pm/model";
-import { Transaction } from "@tiptap/pm/state";
+import type { Range } from "@tiptap/core";
+import type { Attrs, MarkType, Node } from "@tiptap/pm/model";
+import type { Transaction } from "@tiptap/pm/state";
 
 interface BlockMarkInterface {
 	setMarkup(range: Range, attributes: Attrs): Transaction;

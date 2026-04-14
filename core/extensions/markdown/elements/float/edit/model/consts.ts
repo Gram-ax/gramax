@@ -1,4 +1,4 @@
-import { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
+import type { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
 
 export const FLOAT_NODES = ["image", "diagrams", "mermaid", "plant-uml"];
 

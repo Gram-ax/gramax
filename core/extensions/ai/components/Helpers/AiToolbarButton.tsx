@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { ToolbarIcon, ToolbarToggleButton, ToolbarToggleButtonProps } from "@ui-kit/Toolbar";
+import { ToolbarIcon, ToolbarToggleButton, type ToolbarToggleButtonProps } from "@ui-kit/Toolbar";
 
 interface AiToolbarButtonProps extends Omit<ToolbarToggleButtonProps, "children"> {
 	tooltipText: string;

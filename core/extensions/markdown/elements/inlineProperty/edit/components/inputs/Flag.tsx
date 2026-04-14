@@ -1,6 +1,6 @@
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
-import { ChangeEvent as ReactChangeEvent } from "react";
+import type { ChangeEvent as ReactChangeEvent } from "react";
 
 interface FlagProps {
 	id: string;

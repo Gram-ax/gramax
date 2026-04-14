@@ -1,4 +1,4 @@
-import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputProps";
+import type DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputProps";
 import { DiffEditor } from "@monaco-editor/react";
 
 const DiffFileInputCdn: DiffFileInput = (props) => {

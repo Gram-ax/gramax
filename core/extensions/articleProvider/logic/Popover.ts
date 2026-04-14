@@ -1,8 +1,8 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import PopoverLocalStorageManager from "@ext/articleProvider/logic/PopoverLocalStorageManager";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type PopoverLocalStorageManager from "@ext/articleProvider/logic/PopoverLocalStorageManager";
 import TooltipBase from "@ext/markdown/elementsUtils/prosemirrorPlugins/TooltipBase";
-import { FC } from "react";
+import type { FC } from "react";
 
 export type PopoverPosition = { x: number; y: number };
 export type PopoverSize = { width: number; height: number };

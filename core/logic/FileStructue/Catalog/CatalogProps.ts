@@ -1,6 +1,6 @@
 import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
-import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
+import type { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
 import type { TitledLink } from "@ext/navigation/NavigationLinks";
 import type { Property, PropertyID } from "@ext/properties/models";
 

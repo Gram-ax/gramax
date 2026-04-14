@@ -1,7 +1,7 @@
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
-import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
-import { ColumnDef } from "@ui-kit/DataTable";
-import { Repository } from "../types/RepositoriesTypes";
+import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
+import type { ColumnDef } from "@ui-kit/DataTable";
+import type { Repository } from "../types/RepositoriesTypes";
 
 export const repositoriesTableColumns: ColumnDef<Repository>[] = [
 	{

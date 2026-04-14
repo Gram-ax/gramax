@@ -1,6 +1,6 @@
-import ResourceManager from "@core/Resource/ResourceManager";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type { AddOptionsWord } from "@ext/wordExport/options/WordTypes";
 
 const getWordResourceManager = async (
 	addOptions: AddOptionsWord,

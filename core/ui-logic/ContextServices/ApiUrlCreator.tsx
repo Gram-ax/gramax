@@ -1,7 +1,7 @@
-import { PageProps } from "@components/ContextProviders";
+import type { PageProps } from "@components/Pages/models/Pages";
 import { useRouter } from "@core/Api/useRouter";
-import ContextService from "@core-ui/ContextServices/ContextService";
-import { createContext, ReactElement, useContext, useMemo } from "react";
+import type ContextService from "@core-ui/ContextServices/ContextService";
+import { createContext, type ReactElement, useContext, useMemo } from "react";
 import ApiUrlCreator from "../ApiServices/ApiUrlCreator";
 
 const ApiUrlCreatorContext = createContext<ApiUrlCreator>(undefined);
@@ -12,15 +12,15 @@ const ApiUrlCreatorContext = createContext<ApiUrlCreator>(undefined);
 class ApiUrlCreatorService implements ContextService {
 	Init({ children, pageProps }: { children: ReactElement; pageProps: PageProps }): ReactElement {
 		const basePath = useRouter().basePath;
-		const isArticlePage = pageProps?.context?.isArticle;
+		const isArticlePage = pageProps?.page === "article";
+		const articleData = isArticlePage ? pageProps?.data : null;
+		const catalogName = articleData?.catalogProps?.name ?? null;
+		const articlePath = articleData?.articleProps?.ref?.path ?? null;
 
-		const apiUrlCreator = useMemo(() => {
-			return new ApiUrlCreator(
-				basePath,
-				isArticlePage ? pageProps?.data?.catalogProps?.name : null,
-				isArticlePage ? pageProps?.data?.articleProps?.ref?.path : null,
-			);
-		}, [basePath, isArticlePage, pageProps?.data?.catalogProps?.name, pageProps?.data?.articleProps?.ref?.path]);
+		const apiUrlCreator = useMemo(
+			() => new ApiUrlCreator(basePath, catalogName, articlePath),
+			[basePath, catalogName, articlePath],
+		);
 
 		return <ApiUrlCreatorContext.Provider value={apiUrlCreator}>{children}</ApiUrlCreatorContext.Provider>;
 	}

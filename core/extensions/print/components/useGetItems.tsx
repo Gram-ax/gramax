@@ -1,8 +1,8 @@
 import { useRouter } from "@core/Api/useRouter";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { ArticlePreview, PdfExportProgress, PrintableContent, PrintablePage } from "@ext/print/types";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { ArticlePreview, PdfExportProgress, PrintableContent, PrintablePage } from "@ext/print/types";
 import { useCallback, useEffect, useState } from "react";
 
 export const useGetItems = (

@@ -1,9 +1,9 @@
-import LinkResourceManager from "@core/Link/LinkResourceManager";
-import ResourceManager from "@core/Resource/ResourceManager";
-import UiLanguage from "@ext/localization/core/model/Language";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
-import { JSONContent } from "@tiptap/core";
+import type LinkResourceManager from "@core/Link/LinkResourceManager";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import type UiLanguage from "@ext/localization/core/model/Language";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import type { JSONContent } from "@tiptap/core";
 
 export interface DocumentTree {
 	name: string;

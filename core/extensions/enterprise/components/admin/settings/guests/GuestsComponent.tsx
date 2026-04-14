@@ -2,7 +2,7 @@ import useCheck from "@core-ui/hooks/useCheck";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
 import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
-import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
 import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
 import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
@@ -12,7 +12,7 @@ import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/Ta
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
@@ -21,11 +21,11 @@ import { Description } from "@ui-kit/Description";
 import { Field } from "@ui-kit/Field";
 import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
-import { Switch } from "ics-ui-kit/components/switch";
+import { Switch } from "@ui-kit/Switch";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GuestsToolbarAddBtn } from "./components/GuestsToolbarAddBtn";
 import { guestsTableColumns } from "./config/GuestsTableConfig";
-import { Domain, GuestsSettings } from "./types/GuestsComponent";
+import type { Domain, GuestsSettings } from "./types/GuestsComponent";
 
 const defaultSettings: GuestsSettings = {
 	sessionDurationHours: 12,
@@ -75,7 +75,7 @@ const GuestsComponent = () => {
 			}
 
 			await updateGuests(localSettings);
-		} catch (e: any) {
+		} catch (e) {
 			setSaveError(e?.message);
 		} finally {
 			setIsSaving(false);
@@ -162,6 +162,8 @@ const GuestsComponent = () => {
 	);
 
 	const tabError = getTabError("guests");
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: delete button wont appear without this
 	const selectedCount = useMemo(() => table.getFilteredSelectedRowModel().rows.length, [table, rowSelection]);
 
 	if (isInitialLoading("guests")) {
@@ -282,9 +284,9 @@ const GuestsComponent = () => {
 											/>
 										}
 									>
-										<AlertDeleteDialog
+										<DeleteSelectedButton
 											hidden={!selectedCount}
-											onConfirm={handleDeleteSelectedDomains}
+											onClick={handleDeleteSelectedDomains}
 											selectedCount={selectedCount}
 										/>
 										<GuestsToolbarAddBtn

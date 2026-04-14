@@ -1,5 +1,5 @@
-import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
-import { NodeSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
+import type { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import type { NodeSerializerSpec } from "../../../../core/edit/logic/Prosemirror/to_markdown";
 
 const DiagramsFormatter =
 	(formatter: FormatterType): NodeSerializerSpec =>

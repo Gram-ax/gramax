@@ -30,7 +30,7 @@ sign_win() {
 }
 
 sign_containers_legacy() {
-    if [[ -n "${KMS_AWS_KEY_ARN}" ]]; then # -n "${NEED_TO_SIGN}" &&
+    if [[ -n "${KMS_AWS_KEY_ARN}" ]]; then
         echo "Signing container"
         digest=$(jq -r '."containerimage.digest"' ../../build-metadata.json)
         
@@ -39,14 +39,10 @@ sign_containers_legacy() {
             exit 1
         fi
         
-        echo "Signing the image ${CI_REGISTRY}/${CI_PROJECT_PATH}:${SERVICE_NAME}-${BRANCH}@${digest} with cosign..."
-        AWS_SECRET_ACCESS_KEY=${KMS_AWS_SECRET_ACCESS_KEY} AWS_ACCESS_KEY_ID=${KMS_AWS_ACCESS_KEY_ID} AWS_DEFAULT_REGION=${KMS_AWS_DEFAULT_REGION} cosign sign -y --key "awskms:///${KMS_AWS_KEY_ARN}" "$CI_REGISTRY/$CI_PROJECT_PATH:$SERVICE_NAME-$BRANCH@$digest" | jq
-    else
-        if [[ -z "${NEED_TO_SIGN}" ]]; then
-            echo "Skipping container signing because NEED_TO_SIGN is not set or false."
-        else
-            echo "Skipping container signing because KMS_AWS_KEY_ARN is not set."
-        fi
+        echo "Signing the image ${CI_REGISTRY}/${CI_PROJECT_PATH}:${IMAGE_NAME}-${BRANCH}@${digest} with cosign..."
+        AWS_SECRET_ACCESS_KEY=${KMS_AWS_SECRET_ACCESS_KEY} AWS_ACCESS_KEY_ID=${KMS_AWS_ACCESS_KEY_ID} AWS_DEFAULT_REGION=${KMS_AWS_DEFAULT_REGION} cosign sign -y --key "awskms:///${KMS_AWS_KEY_ARN}" "$CI_REGISTRY/$CI_PROJECT_PATH:$IMAGE_NAME-$BRANCH@$digest" | jq
+    else       
+        echo "Skipping container signing because KMS_AWS_KEY_ARN is not set."
     fi
 }
 
@@ -65,12 +61,12 @@ sign_containers() {
         TAGS+=("${APP_VERSION}-dev" "latest-dev")
     fi
 
-    if [[ "$CI_COMMIT_REF_NAME" == "master" ]]; then
+    if [[ "$CI_COMMIT_REF_NAME" == "$PROD_BRANCH" ]]; then
         TAGS+=("${APP_VERSION}" "latest" "prod")
     fi
 
     for TAG in "${TAGS[@]}"; do
-        IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE_NAME}:${TAG}"
+        IMAGE="${CI_REGISTRY_IMAGE}/${IMAGE_NAME}:${TAG}"
 
         echo "Processing image: ${IMAGE}"
 
@@ -81,7 +77,7 @@ sign_containers() {
             continue
         fi
 
-        FULL_IMAGE="${CI_REGISTRY_IMAGE}/${SERVICE_NAME}@${DIGEST}"
+        FULL_IMAGE="${CI_REGISTRY_IMAGE}/${IMAGE_NAME}@${DIGEST}"
 
         if cosign verify --key "awskms:///${KMS_AWS_KEY_ARN}" "${FULL_IMAGE}" >/dev/null 2>&1; then
             echo "Image already signed: ${FULL_IMAGE}"

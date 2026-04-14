@@ -1,4 +1,4 @@
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import assert from "assert";
 
 const getUrlFromGitStorageData = (data: GitStorageData, gitExtension = false): string => {

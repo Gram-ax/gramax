@@ -95,7 +95,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			templateProvider: new TemplateProvider(this._fp, this._fs, this),
 			promptProvider: new PromptProvider(this._fp, this._fs, this),
 			linksProvider: new CatalogLinksProvider(this._fs, this),
-			commentProvider: new CommentProvider(this._fp),
+			commentProvider: new CommentProvider(this._fp, this._fs, this),
 		};
 	}
 
@@ -181,6 +181,11 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 			this._searcher.resetCache();
 		});
 		this._unsubscirbeTokens.repo.push(publishToken);
+
+		const mergeToken = this.repo.events.on("merge", async ({ targetBranch, sourceData, beforeMergeCommit }) => {
+			await this._events.emit("merge", { catalog: this, targetBranch, sourceData, beforeMergeCommit });
+		});
+		this._unsubscirbeTokens.repo.push(mergeToken);
 	}
 
 	getRepositoryRelativePath(ref: Path | ItemRef): Path {

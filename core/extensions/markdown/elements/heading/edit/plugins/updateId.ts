@@ -1,4 +1,4 @@
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "prosemirror-state";
 import UpdateHeadingId from "../views/UpdateHeadingId";
 

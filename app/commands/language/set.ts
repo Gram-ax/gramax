@@ -1,4 +1,4 @@
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
 import UiLanguage, { resolveLanguage } from "@ext/localization/core/model/Language";
 import { Command } from "../../types/Command";

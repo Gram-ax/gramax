@@ -1,4 +1,4 @@
-import { Transformer } from "@ext/markdown/core/edit/logic/Prosemirror/transformer";
+import type { Transformer } from "@ext/markdown/core/edit/logic/Prosemirror/transformer";
 
 interface TokenTransformerProps {
 	token: any;

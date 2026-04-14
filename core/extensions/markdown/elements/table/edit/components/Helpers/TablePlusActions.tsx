@@ -6,7 +6,7 @@ import {
 } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 import PlusActions from "@ext/markdown/elements/table/edit/components/Helpers/PlusActions";
 import PlusMenu from "@ext/markdown/elements/table/edit/components/Helpers/PlusMenu";
-import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
+import type TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import {
 	addColumn,
 	addColumnRight,
@@ -15,11 +15,11 @@ import {
 	getFirstTdPosition,
 	getRowPosition,
 } from "@ext/markdown/elements/table/edit/logic/utils";
-import { Editor } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model";
-import { Transaction } from "@tiptap/pm/state";
+import type { Editor } from "@tiptap/core";
+import type { Node } from "@tiptap/pm/model";
+import type { Transaction } from "@tiptap/pm/state";
 import { columnResizingPluginKey } from "prosemirror-tables";
-import { RefObject, useCallback, useEffect, useState } from "react";
+import { type RefObject, useCallback, useEffect, useState } from "react";
 
 interface TablePlusActionsProps {
 	node: Node;

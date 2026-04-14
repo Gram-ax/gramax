@@ -3,19 +3,19 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import convertShareLinkDataToStorageData from "@ext/catalog/actions/share/logic/convertShareLinkDataToStorageData";
-import ShareData from "@ext/catalog/actions/share/model/ShareData";
+import type ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
-import GitShareData from "@ext/git/core/model/GitShareData";
+import type GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
-import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
+import type CreateStorageModal from "@ext/storage/components/CreateStorageModal";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
-import { ComponentProps, useEffect, useState } from "react";
+import { type ComponentProps, useEffect, useState } from "react";
 
 interface CloneWithShareDataProps {
 	shareData: ShareData;

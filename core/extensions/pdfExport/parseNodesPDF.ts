@@ -1,21 +1,21 @@
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
-import { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import LinkResourceManager from "@core/Link/LinkResourceManager";
-import ResourceManager from "@core/Resource/ResourceManager";
-import UiLanguage from "@ext/localization/core/model/Language";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import type LinkResourceManager from "@core/Link/LinkResourceManager";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import type UiLanguage from "@ext/localization/core/model/Language";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type { RenderableTreeNode } from "@ext/markdown/core/render/logic/Markdoc";
 import { HEADING_MARGINS } from "@ext/pdfExport/config";
 import { addMargin } from "@ext/pdfExport/utils/addMargin";
 import { errorCase } from "@ext/pdfExport/utils/getErrorElement";
 import getLayout from "@ext/pdfExport/utils/getLayout";
 import { isTag } from "@ext/pdfExport/utils/isTag";
-import DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
+import type DocumentTree from "@ext/wordExport/DocumentTree/DocumentTree";
 import { generateBookmarkName } from "@ext/wordExport/generateBookmarkName";
-import { TitleInfo } from "@ext/wordExport/options/WordTypes";
-import { JSONContent } from "@tiptap/core";
-import { Content } from "pdfmake/interfaces";
+import type { TitleInfo } from "@ext/wordExport/options/WordTypes";
+import type { JSONContent } from "@tiptap/core";
+import type { Content } from "pdfmake/interfaces";
 
 export interface NodeOptions {
 	level?: number;

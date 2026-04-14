@@ -2,7 +2,6 @@ import Link from "@components/Atoms/Link";
 import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
 import { useRouter } from "@core/Api/useRouter";
 import Url from "@core-ui/ApiServices/Types/Url";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import { css } from "@emotion/react";
 import t from "@ext/localization/locale/translate";
 import BreadcrumbCatalog from "@ext/serach/components/BreadcrumbCatalog";
@@ -18,18 +17,27 @@ import { type RefObject, useEffect, useRef } from "react";
 
 export interface SearchResultsProps {
 	rows: RowSearchResult[];
-	searchAll: boolean;
+	showCatalogBreadcrumb: boolean;
 	containerRef: RefObject<HTMLElement>;
 	focusItem: FocusItem | undefined;
+	currentRefPath?: string;
 	setFocusItem: (item: FocusItem) => void;
 	onLinkOpen: (data: { url: string; searchFragmentInfo?: SearchFragmentInfo }) => void;
 	registerKeyHandler: (fn: ((e: React.KeyboardEvent) => boolean) | undefined) => void;
 }
 
 export const SearchResults = (props: SearchResultsProps) => {
-	const { rows, searchAll, containerRef: listRef, onLinkOpen, focusItem, setFocusItem, registerKeyHandler } = props;
+	const {
+		rows,
+		showCatalogBreadcrumb,
+		containerRef,
+		currentRefPath,
+		onLinkOpen,
+		focusItem,
+		setFocusItem,
+		registerKeyHandler,
+	} = props;
 
-	const currentRefPath = ArticlePropsService.value?.ref.path;
 	const focusRef = useRef<HTMLAnchorElement>(null);
 	const scrollAnimRef = useRef<CurrentScrollData>({});
 	const cursorFlagRef = useRef<boolean>(true);
@@ -51,10 +59,10 @@ export const SearchResults = (props: SearchResultsProps) => {
 	useEffect(() => {
 		void focus.current;
 
-		if (!cursorFlagRef.current && focusRef.current && listRef.current) {
-			scrollToElement(listRef.current, focusRef.current, scrollAnimRef);
+		if (!cursorFlagRef.current && focusRef.current && containerRef.current) {
+			scrollToElement(containerRef.current, focusRef.current, scrollAnimRef);
 		}
-	}, [focus.current, listRef.current]);
+	}, [focus.current, containerRef.current]);
 
 	const mousemoveHandler = () => {
 		cursorFlagRef.current = true;
@@ -174,7 +182,7 @@ export const SearchResults = (props: SearchResultsProps) => {
 							)}
 						</span>
 
-						{searchAll && d.type === "article" && (
+						{showCatalogBreadcrumb && d.type === "article" && (
 							<Link
 								className="breadcrumb-catalog"
 								href={Url.from({

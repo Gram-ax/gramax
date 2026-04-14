@@ -91,6 +91,50 @@
 				"useConst": "warn",
 				"useNodejsImportProtocol": "off",
 				"useTemplate": "warn",
+				"useNamingConvention": {
+					"level": "warn",
+					"options": {
+						"strictCase": false,
+						"conventions": [
+							{
+								"selector": {
+									"kind": "classProperty",
+									"modifiers": ["private"]
+								},
+								"match": "_(.+)",
+								"formats": ["camelCase"]
+							},
+							{
+								"selector": {
+									"kind": "classMethod",
+									"modifiers": ["private"]
+								},
+								"match": "_(.+)",
+								"formats": ["camelCase"]
+							},
+							{
+								"selector": {
+									"kind": "classProperty",
+									"modifiers": ["protected"]
+								},
+								"match": "_(.+)",
+								"formats": ["camelCase"]
+							},
+							{
+								"selector": {
+									"kind": "classMethod",
+									"modifiers": ["protected"]
+								},
+								"match": "_(.+)",
+								"formats": ["camelCase"]
+							},
+							{
+								// Allow any naming for everything else
+								"formats": ["camelCase", "PascalCase", "CONSTANT_CASE", "snake_case"]
+							}
+						]
+					}
+				},
 				"noRestrictedImports": {
 					"level": "warn",
 					"options": {

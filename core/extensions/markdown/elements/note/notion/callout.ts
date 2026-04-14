@@ -1,4 +1,4 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const callout: NotionNodeConverter = (calloutNode) => {
 	if (calloutNode[calloutNode.type]?.icon?.type === "emoji") {

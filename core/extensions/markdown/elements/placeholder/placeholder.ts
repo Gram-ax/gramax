@@ -1,7 +1,7 @@
 import t from "@ext/localization/locale/translate";
 import { editName as blockFieldEditName } from "@ext/markdown/elements/blockContentField/consts";
-import { Editor, Extension } from "@tiptap/core";
-import { Node as ProsemirrorNode } from "prosemirror-model";
+import { type Editor, Extension } from "@tiptap/core";
+import type { Node as ProsemirrorNode } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 

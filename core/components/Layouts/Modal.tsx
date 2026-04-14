@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import { classNames } from "@components/libs/classNames";
 import Confirm from "@components/Molecules/Confirm";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -126,6 +127,7 @@ const ModalLayout = (props: ModalLayoutProps) => {
 
 	const handleError = () => setIsError(true);
 
+	if (typeof window === "undefined") return null;
 	return (
 		<>
 			<Popup

@@ -1,6 +1,6 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { ProgressIconButton as UiKitProgressIconButton } from "ics-ui-kit/components/progress";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitProgressIconButtonProps = ExtractComponentGeneric<typeof UiKitProgressIconButton>;
 

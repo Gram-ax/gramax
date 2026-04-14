@@ -1,7 +1,7 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import Path from "@core/FileProvider/Path/Path";
-import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
+import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { Command } from "../../types/Command";
 

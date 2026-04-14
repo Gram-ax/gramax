@@ -1,4 +1,4 @@
-import { ArticleBlock, ArticleItem } from "@ics/gx-vector-search";
+import type { ArticleBlock, ArticleItem } from "@ics/gx-vector-search";
 
 export default class HeaderArticleBlock implements ArticleBlock {
 	type: "block" = "block" as const;

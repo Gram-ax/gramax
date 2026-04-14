@@ -1,4 +1,4 @@
-import NoteAttrs from "@ext/markdown/elements/note/edit/model/NoteAtrrs";
+import type NoteAttrs from "@ext/markdown/elements/note/edit/model/NoteAtrrs";
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
 import { readyToPlace, stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
@@ -47,8 +47,8 @@ const Note = Node.create({
 
 					const attributes = callOrReturn({ type: NoteType.quote }, undefined, match) || {};
 					const tr = state.tr.delete(range.from, range.to);
-					const $start = tr.doc.resolve(range.from);
-					const blockRange = $start.blockRange();
+					const start = tr.doc.resolve(range.from);
+					const blockRange = start.blockRange();
 					const wrapping = blockRange && findWrapping(blockRange, this.type, attributes);
 
 					if (!wrapping) return null;
@@ -58,6 +58,25 @@ const Note = Node.create({
 				},
 			}),
 		];
+	},
+
+	addKeyboardShortcuts() {
+		return {
+			Backspace: ({ editor }) => {
+				const { selection } = editor.state;
+				const parentNote = findParentNode((node) => node.type.name === this.name)(selection);
+				const nodeBefore = parentNote && selection.$anchor.doc.resolve(parentNote.pos).nodeBefore;
+
+				const isAtStartOfNote =
+					parentNote &&
+					selection.$anchor.parentOffset === 0 &&
+					selection.$anchor.index(parentNote.depth) === 0;
+				const isAfterList = nodeBefore?.type.spec.group?.includes("list");
+
+				if (!isAtStartOfNote || !isAfterList) return false;
+				return editor.commands.lift(this.name);
+			},
+		};
 	},
 
 	addCommands() {

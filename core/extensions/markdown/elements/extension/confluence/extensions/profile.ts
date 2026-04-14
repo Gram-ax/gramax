@@ -1,5 +1,5 @@
-import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
-import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
+import type ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import type NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 
 const profile: NodeConverter = async (profileNode, ctx) => {

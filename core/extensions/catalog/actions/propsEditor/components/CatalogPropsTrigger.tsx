@@ -3,8 +3,8 @@ import Icon from "@components/Atoms/Icon";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import t from "@ext/localization/locale/translate";
-import { ComponentProps, ReactNode } from "react";
-import CatalogPropsEditor from "./CatalogPropsEditor";
+import type { ComponentProps, ReactNode } from "react";
+import type CatalogPropsEditor from "./CatalogPropsEditor";
 
 const CatalogPropsTrigger = ({ children }: { children?: ReactNode }) => {
 	const onSelect = () => {

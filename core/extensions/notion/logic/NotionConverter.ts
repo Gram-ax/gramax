@@ -1,4 +1,4 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import fileNameUtils from "@core-ui/fileNameUtils";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
@@ -7,10 +7,10 @@ import NotionAPI from "@ext/notion/api/NotionAPI";
 import convertNotionUnsupportedNode from "@ext/notion/logic/convertNotionUnsupportedNode";
 import getNotionConvertors from "@ext/notion/logic/getNotionConverters";
 import contentTypeToExtension from "@ext/notion/logic/getNotionExtension";
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
-import { PageNode, PathsMapValue } from "@ext/notion/model/NotionTypes";
-import { JSONContent } from "@tiptap/core";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
+import type { PageNode, PathsMapValue } from "@ext/notion/model/NotionTypes";
+import type { JSONContent } from "@tiptap/core";
 
 export default class NotionConverter {
 	private _page: PageNode;

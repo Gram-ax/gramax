@@ -1,7 +1,7 @@
 import handlePasteMarkdown, { isMarkdownText } from "@ext/markdown/elements/pasteMarkdown/handlePasteMarkdown";
 import { Extension } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { EditorView } from "@tiptap/pm/view";
+import type { EditorView } from "@tiptap/pm/view";
 
 const isInTextBlock = (view: EditorView): boolean => {
 	const curNode = view.state.selection.$from.node();

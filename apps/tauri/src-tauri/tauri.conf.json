@@ -17,7 +17,7 @@
 
 	"build": {
 		"beforeBuildCommand": "echo npm run build",
-		"beforeDevCommand": "PORT=5173 bun run dev",
+		"beforeDevCommand": "bun run dev --port 5173",
 		"devUrl": "http://localhost:5173",
 		"frontendDist": "../dist"
 	},

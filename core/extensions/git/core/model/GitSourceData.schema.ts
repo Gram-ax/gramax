@@ -1,5 +1,5 @@
-import GitSourceType from "@ext/git/core/model/GitSourceType";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type GitSourceType from "@ext/git/core/model/GitSourceType";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 /**
  * @see git-source-data

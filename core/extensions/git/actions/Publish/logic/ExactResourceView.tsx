@@ -1,8 +1,7 @@
 import ExactResourceViewWithContent, {
-	DIAGRAM_FILE_TYPES,
-	IMG_FILE_TYPES,
 	type UseResourceArticleViewType,
 } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
+import resolveResourceTypeByExtension from "@ext/git/actions/Publish/logic/utils/resolveResourceTypeByExtension";
 import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
 import useFetchDiffData from "@ext/markdown/elements/diff/logic/hooks/useFetchDiffData";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
@@ -15,16 +14,9 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 	const isDeleted = status === FileStatus.delete;
 
 	const ext = resourcePath.extension;
-	const maybeDiagramType = DIAGRAM_FILE_TYPES[ext];
-	let type: "image" | "diagram" | "text" = "text";
+	const type = resolveResourceTypeByExtension(ext);
 
-	if (IMG_FILE_TYPES.includes(ext)) {
-		type = "image";
-	} else if (maybeDiagramType) {
-		type = "diagram";
-	}
-
-	const [isLoading, setIsLoading] = useState(type !== "image");
+	const [isLoading, setIsLoading] = useState(type !== "image" && type !== "unknown");
 	const [newContent, setNewContent] = useState<string>(null);
 	const [oldContent, setOldContent] = useState<string>(null);
 
@@ -47,7 +39,7 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 	}, [fetchDiffData]);
 
 	useEffect(() => {
-		if (type === "image") return;
+		if (type === "image" || type === "unknown") return;
 		void getNewData();
 	}, [getNewData, type]);
 

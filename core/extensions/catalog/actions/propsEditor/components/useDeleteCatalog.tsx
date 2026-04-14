@@ -54,7 +54,7 @@ export const useDeleteCatalog = ({ name, onDeleted }: UseDeleteCatalogProps) => 
 	const { call: removeCatalog } = useApi({
 		url: (api) => api.removeCatalog(name),
 		onStart: show,
-		onDone: onDeleted || typeof window !== "undefined" ? refreshPage : () => {},
+		onDone: onDeleted || (typeof window !== "undefined" ? refreshPage : () => {}),
 		onFinally: () => dismiss.current?.(),
 	});
 

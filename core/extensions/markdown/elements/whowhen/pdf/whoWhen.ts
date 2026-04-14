@@ -1,6 +1,6 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { BASE_CONFIG, COLOR_CONFIG } from "@ext/pdfExport/config";
-import { ContentText } from "pdfmake/interfaces";
+import type { ContentText } from "pdfmake/interfaces";
 
 export const whoHandler = (node: Tag): ContentText[] => {
 	const text = node.attributes.text || "";

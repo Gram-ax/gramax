@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import useWatch from "@core-ui/hooks/useWatch";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
-import { AudioHistoryItem } from "@ext/ai/models/types";
+import type { AudioHistoryItem } from "@ext/ai/models/types";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";

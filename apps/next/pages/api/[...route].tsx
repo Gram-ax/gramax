@@ -37,7 +37,7 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 	}
 
 	const process: Middleware = new ApiMiddleware(async (req, res) => {
-		const ctx = await app.contextFactory.from({ req, res });
+		const ctx = await app.contextFactory.fromNode({ req, res });
 		try {
 			const params = command.params(ctx, req.query as Query, parseBody(req.body), controller.signal);
 

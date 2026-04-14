@@ -1,5 +1,5 @@
 import LeftNavViewContentService, {
-	LeftNavViewContentComponent,
+	type LeftNavViewContentComponent,
 } from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContentService";
 
 const LeftNavViewContentContainer: LeftNavViewContentComponent = ({ itemLinks, closeNavigation }): JSX.Element => {

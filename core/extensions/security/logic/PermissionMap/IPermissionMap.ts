@@ -1,5 +1,5 @@
-import IPermission from "@ext/security/logic/Permission/IPermission";
-import PermissionJSONData from "@ext/security/logic/Permission/model/PermissionJSONData";
+import type IPermission from "@ext/security/logic/Permission/IPermission";
+import type PermissionJSONData from "@ext/security/logic/Permission/model/PermissionJSONData";
 
 interface IPermissionMap {
 	keys: string[];

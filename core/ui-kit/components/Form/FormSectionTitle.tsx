@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import { FormSectionTitle as UiKitFormSectionTitle } from "ics-ui-kit/components/form";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 interface UiKitFormSectionTitleProps extends ExtractComponentGeneric<typeof UiKitFormSectionTitle> {
 	className?: string;

@@ -1,10 +1,10 @@
-import { MenuItemDescriptorApp } from "@components/Actions/CatalogActions/buildCatalogMenu";
+import type { MenuItemDescriptorApp } from "@components/Actions/CatalogActions/buildCatalogMenu";
 import type { PluginProps } from "@gramax/sdk";
 import type { MenuContext } from "@gramax/sdk/ui";
 import { ServiceKey } from "@plugins/core/PluginContainer";
-import { PluginStore, PluginStoreType } from "@plugins/store/PluginStore";
-import { ExtensionType, PluginConfig } from "@plugins/types";
-import { Extensions } from "@tiptap/core";
+import { PluginStore, type PluginStoreType } from "@plugins/store/PluginStore";
+import { ExtensionType, type PluginConfig } from "@plugins/types";
+import type { Extensions } from "@tiptap/core";
 
 export const loadPlugins = async (plugins: Parameters<PluginStoreType["init"]>[0], props?: PluginProps) => {
 	await PluginStore.getState().init(plugins, props);

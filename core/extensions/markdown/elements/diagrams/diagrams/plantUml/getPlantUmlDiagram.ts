@@ -1,16 +1,13 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import parseError from "@ext/markdown/elements/diagrams/diagrams/plantUml/parseError";
+import { requestPlantUmlDiagram } from "@ext/markdown/elements/diagrams/diagrams/plantUml/requestPlantUmlDiagram";
 
 async function getPlantUmlDiagram(diagramContent: string, diagramRendererUrl: string) {
 	if (!diagramContent) throw new DefaultError(t("diagram.error.cannot-get-data"));
 	if (!diagramRendererUrl) throw new DefaultError(t("diagram.error.no-diagram-renderer"));
 
-	const diagramResponse = await fetch(`${diagramRendererUrl}/convert/plantuml`, {
-		method: "POST",
-		body: JSON.stringify({ content: diagramContent }),
-		headers: { "Content-Type": "application/json" },
-	}).catch(() => {
+	const diagramResponse = await requestPlantUmlDiagram(diagramContent, diagramRendererUrl).catch(() => {
 		throw new DefaultError(t("diagram.error.no-internet"));
 	});
 

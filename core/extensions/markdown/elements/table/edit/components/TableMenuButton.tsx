@@ -2,7 +2,7 @@ import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/Butt
 import t from "@ext/localization/locale/translate";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { BlockPlusAndSubNodes, ListGroupAndItem } from "@ext/markdown/logic/insertableNodeGroups";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 
 const TableMenuButton = ({ editor }: { editor: Editor }) => {

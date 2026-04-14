@@ -1,5 +1,5 @@
 import convertHTMLUnsupportedNode from "@ext/confluence/core/server/logic/convertHTMLUnsupportedNode";
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 const widget: HTMLNodeConverter = (widgetNode, ctx) => {
 	const url = widgetNode.querySelector("ri\\:url")?.getAttribute("ri:value");

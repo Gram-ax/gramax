@@ -1,5 +1,6 @@
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import type { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
@@ -39,7 +40,7 @@ const DiagramData = (props: DiagramDataProps) => {
 	const parentRef = useRef<HTMLDivElement>(null);
 	const [data, setData] = useState(null);
 	const [isLoaded, setIsLoaded] = useState(false);
-	const [error, setError] = useState(null);
+	const [error, setError] = useState<ResourceError>(null);
 	const [size, setSize] = useState<{ width: string; height: string }>(null);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected

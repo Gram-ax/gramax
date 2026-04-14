@@ -6,7 +6,7 @@
 // 	isDirectory: boolean;
 // }
 
-import Path from "../Path/Path";
+import type Path from "../Path/Path";
 export interface FileInfo {
 	type: "file" | "dir" | "symbolic";
 	mode: any;

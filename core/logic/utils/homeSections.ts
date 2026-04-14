@@ -1,5 +1,5 @@
-import { HomePageBreadcrumb, Section, Sections } from "@core/SitePresenter/SitePresenter";
-import { CatalogLink } from "@ext/navigation/NavigationLinks";
+import type { HomePageBreadcrumb, Section, Sections } from "@core/SitePresenter/SitePresenter";
+import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 
 const HOME_SECTION_PREFIX = "/home";
 

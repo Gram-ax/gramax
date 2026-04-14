@@ -1,12 +1,12 @@
-import AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
-import {
+import type AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
+import type {
 	AddedDiffLine,
 	DeletedDiffLine,
 	DiffLine,
 	ModifiedDiffLine,
 	Pos,
 } from "@ext/markdown/elements/diff/logic/model/DiffLine";
-import { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
+import type { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 import { Decoration } from "prosemirror-view";
 
 export type DiffRenderData = {

@@ -1,19 +1,19 @@
 import { DATA_QA_LIGHTBOX as LIGHTBOX_DATA_QA } from "@components/Atoms/Image/modalImage/MediaPreview";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
-import { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
+import type { CellAttrs } from "@ext/markdown/elements/table/edit/model/columnResizing/CellAttrs";
 import { updateColumnsOnResize } from "@ext/markdown/elements/table/edit/model/columnResizing/updateColumns";
-import { Attrs } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
+import type { Attrs } from "prosemirror-model";
+import { type EditorState, Plugin } from "prosemirror-state";
 import {
 	cellAround,
 	columnResizingPluginKey,
-	Dragging,
+	type Dragging,
 	ResizeState,
 	TableMap,
 	TableView,
 	tableNodeTypes,
 } from "prosemirror-tables";
-import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
+import { Decoration, DecorationSet, type EditorView } from "prosemirror-view";
 
 const navsSymbol = Symbol();
 

@@ -1,4 +1,4 @@
-import NodeTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/NodeTransformerFunc";
+import type NodeTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/NodeTransformerFunc";
 import { COMMENT_INLINE_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
 
 const inlineNodeTransformers: NodeTransformerFunc = (node) => {

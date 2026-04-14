@@ -1,4 +1,4 @@
-import { ViewRenderGroup } from "@ext/properties/models";
+import type { ViewRenderGroup } from "@ext/properties/models";
 
 const getCountArticles = (subgroups: ViewRenderGroup[]): number => {
 	return subgroups?.reduce((total, subgroup) => {

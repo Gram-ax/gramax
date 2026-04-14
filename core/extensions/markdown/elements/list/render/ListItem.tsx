@@ -1,7 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CHECKED_ATTR } from "@ext/markdown/elements/list/edit/models/listItem/model/listItem";
-import { ChangeEvent, FC, ReactNode } from "react";
+import type { ChangeEvent, FC, ReactNode } from "react";
 
 export interface ListItemProps {
 	checked?: boolean;

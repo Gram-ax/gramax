@@ -1,4 +1,4 @@
-import BranchData from "../../../../VersionControl/model/branch/BranchData";
+import type BranchData from "../../../../VersionControl/model/branch/BranchData";
 
 export default interface GitBranchData extends BranchData {
 	lastCommitModify: string;

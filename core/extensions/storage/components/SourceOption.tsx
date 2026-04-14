@@ -2,7 +2,7 @@ import CustomSelectOption from "@ext/git/actions/Clone/components/SelectOption";
 import t from "@ext/localization/locale/translate";
 import useRemoveSource from "@ext/storage/components/useRemoveSource";
 import getStorageIconByData from "@ext/storage/logic/SourceDataProvider/logic/getStorageIconByData";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 interface SourceOptionProps {
 	storageKey: string;

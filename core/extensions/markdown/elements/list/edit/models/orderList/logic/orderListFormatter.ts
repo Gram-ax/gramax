@@ -1,4 +1,4 @@
-import { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
+import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
 const orderedList: NodeSerializerSpec = async (state, node) => {
 	const start: number = node.attrs.order || 1;

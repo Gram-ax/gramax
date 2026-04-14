@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 const HTMLLi = (props: { children?: React.ReactNode }) => <li data-component="list-item">{props.children}</li>;
 const HTMLListItem = (props: { children?: React.ReactNode }) => <li data-component="list-item">{props.children}</li>;

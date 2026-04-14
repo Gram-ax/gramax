@@ -6,7 +6,7 @@ import getRepUrl from "@ext/git/core/GitPathnameHandler/clone/logic/getRepUrl";
 import t from "@ext/localization/locale/translate";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
-import { MouseEvent, useMemo } from "react";
+import { type MouseEvent, useMemo } from "react";
 
 export const useOpenExternalGitSourceButton = (closeHandler: () => void) => {
 	const { sourceName, linkPathname } = useCatalogPropsStore(

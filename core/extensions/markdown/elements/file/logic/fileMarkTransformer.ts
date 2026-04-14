@@ -1,4 +1,4 @@
-import NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
+import type NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
 
 const fileMarkTransformer: NodeTransformerFunc = (node) => {
 	if (node?.type == "text" && node.marks) {

@@ -75,6 +75,12 @@ export const LinkMenuArticleChooser = (props: LinkMenuArticleChooserProps) => {
 
 	const shouldVisibleBreadcrumb = !!searchValue;
 
+	const areBreadcrumbsEqual = useCallback((a: string[], b: string[]) => {
+		if (a === b) return true;
+		if (!a || !b || a.length !== b.length) return false;
+		return a.every((item, i) => item === b[i]);
+	}, []);
+
 	return (
 		<>
 			<CommandGroup
@@ -83,19 +89,24 @@ export const LinkMenuArticleChooser = (props: LinkMenuArticleChooserProps) => {
 				style={{ maxHeight: "11rem" }}
 			>
 				{!isLoading ? (
-					visibleOptions.map((option) => (
-						<Fragment key={option.value}>
-							{shouldVisibleBreadcrumb && option.breadcrumb?.length > 0 && (
-								<LinkMenuBreadcrumb breadcrumb={option.breadcrumb} />
-							)}
-							<LinkMenuItem
-								depth={searchValue.length ? 0 : option.breadcrumb?.length}
-								icon={option.type === "article" ? "file" : "folder"}
-								onUpdate={onUpdate}
-								option={option}
-							/>
-						</Fragment>
-					))
+					visibleOptions.map((option, index) => {
+						const prevBreadcrumb = visibleOptions[index - 1]?.breadcrumb;
+						const isFirstWithThisBreadcrumb = !areBreadcrumbsEqual(option.breadcrumb, prevBreadcrumb);
+						const showBreadcrumb =
+							shouldVisibleBreadcrumb && option.breadcrumb?.length > 0 && isFirstWithThisBreadcrumb;
+
+						return (
+							<Fragment key={option.value}>
+								{showBreadcrumb && <LinkMenuBreadcrumb breadcrumb={option.breadcrumb} />}
+								<LinkMenuItem
+									depth={searchValue.length ? 0 : option.breadcrumb?.length}
+									icon={option.type === "article" ? "file" : "folder"}
+									onUpdate={onUpdate}
+									option={option}
+								/>
+							</Fragment>
+						);
+					})
 				) : (
 					<LinkMenuLoader />
 				)}

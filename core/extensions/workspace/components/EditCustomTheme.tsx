@@ -1,13 +1,13 @@
-import { createFormSchema } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type { createFormSchema } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import EditStyles from "@ext/workspace/components/EditStyles";
-import LogoUploader, { UpdateResource } from "@ext/workspace/components/LogoUploader";
+import LogoUploader, { type UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { Button } from "@ui-kit/Button";
 import { FormField } from "@ui-kit/Form";
 import { memo, useCallback, useMemo } from "react";
-import { UseFormReturn } from "react-hook-form";
-import { z } from "zod";
+import type { UseFormReturn } from "react-hook-form";
+import type { z } from "zod";
 
 interface EditWorkspaceAssetsProps {
 	lightLogo?: string;
@@ -36,8 +36,6 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 		darkLogo,
 		setCustomCss,
 		customCss,
-		isLoadingDark,
-		isLoadingLight,
 		formProps,
 		form,
 	} = props;
@@ -46,13 +44,13 @@ const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {
 		if (!lightLogo) return;
 
 		return { name: "logo_for_light.svg", url: lightLogo };
-	}, [lightLogo, isLoadingLight]);
+	}, [lightLogo]);
 
 	const defaultDarkFileInfo = useMemo(() => {
 		if (!darkLogo) return;
 
 		return { name: "logo_for_dark.svg", url: darkLogo };
-	}, [isLoadingDark, darkLogo]);
+	}, [darkLogo]);
 
 	const onChange = useCallback(
 		(name: "logo.light" | "logo.dark") => {

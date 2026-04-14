@@ -1,7 +1,7 @@
 import type { Environment } from "@app/resolveModule/env";
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
+import type { PageProps } from "@components/Pages/models/Pages";
 import { useRouter } from "@core/Api/useRouter";
-import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
@@ -29,6 +29,7 @@ import LeftNavViewContentService from "@core-ui/ContextServices/views/leftNavVie
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsService";
 import useOnUpdateFuncs from "@core-ui/hooks/onUpdate/useOnUpdateFuncs";
+import useTauriExternalLinkInterceptor from "@core-ui/hooks/useTauriExternalLinkInterceptor";
 import matomoMetric from "@core-ui/matomoMetric";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
@@ -49,15 +50,9 @@ import TemplateService from "@ext/templates/components/TemplateService";
 import { TooltipProvider } from "@ui-kit/Tooltip";
 import { useEffect } from "react";
 import ThemeService from "../extensions/Theme/components/ThemeService";
-import type PageDataContext from "../logic/Context/PageDataContext";
 import IsOpenModalService from "../ui-logic/ContextServices/IsOpenMpdal";
 import IsMobileService from "../ui-logic/ContextServices/isMobileService";
 import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
-
-export interface PageProps {
-	data: HomePageData & ArticlePageData;
-	context: PageDataContext;
-}
 
 const appServices: ContextService[] = [
 	pagePropsUpdateService,
@@ -96,7 +91,7 @@ export default function ContextProviders({
 	children: JSX.Element;
 	platform: Environment;
 }) {
-	const isArticlePage = pageProps?.context?.isArticle;
+	const isArticlePage = pageProps?.page === "article";
 	const [isFirstLoad, resetIsFirstLoad] = useIsFirstLoad();
 
 	if (!pageProps || !pageProps.context) return children;
@@ -175,21 +170,15 @@ export default function ContextProviders({
 																									>
 																										<OnUpdateAppFuncs>
 																											<ViewContextProvider>
-																												{pageProps
-																													.context
-																													.isLogged ? (
-																													<CommentsCounterProvider
-																														deps={[
-																															pageProps,
-																														]}
-																													>
-																														{
-																															children
-																														}
-																													</CommentsCounterProvider>
-																												) : (
-																													children
-																												)}
+																												<CommentsCounterProvider
+																													deps={[
+																														pageProps,
+																													]}
+																												>
+																													{
+																														children
+																													}
+																												</CommentsCounterProvider>
 																											</ViewContextProvider>
 																										</OnUpdateAppFuncs>
 																									</IsFirstLoadService.Provider>
@@ -230,6 +219,7 @@ export default function ContextProviders({
 
 const OnUpdateAppFuncs = ({ children }: { children: JSX.Element }) => {
 	useOnUpdateFuncs();
+	useTauriExternalLinkInterceptor();
 	return children;
 };
 

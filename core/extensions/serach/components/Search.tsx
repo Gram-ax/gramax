@@ -2,9 +2,12 @@ import { TextSize } from "@components/Atoms/Button/Button";
 import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
+import Anchor, { type AnchorProps } from "@components/controls/Anchor";
 import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import { ItemType } from "@core/FileStructue/Item/ItemType";
+import generateUniqueID from "@core/utils/generateUniqueID";
 import { type NDJsonReadStream, readNDJson } from "@core/utils/readNDJson";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -13,20 +16,25 @@ import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import { useDebounceValue } from "@core-ui/hooks/useDebounceValue";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
+import getArticleItemLink from "@ext/article/LinkCreator/logic/getArticleItemLink";
 import t from "@ext/localization/locale/translate";
 import SimpleMarkdownParser from "@ext/markdown/core/Parser/SimpleMarkdownParser";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import { type Property, PropertyTypes } from "@ext/properties/models";
 import { FilteredPropertyBlock } from "@ext/serach/components/FilteredPropertyBlock";
 import { IndexingProgress } from "@ext/serach/components/IndexingProgress";
 import { PropertyFilter as PropertyFilterComponent } from "@ext/serach/components/PropertyFilter";
+import { ResourceFilterDropdown } from "@ext/serach/components/ResourceFilterDropdown";
+import { type ScopeFilter, ScopeFilterDropdown } from "@ext/serach/components/ScopeFilterDropdown";
 import { SearchResults } from "@ext/serach/components/SearchResults";
 import { usePropertyFilter } from "@ext/serach/components/usePropertyFilter";
 import { chatStream } from "@ext/serach/components/utils/chatStream";
@@ -34,22 +42,14 @@ import { getSearchData } from "@ext/serach/components/utils/getSearchData";
 import type { SearchFragmentInfo } from "@ext/serach/utils/ArticleFragmentCounter/ArticleFragmentCounter";
 import type { FocusItem } from "@ext/serach/utils/FocusItemsCollector";
 import { emitPluginEvent } from "@plugins/api/events";
-import { useMediaQuery } from "@react-hook/media-query";
 import { IconButton } from "@ui-kit/Button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuRadioGroup,
-	DropdownMenuRadioItem,
-	DropdownMenuTriggerButton,
-} from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	highlightFragmentInDocportal,
 	highlightFragmentInEditor,
 } from "../../../components/Article/SearchHandler/ArticleSearchFragmentHander";
-import type { ProgressItem, PropertyFilter, ResourceFilter } from "../Searcher";
+import type { ProgressItem, PropertyFilter } from "../Searcher";
 import chatCitations from "../utils/chatCitations/chatCitations";
 import type { RowSearchResult } from "../utils/SearchRowsModel";
 
@@ -59,6 +59,7 @@ const parser = new SimpleMarkdownParser();
 
 export interface SearchProps {
 	isHomePage: boolean;
+	itemLinks?: ItemLink[];
 	className?: string;
 }
 
@@ -69,11 +70,40 @@ type SearchComponentData =
 			chatData: RenderableTreeNodes;
 	  };
 
+function execLoadData(
+	setData: (data: SearchComponentData | null) => void,
+	abortControllerRef: MutableRefObject<AbortController>,
+	loadData: (query: string, signal: AbortSignal) => Promise<void>,
+	query: string,
+) {
+	setData(null);
+	const controller = new AbortController();
+	abortControllerRef.current?.abort();
+	abortControllerRef.current = controller;
+	loadData(query, controller.signal);
+	return controller;
+}
+
+const nextScopeFilter: Record<ScopeFilter, ScopeFilter> = {
+	all: "catalog",
+	catalog: "article",
+	article: "all",
+};
+
 const Search = (props: SearchProps) => {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { isHomePage, className } = props;
+	const { isHomePage, itemLinks, className } = props;
 	const isMac = IsMacService.value;
-	const { query, resourceFilter, setQuery, setResourceFilter } = SearchQueryService.value;
+	const {
+		query,
+		resourceFilter,
+		setQuery,
+		setResourceFilter,
+		hasOpenRequest,
+		openRequestVersion,
+		requestedScopeFilter,
+		clearOpenRequest,
+	} = SearchQueryService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { properties: catalogProperties } = PropertyServiceProvider.value;
 	const { catalogName, catalogDefaultLanguage } = useCatalogPropsStore(
@@ -96,12 +126,16 @@ const Search = (props: SearchProps) => {
 	const responseRef = useRef<HTMLDivElement>(null);
 	const resultsKeyHandlerRef = useRef<((e: React.KeyboardEvent) => boolean) | undefined>(undefined);
 	const abortControllerRef = useRef<AbortController>(new AbortController());
+	const handledOpenRequestVersionRef = useRef<number>(0);
+	const pendingOpenScopeRef = useRef<ScopeFilter | undefined>(undefined);
 
 	const [isOpen, setIsOpen] = useState(false);
 	const [focusItem, setFocusItem] = useState<FocusItem | undefined>(undefined);
+	// biome-ignore lint/style/useNamingConvention: idc
 	const [data, _setData] = useState<SearchComponentData | null>(null);
-	const [searchAll, _setSearchAll] = useState(isHomePage);
 	const [chatSearch, setChatSearch] = useState(false);
+	// biome-ignore lint/style/useNamingConvention: idc
+	const [scopeFilter, _setScopeFilter] = useState<ScopeFilter>(isHomePage ? "all" : "catalog");
 
 	// Wrap query into an object so debounce triggers even if the value
 	//   changes and then reverts back before the debounce delay
@@ -137,24 +171,30 @@ const Search = (props: SearchProps) => {
 		_setData(v);
 	}, []);
 
-	const setSearchAll = useCallback(
-		(v: boolean) => {
-			if (v === searchAll) return;
+	const setScopeFilter = useCallback(
+		(v: ScopeFilter) => {
+			if (v === scopeFilter) return;
 
 			setData(null);
-			_setSearchAll(v);
+			_setScopeFilter(v);
 		},
-		[searchAll, setData],
+		[scopeFilter, setData],
 	);
 
-	const canUsePropertyFilter = !searchAll && !chatSearch;
+	const canUsePropertyFilter = scopeFilter !== "all" && !chatSearch;
 	const hasPropertyFilter = canUsePropertyFilter && filteredProperties.length !== 0;
 	const emptyInput = !query && !hasPropertyFilter;
 	const initiateIndexingOnOpen = isBrowser || isTauri;
 	const articlesLanguage =
-		isCatalogExist && !searchAll ? (currentArticleLanguage ?? catalogDefaultLanguage ?? "none") : undefined;
+		isCatalogExist && scopeFilter !== "all"
+			? (currentArticleLanguage ?? catalogDefaultLanguage ?? "none")
+			: undefined;
 
 	const currentPathname = ArticlePropsService.value?.pathname;
+	const currentArticleRefPath = ArticlePropsService.value?.ref.path;
+	const currentIsCategory =
+		(itemLinks ? getArticleItemLink(itemLinks, currentArticleRefPath) : undefined)?.type === ItemType.category;
+
 	const isResourcesSearchEnabled = PageDataContextService.value?.conf?.search?.resourcesEnabled && !chatSearch;
 
 	const onLinkOpen = useCallback(
@@ -184,13 +224,20 @@ const Search = (props: SearchProps) => {
 		[isHomePage, currentPathname, isBrowser, isTauri, isStatic],
 	);
 
+	const ChatLink = useCallback(
+		(props: AnchorProps) => {
+			return <Anchor {...props} onClick={() => onLinkOpen({ url: props.href })} />;
+		},
+		[onLinkOpen],
+	);
+
 	const keydownHandler = (e: KeyboardEvent) => {
 		if (e.code === "Slash" && (e.ctrlKey || e.metaKey)) {
 			setIsOpen((prev) => !prev);
 			return;
 		}
 		if (!isHomePage && e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
-			setSearchAll(!searchAll);
+			setScopeFilter(nextScopeFilter[scopeFilter]);
 			return;
 		}
 	};
@@ -213,8 +260,10 @@ const Search = (props: SearchProps) => {
 	}, []);
 
 	const updateIndex = useCallback(async () => {
-		await FetchService.fetch<unknown>(apiUrlCreator.getResetSearchDataUrl(searchAll ? undefined : catalogName));
-	}, [apiUrlCreator, catalogName, searchAll]);
+		await FetchService.fetch<unknown>(
+			apiUrlCreator.getResetSearchDataUrl(scopeFilter !== "all" ? catalogName : undefined),
+		);
+	}, [apiUrlCreator, catalogName, scopeFilter]);
 
 	const loadIndexProgress = useCallback(
 		async (signal: AbortSignal) => {
@@ -287,7 +336,7 @@ const Search = (props: SearchProps) => {
 			}
 
 			try {
-				const urlCatalogName = searchAll ? undefined : catalogName;
+				const urlCatalogName = scopeFilter !== "all" ? catalogName : undefined;
 
 				if (chatSearch) {
 					const responseLanguage = isCatalogExist
@@ -317,10 +366,11 @@ const Search = (props: SearchProps) => {
 
 					const rows = await getSearchData({
 						url: apiUrlCreator.getSearchDataUrl(query, urlCatalogName, undefined, articlesLanguage),
-						onlyArticles: !searchAll,
+						onlyArticles: scopeFilter !== "all",
 						signal,
 						resourceFilter: isResourcesSearchEnabled ? resourceFilter : undefined,
 						propertyFilter,
+						articleRefPath: scopeFilter === "article" ? currentArticleRefPath : undefined,
 					});
 
 					if (rows) {
@@ -347,13 +397,14 @@ const Search = (props: SearchProps) => {
 		catalogDefaultLanguage,
 		catalogName,
 		setData,
-		searchAll,
+		scopeFilter,
 		resourceFilter,
 		chatSearch,
 		filteredProperties,
 		catalogProperties,
 		hasPropertyFilter,
 		isResourcesSearchEnabled,
+		currentArticleRefPath,
 	]);
 
 	if (searchParamsChanged) {
@@ -368,12 +419,43 @@ const Search = (props: SearchProps) => {
 		abortControllerRef.current = undefined;
 	}, [queryObj, loadData]);
 
+	const handleModalOpen = useCallback(() => {
+		const scope = pendingOpenScopeRef.current;
+		pendingOpenScopeRef.current = undefined;
+		const changingScope = Boolean(scope) && !isHomePage;
+
+		// On home page we keep home scope behavior and ignore external scope overrides
+		if (changingScope) {
+			_setScopeFilter(scope as ScopeFilter);
+		}
+
+		const sessionId = generateUniqueID(10);
+		searchSessionId.current = sessionId;
+		setIsOpen(true);
+		if (data == null || changingScope) {
+			execLoadData(setData, abortControllerRef, loadData, query);
+		}
+		if (inputRef.current && query) {
+			inputRef.current.value = query;
+			inputRef.current.select();
+		}
+	}, [data, isHomePage, loadData, query, setData]);
+
 	useEffect(() => {
+		if (!hasOpenRequest) return;
+		if (openRequestVersion === 0 || handledOpenRequestVersionRef.current === openRequestVersion) return;
+		handledOpenRequestVersionRef.current = openRequestVersion;
+		pendingOpenScopeRef.current = requestedScopeFilter;
+		setIsOpen(true);
+		clearOpenRequest();
+	}, [hasOpenRequest, openRequestVersion, requestedScopeFilter, clearOpenRequest]);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies(isOpen): idc
+	useEffect(() => {
+		if (!isOpen) return;
+
 		const query = debouncedQueryObj.query;
-		setData(null);
-		const controller = new AbortController();
-		abortControllerRef.current = controller;
-		loadData(query, controller.signal);
+		const controller = execLoadData(setData, abortControllerRef, loadData, query);
 		return () => {
 			controller.abort();
 		};
@@ -396,15 +478,7 @@ const Search = (props: SearchProps) => {
 			contentWidth={"minM"}
 			isOpen={isOpen}
 			onClose={onClose}
-			onOpen={() => {
-				const sessionId = crypto.randomUUID();
-				searchSessionId.current = sessionId;
-				setIsOpen(true);
-				if (inputRef.current && query) {
-					inputRef.current.value = query;
-					inputRef.current.select();
-				}
-			}}
+			onOpen={handleModalOpen}
 			trigger={
 				isHomePage ? (
 					<div>
@@ -449,6 +523,7 @@ const Search = (props: SearchProps) => {
 										placeholder={t("search.placeholder")}
 										ref={inputRef}
 										type="text"
+										value={query}
 									/>
 									<div className="search-input-right-side">
 										{canUsePropertyFilter && filterableProperties.array.length > 0 && (
@@ -465,8 +540,7 @@ const Search = (props: SearchProps) => {
 													setQuery("");
 													setData(null);
 													clearFilteredProperties();
-													inputRef.current.value = "";
-													inputRef.current.focus();
+													inputRef.current?.focus();
 												}}
 												type="button"
 											>
@@ -494,6 +568,7 @@ const Search = (props: SearchProps) => {
 										<div className="article">
 											<p
 												dangerouslySetInnerHTML={{
+													// biome-ignore lint/style/useNamingConvention: idc
 													__html: t("search.desc"),
 												}}
 											/>
@@ -535,7 +610,10 @@ const Search = (props: SearchProps) => {
 																		<div className="main-article">
 																			<div className="article-body">
 																				{Renderer(data.chatData, {
-																					components: getComponents(),
+																					components: {
+																						...getComponents(),
+																						ChatLink,
+																					},
 																				})}
 																			</div>
 																		</div>
@@ -548,12 +626,13 @@ const Search = (props: SearchProps) => {
 											) : (
 												<SearchResults
 													containerRef={responseRef}
+													currentRefPath={currentArticleRefPath}
 													focusItem={focusItem}
 													onLinkOpen={onLinkOpen}
 													registerKeyHandler={registerKeyHandler}
 													rows={data.rows}
-													searchAll={searchAll}
 													setFocusItem={setFocusItem}
+													showCatalogBreadcrumb={scopeFilter === "all"}
 												/>
 											)}
 										</div>
@@ -574,15 +653,6 @@ const Search = (props: SearchProps) => {
 											<Icon code="corner-down-left" />
 										</span>
 									</div>
-									<Checkbox
-										checked={searchAll}
-										className="all-catalogs-checkbox"
-										onChange={(isChecked) => {
-											setSearchAll(isChecked);
-										}}
-									>
-										<p>{t("search.all-catalogs")}</p>
-									</Checkbox>
 								</div>
 							)}
 							{vectorSearchEnabled && (
@@ -598,36 +668,18 @@ const Search = (props: SearchProps) => {
 									</Checkbox>
 								</div>
 							)}
+							{!isHomePage && (
+								<ScopeFilterDropdown
+									isCategory={currentIsCategory}
+									scopeFilter={scopeFilter}
+									setScopeFilter={setScopeFilter}
+								/>
+							)}
 							{isResourcesSearchEnabled && (
-								<DropdownMenu>
-									<DropdownMenuTriggerButton
-										className="bottom-content-resource-filter"
-										variant="text"
-									>
-										{resourceFilter === "without"
-											? t("search.resource-filter.without-resources")
-											: resourceFilter === "with"
-												? t("search.resource-filter.with-resources")
-												: t("search.resource-filter.only-resources")}
-										<Icon code="chevron-down" />
-									</DropdownMenuTriggerButton>
-									<DropdownMenuContent>
-										<DropdownMenuRadioGroup
-											onValueChange={(v) => setResourceFilter(v as ResourceFilter)}
-											value={resourceFilter}
-										>
-											<DropdownMenuRadioItem value="without">
-												{t("search.resource-filter.without-resources")}
-											</DropdownMenuRadioItem>
-											<DropdownMenuRadioItem value="with">
-												{t("search.resource-filter.with-resources")}
-											</DropdownMenuRadioItem>
-											<DropdownMenuRadioItem value="only">
-												{t("search.resource-filter.only-resources")}
-											</DropdownMenuRadioItem>
-										</DropdownMenuRadioGroup>
-									</DropdownMenuContent>
-								</DropdownMenu>
+								<ResourceFilterDropdown
+									resourceFilter={resourceFilter}
+									setResourceFilter={setResourceFilter}
+								/>
 							)}
 							{!narrowMedia && (
 								<>
@@ -958,8 +1010,8 @@ export default styled(Search)`
 
 	.bottom-content-content {
 		height: 17px;
-		
-		.bottom-content-resource-filter {
+
+		.bottom-content-filter-dropdown-trigger {
 			width: auto;
 			height: 100%;
 			font-size: 10px;

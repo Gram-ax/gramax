@@ -1,6 +1,6 @@
-import { KeyboardShortcutCommand } from "@tiptap/core";
+import type { KeyboardShortcutCommand } from "@tiptap/core";
 import applyKeyboardRules from "./applyKeyboardRules";
-import KeyboardShortcut from "./model/KeyboardShortcut";
+import type KeyboardShortcut from "./model/KeyboardShortcut";
 
 const addShortcuts = (
 	keyboardShortcuts: KeyboardShortcut[],

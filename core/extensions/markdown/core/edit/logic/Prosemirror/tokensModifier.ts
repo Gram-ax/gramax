@@ -1,5 +1,5 @@
-import { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
-import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import type { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
+import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import { COMMENT_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
 import { FLOAT_NODES } from "@ext/markdown/elements/float/edit/model/consts";
 

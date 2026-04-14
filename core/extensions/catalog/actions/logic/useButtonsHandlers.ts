@@ -1,12 +1,12 @@
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
-import ImportModal from "@ext/import/components/ImportModal";
-import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
+import type CloneModal from "@ext/git/actions/Clone/components/CloneModal";
+import type ImportModal from "@ext/import/components/ImportModal";
+import type CreateStorageModal from "@ext/storage/components/CreateStorageModal";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
-import { ComponentProps, useCallback } from "react";
+import { type ComponentProps, useCallback } from "react";
 
 export const useButtonsHandlers = () => {
 	const sourceDatas = SourceDataService.value;

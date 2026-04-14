@@ -1,10 +1,10 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import { BASE_CONFIG, NOTE_COLOR_CONFIG } from "@ext/pdfExport/config";
-import { NodeOptions, parseNodeToPDFContent, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import { type NodeOptions, parseNodeToPDFContent, type pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
-import { JSONContent } from "@tiptap/core";
-import { Content, ContentTable, TableCell } from "pdfmake/interfaces";
+import type { JSONContent } from "@tiptap/core";
+import type { Content, ContentTable, TableCell } from "pdfmake/interfaces";
 
 const OUTER = BASE_CONFIG.FONT_SIZE * 0.75;
 const INNER = OUTER;

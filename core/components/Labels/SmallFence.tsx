@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
-import { Property } from "csstype";
+import type { Property } from "csstype";
 
 const SmallFence = (props: { value: string; fixWidth?: boolean; overflow?: Property.Overflow; className?: string }) => {
 	const { className, value, overflow } = props;

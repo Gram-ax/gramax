@@ -1,4 +1,4 @@
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 const convertHTMLUnsupportedNode = (unsupportedNode: HTMLElement, currentPageUrl: string): JSONContent[] => {
 	let tagName = unsupportedNode.tagName?.toLowerCase();

@@ -1,6 +1,6 @@
 import ChalkLogger from "../../../../utils/ChalkLogger";
 import FetchActions from "../FetchActions";
-import { NavItem, Navigation } from "./navigation";
+import type { NavItem, Navigation } from "./navigation";
 
 export interface ArticleItem {
 	id: number;

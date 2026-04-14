@@ -1,10 +1,10 @@
-import Button, { ButtonProps, TextKeys, TextSize } from "@components/Atoms/Button/Button";
+import Button, { type ButtonProps, TextKeys, TextSize } from "@components/Atoms/Button/Button";
 import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CSSProperties, forwardRef, MutableRefObject, ReactNode } from "react";
-import { Placement } from "tippy.js";
+import { type CSSProperties, forwardRef, type MutableRefObject, type ReactNode } from "react";
+import type { Placement } from "tippy.js";
 
 export interface ButtonLinkProps extends Omit<ButtonProps, "children"> {
 	iconCode?: string;

@@ -1,10 +1,10 @@
 import BaseArticleView from "@ext/articleProvider/components/BaseArticleView";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
 import getArticleWithTitle from "@ext/markdown/elements/article/edit/logic/getArticleWithTitle";
 import { Placeholder } from "@ext/markdown/elements/placeholder/placeholder";
 import TemplateService from "@ext/templates/components/TemplateService";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 interface ArticleTemplateProps {
 	item: ProviderItemProps;

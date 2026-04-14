@@ -3,7 +3,7 @@ import camelToKebabCase from "@core-ui/camelToKebabCase";
 import PublicApiUrlCreator from "@ext/publicApi/PublicApiUrlCreator";
 import React from "react";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
-import ParserContext from "../../../Parser/ParserContext/ParserContext";
+import type ParserContext from "../../../Parser/ParserContext/ParserContext";
 
 export enum unSupportedElements {
 	tab = "Tab",

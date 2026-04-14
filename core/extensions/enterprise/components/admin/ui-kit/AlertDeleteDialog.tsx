@@ -13,6 +13,7 @@ import {
 } from "@ui-kit/AlertDialog";
 import { Button } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
+import { DeleteSelectedButton } from "./DeleteSelectedButton";
 
 interface AlertDeleteDialogProps {
 	onConfirm: () => void;
@@ -47,10 +48,7 @@ export const AlertDeleteDialog = ({
 	return (
 		<AlertDialog>
 			<AlertDialogTrigger asChild>
-				<Button variant="outline">
-					<Icon icon="trash" />
-					{t("delete")} ({selectedCount})
-				</Button>
+				<DeleteSelectedButton onClick={() => {}} selectedCount={selectedCount} />
 			</AlertDialogTrigger>
 			<AlertDialogContent focus="medium" status="error">
 				<AlertDialogHeader>

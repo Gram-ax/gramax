@@ -1,8 +1,8 @@
 import { NEW_ARTICLE_FILENAME } from "@app/config/const";
-import { ItemRef } from "@core/FileStructue/Item/ItemRef";
+import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import Path from "../FileProvider/Path/Path";
-import { ClientItemRef } from "../SitePresenter/SitePresenter";
+import type { ClientItemRef } from "../SitePresenter/SitePresenter";
 import createNewFilePathUtils from "./createNewFilePathUtils";
 
 const itemRefUtils = {

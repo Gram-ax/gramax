@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import t from "@ext/localization/locale/translate";
-import PropertyItem, { PropertyItemProps } from "@ext/properties/components/Helpers/PropertyItem";
-import { Property } from "@ext/properties/models";
+import PropertyItem, { type PropertyItemProps } from "@ext/properties/components/Helpers/PropertyItem";
+import type { Property } from "@ext/properties/models";
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { forwardRef } from "react";

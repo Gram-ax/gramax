@@ -1,5 +1,5 @@
 import { DOMAIN } from "../../../utils/predefinedValues";
-import { ArticleItem } from "./entities/article";
+import type { ArticleItem } from "./entities/article";
 
 class FetchActions {
 	private _headers = {

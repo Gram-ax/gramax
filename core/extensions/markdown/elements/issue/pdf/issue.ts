@@ -1,7 +1,7 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import getIssueLink from "@ext/markdown/elements/issue/logic/getIssueLink";
 import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT } from "@ext/pdfExport/config";
-import { ContentText } from "pdfmake/interfaces";
+import type { ContentText } from "pdfmake/interfaces";
 
 export const issueHandler = (node: Tag): ContentText[] => {
 	const issueText = node.attributes.id;

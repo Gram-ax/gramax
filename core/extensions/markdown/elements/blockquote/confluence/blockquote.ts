@@ -1,4 +1,4 @@
-import NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
+import type NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
 const blockquote: NodeConverter = (blockquoteNode) => {
 	return {

@@ -1,5 +1,5 @@
 import { filterHtmlAttributes, isAllowedElement, isSelfClosingTag } from "@ext/markdown/elements/htmlTag/logic/utils";
-import { createElement, ReactNode } from "react";
+import { createElement, type ReactNode } from "react";
 
 const HtmlTag = (props: { attributes: Record<string, any>; name: string; children: ReactNode }) => {
 	const { attributes, name, children } = props;

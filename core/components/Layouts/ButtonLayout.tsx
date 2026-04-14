@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { forwardRef, HTMLAttributes, MutableRefObject } from "react";
+import { forwardRef, type HTMLAttributes, type MutableRefObject } from "react";
 
 const ButtonsLayout = forwardRef(
 	({ children, ...props }: HTMLAttributes<HTMLDivElement>, ref?: MutableRefObject<HTMLDivElement>): JSX.Element => {

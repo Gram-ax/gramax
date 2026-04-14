@@ -5,6 +5,7 @@ import ButtonLink from "@components/Molecules/ButtonLink";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -18,7 +19,6 @@ import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/S
 import SnippetsTab from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetsTab";
 import TemplateTab from "@ext/templates/components/Tab/TemplateTab";
 import TemplateService from "@ext/templates/components/TemplateService";
-import { useMediaQuery } from "@react-hook/media-query";
 import { useEffect } from "react";
 import type { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";

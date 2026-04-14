@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const toggle: NotionNodeConverter = (toggleNode) => {
 	return {

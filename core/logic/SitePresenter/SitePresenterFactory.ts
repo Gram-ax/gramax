@@ -1,10 +1,10 @@
-import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
-import GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
+import type GitRepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
-import ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type MarkdownParser from "../../extensions/markdown/core/Parser/Parser";
+import type ParserContextFactory from "../../extensions/markdown/core/Parser/ParserContext/ParserContextFactory";
 import Navigation from "../../extensions/navigation/catalog/main/logic/Navigation";
-import Context from "../Context/Context";
+import type Context from "../Context/Context";
 import SitePresenter from "./SitePresenter";
 
 export default class SitePresenterFactory {

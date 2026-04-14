@@ -1,8 +1,8 @@
 import { useApi } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import type { Signature } from "@ext/git/core/model/Signature";
-import UserInfo from "@ext/security/logic/User/UserInfo";
-import { DependencyList, useCallback, useEffect, useMemo } from "react";
+import type UserInfo from "@ext/security/logic/User/UserInfo";
+import { type DependencyList, useCallback, useEffect, useMemo } from "react";
 import { create } from "zustand";
 
 export type AuthoredComments = { total: number; pathnames: CommentsByArticle };
@@ -54,17 +54,18 @@ const useCommentsCounterStore = create<CommentsCounterState>((set, get) => ({
 			updatedComments[userInfo.mail] = { ...updatedComments[userInfo.mail] };
 		}
 
-		updatedComments[userInfo.mail].total++;
 		updatedComments[userInfo.mail].pathnames = { ...updatedComments[userInfo.mail].pathnames };
 
 		if (!updatedComments[userInfo.mail].pathnames[pathname]) {
 			updatedComments[userInfo.mail].pathnames[pathname] = [];
 		}
-
-		updatedComments[userInfo.mail].pathnames[pathname] = [
-			...updatedComments[userInfo.mail].pathnames[pathname],
-			newId,
-		];
+		if (!updatedComments[userInfo.mail].pathnames[pathname].includes(newId)) {
+			updatedComments[userInfo.mail].total++;
+			updatedComments[userInfo.mail].pathnames[pathname] = [
+				...updatedComments[userInfo.mail].pathnames[pathname],
+				newId,
+			];
+		}
 
 		set({ comments: updatedComments });
 	},

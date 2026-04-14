@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import SelectRDS, { SelectProps } from "react-dropdown-select";
+import SelectRDS, { type SelectProps } from "react-dropdown-select";
 import Icon from "../Atoms/Icon";
 import SpinnerLoader from "../Atoms/SpinnerLoader";
 

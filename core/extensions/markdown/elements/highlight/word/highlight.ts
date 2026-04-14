@@ -1,5 +1,5 @@
 import { HIGHLIGHT_DOCX_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
-import { WordInlineChild } from "../../../../wordExport/options/WordTypes";
+import type { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const highlightWordLayout: WordInlineChild = async ({ state, tag, addOptions }) => {
 	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;

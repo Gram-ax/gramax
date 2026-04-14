@@ -1,6 +1,6 @@
 import {
-	GetImageByPathOptions,
-	GetImageByPathResult,
+	type GetImageByPathOptions,
+	type GetImageByPathResult,
 	NextImageProccessor,
 } from "@ext/markdown/elements/image/export/NextImageProcessor";
 

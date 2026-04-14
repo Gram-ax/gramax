@@ -3,7 +3,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import type { ContentLanguage } from "@ext/localization/core/model/Language";
 import t from "@ext/localization/locale/translate";
 import { MenuItemIconButton } from "@ui-kit/MenuItem";
-import { MouseEvent } from "react";
+import type { MouseEvent } from "react";
 
 export type RemoveContentLanguageProps = {
 	setIsLoading: (flag: boolean) => void;

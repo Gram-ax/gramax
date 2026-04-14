@@ -1,4 +1,4 @@
-import { createContext, MutableRefObject, ReactElement, useContext, useRef } from "react";
+import { createContext, type MutableRefObject, type ReactElement, useContext, useRef } from "react";
 
 const ArticleRefContext = createContext<MutableRefObject<HTMLDivElement>>(undefined);
 

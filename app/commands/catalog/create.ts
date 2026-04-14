@@ -18,10 +18,9 @@ const create: Command<{ props: CatalogEditProps; ctx: Context }, ClientCatalogPr
 		const { wm, sitePresenterFactory } = this._app;
 		const workspace = await wm.currentOrDefault();
 
-		const hasSiblingCatalog = workspace
-			.getAllCatalogs()
-			.keys()
-			.some((name) => name.toLowerCase() === props.url.toLowerCase());
+		const hasSiblingCatalog = [...workspace.getAllCatalogs().keys()].some(
+			(name) => name.toLowerCase() === props.url.toLowerCase(),
+		);
 
 		if (hasSiblingCatalog) return;
 		const fs = workspace.getFileStructure();

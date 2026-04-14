@@ -1,4 +1,4 @@
-import { NotionBlock } from "@ext/notion/model/NotionTypes";
+import type { NotionBlock } from "@ext/notion/model/NotionTypes";
 
 export const databaseView = (description: NotionBlock[], selected: string[]) => {
 	return [

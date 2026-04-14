@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CSSProperties, forwardRef, ReactNode } from "react";
+import { type CSSProperties, forwardRef, type ReactNode } from "react";
 
 interface ChipProps {
 	index?: number;

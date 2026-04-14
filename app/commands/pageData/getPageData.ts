@@ -1,19 +1,17 @@
 import { ResponseKind } from "@app/types/ResponseKind";
+import type { PageProps } from "@components/Pages/models/Pages";
 import type Context from "@core/Context/Context";
-import type PageDataContext from "@core/Context/PageDataContext";
 import Path from "@core/FileProvider/Path/Path";
-import getPageDataByPathname, { PageDataType } from "@core/RouterPath/logic/getPageDataByPathname";
+import getPageDataByPathname, {
+	PageDataType as PageDataTypeRouter,
+} from "@core/RouterPath/logic/getPageDataByPathname";
 import getShareDataFromPathnameData from "@core/RouterPath/logic/getShareDataFromRouterPath";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
 import homeSections from "@core/utils/homeSections";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import { Command } from "../../types/Command";
 
-const getPageData: Command<
-	{ path: string; ctx: Context },
-	{ data: HomePageData | ArticlePageData; context: PageDataContext }
-> = Command.create({
+const getPageData: Command<{ path: string; ctx: Context }, PageProps> = Command.create({
 	path: "page/getPageData",
 
 	kind: ResponseKind.json,
@@ -27,36 +25,51 @@ const getPageData: Command<
 		const getNotFoundCatalog = (pathname: string, logicPath: string) =>
 			this._commands.page.getCatalogNotFoundData.do({ pathname, logicPath, ctx });
 
-		if (!path || path == "/" || homeSections.isHomeSectionPath(path)) return getHomePageData(path);
+		if (!path || path === "/" || homeSections.isHomeSectionPath(path)) {
+			const { data, context } = await getHomePageData(path);
+			return { page: "home" as const, data, context };
+		}
 
 		const workspace = this._app.wm.maybeCurrent();
 
 		const splittedPath = path.split("/").filter((x) => x);
-		if (!RouterPathProvider.isEditorPathname(splittedPath))
-			return workspace ? getArticlePageData(splittedPath, path) : getHomePageData();
+		if (!RouterPathProvider.isEditorPathname(splittedPath)) {
+			if (!workspace) {
+				const { data, context } = await getHomePageData();
+				return { page: "home" as const, data, context };
+			}
+			const { data, context } = await getArticlePageData(splittedPath, path);
+			return { page: "article" as const, data, context };
+		}
 
 		const pathnameData = RouterPathProvider.parsePath(splittedPath);
 
 		const { type: pageDataType, itemLogicPath } = await getPageDataByPathname(pathnameData, this._app.wm);
 
 		// https://support.ics-it.ru/issue/GXS-1938
-		const data =
-			pageDataType === PageDataType.notFound
+		const notFoundResult =
+			pageDataType === PageDataTypeRouter.notFound
 				? await getArticlePageData(pathnameData.itemLogicPath, pathnameData.itemLogicPath.join("/"))
 				: null;
 
-		if (data) return data;
+		if (notFoundResult) {
+			const { data, context } = notFoundResult;
+			return { page: "article" as const, data, context };
+		}
 
-		if (pageDataType === PageDataType.article) return getArticlePageData(itemLogicPath, path);
-		if (pageDataType === PageDataType.notFound)
-			return getNotFoundCatalog(path, Path.join(...pathnameData.itemLogicPath));
-		if (pageDataType === PageDataType.home) {
+		if (pageDataType === PageDataTypeRouter.article) {
+			const { data, context } = await getArticlePageData(itemLogicPath, path);
+			return { page: "article" as const, data, context };
+		}
+		if (pageDataType === PageDataTypeRouter.notFound) {
+			const { data, context } = await getNotFoundCatalog(path, Path.join(...pathnameData.itemLogicPath));
+			return { page: "article" as const, data, context };
+		}
+		if (pageDataType === PageDataTypeRouter.home) {
 			const { sourceType } = getPartGitSourceDataByStorageName(pathnameData.sourceName);
-
 			const shareData = getShareDataFromPathnameData(pathnameData, sourceType);
 			const { context, data } = await getHomePageData();
-
-			return { data, context: { ...context, shareData } };
+			return { page: "home" as const, data, context: { ...context, shareData } };
 		}
 	},
 

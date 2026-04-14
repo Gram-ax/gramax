@@ -1,5 +1,5 @@
 import { When } from "@cucumber/cucumber";
-import E2EWorld from "e2e/models/World";
+import type E2EWorld from "e2e/models/World";
 import { sleep } from "./utils/utils";
 
 When("перетаскиваем {string} над {string}", async function (this: E2EWorld, sourceName: string, targetName: string) {

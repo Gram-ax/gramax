@@ -1,7 +1,7 @@
-import AstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
+import type AstDiffTransformer from "@ext/markdown/elements/diff/logic/astTransformer/AstDiffTransofrmer";
 import LevenshteinStringsDiff, {
-	LevenshteinStringsDiffConfig,
-	LevenshteinStringsDiffResult,
+	type LevenshteinStringsDiffConfig,
+	type LevenshteinStringsDiffResult,
 } from "@ext/markdown/elements/diff/logic/levenshteinStrings/LevenshteinStringsDiff";
 import PositionMapper from "@ext/markdown/elements/diff/logic/PositionMapper";
 

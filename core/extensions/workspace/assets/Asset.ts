@@ -1,5 +1,5 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
-import Path from "@core/FileProvider/Path/Path";
+import type Path from "@core/FileProvider/Path/Path";
 
 export abstract class Asset {
 	constructor(protected readonly _fp: FileProvider) {}

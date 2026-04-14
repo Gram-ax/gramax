@@ -1,4 +1,4 @@
-import NodePaginator from "@ext/print/utils/pagination/NodePaginator";
+import type NodePaginator from "@ext/print/utils/pagination/NodePaginator";
 
 export interface TablePaginatorInterface extends NodePaginator<HTMLDivElement, HTMLTableSectionElement> {
 	currentContainer: HTMLTableSectionElement;

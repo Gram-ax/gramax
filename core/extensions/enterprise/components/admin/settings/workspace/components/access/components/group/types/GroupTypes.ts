@@ -1,9 +1,10 @@
+export enum GroupSource {
+	GX_GROUPS = "gxGroups",
+	SSO_GROUPS = "ssoGroups",
+}
+
 export type Group = {
 	id: string;
-	group: string;
-};
-
-export type GroupInfo = {
-	id: string;
 	name: string;
+	source: GroupSource;
 };

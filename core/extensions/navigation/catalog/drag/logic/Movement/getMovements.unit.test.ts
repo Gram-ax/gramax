@@ -1,5 +1,5 @@
-import { NodeModel } from "@minoru/react-dnd-treeview";
-import getMovements, { Movement } from "./getMovements";
+import type { NodeModel } from "@minoru/react-dnd-treeview";
+import getMovements, { type Movement } from "./getMovements";
 
 const parseMovements = (movements: Movement[]) =>
 	movements.map(

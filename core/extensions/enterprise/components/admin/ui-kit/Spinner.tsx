@@ -1,7 +1,7 @@
 import { cn } from "@core-ui/utils/cn";
-import { cva, VariantProps } from "class-variance-authority";
-import { Loader2 } from "lucide-react";
-import React from "react";
+import { Icon } from "@ui-kit/Icon";
+import { cva, type VariantProps } from "class-variance-authority";
+import type React from "react";
 
 const spinnerVariants = cva("flex-col items-center justify-center", {
 	variants: { show: { true: "flex", false: "hidden" } },
@@ -21,7 +21,7 @@ interface SpinnerContentProps extends VariantProps<typeof spinnerVariants>, Vari
 export function Spinner({ size, show, children, className }: SpinnerContentProps) {
 	return (
 		<span className={spinnerVariants({ show })}>
-			<Loader2 className={cn(loaderVariants({ size }), className)} />
+			<Icon className={cn(loaderVariants({ size }), className)} icon="loader-circle" />
 			{children}
 		</span>
 	);

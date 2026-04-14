@@ -1,5 +1,5 @@
 import getTagElementRenderModels from "@ext/markdown/core/render/logic/getRenderElements/getTagElementRenderModels";
-import { Token, Tokenizer } from "@ext/markdown/core/render/logic/Markdoc";
+import { type Token, Tokenizer } from "@ext/markdown/core/render/logic/Markdoc";
 import TestData from "./TestData.json";
 
 const getMdContent = () => `

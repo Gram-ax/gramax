@@ -1,6 +1,11 @@
 import { generate, prettify, restoreSelection, saveSelection, transcribe } from "@ext/ai/logic/Commands";
 import BlurSelection from "@ext/ai/logic/plugins/BlurSelection/BlurSelection";
-import { AiGenerateOptions, AiPrettifyOptions, AiTranscribeOptions, TiptapGramaxAiOptions } from "@ext/ai/models/types";
+import type {
+	AiGenerateOptions,
+	AiPrettifyOptions,
+	AiTranscribeOptions,
+	TiptapGramaxAiOptions,
+} from "@ext/ai/models/types";
 import { Extension } from "@tiptap/core";
 
 declare module "@tiptap/core" {

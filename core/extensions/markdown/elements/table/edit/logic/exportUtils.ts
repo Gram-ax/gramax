@@ -5,8 +5,8 @@ import {
 	getFormattedValue,
 	getFormatter,
 } from "@ext/markdown/elements/table/edit/logic/aggregation";
-import { AggregationMethod, AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { JSONContent } from "@tiptap/core";
+import type { AggregationMethod, AlignEnumTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import type { JSONContent } from "@tiptap/core";
 
 const getColumn = (rows: (Tag | JSONContent)[], columnID: number) => {
 	const columnCells: (Tag | JSONContent)[] = [];

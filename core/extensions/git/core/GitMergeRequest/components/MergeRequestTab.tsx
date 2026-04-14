@@ -107,33 +107,6 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 		};
 	}, [apiUrlCreator]);
 
-	const cached = useMemo(() => {
-		if (!mergeRequest) return null;
-		return (
-			<>
-				<TopWrapper>
-					<MergeRequestFromWhere from={mergeRequest.sourceBranchRef} where={mergeRequest.targetBranchRef} />
-					<Creator created={mergeRequest.createdAt} from={mergeRequest.creator} />
-					<Description content={mergeRequest.description} />
-				</TopWrapper>
-				<Changes
-					setContentHeight={setContentHeight}
-					setStage={setStage}
-					show={show}
-					stage={stage}
-					tabWrapperRef={tabWrapperRef}
-					targetRef={mergeRequest.targetBranchRef}
-				/>
-				<BottomWrapper>
-					<Approvers approvers={mergeRequest.approvers} />
-					<ButtonArea>
-						<MergeButton hasConflicts={false} mergeRequest={mergeRequest} status={status} />
-					</ButtonArea>
-				</BottomWrapper>
-			</>
-		);
-	}, [mergeRequest, status, stage, show]);
-
 	return mergeRequest ? (
 		<TabWrapper
 			actions={
@@ -153,7 +126,25 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 			title={t("git.merge-requests.name")}
 			titleRightExtension={<Status status={status} />}
 		>
-			{cached}
+			<TopWrapper>
+				<MergeRequestFromWhere from={mergeRequest.sourceBranchRef} where={mergeRequest.targetBranchRef} />
+				<Creator created={mergeRequest.createdAt} from={mergeRequest.creator} />
+				<Description content={mergeRequest.description} />
+			</TopWrapper>
+			<Changes
+				setContentHeight={setContentHeight}
+				setStage={setStage}
+				show={show}
+				stage={stage}
+				tabWrapperRef={tabWrapperRef}
+				targetRef={mergeRequest.targetBranchRef}
+			/>
+			<BottomWrapper>
+				<Approvers approvers={mergeRequest.approvers} />
+				<ButtonArea>
+					<MergeButton hasConflicts={false} mergeRequest={mergeRequest} status={status} />
+				</ButtonArea>
+			</BottomWrapper>
 		</TabWrapper>
 	) : null;
 };

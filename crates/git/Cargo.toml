@@ -30,37 +30,37 @@ futures = { version = "0.3.31" }
 
 [target.'cfg(any(target_os = "macos", target_os = "linux", target_os = "windows"))'.dependencies]
 dirs = "^5.0.0"
+reqwest = { workspace = true }
 ssh2-config = { git = "https://github.com/pashokitsme/ssh2-config" }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 futures = { version = "0.3.31" }
-git2 = { git = "https://github.com/gram-ax/git2-rs.git", branch = "filter", default-features = false, features = [
+git2 = { git = "https://github.com/gram-ax/git2-rs.git", rev = "3dec92bd17fc81b2d76c15919028b2de868dbacb", default-features = false, features = [
   "vendored-libgit2",
 ] }
-git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", default-features = false }
+git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", rev = "e5f184d7cd03097e7f0a8cd37509a956496ef557", default-features = false }
 
 [target.'cfg(any(target_os = "linux", target_os = "android"))'.dependencies]
-git2 = { git = "https://github.com/gram-ax/git2-rs.git", branch = "filter", default-features = false, features = [
+git2 = { git = "https://github.com/gram-ax/git2-rs.git", rev = "3dec92bd17fc81b2d76c15919028b2de868dbacb", default-features = false, features = [
   "https",
   "ssh",
   "use-openssl",
   "vendored-libgit2",
 ] }
-git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", features = [
+git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", rev = "e5f184d7cd03097e7f0a8cd37509a956496ef557", features = [
   "git2-vendored-openssl",
   "git2-use-openssl",
 ] }
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
-git2 = { git = "https://github.com/gram-ax/git2-rs.git", branch = "filter", default-features = false, features = [
+git2 = { git = "https://github.com/gram-ax/git2-rs.git", rev = "3dec92bd17fc81b2d76c15919028b2de868dbacb", default-features = false, features = [
   "https",
   "ssh",
   "vendored-libgit2",
 ] }
-git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git" }
-
+git2-lfs = { git = "https://github.com/gram-ax/git2-lfs.git", rev = "e5f184d7cd03097e7f0a8cd37509a956496ef557" }
 
 [dev-dependencies]
 test-utils = { path = "../test-utils", features = ["git"] }
 rstest = { workspace = true }
-tempfile = "3"
+tempfile = { workspace = true }

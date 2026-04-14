@@ -1,4 +1,4 @@
-import { CatalogMoveConflictResolution } from "@app/commands/catalog/move";
+import type { CatalogMoveConflictResolution } from "@app/commands/catalog/move";
 import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";

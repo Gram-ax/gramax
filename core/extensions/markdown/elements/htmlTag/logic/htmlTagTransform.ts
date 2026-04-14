@@ -1,4 +1,4 @@
-import { Token } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
 
 const htmlTagTransform = (tokens: Token[]) => {
 	const result = [];

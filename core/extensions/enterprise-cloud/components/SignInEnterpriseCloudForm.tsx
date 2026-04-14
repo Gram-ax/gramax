@@ -1,6 +1,4 @@
 import Icon from "@components/Atoms/Icon";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import { cn } from "@core-ui/utils/cn";
 import t from "@ext/localization/locale/translate";
@@ -8,7 +6,7 @@ import { Button } from "@ui-kit/Button";
 import { ContentDivider } from "@ui-kit/Divider";
 import { useCallback } from "react";
 import { Logo, TopContainerWrapper } from "../../../components/HomePage/Welcome/Editor";
-import { relocateToUrl } from "../../enterprise/components/useSignInEnterprise";
+import { relocateToUrl } from "../../enterprise/components/SingInOut/hooks/useSignIn";
 
 interface SignInEnterpriseCloudFormProps {
 	gesUrl: string;
@@ -27,8 +25,6 @@ export const SignInEnterpriseCloudForm = ({
 	className,
 }: SignInEnterpriseCloudFormProps) => {
 	const breakpoint = useBreakpoint();
-
-	const apiUrlCreator = ApiUrlCreatorService.value;
 
 	const yandexAuthUrl = getGesCloudSignInUrl(gesUrl, "yandex", true);
 	const relocateToYandexAuthUrl = useCallback(() => relocateToUrl(yandexAuthUrl), [yandexAuthUrl]);
@@ -63,9 +59,8 @@ export const SignInEnterpriseCloudForm = ({
 						<div className="text-sm text-center font-normal text-muted whitespace-nowrap">{t("or")}</div>
 					</ContentDivider>
 					<Button
-						onClick={async () => {
-							const response = await FetchService.fetch(apiUrlCreator.offEnterpriseUrl());
-							if (response.ok) refreshPage();
+						onClick={() => {
+							//TODO: Implement this
 						}}
 						type="button"
 						variant="text"

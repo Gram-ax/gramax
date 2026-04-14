@@ -38,7 +38,7 @@ tauri = { version = "^2.0.0", features = [
 
 tauri-plugin-deep-link = "^2.0.0"
 tauri-plugin-dialog = "^2.0.0"
-tauri-plugin-updater = { git = "https://github.com/pashokitsme/plugins-workspace", branch = "updater/pub-release-info-dev", features = [
+tauri-plugin-updater = { git = "https://github.com/pashokitsme/plugins-workspace", rev = "d7fd4b76d0edcb12490738acb55ae230d04fbcd0", features = [
   "zip",
 ] }
 tauri-plugin-shell = "^2.0.0"
@@ -66,14 +66,15 @@ sysinfo = "^0.37"
 humansize = "2.1.3"
 
 rstest = "^0.23"
+tempfile = "3"
 
 [patch.crates-io]
-opentelemetry = { git = "https://github.com/pashokitsme/opentelemetry-rust", branch = "v0.31.0-emscripten-support", features = [
+opentelemetry = { git = "https://github.com/pashokitsme/opentelemetry-rust", rev = "6e0764fdb1fa349bf929dcf772ce0a62e4a42597", features = [
   "trace",
   "logs",
   "metrics",
 ] }
-tracing-opentelemetry = { git = "https://github.com/pashokitsme/tracing-opentelemetry", branch = "emscripten-support" }
+tracing-opentelemetry = { git = "https://github.com/pashokitsme/tracing-opentelemetry", rev = "e984e0ef127dc602f711afc88961a56555f9d911" }
 
 [profile.release]
 codegen-units = 1

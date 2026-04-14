@@ -9,6 +9,7 @@ import type { BackendDynamicModules } from "..";
 import "@ext/pdfExport/fontLoaders/cliLoadFont";
 import { cliLoadFont } from "@ext/pdfExport/fontLoaders/cliLoadFont";
 import NextGetImageByPath from "../../../apps/next/logic/NextGetImageByPath";
+import { mermaidExtractText } from "../../../apps/next/mermaid/mermaidExtractText";
 import { getPdfjs } from "../../../apps/next/pdfjs/getPdfjs";
 import { TestWorkerResourceParseClient } from "../../../apps/next/search/modulith/TestResourceParseWorkerClient";
 import { TestWorkerModulithSearchClient } from "../../../apps/next/search/modulith/TestWorkerModulithSearchClient";
@@ -26,6 +27,7 @@ export const getCliModules = (): Promise<BackendDynamicModules> => {
 		setSessionData: () => Promise.resolve(),
 		pdfLoadFont: cliLoadFont(),
 		getImageByPath: NextGetImageByPath,
+		mermaidExtractText,
 		getModulithSearchClient: async ({ cacheFileProvider, articleStorageFileProvider }) =>
 			await TestWorkerModulithSearchClient.create({ cacheFileProvider, articleStorageFileProvider }),
 		getResourceParseClient: async () => await TestWorkerResourceParseClient.create(),

@@ -8,6 +8,15 @@ export const usePlatform = () => {
 	const isNext = Environment === "next";
 	const isStaticCli = Environment === "cli";
 	const isStatic = Environment === "static";
+	const isDocportal = Environment === "docportal";
 
-	return { isBrowser, isTauri, isNext, isStaticCli, isStatic, environment: Environment };
+	return {
+		isBrowser,
+		isTauri,
+		isNext: isNext || isDocportal,
+		isDocportal,
+		isStaticCli,
+		isStatic,
+		environment: Environment,
+	};
 };

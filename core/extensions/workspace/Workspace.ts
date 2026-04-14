@@ -1,5 +1,6 @@
 import type Context from "@core/Context/Context";
 import { createEventEmitter, type Event, type EventArgs } from "@core/Event/EventEmitter";
+import type { EventHandlerCollection } from "@core/Event/EventHandlerProvider";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
@@ -11,8 +12,11 @@ import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog
 import FileStructure from "@core/FileStructue/FileStructure";
 import ItemExtensions from "@core/FileStructue/Item/ItemExtensions";
 import type YamlFileConfig from "@core/utils/YamlFileConfig";
+import type { GitVersion } from "@ext/git/core/model/GitVersion";
+import type Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import { trace } from "@ext/loggers/opentelemetry";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import WorkspaceEventHandlers from "@ext/workspace/events/WorkspaceEventHandlers";
@@ -21,6 +25,7 @@ import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceCon
 
 export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"remove-catalog", { name: string }> &
+	Event<"merge", { catalog: Catalog; targetBranch: string; sourceData: SourceData; beforeMergeCommit: GitVersion }> &
 	Event<"resolve-category", EventArgs<CatalogEvents, "resolve-category">> &
 	Event<"catalog-changed", CatalogFilesUpdated> &
 	Event<"on-catalog-resolve", { mutableCatalog: { catalog: Catalog }; metadata: string }> &
@@ -28,7 +33,7 @@ export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"on-entries-read", { mutableEntries: { entries: CatalogEntry[] } }> &
 	Event<"config-updated">;
 
-export type WorkspaceInitCallback = (workspace: Workspace) => void;
+export type WorkspaceInitCallback = (workspace: Workspace) => EventHandlerCollection[];
 
 export type WorkspaceInitProps = {
 	fs: FileStructure;
@@ -49,14 +54,13 @@ export class Workspace {
 		private _fs: FileStructure,
 		private _rp: RepositoryProvider,
 		protected _assets: WorkspaceAssets,
-	) {
-		new WorkspaceEventHandlers(this, this._rp).mount();
-	}
+	) {}
 
 	static async init({ fs, rp, path, config, assets, onInit }: WorkspaceInitProps) {
 		const entries = await fs.getCatalogEntries();
 		const workspace = new this(path, config, fs, rp, assets);
-		onInit?.(workspace);
+		const events = onInit?.(workspace);
+		new WorkspaceEventHandlers(workspace, rp, events).mount();
 
 		const mutableEntries = { entries };
 		await workspace._events.emit("on-entries-read", { mutableEntries });
@@ -157,11 +161,11 @@ export class Workspace {
 	}
 
 	@trace()
-	async addCatalog(catalog: Catalog): Promise<void> {
+	async addCatalog(catalog: Catalog, existingRepo?: Repository): Promise<void> {
 		this._entries.set(catalog.name, catalog);
 		const basePath = catalog.basePath;
 		const fp = this.getFileProvider();
-		catalog.setRepository(await this._rp.getRepositoryByPath(basePath, fp));
+		catalog.setRepository(existingRepo?.gvc ? existingRepo : await this._rp.getRepositoryByPath(basePath, fp));
 
 		catalog.events.on("files-changed", (update) => this.events.emit("catalog-changed", update));
 
@@ -173,8 +177,11 @@ export class Workspace {
 		catalog.events.on("resolve-category", (args) => this.events.emitSync("resolve-category", args));
 		catalog.events.on("update", async (arg) => {
 			const entry = await this._fs.getCatalogByPath(catalog.basePath);
-			await this.addCatalog(entry);
+			await this.addCatalog(entry, catalog.repo);
 			arg.catalog = entry;
+		});
+		catalog.events.on("merge", ({ catalog: cat, targetBranch, sourceData, beforeMergeCommit }) => {
+			this._events.emit("merge", { catalog: cat, targetBranch, sourceData, beforeMergeCommit });
 		});
 
 		await this._events.emit("add-catalog", { catalog });

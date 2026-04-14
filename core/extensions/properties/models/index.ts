@@ -1,4 +1,4 @@
-import Style from "@components/HomePage/Cards/model/Style";
+import type Style from "@components/HomePage/Cards/model/Style";
 
 export type PropertyID = string;
 

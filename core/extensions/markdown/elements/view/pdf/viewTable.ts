@@ -1,9 +1,9 @@
 import t from "@ext/localization/locale/translate";
 import { getViewArticleItem } from "@ext/markdown/elements/view/pdf/view";
 import { COLOR_CONFIG } from "@ext/pdfExport/config";
-import { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { ViewRenderGroup } from "@ext/properties/models";
-import { Content } from "pdfmake/interfaces";
+import type { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { ViewRenderGroup } from "@ext/properties/models";
+import type { Content } from "pdfmake/interfaces";
 
 interface TableCell {
 	text: string | Content;

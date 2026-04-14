@@ -1,6 +1,6 @@
 import Url from "@core-ui/ApiServices/Types/Url";
 import t from "@ext/localization/locale/translate";
-import { HTMLAttributes, MouseEvent, ReactNode, useEffect, useRef } from "react";
+import { type HTMLAttributes, type MouseEvent, type ReactNode, useEffect, useRef } from "react";
 import Link from "../Atoms/Link";
 import Tooltip from "../Atoms/Tooltip";
 

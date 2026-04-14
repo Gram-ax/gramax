@@ -1,18 +1,22 @@
 import Divider from "@components/Atoms/Divider";
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
-import DiagramType from "@core/components/Diagram/DiagramType";
 import Path from "@core/FileProvider/Path/Path";
+import getStringByteSize from "@core/utils/getStringByteSize";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
 import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
 import CatalogContextWrapper from "@core-ui/ScopedContextWrapper/CatalogContextWrapper";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
+import { OpenUnknownFile } from "@ext/git/actions/Publish/components/OpenUnknownFile";
 import { useResourceViewResolver } from "@ext/git/actions/Publish/logic/useResourceViewResolver";
+import { DOCUMENT_SIZE_LIMIT_BYTES } from "@ext/git/actions/Publish/model/consts";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import t from "@ext/localization/locale/translate";
 import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
 import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import NavigationEvents from "@ext/navigation/NavigationEvents";
@@ -20,20 +24,25 @@ import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useEffect, useLayoutEffect, useState } from "react";
 
-export const IMG_FILE_TYPES = ["png", "jpg", "jpeg", "bmp", "svg", "gif", "webp", "avif", "tiff", "heif", "ico", "pdf"];
-export const DIAGRAM_FILE_TYPES = {
-	mermaid: DiagramType.mermaid,
-	puml: DiagramType["plant-uml"],
-};
+export type ResourceType = "image" | "diagram" | "text" | "unknown";
 
 interface DiffResourceScopesWrapperProps {
 	parentPath: DiffFilePaths;
 	children: JSX.Element;
 	oldScope: TreeReadScope;
 	status: FileStatus;
-	type: "image" | "diagram" | "text";
+	type: ResourceType;
 	newScope: TreeReadScope;
 	oldChildren?: JSX.Element;
+}
+
+interface ResourceDiffViewProps {
+	children: JSX.Element;
+	type: ResourceType;
+	newContent: string;
+	oldContent: string;
+	filePath: DiffFilePaths;
+	isTextTooLarge?: boolean;
 }
 
 const StatusContainer = styled.div`
@@ -96,7 +105,7 @@ export interface UseResourceArticleViewType {
 	parentPath: DiffFilePaths;
 	id: number;
 	resourcePath: Path;
-	type: "image" | "diagram" | "text";
+	type: ResourceType;
 	oldResourcePath?: Path;
 	filePath?: DiffFilePaths;
 	relativeTo?: Path;
@@ -125,6 +134,11 @@ const ExactResourceViewWithContent = (props: UseResourceArticleViewType) => {
 		newScope,
 	} = props;
 	const ext = resourcePath.extension;
+
+	const isTextTooLarge =
+		type === "text" &&
+		(getStringByteSize(newContent) > DOCUMENT_SIZE_LIMIT_BYTES ||
+			getStringByteSize(oldContent) > DOCUMENT_SIZE_LIMIT_BYTES);
 	const src = relativeTo ? relativeTo.getRelativePath(resourcePath).value : resourcePath.nameWithExtension;
 	const oldSrc = oldRelativeTo
 		? oldRelativeTo.getRelativePath(oldResourcePath).value
@@ -144,6 +158,7 @@ const ExactResourceViewWithContent = (props: UseResourceArticleViewType) => {
 	return (
 		<ResourceDiffView
 			filePath={filePath}
+			isTextTooLarge={isTextTooLarge}
 			key={filePath.path}
 			newContent={newContent}
 			oldContent={oldContent}
@@ -214,19 +229,34 @@ const ScopeWrapper = (props: ContextWrapperProps) => {
 	return <CatalogContextWrapper scope={scope}>{children}</CatalogContextWrapper>;
 };
 
-const ResourceDiffView = ({
-	children,
-	type,
-	newContent,
-	oldContent,
-	filePath,
-}: {
-	children: React.ReactNode;
-	type: "image" | "diagram" | "text";
-	newContent: string;
-	oldContent: string;
-	filePath: DiffFilePaths;
-}) => {
+const Message = styled.div`
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100%;
+	padding: 1rem;
+	text-align: center;
+	color: var(--color-text-secondary);
+`;
+
+const DiffMessage = ({ children, resourcePath }: { children: JSX.Element; resourcePath: string }) => {
+	const { isTauri } = usePlatform();
+	return (
+		<Message>
+			<div>
+				{children}
+				{isTauri && (
+					<Center className="mt-2">
+						<OpenUnknownFile resourcePath={resourcePath} />
+					</Center>
+				)}
+			</div>
+		</Message>
+	);
+};
+
+const ResourceDiffView = (props: ResourceDiffViewProps) => {
+	const { children, type, newContent, oldContent, filePath, isTextTooLarge } = props;
 	const diffViewService = useDiffViewMode();
 	const [diffView, setDiffView] = useState(diffViewService);
 	const hasContent = !!oldContent || !!newContent;
@@ -263,6 +293,10 @@ const ResourceDiffView = ({
 	}, [restoreRightSidebar]);
 
 	const resourceView = () => {
+		if (isTextTooLarge)
+			return <DiffMessage resourcePath={filePath?.path}>{t("diff.file-too-large-for-preview")}</DiffMessage>;
+		if (type === "unknown")
+			return <DiffMessage resourcePath={filePath?.path}>{t("diff.unknown-extension")}</DiffMessage>;
 		if (isWysiwyg) return children;
 		return (
 			<DiffFileInput
@@ -290,14 +324,14 @@ const ResourceDiffView = ({
 			<RenderDiffBottomBarInBody
 				diffViewMode={diffView}
 				filePath={filePath}
-				hasWysiwyg={type !== "text"}
+				hasWysiwyg={type !== "text" && type !== "unknown"}
 				newRevision={null}
 				oldRevision={null}
 				onDiffViewPick={(mode) => {
 					setDiffView(mode);
 					updateDiffViewMode(mode);
 				}}
-				showDiffViewChanger={hasContent}
+				showDiffViewChanger={hasContent && !isTextTooLarge && type !== "unknown"}
 				title={null}
 			/>
 		</>

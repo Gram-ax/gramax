@@ -1,4 +1,4 @@
-import KeyboardRulesProps from "./KeyboardRulesProps";
+import type KeyboardRulesProps from "./KeyboardRulesProps";
 
 type KeyboardRule = (props: KeyboardRulesProps) => boolean;
 

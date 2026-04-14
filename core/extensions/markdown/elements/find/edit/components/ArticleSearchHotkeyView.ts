@@ -1,6 +1,6 @@
 import StyledArticleSearch from "@ext/markdown/elements/find/edit/components/ArticleSearch";
 import ReactRenderer from "@ext/markdown/elementsUtils/prosemirrorPlugins/ReactRenderer";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 
 export type CustomDecorations = { start: number; end: number; isActive: boolean };
 

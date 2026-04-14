@@ -1,5 +1,4 @@
 #!/usr/bin/env -S node --no-warnings
-import fs from "fs";
 import http from "http";
 import path from "path";
 import { chromium } from "playwright";

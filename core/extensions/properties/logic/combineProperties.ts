@@ -1,4 +1,4 @@
-import { Property, PropertyValue } from "../models";
+import type { Property, PropertyValue } from "../models";
 
 const combineProperties = (props: PropertyValue[], catalogProps: Map<string, Property>): Property[] => {
 	return props?.map((prop) => {

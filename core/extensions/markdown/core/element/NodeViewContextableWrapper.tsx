@@ -1,5 +1,13 @@
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { createContext, ElementType, forwardRef, HTMLAttributes, ReactNode, RefObject, useContext } from "react";
+import { type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import {
+	createContext,
+	type ElementType,
+	forwardRef,
+	type HTMLAttributes,
+	type ReactNode,
+	type RefObject,
+	useContext,
+} from "react";
 
 const NodeViewContext = createContext<NodeViewProps>({
 	decorations: [],

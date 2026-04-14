@@ -2,11 +2,11 @@ import { SelectDisableItem } from "@ext/enterprise/components/admin/settings/com
 import { TriggerAddButtonTemplate } from "@ext/enterprise/components/admin/settings/components/TriggerAddButtonTemplate";
 import { ModalComponent } from "@ext/enterprise/components/admin/ui-kit/ModalComponent";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
-import { ButtonProps } from "@ui-kit/Button";
+import type { RenderOptionProps } from "@ui-kit/AsyncSearchSelect";
+import type { ButtonProps } from "@ui-kit/Button";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
 import { MultiSelect } from "@ui-kit/MultiSelect";
-import { SearchSelectOption } from "@ui-kit/SearchSelect";
+import type { SearchSelectOption } from "@ui-kit/SearchSelect";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";

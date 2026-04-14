@@ -1,11 +1,11 @@
-import PageDataContext from "@core/Context/PageDataContext";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type PageDataContext from "@core/Context/PageDataContext";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
-import { Editor } from "@tiptap/core";
-import { Mark } from "@tiptap/pm/model";
-import { Node } from "prosemirror-model";
+import type { Editor } from "@tiptap/core";
+import type { Mark } from "@tiptap/pm/model";
+import type { Node } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 
 export type MarkWithPos = { mark: Mark; from: number; to: number };
 

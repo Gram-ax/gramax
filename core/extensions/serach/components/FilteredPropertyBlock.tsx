@@ -1,6 +1,6 @@
 import { ArticlePropertyWrapper } from "@ext/properties/components/ArticlePropertyWrapper";
 import PropertyComponent from "@ext/properties/components/Property";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 import { Fragment } from "react";
 
 interface FilteredPropertyBlockProps {

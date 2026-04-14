@@ -139,4 +139,34 @@ editorTest.describe("Tabs", () => {
 		);
 		await editor.assertMarkdownContains("</tabs>");
 	});
+
+	editorTest("backspace after tabs", async ({ editor }) => {
+		await editor.setMarkdown(md`
+			<tabs>
+
+			<tab name="Tab">
+
+			123
+
+			</tab>
+
+			</tabs>
+
+			(*)text
+		`);
+		await editor.press("Backspace");
+		await editor.assertMarkdown(md`
+			<tabs>
+
+			<tab name="Tab">
+
+			123
+
+			text
+
+			</tab>
+
+			</tabs>
+		`);
+	});
 });

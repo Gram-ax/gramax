@@ -1,7 +1,7 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import t from "@ext/localization/locale/translate";
-import Theme from "@ext/Theme/Theme";
+import type Theme from "@ext/Theme/Theme";
 
 type OAuthType = "google";
 

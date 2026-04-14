@@ -1,8 +1,9 @@
-import Path from "@core/FileProvider/Path/Path";
+import type Path from "@core/FileProvider/Path/Path";
 import BaseCatalog, { type BaseCatalogInitProps, type CatalogOnLoad } from "@core/FileStructue/Catalog/BaseCatalog";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { CatalogProps } from "@core/FileStructue/Catalog/CatalogProps";
-import FileStructure, { type FSLazyLoadCatalog } from "@core/FileStructue/FileStructure";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import type { FSLazyLoadCatalog } from "@core/FileStructue/FileStructure";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
 import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";

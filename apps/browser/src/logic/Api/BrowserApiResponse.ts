@@ -1,4 +1,4 @@
-import ApiResponse from "@core/Api/ApiResponse";
+import type ApiResponse from "@core/Api/ApiResponse";
 
 export default class BrowserApiResponse implements ApiResponse {
 	statusCode = 200;

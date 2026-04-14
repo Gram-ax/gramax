@@ -1,7 +1,7 @@
-import ApiResponse from "@core/Api/ApiResponse";
-import Context from "@core/Context/Context";
-import { Article } from "@core/FileStructue/Article/Article";
-import { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
+import type ApiResponse from "@core/Api/ApiResponse";
+import type Context from "@core/Context/Context";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { ItemFilter } from "@core/FileStructue/Catalog/Catalog";
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
 import SecurityRules from "@ext/security/logic/SecurityRules";
@@ -38,8 +38,8 @@ class ExceptionsResponse {
 				error: ErrorTitle.NotFound,
 				message: `Catalog with id '${catalogId}' not found`,
 			};
-
-			this._res.send(response);
+			this._res.setHeader("Content-Type", "application/json");
+			this._res.send(JSON.stringify(response));
 			return true;
 		}
 		if (!this._securityFilter(catalog.getRootCategory(), catalog)) {
@@ -48,7 +48,8 @@ class ExceptionsResponse {
 				error: ErrorTitle.Forbidden,
 				message: `Catalog with id '${catalogId}' is private and access is denied.`,
 			};
-			this._res.send(response);
+			this._res.setHeader("Content-Type", "application/json");
+			this._res.send(JSON.stringify(response));
 			return true;
 		}
 	}
@@ -62,7 +63,7 @@ class ExceptionsResponse {
 				error: ErrorTitle.NotFound,
 				message: `Article with id '${articleId}' not found in catalog '${catalogId}'.`,
 			};
-			this._res.send(response);
+			this._res.send(JSON.stringify(response));
 			return true;
 		}
 
@@ -72,7 +73,7 @@ class ExceptionsResponse {
 				error: ErrorTitle.Forbidden,
 				message: `Article with id '${articleId}' is private in catalog '${catalogId}' and access is denied.`,
 			};
-			this._res.send(response);
+			this._res.send(JSON.stringify(response));
 			return true;
 		}
 	}
@@ -83,7 +84,7 @@ class ExceptionsResponse {
 			error: ErrorTitle.NotFound,
 			message: `Resource with path '${resourcePath}' not found for article '${articleId}' in catalog '${catalogId}'.`,
 		};
-		this._res.send(response);
+		this._res.send(JSON.stringify(response));
 		return true;
 	}
 
@@ -93,7 +94,7 @@ class ExceptionsResponse {
 			error: ErrorTitle.Unauthorized,
 			message: validataionTokenErrorMessages[message],
 		};
-		this._res.send(response);
+		this._res.send(JSON.stringify(response));
 	}
 }
 

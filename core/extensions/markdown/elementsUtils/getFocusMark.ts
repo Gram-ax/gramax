@@ -1,5 +1,5 @@
-import { Mark } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import type { Mark } from "prosemirror-model";
+import type { EditorState } from "prosemirror-state";
 
 const getFocusMark = (state: EditorState, typeName: string) => {
 	let mark: Mark = null;

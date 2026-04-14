@@ -34,6 +34,7 @@ const StyledFormField = styled(FormField)`
 
 const DEFAULT_LFS_PATTERNS = [
 	"*.jpg",
+	"*.jpeg",
 	"*.png",
 	"*.webp",
 	"*.gif",

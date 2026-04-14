@@ -1,14 +1,14 @@
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
-import ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
+import type ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import type ConfluenceSourceData from "@ext/confluence/core/model/ConfluenceSourceData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
-import { ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
+import type { ImportModalFormSchema } from "@ext/import/model/ImportModalFormSchema";
 import t from "@ext/localization/locale/translate";
-import { AsyncSearchSelect, AsyncSearchSelectOption } from "@ui-kit/AsyncSearchSelect";
+import { AsyncSearchSelect, type AsyncSearchSelectOption } from "@ui-kit/AsyncSearchSelect";
 import { FormField } from "@ui-kit/Form";
 import { useCache } from "@ui-kit/MultiSelect/utils/useCache";
 import { useMemo } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 
 interface FieldsConfluenceCloudProps {
 	sourceData: ConfluenceSourceData;

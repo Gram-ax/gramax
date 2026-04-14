@@ -1,10 +1,10 @@
-import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
-import { JSONContent } from "@tiptap/core";
-import { ParserOptions } from "../../../Parser/Parser";
-import PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
-import { RenderableTreeNodes, Schema, SchemaType, Tag } from "../../../render/logic/Markdoc";
+import type TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
+import type { JSONContent } from "@tiptap/core";
+import type { ParserOptions } from "../../../Parser/Parser";
+import type PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
+import { type RenderableTreeNodes, type Schema, SchemaType, Tag } from "../../../render/logic/Markdoc";
 import { getMarkdocFormatter } from "../Formatter/Formatters/getMarkdocFormatter";
-import NodeTransformerFunc from "./NodeTransformerFunc";
+import type NodeTransformerFunc from "./NodeTransformerFunc";
 import { getSchema } from "./schema";
 
 type Token = any;
@@ -185,11 +185,10 @@ export class Transformer {
 					(newNode.tag === "formula" && newNode.attrs["content"].includes("$$"))
 				) {
 					return { type: "blockMd", attrs: { text: formatter(tag, "") } };
-				} else {
-					if (!parent)
-						return transformer.getParagraphTokens(null, transformer.getInlineMdTokens(formatter(tag, "")));
-					return transformer.getInlineMdTokens(formatter(tag, ""));
 				}
+				if (!parent)
+					return transformer.getParagraphTokens(null, transformer.getInlineMdTokens(formatter(tag, "")));
+				return transformer.getInlineMdTokens(formatter(tag, ""));
 			}
 
 			if (token.type === "tag_open") newNode.type = newNode.type + "_open";

@@ -34,6 +34,11 @@ const CustomTableCell = TableCell.extend({
 
 					return value;
 				},
+				renderHTML: (attributes) => {
+					if (!attributes.colwidth) return {};
+					const total = (attributes.colwidth as number[]).reduce((sum, w) => sum + w, 0);
+					return { colwidth: attributes.colwidth.join(","), style: `--colwidth: ${total}px` };
+				},
 			},
 		};
 	},

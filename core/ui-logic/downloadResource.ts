@@ -1,7 +1,7 @@
 import t from "@ext/localization/locale/translate";
 import { toast } from "@ui-kit/Toast";
-import Path from "../logic/FileProvider/Path/Path";
-import ApiUrlCreator from "./ApiServices/ApiUrlCreator";
+import type Path from "../logic/FileProvider/Path/Path";
+import type ApiUrlCreator from "./ApiServices/ApiUrlCreator";
 import FetchService from "./ApiServices/FetchService";
 import MimeTypes from "./ApiServices/Types/MimeTypes";
 

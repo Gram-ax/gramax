@@ -1,6 +1,6 @@
-import { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
+import type { FloatAlign } from "@ext/markdown/elements/float/edit/model/types";
 import { Extension } from "@tiptap/core";
-import { NodeType } from "@tiptap/pm/model";
+import type { NodeType } from "@tiptap/pm/model";
 import { FLOAT_NODES } from "./consts";
 
 declare module "@tiptap/core" {

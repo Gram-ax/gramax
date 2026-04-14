@@ -5,7 +5,7 @@ import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
 import { Command } from "commander";
 import fs from "fs-extra";
 import { basename } from "path";
-import CliUserError from "./logic/CliUserError";
+import type CliUserError from "./logic/CliUserError";
 import { generateBuildCommand } from "./logic/cli/build/command";
 import { generateCheckCommand } from "./logic/cli/check/command";
 import { generateExportCommand } from "./logic/cli/export/command";

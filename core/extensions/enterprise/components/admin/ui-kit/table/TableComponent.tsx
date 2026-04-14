@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { ColumnDef, Table as ReactTable, Row } from "@ui-kit/DataTable";
+import type { ColumnDef, Table as ReactTable, Row } from "@ui-kit/DataTable";
 import { Table, TableRow } from "@ui-kit/Table";
 import { TableBodyComponent } from "./TableBodyComponent";
 import { TableCellComponent } from "./TableCellComponent";

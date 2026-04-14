@@ -1,7 +1,7 @@
 import Url from "@core-ui/ApiServices/Types/Url";
-import { BaseLink } from "@ext/navigation/NavigationLinks";
+import type { BaseLink } from "@ext/navigation/NavigationLinks";
 import Link from "next/link";
-import React, { HTMLAttributes, ReactNode, RefObject } from "react";
+import React, { type HTMLAttributes, type ReactNode, type RefObject } from "react";
 
 interface NextLinkProps extends HTMLAttributes<HTMLAnchorElement> {
 	href: BaseLink;

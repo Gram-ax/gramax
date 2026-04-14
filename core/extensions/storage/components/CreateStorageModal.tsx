@@ -3,8 +3,8 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import CreateStorage from "@ext/storage/components/CreateStorage";
-import { ComponentProps, useState } from "react";
-import SourceData from "../logic/SourceDataProvider/model/SourceData";
+import { type ComponentProps, useState } from "react";
+import type SourceData from "../logic/SourceDataProvider/model/SourceData";
 import getStorageNameByData from "../logic/utils/getStorageNameByData";
 
 interface CreateStorageModalProps extends Omit<ComponentProps<typeof CreateStorage>, "onSubmit"> {

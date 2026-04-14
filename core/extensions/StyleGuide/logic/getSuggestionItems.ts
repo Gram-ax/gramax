@@ -1,5 +1,5 @@
 import type { CheckChunk, CheckSuggestion } from "@ics/gx-vector-search";
-import { SuggestionItem } from "../extension/Suggestion";
+import type { SuggestionItem } from "../extension/Suggestion";
 
 export function getSuggestionItems(items: CheckSuggestion[], chunks: CheckChunk[]): SuggestionItem[] {
 	return items.map((item) => {

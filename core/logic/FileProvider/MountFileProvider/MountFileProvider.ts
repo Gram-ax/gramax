@@ -1,4 +1,5 @@
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import type CompressOptions from "@core/FileProvider/model/CompressOptions";
 import type FileInfo from "@core/FileProvider/model/FileInfo";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type ReadOnlyFileProvider from "@core/FileProvider/model/ReadOnlyFileProvider";
@@ -119,8 +120,8 @@ export default class MountFileProvider implements FileProvider {
 		return this._resolveFileProvider(path, true, false).deleteEmptyFolders(path);
 	}
 
-	write(path: Path, data: string | Buffer): Promise<void> {
-		return this._resolveFileProvider(path, true).write(path, data);
+	write(path: Path, data: string | Buffer, compress?: CompressOptions): Promise<void> {
+		return this._resolveFileProvider(path, true).write(path, data, compress);
 	}
 
 	move(from: Path, to: Path): Promise<void> {

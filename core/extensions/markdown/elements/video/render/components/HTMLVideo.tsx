@@ -1,5 +1,4 @@
 import RenderVideo from "@ext/markdown/elements/video/render/components/RenderVideo";
-import React from "react";
 
 export interface HTMLVideoProps {
 	path?: string;

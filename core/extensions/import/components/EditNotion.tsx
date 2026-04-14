@@ -1,10 +1,11 @@
 import Icon from "@components/Atoms/Icon";
-import Query, { parserQuery } from "@core/Api/Query";
+import type Query from "@core/Api/Query";
+import { parserQuery } from "@core/Api/Query";
 import createChildWindow from "@core-ui/ChildWindow/createChildWindow";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import t from "@ext/localization/locale/translate";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import { Button } from "@ui-kit/Button";
 import { Field } from "@ui-kit/Field";

@@ -1,6 +1,6 @@
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { RefObject, useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 declare global {
 	interface VirtualKeyboard extends EventTarget {
@@ -78,7 +78,7 @@ export const useToolbarViewport = () => {
 
 	const isMobile = isMobileService.value;
 	const toolbarRef = useRef<HTMLDivElement>(null);
-	if (!navigator) return;
+	if (typeof navigator === "undefined" || !navigator) return null;
 
 	if ("virtualKeyboard" in navigator && navigator.virtualKeyboard) useVirtualKeyboardAPI(isMobile, toolbarRef);
 	else useViewportAPI(isMobile, toolbarRef);

@@ -1,5 +1,5 @@
 import { DOMAIN } from "../../../../utils/predefinedValues";
-import { Resource } from "../entities/article";
+import type { Resource } from "../entities/article";
 
 export interface ResourceCounter {
 	mermaidCounter: number;
@@ -111,9 +111,8 @@ class ResourceReplacer {
 
 			if (width === "auto" && height === "auto") {
 				return `![](./${articleName}-${src.split("/").pop()})`;
-			} else {
-				return `![](./${articleName}-${src.split("/").pop()}){width=${width}px height=${height}px}`;
 			}
+			return `![](./${articleName}-${src.split("/").pop()}){width=${width}px height=${height}px}`;
 		});
 
 		return { content, resources };

@@ -1,5 +1,5 @@
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import StorageData from "@ext/storage/models/StorageData";
+import type StorageData from "@ext/storage/models/StorageData";
 
 export type SourceUser = {
 	name: string;

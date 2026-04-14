@@ -3,7 +3,7 @@ import Link from "@components/Atoms/Link";
 import UiUrlUtils from "@components/libs/UiUrlUtils";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import styled from "@emotion/styled";
-import { ItemLink } from "./NavigationLinks";
+import type { ItemLink } from "./NavigationLinks";
 
 const NextPrevious = ({ itemLinks }: { itemLinks: ItemLink[] }) => {
 	const articleLinks = UiUrlUtils.getArticleLinks(itemLinks);

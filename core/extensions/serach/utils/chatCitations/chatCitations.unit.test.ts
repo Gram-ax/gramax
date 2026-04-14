@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import { Tag as MarkdocTag } from "@ext/markdown/core/render/logic/Markdoc";
 import { makeCitationPlaceholder } from "@ext/serach/types";
 import chatCitations from "./chatCitations";
@@ -16,7 +17,7 @@ describe("chatCitations", () => {
 
 		const tag = transformed[1] as MarkdocTag;
 		expect(tag).toBeInstanceOf(MarkdocTag);
-		expect(tag.name).toBe("Link");
+		expect(tag.name).toBe("ChatLink");
 		expect(tag.attributes.index).toBe(1);
 		expect(tag.attributes.href).toBe(`/${logicPath}`);
 		expect(tag.attributes.resourcePath).toBe(relativePath);

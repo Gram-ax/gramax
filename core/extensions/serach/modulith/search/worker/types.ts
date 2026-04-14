@@ -103,6 +103,7 @@ export type FsRequestMethod =
 	| "exists"
 	| "write"
 	| "read"
+	| "readAsArrayBuffer"
 	| "delete"
 	| "mkdir"
 	| "readdir"

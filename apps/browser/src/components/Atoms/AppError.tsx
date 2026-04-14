@@ -2,7 +2,7 @@ import styled from "@emotion/styled";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
-import { HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 
 const errorCodes = {
 	wasmNotSupported: {

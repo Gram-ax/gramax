@@ -1,7 +1,7 @@
 import { useTouchHandler } from "@core-ui/hooks/useTouchHandler";
 import styled from "@emotion/styled";
 import getScale from "@ext/markdown/elements/image/render/logic/getScale";
-import { MutableRefObject, ReactElement, useCallback, useEffect } from "react";
+import { type MutableRefObject, type ReactElement, useCallback, useEffect } from "react";
 
 interface ImageResizerProps {
 	saveResize: (resize: number) => void;

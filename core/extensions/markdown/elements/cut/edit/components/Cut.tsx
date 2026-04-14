@@ -1,5 +1,5 @@
-import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { ReactElement } from "react";
+import { NodeViewContent, type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import type { ReactElement } from "react";
 import Cut from "../../render/component/Cut";
 
 const EditCut = ({ node, updateAttributes }: NodeViewProps): ReactElement => {

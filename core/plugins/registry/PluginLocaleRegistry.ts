@@ -1,4 +1,4 @@
-import UiLanguage from "@ext/localization/core/model/Language";
+import type UiLanguage from "@ext/localization/core/model/Language";
 import { PluginRegistry } from "./PluginRegistry";
 
 export class PluginLocaleRegistry extends PluginRegistry<string, Record<string, Record<string, string>>> {

@@ -19,11 +19,10 @@ let jestArgs = ["--reporters=default", "--reporters=jest-junit", "--ci", "--runI
 
 switch (arg) {
 	case "unit":
-		// jestArgs = [...jestArgs, "--testMatch", "**/collectText.unit.test.ts"];
 		jestArgs = [...jestArgs, "--testMatch", "**/*.unit.test.ts"];
 		break;
 	case "int":
-		jestArgs = [...jestArgs, "--testMatch", "**/WordExport.int.test.ts"];
+		jestArgs = [...jestArgs, "--testMatch", "**/*.int.test.ts"];
 		break;
 	case "ges":
 		jestArgs = [...jestArgs, "--testMatch", "**/*.ges.test.ts"];

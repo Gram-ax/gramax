@@ -1,4 +1,4 @@
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 class JSONTransformer {
 	static transform(
@@ -8,8 +8,7 @@ class JSONTransformer {
 		const transform = (node: JSONContent, previousNode?: JSONContent): JSONContent => {
 			if (node?.content)
 				node.content = node.content
-					.map((n, i) => transform(n, i == 0 ? null : node.content[i - 1]))
-					.flat()
+					.flatMap((n, i) => transform(n, i == 0 ? null : node.content[i - 1]))
 					.filter((n) => n);
 
 			for (const transformer of transformers) {

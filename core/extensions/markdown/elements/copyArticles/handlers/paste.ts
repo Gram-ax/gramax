@@ -6,7 +6,7 @@ import type { GramaxClipboardData } from "@ext/markdown/elements/copyArticles/ha
 import { copyCommentIfNeed, processMarks } from "@ext/markdown/elements/copyArticles/handlers/paste/processMarks";
 import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/headingPasteFormatter";
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
-import { type Attrs, Fragment, Node, Slice } from "@tiptap/pm/model";
+import { type Attrs, Fragment, type Mark, Node, Slice } from "@tiptap/pm/model";
 import { Selection, type Transaction } from "@tiptap/pm/state";
 import type { EditorView } from "@tiptap/pm/view";
 import { handlePaste } from "prosemirror-tables";
@@ -126,6 +126,19 @@ const handleNodes = async (props: HandleNodesProps): Promise<Node> => {
 	return node.type.create(attrs, Fragment.from(newChildren), node.marks);
 };
 
+const mergeMarksToTextNodes = (node: Node, marks: readonly Mark[]): Node => {
+	if (marks.length === 0) return node;
+	if (node.isText) {
+		const existingTypes = new Set(node.marks.map((m) => m.type));
+		const additional = marks.filter((m) => !existingTypes.has(m.type));
+		if (additional.length === 0) return node;
+		return node.type.schema.text(node.text, [...node.marks, ...additional]);
+	}
+	const children: Node[] = [];
+	for (let i = 0; i < node.childCount; i++) children.push(mergeMarksToTextNodes(node.child(i), marks));
+	return node.type.create(node.attrs, Fragment.from(children), node.marks);
+};
+
 const handleCodeBlock = (data: ClipboardItems, view: EditorView): Slice => {
 	const { $from } = view.state.selection;
 	const parent = $from?.parent;
@@ -237,7 +250,7 @@ const createNodes = async (props: CreateProps) => {
 	if (!attrs.nodeName) return;
 
 	const headingAllowed = readyToPlace(view.state, "heading");
-	const newNode = await proceedNodes({
+	let newNode = await proceedNodes({
 		node,
 		view,
 		attrs,
@@ -247,6 +260,21 @@ const createNodes = async (props: CreateProps) => {
 		copyData,
 		catalogProps,
 	});
+
+	const { from, to } = view.state.selection;
+	const firstChild = node.firstChild;
+	const isCursorInSingleInlineContent =
+		from === to &&
+		node.childCount === 1 &&
+		(firstChild?.isTextblock || firstChild?.isText) &&
+		!firstChild?.type?.spec?.code;
+
+	if (isCursorInSingleInlineContent) {
+		const activeMarks = view.state.doc
+			.resolve(Math.min(Math.max(from + 1, 0), view.state.doc.content.size))
+			.marks();
+		newNode = mergeMarksToTextNodes(newNode, activeMarks);
+	}
 
 	const isPasted = handleNodesPaste(clipboardData, view, newNode);
 	if (isPasted) return;

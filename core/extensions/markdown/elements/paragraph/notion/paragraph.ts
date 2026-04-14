@@ -1,5 +1,5 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
-import { JSONContent } from "@tiptap/core";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type { JSONContent } from "@tiptap/core";
 
 const paragraph: NotionNodeConverter = (paragraphNode) => {
 	const richText = paragraphNode[paragraphNode.type].rich_text;

@@ -1,6 +1,8 @@
 pub mod commands;
 pub mod error;
 
+pub mod compress;
+
 use std::fs::Metadata;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;

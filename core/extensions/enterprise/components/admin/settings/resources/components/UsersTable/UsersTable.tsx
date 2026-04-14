@@ -1,15 +1,15 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import type { RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { UserAndRoleToolbarAddBtn } from "@ext/enterprise/components/admin/settings/resources/components/UsersTable/UserAndRoleToolbarAddBtn";
-import { ClientAccessUser } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
-import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import type { ClientAccessUser } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
 import t from "@ext/localization/locale/translate";
 import { getCoreRowModel, getFilteredRowModel, useReactTable, useTableSelection } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
-import getUsersTableColumns, { UsersTableColumn } from "./getUsersTableColumns";
+import getUsersTableColumns, { type UsersTableColumn } from "./getUsersTableColumns";
 
 interface UsersTableProps {
 	repositoryId: string;
@@ -25,7 +25,7 @@ const UsersTable = ({ users, onChange, isExternal, repositoryId }: UsersTablePro
 	const usersTableData: UsersTableColumn[] = useMemo(() => {
 		if (isExternal) return users.map((user) => ({ ...user }));
 		return users.map((user) => ({ ...user, branches: user.props?.branches ?? [] }));
-	}, [users]);
+	}, [users, isExternal]);
 
 	const loadBranchesOptions = useCallback(async () => {
 		if (!searchBranches || !repositoryId) return { options: [] };
@@ -101,7 +101,7 @@ const UsersTable = ({ users, onChange, isExternal, repositoryId }: UsersTablePro
 				onChange([...users, ...newUsers.map((user) => ({ value: user, role }))]);
 			}
 		},
-		[users],
+		[users, onChange],
 	);
 
 	const handleDeleteSelected = useCallback(() => {
@@ -124,12 +124,9 @@ const UsersTable = ({ users, onChange, isExternal, repositoryId }: UsersTablePro
 					/>
 				}
 			>
-				<AlertDeleteDialog
-					description={`${t("enterprise.admin.delete-alert")} ${selectedUsersCount} ${
-						selectedUsersCount === 1 ? t("record") : t("records")
-					}?`}
+				<DeleteSelectedButton
 					hidden={!selectedUsersCount}
-					onConfirm={handleDeleteSelected}
+					onClick={handleDeleteSelected}
 					selectedCount={selectedUsersCount}
 				/>
 				<UserAndRoleToolbarAddBtn

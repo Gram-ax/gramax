@@ -22,9 +22,8 @@ class LinkTransformer {
 
 		if (article.has_children) {
 			return slugParts;
-		} else {
-			return slugParts.slice(0, -1);
 		}
+		return slugParts.slice(0, -1);
 	}
 
 	private getTargetArticleFilePath(targetArticle: ArticleItem): string[] {
@@ -32,10 +31,9 @@ class LinkTransformer {
 
 		if (targetArticle.has_children) {
 			return [...slugParts, "_index"];
-		} else {
-			const articleName = slugParts[slugParts.length - 1];
-			return [...slugParts.slice(0, -1), articleName];
 		}
+		const articleName = slugParts[slugParts.length - 1];
+		return [...slugParts.slice(0, -1), articleName];
 	}
 
 	private calculateRelativePath(currentArticle: ArticleItem, targetArticle: ArticleItem): string {

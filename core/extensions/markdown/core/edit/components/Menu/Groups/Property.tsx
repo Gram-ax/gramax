@@ -4,19 +4,19 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import t from "@ext/localization/locale/translate";
-import { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
+import type { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import type { Property, PropertyTypes } from "@ext/properties/models";
 import { isComplexProperty } from "@ext/templates/models/properties";
-import { TemplateCustomProperty } from "@ext/templates/models/types";
-import { useMediaQuery } from "@mui/material";
-import { Editor } from "@tiptap/core";
+import type { TemplateCustomProperty } from "@ext/templates/models/types";
+import type { Editor } from "@tiptap/core";
 import {
 	Command,
 	CommandEmpty,

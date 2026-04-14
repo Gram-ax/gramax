@@ -1,9 +1,9 @@
 import GitLfsLazyResourceLoader from "@core/GitLfs/GitLfsLazyResourceLoader";
 import LinkResourceManager from "@core/Link/LinkResourceManager";
-import { ArticleParsedContext, ParsedContext } from "@ext/markdown/core/Parser/ParserContext/ParsedContext";
-import { Question } from "@ext/markdown/elements/question/types";
+import { ArticleParsedContext, type ParsedContext } from "@ext/markdown/core/Parser/ParserContext/ParsedContext";
+import type { Question } from "@ext/markdown/elements/question/types";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
-import ParserContext from "./ParserContext";
+import type ParserContext from "./ParserContext";
 
 export default interface PrivateParserContext extends ParserContext, ParsedContext {}
 
@@ -35,7 +35,6 @@ export const createPrivateParserContext = (context: ParserContext): PrivateParse
 		getStorageId: context.getStorageId.bind(context),
 		getRootPath: context.getRootPath.bind(context),
 		getBasePath: context.getBasePath.bind(context),
-		getIsLogged: context.getIsLogged.bind(context),
 		getLanguage: context.getLanguage.bind(context),
 		getDiagramRendererServerUrl: context.getDiagramRendererServerUrl.bind(context),
 		getProp: context.getProp.bind(context),

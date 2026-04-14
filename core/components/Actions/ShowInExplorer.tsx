@@ -15,7 +15,7 @@ interface ShowInExplorerProps {
 	children?: React.ReactNode;
 }
 
-export default ({ item, children }: ShowInExplorerProps) => {
+const ShowInExplorer = ({ item, children }: ShowInExplorerProps) => {
 	const { isTauri } = usePlatform();
 	if (!isTauri) return null;
 
@@ -43,3 +43,5 @@ export default ({ item, children }: ShowInExplorerProps) => {
 		</CatalogItem>
 	);
 };
+
+export default ShowInExplorer;

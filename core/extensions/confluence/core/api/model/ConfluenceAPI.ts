@@ -1,7 +1,7 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { Space, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { Space, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
+import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import type { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
 
 export interface GetSpacesOptions {
 	type?: string;

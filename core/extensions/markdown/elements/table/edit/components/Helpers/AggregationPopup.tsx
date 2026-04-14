@@ -1,5 +1,5 @@
 import Icon from "@components/Atoms/Icon";
-import { SheetColumn } from "@core-ui/utils/Sheet";
+import type { SheetColumn } from "@core-ui/utils/Sheet";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import {
@@ -7,16 +7,16 @@ import {
 	getFormattedValue,
 	getFormatter,
 } from "@ext/markdown/elements/table/edit/logic/aggregation";
-import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
+import type TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import { getFirstTdPosition } from "@ext/markdown/elements/table/edit/logic/utils";
 import {
 	AggregationMethod,
 	aggregationMethodIcons,
-	ColumnData,
+	type ColumnData,
 	methodsWithTooltip,
 } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { Editor } from "@tiptap/core";
-import { Node } from "@tiptap/pm/model";
+import type { Editor } from "@tiptap/core";
+import type { Node } from "@tiptap/pm/model";
 import {
 	DropdownMenuItem,
 	DropdownMenuRadioGroup,

@@ -1,5 +1,5 @@
 // import { CliPrettify } from "markdown-table-prettify";  "markdown-table-prettify": "^3.6.0",
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import { Node } from "prosemirror-model";
 import { getSchema, ProsemirrorMarkdownSerializer } from "../../Prosemirror";
 import getMarkFormatters from "../Formatters/getMarkFormatters";
@@ -75,8 +75,8 @@ const TableUtils = {
 		const attributes = Object.keys(attrs)
 			.map((key) => {
 				if (!attrs[key]) return null;
-				else if (typeof attrs[key] === "string") return `${key}="${attrs[key]}"`;
-				else if (Array.isArray(attrs[key])) return `${key}=[${attrs[key].join(",")}]`;
+				if (typeof attrs[key] === "string") return `${key}="${attrs[key]}"`;
+				if (Array.isArray(attrs[key])) return `${key}=[${attrs[key].join(",")}]`;
 
 				return `${key}=${attrs[key]}`;
 			})

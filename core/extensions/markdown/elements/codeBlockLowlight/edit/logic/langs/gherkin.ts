@@ -1,4 +1,4 @@
-import { LanguageFn } from "highlight.js";
+import type { LanguageFn } from "highlight.js";
 
 const gherkin: LanguageFn = (hljs) => {
 	return {

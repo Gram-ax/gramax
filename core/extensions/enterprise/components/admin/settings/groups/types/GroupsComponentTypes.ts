@@ -1,4 +1,4 @@
-import { GroupValue } from "../../components/roles/Access";
+import type { GroupValue } from "../../components/roles/Access";
 
 export type GroupData = {
 	name: string;
@@ -13,4 +13,5 @@ export interface Group {
 	id: string;
 	group: string;
 	disabled: boolean | undefined;
+	disabledTooltip?: string;
 }

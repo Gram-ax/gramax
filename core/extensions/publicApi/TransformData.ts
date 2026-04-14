@@ -1,7 +1,7 @@
 import Path from "@core/FileProvider/Path/Path";
-import { HomePageData } from "@core/SitePresenter/SitePresenter";
-import { ItemLink } from "@ext/navigation/NavigationLinks";
-import { ArticleRef, CatalogList, CatalogNavigation, CatalogRef } from "@ext/publicApi/types";
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { ItemLink } from "@ext/navigation/NavigationLinks";
+import type { ArticleRef, CatalogList, CatalogNavigation, CatalogRef } from "@ext/publicApi/types";
 
 export const getArticleId = (catalogName: string, link: string) => {
 	return new Path(catalogName).subDirectory(new Path(link))?.toString();

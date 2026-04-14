@@ -1,4 +1,4 @@
-import PathnameData from "@core/RouterPath/model/PathnameData";
+import type PathnameData from "@core/RouterPath/model/PathnameData";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 
 const getUnscopedLogicPath = (logicPath: string, unscopedCatalogName: string) => {

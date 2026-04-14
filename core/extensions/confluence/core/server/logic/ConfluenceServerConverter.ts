@@ -1,19 +1,19 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import assertMaxFileSize from "@core/Resource/assertMaxFileSize";
 import fileNameUtils from "@core-ui/fileNameUtils";
-import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
+import type ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
 import getConfluenceExtension from "@ext/confluence/core/api/getConfluenceExtension";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
-import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
-import ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
+import type { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
+import type ConfluenceConverter from "@ext/confluence/core/model/ConfluenceConverter";
 import convertHTMLUnsupportedNode from "@ext/confluence/core/server/logic/convertHTMLUnsupportedNode";
 import getServerConvertors from "@ext/confluence/core/server/logic/getServerConvertors";
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import t from "@ext/localization/locale/translate";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 
 export default class ConfluenceServerConverter implements ConfluenceConverter {
 	private _confluencePageUrl: string;

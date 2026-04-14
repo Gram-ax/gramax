@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
-import { Property } from "csstype";
-import { forwardRef, LegacyRef } from "react";
-import { DiffHunk } from "../../extensions/VersionControl/DiffHandler/model/DiffHunk";
+import type { Property } from "csstype";
+import { forwardRef, type LegacyRef } from "react";
+import type { DiffHunk } from "../../extensions/VersionControl/DiffHandler/model/DiffHunk";
 import { FileStatus } from "../../extensions/Watchers/model/FileStatus";
 import Code from "./Code";
 

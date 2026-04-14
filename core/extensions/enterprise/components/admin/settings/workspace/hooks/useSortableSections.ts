@@ -1,7 +1,7 @@
-import { DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { type DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useCallback } from "react";
-import { WorkspaceSection } from "../types/WorkspaceComponent";
+import type { WorkspaceSection } from "../types/WorkspaceComponent";
 
 export function useSortableSections(
 	sections: Record<string, WorkspaceSection>,

@@ -1,5 +1,3 @@
-"use strict";
-
 const { browser } = require("@bugsnag/source-maps");
 const parallel = require("run-parallel-limit");
 const extname = require("path").extname;

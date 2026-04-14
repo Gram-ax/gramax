@@ -1,5 +1,5 @@
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const getCatalogPropsRule = (catalogProps: ClientCatalogProps): ExtensionUpdaterRules => {
 	const filterNames = ["selectionMenu", "link", "diff"];

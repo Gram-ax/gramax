@@ -1,6 +1,6 @@
-import { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
+import type { UnsupportedElements } from "@ext/import/model/UnsupportedElements";
 import getNotionConvertors from "@ext/notion/logic/getNotionConverters";
-import { NotionBlock, PageNode } from "@ext/notion/model/NotionTypes";
+import type { NotionBlock, PageNode } from "@ext/notion/model/NotionTypes";
 
 const unsupportedElements: Map<string, UnsupportedElements> = new Map();
 

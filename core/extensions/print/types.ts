@@ -1,6 +1,6 @@
-import ResourceManager from "@core/Resource/ResourceManager";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
-import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import type ResourceManager from "@core/Resource/ResourceManager";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 
 export type PrintMode = "pdf" | "paper";
 

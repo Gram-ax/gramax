@@ -5,7 +5,7 @@ import Flag from "@ext/markdown/elements/inlineProperty/edit/components/inputs/F
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 
 interface InlinePropertyProps {
 	bind: string;

@@ -1,4 +1,4 @@
-import { EditorState } from "@tiptap/pm/state";
+import type { EditorState } from "@tiptap/pm/state";
 
 const getNearestNodeWithSameCommentId = (state: EditorState, position: number, commentId: string) => {
 	const $pos = state.doc.resolve(position);

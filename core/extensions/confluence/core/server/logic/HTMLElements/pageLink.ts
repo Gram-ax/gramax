@@ -1,7 +1,7 @@
 import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
 import convertHTMLUnsupportedNode from "@ext/confluence/core/server/logic/convertHTMLUnsupportedNode";
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
+import type ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import type HTMLNodeConverter from "@ext/confluence/core/server/model/HTMLNodeConverter";
 
 const pageLink: HTMLNodeConverter = async (pageLinkNode, ctx) => {
 	const page = pageLinkNode.querySelector("ri\\:page");

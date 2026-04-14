@@ -6,7 +6,7 @@ import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewC
 import ViewActions from "@ext/markdown/elements/view/edit/components/Helpers/ViewActions";
 import View from "@ext/markdown/elements/view/render/components/View";
 import { Display } from "@ext/properties/models/display";
-import { NodeViewProps } from "@tiptap/react";
+import type { NodeViewProps } from "@tiptap/react";
 import { useCallback, useRef, useState } from "react";
 
 interface ViewComponentProps extends NodeViewProps {

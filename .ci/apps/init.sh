@@ -29,8 +29,17 @@ for arg in "$@"; do
   esac
 done
 
-BUILD_DATE=$(date "+%Y.%-m.%-d")
-export VERSION_COMMIT_COUNT=$(git rev-list --count --date=local --after="$(date +"%Y-%m-01T00:00:00")" HEAD)
+if [[ "${CI_COMMIT_BRANCH:-}" =~ ^release/([0-9]{4}).([0-9]{1,2})$ ]]; then
+  RELEASE_YEAR="${BASH_REMATCH[1]}"
+  RELEASE_MONTH="${BASH_REMATCH[2]}"
+  LAST_DAY=$(bun -e "console.log(new Date(${RELEASE_YEAR}, ${RELEASE_MONTH}, 0).getDate())")
+  BUILD_DATE="${RELEASE_YEAR}.${RELEASE_MONTH#0}.${LAST_DAY}"
+  VERSION_COMMIT_COUNT=$(git rev-list --count --date=local --after="${RELEASE_YEAR}-${RELEASE_MONTH}-01T00:00:00" HEAD)
+else
+  BUILD_DATE=$(date "+%Y.%-m.%-d")
+  VERSION_COMMIT_COUNT=$(git rev-list --count --date=local --after="$(date +"%Y-%m-01T00:00:00")" HEAD)
+fi
+export VERSION_COMMIT_COUNT
 
 generate_version() {
   case $1 in
@@ -72,7 +81,7 @@ PRODUCT_NAME="Gramax"
 APP_NAME="Gramax_"
 PRODUCT_ID="gramax.app"
 
-if [[ -z ${BRANCH+x} || "$BRANCH" != "master" ]]; then
+if [[ ! "$BRANCH" =~ ^release/([0-9]{4})\.([0-9]{1,2})$ ]]; then
   PROFILE_FLAGS="--profile development"
   PROFILE="development"
 
@@ -84,7 +93,7 @@ if [[ -z ${BRANCH+x} || "$BRANCH" != "master" ]]; then
     PRODUCT_NAME="Gramax Test"
     PRODUCT_ID="gramax.dev"
     APP_NAME="Gramax_Test_"
-  fi 
+  fi
 fi
 
 export PRODUCT_ID

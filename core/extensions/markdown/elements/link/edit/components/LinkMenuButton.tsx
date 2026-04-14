@@ -1,7 +1,7 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import t from "@ext/localization/locale/translate";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 
 const LinkMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () => void }) => {
@@ -14,6 +14,7 @@ const LinkMenuButton = ({ editor, onClick }: { editor: Editor; onClick: () => vo
 	return (
 		<ToolbarToggleButton
 			active={isActive}
+			data-qa="link-button"
 			disabled={disabled}
 			hotKey={"Mod-K"}
 			onClick={() => onClickHandler()}

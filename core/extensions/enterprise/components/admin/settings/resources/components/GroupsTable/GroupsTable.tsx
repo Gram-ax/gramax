@@ -1,10 +1,14 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import type { RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { GroupAndRoleToolbarAddBtn } from "@ext/enterprise/components/admin/settings/resources/components/GroupsTable/GroupToolbarAddBtn";
 import groupsTableColumns from "@ext/enterprise/components/admin/settings/resources/components/GroupsTable/groupsTableColumns";
-import { ClientAccessGroup } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import type { ClientAccessGroup } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import {
+	type Group,
+	GroupSource,
+} from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/types/GroupTypes";
 import { getGroupsWithNames } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/utils/groupUtils";
-import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
@@ -14,38 +18,50 @@ import { useCallback, useMemo, useState } from "react";
 
 interface GroupsTableProps {
 	groups: ClientAccessGroup[];
-	onChange: (users: ClientAccessGroup[]) => void;
+	ssoGroups?: ClientAccessGroup[];
+	onChange: (access: { groups: ClientAccessGroup[]; ssoGroups: ClientAccessGroup[] }) => void;
 }
 
-const GroupsTable = ({ groups, onChange }: GroupsTableProps) => {
+const GroupsTable = ({ groups, ssoGroups = [], onChange }: GroupsTableProps) => {
 	const [rowSelection, setRowSelection] = useState({});
 	const { settings } = useSettings();
 	const allGroups = useMemo(() => getGroupsWithNames(settings.groups), [settings.groups]);
 
 	const handleRoleCellChange = useCallback(
-		(groupId: string, role: RoleId) => {
-			const groupIndex = groups.findIndex((group) => group.id === groupId);
-			const group = groups[groupIndex];
+		(groupId: string, role: RoleId, source: GroupSource = GroupSource.GX_GROUPS) => {
+			const sourceGroups = source === GroupSource.SSO_GROUPS ? ssoGroups : groups;
+			const groupIndex = sourceGroups.findIndex((group) => group.id === groupId);
+			const group = sourceGroups[groupIndex];
 			if (group && group.role !== role) {
-				const newGroups = groups.map((group, index) => ({
+				const nextSourceGroups = sourceGroups.map((group, index) => ({
 					...group,
 					role: index === groupIndex ? role : group.role,
 				}));
-				onChange(newGroups);
+				onChange({
+					groups: source === GroupSource.SSO_GROUPS ? groups : nextSourceGroups,
+					ssoGroups: source === GroupSource.SSO_GROUPS ? nextSourceGroups : ssoGroups,
+				});
 			}
 		},
-		[groups, onChange],
+		[groups, onChange, ssoGroups],
 	);
 
 	const enrichedGroups = useMemo(() => {
-		return groups.map((group) => {
+		const localGroups = groups.map((group) => {
 			const groupInfo = allGroups.find((g) => g.id === group.id);
 			return {
 				...group,
 				name: groupInfo?.name ?? group.id,
+				source: GroupSource.GX_GROUPS,
 			};
 		});
-	}, [groups, allGroups]);
+		const remoteGroups = ssoGroups.map((group) => ({
+			...group,
+			name: group.name ?? group.id,
+			source: GroupSource.SSO_GROUPS,
+		}));
+		return [...localGroups, ...remoteGroups];
+	}, [groups, allGroups, ssoGroups]);
 
 	const groupsTable = useReactTable({
 		data: enrichedGroups,
@@ -61,7 +77,7 @@ const GroupsTable = ({ groups, onChange }: GroupsTableProps) => {
 
 	const handleFilterChange = useCallback(
 		(value: string | null) => {
-			groupsTable.getColumn("value")?.setFilterValue(value);
+			groupsTable.getColumn("name")?.setFilterValue(value);
 		},
 		[groupsTable],
 	);
@@ -73,20 +89,46 @@ const GroupsTable = ({ groups, onChange }: GroupsTableProps) => {
 	const selectedGroupsCount = getSelectedCount();
 
 	const handleAddGroups = useCallback(
-		(newGroups: string[], role: RoleId) => {
-			onChange([...groups, ...newGroups.map((group) => ({ id: group, role }))]);
+		(selectedGroups: Group[], role: RoleId) => {
+			const newGroups = selectedGroups
+				.filter((group) => group.source === GroupSource.GX_GROUPS)
+				.map((group) => ({ id: group.id, role }))
+				.filter((group) => !groups.some((existingGroup) => existingGroup.id === group.id));
+			const newSsoGroups = selectedGroups
+				.filter((group) => group.source === GroupSource.SSO_GROUPS)
+				.map((group) => ({ id: group.id, role, name: group.name }))
+				.filter((group) => !ssoGroups.some((existingGroup) => existingGroup.id === group.id));
+
+			onChange({
+				groups: [...groups, ...newGroups],
+				ssoGroups: [...ssoGroups, ...newSsoGroups],
+			});
 		},
-		[groups],
+		[groups, onChange, ssoGroups],
 	);
 
 	const handleDeleteSelected = useCallback(() => {
-		const groupsToDelete = getSelectedItems().map((user) => user.id);
-		if (!groups || !groupsToDelete.length) return;
+		const groupsToDelete = getSelectedItems();
+		if (!(groups.length || ssoGroups.length) || !groupsToDelete.length) return;
 
-		const remainingUsers = groups.filter((group) => !groupsToDelete.includes(group.id));
-		onChange(remainingUsers);
+		onChange({
+			groups: groups.filter(
+				(group) =>
+					!groupsToDelete.some(
+						(selectedGroup) =>
+							selectedGroup.source === GroupSource.GX_GROUPS && selectedGroup.id === group.id,
+					),
+			),
+			ssoGroups: ssoGroups.filter(
+				(group) =>
+					!groupsToDelete.some(
+						(selectedGroup) =>
+							selectedGroup.source === GroupSource.SSO_GROUPS && selectedGroup.id === group.id,
+					),
+			),
+		});
 		setRowSelection({});
-	}, [getSelectedItems, groups, onChange]);
+	}, [getSelectedItems, groups, onChange, ssoGroups]);
 
 	return (
 		<div>
@@ -94,22 +136,19 @@ const GroupsTable = ({ groups, onChange }: GroupsTableProps) => {
 				input={
 					<TableToolbarTextInput
 						onChange={handleFilterChange}
-						placeholder={t("enterprise.admin.resources.users.search-placeholder")}
-						value={(groupsTable.getColumn("value")?.getFilterValue() as string) ?? ""}
+						placeholder={t("enterprise.admin.resources.groups.search-placeholder")}
+						value={(groupsTable.getColumn("name")?.getFilterValue() as string) ?? ""}
 					/>
 				}
 			>
-				<AlertDeleteDialog
-					description={`${t("enterprise.admin.delete-alert")} ${selectedGroupsCount} ${
-						selectedGroupsCount === 1 ? t("record") : t("records")
-					}?`}
+				<DeleteSelectedButton
 					hidden={!selectedGroupsCount}
-					onConfirm={handleDeleteSelected}
+					onClick={handleDeleteSelected}
 					selectedCount={selectedGroupsCount}
 				/>
 				<GroupAndRoleToolbarAddBtn
 					disable={false}
-					existingGroups={groups.map((group) => group.id)}
+					existingGroups={[...groups.map((group) => group.id), ...ssoGroups.map((group) => group.id)]}
 					groups={allGroups}
 					key="add-group-role"
 					onAdd={handleAddGroups}

@@ -9,7 +9,7 @@ import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/l
 import Inbox from "@ext/inbox/components/Inbox";
 import InboxFilter from "@ext/inbox/components/InboxFilter";
 import InboxService from "@ext/inbox/components/InboxService";
-import { InboxArticle } from "@ext/inbox/models/types";
+import type { InboxArticle } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { useCallback, useEffect, useRef, useState } from "react";

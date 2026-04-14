@@ -1,12 +1,12 @@
-import Path from "@core/FileProvider/Path/Path";
-import ResourceManager from "@core/Resource/ResourceManager";
+import type Path from "@core/FileProvider/Path/Path";
+import type ResourceManager from "@core/Resource/ResourceManager";
 import t from "@ext/localization/locale/translate";
-import { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { BaseImageProcessor } from "@ext/markdown/elements/image/export/BaseImageProcessor";
 import { ImageDimensionsFinder } from "@ext/markdown/elements/image/word/ImageDimensionsFinder";
 import Annotation from "@ext/markdown/elements/image/word/imageEditor/Annotation";
 import Square from "@ext/markdown/elements/image/word/imageEditor/Square";
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import { MAX_HEIGHT, SCALE } from "@ext/wordExport/options/wordExportSettings";
 
 export interface GetImageByPathOptions {
@@ -35,7 +35,7 @@ export class NextImageProccessor extends BaseImageProcessor {
 		const scaleMaxHeight = this._calculateScaledDimension(maxHeight, MAX_HEIGHT, scale);
 
 		const initialSize = await ImageDimensionsFinder.getImageSizeFromImageData(imageBuffer);
-		const { imageBuffer: croppedImageBuffer, size: croppedSize } = await this._cropImage(
+		const { imageBuffer: croppedImageBuffer, size: _ } = await this._cropImage(
 			imageBuffer,
 			imageBuffer,
 			initialSize,

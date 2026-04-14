@@ -5,10 +5,10 @@ import { useDebounce } from "@core-ui/hooks/useDebounce";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import {
-	ChangeEventHandler,
-	ForwardedRef,
+	type ChangeEventHandler,
+	type ForwardedRef,
 	forwardRef,
-	HTMLProps,
+	type HTMLProps,
 	useEffect,
 	useImperativeHandle,
 	useRef,

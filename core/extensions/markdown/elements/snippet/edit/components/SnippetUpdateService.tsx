@@ -1,8 +1,8 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
-import { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
-import React from "react";
+import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import type { SnippetRenderData } from "@ext/markdown/elements/snippet/edit/model/types";
+import type React from "react";
 
 abstract class SnippetUpdateService {
 	private static _setContents: Map<string, React.Dispatch<React.SetStateAction<RenderableTreeNodes>>[]> = new Map();

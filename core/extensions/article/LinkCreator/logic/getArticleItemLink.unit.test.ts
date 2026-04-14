@@ -1,6 +1,6 @@
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import getArticleItemLink from "@ext/article/LinkCreator/logic/getArticleItemLink";
-import { CategoryLink } from "@ext/navigation/NavigationLinks";
+import type { CategoryLink } from "@ext/navigation/NavigationLinks";
 
 describe("getArticleItemLink", () => {
 	const itemLinks: CategoryLink[] = [

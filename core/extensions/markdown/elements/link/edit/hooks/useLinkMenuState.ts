@@ -3,8 +3,8 @@ import { isExternalLink } from "@core-ui/hooks/useExternalLink";
 import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
 import { getMarkEndPos } from "@ext/markdown/elementsUtils/getMarkEndPos";
 import { getMarkStartPos } from "@ext/markdown/elementsUtils/getMarkStartPos";
-import { Editor } from "@tiptap/core";
-import { Mark } from "@tiptap/pm/model";
+import type { Editor } from "@tiptap/core";
+import type { Mark } from "@tiptap/pm/model";
 import { useCallback, useRef, useState } from "react";
 
 export const useLinkMenuState = (editor: Editor) => {

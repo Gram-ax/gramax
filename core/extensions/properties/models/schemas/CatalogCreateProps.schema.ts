@@ -1,5 +1,5 @@
-import Style from "@components/HomePage/Cards/model/Style";
-import { PropertyTypes } from "@ext/properties/models";
+import type Style from "@components/HomePage/Cards/model/Style";
+import type { PropertyTypes } from "@ext/properties/models";
 
 /**
  * @see catalog-create-props

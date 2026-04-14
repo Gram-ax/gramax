@@ -1,4 +1,4 @@
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { useCallback, useEffect, useRef } from "react";
 import { useGuard } from "./useGuard";
 

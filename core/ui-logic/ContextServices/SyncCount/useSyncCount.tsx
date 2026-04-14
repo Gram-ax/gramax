@@ -2,7 +2,7 @@ import t from "@ext/localization/locale/translate";
 import type { CatalogLink } from "@ext/navigation/NavigationLinks";
 import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
 import { useCallback, useMemo } from "react";
-import GlobalSyncCountService, { CatalogSyncValue, CatalogSyncValues } from "./GlobalSyncCount";
+import GlobalSyncCountService, { type CatalogSyncValue, type CatalogSyncValues } from "./GlobalSyncCount";
 
 export interface UseSyncCountReturn {
 	syncCount: CatalogSyncValue | undefined;

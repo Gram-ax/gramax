@@ -7,7 +7,7 @@ import { LowlightPlugin } from "@ext/markdown/elements/codeBlockLowlight/edit/lo
 import code_block from "@ext/markdown/elements/codeBlockLowlight/edit/model/schema";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
-import CodeBlockLowlight, { CodeBlockLowlightOptions } from "@tiptap/extension-code-block-lowlight";
+import CodeBlockLowlight, { type CodeBlockLowlightOptions } from "@tiptap/extension-code-block-lowlight";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { TextSelection } from "prosemirror-state";
 

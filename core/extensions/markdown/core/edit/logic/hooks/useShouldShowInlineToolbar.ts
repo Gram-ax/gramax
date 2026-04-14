@@ -1,5 +1,5 @@
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useMediaQuery } from "@mui/material";
 import type { Editor } from "@tiptap/core";
 import { CellSelection } from "prosemirror-tables";
 import { useCallback } from "react";

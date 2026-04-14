@@ -1,11 +1,12 @@
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import MarkdownIt from "markdown-it";
 import React from "react";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import Renderer from "../../../../components/Renderer";
-import type { RenderableTreeNodes, Tag } from "../types";
+import type Tag from "../ast/tag";
+import type { RenderableTreeNodes } from "../types";
 
 const { escapeHtml } = MarkdownIt().utils;
 const isBrowser = typeof window !== "undefined";
@@ -41,10 +42,14 @@ const getNodeData = (node: RenderableTreeNodes | JSONContent): NodeData => {
 	const isTag = "children" in node;
 	if (isTag) return node as Tag;
 
-	node = node as JSONContent;
-	return { name: node.type, attributes: node.attrs, children: node.content };
+	return {
+		name: (node as JSONContent).type,
+		attributes: (node as JSONContent).attrs,
+		children: (node as JSONContent).content,
+	};
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: it's ok
 const renderString = (component: any): string => {
 	if (!isBrowser) return renderToString(component);
 

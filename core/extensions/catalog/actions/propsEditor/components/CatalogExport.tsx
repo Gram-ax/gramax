@@ -2,7 +2,7 @@ import CatalogItem from "@components/Actions/CatalogItems/Base";
 import Icon from "@components/Atoms/Icon";
 import t from "@ext/localization/locale/translate";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const CatalogExport = ({ disabled, children }: { disabled: boolean; children?: () => ReactNode }) => {
 	return (

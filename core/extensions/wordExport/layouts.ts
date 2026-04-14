@@ -104,7 +104,6 @@ export const blockLayouts = {
 	// "Img-v": imagesWordLayout,
 	// "Img-h": imagesWordLayout,
 	// See: seeWordLayout,
-	// OpenApi: openApiWordLayout,
 };
 
 export const getExportedKeys = () => {

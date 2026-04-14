@@ -1,4 +1,4 @@
-import { JSONContent } from "@tiptap/react";
+import type { JSONContent } from "@tiptap/react";
 import trimEndEmptyParagraphs from "./trimEndEmptyParagraphs";
 
 describe("trimEndEmptyParagraphs", () => {

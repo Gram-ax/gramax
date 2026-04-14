@@ -1,6 +1,6 @@
 import { useCatalogActionsContext } from "@components/Actions/CatalogActions/CatalogActionsContext";
 import ShareAction from "@ext/catalog/actions/share/components/ShareAction";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface ShareCatalogItemProps {
 	children?: ReactNode;

@@ -1,7 +1,7 @@
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
+import { Icon } from "@ui-kit/Icon";
 import { PageState, PageStateButtonGroup, PageStateDescription, PageStateTitle } from "@ui-kit/PageState";
-import { Plus } from "lucide-react";
 
 interface PluginsEmptyStateProps {
 	onUploadClick: () => void;
@@ -14,7 +14,7 @@ export const PluginsEmptyState = ({ onUploadClick }: PluginsEmptyStateProps) => 
 			<PageStateDescription>{t("plugins.list.no-plugins-description")}</PageStateDescription>
 			<PageStateButtonGroup>
 				<Button onClick={onUploadClick}>
-					<Plus size={16} />
+					<Icon icon="plus" size="md" />
 					{t("plugins.list.upload-button")}
 				</Button>
 			</PageStateButtonGroup>

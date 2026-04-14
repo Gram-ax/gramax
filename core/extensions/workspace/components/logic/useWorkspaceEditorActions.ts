@@ -5,7 +5,7 @@ import { clearData } from "@core-ui/utils/initGlobalFuncs";
 import t from "@ext/localization/locale/translate";
 import { useWorkspaceLogo } from "@ext/workspace/components/useWorkspaceLogo";
 import { useWorkspaceStyle } from "@ext/workspace/components/useWorkspaceStyle";
-import { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
+import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { useCallback, useState } from "react";
 
 export const useWorkspaceEditorActions = (initialWorkspace: ClientWorkspaceConfig) => {

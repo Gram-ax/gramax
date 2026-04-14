@@ -13,7 +13,7 @@ import {
 	VERTICAL_TOP_OFFSET,
 } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { PADDING_LEFT_RIGHT, PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/component/TableWrapper";
+import { PADDING_LEFT_RIGHT, PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/components/TableWrapper";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import { useMemo, useRef } from "react";
 

@@ -1,13 +1,13 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import EditMarkdownTrigger from "@ext/article/actions/EditMarkdownTrigger";
-import { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import DeleteItem from "@ext/item/actions/DeleteItem";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { ReactNode, useCallback } from "react";
+import { type ReactNode, useCallback } from "react";
 
 interface DeleteItemProps {
 	id: string;

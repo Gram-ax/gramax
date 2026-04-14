@@ -1,4 +1,4 @@
-import { HomePageBreadcrumb, Section } from "@core/SitePresenter/SitePresenter";
+import type { HomePageBreadcrumb, Section } from "@core/SitePresenter/SitePresenter";
 import homeSections from "./homeSections";
 
 // Мокаем функцию перевода

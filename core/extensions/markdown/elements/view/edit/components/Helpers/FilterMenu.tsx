@@ -1,9 +1,10 @@
-import t, { hasTranslation, TranslationKey } from "@ext/localization/locale/translate";
-import { Mode, PropertyFilter } from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
+import t, { hasTranslation, type TranslationKey } from "@ext/localization/locale/translate";
+import type { Mode, PropertyFilter } from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
 import Item from "@ext/markdown/elements/view/edit/components/Helpers/Item";
-import { enumTypes, isHasValue, Property } from "@ext/properties/models";
+import PropertiesScrollContainer from "@ext/properties/components/Helpers/PropertiesScrollContainer";
+import { enumTypes, isHasValue, type Property } from "@ext/properties/models";
 import { DropdownMenuRadioGroup } from "@ui-kit/Dropdown";
-import { memo, ReactNode, useCallback } from "react";
+import { memo, type ReactNode, useCallback } from "react";
 
 interface FilterMenuProps {
 	noAssignedProperties: PropertyFilter[];
@@ -71,19 +72,21 @@ const FilterMenu = memo((props: FilterMenuProps) => {
 	if (mode === "single") {
 		return (
 			<DropdownMenuRadioGroup
-				indicatorIconPosition="start"
+				indicatorIconPosition="end"
 				onValueChange={(value) => updateData(value, value)}
 				value={noAssignedProperties.find((property) => property.selected)?.name}
 			>
-				{noAssignedProperties.map((property) => (
-					<Item
-						key={property.name}
-						mode="single"
-						name={property.name}
-						onClick={(value) => updateData(property.name, value)}
-						trigger={<div>{property.name}</div>}
-					/>
-				))}
+				<PropertiesScrollContainer>
+					{noAssignedProperties.map((property) => (
+						<Item
+							key={property.name}
+							mode="single"
+							name={property.name}
+							onClick={(value) => updateData(property.name, value)}
+							trigger={<div>{property.name}</div>}
+						/>
+					))}
+				</PropertiesScrollContainer>
 			</DropdownMenuRadioGroup>
 		);
 	}

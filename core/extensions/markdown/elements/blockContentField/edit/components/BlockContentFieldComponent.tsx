@@ -1,5 +1,5 @@
-import { NodeViewContent, NodeViewProps, NodeViewWrapper } from "@tiptap/react";
-import { ChangeEvent, useCallback, useRef, useState } from "react";
+import { NodeViewContent, type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { type ChangeEvent, useCallback, useRef, useState } from "react";
 import BlockWrapper from "./BlockWrapper";
 
 const BlockContentFieldComponent = ({ node, extension, updateAttributes }: NodeViewProps) => {

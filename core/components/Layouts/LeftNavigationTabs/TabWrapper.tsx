@@ -1,7 +1,7 @@
 import Header from "@components/Layouts/LeftNavigationTabs/Header";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { forwardRef } from "react";
+import { forwardRef, type ReactNode } from "react";
 
 export const TAB_TRANSITION_TIME = 150;
 
@@ -45,7 +45,7 @@ const Wrapper = styled.div<{ height: number }>`
 	}
 `;
 interface TabWrapperProps {
-	children: JSX.Element;
+	children: ReactNode;
 	show: boolean;
 	title: string;
 	onClose?: () => void;

@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { ToolbarIcon as UiKitToolbarIcon } from "ics-ui-kit/components/toolbar";
 import { forwardRef } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitToolbarIconProps = ExtractComponentGeneric<typeof UiKitToolbarIcon>;
 

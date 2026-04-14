@@ -2,10 +2,10 @@ import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsC
 import { QuestionsList } from "@ext/enterprise/components/admin/settings/quiz/components/QuizQuestionsList";
 import { SheetComponent } from "@ext/enterprise/components/admin/ui-kit/SheetComponent";
 import t from "@ext/localization/locale/translate";
-import { Table } from "@ui-kit/DataTable";
+import type { Table } from "@ui-kit/DataTable";
 import { Loader } from "@ui-kit/Loader";
 import { memo, useEffect, useMemo, useState } from "react";
-import { QuizTest, QuizTestData } from "../types/QuizComponentTypes";
+import type { QuizTest, QuizTestData } from "../types/QuizComponentTypes";
 
 interface TestInfoProps {
 	table: Table<QuizTest>;

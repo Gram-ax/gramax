@@ -6,8 +6,8 @@ import type { Editor } from "@tiptap/react";
 import { CellSelection, isInTable } from "prosemirror-tables";
 import { memo, type RefObject, useCallback, useEffect, useRef, useState } from "react";
 import "tippy.js/animations/shift-toward.css";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useMediaQuery } from "@mui/material";
 import type { Instance, Props } from "tippy.js";
 
 interface InlineToolbarProps {

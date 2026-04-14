@@ -7,7 +7,7 @@ function mergeObjects<T = any>(target: object, source: object): T {
 		const result = Array.isArray(t) ? [] : {};
 
 		for (const key in t) {
-			if (Object.prototype.hasOwnProperty.call(t, key)) {
+			if (Object.hasOwn(t, key)) {
 				if (isObject(t[key])) {
 					result[key] = recursiveMerge(t[key], {});
 				} else {
@@ -17,7 +17,7 @@ function mergeObjects<T = any>(target: object, source: object): T {
 		}
 
 		for (const key in s) {
-			if (Object.prototype.hasOwnProperty.call(s, key)) {
+			if (Object.hasOwn(s, key)) {
 				if (isObject(s[key])) {
 					if (result[key] !== undefined) {
 						result[key] = recursiveMerge(result[key], s[key]);

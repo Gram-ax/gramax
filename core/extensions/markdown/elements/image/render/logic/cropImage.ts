@@ -1,6 +1,6 @@
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import { getCroppedCanvas } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
-import { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
+import type { Crop } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 
 export const cropImage = async (
 	imageContainer: HTMLDivElement,

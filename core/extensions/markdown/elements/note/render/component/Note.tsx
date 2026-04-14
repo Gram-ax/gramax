@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import { classNames } from "@components/libs/classNames";
 import useWatch from "@core-ui/hooks/useWatch";
-import { MouseEvent, ReactElement, useState } from "react";
+import { type MouseEvent, type ReactElement, useState } from "react";
 
 export enum NoteType {
 	quote = "quote",

@@ -1,6 +1,5 @@
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-
 import type FileStructure from "@core/FileStructue/FileStructure";
 import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
@@ -46,11 +45,20 @@ export type RepositoryCheckoutState = State<
 	}
 >;
 
+export type RepositorySyncingState = State<
+	"syncing",
+	{
+		stashHash: string;
+		commitHeadBefore: string;
+	}
+>;
+
 export type RepositoryState =
 	| RepositoryDefaultState
 	| RepositoryMergeConflictState
 	| RepositoryStashConflictState
-	| RepositoryCheckoutState;
+	| RepositoryCheckoutState
+	| RepositorySyncingState;
 
 const REPOSITORY_STATE_FILEPATH = ".git/gramax/state.json";
 
@@ -58,6 +66,7 @@ export default class RepositoryStateProvider {
 	private _inner: RepositoryState;
 	private _mergeConflictResolver: GitMergeConflictResolver;
 	private _stashConflictResolver: GitStashConflictResolver;
+	private _stashRestored: boolean;
 
 	constructor(
 		private _repo: Repository,
@@ -70,6 +79,14 @@ export default class RepositoryStateProvider {
 
 	get inner() {
 		return this._inner || { value: "default" };
+	}
+
+	get stashRestored() {
+		return this._stashRestored;
+	}
+
+	set stashRestored(value: boolean) {
+		this._stashRestored = value;
 	}
 
 	get mergeConflictResolver() {

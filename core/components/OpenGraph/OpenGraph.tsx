@@ -1,4 +1,3 @@
-import { useRouter } from "../../logic/Api/useRouter";
 import type { OpenGraphData } from "../../logic/SitePresenter/SitePresenter";
 import logo from "./logo.png";
 
@@ -7,8 +6,6 @@ const OpenGraphProperty = ({ property, content }: { property: string; content: s
 };
 
 const OpenGraph = ({ openGraphData, domain }: { openGraphData: OpenGraphData; domain: string }) => {
-	const router = useRouter();
-
 	return (
 		<>
 			<OpenGraphProperty content={openGraphData?.title ?? ""} property="title" />
@@ -17,7 +14,9 @@ const OpenGraph = ({ openGraphData, domain }: { openGraphData: OpenGraphData; do
 			<OpenGraphProperty content="64" property="image:width" />
 			<OpenGraphProperty content="64" property="image:height" />
 			<OpenGraphProperty content={openGraphData?.description ?? ""} property="description" />
-			<OpenGraphProperty content={domain + router?.path} property="url" />
+			{openGraphData?.pathname && (
+				<OpenGraphProperty content={domain + (openGraphData?.pathname ?? "")} property="url" />
+			)}
 		</>
 	);
 };

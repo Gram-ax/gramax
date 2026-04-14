@@ -1,19 +1,19 @@
 import { GRAMAX_DIRECTORY } from "@app/config/const";
-import Context from "@core/Context/Context";
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type Context from "@core/Context/Context";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
-import FileStructure from "@core/FileStructue/FileStructure";
-import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
+import { Article, type ArticleProps } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import DateUtils from "@core-ui/utils/dateUtils";
-import { ItemID } from "@ext/articleProvider/models/types";
+import type { ItemID } from "@ext/articleProvider/models/types";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import { JSONContent } from "@tiptap/core";
+import type MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type { JSONContent } from "@tiptap/core";
 import assert from "assert";
 
 export enum ArticleProviders {}
@@ -83,7 +83,6 @@ export default class ArticleProvider {
 			article,
 			this._catalog,
 			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
-			ctx.user.isLogged,
 		);
 
 		return (await parser.parse(content, context))?.editTree;
@@ -103,7 +102,6 @@ export default class ArticleProvider {
 				article,
 				this._catalog,
 				convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
-				ctx.user.isLogged,
 			);
 
 			await article.parsedContent.write(() => parser.parse(article.content, context));
@@ -131,7 +129,6 @@ export default class ArticleProvider {
 				article,
 				this._catalog,
 				convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
-				ctx.user.isLogged,
 			);
 
 			await article.parsedContent.write(() => parser.parse(article.content, context));
@@ -175,7 +172,6 @@ export default class ArticleProvider {
 			article,
 			this._catalog,
 			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
-			ctx.user.isLogged,
 		);
 
 		const content = await formatter.render(editTree, context);

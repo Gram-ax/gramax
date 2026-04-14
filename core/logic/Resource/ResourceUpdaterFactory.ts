@@ -1,5 +1,5 @@
 import type Context from "@core/Context/Context";
-import { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import ResourceUpdater from "@core/Resource/ResourceUpdater";
 import type MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";

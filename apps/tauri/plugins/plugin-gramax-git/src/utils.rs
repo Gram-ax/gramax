@@ -10,6 +10,6 @@ pub fn is_lfs_pointer(path: &Path) -> Result<bool> {
 
 	let mut file = std::fs::File::open(path)?;
 	let mut buf = [0; 200];
-	file.read(&mut buf)?;
+	_ = file.read(&mut buf)?;
 	Ok(gramaxgit::lfs::Pointer::is_pointer(&buf))
 }

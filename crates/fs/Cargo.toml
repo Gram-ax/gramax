@@ -13,3 +13,27 @@ copy_dir = "0.1.3"
 thiserror = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
+
+zune-image = { version = "0.5.0", default-features = false, features = [
+  "png",
+  "jpeg",
+  "webp",
+  "jpeg-xl",
+  "simd",
+  "threads",
+] }
+zune-core = "0.5.1"
+oxipng = "10.1.0"
+anyhow = { workspace = true }
+
+
+[dev-dependencies]
+rstest = { workspace = true }
+tempfile = { workspace = true }
+serde_json = { workspace = true }
+zune-image = { version = "0.5.0", default-features = false, features = [
+  "png",
+  "jpeg",
+  "webp",
+] }
+zune-core = "0.5.1"

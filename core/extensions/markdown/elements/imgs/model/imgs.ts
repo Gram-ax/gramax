@@ -1,6 +1,6 @@
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
-import { Node, RenderableTreeNodes, Schema, Tag } from "../../../core/render/logic/Markdoc";
+import type PrivateParserContext from "../../../core/Parser/ParserContext/PrivateParserContext";
+import { type Node, type RenderableTreeNodes, type Schema, Tag } from "../../../core/render/logic/Markdoc";
 
 export function imgs(context: PrivateParserContext, orientation: string): Schema {
 	return {

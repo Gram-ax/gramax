@@ -1,12 +1,12 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import NoteMenuButton from "@ext/markdown/elements/note/edit/components/NoteMenuButton";
 import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import { useMediaQuery } from "@mui/material";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
 import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";

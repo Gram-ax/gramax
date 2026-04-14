@@ -8,6 +8,7 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import t from "@ext/localization/locale/translate";
+import PropertiesScrollContainer from "@ext/properties/components/Helpers/PropertiesScrollContainer";
 import PropertyItem from "@ext/properties/components/Helpers/PropertyItem";
 import type { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
 import combineProperties from "@ext/properties/logic/combineProperties";
@@ -34,6 +35,7 @@ const AddProperty = (props: AddPropertyProps) => {
 
 	const isOpenRef = useRef(false);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!isOpenRef.current) return;
 		ModalToOpenService.resetValue();
@@ -88,7 +90,17 @@ const AddProperty = (props: AddPropertyProps) => {
 			catalogProps.update({ properties: newProps.properties });
 			setArticleProps({ ...articleProps, properties: combineProperties(properties, catalogProperties) });
 		},
-		[catalogProps.data, properties, setArticleProps, articleProps],
+		[
+			catalogProps.data,
+			properties,
+			setArticleProps,
+			articleProps,
+			apiUrlCreator,
+			canAdd,
+			setProperties,
+			catalogProperties,
+			catalogProps.update,
+		],
 	);
 
 	const editProperty = useCallback(
@@ -118,7 +130,7 @@ const AddProperty = (props: AddPropertyProps) => {
 				},
 			});
 		},
-		[catalogProperties, saveCatalogProperties],
+		[catalogProperties, saveCatalogProperties, properties],
 	);
 
 	const addProperty = useCallback(
@@ -140,11 +152,11 @@ const AddProperty = (props: AddPropertyProps) => {
 				/>
 			);
 		});
-	}, [catalogProperties, disabled]);
+	}, [catalogProperties, disabled, addProperty, editProperty, canEdit]);
 
 	return (
 		<>
-			{items}
+			<PropertiesScrollContainer>{items}</PropertiesScrollContainer>
 			{items.length > 0 && canAdd && <DropdownMenuSeparator />}
 			{canAdd && (
 				<DropdownMenuItem onSelect={() => editProperty(null)}>

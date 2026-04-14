@@ -1,7 +1,7 @@
 import { Extension } from "@tiptap/core";
-import { EditorView } from "@tiptap/pm/view";
+import type { EditorView } from "@tiptap/pm/view";
 import { Plugin } from "prosemirror-state";
-import { MutableRefObject } from "react";
+import type { MutableRefObject } from "react";
 
 export const DRAG_SCROLL_THRESHOLD = 0.15;
 

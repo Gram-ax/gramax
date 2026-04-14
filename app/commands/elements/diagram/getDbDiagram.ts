@@ -1,9 +1,9 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
+import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
-import HashItem from "@core/Hash/HashItems/HashItem";
+import type HashItem from "@core/Hash/HashItems/HashItem";
 import HashItemContent from "@core/Hash/HashItems/HashItemContent";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import DbDiagram from "@core-ui/DbDiagram";

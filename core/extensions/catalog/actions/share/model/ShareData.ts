@@ -1,4 +1,4 @@
-import SourceType from "../../../../storage/logic/SourceDataProvider/model/SourceType";
+import type SourceType from "../../../../storage/logic/SourceDataProvider/model/SourceType";
 
 export default interface ShareData {
 	sourceType: SourceType;

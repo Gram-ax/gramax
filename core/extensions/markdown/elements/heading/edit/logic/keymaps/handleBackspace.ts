@@ -17,6 +17,10 @@ export const handleBackspace = (editor: Editor) => {
 		return false;
 	}
 
-	const previousNodeStartPos = previousNodePos - previousNode.nodeSize + 1;
+	const previousNodeStartPos = Math.max(
+		0,
+		Math.min(editor.state.doc.content.size, previousNodePos - previousNode.nodeSize + 1),
+	);
+	if (previousNodeStartPos === 0) return false;
 	return editor.chain().deleteRange({ from: previousNodeStartPos, to: data.pos }).run();
 };

@@ -8,14 +8,17 @@ import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { RequestStatus, useDeferApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import t from "@ext/localization/locale/translate";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { type ComponentProps, type MutableRefObject, type ReactNode, useRef } from "react";
-import DuplicateCatalogDialog from "./DuplicateCatalogDialog";
+import type DuplicateCatalogDialog from "./DuplicateCatalogDialog";
+
 export interface CatalogMoveActionRenderProps {
 	targetWorkspaceRef: MutableRefObject<ClientWorkspaceConfig | null>;
+	// biome-ignore lint/suspicious/noExplicitAny: it's ok
 	checkAndMove: (params: { url: (api: any) => string }) => void;
 }
 
@@ -93,11 +96,12 @@ const CatalogMoveAction = ({ children, catalogName, onSuccess }: CatalogWorkspac
 		moveCatalogStatus === RequestStatus.Loading || getCatalogNameAfterMoveStatus === RequestStatus.Loading;
 
 	const currentWorkspace = Workspace.current();
-	const workspaces = Workspace.workspaces();
+	const workspaces = Workspace.workspaces().filter((w) => !w.enterprise?.gesUrl);
 
 	const isGes = !!currentWorkspace.enterprise?.gesUrl;
-	if (isGes) return null;
+	const { isNext, isStatic, isStaticCli } = usePlatform();
 
+	if (isGes || isNext || isStatic || isStaticCli) return null;
 	if (workspaces.length < 2) {
 		return (
 			<Tooltip>

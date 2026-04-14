@@ -14,7 +14,7 @@ export const digitsAfterDot = (num: number) => {
 
 const limit = (number: number, precision: number) => {
 	if (isNaN(number)) return 0;
-	const factor = Math.pow(10, Math.min(precision, MAX_PRECISION));
+	const factor = 10 ** Math.min(precision, MAX_PRECISION);
 	return Math.round(number * factor) / factor;
 };
 
@@ -27,7 +27,7 @@ const findSimplestNumber = (start: number, end: number): number => {
 	const middle = limit(start + diff / 2, MAX_PRECISION);
 
 	const maxDigits = Math.max(digitsAfterDot(start), digitsAfterDot(end));
-	const step = Math.pow(10, -maxDigits);
+	const step = 10 ** -maxDigits;
 
 	const result = limit(Math.round(middle / step) * step, maxDigits);
 

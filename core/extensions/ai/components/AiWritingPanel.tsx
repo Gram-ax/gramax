@@ -1,12 +1,23 @@
-import { useApi } from "@core-ui/hooks/useApi";
+import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
+import { cn } from "@core-ui/utils/cn";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { AiToolbarButton } from "@ext/ai/components/Helpers/AiToolbarButton";
 import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import t from "@ext/localization/locale/translate";
-import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
-import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
+import {
+	DropdownMenu,
+	DropdownMenuEmptyItem,
+	DropdownMenuItem,
+	DropdownMenuSearchItem,
+	DropdownMenuSeparator,
+	DropdownMenuTrigger,
+	useSearchableMenu,
+} from "@ui-kit/Dropdown";
+import { ComponentVariantProvider } from "@ui-kit/Providers";
 import { AutogrowTextarea } from "@ui-kit/Textarea";
-import { Toolbar, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { Toolbar, ToolbarDropdownMenuContent, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import {
 	type ChangeEvent,
 	type Dispatch,
@@ -14,6 +25,8 @@ import {
 	memo,
 	type SetStateAction,
 	useCallback,
+	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
@@ -42,41 +55,94 @@ const StyledTextareaWrapper = styled.div`
 
 const PromptList = ({ onClick }: PromptListProps) => {
 	const [list, setList] = useState<ProviderItemProps[]>([]);
+	const [open, setOpen] = useState(false);
+	const [height, setHeight] = useState<string>(null);
+	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 
-	const { call: getPrompts } = useApi<ProviderItemProps[]>({
+	const { call: getPrompts, status } = useApi<ProviderItemProps[]>({
 		url: (api) => api.getArticleListInGramaxDir("prompt"),
 		onDone: (data) => setList(data),
 	});
 
 	const onOpenChange = (open: boolean) => {
-		if (open) getPrompts();
+		setOpen(open);
+		if (open && status === RequestStatus.Init) getPrompts();
 	};
 
+	const { search, setSearch, contentRef, inputRef, handleContentKeyDown, handleInputKeyDown, filterItems } =
+		useSearchableMenu();
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	useLayoutEffect(() => {
+		if (!open) return;
+		const measure = () => {
+			const subContent = contentRef.current;
+			if (subContent) {
+				setHeight(`${subContent.offsetHeight}px`);
+			}
+		};
+		requestAnimationFrame(measure);
+	}, [open, list]);
+
+	const filteredPrompts = useMemo(
+		() => filterItems(list.map((prompt) => ({ ...prompt, label: prompt.title }))),
+		[list, filterItems],
+	);
+
 	return (
-		<Popover onOpenChange={onOpenChange}>
-			<PopoverTrigger asChild>
-				<ToolbarToggleButton className="flex-shrink-0" focusable tooltipText={t("ai.ai-prompts")}>
-					<ToolbarIcon icon="list" />
-				</ToolbarToggleButton>
-			</PopoverTrigger>
-			<PopoverContent className="p-0 bg-transparent border-none" side="top">
-				<Command>
-					{list.length > 0 && <CommandInput placeholder={t("ai.search-prompts")} />}
-					<CommandList>
-						<CommandEmpty>{t("ai.no-prompts")}</CommandEmpty>
-						{list.map((prompt, idx) => (
-							<CommandItem
-								key={prompt.id}
-								onSelect={() => onClick(prompt.title)}
-								value={prompt.title + idx}
-							>
-								{prompt.title}
-							</CommandItem>
-						))}
-					</CommandList>
-				</Command>
-			</PopoverContent>
-		</Popover>
+		<ComponentVariantProvider variant="inverse">
+			<DropdownMenu onOpenChange={onOpenChange}>
+				<DropdownMenuTrigger asChild>
+					<ToolbarToggleButton
+						active={open}
+						className="flex-shrink-0"
+						focusable
+						tooltipText={t("ai.ai-prompts")}
+					>
+						<ToolbarIcon icon="list" />
+					</ToolbarToggleButton>
+				</DropdownMenuTrigger>
+				<ToolbarDropdownMenuContent
+					contentClassName={cn(!open && "pointer-events-none", "lg:shadow-hard-base")}
+					contentStyle={{
+						maxWidth: "calc(min(14rem, var(--radix-popover-content-available-width, 100%)))",
+						height: !filteredPrompts.length ? "unset" : height,
+						maxHeight: !filteredPrompts.length ? "unset" : height,
+						overflowY: "auto",
+						boxShadow: "none",
+					}}
+					onKeyDown={handleContentKeyDown}
+					ref={contentRef}
+					side="top"
+					sideOffset={!isMobile ? 8 : 0}
+				>
+					<DropdownMenuSearchItem
+						onChange={(e) => setSearch(e.target.value)}
+						onClick={(e) => e.stopPropagation()}
+						onKeyDown={handleInputKeyDown}
+						placeholder={t("search.placeholder")}
+						ref={inputRef}
+						value={search}
+					/>
+					<DropdownMenuSeparator />
+					<div className="h-full" style={{ maxHeight: "11rem", overflowY: "auto" }}>
+						{filteredPrompts.length === 0 ? (
+							<DropdownMenuEmptyItem>{t("ai.no-prompts")}</DropdownMenuEmptyItem>
+						) : (
+							filteredPrompts.map((prompt) => (
+								<DropdownMenuItem
+									key={prompt.id}
+									onClick={() => onClick(prompt.id)}
+									textValue={prompt.title}
+								>
+									{prompt.title}
+								</DropdownMenuItem>
+							))
+						)}
+					</div>
+				</ToolbarDropdownMenuContent>
+			</DropdownMenu>
+		</ComponentVariantProvider>
 	);
 };
 

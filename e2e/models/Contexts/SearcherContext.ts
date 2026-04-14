@@ -1,9 +1,9 @@
-import { Locator } from "playwright";
+import type { Locator } from "playwright";
 import config from "../../setup/config";
-import { Aliases, globalIcon } from "../../steps/utils/aliases";
+import { type Aliases, globalIcon } from "../../steps/utils/aliases";
 import { replaceMultiple } from "../../steps/utils/utils";
-import { PageInfo } from "../Pages/PageContext";
-import { ReplaceAlias } from "../World";
+import type { PageInfo } from "../Pages/PageContext";
+import type { ReplaceAlias } from "../World";
 
 const CLICKABLE_SELECTOR =
 	'[data-qa="qa-clickable"], label:has(> button[role="checkbox"]), button, [role="menuitemradio"], [role="menuitem"], [cmdk-item], [data-radix-collection-item]';

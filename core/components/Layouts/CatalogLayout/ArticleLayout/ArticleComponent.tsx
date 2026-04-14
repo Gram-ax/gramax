@@ -1,8 +1,8 @@
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import { useMediaQuery } from "@react-hook/media-query";
 import { useRef } from "react";
 import ArticleLayout from "./ArticleLayout";
 

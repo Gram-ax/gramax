@@ -1,5 +1,5 @@
 import t from "@ext/localization/locale/translate";
-import { Property, PropertyTypes } from "@ext/properties/models";
+import { type Property, PropertyTypes } from "@ext/properties/models";
 
 const getTextByProperty = (property: Property, existsInArticle: boolean = false): string => {
 	const isFlag = property.type === PropertyTypes.flag;

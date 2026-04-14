@@ -1,5 +1,5 @@
 import Path from "@core/FileProvider/Path/Path";
-import { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
+import type { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 
 const findMatchingLink = (links: CategoryLink[], currentLevels: string[]): CategoryLink => {
 	for (const link of links) {

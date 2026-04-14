@@ -1,6 +1,6 @@
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT, MAX_WIDTH } from "@ext/pdfExport/config";
-import { ContentTable, TableCell } from "pdfmake/interfaces";
+import type { ContentTable, TableCell } from "pdfmake/interfaces";
 
 const OUTER = BASE_CONFIG.FONT_SIZE * 1.25;
 const INNER = OUTER;

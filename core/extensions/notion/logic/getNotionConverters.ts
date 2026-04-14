@@ -23,7 +23,7 @@ import table from "@ext/markdown/elements/table/notion/table";
 import tableRow from "@ext/markdown/elements/table/notion/tableRow";
 import text from "@ext/markdown/elements/text/notion/text";
 import video from "@ext/markdown/elements/video/notion/video";
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
 
 const gramaxNode: NotionNodeConverter = (node) => node;
 

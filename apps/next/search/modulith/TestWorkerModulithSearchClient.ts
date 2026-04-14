@@ -23,32 +23,32 @@ export class TestWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 
 	static async create(options: WorkerModulithSearchClientBaseOptions): Promise<TestWorkerModulithSearchClient> {
 		const client = new TestWorkerModulithSearchClient(options);
-		await client._init();
+		await client.init();
 		return client;
 	}
 
-	async update({ articles, filter, progressCallback }: UpdateArgs): Promise<void> {
+	override async update({ articles, filter, progressCallback }: UpdateArgs): Promise<void> {
 		await this._initHandler();
 		return await super.update({ articles, filter, progressCallback });
 	}
 
-	async searchBatch({ items }: SearchBatchArgs): Promise<SearchResult[][]> {
+	override async searchBatch({ items }: SearchBatchArgs): Promise<SearchResult[][]> {
 		await this._initHandler();
 		return await super.searchBatch({ items });
 	}
 
-	async getArticlePayloads<TMetadata extends SearchArticleMetadata = SearchArticleMetadata>(
+	override async getArticlePayloads<TMetadata extends SearchArticleMetadata = SearchArticleMetadata>(
 		args: GetArticlePayloadsArgs,
 	): Promise<GetArticlePayloadsResult<TMetadata>> {
 		await this._initHandler();
 		return await super.getArticlePayloads(args);
 	}
 
-	protected async _init(): Promise<void> {
-		this._worker = this._createWorker();
+	protected override async init(): Promise<void> {
+		this.worker = this.createWorker();
 	}
 
-	protected _createWorker(): SearchWorker {
+	protected override createWorker(): SearchWorker {
 		return {
 			postMessage: (msg) => {
 				void this._handleInMessage(msg);
@@ -71,10 +71,10 @@ export class TestWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 
 		this._handleInMessage = (msg) => {
 			handleMessage(msg, (data) => {
-				void this._handleMessage(data);
+				void this.handleMessage(data);
 			});
 		};
 
-		await super._init();
+		await super.init();
 	}
 }

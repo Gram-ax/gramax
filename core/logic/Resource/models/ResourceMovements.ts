@@ -1,4 +1,4 @@
-import Path from "@core/FileProvider/Path/Path";
+import type Path from "@core/FileProvider/Path/Path";
 
 interface ResourceMovements {
 	oldResources: Path[];

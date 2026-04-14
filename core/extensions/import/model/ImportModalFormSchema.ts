@@ -1,17 +1,20 @@
 import t from "@ext/localization/locale/translate";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
 import { z } from "zod";
 
-export const getImportModalFormSchema = (sourceDatas?: any) => {
+export const getImportModalFormSchema = (sourceDatas?: SourceData[]) => {
 	return z
 		.object({
 			sourceKey: z.string({ message: t("import.error.source-required") }),
-			space: z.object({
-				value: z.string(),
-				label: z.string(),
-				displayName: z.string(),
-			}),
+			space: z
+				.object({
+					value: z.string(),
+					label: z.string(),
+					displayName: z.string(),
+				})
+				.optional(),
 		})
 		.superRefine((data, ctx) => {
 			const sourceData =

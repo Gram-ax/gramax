@@ -2,8 +2,8 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { ForwardedRef, forwardRef } from "react";
-import { ItemProps } from "./Item";
+import { type ForwardedRef, forwardRef } from "react";
+import type { ItemProps } from "./Item";
 
 const itemClass =
 	"relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm text-primary-fg outline-none focus:bg-secondary-bg-hover data-[disabled]:pointer-events-none data-[disabled]:opacity-50";

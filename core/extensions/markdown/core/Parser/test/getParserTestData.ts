@@ -1,7 +1,7 @@
 import getApp from "@app/node/app";
 import Context from "@app/test/TestContext";
 import getItemRef from "../../../../workspace/test/getItemRef";
-import ParserContext from "../ParserContext/ParserContext";
+import type ParserContext from "../ParserContext/ParserContext";
 import TestContext from "../ParserContext/TestContext";
 
 export const getParserTestData = async (fileName = "emptyArticle") => {

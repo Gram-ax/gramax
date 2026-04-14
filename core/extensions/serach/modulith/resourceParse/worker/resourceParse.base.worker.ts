@@ -10,15 +10,17 @@ import { pdfToArticleItems } from "@ics/modulith-pdf-parse";
 import { AggregateProgress } from "@ics/modulith-utils";
 import { DOMParser } from "@xmldom/xmldom";
 import mammoth from "mammoth";
+import { PDFWorker } from "pdfjs-dist/legacy/build/pdf.mjs";
 import type { TypedArray } from "pdfjs-dist/types/src/display/api";
 
 export interface HandlerContext {
 	isNode: boolean;
-	initPdfJs: () => Promise<void>;
 	postMessage: (message: ResourceParseWorkerOutMessage) => void;
 }
 
-let pdfJsInitialized = false;
+// Prevent PDF.js from creating a worker, because we already in worker
+PDFWorker["__#60@#isWorkerDisabled"] = true;
+
 const domParser = new DOMParser();
 
 export async function handleMessage(msg: ResourceParseWorkerInMessage, ctx: HandlerContext): Promise<void> {
@@ -60,7 +62,6 @@ async function handleParseResource(
 			onChange: (p) => progress(p),
 		});
 
-		await ensurePdfJs(ctx.initPdfJs);
 		const items = await pdfToArticleItems(data as unknown as TypedArray, aggProgress.getProgressCallback(0));
 		aggProgress.setProgress(1, 1);
 		postMessage({ type: "result", requestId, items });
@@ -68,13 +69,6 @@ async function handleParseResource(
 	}
 
 	postMessage({ type: "error", requestId, error: createSimpleError(new Error(`Unknown format: ${format}`)) });
-}
-
-async function ensurePdfJs(initPdfJs: () => Promise<void>): Promise<void> {
-	if (!pdfJsInitialized) {
-		await initPdfJs();
-		pdfJsInitialized = true;
-	}
 }
 
 async function parseHtmlToArticleItems(html: string): Promise<ArticleItem[]> {

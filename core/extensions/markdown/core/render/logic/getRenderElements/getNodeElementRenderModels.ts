@@ -14,8 +14,8 @@ import { strikethrough } from "../../../../elements/strikethrough/render/striket
 import { strong } from "../../../../elements/strong/render/strong";
 import { sub } from "../../../../elements/sub/sub";
 import { table, tbody, td, thead, tr } from "../../../../elements/table/render/model/table";
-import PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
-import { Schema } from "../Markdoc";
+import type PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
+import type { Schema } from "../Markdoc";
 
 export default function getNodeElementRenderModels(context?: PrivateParserContext): Record<string, Schema> {
 	const contextelements = context ? getContextNodeElementRenderModels(context) : {};

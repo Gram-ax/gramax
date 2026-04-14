@@ -27,7 +27,6 @@ enum ModalToOpen {
 	MergeRequestConfirm = "MergeRequestConfirm",
 	CreateStorage = "CreateStorage",
 
-	EditEnterpriseConfig = "EditEnterpriseConfig",
 	EnterpriseLogout = "EnterpriseLogout",
 	RepositoryPermission = "RepositoryPermission",
 
@@ -51,6 +50,7 @@ enum ModalToOpen {
 	History = "History",
 	UnsupportedElements = "UnsupportedElements",
 	Share = "Share",
+	NotificationSettings = "NotificationSettings",
 
 	// Catalog dropdown modals
 	CatalogPropsEditor = "CatalogPropsEditor",
@@ -66,6 +66,8 @@ enum ModalToOpen {
 	DefaultModal = "DefaultModal",
 	UnsavedChangesModal = "UnsavedChangesModal",
 	UnsavedCommentModal = "UnsavedCommentModal",
+
+	TauriGesSignIn = "TauriGesSignIn",
 }
 
 export default ModalToOpen;

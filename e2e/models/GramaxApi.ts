@@ -1,4 +1,4 @@
-import { CatalogList, CatalogNavigation } from "@ext/publicApi/types";
+import type { CatalogList, CatalogNavigation } from "@ext/publicApi/types";
 
 export default class GramaxApi {
 	constructor(private _instanceUrl: string) {}

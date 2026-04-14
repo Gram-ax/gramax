@@ -1,6 +1,7 @@
 use gramaxfs::commands as fs;
 use std::path::PathBuf;
 
+use gramaxfs::compress::CompressOptions;
 use gramaxfs::error::Result;
 use gramaxfs::DirStat;
 use gramaxfs::FileInfo;
@@ -18,9 +19,9 @@ pub fn read_file(path: String) -> Result<Vec<u8>> {
 }
 
 #[em_bindgen]
-pub fn write_file(path: String, content_ptr: usize, content_len: usize) -> Result<()> {
+pub fn write_file(path: String, content_ptr: usize, content_len: usize, compress: Option<CompressOptions>) -> Result<()> {
 	let vec = unsafe { Vec::from_raw_parts(content_ptr as *mut u8, content_len, content_len) };
-	fs::write_file(path, vec)
+	fs::write_file(path, vec, compress)
 }
 
 #[em_bindgen(json)]

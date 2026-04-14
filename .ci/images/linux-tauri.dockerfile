@@ -1,6 +1,6 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 
-FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/ubuntu:jammy
+FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/ubuntu:jammy
 
 RUN  apt-get update && apt-get install -y \
 	wget \
@@ -40,10 +40,3 @@ ENV PATH="/root/.bun/bin:/root/.cargo/bin:${PATH}"
 
 RUN rustup target add x86_64-unknown-linux-gnu
 RUN cargo install tauri-cli
-
-RUN git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-
-COPY .ci/github-private-key /root/.ssh/
-RUN ssh-keyscan github.com > /root/.ssh/known_hosts && \
-	printf "Host github.com\nPreferredAuthentications publickey\nUser git\nIdentityFile /root/.ssh/github-private-key\n" > /root/.ssh/config && \
-	chmod -R 700 /root/.ssh && chmod 600 /root/.ssh/config

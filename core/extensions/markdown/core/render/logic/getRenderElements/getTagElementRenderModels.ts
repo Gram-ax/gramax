@@ -46,8 +46,8 @@ import { unsupported } from "@ext/markdown/elements/unsupported/render/model/uns
 import { video } from "@ext/markdown/elements/video/render/model/video";
 import { view } from "@ext/markdown/elements/view/render/models/view";
 import { when, who } from "@ext/markdown/elements/whowhen/model/whowhen";
-import PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
-import { Schema } from "../Markdoc";
+import type PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
+import type { Schema } from "../Markdoc";
 
 function getContextTagElementRenderModels(context: PrivateParserContext): Record<string, Schema> {
 	return {
@@ -63,7 +63,6 @@ function getContextTagElementRenderModels(context: PrivateParserContext): Record
 		snippet: snippet(context),
 		formula: formula(context),
 		drawio: drawio(context),
-		error: error(context),
 		term: term(context),
 		icon: icon(context),
 	};
@@ -92,6 +91,7 @@ export default function getTagElementRenderModels(context?: PrivateParserContext
 		tr,
 		td,
 		col,
+		error,
 		colgroup,
 		unsupported,
 		html,

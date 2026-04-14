@@ -36,7 +36,7 @@ export interface WorkerModulithSearchClientBaseOptions {
 
 export abstract class WorkerModulithSearchClientBase implements ModulithSearchClient {
 	private _requestSeq = 0;
-	protected _worker!: SearchWorker;
+	protected worker!: SearchWorker;
 	private readonly _pending = new Map<string, PendingRequest<unknown>>();
 
 	constructor(private readonly _options: WorkerModulithSearchClientBaseOptions) {}
@@ -46,7 +46,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 
 		return new Promise<void>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject, progressCallback });
-			this._worker.postMessage({
+			this.worker.postMessage({
 				type: "update",
 				requestId,
 				args: { articles, filter },
@@ -59,7 +59,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 
 		return new Promise<SearchResult[][]>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject });
-			this._worker.postMessage({
+			this.worker.postMessage({
 				type: "searchBatch",
 				requestId,
 				args: { items },
@@ -73,7 +73,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 		const requestId = this._nextRequestId();
 		return new Promise<GetArticlePayloadsResult<TMetadata>>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject });
-			this._worker.postMessage({
+			this.worker.postMessage({
 				type: "getArticlePayloads",
 				requestId,
 				args,
@@ -85,7 +85,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 		const requestId = this._nextRequestId();
 		return new Promise<void>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject });
-			this._worker.postMessage({
+			this.worker.postMessage({
 				type: "commit",
 				requestId,
 			});
@@ -93,11 +93,11 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 	}
 
 	async terminate(): Promise<void> {
-		await this._worker.terminate();
+		await this.worker.terminate();
 	}
 
-	protected async _init(): Promise<void> {
-		this._worker = this._createWorker();
+	protected async init(): Promise<void> {
+		this.worker = this.createWorker();
 
 		const cacheRoot = this._options.cacheFileProvider.rootPath.value;
 		const articleStorageRoot = this._options.articleStorageFileProvider.rootPath.value;
@@ -105,7 +105,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 		const requestId = this._nextRequestId();
 		await new Promise<void>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject });
-			this._worker.postMessage({
+			this.worker.postMessage({
 				type: "init",
 				requestId,
 				tenant: TENANT_NAME,
@@ -115,9 +115,9 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 		});
 	}
 
-	protected abstract _createWorker(): SearchWorker;
+	protected abstract createWorker(): SearchWorker;
 
-	protected async _handleMessage(data: SearchWorkerOutMessage) {
+	protected async handleMessage(data: SearchWorkerOutMessage) {
 		const type = data.type;
 		switch (type) {
 			case "fs":
@@ -163,6 +163,11 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 				case "read":
 					result = await provider.read(new Path(data.args.path as string));
 					break;
+				case "readAsArrayBuffer": {
+					const buffer = await provider.readAsBinary(new Path(data.args.path as string));
+					result = buffer?.buffer;
+					break;
+				}
 				case "delete":
 					result = await provider.delete(new Path(data.args.path as string));
 					break;
@@ -189,7 +194,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 				result,
 			};
 
-			this._worker.postMessage(response);
+			this.worker.postMessage(response);
 		} catch (e) {
 			const err = e instanceof Error ? e : new Error(String(e));
 			const response: SearchWorkerFsInMessage = {
@@ -198,7 +203,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 				ok: false,
 				error: createSimpleError(err),
 			};
-			this._worker.postMessage(response);
+			this.worker.postMessage(response);
 		}
 	}
 

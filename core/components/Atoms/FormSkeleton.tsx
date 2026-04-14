@@ -1,7 +1,7 @@
 import { Form, FormBody, FormFooterBase, FormHeaderBase } from "@ui-kit/Form";
 import { Skeleton } from "@ui-kit/Skeleton";
-import { ReactNode } from "react";
-import { FieldValues, UseFormReturn } from "react-hook-form";
+import type { ReactNode } from "react";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
 
 type FormType = UseFormReturn<FieldValues, any, FieldValues>;
 

@@ -2,7 +2,7 @@ import Date from "@components/Atoms/Date";
 import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import UserCircle from "@components/Atoms/UserCircle";
-import { DateType } from "@core-ui/utils/dateUtils";
+import type { DateType } from "@core-ui/utils/dateUtils";
 import styled from "@emotion/styled";
 
 interface UserProps {

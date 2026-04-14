@@ -1,8 +1,8 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import { GitMergeResultContent } from "../../../../core/extensions/git/actions/MergeConflictHandler/model/GitMergeResultContent";
+import type { GitMergeResultContent } from "../../../../core/extensions/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import { AuthorizeMiddleware } from "../../../../core/logic/Api/middleware/AuthorizeMiddleware";
-import Context from "../../../../core/logic/Context/Context";
+import type Context from "../../../../core/logic/Context/Context";
 import { Command } from "../../../types/Command";
 
 const resolve: Command<{ ctx: Context; catalogName: string; files: GitMergeResultContent[] }, void> = Command.create({

@@ -1,4 +1,4 @@
-import { LocalizedString } from "../../logic/components/tableDB/table";
+import type { LocalizedString } from "../../logic/components/tableDB/table";
 
 export const feedbackLink = (email: string, path: string, repositoryName: string) => {
 	return `mailto:${email}?subject=${encodeURIComponent(

@@ -1,0 +1,16 @@
+{
+	"name": "gramax-docportal",
+	"version": "1.0.0",
+	"module": "server.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"start": "bun run dist/index.js",
+		"run": "bun run build && bun run start",
+		"dev": "VITE_ENVIRONMENT=docportal bun watch.ts",
+		"build": "VITE_ENVIRONMENT=docportal bun ./build/server.ts && bun ./build/client.ts"
+	},
+	"dependencies": {
+		"@emotion/server": "^11.11.0"
+	}
+}

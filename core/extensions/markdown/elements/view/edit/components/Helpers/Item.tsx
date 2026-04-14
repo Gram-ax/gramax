@@ -1,5 +1,6 @@
 import t from "@ext/localization/locale/translate";
-import { Mode } from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
+import type { Mode } from "@ext/markdown/elements/view/edit/components/Helpers/AddFilter";
+import PropertiesScrollContainer from "@ext/properties/components/Helpers/PropertiesScrollContainer";
 import PropertyButtons from "@ext/properties/components/Helpers/PropertyButtons";
 import { Checkbox } from "@ui-kit/Checkbox";
 import {
@@ -10,7 +11,7 @@ import {
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 } from "@ui-kit/Dropdown";
-import { MouseEvent, ReactNode, useMemo } from "react";
+import { type MouseEvent, type ReactNode, useCallback, useMemo } from "react";
 
 interface ItemProps {
 	name: string;
@@ -34,7 +35,7 @@ const getCheckedState = (values: string[], selected: string[]) => {
 };
 
 const Item = ({ values, onClick, renderer, trigger, selected, value, name, mode, ignoreEmpty, buttons }: ItemProps) => {
-	const rendererChildren = useMemo(() => renderer && renderer(), [renderer]);
+	const rendererChildren = useMemo(() => renderer?.(), [renderer]);
 	const isSelected = useMemo(() => {
 		if (!selected && !value) return false;
 		if (value?.length) return true;
@@ -60,15 +61,21 @@ const Item = ({ values, onClick, renderer, trigger, selected, value, name, mode,
 		return <DropdownMenuRadioItem value={name}>{trigger}</DropdownMenuRadioItem>;
 	}
 
-	const onCheckAll = (e: MouseEvent<HTMLDivElement> | Event) => {
-		e.preventDefault();
-		onClick("all");
-	};
+	const onCheckAll = useCallback(
+		(e: MouseEvent<HTMLDivElement> | Event) => {
+			e.preventDefault();
+			onClick("all");
+		},
+		[onClick],
+	);
 
-	const onEmptyClick = (e: Event) => {
-		e.preventDefault();
-		onClick("none");
-	};
+	const onEmptyClick = useCallback(
+		(e: Event) => {
+			e.preventDefault();
+			onClick("none");
+		},
+		[onClick],
+	);
 
 	return (
 		<DropdownMenuSub>
@@ -78,7 +85,7 @@ const Item = ({ values, onClick, renderer, trigger, selected, value, name, mode,
 			</DropdownMenuSubTrigger>
 			<DropdownMenuSubContent>
 				{(values?.length || ignoreEmpty) && (
-					<>
+					<PropertiesScrollContainer>
 						<DropdownMenuCheckboxItem checked={getCheckedState(values, value)} onSelect={onCheckAll}>
 							{t("properties.select-all")}
 						</DropdownMenuCheckboxItem>
@@ -97,7 +104,7 @@ const Item = ({ values, onClick, renderer, trigger, selected, value, name, mode,
 							value={value}
 							values={values}
 						/>
-					</>
+					</PropertiesScrollContainer>
 				)}
 				{!values?.length && rendererChildren}
 			</DropdownMenuSubContent>

@@ -6,16 +6,13 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base64Converter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import LanguageService from "@core-ui/ContextServices/Language";
-import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import DrawioActions from "@ext/markdown/elements/drawio/edit/components/DrawioActions";
 import getDrawioID from "@ext/markdown/elements/drawio/edit/logic/getDrawioID";
-import DiagramEditor from "@ext/markdown/elements/drawio/logic/diagram-editor";
+import useDrawioEditor from "@ext/markdown/elements/drawio/edit/logic/useDrawioEditor";
 import getNaturalSize from "@ext/markdown/elements/image/edit/logic/getNaturalSize";
 import type { NodeViewProps } from "@tiptap/react";
 import { type ReactElement, useCallback, useRef, useState } from "react";
@@ -54,29 +51,15 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 		[nodeSrc, setResource],
 	);
 
-	const openEditor = useCallback(() => {
-		ModalToOpenService.setValue(ModalToOpen.Loading);
-		ArticleUpdaterService.stopLoadingAfterFocus();
-		setImgData();
-		const de = DiagramEditor.editElement(
-			pageDataContext.conf.diagramsServiceUrl,
-			refT.current,
-			saveCallBack,
-			() => ModalToOpenService.resetValue(),
-			null,
-			"modern",
-			null,
-			["splash=0", `lang=${LanguageService.currentUi()}`, "pv=0"],
-		);
-		window.history.pushState({}, document.location.href, "");
-		window.addEventListener(
-			"popstate",
-			() => {
-				de.stopEditing();
-			},
-			{ once: true },
-		);
-	}, [pageDataContext, refT.current, saveCallBack, setImgData]);
+	const openEditor = useDrawioEditor({
+		diagramsServiceUrl: pageDataContext.conf.diagramsServiceUrl,
+		imgRef: refT,
+		saveCallBack,
+		setImgData: () => {
+			ArticleUpdaterService.stopLoadingAfterFocus();
+			setImgData();
+		},
+	});
 
 	const updateAttributesCallback = useCallback(
 		async (attributes: Record<string, any>) => {

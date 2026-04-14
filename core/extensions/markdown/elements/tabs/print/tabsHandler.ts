@@ -1,6 +1,6 @@
 import { TabsPaginator } from "@ext/markdown/elements/tabs/print/TabsPaginator";
 import { throwIfAborted } from "@ext/print/utils/pagination/abort";
-import { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
+import type { PrintNodeHandler } from "@ext/print/utils/pagination/nodeHandlers";
 import Paginator from "@ext/print/utils/pagination/Paginator";
 
 const tabsHandlerFn: PrintNodeHandler["handle"] = async (node, paginator) => {

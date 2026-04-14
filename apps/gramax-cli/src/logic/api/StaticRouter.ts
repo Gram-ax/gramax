@@ -1,5 +1,5 @@
-import { AppConfig } from "@app/config/AppConfig";
-import { RouterRule } from "@core/Api/Router";
+import type { AppConfig } from "@app/config/AppConfig";
+import type { RouterRule } from "@core/Api/Router";
 import PathUtils from "path";
 import BrowserRouter from "../../../../browser/src/logic/Api/BrowserRouter";
 

@@ -1,4 +1,4 @@
-import Version from "../../../VersionControl/model/Version";
+import type Version from "../../../VersionControl/model/Version";
 
 export class GitVersion implements Version {
 	constructor(private _value: string) {}

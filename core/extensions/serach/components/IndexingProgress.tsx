@@ -1,7 +1,7 @@
 import LucideIconComponent from "@components/Atoms/Icon/LucideIcon";
 import t from "@ext/localization/locale/translate";
 import { ProgressBlockTemplate } from "@ui-kit/Progress";
-import { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface IndexingProgressProps {
 	progress: number;

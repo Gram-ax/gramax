@@ -1,5 +1,5 @@
 import Path from "@core/FileProvider/Path/Path";
-import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import getAttrs from "@ext/markdown/elements/diagrams/logic/getAttrs";
 
 const getEditToken = (name: string) => (context?: PrivateParserContext) => ({

@@ -1,4 +1,4 @@
-import { EditorState } from "prosemirror-state";
+import type { EditorState } from "prosemirror-state";
 
 function getLines(state: EditorState) {
 	const { $from, $to } = state.selection;

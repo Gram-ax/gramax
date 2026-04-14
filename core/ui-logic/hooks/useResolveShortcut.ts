@@ -15,12 +15,11 @@ const resolveKey = (key: string, isMac: boolean): string => {
 
 export const useResolveShortcut = (keys: string) => {
 	const isMac = IsMac.value;
-	return useMemo(
-		() =>
-			keys
-				.split("-")
-				.map((key) => resolveKey(key, isMac))
-				.join(isMac ? "" : "+"),
-		[keys, isMac],
-	);
+	return useMemo(() => {
+		if (!keys) return "";
+		return keys
+			.split("-")
+			.map((key) => resolveKey(key, isMac))
+			.join(isMac ? "" : "+");
+	}, [keys]);
 };

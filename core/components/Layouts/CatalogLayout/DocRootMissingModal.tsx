@@ -4,11 +4,11 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import useWatch from "@core-ui/hooks/useWatch";
-import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
+import type CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
 import { useIsRepoOk } from "@ext/storage/logic/utils/useStorage";
-import { ComponentProps, useRef, useState } from "react";
+import { type ComponentProps, useRef, useState } from "react";
 import ApiUrlCreatorService from "../../../ui-logic/ContextServices/ApiUrlCreator";
 
 const DocRootMissingModal = ({ onClose }: { onClose: () => void }) => {

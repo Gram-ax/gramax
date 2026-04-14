@@ -33,20 +33,27 @@ import { getTokens } from "../edit/logic/Prosemirror/tokens";
 import getComponentsHTML from "../render/components/getComponents/getComponentsHTML";
 import getNodeElementRenderModels from "../render/logic/getRenderElements/getNodeElementRenderModels";
 import getTagElementRenderModels from "../render/logic/getRenderElements/getTagElementRenderModels";
-import Markdoc, {
+import {
 	type Config,
+	parse,
 	type RenderableTreeNode,
 	type RenderableTreeNodes,
+	renderers,
 	type Schema,
 	type Tag,
 	type Token,
 	Tokenizer,
+	transform,
 } from "../render/logic/Markdoc";
 import MdParser from "./MdParser/MdParser";
 import type ParserContext from "./ParserContext/ParserContext";
 import preTransformTokens from "./Transformer/preTransformTokens";
 
 const katexPlugin = import("@traptitech/markdown-it-katex");
+let resolvedKatexPlugin: Awaited<typeof katexPlugin>["default"] = null;
+const katexPluginReady = katexPlugin.then((m) => {
+	resolvedKatexPlugin = m.default;
+});
 
 class GetHtmlValue {
 	private _html: string;
@@ -95,7 +102,7 @@ export default class MarkdownParser {
 	}
 
 	public getHtml(renderTree: RenderableTreeNodes, context?: ParserContext, requestUrl?: string): string {
-		return Markdoc.renderers.html(renderTree, {
+		return renderers.html(renderTree, {
 			components: getComponentsHTML(requestUrl, context),
 		});
 	}
@@ -121,8 +128,9 @@ export default class MarkdownParser {
 	}
 
 	public async getRenderMarkdownIt(content: string): Promise<string> {
+		await katexPluginReady;
 		const tokenizer = this._getTokenizer();
-		tokenizer.use((await katexPlugin).default, {
+		tokenizer.use(resolvedKatexPlugin, {
 			blockClass: "math-block",
 			errorColor: " #cc0000",
 		});
@@ -137,10 +145,10 @@ export default class MarkdownParser {
 			return node;
 		};
 		if (!parserOptions.isOneElement) return node;
-		node = filter(node, "article");
-		if (parserOptions.isBlock) return node;
-		node = filter(node, "p");
-		return node;
+		let result = filter(node, "article");
+		if (parserOptions.isBlock) return result;
+		result = filter(result, "p");
+		return result;
 	}
 
 	private _getSchemes(context?: PrivateParserContext): Schemes {
@@ -167,8 +175,8 @@ export default class MarkdownParser {
 	): Promise<RenderableTreeNode> {
 		const variables = context?.getProp("variables") ?? {};
 		const config: Config = { nodes: schemes.nodes, tags: schemes.tags, variables };
-		const ast = Markdoc.parse(tokens);
-		return Markdoc.transform(ast, config);
+		const ast = parse(tokens);
+		return transform(ast, config);
 	}
 
 	private async _editParser(tokens: Token[], schemes: Schemes, context?: PrivateParserContext): Promise<JSONContent> {

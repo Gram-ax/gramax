@@ -47,7 +47,7 @@ class FileFocusTooltip extends BaseMark {
 		this._setTooltipPosition(element);
 		this._setComponent(
 			<PageDataContextService.Provider value={this._pageDataContext}>
-				<Workspace.Init pageProps={{ context: this._pageDataContext, data: null }}>
+				<Workspace.Init pageProps={{ context: this._pageDataContext, data: null, page: "article" }}>
 					<ApiUrlCreatorService.Provider value={this._apiUrlCreator}>
 						<PlatformService.Provider value={this._platform}>
 							<ResourceService.Provider>

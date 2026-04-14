@@ -20,5 +20,5 @@ i[class*=" chain-icon"] {
 }
 
 i.chain-icon:before {
-	content: "\e900";
+	content: "e900";
 }

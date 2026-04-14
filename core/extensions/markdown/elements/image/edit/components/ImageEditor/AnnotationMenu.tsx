@@ -4,8 +4,8 @@ import ModalLayoutDark from "@components/Layouts/ModalLayoutDark";
 import debounceFunction from "@core-ui/debounceFunction";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import { FormEventHandler, useEffect, useRef, useState } from "react";
-import { DirectionType } from "../../model/imageEditorTypes";
+import { type FormEventHandler, useEffect, useRef, useState } from "react";
+import type { DirectionType } from "../../model/imageEditorTypes";
 
 const ANNOTATION_MENU_SYMBOL = Symbol();
 
@@ -29,9 +29,9 @@ const directionIcons = {
 
 const getNewDirection = (curDirection: DirectionType): DirectionType => {
 	if (curDirection === "top-left") return "top-right";
-	else if (curDirection === "top-right") return "bottom-right";
-	else if (curDirection === "bottom-right") return "bottom-left";
-	else return "top-left";
+	if (curDirection === "top-right") return "bottom-right";
+	if (curDirection === "bottom-right") return "bottom-left";
+	return "top-left";
 };
 
 const AnnotationMenu = (props: AnnotationMenuProps) => {

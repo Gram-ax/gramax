@@ -1,5 +1,5 @@
-import { Attribute } from "@tiptap/core";
-import { ExtensionFilter } from "./ExtensionFilter";
+import type { Attribute } from "@tiptap/core";
+import type { ExtensionFilter } from "./ExtensionFilter";
 
 export default interface ExtensionUpdaterRules {
 	filter?: ExtensionFilter;

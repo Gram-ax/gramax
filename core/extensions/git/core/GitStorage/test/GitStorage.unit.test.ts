@@ -1,9 +1,5 @@
-/**
- * @jest-environment node
- */
-
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
-import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import { TEST_GIT_FIXTURES_PATH } from "@ext/git/test/testGitFixturesPath";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import DiskFileProvider from "../../../../../logic/FileProvider/DiskFileProvider/DiskFileProvider";
@@ -20,7 +16,6 @@ const repNameWithoutSubmodules = "remoteRep_local_no_submodules_for_test";
 
 let storage: GitStorage;
 let git: GitCommands;
-const subGits: GitCommands[] = [];
 
 const mockUserData: GitSourceData = {
 	sourceType: SourceType.git,
@@ -59,7 +54,8 @@ describe("GitStorage", () => {
 			test("с конфилктом", async () => {
 				const hashBefore = (await git.getHeadCommit()).toString();
 				await dfp.write(new Path([repNameWithoutSubmodules, "main.txt"]), "new change");
-				await git.add(), await git.commit("", mockUserData);
+				await git.add();
+				await git.commit("", mockUserData);
 
 				await storage.pull(mockUserData);
 
@@ -74,7 +70,8 @@ describe("GitStorage", () => {
 			await storage.pull(mockUserData);
 			const hashBefore = (await git.getHeadCommit()).toString();
 			await dfp.write(new Path([repNameWithoutSubmodules, "new_file.txt"]), "new file content");
-			await git.add(), await git.commit("", mockUserData);
+			await git.add();
+			await git.commit("", mockUserData);
 
 			await expect(storage.push(mockUserData)).resolves.not.toThrow();
 			expect((await git.getHeadCommit()).toString()).not.toBe(hashBefore);

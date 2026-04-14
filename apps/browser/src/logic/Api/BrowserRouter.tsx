@@ -1,6 +1,8 @@
-import Query, { parserQuery } from "@core/Api/Query";
-import { Router, RouterRule } from "@core/Api/Router";
+import type Query from "@core/Api/Query";
+import { parserQuery } from "@core/Api/Query";
+import { Router, type RouterRule } from "@core/Api/Router";
 import Url from "@core-ui/ApiServices/Types/Url";
+import { useRouter } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 import useLocation from "./useLocation";
 
@@ -12,13 +14,14 @@ export default class BrowserRouter extends Router {
 		private _query: Query,
 		private _setPath: (path: string, opts?: { replace?: boolean }) => void,
 		rules: RouterRule[],
+		private _basePath: string,
 	) {
 		super(rules);
 		this._route = path.split("?", 1)[0];
 	}
 
 	get basePath(): string {
-		return this._route;
+		return this._basePath;
 	}
 
 	get query(): Query {
@@ -52,6 +55,7 @@ export default class BrowserRouter extends Router {
 
 	static use(rules: RouterRule[]): Router {
 		const [path, , query] = useLocation();
-		return new BrowserRouter(path, parserQuery(query), navigate, rules);
+		const router = useRouter();
+		return new BrowserRouter(path, parserQuery(query), navigate, rules, router.base);
 	}
 }

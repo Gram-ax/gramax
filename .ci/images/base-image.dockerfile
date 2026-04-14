@@ -1,8 +1,9 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
 
-FROM --platform=$TARGETPLATFORM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.91-bookworm
+FROM ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/rust:1.91-bookworm
 
 RUN apt-get update && \
+	apt-get upgrade -y && \
 	apt-get install -y --no-install-recommends \
 	git \
 	curl \
@@ -13,8 +14,11 @@ RUN apt-get update && \
 	pkg-config \
 	build-essential \
 	fontconfig \
+	imagemagick \
 	libfontconfig1 \
-	imagemagick
+	caddy && \
+	apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
 	curl -fsSL "https://github.com/oven-sh/bun/releases/download/bun-v1.2.23/bun-linux-x64-baseline.zip" -o /tmp/bun.zip; \
@@ -31,11 +35,3 @@ RUN curl -fsSL -o /usr/local/bin/n https://raw.githubusercontent.com/tj/n/master
 	n use stable
 
 ENV PATH="/root/.cargo/bin:/usr/local/bin:${PATH}"
-
-RUN git config --global url.ssh://git@github.com/.insteadOf https://github.com/
-
-COPY .ci/github-private-key /root/.ssh/
-
-RUN ssh-keyscan github.com > /root/.ssh/known_hosts && \
-	printf "Host github.com\nPreferredAuthentications publickey\nUser git\nIdentityFile /root/.ssh/github-private-key\n" > /root/.ssh/config && \
-	chmod -R 700 /root/.ssh && chmod 600 /root/.ssh/config

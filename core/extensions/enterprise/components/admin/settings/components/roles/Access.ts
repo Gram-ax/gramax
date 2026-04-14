@@ -16,6 +16,7 @@ export type GroupValue = {
 
 export type AccessEntry = {
 	gxGroups: GroupId[];
+	ssoGroups?: GroupId[];
 	users: GroupValue[];
 };
 export type Access = { [key in RoleId]?: AccessEntry };

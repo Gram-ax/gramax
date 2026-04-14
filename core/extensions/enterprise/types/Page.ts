@@ -1,0 +1,16 @@
+export enum Page {
+	PLUGINS = "plugins",
+	PLUGIN_DETAIL = "pluginDetail",
+	METRICS = "metrics",
+	VIEW_METRICS = "viewMetrics",
+	SEARCH_METRICS = "searchMetrics",
+	STYLEGUIDE = "styleGuide",
+	QUIZ = "quiz",
+	EDITORS = "editors",
+	WORKSPACE = "workspace",
+	RESOURCES = "resources",
+	USER_GROUPS = "groups",
+	MAIL = "mail",
+	GUESTS = "guests",
+	ROLES = "roles",
+}

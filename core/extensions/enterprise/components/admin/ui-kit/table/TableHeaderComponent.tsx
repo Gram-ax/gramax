@@ -1,5 +1,5 @@
 import { cn } from "@core-ui/utils/cn";
-import { flexRender, Table as ReactTable } from "@ui-kit/DataTable";
+import { flexRender, type Table as ReactTable } from "@ui-kit/DataTable";
 import { TableHead, TableHeader, TableRow } from "@ui-kit/Table";
 import { columnThClassName, TABLE_COLUMN_CODE_DEFAULT } from "./TableComponent";
 

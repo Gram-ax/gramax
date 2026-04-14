@@ -1,11 +1,12 @@
-import { DIAGRAM_FILE_TYPES } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
+import type { ResourceType } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
+import { DIAGRAM_FILE_TYPES } from "@ext/git/actions/Publish/model/consts";
 import DiagramData from "@ext/markdown/elements/diagrams/component/DiagramData";
 import Image from "@ext/markdown/elements/image/render/components/Image";
 import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { useMemo } from "react";
 
 interface ResourceViewResolverProps {
-	type: "image" | "diagram" | "text";
+	type: ResourceType;
 
 	src: string;
 	oldSrc: string;

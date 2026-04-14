@@ -1,4 +1,4 @@
-import PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import { editName } from "@ext/markdown/elements/question/consts";
 
 export const questionToken = (context?: PrivateParserContext) => ({

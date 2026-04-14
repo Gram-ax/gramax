@@ -1,4 +1,4 @@
-import { Table } from "ics-ui-kit/vendors/tanstack/react-table";
+import type { Table } from "ics-ui-kit/vendors/tanstack/react-table";
 
 /**
  * Хук для работы с выделением строк в таблицах, где есть отключенные (disabled) записи.

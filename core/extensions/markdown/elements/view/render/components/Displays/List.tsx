@@ -4,8 +4,8 @@ import BlockCommentView from "@ext/markdown/elements/comment/edit/components/Vie
 import renderGroup from "@ext/markdown/elements/view/render/components/Displays/Helpers/List/Group";
 import updateListData from "@ext/markdown/elements/view/render/logic/updateListData";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { ViewRenderGroup } from "@ext/properties/models";
-import { Fragment, ReactNode, useCallback, useState } from "react";
+import type { ViewRenderGroup } from "@ext/properties/models";
+import { Fragment, type ReactNode, useCallback, useState } from "react";
 
 interface ListProps {
 	content: ViewRenderGroup[];

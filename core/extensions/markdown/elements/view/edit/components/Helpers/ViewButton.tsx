@@ -8,7 +8,7 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@ui-kit/Dropdown";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 export interface ViewButtonProps {
 	icon: string;

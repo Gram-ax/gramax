@@ -1,5 +1,7 @@
+import { useRouter } from "@core/Api/useRouter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { LinkHoverTooltipManager } from "@ext/markdown/elements/link/edit/logic/LinkHoverTooltipManager";
 import { createContext, useContext, useEffect, useRef } from "react";
 
@@ -18,6 +20,8 @@ abstract class ArticleTooltipService {
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
 		const tooltipManager = useRef<LinkHoverTooltipManager>(null);
+		const router = useRouter();
+		const environment = usePlatform().environment;
 
 		useEffect(() => {
 			if (typeof document === "undefined") return;
@@ -26,7 +30,12 @@ abstract class ArticleTooltipService {
 				tooltipManager.current.destroyAll();
 			}
 
-			tooltipManager.current = new LinkHoverTooltipManager(document.body, pageDataContext);
+			tooltipManager.current = new LinkHoverTooltipManager(
+				document.body,
+				pageDataContext,
+				environment,
+				router.basePath,
+			);
 
 			return () => {
 				if (tooltipManager.current !== null) {

@@ -1,5 +1,6 @@
-import { Schema, SchemaType, Tag } from "@ext/markdown/core/render/logic/Markdoc";
-import { Config, Node } from "@ext/markdown/core/render/logic/Markdoc/src/types";
+import { type Schema, SchemaType, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type Node from "@ext/markdown/core/render/logic/Markdoc/src/ast/node";
+import type { Config } from "@ext/markdown/core/render/logic/Markdoc/src/types";
 import { renderName } from "@ext/markdown/elements/blockProperty/consts";
 
 export const blockProperty: Schema = {

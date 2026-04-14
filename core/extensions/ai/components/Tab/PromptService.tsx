@@ -1,10 +1,10 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PromptNoteTooltipEditor from "@ext/ai/components/Tab/PromptNoteTooltipEditor";
 import { PROMPT_LOCALSTORAGE_KEY } from "@ext/ai/models/consts";
 import { PopoverManager } from "@ext/articleProvider/logic/PopoverManager";
-import { ProviderItemProps } from "@ext/articleProvider/models/types";
+import type { ProviderItemProps } from "@ext/articleProvider/models/types";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 export type PromptContextType = {

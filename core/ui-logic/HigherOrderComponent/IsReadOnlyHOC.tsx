@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import PageDataContextService from "../ContextServices/PageDataContext";
 
 const IsReadOnlyHOC = ({ children }: { children: ReactNode }) => {

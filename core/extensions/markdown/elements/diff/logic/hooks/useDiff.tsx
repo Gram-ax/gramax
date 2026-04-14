@@ -1,4 +1,4 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { CommentEditorEventsContext } from "@ext/markdown/elements/comment/edit/logic/CommentEditorProvider";
 import AstDiffDataHandler from "@ext/markdown/elements/diff/logic/AstDiffDataHandler";
@@ -6,9 +6,9 @@ import ProsemirrorAstDiffTransformer from "@ext/markdown/elements/diff/logic/ast
 import getParagraphCommentsDiffLines from "@ext/markdown/elements/diff/logic/commentsDiff/getParagraphCommentsDiffLines";
 import useCommentsDiff from "@ext/markdown/elements/diff/logic/commentsDiff/useCommentsDiff";
 import DiffRenderDataHandler from "@ext/markdown/elements/diff/logic/DiffRenderDataHandler";
-import { Transaction } from "@tiptap/pm/state";
+import type { Transaction } from "@tiptap/pm/state";
 import { DecorationSet } from "@tiptap/pm/view";
-import { Editor } from "@tiptap/react";
+import type { Editor } from "@tiptap/react";
 import { useContext, useEffect, useRef } from "react";
 
 const DEBOUNCDE_DELAY = 250;

@@ -5,15 +5,13 @@ import { type Plugin, searchForWorkspaceRoot, type UserConfig } from "vite";
 import { createHtmlPlugin } from "vite-plugin-html";
 import { nodePolyfills as polyfills } from "vite-plugin-node-polyfills";
 import env from "./scripts/compileTimeEnv.mjs";
+import isProductionFunc from "./scripts/isProduction.mjs";
 import ViteSourceMapUploader from "./scripts/sourceMaps/ViteSourceMapUploader.mjs";
 
 const { getBuiltInVariables, dynamicModules } = env;
 if (!process.env.VITE_ENVIRONMENT) process.env.VITE_ENVIRONMENT = "next";
 
-const isProduction =
-	process.env.PRODUCTION === "true" &&
-	process.env.CI_COMMIT_BRANCH !== "develop" &&
-	process.env.CI_PIPELINE_SOURCE !== "merge_request_event";
+const isProduction = isProductionFunc();
 
 const ipv4 = networkInterfaces()?.en0?.[1]?.address ?? "localhost";
 
@@ -114,7 +112,7 @@ export default (): UserConfig => ({
 	server: {
 		sourcemapIgnoreList: (path) => path.includes("node_modules"),
 		open: false,
-		host: "localhost",
+		host: "0.0.0.0",
 		port: Number(process.env.PORT) || 5173,
 		strictPort: true,
 		hmr: {

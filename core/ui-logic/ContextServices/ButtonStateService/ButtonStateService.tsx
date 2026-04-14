@@ -1,6 +1,6 @@
-import { Editor } from "@tiptap/core";
-import { createContext, ReactElement, ReactNode } from "react";
-import { ActionContextValue, NodeValues } from "./hooks/types";
+import type { Editor } from "@tiptap/core";
+import { createContext, type ReactElement, type ReactNode } from "react";
+import type { ActionContextValue, NodeValues } from "./hooks/types";
 import useCurrentAction from "./hooks/useCurrentAction";
 import useType from "./hooks/useType";
 

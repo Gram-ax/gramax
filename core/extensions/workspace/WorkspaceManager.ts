@@ -109,7 +109,7 @@ export default class WorkspaceManager {
 			path,
 			config: init,
 			assets: this.getWorkspaceAssets(path),
-			onInit: this._onInit,
+			onInit: (workspace) => this._onInit?.(workspace),
 		});
 
 		this._current.events.on("catalog-changed", (catalog) => {

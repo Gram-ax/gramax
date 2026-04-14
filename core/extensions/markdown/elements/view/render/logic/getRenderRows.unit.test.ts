@@ -1,5 +1,5 @@
 import getRenderRows from "@ext/markdown/elements/view/render/logic/getRenderRows";
-import { ViewRenderGroup } from "@ext/properties/models";
+import type { ViewRenderGroup } from "@ext/properties/models";
 
 describe("GetRenderRows", () => {
 	test("many", () => {

@@ -1,5 +1,5 @@
-import ClientPermissions from "@ext/security/logic/Permission/model/ClientPermissions";
-import User from "@ext/security/logic/User/User";
+import type ClientPermissions from "@ext/security/logic/Permission/model/ClientPermissions";
+import type User from "@ext/security/logic/User/User";
 
 const getClientPermissions = (user: User): string => {
 	const clientPermissions: ClientPermissions = {

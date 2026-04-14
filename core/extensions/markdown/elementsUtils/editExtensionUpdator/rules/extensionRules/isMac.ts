@@ -1,4 +1,4 @@
-import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
+import type ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const isMacInfoRule = (isMac: boolean): ExtensionUpdaterRules => {
 	const filterNames = ["selectionMenu"];

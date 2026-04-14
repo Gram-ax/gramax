@@ -1,9 +1,9 @@
 import DiagramType from "@core/components/Diagram/DiagramType";
-import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { pdfDiagramRenderer } from "@ext/markdown/elements/diagrams/pdf/pdfDiagramRenderer";
 import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { ContentStack } from "pdfmake/interfaces";
+import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { ContentStack } from "pdfmake/interfaces";
 
 export async function plantUmlHandler(
 	node: Tag,

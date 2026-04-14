@@ -2,14 +2,14 @@
 
 import haveConflictWithFileDelete from "@ext/git/actions/MergeConflictHandler/logic/haveConflictWithFileDelete";
 import { MergeConflictParser } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
-import GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import type Repository from "@ext/git/core/Repository/Repository";
 import type { RepositoryState } from "@ext/git/core/Repository/state/RepositoryState";
-import FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
+import type FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../../logic/FileProvider/Path/Path";
-import FileStructure from "../../../../../logic/FileStructue/FileStructure";
-import { GitMergeResultContent } from "../../../actions/MergeConflictHandler/model/GitMergeResultContent";
+import type FileStructure from "../../../../../logic/FileStructue/FileStructure";
+import type { GitMergeResultContent } from "../../../actions/MergeConflictHandler/model/GitMergeResultContent";
 
 export default class GitBaseConflictResolver {
 	constructor(

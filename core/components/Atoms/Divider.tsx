@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import type { CSSProperties } from "react";
 
 const Divider = ({ style, className }: { style?: CSSProperties; className?: string }) => {
 	return (

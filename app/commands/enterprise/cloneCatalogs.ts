@@ -1,9 +1,9 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import UserSettings from "@ext/enterprise/types/UserSettings";
+import type UserSettings from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import { Command } from "../../types/Command";
 

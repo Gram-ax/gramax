@@ -1,4 +1,4 @@
-import { Mark } from "@tiptap/pm/model";
+import type { Mark } from "@tiptap/pm/model";
 import { getHref } from "./getHref";
 
 const createMockMark = (attrs: Record<string, any>): Mark => {

@@ -2,8 +2,8 @@ import styled from "@emotion/styled";
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import t, { tString } from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
-import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
-import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
+import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
+import { type ColumnDef, useTableSelection } from "@ui-kit/DataTable";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
 import { Switch } from "ics-ui-kit/components/switch";
 

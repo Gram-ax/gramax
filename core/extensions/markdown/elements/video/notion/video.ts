@@ -1,5 +1,5 @@
-import NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
-import { JSONContent } from "@tiptap/core";
+import type NotionNodeConverter from "@ext/notion/model/NotionNodeConverter";
+import type { JSONContent } from "@tiptap/core";
 
 const video: NotionNodeConverter = async (videoNode, ctx) => {
 	const fileLink = videoNode?.video[videoNode?.video?.type]?.url;

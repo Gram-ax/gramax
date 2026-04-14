@@ -1,7 +1,7 @@
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import { FeatureIcon as FeatureIconComponent } from "ics-ui-kit/components/icon";
-import { FC } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { FC } from "react";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 export type FeatureIconProps = Omit<ExtractComponentGeneric<typeof FeatureIconComponent>, "icon"> & {
 	icon: string;

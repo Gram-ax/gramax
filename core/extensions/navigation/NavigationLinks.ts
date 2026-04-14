@@ -1,6 +1,6 @@
-import Style from "@components/HomePage/Cards/model/Style";
-import { ItemType } from "@core/FileStructue/Item/ItemType";
-import { ClientItemRef } from "@core/SitePresenter/SitePresenter";
+import type Style from "@components/HomePage/Cards/model/Style";
+import type { ItemType } from "@core/FileStructue/Item/ItemType";
+import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 
 export interface CatalogLink extends BaseLink {

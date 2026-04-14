@@ -4,7 +4,7 @@ import { useRouter } from "@core/Api/useRouter";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import CloneWithShareData from "@ext/catalog/actions/share/components/CloneWithShareData";
-import ShareData from "@ext/catalog/actions/share/model/ShareData";
+import type ShareData from "@ext/catalog/actions/share/model/ShareData";
 import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import t from "@ext/localization/locale/translate";

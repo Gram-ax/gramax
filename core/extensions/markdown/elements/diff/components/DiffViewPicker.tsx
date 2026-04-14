@@ -2,7 +2,7 @@ import ButtonLayout from "@components/Layouts/ButtonLayout";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import Button from "@ext/markdown/core/edit/components/Menu/Button";
-import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
+import type { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 
 interface DiffViewPickerProps {
 	currentMode: DiffViewMode;

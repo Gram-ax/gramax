@@ -1,10 +1,10 @@
 import { useCatalogActionsContext } from "@components/Actions/CatalogActions/CatalogActionsContext";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import CatalogMoveAction, {
-	CatalogMoveActionRenderProps,
+	type CatalogMoveActionRenderProps,
 } from "@ext/catalog/actions/move/components/CatalogMoveAction";
 import SelectTargetWorkspace from "@ext/catalog/actions/move/components/SelectTargetWorkspace";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface CatalogMoveItemProps {
 	children?: (props: CatalogMoveActionRenderProps) => ReactNode;

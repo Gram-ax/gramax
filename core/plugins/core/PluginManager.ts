@@ -1,9 +1,9 @@
 import type { PluginProps } from "@gramax/sdk";
-import { Plugin } from "@plugins/api/sdk";
+import type { Plugin } from "@plugins/api/sdk";
 import { EsModuleShimsLoader } from "@plugins/core/EsModuleShimsLoader";
 import { PluginContainer, ServiceKey } from "@plugins/core/PluginContainer";
 import { SdkDependencyLoader } from "@plugins/core/SdkDependencyLoader";
-import { PluginMetadata } from "@plugins/types";
+import type { PluginMetadata } from "@plugins/types";
 
 export type RawPluginsType = {
 	metadata: PluginMetadata;

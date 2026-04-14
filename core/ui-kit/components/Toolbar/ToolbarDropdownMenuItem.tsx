@@ -1,7 +1,7 @@
 import { DropdownMenuItem } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { forwardRef } from "react";
-import { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
+import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type DropdownMenuItemProps = ExtractComponentGeneric<typeof DropdownMenuItem>;
 

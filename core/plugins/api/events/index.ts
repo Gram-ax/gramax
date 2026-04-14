@@ -1,5 +1,4 @@
-import type PageDataContext from "@core/Context/PageDataContext";
-import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import type {
 	PluginEventMap,
 	PluginEventName,
@@ -10,17 +9,14 @@ import type {
 import { ServiceKey } from "@plugins/core/PluginContainer";
 import { getPluginIsReady } from "@plugins/store";
 import { PluginStore } from "@plugins/store/PluginStore";
+import type { GramaxData } from "apps/browser/src/Gramax";
 import type React from "react";
 import { useEffect, useRef } from "react";
 
 type EventPayload<E extends PluginEventName> = Parameters<PluginEventMap[E]>[0];
 
 type EventInputMap = {
-	"app:open": {
-		data: HomePageData | ArticlePageData;
-		context: PageDataContext;
-		path: string;
-	};
+	"app:open": GramaxData;
 	"app:close": undefined;
 	"article:open": { data: ArticlePageData };
 	"article:close": undefined;

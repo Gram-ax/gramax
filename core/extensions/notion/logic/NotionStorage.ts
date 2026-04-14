@@ -1,7 +1,7 @@
 import { CATEGORY_ROOT_FILENAME, DOC_ROOT_FILENAME } from "@app/config/const";
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import FileStructure from "@core/FileStructue/FileStructure";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import { uniqueName } from "@core/utils/uniqueName";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
 import t from "@ext/localization/locale/translate";
@@ -11,19 +11,19 @@ import { databaseView } from "@ext/markdown/elements/view/notion/databaseView";
 import NotionAPI from "@ext/notion/api/NotionAPI";
 import NotionConverter from "@ext/notion/logic/NotionConverter";
 import { NotionPropertyManager } from "@ext/notion/logic/NotionPropertyManager";
-import NotionImportData from "@ext/notion/model/NotionImportData";
+import type NotionImportData from "@ext/notion/model/NotionImportData";
 import type NotionSourceData from "@ext/notion/model/NotionSourceData";
 import {
-	NotionBlock,
-	NotionPage,
-	NotionProperty,
+	type NotionBlock,
+	type NotionPage,
+	type NotionProperty,
 	NotionPropertyTypes,
-	PageNode,
-	PathsMapValue,
+	type PageNode,
+	type PathsMapValue,
 } from "@ext/notion/model/NotionTypes";
-import { PropertyValue } from "@ext/properties/models";
+import type { PropertyValue } from "@ext/properties/models";
 import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
-import { JSONContent } from "@tiptap/core";
+import type { JSONContent } from "@tiptap/core";
 import * as yaml from "js-yaml";
 
 export default class NotionStorage {

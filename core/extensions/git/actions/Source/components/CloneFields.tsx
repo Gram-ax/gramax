@@ -1,17 +1,17 @@
 import Date from "@components/Atoms/Date";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import useWatch from "@core-ui/hooks/useWatch";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
-import GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
+import type GitPaginatedProjectList from "@ext/git/actions/Source/Git/logic/GitPaginatedProjectList";
+import type GitRepsModelState from "@ext/git/actions/Source/Git/model/GitRepsModelState";
 import t from "@ext/localization/locale/translate";
-import { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
-import { useMediaQuery } from "@mui/material";
-import { LazySearchSelect, RenderOptionProps } from "@ui-kit/LazySearchSelect";
+import type { SelectFormSchemaType } from "@ext/storage/logic/SourceDataProvider/model/SelectSourceFormSchema";
+import { LazySearchSelect, type RenderOptionProps } from "@ui-kit/LazySearchSelect";
 import { TextOverflowTooltip } from "@ui-kit/Tooltip";
 import { useEffect, useRef, useState } from "react";
-import { ControllerRenderProps, FieldValues, UseFormReturn } from "react-hook-form";
-import GitSourceData from "../../../core/model/GitSourceData.schema";
+import type { ControllerRenderProps, FieldValues, UseFormReturn } from "react-hook-form";
+import type GitSourceData from "../../../core/model/GitSourceData.schema";
 
 interface CloneFieldsProps extends ControllerRenderProps<FieldValues, string> {
 	source: GitSourceData;

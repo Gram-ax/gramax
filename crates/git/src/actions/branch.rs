@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::ops::Deref;
 
-use futures::future::ok;
 use git2::*;
 use serde::Serialize;
 

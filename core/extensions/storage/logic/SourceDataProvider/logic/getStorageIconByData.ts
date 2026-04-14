@@ -1,5 +1,5 @@
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 export const STORAGE_GET_ICON: { [type in SourceType]: string } = {
 	Git: "git-branch",

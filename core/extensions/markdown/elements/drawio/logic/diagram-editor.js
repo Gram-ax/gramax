@@ -66,6 +66,35 @@ DiagramEditor.prototype.stopEditing = function () {
 	}
 };
 
+DiagramEditor.prototype.exitEditing = function () {
+	if (this.frame == null) return;
+
+	if (this.format != "xml" && this.xml != null) {
+		this.postMessage({
+			action: "export",
+			format: this.format,
+			xml: this.xml,
+			spinKey: "export",
+		});
+	} else {
+		this.stopEditing();
+	}
+};
+
+DiagramEditor.prototype.hideFrame = function () {
+	if (this.frame != null) {
+		this.frame.style.zIndex = "1";
+		this.frame.style.pointerEvents = "none";
+	}
+};
+
+DiagramEditor.prototype.showFrame = function () {
+	if (this.frame != null) {
+		this.frame.style.zIndex = "999";
+		this.frame.style.pointerEvents = "";
+	}
+};
+
 DiagramEditor.prototype.saveCallBack = null;
 /**
  * Global configuration.

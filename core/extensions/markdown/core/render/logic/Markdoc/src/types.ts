@@ -1,18 +1,18 @@
-import BaseStateBlock from "markdown-it/lib/rules_block/state_block";
-import { Delimiter } from "markdown-it/lib/rules_inline/state_inline";
-import BaseToken from "markdown-it/lib/token";
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+import type BaseStateBlock from "markdown-it/lib/rules_block/state_block";
+import type { Delimiter } from "markdown-it/lib/rules_inline/state_inline";
+import type BaseToken from "markdown-it/lib/token";
 import type Func from "./ast/function";
 import type Node from "./ast/node";
 import type Tag from "./ast/tag";
 
-export type { Node, Tag };
 export declare type Function = Func;
 
-export class StateBlock extends BaseStateBlock {
+export declare class StateBlock extends BaseStateBlock {
 	delimiters?: Delimiter[];
 }
 
-export class Token extends BaseToken {
+export declare class Token extends BaseToken {
 	errors?: ValidationError[];
 	position?: {
 		start?: number;

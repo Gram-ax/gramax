@@ -1,9 +1,9 @@
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import PathnameData from "@core/RouterPath/model/PathnameData";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type PathnameData from "@core/RouterPath/model/PathnameData";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import GitStorage from "@ext/git/core/GitStorage/GitStorage";
+import type GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
-import Storage from "@ext/storage/logic/Storage";
+import type Storage from "@ext/storage/logic/Storage";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 
 export enum PageDataType {
@@ -21,7 +21,7 @@ const getPageDataByPathname = async (
 	if (RouterPathProvider.isLocal(pathnameData)) {
 		if (await wm.getCatalogOrFindAtAnyWorkspace(pathnameData.catalogName))
 			return { type: PageDataType.article, itemLogicPath: pathnameData.itemLogicPath };
-		else return { type: PageDataType.notFound };
+		return { type: PageDataType.notFound };
 	}
 	if (!RouterPathProvider.validate(pathnameData)) return { type: PageDataType.notFound };
 
@@ -44,14 +44,15 @@ const getPageDataByPathname = async (
 	const isGit = isGitSourceType(await storage.getType());
 	if (await isDataReal(isGit, storage, pathnameData)) {
 		return { type: PageDataType.article, itemLogicPath };
-	} else return { type: PageDataType.notFound };
+	}
+	return { type: PageDataType.notFound };
 };
 
 const isDataReal = async (isGit: boolean, storage: Storage, pathnameData: PathnameData) => {
 	return (
 		(await storage.getSourceName()) === pathnameData.sourceName &&
 		(isGit ? (await (storage as GitStorage).getGroup()) === pathnameData.group : true) &&
-		(await storage.getName()) == pathnameData.repo
+		(await storage.getName()) === pathnameData.repo
 	);
 };
 

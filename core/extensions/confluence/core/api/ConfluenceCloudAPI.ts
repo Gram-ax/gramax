@@ -1,13 +1,13 @@
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
-import { ConfluenceInstance, Space, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
-import ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
-import { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
-import ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
-import { SourceUser } from "@ext/git/actions/Source/SourceAPI";
+import type ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
+import type { ConfluenceInstance, Space, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
+import type ConfluenceAttachment from "@ext/confluence/core/api/model/ConfluenceAttachment";
+import type ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
+import type { ConfluenceArticle } from "@ext/confluence/core/model/ConfluenceArticle";
+import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";
+import type { SourceUser } from "@ext/git/actions/Source/SourceAPI";
 import t from "@ext/localization/locale/translate";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 

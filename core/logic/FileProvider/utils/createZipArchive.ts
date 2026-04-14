@@ -1,7 +1,7 @@
 import assert from "assert";
 import type { default as JSZipType } from "jszip";
-import FileProvider from "../../FileProvider/model/FileProvider";
-import Path from "../../FileProvider/Path/Path";
+import type FileProvider from "../../FileProvider/model/FileProvider";
+import type Path from "../../FileProvider/Path/Path";
 
 export async function createZipArchive(fp: FileProvider, directoryPath: Path): Promise<Uint8Array> {
 	const JSZip = await import("jszip");

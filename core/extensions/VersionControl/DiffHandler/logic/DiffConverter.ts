@@ -1,6 +1,6 @@
-import { DiffHunk } from "../model/DiffHunk";
-import { VersionControlDiff } from "../model/VersionControlDiff";
-import { VersionControlRange } from "../model/VersionControlRange";
+import type { DiffHunk } from "../model/DiffHunk";
+import type { VersionControlDiff } from "../model/VersionControlDiff";
+import type { VersionControlRange } from "../model/VersionControlRange";
 
 const getChanges = (content: string, diffs: VersionControlDiff[]): DiffHunk[] => {
 	const ranges = splitRanges(diffs.map((diff) => diff.range));

@@ -1,12 +1,12 @@
-import { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import isSafari from "@core-ui/utils/isSafari";
 import styled from "@emotion/styled";
 import NavigationEventsService from "@ext/navigation/NavigationEvents";
 import { useCallback, useEffect } from "react";
 import { PAGE_HEIGHT_PDF, PAGE_WIDTH_PDF } from "../const";
-import { PdfExportProgress, PdfPrintParams } from "../types";
+import type { PdfExportProgress, PdfPrintParams } from "../types";
 import { usePaginationTask } from "./hooks/usePaginationTask";
 import PrintPages from "./PrintPages";
 

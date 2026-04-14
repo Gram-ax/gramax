@@ -14,6 +14,7 @@ import BulletList from "@ext/markdown/elements/list/render/BulletList";
 import OrderList from "@ext/markdown/elements/list/render/OrderList";
 import ReadonlyListItem from "@ext/markdown/elements/list/render/ReadonlyListItem";
 import { Question } from "@ext/markdown/elements/question/render/components/Question";
+import TableCell from "@ext/markdown/elements/table/render/components/TableCell";
 import Unsupported from "@ext/markdown/elements/unsupported/render/component/Unsupported";
 import View from "@ext/markdown/elements/view/render/components/View";
 import type { ReactNode } from "react";
@@ -38,7 +39,7 @@ import Note from "../../../../elements/note/render/component/Note";
 import OpenApi from "../../../../elements/openApi/render/OpenApi";
 import See from "../../../../elements/see/render/See";
 import Snippet from "../../../../elements/snippet/render/components/Snippet";
-import Table from "../../../../elements/table/render/component/Table";
+import Table from "../../../../elements/table/render/components/Table";
 import DbTable from "../../../../elements/tabledb/render/DbTable";
 import Tab from "../../../../elements/tabs/render/component/Tab";
 import Tabs from "../../../../elements/tabs/render/component/Tabs";
@@ -107,6 +108,7 @@ export default function getComponents(): { [name: string]: (...props: any) => Re
 		"Db-diagram": DbDiagram,
 		Mermaid: getDiagramRender(DiagramType.mermaid),
 		"Plant-uml": getDiagramRender(DiagramType["plant-uml"]),
+		tableCell: TableCell,
 	};
 }
 

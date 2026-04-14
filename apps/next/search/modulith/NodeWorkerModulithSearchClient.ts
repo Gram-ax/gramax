@@ -12,13 +12,13 @@ export class NodeWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 
 	static async create(options: WorkerModulithSearchClientBaseOptions): Promise<NodeWorkerModulithSearchClient> {
 		const client = new NodeWorkerModulithSearchClient(options);
-		await client._init();
+		await client.init();
 		return client;
 	}
 
-	protected _createWorker(): SearchWorker {
+	protected override createWorker(): SearchWorker {
 		const worker = new NodeWorker(new URL("./modulithSearch.node.worker", import.meta.url));
-		worker.on("message", (data) => this._handleMessage(data));
+		worker.on("message", (data) => this.handleMessage(data));
 		return {
 			postMessage: worker.postMessage.bind(worker),
 			terminate: async () => {

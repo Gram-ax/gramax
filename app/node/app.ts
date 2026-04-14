@@ -16,6 +16,8 @@ import YamlFileConfig from "@core/utils/YamlFileConfig";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
 import { Encoder } from "@ext/Encoder/Encoder";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
+import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
+import MergeNotificationHandler from "@ext/enterprise/notifications/MergeNotificationHandler";
 import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import HtmlParser from "@ext/html/HtmlParser";
@@ -23,7 +25,7 @@ import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import type Logger from "@ext/loggers/Logger";
 import { LogLevel } from "@ext/loggers/Logger";
-import { registerOtel } from "@ext/loggers/opentelemetry";
+import { registerOtel } from "@ext/loggers/opentelemetry/registerOtel";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
@@ -64,6 +66,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const rp = new RepositoryProvider(config);
 
 	const templateEventHandlers: FSTemplateEvents = new FSTemplateEvents();
+	const parser = new MarkdownParser();
+	const formatter = new MarkdownFormatter();
+	const tablesManager = new TableDB(parser);
+	const parserContextFactory = new ParserContextFactory(config.paths.base, tablesManager, parser, formatter, rp);
 
 	const wm = new WorkspaceManager(
 		(path) => MountFileProvider.fromDefault(new Path(path), watcher),
@@ -72,11 +78,18 @@ const _init = async (config: AppConfig): Promise<Application> => {
 			new RepositoryProviderEventHandlers(fs, rp).mount();
 			templateEventHandlers.mount(fs);
 		},
-		() => {},
+		(workspace) => {
+			if (workspace instanceof EnterpriseWorkspace) {
+				return [new MergeNotificationHandler(workspace, parser, parserContextFactory)];
+			}
+			return [];
+		},
 		rp,
 		config,
 		YamlFileConfig.dummy(),
 	);
+	tablesManager.mountWorkspaceManager(wm); // TODO: remove
+	parserContextFactory.mountWorkspaceManager(wm); // TODO: remove
 
 	const sdp = new SourceDataProvider(wm);
 	rp.addSourceDataProvider(sdp);
@@ -87,23 +100,16 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const workspace = await wm.addWorkspace(config.paths.root.value, {
 		name: "Gramax",
 		icon: "layers",
-		enterprise: enterpriseConfig.gesUrl ? { ...enterpriseConfig, lastUpdateDate: Date.now() } : {},
+		enterprise: enterpriseConfig.gesUrl ? { ...enterpriseConfig, lastUpdateDate: 0 } : {},
 	});
 	await wm.setWorkspace(workspace);
-
-	const formatter = new MarkdownFormatter();
 
 	const encoder = new Encoder();
 
 	const ticketManager = new TicketManager(encoder, config.tokens.share);
 
-	const parser = new MarkdownParser();
-
 	const hashes = new HashItemProvider();
-	const tablesManager = new TableDB(parser, wm);
 	const customArticlePresenter = new CustomArticlePresenter();
-
-	const parserContextFactory = new ParserContextFactory(config.paths.base, wm, tablesManager, parser, formatter, rp);
 	const htmlParser = new HtmlParser(parser, parserContextFactory);
 
 	templateEventHandlers.withParser(parser, formatter, parserContextFactory);
@@ -111,14 +117,11 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const vur: VideoUrlRepository = null;
 
 	const tm = new ThemeManager();
-	const am: AuthManager = new ServerAuthManager(
-		enterpriseConfig?.gesUrl
-			? new EnterpriseAuth(enterpriseConfig, () => wm.current(), config.paths.base)
-			: new EnvAuth(config.paths.base, config.admin.login, config.admin.password),
-		ticketManager,
-		enterpriseConfig,
-	);
-	const contextFactory = new ContextFactory(tm, config.tokens.cookie, config.isReadOnly, am);
+	const ap = enterpriseConfig?.gesUrl
+		? new EnterpriseAuth(config.paths.base, em, () => wm.current())
+		: new EnvAuth(config.paths.base, config.admin.login, config.admin.password);
+	const am: AuthManager = new ServerAuthManager(em, ap, ticketManager);
+	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am);
 	const sitePresenterFactory = new SitePresenterFactory(
 		wm,
 		parser,

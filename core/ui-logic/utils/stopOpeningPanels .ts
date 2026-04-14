@@ -1,5 +1,5 @@
 import { LEFT_NAV_CLASS, RIGHT_NAV_CLASS } from "@app/config/const";
-import { EditorView } from "prosemirror-view";
+import type { EditorView } from "prosemirror-view";
 import debounceFunction from "../debounceFunction";
 
 export default (id: symbol, view: EditorView, excludeManySelection: boolean = false) => {

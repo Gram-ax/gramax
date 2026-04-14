@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: access private attributes */
 import { initBackendModules } from "@app/resolveModule/backend";
 import { DOMParser } from "@xmldom/xmldom";
 import * as JSZip from "jszip";
@@ -89,7 +90,14 @@ describe("TemplateProcessor private methods", () => {
 
 		const zip = await createZip({ "word/document.xml": documentXml });
 		const processor = new TemplateProcessor(Buffer.from(""), []);
-		await (processor as any)._cleanTablePropertiesInZip(zip);
+		const originalNode = global.Node;
+
+		try {
+			Reflect.deleteProperty(global, "Node");
+			await (processor as any)._cleanTablePropertiesInZip(zip);
+		} finally {
+			global.Node = originalNode;
+		}
 
 		const updatedDoc = await zip.file("word/document.xml").async("text");
 		expect(updatedDoc).not.toContain("tblCellSpacing");

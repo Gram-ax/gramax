@@ -70,7 +70,6 @@ const AppContext = () => {
 	}, [path, setLocation, query]);
 
 	if (typeof window !== "undefined") {
-		// biome-ignore lint/correctness/useHookAtTopLevel: its ok
 		window.navigateTo = useCallback(
 			(url: string) => {
 				window.resetIsFirstLoad();

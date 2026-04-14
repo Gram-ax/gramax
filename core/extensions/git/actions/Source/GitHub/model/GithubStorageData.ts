@@ -1,4 +1,4 @@
-import GitStorageData from "@ext/git/core/model/GitStorageData";
+import type GitStorageData from "@ext/git/core/model/GitStorageData";
 
 export const GithubUserType = {
 	Organization: "Organization",

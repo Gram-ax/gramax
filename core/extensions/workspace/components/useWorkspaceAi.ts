@@ -1,7 +1,7 @@
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import { AiServerConfig } from "@ext/ai/models/types";
-import { MutableRefObject, useCallback, useRef, useState } from "react";
+import type { AiServerConfig } from "@ext/ai/models/types";
+import { type MutableRefObject, useCallback, useRef, useState } from "react";
 
 const debounce = <T>(
 	callback: () => Promise<T>,

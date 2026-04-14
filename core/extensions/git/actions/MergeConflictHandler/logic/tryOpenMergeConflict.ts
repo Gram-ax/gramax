@@ -1,7 +1,7 @@
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
-import { ComponentProps } from "react";
+import type MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
+import type { ComponentProps } from "react";
 
 type MergeConflictConfirmProps = ComponentProps<typeof MergeConflictConfirm>;
 

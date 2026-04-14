@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import React, { DependencyList, useEffect, useState } from "react";
+import React, { type DependencyList, useEffect, useState } from "react";
 import Icon from "./Icon";
 
 function insertPlainText(text) {

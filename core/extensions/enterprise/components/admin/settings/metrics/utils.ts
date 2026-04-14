@@ -3,16 +3,6 @@ import t from "@ext/localization/locale/translate";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 
-export const DEFAULT_CHART_COLORS = {
-	views: "#60A5FA",
-	visits: "#A78BFA",
-	visitors: "#34D399",
-} as const;
-
-export const getChartColors = (): { views: string; visits: string; visitors: string } => {
-	return DEFAULT_CHART_COLORS;
-};
-
 export type PresetInterval = "day" | "yesterday" | "thisWeek" | "week" | "last28Days" | "month" | "lastMonth" | "year";
 export type MetricsInterval = PresetInterval | "custom";
 

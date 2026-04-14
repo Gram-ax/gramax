@@ -1,6 +1,7 @@
 import DiagramType from "@core/components/Diagram/DiagramType";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
@@ -9,7 +10,6 @@ import getFormatterType from "@ext/markdown/core/edit/logic/Formatter/Formatters
 import DiagramsMenuButton from "@ext/markdown/elements/diagrams/edit/components/DiagramsMenuButton";
 import DrawioMenuButton from "@ext/markdown/elements/drawio/edit/components/DrawioMenuButton";
 import OpenApiMenuButton from "@ext/markdown/elements/openApi/edit/components/OpenApiMenuButton";
-import { useMediaQuery } from "@mui/material";
 import type { Editor } from "@tiptap/core";
 import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
 import { ComponentVariantProvider } from "@ui-kit/Providers";

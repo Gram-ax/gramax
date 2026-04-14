@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 const NextHead = ({ children }: { children: ReactNode }) => {
 	return <Head>{children}</Head>;

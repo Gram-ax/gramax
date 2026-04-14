@@ -1,6 +1,6 @@
 import { FileStatus } from "../../Watchers/model/FileStatus";
 import { getDiff, getLevenshteinMatching, getMatchingPercent } from "./DiffHandler";
-import { DiffHunk } from "./model/DiffHunk";
+import type { DiffHunk } from "./model/DiffHunk";
 
 describe("DiffHandler", () => {
 	describe("Finds differences between two files in", () => {

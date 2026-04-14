@@ -1,9 +1,9 @@
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { LinkMenu, type LinkMenuMode } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenu";
 import { useLinkMenuState } from "@ext/markdown/elements/link/edit/hooks/useLinkMenuState";
-import { useMediaQuery } from "@mui/material";
 import type { Editor } from "@tiptap/core";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
 import { useCallback, useEffect, useState } from "react";

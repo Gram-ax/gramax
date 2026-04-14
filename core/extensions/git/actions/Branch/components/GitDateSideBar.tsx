@@ -17,7 +17,7 @@ const DateComponent = ({ width, data, dateWidth = "auto" }: DateComponentProps) 
 	if (dateWidth === "wide") return <GitDateInfo data={data} />;
 	if (dateWidth === "narrow") return <SmallGitDateInfo data={data} />;
 	if (width > 350) return <GitDateInfo data={data} />;
-	else return <SmallGitDateInfo data={data} />;
+	return <SmallGitDateInfo data={data} />;
 };
 
 const MergeRequestIcon = () => {

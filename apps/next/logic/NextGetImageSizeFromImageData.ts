@@ -1,4 +1,4 @@
-import { ImageDimensions } from "@ext/wordExport/options/WordTypes";
+import type { ImageDimensions } from "@ext/wordExport/options/WordTypes";
 import sharp from "sharp";
 
 const getImageSizeFromImageData = async (

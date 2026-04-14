@@ -5,8 +5,7 @@ import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import LinkItemCreator from "@ext/article/LinkCreator/logic/LinkItemCreator";
 import type LinkItem from "@ext/article/LinkCreator/models/LinkItem";
-import ArticleProvider, { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
+import ArticleProvider, { type ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 
 const getLinkItems: Command<
 	{ ctx: Context; path: Path; catalogName: string; currentCatalogName: string; providerType: ArticleProviderType },

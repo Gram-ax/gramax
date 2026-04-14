@@ -1,9 +1,9 @@
 import Path from "@core/FileProvider/Path/Path";
 import { PDFImageExporter } from "@ext/markdown/elements/image/pdf/PdfImageProcessor";
 import { MAX_HEIGTH, MAX_WIDTH } from "@ext/pdfExport/config";
-import { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
-import { JSONContent } from "@tiptap/core";
-import { ContentImage } from "pdfmake/interfaces";
+import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { JSONContent } from "@tiptap/core";
+import type { ContentImage } from "pdfmake/interfaces";
 
 export async function inlineImageHandler(
 	node: JSONContent,

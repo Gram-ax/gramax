@@ -1,9 +1,9 @@
-import { RenderableTreeNode, RenderableTreeNodes, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import type { RenderableTreeNode, RenderableTreeNodes, Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import headingTransformer from "@ext/markdown/elements/heading/render/logic/headingTransformer";
 import HtmlTagComponentEditTreeToRenderTree from "@ext/markdown/elements/htmlTag/render/logic/HtmlTagComponentEditTreeToRenderTreeTransformer";
 import mdEditTreeToRenderTree from "@ext/markdown/elements/md/logic/mdEditTreeToRenderTree";
-import { JSONContent } from "@tiptap/core";
-import { Schema } from "@tiptap/pm/model";
+import type { JSONContent } from "@tiptap/core";
+import type { Schema } from "@tiptap/pm/model";
 
 type ComponentsNames = Record<string, string>;
 export type Child = JSONContent | Tag;
@@ -43,7 +43,6 @@ const getComponentNames = (): ComponentsNames => {
 		beta: "Beta",
 		when: "When",
 		horizontal_rule: "hr",
-		tableCell: "td",
 		tableRow: "tr",
 		tableHeader: "th",
 		tbody: "tbody",

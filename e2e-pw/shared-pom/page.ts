@@ -46,7 +46,7 @@ export default class BaseSharedPage {
 			while ((await loaders.count()) > 0) {
 				const all = await loaders.all();
 				await all.forEachAsync((l) => l.waitFor({ timeout: 60_000, state: "detached" }));
-				await sleep(200);
+				await sleep(500);
 			}
 			await sleep(waitAfter);
 		} catch (e) {

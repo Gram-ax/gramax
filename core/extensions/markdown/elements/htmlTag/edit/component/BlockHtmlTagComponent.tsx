@@ -1,5 +1,5 @@
 import HtmlTagComponent from "@ext/markdown/elements/htmlTag/edit/component/HtmlTagComponent";
-import { NodeViewProps, NodeViewWrapper } from "@tiptap/react";
+import { type NodeViewProps, NodeViewWrapper } from "@tiptap/react";
 
 const BlockHtmlTagComponent = ({ node }: NodeViewProps) => {
 	return (

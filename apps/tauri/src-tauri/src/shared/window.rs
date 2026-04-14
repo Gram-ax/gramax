@@ -37,6 +37,7 @@ impl MainWindowBuilder {
 			.zoom_hotkeys_enabled(false)
 			.disable_drag_drop_handler()
 			.initialization_script(crate::include_script!("add-window-close.js"))
+			.on_page_load(crate::platform::make_on_page_load_callback())
 			.on_navigation(crate::platform::make_on_navigate_callback(label.clone(), manager.app_handle().clone()));
 
 		#[cfg(not(target_os = "macos"))]

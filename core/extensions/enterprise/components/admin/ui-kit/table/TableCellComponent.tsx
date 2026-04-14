@@ -1,5 +1,5 @@
 import { cn } from "@core-ui/utils/cn";
-import { Cell, flexRender } from "@ui-kit/DataTable";
+import { type Cell, flexRender } from "@ui-kit/DataTable";
 import { TableCell } from "@ui-kit/Table";
 import { columnTdClassName, TABLE_COLUMN_CODE_DEFAULT } from "./TableComponent";
 

@@ -5,10 +5,10 @@ import SourceDataCtx, { type ProxiedSourceDataCtx } from "@ext/storage/logic/Sou
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import WorkspaceManager from "@ext/workspace/WorkspaceManager";
+import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import assert from "assert";
 import { Encoder } from "../../../../Encoder/Encoder";
-import SourceData from "../model/SourceData";
+import type SourceData from "../model/SourceData";
 
 export class SourceDataProvider {
 	protected secret = "UGnL8QMQqw";

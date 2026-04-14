@@ -1,7 +1,7 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
-import GitStorage from "@ext/git/core/GitStorage/GitStorage";
+import type Context from "@core/Context/Context";
+import type GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
 import assert from "assert";
 

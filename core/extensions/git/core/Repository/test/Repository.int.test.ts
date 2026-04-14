@@ -7,13 +7,11 @@ import Path from "@core/FileProvider/Path/Path";
 import GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
-import { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import type Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
 import FileRepository from "@ext/git/core/Repository/test/utils/FileRepository";
 import WorkdirRepository from "@ext/git/core/Repository/WorkdirRepository";
-import { TEST_GIT_FIXTURES_PATH } from "@ext/git/test/testGitFixturesPath";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import fs from "fs";
 
@@ -34,7 +32,7 @@ const mockUserData: SourceData = {
 const path = (path: string) => new Path(path);
 const repPath = (path: string) => new Path(["testRep", path]);
 
-let dfp = new DiskFileProvider(__dirname);
+const dfp = new DiskFileProvider(__dirname);
 
 let gvc: GitVersionControl;
 let rep: Repository;

@@ -1,4 +1,10 @@
-import { Node, RenderableTreeNodes, Schema, SchemaType, Tag } from "../../../../core/render/logic/Markdoc/index";
+import {
+	type Node,
+	type RenderableTreeNodes,
+	type Schema,
+	SchemaType,
+	Tag,
+} from "../../../../core/render/logic/Markdoc/index";
 import getVideoAttrs from "../../logic/getVideoAttrs";
 
 export const video: Schema = {

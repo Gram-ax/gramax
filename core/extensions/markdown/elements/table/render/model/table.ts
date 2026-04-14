@@ -1,4 +1,4 @@
-import { Schema, SchemaType, Tag } from "@ext/markdown/core/render/logic/Markdoc";
+import { type Schema, SchemaType, Tag } from "@ext/markdown/core/render/logic/Markdoc";
 
 export const thead: Schema = {
 	render: "thead",

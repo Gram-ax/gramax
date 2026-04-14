@@ -1,9 +1,9 @@
-import { EnterpriseConfig } from "@app/config/AppConfig";
+import type { EnterpriseConfig } from "@app/config/AppConfig";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
-import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
+import type EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import { configureWorkspacePermission, editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import User from "@ext/security/logic/User/User";
-import SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import type User from "@ext/security/logic/User/User";
+import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 
 export const initEnterpriseDocportalSource = async (
 	user: User,

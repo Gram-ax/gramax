@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 interface MediaAnimationProps {
 	isClosing: boolean;
@@ -9,11 +9,12 @@ interface MediaAnimationProps {
 
 const Container = styled.div`
 	position: absolute;
-	left: 50%;
-	top: 50%;
-	transform: translate(-50%, -50%);
-	z-index: var(--z-index-article-modal);
+	left: 0;
+	top: 0;
+	z-index: var(--z-index-ui-kit-modal);
 	user-select: none;
+	height: 100dvh;
+	width: 100dvw;
 `;
 
 export const MediaAnimation = (props: MediaAnimationProps) => {
@@ -22,11 +23,8 @@ export const MediaAnimation = (props: MediaAnimationProps) => {
 	const AnimatedDiv = styled.div`
 		animation: ${() => (!isClosing ? "open" : "close")} 200ms forwards;
 		position: relative;
-		width: fit-content;
-		height: fit-content;
-		display: flex;
-		justify-content: center;
-		align-items: center;
+		height: 100%;
+		width: 100%;
 
 		@keyframes open {
 			from {

@@ -5,7 +5,7 @@ import {
 	columnClassName,
 	type PluginTableRow,
 } from "@ext/enterprise/components/admin/settings/plugins/PluginPage/PluginsTableConfig";
-import { Page } from "@ext/enterprise/types/EnterpriseAdmin";
+import { Page } from "@ext/enterprise/types/Page";
 import { flexRender, type Table } from "@ui-kit/DataTable";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "ics-ui-kit/components/table";
 

@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import styled from "@emotion/styled";
-import { forwardRef, Ref } from "react";
+import { forwardRef, type Ref } from "react";
 
 interface DropdownButtonProps {
 	iconCode: string;

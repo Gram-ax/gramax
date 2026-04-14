@@ -1,5 +1,5 @@
-import ApiRequest from "../ApiRequest";
-import ApiResponse from "../ApiResponse";
+import type ApiRequest from "../ApiRequest";
+import type ApiResponse from "../ApiResponse";
 import Middleware from "./Middleware";
 
 export class DesktopModeMiddleware extends Middleware {
@@ -10,6 +10,6 @@ export class DesktopModeMiddleware extends Middleware {
 	Process(req: ApiRequest, res: ApiResponse): Promise<void> {
 		if (this._app.conf.isReadOnly) throw new Error("Not available in server mode");
 		if (!this._api) return this._next.Process(req, res);
-		else if (this._api(req, res)) return this._next.Process(req, res);
+		if (this._api(req, res)) return this._next.Process(req, res);
 	}
 }

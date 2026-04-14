@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 const HTMLCut = (props: { children?: React.ReactNode }) => <div data-component="cut">{props.children}</div>;
 

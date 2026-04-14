@@ -1,11 +1,11 @@
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import LogoUploader from "@ext/workspace/components/LogoUploader";
 import { FormField } from "@ui-kit/Form";
 import { useCallback, useMemo } from "react";
-import { UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
 import type { FormData, FormProps } from "../logic/createFormSchema";
 
 interface UploadCatalogLogoProps {
@@ -14,17 +14,8 @@ interface UploadCatalogLogoProps {
 }
 
 const UploadCatalogLogo = ({ formProps, form }: UploadCatalogLogoProps) => {
-	const {
-		deleteLightLogo,
-		deleteDarkLogo,
-		isLoadingDark,
-		isLoadingLight,
-		lightLogo,
-		darkLogo,
-		updateLightLogo,
-		updateDarkLogo,
-		refreshState,
-	} = CatalogLogoService.value();
+	const { deleteLightLogo, deleteDarkLogo, lightLogo, darkLogo, updateLightLogo, updateDarkLogo, refreshState } =
+		CatalogLogoService.value();
 
 	useWatchClient(() => {
 		void refreshState();
@@ -34,13 +25,13 @@ const UploadCatalogLogo = ({ formProps, form }: UploadCatalogLogoProps) => {
 		if (!lightLogo) return;
 
 		return { name: "logo_light.svg", url: lightLogo };
-	}, [isLoadingLight, lightLogo]);
+	}, [lightLogo]);
 
 	const defaultDarkFileInfo = useMemo(() => {
 		if (!darkLogo) return;
 
 		return { name: "logo_dark.svg", url: darkLogo };
-	}, [isLoadingDark, darkLogo]);
+	}, [darkLogo]);
 
 	const onError = useCallback(
 		(name: "logo.light" | "logo.dark", error: DefaultError) => {

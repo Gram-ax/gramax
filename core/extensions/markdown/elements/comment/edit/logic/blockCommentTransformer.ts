@@ -1,4 +1,5 @@
-import Token from "markdown-it/lib/token";
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
 
 const blockCommentTransformer = (tokens: Token[]) => {
 	for (let i = 0; i < tokens.length; i++) {
@@ -11,29 +12,27 @@ const blockCommentTransformer = (tokens: Token[]) => {
 			const nextToken = tokens?.[i + 1] as any;
 			if (!nextToken) continue;
 
-			if (!(nextToken instanceof Token)) {
-				if (!nextToken.attrs) nextToken.attrs = [];
-				nextToken.attrs.push(["comment", { id: commentId } as any]);
-				tokens.splice(i, 3, nextToken);
-
-				if (nextToken.meta?.attributes) {
-					nextToken.meta.attributes.push({
-						type: "attribute",
-						name: "comment",
-						value: { id: commentId },
-					});
-				}
-
-				continue;
-			}
-
-			if (!nextToken.meta.attributes) nextToken.meta.attributes = [];
-			nextToken.meta.attributes.push({
-				type: "attribute",
-				name: "comment",
-				value: { id: commentId },
-			});
+			// if (!(nextToken instanceof Token)) {
+			if (!nextToken.attrs) nextToken.attrs = [];
+			nextToken.attrs.push(["comment", { id: commentId } as any]);
 			tokens.splice(i, 3, nextToken);
+
+			if (nextToken.meta?.attributes) {
+				nextToken.meta.attributes.push({
+					type: "attribute",
+					name: "comment",
+					value: { id: commentId },
+				});
+			}
+			// }
+
+			// if (!nextToken.meta.attributes) nextToken.meta.attributes = [];
+			// nextToken.meta.attributes.push({
+			// 	type: "attribute",
+			// 	name: "comment",
+			// 	value: { id: commentId },
+			// });
+			// tokens.splice(i, 3, nextToken);
 		}
 	}
 

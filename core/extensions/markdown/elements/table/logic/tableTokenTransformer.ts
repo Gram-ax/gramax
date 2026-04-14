@@ -1,4 +1,4 @@
-import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
+import type TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 
 const tableTokenTransformer: TokenTransformerFunc = ({ token }) => {
 	if (token.tag) {

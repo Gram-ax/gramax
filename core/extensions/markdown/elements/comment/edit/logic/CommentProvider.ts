@@ -1,13 +1,18 @@
 import type Context from "@core/Context/Context";
 import type { Article } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import generateUniqueID from "@core/utils/generateUniqueID";
 import type { Comment, CommentBlock } from "@core-ui/CommentBlock";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { createPrivateParserContext } from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import CommentsCountCache from "@ext/markdown/elements/comment/edit/logic/CommentsCountCache";
+import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { JSONContent } from "@tiptap/core";
@@ -16,15 +21,20 @@ import * as yaml from "js-yaml";
 import type FileProvider from "../../../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 
-type CommentData = Record<string, { stringifiedData: CommentBlock<string>; parsedData: CommentBlock }>;
+export type CommentData = Record<string, { stringifiedData: CommentBlock<string>; parsedData: CommentBlock }>;
+export type PushArticleCommentFn = (value: string, key: string) => void;
 
 class CommentProvider {
 	private _assignedComments: Map<string, Set<string>> = new Map();
 	private _comments: Map<string, CommentData> = new Map();
-	constructor(private _fp: FileProvider) {}
+	private _commentCountCache: CommentsCountCache;
 
-	getFilePath(articlePath: Path) {
-		return new Path([articlePath.parentDirectoryPath.toString(), `${articlePath.name}.comments.yaml`]);
+	constructor(
+		private _fp: FileProvider,
+		fs: FileStructure,
+		private _catalog: Catalog,
+	) {
+		this._commentCountCache = new CommentsCountCache(_fp, fs, _catalog, this);
 	}
 
 	getNewCommentId(): string {
@@ -41,13 +51,12 @@ class CommentProvider {
 		return this._comments.get(articlePathString);
 	}
 
-	async getComment(id: string, articlePath: Path, context?: ParserContext): Promise<CommentBlock> {
+	async getComment(id: string, articlePath: Path, context?: ParserContext) {
 		const articlePathString = articlePath.value;
-		if (this._comments.has(articlePathString) && this._comments.get(articlePathString)?.[id]) {
-			return this._comments.get(articlePathString)[id]?.parsedData;
+		if ((!this._comments.has(articlePathString) || !this._comments.get(articlePathString)?.[id]) && context) {
+			await this._parseComments(articlePath, context);
 		}
 
-		await this._parseComments(articlePath, context);
 		return this._comments.get(articlePathString)?.[id]?.parsedData;
 	}
 
@@ -73,7 +82,9 @@ class CommentProvider {
 			Object.entries(allComments).map(([id, comment]) => [id, comment.stringifiedData]),
 		);
 		this._comments.set(articlePathString, allComments);
-		await this._write(articlePath, allStringifiedComments);
+
+		const newContent = await this._write(articlePath, allStringifiedComments);
+		await this._commentCountCache.updateArticle(articlePath, allComments, newContent);
 	}
 
 	async copyComment(
@@ -95,7 +106,6 @@ class CommentProvider {
 			copyArticle,
 			copyCatalog,
 			convertContentToUiLanguage(ctx.contentLanguage || copyCatalog.props.language),
-			ctx.user.isLogged,
 		);
 
 		await copyArticle.parsedContent.write(async () => await context.parser.parse(copyArticle.content, context));
@@ -111,7 +121,6 @@ class CommentProvider {
 			currentArticle,
 			currentCatalog,
 			convertContentToUiLanguage(ctx.contentLanguage || currentCatalog.props.language),
-			ctx.user.isLogged,
 		);
 
 		newComment = await this._processLinksInCommentContent(newComment, copyCatalog, context, currentContext);
@@ -136,11 +145,13 @@ class CommentProvider {
 			Object.entries(allComments).map(([id, comment]) => [id, comment.stringifiedData]),
 		);
 
-		if (Object.keys(allComments).length) await this._write(articlePath, allStringifiedComments);
+		let newContent: string;
+		if (Object.keys(allComments).length) newContent = await this._write(articlePath, allStringifiedComments);
 		else await this._delete(articlePath);
+		await this._commentCountCache.updateArticle(articlePath, allComments, newContent);
 	}
 
-	async parseCatalogCommenrs(
+	async parseCatalogComments(
 		articles: Article[],
 		getParserContextFromArticle: (article: Article) => Promise<ParserContext>,
 	) {
@@ -148,6 +159,103 @@ class CommentProvider {
 			const context = await getParserContextFromArticle(article);
 			await this._parseComments(article.ref.path, context);
 		});
+	}
+
+	async countCommentsRecursively(
+		editTree: JSONContent,
+		articlePath: Path,
+		pushArticleComment: PushArticleCommentFn,
+		parserContext?: ParserContext,
+	) {
+		const existedCommentIds = new Set<string>();
+
+		const countCommentsInTree = async (editTree: JSONContent) => {
+			if (!editTree) return;
+
+			const mark = editTree.marks?.find?.((m) => m.type === "comment");
+			const attrs = editTree.attrs;
+			const id = attrs?.comment?.id || mark?.attrs?.id;
+
+			if (id) {
+				const comment = await this.getComment(id, articlePath, parserContext);
+				if (!comment || existedCommentIds.has(id)) return;
+
+				const mail = comment.comment.user?.mail;
+				if (!mail) return;
+
+				pushArticleComment(mail, id);
+				existedCommentIds.add(id);
+			}
+
+			await editTree.content?.forEachAsync(countCommentsInTree);
+		};
+
+		await countCommentsInTree(editTree);
+	}
+
+	async getCommentsByAuthors(parser: MarkdownParser, parserContextFactory: ParserContextFactory, ctx: Context) {
+		const contextualCatalog = this._catalog.ctx(ctx);
+		const result: AuthoredCommentsByAuthor = {};
+		const currentCommentCache = await this._commentCountCache.getCommentsCache();
+		const articles = contextualCatalog.getContentItems();
+		const newCommentCache: Record<string, Map<string, string>> = {};
+		let needSaveCache = false;
+
+		const pushComment = (pathname: string, logicPath: string) => {
+			newCommentCache[logicPath] = new Map();
+
+			const pushArticleComment: PushArticleCommentFn = (mail, id) => {
+				if (!result[mail]) result[mail] = { total: 0, pathnames: {} };
+				if (!result[mail].pathnames[pathname]) result[mail].pathnames[pathname] = [];
+				if (result[mail].pathnames[pathname].every((commentId) => commentId !== id)) {
+					newCommentCache[logicPath].set(id, mail);
+					result[mail].total++;
+					result[mail].pathnames[pathname].push(id);
+				}
+			};
+			return pushArticleComment;
+		};
+
+		for (const article of articles) {
+			const articlePath = article.ref.path.value;
+			const pathname = await contextualCatalog.getPathname(article);
+			const pushArticleComment = pushComment(pathname, articlePath);
+
+			if (currentCommentCache?.has(articlePath)) {
+				const articleCache = currentCommentCache?.get(articlePath);
+				if (articleCache) {
+					articleCache.comments.forEach(pushArticleComment);
+					continue;
+				}
+			}
+			needSaveCache = true;
+			const parserContext = await parserContextFactory.fromArticle(
+				article,
+				contextualCatalog,
+				convertContentToUiLanguage(ctx.contentLanguage || contextualCatalog.props.language),
+			);
+
+			if (await article.parsedContent.isNull()) {
+				try {
+					const parsedContent = await parser.parse(article.content, parserContext);
+					await article.parsedContent.write(() => parsedContent);
+				} catch {
+					continue;
+				}
+			}
+
+			await article.parsedContent.read(async (p) => {
+				await this.countCommentsRecursively(p?.editTree, article.ref.path, pushArticleComment, parserContext);
+			});
+		}
+
+		if (needSaveCache) await this._commentCountCache.updateCatalog(newCommentCache);
+
+		return result;
+	}
+
+	getFilePath(articlePath: Path) {
+		return new Path([articlePath.parentDirectoryPath.toString(), `${articlePath.name}.comments.yaml`]);
 	}
 
 	private async _parse(strCommentBlock: CommentBlock<string>, context: ParserContext): Promise<CommentBlock> {
@@ -209,7 +317,9 @@ class CommentProvider {
 	}
 
 	private async _write(articlePath: Path, strCommentBlocks: Record<string, CommentBlock<string>>) {
-		await this._fp.write(this.getFilePath(articlePath), yaml.dump(strCommentBlocks));
+		const content = yaml.dump(strCommentBlocks);
+		await this._fp.write(this.getFilePath(articlePath), content);
+		return content;
 	}
 
 	private async _delete(articlePath: Path) {

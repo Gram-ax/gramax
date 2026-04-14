@@ -9,7 +9,7 @@ import { ApplyApiMiddleware } from "../../../logic/Api/ApplyMiddleware";
 export default ApplyApiMiddleware(
 	async function (req: ApiRequest, res: ApiResponse) {
 		const gesUrl = this.app.em.getConfig().gesUrl;
-		const ctx = await this.app.contextFactory.from({ req, res });
+		const ctx = await this.app.contextFactory.fromNode({ req, res });
 
 		if (gesUrl) {
 			const sourceDatas = this.app.rp.getSourceDatas(ctx, this.app.wm.current().path());

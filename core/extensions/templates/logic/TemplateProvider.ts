@@ -1,19 +1,19 @@
 import { TEMPLATES_DIRECTORY } from "@app/config/const";
-import Context from "@core/Context/Context";
-import FileProvider from "@core/FileProvider/model/FileProvider";
+import type Context from "@core/Context/Context";
+import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { Article, ArticleProps } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
-import ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
+import type { Article, ArticleProps } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import type ResourceUpdaterFactory from "@core/Resource/ResourceUpdaterFactory";
 import ArticleProvider from "@ext/articleProvider/logic/ArticleProvider";
-import { ItemID } from "@ext/articleProvider/models/types";
+import type { ItemID } from "@ext/articleProvider/models/types";
 import { convertContentToUiLanguage } from "@ext/localization/locale/translate";
-import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
-import MarkdownParser from "@ext/markdown/core/Parser/Parser";
-import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
-import { Property } from "@ext/properties/models";
-import { JSONContent } from "@tiptap/core";
+import type MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
+import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type { Property } from "@ext/properties/models";
+import type { JSONContent } from "@tiptap/core";
 import assert from "assert";
 
 declare module "@ext/articleProvider/logic/ArticleProvider" {
@@ -73,7 +73,6 @@ export default class TemplateProvider extends ArticleProvider {
 			article,
 			this._catalog,
 			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
-			ctx.user.isLogged,
 		);
 
 		const markdown = await formatter.render(editTree, context);
@@ -145,7 +144,6 @@ export default class TemplateProvider extends ArticleProvider {
 			article,
 			this._catalog,
 			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
-			ctx.user.isLogged,
 		);
 
 		const markdown = await formatter.render({ type: "doc", content }, context);
@@ -251,7 +249,6 @@ export default class TemplateProvider extends ArticleProvider {
 			template,
 			this._catalog,
 			convertContentToUiLanguage(ctx.contentLanguage || this._catalog.props.language),
-			ctx.user.isLogged,
 		);
 
 		const parsedContent = await parser.parse(template.content, parserContext);

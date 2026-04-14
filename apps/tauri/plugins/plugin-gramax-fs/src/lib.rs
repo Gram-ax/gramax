@@ -7,6 +7,7 @@ use tauri::http::Response;
 use tauri::plugin::Builder;
 use tauri::plugin::TauriPlugin;
 
+use gramaxfs::compress::CompressOptions;
 use gramaxfs::Result;
 use tauri::*;
 
@@ -39,8 +40,15 @@ fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>> {
 	Ok(std::fs::read(path)?)
 }
 
-fn write_file<P: AsRef<Path>>(path: P, content: &[u8]) -> Result<()> {
-	Ok(std::fs::write(path, content)?)
+fn write_file<P: AsRef<Path> + std::fmt::Debug>(path: P, content: &[u8], compress: Option<CompressOptions>) -> Result<()> {
+	gramaxfs::commands::write_file(path, content, compress)
+}
+
+fn parse_compress_query(uri: &http::Uri) -> Option<CompressOptions> {
+	let query = uri.query()?;
+	let compress_value = query.split('&').find_map(|pair| pair.strip_prefix("compress="))?;
+	let decoded = urlencoding::decode(compress_value).ok()?;
+	serde_json::from_str(&decoded).ok()
 }
 
 fn handle_req(req: Request<Vec<u8>>) -> Response<Vec<u8>> {
@@ -54,7 +62,10 @@ fn handle_req(req: Request<Vec<u8>>) -> Response<Vec<u8>> {
 
 	let res = match *req.method() {
 		Method::GET => read_file(path.as_ref()).into_response(),
-		Method::POST => write_file(path.as_ref(), req.body()).map(|_| vec![]).into_response(),
+		Method::POST => {
+			let compress = parse_compress_query(req.uri());
+			write_file(path.as_ref(), req.body(), compress).map(|_| vec![]).into_response()
+		}
 		_ => Response::builder()
 			.status(405)
 			.header("access-control-allow-origin", "*")

@@ -1,5 +1,5 @@
-import { DiffAstComment } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
-import { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
+import type { DiffAstComment } from "@ext/markdown/elements/diff/logic/commentsDiff/CommentsDiff";
+import type { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 
 export type Pos = { from: number; to: number };
 

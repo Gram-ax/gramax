@@ -1,7 +1,7 @@
 import Input from "@components/Atoms/Input";
 import t from "@ext/localization/locale/translate";
-import { Editor } from "@tiptap/core";
-import { ChangeEvent, FocusEvent, forwardRef, KeyboardEvent, RefObject } from "react";
+import type { Editor } from "@tiptap/core";
+import { type ChangeEvent, type FocusEvent, forwardRef, type KeyboardEvent, type RefObject } from "react";
 
 interface NoteHeadEditorProps {
 	editor: Editor;

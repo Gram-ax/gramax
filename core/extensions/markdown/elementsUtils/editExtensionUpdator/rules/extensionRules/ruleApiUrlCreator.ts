@@ -1,5 +1,5 @@
-import ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
-import ExtensionUpdaterRules from "../ExtensionUpdaterRules";
+import type ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
+import type ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const getApiUrlCreatorRule = (apiUrlCreator: ApiUrlCreator): ExtensionUpdaterRules => {
 	const filterNames = [

@@ -15,7 +15,7 @@ import { Indicator } from "@ui-kit/Indicator";
 import { MenuItem, MenuItemIcon, MenuItemIconButton, MenuItemText } from "@ui-kit/MenuItem";
 import { SelectItemIndicator, SelectItemText, SelectOption } from "@ui-kit/Select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { PointerEvent, useCallback, useState } from "react";
+import { type PointerEvent, useCallback, useState } from "react";
 
 interface CustomSelectOptionProps {
 	value: string;

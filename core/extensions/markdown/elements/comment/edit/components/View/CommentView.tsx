@@ -187,7 +187,11 @@ const CommentView = memo((props: CommentViewProps) => {
 	const getReferenceClientRect = useCallback(() => {
 		const position = editor.storage?.comment?.openedComment?.position;
 		if (!position) return { top: 0, left: 0, width: 0, height: 0 } as DOMRect;
-		return posToDOMRect(editor.view, position.from, position.to);
+
+		const node = editor.view.nodeDOM(position.from) as HTMLElement;
+		if (!node) return posToDOMRect(editor.view, position.from, position.to);
+
+		return node.firstElementChild?.getBoundingClientRect() ?? posToDOMRect(editor.view, position.from, position.to);
 	}, [editor]);
 
 	const onOutsideClick = useCallback(

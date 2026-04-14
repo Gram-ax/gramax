@@ -427,6 +427,7 @@ const locale: DefaultLocale = {
 		"clone-repo": {
 			name: "Загрузка Git-репозитория",
 			description: "Выберите хранилище или добавьте новое",
+			"enterprise-description": "Выберите репозиторий",
 			props: {
 				storage: {
 					name: "Хранилище",
@@ -470,6 +471,19 @@ const locale: DefaultLocale = {
 					placeholder: "Выберите тип источника",
 					description: "Некоторые опции доступны только в десктопной версии приложения",
 				},
+			},
+		},
+		"sign-in-ges-tauri": {
+			props: {
+				gesUrl: {
+					name: "URL сервера Gramax Enterprise",
+					placeholder: "https://enterprise.gram.ax",
+					description: "Укажите адрес вашего сервера Gramax Enterprise",
+				},
+			},
+			errors: {
+				urlIsNotValid: "URL не является валидным",
+				enterpriseServerIsNotAvailable: "По этому URL недоступен Gramax Enterprise Server",
 			},
 		},
 	},
@@ -769,7 +783,7 @@ const locale: DefaultLocale = {
 			parse: "Gramax не смог прочитать Markdown-конструкцию в файле статьи.\nКликните Редактировать Markdown, а затем исправьте ошибку или удалите конструкцию.",
 			"resource-too-large": {
 				title: "Не удалось добавить файл",
-				desc: "`Размер файла превышает {{maxSizeMb}}мб. Сожмите его, выберите файл поменьше или воспользуйтесь десктопной версией.`",
+				desc: "Размер файла превышает {{maxSizeMb}}мб. Сожмите его, выберите файл поменьше или воспользуйтесь десктопной версией.",
 			},
 			"not-found": {
 				title: "Статья не найдена",
@@ -941,6 +955,7 @@ title: Не удалось отобразить статью
 			"tabledb-not-found": "Таблица не найдена",
 			"wrong-name": "Неправильное имя диаграммы",
 			specification: "Не удалось отобразить спецификацию",
+			"content-empty": "Файл диаграммы пуст",
 			"mermaid-export-next-error": "Mermaid диаграмма будет выведена в виде контента диаграммы",
 		},
 	},
@@ -977,7 +992,7 @@ title: Не удалось отобразить статью
 			resendPasswordButton: "Отправить код повторно",
 			confirmButton: "Подтвердить",
 			resendPasswordButtonWithCooldown: "Отправить код повторно через {seconds} сек",
-			corporateLoginButton: "Корп. вход (SSO)",
+			corporateLoginButton: "Вход через SSO",
 		},
 		fields: {
 			emailLabel: "Email",
@@ -1059,6 +1074,8 @@ title: Не удалось отобразить статью
 	search: {
 		name: "Поиск",
 		open: "Открыть поиск",
+		"search-in-article": "Искать в этой статье",
+		"search-in-category": "Искать в этом разделе",
 		placeholder: "Введите запрос",
 		desc: `<ul><li>Для поиска точного совпадения используйте <code>"</code>. Например:&nbsp;<code><nobr>"слово"</nobr></code> или <code><nobr>"искомая фраза"</nobr></code>.</li><li>Для исключения из поиска используйте <code>-</code>. Например:&nbsp;<code><nobr>-слово</nobr></code> или <code><nobr>-"исключенная фраза"</nobr></code>.</li><li>Для обязательного наличия в поиске используйте <code>+</code>. Например:&nbsp;<code><nobr>+слово</nobr></code> или <code><nobr>+"обязательная фраза"</nobr></code>.</li></ul>`,
 		"articles-not-found": "Статей не найдено",
@@ -1076,6 +1093,14 @@ title: Не удалось отобразить статью
 			"with-resources": "С вложениями",
 			"without-resources": "Без вложений",
 			"only-resources": "Только во вложениях",
+			tooltip: "Поиск во вложениях",
+		},
+		"scope-filter": {
+			all: "По всем каталогам",
+			catalog: "В этом каталоге",
+			article: "В этой статье",
+			category: "В этом разделе",
+			tooltip: "Область поиска",
 		},
 	},
 	list: {
@@ -1101,13 +1126,13 @@ title: Не удалось отобразить статью
 	git: {
 		source: {
 			gitlab: {
-				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>.<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html'>Подробнее</a>`,
+				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>api</code>, <code>read_repository</code>, <code>write_repository</code>.`,
 			},
 			gitverse: {
-				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>Репозитории</code>, <code>Пользователи</code>.<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://gitverse.ru/docs/account-and-profile/tokens-uc/'>Подробнее</a>`,
+				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>Репозитории</code>, <code>Пользователи</code>.`,
 			},
 			gitea: {
-				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>repository</code>, <code>user</code> (Read and Write).<br><a style="color: hsl(201 96% 32%)" target='_blank' rel='noopener noreferrer' href='https://docs.gitea.com/development/oauth2-provider#scopes'>Подробнее</a>`,
+				info: `Токен для чтения и изменения репозиториев в хранилище. Укажите для токена права: <code>repository</code>, <code>user</code> (Read and Write).`,
 			},
 			error: {
 				"cannot-create-repo": "Не удалось создать репозиторий",
@@ -1518,6 +1543,8 @@ title: Не удалось отобразить статью
 	diff: {
 		"source-text": "Исходный текст",
 		"double-panel": "Двухпанельный режим",
+		"file-too-large-for-preview": "Файл превышает 1 МБ и не может быть отображён",
+		"unknown-extension": "Превью не поддерживается для данного типа файла",
 		type: {
 			added: "Добавлено",
 			modified: "Изменено",
@@ -1967,6 +1994,12 @@ title: Не удалось отобразить статью
 				"group-name-placeholder": "Введите название группы",
 				"name-error": "Название группы обязательно для заполнения",
 				"group-name-exists": "Группа с таким именем уже существует",
+				"delete-disabled-in-use": "Удаление недоступно: группа используется",
+				badges: {
+					sso: "SSO",
+					custom: "Пользовательская",
+					system: "Системная",
+				},
 				errors: {
 					add: "Не удалось добавить группу",
 					delete: "Не удалось удалить группы",
@@ -2012,6 +2045,19 @@ title: Не удалось отобразить статью
 				"workspace-code": "Код рабочего пространства",
 				"source-url": "URL источника (GitLab)",
 				"source-type": "Тип источника",
+				templates: {
+					title: "Шаблоны",
+					description:
+						"Загрузите сюда шаблоны в поддерживаемых форматах. При экспорте статьи из Gramax вы сможете выбрать один из них, чтобы автоматически оформить документ в вашем фирменном стиле.",
+					word: {
+						title: "Шаблоны Word",
+						description: "Поддерживаемые форматы: .doc, .docx, .docm, .dot, .dotx, .dotm.",
+					},
+					pdf: {
+						title: "Шаблоны PDF",
+						description: "Поддерживаемый формат: .css.",
+					},
+				},
 				errors: {
 					update: "Не удалось обновить данные пространства",
 				},
@@ -2045,6 +2091,26 @@ title: Не удалось отобразить статью
 			unstable: "Эта функция нестабильная и, вероятно, содержит ошибки",
 			beta: "Эта функция не полностью стабилизирована и все еще может содержать ошибки",
 		},
+	},
+	notifications: {
+		title: "Уведомления",
+		"mark-all-as-read": "Отметить все как прочитанные",
+		loading: "Загрузка...",
+		error: "Не удалось загрузить уведомления",
+		"no-notifications": "Нет уведомлений",
+		"loading-more": "Загрузка...",
+		"mailing-list": "Список рассылки",
+		"mailing-list-description": "Управление подписками на рассылку.",
+		"mailing-list-groups": "Группы",
+		"mailing-list-users": "Пользователи",
+		"mailing-list-select-groups": "Выберите группы...",
+		"mailing-list-search-users": "Поиск пользователей...",
+		settings: "Настройки уведомлений",
+		"settings-description": "Выберите, когда вы хотите получать уведомления для этой статьи.",
+		"on-create": "Уведомлять при создании",
+		"on-change": "Уведомлять при изменении",
+		"on-both": "Уведомлять при создании или изменении",
+		disabled: "Не уведомлять",
 	},
 	export: {
 		name: "Экспортировать",
@@ -2310,9 +2376,8 @@ title: Не удалось отобразить статью
 	"delete-file": "Удалить файл",
 	"delete-snippet-confirm": "Вы уверены, что хотите удалить сниппет?",
 	"delete-snippet-confirm-not-use": "Этот сниппет не используется ни в одной из статей",
-	"delete-snippet-list-desc": "Этот сниппет используется в следующих статьях:",
 	"delete-snippet-desc":
-		"Вы собираетесь удалить сниппет, который в настоящее время используется в одной или более статьях",
+		"Вы собираетесь удалить сниппет, который в настоящее время используется в следующих статьях:",
 	"delete-snippet-warn":
 		"После удаления сниппета, в статьях, где он использовался, возникнут ошибки вместо отображения удаленного сниппета",
 	"deleting-snippet-in-use": "Удаление используемого сниппета",
@@ -2476,11 +2541,11 @@ title: Не удалось отобразить статью
 		},
 		warning: {
 			"delete-tag-from-catalog": {
-				title: "Подтверждение удаления свойства",
+				title: "Удаление свойства из каталога",
 				body: "Вы уверены, что хотите удалить свойство? Оно будет удалено со всех статей.",
 			},
 			"delete-value-from-catalog": {
-				title: "Подтверждение удаления значения",
+				title: "Удаление значения свойства",
 				body: "Вы уверены, что хотите удалить это значение? Оно будет удалено из всех статей.",
 			},
 		},
@@ -2507,6 +2572,7 @@ title: Не удалось отобразить статью
 			Array: "Массив",
 			BlockMd: "Блок текста",
 			InlineMd: "Строка Markdown",
+			News: "Новость",
 		},
 		options: {
 			docportalVisible: {
@@ -2689,6 +2755,10 @@ title: Не удалось отобразить статью
 		"single-file-too-large": "Файл превышает максимальный размер ${maxSizeBytes}.",
 		"some-files-too-large": "Некоторые файлы превышают максимальный размер ${maxSizeBytes}",
 		"too-many-files": "Вы можете загрузить максимум ${maxFiles} файлов",
+	},
+	"file-preview": {
+		"preview-error": "К сожалению, файл {fileName} не поддерживается для предпросмотра",
+		"render-error": "Не удалось отобразить этот файл",
 	},
 	empty: "Пусто",
 	pagination: {

@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 
 const HTMLBlockProperty = (props: { children?: React.ReactNode }) => (
 	<div data-component="block-property">{props.children}</div>

@@ -23,7 +23,8 @@ export type Credentials = { data: SourceData };
 export type RepositoryEvents = Event<"publish", { repo: Repository }> &
 	Event<"checkout", { repo: Repository; branch: string }> &
 	Event<"sync", { repo: Repository; isVersionChanged: boolean }> &
-	Event<"fetch", { repo: Repository; force: boolean }>;
+	Event<"fetch", { repo: Repository; force: boolean }> &
+	Event<"merge", { targetBranch: string; sourceData: SourceData; beforeMergeCommit: GitVersion }>;
 
 export type PublishOptions = (
 	| {

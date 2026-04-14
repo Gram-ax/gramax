@@ -6,16 +6,13 @@ import { useEffect } from "react";
 
 const useEnterpriseTokenHandler = (isFirstLoad: boolean) => {
 	const router = useRouter();
-	const { isReadOnly } = PageDataContextService.value.conf;
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { isReadOnly } = PageDataContextService.value.conf;
 
-	const func = async () => {
-		if (!isFirstLoad || isReadOnly) return;
-		await initEnterprise(router.query.oneTimeCode, apiUrlCreator, router);
-	};
-
+	// biome-ignore lint/correctness/useExhaustiveDependencies: its ok
 	useEffect(() => {
-		void func();
+		if (!isFirstLoad || isReadOnly) return;
+		void initEnterprise(router.query.oneTimeCode, apiUrlCreator, router);
 	}, [isFirstLoad]);
 };
 

@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { ReactElement, useState } from "react";
+import { type ReactElement, useState } from "react";
 
 interface ErrorProps {
 	error: { message: string; stack?: string };

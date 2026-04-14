@@ -14,6 +14,8 @@ import type GitStorage from "@ext/git/core/GitStorage/GitStorage";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
 import type GitSourceData from "@ext/git/core/model/GitSourceData.schema";
+import GitStash from "@ext/git/core/model/GitStash";
+import { GitVersion } from "@ext/git/core/model/GitVersion";
 import Repository, {
 	type CheckoutOptions,
 	type IsShouldSyncOptions,
@@ -26,6 +28,7 @@ import RepositoryStateProvider, {
 	type RepositoryCheckoutState,
 	type RepositoryMergeConflictState,
 	type RepositoryStashConflictState,
+	type RepositorySyncingState,
 } from "@ext/git/core/Repository/state/RepositoryState";
 import { trace } from "@ext/loggers/opentelemetry";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
@@ -204,6 +207,7 @@ export default class WorkdirRepository extends Repository {
 		if (validateMerge) await this.validateMerge();
 
 		const branchNameBefore = (await this.gvc.getCurrentBranch()).toString();
+		const beforeMergeCommit = await this.gvc.getHeadCommit(targetBranch);
 		await this.checkout({ data, branch: targetBranch });
 
 		const mergeResult = await this.gvc.mergeBranch(data as GitSourceData, {
@@ -215,6 +219,7 @@ export default class WorkdirRepository extends Repository {
 		if (!mergeResult.length) {
 			if (!data.isInvalid) await this.publish({ data, onlyPush: true, restoreIfFail: false });
 			if (deleteAfterMerge) await this.deleteBranch(branchNameBefore, data);
+			await this._events.emit("merge", { targetBranch, sourceData: data, beforeMergeCommit });
 			return [];
 		}
 
@@ -247,6 +252,11 @@ export default class WorkdirRepository extends Repository {
 			return this._state;
 		}
 
+		if (repState.inner.value === "syncing") {
+			await this._restoreStashAfterInterruptedSync(repState.inner.data);
+			return this._state;
+		}
+
 		return repState;
 	}
 
@@ -260,6 +270,16 @@ export default class WorkdirRepository extends Repository {
 			await (this.storage as GitStorage).deleteRemoteBranch(branchRemoteName, data as GitSourceData);
 
 		await this.gvc.deleteLocalBranch(branchName);
+	}
+
+	private async _restoreStashAfterInterruptedSync(data: RepositorySyncingState["data"]): Promise<void> {
+		try {
+			const stashOid = new GitStash(data.stashHash);
+			await this.gvc.reset({ mode: "hard", head: new GitVersion(data.commitHeadBefore) });
+			await this.gvc.applyStash(stashOid);
+			this._state.stashRestored = true;
+		} catch {}
+		await this._state.resetState();
 	}
 
 	private async _gitIndexAddFiles(p: Path[]) {
@@ -308,11 +328,23 @@ export default class WorkdirRepository extends Repository {
 
 		const stashOid = await this.stash(data);
 
+		if (stashOid) {
+			const syncingState: RepositorySyncingState = {
+				value: "syncing",
+				data: {
+					stashHash: stashOid.toString(),
+					commitHeadBefore: commitHeadBefore.toString(),
+				},
+			};
+			await this._state.saveState(syncingState);
+		}
+
 		try {
 			await this.storage.pull(data);
 		} catch (e) {
 			await this.gvc.reset({ mode: "hard", head: commitHeadBefore });
 			if (stashOid) await this.gvc.applyStash(stashOid);
+			await this._state.resetState();
 			throw e;
 		}
 
@@ -322,6 +354,7 @@ export default class WorkdirRepository extends Repository {
 
 		if (!stashResult.length) {
 			if (stashOid) await this.gvc.deleteStash(stashOid);
+			await this._state.resetState();
 			return [];
 		}
 

@@ -1,12 +1,12 @@
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
-import TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
+import type TabAttrs from "@ext/markdown/elements/tabs/model/TabAttrs";
 import Tabs from "@ext/markdown/elements/tabs/render/component/Tabs";
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { TextSelection } from "@tiptap/pm/state";
-import { NodeViewContent, NodeViewProps } from "@tiptap/react";
-import { ReactElement, useCallback, useEffect, useState } from "react";
+import { NodeViewContent, type NodeViewProps } from "@tiptap/react";
+import { type ReactElement, useCallback, useEffect, useState } from "react";
 
 const EditTabs = (props: { className?: string } & NodeViewProps): ReactElement => {
 	const { node, editor, className, getPos, updateAttributes, deleteNode } = props;

@@ -1,18 +1,11 @@
 import { type Environment, getExecutingEnvironment } from "@app/resolveModule/env";
-import ContextProviders, { type PageProps } from "@components/ContextProviders";
-import HomePage from "@components/HomePage/HomePage";
-import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
-import type PageDataContext from "@core/Context/PageDataContext";
-import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
-import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/ArticleViewContainer";
+import ContextProviders from "@components/ContextProviders";
+import { BrowserPage } from "@components/Pages/components/BrowserPage";
+import type { PageProps } from "@components/Pages/models/Pages";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
 import { type Dispatch, memo, type SetStateAction, useCallback } from "react";
 
-export interface GramaxData {
-	data: HomePageData | ArticlePageData;
-	context: PageDataContext;
-	path: string;
-}
+export type GramaxData = Readonly<PageProps & { path: string }>;
 
 interface GramaxProps {
 	data: GramaxData;
@@ -30,24 +23,13 @@ const Gramax = ({ data, refresh, setData, platform }: GramaxProps) => {
 	return (
 		<ContextProviders
 			clearData={clearData}
-			pageProps={data as unknown as PageProps}
+			pageProps={data}
 			platform={platform || getExecutingEnvironment()}
 			refreshPage={refresh}
 		>
-			<>
-				<ErrorBoundary context={data.context}>
-					{data.context.isArticle ? (
-						<CatalogComponent data={data.data as ArticlePageData}>
-							<ArticleViewContainer
-								data={data.data as ArticlePageData}
-								key={(data.data as ArticlePageData)?.articleProps?.ref?.path}
-							/>
-						</CatalogComponent>
-					) : (
-						<HomePage data={data.data as HomePageData} />
-					)}
-				</ErrorBoundary>
-			</>
+			<ErrorBoundary context={data.context}>
+				<BrowserPage data={data} />
+			</ErrorBoundary>
 		</ContextProviders>
 	);
 };

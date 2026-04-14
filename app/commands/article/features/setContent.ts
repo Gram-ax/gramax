@@ -2,10 +2,10 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
-import Context from "@core/Context/Context";
+import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
-import { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
 import { Command } from "../../../types/Command";
 
 const setContent: Command<
@@ -27,6 +27,7 @@ const setContent: Command<
 		if (!article) return;
 		if (rawMarkdown) await article.rawUpdateContent(content ?? "");
 		else await article.updateContent(content ?? "");
+		await article.events.emit("item-update-content", { item: article });
 
 		return await sitePresenterFactory.fromContext(ctx).getArticlePageData(article, catalog);
 	},

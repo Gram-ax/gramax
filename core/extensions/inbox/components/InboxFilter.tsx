@@ -1,7 +1,7 @@
 import { TextSize } from "@components/Atoms/Button/Button";
 import Icon from "@components/Atoms/Icon";
 import ButtonLink from "@components/Molecules/ButtonLink";
-import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import styled from "@emotion/styled";

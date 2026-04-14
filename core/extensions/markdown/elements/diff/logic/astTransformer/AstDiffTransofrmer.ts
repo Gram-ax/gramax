@@ -1,4 +1,4 @@
-import { Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
+import type { Pos } from "@ext/markdown/elements/diff/logic/model/DiffLine";
 
 export type AstComment = Record<string, Pos>;
 

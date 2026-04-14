@@ -6,9 +6,9 @@ import AddProperty from "@ext/properties/components/Helpers/AddProperty";
 import PropertyArticle from "@ext/properties/components/Helpers/PropertyArticle";
 import Property from "@ext/properties/components/Property";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { Property as PropertyType, PropertyTypes } from "@ext/properties/models";
+import { type Property as PropertyType, PropertyTypes } from "@ext/properties/models";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@ui-kit/Dropdown";
-import { CSSProperties, forwardRef, MouseEvent, useMemo } from "react";
+import { type CSSProperties, forwardRef, type MouseEvent, useMemo } from "react";
 
 interface CardProps {
 	otherProps: PropertyType[];

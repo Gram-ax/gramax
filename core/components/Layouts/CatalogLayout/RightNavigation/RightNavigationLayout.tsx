@@ -1,6 +1,6 @@
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import { useMediaQuery } from "@react-hook/media-query";
 import type { ReactNode } from "react";
 
 interface RightNavigationLayoutProps {

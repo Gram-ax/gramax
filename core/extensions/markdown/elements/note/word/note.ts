@@ -1,6 +1,6 @@
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { createBlock } from "@ext/wordExport/createBlock";
-import { WordBlockChild } from "../../../../wordExport/options/WordTypes";
+import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 import { WordBlockType } from "../../../../wordExport/options/wordExportSettings";
 
 const wordNoteTypeMap: Record<string, WordBlockType> = {

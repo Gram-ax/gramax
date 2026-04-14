@@ -1,6 +1,6 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import Context from "@core/Context/Context";
-import { JSONContent } from "@tiptap/core";
+import type Context from "@core/Context/Context";
+import type { JSONContent } from "@tiptap/core";
 import { Command } from "../../types/Command";
 
 const updateField: Command<

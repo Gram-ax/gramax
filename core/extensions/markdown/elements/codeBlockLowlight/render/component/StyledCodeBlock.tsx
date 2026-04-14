@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { HTMLAttributes, ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
 const StyledPre = styled.pre`
 	background: var(--color-code-bg) !important;

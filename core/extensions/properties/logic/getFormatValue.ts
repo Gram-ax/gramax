@@ -1,4 +1,4 @@
-import { InputValue } from "@ext/properties/components/Helpers/CustomInputRenderer";
+import type { InputValue } from "@ext/properties/components/Helpers/CustomInputRenderer";
 
 const getFormatValue = (value: InputValue): string => {
 	if (typeof value !== "string" && Array.isArray(value)) return value.map((v) => getFormatValue(v)).join(",");

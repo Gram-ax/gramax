@@ -1,4 +1,4 @@
-import { WordBlockChild } from "@ext/wordExport/options/WordTypes";
+import type { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import { WordTableExport } from "./transformer/WordTableExport";
 
 export const tableWordLayout: WordBlockChild = async ({ state, tag, addOptions }) => {

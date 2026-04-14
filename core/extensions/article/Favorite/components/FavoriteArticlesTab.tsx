@@ -6,7 +6,7 @@ import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
-import { FavoriteArticleData } from "@ext/article/Favorite/models/types";
+import type { FavoriteArticleData } from "@ext/article/Favorite/models/types";
 import ItemList from "@ext/articleProvider/components/ItemList";
 import t from "@ext/localization/locale/translate";
 import { useCallback, useEffect, useRef, useState } from "react";

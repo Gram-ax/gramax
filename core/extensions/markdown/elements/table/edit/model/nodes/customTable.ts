@@ -1,5 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { CELL_MIN_WIDTH } from "@components/WidthWrapper/WidthWrapper";
 import TableComponent from "@ext/markdown/elements/table/edit/components/TableComponent";
 import aggregationPlugin from "@ext/markdown/elements/table/edit/model/aggregationPlugin/plugin";
 import { columnResizing } from "@ext/markdown/elements/table/edit/model/columnResizing/columnResizing";

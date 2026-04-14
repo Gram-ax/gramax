@@ -2,8 +2,8 @@ import getFormatterType, {
 	getFormatterTypeByContext,
 } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
-import ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
-import { Markdown, Schema, SchemaType, Tag } from "../../../../render/logic/Markdoc";
+import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import { type Markdown, type Schema, SchemaType, type Tag } from "../../../../render/logic/Markdoc";
 
 export function getMarkdocFormatter(schema: Schema, context: ParserContext) {
 	if (schema.render == "Formula") {

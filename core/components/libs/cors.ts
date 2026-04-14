@@ -1,6 +1,6 @@
 import Cors from "cors";
-import ApiRequest from "../../logic/Api/ApiRequest";
-import ApiResponse from "../../logic/Api/ApiResponse";
+import type ApiRequest from "../../logic/Api/ApiRequest";
+import type ApiResponse from "../../logic/Api/ApiResponse";
 
 // Initializing the cors middleware
 const cors = Cors({

@@ -1,11 +1,14 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import BaseCatalog from "@core/FileStructue/Catalog/BaseCatalog";
 import { ContentLanguage } from "@ext/localization/core/model/Language";
 import { getAccessibleCatalogs } from "@ext/security/logic/getAccessibleCatalogs";
 import SecurityRules from "@ext/security/logic/SecurityRules";
 import { type ArticleLanguage, isArticleLanguage } from "@ext/serach/modulith/SearchArticle";
+import type { PropertyFilter } from "@ext/serach/Searcher";
 import { makeCitationPlaceholder, type SearchChatStreamItemText } from "@ext/serach/types";
+import { getCatalogPropertyFilter } from "@ext/serach/utils/getCatalogPropertyFilter";
 import { getRestrictedLogicPaths } from "@ext/serach/utils/getRestrictedLogicPaths";
 import { Command } from "../../types/Command";
 
@@ -28,14 +31,17 @@ const chat: Command<
 	async do({ ctx, query, catalogName, articlesLanguage, responseLanguage, signal, currentArticle }) {
 		const wm = this._app.wm.current();
 
-		const catalogs = wm.getAllCatalogs();
+		let propertyFilter: PropertyFilter | undefined;
 		let catalogNames: string[] = [];
 		if (catalogName) {
-			const entry = catalogs.get(catalogName);
-			if (entry && SecurityRules.canReadCatalog(ctx.user, entry.perms, entry.name)) {
-				catalogNames = [catalogName];
+			const catalog = await wm.getContextlessCatalog(catalogName);
+			if (catalog && SecurityRules.canReadCatalog(ctx.user, catalog.perms, catalog.name)) {
+				catalogNames = [BaseCatalog.parseName(catalogName).name];
 			}
+
+			propertyFilter = getCatalogPropertyFilter(catalog);
 		} else {
+			const catalogs = wm.getAllCatalogs();
 			catalogNames = getAccessibleCatalogs(ctx.user, catalogs.values()).map((x) => x.name);
 		}
 
@@ -47,6 +53,7 @@ const chat: Command<
 			articlesLanguage,
 			responseLanguage,
 			restrictedLogicPaths,
+			propertyFilter,
 			stream: true,
 			signal: signal,
 		});

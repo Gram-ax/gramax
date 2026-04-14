@@ -1,7 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
-import { ReactElement, ReactNode, useEffect, useState } from "react";
+import { type ReactElement, type ReactNode, useEffect, useState } from "react";
 
 interface CutProps {
 	text: string;

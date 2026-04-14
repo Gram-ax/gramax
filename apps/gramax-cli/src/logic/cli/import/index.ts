@@ -9,7 +9,7 @@ import { CONFIG_NAME } from "../../../utils/predefinedValues";
 import CliUserError from "../../CliUserError";
 import { loadConfig } from "../utils/config";
 import { logStep } from "../utils/logger";
-import { ImportYandexOptions } from "./command";
+import type { ImportYandexOptions } from "./command";
 
 export const importYandexCommandFunction = async (options: ImportYandexOptions) => {
 	const { raw, config: pathToConfig, destination: pathToDistDir } = options;

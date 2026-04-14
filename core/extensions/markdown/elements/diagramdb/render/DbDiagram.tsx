@@ -5,7 +5,7 @@ import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
 import { useEffect, useState } from "react";
 import Popup from "reactjs-popup";
-import { Table } from "../../../../../logic/components/tableDB/table";
+import type { Table } from "../../../../../logic/components/tableDB/table";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import TableDB from "../../tabledb/render/DbTable";
 

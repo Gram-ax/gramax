@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import { ChangeEventHandler, useEffect, useRef } from "react";
+import { type ChangeEventHandler, useEffect, useRef } from "react";
 
 let idCounter = 0;
 

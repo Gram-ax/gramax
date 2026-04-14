@@ -10,9 +10,8 @@ import {
 } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { Loader } from "@ui-kit/Loader";
-import { Filter } from "lucide-react";
-import { FC, useCallback, useMemo, useRef, useState } from "react";
-import { PaginatedUsersResponse, useInfiniteScroll } from "./useInfiniteScroll";
+import { type FC, useCallback, useMemo, useRef, useState } from "react";
+import { type PaginatedUsersResponse, useInfiniteScroll } from "./useInfiniteScroll";
 
 interface MetricsUserFilterProps {
 	disabled: boolean;
@@ -88,7 +87,7 @@ const MetricsUserFilter: FC<MetricsUserFilterProps> = ({
 			<DropdownMenuTrigger asChild>
 				<div className="relative">
 					<DropdownMenuTriggerButton className="h-9 w-9 p-0" disabled={disabled} variant="outline">
-						<Filter className="h-4 w-4" />
+						<Icon icon="filter" size="md" />
 					</DropdownMenuTriggerButton>
 					{hasSelectedUsers && (
 						<span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-red-500 rounded-full" />

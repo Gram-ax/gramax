@@ -4,7 +4,7 @@ import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import GitlabSourceAPI from "@ext/git/actions/Source/GitLab/logic/GitlabSourceAPI";
-import GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
+import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import handleFormApiError from "@ext/git/actions/Source/logic/handleApiError";
 import validateToken from "@ext/git/actions/Source/logic/validateToken";
 import t from "@ext/localization/locale/translate";
@@ -23,8 +23,8 @@ import {
 } from "@ui-kit/Form";
 import { Input, SecretInput, TextInput } from "@ui-kit/Input";
 import { Skeleton } from "@ui-kit/Skeleton";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { Tooltip, TooltipContent, TooltipLinkButton, TooltipTrigger } from "@ui-kit/Tooltip";
+import { useCallback, useEffect, useLayoutEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -39,13 +39,13 @@ const getFormSchema = () =>
 		authorName: z.string({ message: t("must-be-not-empty") }),
 		authorEmail: z.string({ message: t("must-be-not-empty") }),
 		token: z.string({ message: t("must-be-not-empty") }).refine((val) => validateToken(val), {
-			message: t("invalid2") + " " + t("token"),
+			message: `${t("invalid2")} ${t("token")}`,
 		}),
 	});
 
 const getGitlabSettingsUrl = (domain: string) => {
 	const hasProtocol = domain.includes("://");
-	return `${hasProtocol ? domain : "https://" + domain}/-/user_settings/personal_access_tokens`;
+	return `${hasProtocol ? domain : `https://${domain}`}/-/user_settings/personal_access_tokens`;
 };
 
 const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
@@ -87,10 +87,10 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 	);
 
 	useEffect(() => {
-		if (data?.isInvalid) form.setError("token", { type: "invalid", message: t("invalid2") + " " + t("token") });
-	}, [data?.isInvalid]);
+		if (data?.isInvalid) form.setError("token", { type: "invalid", message: `${t("invalid2")} ${t("token")}` });
+	}, [data?.isInvalid, form.setError]);
 
-	const onChangeAuthFields = () => {
+	const onChangeAuthFields = useCallback(() => {
 		const formValues = form.getValues();
 
 		if (!formValues.token || !formValues.url) {
@@ -102,7 +102,7 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 		setIsLoading(true);
 		const hasProtocol = formValues.url.includes("://");
 		const { domain, protocol, origin, pathname } = parseStorageUrl(
-			hasProtocol ? formValues.url : "https://" + formValues.url,
+			hasProtocol ? formValues.url : `https://${formValues.url}`,
 		);
 		startCheck(
 			{
@@ -118,27 +118,31 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 			} as GitlabSourceData,
 			domain,
 		);
-	};
+	}, [form, cancelCheck, startCheck]);
 
-	const formSubmit = (e) => {
-		form.handleSubmit((formData) => {
-			const hasProtocol = formData.url.includes("://");
-			const { domain, protocol } = parseStorageUrl(hasProtocol ? formData.url : "https://" + formData.url);
-			const isInvalid = !!form.formState.errors.token?.message || !!form.formState.errors.url?.message;
+	const formSubmit = useCallback(
+		(e) => {
+			form.handleSubmit((formData) => {
+				const hasProtocol = formData.url.includes("://");
+				const { domain, protocol } = parseStorageUrl(hasProtocol ? formData.url : `https://${formData.url}`);
+				const isInvalid = !!form.formState.errors.token?.message || !!form.formState.errors.url?.message;
 
-			onSubmit({
-				sourceType: SourceType.gitLab,
-				token: formData.token,
-				userName: formData.authorName,
-				userEmail: formData.authorEmail,
-				domain,
-				protocol,
-				createDate: new Date().toJSON(),
-				isInvalid,
-			});
-		})(e);
-	};
+				onSubmit({
+					sourceType: SourceType.gitLab,
+					token: formData.token,
+					userName: formData.authorName,
+					userEmail: formData.authorEmail,
+					domain,
+					protocol,
+					createDate: new Date().toJSON(),
+					isInvalid,
+				});
+			})(e);
+		},
+		[form, onSubmit],
+	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		const primaryButton = (
 			<Button onClick={formSubmit} type="submit">
@@ -196,9 +200,18 @@ const EditGitLab = ({ onSubmit, data }: EditGitLabProps) => {
 								<TooltipContent>
 									<span
 										dangerouslySetInnerHTML={{
+											// biome-ignore lint/style/useNamingConvention: expected
 											__html: t("git.source.gitlab.info"),
 										}}
 									/>
+									<br />
+									<a
+										href="https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html"
+										rel="noopener"
+										target="_blank"
+									>
+										<TooltipLinkButton size="xs">{t("more")}</TooltipLinkButton>
+									</a>
 								</TooltipContent>
 							</Tooltip>
 						</FormSectionHeaderButton>

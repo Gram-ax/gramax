@@ -1,5 +1,5 @@
-import { JSONContent } from "@tiptap/core";
-import NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
+import type { JSONContent } from "@tiptap/core";
+import type NodeTransformerFunc from "../../../core/edit/logic/Prosemirror/NodeTransformerFunc";
 
 function createParagraph(nodes: JSONContent[], type: string) {
 	return { type: type, content: nodes };

@@ -1,19 +1,19 @@
 import ConfluenceCloudAPI from "@ext/confluence/core/api/ConfluenceCloudAPI";
 import ConfluenceServerAPI from "@ext/confluence/core/api/ConfluenceServerAPI";
-import ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
-import ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
-import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
+import type ConfluenceCloudSourceData from "@ext/confluence/core/cloud/model/ConfluenceCloudSourceData";
+import type ConfluenceServerSourceData from "@ext/confluence/core/server/model/ConfluenceServerSourceData.schema";
+import type NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import GiteaSourceAPI from "@ext/git/actions/Source/Gitea/logic/GiteaSourceAPI";
-import GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
+import type GiteaSourceData from "@ext/git/actions/Source/Gitea/logic/GiteaSourceData";
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import GithubSourceAPI from "@ext/git/actions/Source/GitHub/logic/GithubSourceAPI";
 import GitlabSourceAPI from "@ext/git/actions/Source/GitLab/logic/GitlabSourceAPI";
 import type GitlabSourceData from "@ext/git/actions/Source/GitLab/logic/GitlabSourceData";
 import GitVerseSourceAPI from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceAPI";
-import GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
+import type GitVerseSourceData from "@ext/git/actions/Source/GitVerse/logic/GitVerseSourceData";
 import type { SourceAPI } from "@ext/git/actions/Source/SourceAPI";
 import NotionAPI from "@ext/notion/api/NotionAPI";
-import NotionSourceData from "@ext/notion/model/NotionSourceData";
+import type NotionSourceData from "@ext/notion/model/NotionSourceData";
 import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 

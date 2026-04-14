@@ -1,4 +1,4 @@
-import { topMenuItemClassName } from "@components/HomePage/TopMenu";
+import { topMenuItemClassName } from "@components/HomePage/TopMenu/const";
 import { classNames } from "@components/libs/classNames";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
@@ -14,7 +14,7 @@ import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import type { Admin } from "@ext/enterprise/components/admin/Admin";
-import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/components/useEditEnterpriseWorkspace";
+import { useEnterpriseWorkspaceEdit } from "@ext/enterprise/utils/useEditEnterpriseWorkspace";
 import t, { pluralize } from "@ext/localization/locale/translate";
 import type CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
@@ -128,12 +128,12 @@ const WorkspaceItem = ({
 
 	const gesUrl = workspace.enterprise?.gesUrl;
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { editInfo, isLoading } = useEnterpriseWorkspaceEdit({
+	const editInfo = useEnterpriseWorkspaceEdit({
 		workspacePath: path,
 		apiUrlCreator,
 		gesUrl,
 	});
-	const disableEnterpriseEdit = gesUrl && !editInfo?.permitted;
+	const disableEnterpriseEdit = gesUrl && !editInfo?.loading && !editInfo?.permitted;
 
 	const workspaceName = name?.length > 20 ? `${name.slice(0, 20)}...` : name;
 
@@ -149,11 +149,11 @@ const WorkspaceItem = ({
 		>
 			<MenuItemInteractiveTemplate
 				buttonDisabled={disableEnterpriseEdit}
-				buttonIcon={isLoading ? "loader" : disableEnterpriseEdit ? "pen-off" : "pen"}
+				buttonIcon={editInfo?.loading ? "loader" : disableEnterpriseEdit ? "pen-off" : "pen"}
 				buttonOnClick={(e) => {
-					setDropdownOpen(false);
 					e.stopPropagation();
 					e.preventDefault();
+					if (editInfo?.loading) return;
 
 					if (editInfo.permitted) {
 						setDropdownOpen(false);
@@ -168,7 +168,7 @@ const WorkspaceItem = ({
 						workspace,
 					});
 				}}
-				disabledTooltip={editInfo?.tooltip}
+				disabledTooltip={editInfo?.loading ? undefined : editInfo?.tooltip}
 				icon={icon}
 				indicator={showIndicator}
 				indicatorClassName="bg-status-error"

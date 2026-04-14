@@ -4,16 +4,19 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"codegen": "playwright codegen",
+		"codegen": "bun run codegen.ts",
 		"read-dir": "bun run read-dir-to-tree.ts",
 		"show-trace": "playwright show-trace",
 
 		"ui": "playwright test --ui",
+		"ui:enterprise": "bun run --env-file ../scripts/enterprise/test-local/enterprise.env --env-file ../scripts/enterprise/test-local/.env.private playwright test --ui",
+
 		"ui:dev": "ROOT_PATH=$(pwd)/docportal-test-data PLAYWRIGHT_DEV=true playwright test --ui",
 
 		"web:dev": "PORT=6001 bun run --cwd ../apps/browser dev",
 		"web:build": "bun run --cwd ../apps/browser build",
 		"web:ci": "PLAYWRIGHT_CI=true playwright test --project web",
+		"web:enterprise:ci": "PLAYWRIGHT_CI=true playwright test --project web-enterprise",
 		"web:start": "IP=127.0.0.1 PORT=6001 bun run --cwd ../apps/browser start",
 
 		"static:build": "echo 'not supported yet' && exit 1",

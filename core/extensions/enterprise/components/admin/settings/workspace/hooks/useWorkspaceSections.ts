@@ -1,6 +1,6 @@
 import {
-	WorkspaceFormData,
-	WorkspaceSettings,
+	type WorkspaceFormData,
+	type WorkspaceSettings,
 	WorkspaceView,
 } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import { useCallback, useState } from "react";

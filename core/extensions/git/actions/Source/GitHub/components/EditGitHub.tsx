@@ -6,7 +6,7 @@ import { useSetFooterButton } from "@core-ui/hooks/useFooterPortal";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import styled from "@emotion/styled";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
-import GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
+import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import { waitForTempToken } from "@ext/git/actions/Source/tempToken";
 import t from "@ext/localization/locale/translate";

@@ -35,7 +35,7 @@ const chatCitations = (root: RenderableTreeNodes): RenderableTreeNodes => {
 				}
 				result.push(
 					new MarkdocTag(
-						"Link",
+						"ChatLink",
 						{
 							index,
 							href,

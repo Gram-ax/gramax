@@ -1,9 +1,14 @@
-import { REPOSITORY_GROUPS_ROLES, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
-import { ClientAccessGroup } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import {
+	REPOSITORY_GROUPS_ROLES,
+	type RoleId,
+} from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import type { ClientAccessGroup } from "@ext/enterprise/components/admin/settings/resources/types/ResourcesComponent";
+import { GroupSource } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/types/GroupTypes";
+import { getGroupSourceLabel } from "@ext/enterprise/components/admin/settings/workspace/components/access/components/group/utils/groupUtils";
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import t from "@ext/localization/locale/translate";
-import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
-import { ColumnDef, useTableSelection } from "@ui-kit/DataTable";
+import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
+import { type ColumnDef, useTableSelection } from "@ui-kit/DataTable";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 
 const groupsTableColumns: ColumnDef<ClientAccessGroup>[] = [
@@ -36,14 +41,26 @@ const groupsTableColumns: ColumnDef<ClientAccessGroup>[] = [
 	{
 		accessorKey: "name",
 		header: t("enterprise.admin.resources.groups.group"),
-		cell: ({ row }) => row.original.name ?? row.original.id,
+		cell: ({ row }) => <span>{row.original.name ?? row.original.id}</span>,
+	},
+	{
+		id: "source",
+		header: t("source"),
+		cell: ({ row }) =>
+			row.original.source ? (
+				<span>{getGroupSourceLabel({ id: row.original.id, source: row.original.source })}</span>
+			) : null,
 	},
 	{
 		accessorKey: "role",
 		header: t("enterprise.admin.roles.role"),
 		cell: ({ table, row, cell }) => {
 			const handleValueChange = (value: string) => {
-				(table.options.meta as any)?.onRoleCellChange?.(row.original.id, value as RoleId);
+				(
+					table.options.meta as {
+						onRoleCellChange: (groupId: string, role: RoleId, source: GroupSource) => void;
+					}
+				)?.onRoleCellChange?.(row.original.id, value as RoleId, row.original.source ?? GroupSource.GX_GROUPS);
 			};
 
 			return (

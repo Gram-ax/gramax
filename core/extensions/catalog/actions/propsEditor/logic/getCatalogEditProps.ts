@@ -1,5 +1,5 @@
-import { ClientCatalogProps } from "../../../../../logic/SitePresenter/SitePresenter";
-import CatalogEditProps from "../model/CatalogEditProps";
+import type { ClientCatalogProps } from "../../../../../logic/SitePresenter/SitePresenter";
+import type CatalogEditProps from "../model/CatalogEditProps";
 
 const getCatalogEditProps = (props: ClientCatalogProps): CatalogEditProps => {
 	const { title, name, docroot, language, versions, syntax, properties, link, filterProperty } = props;

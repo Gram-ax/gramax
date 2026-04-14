@@ -1,5 +1,5 @@
-import { Attrs, NodeType, Node as ProseMirrorNode } from "prosemirror-model";
-import { EditorState, Transaction } from "prosemirror-state";
+import type { Attrs, NodeType, Node as ProseMirrorNode } from "prosemirror-model";
+import type { EditorState, Transaction } from "prosemirror-state";
 
 const wrapNode = (
 	state: EditorState,

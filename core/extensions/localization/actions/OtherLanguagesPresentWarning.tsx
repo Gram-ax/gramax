@@ -1,4 +1,3 @@
-import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";

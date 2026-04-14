@@ -1,4 +1,4 @@
-import { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
+import type { FormatterType } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import noteFormatter from "@ext/markdown/elements/note/edit/logic/xml/noteFormatter";
 import tableCellFormatter from "@ext/markdown/elements/table/edit/logic/formatters/xml/tableCellFormatter";
 import tableFormatter from "@ext/markdown/elements/table/edit/logic/formatters/xml/tableFormatter";

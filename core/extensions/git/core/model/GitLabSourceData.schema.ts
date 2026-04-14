@@ -1,5 +1,5 @@
-import SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
-import GitSourceData from "./GitSourceData.schema";
+import type SourceType from "../../../storage/logic/SourceDataProvider/model/SourceType";
+import type GitSourceData from "./GitSourceData.schema";
 
 /**
  * @see gitlab-source-data

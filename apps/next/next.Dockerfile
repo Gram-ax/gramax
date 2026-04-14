@@ -1,7 +1,7 @@
 ARG CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX=docker.io
-ARG BRANCH="develop"
+ARG USE_IMAGE_TAG="latest-dev"
 
-FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader:base-image-${BRANCH} AS deps
+FROM --platform=$BUILDPLATFORM gitlab.ics-it.ru:4567/ics/doc-reader/base-image:${USE_IMAGE_TAG:-latest-dev} AS deps
 
 WORKDIR /app
 
@@ -52,9 +52,6 @@ ENV PORT=80 \
   AUTO_PULL_USERNAME="" \
   SHARE_ACCESS_TOKEN=${SHARE_ACCESS_TOKEN} \
   COOKIE_SECRET=${COOKIE_SECRET}
-
-# TODO: Move to build args
-# ENV SSO_SERVICE_URL=http://localhost:3000
 
 RUN mkdir -p $ROOT_PATH
 COPY --from=deps /app .

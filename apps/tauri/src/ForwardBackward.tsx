@@ -34,7 +34,7 @@ const Wrapper = styled.div<{ leftPad?: number; fixedPad?: boolean }>`
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	z-index: var(--z-index-header-navigation);
+	z-index: var(--z-index-forward-backward);
 	gap: 0 0.3rem;
 
 	> * {

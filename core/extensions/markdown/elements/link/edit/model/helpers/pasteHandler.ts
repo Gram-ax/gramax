@@ -1,6 +1,6 @@
-import { Editor } from "@tiptap/core";
+import type { Editor } from "@tiptap/core";
 import { find } from "linkifyjs";
-import { MarkType } from "prosemirror-model";
+import type { MarkType } from "prosemirror-model";
 import { Plugin, PluginKey } from "prosemirror-state";
 
 type PasteHandlerOptions = {

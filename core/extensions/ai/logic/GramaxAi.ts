@@ -1,16 +1,16 @@
-import { AiProvider, GramaxAiOptions } from "@ext/ai/models/types";
+import type { AiProvider, GramaxAiOptions } from "@ext/ai/models/types";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import {
 	AudioProcessingApiClient,
-	CheckAuthResponse,
-	CheckResponse,
-	GenerateResponse,
-	PrettifyResponse,
-	RequestOptions,
+	type CheckAuthResponse,
+	type CheckResponse,
+	type GenerateResponse,
+	type PrettifyResponse,
+	type RequestOptions,
 	TextGenerationApiClient,
-	TranscribeRequest,
-	TranscribeResponse,
+	type TranscribeRequest,
+	type TranscribeResponse,
 } from "@ics/gx-vector-search";
 
 class DefaultGramaxAi implements AiProvider {

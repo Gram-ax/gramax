@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: access private attributes */
 import docx from "@dynamicImports/docx";
 import jszip from "@dynamicImports/jszip";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
@@ -12,6 +13,7 @@ import type { TemplateStylesInfo } from "./templateProcessing/types";
 import { parseXml, printXml } from "./templateProcessing/xmlUtils";
 
 export const CONTENT_PLACEHOLDER = "gramax_content";
+const ELEMENT_NODE = 1;
 
 function setNsAttr(node: Element, name: string, value: string): void {
 	node.setAttribute(name, value);
@@ -259,12 +261,13 @@ class TemplateProcessor {
 	}
 
 	private _replacePlaceholdersInDocXml(docXml: string, placeholderToNewId: Map<string, string>): string {
+		let newDocXml = docXml;
 		for (const [placeholder, newId] of placeholderToNewId.entries()) {
 			const escaped = placeholder.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 			const regex = new RegExp(`(<w:numId w:val=")${escaped}("/>)`, "g");
-			docXml = docXml.replace(regex, `$1${newId}$2`);
+			newDocXml = newDocXml.replace(regex, `$1${newId}$2`);
 		}
-		return docXml;
+		return newDocXml;
 	}
 
 	private _appendNumberingElements(numXml: string, abstractPart: string, numPart: string): string {
@@ -380,7 +383,7 @@ class TemplateProcessor {
 	private _getDirectChild(element: Element, tagName: string): Element | null {
 		const children = Array.from(element.childNodes);
 		for (const child of children) {
-			if (child.nodeType === Node.ELEMENT_NODE && (child as Element).tagName === tagName) {
+			if (child.nodeType === ELEMENT_NODE && (child as Element).tagName === tagName) {
 				return child as Element;
 			}
 		}

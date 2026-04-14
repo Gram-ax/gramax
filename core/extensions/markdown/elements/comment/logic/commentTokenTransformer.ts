@@ -1,4 +1,4 @@
-import TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
+import type TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 
 const commentTokenTransformer: TokenTransformerFunc = ({ token, parent }) => {
 	if (token?.tag === "comment" && parent?.type !== "inline") {

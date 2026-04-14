@@ -1,9 +1,10 @@
 import Path from "@core/FileProvider/Path/Path";
-import { Article } from "@core/FileStructue/Article/Article";
-import { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import FileStructure from "@core/FileStructue/FileStructure";
-import SitePresenter, { ArticlePageData, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
-import { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { Article } from "@core/FileStructue/Article/Article";
+import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
+import type FileStructure from "@core/FileStructue/FileStructure";
+import type SitePresenter from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
 import assert from "assert";

@@ -1,4 +1,4 @@
-import { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
+import type { DiffViewMode } from "@ext/markdown/elements/diff/components/DiffBottomBar";
 import { create } from "zustand";
 
 interface DiffViewModeState {

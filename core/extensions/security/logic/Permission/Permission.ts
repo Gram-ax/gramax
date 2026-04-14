@@ -47,13 +47,10 @@ export default class Permission extends IPermission {
 
 	combine(permissions: IPermission[], isAnd = false): IPermission {
 		if (isAnd) {
-			const values = Array.from(new Set(permissions.map((p) => p.getValues()).flat(1)));
+			const values = Array.from(new Set(permissions.flatMap((p) => p.getValues())));
 			return new Permission(this._values.filter((v) => values.includes(v)));
-		} else {
-			return new Permission(
-				Array.from(new Set([...this._values, ...permissions.map((p) => p.getValues()).flat(1)])),
-			);
 		}
+		return new Permission(Array.from(new Set([...this._values, ...permissions.flatMap((p) => p.getValues())])));
 	}
 
 	toString(): string {
@@ -67,6 +64,6 @@ export default class Permission extends IPermission {
 	protected _enough(permissions: IPermission, isFull = false): boolean {
 		if (!permissions) return false;
 		if (!isFull) return permissions.getValues().some((value) => this._values.includes(value));
-		else return permissions.getValues().every((value) => this._values.includes(value));
+		return permissions.getValues().every((value) => this._values.includes(value));
 	}
 }

@@ -1,8 +1,8 @@
-import PathnameData from "@core/RouterPath/model/PathnameData";
-import ShareData from "@ext/catalog/actions/share/model/ShareData";
-import GitShareData from "@ext/git/core/model/GitShareData";
+import type PathnameData from "@core/RouterPath/model/PathnameData";
+import type ShareData from "@ext/catalog/actions/share/model/ShareData";
+import type GitShareData from "@ext/git/core/model/GitShareData";
 import isGitSourceType from "@ext/storage/logic/SourceDataProvider/logic/isGitSourceType";
-import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
+import type SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 
 const getShareDataFromPathnameData = (pathnameData: PathnameData, sourceType: SourceType): ShareData => {
 	let shareData: ShareData = {

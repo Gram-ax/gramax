@@ -1,7 +1,7 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
-import { CSSProperties, ForwardedRef, forwardRef, MouseEvent, ReactNode } from "react";
-import { Placement, Props } from "tippy.js";
+import { type CSSProperties, type ForwardedRef, forwardRef, type MouseEvent, type ReactNode } from "react";
+import type { Placement, Props } from "tippy.js";
 import SpinnerLoader from "../SpinnerLoader";
 import Tooltip from "../Tooltip";
 import LucideIcon from "./LucideIcon";

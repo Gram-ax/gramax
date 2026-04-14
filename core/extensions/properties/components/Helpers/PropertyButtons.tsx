@@ -1,4 +1,4 @@
-import t, { hasTranslation, TranslationKey } from "@ext/localization/locale/translate";
+import t, { hasTranslation, type TranslationKey } from "@ext/localization/locale/translate";
 import { DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
 
 type InputType = "radio" | "checkbox";

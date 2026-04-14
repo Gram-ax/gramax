@@ -3,9 +3,9 @@ import {
 	TABLE_SELECT_COLUMN_CODE,
 } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableDraggableButton } from "@ext/enterprise/components/admin/ui-kit/table/TableDraggableButton";
-import { Checkbox, CheckedState } from "@ui-kit/Checkbox";
-import { ColumnDef } from "@ui-kit/DataTable";
-import { Catalog } from "../types/CatalogTypes";
+import { Checkbox, type CheckedState } from "@ui-kit/Checkbox";
+import type { ColumnDef } from "@ui-kit/DataTable";
+import type { Catalog } from "../types/CatalogTypes";
 
 export const catalogsTableColumns: ColumnDef<Catalog>[] = [
 	{

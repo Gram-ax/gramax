@@ -41,6 +41,8 @@ module.exports = {
 		"^@ext/(.*)$": "<rootDir>/core/extensions/$1",
 		"^@app/(.*)$": "<rootDir>/app/$1",
 		"^pdfjs-dist/build/pdf.worker.min.js\\?url$": "<rootDir>/scripts/jest/mocks/pdf.worker.min.js",
+		"excelParse\\.worker(\\.ts)?$": "<rootDir>/scripts/jest/mocks/excelParseMock.js",
+		"createExcelWorker(\\.ts)?$": "<rootDir>/scripts/jest/mocks/excelParseMock.js",
 	},
 	transformIgnorePatterns: ["<rootDir>/.next", "<rootDir>/public", "<rootDir>/docs", "<rootDir>/application"],
 	coveragePathIgnorePatterns: ["/node_modules/", "(.test)\\.(ts|tsx|js)$", "/distribution/.*\\.(ts|js)$"],

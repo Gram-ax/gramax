@@ -1,4 +1,4 @@
-import { RenderableTreeNode } from "../core/render/logic/Markdoc";
+import type { RenderableTreeNode } from "../core/render/logic/Markdoc";
 
 export default function isInline(children: RenderableTreeNode[]): boolean {
 	return Array.isArray(children)
