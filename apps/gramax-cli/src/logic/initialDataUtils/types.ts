@@ -14,6 +14,7 @@ export enum InitialDataKeys {
 	CONFIG = "__INITIAL_CONFIG__",
 	DIRECTORY = "__DIRECTORY__",
 	ZIP_FILENAME = "__ZIP_FILENAME__",
+	SINGLE_CATALOG = "__SINGLE_CATALOG__",
 }
 
 export type StaticConfig = AppConfig & {
@@ -25,4 +26,5 @@ export type ExtendedWindow = Window & {
 	[InitialDataKeys.CONFIG]?: StaticConfig;
 	[InitialDataKeys.DIRECTORY]?: DirectoryInfoBasic;
 	[InitialDataKeys.ZIP_FILENAME]?: string;
+	[InitialDataKeys.SINGLE_CATALOG]?: boolean;
 };

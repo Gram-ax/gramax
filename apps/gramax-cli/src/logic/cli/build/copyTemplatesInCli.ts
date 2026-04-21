@@ -21,6 +21,7 @@ interface GetCopyTemplateOptions {
 	fp: DiskFileProvider;
 	sourcePath?: string;
 	catalogName: string;
+	singleCatalog?: boolean;
 }
 
 interface CopyTemplateOptions extends GetCopyTemplateOptions {
@@ -139,7 +140,7 @@ const getTemplatePaths = async (
 const copyTemplatesInCli =
 	(options: CopyTemplateOptions): CopyTemplatesFunction =>
 	async (copyFile) => {
-		const { fp, templateType, sourcePath, catalogName } = options;
+		const { fp, templateType, sourcePath, catalogName, singleCatalog } = options;
 
 		if (!sourcePath) return [];
 
@@ -148,7 +149,9 @@ const copyTemplatesInCli =
 
 		const templates: string[] = [];
 		const subDir = templateType === "word" ? WORD_SUBDIR : PDF_SUBDIR;
-		const templatesDir = new Path([catalogName, GRAMAX_DIR, ASSETS_DIR, subDir]);
+		const templatesDir = new Path(
+			singleCatalog ? [GRAMAX_DIR, ASSETS_DIR, subDir] : [catalogName, GRAMAX_DIR, ASSETS_DIR, subDir],
+		);
 
 		for (const src of validTemplates) {
 			try {

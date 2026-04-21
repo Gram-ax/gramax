@@ -13,7 +13,13 @@ export const getCatalogNameFromInitialData = (): string => {
 	return data.data.catalogProps.name;
 };
 
+export const isSingleCatalogMode = (): boolean => {
+	if (typeof window === "undefined") return false;
+	return !!(window as ExtendedWindow)[InitialDataKeys.SINGLE_CATALOG];
+};
+
 export const getBaseCatalogName = () => {
+	if (isSingleCatalogMode()) return "";
 	const catalogName = getCatalogNameFromInitialData();
 	return BaseCatalog.parseName(catalogName).name;
 };

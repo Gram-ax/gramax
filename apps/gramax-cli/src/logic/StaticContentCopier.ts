@@ -45,9 +45,10 @@ class StaticContentCopier {
 	private _wfp: MountFileProvider;
 	private _catalog!: Catalog;
 	private _targetDir!: Path;
+	private _pathPrefix!: string;
 
-	async copyCatalog(catalog: Catalog, targetDir: Path) {
-		this._initializeContext(catalog, targetDir);
+	async copyCatalog(catalog: Catalog, targetDir: Path, singleCatalog = false) {
+		this._initializeContext(catalog, targetDir, singleCatalog);
 		const catalogItems = await this._parseAndValidateCatalogItems();
 
 		await this._copyRootDirectoryAndLogos();
@@ -72,12 +73,13 @@ class StaticContentCopier {
 		};
 	}
 
-	private _initializeContext(catalog: Catalog, targetDir: Path) {
+	private _initializeContext(catalog: Catalog, targetDir: Path, singleCatalog: boolean) {
 		this._initialized = true;
 		this._wmPath = this._app.wm.current().path();
 		this._directoryTree = { type: "dir", name: "docs", children: [] };
 		this._catalog = catalog;
 		this._targetDir = targetDir;
+		this._pathPrefix = singleCatalog ? "" : catalog.name;
 		this._helpers = this._createDirectoryHelpers();
 		this._folderPath = this._catalog.getRootCategory().folderPath.value;
 		this._wfp = this._app.wm.current().getFileProvider();
@@ -85,7 +87,8 @@ class StaticContentCopier {
 
 	private _createDirectoryHelpers(): DirectoryHelpers {
 		const addToDirectoryTree = (path: string) => {
-			const parts = path.split("/");
+			const parts = path.split("/").filter(Boolean);
+			if (!parts.length) return;
 			let currentDir = this._directoryTree;
 			for (let i = 0; i < parts.length - 1; i++) {
 				let nextDir = currentDir.children.find(
@@ -113,9 +116,10 @@ class StaticContentCopier {
 
 		const copyLogoFile = async (logoProp: string, catalog: Catalog) => {
 			if (!catalog.props[logoProp]) return;
+			const logPath = new Path(catalog.props[logoProp]);
 			await copyFileFromWorkspace(
-				catalog.getRootCategoryDirectoryPath().join(new Path(catalog.props[logoProp])),
-				new Path(catalog.name).join(new Path(catalog.props[logoProp])),
+				catalog.getRootCategoryDirectoryPath().join(logPath),
+				this._prefixPath(logPath),
 			);
 		};
 
@@ -136,12 +140,18 @@ class StaticContentCopier {
 		return items;
 	}
 
+	private _prefixPath(relativePath: Path): Path {
+		const stripped = relativePath.value.replace(/^\/+/, "");
+		const cleanPath = new Path(stripped);
+		return this._pathPrefix ? new Path(this._pathPrefix).join(cleanPath) : cleanPath;
+	}
+
 	private async _copyRootDirectoryAndLogos() {
 		const docroot = this._catalog.getRootCategoryRef().path;
 		if (await this._wfp.exists(docroot)) {
 			await this._helpers.copyFileFromWorkspace(
 				docroot,
-				new Path(this._catalog.name).join(new Path(docroot.value.replace(this._folderPath, ""))),
+				this._prefixPath(new Path(docroot.value.replace(this._folderPath, ""))),
 			);
 			await this._helpers.copyLogoFile("logo", this._catalog);
 			await this._helpers.copyLogoFile("logo_dark", this._catalog);
@@ -155,9 +165,7 @@ class StaticContentCopier {
 
 		for (const item of items) {
 			const itemPath = item.ref.path;
-			const targetArticlePath = new Path(this._catalog.name).join(
-				new Path(itemPath.value.replace(this._folderPath, "")),
-			);
+			const targetArticlePath = this._prefixPath(new Path(itemPath.value.replace(this._folderPath, "")));
 			await this._helpers.copyFileFromWorkspace(itemPath, targetArticlePath, zipFileProvider);
 		}
 
@@ -175,7 +183,12 @@ class StaticContentCopier {
 		const zipHash = crypto.MD5(buffer.toString("hex")).toString().substring(0, 8);
 		const zipFilename = `${zipHash}.zip`;
 
-		await this._fp.write(this._targetDir.join(new Path([this._catalog.name, zipFilename])), buffer);
+		await this._fp.write(
+			this._pathPrefix
+				? this._targetDir.join(new Path([this._pathPrefix, zipFilename]))
+				: this._targetDir.join(new Path(zipFilename)),
+			buffer,
+		);
 
 		return zipFilename;
 	}
@@ -186,7 +199,7 @@ class StaticContentCopier {
 
 		for (const snippet of sortedSnippets) {
 			const path = snippet.ref.path;
-			const targetPath = new Path(this._catalog.name).join(new Path(path.value.replace(this._folderPath, "")));
+			const targetPath = this._prefixPath(new Path(path.value.replace(this._folderPath, "")));
 			await this._helpers.copyFileFromWorkspace(path, targetPath);
 
 			await this._copyItemResources(snippet);
@@ -198,7 +211,7 @@ class StaticContentCopier {
 		const sortedIconPaths = sortForDeterministicOrder(iconPaths, (path) => path.value);
 
 		for (const path of sortedIconPaths) {
-			const targetPath = new Path(this._catalog.name).join(new Path(path.value.replace(this._folderPath, "")));
+			const targetPath = this._prefixPath(new Path(path.value.replace(this._folderPath, "")));
 			await this._helpers.copyFileFromWorkspace(path, targetPath);
 		}
 	}
@@ -218,9 +231,7 @@ class StaticContentCopier {
 
 		for (const r of sortedResources) {
 			const absolutePath = rm.getAbsolutePath(new Path(decodeURIComponent(r.value)));
-			const targetPath = new Path(this._catalog.name).join(
-				new Path(absolutePath.value.replace(this._folderPath, "")),
-			);
+			const targetPath = this._prefixPath(new Path(absolutePath.value.replace(this._folderPath, "")));
 			await this._helpers.copyFileFromWorkspace(absolutePath, targetPath);
 		}
 	}

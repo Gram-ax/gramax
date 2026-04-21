@@ -45,6 +45,7 @@ interface StaticSiteGenerationOptions {
 		copyWordTemplatesFunction?: CopyTemplatesFunction;
 		copyPdfTemplatesFunction?: CopyTemplatesFunction;
 	};
+	singleCatalog?: boolean;
 }
 
 interface StaticSiteBuilderParams {
@@ -66,12 +67,13 @@ class StaticSiteBuilder {
 	}
 
 	async generate(catalog: Catalog, targetDir: Path, options: StaticSiteGenerationOptions) {
-		const { copyTemplate, customStyles, baseUrl } = options;
+		const { copyTemplate, customStyles, baseUrl, singleCatalog = false } = options;
 		const catalogName = catalog.name;
+		const pathPrefix = singleCatalog ? "" : catalogName;
 
 		const directoryCopier = new StaticContentCopier(this._params.fp, this._params.app);
 		const { zipFilename } = await logStepWithErrorSuppression("Copying directory", () =>
-			directoryCopier.copyCatalog(catalog, targetDir),
+			directoryCopier.copyCatalog(catalog, targetDir, singleCatalog),
 		);
 		const { directoryTree, wordTemplates, pdfTemplates } = await directoryCopier.copyWordTemplates(copyTemplate);
 
@@ -79,21 +81,30 @@ class StaticSiteBuilder {
 			"Rendering HTML pages",
 			async () => {
 				return {
-					rendered: await new StaticRenderer(this._params.app, { wordTemplates, pdfTemplates }).render(
-						catalogName,
-					),
-					searchDirectoryTree: await this._createSearchIndexes(catalog, targetDir),
+					rendered: await new StaticRenderer(this._params.app, {
+						wordTemplates,
+						pdfTemplates,
+						singleCatalog,
+					}).render(catalogName),
+					searchDirectoryTree: await this._createSearchIndexes(catalog, targetDir, pathPrefix),
 				};
 			},
 		);
-		const catalogDirectory = directoryTree.children.find((v) => v.name === catalogName) as DirectoryInfoBasic;
-		assert(catalogDirectory, "not found catalog directory in directory tree");
 
-		catalogDirectory.children.push(searchDirectoryTree);
+		if (singleCatalog) {
+			directoryTree.children.push(searchDirectoryTree);
+		} else {
+			const catalogDirectory = directoryTree.children.find((v) => v.name === catalogName) as DirectoryInfoBasic;
+			assert(catalogDirectory, "not found catalog directory in directory tree");
+			catalogDirectory.children.push(searchDirectoryTree);
+		}
 
 		if (customStyles) {
-			await this._params.fp.write(targetDir.join(new Path([catalogName, CUSTOM_STYLE_FILENAME])), customStyles);
-			const customStyleLinkTag = this._createCustomStyleLinkTag(catalogName);
+			const cssPath = pathPrefix
+				? targetDir.join(new Path([pathPrefix, CUSTOM_STYLE_FILENAME]))
+				: targetDir.join(new Path(CUSTOM_STYLE_FILENAME));
+			await this._params.fp.write(cssPath, customStyles);
+			const customStyleLinkTag = this._createCustomStyleLinkTag(pathPrefix);
 			this._params.html = this._params.html.replace(htmlTags.styles, `${customStyleLinkTag}\n${htmlTags.styles}`);
 		}
 
@@ -102,19 +113,23 @@ class StaticSiteBuilder {
 		const dataJsHash = this._generateHash(dataJsContent);
 		const dataJsFilename = `data.${dataJsHash}.js`;
 
-		await this._params.fp.write(targetDir.join(new Path([catalogName, dataJsFilename])), dataJsContent);
+		const dataJsPath = pathPrefix
+			? targetDir.join(new Path([pathPrefix, dataJsFilename]))
+			: targetDir.join(new Path(dataJsFilename));
+		await this._params.fp.write(dataJsPath, dataJsContent);
 
 		await logStep("Writing rendered HTML files", () =>
-			this._writingRenderedHtmlFiles(rendered, targetDir, catalogName, dataJsFilename, zipFilename),
+			this._writingRenderedHtmlFiles(rendered, targetDir, catalogName, dataJsFilename, zipFilename, singleCatalog),
 		);
 
 		if (baseUrl)
 			await logStep("Creating sitemap.xml & robots.txt", () => this._writeSEOFiles(baseUrl, catalog, targetDir));
 	}
 
-	private _createSearchIndexes = async (catalog: Catalog, targetDir: Path) => {
+	private _createSearchIndexes = async (catalog: Catalog, targetDir: Path, pathPrefix?: string) => {
+		const indexDir = pathPrefix ? targetDir.join(new Path(pathPrefix)) : targetDir;
 		const { cacheFileProvider, articleStorageFileProvider } =
-			this._params.getCache.fp?.() ?? createModulithFileProviders(targetDir.join(new Path(catalog.name)));
+			this._params.getCache.fp?.() ?? createModulithFileProviders(indexDir);
 		const client = await resolveBackendModule("getModulithSearchClient")({
 			cacheFileProvider,
 			articleStorageFileProvider,
@@ -141,18 +156,23 @@ class StaticSiteBuilder {
 		catalogName: string,
 		dataJsFilename: string,
 		zipFilename: string,
+		singleCatalog = false,
 	) => {
 		const config = getConfig();
 		config.isProduction = true;
 		config.isReadOnly = true;
 		(config as StaticConfig).features = getRawEnabledFeatures();
 
+		const pathPrefix = singleCatalog ? "" : catalogName;
+		const dataJsSrc = pathPrefix ? `${pathPrefix}/${dataJsFilename}` : dataJsFilename;
+
 		const templateHtml = this._params.html
 			.replace(htmlTags.config, `window.${InitialDataKeys.CONFIG} = ${this._stringifyDataSafely(config) ?? "{}"}`)
 			.replace(
 				htmlTags.fs,
-				`<script src="${catalogName}/${dataJsFilename}"></script>\n` +
-					`<script>window.${InitialDataKeys.ZIP_FILENAME} = "${zipFilename}";</script>`,
+				`<script src="${dataJsSrc}"></script>\n` +
+					`<script>window.${InitialDataKeys.ZIP_FILENAME} = "${zipFilename}";</script>\n` +
+					`<script>window.${InitialDataKeys.SINGLE_CATALOG} = ${singleCatalog ? "true" : "false"};</script>`,
 			);
 
 		const generateHtmlFile = async (htmlData: HtmlData) => {
@@ -163,10 +183,16 @@ class StaticSiteBuilder {
 			const getLogicPath = () => {
 				const get404Path = () => {
 					if (isBrowser) return [htmlData.logicPath, "404.html"];
+					if (singleCatalog) return [htmlData.logicPath, "404.html"];
 					return [htmlData.logicPath.substring(catalogName.length), "404.html"];
 				};
 
 				if (is404Html) return new Path(get404Path());
+				if (singleCatalog) {
+					return htmlData.logicPath
+						? new Path(htmlData.logicPath).join(new Path("index.html"))
+						: new Path("index.html");
+				}
 				return new Path(htmlData.logicPath).join(new Path("index.html"));
 			};
 
@@ -190,7 +216,7 @@ class StaticSiteBuilder {
 			await this._params.fp.write(filePath, html);
 		};
 
-		if (!isBrowser)
+		if (!isBrowser && !singleCatalog)
 			await this._params.fp.write(targetDir.join(new Path("index.html")), this._getRedirectHTML(catalogName));
 
 		for (const htmlData of htmlDatas) await generateHtmlFile(htmlData);
@@ -225,8 +251,9 @@ class StaticSiteBuilder {
 	</html>`;
 	}
 
-	private _createCustomStyleLinkTag(catalogName: string) {
-		return `<link id="${CUSTOM_STYLE_LINK_ID}" rel="stylesheet" crossorigin href="${catalogName}/${CUSTOM_STYLE_FILENAME}">`;
+	private _createCustomStyleLinkTag(pathPrefix: string) {
+		const href = pathPrefix ? `${pathPrefix}/${CUSTOM_STYLE_FILENAME}` : CUSTOM_STYLE_FILENAME;
+		return `<link id="${CUSTOM_STYLE_LINK_ID}" rel="stylesheet" crossorigin href="${href}">`;
 	}
 
 	static buildDirectoryTreeFromPaths(filePaths: string[]): DirectoryInfoBasic {

@@ -21,7 +21,7 @@ import Gramax, { type GramaxData } from "../../../browser/src/Gramax";
 import useLocation from "../../../browser/src/logic/Api/useLocation";
 import { type ExtendedWindow, InitialDataKeys } from "../../src/logic/initialDataUtils/types";
 import type { InitialData } from "../logic/ArticleTypes";
-import { getCatalogNameFromInitialData } from "../logic/initialDataUtils/getCatalogName";
+import { getCatalogNameFromInitialData, isSingleCatalogMode } from "../logic/initialDataUtils/getCatalogName";
 
 import "../../../../core/styles/main.css";
 import "../../../../core/styles/chain-icon.css";
@@ -54,7 +54,7 @@ global.config = (window as ExtendedWindow)[InitialDataKeys.CONFIG];
 setFeatureList();
 (global.config as AppConfig).paths = {
 	base: getBasePath(),
-	data: new Path(`/${catalogName}`),
+	data: isSingleCatalogMode() ? new Path("/") : new Path(`/${catalogName}`),
 	default: new Path("/"),
 	root: new Path("/"),
 };

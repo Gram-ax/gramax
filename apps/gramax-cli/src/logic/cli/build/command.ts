@@ -13,6 +13,7 @@ export interface BuildOptions {
 	docxTemplates: string;
 	pdfTemplates: string;
 	baseUrl: string;
+	singleCatalog: boolean;
 }
 
 export interface OptionProps {
@@ -96,6 +97,13 @@ const buildOptions: { [K in keyof BuildOptions]: OptionProps } = {
 	baseUrl: {
 		description: "Base site URL for sitemap.xml and robots.txt.",
 		type: "url",
+	},
+	singleCatalog: {
+		description: "Build without catalog name prefix in URLs (for single-catalog deployments)",
+		defaultValue: {
+			value: false,
+			description: "false",
+		},
 	},
 };
 

@@ -104,8 +104,10 @@ const validateBaseUrl = (baseUrl: string | undefined): void => {
 	}
 };
 
-const getStorageTree = (catalogName: string, targetDir: Path, fp: DiskFileProvider) => async () => {
-	const baseDirPath = targetDir.join(new Path(catalogName), new Path(STORAGE_DIR_NAME));
+const getStorageTree = (pathPrefix: string, targetDir: Path, fp: DiskFileProvider) => async () => {
+	const baseDirPath = pathPrefix
+		? targetDir.join(new Path(pathPrefix), new Path(STORAGE_DIR_NAME))
+		: targetDir.join(new Path(STORAGE_DIR_NAME));
 	const resDir: DirectoryInfoBasic = {
 		type: "dir",
 		name: STORAGE_DIR_NAME,
@@ -139,7 +141,7 @@ const getStorageTree = (catalogName: string, targetDir: Path, fp: DiskFileProvid
 };
 
 const buildCommandFunction = async (options: BuildOptions) => {
-	const { source, destination, SkipCheck, customCss, docxTemplates, baseUrl, pdfTemplates, ...configOptions } =
+	const { source, destination, SkipCheck, customCss, docxTemplates, baseUrl, pdfTemplates, SingleCatalog, ...configOptions } =
 		options;
 
 	const targetDir = new Path(destination);
@@ -155,6 +157,9 @@ const buildCommandFunction = async (options: BuildOptions) => {
 	const catalogName = basename(fullPath);
 	await setEnv(fullPath, configOptions);
 	setFeatureList();
+
+	if (SingleCatalog) process.env.GRAMAX_SINGLE_CATALOG = "true";
+	else delete process.env.GRAMAX_SINGLE_CATALOG;
 
 	const app = await getApp();
 	const wm = app.wm.current();
@@ -173,17 +178,30 @@ const buildCommandFunction = async (options: BuildOptions) => {
 
 	const customStyles = await loadCustomStyles(customCss, fp);
 
+	const pathPrefix = SingleCatalog ? "" : catalogName;
+
 	const getCache = {
-		tree: getStorageTree(catalogName, targetDir, fp),
+		tree: getStorageTree(pathPrefix, targetDir, fp),
 	};
 
 	await new StaticSiteBuilder({ fp, app, html: templateHtml, getCache }).generate(catalog, targetDir, {
 		customStyles,
 		copyTemplate: {
-			copyWordTemplatesFunction: copyWordTemplatesInCli({ fp, catalogName, sourcePath: docxTemplates }),
-			copyPdfTemplatesFunction: copyPdfTemplatesInCli({ fp, catalogName, sourcePath: pdfTemplates }),
+			copyWordTemplatesFunction: copyWordTemplatesInCli({
+				fp,
+				catalogName,
+				sourcePath: docxTemplates,
+				singleCatalog: SingleCatalog,
+			}),
+			copyPdfTemplatesFunction: copyPdfTemplatesInCli({
+				fp,
+				catalogName,
+				sourcePath: pdfTemplates,
+				singleCatalog: SingleCatalog,
+			}),
 		},
 		baseUrl,
+		singleCatalog: SingleCatalog,
 	});
 };
 
