@@ -70,7 +70,68 @@ const promisedApp: Promise<Application> = (async () => {
 	return app;
 })();
 
+const extractInitialDataFromHtml = (html: string): InitialData => {
+	const marker = "window.__INITIAL_DATA__";
+	const markerIdx = html.indexOf(marker);
+	if (markerIdx === -1) throw new Error("__INITIAL_DATA__ marker not found in fetched HTML");
+	const startIdx = html.indexOf("{", markerIdx);
+	if (startIdx === -1) throw new Error("Initial data JSON start not found");
+
+	let depth = 0;
+	let inString = false;
+	let escape = false;
+	let endIdx = -1;
+	for (let i = startIdx; i < html.length; i++) {
+		const c = html[i];
+		if (escape) {
+			escape = false;
+			continue;
+		}
+		if (c === "\\") {
+			escape = true;
+			continue;
+		}
+		if (c === '"') {
+			inString = !inString;
+			continue;
+		}
+		if (inString) continue;
+		if (c === "{") depth++;
+		else if (c === "}") {
+			depth--;
+			if (depth === 0) {
+				endIdx = i;
+				break;
+			}
+		}
+	}
+	if (endIdx === -1) throw new Error("Initial data JSON end not found");
+	return JSON.parse(html.substring(startIdx, endIdx + 1));
+};
+
+const fetchInitialDataForRoute = async (route: string): Promise<InitialData> => {
+	const trimmed = route.replace(/^\/+/, "").replace(/\/+$/, "");
+	const target = trimmed ? `${trimmed}/` : "./";
+	const url = new URL(target, document.baseURI).href;
+	const response = await fetch(url, { credentials: "same-origin" });
+	if (!response.ok) throw new Error(`Failed to fetch ${url}: ${response.status}`);
+	return extractInitialDataFromHtml(await response.text());
+};
+
 const getData = async (route: string, query: Query) => {
+	if (isSingleCatalogMode()) {
+		const fetched = await fetchInitialDataForRoute(route);
+		return {
+			page: "article" as const,
+			data: {
+				...fetched.data.articlePageData,
+				catalogProps: fetched.data.catalogProps,
+				openGraphData: null,
+			},
+			context: fetched.context,
+		};
+	}
+
 	const app = await promisedApp;
 	const commands = getCommands(app);
 	const language = RouterPathProvider.parsePath(route).language;
@@ -117,7 +178,8 @@ const Component = () => {
 				return;
 			}
 			const cleanPath = removeBasePath(path);
-			if (!cleanPath || cleanPath === "/" || !initialData.context.isArticle) return window.location.reload();
+			if (!initialData.context.isArticle) return window.location.reload();
+			if ((!cleanPath || cleanPath === "/") && !isSingleCatalogMode()) return window.location.reload();
 
 			const data = await getData(cleanPath, parserQuery(query));
 			setData({ path, ...data });
