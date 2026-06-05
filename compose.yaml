@@ -1,0 +1,20 @@
+name: gramax
+
+services:
+  docportal:
+    image: gramax/docportal:${GRAMAX_IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "${GRAMAX_PORT:-8080}:80"
+    environment:
+      PORT: "80"
+      ROOT_PATH: /app/data
+      PRODUCTION: "true"
+      BRANCH: master
+      ADMIN_LOGIN: "${GRAMAX_ADMIN_LOGIN:-admin}"
+      ADMIN_PASSWORD: "${GRAMAX_ADMIN_PASSWORD:-change-me}"
+      COOKIE_SECRET: "${GRAMAX_COOKIE_SECRET:-local-development-secret}"
+      SHARE_ACCESS_TOKEN: "${GRAMAX_SHARE_ACCESS_TOKEN:-local-development-token}"
+    volumes:
+      - "${GRAMAX_CONTENT_PATH:-./content}:/app/data"
+
