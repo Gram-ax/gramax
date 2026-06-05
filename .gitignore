@@ -68,6 +68,7 @@ private.env
 ehthumbs.db
 Thumbs.db
 .env*
+!.env.example
 junit*.xml
 .idea/
 

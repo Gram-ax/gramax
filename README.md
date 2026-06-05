@@ -51,9 +51,34 @@ For more details, see the [official documentation](https://gram.ax/resources/doc
 
 Publish your documentation as a website, hosted on your server or as a static site.
 
-### Setup
+### Run locally with Docker Compose
 
--  **Docker**: Deploy with docker-compose.yaml from [gram.ax/docker-compose.yaml](http://gram.ax/docker-compose.yaml).
+The root `compose.yaml` starts the documentation portal from the published
+`gramax/docportal` image and stores its content in the local `content` directory.
+
+```bash
+cp .env.example .env
+mkdir -p content
+docker compose up -d
+```
+
+Open [http://localhost:8080](http://localhost:8080). Put Gramax catalogs in
+`./content`; each catalog is a directory containing a `.doc-root.yaml` file and
+Markdown articles.
+
+Stop the portal with:
+
+```bash
+docker compose down
+```
+
+The port, content path, image tag, and local credentials can be changed in
+`.env`. Replace the example secrets before exposing the service outside your
+local machine.
+
+### Other setup options
+
+-  **Docker**: Use the root `compose.yaml` or download it from [gram.ax/docker-compose.yaml](http://gram.ax/docker-compose.yaml).
 
 -  **Static Site**:
 
