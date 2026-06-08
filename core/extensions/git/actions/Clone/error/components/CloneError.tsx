@@ -1,47 +1,44 @@
-import styled from "@emotion/styled";
-import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import { DialogErrorHeader } from "@ext/errorHandlers/client/components/DialogErrorHeader";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
-import type { ComponentProps } from "react";
-import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
+import { DialogBody, DialogFooterTemplate } from "@ui-kit/Dialog";
+import type { GetErrorComponentProps } from "../../../../../errorHandlers/logic/GetErrorComponent";
 
-const Wrapper = styled.div`
-	margin-bottom: 1rem;
-`;
-
-const CloneErrorComponent = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
+const CloneErrorComponent = ({ error, onCancelClick }: GetErrorComponentProps) => {
 	const cause = (error.cause?.cause || error.cause) as Error;
 
 	return (
-		<InfoModalForm closeButton={{ text: t("ok") }} onCancelClick={onCancelClick} title={t("clone-fail")}>
-			<div className="article">
-				<Wrapper>
-					{t("clone-error-desc1")}
-					{error.props.remoteUrl && (
-						<>
-							{" "}
-							<a href={error.props.remoteUrl} rel="noreferrer" target="_blank">
-								{error.props.remoteUrl}
-							</a>
-						</>
-					)}
-					. {t("clone-error-desc2")}
-				</Wrapper>
+		<>
+			<DialogErrorHeader error={error} title={t("clone-fail")} />
+			<DialogBody>
+				<div className="article bg-transparent">
+					<div>
+						{t("clone-error-desc1")}
+						{error.props.remoteUrl && (
+							<>
+								{" "}
+								<a href={error.props.remoteUrl} rel="noreferrer" target="_blank">
+									{error.props.remoteUrl}
+								</a>
+							</>
+						)}
+						. {t("clone-error-desc2")}
+					</div>
 
-				{cause && (
-					<Note collapsed={true} title={t("technical-details")} type={NoteType.hotfixes}>
-						<CodeBlock
-							value={
-								cause.stack.includes("Fn:")
+					{cause && (
+						<Note collapsed={true} title={t("technical-details")} type={NoteType.hotfixes}>
+							<CodeBlock>
+								{cause.stack.includes("Fn:")
 									? cause.stack
-									: `${cause.name}: ${cause.message}\n${cause.stack}`
-							}
-						/>
-					</Note>
-				)}
-			</div>
-		</InfoModalForm>
+									: `${cause.name}: ${cause.message}\n${cause.stack}`}
+							</CodeBlock>
+						</Note>
+					)}
+				</div>
+			</DialogBody>
+			<DialogFooterTemplate primaryButton={t("ok")} primaryButtonProps={{ onClick: onCancelClick }} />
+		</>
 	);
 };
 

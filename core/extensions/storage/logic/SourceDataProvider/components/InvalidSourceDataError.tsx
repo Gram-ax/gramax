@@ -1,15 +1,17 @@
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
+import { DialogErrorHeader } from "@ext/errorHandlers/client/components/DialogErrorHeader";
 import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import t from "@ext/localization/locale/translate";
 import useSourceData from "@ext/storage/components/useSourceData";
 import { useOpenRestoreSourceTokenModal } from "@ext/storage/logic/SourceDataProvider/components/useOpenRestoreSourceTokenModal";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
+import { DialogBody, DialogFooterTemplate } from "@ui-kit/Dialog";
 import { type ComponentProps, useEffect } from "react";
 
 const InvalidSourceDataError = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
 	const sourceDatas = SourceDataService.value;
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const sourceIndex = sourceDatas.findIndex((s) => getStorageNameByData(s) === error.props?.sourceName);
 		if (sourceIndex === -1) return;
@@ -20,29 +22,25 @@ const InvalidSourceDataError = ({ error, onCancelClick }: ComponentProps<typeof 
 	const source = useSourceData(error.props?.sourceName as string);
 	const openRestoreSourceModal = useOpenRestoreSourceTokenModal(source);
 
+	const onConnect = () => {
+		onCancelClick?.();
+		openRestoreSourceModal();
+	};
+
 	return (
 		<>
-			<InfoModalForm
-				actionButton={
-					source
-						? {
-								text: t("connect-storage"),
-								onClick: () => {
-									onCancelClick?.();
-									openRestoreSourceModal();
-								},
-							}
-						: null
-				}
-				closeButton={{ text: t("close") }}
-				icon={{ code: "key-round" }}
-				onCancelClick={onCancelClick}
-				title={t("storage-not-connected")}
-			>
-				<div className="article">
+			<DialogErrorHeader error={error} icon="key-round" title={t("storage-not-connected")} />
+			<DialogBody>
+				<div className="article bg-transparent">
 					<p>{t("git.source.error.invalid-credentials.desc")}</p>
 				</div>
-			</InfoModalForm>
+			</DialogBody>
+			<DialogFooterTemplate
+				primaryButton={source ? t("connect-storage") : t("close")}
+				primaryButtonProps={{ onClick: source ? onConnect : onCancelClick }}
+				secondaryButton={source ? t("close") : undefined}
+				secondaryButtonProps={source ? { onClick: onCancelClick, variant: "outline" as const } : undefined}
+			/>
 		</>
 	);
 };

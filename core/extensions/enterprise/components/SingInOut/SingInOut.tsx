@@ -7,7 +7,6 @@ import useDesktopEnterpriseSession from "@ext/enterprise/components/SingInOut/ho
 import useSignOut from "@ext/enterprise/components/SingInOut/hooks/useSignOut";
 import SignInEnterprise from "@ext/enterprise/components/SingInOut/SignInEnterprise";
 import SignInEnterpriseModal from "@ext/enterprise/components/SingInOut/SignInEnterpriseModal";
-import SignInModalTrigger from "@ext/enterprise-cloud/components/SignInModalTrigger";
 import t from "@ext/localization/locale/translate";
 import { IconButton } from "@ui-kit/Button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
@@ -55,13 +54,4 @@ export const SingInTauri = () => {
 	if (!shouldOpenTauriGesModal) return <SignInEnterprise trigger={trigger} />;
 
 	return <div onClick={() => ModalToOpenService.setValue(ModalToOpen.TauriGesSignIn)}>{trigger}</div>;
-};
-
-export const GesCloudSignInOut = () => {
-	const { isLogged, onLogoutClick } = useSignOut();
-	const { gesUrl } = PageDataContextService.value.conf.enterprise;
-
-	if (!!gesUrl && !isLogged) return <SignInModalTrigger gesUrl={gesUrl} />;
-
-	return <UserAvatar logoutComponent={<SignOut />} onLogoutClick={onLogoutClick} />;
 };

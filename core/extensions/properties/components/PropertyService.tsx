@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import useWatch from "@core-ui/hooks/useWatch";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
@@ -34,17 +35,13 @@ class PropertyServiceProvider {
 		const articleProps = ArticlePropsService.value;
 
 		useEffect(() => {
-			const articleProperties = combineProperties(articleProps.properties, properties);
+			const articleProperties = combineProperties(articleProps?.properties, properties);
 			setArticleProperties(articleProperties);
-		}, [articleProps.properties, properties]);
+		}, [articleProps?.properties, properties]);
 
 		const updateProperties = () => {
 			const map = catalogProperties
-				? new Map(
-						catalogProperties
-							.filter((prop) => !SystemProperties[prop.name])
-							.map((prop) => [prop.name, prop]),
-					)
+				? new Map(catalogProperties.filter((prop) => !SystemProperties[prop.id]).map((prop) => [prop.id, prop]))
 				: new Map();
 
 			setProperties(map);

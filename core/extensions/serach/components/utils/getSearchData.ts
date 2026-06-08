@@ -8,21 +8,23 @@ interface GetSearchDataArgs {
 	signal: AbortSignal;
 	propertyFilter?: PropertyFilter;
 	resourceFilter: ResourceFilter;
-	articleRefPath?: string;
+	articleRefFilter?: string;
 	onlyArticles: boolean;
+	catalogNames?: string[];
 }
 
 export const getSearchData = async ({
 	url,
 	propertyFilter,
 	resourceFilter,
-	articleRefPath,
+	articleRefFilter,
 	signal,
 	onlyArticles,
+	catalogNames,
 }: GetSearchDataArgs): Promise<RowSearchResult[] | undefined> => {
 	const res = await FetchService.fetch<SearchResult[]>(
 		url,
-		JSON.stringify({ resourceFilter, propertyFilter, articleRefPath }),
+		JSON.stringify({ resourceFilter, propertyFilter, articleRefFilter, catalogNames }),
 		undefined,
 		undefined,
 		undefined,

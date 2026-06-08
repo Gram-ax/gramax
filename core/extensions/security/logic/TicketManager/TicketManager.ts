@@ -1,17 +1,17 @@
 import type { EnterpriseConfig } from "@app/config/AppConfig";
+import { Encoder } from "@ext/encoder/Encoder";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import t from "@ext/localization/locale/translate";
 import TokenValidationError from "@ext/publicApi/TokenValidationError";
 import TicketUser from "@ext/security/logic/TicketManager/TicketUser";
-import type { Encoder } from "../../../Encoder/Encoder";
 import type IPermission from "../Permission/IPermission";
 import Permission from "../Permission/Permission";
 
 export class TicketManager {
-	constructor(
-		private _encoder: Encoder,
-		private _shareAccessToken: string,
-	) {}
+	private _encoder: Encoder;
+	constructor(private _shareAccessToken: string) {
+		this._encoder = new Encoder();
+	}
 
 	checkShareTicket(ticket: string) {
 		const st = this._checkShareTicket(ticket);
@@ -34,7 +34,7 @@ export class TicketManager {
 
 	getShareTicket(catalogName: string, permission: IPermission, date: Date): string {
 		if (!this._shareAccessToken) throw new Error(t("share-access-token-not-installed"));
-		return this._encoder.ecode(
+		return this._encoder.encode(
 			this._generateCatalogSharedDatas(catalogName, permission, date),
 			this._shareAccessToken,
 		);
@@ -42,7 +42,7 @@ export class TicketManager {
 
 	getUserToken(user: EnterpriseUser, expiresAt: Date): string {
 		if (!this._shareAccessToken) throw new Error(t("share-access-token-not-installed"));
-		return this._encoder.ecode(this._generateUserSharedDatas(user, expiresAt), this._shareAccessToken);
+		return this._encoder.encode(this._generateUserSharedDatas(user, expiresAt), this._shareAccessToken);
 	}
 
 	private _checkShareTicket(ticket: string): { catalogName: string; permission: IPermission } {

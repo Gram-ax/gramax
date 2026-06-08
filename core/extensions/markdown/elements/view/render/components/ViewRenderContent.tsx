@@ -9,7 +9,7 @@ interface ViewRenderContentProps {
 	content: ViewRenderGroup[];
 	display: Display;
 	defs: PropertyValue[];
-	orderby: string[];
+	orderby: PropertyValue[];
 	groupby: string[];
 	select: string[];
 	className?: string;

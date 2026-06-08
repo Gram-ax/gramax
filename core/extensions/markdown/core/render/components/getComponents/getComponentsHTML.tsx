@@ -1,3 +1,4 @@
+import type DiagramType from "@core/components/Diagram/DiagramType";
 import HTMLAlert from "@ext/markdown/elements/alert/render/component/HTMLAlert";
 import HTMLAlfa from "@ext/markdown/elements/alfaBeta/render/components/HTMLAlfa";
 import HTMLBeta from "@ext/markdown/elements/alfaBeta/render/components/HTMLBeta";
@@ -12,6 +13,8 @@ import HTMLDrawio from "@ext/markdown/elements/drawio/render/components/HTMLDraw
 import HTMLError from "@ext/markdown/elements/error/render/HTMLError";
 import HTMLFence from "@ext/markdown/elements/fence/render/components/HTMLFence";
 import HTMLFormula from "@ext/markdown/elements/formula/render/components/HTMLFormula";
+import HTMLFragment from "@ext/markdown/elements/fragment/render/components/HTMLFragment";
+import HTMLFragmentLink from "@ext/markdown/elements/fragment-link/render/components/HTMLFragmentLink";
 import HTMLHeading from "@ext/markdown/elements/heading/render/components/HTMLHeading";
 import HTMLHighlight from "@ext/markdown/elements/highlight/render/components/HTMLHighlight";
 import HtmlBlock from "@ext/markdown/elements/html/render/components/HTML";
@@ -34,10 +37,10 @@ import {
 import HTMLModule from "@ext/markdown/elements/module/render/HTMLModule";
 import HTMLNote from "@ext/markdown/elements/note/render/components/HTMLNote";
 import See from "@ext/markdown/elements/see/render/See";
-import HTMLSnippet from "@ext/markdown/elements/snippet/render/components/HTMLSnippet";
 import HTMLSub from "@ext/markdown/elements/sub/render/components/HTMLSub";
 import HTMLTable from "@ext/markdown/elements/table/render/HtmlComponents/HTMLTable";
 import HTMLTableCell from "@ext/markdown/elements/table/render/HtmlComponents/HTMLTableCell";
+import HTMLTableRow from "@ext/markdown/elements/table/render/HtmlComponents/HTMLTableRow";
 import { TableDB } from "@ext/markdown/elements/tabledb/render/DbTable";
 import HTMLTabs from "@ext/markdown/elements/tabs/render/components/HTMLTabs";
 import HTMLTerm from "@ext/markdown/elements/term/render/HTMLTerm";
@@ -51,7 +54,8 @@ import HTMLComponents, { unSupportedElements } from "./HTMLComponents";
 const getComponentsHTML = (
 	requestURL?: string,
 	context?: ParserContext,
-): { [name: string]: (...props: any) => ReactNode } => {
+	// biome-ignore lint/suspicious/noExplicitAny: dynamic component registry requires any
+): { [name: string]: (props: any) => ReactNode } => {
 	if (!context) {
 		return {};
 	}
@@ -61,8 +65,9 @@ const getComponentsHTML = (
 		Br: HTMLBr,
 		Color: HTMLColor,
 		Formula: HTMLFormula,
-		Fence: HTMLFence,
-		snippet: HTMLSnippet,
+		code_block: HTMLFence,
+		fragment: HTMLFragment,
+		"Fragment-link": HTMLFragmentLink,
 		Code: HTMLCode,
 		Alfa: HTMLAlfa,
 		Beta: HTMLBeta,
@@ -79,7 +84,7 @@ const getComponentsHTML = (
 		Who: HTMLWho(html),
 		When: HTMLWhen(html),
 		Kbd: HTMLKbd,
-		Html: HtmlBlock,
+		html: HtmlBlock,
 		highlight: HTMLHighlight,
 		inlineHtmlTag: HtmlTag,
 		blockHtmlTag: HtmlTag,
@@ -96,7 +101,7 @@ const getComponentsHTML = (
 		bulletList: HTMLBulletList,
 		taskList: HTMLTaskList,
 		orderedList: HTMLOrderedList,
-		OpenApi: html.getNullComponent(unSupportedElements.openApi),
+		openApi: html.getNullComponent(unSupportedElements.openApi),
 		note: HTMLNote(html),
 		Alert: HTMLAlert(html),
 		Unsupported: (props) => <div data-component="unsupported">{props.children}</div>,
@@ -104,21 +109,20 @@ const getComponentsHTML = (
 		tab: html.getNullComponent(unSupportedElements.tab),
 		Video: HTMLVideo,
 		Heading: HTMLHeading,
-		Drawio: HTMLDrawio(html),
+		drawio: HTMLDrawio(html),
 		Term: HTMLTerm,
 		Error: HTMLError,
-		Table: HTMLTable,
+		table: HTMLTable,
 		tableCell: HTMLTableCell,
+		tableRow: HTMLTableRow,
 		Include: HTMLInclude,
 		"Db-table": TableDB,
 		"Db-diagram": html.getNullComponent(unSupportedElements["db-diagram"]),
-		Mermaid: html.getNullComponent(unSupportedElements.mermaid),
-		"Plant-uml": (props) => {
-			const { content, src } = props;
-			return html.getNullComponent(unSupportedElements["plant-uml"])({
-				src,
-				...(content && { children: content }),
-			});
+		diagrams: (props: { diagramName: DiagramType; src?: string; title: string; content?: string }) => {
+			const { diagramName, src, title, content } = props;
+			const name = unSupportedElements[diagramName[0].toLowerCase() + diagramName.slice(1)];
+
+			return html.getNullComponent(name)({ src, title, content });
 		},
 		Link: HTMLLink(html),
 	};

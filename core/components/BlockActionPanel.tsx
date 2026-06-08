@@ -2,11 +2,12 @@ import Caption from "@components/controls/Caption";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
 import type { UseDefaultActionsOptions } from "@components/controls/HoverController/hooks/useDefaultActions";
 import useWatch from "@core-ui/hooks/useWatch";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { getEditorStore } from "@core-ui/stores/EditorStore";
+import type { Attrs } from "@tiptap/pm/model";
 import { type FocusEvent, type ReactElement, type RefObject, useCallback, useState } from "react";
 
 interface BlockActionPanelProps {
-	updateAttributes: (attributes: Record<string, any>) => void;
+	updateAttributes: (attributes: Attrs) => void;
 	hoverElementRef: RefObject<HTMLDivElement>;
 	getPos: () => number;
 	signatureText?: string;
@@ -39,7 +40,7 @@ const BlockActionPanel = (props: BlockActionPanelProps) => {
 		actionsOptions,
 	} = props;
 	const [isHovered, setIsHovered] = useState<boolean>(false);
-	const editor = EditorService.getEditor();
+	const editor = getEditorStore().editor;
 
 	const onUpdate = useCallback((text: string) => updateAttributes({ title: text }), [updateAttributes]);
 	const onLoseFocus = useCallback(
@@ -50,7 +51,7 @@ const BlockActionPanel = (props: BlockActionPanelProps) => {
 			updateAttributes({ title: "" });
 			return setHasSignature(false);
 		},
-		[updateAttributes, hasSignature],
+		[updateAttributes, hasSignature, setHasSignature],
 	);
 
 	useWatch(() => {

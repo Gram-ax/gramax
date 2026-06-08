@@ -7,15 +7,15 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 thread_local! {
-	static SPANS: RefCell<Vec<gramax_opentelemetry::OtelSpan>> = RefCell::new(Vec::new());
+	static SPANS: RefCell<Vec<gramax_opentelemetry::OtelSpan>> = const { RefCell::new(Vec::new()) };
 }
 
 pub fn setup_remote_context(span_id: Option<&str>, trace_id: Option<&str>) -> opentelemetry::ContextGuard {
 	use opentelemetry::trace::*;
 
-	let span_id = span_id.map(|span_id| SpanId::from_hex(span_id).ok()).flatten();
+	let span_id = span_id.and_then(|span_id| SpanId::from_hex(span_id).ok());
 
-	let trace_id = trace_id.map(|trace_id| TraceId::from_hex(trace_id).ok()).flatten();
+	let trace_id = trace_id.and_then(|trace_id| TraceId::from_hex(trace_id).ok());
 
 	let (Some(span_id), Some(trace_id)) = (span_id, trace_id) else {
 		return opentelemetry::Context::current().with_telemetry_suppressed().attach();

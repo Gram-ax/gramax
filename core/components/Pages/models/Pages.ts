@@ -1,5 +1,6 @@
 import type PageDataContext from "@core/Context/PageDataContext";
-import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 
 interface PageDataMap {
 	home: HomePageData;

@@ -2,7 +2,7 @@ import assert from "assert";
 import { S3Client, semver } from "bun";
 import fs from "fs/promises";
 import path from "path";
-import { artifactsDir, env, sizeOf } from "./util";
+import { artifactsDir, env, releaseOffset, sizeOf } from "./util";
 
 const allowedFiles = {
 	"windows-x86_64": {
@@ -35,15 +35,6 @@ const allowedFiles = {
 	},
 } as const;
 
-type UploadFn = (opts: {
-	s3: S3Client;
-	s3url: string;
-	displayName: string;
-	filepath: string;
-	s3path: string;
-	latest: string;
-}) => Promise<boolean>;
-
 export const upload = async (channel: string, version: string) => {
 	const accessKeyId = env("S3_ACCESS_KEY");
 	const secretAccessKey = env("S3_SECRET_KEY");
@@ -65,6 +56,8 @@ export const upload = async (channel: string, version: string) => {
 	});
 
 	let uploadedCount = 0;
+
+	const offset = releaseOffset();
 
 	for (const [platform, packages] of Object.entries(allowedFiles)) {
 		console.log();
@@ -116,7 +109,10 @@ export const upload = async (channel: string, version: string) => {
 				continue;
 			}
 
-			await uploadLatest(latest);
+			if (offset === null) {
+				await uploadLatest(latest);
+			}
+
 			await uploadLatest(innerLatest);
 		}
 	}

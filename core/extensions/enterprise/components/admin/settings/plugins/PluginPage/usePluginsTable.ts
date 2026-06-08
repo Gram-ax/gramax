@@ -4,7 +4,7 @@ import {
 } from "@ext/enterprise/components/admin/settings/plugins/PluginPage/PluginsTableConfig";
 import type { PluginConfig } from "@plugins/types";
 import { getCoreRowModel, getFilteredRowModel, useReactTable, useTableSelection } from "@ui-kit/DataTable";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export type { PluginTableRow };
 
@@ -52,12 +52,14 @@ export const usePluginsTable = ({ serverPlugins, onDelete, onToggleState }: UseP
 		},
 	});
 
+	const isRowDisabled = useCallback((row: PluginTableRow) => row.isBuiltIn, []);
+
 	const { getSelectedCount, getSelectedItems } = useTableSelection({
 		table,
-		isRowDisabled: (row) => row.isBuiltIn,
+		isRowDisabled,
 	});
 
-	const resetSelection = () => setRowSelection({});
+	const resetSelection = useCallback(() => setRowSelection({}), []);
 
 	return {
 		table,

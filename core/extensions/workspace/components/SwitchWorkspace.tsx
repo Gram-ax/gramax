@@ -5,7 +5,6 @@ import isMobileService from "@core-ui/ContextServices/isMobileService";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import {
 	type UseSyncableWorkspacesReturn,
 	useSyncableWorkspaces,
@@ -144,7 +143,6 @@ const WorkspaceItem = ({
 			key={path}
 			onClick={async () => {
 				await WorkspaceService.setActive(path, apiUrlCreator);
-				SourceDataService.refresh();
 			}}
 		>
 			<MenuItemInteractiveTemplate
@@ -254,7 +252,7 @@ const SwitchWorkspace = () => {
 								onClick={() =>
 									ModalToOpenService.setValue<ComponentProps<typeof CreateWorkspaceForm>>(
 										ModalToOpen.CreateWorkspaceForm,
-										{ onSubmit: () => SourceDataService.refresh() },
+										{},
 									)
 								}
 							>

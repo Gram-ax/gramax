@@ -33,10 +33,10 @@ homeTest.describe("Top Bar", () => {
 		const [workspace, dropdown] = await homePage.topBar.getSwitchWorkspace();
 		await dropdown.open();
 
-		dropdown.assertHasItems([{ title: "Default Workspace" }, { title: "Add workspace" }]);
+		dropdown.assertHasItems([{ title: "Default Space" }, { title: "Add space" }]);
 
-		await workspace.assertWorkspaces([{ name: "Default Workspace", icon: "layers" }]);
-		await workspace.assertCurrentWorkspace({ name: "Default Workspace", icon: "layers" });
+		await workspace.assertWorkspaces([{ name: "Default Space", icon: "layers" }]);
+		await workspace.assertCurrentWorkspace({ name: "Default Space", icon: "layers" });
 
 		await dropdown.close();
 		expect(await dropdown.isOpen()).toBe(false);

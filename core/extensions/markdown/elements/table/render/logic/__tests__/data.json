@@ -1,0 +1,133 @@
+{
+	"getTableData": {
+		"input": {
+			"tableData": {
+				"rows": [
+					{
+						"cells": [
+							{
+								"text": "aboba1",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 0,
+								"visualColStart": 0,
+								"realColStart": 0
+							},
+							{
+								"text": "aboba2",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 0,
+								"visualColStart": 1,
+								"realColStart": 1
+							},
+							{
+								"text": "aboba3",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 0,
+								"visualColStart": 2,
+								"realColStart": 2
+							}
+						]
+					},
+					{
+						"cells": [
+							{
+								"text": "abobus1",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 1,
+								"visualColStart": 0,
+								"realColStart": 0
+							},
+							{
+								"text": "abobus2",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 1,
+								"visualColStart": 1,
+								"realColStart": 1
+							},
+							{
+								"text": "abobus3",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 1,
+								"visualColStart": 2,
+								"realColStart": 2
+							}
+						]
+					},
+					{
+						"cells": [
+							{
+								"text": "abobus12",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 2,
+								"visualColStart": 0,
+								"realColStart": 0
+							},
+							{
+								"text": "abobus22",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 2,
+								"visualColStart": 1,
+								"realColStart": 1
+							},
+							{
+								"text": "abobus23",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 2,
+								"visualColStart": 2,
+								"realColStart": 2
+							}
+						]
+					},
+					{
+						"cells": [
+							{
+								"text": "abobus13",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 3,
+								"visualColStart": 0,
+								"realColStart": 0
+							},
+							{
+								"text": "abobus23",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 3,
+								"visualColStart": 1,
+								"realColStart": 1
+							},
+							{
+								"text": "abobus23",
+								"rowspan": 1,
+								"colspan": 1,
+								"realRowStart": 3,
+								"visualColStart": 2,
+								"realColStart": 2
+							}
+						]
+					}
+				],
+				"numRows": 4,
+				"numCols": 3
+			},
+			"activeSort": {
+				"1": "desc",
+				"2": "desc"
+			},
+			"sortingOrder": [2, 1]
+		},
+		"output": {
+			"1": 3,
+			"3": 1
+		}
+	}
+}

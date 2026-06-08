@@ -46,8 +46,8 @@ describe("ViewFilter фильтрует по свойствам", () => {
 	test("article", async () => {
 		const { propertiesTestCatalog, allArticles, curArticle } = await getCatalogData();
 
-		const defs = [{ name: "Assignee", value: ["EZ", "SF"] }];
-		const sortBy = [{ name: "Important", value: [] }];
+		const defs = [{ id: "Assignee", value: ["EZ", "SF"] }];
+		const sortBy = [{ id: "Important", value: [] }];
 		const groupBy = ["PO"];
 		const select = ["Assignee", "PO", "Important"];
 
@@ -64,23 +64,26 @@ describe("ViewFilter фильтрует по свойствам", () => {
 								linkPath: "/PropertyCatalog/aaa",
 								otherProps: [
 									{
+										id: "Important",
 										name: "Important",
 										style: "green",
 										type: "Flag",
 										values: null,
 									},
 									{
+										id: "Assignee",
 										name: "Assignee",
 										style: "purple",
 										type: "Enum",
-										value: "NV",
+										value: ["NV"],
 										values: ["EZ", "NV", "SF", "SY"],
 									},
 									{
+										id: "PO",
 										name: "PO",
 										style: "blue",
 										type: "Enum",
-										value: "AM",
+										value: ["AM"],
 										values: ["AL", "AM", "EP"],
 									},
 								],

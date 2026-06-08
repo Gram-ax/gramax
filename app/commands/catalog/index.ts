@@ -17,6 +17,7 @@ import getShareLinkData from "./share/getShareLinkData";
 import getShareTicket from "./share/getShareTicket";
 import updateNavigation from "./updateNavigation";
 import updateProps from "./updateProps";
+import views from "./views";
 
 const catalog = {
 	review: {
@@ -32,6 +33,7 @@ const catalog = {
 	favorite: {
 		getArticlesData,
 	},
+	views,
 	links,
 	create,
 	remove,

@@ -5,8 +5,6 @@ import type { Article } from "@core/FileStructue/Article/Article";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import { overriddenLanguage } from "@ext/localization/core/model/Language";
-import { PropertyTypes } from "@ext/properties/models";
-import { feature } from "@ext/toggleFeatures/features";
 import { renderAppContent } from "../Components/renderAppContent";
 import { ArticleDataService, type Options } from "./ArticleDataService";
 import type { HtmlData, InitialArticleData } from "./ArticleTypes";
@@ -40,7 +38,15 @@ class StaticRenderer {
 					openGraphData: null,
 				};
 
-				const htmlContent = renderAppContent(articleData, articlePageDataContext);
+				let htmlContent: ReturnType<typeof renderAppContent>;
+				const logicPath = articleData.articleProps.logicPath;
+
+				try {
+					htmlContent = renderAppContent(articleData, articlePageDataContext);
+				} catch (e) {
+					e.message = `Failed to render article "${logicPath}"\n${e.message}`;
+					throw e;
+				}
 
 				return {
 					htmlContent,
@@ -94,27 +100,6 @@ class StaticRenderer {
 			initialArticleData.push(...(await this._getArticleDataItems(currentCatalog, ctx, article)));
 		};
 		await getData(catalog);
-
-		const getFilteredCatalogs = async () => {
-			if (!catalog.props.filterProperty) return;
-
-			const property = catalog.props.properties?.find((p) => p.name === catalog.props.filterProperty);
-			if (!property) return;
-
-			const filterValues = ["any"];
-			if (property.values) filterValues.push(...property.values);
-			if (property.type === PropertyTypes.flag) filterValues.push(property.name);
-
-			await filterValues.mapAsync(async (filterValue) => {
-				const mutableCatalog = { catalog };
-				await this._app.wm.current().events.emit("on-catalog-resolve", {
-					mutableCatalog,
-					metadata: filterValue,
-				});
-				await getData(mutableCatalog.catalog);
-			});
-		};
-		if (feature("filtered-catalog")) await getFilteredCatalogs();
 
 		return initialArticleData;
 	}

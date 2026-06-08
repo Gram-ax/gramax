@@ -1,4 +1,4 @@
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import type {
 	PluginEventMap,
 	PluginEventName,
@@ -98,6 +98,8 @@ const eventHandlers: Partial<EventHandlers> = {
 					parentArticle: articleData.catalogProps?.title,
 					articleName: articleData.articleProps?.title,
 					path: articleData.articleProps?.pathname,
+					errorCode: articleData.articleProps?.errorCode,
+					fileName: articleData.articleProps?.fileName,
 				},
 			};
 

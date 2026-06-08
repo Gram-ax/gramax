@@ -11,9 +11,10 @@ class VersionedCloudApi extends CloudApi {
 		if (!res.ok) return null;
 		const htmlTemplate = await res.text();
 		const version = res.headers.get("X-Version");
+		const baseUrl = res.headers.get("X-Base-Url");
 		this._version = version;
 
-		return htmlTemplate;
+		return { htmlTemplate, baseUrl };
 	}
 
 	async uploadCatalogLink(catalogName: string, catalogLink: CatalogLink): Promise<void> {

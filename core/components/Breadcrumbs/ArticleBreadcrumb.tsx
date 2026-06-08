@@ -4,29 +4,34 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsMobileService from "@core-ui/ContextServices/isMobileService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
+import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import getArticleItemLink from "@ext/article/LinkCreator/logic/getArticleItemLink";
+import { useDiffViewMode } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
 import ItemMenu from "@ext/item/EditMenu";
 import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
 import type { ItemLink } from "@ext/navigation/NavigationLinks";
-import Properties from "@ext/properties/components/Properties";
+import Properties from "@ext/properties/components/Helpers/Properties";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { Button } from "@ui-kit/Button";
+import { useUpdateArticleProperty } from "@ext/properties/logic/hooks/useUpdateArticleProperty";
+import { Button, IconButton } from "@ui-kit/Button";
 import { useRef, useState } from "react";
 
 interface ArticleBreadcrumbProps {
-	className?: string;
 	itemLinks: ItemLink[];
 	hasPreview: boolean;
+	className?: string;
+	showActions?: boolean;
 }
 
-const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => {
+const ArticleBreadcrumb = ({ className, itemLinks, hasPreview, showActions = true }: ArticleBreadcrumbProps) => {
 	const linksRef = useRef<HTMLDivElement>(null);
 	const breadcrumbRef = useRef<HTMLDivElement>(null);
-	const { articleProperties, setArticleProperties } = PropertyServiceProvider.value;
+	const { articleProperties, setArticleProperties, properties } = PropertyServiceProvider.value;
 	const isMobile = IsMobileService.value;
+	const diffViewMode = useDiffViewMode();
 
 	const [itemLink, setItemLink] = useState<ItemLink>(null);
 
@@ -39,10 +44,19 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 		setItemLink(newItemLink);
 	}, [articleProps.ref.path]);
 
-	const showArticleActions = !articleProps?.errorCode || articleProps?.errorCode === 500;
+	const { onSubmit, onDelete } = useUpdateArticleProperty({
+		properties: articleProperties,
+		setProperties: setArticleProperties,
+	});
+
+	const showArticleActions =
+		(!articleProps?.errorCode || articleProps?.errorCode === 500) && !!itemLink && showActions;
+	const isHasPreview = hasPreview || diffViewMode === "wysiwyg-double";
+
+	if (diffViewMode === "single-panel" || diffViewMode === "double-panel") return null;
 
 	return (
-		<div className={className} ref={breadcrumbRef}>
+		<div className={cn("article-breadcrumb", className, isHasPreview && "has-preview")} ref={breadcrumbRef}>
 			<LinksBreadcrumb itemLinks={itemLinks} ref={linksRef} />
 			{!isReadOnly && showArticleActions && (
 				<>
@@ -62,12 +76,25 @@ const ArticleBreadcrumb = ({ className, itemLinks }: ArticleBreadcrumbProps) => 
 					</div>
 				</>
 			)}
-			<Properties
-				hideList={isMobile}
-				isReadOnly={isReadOnly}
-				properties={articleProperties}
-				setProperties={setArticleProperties}
-			/>
+			<div className="flex min-w-0 max-w-full gap-2 ml-auto flex-row-reverse overflow-hidden">
+				<Properties
+					catalogProperties={properties}
+					hideList={isMobile}
+					isReadOnly={isReadOnly || !itemLink}
+					onDelete={onDelete}
+					onSubmit={onSubmit}
+					properties={articleProperties}
+					trigger={
+						<IconButton
+							className="flex-shrink-0"
+							data-testid="catalog-properties"
+							icon="list-plus"
+							size="xs"
+							variant="text"
+						/>
+					}
+				/>
+			</div>
 		</div>
 	);
 };
@@ -77,7 +104,10 @@ export default styled(ArticleBreadcrumb)`
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	${(p) => p.hasPreview && `& {width: 68%;}`}
+
+	&.has-preview {
+		width: 68%;
+	}
 
 	.article-actions {
 		position: absolute;

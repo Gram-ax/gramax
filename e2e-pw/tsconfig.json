@@ -39,6 +39,7 @@
 
 			"ics-ui-kit/*": ["../node_modules/ics-ui-kit/dist/*"],
 			"@components/*": ["../core/components/*"],
+			"@ui-kit/hooks/*": ["../core/ui-kit/hooks/*"],
 			"@ui-kit/*": ["../core/ui-kit/components/*"],
 			"@dynamicImports/*": ["../core/dynamicImports/*"],
 			"@ext/*": ["../core/extensions/*"],

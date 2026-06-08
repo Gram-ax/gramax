@@ -1,18 +1,17 @@
 import calculateTabWrapperHeight from "@components/Layouts/StatusBar/Extensions/logic/calculateTabWrapperHeight";
 import useSetArticleDiffView from "@core-ui/hooks/diff/useSetArticleDiffView";
-import styled from "@emotion/styled";
+import { DiffEntries } from "@ext/git/core/Diff/components/Changes/DiffEntries";
+import { Overview } from "@ext/git/core/Diff/components/Changes/Overview";
+import ScrollableDiffEntriesLayout from "@ext/git/core/Diff/components/Changes/ScrollableDiffEntriesLayout";
 import type {
 	DiffFlattenTreeAnyItem,
 	DiffTree,
 	TotalOverview,
 } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
-import { DiffEntries } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
-import { Overview } from "@ext/git/core/GitMergeRequest/components/Changes/Overview";
-import ScrollableDiffEntriesLayout from "@ext/git/core/GitMergeRequest/components/Changes/ScrollableDiffEntriesLayout";
 import SelectAll from "@ext/git/core/GitPublish/SelectAll";
 import { Loader } from "@ui-kit/Loader";
 import { type RefObject, useCallback, useLayoutEffect, useRef } from "react";
-import { useDiffExtendedMode } from "../GitMergeRequest/components/Changes/stores/DiffExtendedModeStore";
+import { useDiffExtendedMode } from "../Diff/components/store/DiffExtendedModeStore";
 
 export type PublishChangesProps = {
 	diffTree: DiffTree;
@@ -33,10 +32,6 @@ export type PublishChangesProps = {
 	bottom?: JSX.Element;
 };
 
-const SelectAllWrapper = styled.div`
-	margin-bottom: 0.5rem;
-`;
-
 export const PublishChanges = (props: PublishChangesProps) => {
 	const {
 		diffTree,
@@ -55,7 +50,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 	const extendedMode = useDiffExtendedMode();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const scrollableRef = useRef<HTMLDivElement>(null);
-	const setArticleDiffView = useSetArticleDiffView(false, null, "HEAD");
+	const setArticleDiffView = useSetArticleDiffView(null, "HEAD");
 
 	const onEntryDiscard = useCallback(
 		(entry: DiffFlattenTreeAnyItem) => {
@@ -90,7 +85,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 	return (
 		<>
 			{hasChanges && (
-				<SelectAllWrapper>
+				<div className="mb-2">
 					<SelectAll
 						canDiscard={canDiscard}
 						isSelectedAll={isSelectedAll}
@@ -102,7 +97,7 @@ export const PublishChanges = (props: PublishChangesProps) => {
 						onSelectAll={selectAll}
 						overview={<Overview fontSize="12px" showTotal {...overview} />}
 					/>
-				</SelectAllWrapper>
+				</div>
 			)}
 			<ScrollableDiffEntriesLayout ref={scrollableRef}>
 				{isLoading ? (
@@ -113,11 +108,11 @@ export const PublishChanges = (props: PublishChangesProps) => {
 						changes={diffTree?.data}
 						isFileSelected={isFileSelected}
 						onAction={onEntryDiscard}
+						onClick={setArticleDiffView}
 						ref={containerRef}
 						renderCommentsCount
 						scrollableRef={scrollableRef}
 						selectFile={selectFile}
-						setArticleDiffView={setArticleDiffView}
 					/>
 				)}
 			</ScrollableDiffEntriesLayout>

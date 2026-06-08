@@ -1,3 +1,4 @@
+import { span, traced } from "@ext/loggers/opentelemetry";
 import {
 	type SearchWorker,
 	WorkerModulithSearchClientBase,
@@ -12,13 +13,27 @@ export class NodeWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 
 	static async create(options: WorkerModulithSearchClientBaseOptions): Promise<NodeWorkerModulithSearchClient> {
 		const client = new NodeWorkerModulithSearchClient(options);
-		await client.init();
+		await client._init();
 		return client;
 	}
 
-	protected override createWorker(): SearchWorker {
+	protected override _createWorker(): SearchWorker {
 		const worker = new NodeWorker(new URL("./modulithSearch.node.worker", import.meta.url));
-		worker.on("message", (data) => this.handleMessage(data));
+		worker.on("message", (data) => this._handleMessage(data));
+		worker.on("error", (err: unknown) => {
+			span()?.recordException(err instanceof Error ? err : new Error(String(err)));
+			this._failAllPending(new Error(`Search worker crashed: ${String(err)}`));
+		});
+		worker.on("messageerror", (err: unknown) =>
+			traced("search-worker.messageerror", () => {
+				span()?.recordException(err instanceof Error ? err : new Error(String(err)));
+			}),
+		);
+		worker.on("exit", (code) => {
+			if (code !== 0) {
+				this._failAllPending(new Error(`Search worker exited with code ${code}`));
+			}
+		});
 		return {
 			postMessage: worker.postMessage.bind(worker),
 			terminate: async () => {

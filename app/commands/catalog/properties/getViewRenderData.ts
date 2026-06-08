@@ -4,6 +4,7 @@ import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddlewar
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
+import CatalogViewRules from "@ext/catalog/views/logic/rules/CatalogViewRules";
 import ViewFilter, { type OrderValue } from "@ext/properties/logic/ViewFilter";
 import ViewLocalizationFilter from "@ext/properties/logic/viewLocalizationFilter";
 import type { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
@@ -36,10 +37,11 @@ const getViewRenderData: Command<
 		if (!catalog) return [];
 		const itemFilters = [
 			...new RuleProvider(ctx, undefined, undefined).getItemFilters(),
+			new CatalogViewRules(catalog).getItemFilter(),
 			new ViewLocalizationFilter().getItemFilter(),
 		];
 
-		const allArticles = catalog.deref.getItems(itemFilters) as Article[];
+		const allArticles = (await catalog.deref.getItems(itemFilters)) as Article[];
 		const currentArticle = catalog.findItemByItemPath<Article>(articlePath);
 		if (!currentArticle) return [];
 

@@ -23,4 +23,4 @@ const tableCell_simple = {
 	content: "inline+",
 };
 
-export { table_simple, tableHeaderRow_simple, tableBodyRow_simple, tableHeader_simple, tableCell_simple };
+export { table_simple, tableBodyRow_simple, tableCell_simple, tableHeader_simple, tableHeaderRow_simple };

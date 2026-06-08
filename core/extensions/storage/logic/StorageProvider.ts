@@ -49,8 +49,6 @@ export default class StorageProvider {
 	private _currentClonePromises = new Set<Promise<GitStorageCloneResult | null>>();
 	private _maxConcurrent = 3;
 
-	constructor() {}
-
 	async getStorageByPath(path: Path, fp: FileProvider, config: AppConfig): Promise<Storage> {
 		const isInit = await GitStorage.isInit(fp, path);
 		if (!isInit) return null;
@@ -59,7 +57,8 @@ export default class StorageProvider {
 	}
 
 	async initStorage(fp: FileProvider, path: Path, data: StorageData, config: AppConfig) {
-		if (isGitSourceType(data.source.sourceType)) await GitStorage.init(path, fp, data as GitStorageData);
+		if (isGitSourceType(data.source.sourceType))
+			await GitStorage.init(path, fp, data as GitStorageData, config?.services?.auth?.url);
 		return await this.getStorageByPath(path, fp, config);
 	}
 
@@ -155,13 +154,26 @@ export default class StorageProvider {
 			return;
 		}
 
-		const progress = SharedCloneProgressManager.instance.createProgress(possibleId, false);
-
 		const resetCloningFlags = () => {
 			delete initProps.isCloning;
 			delete initProps.cloneCancelDisabled;
 			delete initProps.redirectOnClone;
 		};
+
+		const existingProgress = SharedCloneProgressManager.instance.getProgress(possibleId);
+		if (existingProgress) {
+			initProps.isCloning = true;
+			initProps.cloneCancelDisabled = true;
+			existingProgress.onDone((p) => {
+				SharedCloneProgressManager.instance.removeAsInProgress(possibleId);
+				resetCloningFlags();
+				if (p.type === "error") void workspace.removeCatalog(path.toString(), true);
+				if (p.type === "finish" && p.data.isCancelled) void workspace.removeCatalog(path.toString(), false);
+			});
+			return;
+		}
+
+		const progress = SharedCloneProgressManager.instance.createProgress(possibleId, false);
 
 		progress.onDone((p) => {
 			SharedCloneProgressManager.instance.removeAsInProgress(possibleId);
@@ -186,7 +198,7 @@ export default class StorageProvider {
 	}
 
 	cleanupProgressCache(fs: FileStructure, entries: Path[]) {
-		const root = fs.fp.default().rootPath.toString() + "/";
+		const root = `${fs.fp.default().rootPath.toString()}/`;
 		const all = SharedCloneProgressManager.instance.getAllSavedAsInProgress().filter((e) => e.startsWith(root));
 		const ids = entries.map((e) => fs.fp.default().rootPath.join(e).toString());
 		for (const saved of all) {

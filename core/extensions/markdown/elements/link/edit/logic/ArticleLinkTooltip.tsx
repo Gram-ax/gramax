@@ -1,23 +1,27 @@
 import type { Environment } from "@app/resolveModule/env";
 import MiniArticle from "@components/Article/MiniArticle";
 import BoxResizeWrapper from "@components/Atoms/BoxResizeWrapper";
+import Icon from "@components/Atoms/Icon";
 import Tooltip from "@components/Atoms/Tooltip";
 import { classNames } from "@components/libs/classNames";
 import type PageDataContext from "@core/Context/PageDataContext";
 import type { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
 import safeDecode from "@core/utils/safeDecode";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
+import type Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import PlatformService from "@core-ui/ContextServices/PlatformService";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { useApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+import { ArticlePropsStoreProvider } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
+import FragmentService from "@ext/markdown/elements/fragment/edit/components/Tab/FragmentService";
 import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
 import {
 	setLinkTooltipHeight,
@@ -30,7 +34,7 @@ import { TooltipProvider } from "@ui-kit/Tooltip";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Router } from "wouter";
 
-type dataType = {
+type DataType = {
 	path: string;
 	title: string;
 	content: RenderableTreeNodes;
@@ -39,33 +43,39 @@ type dataType = {
 };
 
 type TooltipContent = {
-	data: dataType;
+	data: DataType;
 	start: () => void;
 	clear: () => void;
 	close: () => void;
 	position: string;
 	className?: string;
 	hash?: string;
+	resourceItemId?: string;
+	resourceProviderType?: ArticleProviderType;
 };
 
-type ArticleTooltipProviderProps = {
-	data: dataType;
+type TooltipProviderProps = {
+	data: DataType;
 	children: ReactNode;
 	catalogProps: ClientCatalogProps;
 	apiUrlCreator: ApiUrlCreator;
 	pageDataContext: PageDataContext;
+	resourceItemId?: string;
+	resourceProviderType?: ArticleProviderType;
 	environment: Environment;
 	basePath?: string;
 };
 
-export interface LinkTooltipProps extends Omit<ArticleTooltipProviderProps, "children" | "data" | "catalogProps"> {
+export interface LinkTooltipProps extends Omit<TooltipProviderProps, "children" | "data" | "catalogProps"> {
 	closeHandler: () => void;
+	catalogProps?: ClientCatalogProps;
 	className?: string;
 	element: HTMLElement;
 	resourcePath?: string;
 	getMark: () => Mark | undefined;
 	hash?: string;
 	href?: string;
+	url?: Url;
 	environment: Environment;
 	basePath?: string;
 }
@@ -83,6 +93,7 @@ const components: Record<Environment, (props: { basePath; children }) => React.R
 const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	const {
 		closeHandler,
+		catalogProps: initialCatalogProps,
 		element,
 		apiUrlCreator,
 		getMark,
@@ -90,12 +101,15 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 		className,
 		hash: initialHash,
 		href,
+		url,
+		resourceItemId,
+		resourceProviderType,
 		...otherProps
 	} = props;
 	const [isVisible, setIsVisible] = useState(false);
 	const [canClose, setCanClose] = useState(true);
 	const [hash, setHash] = useState<string>(initialHash);
-	const [catalogProps, setCatalogProps] = useState<ClientCatalogProps>(null);
+	const [catalogProps, setCatalogProps] = useState<ClientCatalogProps>(initialCatalogProps ?? null);
 	const [tooltipPlace, setTooltipPlace] = useState("top");
 
 	const debounceClose = useDebounce(closeHandler, 200, canClose);
@@ -115,37 +129,44 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 
 	const openDebounce = useDebounce(() => setIsVisible(true), 500, true);
 
-	const { call: fetchData, data } = useApi<dataType>({
+	const { call: fetchData, data } = useApi<DataType>({
 		url: useMemo(() => {
+			if (url) return url;
 			const mark = getMark();
 			const combinedResourcePath = mark?.attrs?.resourcePath || resourcePath;
-			const url = apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
-			return url;
-		}, [apiUrlCreator, getMark, resourcePath]),
+			return apiUrlCreator.getArticleContentByRelativePath(combinedResourcePath);
+		}, [apiUrlCreator, getMark, resourcePath, url]),
 		onDone: () => {
 			const mark = getMark();
 			if (mark?.attrs?.hash && mark.attrs?.hash !== hash) setHash(safeDecode(mark.attrs.hash));
 		},
 	});
 
-	const { call: fetchCatalogProps } = useApi<ClientCatalogProps>({
-		url: useMemo(() => {
-			const mark = getMark();
-			const parsedHref = mark ? getHref(mark) : href;
-			const catalogName = mark
-				? parsedHref
-					? parsedHref.split("/")?.[3] === "-"
-						? parsedHref.split("/")?.[5]
-						: parsedHref.split("/")?.[3]
-					: ""
-				: parsedHref?.split("/")?.[0];
+	const catalogPropsUrl = useMemo(() => {
+		const mark = getMark();
+		const parsedHref = mark ? getHref(mark) : href;
 
-			return apiUrlCreator.getCatalogProps(catalogName);
-		}, [apiUrlCreator, href, getMark]),
+		if (!parsedHref) return null;
+
+		const catalogName = mark
+			? parsedHref.split("/")?.[3] === "-"
+				? parsedHref.split("/")?.[5]
+				: parsedHref.split("/")?.[3]
+			: parsedHref.split("/")?.[0];
+
+		return apiUrlCreator.getCatalogProps(catalogName);
+	}, [apiUrlCreator, href, getMark]);
+
+	const { call: fetchCatalogProps } = useApi<ClientCatalogProps>({
+		url: catalogPropsUrl,
 		onDone: (data) => {
 			setCatalogProps(data);
 		},
 	});
+
+	useEffect(() => {
+		if (initialCatalogProps) setCatalogProps(initialCatalogProps);
+	}, [initialCatalogProps]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const clearHandler = useCallback(() => {
@@ -158,13 +179,13 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	useEffect(() => {
 		const fetchDataTimeout = setTimeout(() => {
 			fetchData();
-			fetchCatalogProps();
+			if (!initialCatalogProps && catalogPropsUrl) fetchCatalogProps();
 		}, 450);
 
 		return () => {
 			clearTimeout(fetchDataTimeout);
 		};
-	}, [fetchData, fetchCatalogProps]);
+	}, [fetchData, fetchCatalogProps, initialCatalogProps, catalogPropsUrl]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
@@ -205,15 +226,19 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 						apiUrlCreator={apiUrlCreator}
 						catalogProps={catalogProps}
 						data={data}
+						resourceItemId={resourceItemId}
+						resourceProviderType={resourceProviderType}
 						{...otherProps}
 					>
-						<TooltipContent
+						<TooltipContentComponent
 							className={classNames("tooltip-article", mods, [className])}
 							clear={clearHandler}
 							close={closeHandler}
 							data={data}
 							hash={hash}
 							position={tooltipPlace}
+							resourceItemId={resourceItemId}
+							resourceProviderType={resourceProviderType}
 							start={close}
 						/>
 					</ArticleTooltipProvider>
@@ -231,8 +256,18 @@ const ArticleLinkTooltip = (props: LinkTooltipProps) => {
 	);
 };
 
-const ArticleTooltipProvider = (props: ArticleTooltipProviderProps) => {
-	const { pageDataContext, apiUrlCreator, catalogProps, data, children, basePath, environment = "browser" } = props;
+const ArticleTooltipProvider = (props: TooltipProviderProps) => {
+	const {
+		pageDataContext,
+		apiUrlCreator,
+		catalogProps,
+		data,
+		children,
+		basePath,
+		environment = "browser",
+		resourceItemId,
+		resourceProviderType,
+	} = props;
 
 	if (!data) return null;
 	const RouterComponent = components[environment];
@@ -244,16 +279,16 @@ const ArticleTooltipProvider = (props: ArticleTooltipProviderProps) => {
 					<ApiUrlCreatorService.Provider
 						value={apiUrlCreator.fromNewArticlePath(data.path, catalogProps?.name)}
 					>
-						<ResourceService.Provider>
+						<ResourceService.Provider id={resourceItemId} provider={resourceProviderType}>
 							<PageDataContextService.Provider value={pageDataContext}>
 								<CatalogStoreProvider data={catalogProps}>
-									<ArticlePropsService.Provider value={data?.articleProps}>
+									<ArticlePropsStoreProvider data={data?.articleProps}>
 										<PropertyServiceProvider.Provider>
 											<ArticleRefService.Provider>
 												<>{children}</>
 											</ArticleRefService.Provider>
 										</PropertyServiceProvider.Provider>
-									</ArticlePropsService.Provider>
+									</ArticlePropsStoreProvider>
 								</CatalogStoreProvider>
 							</PageDataContextService.Provider>
 						</ResourceService.Provider>
@@ -264,8 +299,8 @@ const ArticleTooltipProvider = (props: ArticleTooltipProviderProps) => {
 	);
 };
 
-const TooltipContent = (props: TooltipContent) => {
-	const { data, start, clear, className, hash } = props;
+const TooltipContentComponent = (props: TooltipContent) => {
+	const { data, start, clear, close, className, hash, resourceItemId, resourceProviderType } = props;
 	const articleRef = ArticleRefService.value;
 	const isResizeRef = useRef(false);
 	const { width, height } = useTooltipSize();
@@ -320,6 +355,14 @@ const TooltipContent = (props: TooltipContent) => {
 
 	if (!data) return null;
 
+	const isFragment = resourceProviderType === "fragment";
+
+	const onEditFragment = () => {
+		if (!isFragment) return;
+		FragmentService.openItem({ id: resourceItemId, title: data.title });
+		close();
+	};
+
 	return (
 		<div ref={articleRef}>
 			<div className={className}>
@@ -337,12 +380,26 @@ const TooltipContent = (props: TooltipContent) => {
 							: { width: "400px", height: "250px" }
 					}
 				>
+					{isFragment && (
+						<EditFragmentButton aria-label="Edit fragment" onClick={onEditFragment} type="button">
+							<Icon code="pencil" />
+						</EditFragmentButton>
+					)}
 					<MiniArticle content={data.content} title={data.title} />
 				</BoxResizeWrapper>
 			</div>
 		</div>
 	);
 };
+
+const EditFragmentButton = styled.button`
+	position: absolute;
+	top: 0.5rem;
+	right: 0.5rem;
+	z-index: 1;
+	cursor: pointer;
+	opacity: 0.6;
+`;
 
 export default styled(ArticleLinkTooltip)`
 	font-size: 14px !important;

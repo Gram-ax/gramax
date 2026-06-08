@@ -12,6 +12,10 @@ interface WorkspaceSource {
 	repos: string[];
 }
 
+interface WorkspaceGit {
+	source: WorkspaceSource;
+}
+
 interface WorkspaceStyle {
 	logo?: SVG;
 	logoDark?: SVG;
@@ -25,12 +29,13 @@ export interface ModuleOptions {
 }
 
 export interface EnterpriseWorkspaceConfig extends WorkspaceConfig {
-	source: WorkspaceSource;
+	git: WorkspaceGit;
 	style: WorkspaceStyle;
 	modules?: ModuleOptions;
 	plugins?: PluginConfig[];
 	wordTemplates?: ExportTemplate[];
 	pdfTemplates?: ExportTemplate[];
+	lfs?: { patterns: string[] };
 }
 
 interface UserSettings {

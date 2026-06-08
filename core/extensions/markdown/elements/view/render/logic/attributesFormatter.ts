@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 export default class AttributeFormatter {
 	private _allowedAttributesKey: string[] = ["defs", "orderby", "groupby", "select", "display"];
 
@@ -16,7 +17,8 @@ export default class AttributeFormatter {
 				(result, [key, value]) => {
 					if (!value) return result;
 					if (key === "display") result[key] = value;
-					else if (value.includes("=")) result[key] = this._parseToObject(value);
+					else if (key === "defs" || key === "orderby" || value.includes("="))
+						result[key] = this._parseToObject(value);
 					else result[key] = this._parseToArray(value);
 					return result;
 				},
@@ -50,7 +52,7 @@ export default class AttributeFormatter {
 		return value.split(",").map((def) => {
 			const [defKey, defValue] = def.split("=");
 			return {
-				name: defKey.trim(),
+				id: defKey.trim(),
 				value: defValue
 					? defValue
 							.trim()
@@ -63,8 +65,9 @@ export default class AttributeFormatter {
 
 	private _stringifyObject(attrs: Record<string, any>): string {
 		return attrs
-			.map((item: { name: string; value?: string[] }) => {
-				return item?.value === undefined ? (item.name ?? item) : `${item.name}=${item.value.join("&")}`;
+			.map((item: { id?: string; name?: string; value?: string[] }) => {
+				const key = item.id ?? item.name;
+				return !item?.value?.length ? (key ?? item) : `${key}=${item.value.join("&")}`;
 			})
 			.join(",");
 	}

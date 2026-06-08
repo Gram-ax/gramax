@@ -3,7 +3,7 @@ import type { WordInlineChild } from "@ext/wordExport/options/WordTypes";
 import { ICON_SIZE } from "@ext/wordExport/options/wordExportSettings";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { LucideIcon } from "../../../../../../components/Atoms/Icon/LucideIcon";
+import { type IconCode, LucideIcon } from "../../../../../../components/Atoms/Icon/LucideIcon";
 
 export const iconWordLayout: WordInlineChild = async ({ tag }) => {
 	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
@@ -11,7 +11,7 @@ export const iconWordLayout: WordInlineChild = async ({ tag }) => {
 };
 
 export const getIconFromString = async (icon: string) => {
-	let svgIcon = await LucideIcon(icon);
+	let svgIcon = await LucideIcon(icon as IconCode);
 	if (!svgIcon) svgIcon = await LucideIcon("circle-help");
 	return await getHtmlIcon(ReactDOMServer.renderToString(React.createElement(svgIcon)));
 };

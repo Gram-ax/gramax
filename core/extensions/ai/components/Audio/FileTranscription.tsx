@@ -5,40 +5,37 @@ import type Path from "@core/FileProvider/Path/Path";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
+import { getEditorStore } from "@core-ui/stores/EditorStore";
 import { tryCopyToClipboard } from "@core-ui/utils/clipboard";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import TiptapGramaxAi from "@ext/ai/logic/TiptapGramaxAi";
 import t from "@ext/localization/locale/translate";
 import MenuButton from "@ext/markdown/core/edit/components/Menu/Button";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { Button } from "@ui-kit/Button";
 import { Dialog, DialogBody, DialogContent, DialogTrigger } from "@ui-kit/Dialog";
 import { Divider } from "@ui-kit/Divider";
 import { FormFooter, FormHeader } from "@ui-kit/Form";
-import { type CSSProperties, type MouseEvent, useEffect, useState } from "react";
+import { type CSSProperties, type MouseEvent, useCallback, useEffect, useState } from "react";
 
-const EditableArea = ({
-	defaultValue,
-	onChange,
-	style,
-}: {
+interface EditableAreaProps {
 	defaultValue: string;
 	onChange: (value: string) => void;
 	style?: CSSProperties;
-}) => {
+}
+
+const EditableArea = ({ defaultValue, onChange, style }: EditableAreaProps) => {
 	const [value, setValue] = useState(defaultValue);
 
-	const onChangeHandler = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		setValue(e.target.value);
-		onChange(e.target.value);
-	};
+	const onChangeHandler = useCallback(
+		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+			setValue(e.target.value);
+			onChange(e.target.value);
+		},
+		[onChange],
+	);
 
 	return <TextArea onChange={onChangeHandler} style={style} value={value} />;
 };
-
-const Attention = styled.div<{ hasText: boolean }>`
-	padding-top: ${({ hasText }) => (hasText ? "10px" : "0")};
-`;
 
 const CopyButton = ({ text }: { text: string }) => {
 	const [isCopied, setIsCopied] = useState(false);
@@ -62,15 +59,9 @@ const CopyButton = ({ text }: { text: string }) => {
 	);
 };
 
-const SkeletonWrapper = styled.div`
-	position: relative;
-	width: 100%;
-	min-height: 4em;
-`;
-
 const FileTranscription = ({ path }: { path: Path }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const editor = EditorService.getEditor();
+	const editor = getEditorStore().editor;
 
 	const [open, setOpen] = useState(false);
 	const [isLoading, setIsLoading] = useState(true);
@@ -81,7 +72,7 @@ const FileTranscription = ({ path }: { path: Path }) => {
 		setIsLoading(true);
 	}, [path]);
 
-	const transcribe = async () => {
+	const transcribe = useCallback(async () => {
 		try {
 			const res = await FetchService.fetch(apiUrlCreator.getArticleResource(path.value, null));
 			if (!res.ok) return;
@@ -95,16 +86,20 @@ const FileTranscription = ({ path }: { path: Path }) => {
 		}
 
 		setIsLoading(false);
-	};
+	}, [apiUrlCreator, path, editor.schema]);
 
-	const onClick = (e: MouseEvent<HTMLButtonElement>) => {
-		e.preventDefault();
-		setIsLoading(true);
-		transcribe();
-	};
+	const onClick = useCallback(
+		(e: MouseEvent<HTMLButtonElement>) => {
+			e.preventDefault();
+			setIsLoading(true);
+			void transcribe();
+		},
+		[transcribe],
+	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
-		if (open) transcribe();
+		if (open) void transcribe();
 	}, [open]);
 
 	return (
@@ -122,7 +117,7 @@ const FileTranscription = ({ path }: { path: Path }) => {
 					<Divider />
 					<DialogBody>
 						<div className="article" style={{ background: "initial" }}>
-							<SkeletonWrapper>
+							<div className="relative w-full min-h-16">
 								{isLoading && (
 									<Skeleton
 										style={{ width: "100%", position: "absolute", top: 0, left: 0, height: "100%" }}
@@ -135,10 +130,11 @@ const FileTranscription = ({ path }: { path: Path }) => {
 										style={{ opacity: isLoading ? 0 : 1, minHeight: "5em" }}
 									/>
 								)}
-							</SkeletonWrapper>
-							<Attention
+							</div>
+							<div
+								className={cn("pt-2", text?.length >= 0 && "pt-0")}
+								// biome-ignore lint/style/useNamingConvention: expected
 								dangerouslySetInnerHTML={{ __html: t("ai.transcribe.modalAttention") }}
-								hasText={text?.length >= 0}
 							/>
 						</div>
 					</DialogBody>

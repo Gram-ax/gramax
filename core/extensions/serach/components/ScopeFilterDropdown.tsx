@@ -1,20 +1,21 @@
 import t from "@ext/localization/locale/translate";
 import { SearchFilterDropdown } from "@ext/serach/components/SearchFilterDropdown";
+import { type SearchScope, type SearchScopeMode, scopesByMode } from "@ext/serach/components/SearchScope";
 
-export type ScopeFilter = "all" | "catalog" | "article";
-
-export interface ScopeFilterDropdownProps {
+export interface ScopeFilterDropdownProps<M extends SearchScopeMode> {
+	mode: M;
 	isCategory: boolean;
-	scopeFilter: ScopeFilter;
-	setScopeFilter: (scopeFilter: ScopeFilter) => void;
+	scopeFilter: SearchScope<M>;
+	setScopeFilter: (scopeFilter: SearchScope<M>) => void;
 }
 
-export const ScopeFilterDropdown = (props: ScopeFilterDropdownProps) => {
-	const { isCategory, scopeFilter, setScopeFilter } = props;
+export const ScopeFilterDropdown = <M extends SearchScopeMode>(props: ScopeFilterDropdownProps<M>) => {
+	const { mode, isCategory, scopeFilter, setScopeFilter } = props;
 	const scopeFilterLabel = {
 		all: t("search.scope-filter.all"),
 		catalog: t("search.scope-filter.catalog"),
 		article: isCategory ? t("search.scope-filter.category") : t("search.scope-filter.article"),
+		folder: t("search.scope-filter.folder"),
 	};
 
 	return (
@@ -23,7 +24,7 @@ export const ScopeFilterDropdown = (props: ScopeFilterDropdownProps) => {
 			onSelect={(v) => setScopeFilter(v)}
 			tooltip={t("search.scope-filter.tooltip")}
 			value={scopeFilter}
-			values={["all", "catalog", "article"]}
+			values={scopesByMode[mode]}
 		/>
 	);
 };

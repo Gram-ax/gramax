@@ -7,5 +7,5 @@ export const tableLayout = {
 	thead: theadWordLayout,
 	tbody: tbodyWordLayout,
 	tableCell: tdWordLayout,
-	tr: trWordLayout,
+	tableRow: trWordLayout,
 };

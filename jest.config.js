@@ -17,6 +17,7 @@ module.exports = {
 		"<rootDir>/docs",
 		"<rootDir>/application",
 		"<rootDir>/apps/tauri",
+		"<rootDir>/.worktrees",
 	],
 	reporters: ["default", ["jest-junit", { suiteName: "jest tests" }]],
 	moduleNameMapper: {
@@ -34,6 +35,7 @@ module.exports = {
 		"^nanoid(/(.*)|$)": "nanoid$1",
 		"^@components/(.*)$": "<rootDir>/core/components/$1",
 		"^@dynamicImports/(.*)$": "<rootDir>/core/dynamicImports/$1",
+		"^@ui-kit/hooks/(.*)$": "<rootDir>/core/ui-kit/hooks/$1",
 		"^@ui-kit/(.*)$": "<rootDir>/core/ui-kit/components/$1",
 		"^@core/(.*)$": "<rootDir>/core/logic/$1",
 		"^@plugins/(.*)$": "<rootDir>/core/plugins/$1",

@@ -33,7 +33,10 @@ const processStub = {
 		if (!prev) return tuple;
 		let s = tuple[0] - prev[0];
 		let n = tuple[1] - prev[1];
-		if (n < 0) { s -= 1; n += 1e9; }
+		if (n < 0) {
+			s -= 1;
+			n += 1e9;
+		}
 		return [s, n];
 	},
 
@@ -65,4 +68,15 @@ export const umask = processStub.umask.bind(processStub);
 export const hrtime = processStub.hrtime.bind(processStub);
 export const uptime = processStub.uptime.bind(processStub);
 export { nextTick };
-export const { on, addListener, once, off, removeListener, removeAllListeners, emit, listeners, prependListener, prependOnceListener } = processStub;
+export const {
+	on,
+	addListener,
+	once,
+	off,
+	removeListener,
+	removeAllListeners,
+	emit,
+	listeners,
+	prependListener,
+	prependOnceListener,
+} = processStub;

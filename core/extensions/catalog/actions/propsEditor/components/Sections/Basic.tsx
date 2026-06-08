@@ -1,22 +1,10 @@
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import t from "@ext/localization/locale/translate";
-import isSystemProperty from "@ext/properties/logic/isSystemProperty";
-import { enumTypes, type Property, PropertyTypes } from "@ext/properties/models";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
-import { feature } from "@ext/toggleFeatures/features";
 import { usePreventAutoFocusToInput } from "@ui-kit/Dialog/utils";
 import { FormField } from "@ui-kit/Form";
-import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectLabel,
-	SelectTrigger,
-	SelectValue,
-} from "@ui-kit/Select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
 import { TagInput } from "@ui-kit/TagInput";
 import type { UseFormReturn } from "react-hook-form";
 import { FORM_DATA_QA, FORM_STYLES } from "../../consts/form";
@@ -28,84 +16,11 @@ export type BasicProps = {
 	form: UseFormReturn<FormData>;
 };
 
-const EditCatalogPropertyFilter = ({ properties, formProps }: BasicProps & { properties: Property[] }) => {
-	const flags = properties.filter((p) => p.type === PropertyTypes.flag);
-	const enums = properties.filter((p) => p.type === PropertyTypes.enum);
-	const many = properties.filter((p) => p.type === PropertyTypes.many);
-
-	return (
-		<FormField
-			{...formProps}
-			control={({ field }) => {
-				return (
-					<Select
-						disabled={!properties.length}
-						onValueChange={field.onChange}
-						value={field.value || undefined}
-					>
-						<SelectTrigger onClear={field.value ? () => field.onChange("") : undefined}>
-							<SelectValue placeholder={t("forms.catalog-edit-props.props.filterProperty.placeholder")} />
-						</SelectTrigger>
-						<SelectContent>
-							{flags.length > 0 && (
-								<SelectGroup>
-									<SelectLabel>{t(`properties.types.Flag`)}</SelectLabel>
-									{flags.map((p) => (
-										<SelectItem key={p.name} value={p.name}>
-											<span className="flex  gap-1">
-												{p.icon && <Icon icon={p.icon} />}
-												{p.name}
-											</span>
-										</SelectItem>
-									))}
-								</SelectGroup>
-							)}
-							{enums.length > 0 && (
-								<SelectGroup>
-									<SelectLabel>{t(`properties.types.Enum`)}</SelectLabel>
-									{enums.map((p) => (
-										<SelectItem key={p.name} value={p.name}>
-											<span className="flex gap-1">
-												{p.icon && <Icon icon={p.icon} />}
-												{p.name}
-											</span>
-										</SelectItem>
-									))}
-								</SelectGroup>
-							)}
-							{many.length > 0 && (
-								<SelectGroup>
-									<SelectLabel>{t(`properties.types.Many`)}</SelectLabel>
-									{many.map((p) => (
-										<SelectItem key={p.name} value={p.name}>
-											<span className="flex gap-1">
-												{p.icon && <Icon icon={p.icon} />}
-												{p.name}
-											</span>
-										</SelectItem>
-									))}
-								</SelectGroup>
-							)}
-						</SelectContent>
-					</Select>
-				);
-			}}
-			description={t("forms.catalog-edit-props.props.filterProperty.description")}
-			name="filterProperty"
-			title={t("forms.catalog-edit-props.props.filterProperty.name")}
-		/>
-	);
-};
-
 export const EditBasicProps = ({ formProps, form }: BasicProps) => {
 	const sourceName = useCatalogPropsStore((state) => state.data?.sourceName);
 	const { inputRef } = usePreventAutoFocusToInput(true);
 	const { sourceType } = getPartGitSourceDataByStorageName(sourceName);
 	const { languages, syntaxes } = useFormSelectValues();
-
-	const properties = useCatalogPropsStore((state) => state.data?.properties, "shallow").filter(
-		(p) => !isSystemProperty(p.name) && (p.type === PropertyTypes.flag || enumTypes.includes(p.type)),
-	);
 
 	return (
 		<>
@@ -191,10 +106,6 @@ export const EditBasicProps = ({ formProps, form }: BasicProps) => {
 				title={t("forms.catalog-edit-props.props.versions.name")}
 				{...formProps}
 			/>
-
-			{feature("filtered-catalog") && (
-				<EditCatalogPropertyFilter form={form} formProps={formProps} properties={properties} />
-			)}
 
 			<FormField
 				control={({ field }) => (

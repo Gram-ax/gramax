@@ -4,7 +4,7 @@ import t from "@ext/localization/locale/translate";
 import type { CheckedState } from "@radix-ui/react-checkbox";
 import { Checkbox } from "@ui-kit/Checkbox";
 import { type ColumnDef, useTableSelection } from "@ui-kit/DataTable";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "ics-ui-kit/components/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useEffect, useRef, useState } from "react";
 import { SortableHeader, TruncatedText } from "./TableHelpers";
 

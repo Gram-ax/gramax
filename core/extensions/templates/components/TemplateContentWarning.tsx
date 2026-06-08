@@ -1,7 +1,15 @@
-import Modal from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+} from "@ui-kit/AlertDialog";
 import { useState } from "react";
 
 export interface TemplateContentWarningProps {
@@ -14,36 +22,41 @@ export interface TemplateContentWarningProps {
 const TemplateContentWarning = ({ initialIsOpen, onClose, action, templateName }: TemplateContentWarningProps) => {
 	const [isOpen, setIsOpen] = useState(initialIsOpen);
 
+	const handleClose = () => {
+		setIsOpen(false);
+		onClose?.();
+	};
+
+	const handleAction = () => {
+		setIsOpen(false);
+		action();
+	};
+
+	const onOpenChange = (open: boolean) => {
+		setIsOpen(open);
+		if (!open) onClose?.();
+	};
+
 	return (
-		<Modal
-			closeOnEscape
-			contentWidth="S"
-			isOpen={isOpen}
-			onClose={() => {
-				setIsOpen(false);
-				onClose?.();
-			}}
-			onOpen={() => setIsOpen(true)}
-		>
-			<ModalLayoutLight>
-				<InfoModalForm
-					actionButton={{
-						text: t("continue"),
-						onClick: () => {
-							setIsOpen(false);
-							action();
-						},
-					}}
-					closeButton={{ text: t("cancel") }}
-					icon={{ code: "alert-circle", color: "var(--color-warning)" }}
-					isWarning
-					onCancelClick={() => setIsOpen(false)}
-					title={t("template.warning.content.name").replace("{{template}}", templateName)}
-				>
-					{t("template.warning.content.body")}
-				</InfoModalForm>
-			</ModalLayoutLight>
-		</Modal>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
+			<AlertDialogContent status="warning">
+				<AlertDialogHeader>
+					<AlertDialogIcon icon="alert-circle" />
+					<AlertDialogTitle>
+						{t("template.warning.content.name").replace("{{template}}", templateName)}
+					</AlertDialogTitle>
+					<AlertDialogDescription>{t("template.warning.content.body")}</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel onClick={handleClose} variant="outline">
+						{t("cancel")}
+					</AlertDialogCancel>
+					<AlertDialogAction onClick={handleAction} variant="primary">
+						{t("continue")}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 };
 

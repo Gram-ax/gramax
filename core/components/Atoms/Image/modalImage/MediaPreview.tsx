@@ -1,9 +1,9 @@
 import Header from "@components/Atoms/Image/modalImage/Header";
 import { MediaAnimation } from "@components/Atoms/Image/modalImage/MediaAnimation";
 import MediaRenderer from "@components/Atoms/Image/modalImage/MediaRenderer";
-import { classNames } from "@components/libs/classNames";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import { Overlay } from "@ui-kit/Overlay";
 import {
@@ -29,6 +29,8 @@ interface MediaPreviewProps {
 	openedElement?: MutableRefObject<HTMLElement>;
 	onClose: () => void;
 	downloadSrc?: string;
+	resourceId?: string;
+	resourceProvider?: ArticleProviderType;
 	title?: string;
 	objects?: ImageObject[];
 	className?: string;
@@ -37,7 +39,20 @@ interface MediaPreviewProps {
 }
 
 const MediaPreview = (props: MediaPreviewProps): ReactElement => {
-	const { id, className, objects, src, svg, downloadSrc, modalStyle, modalEdit, title, onClose } = props;
+	const {
+		id,
+		className,
+		objects,
+		src,
+		svg,
+		downloadSrc,
+		resourceId,
+		resourceProvider,
+		modalStyle,
+		modalEdit,
+		title,
+		onClose,
+	} = props;
 
 	const transformRef = useRef<ReactZoomPanPinchRef>();
 	const [isClosing, setClosing] = useState<boolean>(false);
@@ -86,15 +101,23 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 	);
 
 	return (
-		<div className={className} data-qa={DATA_QA_LIGHTBOX} key={downloadSrc} onClick={onModalClick}>
+		<div
+			className={cn(
+				"static flex justify-center items-center pointer-events-auto w-screen h-screen left-0 top-0 z-[var(--z-index-overlay)]",
+				className,
+			)}
+			data-qa={DATA_QA_LIGHTBOX}
+			key={downloadSrc}
+			onClick={onModalClick}
+		>
 			<Overlay
-				className={classNames(
-					"modal-background",
+				className={cn(
+					"modal-background z-[var(--z-index-overlay)] transition-opacity duration-200",
 					{
-						"data-open": !isClosing,
-						"data-closed": isClosing,
+						"data-open opacity-100 pointer-events-auto": !isClosing,
+						"data-closed opacity-0 pointer-events-none": isClosing,
 					},
-					["data-close"],
+					"data-close",
 				)}
 				data-state={isClosing ? "closed" : "open"}
 			/>
@@ -103,6 +126,8 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 				isClosing={isClosing}
 				modalEdit={modalEdit}
 				onClose={closeModal}
+				resourceId={resourceId}
+				resourceProvider={resourceProvider}
 				zoomImage={zoomImage}
 			/>
 			<TransformWrapper
@@ -123,57 +148,4 @@ const MediaPreview = (props: MediaPreviewProps): ReactElement => {
 	);
 };
 
-export default styled(memo(MediaPreview))`
-	z-index: var(--z-index-overlay);
-	position: static;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	pointer-events: auto;
-	width: 100vw;
-	height: 100vh;
-	left: 0;
-	top: 0;
-
-	.react-transform-wrapper {
-		width: 100% !important;
-		height: 100% !important;
-		position: absolute !important;
-		top: 0;
-		left: 0;
-	}
-
-	.modal-background {
-		z-index: var(--z-index-overlay);
-	}
-
-	.data-open {
-		animation: open 200ms forwards;
-	}
-
-	.data-closed {
-		animation: close 200ms forwards;
-	}
-
-	@keyframes open {
-		0% {
-			opacity: 0;
-			pointer-events: none;
-		}
-		100% {
-			opacity: 1;
-			pointer-events: auto;
-		}
-	}
-
-	@keyframes close {
-		0% {
-			opacity: 1;
-			pointer-events: auto;
-		}
-		100% {
-			opacity: 0;
-			pointer-events: none;
-		}
-	}
-`;
+export default memo(MediaPreview);

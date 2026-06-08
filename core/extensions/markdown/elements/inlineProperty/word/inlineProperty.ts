@@ -1,5 +1,6 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import getTextByProperty from "@ext/markdown/elements/inlineProperty/edit/logic/getTextByProperty";
+import { resolveExportScopeProperty } from "@ext/markdown/elements/inlineProperty/edit/logic/resolveExportProperty";
 import type { WordInlineChild } from "../../../../wordExport/options/WordTypes";
 
 export const inlinePropertyWordLayout: WordInlineChild = async ({ state, tag, addOptions, wordRenderContext }) => {
@@ -9,17 +10,15 @@ export const inlinePropertyWordLayout: WordInlineChild = async ({ state, tag, ad
 	const article = wordRenderContext.parserContext.getArticle();
 	const catalog = wordRenderContext.catalog;
 	const template = catalog.customProviders.templateProvider.getArticle(article.props.template);
-	if (!template) return [];
-
-	const properties = article.props?.properties;
+	if (!template && !catalog?.props?.resolvedView) return [];
 
 	const catalogProperties =
-		template.props?.customProperties?.length > 0 ? template.props.customProperties : catalog.props.properties;
-	const catalogProperty = catalogProperties.find((p) => p.name === attrs.bind);
+		template?.props?.customProperties?.length > 0 ? template?.props?.customProperties : catalog.props.properties;
 
-	if (!catalogProperty) return [];
-	const articleProperty = properties?.find((p) => p.name === attrs.bind);
-	const displayValue = getTextByProperty({ ...catalogProperty, value: articleProperty?.value }, !!articleProperty);
+	const resolved = resolveExportScopeProperty(catalog, catalogProperties, article.props?.properties, attrs.bind);
+	if (!resolved) return [];
+
+	const displayValue = getTextByProperty(resolved.property, !!resolved.property.value);
 
 	return state.renderInline(new Tag("p", {}, [displayValue]), { ...(addOptions ?? {}) });
 };

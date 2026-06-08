@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: valid dependencies */
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import { type TitleItem, useFetchArticleHeaders } from "@core-ui/ContextServices/LinkTitleTooltip";
 import type LinkItem from "@ext/article/LinkCreator/models/LinkItem";
@@ -24,6 +25,7 @@ export const LinkHeadings = ({ linkItem, onUpdate }: LinkHeadingsProps) => {
 	const { isOpen, setIsOpen, handleMouseEnter, handleMouseLeave } = useHoverDropdown();
 	const isMobile = isMobileService.value;
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!isOpen) return;
 		void fetchArticleHeaders();
@@ -33,7 +35,7 @@ export const LinkHeadings = ({ linkItem, onUpdate }: LinkHeadingsProps) => {
 		(header: TitleItem) => {
 			if (!onUpdate) return;
 
-			const relativePath = linkItem.relativePath + header.url;
+			const relativePath = linkItem.relativePath;
 			const href = linkItem.pathname + header.url;
 
 			onUpdate(relativePath, href);
@@ -46,7 +48,7 @@ export const LinkHeadings = ({ linkItem, onUpdate }: LinkHeadingsProps) => {
 			if (!isMobile) return;
 			setIsOpen(open);
 		},
-		[isMobile],
+		[isMobile, setIsOpen],
 	);
 
 	return (

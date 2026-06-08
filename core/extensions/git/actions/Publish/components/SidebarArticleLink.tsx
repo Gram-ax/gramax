@@ -13,7 +13,7 @@ const SidebarArticleLink = styled(
 		className?: string;
 	} & Pick<DiffFile, "filePath">) => {
 		return (
-			<div className={"sidebar-article-link " + className}>
+			<div className={`sidebar-article-link ${className}`}>
 				<div className="logic-path-change">
 					<DiffContent
 						changes={filePath.hunks ?? [{ value: filePath.path, type }]}

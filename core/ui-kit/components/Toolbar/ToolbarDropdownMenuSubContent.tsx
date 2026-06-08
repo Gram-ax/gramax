@@ -23,7 +23,6 @@ export const ToolbarDropdownMenuSubContent = forwardRef<HTMLDivElement, ToolbarD
 
 		return (
 			<PrimitiveDropdownMenuSubContent
-				ref={ref}
 				{...otherProps}
 				className={cn(
 					className,
@@ -32,7 +31,11 @@ export const ToolbarDropdownMenuSubContent = forwardRef<HTMLDivElement, ToolbarD
 				data-dropdown-menu-sub-content
 				data-qa="dropdown-menu-sub-content"
 			>
-				<div className={dropdownMenuContentStyles({ theme, className: contentClassName })} style={contentStyle}>
+				<div
+					className={dropdownMenuContentStyles({ theme, className: contentClassName })}
+					ref={ref}
+					style={contentStyle}
+				>
 					{children}
 				</div>
 			</PrimitiveDropdownMenuSubContent>

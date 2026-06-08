@@ -1,24 +1,16 @@
-import styled from "@emotion/styled";
 import type { HTMLAttributes } from "react";
+import { tv } from "tailwind-variants";
 
 interface GroupHeaderProps extends HTMLAttributes<HTMLDivElement> {
 	children: React.ReactNode;
 }
 
-const GroupHeaderNotStyled = ({ children, className, ...props }: GroupHeaderProps) => {
-	return (
-		<div className={`group-header ${className}`} {...props}>
-			{children}
-		</div>
-	);
-};
+const groupHeaderStyles = tv({
+	base: "group-header w-full -mb-1 cursor-pointer hover:text-[var(--color-primary)]",
+});
 
-export const GroupHeader = styled(GroupHeaderNotStyled)`
-	width: 100%;
-	margin-bottom: -0.5em;
-
-	&:hover {
-		cursor: pointer;
-		color: var(--color-primary) !important;
-	}
-`;
+export const GroupHeader = ({ children, className, ...props }: GroupHeaderProps) => (
+	<div className={groupHeaderStyles({ className })} {...props}>
+		{children}
+	</div>
+);

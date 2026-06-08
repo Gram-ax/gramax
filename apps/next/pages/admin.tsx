@@ -21,6 +21,7 @@ export function getServerSideProps({ req, res, query }) {
 		const ctx = await this.app.contextFactory.fromNode({ req, res, query });
 
 		const data = await this.commands.page.getPageData.do({
+			options: { mode: "read" },
 			path: articlePath,
 			ctx,
 		});

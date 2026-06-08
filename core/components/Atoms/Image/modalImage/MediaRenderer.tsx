@@ -1,4 +1,4 @@
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import ObjectRenderer from "@ext/markdown/elements/image/render/components/ObjectRenderer";
 import { type CSSProperties, memo, useRef } from "react";
@@ -26,11 +26,13 @@ const MediaRenderer = (props: ImageProps) => {
 	const containerRef = useRef<HTMLDivElement>();
 
 	return (
-		<div className={className}>
-			<TransformComponent wrapperClass="transform-wrapper">
-				<div className={`image-container ${svg ? "image-container--svg" : ""}`} ref={containerRef}>
+		<div className={cn("w-full h-full content-center justify-items-center", className)}>
+			<TransformComponent wrapperClass="transform-wrapper !w-full !h-full !absolute !top-0 !left-0">
+				<div className={cn("image-container", svg && "image-container--svg h-[80dvh]")} ref={containerRef}>
 					{svg ? (
 						<div
+							className="flex h-full w-full items-center justify-center [&>svg]:!h-full [&>svg]:!w-auto [&>svg]:!max-w-none"
+							// biome-ignore lint/style/useNamingConvention: expected
 							dangerouslySetInnerHTML={{ __html: svg }}
 							draggable={false}
 							id={id}
@@ -50,27 +52,4 @@ const MediaRenderer = (props: ImageProps) => {
 	);
 };
 
-export default styled(memo(MediaRenderer))`
-	justify-items: center;
-	align-content: center;
-	width: 100%;
-	height: 100%;
-
-	.image-container--svg {
-		height: 80dvh;
-	}
-
-	.image-container--svg div:first-of-type {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	.image-container--svg div:first-of-type svg {
-		max-width: unset !important;
-		width: auto !important;
-		height: 100% !important;
-	}
-`;
+export default memo(MediaRenderer);

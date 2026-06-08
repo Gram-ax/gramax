@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import { getExecutingEnvironment } from "@app/resolveModule/env";
-import call from "@app/resolveModule/gitcall";
-import Path from "@core/FileProvider/Path/Path";
+import rustCall from "@app/resolveModule/rustcall";
 import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import type {
@@ -11,9 +10,11 @@ import type {
 	DirStat,
 	FileStat,
 	GcOptions,
+	GetCommitInfoOpts,
 	MergeMessageFormatOptions,
 	MergeOptions,
 	RemoteProgress,
+	StorageStats,
 	TreeReadScope,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { CreateMergeRequest, MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
@@ -57,6 +58,11 @@ export type RawCommitInfo = {
 	oid: string;
 	summary: string;
 	parents: string[];
+	stat: {
+		added: number;
+		deleted: number;
+		changedFiles?: { path: string; title?: string }[];
+	};
 };
 
 export type CredsArgs = Args & { creds: Creds };
@@ -115,7 +121,7 @@ export const clone = async (
 ) => {
 	progress[args.opts.cancelToken] = onProgress;
 	try {
-		await call<any>("clone", args);
+		await rustCall<any>("git.clone", args);
 	} finally {
 		delete progress[args.opts.cancelToken];
 	}
@@ -128,35 +134,36 @@ export const recover = async (
 	progress[args.cancelToken] = onProgress;
 
 	try {
-		await call<void>("recover", args);
+		await rustCall<void>("git.recover", args);
 	} finally {
 		delete progress[args.cancelToken];
 	}
 };
 
-export const cancel = (id: number) => call<boolean>("cancel", { id });
+export const cancel = (id: number) => rustCall<boolean>("git.cancel", { id });
 
-export const getAllCancelTokens = () => call<number[]>("get_all_cancel_tokens", {});
+export const getAllCancelTokens = () => rustCall<number[]>("git.get_all_cancel_tokens", {});
 
-export const init = (args: CredsArgs) => call<Oid>("init_new", args);
+export const init = (args: CredsArgs) => rustCall<Oid>("git.init_new", args);
 
 export const fileHistory = async (args: Args & { filePath: string; offset: number; limit: number }) => {
-	const infos = await call<any[]>("file_history", args);
+	const infos = await rustCall<any[]>("git.file_history", args);
 	return infos.map(
 		(i): VersionControlInfo => ({
 			version: i.commitOid as string,
 			author: i.authorName as string,
 			date: new Date(i.date).toISOString(),
-			path: new Path(i.path as string),
-			content: i.content as string,
-			parentPath: new Path(i.parentPath as string),
-			parentContent: i.parentContent as string,
+			filePath: {
+				path: i.path as string,
+				oldPath: i.parentPath as string | undefined,
+				diff: i.diff,
+			},
 		}),
 	);
 };
 
 export const listMergeRequests = async (args: Args): Promise<MergeRequest[]> => {
-	const mrs = await call<any[]>("list_merge_requests", args);
+	const mrs = await rustCall<any[]>("git.list_merge_requests", args);
 	return mrs.map(intoMergeRequest);
 };
 
@@ -172,122 +179,138 @@ export const createOrUpdateMergeRequest = async (args: CredsArgs & { mergeReques
 
 	if (getExecutingEnvironment() === "next") args.mergeRequest = JSON.stringify(args.mergeRequest) as any;
 
-	await call<void>("create_or_update_merge_request", args);
+	await rustCall<void>("git.create_or_update_merge_request", args);
 };
 
 export const getDraftMergeRequest = async (args: Args) => {
-	const data = await call<MergeRequest | undefined>("get_draft_merge_request", args);
+	const data = await rustCall<MergeRequest | undefined>("git.get_draft_merge_request", args);
 	return data ? intoMergeRequest(data) : undefined;
 };
 
-export const status = (args: Args & { index: boolean }) => call<[{ path: string; status: string }]>("status", args);
+export const status = (args: Args & { index: boolean }) =>
+	rustCall<[{ path: string; status: string }]>("git.status", args);
 
-export const statusFile = (args: Args & { filePath: string }) => call<string>("status_file", args);
+export const statusFile = (args: Args & { filePath: string }) => rustCall<string>("git.status_file", args);
 
-export const fetch = (args: CredsArgs & { opts: RemoteOptions; lock: boolean }) => call<void>("fetch", args);
+export const fetch = (args: CredsArgs & { opts: RemoteOptions; lock: boolean }) => rustCall<void>("git.fetch", args);
 
 export const merge = (args: CredsArgs & { opts: MergeOptions }) => {
 	args.opts = intoMergeOptions(args.opts);
-	return call<MergeResult>("merge", args);
+	return rustCall<MergeResult>("git.merge", args);
 };
 
-export const push = (args: CredsArgs) => call<void>("push", args);
+export const push = (args: CredsArgs) => rustCall<void>("git.push", args);
 
-export const add = (args: Args & { patterns: string[]; force: boolean }) => call<void>("add", args);
+export const add = (args: Args & { patterns: string[]; force: boolean }) => rustCall<void>("git.add", args);
 
-export const diff = (args: Args & { opts: DiffConfig }) => call<DiffTree2TreeInfo>("diff", args);
+export const diff = (args: Args & { opts: DiffConfig }) => rustCall<DiffTree2TreeInfo>("git.diff", args);
 
 export const branchInfo = async (
-	args: Args & { name?: string },
+	args: Args & { name: string | null },
 ): Promise<GitBranchData & { lastCommitOid: string }> => {
-	if (args.name === "HEAD") delete args.name;
-	const data = await call<any>("branch_info", args);
+	if (args.name === "HEAD") args.name = null;
+	const data = await rustCall<any>("git.branch_info", args);
 	return intoGitBranchData(data);
 };
 
 export const getAllBranches = (args: Args) =>
-	call<GitBranchData[]>("branch_list", args).then((data) => data.map(intoGitBranchData));
+	rustCall<GitBranchData[]>("git.branch_list", args).then((data) => data.map(intoGitBranchData));
 
 export const deleteBranch = (args: Args & CredsArgs & { name: string; remote: boolean }) =>
-	call<void>("delete_branch", args);
+	rustCall<void>("git.delete_branch", args);
 
-export const newBranch = (args: Args & { name: string }) => call<void>("new_branch", args);
+export const newBranch = (args: Args & { name: string }) => rustCall<void>("git.new_branch", args);
 
-export const addRemote = (args: Args & { name: string; url: string }) => call<void>("add_remote", args);
+export const addRemote = (args: Args & { name: string; url: string }) => rustCall<void>("git.add_remote", args);
 
-export const hasRemotes = (args: Args) => call<boolean>("has_remotes", args);
+export const hasRemotes = (args: Args) => rustCall<boolean>("git.has_remotes", args);
 
-export const stash = (args: CredsArgs & { message: string | null }) => call<Oid>("stash", args);
+export const stash = (args: CredsArgs & { message: string | null }) => rustCall<Oid>("git.stash", args);
 
-export const stashApply = (args: Args & { oid: Oid }) => call<MergeResult>("stash_apply", args);
+export const stashApply = (args: Args & { oid: Oid }) => rustCall<MergeResult>("git.stash_apply", args);
 
-export const stashDelete = (args: Args & { oid: Oid }) => call<void>("stash_delete", args);
+export const stashDelete = (args: Args & { oid: Oid }) => rustCall<void>("git.stash_delete", args);
 
-export const reset = (args: Args & { opts: ResetOptions }) => call<void>("reset", args);
+export const reset = (args: Args & { opts: ResetOptions }) => rustCall<void>("git.reset", args);
 
-export const commit = (args: Args & CredsArgs & { opts: CommitOptions }) => call<void>("commit", args);
+export const commit = (args: Args & CredsArgs & { opts: CommitOptions }) => rustCall<void>("git.commit", args);
 
-export const checkout = (args: Args & CredsArgs & { refName: string; force: boolean }) => call<void>("checkout", args);
+export const checkout = (args: Args & CredsArgs & { refName: string; force: boolean }) =>
+	rustCall<void>("git.checkout", args);
 
 export const graphHeadUpstreamFiles = (args: Args & { searchIn: string }) =>
-	call<UpstreamCountFileChanges>("count_changed_files", args);
+	rustCall<UpstreamCountFileChanges>("git.count_changed_files", args);
 
-export const getContent = (args: Args & { path: string; oid?: string }) => call<string>("get_content", args);
+export const getContent = (args: Args & { path: string; oid?: string }) => rustCall<string>("git.get_content", args);
 
-export const getCommitInfo = (args: Args & { oid: string; opts: { depth: number; simplify: boolean } }) =>
-	call<RawCommitInfo[]>("get_commit_info", args);
+export const getCommitInfo = (
+	args: Args & {
+		oid: string;
+		opts: GetCommitInfoOpts;
+	},
+) => rustCall<RawCommitInfo[]>("git.get_commit_info", args);
 
-export const getParent = (args: Args & { oid: string }) => call<string>("get_parent", args);
+export const getParent = (args: Args & { oid: string }) => rustCall<string>("git.get_parent", args);
 
-export const getRemoteUrl = (args: Args) => call<string>("get_remote", args);
+export const getRemoteUrl = (args: Args) => rustCall<string>("git.get_remote", args);
 
-export const restore = (args: Args & { staged: boolean; paths: string[] }) => call<void>("restore", args);
+export const restore = (args: Args & { staged: boolean; paths: string[] }) => rustCall<void>("git.restore", args);
 
 export const readFile = (args: Args & { path: string; scope: TreeReadScope }) =>
-	call<ArrayBuffer>("git_read_file", args);
+	rustCall<ArrayBuffer>("git.git_read_file", args);
 
-export const readDir = (args: Args & { path: string; scope: TreeReadScope }) => call<DirEntry[]>("git_read_dir", args);
+export const readDir = (args: Args & { path: string; scope: TreeReadScope }) =>
+	rustCall<DirEntry[]>("git.git_read_dir", args);
 
-export const fileStat = (args: Args & { path: string; scope: TreeReadScope }) => call<FileStat>("git_file_stat", args);
+export const fileStat = (args: Args & { path: string; scope: TreeReadScope }) =>
+	rustCall<FileStat>("git.git_file_stat", args);
 
 export const readDirStats = (args: Args & { path: string; scope: TreeReadScope }) =>
-	call<DirStat[]>("git_read_dir_stats", args);
+	rustCall<DirStat[]>("git.git_read_dir_stats", args);
 
 export const fileExists = (args: Args & { path: string; scope: TreeReadScope }) =>
-	call<boolean>("git_file_exists", args);
+	rustCall<boolean>("git.git_file_exists", args);
 
-export const setHead = (args: Args & { refname: string }) => call<void>("set_head", args);
+export const setHead = (args: Args & { refname: string }) => rustCall<void>("git.set_head", args);
 
-export const isInit = (args: Args) => call<boolean>("is_init", args);
+export const isInit = (args: Args) => rustCall<boolean>("git.is_init", args);
 
-export const isBare = (args: Args) => call<boolean>("is_bare", args);
+export const isBare = (args: Args) => rustCall<boolean>("git.is_bare", args);
 
-export const getRefsByGlobs = (args: Args & { patterns: string[] }) => call<RefInfo[]>("find_refs_by_globs", args);
+export const getRefsByGlobs = (args: Args & { patterns: string[] }) =>
+	rustCall<RefInfo[]>("git.find_refs_by_globs", args);
 
 export const defaultBranch = (args: Args & { creds: Creds }) =>
-	call<GitBranchData[] | null>("default_branch", args).then((data) => (data ? intoGitBranchData(data) : null));
+	rustCall<GitBranchData[] | null>("git.default_branch", args).then((data) =>
+		data ? intoGitBranchData(data) : null,
+	);
 
-export const getCommitAuthors = (args: Args) => call<CommitAuthorInfo[]>("get_all_commit_authors", args);
+export const getCommitAuthors = (args: Args) => rustCall<CommitAuthorInfo[]>("git.get_all_commit_authors", args);
 
-export const gc = (args: Args & { opts: GcOptions }) => call<void>("gc", args);
+export const gc = (args: Args & { opts: GcOptions }) => rustCall<void>("git.gc", args);
 
-export const healthcheck = (args: Args) => call<void>("healthcheck", args);
+export const lfsPrune = (args: Args) => rustCall<number>("git.lfs_prune", args);
 
-export const resetRepo = () => call<void>("reset_repo", { unused: null });
+export const healthcheck = (args: Args) => rustCall<void>("git.healthcheck", args);
+
+export const storageStats = (args: Args) => rustCall<StorageStats>("git.storage_stats", args);
+
+export const resetRepo = () => rustCall<void>("git.reset_repo", { unused: null });
 
 export const pullLfsObjects = (args: CredsArgs & { paths: string[]; checkout: boolean; cancelToken: number }) =>
-	call<void>("pull_lfs_objects", args);
+	rustCall<void>("git.pull_lfs_objects", args);
 
-export const resetFileLock = (args: Args) => call<void>("reset_file_lock", args);
+export const resetFileLock = (args: Args) => rustCall<void>("git.reset_file_lock", args);
 
 export const formatMergeMessage = (args: Args & CredsArgs & { opts: MergeMessageFormatOptions }) => {
 	args.opts = intoMergeMessageFormatOptions(args.opts);
-	return call<string>("format_merge_message", args);
+	return rustCall<string>("git.format_merge_message", args);
 };
 
-export const getConfigVal = (args: Args & { name: string }) => call<string | null>("get_config_val", args);
+export const getConfigVal = (args: Args & { name: string }) => rustCall<string | null>("git.get_config_val", args);
 
-export const setConfigVal = (args: Args & { name: string; val: ConfigValue }) => call<void>("set_config_val", args);
+export const setConfigVal = (args: Args & { name: string; val: ConfigValue }) =>
+	rustCall<void>("git.set_config_val", args);
 
 const intoGitBranchData = (data: any): GitBranchData & { lastCommitOid: string } => {
 	return {

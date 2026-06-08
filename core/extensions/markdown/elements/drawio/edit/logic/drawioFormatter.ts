@@ -12,6 +12,7 @@ const drawioFormatter =
 					title: node.attrs.title,
 					width: node.attrs.width,
 					height: node.attrs.height,
+					scale: node.attrs.scale,
 				},
 				true,
 			),

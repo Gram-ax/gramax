@@ -1,16 +1,9 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import { FileFsProvider } from "@ext/serach/modulith/local/FileFsProvider";
 import {
 	FsCommitableArticleStorageProvider,
 	FsCommitableSimpleArticleStorage,
-} from "@ics/modulith-search-infra/article";
-import {
-	DefaultSearcher,
-	DefaultSearchService,
-	DefaultSearchTokenizer,
-	SearchStore,
-} from "@ics/modulith-search-infra/search";
+} from "@ics/article-search/article/storage/fs";
 import {
 	CachedMemoryArticleRepo,
 	CachedMemoryChunkRepo,
@@ -19,9 +12,12 @@ import {
 	CachedMemoryDictWordRepo,
 	CachedMemoryEmbLinkRepo,
 	CachedMemoryTenantRepo,
-} from "@ics/modulith-search-infra-memory";
-import { Stemmer } from "@ics/modulith-search-infra-stemmer";
-import { NullLogger } from "@ics/modulith-utils";
+	MemoryReposRepairer,
+} from "@ics/article-search/data/memory";
+import type { FsProvider } from "@ics/article-search/fs";
+import { DefaultSearcher, DefaultSearchService, DefaultSearchTokenizer, SearchStore } from "@ics/article-search/search";
+import { Stemmer } from "@ics/article-search-stemmer";
+import { NullLogger } from "@ics/article-search-utils";
 import { TENANT_NAME } from "./consts";
 
 export interface ReposCache {
@@ -29,16 +25,24 @@ export interface ReposCache {
 	set(key: string, data: Uint8Array): Promise<void>;
 }
 
-export const createSearchService = async ({
-	cache,
-	articleStorageFileProvider,
-}: {
+export interface CreateSearchServiceArgs<TFileProvider extends FileProvider> {
 	cache: ReposCache;
 	articleStorageFileProvider: FileProvider;
-}): Promise<{ searchService: DefaultSearchService; commit: () => Promise<void> }> => {
+	fsProviderFactory: (fp: TFileProvider) => FsProvider;
+}
+
+export type CreateSearchServiceResult = {
+	searchService: DefaultSearchService;
+	commit: () => Promise<void>;
+};
+
+export const createSearchService = async <TFileProvider extends FileProvider>(
+	args: CreateSearchServiceArgs<TFileProvider>,
+): Promise<CreateSearchServiceResult> => {
+	const { cache, articleStorageFileProvider, fsProviderFactory } = args;
 	// `createArticleStorageProvider` may delete and recreate the target directory,
 	// so it must be called before any code that relies on its contents
-	const articleStorageProvider = await createArticleStorageProvider(articleStorageFileProvider);
+	const articleStorageProvider = await createArticleStorageProvider(articleStorageFileProvider, fsProviderFactory);
 
 	const { tenantRepo, articleRepo, chunkRepo, embLinkRepo, dictWordRepo, chunkWordRepo, chunkSearchWordRepo } =
 		await createRepos(cache);
@@ -91,10 +95,13 @@ export const createSearchService = async ({
 	};
 };
 
-async function createArticleStorageProvider(fp: FileProvider) {
+async function createArticleStorageProvider<TFileProvider extends FileProvider>(
+	fp: TFileProvider,
+	fsProviderFactory: (fp: TFileProvider) => FsProvider,
+) {
 	const create = async () =>
 		await FsCommitableArticleStorageProvider.create({
-			fsProvider: new FileFsProvider(fp),
+			fsProvider: fsProviderFactory(fp),
 			storageFactory: (fs) =>
 				FsCommitableSimpleArticleStorage.create({
 					fsProvider: fs,
@@ -166,7 +173,7 @@ async function createRepos(cache: ReposCache): Promise<{
 	const chunkSearchWordSetCache = (v: Uint8Array) => cache.set(chunkSearchWordCacheName, v);
 
 	try {
-		return {
+		const result = {
 			tenantRepo: await CachedMemoryTenantRepo.create({
 				cachedValue: await cache.get(tenantCacheName),
 				setCache: tenantSetCache,
@@ -196,6 +203,17 @@ async function createRepos(cache: ReposCache): Promise<{
 				setCache: chunkSearchWordSetCache,
 			}),
 		};
+
+		const repairResult = await MemoryReposRepairer.repair(result);
+		await Promise.all([
+			repairResult.articleChanged ? result.articleRepo.commit() : Promise.resolve(),
+			repairResult.chunkChanged ? result.chunkRepo.commit() : Promise.resolve(),
+			repairResult.embLinkChanged ? result.embLinkRepo.commit() : Promise.resolve(),
+			repairResult.chunkWordChanged ? result.chunkWordRepo.commit() : Promise.resolve(),
+			repairResult.chunkSearchWordChanged ? result.chunkSearchWordRepo.commit() : Promise.resolve(),
+		]);
+
+		return result;
 	} catch (e) {
 		console.warn("Error creating repos; retrying with empty:", e);
 		return {

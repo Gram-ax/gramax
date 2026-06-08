@@ -4,7 +4,7 @@ import { editorTest } from "@web/fixtures/editor.fixture";
 
 editorTest.describe("Diagrams", () => {
 	editorTest("mermaid", async ({ editor, basePage, sharedPage }) => {
-		await editor.hoverToolbar("diagrams");
+		await editor.clickToolbar("semiBlocks");
 		await sharedPage.getByRole("menuitem", { name: "Mermaid" }).click();
 
 		const diagram = sharedPage.locator('[data-qa="qa-diagram-data"]');
@@ -23,7 +23,7 @@ editorTest.describe("Diagrams", () => {
 	});
 
 	editorTest("clear mermaid content doesn't throw error", async ({ editor, basePage, sharedPage }) => {
-		await editor.hoverToolbar("diagrams");
+		await editor.clickToolbar("semiBlocks");
 		await sharedPage.getByRole("menuitem", { name: "PlantUML" }).click();
 
 		const diagram = sharedPage.locator('[data-qa="qa-diagram-data"]');
@@ -56,7 +56,7 @@ editorTest.describe("Diagrams", () => {
 	});
 
 	editorTest("openapi", async ({ editor, basePage, sharedPage }) => {
-		await editor.hoverToolbar("diagrams");
+		await editor.clickToolbar("semiBlocks");
 		await sharedPage.getByRole("menuitem", { name: "OpenAPI" }).click();
 
 		const diagram = sharedPage.locator('[data-qa="qa-open-api"]');

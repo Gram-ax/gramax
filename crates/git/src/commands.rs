@@ -111,8 +111,7 @@ impl From<crate::error::GitError> for ErrorInfo {
 
 pub type Result<T> = std::result::Result<T, ErrorInfo>;
 
-#[derive(Deserialize, Default, Debug)]
-#[serde(untagged)]
+#[derive(Default, Debug, Clone)]
 pub enum TreeReadScope {
 	#[default]
 	Head,
@@ -122,6 +121,26 @@ pub enum TreeReadScope {
 	Reference {
 		reference: String,
 	},
+}
+
+impl<'de> Deserialize<'de> for TreeReadScope {
+	fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> std::result::Result<Self, D::Error> {
+		#[derive(Deserialize)]
+		#[serde(untagged)]
+		enum TreeReadScopeInner {
+			Str(String),
+			Commit { commit: String },
+			Reference { reference: String },
+		}
+
+		match Option::<TreeReadScopeInner>::deserialize(deserializer)? {
+			None => Ok(TreeReadScope::Head),
+			Some(TreeReadScopeInner::Str(s)) if matches!(s.as_str(), "HEAD" | "head") => Ok(TreeReadScope::Head),
+			Some(TreeReadScopeInner::Str(s)) => Err(serde::de::Error::custom(format!("invalid TreeReadScope: {s}"))),
+			Some(TreeReadScopeInner::Commit { commit }) => Ok(TreeReadScope::Commit { commit }),
+			Some(TreeReadScopeInner::Reference { reference }) => Ok(TreeReadScope::Reference { reference }),
+		}
+	}
 }
 
 impl TreeReadScope {
@@ -149,7 +168,7 @@ pub fn file_history(repo: &Path, file_path: &Path, offset: usize, limit: usize) 
 	})
 }
 
-#[tracing::instrument(target = TAG, fields(repo = %repo.short()), err)]
+#[tracing::instrument(target = TAG, fields(repo = %repo.short(), name = ?name), err)]
 pub fn branch_info(repo: &Path, name: Option<&str>) -> Result<BranchInfo> {
 	match name {
 		Some(name) => Repo::run_read(repo, DummyCreds, |repo| {
@@ -509,8 +528,18 @@ pub fn set_config_val(repo: &Path, name: &str, val: crate::ConfigValue) -> Resul
 }
 
 #[tracing::instrument(target = TAG, fields(repo = %repo.short()), ret)]
+pub fn storage_stats(repo: &Path) -> Result<StorageStats> {
+	Repo::run_read(repo, DummyCreds, |repo| Ok(repo.collect_storage_stats()?))
+}
+
+#[tracing::instrument(target = TAG, fields(repo = %repo.short()), ret)]
 pub fn gc(repo: &Path, opts: GcOptions) -> Result<()> {
 	Repo::run_write(repo, DummyCreds, "gc", |repo| Ok(repo.gc(opts)?))
+}
+
+#[tracing::instrument(target = TAG, fields(repo = %repo.short()), ret)]
+pub fn lfs_prune(repo: &Path) -> Result<usize> {
+	Repo::run_write(repo, DummyCreds, "lfs_prune", |repo| Ok(repo.lfs_prune()?))
 }
 
 #[tracing::instrument]

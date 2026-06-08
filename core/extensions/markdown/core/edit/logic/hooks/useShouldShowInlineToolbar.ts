@@ -9,7 +9,7 @@ export const useShouldShowInlineToolbar = () => {
 
 	return useCallback(
 		({ editor }: { editor: Editor }) => {
-			if (isMobile) return false;
+			if (!editor.isEditable || isMobile) return false;
 
 			const { from, to, empty } = editor.state.selection;
 			if (empty) return false;

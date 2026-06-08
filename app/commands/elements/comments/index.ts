@@ -1,4 +1,5 @@
 import getCommentsByAuthors from "@app/commands/elements/comments/getCommentsByAuthors";
+import search from "@app/commands/elements/comments/search";
 import copyComment from "./copy";
 import deleteComment from "./deleteComment";
 import getComment from "./get";
@@ -11,6 +12,7 @@ const comments = {
 	updateComment,
 	getNewCommentId,
 	getCommentsByAuthors,
+	search,
 	copyComment,
 };
 

@@ -11,7 +11,7 @@ const LeftNavigationContent: LeftNavViewContentComponent = ({ itemLinks, closeNa
 	const LevNav = isReadOnly ? LevNavWatchTree : LevNavDragTree;
 
 	return (
-		<div style={isOpen ? null : { paddingRight: "31px" }}>
+		<div style={isOpen ? null : { paddingRight: "var(--left-navigation-content-padding-right)" }}>
 			<Layout>
 				<LevNav closeNavigation={closeNavigation} items={itemLinks} />
 			</Layout>

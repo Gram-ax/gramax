@@ -1,5 +1,6 @@
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+// biome-ignore lint/style/noRestrictedImports: expected
 import styled from "@emotion/styled";
 import type { ReactNode } from "react";
 
@@ -30,7 +31,6 @@ export default styled(RightNavigationLayout)`
 		display: flex;
 		flex-direction: column;
 		padding: 2rem 1.2rem 2rem 2rem;
-		overflow-y: scroll;
 		height: 100%;
 		${() => (useMediaQuery(cssMedia.narrow) ? "padding-top: calc(1rem + var(--top-bar-height));" : "")}
 	}

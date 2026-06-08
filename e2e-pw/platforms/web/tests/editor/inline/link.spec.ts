@@ -15,7 +15,7 @@ editorTest.describe("Link", () => {
 
 	editorTest("select word and apply link via inline toolbar", async ({ editor, catalogPage }) => {
 		await editor.type("Hello");
-		await editor.press("Shift+Home");
+		await editor.press("ControlOrMeta+Shift+ArrowLeft");
 
 		const inlineToolbar = catalogPage.raw.locator('[role="article-inline-toolbar"]');
 		await expect(inlineToolbar).toBeVisible();
@@ -40,7 +40,7 @@ editorTest.describe("Link", () => {
 			const textWithExtra = `${linkExample}X`;
 
 			await editor.type(textWithExtra);
-			await editor.press("Shift+Home");
+			await editor.press("ControlOrMeta+Shift+ArrowLeft");
 
 			const inlineToolbar = catalogPage.raw.locator('[role="article-inline-toolbar"]');
 			await expect(inlineToolbar).toBeVisible();

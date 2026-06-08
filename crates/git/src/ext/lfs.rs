@@ -157,8 +157,7 @@ impl<C: ActualCreds> Lfs for Repo<'_, C> {
 
 		let pointers = paths
 			.iter()
-			.map(|path| self.0.try_get_dangling_pointer(path.as_path()).map(|p| (path, p)))
-			.flatten()
+			.flat_map(|path| self.0.try_get_dangling_pointer(path.as_path()).map(|p| (path, p)))
 			.filter_map(|p| p.1.map(|ptr| (p.0, ptr)))
 			.collect::<Vec<(&PathBuf, Pointer)>>();
 
@@ -191,7 +190,7 @@ impl<C: ActualCreds> Lfs for Repo<'_, C> {
 
 		self
 			.0
-			.checkout_tree(&self.0.head()?.peel_to_tree()?.as_object(), Some(&mut checkout_opts))?;
+			.checkout_tree(self.0.head()?.peel_to_tree()?.as_object(), Some(&mut checkout_opts))?;
 		Ok(())
 	}
 
@@ -253,7 +252,7 @@ impl<C: ActualCreds> Lfs for Repo<'_, C> {
 		)?;
 
 		#[cfg(target_family = "wasm")]
-		wasm::pull(&self.0, url, Some(self.1.access_token().to_string()), &objects, callback, cancel)?;
+		wasm::pull(&self.0, url, Some(self.1.access_token().to_string()), objects, callback, cancel)?;
 
 		Ok(())
 	}

@@ -1,21 +1,27 @@
-import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { setEditorStore } from "@core-ui/stores/EditorStore";
 import t from "@ext/localization/locale/translate";
 import type { Editor } from "@tiptap/core";
-import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { DropdownMenuShortcut } from "@ui-kit/Dropdown";
+import { ToolbarDropdownMenuItem, ToolbarIcon } from "@ui-kit/Toolbar";
+import { useCallback } from "react";
 
-const TaskListMenuButton = ({ editor }: { editor: Editor }) => {
-	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "taskList" });
+const TaskListMenuButton = ({ editor, active, disabled }: { editor: Editor; active: boolean; disabled: boolean }) => {
+	const onSelectTaskList = useCallback(() => {
+		editor.chain().focus().toggleTaskList().run();
+		setEditorStore({ lastUsedListType: "task" });
+	}, [editor]);
+
 	return (
-		<ToolbarToggleButton
-			active={isActive}
+		<ToolbarDropdownMenuItem
+			active={active}
 			data-testid="tb-task-list"
 			disabled={disabled}
-			hotKey={"Mod-Shift-9"}
-			onClick={() => editor.chain().focus().toggleTaskList().run()}
-			tooltipText={t("editor.task-list")}
+			onClick={onSelectTaskList}
 		>
 			<ToolbarIcon icon={"list-todo"} />
-		</ToolbarToggleButton>
+			{t("editor.task-list")}
+			<DropdownMenuShortcut value="Mod-Shift-9" />
+		</ToolbarDropdownMenuItem>
 	);
 };
 

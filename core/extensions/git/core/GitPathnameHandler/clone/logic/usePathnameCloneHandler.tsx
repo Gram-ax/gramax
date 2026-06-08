@@ -58,11 +58,12 @@ const usePathnameCloneHandler = () => {
 
 	useEffect(() => {
 		const shareData = pageDataContext.shareData;
-		if (!router || !shareData || isReadOnly) return;
+		if (!router || !shareData) return;
 
 		const isPublic = shareData.isPublic;
 
 		if (isPublic) {
+			if (isReadOnly) return;
 			if (typeof window !== "undefined" && !window.desktopOpened) {
 				startClonePublic(shareData as GitShareData);
 			}

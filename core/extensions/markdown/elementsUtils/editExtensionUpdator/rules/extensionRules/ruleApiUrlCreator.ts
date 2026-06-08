@@ -12,6 +12,7 @@ const getApiUrlCreatorRule = (apiUrlCreator: ApiUrlCreator): ExtensionUpdaterRul
 		"diff",
 		"GramaxAi",
 		"ArticleTitleHelpers",
+		"fragment-link",
 	];
 
 	return {

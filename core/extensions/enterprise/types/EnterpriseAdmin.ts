@@ -22,7 +22,7 @@ import StyleGuideComponent, {
 import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import WorkspaceComponent from "@ext/enterprise/components/admin/settings/workspace/WorkspaceComponent";
 import { Page } from "@ext/enterprise/types/Page";
-import { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
+import type { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
 import type { ComponentType } from "react";
 
 export type Settings = {

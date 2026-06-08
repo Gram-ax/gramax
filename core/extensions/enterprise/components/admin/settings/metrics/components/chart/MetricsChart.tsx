@@ -112,7 +112,7 @@ const MetricsChart = <TField extends string>({
 	if (data.length === 0) {
 		return (
 			<div className="flex items-center justify-center h-full border border-dashed rounded-md">
-				<p className="text-muted">No data available</p>
+				<p className="text-muted">{t("metrics.no-data")}</p>
 			</div>
 		);
 	}

@@ -76,6 +76,13 @@ const respond = async (req: Request, kind: ResponseKind, commandResult: any) => 
 			headers: { "Content-Type": "application/json" },
 		});
 	}
+
+	if (kind === ResponseKind.css)
+		return new Response(commandResult, {
+			status: 200,
+			headers: { "Content-Type": "text/css" },
+		});
+
 	if (kind === ResponseKind.plain)
 		return new Response(commandResult, {
 			status: 200,
@@ -109,6 +116,9 @@ const respond = async (req: Request, kind: ResponseKind, commandResult: any) => 
 	}
 
 	if (kind === ResponseKind.redirect) {
+		if (typeof commandResult !== "string" || !commandResult) {
+			return new Response(null, { status: 404 });
+		}
 		return new Response(commandResult, {
 			status: 302,
 			headers: { Location: commandResult },

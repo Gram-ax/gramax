@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import getCloudConvertors from "@ext/confluence/core/cloud/logic/getCloudConvertors";
 import CONFLUENCE_EXTENSION_TYPES from "@ext/confluence/core/cloud/model/confluenceExtensionTypes";
 import generateConfluenceArticleLink from "@ext/confluence/core/logic/generateConfluenceArticleLink";
@@ -83,7 +84,7 @@ const getConfluenceUnsupportedElements = (
 
 	const conversionMap = sourceType === SourceType.confluenceCloud ? getCloudConvertors() : getServerConvertors();
 
-	let checkNode;
+	let checkNode: (content: any, article: ConfluenceArticle) => void;
 
 	if (sourceType === SourceType.confluenceCloud) {
 		checkNode = (content: any, article: ConfluenceArticle) => {

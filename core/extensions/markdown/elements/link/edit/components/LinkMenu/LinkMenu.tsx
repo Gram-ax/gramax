@@ -36,8 +36,8 @@ const LinkMenuContent = memo(({ mark, mode, setMode, onDelete, onUpdate }: LinkM
 
 	const { hash, pathWithoutHash, catalogName } = useMemo(() => {
 		const hashMatch = getLinkToHeading(href);
-		const pathWithoutHash = hashMatch ? hashMatch[1] : href;
-		const hash = hashMatch?.[2] || "";
+		const pathWithoutHash = hashMatch?.path ?? href;
+		const hash = hashMatch?.hash ?? "";
 		const parsedCatalogName = hasError
 			? undefined
 			: href

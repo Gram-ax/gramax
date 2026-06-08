@@ -66,14 +66,12 @@ export const calculateCellBaseWidthTwips = (
 };
 
 const getColumnsCount = (table: TableNode): number => {
-	const sections = "children" in table ? table.children : table.content;
-	const firstSection = sections?.find((child) => child && typeof child !== "string");
-	const rows = firstSection && "children" in firstSection ? firstSection.children : firstSection?.content;
+	const rows = "children" in table ? table.children : table.content;
 	let maxCols = 0;
 
 	for (const row of rows ?? []) {
 		if (!row || typeof row === "string") continue;
-		const cells = row.children ?? [];
+		const cells = row.content ?? [];
 		let rowCols = 0;
 
 		for (const cell of cells) {
@@ -90,30 +88,25 @@ const getColumnsCount = (table: TableNode): number => {
 
 const collectColumnWidthUnits = (table: TableNode, columnsCount: number): number[] => {
 	const units = new Array<number>(columnsCount).fill(0);
-	const sections = "children" in table ? table.children : table.content;
+	const rows = "children" in table ? table.children : table.content;
 
-	for (const section of sections ?? []) {
-		if (!section || typeof section === "string") continue;
-		const rows = "children" in section ? section.children : section.content;
+	for (const row of rows ?? []) {
+		if (!row || typeof row === "string") continue;
+		const cells = row.content ?? [];
+		let columnIndex = 0;
 
-		for (const row of rows ?? []) {
-			if (!row || typeof row === "string") continue;
-			const cells = row.children ?? [];
-			let columnIndex = 0;
+		for (const cell of cells) {
+			if (!cell || typeof cell === "string") continue;
+			const attrs = "attributes" in cell ? cell.attributes : cell.attrs;
+			const span = getSpan(attrs?.colspan);
+			const normalized = normalizeColwidth(attrs?.colwidth, span);
 
-			for (const cell of cells) {
-				if (!cell || typeof cell === "string") continue;
-				const attrs = "attributes" in cell ? cell.attributes : cell.attrs;
-				const span = getSpan(attrs?.colspan);
-				const normalized = normalizeColwidth(attrs?.colwidth, span);
-
-				for (let i = 0; i < span && columnIndex + i < columnsCount; i++) {
-					const value = normalized[i];
-					if (value > 0) units[columnIndex + i] = Math.max(units[columnIndex + i], value);
-				}
-
-				columnIndex += span;
+			for (let i = 0; i < span && columnIndex + i < columnsCount; i++) {
+				const value = normalized[i];
+				if (value > 0) units[columnIndex + i] = Math.max(units[columnIndex + i], value);
 			}
+
+			columnIndex += span;
 		}
 	}
 

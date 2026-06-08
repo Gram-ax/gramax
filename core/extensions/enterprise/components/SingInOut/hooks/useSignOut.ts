@@ -9,7 +9,7 @@ const useSignOut = () => {
 	const isLogged = pageDataContext.isLogged;
 	const workspaceContext = pageDataContext.workspace;
 	const currentWorkspaceName = pageDataContext.workspace.current;
-	const activeGesUrl = pageDataContext.conf.enterprise.gesUrl;
+	const activeGesUrl = pageDataContext.conf.activeGesUrl;
 
 	const workspaceConfig = workspaceContext.workspaces.find(
 		(workspaceConfig) => workspaceConfig.path === currentWorkspaceName,

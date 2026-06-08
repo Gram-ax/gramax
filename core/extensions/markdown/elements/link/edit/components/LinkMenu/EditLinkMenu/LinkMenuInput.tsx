@@ -8,9 +8,10 @@ interface LinkMenuInputProps {
 	isSearchCatalogs: boolean;
 	onValueChange: (event: FormEvent<HTMLInputElement>) => void;
 	setMode: (mode: LinkMenuMode) => void;
+	onConfirm?: () => void;
 }
 
-export const LinkMenuInput = ({ value, onValueChange, setMode, isSearchCatalogs }: LinkMenuInputProps) => {
+export const LinkMenuInput = ({ value, onValueChange, setMode, isSearchCatalogs, onConfirm }: LinkMenuInputProps) => {
 	const inputRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
@@ -23,6 +24,7 @@ export const LinkMenuInput = ({ value, onValueChange, setMode, isSearchCatalogs 
 		<div className="flex items-center border-b border-inverse-border pl-2 pr-1">
 			<input
 				className="flex h-9 w-full rounded-md bg-transparent py-1 pl-1 text-sm outline-none placeholder:text-muted disabled:cursor-not-allowed disabled:opacity-50 text-xs"
+				onBlur={onConfirm}
 				onInput={onValueChange}
 				placeholder={isSearchCatalogs ? `${t("list.search-catalogs")}...` : `${t("list.search-articles")}...`}
 				ref={inputRef}

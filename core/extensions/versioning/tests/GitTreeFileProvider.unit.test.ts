@@ -105,6 +105,22 @@ describe("GitTreeFileProvider", () => {
 				expect(file).toBe("repo-file content");
 			});
 		});
+
+		describe("с mount path", () => {
+			test("правильно отрезает mount path (без scope)", async () => {
+				const mountedGitfp = new GitTreeFileProvider(git);
+				mountedGitfp.withMountPath(new Path("process"));
+				const file = await mountedGitfp.read(new Path("process/file"));
+				expect(file).toBe("text");
+			});
+
+			test("правильно отрезает mount path (со scope)", async () => {
+				const mountedGitfp = new GitTreeFileProvider(git);
+				mountedGitfp.withMountPath(new Path("process"));
+				const file = await mountedGitfp.read(new Path("process:master/file"));
+				expect(file).toBe("text");
+			});
+		});
 	});
 
 	describe("читает директорию", () => {

@@ -1,4 +1,5 @@
-import type { LocalizedString } from "../../logic/components/tableDB/table";
+/** biome-ignore-all lint/style/noParameterAssign: it's ok */
+import type { LocalizedString } from "@ext/tableDB/table";
 
 export const feedbackLink = (email: string, path: string, repositoryName: string) => {
 	return `mailto:${email}?subject=${encodeURIComponent(

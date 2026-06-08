@@ -2,20 +2,20 @@ import type { BuildConfig } from "bun";
 import path from "path";
 import { fileURLToPath } from "url";
 import isProduction from "../../../scripts/isProduction.mjs";
-import replaceImportPlugin from "./plugins/replaceImportPlugin";
+import { browserAssertPlugin } from "./plugins/client/browserAssertPlugin";
+import { copyFaviconPlugin } from "./plugins/client/copyFaviconPlugin";
 import { fixBrokenChunkExports } from "./plugins/client/fixBrokenChunkExports";
 import { lucideNoTreeShakePlugin } from "./plugins/client/lucideNoTreeShakePlugin";
-import { browserAssertPlugin } from "./plugins/client/browserAssertPlugin";
 import { processStubPlugin } from "./plugins/client/processStubPlugin";
-import { copyFaviconPlugin } from "./plugins/client/copyFaviconPlugin";
+import replaceImportPlugin from "./plugins/replaceImportPlugin";
 
 export const dirname = path.dirname(fileURLToPath(import.meta.url));
 
 type BuildOptions = BuildConfig & {
 	metafile: string;
-}
+};
 
-const result = await Bun.build({ 
+const result = await Bun.build({
 	metafile: "../meta.json",
 	entrypoints: ["client/index.tsx", "client/Admin.tsx"],
 	outdir: "dist/assets",
@@ -53,4 +53,20 @@ if (!result.success) {
 
 fixBrokenChunkExports(path.resolve(process.cwd(), "dist/assets"));
 
+const root = path.resolve(dirname, "../../..");
 
+const { default: postcss } = await import("tailwindcss/node_modules/postcss/lib/postcss.js");
+const { default: tailwindcss } = await import("tailwindcss");
+const { default: autoprefixer } = await import("autoprefixer");
+const { default: tailwindConfig } = await import(path.join(root, "tailwind.config.js"));
+
+const uiKitCss = path.join(root, "core/ui-kit/index.css");
+const themeCss = await Bun.file(path.join(root, "node_modules/ics-ui-kit/dist/theme.css")).text();
+const cssInput = `${themeCss}\n${await Bun.file(uiKitCss).text()}`;
+// biome-ignore lint/suspicious/noExplicitAny: postcss version conflict between tailwindcss bundled and root
+const postcssResult = await (postcss as any)([tailwindcss(tailwindConfig), autoprefixer]).process(cssInput, {
+	from: uiKitCss,
+	to: path.resolve(dirname, "../dist/assets/tailwind.css"),
+});
+
+await Bun.write(path.resolve(dirname, "../dist/assets/tailwind.css"), postcssResult.css);

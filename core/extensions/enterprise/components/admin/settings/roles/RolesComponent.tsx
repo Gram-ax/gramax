@@ -1,4 +1,3 @@
-import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
 import type { ALL_ROLES } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import RoleComponent from "@ext/enterprise/components/admin/settings/roles/RoleComponent";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
@@ -9,7 +8,7 @@ import t from "@ext/localization/locale/translate";
 import { ALL_PERMISSIONS, type PermissionType } from "@ext/security/logic/Permission/Permissions";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { Icon } from "@ui-kit/Icon";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface RolePermissions {
 	allowedPermissions: PermissionType[];
@@ -71,18 +70,17 @@ const GET_INITIAL_ROLES_PERMISSIONS = (): Record<RolesType, RolePermissions> => 
 const RolesComponent = () => {
 	const [isSaving, setIsSaving] = useState(false);
 	const [hasChanges, setHasChanges] = useState(false);
-	const { isScrolled } = useScrollShadow();
 
 	const [initialRolesPermissions, setInitialRolesPermissions] =
 		useState<Record<RolesType, RolePermissions>>(undefined);
 	const [allPermissions, setAllPermissions] = useState<PermissionType[]>(undefined);
 	const resultRolesPermissions = useRef<Record<string, RolePermissions>>({});
 
-	const handleSave = () => {
+	const handleSave = useCallback(() => {
 		setIsSaving(true);
 		alert(JSON.stringify(resultRolesPermissions.current, null, 2));
 		setIsSaving(false);
-	};
+	}, []);
 
 	useEffect(() => {
 		setInitialRolesPermissions(GET_INITIAL_ROLES_PERMISSIONS());
@@ -106,7 +104,6 @@ const RolesComponent = () => {
 						)}
 					</>
 				}
-				isScrolled={isScrolled}
 				title={<>{getAdminPageTitle(Page.ROLES)}</>}
 			/>
 			<div className="flex flex-col gap-6">

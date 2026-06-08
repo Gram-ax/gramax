@@ -1,6 +1,6 @@
 import Icon from "@components/Atoms/Icon";
 import styled from "@emotion/styled";
-import { DiffCheckbox } from "@ext/git/core/GitMergeRequest/components/Changes/DiffCheckbox";
+import { DiffCheckbox } from "@ext/git/core/Diff/components/Changes/DiffCheckbox";
 import t from "@ext/localization/locale/translate";
 
 export type SelectAllProps = {

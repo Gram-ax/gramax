@@ -1,5 +1,6 @@
 import type Context from "@core/Context/Context";
 import type Cookie from "@ext/cookie/Cookie";
+import { Encoder } from "@ext/encoder/Encoder";
 import t from "@ext/localization/locale/translate";
 import SourceDataCtx, { type ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
@@ -7,11 +8,10 @@ import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData"
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import assert from "assert";
-import { Encoder } from "../../../../Encoder/Encoder";
 import type SourceData from "../model/SourceData";
 
 export class SourceDataProvider {
-	protected secret = "UGnL8QMQqw";
+	protected _secret = "UGnL8QMQqw";
 
 	private _encoder: Encoder;
 	private _postfix = "_storage_data";
@@ -45,7 +45,13 @@ export class SourceDataProvider {
 		}
 
 		return Array.from(uniqNames)
-			.map((n) => this.getSourceByName(n, workspaceId).raw)
+			.map((n) => {
+				try {
+					return this.getSourceByName(n, workspaceId).raw;
+				} catch {
+					return null;
+				}
+			})
 			.filter((d): d is SourceData => !!d && sourceTypes.has(d.sourceType));
 	}
 
@@ -91,15 +97,15 @@ export class SourceDataProvider {
 	}
 
 	private _encode(data: SourceData): string {
-		return this._encoder.ecode([JSON.stringify(data)], this.secret);
+		return this._encoder.encode([JSON.stringify(data)], this._secret);
 	}
 
 	private _decode(ticket: string): SourceData {
-		const data = this._encoder.decode(this.secret, ticket);
+		const data = this._encoder.decode(this._secret, ticket);
 		try {
 			return JSON.parse(data[0]);
 		} catch (e) {
-			throw new Error("Encoded data is malformed, can't decode: " + e.message);
+			throw new Error(`Encoded data is malformed, can't decode: ${e.message}`);
 		}
 	}
 

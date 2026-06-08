@@ -6,6 +6,7 @@ import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import { EnterpriseErrorCode } from "@ext/enterprise/errors/getEnterpriseErrors";
 import type UserSettings from "@ext/enterprise/types/UserSettings";
+import type { ExportTemplate } from "@ext/enterprise/types/UserSettings";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
@@ -13,6 +14,8 @@ import Permission from "@ext/security/logic/Permission/Permission";
 import StrictPermissionMap from "@ext/security/logic/PermissionMap/StrictPermissionMap";
 import type UserInfo from "@ext/security/logic/User/UserInfo";
 import Theme from "@ext/Theme/Theme";
+import type { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
+import type { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { Command } from "../../types/Command";
 
@@ -79,6 +82,7 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 
 		if (!existWorkspace) await this._commands.workspace.create.do({ config: workspaceConfig });
 		else await this._commands.workspace.edit.do({ data: { ...workspaceConfig } });
+		await wm.setWorkspace(path);
 
 		const workspacePermission = new StrictPermissionMap({ [path]: new Permission([]) });
 		const catalogPermission = new StrictPermissionMap({});
@@ -97,6 +101,8 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 		if (am instanceof ClientAuthManager) {
 			await am.forceUpdateEnterpriseUser(ctx.cookie, user);
 		}
+
+		await this._commands.storage.sourceData.setSourceData.do({ ctx, ...userSettings.source });
 
 		if (userSettings.ai) {
 			await this._commands.ai.server.setAiData.do({ ctx, workspacePath: path, ...userSettings.ai });
@@ -123,10 +129,14 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			});
 		}
 
-		if (userSettings.workspace.wordTemplates?.length) {
+		const updateTemplates = async (
+			exportTemplates: ExportTemplate[],
+			templateManeger: PdfTemplateManager | WordTemplateManager,
+		) => {
 			const currentWorkspace = this._app.wm.current();
 			const templates: { name: string; buffer: Buffer }[] = [];
-			for (const template of userSettings.workspace.wordTemplates) {
+
+			for (const template of exportTemplates) {
 				if (!hasTemplateBuffer(template)) continue;
 				templates.push({
 					name: template.title,
@@ -135,25 +145,16 @@ const addWorkspace: Command<{ ctx: Context; oneTimeCode: string }, UserSettings>
 			}
 
 			if (templates.length) {
-				await this._app.wtm.addTemplates(currentWorkspace, templates);
+				await templateManeger.addTemplates(currentWorkspace, templates);
 			}
+		};
+
+		if (userSettings.workspace.wordTemplates?.length) {
+			updateTemplates(userSettings.workspace.wordTemplates, this._app.wtm);
 		}
 
 		if (userSettings.workspace.pdfTemplates?.length) {
-			const currentWorkspace = this._app.wm.current();
-
-			const templates: { name: string; buffer: Buffer }[] = [];
-			for (const template of userSettings.workspace.pdfTemplates) {
-				if (!hasTemplateBuffer(template)) continue;
-				templates.push({
-					name: template.title,
-					buffer: Buffer.from(template.bufferBase64, "utf-8"),
-				});
-			}
-
-			if (templates.length) {
-				await this._app.ptm.addTemplates(currentWorkspace, templates);
-			}
+			updateTemplates(userSettings.workspace.pdfTemplates, this._app.ptm);
 		}
 
 		if (userSettings.workspace.modules) {

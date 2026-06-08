@@ -25,6 +25,9 @@ const ctx: Context = {
 	get domain() {
 		return "";
 	},
+	get viewId() {
+		return null;
+	},
 
 	toSpan() {
 		return this;

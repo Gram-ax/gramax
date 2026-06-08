@@ -1,4 +1,5 @@
 import type { TocItem } from "@gramax/core/extensions/navigation/article/logic/createTocItems";
+import type { ArticleProps } from "@gramax/core/logic/FileStructue/Article/Article";
 import { Dropdown } from "@shared-pom/dropdown";
 import type { JSONContent } from "@tiptap/core";
 import BasePage from "./base.page";
@@ -31,8 +32,24 @@ export default class CatalogPage extends BasePage {
 		}, markdownOnly);
 	}
 
+	async currentArticleProps(): Promise<ArticleProps> {
+		return this._page.evaluate(async () => {
+			const app = await window.app!;
+			const { catalogName, itemLogicPath } = window.debug.RouterPathProvider.parsePath(window.location.pathname);
+			const catalog = await app.wm.current().getContextlessCatalog(catalogName!);
+			const article = catalog.findArticle(itemLogicPath!.join("/"), []);
+			return article.props;
+		});
+	}
+
 	async getCatalogActions(): Promise<Dropdown> {
 		const dropdown = new Dropdown(this._page, this._page.getByTestId("catalog-actions"));
+		await dropdown.assertTriggerVisible();
+		return dropdown;
+	}
+
+	async getCatalogProperties(): Promise<Dropdown> {
+		const dropdown = new Dropdown(this._page, this._page.getByTestId("catalog-properties"));
 		await dropdown.assertTriggerVisible();
 		return dropdown;
 	}
@@ -41,7 +58,7 @@ export default class CatalogPage extends BasePage {
 		return this._page.evaluate((catalogName) => {
 			const raw = window.localStorage.getItem("nav-tree-state");
 			const stored = raw ? JSON.parse(raw) : {};
-			return (stored?.state?.catalogs ?? {})[catalogName] ?? [];
+			return stored?.state?.catalogs?.[catalogName] ?? [];
 		}, catalogName);
 	}
 }

@@ -11,8 +11,7 @@
 		"core:window:allow-start-dragging",
 		"core:webview:allow-set-webview-zoom",
 		"core:webview:allow-print",
-		"plugin-gramax-fs:default",
-		"plugin-gramax-git:default",
+		"plugin-gramax-core:default",
 		"shell:allow-open"
 	]
 }

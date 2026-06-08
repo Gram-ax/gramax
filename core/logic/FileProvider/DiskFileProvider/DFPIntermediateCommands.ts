@@ -1,65 +1,112 @@
 import resolveModule from "@app/resolveModule/backend";
-import call from "@app/resolveModule/fscall";
+import rustCall from "@app/resolveModule/rustcall";
 import type CompressOptions from "@core/FileProvider/model/CompressOptions";
 import type FileInfo from "@core/FileProvider/model/FileInfo";
+import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { Buffer } from "buffer";
 
-export const readdir = (path: string) => call<string[]>("read_dir", { path });
+export type DirStatRaw = { name: string } & FileInfo;
 
-export const readFile = async (path: string) => Buffer.from(await call("read_file", { path }));
+type StatExt = { isDirectory: () => boolean; isFile: () => boolean; isSymbolicLink: () => boolean };
 
-export const unlink = (path: string) => {
-	return call<void>("rmfile", { path });
-};
+export type Stat = FileInfo & StatExt;
+export type DirStat = DirStatRaw & StatExt;
 
-export const writeFile = async (path: string, content: string | Buffer, compress?: CompressOptions) => {
-	return call<void>("write_file", { path, content, compress });
-};
+export type FsScope = { kind: "disk"; root: string } | { kind: "git"; repo: string; scope: TreeReadScope };
 
-export const stat = async (path: string, followLink = false) => {
-	const res = await call<FileInfo>("getstat", { path, followLink });
-	res.isDirectory = () => res.type == "dir";
-	res.isFile = () => res.type == "file";
-	res.isSymbolicLink = () => false;
-
-	return res;
-};
-
-export const lstat = (path: string) => stat(path, true);
-
-export const mkdir = (path: string, opts?: { recursive?: boolean; mode?: any }) =>
-	call<void>("make_dir", { path, recursive: opts?.recursive ?? false });
-
-export const rmdir = (path: string, opts?: { recursive?: boolean }) =>
-	call<void>("remove_dir", { path, recursive: opts?.recursive ?? false });
-
-export const readlink = (path: string) => call<string>("read_link", { path });
-
-export const symlink = (from: string, to: string) => call<void>("make_symlink", { from, to });
-
-export const exists = (path: string) => call<boolean>("exists", { path });
-
-export const copy = (from: string, to: string) => call<void>("copy", { from, to });
-
-export const move = (from: string, to: string) => call<void>("mv", { from, to });
-
-export const readDirStats = async (path: string) => {
-	const stats = await call<({ name: string } & FileInfo)[]>("read_dir_stats", { path });
-	return stats.map((stat) => ({
-		...stat,
-		isDirectory: () => stat.type == "dir",
-		isFile: () => stat.type == "file",
+const decorate = <T extends FileInfo>(stat: T): T & StatExt =>
+	Object.assign(stat, {
+		isDirectory: () => stat.type === "dir",
+		isFile: () => stat.type === "file",
 		isSymbolicLink: () => false,
-	}));
-};
+	});
 
-export const rm = async (path: string, opts?: { recursive?: boolean; force?: boolean }) => {
-	try {
-		const stats = await stat(path);
-		await (stats.isFile() ? unlink(path) : rmdir(path, opts));
-	} catch (err) {
-		if (!opts?.force) throw err;
+export class RustFs {
+	constructor(private readonly _scope: FsScope) {}
+
+	static disk(root: string): RustFs {
+		return new RustFs({ kind: "disk", root });
 	}
-};
+
+	static git(repo: string, scope: TreeReadScope): RustFs {
+		return new RustFs({ kind: "git", repo, scope });
+	}
+
+	get scope(): FsScope {
+		return this._scope;
+	}
+
+	exists(path: string): Promise<boolean> {
+		return rustCall<boolean>("fs.exists", { scope: this._scope, path });
+	}
+
+	async stat(path: string, followLink = false): Promise<Stat> {
+		const res = await rustCall<FileInfo>("fs.getstat", { scope: this._scope, path, followLink });
+		return decorate(res);
+	}
+
+	lstat(path: string): Promise<Stat> {
+		return this.stat(path, true);
+	}
+
+	async readFile(path: string): Promise<Buffer> {
+		return Buffer.from(await rustCall("fs.read_file", { scope: this._scope, path }));
+	}
+
+	readDir(path: string): Promise<string[]> {
+		return rustCall<string[]>("fs.read_dir", { scope: this._scope, path });
+	}
+
+	async readDirStats(path: string): Promise<DirStat[]> {
+		const stats = await rustCall<DirStatRaw[]>("fs.read_dir_stats", { scope: this._scope, path });
+		return stats.map(decorate) as DirStat[];
+	}
+
+	readLink(path: string): Promise<string> {
+		return rustCall<string>("fs.read_link", { scope: this._scope, path });
+	}
+
+	writeFile(path: string, content: string | Buffer, compress?: CompressOptions): Promise<void> {
+		return rustCall<void>("fs.write_file", { scope: this._scope, path, content, compress });
+	}
+
+	mv(from: string, to: string): Promise<void> {
+		return rustCall<void>("fs.mv", { scope: this._scope, from, to });
+	}
+
+	copy(from: string, to: string): Promise<void> {
+		return rustCall<void>("fs.copy", { scope: this._scope, from, to });
+	}
+
+	makeDir(path: string, recursive = false): Promise<void> {
+		return rustCall<void>("fs.make_dir", { scope: this._scope, path, recursive });
+	}
+
+	removeDir(path: string, recursive = false): Promise<void> {
+		return rustCall<void>("fs.remove_dir", { scope: this._scope, path, recursive });
+	}
+
+	rmfile(path: string): Promise<void> {
+		return rustCall<void>("fs.rmfile", { scope: this._scope, path });
+	}
+
+	makeSymlink(from: string, to: string): Promise<void> {
+		return rustCall<void>("fs.hardlink", { scope: this._scope, from, to });
+	}
+
+	deleteEmptyDirs(path: string): Promise<void> {
+		return rustCall<void>("fs.delete_empty_dirs", { scope: this._scope, path });
+	}
+
+	async rm(path: string, opts?: { recursive?: boolean; force?: boolean }): Promise<void> {
+		try {
+			const stats = await this.stat(path, false);
+			if (stats.isFile()) await this.rmfile(path);
+			else await this.removeDir(path, opts?.recursive);
+		} catch (err) {
+			if (!opts?.force) throw err;
+		}
+	}
+}
 
 export const moveToTrash = (path: string) => resolveModule("moveToTrash")(path);

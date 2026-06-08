@@ -5,6 +5,7 @@ pub mod lfs;
 pub mod merge_requests;
 pub mod read_tree;
 pub mod recover;
+pub mod stats;
 pub mod walk;
 
 pub mod prelude {
@@ -15,4 +16,5 @@ pub mod prelude {
 	pub use crate::ext::merge_requests::*;
 	pub use crate::ext::read_tree::*;
 	pub use crate::ext::recover::*;
+	pub use crate::ext::stats::*;
 }

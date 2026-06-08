@@ -3,11 +3,11 @@ import type { Article } from "@core/FileStructue/Article/Article";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type FileStructure from "@core/FileStructue/FileStructure";
 import type SitePresenter from "@core/SitePresenter/SitePresenter";
-import type { ArticlePageData, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import convertScopeToCommitScope from "@ext/git/core/ScopedCatalogs/convertScopeToCommitScope";
 import GitTreeFileProvider from "@ext/versioning/GitTreeFileProvider";
-import assert from "assert";
 
 export default class ScopedPageData {
 	constructor(
@@ -25,7 +25,8 @@ export default class ScopedPageData {
 
 		const articleScopedPath = GitTreeFileProvider.scoped(new Path(articlePath), commitScope);
 		const scopedArticle = scopedCatalog.findItemByItemPath<Article>(articleScopedPath);
-		assert(scopedArticle);
+		// should be assert, by in DiffModeView rerenders. Fix DiffModeView to not rerender when scope changes.
+		if (!scopedArticle) return null;
 
 		return this._sp.getArticlePageData(scopedArticle, scopedCatalog);
 	}

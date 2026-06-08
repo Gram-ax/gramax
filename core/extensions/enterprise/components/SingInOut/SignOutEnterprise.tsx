@@ -3,7 +3,6 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import t from "@ext/localization/locale/translate";
 import type { ClientWorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import {
@@ -32,7 +31,6 @@ const SignOutEnterprise = ({ workspaceConfig, onClose }: SignOutEnterpriseProps)
 		await FetchService.fetch(apiUrlCreator.getLogoutEnterpriseUrl(workspaceConfig.path));
 		ModalToOpenService.resetValue();
 		await refreshPage();
-		SourceDataService.refresh();
 	};
 
 	const onOpenChange = (open: boolean) => {
@@ -50,7 +48,11 @@ const SignOutEnterprise = ({ workspaceConfig, onClose }: SignOutEnterpriseProps)
 						})}»?`}
 					</AlertDialogTitle>
 					<AlertDialogDescription>
-						<div dangerouslySetInnerHTML={{ __html: t("enterprise.workspace-exit-warning") }} />
+						<div>
+							{t("enterprise.workspace-exit-warning-1")}
+							<br />
+							{t("enterprise.workspace-exit-warning-2")}
+						</div>
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter>

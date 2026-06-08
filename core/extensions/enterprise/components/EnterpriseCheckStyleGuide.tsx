@@ -4,9 +4,9 @@ import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/Moda
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
+import { getEditorStore } from "@core-ui/stores/EditorStore";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import t from "@ext/localization/locale/translate";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import astToParagraphs from "@ext/StyleGuide/logic/astToParagraphs";
 import { getSuggestionItems } from "@ext/StyleGuide/logic/getSuggestionItems";
 import type { CheckSuggestion } from "@ics/gx-vector-search";
@@ -24,7 +24,7 @@ const EnterpriseCheckStyleGuide = () => {
 
 	const checkArticle = async () => {
 		if (!workspace?.enterprise?.modules?.styleGuide) return;
-		const editor = EditorService.getEditor();
+		const editor = getEditorStore().editor;
 		if (!editor) return;
 		ModalToOpenService.setValue(ModalToOpen.Loading, { title: "Проверка статьи" });
 

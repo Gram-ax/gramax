@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import type GitHubSourceData from "@ext/git/actions/Source/GitHub/logic/GitHubSourceData";
 import type GithubInstallation from "@ext/git/actions/Source/GitHub/model/GithubInstallation";
@@ -20,6 +21,11 @@ export default class GithubSourceAPI extends GitSourceApi {
 		protected _onError?: (error: NetworkApiError) => void,
 	) {
 		super(data, _onError);
+	}
+
+	async healthcheck(): Promise<boolean> {
+		const res = await this.getUser();
+		return !!res;
 	}
 
 	async isRepositoryExists(data: GitStorageData): Promise<boolean> {
@@ -76,7 +82,7 @@ export default class GithubSourceAPI extends GitSourceApi {
 
 	async getBranchWithFile(fileName: string, data: GitStorageData): Promise<string> {
 		const defaultBranch = await this.getDefaultBranch(data);
-		const branches = [defaultBranch, ...(await this.getAllBranches(data)).filter((b) => b != defaultBranch)];
+		const branches = [defaultBranch, ...(await this.getAllBranches(data)).filter((b) => b !== defaultBranch)];
 		for (const branch of branches) {
 			const existEileInBranch = await this.isBranchContainsFile(fileName, data, branch);
 			if (existEileInBranch) return branch;
@@ -178,7 +184,6 @@ export default class GithubSourceAPI extends GitSourceApi {
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
-		await this._assertHasInternetAccess();
 		const res = await fetch(`https://api.github.com/${url}`, {
 			...init,
 			headers: { ...(init?.headers ?? {}), Authorization: `token ${this._data.token}` },

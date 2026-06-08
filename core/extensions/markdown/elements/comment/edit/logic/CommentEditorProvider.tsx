@@ -2,14 +2,18 @@ import { createEventEmitter, type Event, type EventEmitter } from "@core/Event/E
 import FetchService from "@core-ui/ApiServices/FetchService";
 import type { CommentBlock } from "@core-ui/CommentBlock";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import CommentView from "@ext/markdown/elements/comment/edit/components/View/CommentView";
 import CommentBlockMark from "@ext/markdown/elements/comment/edit/logic/BlockMark";
-import type { Editor, Range } from "@tiptap/core";
+import { useReviewStore } from "@ext/review/logic/store/ReviewStore";
+import { scrollToReviewItem } from "@ext/review/logic/utils/scrollToReviewItem";
+import type { Editor, JSONContent, Range } from "@tiptap/core";
 import { createContext, memo, useCallback, useEffect, useState } from "react";
 
 interface CommentEditorProviderProps {
 	editor: Editor;
 	children: JSX.Element;
+	onCommentSaved?: (id: string, content: JSONContent[]) => void;
 }
 
 export type CommentEditorEvents = Event<"delete", { id: string }> & Event<"update", { id: string }>;
@@ -17,13 +21,29 @@ export type CommentEditorEvents = Event<"delete", { id: string }> & Event<"updat
 export const CommentEditorEventsContext = createContext<EventEmitter<CommentEditorEvents>>(null);
 
 const CommentEditorProvider = (props: CommentEditorProviderProps): JSX.Element => {
-	const { editor, children } = props;
+	const { editor, children, onCommentSaved } = props;
 	const [events, setEvents] = useState<EventEmitter<CommentEditorEvents>>(null);
+	const articleRef = ArticleRefService.value;
+	const { pendingItem, setPendingItem } = useReviewStore((s) => ({
+		pendingItem: s.pendingItem,
+		setPendingItem: s.setPendingItem,
+	}));
 
 	useEffect(() => {
 		const eventEmmiter = createEventEmitter<CommentEditorEvents>();
 		setEvents(eventEmmiter);
 	}, []);
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	useEffect(() => {
+		editor.once("create", () => {
+			if (!pendingItem) return;
+
+			if (!articleRef.current) return;
+			scrollToReviewItem(articleRef.current, pendingItem, editor);
+			setPendingItem(null);
+		});
+	}, [editor, articleRef]);
 
 	const apiUrlCreator = ApiUrlCreator.value;
 
@@ -43,10 +63,12 @@ const CommentEditorProvider = (props: CommentEditorProviderProps): JSX.Element =
 		(id: string, comment: CommentBlock) => {
 			const url = apiUrlCreator.updateComment(id);
 			FetchService.fetch(url, JSON.stringify(comment)).then((res) => {
-				if (res.ok) events.emit("update", { id });
+				if (!res.ok) return;
+				events.emit("update", { id });
+				onCommentSaved?.(id, comment.comment.content);
 			});
 		},
-		[apiUrlCreator, events],
+		[apiUrlCreator, events, onCommentSaved],
 	);
 
 	const deleteComment = useCallback(

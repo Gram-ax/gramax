@@ -1,12 +1,11 @@
-import HomePage from "@components/HomePage/HomePage";
+import { DocportalPage } from "@components/Pages/components/DocportalPage";
 import type { PageProps } from "@components/Pages/models/Pages";
-import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/ArticleViewContainer";
 import Localizer from "@ext/localization/core/Localizer";
 import { withContext } from "apps/next/logic/Context/ContextHook";
 import { ApplyPageMiddleware } from "../logic/Api/ApplyMiddleware";
 
-export default function Home({ data, page }: PageProps) {
-	return page === "article" ? <ArticleViewContainer data={data} /> : <HomePage data={data} />;
+export default function Home(data: PageProps) {
+	return <DocportalPage data={data} />;
 }
 
 export function getServerSideProps({ req, res, query }) {
@@ -19,6 +18,7 @@ export function getServerSideProps({ req, res, query }) {
 			ctx,
 			async () =>
 				await this.commands.page.getPageData.do({
+					options: { mode: "read" },
 					path: articlePath,
 					ctx,
 				}),

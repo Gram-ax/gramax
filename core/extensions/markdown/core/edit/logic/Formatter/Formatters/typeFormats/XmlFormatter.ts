@@ -5,13 +5,18 @@ import tableFormatter from "@ext/markdown/elements/table/edit/logic/formatters/x
 import tableRowFormatter from "@ext/markdown/elements/table/edit/logic/formatters/xml/tableRowFormatter";
 import screenSymbols from "@ext/markdown/logic/screenSymbols";
 
+type expextedValueType = string | string[];
 const angleTag = { OPEN: "<", CLOSE: ">", SELF_CLOSE: "/>" };
 
-export function createDataValue(attrs: Record<string, any>) {
+const processValue = (value: expextedValueType) => {
+	return screenSymbols(Array.isArray(value) ? JSON.stringify(value) : value);
+};
+
+export function createDataValue(attrs: Record<string, expextedValueType>) {
 	if (!attrs) return "";
 	return Object.entries(attrs)
 		.filter(([, value]) => value)
-		.map(([key, value]) => ` ${key}="${screenSymbols(value)}"`)
+		.map(([key, value]) => ` ${key}="${processValue(value)}"`)
 		.join("");
 }
 
@@ -22,7 +27,7 @@ const XmlFormatter: FormatterType = {
 		tableRow: tableRowFormatter,
 		tableCell: tableCellFormatter,
 	},
-	openTag: (tagName: string, attributes?: Record<string, any>, selfClosing?: boolean) => {
+	openTag: (tagName: string, attributes?: Record<string, expextedValueType>, selfClosing?: boolean) => {
 		const attrsStr = createDataValue(attributes);
 		return `${angleTag.OPEN}${tagName}${attrsStr}${selfClosing ? angleTag.SELF_CLOSE : angleTag.CLOSE}`;
 	},
@@ -31,7 +36,7 @@ const XmlFormatter: FormatterType = {
 		return `${angleTag.OPEN}/${tagName}${angleTag.CLOSE}`;
 	},
 	supportedElements: [
-		"snippet",
+		"fragment",
 		"tabs",
 		"HTML",
 		"view",

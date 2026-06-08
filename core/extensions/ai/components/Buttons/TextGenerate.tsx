@@ -1,3 +1,4 @@
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import AiWritingPopover from "@ext/ai/components/AiWritingPopover";
 import t from "@ext/localization/locale/translate";
 import type { Editor } from "@tiptap/core";
@@ -6,6 +7,7 @@ import { memo, useCallback, useEffect, useState } from "react";
 const TextGenerateButton = ({ editor }: { editor?: Editor }) => {
 	const [canOpen, setCanOpen] = useState(true);
 	const [isOpen, setIsOpen] = useState(false);
+	const isReadOnly = PageDataContext.value.conf.isReadOnly;
 
 	const onSubmit = useCallback(
 		(command: string) => {
@@ -37,12 +39,12 @@ const TextGenerateButton = ({ editor }: { editor?: Editor }) => {
 	return (
 		<AiWritingPopover
 			contentPlaceholder={t("ai.placeholder.generate")}
-			disabled={!canOpen}
+			disabled={!canOpen || isReadOnly}
 			editor={editor}
 			isOpen={isOpen}
 			onSubmit={onSubmit}
 			setIsOpen={setIsOpen}
-			toolbarSelector="[role='bottom-toolbar']"
+			toolbarSelector="[data-toolbar='bottom']"
 			triggerIcon="sparkles"
 			triggerTooltipText={t("ai.generate")}
 		/>

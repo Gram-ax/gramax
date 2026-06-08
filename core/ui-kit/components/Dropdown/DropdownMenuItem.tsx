@@ -1,6 +1,6 @@
-import styled from "@emotion/styled";
 import { DropdownMenuItem as UiKitDropdownMenuItem } from "ics-ui-kit/components/dropdown";
 import type { FC } from "react";
+import { tv } from "tailwind-variants";
 import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type DropdownMenuItemType = "default" | "danger";
@@ -9,24 +9,24 @@ interface UiKitDropdownMenuItemProps extends ExtractComponentGeneric<typeof UiKi
 	type?: DropdownMenuItemType;
 }
 
-const BaseDropdownMenuItem: FC<UiKitDropdownMenuItemProps> = (props) => {
+const dropdownMenuItemVariants = tv({
+	variants: {
+		type: {
+			default: "",
+			danger: "hover:text-status-error-hover",
+		},
+	},
+});
+
+export const DropdownMenuItem: FC<UiKitDropdownMenuItemProps> = ({ type, className, ...props }) => {
 	return (
 		<UiKitDropdownMenuItem
 			{...props}
-			data-dropdown-item-type={props.type}
+			className={dropdownMenuItemVariants({ type, className })}
+			data-dropdown-item-type={type}
 			data-dropdown-menu-item
 			data-qa="qa-clickable"
 			data-testid="dropdown-item"
 		/>
 	);
 };
-
-export const DropdownMenuItem = styled(BaseDropdownMenuItem)`
-	&[data-dropdown-item-type="danger"] {
-		&:hover,
-		&:hover svg {
-			transition: inherit;
-			color: hsl(var(--status-error-hover)) !important;
-		}
-	}
-`;

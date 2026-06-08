@@ -5,21 +5,17 @@ LAST_EXIT_CODE=1
 ATTEMPTS=1
 
 if [ "$CI" == "true" ]; then
-    ATTEMPTS=3
+    ATTEMPTS=1
 fi
 
-for _ in $(seq 1 $ATTEMPTS); do
-    GX_E2E_GITLAB_PUSH_REPO=$INITIAL_PUSH_REPO_NAME-$RANDOM
+for i in $(seq 1 $ATTEMPTS); do
+    GX_E2E_GITLAB_PUSH_REPO=$INITIAL_PUSH_REPO_NAME-$RANDOM-$i
 
     ./.ci/e2e/repo-info.sh
 
-    if npm --prefix e2e run test; then
-        ./.ci/e2e/delete-repo.sh
-        exit 0
-    fi
-
-    ./.ci/e2e/delete-repo.sh
+    npm --prefix e2e run test
+    LAST_EXIT_CODE=$?
 done
 
-./.ci/e2e/delete-repo.sh
+./.ci/e2e/delete-repos.ts
 exit $LAST_EXIT_CODE

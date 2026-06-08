@@ -1,18 +1,26 @@
 import styled from "@emotion/styled";
 import type { ArticleLink, BaseLink, CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { forwardRef, type MutableRefObject } from "react";
+import { forwardRef, type MutableRefObject, type ReactNode } from "react";
 import Breadcrumb from "./Breadcrumb";
 
-export interface LinksBreadcrumbProps {
+export interface LinksBreadcrumbReadyData<TItem = string> {
+	titles: TItem[];
+	links: BaseLink[];
+	onClicks?: ((e: React.MouseEvent) => void)[];
+}
+
+export interface LinksBreadcrumbProps<TItem = unknown> {
 	itemLinks?: ItemLink[];
-	readyData?: { titles: string[]; links: BaseLink[]; onClicks?: ((e: React.MouseEvent) => void)[] };
+	readyData?: LinksBreadcrumbReadyData<TItem>;
+	renderTitle?: (args: { item: TItem }) => ReactNode;
+	renderHidden?: (args: { items: TItem[]; hiderElement: ReactNode }) => ReactNode;
 	className?: string;
 }
 
 const LinksBreadcrumb = forwardRef((props: LinksBreadcrumbProps, ref: MutableRefObject<HTMLDivElement>) => {
-	const { itemLinks, readyData, className } = props;
+	const { itemLinks, readyData, renderTitle, renderHidden, className } = props;
 
-	let titles: string[] = [];
+	let titles: unknown[] = [];
 	let lastIsIndexArticle = false;
 	let categoryLinks: BaseLink[] = [];
 
@@ -47,6 +55,7 @@ const LinksBreadcrumb = forwardRef((props: LinksBreadcrumbProps, ref: MutableRef
 	}
 
 	if (!titles.length) return <div />;
+
 	return (
 		<div
 			className={`${className} breadcrumb`}
@@ -56,11 +65,26 @@ const LinksBreadcrumb = forwardRef((props: LinksBreadcrumbProps, ref: MutableRef
 			<div className="article-breadcrumb">
 				{titles.length && categoryLinks.length ? (
 					<Breadcrumb
-						content={titles.map((t, i) => ({
-							text: t,
+						content={titles.map((breadcrumb, i) => ({
+							value: breadcrumb,
 							link: categoryLinks[i],
 							onClick: readyData?.onClicks?.[i],
 						}))}
+						renderHidden={
+							renderHidden
+								? // biome-ignore lint/suspicious/noExplicitAny: should be TItem[], but forwardRef doesn't support generics
+									({ items, hiderElement }) => renderHidden({ items: items as any[], hiderElement })
+								: undefined
+						}
+						renderItem={
+							renderTitle
+								? ({ item }) =>
+										renderTitle({
+											// biome-ignore lint/suspicious/noExplicitAny: should be TItem[], but forwardRef doesn't support generics
+											item: item as any,
+										})
+								: undefined
+						}
 					/>
 				) : null}
 			</div>

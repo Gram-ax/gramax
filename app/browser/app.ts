@@ -1,7 +1,5 @@
 import resolveBackendModule, { initBackendModules } from "@app/resolveModule/backend";
 import { ContextFactory } from "@core/Context/ContextFactory";
-import { TableDB } from "@core/components/tableDB/table";
-import type VideoUrlRepository from "@core/components/video/videoUrlRepository";
 import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import Path from "@core/FileProvider/Path/Path";
@@ -13,26 +11,29 @@ import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
 import SitePresenterFactory from "@core/SitePresenter/SitePresenterFactory";
 import YamlFileConfig from "@core/utils/YamlFileConfig";
 import { AiDataProvider } from "@ext/ai/logic/AiDataProvider";
-import { Encoder } from "@ext/Encoder/Encoder";
 import EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import { EnterpriseWorkspace } from "@ext/enterprise/EnterpriseWorkspace";
+import EnterpriseLfsResolver from "@ext/enterprise/events/EnterpriseLfsResolver";
 import MergeNotificationHandler from "@ext/enterprise/notifications/MergeNotificationHandler";
+import { GesCloudManager } from "@ext/enterprise-cloud/GesCloudManager";
 import RepositoryProviderEventHandlers from "@ext/git/core/Repository/events/RepositoryProviderEventHandlers";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import HtmlParser from "@ext/html/HtmlParser";
 import BugsnagLogger from "@ext/loggers/BugsnagLogger";
 import ConsoleLogger from "@ext/loggers/ConsoleLogger";
 import type Logger from "@ext/loggers/Logger";
 import { registerOtel } from "@ext/loggers/opentelemetry/registerOtel";
 import MarkdownFormatter from "@ext/markdown/core/edit/logic/Formatter/Formatter";
+import ParserEventHandlers from "@ext/markdown/core/Parser/events/ParserEventHandlers";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import type AuthManager from "@ext/security/logic/AuthManager";
 import ClientAuthManager from "@ext/security/logic/ClientAuthManager";
+import { ClientGesCloudAuthManager } from "@ext/security/logic/ClientGesCloudAuthManager";
 import { TicketManager } from "@ext/security/logic/TicketManager/TicketManager";
 import { createBrowserSearcherManager } from "@ext/serach/createSearcherManager";
 import { SourceDataProvider } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataProvider";
 import ThemeManager from "@ext/Theme/ThemeManager";
+import { TableDB } from "@ext/tableDB/table";
 import FSTemplateEvents from "@ext/templates/logic/FSTemplateEvents";
 import { feature } from "@ext/toggleFeatures/features";
 import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
@@ -42,14 +43,12 @@ import setWorkerProxy from "../../apps/browser/src/logic/setWorkerProxy";
 import { type AppConfig, type AppGlobalConfig, getConfig } from "../config/AppConfig";
 import type Application from "../types/Application";
 
-const _init = async (config: AppConfig): Promise<Application> => {
+const init = async (config: AppConfig): Promise<Application> => {
 	if (feature("opentelemetry-logs")) {
 		await registerOtel();
 	}
 
 	await initBackendModules();
-
-	const vur: VideoUrlRepository = null;
 
 	const initWasm = resolveBackendModule("initWasm");
 
@@ -64,7 +63,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	const rp = new RepositoryProvider(config);
 	const em = new EnterpriseManager(config.enterprise, fileConfig);
 	const templateEventHandlers = new FSTemplateEvents();
+
 	const parser = new MarkdownParser();
+	new ParserEventHandlers(parser).mount();
+
 	const formatter = new MarkdownFormatter();
 	const tablesManager = new TableDB(parser);
 	const parserContextFactory = new ParserContextFactory(config.paths.base, tablesManager, parser, formatter, rp);
@@ -78,7 +80,10 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		},
 		(workspace) => {
 			if (workspace instanceof EnterpriseWorkspace) {
-				return [new MergeNotificationHandler(workspace, parser, parserContextFactory)];
+				return [
+					new MergeNotificationHandler(workspace, parser, parserContextFactory),
+					new EnterpriseLfsResolver(workspace),
+				];
 			}
 			return [];
 		},
@@ -101,10 +106,8 @@ const _init = async (config: AppConfig): Promise<Application> => {
 
 	const hashes = new HashItemProvider();
 	const tm = new ThemeManager();
-	const encoder = new Encoder();
-	const ticketManager = new TicketManager(encoder, config.tokens.share);
+	const ticketManager = new TicketManager(config.tokens.share);
 	const customArticlePresenter = new CustomArticlePresenter();
-	const htmlParser = new HtmlParser(parser, parserContextFactory);
 	const logger: Logger = config.isProduction ? await BugsnagLogger.init(config) : new ConsoleLogger();
 	const sitePresenterFactory = new SitePresenterFactory(
 		wm,
@@ -116,14 +119,15 @@ const _init = async (config: AppConfig): Promise<Application> => {
 	);
 	const resourceUpdaterFactory = new ResourceUpdaterFactory(parser, parserContextFactory, formatter);
 
-	const am: AuthManager = new ClientAuthManager(em);
+	const enterpriseCloudManager = new GesCloudManager(config.enterpriseCloud, fileConfig);
+
+	const am: AuthManager =
+		config.enterpriseCloud.url && config.enterpriseCloud.enabled
+			? new ClientGesCloudAuthManager(enterpriseCloudManager)
+			: new ClientAuthManager(em);
 	const contextFactory = new ContextFactory(tm, config.tokens.cookie, am);
 
-	const enterpriseConfig = em.getConfig();
-	const searchResourcesEnabled = Boolean(enterpriseConfig.gesUrl);
-
 	const searcherManager = await createBrowserSearcherManager({
-		searchResourcesEnabled,
 		parser,
 		parserContextFactory,
 		wm,
@@ -140,7 +144,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		wm,
 		em,
 		rp,
-		vur,
 		adp,
 		wtm,
 		ptm,
@@ -148,7 +151,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parser,
 		hashes,
 		formatter,
-		htmlParser,
 		tablesManager,
 		ticketManager,
 		contextFactory,
@@ -157,6 +159,7 @@ const _init = async (config: AppConfig): Promise<Application> => {
 		parserContextFactory,
 		resourceUpdaterFactory,
 		customArticlePresenter,
+		enterpriseCloudManager,
 		conf: {
 			services,
 			logo: config.logo,
@@ -177,10 +180,6 @@ const _init = async (config: AppConfig): Promise<Application> => {
 				enabled: false,
 			},
 
-			search: {
-				resourcesEnabled: searchResourcesEnabled,
-			},
-
 			forceUiLangSync: config.forceUiLangSync,
 		},
 	};
@@ -193,7 +192,7 @@ const container = window as unknown as {
 const getApp = (): Promise<Application> => {
 	if (container.app != null) return container.app;
 	const config = getConfig();
-	container.app = _init(config);
+	container.app = init(config);
 	return container.app;
 };
 

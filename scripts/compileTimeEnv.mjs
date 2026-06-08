@@ -18,7 +18,7 @@ const env = {
 	GIT_PROXY_SERVICE_URL: null,
 	CLOUD_SERVICE_URL: null,
 	GES_URL: null,
-	GES_IS_CLOUD: null,
+	GES_CLOUD_URL: null,
 	GES_REFRESH_INTERVAL: null,
 };
 
@@ -72,17 +72,20 @@ const setBuildVersion = (platform) => {
 	process.env.BUILD_VERSION = `${currentDate}-${platform}.${commitCount}`.replaceAll("\n", "");
 };
 
-const dynamicModules = () => ({
-	"@app/resolveModule/frontend": path.resolve(
-		__dirname,
-		"../app/resolveModule/frontend/",
-		process.env.VITE_ENVIRONMENT,
-	),
-	"@app/resolveModule/backend": path.resolve(
-		__dirname,
-		"../app/resolveModule/backend/",
-		process.env.VITE_ENVIRONMENT,
-	),
-});
+const dynamicModules = () => {
+	const env = process.env.VITE_ENVIRONMENT;
+	const otelEnv = env === "next" || env === "cli" ? "next" : "browser";
+
+	return {
+		"@app/resolveModule/frontend": path.resolve(__dirname, "../app/resolveModule/frontend/", env),
+		"@app/resolveModule/backend": path.resolve(__dirname, "../app/resolveModule/backend/", env),
+		"@ext/loggers/opentelemetry/registerOtel": path.resolve(
+			__dirname,
+			"../core/extensions/loggers/opentelemetry/",
+			otelEnv,
+			"registerOtel",
+		),
+	};
+};
 
 export default { getBuiltInVariables, dynamicModules, setVersion, setBuildVersion, generateVersion };

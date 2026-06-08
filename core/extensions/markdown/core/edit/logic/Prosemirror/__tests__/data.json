@@ -1,0 +1,191 @@
+{
+	"table": {
+		"simpleTable": {
+			"type": "doc",
+			"content": [
+				{
+					"type": "table",
+					"attrs": {
+						"header": "row"
+					},
+					"content": [
+						{
+							"type": "tableRow",
+							"content": [
+								{
+									"type": "tableCell",
+									"attrs": {
+										"aggregation": null,
+										"align": null,
+										"colspan": 1,
+										"rowspan": 1,
+										"colwidth": null
+									},
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"text": "Заголовок 1"
+												}
+											]
+										}
+									]
+								},
+								{
+									"type": "tableCell",
+									"attrs": {
+										"aggregation": null,
+										"align": null,
+										"colspan": 1,
+										"rowspan": 1,
+										"colwidth": null
+									},
+									"content": [
+										{
+											"type": "paragraph"
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableRow",
+							"content": [
+								{
+									"type": "tableCell",
+									"attrs": {
+										"aggregation": null,
+										"align": null,
+										"colspan": 1,
+										"rowspan": 1,
+										"colwidth": null
+									},
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"text": "ячейка 1-1 || ячейка 1-2"
+												}
+											]
+										}
+									]
+								},
+								{
+									"type": "tableCell",
+									"attrs": {
+										"aggregation": null,
+										"align": null,
+										"colspan": 1,
+										"rowspan": 1,
+										"colwidth": null
+									},
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"text": "ячейка 2"
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		"complexTable": {
+			"type": "doc",
+			"content": [
+				{
+					"type": "table",
+					"attrs": {
+						"header": "row"
+					},
+					"content": [
+						{
+							"type": "tableRow",
+							"content": [
+								{
+									"type": "tableCell",
+									"attrs": {
+										"aggregation": null,
+										"align": null,
+										"colspan": 2,
+										"rowspan": 1,
+										"colwidth": null
+									},
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"text": "Заголовок 1"
+												}
+											]
+										}
+									]
+								}
+							]
+						},
+						{
+							"type": "tableRow",
+							"content": [
+								{
+									"type": "tableCell",
+									"attrs": {
+										"aggregation": null,
+										"align": null,
+										"colspan": 1,
+										"rowspan": 1,
+										"colwidth": null
+									},
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"text": "ячейка 1-1 || ячейка 1-2"
+												}
+											]
+										}
+									]
+								},
+								{
+									"type": "tableCell",
+									"attrs": {
+										"aggregation": null,
+										"align": null,
+										"colspan": 1,
+										"rowspan": 1,
+										"colwidth": null
+									},
+									"content": [
+										{
+											"type": "paragraph",
+											"content": [
+												{
+													"type": "text",
+													"text": "ячейка 2"
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	}
+}

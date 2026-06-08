@@ -14,7 +14,8 @@ const isTemplateInstance = (dom: HTMLElement) => {
 };
 
 const canDisplayMenu = (editor: Editor) => {
-	if (!editor.isEditable) return false;
+	if (!editor || editor?.isDestroyed) return true;
+	if (!editor?.isEditable) return false;
 
 	const isFirst = isInTitle(editor);
 	const isTemplate = isTemplateInstance(editor.view.dom);

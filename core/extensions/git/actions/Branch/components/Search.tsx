@@ -1,8 +1,8 @@
-import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
+import { Icon } from "@ui-kit/Icon";
+import { Loader } from "@ui-kit/Loader";
 import { forwardRef } from "react";
 
 interface SearchProps {
@@ -45,7 +45,12 @@ const Search = forwardRef<HTMLInputElement, SearchProps>((props, ref) => {
 	};
 
 	return (
-		<span className={className}>
+		<span
+			className={cn(
+				"flex items-center gap-2 text-sm px-4 mb-2 bg-[var(--color-article-bg)] py-1 font-normal",
+				className,
+			)}
+		>
 			<Input
 				dataQa={dataQa ?? placeholder}
 				errorText={errorText}
@@ -55,20 +60,9 @@ const Search = forwardRef<HTMLInputElement, SearchProps>((props, ref) => {
 				showErrorText={showErrorText}
 				value={searchValue}
 			/>
-			{isLoading ? <SpinnerLoader height={14} width={14} /> : <Icon code="search" />}
+			{isLoading ? <Loader className="p-0" size="md" /> : <Icon icon="search" />}
 		</span>
 	);
 });
 
-export default styled(Search)`
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	font-size: 0.9rem;
-	padding-right: 1rem;
-	padding-left: 1rem;
-	margin-bottom: 0.5em;
-	background-color: var(--color-article-bg);
-	padding-top: 0.2rem;
-	padding-bottom: 0.2rem;
-`;
+export default Search;

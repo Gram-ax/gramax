@@ -1,1 +1,7 @@
-export { Popover, PopoverContent, PopoverTrigger } from "ics-ui-kit/components/popover";
+export {
+	Popover,
+	PopoverAnchor,
+	PopoverContent,
+	PopoverTrigger,
+	PopoverTriggerButton,
+} from "ics-ui-kit/components/popover";

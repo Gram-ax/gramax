@@ -5,7 +5,6 @@ import type { GitAutoMergerModel } from "@ext/git/core/GitAutoMerger/model/GitAu
 import type GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type { MergeResult } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import { GitCommentAutoMerger } from "@ext/markdown/elements/comment/edit/logic/GitCommentAutoMerger";
-import assert from "assert";
 
 export class GitAutoMerger {
 	private _autoMergers: GitAutoMergerModel[] = [new GitCommentAutoMerger()];
@@ -37,15 +36,12 @@ export class GitAutoMerger {
 			if ((await this._fp.exists(oursPath)) && !(await this._fp.isFolder(oursPath))) {
 				conflictedContent = await this._fp.read(oursPath);
 				conflictedPath = oursPath;
-			} else if ((await this._fp.exists(theirsPath)) && !(await this._fp.isFolder(theirsPath))) {
+			} else if (theirsPath && (await this._fp.exists(theirsPath)) && !(await this._fp.isFolder(theirsPath))) {
 				conflictedContent = await this._fp.read(theirsPath);
 				conflictedPath = theirsPath;
 			}
 
-			assert(
-				conflictedContent,
-				`Conflict file doesn't exist. Our path: ${merge.ours}. Their path :${merge.theirs}`,
-			);
+			if (!conflictedContent || !conflictedPath) continue;
 
 			const haveConflicts = findMergeConflict(conflictedContent).length > 0;
 			if (!haveConflicts) continue;

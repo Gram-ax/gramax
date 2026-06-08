@@ -148,4 +148,4 @@ const ArticleAudioToolbar = ({ editor }: { editor: Editor }) => {
 	);
 };
 
-export { GlobalAudioToolbar, ArticleAudioToolbar };
+export { ArticleAudioToolbar, GlobalAudioToolbar };

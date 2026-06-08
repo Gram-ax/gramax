@@ -1,7 +1,9 @@
 .template.docker.build:
   extends: .template.docker.base
+  rules:
+    - !reference [.rules, build, base]
   variables:
-    PUSH_ENTERPRISE: "true"
+    PUSH_ENTERPRISE: 'true'
   script:
     - |
       TAGS="$TAG"
@@ -47,7 +49,7 @@
         --build-arg CLOUD_UPLOAD_TOKEN=${CLOUD_UPLOAD_TOKEN} \
         --build-arg APP_VERSION=${APP_VERSION} .
 
-    # - ./.ci/trivy/trivy-image-scan.sh $CI_REGISTRY_IMAGE/$IMAGE_NAME:$TAG
+    - ./.ci/trivy/trivy-image-scan.sh $CI_REGISTRY_IMAGE/$IMAGE_NAME:$TAG
 
     - |
       for TAG in $TAGS; do
@@ -69,27 +71,27 @@
   extends: .template.docker.build
   variables:
     IMAGE_NAME: $SERVICE_NAME
-    DOCKERFILE_PATH: "services/target/$SERVICE_NAME/Dockerfile"
+    DOCKERFILE_PATH: 'services/target/$SERVICE_NAME/Dockerfile'
     GIT_DEPTH: 600
-    KUBERNETES_MEMORY_REQUEST: "0.5Gi"
-    KUBERNETES_CPU_REQUEST: "0.8"
-    KUBERNETES_CPU_LIMIT: "2"
+    KUBERNETES_MEMORY_REQUEST: '0.5Gi'
+    KUBERNETES_CPU_REQUEST: '0.8'
+    KUBERNETES_CPU_LIMIT: '2'
   rules: !reference [.rules, build, service]
 
 .template.docker.build.image:
   extends: .template.docker.base
   variables:
-    DOCKERFILE_PATH: ".ci/images/$IMAGE_NAME.dockerfile"
-    KUBERNETES_MEMORY_REQUEST: "1Gi"
-    KUBERNETES_CPU_REQUEST: "1"
-    KUBERNETES_CPU_LIMIT: "3"
+    DOCKERFILE_PATH: '.ci/images/$IMAGE_NAME.dockerfile'
+    KUBERNETES_MEMORY_REQUEST: '1Gi'
+    KUBERNETES_CPU_REQUEST: '1'
+    KUBERNETES_CPU_LIMIT: '3'
   rules:
     - !reference [.rules, build, image]
   script:
     - docker build --rm
       -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:$TAG_SHORT
-      -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest
-      -t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest-dev
+      $(if [ "$TAG_SHORT" = "$PROD_VERSION" ]; then echo "-t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest"; fi)
+      $(if [ "$CI_COMMIT_REF_NAME" = "develop" ]; then echo "-t $CI_REGISTRY_IMAGE/$IMAGE_NAME:latest-dev"; fi)
       -f $DOCKERFILE_PATH
       --progress=plain
       --metadata-file build-metadata.json
@@ -115,7 +117,7 @@
     - !reference [.rules, build, if-prod]
   script:
     - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
-    - .ci/sync/delete-secrets.sh
+    - .ci/sync/delete-secrets.sh $DELETE_SECRETS_ARGS
     - docker build --rm
       -f $DOCKERFILE_PATH
       --build-arg BRANCH=$BRANCH
@@ -137,10 +139,13 @@ bootstrap-dind-bun:
   image: docker:28.5.1-dind
   stage: build-images
   variables:
-    IMAGE_NAME: "dind-bun"
-    NO_TRIVY: "1"
+    IMAGE_NAME: 'dind-bun'
+    NO_TRIVY: '1'
   before_script:
     - |
+      ALPINE_BRANCH="v$(cut -d. -f1,2 /etc/alpine-release)"
+      echo "https://mirror.yandex.ru/mirrors/alpine/${ALPINE_BRANCH}/main"      >  /etc/apk/repositories
+      echo "https://mirror.yandex.ru/mirrors/alpine/${ALPINE_BRANCH}/community" >> /etc/apk/repositories
       apk add --no-cache git curl bash libstdc++ libgcc gcompat
       curl -fsSL https://bun.com/install | bash
       export BUN_INSTALL="$HOME/.bun"
@@ -156,8 +161,8 @@ build-image-spa:
       optional: true
   rules: !reference [.rules, build, rust]
   variables:
-    IMAGE_NAME: "spa"
-    DOCKERFILE_PATH: "./crates/spa/Dockerfile"
+    IMAGE_NAME: 'spa'
+    DOCKERFILE_PATH: './crates/spa/Dockerfile'
 
 build-image-multiplatform:
   extends: .template.docker.build.image
@@ -166,66 +171,64 @@ build-image-multiplatform:
     - job: build-image-spa
       optional: true
   variables:
-    BUILD_PLATFORMS: "linux/amd64,linux/arm64,linux/arm64/v8"
+    BUILD_PLATFORMS: 'linux/amd64,linux/arm64,linux/arm64/v8'
   parallel:
     matrix:
-      - IMAGE_NAME: ["base-image", "playwright", "dind-bun"]
+      - IMAGE_NAME: ['base-image', 'playwright', 'dind-bun']
 
 build-image:
   extends: .template.docker.build.image
   variables:
-    NO_TRIVY: "1"
+    NO_TRIVY: '1'
   needs:
     - job: bootstrap-dind-bun
       optional: true
   stage: build-images
   parallel:
     matrix:
-      - IMAGE_NAME: ["linux-tauri"] # TEMP: removed 'build-dev'
+      - IMAGE_NAME: ['linux-tauri'] # TEMP: removed 'build-dev'
 
 build-web:
   extends: .template.docker.build
-  rules: !reference [.rules, build, base]
   variables:
-    IMAGE_NAME: "web"
-    DOCKERFILE_PATH: "./apps/browser/Dockerfile"
-    KUBERNETES_MEMORY_REQUEST: "0.3Gi"
-    KUBERNETES_CPU_REQUEST: "0.8"
-    KUBERNETES_CPU_LIMIT: "1.2"
+    IMAGE_NAME: 'web'
+    DOCKERFILE_PATH: './apps/browser/Dockerfile'
+    KUBERNETES_MEMORY_REQUEST: '0.3Gi'
+    KUBERNETES_CPU_REQUEST: '0.8'
+    KUBERNETES_CPU_LIMIT: '1.2'
 
 build-docportal:
   extends: .template.docker.build
-  rules: !reference [.rules, build, if-prod]
   variables:
     GIT_DEPTH: 2000
-    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "true"
-    IMAGE_NAME: "docportal"
-    DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
-    KUBERNETES_MEMORY_REQUEST: "1Gi"
-    KUBERNETES_CPU_REQUEST: "1"
-    KUBERNETES_CPU_LIMIT: "2"
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'true'
+    IMAGE_NAME: 'docportal'
+    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
+    KUBERNETES_MEMORY_REQUEST: '1Gi'
+    KUBERNETES_CPU_REQUEST: '1'
+    KUBERNETES_CPU_LIMIT: '2'
 
 build-blog:
   extends: .template.docker.build
   rules: !reference [.rules, build, if-prod]
   variables:
     GIT_DEPTH: 2000
-    PUSH_ENTERPRISE: "false"
-    IMAGE_NAME: "blog"
-    BASE_PATH: "/resources"
-    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "false"
-    DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
+    PUSH_ENTERPRISE: 'false'
+    IMAGE_NAME: 'blog'
+    BASE_PATH: '/resources'
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
+    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
 
 build-partners:
   extends: .template.docker.build
   rules: !reference [.rules, build, if-prod]
   variables:
     GIT_DEPTH: 2000
-    PUSH_ENTERPRISE: "false"
-    IMAGE_NAME: "partners"
-    BASE_PATH: "/docs"
-    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: "false"
-    DOCKERFILE_PATH: "./apps/next/next.Dockerfile"
+    PUSH_ENTERPRISE: 'false'
+    IMAGE_NAME: 'partners'
+    BASE_PATH: '/docs'
+    UPLOAD_SOURCE_MAPS_TO_BUGSNAG: 'false'
+    DOCKERFILE_PATH: './apps/next/next.Dockerfile'
 
 build-services:
   extends: .template.docker.build.service
@@ -234,9 +237,16 @@ build-services:
       - SERVICE_NAME:
           - auth
           - git-proxy
-          - enterprise
+          - enterprise-cloud
           - diagram-renderer
           - cloud
+
+build-service-enterprise:
+  extends: .template.docker.build.service
+  rules:
+    - !reference [.rules, build, base]
+  variables:
+    SERVICE_NAME: enterprise
 
 publish-cli:
   tags:
@@ -261,31 +271,33 @@ build-assets-cloud:
   extends: .template.docker.build
   rules: !reference [.rules, build, if-prod]
   variables:
-    PUSH_ENTERPRISE: "false"
-    IMAGE_NAME: "assets-cloud"
-    DOCKERFILE_PATH: "./services/target/cloud/Dockerfile.assets"
+    PUSH_ENTERPRISE: 'false'
+    IMAGE_NAME: 'assets-cloud'
+    DOCKERFILE_PATH: './services/target/cloud/Dockerfile.assets'
 
 build-web-opensource:
   extends: .template.docker.build.opensource
   variables:
-    DOCKERFILE_PATH: "./apps/browser/Dockerfile"
-    DOCKERHUB_IMAGE: "gramax/editor"
+    DOCKERFILE_PATH: './apps/browser/Dockerfile'
+    DOCKERHUB_IMAGE: 'gramax/editor'
 
 build-docportal-opensource:
   extends: .template.docker.build.opensource
   variables:
     GIT_DEPTH: 2000
-    DOCKERFILE_PATH: "apps/next/next.Dockerfile"
-    DOCKERHUB_IMAGE: "gramax/docportal"
+    DOCKERFILE_PATH: 'apps/next/next.Dockerfile'
+    DOCKERHUB_IMAGE: 'gramax/docportal'
 
 build-git-proxy-opensource:
   extends: .template.docker.build.opensource
   variables:
-    DOCKERFILE_PATH: "./services/target/git-proxy/Dockerfile"
-    DOCKERHUB_IMAGE: "gramax/git-proxy"
+    DOCKERFILE_PATH: './services/target/git-proxy/Dockerfile'
+    DOCKERHUB_IMAGE: 'gramax/git-proxy'
+    DELETE_SECRETS_ARGS: '--keep-services'
 
 build-diagram-renderer-opensource:
   extends: .template.docker.build.opensource
   variables:
-    DOCKERFILE_PATH: "./services/target/diagram-renderer/Dockerfile"
-    DOCKERHUB_IMAGE: "gramax/diagram-renderer"
+    DOCKERFILE_PATH: './services/target/diagram-renderer/Dockerfile'
+    DOCKERHUB_IMAGE: 'gramax/diagram-renderer'
+    DELETE_SECRETS_ARGS: '--keep-services'

@@ -3,7 +3,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import type Context from "@core/Context/Context";
 import ArticleParser from "@core/FileStructue/Article/ArticleParser";
-import DiffTreeCreator from "@ext/git/core/DiffTreeCreator/DiffTreeCreator";
+import DiffTreeCreator from "@ext/git/core/Diff/logic/DiffTreeCreator";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import type { WithMergeBase } from "@ext/VersionControl/model/Diff";

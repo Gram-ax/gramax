@@ -14,7 +14,7 @@ const BlockPropertyComponent = ({ extension }: NodeViewProps) => {
 	return (
 		<NodeViewWrapper data-drag-handle={isEditable ? undefined : true} draggable={!isEditable}>
 			<BlockWrapper readOnly={!isEditable}>
-				<Wrapper readOnly={!isEditable}>
+				<Wrapper data-testid="block-property" readOnly={!isEditable}>
 					<NodeViewContent />
 				</Wrapper>
 			</BlockWrapper>

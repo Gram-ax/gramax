@@ -76,6 +76,31 @@ Given("ждём {float} секунд(ы)(у)", { timeout: 1000000 }, async funct
 	await sleep(secs * 1000);
 });
 
+When("раскрываем все корневые разделы", { timeout: config.timeouts.medium }, async function (this: E2EWorld) {
+	const inner = this.page().inner();
+	for (let safety = 0; safety < 50; safety++) {
+		const chevron = inner
+			.locator(
+				'.left-navigation-layout [data-qa="catalog-navigation-category-link-level-0"].a-drop-target .angle.left-extensions',
+			)
+			.first();
+		if ((await chevron.count()) === 0) break;
+		await chevron.click({ timeout: config.timeouts.short }).catch(() => undefined);
+		await sleep(150);
+	}
+	await this.page().waitForLoad();
+});
+
+When("раскрываем раздел {string}", { timeout: config.timeouts.medium }, async function (this: E2EWorld, name: string) {
+	const closedChevron = this.page()
+		.inner()
+		.locator('[data-qa^="catalog-navigation-category-link"].a-drop-target', { hasText: name })
+		.locator(".angle.left-extensions");
+	if ((await closedChevron.count()) === 0) return;
+	await closedChevron.click({ timeout: config.timeouts.short });
+	await this.page().waitForLoad();
+});
+
 When("смотрим на подсказку", async function (this: E2EWorld) {
 	await this.page()
 		.search()
@@ -193,7 +218,7 @@ When(
 		const scope = await this.page().search().lookup(where);
 		const elem = this.page().search().clickable(name, scope);
 		await elem.click();
-		await this.page().waitForLoad(scope);
+		await this.page().waitForLoad();
 	},
 );
 
@@ -207,7 +232,7 @@ When("нажимаем на иконку {string}, смотря на/в {string}
 	const scope = await this.page().search().lookup(where);
 	const elem = this.page().search().icon(name, scope);
 	await elem.click();
-	await this.page().waitForLoad(scope);
+	await this.page().waitForLoad();
 });
 
 When("наводим мышку", async function (this: E2EWorld) {
@@ -215,8 +240,7 @@ When("наводим мышку", async function (this: E2EWorld) {
 });
 
 When("ждём конца загрузки", { timeout: config.timeouts.long * 4 }, async function (this: E2EWorld) {
-	const loader = await this.page().search().find(`[data-qa="loader"], .animate-spin`);
-	await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
+	await this.page().waitForLoad();
 });
 
 Then("находимся по адресу {string}", async function (this: E2EWorld, path: string) {

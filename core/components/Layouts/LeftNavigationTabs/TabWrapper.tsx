@@ -52,14 +52,26 @@ interface TabWrapperProps {
 	contentHeight?: number;
 	isTop?: boolean;
 	titleRightExtension?: JSX.Element;
+	titleLeftExtension?: JSX.Element;
 	actions?: JSX.Element;
 	className?: string;
 	dataQa?: string;
 }
 
 const TabWrapper = forwardRef<HTMLDivElement, TabWrapperProps>((props, ref) => {
-	const { children, show, title, titleRightExtension, onClose, contentHeight, isTop, actions, className, dataQa } =
-		props;
+	const {
+		children,
+		show,
+		title,
+		titleRightExtension,
+		titleLeftExtension,
+		onClose,
+		contentHeight,
+		isTop,
+		actions,
+		className,
+		dataQa,
+	} = props;
 
 	return (
 		<Wrapper
@@ -70,6 +82,7 @@ const TabWrapper = forwardRef<HTMLDivElement, TabWrapperProps>((props, ref) => {
 		>
 			<Header
 				actions={actions}
+				leftExtension={titleLeftExtension}
 				onClose={onClose}
 				rightExtension={titleRightExtension}
 				show={show}

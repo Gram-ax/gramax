@@ -1,3 +1,4 @@
+import Icon from "@components/Atoms/Icon";
 import Link from "@components/Atoms/Link";
 import t from "@ext/localization/locale/translate";
 import type { SearchResultMarkItem } from "@ext/serach/Searcher";
@@ -5,7 +6,7 @@ import type { FocusItem } from "@ext/serach/utils/FocusItemsCollector";
 import type { BlockItem, SearchItemRowId } from "@ext/serach/utils/SearchRowsModel";
 import { Fragment, type RefObject } from "react";
 import type { SearchFragmentInfo } from "../utils/ArticleFragmentCounter/ArticleFragmentCounter";
-import type { ArticleRowItem } from "./rowTypes";
+import type { ArticleRowDiagramItem, ArticleRowItem } from "./rowTypes";
 
 export const getMarkElems = (marks: SearchResultMarkItem[]) => {
 	return marks.map((mark, index) => (
@@ -15,25 +16,41 @@ export const getMarkElems = (marks: SearchResultMarkItem[]) => {
 	));
 };
 
+const getDiagramMarkElems = (item: ArticleRowDiagramItem) => {
+	const diagramTitle = item.title.some((x) => x.text.trim() !== "") ? (
+		<>
+			<span style={{ flexShrink: 0 }}>-</span>
+			<span>{getMarkElems(item.title)}</span>
+		</>
+	) : undefined;
+
+	return (
+		<div className="results-block-title">
+			<span className="results-block-title-icon">
+				<Icon code="diagrams" />
+			</span>
+			<span className="results-block-title-type" style={{ flexShrink: 0 }}>
+				{t("diagram.name")}
+			</span>
+			{diagramTitle}
+		</div>
+	);
+};
+
 const getBlockMarkElems = (item: BlockItem) => {
 	if (item.type === "header") return getMarkElems(item.title);
 
-	const title = (
-		<span className="gr-file">
-			<span className="gr-file-title">{getMarkElems(item.title)}</span>
-		</span>
-	);
-
-	let trueFileName: React.JSX.Element;
-
-	if (item.fileName != null) {
-		trueFileName = <span className="file-true-name">{getMarkElems(item.fileName)}</span>;
-	}
+	const fileName: React.JSX.Element =
+		item.fileName != null ? (
+			<span className="results-block-title-type">{getMarkElems(item.fileName)}</span>
+		) : undefined;
 
 	return (
-		<div className="file-block-title">
-			{title}
-			{trueFileName}
+		<div className="results-block-title">
+			<span className="results-block-title-icon results-block-file-icon"></span>
+			{fileName}
+			<span style={{ flexShrink: 0 }}>-</span>
+			<span>{getMarkElems(item.title)}</span>
 		</div>
 	);
 };
@@ -105,7 +122,34 @@ export function getResultElems(
 							))}
 						</div>
 					</Link>
-					<div style={{ paddingLeft: `15px` }}>
+					<div className="results-block-content">
+						{getResultElems(item.children, onLinkOver, onFocus, onLinkOpen, focusItem, focusRef)}
+					</div>
+				</div>,
+			);
+		} else if (item.type === "diagram") {
+			res.push(
+				<div
+					className={isActive ? "item-active" : ""}
+					key={item.id}
+					onFocus={() => onFocus(item.id)}
+					onMouseOver={() => onLinkOver(item.id)}
+				>
+					<Link
+						href={item.url}
+						onClick={() =>
+							onLinkOpen({
+								url: item.openSideEffect.params.pathname,
+								searchFragmentInfo: item.openSideEffect.params.fragmentInfo,
+							})
+						}
+						ref={isRef ? (focusRef as React.RefObject<HTMLAnchorElement>) : undefined}
+					>
+						<div className={`excerpt article-header`} data-qa="qa-clickable">
+							{getDiagramMarkElems(item)}
+						</div>
+					</Link>
+					<div className="results-block-content">
 						{getResultElems(item.children, onLinkOver, onFocus, onLinkOpen, focusItem, focusRef)}
 					</div>
 				</div>,

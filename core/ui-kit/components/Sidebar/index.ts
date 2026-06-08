@@ -14,4 +14,6 @@ export {
 	SidebarProvider,
 	SidebarRail,
 	SidebarSeparator,
+	SidebarTrigger,
+	useSidebar,
 } from "ics-ui-kit/components/sidebar";

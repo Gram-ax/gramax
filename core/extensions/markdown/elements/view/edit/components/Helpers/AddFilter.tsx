@@ -16,16 +16,21 @@ interface AddFilterProps {
 	mode?: Mode;
 	allowSystemProperties?: boolean;
 	closeOnSelection?: boolean;
-	updateAttributes: (attributes: Record<string, any>) => void;
+	updateAttributes: (attributes: Record<string, unknown>) => void;
 	filter?: (property: Property) => boolean;
 	customPropertyMenu?: (
 		property: Property,
-		updateData: (name: string, value: string | string[]) => void,
+		updateData: (propertyId: string, value: string | string[]) => void,
 	) => ReactNode;
 }
 
 export interface PropertyFilter extends Property {
 	selected?: boolean;
+}
+
+function getStoredPropertyId(entry: PropertyValue | string): string {
+	if (typeof entry === "string") return entry;
+	return entry.id ?? (entry as { name?: string }).name ?? "";
 }
 
 const AddFilter = (props: AddFilterProps) => {
@@ -50,10 +55,7 @@ const AddFilter = (props: AddFilterProps) => {
 			.filter((prop) => filter?.(prop) ?? true)
 			.filter((prop) => allowSystemProperties || !SystemProperties[prop.name.toLowerCase()])
 			.map((prop) => {
-				const assignedProp = properties.findIndex(
-					(assignedProp) =>
-						(typeof assignedProp === "string" ? assignedProp : assignedProp.name) === prop.name,
-				);
+				const assignedProp = properties.findIndex((assigned) => getStoredPropertyId(assigned) === prop.id);
 
 				if (assignedProp !== -1)
 					return {
@@ -70,8 +72,8 @@ const AddFilter = (props: AddFilterProps) => {
 	}, [catalogProperties, properties, filter, allowSystemProperties]);
 
 	const addFilter = useCallback(
-		(name: string, val?: string | string[]) => {
-			const property = catalogProperties.find((prop) => prop.name === name);
+		(propertyId: string, val?: string | string[]) => {
+			const property = catalogProperties.find((prop) => prop.id === propertyId);
 			if (!property) return;
 
 			let newValue: string[] = [];
@@ -85,16 +87,16 @@ const AddFilter = (props: AddFilterProps) => {
 							? ["yes", ...(includesNone ? ["none"] : [])]
 							: [...(property.values || []), ...(includesNone ? ["none"] : [])];
 				} else if (typeof val === "string") newValue = [val];
-			} else if (oneValue) newValue = [name];
+			} else if (oneValue) newValue = [propertyId];
 
 			updateAttributes({
 				[attributeName]: [
 					...(!oneValue ? properties : []),
-					availableValues ? { name: property.name, ...(newValue && { value: newValue }) } : property.name,
+					availableValues ? { id: property.id, ...(newValue && { value: newValue }) } : property.id,
 				],
 			});
 		},
-		[catalogProperties, properties, oneValue, availableValues],
+		[catalogProperties, properties, oneValue, availableValues, attributeName, updateAttributes],
 	);
 
 	const removeProperty = useCallback(
@@ -130,22 +132,19 @@ const AddFilter = (props: AddFilterProps) => {
 			} else newValues.push(val);
 			return newValues;
 		},
-		[properties, removeProperty],
+		[removeProperty],
 	);
 
 	const updateFilter = useCallback(
-		(name: string, val?: string | string[]) => {
-			const originalProperty = catalogProperties.find((prop) => prop.name === name);
+		(propertyId: string, val?: string | string[]) => {
+			const originalProperty = catalogProperties.find((prop) => prop.id === propertyId);
 			if (!originalProperty) return;
 
-			const propIndex = properties.findIndex((def) => {
-				const defName = typeof def === "string" ? def : def.name;
-				return defName === name;
-			});
+			const propIndex = properties.findIndex((def) => getStoredPropertyId(def) === propertyId);
 			const existingProperty = properties[propIndex];
 
 			if (oneValue || !val) {
-				if (!existingProperty) return addFilter(name, val);
+				if (!existingProperty) return addFilter(propertyId, val);
 				return removeProperty(existingProperty);
 			}
 
@@ -160,7 +159,7 @@ const AddFilter = (props: AddFilterProps) => {
 						return removeProperty(existingProperty);
 					return updateProperty(propIndex, allValues);
 				}
-				return addFilter(name, includesNone ? "all" : "all-none");
+				return addFilter(propertyId, includesNone ? "all" : "all-none");
 			}
 
 			if (existingProperty && typeof existingProperty !== "string") {
@@ -169,9 +168,9 @@ const AddFilter = (props: AddFilterProps) => {
 				return updateProperty(propIndex, newValues);
 			}
 
-			return addFilter(name, val);
+			return addFilter(propertyId, val);
 		},
-		[catalogProperties, updateAttributes, properties, attributeName, oneValue],
+		[catalogProperties, properties, oneValue, addFilter, filterProps, removeProperty, updateProperty],
 	);
 
 	return (

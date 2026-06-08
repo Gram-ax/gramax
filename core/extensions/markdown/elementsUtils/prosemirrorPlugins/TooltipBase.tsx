@@ -4,8 +4,8 @@ import type { FC } from "react";
 abstract class TooltipBase extends ReactRenderer {
 	protected _element: HTMLElement;
 
-	protected constructor(Component: FC, props: object, _parentElement: HTMLElement) {
-		super(Component, props, _parentElement);
+	protected constructor(Component: FC, props: object, ParentElement: HTMLElement) {
+		super(Component, props, ParentElement);
 
 		this._createTooltip();
 		this._initialization(this._element);

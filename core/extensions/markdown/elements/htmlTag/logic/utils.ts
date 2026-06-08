@@ -183,11 +183,11 @@ const filterHtmlAttributes = (tagName: string, htmlAttrs: Record<string, any>) =
 
 export {
 	allowedElements,
-	inlineElements,
 	blockElements,
 	blockWithInlineElements,
-	selfClosingTags,
-	isAllowedElement,
 	filterHtmlAttributes,
+	inlineElements,
+	isAllowedElement,
 	isSelfClosingTag,
+	selfClosingTags,
 };

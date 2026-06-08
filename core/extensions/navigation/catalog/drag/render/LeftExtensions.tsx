@@ -1,4 +1,4 @@
-import CommentCountNavExtension from "../../../../markdown/elements/comment/edit/components/CommentCountNavExtension";
+import { CommentCountNavExtension } from "@ext/markdown/elements/comment/edit/components/CommentCountNavExtension";
 import type { ItemLink } from "../../../NavigationLinks";
 import IconExtension from "../../main/render/IconExtension";
 

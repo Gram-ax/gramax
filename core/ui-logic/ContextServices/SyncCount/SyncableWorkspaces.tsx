@@ -1,7 +1,7 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
-import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
@@ -20,12 +20,11 @@ const SYNCABLE_WORKSPACES_FETCH_INTERVAL_DOUBLED = SYNCABLE_WORKSPACES_FETCH_INT
 
 const SyncableWorkspacesContext = createContext<SyncableWorkspacesContext | null>(null);
 
-export default class SyncableWorkspacesService {
-	static Init({ children }: { children: ReactElement }): ReactElement {
+const SyncableWorkspacesService = {
+	Init: ({ children }: { children: ReactElement }): ReactElement => {
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
-		const isOffline = isOfflineService.value;
-		const fetchAllowed = !pageDataContext.conf.isReadOnly && !isOffline;
+		const fetchAllowed = !pageDataContext.conf.isReadOnly;
 		const workspaces = WorkspaceService.workspaces();
 		const currentWorkspace = WorkspaceService.current();
 
@@ -120,15 +119,17 @@ export default class SyncableWorkspacesService {
 		);
 
 		return <SyncableWorkspacesContext.Provider value={value}>{children}</SyncableWorkspacesContext.Provider>;
-	}
+	},
 
-	static Provider({ children, value }: { children: ReactElement; value: SyncableWorkspacesContext }): ReactElement {
+	Provider: ({ children, value }: { children: ReactElement; value: SyncableWorkspacesContext }): ReactElement => {
 		return <SyncableWorkspacesContext.Provider value={value}>{children}</SyncableWorkspacesContext.Provider>;
-	}
+	},
 
-	static context(): SyncableWorkspacesContext {
+	context: (): SyncableWorkspacesContext => {
 		const context = useContext(SyncableWorkspacesContext);
 		assert(context, "SyncableWorkspacesService hooks must be used within SyncableWorkspacesService.Provider");
 		return context;
-	}
-}
+	},
+};
+
+export default SyncableWorkspacesService;

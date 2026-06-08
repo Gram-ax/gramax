@@ -47,4 +47,17 @@ editorTest.describe("Code Block", () => {
 			\`\`\`
 		`);
 	});
+
+	editorTest("input rule", async ({ editor }) => {
+		const markdowm = md`
+			\`\`\`
+			code
+			\`\`\`
+		`;
+		await editor.type("    code");
+		await editor.assertMarkdown(markdowm);
+		await editor.setMarkdown("(*)code");
+		await editor.type("    ");
+		await editor.assertMarkdown(markdowm);
+	});
 });

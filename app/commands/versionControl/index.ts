@@ -12,7 +12,6 @@ import mergeInto from "./branch/mergeInto";
 import reset from "./branch/reset";
 import diff from "./diff";
 import discard from "./discard";
-import fileHistory from "./fileHistory";
 import fileStatus from "./fileStatus";
 import getAllCommitAuthors from "./getAllCommitAuthors";
 import abort from "./mergeConflict/abort";
@@ -25,7 +24,6 @@ const versionControl = {
 	init,
 	discard,
 	fileStatus,
-	fileHistory,
 	statuses,
 	getAllCommitAuthors,
 	addAll,

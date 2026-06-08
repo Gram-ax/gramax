@@ -1,5 +1,5 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import Icon from "@components/Atoms/Icon";
+import { TooltipIconButton } from "@components/Atoms/TooltipIconButton";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
@@ -12,7 +12,7 @@ import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
 import { editCatalogPermission } from "@ext/security/logic/Permission/Permissions";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface BranchTabProps {
 	show: boolean;
@@ -20,15 +20,15 @@ interface BranchTabProps {
 	setShow: (show: boolean) => void;
 	onMergeRequestCreate?: () => void;
 	onClose: () => void;
+	initNewBranch?: boolean;
 }
 
-const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate }: BranchTabProps) => {
+const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate, initNewBranch }: BranchTabProps) => {
 	const [contentHeight, setContentHeight] = useState<number>(null);
 	const [isInitNewBranch, setIsInitNewBranch] = useState(false);
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
 
 	const { isNext } = usePlatform();
-
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const branchName = branch?.name;
 
@@ -37,6 +37,10 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate }: Bra
 	const canEditCatalog = PermissionService.useCheckPermission(editCatalogPermission, workspacePath, catalogName);
 
 	const allowAddNewBranch = !isNext && canEditCatalog;
+
+	useEffect(() => {
+		if (show) setIsInitNewBranch(Boolean(initNewBranch));
+	}, [show, initNewBranch]);
 
 	const onSwitchBranch = useCallback(
 		async (isNewBranchCreated: boolean) => {
@@ -59,12 +63,14 @@ const BranchTab = ({ show, setShow, onClose, branch, onMergeRequestCreate }: Bra
 			title={t("branches")}
 			titleRightExtension={
 				allowAddNewBranch && (
-					<Icon
-						code="plus"
-						isAction
+					<TooltipIconButton
+						className="shrink-0"
+						icon="plus"
+						iconClassName="h-5 w-5"
 						onClick={() => setIsInitNewBranch((prev) => !prev)}
-						style={{ fontSize: "1.35em", marginLeft: "-0.5em" }}
-						tooltipContent={t("add-new-branch")}
+						size="xs"
+						tooltip={t("add-new-branch")}
+						variant="text"
 					/>
 				)
 			}

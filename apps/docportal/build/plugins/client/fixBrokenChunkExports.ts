@@ -1,10 +1,11 @@
-import fs from "fs";
 import path from "node:path";
+import fs from "fs";
 
 export function fixBrokenChunkExports(dir: string) {
-	const walk = (d: string): string[] => fs
-		.readdirSync(d, { withFileTypes: true })
-		.flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
+	const walk = (d: string): string[] =>
+		fs
+			.readdirSync(d, { withFileTypes: true })
+			.flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
 
 	for (const file of walk(dir)) {
 		if (!file.endsWith(".js")) continue;

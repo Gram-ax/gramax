@@ -18,11 +18,6 @@ const ToolbarWrapper = styled.div`
 		[role="article-toolbar"],
 		[role="article-inline-toolbar"] {
 			flex-wrap: nowrap;
-			border-radius: 0;
-		}
-
-		[role="toolbar"] {
-			border-radius: 0;
 		}
 	}
 

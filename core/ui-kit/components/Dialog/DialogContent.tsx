@@ -9,7 +9,7 @@ export type ModalContentSize = "default" | "M" | "L" | "FS";
 
 type UiKitDialogContentProps = ExtractComponentGeneric<typeof UiKitDialogContent>;
 
-interface DialogContentTemplateProps extends UiKitDialogContentProps {
+export interface DialogContentTemplateProps extends UiKitDialogContentProps {
 	size?: ModalContentSize;
 }
 
@@ -42,7 +42,8 @@ export const DialogContent: FC<DialogContentTemplateProps> = styled((props) => {
 		max-height: 700px;
 	}
 
-	&.size-l > .grid {
+	&.size-l > div:nth-of-type(2),
+	&.size-l > div:nth-of-type(2) > div {
 		height: 100%;
 	}
 

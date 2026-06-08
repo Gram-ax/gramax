@@ -26,7 +26,7 @@ const get: Command<{ ctx: Context; catalogName: string; articlePath: Path; answe
 			const workspace = wm.current();
 			const config = await workspace.config();
 
-			if (!config.enterprise?.gesUrl && !config.gesUrl) return { passed: false, questions: [] };
+			if (!config.enterprise?.gesUrl) return { passed: false, questions: [] };
 			if (!config.enterprise?.modules?.quiz) return { passed: false, questions: [] };
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);

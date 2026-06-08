@@ -27,7 +27,10 @@ class HTMLComponents {
 		);
 	}
 
-	public renderIcon({ code, ...props }: { code: string } & React.HTMLAttributes<HTMLElement> & Record<string, any>) {
+	public renderIcon({
+		code,
+		...props
+	}: { code: string } & React.HTMLAttributes<HTMLElement> & Record<string, unknown>) {
 		const IconComponent = LucideIcon(code) || LucideIcon("circle-help");
 
 		return (
@@ -38,7 +41,7 @@ class HTMLComponents {
 	}
 
 	private _getApiArticle(link: string, hash?: string) {
-		const url = this._publicApiUrlCreator.getApiArticle(link.replace(hash, ""), hash);
+		const url = this._publicApiUrlCreator.getApiArticle(link, hash);
 		return this._addRequestUrl(url.toString());
 	}
 
@@ -48,7 +51,7 @@ class HTMLComponents {
 	}
 
 	private _addRequestUrl = (src: string) => {
-		return src.slice(0, 4) == "http" ? src : this._requestUrl + Path.empty.join(new Path(src)).value;
+		return src.slice(0, 4) === "http" ? src : this._requestUrl + Path.empty.join(new Path(src)).value;
 	};
 
 	public getNullComponent(name: unSupportedElements) {

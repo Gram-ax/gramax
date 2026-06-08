@@ -1,6 +1,6 @@
+import path from "node:path";
 import type { BunPlugin } from "bun";
 import * as Bun from "bun";
-import path from "node:path";
 
 export function reactSSRLayoutEffectPlugin(): BunPlugin {
 	return {

@@ -10,6 +10,5 @@ export interface CreateSearcherManagerArgs {
 	config: AppConfig;
 	wm: WorkspaceManager;
 	parser: MarkdownParser;
-	searchResourcesEnabled: boolean;
 	parserContextFactory: ParserContextFactory;
 }

@@ -27,11 +27,12 @@ interface PropertyArticleProps {
 	canDelete?: boolean;
 	hideClear?: boolean;
 	renderInput?: ({ value, onChange }: { value: string; onChange: (value: InputValue) => void }) => JSX.Element;
-	onSubmit: (propertyName: string, value: string, isDelete?: boolean) => void;
+	onSubmit: (propertyId: string, value: string, isDelete?: boolean) => void;
+	onDelete?: (propertyId: string) => void;
 }
 
 const PropertyArticle = memo((props: PropertyArticleProps) => {
-	const { disabled, trigger, property, onSubmit, canDelete = true, renderInput, hideClear } = props;
+	const { disabled, trigger, property, onSubmit, onDelete, canDelete = true, renderInput, hideClear } = props;
 	const [value, setValue] = useState<string[] | string>(property.value);
 
 	const InputComponent = renderInput || getInputComponent(property.type);
@@ -42,7 +43,7 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 
 	const onChange = useCallback(
 		(incomingValue: InputValue) => {
-			if (!InputComponent) return onSubmit(property.name, getFormatValue(incomingValue), false);
+			if (!InputComponent) return onSubmit(property.id, getFormatValue(incomingValue), false);
 			setValue((prevValue) => {
 				const isArray = typeof incomingValue !== "string" && Array.isArray(incomingValue);
 				const formattedValue = isArray
@@ -51,18 +52,21 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 				return formattedValue;
 			});
 		},
-		[property.name, onSubmit, InputComponent],
+		[property.id, onSubmit, InputComponent],
 	);
 
 	const onOpenChange = useCallback(
 		(open: boolean) => {
 			if (open || renderInput || !InputComponent) return;
-			onSubmit(property.name, getFormatValue(value), false);
+			onSubmit(property.id, getFormatValue(value), false);
 		},
-		[property.name, value, onSubmit, renderInput, InputComponent],
+		[property.id, onSubmit, value, renderInput, InputComponent],
 	);
 
-	const deleteProperty = () => onSubmit(property.name, undefined, true);
+	const deleteProperty = () => {
+		if (onDelete) onDelete(property.id);
+		else onSubmit(property.id, undefined, true);
+	};
 
 	const buttons = useMemo(() => {
 		return (
@@ -74,12 +78,12 @@ const PropertyArticle = memo((props: PropertyArticleProps) => {
 				values={property.values}
 			/>
 		);
-	}, [property.values, property.value, property.name, onChange, property.type]);
+	}, [property, onChange]);
 
 	const getInputRenderer = useCallback(() => {
 		if (renderInput) return renderInput({ value: typeof value === "string" ? value : value?.[0], onChange });
 		return <CustomInputRenderer onChange={onChange} type={property.type} value={value} />;
-	}, [value, onChange, property.type, renderInput]);
+	}, [property.type, value, onChange, renderInput]);
 
 	return (
 		<DropdownMenu onOpenChange={onOpenChange}>

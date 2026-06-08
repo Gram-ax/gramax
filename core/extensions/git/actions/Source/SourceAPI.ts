@@ -9,6 +9,7 @@ export type SourceUser = {
 };
 
 export interface SourceAPI {
+	healthcheck(): Promise<boolean>;
 	assertStorageExist(data: StorageData): Promise<void>;
 	removeExpiredCredentials(apiUrlCreator: ApiUrlCreator): Promise<string>;
 	isCredentialsValid(): Promise<boolean>;

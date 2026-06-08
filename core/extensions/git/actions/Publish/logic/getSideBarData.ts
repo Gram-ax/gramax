@@ -40,6 +40,7 @@ const getSideBarData = (
 
 		sideBarData.push({
 			parentPath: isResource ? (diffFile as DiffFlattenTreeResourceType).parentPath : undefined,
+			pathname: diffFile.pathname,
 			isResource,
 			data: {
 				title,

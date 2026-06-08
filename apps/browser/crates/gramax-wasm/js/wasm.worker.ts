@@ -1,5 +1,4 @@
-import { callFS } from "@app/resolveModule/fscall/wasm.worker";
-import { callGit } from "@app/resolveModule/gitcall/wasm.worker";
+import { callRust } from "@app/resolveModule/rustcall/wasm.worker";
 import type { RemoteProgress } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { Span } from "@ext/loggers/opentelemetry/span";
 import WasmModule from "../dist/gramax-wasm";
@@ -18,7 +17,7 @@ const self = global.self as typeof global.self & {
 	getStore: (key: number) => string;
 };
 
-export type WasmCallback = { command: string; callbackId: number; type: "git-call" | "fs-call" };
+export type WasmCallback = { command: string; callbackId: number };
 
 const callbacks: { [id: number]: WasmCallback } = {};
 
@@ -49,10 +48,12 @@ const init = async () => {
 	};
 
 	self.on_done = (innerCallbackId: number, ptr: number) => {
-		const { command, callbackId, type } = callbacks[innerCallbackId] || {};
+		const { command, callbackId } = callbacks[innerCallbackId] || {};
 		delete callbacks[innerCallbackId];
 
 		if (!command) return;
+
+		const type = "call";
 
 		if (RAW_BYTES_COMMANDS.includes(command)) {
 			const bytes = ptr2bytes(ptr);
@@ -82,17 +83,11 @@ const init = async () => {
 
 	// eslint-disable-next-line @typescript-eslint/no-misused-promises
 	self.addEventListener("message", async (ev) => {
-		if (ev.data.type === "fs-call") {
-			const id = await callFS(ev.data.command, ev.data.args);
-			callbacks[id] = { callbackId: ev.data.callbackId, command: ev.data.command, type: ev.data.type };
-			return;
-		}
+		if (ev.data.type === "call") {
+			const id = await callRust(ev.data.namespace, ev.data.command, ev.data.args);
+			callbacks[id] = { callbackId: ev.data.callbackId, command: ev.data.command };
 
-		if (ev.data.type === "git-call") {
-			const id = await callGit(ev.data.command, ev.data.args);
-			callbacks[id] = { callbackId: ev.data.callbackId, command: ev.data.command, type: ev.data.type };
-
-			if (ev.data.command === "cancel")
+			if (ev.data.namespace === "git" && ev.data.command === "cancel")
 				broadcast.postMessage({ type: "cancel", id: ev.data.args.id, date: Date.now() });
 			return;
 		}

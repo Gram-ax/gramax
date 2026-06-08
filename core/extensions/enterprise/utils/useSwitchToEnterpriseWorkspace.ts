@@ -6,10 +6,10 @@ import { useEffect } from "react";
 
 const useSwitchToEnterpriseWorkspace = (isFirstLoad: boolean) => {
 	const { isBrowser } = usePlatform();
-	const enterpriseConfig = PageDataContextService.value.conf?.enterprise;
+	const activeGesUrl = PageDataContextService.value.conf?.activeGesUrl;
 	const workspaces = WorkspaceService.workspaces();
-	const workspacePath = enterpriseConfig
-		? workspaces.find((workspace) => workspace.enterprise?.gesUrl === enterpriseConfig.gesUrl)?.path
+	const workspacePath = activeGesUrl
+		? workspaces.find((workspace) => workspace.enterprise?.gesUrl === activeGesUrl)?.path
 		: undefined;
 	const { call: switchWorkspace } = useApi({
 		url: (api) => (workspacePath ? api.switchWorkspace(workspacePath) : null),
@@ -19,7 +19,7 @@ const useSwitchToEnterpriseWorkspace = (isFirstLoad: boolean) => {
 		if (!isFirstLoad || !workspacePath || !isBrowser) return;
 
 		void switchWorkspace?.();
-	}, [isFirstLoad, workspacePath, isBrowser]);
+	}, [isFirstLoad, workspacePath, isBrowser, switchWorkspace]);
 };
 
 export default useSwitchToEnterpriseWorkspace;

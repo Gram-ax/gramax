@@ -1,4 +1,8 @@
+// biome-ignore lint/style/noRestrictedImports: CSS-only import for theme variables
+import "ics-ui-kit/theme.css";
+import "../../../core/ui-kit/index.css";
 import "../../../core/styles/main.css";
+// biome-ignore lint/style/noRestrictedImports: idc
 import styled from "@emotion/styled";
 import { createRoot } from "react-dom/client";
 import App from "../../browser/src/App";
@@ -22,7 +26,8 @@ const DragableArea = styled.div`
 	}
 `;
 
-window.debug = { ...debug };
+// biome-ignore lint/suspicious/noExplicitAny: idc
+window.debug = { ...(debug as any) };
 
 window.addEventListener("load", async () => {
 	await subscribeEvents();

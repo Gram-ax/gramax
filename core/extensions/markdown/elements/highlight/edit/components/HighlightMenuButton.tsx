@@ -1,158 +1,120 @@
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
-import useWatch from "@core-ui/hooks/useWatch";
-import { cn } from "@core-ui/utils/cn";
+import { getEditorStore, setEditorStore } from "@core-ui/stores/EditorStore";
 import { cssMedia } from "@core-ui/utils/cssUtils";
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { HIGHLIGHT_COLOR_NAMES } from "@ext/markdown/elements/highlight/edit/model/consts";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import type { Editor } from "@tiptap/core";
 import { ColorTile } from "@ui-kit/ColorTile";
-import { useHoverDropdown } from "@ui-kit/Dropdown";
 import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
-import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { ToolbarIcon, ToolbarToggleButton, ToolbarTriggerChevron } from "@ui-kit/Toolbar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { type MouseEvent, memo, useCallback, useRef, useState } from "react";
+import { type MouseEvent, memo, useCallback, useRef } from "react";
+import { tv } from "tailwind-variants";
 
-const HighlightButton = styled(ColorTile)<{ color: HIGHLIGHT_COLOR_NAMES }>`
-	background-color: ${({ color }) => `var(--color-highlight-${color})`};
-`;
+const colorTileStyles = tv({
+	variants: {
+		color: {
+			yellow: "bg-[var(--color-highlight-yellow)]",
+			green: "bg-[var(--color-highlight-green)]",
+			purple: "bg-[var(--color-highlight-purple)]",
+			blue: "bg-[var(--color-highlight-blue)]",
+			orange: "bg-[var(--color-highlight-orange)]",
+			red: "bg-[var(--color-highlight-red)]",
+		},
+	},
+});
 
-const StyledButton = styled(ToolbarToggleButton)`
-	.fill-current {
-		fill: var(--color-highlight-${({ color }) => color});
-	}
-`;
+const markerStyles = tv({
+	base: "text-inverse-primary-fg",
+	variants: {
+		color: {
+			yellow: "[&>svg>path:last-child]:fill-[var(--color-highlight-yellow)]",
+			green: "[&>svg>path:last-child]:fill-[var(--color-highlight-green)]",
+			purple: "[&>svg>path:last-child]:fill-[var(--color-highlight-purple)]",
+			blue: "[&>svg>path:last-child]:fill-[var(--color-highlight-blue)]",
+			orange: "[&>svg>path:last-child]:fill-[var(--color-highlight-orange)]",
+			red: "[&>svg>path:last-child]:fill-[var(--color-highlight-red)]",
+		},
+	},
+});
 
 const HighlightMenuButton = ({ editor }: { editor: Editor }) => {
 	const { isActive: active, disabled, attrs } = ButtonStateService.useCurrentAction({ mark: "highlight" });
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
-	const [activeColor, setActiveColor] = useState<HIGHLIGHT_COLOR_NAMES>(editor.getAttributes("highlight")?.color);
-	const lastUsedColor = EditorService.getData("lastUsedHighlightColor");
+	const lastUsedColor = getEditorStore().lastUsedHighlightColor ?? HIGHLIGHT_COLOR_NAMES.YELLOW;
 	const portalContainerRef = useRef<HTMLDivElement>(null);
-
-	useWatch(() => {
-		setActiveColor(attrs?.color ? (attrs.color as HIGHLIGHT_COLOR_NAMES) : HIGHLIGHT_COLOR_NAMES.DEFAULT);
-	}, [attrs?.color]);
-
-	const { isOpen, setIsOpen, handleMouseEnter, handleMouseLeave } = useHoverDropdown();
-
-	const isActive = active && activeColor !== HIGHLIGHT_COLOR_NAMES.DEFAULT;
+	const isActive = active;
 
 	const onClickHandler = useCallback(
 		(event: MouseEvent<HTMLDivElement>, color: HIGHLIGHT_COLOR_NAMES) => {
 			event.preventDefault();
-			if (color === HIGHLIGHT_COLOR_NAMES.DEFAULT) {
-				editor.commands.unsetHighlight();
-				setActiveColor(HIGHLIGHT_COLOR_NAMES.DEFAULT);
-				return;
-			}
-
-			EditorService.setData("lastUsedHighlightColor", color);
+			setEditorStore({ lastUsedHighlightColor: color });
 			editor.commands.setHighlight({ color });
-			setActiveColor(color);
 		},
 		[editor],
 	);
 
 	const onTriggerClick = useCallback(() => {
-		if (isMobile) {
-			if (disabled) return;
-			setIsOpen(true);
-			return;
-		}
-
 		if (isActive) {
 			editor.commands.unsetHighlight();
-			setActiveColor(HIGHLIGHT_COLOR_NAMES.DEFAULT);
 			return;
 		}
 
-		const color = lastUsedColor ?? HIGHLIGHT_COLOR_NAMES.LEMON_YELLOW;
+		const color = lastUsedColor ?? HIGHLIGHT_COLOR_NAMES.YELLOW;
 		editor.commands.setHighlight({ color });
-		setActiveColor(color);
-	}, [isActive, disabled, editor, lastUsedColor, isMobile, setIsOpen]);
+	}, [isActive, editor, lastUsedColor]);
 
-	const onOpenChange = useCallback(
-		(open: boolean) => {
-			if (!isMobile) return;
-			setIsOpen(open);
+	const onAutoCloseFocus = useCallback(
+		(event: Event) => {
+			event.preventDefault();
+			editor.commands.focus();
 		},
-		[isMobile, setIsOpen],
+		[editor],
 	);
-
-	const onInteractOutside = useCallback(() => {
-		if (!isMobile) return;
-		setIsOpen(false);
-	}, [isMobile, setIsOpen]);
-
-	const isActiveColor = useCallback(
-		(name: HIGHLIGHT_COLOR_NAMES) => {
-			if (name === HIGHLIGHT_COLOR_NAMES.DEFAULT && !activeColor) return true;
-			return activeColor === name;
-		},
-		[activeColor],
-	);
-
-	const onMouseLeave = useCallback(() => {
-		handleMouseLeave();
-		editor.commands.focus(undefined, { scrollIntoView: false });
-	}, [editor, handleMouseLeave]);
-
-	const onAutoCloseFocus = useCallback((event: Event) => {
-		event.preventDefault();
-	}, []);
 
 	return (
 		<ComponentVariantProvider variant="inverse">
-			<div
-				className={cn(disabled && "pointer-events-none")}
-				onMouseEnter={handleMouseEnter}
-				onMouseLeave={onMouseLeave}
-				ref={portalContainerRef}
+			<ToolbarToggleButton
+				active={isActive}
+				className={markerStyles({ color: attrs?.color || lastUsedColor })}
+				disabled={disabled}
+				onClick={onTriggerClick}
 			>
-				<Popover onOpenChange={onOpenChange} open={isOpen}>
-					<PopoverTrigger asChild>
-						<StyledButton
-							active={isActive}
-							className="text-inverse-primary-fg"
-							color={lastUsedColor || HIGHLIGHT_COLOR_NAMES.LEMON_YELLOW}
-							data-open={isOpen ? "open" : "closed"}
-							disabled={disabled}
-							onClick={onTriggerClick}
-						>
-							<ToolbarIcon icon="color-highlighter" />
-						</StyledButton>
-					</PopoverTrigger>
-					<PopoverContent
-						alignOffset={!isMobile ? -18 : -5}
-						className="bg-transparent px-3 py-3 pb-2 border-none w-auto"
-						onCloseAutoFocus={onAutoCloseFocus}
-						onInteractOutside={onInteractOutside}
-						portalContainer={portalContainerRef.current}
-						side="top"
-						sideOffset={0}
-						style={{ boxShadow: "none" }}
-					>
-						<div className="flex items-center p-1 gap-1 w-auto bg-inverse-primary-bg rounded-lg lg:shadow-hard-base overflow-hidden">
-							{Object.values(HIGHLIGHT_COLOR_NAMES).map((color) => (
-								<Tooltip key={color}>
-									<TooltipTrigger asChild>
-										<HighlightButton
-											color={color}
+				<ToolbarIcon icon="color-highlighter" />
+			</ToolbarToggleButton>
+			<Popover>
+				<PopoverTrigger asChild>
+					<ToolbarTriggerChevron disabled={disabled} focusable sub />
+				</PopoverTrigger>
+				<PopoverContent
+					alignOffset={!isMobile ? -18 : -5}
+					className="bg-transparent px-3 py-3 pb-2 border-none w-auto rounded-xl"
+					onCloseAutoFocus={onAutoCloseFocus}
+					portalContainer={portalContainerRef.current}
+					side="top"
+					sideOffset={0}
+					style={{ boxShadow: "none" }}
+				>
+					<div className="flex items-center p-1 gap-1 w-auto bg-inverse-primary-bg rounded-lg lg:shadow-hard-base overflow-hidden">
+						{Object.values(HIGHLIGHT_COLOR_NAMES).map((color) => (
+							<Tooltip key={color}>
+								<TooltipTrigger asChild>
+									<div className="[&>div:last-of-type]:border-inverse-secondary-fg">
+										<ColorTile
+											className={colorTileStyles({ color })}
 											onClick={(event) => onClickHandler(event, color)}
-											selected={isActiveColor(color)}
+											selected={isActive && attrs?.color === color}
 										/>
-									</TooltipTrigger>
-									<TooltipContent>{t(`editor.highlight.colors.${color}`)}</TooltipContent>
-								</Tooltip>
-							))}
-						</div>
-					</PopoverContent>
-				</Popover>
-			</div>
+									</div>
+								</TooltipTrigger>
+								<TooltipContent>{t(`editor.highlight.colors.${color}`)}</TooltipContent>
+							</Tooltip>
+						))}
+					</div>
+				</PopoverContent>
+			</Popover>
 		</ComponentVariantProvider>
 	);
 };

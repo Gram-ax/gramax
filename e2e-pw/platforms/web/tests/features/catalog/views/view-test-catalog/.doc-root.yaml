@@ -1,0 +1,19 @@
+title: Новый каталог
+syntax: XML
+supportedLanguages: []
+properties:
+  - id: tSUSa
+    name: Assignee
+    type: Enum
+    style: green
+    icon: circle-user
+    values:
+      - John Doe
+      - Richard Roe
+      - John Smith
+      - Elizabeth Swann
+  - id: y36Vp
+    name: System
+    type: Text
+    style: pink-blue
+    icon: message-square-text

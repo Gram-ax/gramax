@@ -18,6 +18,11 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		super(data, _onError);
 	}
 
+	async healthcheck(): Promise<boolean> {
+		const res = await this.getUser();
+		return !!res;
+	}
+
 	async refreshAccessToken(): Promise<GitSourceData> {
 		assert(this._authServiceUrl, "authServiceUrl is required");
 
@@ -66,9 +71,9 @@ export default class GitlabSourceAPI extends GitSourceApi {
 					repDatas: (await res.json()).map(
 						(p): GitRepData => ({ path: p.path_with_namespace, lastActivity: p.last_activity_at }),
 					),
-					page: parseInt(res.headers.get("x-page")),
-					totalPages: parseInt(res.headers.get("x-total-pages")),
-					totalPathsCount: parseInt(res.headers.get("x-total")),
+					page: parseInt(res.headers.get("x-page"), 10),
+					totalPages: parseInt(res.headers.get("x-total-pages"), 10),
+					totalPathsCount: parseInt(res.headers.get("x-total"), 10),
 				};
 			}),
 		);
@@ -91,7 +96,7 @@ export default class GitlabSourceAPI extends GitSourceApi {
 		groups.push(
 			...(await Promise.all(
 				(
-					await this._paginationApi("groups")
+					await this._paginationApi("groups?min_access_level=10")
 				).map(async (res): Promise<string[]> => (await res.json()).map((g) => g.full_path)),
 			)),
 		);
@@ -184,7 +189,6 @@ export default class GitlabSourceAPI extends GitSourceApi {
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
-		await this._assertHasInternetAccess();
 		// const isEnterprise = this._data.isEnterprise;
 		try {
 			const res = await fetch(`${this._data.protocol ?? "https"}://${this._data.domain}/api/v4/${url}`, {

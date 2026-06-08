@@ -25,7 +25,7 @@ export default mergeConfig(baseConfig(), {
 	},
 
 	server: {
-		hmr: false,
+		hmr: true,
 	},
 
 	publicDir: "../../core/public",

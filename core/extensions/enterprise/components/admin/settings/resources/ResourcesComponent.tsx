@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { useAdminNavigation } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import ResourceComponent from "@ext/enterprise/components/admin/settings/resources/components/Resource/ResourceComponent";
@@ -79,7 +81,7 @@ export default function ResourcesComponent() {
 		setIsSaving(true);
 		try {
 			await deleteResources(selectedIds);
-		} catch (e: any) {
+		} catch (e) {
 			setSaveError(e?.message);
 		} finally {
 			setIsSaving(false);
@@ -108,7 +110,7 @@ export default function ResourcesComponent() {
 		setIsSaving(true);
 		try {
 			await addResource(resource);
-		} catch (e: any) {
+		} catch (e) {
 			setSaveError(e?.message);
 		} finally {
 			setIsSaving(false);
@@ -135,6 +137,9 @@ export default function ResourcesComponent() {
 		handleOpenRepository("");
 	};
 
+	const { url: gesCloudUrl, enabled: cloudEnabled } = PageDataContextService.value.conf.enterpriseCloud;
+	const addButtonVisible = !(gesCloudUrl && cloudEnabled);
+
 	const closeResourceDialog = useCallback(() => {
 		resetState();
 		navigate(Page.RESOURCES);
@@ -157,11 +162,14 @@ export default function ResourcesComponent() {
 	}
 
 	return (
-		<div className="p-6">
+		<div>
 			<ResourcesTable
+				addButton={{
+					onClick: handleAdd,
+					visible: addButtonVisible,
+				}}
 				disabled={isSaving}
 				items={localSettings}
-				onAdd={handleAdd}
 				onDeleteSelected={handleDeleteSelected}
 				onRowClick={handleOpenRepository}
 			/>

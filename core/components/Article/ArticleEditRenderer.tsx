@@ -1,48 +1,57 @@
 import { NEW_ARTICLE_REGEX } from "@app/config/const";
+import type { ArticleComponentProps } from "@components/Article/Article";
 import { ArticleParent } from "@components/Article/ArticleRenderer";
 import { useRouter } from "@core/Api/useRouter";
-import type { EditArticlePageData } from "@core/SitePresenter/SitePresenter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
-import EditorService, { type BaseEditorContext } from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
+import type { BaseEditorContext } from "@core-ui/stores/EditorStore";
+import {
+	createHandlePasteCallback,
+	createOnUpdateCallback,
+	createUpdateTitleFunction,
+} from "@core-ui/utils/EditorCallbacks";
+import {
+	OpenApiTocItemsStoreProvider,
+	useOpenApiTocItemsStore,
+} from "@ext/markdown/elements/openApi/edit/logic/OpenApiTocItemsStore.provider";
 import getTocItems, { getLevelTocItemsByJSONContent } from "@ext/navigation/article/logic/createTocItems";
 import PropertyService from "@ext/properties/components/PropertyService";
 import type { Editor } from "@tiptap/core";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import ContentEditor from "../../extensions/markdown/core/edit/components/ContentEditor";
 import getExtensions from "../../extensions/markdown/core/edit/logic/getExtensions";
 import ArticleUpdater from "./ArticleUpdater/ArticleUpdater";
 
-interface ArticleRendererProps {
-	data: EditArticlePageData;
-}
-
-export const ArticleEditRenderer = (props: ArticleRendererProps) => {
-	const { data } = props;
+export const ArticleEditRenderer = ({ data: { content } }: ArticleComponentProps<"edit">) => {
+	const { articleProps, updateArticleProps } = useArticlePropsStore((state) => ({
+		articleProps: state.data,
+		updateArticleProps: state.update,
+	}));
 
 	const resourceService = ResourceService.value;
 	const workspace = Workspace.current();
 	const isGES = !!workspace?.enterprise?.gesUrl;
 	const gesModules = workspace?.enterprise?.modules;
-	const [actualData, setActualData] = useState<EditArticlePageData>(data);
 
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const { openApiTocItemsData } = useOpenApiTocItemsStore((store) => ({
+		openApiTocItemsData: store.data,
+	}));
 
-	const { value: articleProps, setArticleProps, setTocItems } = ArticlePropsService;
 	const propertyService = PropertyService.value;
 
 	const apiUrlCreatorRef = useRef(apiUrlCreator);
 	const articlePropsRef = useRef(articleProps);
 	const propertyServiceRef = useRef(propertyService);
-	const editorUpdateContent = EditorService.createOnUpdateCallback();
-	const updateTitle = EditorService.createUpdateTitleFunction();
-	const editorHandlePaste = EditorService.createHandlePasteCallback(resourceService);
+	const editorUpdateContent = createOnUpdateCallback();
+	const updateTitle = createUpdateTitleFunction();
+	const editorHandlePaste = createHandlePasteCallback(resourceService);
 
 	const pendingPromise = useRef(Promise.resolve());
 	const lastUpdateRef = useRef<{ filename?: string }>({});
@@ -52,24 +61,6 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		articlePropsRef.current = articleProps;
 		propertyServiceRef.current = propertyService;
 	}, [apiUrlCreator, articleProps, propertyService.articleProperties]);
-
-	useEffect(() => {
-		setActualData(data);
-	}, [data]);
-
-	const onUpdate = useCallback(
-		(newData: EditArticlePageData) => {
-			setActualData(newData);
-			setArticleProps(newData.articleProps);
-
-			resourceService.clear();
-
-			const editor = EditorService.getEditor();
-			// Clear history to avoid nodes with resources don't be error on undo/redo
-			if (editor) editor.chain().clearHistory().setContent(JSON.parse(newData.content)).run();
-		},
-		[resourceService?.clear, setArticleProps],
-	);
 
 	const updateContent = useCallback(
 		async (editor: Editor) => {
@@ -107,7 +98,7 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 			cancelDebouncedUpdateContent();
 			cancelDebouncedUpdateTitle();
 		};
-	}, [cancelDebouncedUpdateContent, cancelDebouncedUpdateTitle, apiUrlCreator, actualData.articleProps]);
+	}, [cancelDebouncedUpdateContent, cancelDebouncedUpdateTitle, apiUrlCreator, articleProps.ref.path]);
 
 	const onTitleNeedsUpdate = useCallback(
 		({ newTitle, articleProps, apiUrlCreator }: { newTitle: string } & BaseEditorContext) => {
@@ -137,8 +128,8 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 	);
 
 	const onContentUpdate = ({ editor }: { editor: Editor }) => {
-		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc));
-		if (tocItems) setTocItems([...tocItems]);
+		const tocItems = getTocItems(getLevelTocItemsByJSONContent(editor.state.doc, openApiTocItemsData));
+		if (tocItems) updateArticleProps({ tocItems: [...tocItems] });
 
 		if (typeof window !== "undefined" && window.debug) window.debug.forceSave = () => updateContent(editor);
 
@@ -154,18 +145,18 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 			getExtensions({
 				includeResources: true,
 				includeQuestions: isGES && gesModules?.quiz,
-				...(actualData.articleProps.template && { isTemplateInstance: true }),
+				...(articleProps.template && { isTemplateInstance: true }),
 			}),
-		[actualData.articleProps.ref.path, actualData.articleProps.template, isGES, gesModules?.quiz],
+		[articleProps.ref.path, articleProps.template, isGES, gesModules?.quiz],
 	);
 
 	return (
-		<ArticleUpdater data={actualData} onUpdate={onUpdate}>
+		<ArticleUpdater>
 			<ArticleParent>
 				<ContentEditor
 					apiUrlCreatorRef={apiUrlCreatorRef}
 					articlePropsRef={articlePropsRef}
-					content={actualData.content}
+					content={content}
 					extensions={extensions}
 					handlePaste={editorHandlePaste}
 					onTitleLoseFocus={onTitleNeedsUpdate}
@@ -175,3 +166,9 @@ export const ArticleEditRenderer = (props: ArticleRendererProps) => {
 		</ArticleUpdater>
 	);
 };
+
+export default (props: ArticleComponentProps<"edit">) => (
+	<OpenApiTocItemsStoreProvider>
+		<ArticleEditRenderer {...props} />
+	</OpenApiTocItemsStoreProvider>
+);

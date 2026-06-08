@@ -1,5 +1,5 @@
-/** biome-ignore-all lint/correctness/useExhaustiveDependencies: ?? */
-
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
+/** biome-ignore-all lint/style/noRestrictedImports: it's ok */
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import ShowPublishBar from "@components/Layouts/StatusBar/Extensions/ShowPublishBar";
 import StatusBar from "@components/Layouts/StatusBar/StatusBar";
@@ -12,15 +12,19 @@ import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import useWatch from "@core-ui/hooks/useWatch";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { extractCatalogName } from "@core-ui/utils/extractCatalogName";
 import styled from "@emotion/styled";
 import ProtectedBranch from "@ext/catalog/actions/ProtectedBranch";
+import useIsOffline from "@ext/errorHandlers/hooks/useIsOffline";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import BranchTab from "@ext/git/actions/Branch/components/BranchTab";
+import Offline from "@ext/git/actions/Offline/components/Offline";
 import RepositoryBroken from "@ext/git/actions/RepositoryBroken";
-import RevisionsTab from "@ext/git/actions/Revisions/components/RevisionsTab/RevisionsTab";
-import ShowRevisionsTab from "@ext/git/actions/Revisions/components/RevisionsTab/ShowRevisionsTab";
+import ShowRevisionsTab from "@ext/git/actions/Revisions/components/RevisionsTab/Helpers/ShowRevisionsTab";
+import RevisionsCatalogTab from "@ext/git/actions/Revisions/components/RevisionsTab/RevisionsCatalogTab";
+import getCommitOidFromPathname from "@ext/git/actions/Revisions/logic/utils/getCommitOidFromPathname";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import MergeRequestTab from "@ext/git/core/GitMergeRequest/components/MergeRequestTab";
 import ShowMergeRequest from "@ext/git/core/GitMergeRequest/components/ShowMergeRequest";
@@ -41,11 +45,12 @@ export enum LeftNavigationTab {
 	MergeRequest,
 	Publish,
 	Branch,
-	Revisions,
+	CreateBranch,
+	CatalogRevisions,
 
 	Inbox,
 	Template,
-	Snippets,
+	Fragments,
 	Prompt,
 	FavoriteArticles,
 }
@@ -63,7 +68,7 @@ const Wrapper = styled.div`
 const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isNext } = usePlatform();
-	const isReadOnly = PageDataContextService.value.conf.isReadOnly;
+	const { isReadOnly } = PageDataContextService.value.conf;
 
 	const [branch, setBranch] = useState<GitBranchData>(null);
 	const [branchError, setBranchError] = useState<DefaultError>(null);
@@ -76,11 +81,12 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 		}),
 	);
 	const mergeRequestRef = useRef<MergeRequest>(null);
-	const { catalogName, repositoryError, resolvedFilterPropertyValue } = useCatalogPropsStore(
+	const { catalogName, repositoryError, resolvedView, isRevision } = useCatalogPropsStore(
 		(state) => ({
-			catalogName: state.data.name,
+			catalogName: extractCatalogName(state?.data?.name),
 			repositoryError: state.data.repositoryError,
-			resolvedFilterPropertyValue: state.data.resolvedFilterPropertyValue,
+			resolvedView: state.data.resolvedView,
+			isRevision: !!getCommitOidFromPathname(state.data.name),
 		}),
 		"shallow",
 	);
@@ -88,8 +94,9 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 	const apiUrlCreatorRef = useRef<ApiUrlCreator>(apiUrlCreator);
 	const isStorageConnected = useIsStorageConnected();
 	const isRepoError = !!repositoryError;
-
+	const isOffline = useIsOffline();
 	const { bottomTab } = NavigationTabsService.value;
+	const isBranchTabOpened = bottomTab === LeftNavigationTab.Branch || bottomTab === LeftNavigationTab.CreateBranch;
 
 	useWatch(() => {
 		mergeRequestRef.current = mergeRequest;
@@ -129,7 +136,7 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 
 	useEffect(() => {
 		const onUpdateBranch = (branch: GitBranchData, caller: OnBranchUpdateCaller) => {
-			setupMergeRequestState(branch, caller);
+			void setupMergeRequestState(branch, caller);
 			if (caller === OnBranchUpdateCaller.MergeRequest) return;
 
 			setBranch(branch);
@@ -146,9 +153,10 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 			BranchUpdaterService.removeListener(onUpdateBranch);
 			BranchUpdaterService.removeOnErrorListener(onError);
 		};
-	}, [isStorageConnected, isRepoError, catalogName, isNext, setupMergeRequestState]);
+	}, [isStorageConnected, isRepoError, catalogName, isNext, setupMergeRequestState, apiUrlCreator]);
 
-	useEffect(() => {
+	useWatch(() => {
+		BranchUpdaterService.reset();
 		NavigationTabsService.setBottom(LeftNavigationTab.None);
 		setMergeRequest(null);
 		setMergeRequestIsDraft(false);
@@ -174,10 +182,17 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 		}
 
 		return [
-			<Sync key={0} style={{ height: "100%" }} />,
-			!isNext && isReadOnly && <ProtectedBranch key={1} />,
+			isOffline && <Offline key={3} />,
+			<Sync disable={isOffline} key={0} style={{ height: "100%" }} />,
+			!isNext && isReadOnly && (
+				<ProtectedBranch
+					key={1}
+					text={isRevision ? t("git.publish.error.at-revision") : t("git.publish.error.main-branch")}
+				/>
+			),
 			<IsReadOnlyHOC key={2}>
 				<ShowPublishBar
+					disable={isOffline}
 					isShow={bottomTab === LeftNavigationTab.Publish}
 					mergeRequestStatus={mergeRequestStatus}
 					onClick={() => {
@@ -193,7 +208,6 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 	};
 
 	return (
-		// key to force re-render when catalog changes (for desktop)
 		<Wrapper key={catalogName}>
 			{isStorageConnected && !isRepoError && (
 				<MergeRequestTab
@@ -207,45 +221,49 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 			)}
 			<BranchTab
 				branch={branch}
+				initNewBranch={bottomTab === LeftNavigationTab.CreateBranch}
 				onClose={() => NavigationTabsService.setBottom(LeftNavigationTab.None)}
 				onMergeRequestCreate={() => setupMergeRequestState(branch, OnBranchUpdateCaller.MergeRequest)}
 				setShow={(show) =>
 					NavigationTabsService.setBottom(show ? LeftNavigationTab.Branch : LeftNavigationTab.None)
 				}
-				show={bottomTab === LeftNavigationTab.Branch}
+				show={isBranchTabOpened}
 			/>
 			{!isNext && (
 				<>
-					<RevisionsTab
+					<RevisionsCatalogTab
 						setShow={(show) =>
-							NavigationTabsService.setBottom(show ? LeftNavigationTab.Revisions : LeftNavigationTab.None)
+							NavigationTabsService.setBottom(
+								show ? LeftNavigationTab.CatalogRevisions : LeftNavigationTab.None,
+							)
 						}
-						show={bottomTab === LeftNavigationTab.Revisions}
+						show={bottomTab === LeftNavigationTab.CatalogRevisions}
 					/>
 					<PublishTab
-						setShow={(show) =>
-							NavigationTabsService.setBottom(show ? LeftNavigationTab.Publish : LeftNavigationTab.None)
-						}
+						setShow={(show) => {
+							NavigationTabsService.setBottom(show ? LeftNavigationTab.Publish : LeftNavigationTab.None);
+						}}
 						show={bottomTab === LeftNavigationTab.Publish}
 					/>
 				</>
 			)}
 			<StatusBar
+				isOffline={isOffline}
 				leftElements={
-					!isRepoError && isStorageConnected && !branchError && !resolvedFilterPropertyValue
+					!isRepoError && isStorageConnected && !branchError && !resolvedView
 						? [
 								<Branch
 									branch={branch}
+									disable={isOffline}
 									key={LeftNavigationTab.Branch}
 									onClick={() => {
-										const tab =
-											bottomTab === LeftNavigationTab.Branch
-												? LeftNavigationTab.None
-												: LeftNavigationTab.Branch;
+										const tab = isBranchTabOpened
+											? LeftNavigationTab.None
+											: LeftNavigationTab.Branch;
 
 										NavigationTabsService.setBottom(tab);
 									}}
-									show={bottomTab === LeftNavigationTab.Branch}
+									show={isBranchTabOpened}
 								/>,
 								<ShowMergeRequest
 									isShow={bottomTab === LeftNavigationTab.MergeRequest}
@@ -261,13 +279,13 @@ const ArticleStatusBar = memo(({ padding }: { padding?: string }) => {
 									}}
 								/>,
 								<ShowRevisionsTab
-									isShow={bottomTab === LeftNavigationTab.Revisions}
-									key={LeftNavigationTab.Revisions}
+									isShow={bottomTab === LeftNavigationTab.CatalogRevisions}
+									key={LeftNavigationTab.CatalogRevisions}
 									setShow={() => {
-										const tab =
-											bottomTab === LeftNavigationTab.Revisions
-												? LeftNavigationTab.None
-												: LeftNavigationTab.Revisions;
+										const isRevisionTab = bottomTab === LeftNavigationTab.CatalogRevisions;
+										const tab = isRevisionTab
+											? LeftNavigationTab.None
+											: LeftNavigationTab.CatalogRevisions;
 
 										NavigationTabsService.setBottom(tab);
 									}}

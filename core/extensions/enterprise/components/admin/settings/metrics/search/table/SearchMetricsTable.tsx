@@ -3,7 +3,11 @@ import { UnifiedMetricsTable } from "@ext/enterprise/components/admin/settings/m
 import type { SearchSortByColumn, SortOrder } from "@ext/enterprise/components/admin/settings/metrics/filters";
 import t from "@ext/localization/locale/translate";
 import { memo, useMemo } from "react";
-import { createSearchMetricsTableColumns, type SearchMetricsTableRow } from "./SearchMetricsTableConfig";
+import {
+	createSearchMetricsTableColumns,
+	type SearchMetricsTableRow,
+	type SearchTableDataResponse,
+} from "./SearchMetricsTableConfig";
 
 interface SearchMetricsTableProps {
 	getSearchTableData: (
@@ -11,11 +15,7 @@ interface SearchMetricsTableProps {
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
-	) => Promise<{
-		data: SearchMetricsTableRow[];
-		nextCursor: string | null;
-		hasMore: boolean;
-	} | null>;
+	) => Promise<SearchTableDataResponse | null>;
 	initialData: InitialTableData<SearchMetricsTableRow>;
 	sortBy: SearchSortByColumn;
 	sortOrder: SortOrder;
@@ -25,6 +25,7 @@ interface SearchMetricsTableProps {
 	selectedQuery: string | null;
 	startDate: string;
 	endDate: string;
+	selectedCatalogs?: string[];
 }
 
 const getRowId = (row: SearchMetricsTableRow) => row.normalizedQuery;
@@ -40,6 +41,7 @@ const SearchMetricsTableInner = ({
 	selectedQuery,
 	startDate,
 	endDate,
+	selectedCatalogs,
 }: SearchMetricsTableProps) => {
 	const rowInteraction = useMemo(
 		() => ({
@@ -60,11 +62,10 @@ const SearchMetricsTableInner = ({
 		}),
 		[sortBy, sortOrder, actualSortHandler],
 	);
-
 	return (
 		<UnifiedMetricsTable
 			dataLoader={getSearchTableData}
-			dependencies={[startDate, endDate, sortBy, sortOrder]}
+			dependencies={[startDate, endDate, sortBy, sortOrder, (selectedCatalogs ?? []).join(",")]}
 			getRowId={getRowId}
 			initialData={initialData}
 			responsive={false}

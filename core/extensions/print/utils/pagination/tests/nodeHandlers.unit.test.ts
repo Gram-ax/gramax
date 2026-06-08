@@ -10,8 +10,11 @@ jest.mock("@ext/print/utils/pagination/abort", () => ({
 
 describe("nodeHandlers", () => {
 	let mockNodeDimensions: jest.Mocked<NodeDimensions>;
+	// biome-ignore lint/suspicious/noExplicitAny: test mocks
 	let mockControlInfo: any;
+	// biome-ignore lint/suspicious/noExplicitAny: test mocks
 	let mockPaginationInfo: any;
+	// biome-ignore lint/suspicious/noExplicitAny: test mocks
 	let mockPrintPageInfo: any;
 	let abortController: AbortController;
 	let mockPaginator: jest.Mocked<PagePaginator>;
@@ -30,6 +33,7 @@ describe("nodeHandlers", () => {
 			updateAccumulatedHeight: jest.fn(),
 			updateAccumulatedHeightNode: jest.fn(() => ({ height: 20, marginBottom: 0 })),
 			updateAccumulatedHeightDim: jest.fn(() => ({ height: 20, marginBottom: 0 })),
+			// biome-ignore lint/suspicious/noExplicitAny: test mock cast
 		} as any;
 
 		mockControlInfo = {
@@ -89,7 +93,7 @@ describe("nodeHandlers", () => {
 	describe("headingHandler", () => {
 		it("should handle H1 elements and create new page when `breakBefore` is `page`", async () => {
 			const h1 = document.createElement("h1");
-			Paginator.paginationInfo.nodeDimension["get"] = jest.fn(() => ({
+			Paginator.paginationInfo.nodeDimension.get = jest.fn(() => ({
 				height: 20,
 				marginTop: 0,
 				marginBottom: 0,
@@ -266,26 +270,26 @@ describe("nodeHandlers", () => {
 		});
 	});
 
-	describe("snippetHandler", () => {
-		it("should handle DIV elements with snippet component", async () => {
-			const snippet = document.createElement("div");
-			snippet.dataset.component = "snippet";
-			snippet.textContent = "Snippet content";
+	describe("fragmentHandler", () => {
+		it("should handle DIV elements with fragment component", async () => {
+			const fragment = document.createElement("div");
+			fragment.dataset.component = "fragment";
+			fragment.textContent = "Fragment content";
 
-			const { default: snippetHandler } = await import("@ext/markdown/elements/snippet/print/snippetHandler");
+			const { default: fragmentHandler } = await import("@ext/markdown/elements/fragment/print/fragmentHandler");
 
-			const result = await snippetHandler.handle(snippet, mockPaginator);
+			const result = await fragmentHandler.handle(fragment, mockPaginator);
 
 			expect(result).toBe(true);
 		});
 
-		it("should return false for DIV elements without snippet component", async () => {
+		it("should return false for DIV elements without fragment component", async () => {
 			const div = document.createElement("div");
 			div.textContent = "Regular div";
 
-			const { default: snippetHandler } = await import("@ext/markdown/elements/snippet/print/snippetHandler");
+			const { default: fragmentHandler } = await import("@ext/markdown/elements/fragment/print/fragmentHandler");
 
-			const result = await snippetHandler.handle(div, mockPaginator);
+			const result = await fragmentHandler.handle(div, mockPaginator);
 
 			expect(result).toBe(false);
 		});

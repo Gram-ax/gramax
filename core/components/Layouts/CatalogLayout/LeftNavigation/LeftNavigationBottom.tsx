@@ -1,4 +1,4 @@
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
@@ -13,8 +13,12 @@ import ArticleStatusBar from "../../StatusBar/Extensions/ArticleStatusBar/Articl
 import PinToggleArrowIcon from "./PinToggleArrowIcon";
 
 const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData; closeNavigation?: () => void }) => {
-	const { catalogName, sourceName } = useCatalogPropsStore(
-		(state) => ({ catalogName: state.data?.name, sourceName: state.data?.sourceName }),
+	const { catalogName, sourceName, resolvedVersion } = useCatalogPropsStore(
+		(state) => ({
+			catalogName: state.data?.name,
+			sourceName: state.data?.sourceName,
+			resolvedVersion: state.data?.resolvedVersion,
+		}),
 		"shallow",
 	);
 	const isCatalogExist = !!catalogName;
@@ -32,7 +36,8 @@ const LeftNavigationBottom = ({ data, closeNavigation }: { data: ArticlePageData
 	);
 	const canSeeStatusBar =
 		!isStaticOrStaticCli &&
-		((isNext && canConfigureCatalog) || (!isNext && (canReadContentCatalog || !sourceName)));
+		((isNext && canConfigureCatalog) || (!isNext && (canReadContentCatalog || !sourceName))) &&
+		!resolvedVersion;
 
 	return (
 		<div data-qa="qa-status-bar">

@@ -12,16 +12,24 @@ import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogP
 import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import type { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
+import Theme from "@ext/Theme/Theme";
 import { useCallback, useEffect, useState } from "react";
 
-type ExtendedCatalogEditProps = CatalogEditProps & {
+type LogoFileData = { content: string; fileName: string; type: string };
+
+type ExtendedCatalogEditProps = Omit<CatalogEditProps, "logo" | "logo_dark"> & {
 	icons: { name: string; content: string; size: number; type: string }[];
 	logo?: {
-		light?: null;
-		dark?: null;
+		light?: LogoFileData;
+		dark?: LogoFileData;
 	};
 	lfs?: { patterns: string[] };
 };
+
+const hasLogoField = (
+	logoData: ExtendedCatalogEditProps["logo"],
+	theme: "light" | "dark",
+): logoData is NonNullable<ExtendedCatalogEditProps["logo"]> => Boolean(logoData && Object.hasOwn(logoData, theme));
 
 interface UseCatalogPropsEditorActionsReturn {
 	allCatalogNames: string[];
@@ -37,7 +45,7 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const catalogProps = useCatalogPropsStore((state) => state, "shallow");
 	const articleProps = ArticlePropsService.value;
-	const { confirmChanges: confirmCatalogLogoChanges } = CatalogLogoService.value();
+	const { refreshLogo } = CatalogLogoService.value();
 	const router = useRouter();
 
 	const [open, setOpenInner] = useState(true);
@@ -49,23 +57,24 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 
 	const getOriginalProps = useCallback(async (): Promise<ExtendedCatalogEditProps> => {
 		const res = await FetchService.fetch(apiUrlCreator.getCustomIconsList());
-		if (!res.ok) return { ...getCatalogEditProps(catalogProps.data), icons: [] };
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { logo, logo_dark, ...baseProps } = getCatalogEditProps(catalogProps.data);
+		if (!res.ok) return { ...baseProps, icons: [] };
 		const icons = (await res.json()) ?? [];
 
 		const lfsOptions = allowedEditLfsOptions ? await getLfsOptions() : null;
 		const lfs = lfsOptions ? { patterns: lfsOptions.patterns } : { patterns: [] };
 
-		const editProps = getCatalogEditProps(catalogProps.data);
 		return {
-			...editProps,
+			...baseProps,
 			icons: icons.map((icon: IconEditorProps) => ({
 				name: icon.code,
 				content: icon.svg,
 				size: icon.size,
 				type: "image/svg+xml",
 			})),
-			filterProperty: editProps.filterProperty // we need to double check this because property may not exist anymore
-				? editProps.properties?.find((p) => p.name === editProps.filterProperty)?.name
+			filterProperty: baseProps.filterProperty
+				? baseProps.properties?.find((p) => p.name === baseProps.filterProperty)?.name
 				: null,
 			lfs,
 		};
@@ -136,6 +145,51 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 		[apiUrlCreator],
 	);
 
+	const updateLogoFiles = useCallback(
+		async (
+			logoData: ExtendedCatalogEditProps["logo"],
+			originalLogoName: string,
+			originalLogoDarkName: string,
+			catalogName: string,
+		): Promise<{ logo?: string; logo_dark?: string }> => {
+			const result: { logo?: string; logo_dark?: string } = {};
+
+			if (hasLogoField(logoData, "light")) {
+				if (originalLogoName) {
+					await FetchService.fetch(apiUrlCreator.deleteCatalogLogo(catalogName, Theme.light));
+				}
+				if (logoData.light) {
+					await FetchService.fetch(
+						apiUrlCreator.updateCatalogLogo(catalogName, logoData.light.fileName),
+						logoData.light.content,
+					);
+					result.logo = logoData.light.fileName;
+				} else {
+					result.logo = "";
+				}
+			}
+
+			if (hasLogoField(logoData, "dark")) {
+				if (originalLogoDarkName) {
+					await FetchService.fetch(apiUrlCreator.deleteCatalogLogo(catalogName, Theme.dark));
+				}
+
+				if (logoData.dark) {
+					await FetchService.fetch(
+						apiUrlCreator.updateCatalogLogo(catalogName, logoData.dark.fileName),
+						logoData.dark.content,
+					);
+					result.logo_dark = logoData.dark.fileName;
+				} else {
+					result.logo_dark = "";
+				}
+			}
+
+			return result;
+		},
+		[apiUrlCreator],
+	);
+
 	const onSubmit = useCallback(
 		async (newProps: ExtendedCatalogEditProps, defaultValues: ExtendedCatalogEditProps) => {
 			const originalProps: ExtendedCatalogEditProps = await getOriginalProps();
@@ -145,26 +199,31 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 				...newProps,
 			};
 
-			delete mergedProps.logo;
+			const { logo: logoFormData, icons, lfs, ...restMergedProps } = mergedProps;
 
 			setIsLoading(true);
 			setError(null);
 
 			try {
-				await deleteIcons(mergedProps.icons, defaultValues.icons);
-				await uploadIcons(mergedProps.icons);
-				delete mergedProps.icons;
+				await deleteIcons(icons, defaultValues.icons);
+				await uploadIcons(icons);
 
-				if (allowedEditLfsOptions && mergedProps.lfs) {
-					await updateLfsOptions({
-						patterns: mergedProps.lfs.patterns,
-					});
+				if (allowedEditLfsOptions && lfs) {
+					await updateLfsOptions({ patterns: lfs.patterns });
 				}
-				delete mergedProps.lfs;
+
+				const logoProps = await updateLogoFiles(
+					logoFormData,
+					catalogProps.data.logo,
+					catalogProps.data.logo_dark,
+					catalogProps.data.name,
+				);
+
+				const propsToSend = { ...restMergedProps, ...logoProps };
 
 				const response = await FetchService.fetch<ClientCatalogProps>(
 					apiUrlCreator.updateCatalogProps(),
-					JSON.stringify(mergedProps),
+					JSON.stringify(propsToSend),
 					MimeTypes.json,
 				);
 
@@ -178,7 +237,8 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 				const newPath = buildNewPath(newCatalogProps);
 				router.pushPath(newPath);
 
-				await confirmCatalogLogoChanges();
+				if (Object.keys(logoProps).length > 0) refreshLogo();
+
 				setOpen(false);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Unknown error occurred");
@@ -191,12 +251,14 @@ export const useCatalogPropsEditorActions = (onClose: () => void): UseCatalogPro
 			apiUrlCreator,
 			buildNewPath,
 			router,
-			confirmCatalogLogoChanges,
 			setOpen,
 			deleteIcons,
 			uploadIcons,
 			allowedEditLfsOptions,
 			updateLfsOptions,
+			updateLogoFiles,
+			catalogProps,
+			refreshLogo,
 		],
 	);
 

@@ -3,10 +3,12 @@ import FetchService from "@core-ui/ApiServices/FetchService";
 import type { CommentBlock } from "@core-ui/CommentBlock";
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
-import { addComment, deleteComment } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
+import { getEditorStore, setEditorStore } from "@core-ui/stores/EditorStore";
+import { addComment, deleteComment } from "@ext/markdown/elements/comment/edit/logic/stores/CommentsStore";
+import { addReviewItem, deleteReviewItem } from "@ext/review/logic/store/ReviewStore";
+import type { CommentReviewListItem } from "@ext/review/models/ReviewList";
 import type UserInfo from "@ext/security/logic/User/UserInfo";
-import type { Range } from "@tiptap/core";
+import type { JSONContent, Range } from "@tiptap/core";
 import { type RefObject, useCallback } from "react";
 
 const useCommentCallbacks = (articlePropsRef: RefObject<ClientArticleProps>) => {
@@ -25,14 +27,42 @@ const useCommentCallbacks = (articlePropsRef: RefObject<ClientArticleProps>) => 
 		[apiUrlCreator],
 	);
 
+	const onCommentSaved = useCallback(
+		(id: string, content: JSONContent[]) => {
+			addComment(articlePropsRef.current.pathname, pageData.userInfo, id, articlePropsRef.current.title);
+
+			const item: CommentReviewListItem = {
+				id,
+				type: "comments",
+				pathname: articlePropsRef.current.pathname,
+				date: new Date().toISOString(),
+				author: {
+					email: pageData.userInfo.mail,
+					name: pageData.userInfo.name,
+				},
+				commentBlock: {
+					comment: {
+						dateTime: new Date().toISOString(),
+						user: pageData.userInfo,
+						content,
+					},
+					answers: [],
+				},
+			};
+			addReviewItem(item);
+		},
+		[articlePropsRef, pageData.userInfo],
+	);
+
 	const onMarkAdded = useCallback(
 		(id: string) => {
-			const editor = EditorService.getEditor();
+			const editor = getEditorStore().editor;
 			if (!editor) return;
 
 			const data = editor.storage.comments?.find((comment) => comment.id === id);
 			const user = (data?.comment?.user as UserInfo) || pageData.userInfo;
-			addComment(articlePropsRef.current.pathname, user, id);
+			addComment(articlePropsRef.current.pathname, user, id, articlePropsRef.current.title);
+			setEditorStore({ review: true });
 			if (!data) return;
 
 			const url = apiUrlCreator.updateComment(id);
@@ -43,7 +73,7 @@ const useCommentCallbacks = (articlePropsRef: RefObject<ClientArticleProps>) => 
 
 	const onMarkDeleted = useCallback(
 		async (id: string, positions: Range[]) => {
-			const editor = EditorService.getEditor();
+			const editor = getEditorStore().editor;
 			if (!editor) return;
 
 			const data = await loadComment(id);
@@ -52,12 +82,15 @@ const useCommentCallbacks = (articlePropsRef: RefObject<ClientArticleProps>) => 
 				editor.storage.comments.push({ id, comment: data });
 			}
 
-			const user = (data?.comment?.user as UserInfo) || pageData.userInfo;
-			deleteComment(articlePropsRef.current.pathname, user, id);
-
 			if (positions.length) return;
+
+			const user = (data?.comment?.user as UserInfo) || pageData.userInfo;
 			const url = apiUrlCreator.deleteComment(id);
-			await FetchService.fetch(url);
+			const res = await FetchService.fetch(url);
+			if (!res.ok) return;
+
+			deleteComment(articlePropsRef.current.pathname, user, id);
+			deleteReviewItem(id);
 		},
 		[apiUrlCreator, loadComment, articlePropsRef, pageData.userInfo],
 	);
@@ -65,6 +98,7 @@ const useCommentCallbacks = (articlePropsRef: RefObject<ClientArticleProps>) => 
 	return {
 		onMarkAdded,
 		onMarkDeleted,
+		onCommentSaved,
 	};
 };
 

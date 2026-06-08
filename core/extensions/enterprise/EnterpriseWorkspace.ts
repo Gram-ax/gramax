@@ -19,7 +19,7 @@ export class EnterpriseWorkspace extends Workspace {
 	}
 
 	getGesUrl() {
-		return this._config.get("enterprise")?.gesUrl || this._config.get("gesUrl");
+		return this._config.get("enterprise")?.gesUrl;
 	}
 
 	private async _updateConfig(forceUpdate = false) {
@@ -33,7 +33,6 @@ export class EnterpriseWorkspace extends Workspace {
 			...this._config.get("enterprise"),
 			lastUpdateDate: Date.now(),
 		});
-		this._config.delete("gesUrl");
 
 		const [customCss, { light: lightIconData, dark: darkIconData }] = await Promise.all([
 			this._assets.style.getContent(),
@@ -74,6 +73,7 @@ export class EnterpriseWorkspace extends Workspace {
 				logoDark,
 			},
 			modules: this._config.get("enterprise")?.modules,
+			lfs: this._config.get("enterprise")?.lfs,
 		});
 		baseHasher.hash(calcTemplatesHash(wordTemplates));
 		baseHasher.hash(calcTemplatesHash(pdfTemplates));
@@ -102,15 +102,10 @@ export class EnterpriseWorkspace extends Workspace {
 		this._config.set("enterprise", {
 			...this._config.get("enterprise"),
 			modules: config.modules,
+			lfs: config.lfs,
 		});
 		if (config.services) this._config.set("services", config.services);
 		this._config.set("webEditorUrl", config.webEditorUrl);
-		if (this._config.get("pdfTemplates")) {
-			this._config.delete("pdfTemplates");
-		}
-		if (this._config.get("wordTemplates")) {
-			this._config.delete("wordTemplates");
-		}
 
 		config.style?.css ? await this._assets.style.setContent(config.style.css) : await this._assets.style.delete();
 		config.style?.logo

@@ -1,3 +1,4 @@
+import getGlobalFormatters from "@ext/markdown/core/edit/logic/Formatter/Formatters/getGlobalFormatters";
 import trimEndEmptyParagraphs from "@ext/markdown/core/edit/logic/Formatter/Utils/trimEndEmptyParagraphs";
 import MdParser from "@ext/markdown/core/Parser/MdParser/MdParser";
 import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
@@ -24,12 +25,14 @@ class MarkdownFormatter {
 		const markdownSerializer = new ProsemirrorMarkdownSerializer(
 			getNodeFormatters(context, [commentModifyFormatters]),
 			getMarkFormatters(context),
+			getGlobalFormatters(context),
 		);
 		const markdown = await markdownSerializer.serialize(Node.fromJSON(getSchema(), transformEditTree));
 		const privateContext = context ? createPrivateParserContext(context) : undefined;
 		const tags: Record<string, Schema> = getTagElementRenderModels(privateContext);
 		const mdParser = new MdParser({ tags });
-		return mdParser.backParse(markdown);
+		const result = mdParser.backParse(markdown);
+		return result;
 	}
 }
 

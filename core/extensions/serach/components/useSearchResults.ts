@@ -130,10 +130,10 @@ function getArticleRowItems(
 	setFocusItem: (item: FocusItem) => void,
 ): ArticleRowItem[] {
 	const addHiddenOrExpander = (
-		parentId: SearchItemRowId,
 		res: ArticleRowItem[],
 		paragraphCountBuffer: number,
 		showing: number,
+		expanderId: SearchItemRowId | undefined,
 		hiddens: ArticleRowParagraphItem[],
 	) => {
 		if (hiddens.length === 1) {
@@ -144,11 +144,8 @@ function getArticleRowItems(
 			return true;
 		}
 
-		if (paragraphCountBuffer <= showing) {
-			return false;
-		}
-
-		const expanderId = `${parentId}_expand`;
+		if (!expanderId) return false;
+		if (paragraphCountBuffer <= showing) return false;
 		const hiddenCount = paragraphCountBuffer - showing;
 		const expander: ArticleRowExpanderItem | ExpanderFocusItem = {
 			type: "expander",
@@ -161,7 +158,7 @@ function getArticleRowItems(
 					hiddens.length === HIDDEN_EXPAND_COUNT + 1
 						? hiddens[hiddens.length - 1]
 						: hiddens[Math.min(HIDDEN_EXPAND_COUNT, hiddens.length) - 1];
-				setShowing(parentId, newShowing);
+				setShowing(expanderId, newShowing);
 				setFocusItem(
 					lastShowingItem.focusable
 						? createLinkFocusItem(lastShowingItem)
@@ -179,48 +176,75 @@ function getArticleRowItems(
 		return true;
 	};
 
-	const handleItemsRecursively = (parentId: SearchItemRowId, items: SearchItemRow[], inFileBlock: boolean) => {
+	const handleItemsRecursively = (parentId: SearchItemRowId, items: SearchItemRow[], singleBlockFocus: boolean) => {
 		const res: ArticleRowItem[] = [];
+
 		let paragraphCountBuffer = 0;
-		const hiddens: ArticleRowParagraphItem[] = [];
-		const showing = showingMap.get(parentId) ?? DEFAULT_SHOW_PARAGRAPH;
+		let expanderId: SearchItemRowId | undefined;
+		let showing = DEFAULT_SHOW_PARAGRAPH;
+		let hiddens: ArticleRowParagraphItem[] = [];
+
+		const resetParagraphGroup = () => {
+			paragraphCountBuffer = 0;
+			expanderId = undefined;
+			showing = DEFAULT_SHOW_PARAGRAPH;
+			hiddens = [];
+		};
+
+		const setParagraphGroupStart = (groupStartId: SearchItemRowId) => {
+			expanderId = `${parentId}_expand_${groupStartId}`;
+			showing = showingMap.get(expanderId) ?? DEFAULT_SHOW_PARAGRAPH;
+		};
 
 		items.forEach((item) => {
 			const type = item.type;
 			switch (type) {
 				case "link": {
-					paragraphCountBuffer++;
 					const rowItem: ArticleRowParagraphItem = {
 						...item,
-						focusable: !inFileBlock,
+						focusable: !singleBlockFocus,
 					};
+					if (paragraphCountBuffer === 0) setParagraphGroupStart(rowItem.id);
+					paragraphCountBuffer++;
 
 					if (paragraphCountBuffer > showing) {
 						hiddens.push(rowItem);
 						break;
 					}
 
-					if (!inFileBlock) focusableCollector.addLinkItem(item);
+					if (!singleBlockFocus) focusableCollector.addLinkItem(item);
 
 					res.push(rowItem);
 					break;
 				}
 				case "block":
 				case "file-block": {
-					addHiddenOrExpander(parentId, res, paragraphCountBuffer, showing, hiddens);
-					paragraphCountBuffer = 0;
-					hiddens.length = 0;
+					addHiddenOrExpander(res, paragraphCountBuffer, showing, expanderId, hiddens);
+					resetParagraphGroup();
 
-					if (!inFileBlock) focusableCollector.addLinkItem(item);
+					if (!singleBlockFocus) focusableCollector.addLinkItem(item);
 
 					res.push({
 						...item,
-						focusable: !inFileBlock,
+						focusable: !singleBlockFocus,
 						children: handleItemsRecursively(
 							item.id,
 							item.children,
-							inFileBlock || item.type === "file-block",
+							singleBlockFocus || item.type === "file-block",
 						),
+					});
+					break;
+				}
+				case "diagram": {
+					addHiddenOrExpander(res, paragraphCountBuffer, showing, expanderId, hiddens);
+					resetParagraphGroup();
+
+					if (!singleBlockFocus) focusableCollector.addLinkItem(item);
+
+					res.push({
+						...item,
+						focusable: !singleBlockFocus,
+						children: handleItemsRecursively(item.id, item.children, true),
 					});
 					break;
 				}
@@ -229,7 +253,7 @@ function getArticleRowItems(
 			}
 		});
 
-		addHiddenOrExpander(parentId, res, paragraphCountBuffer, showing, hiddens);
+		addHiddenOrExpander(res, paragraphCountBuffer, showing, expanderId, hiddens);
 		return res;
 	};
 

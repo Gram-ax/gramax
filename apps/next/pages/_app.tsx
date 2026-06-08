@@ -1,7 +1,9 @@
+// biome-ignore lint/style/noRestrictedImports: CSS-only import for theme variables
+import "ics-ui-kit/theme.css";
+import "../../../core/ui-kit/index.css";
 import "../../../core/styles/main.css";
 import "../../../core/styles/chain-icon.css";
 import ContextProviders from "@components/ContextProviders";
-import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
 import OpenGraph from "@components/OpenGraph/OpenGraph";
 import type { PageProps } from "@components/Pages/models/Pages";
 import Language from "@core-ui/ContextServices/Language";
@@ -37,8 +39,10 @@ export default function App({
 
 	const router = useRouter();
 
+	const basePath = pageProps?.context?.conf?.basePath ?? "";
+
 	usePluginLoader({
-		basePath: pageProps.context?.conf?.basePath ?? "",
+		basePath: basePath ?? "",
 		workspacePath: pageProps.context?.workspace?.current,
 		gesUrl: pageProps?.context?.conf?.enterprise?.gesUrl,
 		enabled: !!pageProps.context,
@@ -51,7 +55,7 @@ export default function App({
 
 	const isArticle = pageProps?.page === "article";
 	const isReadonlyArticle = isArticle && pageProps.data.mode === "read";
-	const iconPath = `${pageProps?.context?.conf?.basePath ?? ""}/favicon.ico`;
+	const iconPath = `${basePath}/favicon.ico`;
 
 	return (
 		<>
@@ -69,15 +73,7 @@ export default function App({
 						<>
 							<NotificationsInit pageProps={pageProps} />
 							<ErrorBoundary context={pageProps.context}>
-								{isArticle ? (
-									<>
-										<CatalogComponent data={pageProps.data}>
-											<Component {...pageProps} />
-										</CatalogComponent>
-									</>
-								) : (
-									<Component {...pageProps} />
-								)}
+								<Component {...pageProps} />
 							</ErrorBoundary>
 						</>
 					</ContextProviders>

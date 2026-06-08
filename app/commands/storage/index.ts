@@ -1,7 +1,10 @@
 import getAllSyncableWorkspaces from "@app/commands/storage/getAllSyncableWorkspaces";
 import getAllSyncCount from "@app/commands/storage/getAllSyncCount";
 import getSourceDataUsage from "@app/commands/storage/getSourceDataUsage";
+import getStorageStats from "@app/commands/storage/getStorageStats";
 import getUnsupportedElements from "@app/commands/storage/import/getUnsupportedElements";
+import lfsPrune from "@app/commands/storage/lfsPrune";
+import runGc from "@app/commands/storage/runGc";
 import sourceData from "@app/commands/storage/sourceData";
 import cancelClone from "./cancelClone";
 import canPull from "./canPull";
@@ -11,6 +14,7 @@ import getSyncCount from "./getSyncCount";
 import getUrl from "./getUrl";
 import haveToPull from "./haveToPull";
 import publish from "./publish";
+import publishHealthcheck from "./publishHealthcheck";
 import removeCloneCatalog from "./removeCloneCatalog";
 import removeSourceData from "./removeSourceData";
 import resetFileLock from "./resetFileLock";
@@ -30,11 +34,15 @@ const storage = {
 	canPull,
 	getUrl,
 	publish,
+	publishHealthcheck,
 	getSyncCount,
 	getAllSyncCount,
 	getAllSyncableWorkspaces,
 	getCloneProgress,
 	getSourceDataUsage,
+	getStorageStats,
+	lfsPrune,
+	runGc,
 	removeSourceData,
 	removeCloneCatalog,
 	setSourceInvalidState,

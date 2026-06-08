@@ -1,8 +1,8 @@
 use std::cell::RefCell;
+use std::collections::HashSet;
 use std::fmt::Display;
 
 use git2::*;
-use indexmap::IndexSet;
 use itertools::intersperse;
 use itertools::Itertools;
 
@@ -17,6 +17,7 @@ const TAG: &str = "git:gc";
 
 pub trait Gc {
 	fn gc(&self, opts: GcOptions) -> Result<()>;
+	fn lfs_prune(&self) -> Result<usize>;
 	fn last_gc(&self) -> Result<Option<GcLog>>;
 }
 
@@ -106,6 +107,57 @@ impl<C: Creds> Gc for Repo<'_, C> {
 		self.handle_gc_result(gc_res, bad_objects, last_gc)
 	}
 
+	fn lfs_prune(&self) -> Result<usize> {
+		let lfs_dir = self.0.path().join("lfs/objects");
+		let all_lfs_files = match Self::walk_lfs_dir(&lfs_dir) {
+			Some((_, _, files)) => files,
+			None => return Ok(0),
+		};
+
+		let reachable = self.collect_reachable_lfs_hashes()?;
+
+		let prunable: Vec<_> = all_lfs_files
+			.into_iter()
+			.filter(|(hash, _)| !reachable.contains(hash.as_str()))
+			.collect();
+
+		let count = prunable.len();
+		info!(target: TAG, "lfs prune: removing {count} unreachable LFS objects");
+
+		let mut shard_dirs: HashSet<std::path::PathBuf> = HashSet::new();
+
+		for (hash, _) in &prunable {
+			let mid_dir = lfs_dir.join(&hash[..2]).join(&hash[2..4]);
+			let path = mid_dir.join(hash);
+			if path.exists() {
+				if let Err(e) = std::fs::remove_file(&path) {
+					error!(target: TAG, "failed to remove LFS object {hash}: {e}");
+					continue;
+				}
+			}
+			shard_dirs.insert(mid_dir);
+		}
+
+		for mid_dir in &shard_dirs {
+			if std::fs::read_dir(mid_dir).ok().and_then(|mut e| e.next()).is_none() {
+				if let Err(e) = std::fs::remove_dir(mid_dir) {
+					error!(target: TAG, "failed to remove empty LFS mid dir {}: {}", mid_dir.display(), e);
+					continue;
+				}
+			}
+
+			if let Some(prefix_dir) = mid_dir.parent() {
+				if std::fs::read_dir(prefix_dir).ok().and_then(|mut e| e.next()).is_none() {
+					if let Err(e) = std::fs::remove_dir(prefix_dir) {
+						error!(target: TAG, "failed to remove empty LFS prefix dir {}: {}", prefix_dir.display(), e);
+					}
+				}
+			}
+		}
+
+		Ok(count)
+	}
+
 	fn last_gc(&self) -> Result<Option<GcLog>> {
 		let log_path = self.0.path().join("gramax/gc.log");
 		let log = match std::fs::read_to_string(&log_path) {
@@ -130,8 +182,8 @@ impl<C: Creds> Gc for Repo<'_, C> {
 }
 
 impl<C: Creds> Repo<'_, C> {
-	pub fn collect_unreachable_objects(&self, loose_objects: &IndexSet<Oid>) -> Result<IndexSet<Oid>> {
-		let visited_objects = RefCell::new(IndexSet::new());
+	pub fn collect_unreachable_objects(&self, loose_objects: &HashSet<Oid>) -> Result<HashSet<Oid>> {
+		let visited_objects = RefCell::new(HashSet::new());
 
 		let opts = WalkOptions {
 			on_walk: &mut |oid| {
@@ -140,6 +192,7 @@ impl<C: Creds> Repo<'_, C> {
 			},
 			should_skip_object: &mut |oid| visited_objects.borrow().contains(&oid),
 			on_bad_object: &mut |_| {},
+			skip_revwalk: false,
 		};
 
 		self.walk(opts)?;
@@ -147,7 +200,7 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(loose_objects.difference(&visited_objects.into_inner()).cloned().collect())
 	}
 
-	pub fn collect_loose_objects(&self) -> Result<IndexSet<Oid>> {
+	pub fn collect_loose_objects(&self) -> Result<HashSet<Oid>> {
 		let objects_dir = self.0.path().join("objects");
 		let exclude = ["pack", "info"];
 
@@ -183,13 +236,13 @@ impl<C: Creds> Repo<'_, C> {
 					})
 					.ok()
 			})
-			.collect::<IndexSet<_>>();
+			.collect::<HashSet<_>>();
 
 		Ok(count)
 	}
 
 	pub fn debug_remove_object(&mut self, objects: &[Oid]) -> Result<()> {
-		let mut set = IndexSet::new();
+		let mut set = HashSet::new();
 		for oid in objects {
 			set.insert(*oid);
 		}
@@ -198,11 +251,11 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	pub fn remove_objects(&self, objects: &IndexSet<Oid>) -> Result<()> {
+	pub fn remove_objects(&self, objects: &HashSet<Oid>) -> Result<()> {
 		info!(target: TAG, "removing {} objects", objects.len());
 
 		let objects_path = self.0.path().join("objects");
-		let mut prefixes = std::collections::HashSet::new();
+		let mut prefixes = HashSet::new();
 
 		objects
 			.iter()
@@ -233,7 +286,7 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	fn gc_inner(&self, opts: GcOptions) -> Result<IndexSet<Oid>> {
+	fn gc_inner(&self, opts: GcOptions) -> Result<HashSet<Oid>> {
 		let start = time_now();
 		let loose_objects = self.collect_loose_objects()?;
 		let time_loose_objects = time_now() - start;
@@ -272,7 +325,7 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(unreachable_objects)
 	}
 
-	fn repack(&self, objects: &IndexSet<Oid>) -> Result<()> {
+	fn repack(&self, objects: &HashSet<Oid>) -> Result<()> {
 		let start = time_now();
 		self.ensure_objects_dir_exists()?;
 		let mut packbuilder = self.0.packbuilder()?;
@@ -297,7 +350,7 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	fn remove_lfs_objects(&self, objects: &IndexSet<Oid>) -> Result<()> {
+	fn remove_lfs_objects(&self, objects: &HashSet<Oid>) -> Result<()> {
 		for oid in objects {
 			let Ok(object) = self.0.find_blob(*oid) else {
 				warn!(target: TAG, "remove lfs objects: failed to find blob {oid}; skipping");
@@ -317,7 +370,7 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	fn write_gc_log(&self, gc_res: &Result<IndexSet<Oid>>, bad_objects: &[BadObject]) -> Result<()> {
+	fn write_gc_log(&self, gc_res: &Result<HashSet<Oid>>, bad_objects: &[BadObject]) -> Result<()> {
 		use std::io::Write;
 
 		let log_dir_path = self.0.path().join("gramax");
@@ -335,7 +388,7 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	fn handle_gc_result(&self, gc_res: Result<IndexSet<Oid>>, bad_objects: Vec<BadObject>, last_gc: Option<GcLog>) -> Result<()> {
+	fn handle_gc_result(&self, gc_res: Result<HashSet<Oid>>, bad_objects: Vec<BadObject>, last_gc: Option<GcLog>) -> Result<()> {
 		if gc_res.is_err() || !bad_objects.is_empty() {
 			let inner = gc_res.err().into_iter().find_map(|e| match e {
 				crate::error::Error::Git(e) => Some(e),

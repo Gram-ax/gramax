@@ -1,9 +1,8 @@
 import sendBug from "@ext/bugsnag/logic/sendBug";
-import DefaultErrorComponent from "@ext/errorHandlers/client/components/DefaultError";
 import ErrorHandler, { type ErrorHandlerProps } from "@ext/errorHandlers/client/components/ErrorHandler";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import type { ComponentType, ReactNode } from "react";
+import { ModalInlineError } from "./ModalInlineError";
 
 interface ModalErrorHandlerProps extends ErrorHandlerProps {
 	onClose: () => void;
@@ -14,17 +13,12 @@ interface ModalErrorHandlerProps extends ErrorHandlerProps {
 class ModalErrorHandler extends ErrorHandler<ModalErrorHandlerProps> {
 	override renderError() {
 		const children = (
-			<DefaultErrorComponent
-				error={
-					new DefaultError(
-						t("app.error.command-failed.body"),
-						this.state.error,
-						{ html: true, showCause: true },
-						false,
-						t("app.error.command-failed.title"),
-					)
-				}
-				onCancelClick={this.props.onClose}
+			<ModalInlineError
+				error={this.state.error}
+				isCommandError
+				message={t("app.error.command-failed.body")}
+				onClose={this.props.onClose}
+				title={t("app.error.command-failed.title")}
 			/>
 		);
 		const Wrapper = this.props.wrapper;

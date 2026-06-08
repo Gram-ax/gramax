@@ -1,10 +1,7 @@
-import Button from "@components/Atoms/Button/Button";
 import FileInput from "@components/Atoms/FileInput/FileInput";
 import getCodeLensDefaultText from "@components/Atoms/FileInput/getCodeLenseDefaultText";
 import getFileInputDefaultLanguage from "@components/Atoms/FileInput/getFileInputDefaultLanguage";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import LeftNavViewContent from "@components/Layouts/LeftNavViewContent/LeftNavViewContent";
-import Sidebar from "@components/Layouts/Sidebar";
+import SidebarArticleElement from "@components/Layouts/Sidebar";
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import styled from "@emotion/styled";
 import getCodeLensReversedText from "@ext/git/actions/MergeConflictHandler/error/logic/getCodeLensReversedText";
@@ -16,9 +13,22 @@ import FileInputMergeConflict, {
 import { GitMarkers } from "@ext/git/actions/MergeConflictHandler/Monaco/logic/mergeConflictParser";
 import GitMergeStatus from "@ext/git/actions/MergeConflictHandler/model/GitMergeStatus";
 import t from "@ext/localization/locale/translate";
+import { Button } from "@ui-kit/Button";
+import { Loader } from "@ui-kit/Loader";
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarProvider,
+} from "@ui-kit/Sidebar";
 import type { editor } from "monaco-editor";
 import type * as monacoType from "monaco-editor/esm/vs/editor/editor.api";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import SidebarArticleLink from "../../Publish/components/SidebarArticleLink";
 import type { GitMergeResultContent } from "../model/GitMergeResultContent";
 
@@ -44,7 +54,6 @@ const IconWrapper = styled.div<{ haveConflict: boolean }>`
 `;
 
 const SidebarWrapper = styled.div<{ isLoading: boolean }>`
-	padding: 1rem ${({ isLoading }) => (isLoading ? "1rem" : "0")} 1rem 1rem;
 	overflow: hidden;
 `;
 
@@ -53,7 +62,23 @@ const SidebarWithIcon = styled.div`
 	align-items: center;
 	gap: 0.5rem;
 	justify-content: space-between;
-	padding-right: 0.5rem;
+	width: 100%;
+`;
+
+const SidebarContainer = styled(SidebarProvider)`
+	height: 100%;
+	min-height: unset;
+	max-height: 100%;
+	overflow: hidden;
+
+	ul {
+		list-style: none !important;
+	}
+
+	li {
+		line-height: unset;
+		margin-bottom: unset;
+	}
 `;
 
 const makeDeleteConflictContent = (content: string): string => {
@@ -76,9 +101,9 @@ const initMergeFilesModel = (mergeFiles: GitMergeResultContent[]): MergeFileMode
 };
 
 const getCodeLensText = (type: GitMergeStatus, reverseMerge: boolean): CodeLensText => {
-	type = reverseMerge ? reverseMergeStatus(type) : type;
+	const resolvedType = reverseMerge ? reverseMergeStatus(type) : type;
 	const codeLensText = reverseMerge ? getCodeLensReversedText() : getCodeLensDefaultText();
-	switch (type) {
+	switch (resolvedType) {
 		case GitMergeStatus.AddedByThem:
 			return {
 				...codeLensText,
@@ -114,6 +139,7 @@ const MergeConflictHandler = ({
 	reverseMerge: boolean;
 }) => {
 	const [mergeFilesModel, setMergeFilesModel] = useState<MergeFileModel[]>(() => initMergeFilesModel(rawFiles));
+	const [selectedIdx, setSelectedIdx] = useState(0);
 	const currentIdx = useRef(0);
 
 	const editorRef = useRef<editor.IStandaloneCodeEditor>(null);
@@ -122,9 +148,9 @@ const MergeConflictHandler = ({
 
 	const isAllMergesResolved = mergeFilesModel.every((m) => m.conflictsCount === 0);
 
-	const currentOnMerge = () => {
+	const currentOnMerge = useCallback(() => {
 		onMerge(mergeFilesModel.map((m) => m.mergeFile));
-	};
+	}, [mergeFilesModel, onMerge]);
 
 	const initModelsExceptFirst = () => {
 		mergeFilesModel.forEach((model, idx) => {
@@ -155,105 +181,135 @@ const MergeConflictHandler = ({
 		return () => {
 			document.removeEventListener("keydown", keydownHandler, false);
 		};
-	}, [isAllMergesResolved]);
+	}, [isAllMergesResolved, currentOnMerge]);
+
+	const handleSidebarItemClick = (idx: number) => {
+		const prevIdx = currentIdx.current;
+		currentIdx.current = idx;
+		setSelectedIdx(idx);
+
+		const mergeModelBefore = mergeFilesModel[prevIdx];
+		if (editorRef.current && mergeModelBefore) {
+			mergeModelBefore.editorState.viewState = editorRef.current.saveViewState();
+		}
+
+		const currentMergeModel = mergeFilesModel[idx];
+
+		if (fileInputMergeConflictRef.current) {
+			const isConflictWithFileDelete = haveConflictWithFileDelete(currentMergeModel.mergeFile.status);
+			fileInputMergeConflictRef.current.haveConflictWithFileDelete = isConflictWithFileDelete;
+			fileInputMergeConflictRef.current.codeLensText = getCodeLensText(
+				currentMergeModel.mergeFile.status,
+				reverseMerge,
+			);
+		}
+
+		if (editorRef.current) {
+			editorRef.current.setModel(currentMergeModel.editorState.textModel);
+			fileInputMergeConflictRef.current?.onChange();
+			editorRef.current.restoreViewState(currentMergeModel.editorState.viewState);
+			editorRef.current.focus();
+		}
+	};
 
 	return (
-		<LeftNavViewContent
-			commonContent={
-				<FileInput
-					height={"100%"}
-					loading={<SpinnerLoader />}
-					onChange={(value) => {
-						mergeFilesModel[currentIdx.current].mergeFile.content = value;
-						const mergeConflictDescriptor =
-							fileInputMergeConflictRef.current?.mergeConfilctDescriptor ?? [];
-						mergeFilesModel[currentIdx.current].conflictsCount = mergeConflictDescriptor.length;
-						setMergeFilesModel([...mergeFilesModel]);
-					}}
-					onMount={(e, m, fileInputMergeConflict) => {
-						editorRef.current = e;
-						monacoRef.current = m;
-						fileInputMergeConflictRef.current = fileInputMergeConflict;
-
-						mergeFilesModel[0].editorState.textModel = e.getModel();
-						mergeFilesModel[0].editorState.viewState = e.saveViewState();
-						e.focus();
-
-						initModelsExceptFirst();
-						initConflictsCount();
-
-						if (fileInputMergeConflictRef.current) {
-							const isConflictWithFileDelete = haveConflictWithFileDelete(
-								mergeFilesModel[0].mergeFile.status,
-							);
-							fileInputMergeConflictRef.current.haveConflictWithFileDelete = isConflictWithFileDelete;
-							fileInputMergeConflictRef.current.codeLensText = getCodeLensText(
-								mergeFilesModel[0].mergeFile.status,
-								reverseMerge,
-							);
-						}
-					}}
-					value={mergeFilesModel[0].mergeFile.content}
-				/>
-			}
-			elements={mergeFilesModel.map((model) => {
-				const isLoading = model.conflictsCount === null;
-				const haveConflict = model.conflictsCount > 0;
-				const conflictCounterOrCheck = (
-					<IconWrapper haveConflict={haveConflict} key={model.mergeFile.path}>
-						<StatusBarElement
-							changeBackgroundOnHover={false}
-							iconCode={haveConflict ? "circle-x" : "check"}
-							iconStrokeWidth="1.6"
-							tooltipText={haveConflict ? t("git.merge.conflict.conflicts") : null}
+		<SidebarContainer>
+			<Sidebar className="h-full" collapsible="none" data-qa={`article-git-modal`}>
+				<SidebarContent className="left-sidebar">
+					<SidebarGroup>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{mergeFilesModel.map((model, idx) => {
+									const isLoading = model.conflictsCount === null;
+									const haveConflict = model.conflictsCount > 0;
+									const conflictCounterOrCheck = (
+										<IconWrapper haveConflict={haveConflict} key={model.mergeFile.path}>
+											<StatusBarElement
+												changeBackgroundOnHover={false}
+												iconCode={haveConflict ? "circle-x" : "check"}
+												iconStrokeWidth="1.6"
+												tooltipText={haveConflict ? t("git.merge.conflict.conflicts") : null}
+											>
+												{haveConflict && <span>{model.conflictsCount}</span>}
+											</StatusBarElement>
+										</IconWrapper>
+									);
+									return (
+										<SidebarMenuItem key={model.mergeFile.path}>
+											<SidebarMenuButton
+												className="h-auto"
+												isActive={selectedIdx === idx}
+												onClick={() => handleSidebarItemClick(idx)}
+											>
+												<SidebarWithIcon>
+													<SidebarWrapper isLoading={isLoading}>
+														<SidebarArticleElement title={model.mergeFile.title} />
+														<SidebarArticleLink filePath={{ path: model.mergeFile.path }} />
+													</SidebarWrapper>
+													{isLoading ? null : conflictCounterOrCheck}
+												</SidebarWithIcon>
+											</SidebarMenuButton>
+										</SidebarMenuItem>
+									);
+								})}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				</SidebarContent>
+				<SidebarFooter className="left-sidebar-footer">
+					<div className="p-4">
+						<Button
+							className="w-full"
+							disabled={!isAllMergesResolved}
+							onClick={currentOnMerge}
+							variant="primary"
 						>
-							{haveConflict && <span>{model.conflictsCount}</span>}
-						</StatusBarElement>
-					</IconWrapper>
-				);
-				return {
-					leftSidebar: (
-						<SidebarWithIcon>
-							<SidebarWrapper isLoading={isLoading}>
-								<Sidebar title={model.mergeFile.title} />
-								<SidebarArticleLink filePath={{ path: model.mergeFile.path }} />
-							</SidebarWrapper>
-							{isLoading ? null : conflictCounterOrCheck}
-						</SidebarWithIcon>
-					),
-				};
-			})}
-			onLeftSidebarClick={(idx) => {
-				const prevIdx = currentIdx.current;
-				currentIdx.current = idx;
+							{t("confirm")}
+						</Button>
+					</div>
+				</SidebarFooter>
+			</Sidebar>
+			<main className="w-full max-w-full overflow-hidden">
+				<div className="flex-1 h-full">
+					<FileInput
+						height={"100%"}
+						loading={<Loader size="lg" />}
+						onChange={(value) => {
+							mergeFilesModel[currentIdx.current].mergeFile.content = value;
+							const mergeConflictDescriptor =
+								fileInputMergeConflictRef.current?.mergeConfilctDescriptor ?? [];
+							mergeFilesModel[currentIdx.current].conflictsCount = mergeConflictDescriptor.length;
+							setMergeFilesModel([...mergeFilesModel]);
+						}}
+						onMount={(e, m, fileInputMergeConflict) => {
+							editorRef.current = e;
+							monacoRef.current = m;
+							fileInputMergeConflictRef.current = fileInputMergeConflict;
 
-				const mergeModelBefore = mergeFilesModel[prevIdx];
-				mergeModelBefore.editorState.viewState = editorRef.current.saveViewState();
+							mergeFilesModel[0].editorState.textModel = e.getModel();
+							mergeFilesModel[0].editorState.viewState = e.saveViewState();
+							e.focus();
 
-				const currentMergeModel = mergeFilesModel[idx];
+							initModelsExceptFirst();
+							initConflictsCount();
 
-				if (fileInputMergeConflictRef.current) {
-					const isConflictWithFileDelete = haveConflictWithFileDelete(currentMergeModel.mergeFile.status);
-					fileInputMergeConflictRef.current.haveConflictWithFileDelete = isConflictWithFileDelete;
-					fileInputMergeConflictRef.current.codeLensText = getCodeLensText(
-						currentMergeModel.mergeFile.status,
-						reverseMerge,
-					);
-				}
-
-				editorRef.current.setModel(currentMergeModel.editorState.textModel);
-				fileInputMergeConflictRef.current?.onChange();
-				editorRef.current.restoreViewState(currentMergeModel.editorState.viewState);
-				editorRef.current.focus();
-			}}
-			sideBarBottom={
-				<div style={{ padding: "1rem" }}>
-					<Button disabled={!isAllMergesResolved} fullWidth onClick={currentOnMerge}>
-						<span>{t("confirm")}</span>
-					</Button>
+							if (fileInputMergeConflictRef.current) {
+								const isConflictWithFileDelete = haveConflictWithFileDelete(
+									mergeFilesModel[0].mergeFile.status,
+								);
+								fileInputMergeConflictRef.current.haveConflictWithFileDelete = isConflictWithFileDelete;
+								fileInputMergeConflictRef.current.codeLensText = getCodeLensText(
+									mergeFilesModel[0].mergeFile.status,
+									reverseMerge,
+								);
+							}
+						}}
+						style={{ padding: "unset" }}
+						value={mergeFilesModel[0].mergeFile.content}
+					/>
 				</div>
-			}
-		/>
+			</main>
+		</SidebarContainer>
 	);
 };
 

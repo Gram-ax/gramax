@@ -1,11 +1,27 @@
 import parseStorageUrl from "@core/utils/parseStorageUrl";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
+import { getHref } from "@ext/markdown/elements/link/edit/logic/getHref";
 import { getLinkToHeading } from "@ext/markdown/elements/link/edit/logic/getLinkToHeading";
 import { getMarkEndPos } from "@ext/markdown/elementsUtils/getMarkEndPos";
 import { getMarkStartPos } from "@ext/markdown/elementsUtils/getMarkStartPos";
 import type { Editor } from "@tiptap/core";
 import type { Mark } from "@tiptap/pm/model";
 import { useCallback, useRef, useState } from "react";
+
+const normalizeLinkData = (relativePath: string, newHref: string, isExternal: boolean) => {
+	const parsedHref = getLinkToHeading(newHref);
+	const parsedRelativePath = getLinkToHeading(relativePath);
+
+	const href = parsedHref?.path ?? newHref;
+	const hash = parsedHref?.hash ?? "";
+	const resourcePath = parsedRelativePath?.path ?? relativePath;
+
+	return {
+		href,
+		hash,
+		resourcePath: isExternal ? newHref : resourcePath,
+	};
+};
 
 export const useLinkMenuState = (editor: Editor) => {
 	const [mark, setMark] = useState<Mark>(null);
@@ -15,13 +31,13 @@ export const useLinkMenuState = (editor: Editor) => {
 
 	const getMark = useCallback(
 		(pos: number) => {
-			const $currentPos = editor.state.doc.resolve(pos);
-			const $prevPos = editor.state.doc.resolve(pos - 1);
-			const $nextPos = editor.state.doc.resolve(pos + 1);
+			const currentPos = editor.state.doc.resolve(pos);
+			const prevPos = editor.state.doc.resolve(pos - 1);
+			const nextPos = editor.state.doc.resolve(pos + 1);
 
-			const nextMarkIsLink = $nextPos.marks().find((mark) => mark.type.name === "link");
-			const beforeMarkIsLink = $prevPos.marks().find((mark) => mark.type.name === "link");
-			const currentMarkIsLink = $currentPos.marks().find((mark) => mark.type.name === "link");
+			const nextMarkIsLink = nextPos.marks().find((mark) => mark.type.name === "link");
+			const beforeMarkIsLink = prevPos.marks().find((mark) => mark.type.name === "link");
+			const currentMarkIsLink = currentPos.marks().find((mark) => mark.type.name === "link");
 
 			return { after: nextMarkIsLink, before: beforeMarkIsLink, current: currentMarkIsLink };
 		},
@@ -70,7 +86,7 @@ export const useLinkMenuState = (editor: Editor) => {
 			setIsOpen(true);
 		}
 		return result.shouldShow;
-	}, [updateMarkState, setIsOpen]);
+	}, [updateMarkState]);
 
 	const getMarkPos = useCallback(() => {
 		const { from, to } = posRef.current || {};
@@ -97,40 +113,33 @@ export const useLinkMenuState = (editor: Editor) => {
 	);
 
 	const onUpdate = useCallback(
+		// biome-ignore lint/suspicious/noExplicitAny: access readonly attributes
 		(relativePath: string, newHref: string, mark: any) => {
 			const from = posRef.current?.from;
 			const to = posRef.current?.to;
-
-			let hash = "";
-			let href = mark.attrs.href;
 
 			const transaction = editor.state.tr;
 			const text = editor.state.doc.textBetween(from, to, undefined, " ");
 
 			transaction.removeMark(from, to, mark);
 
-			const hashHatch = getLinkToHeading(newHref);
 			const parsedUrl = parseStorageUrl(newHref);
 			const isArticle = parsedUrl.domain && parsedUrl.domain !== "...";
 			const { isExternal } = isExternalLink(newHref);
-			const textIsLink = text === mark.attrs.href;
+			const textIsLink = text === getHref(mark);
+			const { href, hash, resourcePath } = normalizeLinkData(relativePath, newHref, isExternal);
 
 			if (isExternal && textIsLink) transaction.deleteRange(from, to);
 
-			if (hashHatch) {
-				href = hashHatch[1];
-				hash = hashHatch?.[2] ?? "";
-			}
-
 			mark.attrs = {
 				...mark.attrs,
-				resourcePath: isArticle ? relativePath : isExternal ? newHref : href,
+				resourcePath: isArticle ? resourcePath : isExternal ? newHref : href,
 				hash,
-				href: newHref.split("#")?.[0],
+				href,
 			};
 
-			if (isExternal && textIsLink) transaction.insertText(href, from);
-			transaction.addMark(from, isExternal && textIsLink ? from + href.length : to, mark);
+			if (isExternal && textIsLink) transaction.insertText(newHref, from);
+			transaction.addMark(from, isExternal && textIsLink ? from + newHref.length : to, mark);
 			editor.view.dispatch(transaction);
 
 			setMark(mark);

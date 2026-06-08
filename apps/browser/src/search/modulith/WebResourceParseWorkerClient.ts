@@ -12,12 +12,12 @@ export class WebWorkerResourceParseClient extends WorkerResourceParseClientBase 
 		return new WebWorkerResourceParseClient();
 	}
 
-	protected override createWorker(): ResourceParseWorker {
+	protected override _createWorker(): ResourceParseWorker {
 		const worker = new Worker(new URL("./resourceParse.web.worker", import.meta.url), {
 			type: "module",
 		});
 
-		worker.addEventListener("message", (event) => this.handleMessage(event.data));
+		worker.addEventListener("message", (event) => this._handleMessage(event.data));
 		return {
 			postMessage: (message) => {
 				worker.postMessage(message);

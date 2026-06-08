@@ -6,7 +6,7 @@ export const databaseView = (description: NotionBlock[], selected: string[]) => 
 		{
 			type: "view",
 			attrs: {
-				defs: [{ name: "hierarchy", value: ["none"] }],
+				defs: [{ id: "hierarchy", value: ["none"] }],
 				select: selected,
 				display: "Table",
 			},

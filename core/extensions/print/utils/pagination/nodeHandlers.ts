@@ -1,11 +1,11 @@
 import codeBlockHandler from "@ext/markdown/elements/codeBlockLowlight/print/codeBlockHandler";
+import fragmentHandler from "@ext/markdown/elements/fragment/print/fragmentHandler";
 import headingHandler from "@ext/markdown/elements/heading/print/headingHandler";
 import annotationListHandler from "@ext/markdown/elements/image/print/annotationHandler";
 import imageHandler from "@ext/markdown/elements/image/print/imageHandler";
 import listHandler from "@ext/markdown/elements/list/print/listHandler";
 import noteHandler from "@ext/markdown/elements/note/print/noteHandler";
 import paragraphHandler from "@ext/markdown/elements/paragraph/print/paragraphHandler";
-import snippetHandler from "@ext/markdown/elements/snippet/print/snippetHandler";
 import tableHandler from "@ext/markdown/elements/table/print/tableHandler";
 import tabsHandler from "@ext/markdown/elements/tabs/print/tabsHandler";
 import viewHandler from "@ext/markdown/elements/view/print/viewHandler";
@@ -30,7 +30,7 @@ const printNodeHandlers: PrintNodeHandler[] = [
 	tableHandler,
 	codeBlockHandler,
 	listHandler,
-	snippetHandler,
+	fragmentHandler,
 	noteHandler,
 	tabsHandler,
 	viewHandler,

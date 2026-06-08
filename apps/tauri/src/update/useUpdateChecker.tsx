@@ -1,8 +1,6 @@
 import { env } from "@app/resolveModule/env";
 import useWatch from "@core-ui/hooks/useWatch";
-import t from "@ext/localization/locale/translate";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { toast } from "@ui-kit/Toast";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { updateCheck, updateInstall } from "../window/commands";
 
@@ -75,9 +73,12 @@ export enum UpdateAcceptance {
 
 const broadcast = new BroadcastChannel("update-events");
 
+const INSTALLED_TOAST_DURATION = 2500;
+
 const useUpdateChecker = () => {
 	const [state, setState] = useState<UpdateState>({ state: UpdateStatus.None, info: {} as Record<string, never> });
 	const [acceptance, setAcceptance] = useState<UpdateAcceptance>(UpdateAcceptance.None);
+	const [installed, setInstalled] = useState(false);
 
 	const ref = useRef(state);
 
@@ -88,10 +89,10 @@ const useUpdateChecker = () => {
 	}, []);
 
 	const install = useCallback(async () => {
-		await updateCheck(false);
+		setAcceptance(UpdateAcceptance.Accepted);
+		broadcast.postMessage({ type: "update:set-accept", payload: UpdateAcceptance.Accepted });
 		await updateInstall();
-		resetUpdate();
-	}, [resetUpdate]);
+	}, []);
 
 	const decline = useCallback(
 		(noemit?: boolean) => {
@@ -161,16 +162,12 @@ const useUpdateChecker = () => {
 
 		const maybeInstalled = env("UPDATE_INSTALLED");
 		if (maybeInstalled) {
-			setTimeout(() => {
-				toast(t("app.update.installed"), {
-					focus: "medium",
-					status: "success",
-					icon: "check-circle",
-					closeAction: false,
-					size: "sm",
-					duration: 2500,
-				});
-			}, 800);
+			const show = setTimeout(() => setInstalled(true), 800);
+			const hide = setTimeout(() => setInstalled(false), 800 + INSTALLED_TOAST_DURATION);
+			return () => {
+				clearTimeout(show);
+				clearTimeout(hide);
+			};
 		}
 	}, []);
 
@@ -181,7 +178,9 @@ const useUpdateChecker = () => {
 		if (acceptance === UpdateAcceptance.Declined) resetUpdate();
 	}, [acceptance, state, install, resetUpdate]);
 
-	return { state, resetUpdate, acceptance, install, accept, decline };
+	const dismissInstalled = useCallback(() => setInstalled(false), []);
+
+	return { state, resetUpdate, acceptance, install, accept, decline, installed, dismissInstalled };
 };
 
 export const resetLastUpdateCheck = () => {

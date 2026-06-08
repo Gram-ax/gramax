@@ -5,9 +5,9 @@ import type {
 	ResourceParseWorkerOutMessage,
 } from "@ext/serach/modulith/resourceParse/worker/types";
 import { createSimpleError } from "@ext/serach/modulith/utils/SimpleError";
-import type { ArticleItem } from "@ics/gx-vector-search";
-import { pdfToArticleItems } from "@ics/modulith-pdf-parse";
-import { AggregateProgress } from "@ics/modulith-utils";
+import type { ArticleItem } from "@ics/article-search/article";
+import { pdfToArticleItems } from "@ics/article-search-pdf-parse";
+import { AggregateProgress } from "@ics/article-search-utils";
 import { DOMParser } from "@xmldom/xmldom";
 import mammoth from "mammoth";
 import { PDFWorker } from "pdfjs-dist/legacy/build/pdf.mjs";

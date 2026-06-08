@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import resolveModule from "@app/resolveModule/backend";
 import LanguageService from "@core-ui/ContextServices/Language";
+import type { AppliedCatalogsView } from "@ext/catalog/views/models/CatalogViews";
 import type Cookie from "../../extensions/cookie/Cookie";
 import UiLanguage, {
 	ContentLanguage,
@@ -8,7 +9,6 @@ import UiLanguage, {
 	resolveLanguage,
 } from "../../extensions/localization/core/model/Language";
 import type AuthManager from "../../extensions/security/logic/AuthManager";
-import localUser from "../../extensions/security/logic/User/localUser";
 import type User from "../../extensions/security/logic/User/User";
 import type ThemeManager from "../../extensions/Theme/ThemeManager";
 import type ApiRequest from "../Api/ApiRequest";
@@ -47,7 +47,13 @@ export class ContextFactory {
 
 		const user = await this._am.getUser(cookie, query, req.headers);
 
-		return this._getContext({ cookie, user, query, domain: apiUtils.getDomain(req) });
+		return this._getContext({
+			cookie,
+			user,
+			query,
+			domain: apiUtils.getDomain(req),
+			viewId: cookie.get("viewIds"),
+		});
 	}
 
 	async fromBrowser({ language, query }: FromBrowserArgs): Promise<Context> {
@@ -57,8 +63,8 @@ export class ContextFactory {
 		query.l = language;
 		query.ui = LanguageService.currentUi();
 
-		const user = this._am.isEnterprise() ? await this._am.getUser(cookie, query) : localUser;
-		return this._getContext({ cookie, user, query, domain: getClientDomain() });
+		const user = await this._am.getUser(cookie, query);
+		return this._getContext({ cookie, user, query, domain: getClientDomain(), viewId: cookie.get("viewIds") });
 	}
 
 	private _getContext(props: {
@@ -66,8 +72,9 @@ export class ContextFactory {
 		cookie: Cookie;
 		domain: string;
 		query: { [key: string]: string | string[] };
+		viewId: string;
 	}) {
-		const { user, cookie, domain, query } = props;
+		const { user, cookie, domain, query, viewId } = props;
 		return {
 			user,
 			domain,
@@ -76,6 +83,7 @@ export class ContextFactory {
 			ui: (query?.ui || resolveLanguage()) as UiLanguage,
 			theme: this._tm?.getTheme(cookie),
 			refname: query?.refname as string,
+			viewId: JSON.parse(viewId || "{}") as AppliedCatalogsView,
 			toSpan: () => "<redacted>",
 		};
 	}

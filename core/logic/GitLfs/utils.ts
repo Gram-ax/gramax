@@ -6,7 +6,7 @@ export const isLikelyLfsPointer = (buf: Buffer): boolean => {
 	if (buf.length < 100 || buf.length > 200) return false;
 
 	for (let i = 0; i < SIGNATURE.length; i++) {
-		if (buf.readInt8(i) != SIGNATURE.readInt8(i)) return false;
+		if (buf.readInt8(i) !== SIGNATURE.readInt8(i)) return false;
 	}
 
 	return true;

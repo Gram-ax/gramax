@@ -1,3 +1,4 @@
+import Icon from "@components/Atoms/Icon";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import t from "@ext/localization/locale/translate";
@@ -21,5 +22,10 @@ export const NotificationSettingsButton = ({ itemRefPath }: NotificationSettings
 		);
 	};
 
-	return <DropdownMenuItem onSelect={handleOpenNotificationSettings}>{t("notifications.settings")}</DropdownMenuItem>;
+	return (
+		<DropdownMenuItem onSelect={handleOpenNotificationSettings}>
+			<Icon code="bell-dot" />
+			{t("notifications.settings")}
+		</DropdownMenuItem>
+	);
 };

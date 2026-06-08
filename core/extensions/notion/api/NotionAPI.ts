@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's osk */
 import resolveModule from "@app/resolveModule/frontend";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type { SourceAPI, SourceUser } from "@ext/git/actions/Source/SourceAPI";
@@ -14,6 +15,10 @@ export default class NotionAPI implements SourceAPI {
 		protected _data: NotionSourceData,
 		private _authServiceUrl?: string,
 	) {}
+
+	async healthcheck(): Promise<boolean> {
+		return true;
+	}
 
 	async getContent(pageId: string): Promise<NotionBlock[]> {
 		const res = await this._paginationApi(`blocks/${pageId}/children`);
@@ -137,7 +142,7 @@ export default class NotionAPI implements SourceAPI {
 			} catch (error) {
 				console.error(`Error on attempt ${attempt + 1}:`, error);
 			}
-			await new Promise((_resolve) => setTimeout(_resolve, RETRY_DELAY_MS));
+			await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
 		}
 
 		return { status: 500, body: "Internal Server Error" };

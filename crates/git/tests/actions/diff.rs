@@ -16,6 +16,7 @@ fn diff_head2workdir(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) 
 		compare: DiffCompareOptions::Tree2Workdir { tree: None },
 		renames: false,
 		use_merge_base: false,
+		pathspecs: None,
 	};
 
 	let diff = repo.diff(opts)?;
@@ -57,6 +58,7 @@ fn diff_head2workdir_with_renames(sandbox: TempDir, #[with(&sandbox)] repo: Repo
 		compare: DiffCompareOptions::Tree2Workdir { tree: None },
 		renames: true,
 		use_merge_base: false,
+		pathspecs: None,
 	};
 	let diff = repo.diff(opts)?;
 
@@ -94,6 +96,7 @@ fn diff_tree2tree(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) -> 
 		},
 		renames: false,
 		use_merge_base: false,
+		pathspecs: None,
 	};
 
 	let diff = repo.diff(opts)?;
@@ -130,6 +133,7 @@ fn diff_tree2index(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) ->
 		},
 		renames: false,
 		use_merge_base: false,
+		pathspecs: None,
 	};
 
 	let diff = repo.diff(opts)?;
@@ -165,6 +169,7 @@ fn diff_tree2workdir(sandbox: TempDir, #[with(&sandbox)] repo: Repo<TestCreds>) 
 		},
 		renames: false,
 		use_merge_base: false,
+		pathspecs: None,
 	};
 
 	let diff = repo.diff(opts)?;

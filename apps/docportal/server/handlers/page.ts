@@ -43,7 +43,9 @@ const page = async (serverContext: ServerContext) => {
 		const isAdmin = path.pathname.startsWith("/admin");
 
 		const ctx = await app.contextFactory.fromNode({ req, res, query: Object.fromEntries(path.searchParams) });
-		const data = await withContext<PageProps>(ctx, () => commands.page.getPageData.do({ path: fullPath, ctx }));
+		const data = await withContext<PageProps>(ctx, () =>
+			commands.page.getPageData.do({ path: fullPath, ctx, options: { mode: "read" } }),
+		);
 
 		const html = renderHtml(isAdmin, data);
 		return res.mergeInto(new Response(html, { headers: { "Content-Type": "text/html" } }));

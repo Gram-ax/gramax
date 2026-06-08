@@ -1,7 +1,6 @@
 import useWatch from "@core-ui/hooks/useWatch";
-import styled from "@emotion/styled";
+import { getEditorStore, setEditorStore } from "@core-ui/stores/EditorStore";
 import type { CustomDecorations } from "@ext/markdown/elements/find/edit/components/ArticleSearchHotkeyView";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import type { Editor } from "@tiptap/core";
 import { type FC, useEffect, useRef, useState } from "react";
 import FindReplaceModal from "./FindReplaceModal";
@@ -26,7 +25,7 @@ interface ArticleSearchProps {
 const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 	const { editor, closeHandle, openHandle, className, isOpen, ...otherProps } = props;
 	const ref = useRef<HTMLDivElement>(null);
-	const searchState = EditorService.getData("search");
+	const searchState = getEditorStore().search;
 	const [openKey, setOpenKey] = useState(0);
 	const [selectionText, setSelectionText] = useState("");
 	const [caseSensitive, setCaseSensitive] = useState(searchState.caseSensitive);
@@ -49,7 +48,7 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 		savedSelection.current = editor?.view?.state?.selection || null;
 	}, [editor?.view?.state?.selection]);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const keydownCallback = (event: KeyboardEvent) => {
 			const action: (e: KeyboardEvent) => void = {
@@ -83,8 +82,8 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 	}, [isOpen, closeHandle, openHandle, editor]);
 
 	const updateSearchState = (partial: Partial<typeof searchState>) => {
-		const current = EditorService.getData("search");
-		EditorService.setData("search", { ...current, ...partial });
+		const current = getEditorStore().search;
+		setEditorStore({ search: { ...current, ...partial } });
 	};
 
 	const handleSetInitialFindText = (value: string) => {
@@ -115,7 +114,10 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 	if (!isOpen || !editor) return null;
 
 	return (
-		<div className={className} ref={ref}>
+		<div
+			className="absolute right-6 top-6 px-[10px] text-sm brightness-110 rounded-[var(--radius-large)] text-[var(--color-article-text)] bg-[var(--color-article-bg)] shadow-soft-md z-[var(--z-index-article-search)]"
+			ref={ref}
+		>
 			<FindReplaceModal
 				caseSensitive={caseSensitive}
 				editor={editor}
@@ -138,19 +140,4 @@ const ArticleSearchComponent: FC<ArticleSearchProps> = (props) => {
 	);
 };
 
-const StyledArticleSearch = styled(ArticleSearchComponent)`
-	right: 24px;
-	top: 24px;
-	position: absolute;
-	z-index: var(--z-index-article-search);
-	padding: 0 10px;
-
-	font-size: 0.875rem;
-	filter: brightness(1.1);
-	color: var(--color-article-text);
-	border-radius: var(--radius-large);
-	background: var(--color-article-bg);
-	box-shadow: var(--menu-tooltip-shadow);
-`;
-
-export default StyledArticleSearch;
+export default ArticleSearchComponent;

@@ -8,29 +8,29 @@ const getWordResourceManager = async (
 	resourceManager: ResourceManager,
 ) => {
 	return (
-		(addOptions?.snippetId && (await getSnippetResourceManager(addOptions.snippetId, parserContext))) ||
+		(addOptions?.fragmentId && (await getFragmentResourceManager(addOptions.fragmentId, parserContext))) ||
 		resourceManager
 	);
 };
 
-const getSnippetResourceManager = async (
-	snippetId: string,
+const getFragmentResourceManager = async (
+	fragmentId: string,
 	parserContext: ParserContext,
 ): Promise<ResourceManager | undefined> => {
 	const catalog = parserContext?.getCatalog?.();
-	const snippetProvider = catalog?.customProviders?.snippetProvider;
-	if (!snippetProvider) return;
+	const fragmentProvider = catalog?.customProviders?.fragmentProvider;
+	if (!fragmentProvider) return;
 
-	const snippetArticle = snippetProvider.getArticle(snippetId);
-	if (!snippetArticle) return;
+	const fragmentArticle = fragmentProvider.getArticle(fragmentId);
+	if (!fragmentArticle) return;
 
-	const readResourceManager = () => snippetArticle.parsedContent.read((p) => p?.parsedContext?.getResourceManager());
+	const readResourceManager = () => fragmentArticle.parsedContent.read((p) => p?.parsedContext?.getResourceManager());
 
 	let resourceManager = await readResourceManager();
 	if (resourceManager) return resourceManager;
 
-	const snippetContext = parserContext.createContext(snippetArticle);
-	await snippetProvider.getRenderData(snippetId, snippetContext);
+	const fragmentContext = parserContext.createContext(fragmentArticle);
+	await fragmentProvider.getRenderData(fragmentId, fragmentContext);
 
 	resourceManager = await readResourceManager();
 	return resourceManager;

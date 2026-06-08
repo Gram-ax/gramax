@@ -14,10 +14,12 @@ interface AlertErrorProps {
 const AlertError = ({ title, error, isHtmlMessage }: AlertErrorProps): ReactElement => {
 	return (
 		<Alert title={title ?? t("app.error.something-went-wrong")} type={AlertType.error}>
+			{/** biome-ignore lint/style/useNamingConvention: expected */}
 			{isHtmlMessage ? <div dangerouslySetInnerHTML={{ __html: error.message }} /> : <div>{error.message}</div>}
+
 			{error.stack && (
 				<Note collapsed={true} disableRender={true} title={t("alert.details")} type={NoteType.danger}>
-					<CodeBlock value={error.stack} />
+					<CodeBlock>{error.stack}</CodeBlock>
 				</Note>
 			)}
 		</Alert>

@@ -21,7 +21,7 @@ build-desktop-web:
     KUBERNETES_MEMORY_REQUEST: '8Gi'
     KUBERNETES_CPU_REQUEST: '1.5'
     KUBERNETES_CPU_LIMIT: '2'
-    NODE_OPTIONS: "--max-old-space-size=6144"
+    NODE_OPTIONS: '--max-old-space-size=6144'
   before_script:
     - !reference [.template.github-ssh-key, before_script]
   script:
@@ -87,3 +87,26 @@ build-mobile-android:
   script:
     - ./gx make-icons
     - ./gx build --android --upload
+
+build-desktop-macos-dev:
+  extends: .template.build.apps
+  interruptible: true
+  needs: []
+  dependencies: []
+  tags:
+    - shell-macos-arm64v8
+  rules:
+    - !reference [.rules, build, merge_request]
+  when: manual
+  before_script:
+    - rm -rf ./services
+    - ./install-deps.sh
+  script:
+    - ./gx make-icons
+    - ./gx build --web --darwin-aarch64 --product-name "Gramax Test ($CI_COMMIT_REF_SLUG)"
+  artifacts:
+    when: on_success
+    access: all
+    expire_in: '1 day'
+    paths:
+      - ./apps-build-artifacts/darwin-aarch64/*.dmg

@@ -2,8 +2,8 @@ import BrowserLazyDiffFileInput from "@components/Atoms/FileInput/DiffFileInput/
 import BrowserLazyFileInput from "@components/Atoms/FileInput/LazyFileInput";
 import BrowserLink from "../../../apps/browser/src/components/Atoms/Link";
 import useUrlObjectImage from "../../../apps/browser/src/hooks/useUrlObjectImage";
-import BrowserFetchService from "../../../apps/browser/src/logic/Api/BrowserFetchService";
 import BrowserRouter from "../../../apps/browser/src/logic/Api/BrowserRouter";
+import getBrowserFetchService from "../../../apps/browser/src/logic/Api/getBrowserFetchService";
 import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
 import type { DynamicModules } from "..";
 
@@ -11,7 +11,7 @@ export const getBrowserModules = (): DynamicModules => {
 	return {
 		Link: BrowserLink,
 		Router: BrowserRouter,
-		Fetcher: BrowserFetchService,
+		Fetcher: getBrowserFetchService(),
 		useImage: useUrlObjectImage,
 		openChildWindow: (params) => window.open(params.url, params.name, params.features),
 		enterpriseLogin: () => Promise.resolve(null),

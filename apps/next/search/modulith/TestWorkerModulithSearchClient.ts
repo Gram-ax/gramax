@@ -23,7 +23,7 @@ export class TestWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 
 	static async create(options: WorkerModulithSearchClientBaseOptions): Promise<TestWorkerModulithSearchClient> {
 		const client = new TestWorkerModulithSearchClient(options);
-		await client.init();
+		await client._init();
 		return client;
 	}
 
@@ -44,11 +44,11 @@ export class TestWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 		return await super.getArticlePayloads(args);
 	}
 
-	protected override async init(): Promise<void> {
-		this.worker = this.createWorker();
+	protected override async _init(): Promise<void> {
+		this._worker = this._createWorker();
 	}
 
-	protected override createWorker(): SearchWorker {
+	protected override _createWorker(): SearchWorker {
 		return {
 			postMessage: (msg) => {
 				void this._handleInMessage(msg);
@@ -71,10 +71,10 @@ export class TestWorkerModulithSearchClient extends WorkerModulithSearchClientBa
 
 		this._handleInMessage = (msg) => {
 			handleMessage(msg, (data) => {
-				void this.handleMessage(data);
+				void this._handleMessage(data);
 			});
 		};
 
-		await super.init();
+		await super._init();
 	}
 }

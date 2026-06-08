@@ -1,8 +1,9 @@
 import docx from "@dynamicImports/docx";
 import { wordFontSizes, wordFontTypes } from "@ext/wordExport/options/wordExportSettings";
-import type { IPropertiesOptions } from "core/utils/docx";
-import type { LevelFormat } from "docx";
+import type { File, LevelFormat } from "docx";
 import { getMmToTw, LIST_HANGING_MM, LIST_LEFT_INDENT_MM } from "../lists/consts";
+
+type IPropertiesOptions = ConstructorParameters<typeof File>[0];
 
 const levelText = {
 	0: "\u00B7",

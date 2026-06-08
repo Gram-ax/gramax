@@ -26,8 +26,7 @@ export default class SecurityRules implements RuleCollection, EventHandlerCollec
 	}
 
 	mount(): void {
-		this._nav.events.on("filter-item", ({ catalog, item, link }) => {
-			if (this._isPrivate(item)) link.icon = "lock-open";
+		this._nav.events.on("filter-item", ({ catalog, item }) => {
 			return this._canReadItem(item, catalog.name);
 		});
 
@@ -65,10 +64,6 @@ export default class SecurityRules implements RuleCollection, EventHandlerCollec
 
 	private _canRead(itemPermission: IPermission, catalogName: string): boolean {
 		return canReadImpl(this._environment, this._currentUser, catalogName, itemPermission);
-	}
-
-	private _isPrivate(item: Item): boolean {
-		return item.neededPermission.isWorked();
 	}
 }
 

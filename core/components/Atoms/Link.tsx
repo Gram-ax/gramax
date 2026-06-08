@@ -6,17 +6,25 @@ interface LinkProps extends HTMLAttributes<HTMLAnchorElement> {
 	href: BaseLink;
 	children: ReactNode;
 	dataQa?: string;
+	ensureLeadingSlash?: boolean;
 }
 
 const Link = forwardRef((props: LinkProps, ref: RefObject<HTMLAnchorElement>) => {
 	const ExternalLink = resolveModule("Link");
 
+	const { ensureLeadingSlash = true, ...rest } = props;
 	const pathname = props.href.pathname;
 	const newProps = {
-		...props,
+		...rest,
 		href: {
 			...props.href,
-			pathname: pathname.startsWith("/") || pathname.startsWith("#") ? pathname : "/" + pathname,
+			pathname:
+				ensureLeadingSlash &&
+				!pathname.startsWith("/") &&
+				!pathname.startsWith("#") &&
+				!pathname.startsWith("?")
+					? `/${pathname}`
+					: pathname,
 		},
 	};
 

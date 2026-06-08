@@ -107,11 +107,27 @@
 			"attrs": {
 				"attributes": {
 					"src": "image.png",
-					"crop": "10,10,80,80",
-					"scale": "50",
+					"scale": 50,
 					"width": "522px",
+					"float": "center",
 					"height": "271px",
-					"objects": "square,50,50,25,25,asd,top-left"
+					"crop": {
+						"h": 80,
+						"w": 80,
+						"x": 10,
+						"y": 10
+					},
+					"objects": [
+						{
+							"direction": "top-left",
+							"h": 25,
+							"text": "asd",
+							"type": "square",
+							"w": 25,
+							"x": 50,
+							"y": 50
+						}
+					]
 				}
 			},
 			"content": [{ "type": "text", "text": "image alt" }]

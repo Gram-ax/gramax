@@ -1,7 +1,7 @@
 import Workspace from "@core-ui/ContextServices/Workspace";
+import { getEditorStore } from "@core-ui/stores/EditorStore";
 import type { PropsEditorFormValues } from "@ext/item/actions/propsEditor/components/PropsEditor";
 import t from "@ext/localization/locale/translate";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { getQuizBlocksCount, isQuizArticle } from "@ext/quiz/logic/getQuizBlocksCount";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@ui-kit/Collapsible";
 import { Divider } from "@ui-kit/Divider";
@@ -37,8 +37,8 @@ export const QuizSettingsFields = ({ isCurrentItem, form }: QuizSettingsFieldsPr
 		[form],
 	);
 
-	const quizBlocksCount = useMemo(() => getQuizBlocksCount(EditorService.getEditor()?.getJSON()), []);
-	const isQuiz = useMemo(() => isQuizArticle(EditorService.getEditor()?.getJSON()), []);
+	const quizBlocksCount = useMemo(() => getQuizBlocksCount(getEditorStore().editor?.getJSON()), []);
+	const isQuiz = useMemo(() => isQuizArticle(getEditorStore().editor?.getJSON()), []);
 
 	if (!showQuizSettings || !isCurrentItem || !isQuiz) return null;
 

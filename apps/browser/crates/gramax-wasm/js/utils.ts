@@ -1,6 +1,7 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
 
+// biome-ignore lint/suspicious/noExplicitAny: i don't give a shit
 const w = self as any;
 
 export const alloc = async (buffer: Uint8Array): Promise<number> => {
@@ -30,7 +31,7 @@ export const ptr2bytes = (buff_ptr: number) => {
 	const ptr = dataView.getUint32(4, true); // buffer.ptr
 	const ok = dataView.getUint8(8) !== 1; // buffer.err
 	const buf = mem.slice(ptr, ptr + len);
-	w.wasm._rfree(ptr, len);
+	if (ptr) w.wasm._rfree(ptr, len);
 	w.wasm._rfree(buff_ptr, 9);
 	return { buf, ok };
 };

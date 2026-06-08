@@ -1,15 +1,16 @@
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
 import { css } from "@emotion/react";
 import styled from "@emotion/styled";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 interface StatusBarWrapperProps {
 	children?: JSX.Element;
 	dataQa?: string;
 	onClick?: () => void;
+	disable?: boolean;
 	iconCode?: string;
 	iconStyle?: CSSProperties;
-	tooltipText?: string;
+	tooltipText?: ReactNode;
 	tooltipArrow?: boolean;
 	showTooltip?: boolean;
 	isShow?: boolean;
@@ -34,6 +35,7 @@ const StatusBarWrapper = (props: StatusBarWrapperProps) => {
 		children,
 		dataQa,
 		onClick,
+		disable,
 		iconCode,
 		iconStyle,
 		tooltipText,
@@ -46,6 +48,7 @@ const StatusBarWrapper = (props: StatusBarWrapperProps) => {
 	return (
 		<Wrapper data-qa={dataQa} show={isShow} style={additionalStyles}>
 			<StatusBarElement
+				disable={disable}
 				iconCode={iconCode}
 				iconStrokeWidth={iconStrokeWidth}
 				iconStyle={iconStyle}

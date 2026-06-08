@@ -7,10 +7,10 @@ import { codeBlockHandler } from "@ext/markdown/elements/codeBlockLowlight/pdf/c
 import { colorHandler } from "@ext/markdown/elements/color/pdf/color";
 import { cutInlineHandler } from "@ext/markdown/elements/cut/pdf/cutInline";
 import { diagramdbHandler } from "@ext/markdown/elements/diagramdb/pdf/diagramdb";
-import { mermaidHandler } from "@ext/markdown/elements/diagrams/diagrams/mermaid/pdf/mermaid";
-import { plantUmlHandler } from "@ext/markdown/elements/diagrams/diagrams/plantUml/pdf/plantUml";
+import { diagramsPdfLayout } from "@ext/markdown/elements/diagrams/pdf/diagrams";
 import { drawioHandler } from "@ext/markdown/elements/drawio/pdf/drawio";
 import { emHandler } from "@ext/markdown/elements/em/pdf/em";
+import { fragmentCase } from "@ext/markdown/elements/fragment/pdf/fragment";
 import { headingHandler } from "@ext/markdown/elements/heading/pdf/heading";
 import { highlightHandler } from "@ext/markdown/elements/highlight/pdf/highlight";
 import { hrHandler } from "@ext/markdown/elements/hr/pdf/hr";
@@ -27,7 +27,6 @@ import { orderedListHandler } from "@ext/markdown/elements/list/pdf/orderedList"
 import { moduleHandler } from "@ext/markdown/elements/module/pdf/module";
 import { noteHandler } from "@ext/markdown/elements/note/pdf/note";
 import { paragraphCase } from "@ext/markdown/elements/paragraph/pdf/paragraph";
-import { snippetCase } from "@ext/markdown/elements/snippet/pdf/snippet";
 import { strikeHandler } from "@ext/markdown/elements/strikethrough/pdf/strike";
 import { strongHandler } from "@ext/markdown/elements/strong/pdf/storng";
 import { tableCase } from "@ext/markdown/elements/table/pdf/table";
@@ -76,17 +75,16 @@ export const blockLayouts = {
 	hr: hrHandler,
 	Video: videoHandler,
 	Image: imageHandler,
-	Drawio: drawioHandler,
-	"Plant-uml": plantUmlHandler,
-	Mermaid: mermaidHandler,
+	drawio: drawioHandler,
 	Include: includeHandler,
 	tabs: tabsHandler,
 	tab: tabsHandler,
 	Table: tableCase,
-	snippet: snippetCase,
+	fragment: fragmentCase,
 	"Db-diagram": diagramdbHandler,
 	"Db-table": tabledbHandler,
-	View: viewCase,
+	diagrams: diagramsPdfLayout,
+	view: viewCase,
 	"block-property": blockPropertyHandler,
 	// cut
 	// blockquote

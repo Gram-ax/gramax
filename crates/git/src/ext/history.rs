@@ -1,8 +1,11 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::ops::Deref;
 use std::path::Path;
 
 use git2::*;
+
+use chrono::{DateTime, Utc};
 
 use serde::Deserialize;
 use serde::Serialize;
@@ -16,6 +19,7 @@ use crate::OidInfo;
 use crate::Result;
 use crate::ShortInfo;
 use crate::SignatureInfo;
+use crate::utils::md_frontmatter::MdFrontmatterParser;
 
 const TAG: &str = "git:history";
 
@@ -46,12 +50,39 @@ pub struct BranchCommitsInfo {
 	pub commits: Vec<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitFilterOptions {
+	pub authors: Option<Vec<String>>,
+	pub before_date: Option<String>,
+	pub after_date: Option<String>,
+	pub paths: Option<Vec<String>>,
+}
+
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct CommitInfoOpts {
 	pub depth: usize,
 	#[serde(default)]
 	pub simplify: bool,
+	pub filters: Option<CommitFilterOptions>,
+	pub include_changed_files: Option<bool>,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct ChangedFileInfo {
+	pub path: String,
+	pub title: Option<String>,
+}
+
+#[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct StatInfo {
+	pub added: usize,
+	pub deleted: usize,
+	pub changed_files: Option<Vec<ChangedFileInfo>>,
 }
 
 #[derive(Serialize, Debug)]
@@ -62,6 +93,7 @@ pub struct CommitInfo {
 	pub oid: OidInfo,
 	pub summary: String,
 	pub parents: Vec<OidInfo>,
+	pub stat: StatInfo,
 }
 
 pub trait History {
@@ -78,19 +110,149 @@ impl<C: Creds> History for Repo<'_, C> {
 	fn get_commit_info(&self, oid: Oid, opts: CommitInfoOpts) -> Result<Vec<CommitInfo>> {
 		let mut res = Vec::with_capacity(opts.depth);
 
+		let filter_authors: Option<HashSet<&str>> = opts
+			.filters
+			.as_ref()
+			.and_then(|f| f.authors.as_deref())
+			.filter(|v| !v.is_empty())
+			.map(|v| v.iter().map(|s| s.as_str()).collect());
+
+		let filter_before = opts
+			.filters
+			.as_ref()
+			.and_then(|f| f.before_date.as_deref())
+			.and_then(|s| DateTime::parse_from_rfc3339(s).ok())
+			.map(|dt| dt.with_timezone(&Utc).timestamp());
+
+		let filter_after = opts
+			.filters
+			.as_ref()
+			.and_then(|f| f.after_date.as_deref())
+			.and_then(|s| DateTime::parse_from_rfc3339(s).ok())
+			.map(|dt| dt.with_timezone(&Utc).timestamp());
+
+		let include_changed_files = opts.include_changed_files.unwrap_or(false);
+		let filter_paths = opts.filters.as_ref().and_then(|f| f.paths.as_deref()).filter(|p| !p.is_empty());
+
+		let mut diff_opts = filter_paths.map(|paths| {
+			let mut opts = DiffOptions::new();
+			for path in paths {
+				opts.pathspec(path);
+			}
+			opts.skip_binary_check(true);
+			opts.include_typechange(false);
+			opts.ignore_blank_lines(true);
+			opts.patience(false);
+			return opts;
+		});
+
 		let mut revwalk = self.0.revwalk()?;
-		revwalk.set_sorting(Sort::TOPOLOGICAL)?;
+		revwalk.set_sorting(Sort::TOPOLOGICAL | Sort::TIME)?;
 		revwalk.push(oid)?;
 
 		if opts.simplify {
 			revwalk.simplify_first_parent()?;
 		}
 
-		for oid in revwalk.take(opts.depth) {
+		for oid in revwalk {
+			if res.len() >= opts.depth {
+				break;
+			}
+
 			let oid = oid?;
 			let commit = self.0.find_commit(oid)?;
 			let author = commit.author();
-			let timestamp = commit.time().seconds() * 1000;
+			let commit_time = commit.time().seconds();
+
+			if let Some(after) = filter_after {
+				if commit_time <= after {
+					break;
+				}
+			}
+
+			if let Some(before) = filter_before {
+				if commit_time >= before {
+					continue;
+				}
+			}
+
+			if let Some(filter) = &filter_authors {
+				if !filter.contains(author.email().unwrap_or("")) {
+					continue;
+				}
+			}
+
+			let commit_tree = commit.tree()?;
+			let parent_tree = commit.parents().next().and_then(|p| p.tree().ok());
+			let diff = self.0.diff_tree_to_tree(parent_tree.as_ref(), Some(&commit_tree), diff_opts.as_mut())?;
+
+			if diff_opts.is_some() && diff.deltas().next().is_none() {
+				continue;
+			}
+
+			let diff_stats = diff.stats()?;
+
+			let mut changed_files: Option<Vec<ChangedFileInfo>> = None;
+			if include_changed_files {
+				let file_changes = std::cell::RefCell::new(Vec::<(String, u32, bool)>::new());
+
+				diff.foreach(
+					&mut |delta, _| {
+						let deleted = delta.status() == Delta::Deleted;
+						let path = delta
+							.new_file()
+							.path()
+							.or_else(|| delta.old_file().path())
+							.and_then(|p| p.to_str())
+							.unwrap_or("")
+							.to_string();
+						file_changes.borrow_mut().push((path, 0, deleted));
+						true
+					},
+					None,
+					Some(&mut |_c_delta, hunk| {
+						if let Some(last) = file_changes.borrow_mut().last_mut() {
+							last.1 += hunk.old_lines() + hunk.new_lines();
+						}
+						true
+					}),
+					None,
+				)?;
+				
+				let mut file_changes = file_changes.into_inner();
+
+				file_changes.sort_by(|a, b| b.1.cmp(&a.1));
+				changed_files = Some(
+					file_changes
+						.into_iter()
+						.map(|(path, _, deleted)| {
+						let title = if path.ends_with(".md") {
+							let tree = if deleted {
+								parent_tree.as_ref()
+							} else {
+								Some(&commit_tree)
+							};
+
+							tree
+								.and_then(|t| t.get_path(std::path::Path::new(&path)).ok())
+								.and_then(|entry| entry.to_object(&self.0).ok())
+								.and_then(|obj| obj.into_blob().ok())
+								.and_then(|blob| {
+									let content = std::str::from_utf8(blob.content()).ok()?;
+									MdFrontmatterParser.parse_frontmatter(content).ok()?.title
+								})
+						} else {
+							None
+						};
+							ChangedFileInfo { path, title }
+						})
+						.collect(),
+				);
+			}
+
+			let stat = StatInfo { added: diff_stats.insertions(), deleted: diff_stats.deletions(), changed_files };
+
+			let timestamp = commit_time * 1000;
 			let summary = commit.summary().or_utf8_err()?.to_string();
 			let parents = commit.parents().filter_map(|p| p.id().short_info().ok()).collect();
 
@@ -100,6 +262,7 @@ impl<C: Creds> History for Repo<'_, C> {
 				oid: oid.short_info()?,
 				summary,
 				parents,
+				stat,
 			});
 		}
 

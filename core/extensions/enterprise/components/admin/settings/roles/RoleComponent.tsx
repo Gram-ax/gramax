@@ -111,7 +111,7 @@ export default styled(RoleComponent)`
 		> span {
 			color: hsl(var(--status-success)) !important;
 			background-color: hsl(var(--status-success-bg));
-			border-color: hsl(var(--status-success-border));
+			border-color: hsl(var(--status-success-secondary-border));
 
 			:hover {
 				background-color: hsl(var(--status-success-bg-hover));
@@ -119,7 +119,7 @@ export default styled(RoleComponent)`
 		}
 
 		> :nth-child(2) {
-			background-color: hsl(var(--status-success-border));
+			background-color: hsl(var(--status-success-secondary-border));
 		}
 	}
 
@@ -127,7 +127,7 @@ export default styled(RoleComponent)`
 		> span {
 			color: hsl(var(--status-error)) !important;
 			background-color: hsl(var(--status-error-bg));
-			border-color: hsl(var(--status-error-border));
+			border-color: hsl(var(--status-error-secondary-border));
 
 			:hover {
 				background-color: hsl(var(--status-error-bg-hover));
@@ -135,7 +135,7 @@ export default styled(RoleComponent)`
 		}
 
 		> :nth-child(2) {
-			background-color: hsl(var(--status-error-border));
+			background-color: hsl(var(--status-error-secondary-border));
 		}
 	}
 `;

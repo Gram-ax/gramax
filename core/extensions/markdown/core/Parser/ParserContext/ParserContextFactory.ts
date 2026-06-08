@@ -1,7 +1,7 @@
 import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type { TableDB } from "@ext/tableDB/table";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import type { TableDB } from "../../../../../logic/components/tableDB/table";
 import type Path from "../../../../../logic/FileProvider/Path/Path";
 import type { Article } from "../../../../../logic/FileStructue/Article/Article";
 import type UiLanguage from "../../../../localization/core/model/Language";

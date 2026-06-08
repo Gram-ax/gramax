@@ -1,6 +1,6 @@
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import type Query from "@core/Api/Query";
-import SEOGenerator from "@core/Sitemap/SEOGenerator";
+import SEOGenerator from "@ext/seoGenerator/SEOGenerator";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 import fs from "fs";
 import path from "path";

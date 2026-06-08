@@ -1,26 +1,19 @@
+// biome-ignore lint/style/noRestrictedImports: CSS-only import for theme variables
+import "ics-ui-kit/theme.css";
+import "../../../core/ui-kit/index.css";
 import "../../../core/styles/main.css";
 import { createRoot } from "react-dom/client";
 import { AppDesktopGuard } from "./AppDesktopGuard";
 import * as debug from "./debug";
 
-declare global {
-	interface Window {
-		navigateTo?: (path: string) => void;
-		resetIsFirstLoad?: () => void;
-		desktopOpened?: boolean;
-		// biome-ignore lint/suspicious/noExplicitAny: idc
-		wasm: any;
-		// biome-ignore lint/suspicious/noExplicitAny: idc
-		debug: any;
-	}
-}
-
+// biome-ignore lint/style/useNamingConvention: expected
 declare const __BUILD_ID__: number;
 
 const container = document.getElementById("root");
 
 if (container && Number(container.dataset.buildId) === __BUILD_ID__) {
-	window.debug = { ...debug };
+	// biome-ignore lint/suspicious/noExplicitAny: idc
+	window.debug = { ...(debug as any) };
 	const root = createRoot(container);
 	root.render(<AppDesktopGuard />);
 } else {

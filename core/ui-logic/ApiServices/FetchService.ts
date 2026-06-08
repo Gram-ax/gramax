@@ -1,7 +1,11 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: 123 */
+/** biome-ignore-all lint/suspicious/noExplicitAny: 123 */
+
 import resolveModule from "@app/resolveModule/frontend";
 import type { Event } from "@core/Event/EventEmitter";
 import trimRoutePrefix from "@core-ui/ApiServices/trimRoutePrefix";
 import { events } from "@core-ui/hooks/useApi";
+import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import type FetchResponse from "./Types/FetchResponse";
@@ -12,8 +16,6 @@ import type Url from "./Types/Url";
 export type OnDidCommandEv = { command: string; args: object; result: unknown };
 
 export type FetchServiceEvents = Event<"on-did-command", OnDidCommandEv>;
-
-const ErrorConfirmService = import("../../extensions/errorHandlers/client/ErrorConfirmService");
 
 /**
  * @deprecated Consider using `useApi(..)` hook instead
@@ -62,7 +64,7 @@ export default class FetchService {
 				console.error(new Error(`${command} \n${e.message}`));
 			}
 		}
-		if (notifyError) (await ErrorConfirmService).default.notify(error);
+		if (notifyError) ErrorConfirmService.notify(error);
 		return res;
 	}
 }

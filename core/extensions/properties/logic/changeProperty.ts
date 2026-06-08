@@ -1,6 +1,6 @@
 import sortMapByName from "@ext/markdown/elements/view/render/logic/sortMap";
 import { getPropertyValue } from "@ext/properties/logic/getPropertyValue";
-import { isHasValue, isManyProperty, type Property, type PropertyValue } from "@ext/properties/models";
+import { isHasValue, isManyProperty, type Property, PropertyTypes, type PropertyValue } from "@ext/properties/models";
 
 const deleteProperty = (
 	propertyName: string,
@@ -8,7 +8,7 @@ const deleteProperty = (
 	returnFull?: boolean,
 ): Property[] | PropertyValue[] => {
 	return properties
-		.filter((prop) => prop.name !== propertyName)
+		.filter((prop) => prop.id !== propertyName)
 		.map((prop) => (returnFull ? prop : getPropertyValue(prop as Property)));
 };
 
@@ -22,13 +22,17 @@ const addOrUpdateProperty = (
 	newValue: string,
 	returnFull: boolean,
 ): Property[] | PropertyValue[] => {
-	return [
-		...(returnFull ? properties : properties.map((prop) => getPropertyValue(prop))),
-		(!returnFull && {
-			name: property.name,
-			...(newValue !== null && { value: Array.isArray(newValue) ? newValue : [newValue] }),
-		}) || { ...property, value: Array.isArray(newValue) ? newValue : [newValue] },
-	];
+	const wrappedValue = Array.isArray(newValue) ? newValue : [newValue];
+	const newProperty = returnFull
+		? { ...property, value: wrappedValue }
+		: { id: property.id, ...(newValue !== null && { value: wrappedValue }) };
+
+	return [...(returnFull ? properties : properties.map((prop) => getPropertyValue(prop))), newProperty];
+};
+
+const isToggleProperty: Partial<{ [type in PropertyTypes]: boolean }> = {
+	[PropertyTypes.flag]: true,
+	[PropertyTypes.enum]: true,
 };
 
 const updateExistingProperty = (
@@ -38,8 +42,8 @@ const updateExistingProperty = (
 	isMany: boolean,
 	value: string,
 	propertyName: string,
-	catalogProperties: Map<string, Property>,
 	properties: Property[] | PropertyValue[],
+	propertyType: PropertyTypes,
 ): Property[] | PropertyValue[] => {
 	if (isMany) {
 		if (!updatedProperties[existedPropertyIndex].value.includes(value))
@@ -52,10 +56,21 @@ const updateExistingProperty = (
 			if (updatedProperties[existedPropertyIndex].value.length === 0)
 				return deleteProperty(propertyName, properties);
 		}
+	} else if (isToggleProperty[propertyType]) {
+		const currentValue = updatedProperties[existedPropertyIndex].value;
+		const currentMatch =
+			newValue === null || (Array.isArray(currentValue) ? currentValue.includes(value) : currentValue === value);
+
+		if (currentMatch) return deleteProperty(propertyName, properties);
+
+		updatedProperties[existedPropertyIndex] = {
+			...updatedProperties[existedPropertyIndex],
+			value: Array.isArray(newValue) ? newValue : [newValue],
+		};
 	} else {
 		updatedProperties[existedPropertyIndex] = {
 			...updatedProperties[existedPropertyIndex],
-			...(newValue !== null && { value: Array.isArray(newValue) ? newValue : [newValue] }),
+			value: Array.isArray(newValue) ? newValue : [newValue],
 		};
 	}
 	return updatedProperties;
@@ -72,7 +87,7 @@ const updateProperty = (
 	if (!property || (isHasValue[property.type] && value === undefined)) return;
 
 	const isMany = isManyProperty[property.type];
-	const existedPropertyIndex = properties.findIndex((prop) => prop.name === property.name);
+	const existedPropertyIndex = properties.findIndex((prop) => prop.id === property.id);
 
 	const newValue = getNewValue(property, value);
 
@@ -89,8 +104,8 @@ const updateProperty = (
 		isMany,
 		value,
 		propertyName,
-		catalogProperties,
 		properties,
+		property.type,
 	);
 
 	return sortMapByName(Array.from(catalogProperties.keys()), newProperties as Property[]);

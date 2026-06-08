@@ -11,6 +11,6 @@ export {
 } from "ics-ui-kit/components/dialog";
 
 export { Dialog } from "./Dialog";
-export { DialogContent } from "./DialogContent";
+export { DialogContent, type DialogContentTemplateProps } from "./DialogContent";
 
 export { isFromModal } from "./utils";

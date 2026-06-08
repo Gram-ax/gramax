@@ -1,125 +1,101 @@
+import type { Environment } from "@app/resolveModule/env";
+import BottomInfo from "@components/HomePage/BottomInfo";
 import { HomePageCatalogListContent } from "@components/HomePage/Components/HomePageCatalogListContent";
 import { HomePageWrapper } from "@components/HomePage/Components/HomePageWrapper";
-import type { HomePageData } from "@core/SitePresenter/SitePresenter";
-import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import TopMenuSearch from "@components/HomePage/TopMenu/Components/TopMenuSearch";
+import TopMenuSwitchUiLanguageButton from "@components/HomePage/TopMenu/Components/TopMenuSwitchUiLanguageButton";
+import TopMenuThemeToggle from "@components/HomePage/TopMenu/Components/TopMenuThemeToggle";
+import TopMenuWrapper, {
+	TopMenuLeftSide,
+	TopMenuLeftSideActions,
+	TopMenuRightSide,
+} from "@components/HomePage/TopMenu/Components/TopMenuWrapper";
+import type { HomePageData, Section } from "@core/SitePresenter/SitePresenter";
+import IsMacService from "@core-ui/ContextServices/IsMac";
+import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { GlobalAudioToolbar } from "@ext/ai/components/Audio/Toolbar";
-import { useSignIn } from "@ext/enterprise/components/SingInOut/hooks/useSignIn";
-import SignInEnterpriseForm from "@ext/enterprise/components/SingInOut/SignInEnterpriseForm";
-import { getGesSignInUrl } from "@ext/enterprise/components/SingInOut/utils/getGesSignInUrl";
-import { SignInEnterpriseCloudForm } from "@ext/enterprise-cloud/components/SignInEnterpriseCloudForm";
+import AddCatalogMenu from "@ext/catalog/actions/AddCatalogMenu";
+import { SingInTauri } from "@ext/enterprise/components/SingInOut/SingInOut";
+import SwitchUiLanguage from "@ext/localization/actions/SwitchUiLanguage";
+import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
+import { editCatalogContentPermission } from "@ext/security/logic/Permission/Permissions";
+import ThemeToggle from "@ext/Theme/components/ThemeToggle";
+import SwitchWorkspace from "@ext/workspace/components/SwitchWorkspace";
 import type React from "react";
-import type { Environment } from "../../../app/resolveModule/env";
-import BottomInfo from "./BottomInfo";
-import TopMenu from "./TopMenu/TopMenu";
+import { HomeLogo } from "../../../apps/browser/src/components/Atoms/HomeLogo";
+import BrowserHomePage from "../../../apps/browser/src/components/BrowserHomePage";
 
-interface HomePageProps {
-	data: HomePageData;
-}
-
-const HomePageContentContainer = ({ children }: { children: React.ReactNode }) => {
+const StaticTopMenu = () => {
 	return (
-		<>
-			<TopMenu />
-			{children}
-			<BottomInfo />
-		</>
+		<TopMenuWrapper>
+			<TopMenuLeftSide>
+				<HomeLogo />
+			</TopMenuLeftSide>
+			<TopMenuRightSide>
+				<SwitchUiLanguage size="lg" />
+				<ThemeToggle isHomePage />
+			</TopMenuRightSide>
+		</TopMenuWrapper>
 	);
 };
 
-const components: Record<Environment, (props: HomePageProps) => React.ReactNode> = {
-	tauri: (props) => <TauriEditorHomePage data={props.data} />,
-	next: (props) => <NextHomePage data={props.data} />,
-	static: (props) => <StaticHomePage data={props.data} />,
-	browser: (props) => <BaseEditorHomePage data={props.data} />,
-	cli: (props) => <CliHomePage data={props.data} />,
+const TauriTopMenu = ({ section }: { section?: Section }) => {
+	const isMac = IsMacService.value;
+	const canAddCatalog = PermissionService.useCheckAnyCatalogPermission(editCatalogContentPermission);
+	const hasWorkspace = WorkspaceService.hasActive();
+
+	return (
+		<TopMenuWrapper className={isMac ? "pt-4" : ""}>
+			<TopMenuLeftSide>
+				<HomeLogo />
+				<TopMenuLeftSideActions>
+					{hasWorkspace && <SwitchWorkspace />}
+					{canAddCatalog && <AddCatalogMenu />}
+				</TopMenuLeftSideActions>
+			</TopMenuLeftSide>
+			<TopMenuRightSide>
+				{hasWorkspace && <TopMenuSearch section={section} />}
+				<TopMenuSwitchUiLanguageButton />
+				<TopMenuThemeToggle />
+				<SingInTauri />
+			</TopMenuRightSide>
+		</TopMenuWrapper>
+	);
+};
+
+const components: Record<Environment, ({ data }: { data: HomePageData }) => React.ReactNode> = {
+	tauri: ({ data }) => <TauriHomePage data={data} />,
+	static: ({ data }) => <StaticHomePage data={data} />,
+	browser: ({ data }) => <BrowserHomePage data={data} />,
+	cli: () => null,
+	next: () => null,
 	test: () => null,
 	docportal: () => null,
 };
 
-const HomePage = ({ data }: HomePageProps) => {
+const HomePage = ({ data }: { data: HomePageData }) => {
 	const { environment } = usePlatform();
 	return components[environment]({ data });
 };
 
-const OpenSourceEditorHomePage = ({ data }: HomePageProps) => {
+const StaticHomePage = ({ data }: { data: HomePageData }) => {
 	return (
 		<HomePageWrapper>
-			<HomePageContentContainer>
-				<HomePageCatalogListContent data={data} />
-			</HomePageContentContainer>
+			<StaticTopMenu />
+			<HomePageCatalogListContent data={data} />
+			<BottomInfo />
 			<GlobalAudioToolbar />
 		</HomePageWrapper>
 	);
 };
 
-const TauriEditorHomePage = ({ data }: HomePageProps) => {
-	return <OpenSourceEditorHomePage data={data} />;
-};
-
-const StaticHomePage = ({ data }: HomePageProps) => {
+const TauriHomePage = ({ data }: { data: HomePageData }) => {
 	return (
 		<HomePageWrapper>
-			<HomePageContentContainer>
-				<HomePageCatalogListContent data={data} />
-			</HomePageContentContainer>
-		</HomePageWrapper>
-	);
-};
-
-const CliHomePage = ({ data }: HomePageProps) => {
-	return <StaticHomePage data={data} />;
-};
-
-const NextHomePage = ({ data }: HomePageProps) => {
-	return <StaticHomePage data={data} />;
-};
-
-const BaseEditorHomePage = ({ data }: HomePageProps) => {
-	const { gesUrl } = PageDataContextService.value.conf.enterprise;
-	const isEnterprise = !!gesUrl;
-
-	if (isEnterprise) return <GesEditorHomePage data={data} />;
-	return <OpenSourceEditorHomePage data={data} />;
-};
-
-const GesEditorHomePage = ({ data }: HomePageProps) => {
-	const { gesUrl } = PageDataContextService.value.conf.enterprise;
-	const isLogged = PageDataContextService.value.isLogged;
-	const authUrl = getGesSignInUrl(gesUrl, true);
-	const signInEnterpriseProps = useSignIn({ authUrl });
-
-	return (
-		<HomePageWrapper>
-			<HomePageContentContainer>
-				{!!gesUrl && !isLogged ? (
-					<div className="flex justify-center items-center h-screen">
-						<SignInEnterpriseForm authUrl={authUrl} {...signInEnterpriseProps} onlySSO />
-					</div>
-				) : (
-					<HomePageCatalogListContent data={data} />
-				)}
-			</HomePageContentContainer>
-			<GlobalAudioToolbar />
-		</HomePageWrapper>
-	);
-};
-
-const GesCloudEditorHomePage = ({ data }: HomePageProps) => {
-	const { gesUrl } = PageDataContextService.value.conf.enterprise;
-	const isLogged = PageDataContextService.value.isLogged;
-
-	return (
-		<HomePageWrapper>
-			<HomePageContentContainer>
-				{!!gesUrl && !isLogged ? (
-					<div className="flex justify-center items-center h-screen">
-						<SignInEnterpriseCloudForm allowContinueWithoutAccount={true} gesUrl={gesUrl} />
-					</div>
-				) : (
-					<HomePageCatalogListContent data={data} />
-				)}
-			</HomePageContentContainer>
+			<TauriTopMenu section={data.section} />
+			<HomePageCatalogListContent data={data} />
+			<BottomInfo />
 			<GlobalAudioToolbar />
 		</HomePageWrapper>
 	);

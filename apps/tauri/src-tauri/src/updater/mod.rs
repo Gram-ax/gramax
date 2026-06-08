@@ -57,7 +57,7 @@ impl<R: Runtime> Updater<R> {
 		})
 	}
 
-	pub async fn check(&self) -> Result<()> {
+	pub async fn check(&self, silent: bool) -> Result<()> {
 		self.span_add_endpoints();
 
 		let Ok(mut update_bytes) = self.ready_update.try_lock() else {
@@ -84,17 +84,23 @@ impl<R: Runtime> Updater<R> {
 					new = update.version,
 					"previously cached update differs from the most newest one. downloading again!"
 				);
-				update_bytes.replace((self.cache.prepare_to_install(&update).await?, update));
+				update_bytes.replace((self.cache.prepare_to_install(&update, silent).await?, update));
 			}
 			None => {
 				info!(target: TAG, current = update.current_version, new = update.version, "update fetched");
-				update_bytes.replace((self.cache.prepare_to_install(&update).await?, update));
+				update_bytes.replace((self.cache.prepare_to_install(&update, silent).await?, update));
 			}
 			_ => {}
 		}
 
-		self.app.emit("update:ready", ())?;
+		if !silent {
+			self.app.emit("update:ready", ())?;
+		}
 		Ok(())
+	}
+
+	pub fn is_ready(&self) -> bool {
+		self.ready_update.try_lock().is_ok_and(|g| g.is_some())
 	}
 
 	pub fn install(&self) -> Result<()> {
@@ -195,7 +201,7 @@ pub fn restart_app<R: Runtime>(window: Window<R>) {
 #[instrument(skip(app))]
 #[command(async)]
 pub async fn update_check<R: Runtime>(app: AppHandle<R>) -> Result<()> {
-	app.updater().check().await.inspect_err(|e| _ = emit_error(app, e))
+	app.updater().check(false).await.inspect_err(|e| _ = emit_error(app, e))
 }
 
 #[instrument(skip(app))]

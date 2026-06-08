@@ -132,7 +132,7 @@ describe("FileStructure", () => {
 		test("каталог", async () => {
 			await fs.createCatalog({ title: "test1", url: "test1" });
 			const entries = await fs.getCatalogEntries();
-			const entry = entries.find((x) => x.name == "test1");
+			const entry = entries.find((x) => x.name === "test1");
 			expect(entry).toBeDefined();
 			const catalog = await entry.load();
 			expect(catalog).toBeDefined();
@@ -152,7 +152,8 @@ describe("FileStructure", () => {
 			await fs.createCategory(
 				FileStructure.getCatalogPath(catalog).join(path("category/_index.md")),
 				catalog.getRootCategory(),
-				{ props: {}, content: "content" } as any, // createCategory only uses these fields, so it's ok
+				// biome-ignore lint/suspicious/noExplicitAny: createCategory only uses these fields, so it's ok
+				{ props: {}, content: "content" } as any,
 				catalog,
 			);
 
@@ -242,6 +243,37 @@ describe("FileStructure", () => {
 			const entry = await fs.getCatalogEntryByPath(path("3"));
 			const catalog = await entry.load();
 			expect(catalog.basePath.value).toEqual("3");
+		});
+	});
+
+	describe("filters nested workspaces", () => {
+		const fpNested = MountFileProvider.fromDefault(new Path(resolve(__dirname, "catalogs-nested-ws")));
+
+		beforeAll(async () => {
+			await fpNested.write(path("catalog-ok/doc-root.yaml"), "");
+			await fpNested.write(path("nested-ws-direct/workspace.yaml"), "");
+			await fpNested.write(path("projects/readme.md"), "");
+		});
+
+		afterAll(async () => {
+			await fpNested.delete(Path.empty);
+		});
+
+		test("excludes dir with workspace.yaml (direct nesting)", async () => {
+			const fsNested = new FileStructure(fpNested, false);
+			const entries = await fsNested.getCatalogEntries();
+			const names = entries.map((e) => e.name);
+			expect(names).not.toContain("nested-ws-direct");
+			expect(names).toContain("catalog-ok");
+		});
+
+		test("excludes dir containing a registered workspace (indirect nesting)", async () => {
+			const knownWsPath = resolve(fpNested.rootPath.value, "projects", "workspace-b");
+			const fsNested = new FileStructure(fpNested, false, [knownWsPath]);
+			const entries = await fsNested.getCatalogEntries();
+			const names = entries.map((e) => e.name);
+			expect(names).not.toContain("projects");
+			expect(names).toContain("catalog-ok");
 		});
 	});
 });

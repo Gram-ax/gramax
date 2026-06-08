@@ -1,15 +1,15 @@
-import { resolve, join as joinPath, sep as pathSep, basename } from "path";
-import fg from "fast-glob";
+import type DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import ChalkLogger from "../../../utils/ChalkLogger";
-import { checkIsFile } from "../utils/paths";
-import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
-import CliUserError from "../../CliUserError";
-import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
-import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import { CopyTemplatesFunction } from "../../StaticContentCopier";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
 import { PdfTemplateManager } from "@ext/wordExport/PdfTemplateManager";
+import { WordTemplateManager } from "@ext/wordExport/WordTemplateManager";
+import fg from "fast-glob";
+import { basename, join as joinPath, sep as pathSep, resolve } from "path";
+import ChalkLogger from "../../../utils/ChalkLogger";
+import CliUserError from "../../CliUserError";
+import type { CopyTemplatesFunction } from "../../StaticContentCopier";
+import { checkIsFile } from "../utils/paths";
 
 const GRAMAX_DIR = ".gramax";
 const ASSETS_DIR = "assets";

@@ -60,7 +60,7 @@ const getAsWordDocument: Command<
 
 			const docxSections = await wordExport.getSections(documentTree, isCatalog, true);
 			const documentProps = {
-				title: item.getTitle(),
+				title: documentTree.name,
 			};
 
 			const templateProcessor = new TemplateProcessor(templateBuffer, docxSections, documentProps);

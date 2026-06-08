@@ -1,5 +1,6 @@
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
+import { span } from "@ext/loggers/opentelemetry";
 import { TENANT_NAME } from "@ext/serach/modulith/consts";
 import type { SearchArticleMetadata } from "@ext/serach/modulith/SearchArticle";
 import type {
@@ -17,6 +18,7 @@ import type {
 	SearchWorkerOutMessage,
 } from "@ext/serach/modulith/search/worker/types";
 import { createSimpleError } from "@ext/serach/modulith/utils/SimpleError";
+import { toWorkerError } from "@ext/serach/modulith/utils/toWorkerError";
 
 type PendingRequest<T> = {
 	resolve: (value: T) => void;
@@ -36,7 +38,7 @@ export interface WorkerModulithSearchClientBaseOptions {
 
 export abstract class WorkerModulithSearchClientBase implements ModulithSearchClient {
 	private _requestSeq = 0;
-	protected worker!: SearchWorker;
+	protected _worker!: SearchWorker;
 	private readonly _pending = new Map<string, PendingRequest<unknown>>();
 
 	constructor(private readonly _options: WorkerModulithSearchClientBaseOptions) {}
@@ -46,12 +48,12 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 
 		return new Promise<void>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject, progressCallback });
-			this.worker.postMessage({
+			this._worker.postMessage({
 				type: "update",
 				requestId,
 				args: { articles, filter },
 			});
-		});
+		}).finally(() => progressCallback?.(1));
 	}
 
 	async searchBatch({ items }: SearchBatchArgs): Promise<SearchResult[][]> {
@@ -59,7 +61,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 
 		return new Promise<SearchResult[][]>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject });
-			this.worker.postMessage({
+			this._worker.postMessage({
 				type: "searchBatch",
 				requestId,
 				args: { items },
@@ -73,7 +75,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 		const requestId = this._nextRequestId();
 		return new Promise<GetArticlePayloadsResult<TMetadata>>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject });
-			this.worker.postMessage({
+			this._worker.postMessage({
 				type: "getArticlePayloads",
 				requestId,
 				args,
@@ -85,7 +87,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 		const requestId = this._nextRequestId();
 		return new Promise<void>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject });
-			this.worker.postMessage({
+			this._worker.postMessage({
 				type: "commit",
 				requestId,
 			});
@@ -93,11 +95,18 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 	}
 
 	async terminate(): Promise<void> {
-		await this.worker.terminate();
+		await this._worker.terminate();
 	}
 
-	protected async init(): Promise<void> {
-		this.worker = this.createWorker();
+	protected _failAllPending(reason: Error): void {
+		if (this._pending.size === 0) return;
+		const pending = Array.from(this._pending.values());
+		this._pending.clear();
+		for (const p of pending) p.reject(reason);
+	}
+
+	protected async _init(): Promise<void> {
+		this._worker = this._createWorker();
 
 		const cacheRoot = this._options.cacheFileProvider.rootPath.value;
 		const articleStorageRoot = this._options.articleStorageFileProvider.rootPath.value;
@@ -105,7 +114,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 		const requestId = this._nextRequestId();
 		await new Promise<void>((resolve, reject) => {
 			this._pending.set(requestId, { resolve, reject });
-			this.worker.postMessage({
+			this._worker.postMessage({
 				type: "init",
 				requestId,
 				tenant: TENANT_NAME,
@@ -115,9 +124,13 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 		});
 	}
 
-	protected abstract createWorker(): SearchWorker;
+	protected abstract _createWorker(): SearchWorker;
 
-	protected async handleMessage(data: SearchWorkerOutMessage) {
+	protected async _handleMessage(data: SearchWorkerOutMessage) {
+		if (data == null) {
+			span()?.addEvent("search-worker.client.nullish-message", { received: String(data) });
+			return;
+		}
 		const type = data.type;
 		switch (type) {
 			case "fs":
@@ -133,7 +146,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 
 				this._pending.delete(data.requestId);
 				if (type === "ok") pending.resolve(undefined);
-				else if (type === "error") pending.reject(new Error("Worker request failed", { cause: data.error }));
+				else if (type === "error") pending.reject(toWorkerError(data.error));
 				else if (type === "searchResult") pending.resolve(data.result);
 				else if (type === "getArticlePayloads") pending.resolve(data.result);
 				return;
@@ -164,8 +177,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 					result = await provider.read(new Path(data.args.path as string));
 					break;
 				case "readAsArrayBuffer": {
-					const buffer = await provider.readAsBinary(new Path(data.args.path as string));
-					result = buffer?.buffer;
+					result = await provider.readAsBinary(new Path(data.args.path as string));
 					break;
 				}
 				case "delete":
@@ -194,7 +206,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 				result,
 			};
 
-			this.worker.postMessage(response);
+			this._worker.postMessage(response);
 		} catch (e) {
 			const err = e instanceof Error ? e : new Error(String(e));
 			const response: SearchWorkerFsInMessage = {
@@ -203,7 +215,7 @@ export abstract class WorkerModulithSearchClientBase implements ModulithSearchCl
 				ok: false,
 				error: createSimpleError(err),
 			};
-			this.worker.postMessage(response);
+			this._worker.postMessage(response);
 		}
 	}
 

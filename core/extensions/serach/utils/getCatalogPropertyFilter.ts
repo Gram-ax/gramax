@@ -5,20 +5,17 @@ export function getCatalogPropertyFilter(
 	catalog: Catalog,
 	additionalFilter?: PropertyFilter,
 ): PropertyFilter | undefined {
-	if (catalog.props.filterProperty && catalog.props.resolvedFilterPropertyValue) {
-		const filter: PropertyFilter = {
-			op: "contains",
-			key: catalog.props.filterProperty,
-			list: [catalog.props.resolvedFilterPropertyValue],
-		};
+	if (!catalog.props.resolvedView) return;
+	const filter: PropertyFilter = {
+		op: "contains",
+		key: catalog.props.filterProperty,
+		list: [catalog.props.resolvedView.filters.map((f) => f.value)],
+	};
 
-		return additionalFilter
-			? {
-					op: "and",
-					filters: [additionalFilter, filter],
-				}
-			: filter;
-	}
-
-	return additionalFilter;
+	return additionalFilter
+		? {
+				op: "and",
+				filters: [additionalFilter, filter],
+			}
+		: filter;
 }

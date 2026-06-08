@@ -1,161 +1,156 @@
-import Icon from "@components/Atoms/Icon";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
-import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import useMediaQuery from "@core-ui/hooks/useMediaQuery";
-import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cn } from "@core-ui/utils/cn";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import getCatalogEditProps from "@ext/catalog/actions/propsEditor/logic/getCatalogEditProps";
 import t from "@ext/localization/locale/translate";
 import type { PropertyEditorProps } from "@ext/properties/components/Modals/PropertyEditor";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
+import { useUpdateCatalogProperty } from "@ext/properties/logic/hooks/useUpdateCatalogProperty";
 import type { Property, PropertyTypes } from "@ext/properties/models";
+import TemplateService from "@ext/templates/components/TemplateService";
 import { isComplexProperty } from "@ext/templates/models/properties";
 import type { TemplateCustomProperty } from "@ext/templates/models/types";
 import type { Editor } from "@tiptap/core";
 import {
-	Command,
-	CommandEmpty,
-	CommandGroup,
-	CommandInput,
-	CommandItem,
-	CommandList,
-	CommandSeparator,
-} from "@ui-kit/Command";
-import { useHoverDropdown } from "@ui-kit/Dropdown";
-import { MenuItemIconButton } from "@ui-kit/MenuItem";
-import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
-import { ComponentVariantProvider } from "@ui-kit/Providers";
-import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
-import { TextOverflowTooltip } from "@ui-kit/Tooltip";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
-
-const StyledCommand = styled(Command)`
-	max-height: min(18.75rem, 60vh);
-`;
+	DropdownEmpty,
+	DropdownMenuItem,
+	DropdownMenuSearchItem,
+	DropdownMenuSeparator,
+	DropdownMenuSub,
+	DropdownMenuSubContent,
+	DropdownMenuSubTrigger,
+	useSearchableMenu,
+} from "@ui-kit/Dropdown";
+import { Icon } from "@ui-kit/Icon";
+import { MenuItemIconButton, MenuItemText } from "@ui-kit/MenuItem";
+import { useCallback, useMemo } from "react";
 
 interface ButtonProps {
-	buttonIcon: string;
+	buttonIcon: IconCode;
 	properties: TemplateCustomProperty[];
 	onAddNewProperty: (type: PropertyTypes, bind: string) => void;
 	onEditClick: (item: Property) => void;
+	onlyArticlePropertyTypes?: boolean;
 	updateProperty: (property: Property, isDelete?: boolean, isArchive?: boolean) => void;
 	onItemClick: (item: string) => void;
 }
 
+interface PropertyMenuGroupProps {
+	editor?: Editor;
+	isTemplate?: boolean;
+}
+
+const StyledDropdownMenuContent = styled(DropdownMenuSubContent)`
+	width: min(90dvw, 12rem);
+	max-height: min(45dvh, 20rem);
+	overflow-y: auto;
+	box-shadow: none;
+`;
+
 const Button = (props: ButtonProps) => {
-	const { onItemClick, updateProperty, onAddNewProperty, buttonIcon, properties, onEditClick } = props;
-	const isMobile = useMediaQuery(cssMedia.JSnarrow);
-	const [listHeight, setListHeight] = useState<string>(null);
-	const listRef = useRef<HTMLDivElement>(null);
-	const { isOpen, setIsOpen, handleMouseEnter, handleMouseLeave } = useHoverDropdown();
+	const {
+		onItemClick,
+		updateProperty,
+		onAddNewProperty,
+		buttonIcon,
+		properties,
+		onEditClick,
+		onlyArticlePropertyTypes,
+	} = props;
 
 	const onClickAddNewProperty = useCallback(() => {
 		ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
 			properties,
 			data: null,
+			onlyArticlePropertyTypes,
 			onSubmit: (property) => {
-				onAddNewProperty(property.type, property.name);
+				onAddNewProperty(property.type, property.id);
 				updateProperty(property);
 			},
 			onClose: () => {
 				ModalToOpenService.resetValue();
 			},
 		});
-	}, [onAddNewProperty, updateProperty, properties]);
+	}, [onAddNewProperty, updateProperty, properties, onlyArticlePropertyTypes]);
+
+	const { search, setSearch, contentRef, inputRef, handleContentKeyDown, handleInputKeyDown, filterItems } =
+		useSearchableMenu();
 
 	const onOpenChange = useCallback(
 		(open: boolean) => {
-			if (!isMobile) return;
-			setIsOpen(open);
+			if (!open) setSearch("");
 		},
-		[isMobile],
+		[setSearch],
 	);
 
-	useLayoutEffect(() => {
-		if (listRef.current) {
-			const height = listRef.current.offsetHeight;
-			setListHeight(`${height}px`);
-		}
-	}, [listRef.current]);
+	const filteredProperties = useMemo(
+		() => filterItems(properties.map((property) => ({ ...property, label: property.name }))),
+		[properties, filterItems],
+	);
 
 	return (
-		<ComponentVariantProvider variant="inverse">
-			<div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} tabIndex={-1}>
-				<Popover onOpenChange={onOpenChange} open={isOpen}>
-					<PopoverTrigger asChild>
-						<ToolbarToggleButton active={isOpen}>
-							<ToolbarIcon icon={buttonIcon} />
-						</ToolbarToggleButton>
-					</PopoverTrigger>
-					<PopoverContent
-						className="p-2 bg-transparent border-none"
-						side="top"
-						sideOffset={-0.5}
-						style={{
-							maxWidth: "calc(min(12rem, var(--radix-popover-content-available-width, 100%)))",
-							height: listHeight,
-							maxHeight: listHeight,
-							overflowY: "auto",
-							boxShadow: "none",
-						}}
-					>
-						<StyledCommand className={cn("rounded-lg lg:shadow-hard-base", isMobile && "mobile")}>
-							{properties.length > 0 && <CommandInput placeholder={t("properties.find")} />}
-							<CommandList>
-								<CommandEmpty>{t("properties.no-properties")}</CommandEmpty>
-								<CommandGroup className="overflow-y-auto text-xs" style={{ maxHeight: "11rem" }}>
-									{properties.map((item) => (
-										<CommandItem
-											key={item.name}
-											onSelect={() => onItemClick(item.name)}
-											value={item.name}
-										>
-											<div className="flex flex-row items-center gap-2 overflow-hidden">
-												<Icon code={item.icon} />
-												<TextOverflowTooltip className="truncate whitespace-nowrap ml-auto">
-													{item.name}
-												</TextOverflowTooltip>
-											</div>
-											<MenuItemIconButton
-												className="ml-auto right-extensions"
-												data-qa="edit-property"
-												icon="pen"
-												onPointerDown={(e) => {
-													e.stopPropagation();
-													e.preventDefault();
-													onEditClick(item);
-												}}
-											/>
-										</CommandItem>
-									))}
-								</CommandGroup>
-								{properties.length > 0 && <CommandSeparator />}
-								<div className="p-1">
-									<CommandItem onSelect={onClickAddNewProperty}>
-										<div className="flex items-center gap-2">
-											<Icon code="plus" />
-											{t("properties.add-property")}
-										</div>
-									</CommandItem>
-								</div>
-							</CommandList>
-						</StyledCommand>
-					</PopoverContent>
-				</Popover>
-			</div>
-		</ComponentVariantProvider>
+		<DropdownMenuSub onOpenChange={onOpenChange}>
+			<DropdownMenuSubTrigger>
+				<Icon icon={buttonIcon} />
+				{t("editor.property")}
+			</DropdownMenuSubTrigger>
+			<StyledDropdownMenuContent
+				className={cn("rounded-lg lg:shadow-hard-base")}
+				onKeyDown={handleContentKeyDown}
+				ref={contentRef}
+				sideOffset={8}
+			>
+				<DropdownMenuSearchItem
+					onChange={(e) => setSearch(e.target.value)}
+					onClick={(e) => e.stopPropagation()}
+					onKeyDown={handleInputKeyDown}
+					placeholder={t("search.placeholder")}
+					ref={inputRef}
+					value={search}
+				/>
+				<DropdownMenuSeparator />
+				<div className="flex-1" style={{ maxHeight: "11rem", overflowY: "auto" }}>
+					{filteredProperties.length === 0 ? (
+						<DropdownEmpty>{t("properties.no-properties")}</DropdownEmpty>
+					) : (
+						filteredProperties.map((property) => (
+							<DropdownMenuItem
+								key={property.label}
+								onClick={() => onItemClick(property.id)}
+								textValue={property.label}
+							>
+								<Icon icon={property.icon as IconCode} />
+								<MenuItemText>{property.label}</MenuItemText>
+								<MenuItemIconButton
+									className="ml-auto"
+									icon="pen"
+									onClick={(e) => {
+										e.preventDefault();
+										e.stopPropagation();
+										onEditClick(property);
+									}}
+								/>
+							</DropdownMenuItem>
+						))
+					)}
+				</div>
+				<div style={{ marginTop: "auto" }}>
+					<DropdownMenuSeparator />
+					<DropdownMenuItem onSelect={onClickAddNewProperty} textValue="add-property">
+						<Icon icon="plus" />
+						{t("properties.add")}
+					</DropdownMenuItem>
+				</div>
+			</StyledDropdownMenuContent>
+		</DropdownMenuSub>
 	);
 };
 
-const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
+const PropertyMenuGroup = ({ editor }: PropertyMenuGroupProps) => {
 	const { properties } = PropertyServiceProvider.value;
-	const apiUrlCreator = ApiUrlCreator.value;
-	const { data: catalogPropsData, update: updateCatalogProps } = useCatalogPropsStore((state) => state);
+	const isInTemplate = !!TemplateService.value.selectedID;
+
 	const onItemClick = useCallback(
 		(item: string) => {
 			if (item === "") return;
@@ -177,6 +172,8 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 		[editor, properties],
 	);
 
+	const saveCatalogProperties = useUpdateCatalogProperty({ canAdd: true });
+
 	const onAddNewProperty = useCallback(
 		(type: PropertyTypes, bind: string) => {
 			if (isComplexProperty[type]) editor.commands.setBlockProperty({ bind });
@@ -185,56 +182,18 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 		[editor],
 	);
 
-	const updateProperty = useCallback(
-		async (property: Property, isDelete: boolean = false, isArchive: boolean = false) => {
-			const newProps = getCatalogEditProps(catalogPropsData);
-			const index = newProps.properties.findIndex((obj) => obj.name === property.name);
-
-			ModalToOpenService.setValue(ModalToOpen.Loading);
-
-			if (index === -1) newProps.properties = [...newProps.properties, property];
-			else {
-				if (isDelete) {
-					newProps.properties = newProps.properties.filter((_, propIndex) => propIndex !== index);
-					if (!isArchive) await FetchService.fetch(apiUrlCreator.removePropertyFromArticles(property.name));
-				} else {
-					const deletedValues = isArchive
-						? ""
-						: newProps.properties?.[index]?.values
-								?.filter((value) => !property.values.includes(value))
-								.toString();
-
-					newProps.properties = [...newProps.properties];
-					newProps.properties[index] = {
-						...property,
-					};
-
-					if (deletedValues && !isArchive) {
-						await FetchService.fetch(
-							apiUrlCreator.removePropertyFromArticles(property.name, deletedValues),
-						);
-					}
-				}
-			}
-
-			ModalToOpenService.resetValue();
-			FetchService.fetch(apiUrlCreator.updateCatalogProps(), JSON.stringify(newProps), MimeTypes.json);
-			updateCatalogProps({ properties: newProps.properties });
-		},
-		[apiUrlCreator, catalogPropsData],
-	);
-
 	const onEditClickHandler = useCallback(
 		(property: TemplateCustomProperty) => {
 			ModalToOpenService.setValue<PropertyEditorProps>(ModalToOpen.PropertySettings, {
 				properties: Array.from(properties.values()),
+				onlyArticlePropertyTypes: !isInTemplate,
 				data: property,
 				onDelete: (isArchive: boolean) => {
-					updateProperty(property, true, isArchive);
+					saveCatalogProperties(property, true, isArchive);
 					ModalToOpenService.resetValue();
 				},
 				onSubmit: (property) => {
-					updateProperty(property);
+					saveCatalogProperties(property);
 					ModalToOpenService.resetValue();
 				},
 				onClose: () => {
@@ -242,17 +201,18 @@ const PropertyMenuGroup = ({ editor }: { editor?: Editor }) => {
 				},
 			});
 		},
-		[properties, updateProperty],
+		[properties, saveCatalogProperties, isInTemplate],
 	);
 
 	return (
 		<Button
-			buttonIcon="rectangle-ellipsis"
+			buttonIcon="variable"
 			onAddNewProperty={onAddNewProperty}
 			onEditClick={onEditClickHandler}
 			onItemClick={onItemClick}
+			onlyArticlePropertyTypes={!isInTemplate}
 			properties={Array.from(properties.values())}
-			updateProperty={updateProperty}
+			updateProperty={saveCatalogProperties}
 		/>
 	);
 };

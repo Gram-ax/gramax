@@ -4,5 +4,24 @@
 		"declaration": false,
 		"declarationMap": false,
 		"noUnusedLocals": false
-	}
+	},
+	"include": ["../../app/**/*", "../../core/**/*", "../../scripts/**/*", "./**/*"],
+	"exclude": [
+		"target",
+		"**/node_modules",
+		"node_modules",
+		"dist",
+		"**/dist",
+		".next",
+		"**/.next",
+		".vite-cache",
+		"**/.vite-cache",
+		"**/build",
+		"../../app/resolveModule/*/browser/**/*",
+		"../../app/resolveModule/*/tauri/**/*",
+		"../../app/resolveModule/*/cli/**/*",
+		"../../app/resolveModule/*/static/**/*",
+		"../../app/resolveModule/*/docportal.ts",
+		"../../core/extensions/loggers/opentelemetry/browser/**/*"
+	]
 }

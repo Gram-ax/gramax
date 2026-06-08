@@ -26,6 +26,8 @@ pub mod remote_progress;
 pub mod repo;
 pub mod repo_ext;
 
+pub mod utils;
+
 pub mod git2 {
 	pub use git2::*;
 }

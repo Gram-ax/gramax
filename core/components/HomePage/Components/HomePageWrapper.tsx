@@ -1,6 +1,6 @@
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
 import styled from "@emotion/styled";
-import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
+import { LegacyScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
 import type React from "react";
 
 const homePageWrapperClassName = "bg-primary-bg flex flex-col";
@@ -171,12 +171,9 @@ export const HomePageWrapper = ({ children }: { children: React.ReactNode }) => 
 	const breakpoint = useBreakpoint();
 	return (
 		<HomePageWrapperDiv className={`breakpoint-${breakpoint} ${homePageWrapperClassName}`}>
-			<ScrollShadowContainer
-				shadowTopClassName="top-shadow"
-				wrapperClassName="flex flex-col shadow-scroll h-full"
-			>
+			<LegacyScrollShadowContainer className="flex flex-col shadow-scroll h-full" shadowTopClassName="top-shadow">
 				{children}
-			</ScrollShadowContainer>
+			</LegacyScrollShadowContainer>
 		</HomePageWrapperDiv>
 	);
 };

@@ -8,7 +8,8 @@ static STORE: LazyLock<Mutex<HashMap<u8, Vec<u8>>>> = LazyLock::new(|| Mutex::ne
 
 #[no_mangle]
 pub unsafe extern "C" fn store(key: u8, len: usize, ptr: *mut u8) {
-	let vec = Vec::from_raw_parts(ptr, len, len);
+	let vec = std::slice::from_raw_parts(ptr, len).to_vec();
+	crate::ffi::rfree(ptr.cast(), len);
 	STORE.lock().unwrap().insert(key, vec);
 }
 

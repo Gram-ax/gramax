@@ -1,5 +1,6 @@
 import { useRouter } from "@core/Api/useRouter";
-import type { ArticlePageData, ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { ClientArticleProps, ClientCatalogProps } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -39,6 +40,7 @@ const useGetArticleContextData = (props: UseGetArticleContextDataProps) => {
 		setApiUrlCreator(apiUrlCreator);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!catalogName || !articlePath) return;
 		void fetchData();

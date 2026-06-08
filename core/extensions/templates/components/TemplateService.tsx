@@ -62,7 +62,7 @@ class TemplateService implements ProviderContextService {
 		this._setSelectedID(template.id);
 	}
 
-	async addNewSnippet(apiUrlCreator: ApiUrlCreator) {
+	async addNewTemplate(apiUrlCreator: ApiUrlCreator) {
 		const uniqueID = generateUniqueID();
 		await FetchService.fetch(apiUrlCreator.createFileInGramaxDir(uniqueID, "template"));
 

@@ -8,11 +8,28 @@ const useEnterpriseTokenHandler = (isFirstLoad: boolean) => {
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const { isReadOnly } = PageDataContextService.value.conf;
+	const { url: gesCloudUrl } = PageDataContextService.value.conf.enterpriseCloud;
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: its ok
 	useEffect(() => {
-		if (!isFirstLoad || isReadOnly) return;
-		void initEnterprise(router.query.oneTimeCode, apiUrlCreator, router);
+		const oneTimeCode = router.query.oneTimeCode;
+		const initCloud = router.query.initCloud;
+
+		if (isFirstLoad && !isReadOnly) {
+			if (gesCloudUrl && initCloud) {
+				void initEnterprise(
+					router,
+					apiUrlCreator.getAddEnterpriseCloudWorkspaceUrl(),
+					apiUrlCreator.getCloneEnterpriseCatalogsUrl(),
+				);
+			} else if (oneTimeCode) {
+				void initEnterprise(
+					router,
+					apiUrlCreator.getAddEnterpriseWorkspaceUrl(oneTimeCode),
+					apiUrlCreator.getCloneEnterpriseCatalogsUrl(),
+				);
+			}
+		}
 	}, [isFirstLoad]);
 };
 

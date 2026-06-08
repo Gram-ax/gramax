@@ -1,6 +1,7 @@
-import GitLfsLazyResourceLoader from "@core/GitLfs/GitLfsLazyResourceLoader";
+import GitLfsLazyResourceLoader from "@core/GitLfs/logic/GitLfsLazyResourceLoader";
 import LinkResourceManager from "@core/Link/LinkResourceManager";
 import { ArticleParsedContext, type ParsedContext } from "@ext/markdown/core/Parser/ParserContext/ParsedContext";
+import { getFragmentLegacyPath } from "@ext/markdown/elements/fragment/logic/getFragmentLegacyPath";
 import type { Question } from "@ext/markdown/elements/question/types";
 import ResourceManager from "../../../../../logic/Resource/ResourceManager";
 import type ParserContext from "./ParserContext";
@@ -8,15 +9,20 @@ import type ParserContext from "./ParserContext";
 export default interface PrivateParserContext extends ParserContext, ParsedContext {}
 
 export const createPrivateParserContext = (context: ParserContext): PrivateParserContext => {
-	const rootPath = context.getCatalog()?.getRootCategoryRef().path.parentDirectoryPath;
+	const rootPath = context.getCatalog()?.basePath;
 	const basePath2 = rootPath?.subDirectory(context.getArticle().ref.path.parentDirectoryPath);
 
 	const icons = new Set<string>();
-	const snippet = new Set<string>();
+	const fragment = new Set<string>();
 	const questions = new Map<string, Question>();
 
 	const linkManager = new LinkResourceManager(context.fp, basePath2, rootPath);
-	const resourceManager = new ResourceManager(context.fp, basePath2, rootPath);
+	const resourceManager = new ResourceManager(
+		context.fp,
+		basePath2,
+		rootPath,
+		getFragmentLegacyPath(basePath2, rootPath),
+	);
 
 	const gitLfsLoader = new GitLfsLazyResourceLoader(
 		context.getCatalog(),
@@ -25,7 +31,7 @@ export const createPrivateParserContext = (context: ParserContext): PrivateParse
 	);
 	gitLfsLoader.mount();
 
-	const parsedContext = ArticleParsedContext.create(icons, snippet, questions, linkManager, resourceManager);
+	const parsedContext = ArticleParsedContext.create(icons, fragment, questions, linkManager, resourceManager);
 
 	return {
 		getItemByPath: context.getItemByPath.bind(context),
@@ -47,7 +53,7 @@ export const createPrivateParserContext = (context: ParserContext): PrivateParse
 		parser: context.parser,
 		formatter: context.formatter,
 		icons: parsedContext.icons,
-		snippet: parsedContext.snippet,
+		fragment: parsedContext.fragment,
 		questions: parsedContext.questions,
 		getLinkManager: parsedContext.getLinkManager.bind(parsedContext),
 		getResourceManager: parsedContext.getResourceManager.bind(parsedContext),

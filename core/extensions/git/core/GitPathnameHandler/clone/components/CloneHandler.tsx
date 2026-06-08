@@ -1,13 +1,21 @@
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import { useRouter } from "@core/Api/useRouter";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import CloneWithShareData from "@ext/catalog/actions/share/components/CloneWithShareData";
 import type ShareData from "@ext/catalog/actions/share/model/ShareData";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import t from "@ext/localization/locale/translate";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+} from "@ui-kit/AlertDialog";
 import { useEffect, useState } from "react";
 
 const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
@@ -26,53 +34,58 @@ const CloneHandler = ({ shareData }: { shareData: ShareData }) => {
 		if (!isOpen) return;
 		setClonePath(window.location.pathname);
 		router.pushPath("/");
-	}, [isOpen]);
+	}, [isOpen, router.pushPath]);
 
 	return (
-		<ModalLayout
-			isOpen={isOpen}
-			onClose={close}
-			onCmdEnter={(e) => {
-				if (!clone) {
-					e.stopPropagation();
-					setClone(true);
-				}
-			}}
-		>
+		<>
 			{clone ? (
-				<ModalLayoutLight>
-					<OnNetworkApiErrorService.Provider callback={close}>
-						<CloneWithShareData
-							clonePath={clonePath}
-							onCloneStart={close}
-							onCreateSourceDataClose={(success) => {
-								if (!success) close();
-							}}
-							shareData={shareData}
-						/>
-					</OnNetworkApiErrorService.Provider>
-				</ModalLayoutLight>
+				<OnNetworkApiErrorService.Provider callback={close}>
+					<CloneWithShareData
+						clonePath={clonePath}
+						onCloneStart={close}
+						onCreateSourceDataClose={(success) => {
+							if (!success) close();
+						}}
+						shareData={shareData}
+					/>
+				</OnNetworkApiErrorService.Provider>
 			) : (
-				<InfoModalForm
-					actionButton={{
-						text: t("catalog.clone"),
-						onClick: () => setClone(true),
-					}}
-					isWarning={true}
-					onCancelClick={close}
-					title={t("git.clone.not-cloned.title")}
-				>
-					<div>{t("git.clone.not-cloned.body")}</div>
-					{isBrowser && (
-						<div>
-							<a href={`gramax://${clonePath}`} style={{ outline: 0 }}>
-								{t("git.clone.open-in-app")}
-							</a>
-						</div>
-					)}
-				</InfoModalForm>
+				<AlertDialog open={isOpen}>
+					<AlertDialogContent status="warning">
+						<AlertDialogHeader>
+							<AlertDialogIcon icon="alert-circle" />
+							<AlertDialogTitle>{t("git.clone.not-cloned.title")}</AlertDialogTitle>
+							<AlertDialogDescription asChild>
+								<div className="article bg-transparent">
+									<div className="article-body">
+										<p>{t("git.clone.not-cloned.body")}</p>
+										{isBrowser && (
+											<p>
+												<a
+													data-testid="open-in-app-link"
+													href={`gramax://${clonePath}`}
+													style={{ outline: 0 }}
+												>
+													{t("git.clone.open-in-app")}
+												</a>
+											</p>
+										)}
+									</div>
+								</div>
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel onClick={close} variant="outline">
+								{t("cancel")}
+							</AlertDialogCancel>
+							<AlertDialogAction onClick={() => setClone(true)} variant="primary">
+								{t("catalog.clone")}
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
 			)}
-		</ModalLayout>
+		</>
 	);
 };
 

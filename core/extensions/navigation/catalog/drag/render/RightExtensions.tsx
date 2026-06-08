@@ -23,7 +23,7 @@ const RightExtensions = ({ item, setThisItem, onMenuOpen, onMenuClose }: RightEx
 				style={{ marginRight: "-4px" }}
 				tooltipText={t("article.actions.title")}
 				trigger={
-					<Button className="p-0 h-full" size="xs" variant="text">
+					<Button className="p-0 h-full" data-testid="article-actions" size="xs" variant="text">
 						<Icon code="ellipsis-vertical" />
 					</Button>
 				}

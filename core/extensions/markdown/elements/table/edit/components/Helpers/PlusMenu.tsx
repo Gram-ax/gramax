@@ -33,11 +33,12 @@ interface PlusMenuProps {
 	isHovered: boolean;
 	index: number;
 	editor: Editor;
-	getPos: () => number;
+	pos: number;
 	node: Node;
 	vertical?: boolean;
 	className?: string;
 	tableSheet?: TableNodeSheet;
+	dataQa?: string;
 }
 
 export const TriggerParent = styled.div`
@@ -65,17 +66,19 @@ const TableHeaderCheckbox = ({ headerType, node, setHeader, label }: TableHeader
 
 const PlusMenu = (props: PlusMenuProps) => {
 	const openRef = useRef(false);
-	const { vertical, className, index, getPos, node, editor, tableSheet } = props;
+	const { vertical, className, index, pos, node, editor, tableSheet, dataQa } = props;
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const cell = useMemo(() => {
 		if (vertical) return;
-		const position = getFirstTdPosition(node, index + 1, getPos());
-		const newPosition = Math.min(Math.max(position, getPos()), editor.state.doc.content.size - 1);
+		const position = getFirstTdPosition(node, index + 1, pos);
+		const newPosition = Math.min(Math.max(position, pos), editor.state.doc.content.size - 1);
 
-		if (isNaN(newPosition)) return null;
+		if (Number.isNaN(newPosition)) return null;
 		const child = editor.state.doc.resolve(newPosition);
 
 		return child?.parent;
-	}, [getPos, editor, node.firstChild.maybeChild(index), index]);
+	}, [pos, editor, node.firstChild.maybeChild(index), index, vertical]);
 
 	const setAlign = (align: AlignEnumTypes) => {
 		editor
@@ -97,7 +100,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 	const setHeader = (header: TableHeaderTypes) => {
 		editor
 			.chain()
-			.focus(getPos() + 1)
+			.focus(pos + 1)
 			.updateAttributes("table", { header })
 			.run();
 	};
@@ -170,8 +173,8 @@ const PlusMenu = (props: PlusMenuProps) => {
 
 	const onClose = () => {
 		let position = null;
-		if (vertical) position = getRowPosition(node, index + 1, getPos());
-		else position = getFirstTdPosition(node, index + 1, getPos());
+		if (vertical) position = getRowPosition(node, index + 1, pos);
+		else position = getFirstTdPosition(node, index + 1, pos);
 
 		if (!position) return;
 		editor.chain().focus(position).setMeta("removeDecoration", true).run();
@@ -188,6 +191,7 @@ const PlusMenu = (props: PlusMenuProps) => {
 			<DropdownMenuTrigger
 				asChild
 				className={classNames(className, { vertical: vertical, horizontal: !vertical }, ["hidden"])}
+				data-testid={dataQa}
 			>
 				<Icon code={vertical ? "ellipsis-vertical" : "ellipsis"} />
 			</DropdownMenuTrigger>
@@ -228,9 +232,9 @@ const PlusMenu = (props: PlusMenuProps) => {
 						<AggregationPopup
 							cell={cell}
 							editor={editor}
-							getPos={getPos}
 							index={index}
 							node={node}
+							pos={pos}
 							tableSheet={tableSheet}
 						/>
 						<DropdownMenuSub>

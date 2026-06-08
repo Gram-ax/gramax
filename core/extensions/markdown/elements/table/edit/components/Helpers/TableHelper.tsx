@@ -5,9 +5,10 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { HELPERS_LEFT, HELPERS_TOP } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 import TablePlusActions from "@ext/markdown/elements/table/edit/components/Helpers/TablePlusActions";
+import useTableSizes from "@ext/markdown/elements/table/edit/components/Helpers/useTableSizes";
 import { hideOldControls, showNewControls } from "@ext/markdown/elements/table/edit/logic/controlActions";
 import TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
-import { getHoveredData, getTableSizes } from "@ext/markdown/elements/table/edit/logic/utils";
+import { getHoveredData } from "@ext/markdown/elements/table/edit/logic/utils";
 import type { HoveredData } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import type { Editor } from "@tiptap/core";
 import type { Node } from "@tiptap/pm/model";
@@ -16,7 +17,6 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
-	useEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -27,18 +27,20 @@ interface TableHelperProps {
 	hoverElementRef: RefObject<HTMLTableElement>;
 	children: ReactNode;
 	node: Node;
-	getPos: () => number;
+	pos: number;
 	editor: Editor;
 	disabledWrapper?: boolean;
+	sorted: boolean;
 }
 
-type TableDataString = {
+export type TableDataString = {
 	cols: string[];
 	rows: string[];
 };
 
 const TriangleButtonContainer = styled.div`
 	position: absolute;
+	z-index: 1;
 	top: ${HELPERS_TOP};
 	left: ${HELPERS_LEFT};
 `;
@@ -68,19 +70,13 @@ const TriangleButton = styled.div`
 	}
 `;
 
-const actionsOptions = {
-	delete: false,
-};
-
 const TableHelper = (props: TableHelperProps) => {
-	const { tableRef, hoverElementRef, children, node, getPos, editor, disabledWrapper } = props;
+	const { tableRef, hoverElementRef, children, node, pos, editor, disabledWrapper, sorted } = props;
 
-	const [tableSizes, setTableSizes] = useState<TableDataString>(null);
 	const [isHovered, setIsHovered] = useState(false);
 
 	const hoveredData = useRef<HoveredData>(null);
 
-	const pos = getPos();
 	const tableSheet = useMemo(() => TableNodeSheet.createFromProseMirrorNode(node, pos), [node, pos]);
 
 	const commonParent = tableRef.current?.parentElement?.parentElement;
@@ -93,54 +89,7 @@ const TableHelper = (props: TableHelperProps) => {
 		hoveredData.current = null;
 	}, [commonParent]);
 
-	useEffect(() => {
-		const tableObserver = new ResizeObserver(() => {
-			const tableSizes = getTableSizes(tableRef.current);
-			setTableSizes(tableSizes);
-		});
-
-		const observer = new MutationObserver((mutationsList) => {
-			const filterNodes = (nodes: NodeList) => {
-				return Array.from(nodes).filter((node: HTMLElement) => {
-					return (
-						!node?.classList?.contains("column-resize-handle") &&
-						!node?.classList?.contains("add-row") &&
-						!node?.classList?.contains("add-column")
-					);
-				});
-			};
-
-			for (const mutation of mutationsList) {
-				const resizerAddHandlesCount = filterNodes(mutation.addedNodes).length;
-				const resizerRemoveHandlesCount = filterNodes(mutation.removedNodes).length;
-				const isChildListType = mutation.type === "childList";
-				const isAddNodesNonZero = resizerAddHandlesCount !== 0;
-				const isRemovedNodesNonZero = resizerRemoveHandlesCount !== 0;
-				const isAddNodes = resizerAddHandlesCount === mutation.addedNodes.length;
-				const isRemovedNodes = resizerRemoveHandlesCount === mutation.removedNodes.length;
-
-				if (isChildListType && isAddNodesNonZero && isAddNodes) {
-					const tableSizes = getTableSizes(tableRef.current);
-					setTableSizes(tableSizes);
-					return hideControls();
-				}
-
-				if (isChildListType && isRemovedNodesNonZero && isRemovedNodes) {
-					const tableSizes = getTableSizes(tableRef.current);
-					setTableSizes(tableSizes);
-					return hideControls();
-				}
-			}
-		});
-
-		tableObserver.observe(tableRef.current.lastElementChild);
-		observer.observe(tableRef.current.lastElementChild, { childList: true, subtree: true });
-
-		return () => {
-			tableObserver.disconnect();
-			observer.disconnect();
-		};
-	}, [tableRef.current, hideControls]);
+	const { tableSizes } = useTableSizes(tableRef, hideControls);
 
 	const onMouseMove = useCallback(
 		(event: ReactMouseEvent) => {
@@ -165,9 +114,8 @@ const TableHelper = (props: TableHelperProps) => {
 	);
 
 	const selectNode = useCallback(() => {
-		const startPos = getPos();
-		editor.commands.setNodeSelection(startPos);
-	}, [getPos, editor]);
+		editor.commands.setNodeSelection(pos);
+	}, [pos, editor]);
 
 	const WrapperChildren = (
 		<>
@@ -186,9 +134,10 @@ const TableHelper = (props: TableHelperProps) => {
 			)}
 			<TablePlusActions
 				editor={editor}
-				getPos={getPos}
 				isHovered={isHovered}
 				node={node}
+				pos={pos}
+				sorted={sorted}
 				tableRef={tableRef}
 				tableSheet={tableSheet}
 				tableSizes={tableSizes}
@@ -198,7 +147,10 @@ const TableHelper = (props: TableHelperProps) => {
 
 	return (
 		<HoverableActions
-			actionsOptions={actionsOptions}
+			actionsOptions={{
+				delete: false,
+			}}
+			hideOnClick={false}
 			hoverElementRef={hoverElementRef}
 			isHovered={isHovered}
 			setIsHovered={setIsHovered}

@@ -1,8 +1,8 @@
 import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorProvider from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import { ArticlePropsStoreProvider } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import type { ArticlePreview } from "@ext/print/types";
 import type { ReactNode } from "react";
@@ -18,11 +18,11 @@ const ArticleServices = ({
 }) => {
 	return (
 		<ApiUrlCreatorProvider.Provider value={apiUrlCreator}>
-			<ArticlePropsService.Provider value={articleProps}>
+			<ArticlePropsStoreProvider data={articleProps}>
 				<ResourceService.Provider>
 					<>{children}</>
 				</ResourceService.Provider>
-			</ArticlePropsService.Provider>
+			</ArticlePropsStoreProvider>
 		</ApiUrlCreatorProvider.Provider>
 	);
 };

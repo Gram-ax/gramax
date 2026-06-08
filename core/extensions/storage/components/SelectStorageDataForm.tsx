@@ -5,7 +5,6 @@ import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
-import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";
 import { getStorageDataByForm } from "@ext/git/actions/Clone/logic/getStorageDataByForm";
 import SelectGitStorageDataFields from "@ext/git/actions/Source/Git/components/SelectGitStorageDataFields";
 import SelectGiteaStorageDataFields from "@ext/git/actions/Source/Gitea/components/SelectGiteaStorageDataFields";
@@ -61,8 +60,8 @@ type GitSourceDatas = GitSourceData | GitlabSourceData | GitHubSourceData | GitV
 export type SelectStorageDataFormData = SelectFormSchemaType;
 
 const useEnterpriseSourceData = (filteredSourceDatas: GitSourceDatas[]) => {
-	const isEnterprise = useIsEnterpriseWorkspace();
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
+	const isEnterprise = !!gesUrl;
 
 	const enterpriseSourceData = useMemo(
 		() => (isEnterprise ? getEnterpriseSourceData(filteredSourceDatas, gesUrl) : null),

@@ -1,4 +1,4 @@
-import { LucideIcon } from "@components/Atoms/Icon/LucideIcon";
+import { type IconCode, LucideIcon } from "@components/Atoms/Icon/LucideIcon";
 import { COLOR_CONFIG } from "@ext/pdfExport/config";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
@@ -8,7 +8,7 @@ export const getSvgIconFromString = async (
 	color: string = COLOR_CONFIG.black,
 	strokeWidth: string = "2",
 ) => {
-	let svgIcon = await LucideIcon(iconName);
+	let svgIcon = await LucideIcon(iconName as IconCode);
 	if (!svgIcon) svgIcon = await LucideIcon("circle-help");
 
 	const svgString = ReactDOMServer.renderToStaticMarkup(React.createElement(svgIcon));

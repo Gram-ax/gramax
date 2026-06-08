@@ -18,6 +18,7 @@ interface SheetComponentProps {
 	title?: React.ReactNode;
 	confirmButton?: React.ReactNode;
 	cancelButton?: React.ReactNode;
+	showCloseButton?: boolean;
 }
 
 export const SheetComponent = ({
@@ -28,11 +29,12 @@ export const SheetComponent = ({
 	title,
 	cancelButton,
 	confirmButton,
+	showCloseButton,
 }: SheetComponentProps) => {
 	return (
 		<Sheet onOpenChange={onOpenChange} open={isOpen}>
 			<SheetTrigger asChild>{trigger}</SheetTrigger>
-			<StyledSheetContent>
+			<StyledSheetContent overlayType="dimmed" showCloseButton={showCloseButton}>
 				<SheetHeader>{title && <SheetTitle>{title}</SheetTitle>}</SheetHeader>
 				<FormBody style={{ flex: 1 }}>{sheetContent}</FormBody>
 				<StyledSheetFooter>

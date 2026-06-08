@@ -39,6 +39,14 @@ export enum TableHeaderTypes {
 	BOTH = "both",
 }
 
+export enum SortState {
+	ASC = "asc",
+	DESC = "desc",
+}
+
+export type FilterState = Record<number, string[]>;
+export type SortRecord = Record<number, SortState>;
+
 export type ColumnData = string[];
 
 export type AggregationData = {
@@ -47,3 +55,38 @@ export type AggregationData = {
 }[];
 
 export type HoveredData = { rowIndex: number; cellIndex: number };
+
+export type FilterAndSort = {
+	filter: FilterState;
+	sort: SortRecord;
+	sortingOrder: number[];
+};
+
+export interface FilterAndSortProps {
+	tableData?: TableDataExtended;
+	canSort: boolean;
+	saved: FilterAndSort;
+	active: FilterAndSort;
+	onFilterChange: (colIndex: number, excluded: string[]) => void;
+	onSortChange: (colIndex: number, sortState: SortState) => void;
+	sorted?: boolean;
+	columnsValues: string[][];
+}
+
+export type TableCellInfo = {
+	text: string;
+	rowspan: number;
+	colspan: number;
+	realRowStart: number;
+	visualColStart: number;
+	realColStart: number;
+};
+
+export type TableDataExtended = {
+	rows: {
+		initialOrder?: number;
+		cells: TableCellInfo[];
+	}[];
+	numRows: number;
+	numCols: number;
+};

@@ -9,6 +9,7 @@ crate-type = ['cdylib']
 [dependencies]
 gramax-git = { path = "../../../../crates/git" }
 gramax-fs = { path = "../../../../crates/fs" }
+gramax-core = { path = "../../../../crates/core" }
 gramax-opentelemetry = { path = "../../../../crates/opentelemetry" }
 em-bindgen-macro = { path = "../em-bindgen-macro" }
 

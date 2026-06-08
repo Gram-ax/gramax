@@ -1,5 +1,6 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
+import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
@@ -10,7 +11,6 @@ import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/Dat
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertDeleteDialog } from "../../ui-kit/AlertDeleteDialog";
 import { TableComponent } from "../../ui-kit/table/TableComponent";
-import { TableInfoBlock } from "../../ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "../../ui-kit/table/TableToolbar";
 import { UserToolbarAddBtn } from "../components/UserToolbarAddBtn";
 import { editorsTableColumns } from "./config/EditorsTableConfig";
@@ -43,6 +43,7 @@ const EditorsComponent = () => {
 		},
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: idc
 	const selectedCount = useMemo(() => table.getFilteredSelectedRowModel().rows.length, [table, rowSelection]);
 
 	const saveEditors = useCallback(
@@ -50,13 +51,14 @@ const EditorsComponent = () => {
 			if (!editorSettings) return;
 			try {
 				await updateEditors({ count: editorSettings.count, editors });
-			} catch (e: any) {
+			} catch (e) {
 				setSaveError(e?.message);
 			}
 		},
 		[editorSettings, updateEditors],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: idc
 	const deleteSelected = useCallback(async () => {
 		const selectedRows = table.getFilteredSelectedRowModel().rows;
 		const selectedEditorIds = selectedRows.map((row) => row.original.editor);
@@ -101,21 +103,24 @@ const EditorsComponent = () => {
 	if (!editorSettings) return null;
 
 	return (
-		<div className="p-6">
+		<div>
 			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
-			<TableInfoBlock
-				description={
-					<span>
-						{localEditors.length}
-						{editorSettings.count ? `/${editorSettings.count}` : ""}
-					</span>
+			<StickyHeader
+				title={
+					<>
+						{getAdminPageTitle(Page.EDITORS)}
+						<span className="text-2xl font-normal">
+							{localEditors.length}
+							{editorSettings.count ? `/${editorSettings.count}` : ""}
+						</span>
+					</>
 				}
-				title={getAdminPageTitle(Page.EDITORS)}
 			/>
 
 			<div>
 				<TableToolbar
+					className="pt-0"
 					input={
 						<TableToolbarTextInput
 							onChange={handleFilterChange}

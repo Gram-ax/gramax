@@ -1,9 +1,9 @@
 import getGitError from "@ext/git/core/GitCommands/errors/logic/getGitError";
 import { LibGit2BaseCommands } from "@ext/git/core/GitCommands/LibGit2BaseCommands";
 import type GitVersionData from "@ext/git/core/model/GitVersionData";
+import type { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import type SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
-import type { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
 import { FileStatus } from "../../../Watchers/model/FileStatus";
 import { GitBranch } from "../GitBranch/GitBranch";
 import type { GitStatus } from "../GitWatcher/model/GitStatus";
@@ -19,10 +19,12 @@ import type {
 	DirStat,
 	FileStat,
 	GcOptions,
+	GetCommitInfoOpts,
 	MergeOptions,
 	RefInfo,
 	RemoteProgress,
 	ResetOptions,
+	StorageStats,
 	TreeReadScope,
 } from "./model/GitCommandsModel";
 
@@ -192,14 +194,24 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		return git.fileHistory({ repoPath: this._repoPath, filePath: filePath.value, offset, limit });
 	}
 
-	async getCommitInfo(oid: string, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]> {
-		const raw = await git.getCommitInfo({ repoPath: this._repoPath, oid, opts });
+	async getCommitInfo(oid: string, opts: GetCommitInfoOpts): Promise<GitVersionData[]> {
+		const raw = await git.getCommitInfo({
+			repoPath: this._repoPath,
+			oid,
+			opts: { ...opts, includeChangedFiles: true },
+		});
+
 		return raw.map((r) => ({
 			author: r.author,
 			timestamp: r.timestamp,
 			oid: r.oid,
 			summary: r.summary,
 			parents: r.parents,
+			stat: {
+				added: r.stat.added,
+				deleted: r.stat.deleted,
+				changedFiles: r.stat.changedFiles,
+			},
 		}));
 	}
 
@@ -209,12 +221,12 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 	}
 
 	async getCurrentBranch(): Promise<GitBranch> {
-		const data = await git.branchInfo({ repoPath: this._repoPath });
+		const data = await git.branchInfo({ repoPath: this._repoPath, name: null });
 		return new GitBranch(data);
 	}
 
 	async getCurrentBranchName(): Promise<string> {
-		const data = await git.branchInfo({ repoPath: this._repoPath });
+		const data = await git.branchInfo({ repoPath: this._repoPath, name: null });
 		return data.name;
 	}
 
@@ -399,8 +411,16 @@ class LibGit2Commands extends LibGit2BaseCommands implements GitCommandsModel {
 		return await git.gc({ repoPath: this._repoPath, opts });
 	}
 
+	async lfsPrune(): Promise<void> {
+		await git.lfsPrune({ repoPath: this._repoPath });
+	}
+
 	async healthcheck(): Promise<void> {
 		return await git.healthcheck({ repoPath: this._repoPath });
+	}
+
+	async storageStats(): Promise<StorageStats> {
+		return await git.storageStats({ repoPath: this._repoPath });
 	}
 }
 

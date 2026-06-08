@@ -4,8 +4,7 @@ import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvid
 import MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
-import GitAttributes from "@core/GitLfs/GitAttributes";
-import haveInternetAccess from "@core/utils/haveInternetAccess";
+import GitAttributes from "@core/GitLfs/logic/GitAttributes";
 import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import GitError from "@ext/git/core/GitCommands/errors/GitError";
@@ -39,6 +38,8 @@ export default class WorkdirRepository extends Repository {
 	private _getRepositoryStateFirstly = true;
 	private _state: RepositoryStateProvider;
 	private _unsubscribeTokens: UnsubscribeToken[] = [];
+	private _stagingPaused = false;
+	private _stagingBuffer: Path[] = [];
 
 	constructor(
 		repoPath: Path,
@@ -66,6 +67,18 @@ export default class WorkdirRepository extends Repository {
 
 	unsubscribeEvents() {
 		this._unsubscribeTokens.forEach((token) => DiskFileProvider.events.off(token));
+	}
+
+	pauseGitStaging() {
+		this._stagingPaused = true;
+		this._stagingBuffer = [];
+	}
+
+	async resumeGitStaging() {
+		this._stagingPaused = false;
+		const paths = this._stagingBuffer;
+		if (paths.length > 0) await this._gitIndexAddFiles(paths);
+		this._stagingBuffer = [];
 	}
 
 	checkoutIfCurrentBranchNotExist(): Promise<{ hasCheckout: boolean }> {
@@ -101,12 +114,12 @@ export default class WorkdirRepository extends Repository {
 	}
 
 	@trace()
-	async isShouldSync({ data, shouldFetch, onFetch, lockFetch = true }: IsShouldSyncOptions): Promise<boolean> {
+	async isShouldSync({ data, shouldFetch, onFetch }: IsShouldSyncOptions): Promise<boolean> {
 		const toPull = (await this.storage.getSyncCount()).pull;
 		if (toPull > 0) return true;
 
 		if (shouldFetch) {
-			await this.storage.fetch(data, false, lockFetch);
+			await this.storage.fetch(data, false, false);
 			onFetch?.();
 		}
 
@@ -155,12 +168,13 @@ export default class WorkdirRepository extends Repository {
 		const oldVersion = await this.gvc.getCurrentVersion();
 		const oldBranch = await this.gvc.getCurrentBranch();
 		const allBranches = (await this.gvc.getAllBranches()).map((b) => b.getData().remoteName ?? b.getData().name);
-		const haveInternet = await haveInternetAccess();
 
 		const state: RepositoryCheckoutState = { value: "checkout", data: { to: branch } };
 		await this._state.saveState(state);
 
-		if (haveInternet && !allBranches.includes(branch) && !data.isInvalid) await this.storage.fetch(data);
+		const stashOid = await this.stash(data);
+
+		if (!allBranches.includes(branch) && !data.isInvalid) await this.storage.fetch(data);
 		await this.gvc.checkoutToBranch(data as GitSourceData, branch, force);
 		onCheckout?.(branch);
 
@@ -170,14 +184,16 @@ export default class WorkdirRepository extends Repository {
 
 		let mergeFiles: GitMergeResultContent[] = [];
 
-		if (haveInternet && !data.isInvalid && !changes.length) {
+		if (!data.isInvalid && !changes.length && !stashOid) {
 			try {
-				mergeFiles = await this._pull({ data, onPull });
+				mergeFiles = await this._pull({ data, onPull, stashOid });
 			} catch (e) {
 				await this.gvc.checkoutToBranch(data as GitSourceData, oldBranch.toString());
 				await this._state.resetState();
 				throw e;
 			}
+		} else if (stashOid) {
+			mergeFiles = await this._applyStashWithConflicts(stashOid, oldVersion);
 		}
 
 		this.gvc.update();
@@ -186,7 +202,8 @@ export default class WorkdirRepository extends Repository {
 		await this._events.emit("checkout", { repo: this, branch });
 		await this.gvc.checkChanges(oldVersion, newVersion);
 
-		await this._state.resetState();
+		const innerState = this._state.inner.value;
+		if (innerState !== "stashConflict" && innerState !== "mergeConflict") await this._state.resetState();
 		return mergeFiles;
 	}
 
@@ -292,6 +309,12 @@ export default class WorkdirRepository extends Repository {
 		);
 
 		if (paths.length === 0) return;
+
+		if (this._stagingPaused) {
+			this._stagingBuffer.push(...paths);
+			return;
+		}
+
 		const gitPaths = paths.map((x) => this._repoPath.rootDirectory.subDirectory(x));
 
 		try {
@@ -321,12 +344,45 @@ export default class WorkdirRepository extends Repository {
 		await onPush?.();
 	}
 
+	private async _applyStashWithConflicts(
+		stashOid: GitStash,
+		commitHeadBefore: GitVersion,
+	): Promise<GitMergeResultContent[]> {
+		const stashResult = await this.gvc.applyStash(stashOid, { deleteAfterApply: false });
+
+		if (!stashResult.length) {
+			await this.gvc.deleteStash(stashOid);
+			return [];
+		}
+
+		const state: RepositoryStashConflictState = {
+			value: "stashConflict",
+			data: {
+				commitHeadBefore: commitHeadBefore.toString(),
+				conflictFiles: stashResult,
+				reverseMerge: true,
+				stashHash: stashOid.toString(),
+			},
+		};
+		await this._state.saveState(state);
+
+		return this._state.stashConflictResolver.convertToMergeResultContent(stashResult);
+	}
+
 	@trace()
-	private async _pull({ data, onPull }: { data: SourceData; onPull?: () => void }): Promise<GitMergeResultContent[]> {
+	private async _pull({
+		data,
+		onPull,
+		stashOid: existingStash,
+	}: {
+		data: SourceData;
+		onPull?: () => void;
+		stashOid?: GitStash;
+	}): Promise<GitMergeResultContent[]> {
 		let stashResult: GitMergeResult[] = [];
 		const commitHeadBefore = await this.gvc.getCurrentVersion();
 
-		const stashOid = await this.stash(data);
+		const stashOid = existingStash ?? (await this.stash(data));
 
 		if (stashOid) {
 			const syncingState: RepositorySyncingState = {

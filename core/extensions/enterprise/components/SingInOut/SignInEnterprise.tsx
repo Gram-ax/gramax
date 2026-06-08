@@ -67,7 +67,7 @@ const SignInEnterprise = ({ trigger }: { trigger: JSX.Element }) => {
 	const router = useRouter();
 	const { isBrowser, isTauri } = usePlatform();
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
+	const gesUrl = PageDataContextService.value.conf.activeGesUrl;
 
 	const handleSignIn = useEnterpriseSignIn({
 		gesUrl,

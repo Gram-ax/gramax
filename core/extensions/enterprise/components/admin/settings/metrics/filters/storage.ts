@@ -72,6 +72,7 @@ const loadNestedStructure = (parsed: Record<string, unknown>): MetricsFiltersSto
 			sortBy: viewData.sortBy ?? defaults.view.sortBy,
 			sortOrder: viewData.sortOrder ?? defaults.view.sortOrder,
 			selectedUserEmails: viewData.selectedUserEmails ?? defaults.view.selectedUserEmails,
+			selectedCatalogs: viewData.selectedCatalogs ?? defaults.view.selectedCatalogs,
 			anonymousFilter: viewData.anonymousFilter ?? defaults.view.anonymousFilter,
 			axisLabelFormat: viewData.axisLabelFormat ?? defaults.view.axisLabelFormat,
 		},
@@ -98,6 +99,7 @@ const loadNestedStructure = (parsed: Record<string, unknown>): MetricsFiltersSto
 				sortBy: articleRatingTable?.sortBy ?? defaults.search.articleRatingTable.sortBy,
 				sortOrder: articleRatingTable?.sortOrder ?? defaults.search.articleRatingTable.sortOrder,
 			},
+			selectedCatalogs: searchData.selectedCatalogs ?? defaults.search.selectedCatalogs,
 		},
 	};
 };

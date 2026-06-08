@@ -15,7 +15,7 @@ import {
 import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
 import { PADDING_LEFT_RIGHT, PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/components/TableWrapper";
 import ThemeService from "@ext/Theme/components/ThemeService";
-import { useMemo, useRef } from "react";
+import { type MutableRefObject, useMemo, useRef } from "react";
 
 type TotalWidths = {
 	computedWidth: number;
@@ -49,7 +49,7 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 	${({ headerRowStyles, tableStyles, bgColor, gridColumns, clientWidth }) => {
 		if (!tableStyles.tableMarginTop) return;
 		return css`
-			> .width-wrapper > .scrollableContent > div[data-table-wrapper] > {
+			> .width-wrapper-container > .width-wrapper > .scrollableContent > div[data-table-wrapper] > {
 				table[data-header="row"],
 				table[data-header="both"] {
 					margin-top: ${tableStyles.tableMarginTop}px;
@@ -68,20 +68,18 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 
 						display: grid;
 						grid-template-columns: ${gridColumns.gridTemplateColumns};
+
 						z-index: 2;
-						background-color: ${bgColor};
+						background: ${bgColor};
 						padding: 0 calc(${PADDING_LEFT_RIGHT} + 0.5px);
+
+						padding: 0 ${PADDING_LEFT_RIGHT};
 
 						margin-left: -${PADDING_LEFT_RIGHT};
 
-						> td:first-of-type {
-							left: -0.5px !important;
-							width: calc(100% + 0.5px);
-							box-shadow: -1px 0 0 0 var(--color-table-border);
-						}
-
 						> td {
-							border-left: none;
+							border-top: 1.25px solid var(--color-table-border) !important;
+							border-bottom: 1.25px solid var(--color-table-border) !important;
 						}
 						${gridColumns.totalWidths.map(({ computedWidth, styleWidth }, i) => {
 							if (styleWidth && styleWidth > computedWidth) return;
@@ -97,29 +95,22 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 						${gridColumns.gridColWidths.map(
 							({ colIndex, width }) => css`
 								> col:nth-of-type(${colIndex}) {
-									min-width: ${width}px;
+									width: ${width}px;
 								}
 							`,
 						)}
 					}
 				}
 				table[data-header="both"] > tbody > tr:first-of-type {
-					padding: 0 calc(${PADDING_LEFT_RIGHT});
 					> td:first-of-type {
 						left: 0 !important;
 						width: calc(100%);
 					}
 				}
 			}
-			> .width-wrapper .controls-container-horizontal {
-				position: fixed;
-				left: unset;
-				padding-left: ${PADDING_LEFT_RIGHT};
-				top: calc(${HELPERS_TOP} + ${headerRowStyles.top - TOP_PADDING}px);
-			}
 
-			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="both"]),
-			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="row"]) {
+			> .width-wrapper-container > .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="both"]),
+			> .width-wrapper-container > .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="row"]) {
 				> .top-block {
 					position: fixed;
 					width: ${headerRowStyles.width}px;
@@ -132,7 +123,7 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 				.controls-container-horizontal {
 					position: fixed;
 					left: unset;
-					padding-left: ${PADDING_LEFT_RIGHT};
+					padding: 0 ${PADDING_LEFT_RIGHT};
 					top: calc(${HELPERS_TOP} + ${headerRowStyles.top - TOP_PADDING}px);
 				}
 				> .scrollableContent > div[data-table-select-all-container] {
@@ -176,9 +167,10 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 							left: 0em;
 						}
 					}
+					&::-webkit-scrollbar {
+						z-index: 3;
+					}
 				}
-			}
-			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="both"]) {
 				> .scrollableContent > .table-actions > .table-controller > .controls-container-vertical {
 					> .plus-actions-container.plus-actions-container:first-of-type {
 						> div {
@@ -218,7 +210,7 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 	${({ stickyColumnCSS, firstColumnWidth, bgColor, clientWidth }) =>
 		stickyColumnCSS &&
 		css`
-			> .width-wrapper > .scrollableContent > div[data-table-wrapper] > {
+			> .width-wrapper-container > .width-wrapper > .scrollableContent > div[data-table-wrapper] > {
 				table[data-header="column"] tbody,
 				table[data-header="both"] tbody {
 					${stickyColumnCSS}
@@ -236,10 +228,10 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 					}
 				}
 			}
-			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="both"]):has(
+			> .width-wrapper-container > .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="both"]):has(
 					> .shadow-box.left
 				),
-			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="column"]):has(
+			> .width-wrapper-container > .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="column"]):has(
 					> .shadow-box.left
 				) {
 				> .scrollableContent {
@@ -263,8 +255,8 @@ const StickyWrapper = styled.div<StickyWrapperProps>`
 					}
 				}
 			}
-			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="both"]),
-			> .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="column"]) {
+			> .width-wrapper-container > .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="both"]),
+			> .width-wrapper-container > .width-wrapper:has(> .scrollableContent > div[data-table-wrapper] > table[data-header="column"]) {
 				> .shadow-box.left {
 					width: ${PADDING_LEFT_RIGHT} !important;
 					background-color: ${bgColor} !important;
@@ -383,9 +375,12 @@ const getFirstColumnCells = (table: HTMLTableElement | null): HTMLTableCellEleme
 	return cells;
 };
 
-const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
-	const { tableRef } = props;
+const StickyTableWrapperInternal = (
+	props: WidthWrapperProps & { headerRowRef?: MutableRefObject<HTMLTableRowElement> },
+) => {
+	const { tableRef, headerRowRef } = props;
 	const theme = ThemeService.value;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const bgColor = useMemo(() => getEffectiveBackgroundColor(tableRef.current), [tableRef.current, theme]);
 	const stickyTableWrapperRef = useRef<HTMLDivElement>(null);
 	const topShadowContainerRef = useRef<HTMLDivElement>(null);
@@ -401,7 +396,7 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 			: [];
 	const rows = tableRef?.current?.querySelectorAll<HTMLTableRowElement>(":scope > tbody > tr");
 	const colRow = tableRef?.current?.querySelectorAll<HTMLTableRowElement>(":scope > thead > tr > td") || [];
-	const header = tableRef?.current?.dataset["header"] as TableHeaderTypes;
+	const header = tableRef?.current?.dataset.header as TableHeaderTypes;
 
 	const enableStickyRow =
 		!hasRowspan && rows?.length !== 1 && (header === TableHeaderTypes.ROW || header === TableHeaderTypes.BOTH);
@@ -433,10 +428,9 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 		return newColWidths;
 	}, [cols, colRow]);
 
-	const emptyColWidth = colWidths.some((colWidth) => !colWidth.styleWidth);
 	const firstRowCells = [...(rows?.[0]?.querySelectorAll<HTMLTableCellElement>("td, th") || [])];
 	const firstRowCellsWidthsRef = useRef<string[]>([]);
-	const firstRowCellsWidths = useMemo(() => {
+	const firstRowCellsWidths = (() => {
 		const newWidths = firstRowCells.map((c) => window.getComputedStyle(c).width);
 		const prevWidths = firstRowCellsWidthsRef.current;
 
@@ -449,9 +443,10 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 
 		firstRowCellsWidthsRef.current = newWidths;
 		return newWidths;
-	}, [firstRowCells, emptyColWidth]);
+	})();
 
 	const gridColumnsRef = useRef<GridColumns>({});
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const gridColumns = useMemo(() => {
 		const gridColumns: string[] = [];
 		const totalWidths: TotalWidths[] = [];
@@ -503,6 +498,7 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 		enableStickyRow ? tableRef : emptyRef,
 		stickyTableWrapperRef,
 		topShadowContainerRef,
+		headerRowRef,
 	);
 	const firstColumnCellsRef = useRef<HTMLTableCellElement[]>([]);
 	const firstColumnCells = useMemo(() => {
@@ -539,9 +535,6 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 				left: ${PADDING_LEFT_RIGHT};
 				background-color: ${bgColor};
 				z-index: 1;
-				border-left: none;
-				border-right: none;
-				box-shadow: inset 1px 0 0 var(--color-table-border), inset -1px 0 0 var(--color-table-border);
 			}
 		`.styles;
 	}, [firstColumnCells, bgColor, tableRef.current]);
@@ -577,13 +570,14 @@ const StickyTableWrapperInternal = (props: WidthWrapperProps) => {
 						</>
 					) : null
 				}
-				children={children}
-			/>
+			>
+				{children}
+			</WidthWrapper>
 		</StickyWrapper>
 	);
 };
 
-const StickyTableWrapper = (props: WidthWrapperProps) => {
+const StickyTableWrapper = (props: WidthWrapperProps & { headerRowRef?: MutableRefObject<HTMLTableRowElement> }) => {
 	const isNestedTable = useRef<boolean>(undefined);
 
 	useWatch(() => {

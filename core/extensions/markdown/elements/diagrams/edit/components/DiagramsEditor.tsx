@@ -194,7 +194,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 										height={monacoHeight}
 										language={langs[diagramName]}
 										onChange={setContentEditState}
-										uiKitTheme
+										theme={{ dark: "new-vs-dark", light: "light" }}
 										value={contentState?.toString() || ""}
 									/>
 									{error && (
@@ -207,7 +207,7 @@ const DiagramsEditor = (props: DiagramsEditorProps) => {
 								</div>
 								<div className={classNames("divider", { hide: isMobile })} />
 								<div className={classNames("right-item", { hide: isMobile })} ref={rightItemRef}>
-									<div>
+									<div data-resize-container>
 										<OverloadDiagramRenderer
 											content={pendedData}
 											diagramName={diagramName as DiagramType}

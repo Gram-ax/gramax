@@ -39,6 +39,11 @@ describe("Каталог", () => {
 		await dfp.write(p("res/b.md"), "![](./pic.png)");
 		await dfp.write(p("res/pic.png"), "");
 
+		await dfp.write(p("docroot/docs/a.md"), "");
+		await dfp.write(p("docroot/docs/b/_index.md"), "");
+		await dfp.write(p("docroot/docs/b/c.md"), "");
+		await dfp.write(p("docroot/docs/.doc-root.yaml"), "");
+
 		app = await getApp();
 		fp = app.wm.current().getFileProvider();
 		workspace = app.wm.current();
@@ -82,5 +87,11 @@ describe("Каталог", () => {
 		await expect(fp.exists(p("res/f/pic.png"))).resolves.toBe(true);
 
 		await expect(fp.exists(p("res/pic.png"))).resolves.toBe(false);
+	});
+
+	test("возвращает относительный docroot для каталога с .doc-root", async () => {
+		const catalog = await workspace.getContextlessCatalog("docroot");
+
+		expect(catalog.getRelativeRootCategoryPath().value).toBe("docs");
 	});
 });

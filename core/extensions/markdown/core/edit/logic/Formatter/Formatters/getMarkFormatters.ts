@@ -4,6 +4,7 @@ import getCodeFormatter from "@ext/markdown/elements/code/edit/logic/getCodeForm
 import getColorFormatter from "@ext/markdown/elements/color/edit/logic/getColorFormatter";
 import getCommentFormatter from "@ext/markdown/elements/comment/edit/logic/getCommentFormatter";
 import getEmFormatter from "@ext/markdown/elements/em/edit/logic/getEmFormatter";
+import getFragmentLinkFormatter from "@ext/markdown/elements/fragment-link/edit/logic/FragmentLinkFormatter";
 import getHighlightFormatter from "@ext/markdown/elements/highlight/edit/logic/getHighlightFormatter";
 import getLinkFormatter from "@ext/markdown/elements/link/edit/logic/getLinkFormatter";
 import getInlineMdFormatter from "@ext/markdown/elements/md/logic/getInlineMdFormatter";
@@ -24,6 +25,7 @@ const getMarkFormatters = (context?: ParserContext): { [mark: string]: MarkSeria
 		suggestion: getSuggestionFormatter(),
 		comment: getCommentFormatter(context),
 		highlight: getHighlightFormatter(context),
+		"fragment-link": getFragmentLinkFormatter(context),
 		...(getPluginFormatters() ?? {}),
 	};
 };

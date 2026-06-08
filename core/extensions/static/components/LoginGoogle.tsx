@@ -50,7 +50,7 @@ const ButtonLink = ({ onLogin, className }: { onLogin: () => void; className?: s
 	return (
 		<Button className={classNames(className, {}, ["w-full"])} onClick={onClick}>
 			<Icon code="google-icon" isLoading={isLoading} />
-			{t("login-with") + "Google"}
+			{`${t("login-with")} Google`}
 		</Button>
 	);
 };
@@ -82,7 +82,7 @@ const LoginGoogle = ({ onLogin }: LoginGoogleProps) => {
 				<p>
 					<strong>{GRAMAX_CLOUD_NAME}</strong> — {t("cloud.login-modal.definition")}:
 				</p>
-				<CodeBlock value={cloudUrl} />
+				<CodeBlock>{cloudUrl}</CodeBlock>
 				<p>{t("cloud.login-modal.account-info")}</p>
 			</CloudModalBody>
 			<FormFooter primaryButton={<StyledButtonLink onLogin={onLogin} />} />

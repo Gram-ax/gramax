@@ -1,9 +1,11 @@
-import type { LinksBreadcrumbProps } from "@components/Breadcrumbs/LinksBreadcrumb";
+import type { LinksBreadcrumbReadyData } from "@components/Breadcrumbs/LinksBreadcrumb";
+import type { SearchResultMarkItem } from "@ext/serach/Searcher";
 import type { ExpanderFocusItem } from "../utils/FocusItemsCollector";
 import type {
 	RowArticleSearchResult,
 	RowCatalogSearchResult,
 	SearchItemBlockRowBase,
+	SearchItemDiagramRow,
 	SearchItemLinkRow,
 } from "../utils/SearchRowsModel";
 
@@ -12,7 +14,7 @@ export type Row = CatalogRow | ArticleRow;
 export interface CatalogRow extends RowCatalogSearchResult {}
 
 export interface ArticleRow extends Omit<RowArticleSearchResult, "items"> {
-	breadcrumbs: LinksBreadcrumbProps["readyData"];
+	breadcrumbs: LinksBreadcrumbReadyData<SearchResultMarkItem[]>;
 	items: ArticleRowItem[];
 }
 
@@ -36,10 +38,15 @@ export type ArticleRowBlockItem = ArticleRowHeaderBlockItem | ArticleRowFileBloc
 
 export interface ArticleRowParagraphItem extends SearchItemLinkRow, ArticleRowItemBase {}
 
+export interface ArticleRowDiagramItem extends Omit<SearchItemDiagramRow, "children">, ArticleRowItemBase {
+	children: ArticleRowItem[];
+}
+
 export interface ArticleRowExpanderItem extends ExpanderFocusItem, ArticleRowItemBase {}
 
 export type ArticleRowItem =
 	| ArticleRowBlockItem
 	| ArticleRowFileBlockItem
 	| ArticleRowParagraphItem
+	| ArticleRowDiagramItem
 	| ArticleRowExpanderItem;

@@ -1,10 +1,14 @@
+/** biome-ignore-all lint/complexity/useLiteralKeys lint/suspicious/noExplicitAny lint/style/noParameterAssign: it's ok */
+import agent from "@app/commands/agent";
 import ai from "@app/commands/ai";
 import enterprise from "@app/commands/enterprise";
+import enterpriseCloud from "@app/commands/enterpriseCloud";
 import inbox from "@app/commands/inbox";
 import setLanguage from "@app/commands/language/set";
 import pdf from "@app/commands/pdf";
 import templates from "@app/commands/templates";
 import workspace from "@app/commands/workspace";
+import type * as Debug from "../../apps/browser/src/debug";
 import type Application from "../types/Application";
 import type { Command } from "../types/Command";
 import article from "./article";
@@ -17,19 +21,36 @@ import item from "./item";
 import mergeRequests from "./mergeRequests";
 import page from "./pageData";
 import quiz from "./quiz";
+import review from "./review";
 import search from "./search";
 import storage from "./storage";
 import setTheme from "./theme/setTheme";
 import versionControl from "./versionControl";
 import word from "./word";
 
+declare global {
+	interface Window {
+		debug: typeof Debug;
+		app: Promise<Application>;
+		commands: CommandTree;
+		refreshPage: () => Promise<void>;
+		wasm: any;
+		desktopOpened?: boolean;
+		resetIsFirstLoad?: () => void;
+		navigateTo?: (path: string) => void;
+	}
+}
+
 const commands = {
+	agent,
 	ai,
 	enterprise,
+	enterpriseCloud,
 	setTheme,
 	setLanguage,
 	article,
 	catalog,
+	review,
 	elements,
 	healthcheck,
 	download,
@@ -65,13 +86,14 @@ const assignCommand = (command: Command<any, any>, app: Application, commandTree
 };
 
 const findCommand = (commands: CommandTree, path: string): Command<unknown, any> => {
-	const search = (object: any, deep = 0) => {
+	const search = (object: any, d = 0) => {
+		let deep = d;
 		if (!object || deep > 100) return;
-		if (object._c?.path == path) return object;
+		if (object._c?.path === path) return object;
 		deep += 1;
 		for (const [key, value] of Object.entries(object)) {
 			if (["_c", "_app", "_commands"].includes(key)) return;
-			const found = search(value as any, ++deep);
+			const found = search(value as any, deep);
 			if (found) return found;
 		}
 	};
@@ -84,5 +106,5 @@ const createCommands = (app: Application) => {
 	return commands;
 };
 
-export { assignCommand, createCommands, findCommand };
 export type { CommandTree };
+export { assignCommand, createCommands, findCommand };

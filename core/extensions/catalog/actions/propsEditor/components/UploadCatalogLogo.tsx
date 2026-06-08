@@ -1,10 +1,11 @@
+import CustomLogoDriver from "@core/utils/CustomLogoDriver";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
 import { useWatchClient } from "@core-ui/hooks/useWatch";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import LogoUploader from "@ext/workspace/components/LogoUploader";
 import { FormField } from "@ui-kit/Form";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { FormData, FormProps } from "../logic/createFormSchema";
 
@@ -14,24 +15,29 @@ interface UploadCatalogLogoProps {
 }
 
 const UploadCatalogLogo = ({ formProps, form }: UploadCatalogLogoProps) => {
-	const { deleteLightLogo, deleteDarkLogo, lightLogo, darkLogo, updateLightLogo, updateDarkLogo, refreshState } =
-		CatalogLogoService.value();
+	const { lightLogo: initialLightLogo, darkLogo: initialDarkLogo, refreshState } = CatalogLogoService.value();
+
+	const [lightPreview, setLightPreview] = useState<string>(initialLightLogo ?? null);
+	const [darkPreview, setDarkPreview] = useState<string>(initialDarkLogo ?? null);
 
 	useWatchClient(() => {
 		void refreshState();
 	}, []);
 
-	const defaultLightFileInfo = useMemo(() => {
-		if (!lightLogo) return;
+	useWatchClient(() => {
+		setLightPreview(initialLightLogo ?? null);
+		setDarkPreview(initialDarkLogo ?? null);
+	}, [initialLightLogo, initialDarkLogo]);
 
-		return { name: "logo_light.svg", url: lightLogo };
-	}, [lightLogo]);
+	const defaultLightFileInfo = useMemo(() => {
+		if (!lightPreview) return;
+		return { name: "logo_light.svg", url: lightPreview };
+	}, [lightPreview]);
 
 	const defaultDarkFileInfo = useMemo(() => {
-		if (!darkLogo) return;
-
-		return { name: "logo_dark.svg", url: darkLogo };
-	}, [darkLogo]);
+		if (!darkPreview) return;
+		return { name: "logo_dark.svg", url: darkPreview };
+	}, [darkPreview]);
 
 	const onError = useCallback(
 		(name: "logo.light" | "logo.dark", error: DefaultError) => {
@@ -42,10 +48,40 @@ const UploadCatalogLogo = ({ formProps, form }: UploadCatalogLogoProps) => {
 
 	const onChange = useCallback(
 		(name: "logo.light" | "logo.dark") => {
-			form.setError(name, { message: null });
+			form.clearErrors(name);
 		},
 		[form],
 	);
+
+	const updateLightLogo = useCallback(
+		({ content, fileName, type }: { content: string; fileName: string; type: string }) => {
+			const base64 = type === "png" ? content : CustomLogoDriver.logoToBase64(content);
+			setLightPreview(base64);
+			form.setValue("logo.light", { content, fileName, type }, { shouldDirty: true });
+			onChange("logo.light");
+		},
+		[form, onChange],
+	);
+
+	const updateDarkLogo = useCallback(
+		({ content, fileName, type }: { content: string; fileName: string; type: string }) => {
+			const base64 = type === "png" ? content : CustomLogoDriver.logoToBase64(content);
+			setDarkPreview(base64);
+			form.setValue("logo.dark", { content, fileName, type }, { shouldDirty: true });
+			onChange("logo.dark");
+		},
+		[form, onChange],
+	);
+
+	const deleteLightLogo = useCallback(() => {
+		setLightPreview(null);
+		form.setValue("logo.light", null, { shouldDirty: true });
+	}, [form]);
+
+	const deleteDarkLogo = useCallback(() => {
+		setDarkPreview(null);
+		form.setValue("logo.dark", null, { shouldDirty: true });
+	}, [form]);
 
 	return (
 		<>
@@ -55,6 +91,7 @@ const UploadCatalogLogo = ({ formProps, form }: UploadCatalogLogoProps) => {
 						defaultFileInfo={defaultLightFileInfo}
 						deleteResource={deleteLightLogo}
 						error={fieldState.error?.message}
+						key={defaultLightFileInfo?.url ?? "empty-light-logo"}
 						onChange={() => onChange("logo.light")}
 						onError={(error) => onError("logo.light", error)}
 						updateResource={updateLightLogo}
@@ -71,6 +108,7 @@ const UploadCatalogLogo = ({ formProps, form }: UploadCatalogLogoProps) => {
 						defaultFileInfo={defaultDarkFileInfo}
 						deleteResource={deleteDarkLogo}
 						error={fieldState.error?.message}
+						key={defaultDarkFileInfo?.url ?? "empty-dark-logo"}
 						onChange={() => onChange("logo.dark")}
 						onError={(error) => onError("logo.dark", error)}
 						updateResource={updateDarkLogo}

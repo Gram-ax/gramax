@@ -52,7 +52,7 @@ const getErrorData = (resourceError: ResourceError) => {
 		icon: "image-off",
 		tooltip: t("alert.image.unavailable"),
 		color: "hsl(var(--secondary-fg))",
-		borderColor: "hsl(var(--status-error-border))",
+		borderColor: "hsl(var(--status-error-secondary-border))",
 		backgroundColor: "hsl(var(--status-error-bg))",
 	};
 };

@@ -8,7 +8,7 @@ export const pasteBetweenMark = (slice: Slice, state: EditorState): Slice => {
 	if (slice.content.childCount !== 1) return slice;
 
 	const firstChild = slice.content.firstChild;
-	if (!firstChild.isTextblock || firstChild.type.spec.code) return slice;
+	if (!firstChild || !firstChild.isTextblock || firstChild.type.spec.code) return slice;
 
 	const newContent = [];
 	const activeMarks = state.doc.resolve(Math.min(Math.max(from + 1, to - 1, 0), state.doc.content.size)).marks();

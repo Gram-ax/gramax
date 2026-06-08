@@ -1,8 +1,8 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import isProduction from "../../../scripts/isProduction.mjs";
-import { reactSSRLayoutEffectPlugin } from "./plugins/server/reactSSRLayoutEffectPlugin";
 import replaceImportPlugin from "./plugins/replaceImportPlugin";
+import { reactSSRLayoutEffectPlugin } from "./plugins/server/reactSSRLayoutEffectPlugin";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -18,8 +18,5 @@ Bun.build({
 	define: {
 		"process.env.VITE_ENVIRONMENT": JSON.stringify("docportal"),
 	},
-	plugins: [
-		replaceImportPlugin(dirname),
-		reactSSRLayoutEffectPlugin(),
-	],
+	plugins: [replaceImportPlugin(dirname), reactSSRLayoutEffectPlugin()],
 });

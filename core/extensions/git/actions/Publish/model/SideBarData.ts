@@ -3,6 +3,7 @@ import type { DiffFile, DiffFilePaths } from "@ext/VersionControl/model/Diff";
 
 interface SideBarData {
 	isResource: boolean;
+	pathname?: string;
 	parentPath?: DiffFilePaths;
 	data: {
 		title: string;

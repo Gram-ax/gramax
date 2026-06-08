@@ -1,4 +1,3 @@
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import { useRouter } from "@core/Api/useRouter";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import FetchService from "@core-ui/ApiServices/FetchService";
@@ -7,7 +6,7 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
-import t from "@ext/localization/locale/translate";
+import { confirmDiscard } from "@ext/git/core/GitPublish/logic/confirmDiscard";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import { useCallback } from "react";
 
@@ -33,18 +32,17 @@ export const useDiscard = (selectedFiles: Set<string>, onDiscard?: () => void): 
 
 	const discard = useCallback(
 		async (paths: string[], reset: boolean) => {
-			if (!(await confirm(t("git.discard.seletected-confirm")))) return;
+			if (!(await confirmDiscard(new Set(paths).size || 0))) return;
 
 			const deletedArticlePath = getDeletedArticlePath();
-
 			const endpoint = apiUrlCreator.getVersionControlDiscardUrl(deletedArticlePath);
 			const res = await FetchService.fetch(endpoint, JSON.stringify(paths), MimeTypes.json);
 			if (!res.ok) return;
 			const redirectPath = await res.text();
 			if (deletedArticlePath && redirectPath) router.pushPath(redirectPath);
+			else refreshPage();
 			onDiscard?.();
 
-			ArticleUpdaterService.forceUpdate();
 			BranchUpdaterService.updateBranch(
 				apiUrlCreator,
 				reset ? OnBranchUpdateCaller.MergeRequest : OnBranchUpdateCaller.DiscardNoReset,

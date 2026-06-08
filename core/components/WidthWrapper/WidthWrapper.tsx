@@ -1,25 +1,13 @@
+import { ARTICLE_CONTENT_WRAPPER_WIDTH_ATTRIBUTE } from "@components/Layouts/CatalogLayout/ArticleLayout/consts";
 import { classNames } from "@components/libs/classNames";
 import ShadowBox from "@components/WidthWrapper/ShadowBox";
-import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
 import { VERTICAL_TOP_OFFSET } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
-import { PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/components/TableWrapper";
-import { type CSSProperties, type RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
-
-export const CELL_MIN_WIDTH = "3em";
-
-const calculateContentWidth = (element: Element | null): number => {
-	if (!element) return 0;
-
-	const isTable = element.firstElementChild?.tagName.toLowerCase() === "table";
-	if (!isTable) return element.clientWidth;
-
-	return element.firstElementChild.clientWidth;
-};
+import { CELL_MIN_WIDTH, PADDING_TOP_BOTTOM } from "@ext/markdown/elements/table/render/components/TableWrapper";
+import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from "react";
 
 export interface WidthWrapperProps {
 	children: JSX.Element;
@@ -35,14 +23,10 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 	const [rightWidth, setRightWidth] = useState(0);
 	const [leftWidth, setLeftWidth] = useState(0);
 	const [height, setHeight] = useState(0);
-	const [wrapperSize, setWrapperSize] = useState(0);
 	const isShowMainLangContentPreview = useShowMainLangContentPreview();
 	const scrollContainerRef = useRef<HTMLDivElement>(null);
 	const isPin = SidebarsIsPinService.value.left;
 	const leftNavigation = SidebarsIsOpenService?.transitionEndIsLeftOpen;
-
-	let articleRef = ArticleRefService.value;
-	if (disableWrapper) articleRef = null;
 
 	const setWidth = useCallback(() => {
 		const scroll = scrollContainerRef.current;
@@ -57,22 +41,13 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 	}, []);
 
 	const resizeWrapper = useCallback(() => {
-		const first = articleRef?.current?.firstElementChild;
-		const articleRefWidth = first?.clientWidth;
-
 		const scrollContainer = scrollContainerRef.current;
 		if (!scrollContainer) return;
 
-		const scrollContentRef = scrollContainer?.firstElementChild;
-		const scrollContentRefWidth = calculateContentWidth(scrollContentRef);
-
-		const editorWidth = first?.firstElementChild.clientWidth;
-		const newWrapperSize = (articleRefWidth - editorWidth) / 2;
-
 		setHeight(scrollContainer.clientHeight);
-		setWrapperSize(scrollContentRefWidth >= editorWidth ? newWrapperSize : 0);
-	}, [articleRef]);
+	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		if (!scrollContainerRef.current) return;
 
@@ -90,101 +65,59 @@ const WidthWrapper = (props: WidthWrapperProps) => {
 			observer.disconnect();
 			window.removeEventListener("resize", handleResize);
 		};
-	}, [setWidth, resizeWrapper]);
+	}, [setWidth, resizeWrapper, scrollContainerRef.current]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		resizeWrapper();
 		setWidth();
-	}, [isPin, leftNavigation, setWidth, resizeWrapper]);
-
-	const getWidth = useCallback((): CSSProperties => {
-		if (isShowMainLangContentPreview) return {};
-		if (typeof isPin === "undefined" || wrapperSize <= 0) return {};
-		if (!articleRef?.current) return {};
-
-		const parentElement = scrollContainerRef?.current?.parentElement.parentElement;
-		const nodeWidth = parentElement.clientWidth;
-		const editorWidth = articleRef?.current.firstElementChild?.firstElementChild.clientWidth;
-		const addMargin = editorWidth - nodeWidth;
-
-		if (isPin) {
-			return {
-				width: `calc(${
-					articleRef?.current.firstElementChild.firstElementChild.clientWidth + wrapperSize * 2
-				}px - 1em)`,
-				marginLeft: `calc(0.5em - ${wrapperSize}px - ${addMargin}px)`,
-			};
-		}
-
-		const parent = articleRef.current;
-		const editor = parent.firstElementChild.firstElementChild;
-
-		return {
-			width: `calc(${parent.clientWidth}px - 2.5rem)`,
-			marginLeft: `calc(-${(parent.clientWidth - editor.clientWidth) / 2}px + 30px - ${addMargin}px)`, // 30px - width of left navigation in inverted form
-		};
-	}, [isShowMainLangContentPreview, isPin, wrapperSize, articleRef?.current]);
+	}, [setWidth, isPin, leftNavigation]);
 
 	return (
-		<div
-			className={classNames(
-				className,
-				{
-					center:
-						disableWrapper || isShowMainLangContentPreview
-							? scrollContainerRef.current?.parentElement.clientWidth <
-								scrollContainerRef.current?.firstElementChild?.firstElementChild?.clientWidth
-							: wrapperSize > 0,
-				},
-				["width-wrapper"],
-			)}
-			data-wrapper={dataWrapper}
-			style={{ ...getWidth() }}
-		>
-			<div className={"scrollableContent"} onScroll={setWidth} ref={scrollContainerRef}>
-				{children}
+		<div className={classNames(className, {}, ["width-wrapper-container"])}>
+			<div
+				className={classNames("width-wrapper", {
+					"disable-wrapper": disableWrapper || isShowMainLangContentPreview,
+				})}
+				data-wrapper={dataWrapper}
+			>
+				<div className={"scrollableContent"} onScroll={setWidth} ref={scrollContainerRef}>
+					{children}
+				</div>
+				{additional}
+				<ShadowBox direction="left" height={height} width={leftWidth} />
+				<ShadowBox direction="right" height={height} width={rightWidth} />
 			</div>
-			{additional}
-			<ShadowBox direction="left" height={height} width={leftWidth} />
-			<ShadowBox direction="right" height={height} width={rightWidth} />
 		</div>
 	);
 };
 
 export default styled(WidthWrapper)`
-	position: relative;
-	z-index: 0;
+    display: flex;
+    justify-content: center;
 
-	&:has(.scrollableContent > div[data-table-wrapper]) {
-		padding-bottom: calc(${PADDING_TOP_BOTTOM} - ${VERTICAL_TOP_OFFSET});
-		.scrollableContent > div[data-table-wrapper] {
-			padding-bottom: ${VERTICAL_TOP_OFFSET};
-		}
-	}
+    .width-wrapper {
+    	position: relative;
+    	z-index: 0;
 
-	${cssMedia.medium} {
-		&.center {
-			width: 100% !important;
-			margin-left: 0 !important;
-		}
-	}
+    	&:has(.scrollableContent > div[data-table-wrapper]) {
+    		padding-bottom: calc(${PADDING_TOP_BOTTOM} - ${VERTICAL_TOP_OFFSET});
+    		.scrollableContent > div[data-table-wrapper] {
+    			padding-bottom: ${VERTICAL_TOP_OFFSET}	;
+    		}
+    	}
 
-	&.center {
-		display: flex;
-		justify-content: center;
+        max-width: max(calc(var(${ARTICLE_CONTENT_WRAPPER_WIDTH_ATTRIBUTE}) + 3em), 100%);
+        &.disable-wrapper {
+            width: 100%;
+        }
 
-		.scrollableContent {
-			overflow-x: auto;
-			overflow-y: hidden;
-			position: relative;
-		}
-	}
-
-	&:not(.center):has(table) .shadow-box.left,
-	&:not(.center) .scrollableContent:has(table) {
-		margin-left: -1.5em;
-	}
+  		.scrollableContent {
+ 			overflow-x: auto;
+ 			overflow-y: hidden;
+ 			position: relative;
+  		}
+    }
 
 	@media not print {
 		table {

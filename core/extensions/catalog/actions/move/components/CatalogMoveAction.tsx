@@ -4,7 +4,6 @@ import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { setCardLoading } from "@components/HomePage/CardParts/CardStore";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { RequestStatus, useDeferApi } from "@core-ui/hooks/useApi";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
@@ -50,7 +49,6 @@ const CatalogMoveAction = ({ children, catalogName, onSuccess }: CatalogWorkspac
 		},
 		onDone: () => {
 			targetWorkspaceRef.current = null;
-			SourceDataService.refresh();
 			refreshPage();
 			onSuccess?.();
 		},

@@ -41,6 +41,7 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 	const { hasUsers, searchUsers } = useSettings();
 
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const isSelectMode = hasUsers;
 
 	const formSchema = createFormSchema(existingUsers);
 	const form = useForm<FormData>({
@@ -50,8 +51,14 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 		},
 	});
 
+	const selectedUsers = form.watch("users");
+	const selectedUsersCount = selectedUsers.length;
 	const currentCount = existingUsers.length;
 	const availableSlots = limit && currentCount ? limit - currentCount : undefined;
+	const remainingSlots =
+		availableSlots !== undefined && isSelectMode
+			? Math.max(availableSlots - selectedUsersCount, 0)
+			: availableSlots;
 
 	const loadOptions = useCallback(
 		async ({ searchQuery }: { searchQuery: string }) => {
@@ -100,9 +107,9 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 			({
 				type: "submit",
 				onClick: handleAddSelectedUsers,
-				disabled: !form.watch("users").length || disable,
+				disabled: !selectedUsersCount || disable,
 			}) as ButtonProps,
-		[form, disable, handleAddSelectedUsers],
+		[selectedUsersCount, disable, handleAddSelectedUsers],
 	);
 
 	return (
@@ -112,8 +119,8 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 			confirmButtonProps={confirmButtonProps}
 			confirmButtonText={t("add")}
 			description={
-				availableSlots
-					? t("enterprise.admin.search.users.description").replace("{count}", availableSlots.toString())
+				remainingSlots !== undefined
+					? t("enterprise.admin.search.users.description").replace("{count}", remainingSlots.toString())
 					: ""
 			}
 			isOpen={isModalOpen}
@@ -123,7 +130,7 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 						<FormStack>
 							<FormField
 								control={({ field }) =>
-									hasUsers ? (
+									isSelectMode ? (
 										<MultiSelect
 											emptyText={t("enterprise.admin.search.users.emptyText")}
 											errorText={t("enterprise.admin.search.users.errorText")}
@@ -154,21 +161,21 @@ export const UserToolbarAddBtn = ({ disable, onAdd, existingUsers = [], limit }:
 												const value = e.target.value;
 												field.onChange(value ? [value] : []);
 											}}
-											placeholder={t("enterprise.admin.search.users.placeholder")}
+											placeholder={t("enterprise.admin.users.add")}
 										/>
 									)
 								}
-								description={t("enterprise.admin.users.add-select")}
+								description={isSelectMode ? t("enterprise.admin.users.add-select") : ""}
 								layout="vertical"
 								name="users"
-								title={t("enterprise.admin.users.users")}
+								title={t(isSelectMode ? "enterprise.admin.users.users" : "enterprise.admin.users.user")}
 							/>
 						</FormStack>
 					</form>
 				</Form>
 			}
 			onOpenChange={setIsModalOpen}
-			title={t("enterprise.admin.search.users.title")}
+			title={t(isSelectMode ? "enterprise.admin.search.users.title" : "enterprise.admin.users.add-title")}
 			trigger={<TriggerAddButtonTemplate disabled={disable} />}
 		/>
 	);

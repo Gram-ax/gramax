@@ -3,7 +3,7 @@ import Path from "@core/FileProvider/Path/Path";
 import type { WorkspaceManagerConfig } from "@ext/workspace/WorkspaceManager";
 import { env, getExecutingEnvironment } from "../resolveModule/env";
 
-export type AppGlobalConfig = WorkspaceManagerConfig & EnterpriseConfig;
+export type AppGlobalConfig = WorkspaceManagerConfig & EnterpriseConfig & EnterpriseCloudConfig;
 
 interface AppConfigPaths {
 	base: Path;
@@ -22,6 +22,11 @@ export interface ServicesConfig {
 export interface EnterpriseConfig {
 	gesUrl?: string;
 	refreshInterval?: number;
+}
+
+export interface EnterpriseCloudConfig {
+	url?: string;
+	enabled?: boolean;
 }
 
 export interface MetricsConfig {
@@ -52,6 +57,7 @@ export type AppConfig = {
 	tokens: { share: string; cookie: string };
 	services: ServicesConfig;
 	enterprise: EnterpriseConfig;
+	enterpriseCloud: EnterpriseCloudConfig;
 
 	metrics: MetricsConfig;
 
@@ -181,6 +187,11 @@ export const getConfig = (): AppConfig => {
 		enterprise: {
 			gesUrl: env("GES_URL"),
 			refreshInterval: (getNumber(env("GES_REFRESH_INTERVAL")) || 10 * 60) * 1000, // 10 minutes by default
+		},
+
+		enterpriseCloud: {
+			url: env("GES_CLOUD_URL"),
+			enabled: true,
 		},
 
 		logo: {

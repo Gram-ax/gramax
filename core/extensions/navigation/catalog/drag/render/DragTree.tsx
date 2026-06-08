@@ -38,7 +38,6 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 
 	const { call: updateCatalogNav } = useDeferApi<NodeModel<ItemLink>[]>({ opts: { mime: MimeTypes.json } });
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: fine dependencies
 	useEffect(() => {
 		treeDataRef.current = treeData;
 		articlePropsRef.current = articleProps;
@@ -63,6 +62,18 @@ const ExportLevNavDragTree = ({ items, closeNavigation }: { items: ItemLink[]; c
 				},
 			});
 			if (!newItems) return;
+
+			const draggedFolderName = draggedItemPath.split("/").slice(-2, -1)[0];
+			const newDraggedPath = newItems.find(
+				(n) =>
+					n.data?.ref?.path &&
+					n.data.ref.path !== draggedItemPath &&
+					n.data.ref.path.split("/").slice(-2, -1)[0] === draggedFolderName,
+			)?.data?.ref?.path;
+			if (newDraggedPath && openPathsRef.current.has(draggedItemPath)) {
+				openPathsRef.current = new Set([...openPathsRef.current, newDraggedPath]);
+			}
+
 			fetchComplete();
 			const currentItem = newItems.find((i) => i.data.isCurrentLink);
 			if (currentItem) routerRef.current.pushPath(currentItem.data.pathname);

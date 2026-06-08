@@ -40,7 +40,7 @@ pub fn open_directory(_otel: OtelContext) -> Option<PathBuf> {
 
 #[command]
 pub fn open_in_explorer(_otel: OtelContext, path: &Path) -> Result<()> {
-	if plugin_gramax_git::utils::is_lfs_pointer(path)? {
+	if plugin_gramax_core::utils::is_lfs_pointer(path)? {
 		return Err(anyhow::anyhow!("lfs-pointer").into());
 	}
 

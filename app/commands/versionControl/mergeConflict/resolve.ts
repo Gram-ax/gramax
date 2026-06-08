@@ -29,6 +29,7 @@ const resolve: Command<{ ctx: Context; catalogName: string; files: GitMergeResul
 			throw e;
 		} finally {
 			await catalog.update();
+			catalog.repo.gvc.resetCachedStatus();
 		}
 	},
 

@@ -1,10 +1,10 @@
 import type Context from "@core/Context/Context";
-import { Encoder } from "@ext/Encoder/Encoder";
+import { Encoder } from "@ext/encoder/Encoder";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
 import type { AiServerConfig } from "../models/types";
 
 export class AiDataProvider {
-	protected secret = "rJej4ekU2j";
+	protected _secret = "rJej4ekU2j";
 
 	private _encoder: Encoder;
 	private _postfix = "_ai_data";
@@ -37,15 +37,15 @@ export class AiDataProvider {
 	}
 
 	private _encode(data: AiServerConfig) {
-		return this._encoder.ecode([JSON.stringify(data)], this.secret);
+		return this._encoder.encode([JSON.stringify(data)], this._secret);
 	}
 
 	private _decode(ticket: string): AiServerConfig {
-		const data = this._encoder.decode(this.secret, ticket);
+		const data = this._encoder.decode(this._secret, ticket);
 		try {
 			return JSON.parse(data[0]);
 		} catch (e) {
-			throw new Error("Encoded data is malformed, can't decode: " + e.message);
+			throw new Error(`Encoded data is malformed, can't decode: ${e.message}`);
 		}
 	}
 

@@ -5,7 +5,7 @@ import NotificationIcon from "@components/Layouts/LeftNavigationTabs/Notificatio
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useRouter } from "@core/Api/useRouter";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import Url from "@core-ui/ApiServices/Types/Url";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
@@ -13,12 +13,12 @@ import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
-import PromptService from "@ext/ai/components/Tab/PromptService";
+import { promptStore, usePromptStore } from "@ext/ai/components/Tab/PromptStore";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
 import InboxService from "@ext/inbox/components/InboxService";
 import t from "@ext/localization/locale/translate";
-import SnippetUpdateService from "@ext/markdown/elements/snippet/edit/components/SnippetUpdateService";
-import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
+import FragmentUpdateService from "@ext/markdown/elements/fragment/edit/components/FragmentUpdateService";
+import FragmentService from "@ext/markdown/elements/fragment/edit/components/Tab/FragmentService";
 import TemplateService from "@ext/templates/components/TemplateService";
 import { useEffect } from "react";
 import Search from "../../../extensions/serach/components/Search";
@@ -42,8 +42,8 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarCont
 
 	const { items: notes } = InboxService.value;
 	const { templates } = TemplateService.value;
-	const { snippets, selectedID } = SnippetService.value;
-	const { items: promptNotes } = PromptService.value;
+	const { fragments, selectedID } = FragmentService.value;
+	const promptNotes = usePromptStore((s) => s.items);
 	const { articles } = FavoriteService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
@@ -56,16 +56,17 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarCont
 		TemplateService.setItems([]);
 	};
 
-	const onCloseSnippet = async () => {
-		await SnippetUpdateService.updateContent(selectedID, apiUrlCreator);
-		SnippetService.closeItem();
-		SnippetService.setItems([]);
+	const onCloseFragment = async () => {
+		await FragmentUpdateService.updateContent(selectedID, apiUrlCreator);
+		FragmentService.closeItem();
+		FragmentService.setItems([]);
 	};
 
 	const onClosePrompt = () => {
-		PromptService.removeAllItems();
+		promptStore.getState().removeAllItems();
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: catalogName is required to reset
 	useEffect(() => {
 		NavigationTabsService.setTop(LeftNavigationTab.None);
 	}, [catalogName]);
@@ -85,7 +86,7 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarCont
 						iconCode="inbox"
 						isMacDesktop={isMacDesktop}
 						onCloseNotification={onCloseInbox}
-						tooltipText={t("inbox.notes")}
+						tooltipText={t("inbox.name")}
 					/>
 				)}
 				{currentTab === LeftNavigationTab.FavoriteArticles && (
@@ -105,13 +106,13 @@ const TopBarContent = ({ data, isMacDesktop, currentTab, className }: TopBarCont
 						tooltipText={t("template.name")}
 					/>
 				)}
-				{currentTab === LeftNavigationTab.Snippets && (
+				{currentTab === LeftNavigationTab.Fragments && (
 					<NotificationIcon
-						count={snippets.size}
-						iconCode="file"
+						count={fragments.size}
+						iconCode="square-dashed-bottom"
 						isMacDesktop={isMacDesktop}
-						onCloseNotification={onCloseSnippet}
-						tooltipText={t("snippets")}
+						onCloseNotification={onCloseFragment}
+						tooltipText={t("fragments")}
 					/>
 				)}
 				{currentTab === LeftNavigationTab.Prompt && (

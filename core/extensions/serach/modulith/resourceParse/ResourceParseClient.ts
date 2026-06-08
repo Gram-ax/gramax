@@ -1,5 +1,5 @@
-import type { ArticleItem } from "@ics/modulith-search-domain/article";
-import type { ProgressCallback } from "@ics/modulith-utils";
+import type { ArticleItem } from "@ics/article-search/article";
+import type { ProgressCallback } from "@ics/article-search-utils";
 import type { Buffer } from "buffer";
 
 export interface ResourceParseClient {

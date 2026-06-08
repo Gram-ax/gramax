@@ -6,7 +6,6 @@ import type ReadOnlyFileProvider from "@core/FileProvider/model/ReadOnlyFileProv
 import Path from "@core/FileProvider/Path/Path";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
-import type Watcher from "@ext/Watchers/model/Watcher";
 
 export default class MountFileProvider implements FileProvider {
 	private readonly _rootPath: Path;
@@ -32,8 +31,8 @@ export default class MountFileProvider implements FileProvider {
 		return true;
 	}
 
-	static fromDefault(root: Path, watcher?: Watcher) {
-		return new this(root).mount(Path.empty, new DiskFileProvider(Path.empty, { watcher }));
+	static fromDefault(root: Path) {
+		return new this(root).mount(Path.empty, new DiskFileProvider(Path.empty));
 	}
 
 	allFp(): Readonly<Map<string, FileProvider | ReadOnlyFileProvider>> {
@@ -86,13 +85,15 @@ export default class MountFileProvider implements FileProvider {
 		writeable: W,
 		shouldFallbackOnRoot = false,
 	): W extends true ? FileProvider : ReadOnlyFileProvider {
-		if (this._mounts.size == 1)
+		if (this._mounts.size === 1)
 			return this._mounts.get("/") as W extends true ? FileProvider : ReadOnlyFileProvider;
 
-		path = path || Path.empty;
-		const currentPath = path.value;
+		const validatedPath = path || Path.empty;
+		const currentPath = validatedPath.value;
 		let lastSlashIndex =
-			shouldFallbackOnRoot && this.isFallbackOnRoot ? path.parentDirectoryPath.value.length : currentPath.length;
+			shouldFallbackOnRoot && this.isFallbackOnRoot
+				? validatedPath.parentDirectoryPath.value.length
+				: currentPath.length;
 
 		while (lastSlashIndex > 0) {
 			const provider = this._mounts.get(currentPath.slice(0, lastSlashIndex) || "/");
@@ -116,8 +117,8 @@ export default class MountFileProvider implements FileProvider {
 		return this._resolveFileProvider(path, true, true).delete(path, preferTrash);
 	}
 
-	deleteEmptyFolders(path: Path): Promise<void> {
-		return this._resolveFileProvider(path, true, false).deleteEmptyFolders(path);
+	deleteEmptyDirs(path: Path): Promise<void> {
+		return this._resolveFileProvider(path, true, false).deleteEmptyDirs(path);
 	}
 
 	write(path: Path, data: string | Buffer, compress?: CompressOptions): Promise<void> {
@@ -192,7 +193,7 @@ export default class MountFileProvider implements FileProvider {
 		return this._resolveFileProvider(path, false, false).readdir(path);
 	}
 
-	symlink(target: Path, path: Path): Promise<void> {
-		return this._resolveFileProvider(path, true, true).symlink(target, path);
+	hardlink(target: Path, path: Path): Promise<void> {
+		return this._resolveFileProvider(path, true, true).hardlink(target, path);
 	}
 }

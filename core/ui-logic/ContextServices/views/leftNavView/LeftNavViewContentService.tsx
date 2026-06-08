@@ -11,7 +11,7 @@ export type LeftNavViewContentComponent = ({
 }) => JSX.Element;
 
 const LeftNavViewContentContext = createContext<LeftNavViewContentComponent>(undefined);
-let _setLeftNavViewContent: React.Dispatch<React.SetStateAction<LeftNavViewContentComponent>>;
+let SetLeftNavViewContent: React.Dispatch<React.SetStateAction<LeftNavViewContentComponent>>;
 
 abstract class LeftNavViewContentService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {
@@ -19,7 +19,7 @@ abstract class LeftNavViewContentService {
 			() => LeftNavigationContent,
 		);
 
-		_setLeftNavViewContent = setLeftNavViewContent;
+		SetLeftNavViewContent = setLeftNavViewContent;
 
 		return (
 			<LeftNavViewContentContext.Provider value={leftNavViewContent}>
@@ -33,7 +33,7 @@ abstract class LeftNavViewContentService {
 	}
 
 	static setView(component: LeftNavViewContentComponent) {
-		_setLeftNavViewContent(() => component);
+		SetLeftNavViewContent(() => component);
 	}
 
 	static setDefaultView() {

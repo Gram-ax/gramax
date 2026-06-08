@@ -19,6 +19,8 @@ import Em from "@ext/markdown/elements/em/edit/em";
 import File from "@ext/markdown/elements/file/edit/model/file";
 import ArticleSearch from "@ext/markdown/elements/find/edit/models/ArticleSearch";
 import { FloatExtension } from "@ext/markdown/elements/float/edit/model/extension";
+import Fragment from "@ext/markdown/elements/fragment/edit/model/fragment";
+import FragmentLink from "@ext/markdown/elements/fragment-link/edit/model/fragmentLink";
 import GapParagraph from "@ext/markdown/elements/gapParagraph/plugin";
 import Heading from "@ext/markdown/elements/heading/edit/model/heading";
 import Highlight from "@ext/markdown/elements/highlight/edit/model/mark";
@@ -44,7 +46,6 @@ import OpenApi from "@ext/markdown/elements/openApi/edit/models/openApi";
 import Paragraph from "@ext/markdown/elements/paragraph/edit/model/paragraph";
 import PasteMarkdown from "@ext/markdown/elements/pasteMarkdown/pasteMarkdown";
 import Question from "@ext/markdown/elements/question/edit/models/question";
-import Snippet from "@ext/markdown/elements/snippet/edit/model/snippet";
 import Strike from "@ext/markdown/elements/strikethrough/edit/strike";
 import Strong from "@ext/markdown/elements/strong/edit/strong";
 import CustomTable from "@ext/markdown/elements/table/edit/model/nodes/customTable";
@@ -59,9 +60,9 @@ import VideoComponent from "@ext/markdown/elements/video/edit/model/video";
 import View from "@ext/markdown/elements/view/edit/models/view";
 import { Suggestion } from "@ext/StyleGuide/extension/Suggestion";
 import { modifyEditorExtensions } from "@plugins/store";
+import type { Extensions } from "@tiptap/core";
 import History from "@tiptap/extension-history";
 import Text from "@tiptap/extension-text";
-import type { Extensions } from "@tiptap/react";
 
 export interface GetExtensionsPropsOptions {
 	includeResources?: boolean;
@@ -91,7 +92,7 @@ const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => {
 		Tabs,
 		Tab,
 		Suggestion,
-		Snippet,
+		Fragment,
 		CustomTableCell,
 		CustomTableRow,
 		TableKeyboardShortcuts,
@@ -105,6 +106,10 @@ const getExtensions = (options?: GetExtensionsPropsOptions): Extensions => {
 		GapParagraph,
 		GramaxAi,
 		FloatExtension,
+		InlineProperty.configure({
+			canChangeProps: options?.isTemplateInstance,
+			scope: options?.isTemplateInstance ? "article" : "catalog-view",
+		}),
 
 		...(options?.includeQuestions ? [Question, QuestionAnswer] : []),
 
@@ -136,12 +141,12 @@ export const getSimpleExtensions = (): Extensions => [
 	Color,
 	HorizontalRule,
 	Highlight,
+	FragmentLink,
 ];
 
 // Extensions for template editor logic
 export const getTemplateExtensions = (readOnly: boolean = true): Extensions => [
 	BlockContentField.configure({ editable: !readOnly }),
-	InlineProperty.configure({ canChangeProps: !readOnly }),
 	BlockProperty.configure({ canChangeProps: !readOnly }),
 ];
 

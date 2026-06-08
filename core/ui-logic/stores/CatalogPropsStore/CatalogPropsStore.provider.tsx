@@ -4,11 +4,11 @@ import { createContext, type ReactNode, useContext, useEffect, useRef } from "re
 import { shallow } from "zustand/shallow";
 import { useStoreWithEqualityFn } from "zustand/traditional";
 
-export type CatalogStoreApi = ReturnType<typeof createCatalogPropsStore>;
+type CatalogStoreApi = ReturnType<typeof createCatalogPropsStore>;
 
-export const CatalogStoreContext = createContext<CatalogStoreApi | undefined>(undefined);
+const CatalogStoreContext = createContext<CatalogStoreApi | undefined>(undefined);
 
-export interface CatalogStoreProviderProps {
+interface CatalogStoreProviderProps {
 	children: ReactNode;
 	data: ClientCatalogProps;
 }

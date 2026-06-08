@@ -8,6 +8,7 @@ import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const drawioWordLayout: WordBlockChild = async ({ tag, addOptions, wordRenderContext }) => {
 	try {
+		const node = "attributes" in tag ? tag.attributes : tag.attrs;
 		const { Paragraph, TextRun } = await docx();
 		const resourceManager = await getWordResourceManager(
 			addOptions,
@@ -16,23 +17,23 @@ export const drawioWordLayout: WordBlockChild = async ({ tag, addOptions, wordRe
 		);
 
 		const image = await WordImageExporter.getImageFromSvgPath(
-			new Path(tag.attributes.src),
+			new Path(node.src),
 			resourceManager,
 			addOptions?.maxPictureWidth,
 		);
 		const paragraphs = [new Paragraph({ children: [image], style: WordFontStyles.picture })];
 
-		if (tag.attributes.title) {
+		if (node.title) {
 			paragraphs.push(
 				new Paragraph({
-					children: [new TextRun({ text: tag.attributes.title })],
+					children: [new TextRun({ text: node.title })],
 					style: WordFontStyles.pictureTitle,
 				}),
 			);
 		}
 
 		return paragraphs;
-	} catch (error) {
+	} catch {
 		return errorWordLayout(
 			diagramString(wordRenderContext.parserContext.getLanguage()),
 			wordRenderContext.parserContext.getLanguage(),

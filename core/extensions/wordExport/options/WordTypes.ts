@@ -27,9 +27,9 @@ export type WordRenderContext = {
 	itemsFilter: ItemFilter[];
 };
 
-export type WordBlockChild = (params: {
+export type WordBlockChild<T = Tag | JSONContent> = (params: {
 	state: WordSerializerState;
-	tag: Tag | JSONContent;
+	tag: T;
 	addOptions: AddOptionsWord;
 	wordRenderContext: WordRenderContext;
 }) => Promise<FileChild[]>;
@@ -51,7 +51,7 @@ export type AddOptionsWord = IRunPropertiesOptions &
 	MaxPictureWidth &
 	TableInsideListItem &
 	ListContinuationMarker &
-	SnippetContentOptions;
+	FragmentContentOptions;
 
 export type TextRunOptions = { readonly break?: number; removeWhiteSpace?: boolean };
 
@@ -91,6 +91,6 @@ export interface ListContinuationMarker {
 	listContinuationLevel?: number;
 }
 
-export interface SnippetContentOptions {
-	snippetId?: string;
+export interface FragmentContentOptions {
+	fragmentId?: string;
 }

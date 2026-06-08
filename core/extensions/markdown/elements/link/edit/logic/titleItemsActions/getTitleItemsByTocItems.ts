@@ -23,4 +23,4 @@ const flatTitleItems = (items: TitleItem[], level: number, flatItems: TitleItem[
 	});
 };
 
-export { getTitleItemsByTocItems, flatTitleItems };
+export { flatTitleItems, getTitleItemsByTocItems };

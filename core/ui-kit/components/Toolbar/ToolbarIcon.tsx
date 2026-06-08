@@ -1,4 +1,4 @@
-import LucideIcon from "@components/Atoms/Icon/LucideIcon";
+import LucideIcon, { type IconCode } from "@components/Atoms/Icon/LucideIcon";
 import { ToolbarIcon as UiKitToolbarIcon } from "ics-ui-kit/components/toolbar";
 import { forwardRef } from "react";
 import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
@@ -6,7 +6,7 @@ import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric"
 type UiKitToolbarIconProps = ExtractComponentGeneric<typeof UiKitToolbarIcon>;
 
 export interface ToolbarIconProps extends Omit<UiKitToolbarIconProps, "icon"> {
-	icon?: string;
+	icon?: IconCode;
 }
 
 export const ToolbarIcon = forwardRef<SVGSVGElement, ToolbarIconProps>((props, ref) => {
@@ -14,5 +14,6 @@ export const ToolbarIcon = forwardRef<SVGSVGElement, ToolbarIconProps>((props, r
 	const Icon = icon && typeof icon === "string" && LucideIcon(icon);
 	if (!Icon) return null;
 
+	// biome-ignore lint/suspicious/noExplicitAny: expected
 	return <UiKitToolbarIcon icon={Icon as any} ref={ref} {...otherProps} />;
 });

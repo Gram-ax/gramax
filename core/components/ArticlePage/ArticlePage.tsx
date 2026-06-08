@@ -3,16 +3,14 @@ import ArticlePreview from "@components/Article/ArticlePreview";
 import ArticleWithPreviewArticle from "@components/ArticlePage/ArticleWithPreviewArticle";
 import ArticleBreadcrumb from "@components/Breadcrumbs/ArticleBreadcrumb";
 import Welcome from "@components/Welcome";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import useShowMainLangContentPreview from "@core-ui/hooks/useShowMainLangContentPreview";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import styled from "@emotion/styled";
 import ArticleErrorHandler from "@ext/errorHandlers/client/components/ArticleErrorHandler";
 import { useEffect } from "react";
 import Article from "../Article/Article";
 
-const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: string }) => {
+const ArticlePage = ({ data }: { data: ArticlePageData }) => {
 	const { clear } = ResourceService.value;
 	const isShowMainLangContentPreview = useShowMainLangContentPreview();
 
@@ -21,9 +19,13 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 
 	if (data.articleProps.welcome) return <Welcome data={data} />;
 	return (
-		<div className={className}>
+		<div className="flex flex-col h-fit min-h-dvh sm:h-full sm:min-h-0">
 			<ArticleErrorHandler key={data.articleProps.logicPath}>
-				<ArticleBreadcrumb hasPreview={isShowMainLangContentPreview} itemLinks={data.itemLinks} />
+				<ArticleBreadcrumb
+					hasPreview={isShowMainLangContentPreview}
+					itemLinks={data.itemLinks}
+					showActions={data.mode !== "markdown"}
+				/>
 				<ArticleWithPreviewArticle
 					mainArticle={<Article data={data} />}
 					previewArticle={
@@ -36,13 +38,4 @@ const ArticlePage = ({ data, className }: { data: ArticlePageData; className?: s
 	);
 };
 
-export default styled(ArticlePage)`
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-
-	${cssMedia.narrow} {
-		height: fit-content;
-		min-height: 100dvh;
-	}
-`;
+export default ArticlePage;

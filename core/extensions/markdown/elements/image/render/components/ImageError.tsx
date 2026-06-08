@@ -62,7 +62,7 @@ const getErrorData = (resourceError: ResourceError) => {
 		title: t("alert.image.unavailable"),
 		body: t("alert.image.path"),
 		color: "hsl(var(--status-error))",
-		borderColor: "hsl(var(--status-error-border))",
+		borderColor: "hsl(var(--status-error-secondary-border))",
 		backgroundColor: "hsl(var(--status-error-bg))",
 	};
 };
@@ -74,12 +74,12 @@ const ImageError = ({ width, height, resourceError }: ImageErrorProps) => {
 		<Container
 			backgroundColor={backgroundColor}
 			borderColor={borderColor}
-			className="main-container"
+			className="main-container my-2"
 			data-focusable="true"
 			height={height}
 			width={width}
 		>
-			<Wrapper color={color}>
+			<Wrapper className="w-full" color={color}>
 				<div>
 					<p className="flex items-center gap-2">
 						<Icon icon={icon} size="lg" />

@@ -54,6 +54,8 @@ export default class MergeNotificationHandler implements EventHandlerCollection 
 				);
 				if (!changes) return;
 
+				await catalog.update();
+
 				const articles = await this._collectNotifiableArticles(
 					catalog,
 					changes.fileStatusMap,
@@ -63,7 +65,7 @@ export default class MergeNotificationHandler implements EventHandlerCollection 
 				if (articles.length === 0) return;
 
 				const token = (sourceData as { token?: string }).token;
-				await this._dispatchNotifications(articles, catalog.name, gesUrl, token);
+				await this._dispatchNotifications(articles, catalog.props.title, gesUrl, token);
 			} catch (e) {
 				span()?.addEvent("error", { error: String(e) });
 			} finally {
@@ -125,12 +127,11 @@ export default class MergeNotificationHandler implements EventHandlerCollection 
 		parser: MarkdownParser,
 		parserContextFactory: ParserContextFactory,
 	): Promise<ArticleNotificationInfo[]> {
-		const catalogName = catalog.name;
 		const result: ArticleNotificationInfo[] = [];
 
 		for (const [filePath, fileStatus] of fileStatusMap.entries()) {
-			const fullPath = new Path(catalogName).join(new Path(filePath));
-			const article = catalog.findItemByItemPath<Article>(fullPath);
+			const itemRefPath = catalog.getItemRefPath(new Path(filePath));
+			const article = catalog.findItemByItemPath<Article>(itemRefPath);
 			if (!article) continue;
 
 			const notifications = article.props?.notifications;
@@ -138,10 +139,11 @@ export default class MergeNotificationHandler implements EventHandlerCollection 
 			if (!this._shouldSendNotification(notifications.state, fileStatus)) continue;
 
 			const previewText = await this._extractPreview(article, catalog, parser, parserContextFactory);
+			const pathname = await catalog.getPathname(article);
 
 			result.push({
 				title: article.props?.title,
-				logicPath: article.logicPath,
+				logicPath: `/${pathname}`,
 				previewText,
 				state: notifications.state,
 				groups: notifications.groups,

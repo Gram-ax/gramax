@@ -2,17 +2,17 @@ import type { MarkType } from "prosemirror-model";
 import type { EditorState } from "prosemirror-state";
 
 function getMarkPosition(state: EditorState, pos: number, markType: MarkType) {
-	const $pos = state.doc.resolve(pos);
+	const Pos = state.doc.resolve(pos);
 
-	const { parent, parentOffset } = $pos;
+	const { parent, parentOffset } = Pos;
 	const start = parent.childAfter(parentOffset);
 	if (!start.node) return;
 
 	const mark = start.node.marks.find((mark) => mark.type === markType);
 	if (!mark) return;
 
-	let startIndex = $pos.index();
-	let from = $pos.start() + start.offset;
+	let startIndex = Pos.index();
+	let from = Pos.start() + start.offset;
 	let endIndex = startIndex + 1;
 	let to = from + start.node.nodeSize;
 	while (startIndex > 0 && mark.isInSet(parent.child(startIndex - 1).marks)) {

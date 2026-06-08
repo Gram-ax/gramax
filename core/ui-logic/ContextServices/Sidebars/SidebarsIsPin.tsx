@@ -20,10 +20,10 @@ export interface SidebarsIsPinValue {
 const SidebarsIsPinContext = createContext<SidebarsIsPinValue>(undefined);
 const IsSidebarsDependentContext = createContext<boolean>(undefined);
 
-let _setLeftIsPin: Dispatch<SetStateAction<boolean>>;
-let _setRightIsPin: Dispatch<SetStateAction<boolean>>;
+let SetLeftIsPin: Dispatch<SetStateAction<boolean>>;
+let SetRightIsPin: Dispatch<SetStateAction<boolean>>;
 
-let _setIsSidebarsDependent: Dispatch<SetStateAction<boolean>>;
+let SetIsSidebarsDependent: Dispatch<SetStateAction<boolean>>;
 
 abstract class SidebarsIsPinService {
 	private static readonly _localStorageName = "SidebarsIsPin";
@@ -40,10 +40,10 @@ abstract class SidebarsIsPinService {
 
 		const value = useMemo(() => ({ left: leftIsPin, right: rightIsPin }), [leftIsPin, rightIsPin]);
 		SidebarsIsPinService._mediumMedia = isMedium;
-		_setLeftIsPin = setLeftIsPin;
-		_setRightIsPin = setRightIsPin;
+		SetLeftIsPin = setLeftIsPin;
+		SetRightIsPin = setRightIsPin;
 
-		_setIsSidebarsDependent = setIsSidebarsDependent;
+		SetIsSidebarsDependent = setIsSidebarsDependent;
 
 		useEffect(() => {
 			setLeftIsPin(isMedium || isMobile ? false : SidebarsIsPinService.localStorageLeftValue);
@@ -67,15 +67,15 @@ abstract class SidebarsIsPinService {
 
 	static set value(props: { left: boolean; right?: boolean } | { left?: boolean; right: boolean }) {
 		if (SidebarsIsPinService._mediumMedia) return;
-		if (!_setLeftIsPin || !_setRightIsPin) return;
+		if (!SetLeftIsPin || !SetRightIsPin) return;
 		if (typeof props?.left === "boolean") {
 			SidebarsIsPinService.localStorageLeftValue = props.left;
-			_setLeftIsPin(props.left);
-			if (this._isSidebarsDependent) _setRightIsPin(props.left);
+			SetLeftIsPin(props.left);
+			if (this._isSidebarsDependent) SetRightIsPin(props.left);
 		}
 		if (typeof props?.right === "boolean") {
-			_setRightIsPin(props.right);
-			if (this._isSidebarsDependent) _setLeftIsPin(props.right);
+			SetRightIsPin(props.right);
+			if (this._isSidebarsDependent) SetLeftIsPin(props.right);
 		}
 	}
 
@@ -84,9 +84,9 @@ abstract class SidebarsIsPinService {
 	}
 
 	static set isSidebarsDependent(value: boolean) {
-		if (!_setIsSidebarsDependent || typeof value !== "boolean") return;
+		if (!SetIsSidebarsDependent || typeof value !== "boolean") return;
 		this._isSidebarsDependent = value;
-		_setIsSidebarsDependent(value);
+		SetIsSidebarsDependent(value);
 	}
 
 	static get localStorageLeftValue(): boolean {

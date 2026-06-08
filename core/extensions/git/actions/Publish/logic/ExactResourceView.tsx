@@ -2,10 +2,21 @@ import ExactResourceViewWithContent, {
 	type UseResourceArticleViewType,
 } from "@ext/git/actions/Publish/logic/ExactResourceViewWithContent";
 import resolveResourceTypeByExtension from "@ext/git/actions/Publish/logic/utils/resolveResourceTypeByExtension";
-import LoadingWithDiffBottomBar from "@ext/markdown/elements/diff/components/LoadingWithDiffBottomBar";
-import useFetchDiffData from "@ext/markdown/elements/diff/logic/hooks/useFetchDiffData";
+import LoadingWithDiffBottomBar from "@ext/git/core/Diff/components/LoadingWithDiffBottomBar";
+import {
+	setDiffEnabled,
+	setDoublePanelLocked,
+	setSideBarData,
+	setSourceTextLocked,
+	updateDiffViewMode,
+	updateDisabledViewModes,
+	useDiffViewMode,
+} from "@ext/git/core/Diff/components/store/DiffViewModeStore";
+import useFetchDiffData from "@ext/git/core/Diff/logic/hooks/useFetchDiffData";
+import { useResetArticleView } from "@ext/git/core/Diff/logic/hooks/useResetArticleView";
+import type { DiffViewMode } from "@ext/git/core/Diff/logic/model/DiffView";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" | "oldContent" | "type">) => {
 	const { resourcePath, newScope, oldScope, status, oldResourcePath, filePath } = props;
@@ -19,6 +30,10 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 	const [isLoading, setIsLoading] = useState(type !== "image" && type !== "unknown");
 	const [newContent, setNewContent] = useState<string>(null);
 	const [oldContent, setOldContent] = useState<string>(null);
+
+	const diffModeViewRef = useRef<DiffViewMode>(null);
+	const diffModeView = useDiffViewMode();
+	diffModeViewRef.current = diffModeView;
 
 	const fetchDiffData = useFetchDiffData({
 		isAdded,
@@ -38,12 +53,58 @@ const ExactResourceView = (props: Omit<UseResourceArticleViewType, "newContent" 
 		setIsLoading(false);
 	}, [fetchDiffData]);
 
+	useResetArticleView();
+
 	useEffect(() => {
 		if (type === "image" || type === "unknown") return;
 		void getNewData();
 	}, [getNewData, type]);
 
-	if (isLoading) return <LoadingWithDiffBottomBar filePath={filePath} />;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	useEffect(() => {
+		const previousDiffViewMode = diffModeViewRef.current;
+		const isWysiwyg = previousDiffViewMode === "wysiwyg-single" || previousDiffViewMode === "wysiwyg-double";
+
+		setDiffEnabled(true);
+		setSourceTextLocked(type === "text");
+		setDoublePanelLocked(type !== "text" || isDeleted);
+		setSideBarData({
+			pathname: resourcePath.value,
+			isResource: true,
+			data: {
+				title: resourcePath.value,
+				filePath,
+				status,
+				isChanged: true,
+				resources: [],
+				isChecked: true,
+				logicPath: undefined,
+				added: undefined,
+				deleted: undefined,
+			},
+		});
+		updateDisabledViewModes(
+			type === "text"
+				? ["wysiwyg-double", "wysiwyg-single"]
+				: ["double-panel", "wysiwyg-double", "wysiwyg-single", "single-panel"],
+		);
+
+		if (type === "text" && isWysiwyg) updateDiffViewMode("single-panel");
+		if (type === "image") updateDiffViewMode("wysiwyg-single");
+
+		if (type !== "image") void getNewData();
+
+		return () => {
+			setSourceTextLocked(false);
+			setDoublePanelLocked(false);
+			setDiffEnabled(false);
+			updateDisabledViewModes([]);
+			updateDiffViewMode(diffModeViewRef.current);
+			setSideBarData(null);
+		};
+	}, []);
+
+	if (isLoading) return <LoadingWithDiffBottomBar />;
 
 	return <ExactResourceViewWithContent {...props} newContent={newContent} oldContent={oldContent} type={type} />;
 };

@@ -3,12 +3,12 @@ import type MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
 import PlayButton from "@components/Atoms/Image/PlayButton";
 import ImageSkeleton from "@components/Atoms/ImageSkeleton";
 import HoverableActions from "@components/controls/HoverController/HoverableActions";
-import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import { cn } from "@core-ui/utils/cn";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
-import styled from "@emotion/styled";
 import {
 	type ComponentProps,
 	type MouseEvent,
@@ -61,6 +61,7 @@ const GifImage = (props: GifImageProps) => {
 	const buttonRef = useRef<HTMLElement>();
 	const canvasRef = useRef<HTMLCanvasElement>();
 	const articleRef = ArticleRefService.value;
+	const { id: resourceId, provider: resourceProvider } = ResourceService.value;
 
 	const [isPlaying, setIsplaying] = useState(false);
 	const [thumbnail, setThumbnail] = useState<string>(null);
@@ -101,13 +102,15 @@ const GifImage = (props: GifImageProps) => {
 				src: src,
 				title: title,
 				downloadSrc: realSrc,
+				resourceId,
+				resourceProvider,
 				openedElement: gifRef,
 				onClose: () => {
 					ModalToOpenService.resetValue();
 				},
 			});
 		},
-		[src, title, realSrc],
+		[src, title, realSrc, resourceId, resourceProvider],
 	);
 
 	const preOnLoad = useCallback(() => {
@@ -128,10 +131,13 @@ const GifImage = (props: GifImageProps) => {
 	}, [onLoad, thumbnail]);
 
 	return (
-		<div className={className}>
+		<div className={cn("flex justify-center my-[0.5em] mx-auto", className)}>
 			<div>
 				<div
-					className={classNames("ff-container", { "ff-active": isPlaying, "ff-inactive": !isPlaying })}
+					className={cn("ff-container relative", {
+						"ff-active": isPlaying,
+						"ff-inactive": !isPlaying,
+					})}
 					onDoubleClick={onDoubleClick}
 				>
 					<HoverableActions
@@ -141,11 +147,29 @@ const GifImage = (props: GifImageProps) => {
 						setIsHovered={setIsHovered}
 					>
 						<ImageSkeleton height={size?.height} isLoaded={!!thumbnail} width={size?.width}>
-							<PlayButton className="ff-button" onClick={onPlayButtonClick} ref={buttonRef} />
-							<canvas className="ff-canvas" data-focusable="true" ref={canvasRef} />
-							<div className="ff-gif" data-focusable={true} onClick={onImageClick}>
+							<PlayButton
+								className={cn("ff-button absolute inset-0", { hidden: isPlaying })}
+								iconClassName="absolute inset-0 m-auto z-[var(--z-index-foreground)] text-[length:min(5em,70%)] text-[color:var(--color-white)] cursor-pointer bg-contain bg-center bg-no-repeat [filter:drop-shadow(0px_0px_2px_rgba(0,0,0,0.7))] !mt-auto"
+								onClick={onPlayButtonClick}
+								ref={buttonRef}
+							/>
+							<canvas
+								className={cn("ff-canvas absolute w-full h-full select-none", {
+									hidden: isPlaying,
+								})}
+								data-focusable="true"
+								ref={canvasRef}
+							/>
+							<div
+								className={cn("ff-gif rounded-[var(--radius-small)]", {
+									"z-[var(--z-index-background)]": !isPlaying,
+								})}
+								data-focusable={true}
+								onClick={onImageClick}
+							>
 								<img
 									alt={alt}
+									className="select-none pointer-events-none"
 									onError={onError}
 									onLoad={preOnLoad}
 									ref={gifRef}
@@ -155,78 +179,9 @@ const GifImage = (props: GifImageProps) => {
 						</ImageSkeleton>
 					</HoverableActions>
 				</div>
-				{title && <Caption>{title}</Caption>}
+				{title && <Caption className="!mt-[0.5em]">{title}</Caption>}
 			</div>
 		</div>
 	);
 };
-export default styled(memo(GifImage))`
-	display: flex;
-	justify-content: center;
-	margin: 0.5em auto;
-
-	img {
-		user-select: none;
-		pointer-events: none;
-	}
-
-	em {
-		margin-top: 0.5em !important;
-	}
-
-	.ff-active {
-		.ff-canvas {
-			display: none;
-		}
-		.ff-button {
-			display: none;
-		}
-	}
-	.ff-inactive .ff-gif {
-		z-index: var(--z-index-background);
-	}
-
-	.ff-gif {
-		border-radius: var(--radius-small);
-	}
-
-	.ff-container {
-		position: relative;
-
-		.ff-canvas {
-			position: absolute;
-			width: 100%;
-			height: 100%;
-			user-select: none;
-		}
-
-		.ff-button {
-			position: absolute;
-			top: 0%;
-			left: 0%;
-			right: 0%;
-			bottom: 0%;
-		}
-
-		.ff-button svg {
-			position: absolute;
-			top: 0%;
-			left: 0%;
-			right: 0%;
-			bottom: 0%;
-			margin: auto;
-			z-index: var(--z-index-foreground);
-			color: var(--color-white);
-			cursor: pointer;
-			height: min(5em, 70%);
-			width: auto;
-			background-size: contain;
-			background-position: center;
-			background-repeat: no-repeat;
-			-moz-background-size: contain;
-			-webkit-background-size: contain;
-			filter: drop-shadow(0px 0px 2px rgba(0, 0, 0, 0.7));
-			margin-top: auto !important;
-		}
-	}
-`;
+export default memo(GifImage);

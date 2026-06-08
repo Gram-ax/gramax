@@ -1,8 +1,10 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: it's ok */
+import { isNetworkErrorPayload } from "@ext/errorHandlers/network/NetworkErrorPayload";
 import { type Dispatch, type ReactElement, type SetStateAction, useState } from "react";
 import type DefaultError from "../logic/DefaultError";
 import ErrorModal from "./components/ErrorModal";
 
-let _setError: Dispatch<SetStateAction<DefaultError>>;
+let SetError: Dispatch<SetStateAction<DefaultError>>;
 
 abstract class ErrorConfirmService {
 	private static _isWork: boolean;
@@ -20,7 +22,7 @@ abstract class ErrorConfirmService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		ErrorConfirmService.start();
 		const [error, setError] = useState<DefaultError>(null);
-		_setError = setError;
+		SetError = setError;
 
 		return (
 			<>
@@ -56,9 +58,13 @@ abstract class ErrorConfirmService {
 
 	static notify(error: DefaultError) {
 		if (!this._isWork) return;
-		_setError(error);
-		if (!_setError) throw new Error("ErrorConfirmService error: no '_setError'");
-		_setError(error);
+		if (this._errorFilter(error)) return;
+		if (!SetError) throw new Error("ErrorConfirmService error: no '_setError'");
+		SetError(error);
+	}
+
+	private static _errorFilter(error: DefaultError): boolean {
+		return isNetworkErrorPayload(error);
 	}
 }
 

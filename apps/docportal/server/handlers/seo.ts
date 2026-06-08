@@ -1,6 +1,6 @@
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
-import SEOGenerator from "@core/Sitemap/SEOGenerator";
 import SecurityRules from "@ext/security/logic/SecurityRules";
+import SEOGenerator from "@ext/seoGenerator/SEOGenerator";
 import type ServerContext from "../types/ServerContext";
 
 const seo = async (serverContext: ServerContext) => {

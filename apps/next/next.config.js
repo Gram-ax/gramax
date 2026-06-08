@@ -94,6 +94,7 @@ export default withBundleAnalyzer({
 			...config.resolve.alias,
 			"@core-ui": path.resolve(dirname, "../../../core/ui-logic"),
 			"@components": path.resolve(dirname, "../../core/components"),
+			"@ui-kit/hooks": path.resolve(dirname, "../../core/ui-kit/hooks"),
 			"@ui-kit": path.resolve(dirname, "../../core/ui-kit/components"),
 			"@public": path.resolve(dirname, "../../core/public"),
 			"@plugins": path.resolve(dirname, "../../core/plugins"),

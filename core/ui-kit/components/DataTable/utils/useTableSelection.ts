@@ -1,4 +1,5 @@
 import type { Table } from "ics-ui-kit/vendors/tanstack/react-table";
+import { useCallback } from "react";
 
 /**
  * Хук для работы с выделением строк в таблицах, где есть отключенные (disabled) записи.
@@ -32,9 +33,15 @@ export const useTableSelection = <T extends { disabled?: boolean }>({
 	table,
 	isRowDisabled = (row) => row.disabled === true,
 }: UseTableSelectionProps<T>) => {
-	const getSelectableRows = () => table.getRowModel().rows.filter((row) => !isRowDisabled(row.original));
+	const getSelectableRows = useCallback(
+		() => table.getRowModel().rows.filter((row) => !isRowDisabled(row.original)),
+		[isRowDisabled, table],
+	);
 
-	const getSelectedSelectableRows = () => getSelectableRows().filter((row) => row.getIsSelected());
+	const getSelectedSelectableRows = useCallback(
+		() => getSelectableRows().filter((row) => row.getIsSelected()),
+		[getSelectableRows],
+	);
 
 	const allSelectableSelected =
 		getSelectableRows().length > 0 && getSelectedSelectableRows().length === getSelectableRows().length;
@@ -51,7 +58,10 @@ export const useTableSelection = <T extends { disabled?: boolean }>({
 
 	const getSelectedCount = () => getSelectedSelectableRows().length;
 
-	const getSelectedItems = () => getSelectedSelectableRows().map((row) => row.original);
+	const getSelectedItems = useCallback(
+		() => getSelectedSelectableRows().map((row) => row.original),
+		[getSelectedSelectableRows],
+	);
 
 	return {
 		/** true если все доступные строки выделены */

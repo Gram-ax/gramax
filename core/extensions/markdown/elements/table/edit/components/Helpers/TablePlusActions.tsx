@@ -6,6 +6,7 @@ import {
 } from "@ext/markdown/elements/table/edit/components/Helpers/consts";
 import PlusActions from "@ext/markdown/elements/table/edit/components/Helpers/PlusActions";
 import PlusMenu from "@ext/markdown/elements/table/edit/components/Helpers/PlusMenu";
+import type { TableDataString } from "@ext/markdown/elements/table/edit/components/Helpers/useTableSizes";
 import type TableNodeSheet from "@ext/markdown/elements/table/edit/logic/TableNodeSheet";
 import {
 	addColumn,
@@ -24,19 +25,17 @@ import { type RefObject, useCallback, useEffect, useState } from "react";
 interface TablePlusActionsProps {
 	node: Node;
 	editor: Editor;
-	getPos: () => number;
+	pos: number;
 	isHovered: boolean;
 	tableRef: RefObject<HTMLTableElement>;
-	tableSizes: {
-		cols: string[];
-		rows: string[];
-	};
+	tableSizes: TableDataString;
 	className?: string;
 	tableSheet?: TableNodeSheet;
+	sorted?: boolean;
 }
 
 const TablePlusActions = (props: TablePlusActionsProps) => {
-	const { node, getPos, className, tableSizes, tableRef, isHovered, editor, tableSheet } = props;
+	const { node, pos, className, tableSizes, tableRef, isHovered, editor, tableSheet, sorted } = props;
 	const [isVisible, setIsVisible] = useState(true);
 
 	useEffect(() => {
@@ -56,32 +55,32 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 
 	const plusRow = useCallback(
 		(index?: number) => {
-			if (index === node.childCount) {
-				const rowPos = getRowPosition(node, node.childCount, getPos()) + 1;
+			if (index === node.childCount || (sorted && index !== 0)) {
+				const rowPos = getRowPosition(node, node.childCount, pos) + 1;
 				if (!rowPos) return;
 				return addRowDown(editor, rowPos);
 			}
 
-			const rowPos = getRowPosition(node, index + 1, getPos()) + 1;
+			const rowPos = getRowPosition(node, index + 1, pos) + 1;
 			if (!rowPos) return;
 			addRow(editor, rowPos);
 		},
-		[editor, node, getPos],
+		[editor, node, pos, sorted],
 	);
 
 	const plusColumn = useCallback(
 		(index?: number) => {
 			if (index === -1) {
-				const tdPos = getFirstTdPosition(node, 0, getPos());
+				const tdPos = getFirstTdPosition(node, 0, pos);
 				if (!tdPos) return;
 				return addColumn(editor, tdPos);
 			}
 
-			const position = getFirstTdPosition(node, index + 1, getPos());
+			const position = getFirstTdPosition(node, index + 1, pos);
 			if (!position) return;
 			addColumnRight(editor, position);
 		},
-		[editor, node, getPos],
+		[editor, node, pos],
 	);
 
 	return (
@@ -100,13 +99,15 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 						/>
 					</div>
 					{tableSizes?.cols?.map((_, index) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: it`s ok
 						<div className="plus-actions-container" data-col-number={index} key={index}>
 							<PlusMenu
+								dataQa={`qa-column-menu-${index}`}
 								editor={editor}
-								getPos={getPos}
 								index={index}
 								isHovered={isHovered}
 								node={node}
+								pos={pos}
 								tableSheet={tableSheet}
 							/>
 							<PlusActions
@@ -121,6 +122,7 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 
 				<div className="controls-container-vertical">
 					{tableSizes?.rows?.map((_, index) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: it`s ok
 						<div className="plus-actions-container" data-row-number={index} key={index}>
 							<PlusActions
 								dataQa={`qa-add-row-${index}`}
@@ -131,10 +133,10 @@ const TablePlusActions = (props: TablePlusActionsProps) => {
 							/>
 							<PlusMenu
 								editor={editor}
-								getPos={getPos}
 								index={index}
 								isHovered={isHovered}
 								node={node}
+								pos={pos}
 								tableSheet={tableSheet}
 								vertical
 							/>

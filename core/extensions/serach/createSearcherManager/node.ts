@@ -11,7 +11,6 @@ export const createSearcherManager = async ({
 	wm,
 	parser,
 	parserContextFactory,
-	searchResourcesEnabled,
 }: CreateSearcherManagerArgs) => {
 	const remoteModulithClient = config.portalAi.enabled
 		? await RemoteModulithSearchClient.create({
@@ -27,15 +26,11 @@ export const createSearcherManager = async ({
 		createModulithFileProviders(config.paths.data),
 	);
 
-	const resourceParseClient = searchResourcesEnabled
-		? await resolveBackendModule("getResourceParseClient")()
-		: undefined;
-
 	const modulithService = await createModulithService({
 		wm,
 		parser,
 		parserContextFactory,
-		resourceParseClient,
+		resourceParseClient: await resolveBackendModule("getResourceParseClient")(),
 		localClient: modulithClient,
 		remoteClient: aiAvailable ? remoteModulithClient : undefined,
 		immediateIndexing: true,

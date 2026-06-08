@@ -10,15 +10,18 @@ import BugsnagModal from "@ext/bugsnag/components/BugsnagModal";
 import DuplicateCatalogDialog from "@ext/catalog/actions/move/components/DuplicateCatalogDialog";
 import CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
 import ShareModal from "@ext/catalog/actions/share/components/ShareModal";
-import { Admin } from "@ext/enterprise/components/admin/Admin";
 import NotificationSettingsModal from "@ext/enterprise/components/NotificationSettingsModal";
-import { RepositoryPermission } from "@ext/enterprise/components/RepositoryPermission";
 import { SignInEnterpriseTauriForm } from "@ext/enterprise/components/SingInOut/SignInEnterpriseTauriForm";
 import SignOutEnterprise from "@ext/enterprise/components/SingInOut/SignOutEnterprise";
+import { GesCloudInitCatalog } from "@ext/enterprise-cloud/components/Catalog/GesCloudInitCatalog";
+import { GesCloudSignInFormModal } from "@ext/enterprise-cloud/components/GesCloudSignInFormModal";
+import { InviteMismatchModal } from "@ext/enterprise-cloud/components/InviteMismatchModal";
+import { GesCloudOrganizationSettingsModal } from "@ext/enterprise-cloud/components/organizationSettings/OrganizationSettings";
+import { GesCloudInviteUserModal } from "@ext/enterprise-cloud/components/organizationSettings/settings/components/UserToolbarInviteBtn";
+import GesCloudSignOutModal from "@ext/enterprise-cloud/components/SignInOut/GesCloudSignOutModal";
 import MergeModal from "@ext/git/actions/Branch/components/MergeModal";
 import CreateMergeRequestModal from "@ext/git/actions/Branch/components/MergeRequest/CreateMergeRequest";
 import CloneModal from "@ext/git/actions/Clone/components/CloneModal";
-import HistoryModal from "@ext/git/actions/History/component/History";
 import MergeConflictConfirm from "@ext/git/actions/MergeConflictHandler/components/MergeConflictConfirm";
 import MergeResolver from "@ext/git/actions/MergeConflictHandler/components/MergeResolver";
 import MergeRequestConfirm from "@ext/git/core/GitMergeRequest/components/MergeRequestConfirm";
@@ -30,20 +33,18 @@ import CommonUnsupportedElementsModal from "@ext/import/components/CommonUnsuppo
 import ImportModal from "@ext/import/components/ImportModal";
 import PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
-import { AlertComment } from "@ext/markdown/elements/comment/edit/components/AlertComment";
 import DiagramsEditor from "@ext/markdown/elements/diagrams/edit/components/DiagramsEditor";
 import FilePreviewModal from "@ext/markdown/elements/file/edit/components/Preview/FilePreviewModal";
+import FragmentAlreadyUseWarn from "@ext/markdown/elements/fragment/edit/components/FragmentAlreadyUseWarn";
 import HTMLEditor from "@ext/markdown/elements/html/edit/components/HTMLEditButton";
-import SnippetAlreadyUseWarn from "@ext/markdown/elements/snippet/edit/components/SnippetAlreadyUseWarn";
 import PropertyEditor from "@ext/properties/components/Modals/PropertyEditor";
-import GetSharedTicket from "@ext/security/logic/TicketManager/components/GetSharedTicket";
 import CloudModal from "@ext/static/components/CloudModal";
 import CreateStorageModal from "@ext/storage/components/CreateStorageModal";
 import TemplateContentWarning from "@ext/templates/components/TemplateContentWarning";
 import CreateWorkspaceForm from "@ext/workspace/components/CreateWorkspaceForm";
 import EditWorkspaceForm from "@ext/workspace/components/EditWorkspaceForm";
+import { AlertConfirm } from "@ui-kit/AlertDialog";
 import { lazy, type ReactNode } from "react";
-import ShareTicketHandler from "../../../../extensions/catalog/actions/share/components/ShareTicketHandler";
 import DefaultModal from "../components/DefaultModal";
 import ModalToOpen from "../model/ModalsToOpen";
 
@@ -56,8 +57,6 @@ const getModalComponentToRender: {
 	[ModalToOpen.MergeConfirm]: MergeConflictConfirm,
 	[ModalToOpen.MergeResolver]: MergeResolver,
 
-	[ModalToOpen.ShareTicketHandler]: ShareTicketHandler,
-
 	[ModalToOpen.CheckoutHandler]: CheckoutHandler,
 	[ModalToOpen.PullHandler]: PullHandler,
 	[ModalToOpen.CloneHandler]: CloneHandler,
@@ -65,7 +64,7 @@ const getModalComponentToRender: {
 
 	[ModalToOpen.ImportModal]: ImportModal,
 
-	[ModalToOpen.SnippetAlreadyUseWarn]: SnippetAlreadyUseWarn,
+	[ModalToOpen.FragmentAlreadyUseWarn]: FragmentAlreadyUseWarn,
 
 	[ModalToOpen.Loading]: ModalLoading,
 
@@ -98,13 +97,11 @@ const getModalComponentToRender: {
 	[ModalToOpen.EnterpriseLogout]: SignOutEnterprise,
 	[ModalToOpen.MarkdownEditor]: EditMarkdown,
 	[ModalToOpen.BugsnagModal]: BugsnagModal,
-	[ModalToOpen.History]: HistoryModal,
 	[ModalToOpen.UnsupportedElements]: CommonUnsupportedElementsModal,
 	[ModalToOpen.Share]: ShareModal,
 	[ModalToOpen.NotificationSettings]: NotificationSettingsModal,
 
 	[ModalToOpen.CatalogPropsEditor]: CatalogPropsEditor,
-	[ModalToOpen.GetSharedTicket]: GetSharedTicket,
 	[ModalToOpen.Healthcheck]: Healthcheck,
 
 	[ModalToOpen.ActionConfirm]: ActionConfirm,
@@ -117,15 +114,19 @@ const getModalComponentToRender: {
 
 	[ModalToOpen.DefaultModal]: DefaultModal,
 	[ModalToOpen.UnsavedChangesModal]: UnsavedChangesModal,
-	[ModalToOpen.UnsavedCommentModal]: AlertComment,
 
-	[ModalToOpen.RepositoryPermission]: lazy(() =>
-		import("@ext/enterprise/components/RepositoryPermission").then((module) => ({
-			default: module.RepositoryPermission,
-		})),
-	),
+	[ModalToOpen.RepositoryPermission]: lazy(() => import("@ext/enterprise/components/RepositoryPermissionModal")),
 
 	[ModalToOpen.TauriGesSignIn]: SignInEnterpriseTauriForm,
+
+	[ModalToOpen.GesCloudInitCatalog]: GesCloudInitCatalog,
+	[ModalToOpen.GesCloudSignIn]: GesCloudSignInFormModal,
+	[ModalToOpen.GesCloudInviteUser]: GesCloudInviteUserModal,
+	[ModalToOpen.GesCloudInviteMismatch]: InviteMismatchModal,
+	[ModalToOpen.GesCloudOrganizationSettings]: GesCloudOrganizationSettingsModal,
+	[ModalToOpen.GesCloudSignOut]: GesCloudSignOutModal,
+
+	[ModalToOpen.AlertConfirm]: AlertConfirm,
 };
 
 export default getModalComponentToRender;

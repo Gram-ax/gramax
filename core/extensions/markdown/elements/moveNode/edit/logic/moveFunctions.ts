@@ -4,7 +4,7 @@ import type KeyboardRulesProps from "@ext/markdown/elementsUtils/keyboardShortcu
 import type KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts/model/KeyboardShortcut";
 import type { Editor } from "@tiptap/core";
 import { TextSelection, type Transaction } from "@tiptap/pm/state";
-import type { Node } from "prosemirror-model";
+import { Fragment, type Node } from "prosemirror-model";
 
 type NodesWithParent = { node: Node; pos: number; parent: Node }[];
 
@@ -32,7 +32,7 @@ const getPrevAndNextNodeSize = (doc: Node, node: Node) => {
 			nextState = false;
 		}
 
-		if (n == node) {
+		if (n === node) {
 			nextState = true;
 			prevNodeSize = prev?.nodeSize;
 
@@ -164,6 +164,38 @@ function getParentPosFromChildList(nodes: NodesWithoutChildren, listItem: Node, 
 	return parentPos;
 }
 
+const detachListItemAndJump = (
+	tr: Transaction,
+	doc: Node,
+	list: Node,
+	listStart: number,
+	curNode: Node,
+	isUp: boolean,
+	anchor: number,
+): Transaction => {
+	const { prevNodeSize, nextNodeSize } = getPrevAndNextNodeSize(doc, list);
+	const adjacentSize = isUp ? prevNodeSize : nextNodeSize;
+	if (!adjacentSize) return tr;
+
+	const otherItems: Node[] = [];
+	list.forEach((item: Node) => {
+		if (item !== curNode) otherItems.push(item);
+	});
+
+	const detached = list.copy(Fragment.from(curNode));
+	const rest = otherItems.length ? list.copy(Fragment.fromArray(otherItems)) : null;
+
+	const [from, to] = isUp
+		? [listStart - adjacentSize, listStart + list.nodeSize]
+		: [listStart, listStart + list.nodeSize + adjacentSize];
+	const adjacent = doc.nodeAt(isUp ? from : listStart + list.nodeSize)!;
+	const nodes = (isUp ? [detached, adjacent, rest] : [rest, adjacent, detached]).filter(Boolean);
+
+	tr.replaceWith(from, to, Fragment.fromArray(nodes));
+	tr.setSelection(TextSelection.create(tr.doc, anchor + (isUp ? -adjacentSize : adjacentSize + 2)));
+	return tr;
+};
+
 const swapListItem = ({ editor, isUp, anchor, doc, tr }: MoveProps) => {
 	const listDifference = 2;
 	const { position: mainListPos, childLists } = getMainListItem({ editor });
@@ -182,13 +214,15 @@ const swapListItem = ({ editor, isUp, anchor, doc, tr }: MoveProps) => {
 		parentListPos: parentPos,
 	});
 
-	if ((isUp && !prevNode) || (!isUp && !nextNode)) return tr;
+	if ((isUp && !prevNode) || (!isUp && !nextNode)) {
+		return detachListItemAndJump(tr, doc, listItemParent, mainListPos, curNode, isUp, anchor);
+	}
 
 	const swapPos = parentPos + (isUp ? prevNodePos : nextNodePos);
-	const swapNode = isUp ? prevNode : nextNode;
+	const siblingNode = isUp ? prevNode : nextNode;
 	const focusPos = isUp ? anchor - prevNode.nodeSize : anchor + nextNode.nodeSize;
 
-	swapNodes(tr, parentPos + curNodePos, swapPos, curNode.nodeSize, swapNode.nodeSize, listDifference);
+	swapNodes(tr, parentPos + curNodePos, swapPos, curNode.nodeSize, siblingNode.nodeSize, listDifference);
 
 	tr.setSelection(TextSelection.create(tr.doc, focusPos));
 

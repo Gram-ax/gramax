@@ -1,6 +1,7 @@
 import OpenGraph from "@components/OpenGraph/OpenGraph";
 import type { PageProps } from "@components/Pages/models/Pages";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import getPageTitle from "@core-ui/getPageTitle";
 import { CacheProvider } from "@emotion/react";
 import fs from "fs";
@@ -30,11 +31,15 @@ const getOpenGraphTags = (data: PageProps) => {
 };
 
 export function renderHtml(isAdmin: boolean, data: PageProps) {
+	const theme = data.context.theme;
+	const apiUrlCreator = new ApiUrlCreator(data.context.conf.basePath);
+	const customStyleAssetLink = apiUrlCreator.getCustomStyleAsset().toString();
+
 	const { appHtml, styleTags } = getRenderedHtml(isAdmin ? <Admin data={data} /> : <App initialData={data} />);
 	const openGraphTags = getOpenGraphTags(data);
 
 	return `<!doctype html>
-<html lang="ru">
+<html lang="ru" class=${theme}>
   <head>
     <title>${getPageTitle(data.page === "article", data.data as ArticlePageData)}</title>
     <meta charset="UTF-8" />
@@ -46,9 +51,11 @@ export function renderHtml(isAdmin: boolean, data: PageProps) {
     <style>${themesCSS}</style>
     ${styleTags}
     <link rel="stylesheet" href="/assets/index.css" />
+    <link rel="stylesheet" href="/assets/tailwind.css" />
     <link rel="stylesheet" href="/assets/${isAdmin ? "Admin" : "index"}.css" />
+    <link href=${customStyleAssetLink} id="custom-style-link" rel="stylesheet" />
   </head>
-  <body>
+  <body data-theme=${theme}>
     <div id="root">${appHtml}</div>
   </body>
   <script>

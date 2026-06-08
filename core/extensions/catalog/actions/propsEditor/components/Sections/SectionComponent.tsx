@@ -5,6 +5,7 @@ import { EditIconsProps } from "@ext/catalog/actions/propsEditor/components/Sect
 import type { FormData, FormProps } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import type { UseFormReturn } from "react-hook-form";
 import { EditLfsProps } from "./Lfs";
+import { StorageUsage } from "./StorageUsage";
 
 interface SectionComponentProps {
 	activeTab: SettingsTab;
@@ -17,6 +18,7 @@ const getSectionComponentByTab = (activeTab: SettingsTab) => {
 		general: EditBasicProps,
 		appearance: EditAppearanceProps,
 		icons: EditIconsProps,
+		storageUsage: StorageUsage as React.ComponentType<BasicProps>,
 		lfs: EditLfsProps,
 	};
 

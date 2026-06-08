@@ -1,4 +1,5 @@
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
+import type { GitRevisionsFilter } from "@ext/git/actions/Revisions/model/GitRevisionsFilter";
 import type {
 	CommitAuthorInfo,
 	ConfigValue,
@@ -7,16 +8,23 @@ import type {
 } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import type GitStash from "@ext/git/core/model/GitStash";
 import type GitVersionData from "@ext/git/core/model/GitVersionData";
+import type { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import type { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type Path from "../../../../../logic/FileProvider/Path/Path";
 import type SourceData from "../../../../storage/logic/SourceDataProvider/model/SourceData";
-import type { VersionControlInfo } from "../../../../VersionControl/model/VersionControlInfo";
 import type { GitBranch } from "../../GitBranch/GitBranch";
 import type { GitStatus } from "../../GitWatcher/model/GitStatus";
 import type GitSourceData from "../../model/GitSourceData.schema";
 import type { GitVersion } from "../../model/GitVersion";
 
 export type CancelToken = number;
+
+export type GetCommitInfoOpts = {
+	depth: number;
+	simplify: boolean;
+	filters?: GitRevisionsFilter;
+	includeChangedFiles?: boolean;
+};
 
 export type DiffCompareOptions =
 	| {
@@ -33,6 +41,7 @@ export type DiffConfig = {
 	compare: DiffCompareOptions;
 	renames: boolean;
 	useMergeBase?: boolean;
+	pathspecs?: string[];
 };
 
 export type DiffTree2TreeInfo = {
@@ -139,6 +148,27 @@ export type GcOptions = {
 	packFilesLimit?: number;
 };
 
+export type SizeStats = {
+	count: number;
+	size: number;
+};
+
+export type LooseObjectsStats = SizeStats & {
+	unreachableCount: number;
+	unreachableSize: number;
+};
+
+export type LfsObjectsStats = SizeStats & {
+	prunableCount: number;
+	prunableSize: number;
+};
+
+export type StorageStats = {
+	packFiles: SizeStats;
+	looseObjects: LooseObjectsStats;
+	lfsObjects: LfsObjectsStats;
+};
+
 interface GitCommandsModel {
 	isInit(): Promise<boolean>;
 	isBare(): Promise<boolean>;
@@ -190,7 +220,7 @@ interface GitCommandsModel {
 	getCommitHash(ref: string): Promise<GitVersion>;
 
 	getFileHistory(filePath: Path, offset: number, limit: number): Promise<VersionControlInfo[]>;
-	getCommitInfo(oid: string, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]>;
+	getCommitInfo(oid: string, opts: GetCommitInfoOpts): Promise<GitVersionData[]>;
 	countChangedFiles(searchIn: string): Promise<UpstreamCountFileChanges>;
 
 	getHeadCommit(branch: string): Promise<GitVersion>;
@@ -216,7 +246,9 @@ interface GitCommandsModel {
 	fileExists(filePath: Path, scope: TreeReadScope): Promise<boolean>;
 
 	gc(opts: GcOptions): Promise<void>;
+	lfsPrune(): Promise<void>;
 	healthcheck(): Promise<void>;
+	storageStats(): Promise<StorageStats>;
 
 	getConfigVal(name: string): Promise<string>;
 	setConfigVal(name: string, val: ConfigValue): Promise<void>;

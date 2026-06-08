@@ -16,6 +16,7 @@ export function drawio(context: PrivateParserContext): Schema {
 			title: { type: String },
 			width: { type: String },
 			height: { type: String },
+			scale: { type: String },
 		},
 		type: SchemaType.block,
 		transform: (node: Node): RenderableTreeNodes => {
@@ -25,6 +26,7 @@ export function drawio(context: PrivateParserContext): Schema {
 				title: node.attributes.title,
 				width: node.attributes.width,
 				height: node.attributes.height,
+				scale: node.attributes.scale,
 			});
 		},
 	};

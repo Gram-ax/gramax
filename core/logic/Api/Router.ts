@@ -22,7 +22,7 @@ export abstract class Router {
 	}
 
 	abstract pushQuery(query: Query): this;
-	abstract pushPath(path: string): this;
+	abstract pushPath(path: string, query?: Query, options?: { replace?: boolean }): this;
 	abstract setUrl(url: Url): this;
 
 	protected _transform(path: string) {

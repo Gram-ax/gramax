@@ -1,4 +1,3 @@
-import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import OnNetworkApiErrorService from "@ext/errorHandlers/client/OnNetworkApiErrorService";
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
@@ -19,8 +18,7 @@ interface CloneModalProps {
 
 const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: CloneModalProps) => {
 	const [isOpen, setIsOpen] = useState(!trigger);
-
-	const { isNext } = usePlatform();
+	const { isNext, isTauri, isBrowser } = usePlatform();
 
 	const { startClone } = useCloneRepo({
 		skipCheck: true,
@@ -41,7 +39,7 @@ const CloneModal = ({ trigger, onClose, selectedStorage, onSubmit, ...props }: C
 	const handleSubmit = (storageData: GitStorageData) => {
 		startClone({
 			storageData,
-			skipLfsPull: getExecutingEnvironment() == "browser" || getExecutingEnvironment() == "tauri" ? true : false,
+			skipLfsPull: isBrowser || isTauri,
 		});
 		onSubmit?.(storageData);
 		closeForm();

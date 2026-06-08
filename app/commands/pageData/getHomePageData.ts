@@ -1,44 +1,43 @@
-import type Context from "@core/Context/Context";
 import type PageDataContext from "@core/Context/PageDataContext";
 import type { HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { HomePageDataParams } from "@core/SitePresenter/types/PageDataParams";
 import { Command } from "../../types/Command";
 import getPageDataContext from "./getPageDataContext";
 
-const getHomePageData: Command<{ ctx: Context; path?: string }, { data: HomePageData; context: PageDataContext }> =
-	Command.create({
-		path: "page/getHomePageData",
+const getHomePageData: Command<HomePageDataParams, { data: HomePageData; context: PageDataContext }> = Command.create({
+	path: "page/getHomePageData",
 
-		flags: ["otel-omit-result"],
+	flags: ["otel-omit-result"],
 
-		async do({ ctx, path }) {
-			const { wm, sitePresenterFactory } = this._app;
+	async do({ ctx, path }) {
+		const { wm, sitePresenterFactory } = this._app;
 
-			if (!wm.hasWorkspace()) {
-				return {
-					data: {
-						section: { title: "", href: "", catalogLinks: [] },
-						breadcrumb: [],
-						catalogsLinks: [],
-					},
-					context: await getPageDataContext({ ctx, app: this._app, isArticle: false }),
-				};
-			}
-
-			const workspace = wm.current();
-			const dataProvider = sitePresenterFactory.fromContext(ctx);
-			const data = await dataProvider.getHomePageData(await workspace.config(), path);
-			const context = await getPageDataContext({
-				ctx,
-				app: this._app,
-				isArticle: false,
-				isReadOnly: this._app.conf.isReadOnly,
-			});
-
+		if (!wm.hasWorkspace()) {
 			return {
-				data,
-				context,
+				data: {
+					section: { title: "", href: "", catalogLinks: [] },
+					breadcrumb: [],
+					catalogsLinks: [],
+				},
+				context: await getPageDataContext({ ctx, app: this._app, isArticle: false }),
 			};
-		},
-	});
+		}
+
+		const workspace = wm.current();
+		const dataProvider = sitePresenterFactory.fromContext(ctx);
+		const data = await dataProvider.getHomePageData(await workspace.config(), path);
+		const context = await getPageDataContext({
+			ctx,
+			app: this._app,
+			isArticle: false,
+			isReadOnly: this._app.conf.isReadOnly,
+		});
+
+		return {
+			data,
+			context,
+		};
+	},
+});
 
 export default getHomePageData;

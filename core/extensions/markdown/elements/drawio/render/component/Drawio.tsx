@@ -2,12 +2,12 @@ import Image from "@components/Atoms/Image/Image";
 import Skeleton from "@components/Atoms/ImageSkeleton";
 import type { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
-import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
+import { useAdjustedElementSize } from "@core-ui/hooks/useAdjustedElementSize";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
-import styled from "@emotion/styled";
+import { ArticleComponentResizer } from "@ext/article/Components/ArticleComponentResizer";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import { forwardRef, type MutableRefObject, type ReactElement, useLayoutEffect, useRef, useState } from "react";
+import { forwardRef, type MutableRefObject, type ReactElement, useCallback, useRef, useState } from "react";
 
 interface DrawioProps {
 	id: string;
@@ -16,14 +16,14 @@ interface DrawioProps {
 	width: string;
 	height: string;
 	openEditor?: () => void;
-	className?: string;
 	noEm?: boolean;
+	scale?: number;
 	commentId?: string;
 	isPrint?: boolean;
 }
 
 const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageElement>): ReactElement => {
-	const { id, src, title, width, height, className, openEditor, noEm, commentId, isPrint } = props;
+	const { id, src, title, width, height, openEditor, noEm, commentId, isPrint, scale } = props;
 
 	const ref = refT || useRef<HTMLImageElement>(null);
 	const parentRef = useRef<HTMLDivElement>(null);
@@ -31,7 +31,6 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 	const [imageSrc, setImageSrc] = useState<string>(null);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
 	const [error, setError] = useState<ResourceError>(null);
-	const [size, setSize] = useState<{ width: string; height: string }>(null);
 
 	const setSrc = (newSrc: Blob) => {
 		if (imageSrc) URL.revokeObjectURL(imageSrc);
@@ -43,17 +42,14 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 		setIsLoaded(true);
 	};
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: ref.current is always defined
-	useLayoutEffect(() => {
-		if (!width?.endsWith("px")) return;
-		const parentWidth = parentRef.current?.clientWidth;
-
-		if (!parentWidth) return;
-		const newSize = getAdjustedSize(parseFloat(width), parseFloat(height), parentWidth);
+	const getParentWidth = useCallback(() => parentRef.current?.clientWidth ?? 0, []);
+	const getOffset = useCallback(() => {
+		if (!ref.current?.parentElement) return 0;
 		const computedStyle = window.getComputedStyle(ref.current.parentElement);
-		const offset = parseFloat(computedStyle.marginTop) + parseFloat(computedStyle.paddingTop);
-		setSize({ width: `${newSize.width}px`, height: `${newSize.height + offset}px` });
-	}, [width, height]);
+		return parseFloat(computedStyle.marginTop) + parseFloat(computedStyle.paddingTop);
+	}, [ref]);
+
+	const size = useAdjustedElementSize({ width, height, scale, getParentWidth, getOffset });
 
 	useGetResource(
 		(buffer, resourceError) => {
@@ -69,50 +65,52 @@ const Drawio = forwardRef((props: DrawioProps, refT: MutableRefObject<HTMLImageE
 
 	if (!src || error) return <DiagramError diagramName="diagrams.net" error={error} />;
 
-	return (
-		<div data-qa="qa-drawio" data-testid="drawio" ref={parentRef}>
-			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
-				<Skeleton height={size?.height} isLoaded={isLoaded} width="100%">
-					<div className={className} data-focusable="true">
-						<div className="drawio">
-							<Image
-								id={id}
-								modalEdit={openEditor}
-								modalStyle={{
-									backgroundColor: "var(--color-diagram-bg)",
-									borderRadius: "var(--radius-large)",
-									padding: "20px",
-								}}
-								modalTitle={title}
-								onLoad={onLoad}
-								realSrc={src}
-								ref={ref}
-								src={imageSrc}
-							/>
-						</div>
+	const diagram = (
+		<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
+			<Skeleton height={size?.height} isLoaded={isLoaded} width="100%">
+				<div
+					className="w-full bg-[var(--color-diagram-bg)] rounded-[var(--radius-large)] [&_img]:bg-transparent [&_img]:!shadow-none [&_img]:w-full"
+					data-focusable="true"
+				>
+					<div className="drawio flex justify-center px-[0.8em] my-[0.5em]">
+						<Image
+							id={id}
+							modalEdit={openEditor}
+							modalStyle={{
+								backgroundColor: "var(--color-diagram-bg)",
+								borderRadius: "var(--radius-large)",
+								padding: "20px",
+							}}
+							modalTitle={title}
+							onLoad={onLoad}
+							realSrc={src}
+							ref={ref}
+							src={imageSrc}
+						/>
 					</div>
-				</Skeleton>
-			</BlockCommentView>
+				</div>
+			</Skeleton>
+		</BlockCommentView>
+	);
+
+	return (
+		<div
+			data-qa="qa-drawio"
+			data-resize-container={openEditor ? true : undefined}
+			data-testid="drawio"
+			ref={parentRef}
+		>
+			{openEditor ? (
+				diagram
+			) : (
+				<ArticleComponentResizer disabled scale={scale}>
+					{diagram}
+				</ArticleComponentResizer>
+			)}
 
 			{title && !noEm && <em>{title}</em>}
 		</div>
 	);
 });
 
-export default styled(Drawio)`
-	width: 100%;
-	background-color: var(--color-diagram-bg);
-	border-radius: var(--radius-large);
-
-	.drawio {
-		display: flex;
-		justify-content: center;
-		padding: 0.8em;
-		margin: 0.5em 0;
-	}
-
-	img {
-		background-color: unset;
-		box-shadow: unset !important;
-	}
-`;
+export default Drawio;

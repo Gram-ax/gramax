@@ -4,7 +4,7 @@ import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { ContentDivider } from "@ui-kit/Divider";
 import { Form, FormField, FormStack } from "@ui-kit/Form";
-import GesFormHeader, { type GesFormHeaderProps } from "@ui-kit/Form/GesFormHeader";
+import GesFormHeader from "@ui-kit/Form/GesFormHeader";
 import { Input } from "@ui-kit/Input";
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@ui-kit/InputOTP";
 import { useMemo } from "react";
@@ -23,6 +23,8 @@ interface SignInEnterpriseFormProps {
 	handleSendPassword: () => Promise<void>;
 	relocateToAuthUrl: () => void;
 	onlySSO: boolean;
+	title?: string;
+	description?: string;
 }
 
 const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
@@ -37,6 +39,8 @@ const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
 		handleSendPassword,
 		relocateToAuthUrl,
 		onlySSO,
+		title,
+		description,
 	} = props;
 
 	const formProps: FormProps = useMemo(() => {
@@ -45,19 +49,16 @@ const SignInEnterpriseForm = (props: SignInEnterpriseFormProps) => {
 		};
 	}, []);
 
-	const formHeaderProps = useMemo<GesFormHeaderProps>(() => {
-		return {
-			icon: "gramax-ges",
-			title: t("enterprise-guest.welcomeTitle"),
-			iconProps: { fillColor: "hsl(var(--primary-accent))" },
-		};
-	}, []);
-
 	return (
 		<Form asChild {...form}>
 			<form className="contents" onSubmit={form.handleSubmit(formSubmit)}>
 				<div className="flex flex-col gap-4">
-					<GesFormHeader {...formHeaderProps} />
+					<GesFormHeader
+						description={description}
+						icon="gramax-ges"
+						iconProps={{ fillColor: "hsl(var(--primary-accent))" }}
+						title={title ?? t("enterprise-guest.welcomeTitle")}
+					/>
 					{!onlySSO && (
 						<>
 							<FormStack>

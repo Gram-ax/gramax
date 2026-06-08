@@ -8,7 +8,7 @@ import { ReactNodeViewRenderer } from "@tiptap/react";
 declare module "@tiptap/core" {
 	interface Commands<ReturnType> {
 		view: {
-			setView: (attrs: { defs: PropertyValue[]; orderby?: []; groupby?: [] }) => ReturnType;
+			setView: (attrs: { defs: PropertyValue[]; orderby?: PropertyValue[]; groupby?: string[] }) => ReturnType;
 		};
 	}
 }

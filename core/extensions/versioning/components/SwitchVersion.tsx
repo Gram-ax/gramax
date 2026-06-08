@@ -2,7 +2,8 @@ import Icon from "@components/Atoms/Icon";
 import TruncatedText from "@components/Atoms/TruncatedText";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useRouter } from "@core/Api/useRouter";
-import { useApi } from "@core-ui/hooks/useApi";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { useApi, useApiEvent } from "@core-ui/hooks/useApi";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
@@ -18,8 +19,8 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 const SwitchVersion = () => {
-	const { isNext } = usePlatform();
-
+	const { isTauri, isBrowser } = usePlatform();
+	const catalogName = useCatalogPropsStore((s) => s.data.name);
 	const { resolvedVersions, resolvedVersion } = useCatalogPropsStore(
 		(state) => ({
 			resolvedVersions: state.data.resolvedVersions,
@@ -38,6 +39,11 @@ const SwitchVersion = () => {
 
 	const [isLoading, setIsLoading] = useState(false);
 
+	useApiEvent("on-did-command", ({ command }) => {
+		if (command?.startsWith("page/")) setIsLoading(false);
+	});
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		reset();
 		if (!resolvedVersions?.length) return;
@@ -45,20 +51,31 @@ const SwitchVersion = () => {
 	}, [resolvedVersion]);
 
 	const router = useRouter();
-
 	const isActualVersion = !resolvedVersion;
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const onSwitch = useCallback(
 		(name?: string) => {
-			if (name == resolvedVersion?.name || (isActualVersion && name == branch?.name)) return;
+			if (name === resolvedVersion?.name || (isActualVersion && name === branch?.name)) return;
 
 			setIsLoading(true);
-			router.pushPath(addScopeToPath(router.path, name === branch?.name ? null : name));
+			const validatedName = name === branch?.name ? null : name;
+
+			if (!isTauri && !isBrowser) {
+				router.pushPath(addScopeToPath(router.path, validatedName));
+				return;
+			}
+
+			const data = RouterPathProvider.parsePath(router.path);
+			const newPath = RouterPathProvider.getPathname({
+				...data,
+				catalogName: addScopeToPath(catalogName, validatedName),
+			});
+			router.pushPath(newPath.value);
 		},
 		[resolvedVersion, isActualVersion, branch, router],
 	);
 
-	if (!isNext) return null;
 	if (!resolvedVersions?.length) return null;
 
 	return (

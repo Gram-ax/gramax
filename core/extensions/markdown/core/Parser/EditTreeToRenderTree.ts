@@ -23,34 +23,24 @@ const getComponentNames = (): ComponentsNames => {
 		link: "Link",
 		s: "s",
 		code: "Code",
-		code_block: "Fence",
 		image: "Image",
-		table_row: "TableRow",
 		cut: "Cut",
 		cmd: "Cmd",
 		who: "Who",
 		kbd: "Kbd",
-		drawio: "Drawio",
-		"plant-uml": "Plant-uml",
-		openapi: "OpenApi",
-		mermaid: "Mermaid",
 		include: "Include",
 		formula: "Formula",
 		video: "Video",
-		view: "View",
-		html: "Html",
 		alfa: "Alfa",
 		beta: "Beta",
 		when: "When",
 		horizontal_rule: "hr",
-		tableRow: "tr",
-		tableHeader: "th",
 		tbody: "tbody",
 		color: "Color",
-		thead: "thead",
 		alert: "Alert",
 		hard_break: "br",
 		file: "Link",
+		"fragment-link": "Fragment-link",
 	};
 };
 
@@ -67,69 +57,6 @@ const diagramsTransformer = (node: JSONContent, componentsNames: ComponentsNames
 		...node,
 		type: tagName.toLowerCase(),
 	};
-
-	return tag;
-};
-
-const tableTransformer = (node: JSONContent): JSONContent => {
-	if (node.type !== "table") return node;
-
-	const tag = {
-		...node,
-		type: "Table",
-	};
-
-	const handleRow = (row: JSONContent) => {
-		const tag = {
-			...row,
-			content: row.content?.map((cell) => handleCell(cell)),
-			type: "tableRow",
-		};
-
-		return tag;
-	};
-
-	const handleCell = (cell: JSONContent) => {
-		const tag = {
-			...cell,
-			type: "tableCell",
-		};
-
-		return tag;
-	};
-
-	const children = [{ type: "tbody", content: node.content.map((row) => handleRow(row)) }];
-	tag.content = children;
-
-	return tag;
-};
-
-const snippetTagTransformer = (node: JSONContent): JSONContent => {
-	if (node.type !== "snippet") return node;
-
-	const tag = {
-		...node,
-		type: "snippet",
-		content: node.attrs?.content || [],
-	};
-
-	return tag;
-};
-
-const codeBlockTransformer = (node: JSONContent): JSONContent => {
-	if (node.type !== "code_block") return node;
-
-	const text = node.content?.[0]?.text || "";
-	const tag = {
-		...node,
-		attrs: {
-			...node.attrs,
-			value: text,
-		},
-		type: "code_block",
-	};
-
-	delete tag.content;
 
 	return tag;
 };
@@ -221,13 +148,7 @@ const parentLinksTagTransformer = (tag: Child): object | object[] => {
 
 const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): RenderableTreeNode => {
 	const transformNode = (node: JSONContent) => {
-		const nodeHandlers = [
-			diagramsTransformer,
-			tableTransformer,
-			codeBlockTransformer,
-			listTransformer,
-			HtmlTagComponentEditTreeToRenderTree,
-		];
+		const nodeHandlers = [diagramsTransformer, listTransformer, HtmlTagComponentEditTreeToRenderTree];
 
 		for (const handler of nodeHandlers) {
 			const result = handler(node, componentsNames);
@@ -236,7 +157,7 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 	};
 
 	const transformTag = (tag: Child): object | object[] => {
-		const tagHandlers = [parentLinksTagTransformer, snippetTagTransformer, headingTransformer];
+		const tagHandlers = [parentLinksTagTransformer, headingTransformer];
 
 		for (const handler of tagHandlers) {
 			const result = handler(tag);
@@ -248,6 +169,7 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 
 	const createTag = (name: string, attrs: Attrs, children: string | JSONContent | Tag[]): Tag => {
 		return {
+			// biome-ignore lint/style/useNamingConvention: markdoc Tag protocol field
 			$$mdtype: "Tag",
 			name,
 			attributes: attrs || {},
@@ -271,8 +193,8 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 		}
 	};
 
-	const convertNode = (node: JSONContent): object[] | object | string => {
-		node = transformNode(node) || node;
+	const convertNode = (inputNode: JSONContent): object[] | object | string => {
+		const node = transformNode(inputNode) || inputNode;
 
 		const customConvertedNode = customConvert(node);
 		if (customConvertedNode) return customConvertedNode;
@@ -318,7 +240,7 @@ const editTreeToRenderTree = (editTree: JSONContent, editSchema: Schema): Render
 		// Marks
 		if (node.marks && node.marks.length > 0) {
 			const marks = node.marks.map((mark) => editSchema.marks[mark.type]);
-			marks.sort((a: any, b: any) => (b.rank || 0) - (a.rank || 0));
+			marks.sort((a, b) => ((b as { rank?: number }).rank || 0) - ((a as { rank?: number }).rank || 0));
 
 			let wrappedTag = node.text ? node.text : tag;
 			marks.forEach((mark) => {

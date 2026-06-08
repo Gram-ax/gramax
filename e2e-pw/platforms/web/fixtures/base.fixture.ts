@@ -3,19 +3,11 @@ import { type BrowserContext, type Page, test } from "@playwright/test";
 import BaseSharedPage from "@shared-pom/page";
 import "@utils/async";
 import { getSourceDataFromEnv } from "@utils/source";
-import {
-	createFileTree,
-	type FileTree,
-	readDirToFileTree,
-	type SourceData,
-	setStorage,
-	uploadAndExtractZip,
-} from "@web/utils";
+import { type FileTree, readDirToFileTree, type SourceData, setStorage, uploadAndExtractZip } from "@web/utils";
 
 export interface WorkerBaseFixture {
 	zip: string | undefined;
 	experimentalFeatures: string[] | undefined;
-	files: FileTree | undefined;
 	dir: string | URL | undefined;
 	source: "env" | GitSourceData | SourceData | undefined;
 	isolated: boolean;
@@ -24,6 +16,7 @@ export interface WorkerBaseFixture {
 	sharedContext: BrowserContext;
 	sharedPage: Page;
 	basePage: BaseSharedPage;
+	files: FileTree | undefined;
 }
 
 export interface TestBaseFixture {
@@ -59,7 +52,16 @@ export const baseTest = test.extend<TestBaseFixture, WorkerBaseFixture>({
 			await page.goto("/", { waitUntil: "domcontentloaded" });
 
 			if (!isolated) {
-				await preparePage({ sharedPage: page, zip, files, dir, source, experimentalFeatures, startUrl });
+				await preparePage({
+					sharedPage: page,
+					zip,
+					files,
+					dir,
+					source,
+					experimentalFeatures,
+					startUrl,
+					basePage: new BaseSharedPage(page, startUrl),
+				});
 				await page.goto(startUrl!, { waitUntil: "domcontentloaded" });
 			}
 
@@ -82,8 +84,18 @@ export const baseTest = test.extend<TestBaseFixture, WorkerBaseFixture>({
 			if (!isolated) {
 				await sharedPage.goto(startUrl!, { waitUntil: "domcontentloaded" });
 				await use(null);
+				return;
 			}
-			await preparePage({ sharedPage, zip, files, dir, source, experimentalFeatures, startUrl });
+			await preparePage({
+				sharedPage,
+				zip,
+				files,
+				dir,
+				source,
+				experimentalFeatures,
+				startUrl,
+				basePage: new BaseSharedPage(sharedPage, startUrl),
+			});
 			await sharedPage.goto(startUrl!, { waitUntil: "domcontentloaded" });
 			await use(null);
 		},
@@ -99,6 +111,7 @@ const preparePage = async ({
 	source,
 	experimentalFeatures,
 	isReadOnly,
+	basePage,
 }: Partial<WorkerBaseFixture>) => {
 	if (zip) {
 		await uploadAndExtractZip(page!, zip);
@@ -106,11 +119,11 @@ const preparePage = async ({
 
 	if (dir) {
 		const tree = await readDirToFileTree(dir);
-		await createFileTree(page!, tree);
+		await basePage?.createFileTree(page!, tree);
 	}
 
 	if (files) {
-		await createFileTree(page!, files);
+		await basePage?.createFileTree(page!, files);
 	}
 
 	if (source) {

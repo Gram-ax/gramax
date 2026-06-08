@@ -24,7 +24,7 @@ const Unsupported = ({ url, code, source }: UnsupportedProps): ReactElement => {
 				<Anchor href={url}>{url}</Anchor>
 			</span>
 			<Note collapsed title={t("alert.details")} type={NoteType.note}>
-				<CodeBlock language={"json"} value={code} />
+				<CodeBlock language={"json"}>{code}</CodeBlock>
 			</Note>
 		</Alert>
 	);

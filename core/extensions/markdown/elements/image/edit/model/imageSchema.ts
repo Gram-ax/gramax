@@ -8,7 +8,6 @@ const imageSchema = {
 		alt: { default: null },
 		crop: { default: null },
 		title: { default: null },
-		scale: { default: null },
 		objects: { default: [] },
 		width: { default: null },
 		height: { default: null },

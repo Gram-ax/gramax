@@ -2,18 +2,18 @@ import Approver from "@ext/git/core/GitMergeRequest/components/Approval/Approver
 import { Section } from "@ext/git/core/GitMergeRequest/components/Elements";
 import type { ApprovalSignature } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
 import t from "@ext/localization/locale/translate";
-import { useReviewerComments } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
+import { useReviewerComments } from "@ext/markdown/elements/comment/edit/logic/stores/CommentsStore";
 import { useMemo, useState } from "react";
 
-const Approvers = ({ approvers }: { approvers: ApprovalSignature[] }) => {
-	const comments = useReviewerComments({ authors: approvers });
+const Approvers = ({ approvers, pathnames }: { approvers: ApprovalSignature[]; pathnames?: string[] }) => {
+	const comments = useReviewerComments({ authors: approvers, pathnames });
 	const [isCollapsed, setIsCollapsed] = useState(false);
 
 	const CachedApprovers = useMemo(() => {
 		if (!approvers?.length) return <span>{t("git.merge-requests.no-approvers")}</span>;
 
-		return approvers.map((approver, idx) => (
-			<Approver approver={approver} comments={comments[approver.email]?.total} key={idx} />
+		return approvers.map((approver) => (
+			<Approver approver={approver} comments={comments[approver.email]?.total} key={approver.email} />
 		));
 	}, [approvers, comments]);
 

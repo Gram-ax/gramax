@@ -25,19 +25,14 @@ export interface WorkspaceConfig {
 	services?: ServicesConfig;
 	enterprise?: {
 		gesUrl?: string;
-		refreshInterval?: number;
 		lastUpdateDate?: number;
+		refreshInterval?: number;
 		modules?: ModuleOptions;
+		lfs?: { patterns: string[] };
 	};
-
-	/** @deprecated use enterprise.gesUrl instead */
-	gesUrl?: string; // legacy
-	/** @deprecated delete this field after 01.03.2026 */
-	// biome-ignore lint/suspicious/noExplicitAny: <legacy field>
-	pdfTemplates?: any;
-	/** @deprecated delete this field after 01.03.2026 */
-	// biome-ignore lint/suspicious/noExplicitAny: <legacy field>
-	wordTemplates?: any;
+	enterpriseCloud?: {
+		url?: string;
+	};
 }
 
 export type WorkspacePath = string;

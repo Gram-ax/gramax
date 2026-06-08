@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+	* {
+		@apply border-border;
+	}
+	body {
+		@apply bg-background font-sans text-foreground;
+	}
+	* {
+		scrollbar-color: hsl(var(--secondary-border)) transparent;
+		scrollbar-width: thin;
+	}
+}

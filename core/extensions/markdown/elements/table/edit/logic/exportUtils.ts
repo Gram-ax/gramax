@@ -35,7 +35,36 @@ const getColumn = (rows: (Tag | JSONContent)[], columnID: number) => {
 	return columnCells;
 };
 
+const createRow = (row: Tag | JSONContent, children: (Tag | JSONContent)[]): Tag | JSONContent => {
+	if ("children" in row)
+		return new Tag(
+			row.name,
+			{},
+			children.filter((child): child is Tag => child instanceof Tag),
+		);
+
+	return {
+		type: row.type,
+		attrs: {},
+		content: children as JSONContent[],
+	} as JSONContent;
+};
+
+const createCell = (cell: Tag | JSONContent, children: (Tag | string)[]): Tag | JSONContent => {
+	const attrs = "attributes" in cell ? { ...cell.attributes } : { ...cell.attrs };
+	delete attrs.aggregation;
+
+	if ("children" in cell) return new Tag(cell.name, attrs, children);
+
+	return {
+		type: cell.type,
+		attrs,
+		content: children as unknown as JSONContent[],
+	} as JSONContent;
+};
+
 export const aggregateTable = (rows: (Tag | JSONContent)[]) => {
+	const firstRow = rows[0];
 	const firstRowChildren = "children" in rows[0] ? rows[0].children : rows[0].content;
 	const columnsAggregation = firstRowChildren.map((cell) => {
 		const attrs = "attributes" in cell ? cell.attributes : cell.attrs;
@@ -44,11 +73,14 @@ export const aggregateTable = (rows: (Tag | JSONContent)[]) => {
 	});
 
 	if (!columnsAggregation.filter(Boolean).length) return;
-	const aggregateRow = new Tag("tr", {}, []);
+	const aggregateCells: (Tag | JSONContent)[] = [];
 
 	const formatter = getFormatter();
 	columnsAggregation.forEach((type: AggregationMethod, index) => {
-		if (!type) return aggregateRow.children.push(new Tag("td", {}, [new Tag("p", {}, [])]));
+		const templateCell = firstRowChildren[index] as Tag | JSONContent;
+
+		if (!type) return aggregateCells.push(createCell(templateCell, [new Tag("p", {}, [])]));
+
 		const cells = getColumn(rows, index);
 		const texts = cells
 			.map((cell) => {
@@ -60,14 +92,14 @@ export const aggregateTable = (rows: (Tag | JSONContent)[]) => {
 
 		const aggregatedValue = getAggregatedValue(type, texts);
 		const formattedValue = getFormattedValue(formatter, aggregatedValue);
-		const cell = new Tag("td", {}, [
+		const cellChildren = [
 			new Tag("p", {}, [`${t(`editor.table.aggregation.methods.${type}.name`)}: ${formattedValue}`]),
-		]);
+		];
 
-		aggregateRow.children.push(cell);
+		aggregateCells.push(createCell(templateCell, cellChildren));
 	});
 
-	rows.push(aggregateRow);
+	rows.push(createRow(firstRow, aggregateCells));
 };
 
 export const setCellAlignment = (rows: (Tag | JSONContent)[]) => {

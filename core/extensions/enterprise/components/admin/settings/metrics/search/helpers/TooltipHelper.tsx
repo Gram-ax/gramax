@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { Icon } from "@ui-kit/Icon";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "ics-ui-kit/components/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@ui-kit/Tooltip";
 
 const StyledWrapper = styled.span`
 	display: inline-flex;

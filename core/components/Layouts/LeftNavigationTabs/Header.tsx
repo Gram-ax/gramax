@@ -1,15 +1,16 @@
-import { TextSize } from "@components/Atoms/Button/Button";
-import Tooltip from "@components/Atoms/Tooltip";
-import ButtonLink from "@components/Molecules/ButtonLink";
+import { TooltipIconButton } from "@components/Atoms/TooltipIconButton";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import NavigationDropdown from "@ext/navigation/components/NavigationDropdown";
+import { IconButton } from "@ui-kit/Button";
 
 const Title = styled.span`
 	font-size: 14px;
 	text-transform: uppercase;
+	margin-right: 0.85em;
 	font-weight: 400;
 	white-space: nowrap;
+	overflow: hidden;
 `;
 
 const Wrapper = styled.span`
@@ -21,14 +22,14 @@ const Wrapper = styled.span`
 	padding-bottom: 0.1em;
 	padding-left: 1rem;
 	padding-right: 1rem;
+	height: 1.5rem;
 `;
 
 const Part = styled.span`
 	display: flex;
 	align-items: center;
 	flex-wrap: nowrap;
-	gap: 0.85em;
-	max-width: 85%;
+	overflow: hidden;
 	overflow-y: hidden;
 	overflow-x: auto;
 	scrollbar-width: none;
@@ -49,34 +50,52 @@ export type HeaderProps = {
 	show: boolean;
 	onClose?: () => void;
 	actions?: JSX.Element;
+	leftExtension?: JSX.Element;
 	rightExtension?: JSX.Element;
 };
 
 const Header = (props: HeaderProps) => {
-	const { title, rightExtension, onClose, show, actions } = props;
+	const { title, rightExtension, onClose, actions, leftExtension } = props;
 
 	return (
 		<Wrapper>
-			<Part>
+			{leftExtension && (
+				<Part className="mr-2 shrink-0">
+					<IconsWrapper>{leftExtension}</IconsWrapper>
+				</Part>
+			)}
+			<Part className="flex-1">
 				{title && <Title className="tab-wrapper-title">{title}</Title>}
 				{rightExtension}
 			</Part>
 			{onClose && (
-				<Part>
+				<Part className="shrink-0">
 					<IconsWrapper>
 						{actions && (
 							<NavigationDropdown
 								trigger={
-									<ButtonLink iconCode="ellipsis-vertical" onClick={() => {}} textSize={TextSize.M} />
+									<IconButton
+										className="shrink-0"
+										icon="ellipsis-vertical"
+										iconClassName="h-5 w-5"
+										size="xs"
+										variant="text"
+									/>
 								}
 							>
 								{actions}
 							</NavigationDropdown>
 						)}
 
-						<Tooltip content={show ? t("close") : null} offset={[-2, 8]}>
-							<ButtonLink iconCode="x" onClick={onClose} textSize={TextSize.L} />
-						</Tooltip>
+						<TooltipIconButton
+							className="shrink-0"
+							icon="x"
+							iconClassName="h-5 w-5"
+							onClick={onClose}
+							size="xs"
+							tooltip={t("close")}
+							variant="text"
+						/>
 					</IconsWrapper>
 				</Part>
 			)}

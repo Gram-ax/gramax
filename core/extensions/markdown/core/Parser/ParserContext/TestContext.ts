@@ -1,8 +1,9 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
+import type { TableDB } from "@ext/tableDB/table";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import type { TableDB } from "../../../../../logic/components/tableDB/table";
 import type FileProvider from "../../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../../logic/FileProvider/Path/Path";
 import type { Article } from "../../../../../logic/FileStructue/Article/Article";

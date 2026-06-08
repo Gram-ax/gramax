@@ -1,6 +1,6 @@
-/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 /** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
+
 import BlockActionPanel from "@components/BlockActionPanel";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import { Base64ToDataImage, DataImageToBase64, isDataImage } from "@core-ui/Base64Converter";
@@ -9,6 +9,7 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { resolveFileKind } from "@core-ui/utils/resolveFileKind";
+import { ArticleComponentResizer } from "@ext/article/Components/ArticleComponentResizer";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import DrawioActions from "@ext/markdown/elements/drawio/edit/components/DrawioActions";
 import getDrawioID from "@ext/markdown/elements/drawio/edit/logic/getDrawioID";
@@ -19,7 +20,7 @@ import { type ReactElement, useCallback, useRef, useState } from "react";
 import Drawio from "../../render/component/Drawio";
 
 const DrawioComponent = (props: NodeViewProps): ReactElement => {
-	const { node, getPos, editor, updateAttributes } = props;
+	const { node, getPos, editor, updateAttributes, selected } = props;
 	const isEditable = editor.isEditable;
 	const nodeSrc: string = node.attrs.src;
 	const hoverElement = useRef<HTMLDivElement>(null);
@@ -56,18 +57,15 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 		imgRef: refT,
 		saveCallBack,
 		setImgData: () => {
-			ArticleUpdaterService.stopLoadingAfterFocus();
 			setImgData();
 		},
 	});
 
 	const updateAttributesCallback = useCallback(
 		async (attributes: Record<string, any>) => {
-			const pos = getPos();
-			if (!pos) return;
-
 			const url = apiUrlCreator.getArticleResource(node.attrs.src);
 			const res = await FetchService.fetch(url);
+
 			if (res.ok) {
 				const buffer = await res.buffer();
 				const urlToImage = URL.createObjectURL(new Blob([buffer as any], { type: resolveFileKind(buffer) }));
@@ -81,51 +79,67 @@ const DrawioComponent = (props: NodeViewProps): ReactElement => {
 
 			updateAttributes(attributes);
 		},
-		[getPos, node, apiUrlCreator, updateAttributes],
+		[node, apiUrlCreator, updateAttributes],
+	);
+
+	const saveResize = useCallback(
+		(resize: string) => {
+			updateAttributesCallback({ scale: resize });
+		},
+		[updateAttributesCallback],
 	);
 
 	return (
 		<NodeViewContextableWrapper
 			data-drag-handle
 			data-qa="qa-drawio"
+			data-resize-container
 			draggable={true}
 			props={props}
 			ref={hoverElement}
 		>
-			<BlockActionPanel
-				actionsOptions={{ comment: true }}
-				getPos={getPos}
-				hasSignature={hasSignature}
-				hoverElementRef={hoverElement}
-				isSignature={hasSignature}
-				rightActions={
-					isEditable && (
-						<DrawioActions
-							editor={editor}
-							node={node}
-							openEditor={openEditor}
-							setHasSignature={setHasSignature}
-							signatureRef={signatureRef}
-						/>
-					)
-				}
-				setHasSignature={setHasSignature}
-				signatureRef={signatureRef}
-				signatureText={node.attrs.title}
-				updateAttributes={updateAttributesCallback}
+			<ArticleComponentResizer
+				disabled={!isEditable}
+				onChange={saveResize}
+				scale={node.attrs.scale}
+				selected={selected}
 			>
-				<Drawio
-					commentId={node.attrs.comment?.id}
-					height={node.attrs.height}
-					id={getDrawioID(nodeSrc, articleProps.logicPath)}
-					noEm={isEditable}
-					openEditor={openEditor}
-					ref={refT}
-					src={nodeSrc}
-					title={node.attrs.title}
-					width={node.attrs.width}
-				/>
-			</BlockActionPanel>
+				<BlockActionPanel
+					actionsOptions={{ comment: true }}
+					getPos={getPos}
+					hasSignature={hasSignature}
+					hoverElementRef={hoverElement}
+					isSignature={hasSignature}
+					rightActions={
+						isEditable && (
+							<DrawioActions
+								editor={editor}
+								node={node}
+								openEditor={openEditor}
+								setHasSignature={setHasSignature}
+								signatureRef={signatureRef}
+							/>
+						)
+					}
+					setHasSignature={setHasSignature}
+					signatureRef={signatureRef}
+					signatureText={node.attrs.title}
+					updateAttributes={updateAttributesCallback}
+				>
+					<Drawio
+						commentId={node.attrs.comment?.id}
+						height={node.attrs.height}
+						id={getDrawioID(nodeSrc, articleProps.logicPath)}
+						noEm={isEditable}
+						openEditor={openEditor}
+						ref={refT}
+						scale={node.attrs.scale}
+						src={nodeSrc}
+						title={node.attrs.title}
+						width={node.attrs.width}
+					/>
+				</BlockActionPanel>
+			</ArticleComponentResizer>
 		</NodeViewContextableWrapper>
 	);
 };

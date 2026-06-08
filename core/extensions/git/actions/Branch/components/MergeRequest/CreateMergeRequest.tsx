@@ -1,9 +1,7 @@
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
-import validateEmail from "@core/utils/validateEmail";
 import useWatch from "@core-ui/hooks/useWatch";
 import AuthorInfoCodec from "@core-ui/utils/authorInfoCodec";
-import styled from "@emotion/styled";
 import FormattedBranch from "@ext/git/actions/Branch/components/FormattedBranch";
 import SelectGES from "@ext/git/actions/Branch/components/MergeRequest/SelectGES";
 import SelectGitCommitAuthors from "@ext/git/actions/Branch/components/MergeRequest/SelectGitCommitAuthors";
@@ -22,12 +20,6 @@ import { Textarea } from "@ui-kit/Textarea";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
-const OptionsContainer = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 0.5em;
-`;
 
 interface MergeRequestModalProps {
 	useGesUsersSelect: boolean;
@@ -55,7 +47,11 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 	const [isOpen, setIsOpen] = useState(true);
 
 	const schema = z.object({
-		approvers: z.array(z.object({ label: z.string(), value: z.string() })),
+		approvers: z
+			.array(z.object({ label: z.string(), value: z.string() }), {
+				message: t("must-be-not-empty"),
+			})
+			.min(1, { message: t("must-be-not-empty") }),
 		description: z.string().optional(),
 		options: z
 			.object({
@@ -71,8 +67,8 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 		mode: "onChange",
 	});
 
-	const formSubmit = (e) => {
-		form.handleSubmit((data) => {
+	const formSubmit = async (e) => {
+		await form.handleSubmit((data) => {
 			onSubmit({
 				targetBranchRef,
 				approvers: data.approvers.map((item) => AuthorInfoCodec.deserialize(item.value) as ApprovalSignature),
@@ -114,42 +110,13 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 											{useGesUsersSelect ? (
 												<SelectGES
 													approvers={field.value}
-													onChange={(reviewers) => {
-														field.onChange(
-															reviewers.map((reviewer) => ({
-																label: reviewer.name,
-																value: AuthorInfoCodec.serialize(reviewer),
-															})),
-														);
-													}}
+													onChange={field.onChange}
 													preventSearchAndStartLoading={preventSearchAndStartLoading}
 												/>
 											) : (
 												<SelectGitCommitAuthors
 													approvers={field.value}
-													onChange={(reviewers) => {
-														const additionalReviewers = reviewers.filter((reviewer) =>
-															validateEmail(reviewer.value),
-														);
-
-														const res = [
-															...reviewers
-																.filter((reviewer) => !!reviewer.name)
-																.map((reviewer) => ({
-																	label: reviewer.name,
-																	value: AuthorInfoCodec.serialize(reviewer),
-																})),
-															...additionalReviewers.map((reviewer) => ({
-																label: reviewer.value,
-																value: AuthorInfoCodec.serialize({
-																	name: reviewer.value,
-																	email: reviewer.value,
-																}),
-															})),
-														];
-
-														field.onChange(res);
-													}}
+													onChange={field.onChange}
 													shouldFetch={isOpen}
 												/>
 											)}
@@ -173,10 +140,9 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 								/>
 								<FormField
 									control={({ field }) => (
-										<OptionsContainer>
+										<div className="flex flex-col gap-2">
 											<CheckboxField
 												checked={field.value?.deleteAfterMerge}
-												className="gap-2"
 												label={t("git.merge.delete-branch-after-merge")}
 												onCheckedChange={(value) =>
 													field.onChange({ ...field.value, deleteAfterMerge: value })
@@ -184,14 +150,13 @@ const CreateMergeRequestModal = (props: MergeRequestModalProps) => {
 											/>
 											<CheckboxField
 												checked={field.value?.squash}
-												className="gap-2"
 												description={t("git.merge.squash-tooltip")}
 												label={t("git.merge.squash")}
 												onCheckedChange={(value) =>
 													field.onChange({ ...field.value, squash: value })
 												}
 											/>
-										</OptionsContainer>
+										</div>
 									)}
 									labelClassName="items-start"
 									name="options"

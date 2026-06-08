@@ -1,55 +1,27 @@
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { EditArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
-import { setComments } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
-import type { Dispatch, SetStateAction } from "react";
 
-let _flag: boolean;
-let _data: ArticlePageData;
-let _onUpdate: (data: ArticlePageData) => void;
-let _setIsLoading: Dispatch<SetStateAction<boolean>>;
+class ArticleUpdater {
+	private _onUpdate: (data: EditArticlePageData) => void;
 
-export default abstract class ArticleUpdaterService {
-	public static bindData(data: ArticlePageData) {
-		_data = data;
-	}
-	public static bindOnUpdate(onUpdate: typeof _onUpdate) {
-		_onUpdate = onUpdate;
-	}
-	public static bindSetIsLoading(setIsLoading: typeof _setIsLoading) {
-		_setIsLoading = setIsLoading;
+	bindOnUpdate(onUpdate: (data: EditArticlePageData) => void) {
+		this._onUpdate = onUpdate;
 	}
 
-	public static stopLoadingAfterFocus() {
-		_flag = false;
+	async update(apiUrlCreator: ApiUrlCreator) {
+		if (!this._onUpdate) return;
+		const data = await this._getUpdateDate(apiUrlCreator);
+		if (data) this._onUpdate?.(data);
 	}
 
-	public static startLoadingAfterFocus() {
-		_flag = true;
-	}
-
-	public static async update(apiUrlCreator: ApiUrlCreator) {
-		if (!_setIsLoading || !_onUpdate) return;
-		_setIsLoading(true);
-		const data = await ArticleUpdaterService._getUpdateDate(apiUrlCreator);
-		_setIsLoading(false);
-		if (data && data?.articleProps?.ref?.path == _data.articleProps.ref.path) _onUpdate(data);
-	}
-
-	public static forceUpdate() {
-		setComments({});
-		_onUpdate?.(_data);
-	}
-
-	public static setUpdateData(data: ArticlePageData) {
-		_onUpdate?.(data);
-	}
-
-	private static async _getUpdateDate(apiUrlCreator: ApiUrlCreator): Promise<ArticlePageData> {
-		if (!_flag) ArticleUpdaterService.startLoadingAfterFocus();
-		else {
-			const response = await FetchService.fetch(apiUrlCreator.checkLastModifiedArticle());
-			return response && response.ok ? ((await response?.json?.()) ?? null) : null;
-		}
+	private async _getUpdateDate(apiUrlCreator: ApiUrlCreator) {
+		const response = await FetchService.fetch(apiUrlCreator.getCurrentArticlePageData());
+		return response?.ok ? ((await response.json?.()) ?? null) : null;
 	}
 }
+
+/** @deprecated use useArticlePropsStore.update instead */
+const ArticleUpdaterService = new ArticleUpdater();
+
+export default ArticleUpdaterService;

@@ -1,5 +1,5 @@
-import { onFSWasmCallback } from "@app/resolveModule/fscall/wasm";
-import { onGitWasmCallback } from "@app/resolveModule/gitcall/wasm";
+/** biome-ignore-all lint/suspicious/noExplicitAny: idc */
+import { onRustWasmCallback } from "@app/resolveModule/rustcall/wasm";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import { progress } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import { handleWasmSpans } from "@ext/loggers/opentelemetry";
@@ -39,17 +39,16 @@ export const initWasm = async (corsProxy: string) => {
 		const resolved = await new Promise((resolve, reject) => {
 			w.wasm.onerror = (err) => reject(err);
 			w.wasm.addEventListener("message", (ev) => {
-				if (ev.data.type == "fs-call") onFSWasmCallback(ev);
-				if (ev.data.type == "git-call") onGitWasmCallback(ev);
-				if (ev.data.type == "remote-progress") {
+				if (ev.data.type === "call") onRustWasmCallback(ev);
+				if (ev.data.type === "remote-progress") {
 					const payload = ev.data?.data;
 					if (!payload?.data) return;
 					progress[payload.data.id]?.(payload);
 				}
-				if (ev.data.type == "otel") void handleWasmSpans(ev.data.spans);
+				if (ev.data.type === "otel") void handleWasmSpans(ev.data.spans);
 
-				if (ev.data.type == "ready") resolve(w.wasm);
-				if (ev.data.type == "timeout") resolve(null);
+				if (ev.data.type === "ready") resolve(w.wasm);
+				if (ev.data.type === "timeout") resolve(null);
 			});
 		});
 

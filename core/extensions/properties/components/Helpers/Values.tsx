@@ -45,7 +45,13 @@ const DraggableTableRow = ({ row, children, state }: DraggableTableRowProps) => 
 	};
 
 	return (
-		<TableRow className="border-secondary-border" data-state={state} ref={setNodeRef} style={style}>
+		<TableRow
+			className="border-secondary-border"
+			data-state={state}
+			data-testid="value-row"
+			ref={setNodeRef}
+			style={style}
+		>
 			{children}
 		</TableRow>
 	);
@@ -153,7 +159,7 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 				cell: ({ row }) => <DeleteButton onClick={() => deleteRow(row.original)} />,
 			},
 		],
-		[],
+		[deleteRow, onBlur],
 	);
 
 	const table = useReactTable({
@@ -232,6 +238,7 @@ export const Values = ({ data: initialData, onChange }: ValuesProps) => {
 									<TableCell
 										className="h-24 text-center border-secondary-border"
 										colSpan={columns.length}
+										data-testid="no-values"
 									>
 										<EmptyState>{t("properties.no-values")}</EmptyState>
 									</TableCell>

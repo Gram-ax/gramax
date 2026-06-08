@@ -3,7 +3,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import Theme from "@ext/Theme/Theme";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
-const getLogo: Command<{ workspacePath: WorkspacePath; theme: string }, any> = Command.create({
+const getLogo: Command<{ workspacePath: WorkspacePath; theme: string }, string> = Command.create({
 	path: "workspace/assets/homeLogo/get",
 	kind: ResponseKind.file,
 
@@ -15,7 +15,7 @@ const getLogo: Command<{ workspacePath: WorkspacePath; theme: string }, any> = C
 		return (await assets.logo.get(themeValue)) || "";
 	},
 
-	params(ctx, q) {
+	params(_, q) {
 		return { workspacePath: q.path, theme: q.theme };
 	},
 });

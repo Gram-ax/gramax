@@ -75,6 +75,7 @@ export default class MdParser {
 		newContent = this._idParser(newContent);
 		newContent = this._dashArrowParser(newContent);
 		newContent = this._squareBracketsParser(newContent);
+		newContent = this._propertyParser(newContent);
 		newContent = this._formulaParser(newContent);
 		newContent = this._brParser(newContent);
 		newContent = this._emptyParagraphParser(newContent);
@@ -188,6 +189,7 @@ export default class MdParser {
 		let newContent = content;
 		newContent = newContent.replaceAll(
 			this._findHtmlRegExp,
+			// biome-ignore lint/style/useNamingConvention: expected
 			(_: string, firstGroup: string, secondGroup: string) => {
 				const group = secondGroup;
 				if (!group) return _;
@@ -200,6 +202,7 @@ export default class MdParser {
 
 		newContent = newContent.replaceAll(
 			this._findHtmlTagRegExp,
+			// biome-ignore lint/style/useNamingConvention: expected
 			(_: string, firstGroup: string, htmlTag: string, secondGroup: string) => {
 				const group = secondGroup;
 				if (!group) return _;
@@ -260,6 +263,13 @@ export default class MdParser {
 		return content.replaceAll(this._removeCommentsRegExp, (str: string, comment: string) =>
 			str.replace(comment, ""),
 		);
+	}
+
+	private _propertyParser(content: string): string {
+		return content.replaceAll(/(\{%property\s[^\n]*?\/%\})/g, (match, tag, offset) => {
+			if (offset === 0 || content[offset - 1] === "\n") return match;
+			return `\n${tag}`;
+		});
 	}
 
 	private _preTagParser(content: string): string {

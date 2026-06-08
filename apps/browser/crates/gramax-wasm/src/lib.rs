@@ -61,6 +61,22 @@ impl From<Vec<u8>> for Buffer {
 unsafe fn main() -> i32 {
 	const MOUNTPOINT: &str = "/mnt";
 
+	std::panic::set_hook(Box::new(|info| {
+		let location = info
+			.location()
+			.map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
+			.unwrap_or_else(|| "<unknown>".into());
+		let payload = info.payload();
+		let msg = if let Some(s) = payload.downcast_ref::<&str>() {
+			(*s).to_string()
+		} else if let Some(s) = payload.downcast_ref::<String>() {
+			s.clone()
+		} else {
+			"<non-string panic payload>".to_string()
+		};
+		eprintln!("rust panic at {location}: {msg}");
+	}));
+
 	let mountpoint = std::ffi::CString::new(MOUNTPOINT).unwrap().into_raw();
 	let backend = wasmfs_create_opfs_backend();
 

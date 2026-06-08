@@ -1,24 +1,32 @@
 import styled from "@emotion/styled";
-import { type DependencyList, type KeyboardEventHandler, useEffect, useState } from "react";
+import { type DependencyList, type HTMLProps, type KeyboardEventHandler, useEffect, useRef, useState } from "react";
 
-const ContentEditable = ({
-	value,
-	onChange,
-	onEnter,
-	deps,
-	className,
-}: {
+interface ContentEditableProps extends Omit<HTMLProps<HTMLDivElement>, "onChange"> {
 	value: string;
-	onChange: (v: string) => void;
+	onChange?: (v: string) => void;
 	onEnter?: () => void;
 	deps?: DependencyList;
 	className?: string;
-}) => {
+}
+
+const ContentEditable = (props: ContentEditableProps) => {
+	const { value, onChange, onEnter, deps, className, autoFocus, ...rest } = props;
 	const [html, setHtml] = useState(value);
+	const inputRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		setHtml(value);
+		// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	}, deps);
+
+	useEffect(() => {
+		if (autoFocus) {
+			inputRef.current?.focus({ preventScroll: true });
+			window.getSelection().selectAllChildren(inputRef.current);
+			window.getSelection().collapseToEnd();
+		}
+	}, [autoFocus]);
+
 	const handleInput = (e) => {
 		onChange(e.target.innerText ?? "");
 	};
@@ -50,6 +58,9 @@ const ContentEditable = ({
 		<div
 			className={className}
 			contentEditable
+			ref={inputRef}
+			{...rest}
+			// biome-ignore lint/style/useNamingConvention: expected
 			dangerouslySetInnerHTML={{ __html: html }}
 			onInput={handleInput}
 			onKeyDown={handleKeyDown}

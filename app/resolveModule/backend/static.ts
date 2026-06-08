@@ -6,7 +6,6 @@ import BrowserGetImageSizeFromImageData from "../../../apps/browser/src/logic/Br
 import BrowserSvgToPng from "../../../apps/browser/src/logic/BrowserSvgToPng";
 import { mermaidExtractText } from "../../../apps/browser/src/mermaid/mermaidExtractText";
 import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
-import { WebWorkerResourceParseClient } from "../../../apps/browser/src/search/modulith/WebResourceParseWorkerClient";
 import { WebWorkerModulithSearchClient } from "../../../apps/browser/src/search/modulith/WebWorkerModulithSearchClient";
 import type { BackendDynamicModules } from "..";
 
@@ -26,7 +25,7 @@ export const getStaticModules = async (): Promise<BackendDynamicModules> => {
 		mermaidExtractText,
 		getModulithSearchClient: async ({ cacheFileProvider, articleStorageFileProvider }) =>
 			await WebWorkerModulithSearchClient.create({ cacheFileProvider, articleStorageFileProvider }),
-		getResourceParseClient: async () => await WebWorkerResourceParseClient.create(),
+		getResourceParseClient: () => Promise.resolve(undefined),
 		getPdfjs,
 	});
 };

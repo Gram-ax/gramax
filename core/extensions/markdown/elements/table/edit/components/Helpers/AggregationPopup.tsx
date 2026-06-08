@@ -35,7 +35,7 @@ interface AggregationPopupProps {
 	node: Node;
 	cell: Node;
 	index: number;
-	getPos: () => number;
+	pos: number;
 }
 
 export const AggregationItem = styled.div`
@@ -47,16 +47,16 @@ export const AggregationItem = styled.div`
 
 type AggregationData = string[];
 
-const AggregationPopup = ({ editor, tableSheet, node, cell, index, getPos }: AggregationPopupProps) => {
+const AggregationPopup = ({ editor, tableSheet, node, cell, index, pos }: AggregationPopupProps) => {
 	const [aggregationData, setAggregationData] = useState<AggregationData>([]);
 
 	const setAggregation = (method: AggregationMethod) => {
-		const position = getFirstTdPosition(node, index + 1, getPos());
+		const position = getFirstTdPosition(node, index + 1, pos);
 		editor.chain().focus(position).setCellAttribute("aggregation", method).run();
 	};
 
 	const calcAggregation = () => {
-		const data = editor.view.domAtPos(getPos() + 1);
+		const data = editor.view.domAtPos(pos + 1);
 		const domNode = data?.node as HTMLElement;
 		if (!domNode) return;
 

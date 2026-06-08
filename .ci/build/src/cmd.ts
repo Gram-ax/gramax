@@ -1,6 +1,7 @@
 import assert from "assert";
 import { $ } from "bun";
 import fs from "fs/promises";
+
 import { join } from "path";
 import { parseArgs } from "util";
 import * as b from "./builder";
@@ -8,7 +9,15 @@ import * as s from "./sign";
 import * as u from "./upload";
 import { channel, env, isCi, project, version, versionShort } from "./util";
 
-export const makeConfigFromEnvs = (skipSign: boolean = false): b.BuildOptions => {
+export type MakeConfigOptions = {
+	skipSign?: boolean;
+};
+
+export const makeConfig = (override: Partial<b.BuildOptions>, opts: MakeConfigOptions): b.BuildOptions => {
+	const { skipSign } = opts;
+
+	const validatedOverride = Object.fromEntries(Object.entries(override).filter(([k, v]) => Boolean(v)));
+
 	if (env.optional("IS_MERGE_REQUEST") === "true") {
 		return {
 			productName: "Gramax Test",
@@ -19,6 +28,7 @@ export const makeConfigFromEnvs = (skipSign: boolean = false): b.BuildOptions =>
 			useDevelopmentProfile: true,
 			useSign: isCi && !skipSign,
 			useSignVerify: isCi && !skipSign,
+			...validatedOverride,
 		};
 	}
 
@@ -33,8 +43,9 @@ export const makeConfigFromEnvs = (skipSign: boolean = false): b.BuildOptions =>
 			useDevelopmentProfile: true,
 			useSign: isCi && !skipSign,
 			useSignVerify: isCi && !skipSign,
+			...validatedOverride,
 		};
-	};
+	}
 
 	return {
 		productName: "Gramax",
@@ -45,11 +56,13 @@ export const makeConfigFromEnvs = (skipSign: boolean = false): b.BuildOptions =>
 		useDevelopmentProfile: false,
 		useSign: isCi && !skipSign,
 		useSignVerify: isCi && !skipSign,
+		...validatedOverride,
 	};
 };
 
 export const build = async () => {
-	const help = "usage: build --web --darwin-aarch64 --darwin-x86_64 --windows-x86_64 --linux-x86_64 --android --ios";
+	const help =
+		"usage: build --web --darwin-aarch64 --darwin-x86_64 --windows-x86_64 --linux-x86_64 --android --ios --product-name <product-name>";
 
 	const args = parseArgs({
 		args: process.argv.slice(3),
@@ -81,10 +94,13 @@ export const build = async () => {
 			upload: {
 				type: "boolean",
 			},
+			"product-name": {
+				type: "string",
+			},
 		},
 	});
 
-	const config = makeConfigFromEnvs(args.values["no-sign"]);
+	const config = makeConfig({ productName: args.values["product-name"] }, { skipSign: !!args.values["no-sign"] });
 
 	if (!Object.values(args.values).some(Boolean)) {
 		console.error(help);
@@ -190,6 +206,16 @@ export const upload = async () => {
 };
 
 export const makeIcons = async () => {
+	const args = parseArgs({
+		args: process.argv.slice(3),
+		allowPositionals: true,
+		options: {
+			"no-badges": {
+				type: "boolean",
+			},
+		},
+	});
+
 	const out = `${project}/apps/tauri/src-tauri/icons`;
 
 	console.log(`create app icons at: ${out}`);
@@ -205,6 +231,10 @@ export const makeIcons = async () => {
 		return;
 	}
 
+	if (args.values["no-badges"]) {
+		console.warn("skipping app badges");
+		return;
+	}
 	console.log("(win) create app badges");
 	for (let num = 1; num < 101; num++) {
 		await $`magick -size 128x128 xc:none -fill "#FF0000" -draw "circle 64,64 64,20" \
@@ -225,7 +255,7 @@ export const printVersion = async () => {
 		allowPositionals: true,
 		options: {
 			short: { type: "boolean" },
-		}
+		},
 	});
 
 	if (args.values?.short) {

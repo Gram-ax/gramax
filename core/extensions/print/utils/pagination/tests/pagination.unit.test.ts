@@ -1,8 +1,9 @@
-/** biome-ignore-all lint/correctness/noUndeclaredVariables: <explanation> */
-/** biome-ignore-all lint/suspicious/noExplicitAny: <explanation> */
+/** biome-ignore-all lint/correctness/noUndeclaredVariables: generated test file */
+/** biome-ignore-all lint/suspicious/noExplicitAny: test mocks */
+
+import { FragmentPaginator } from "@ext/markdown/elements/fragment/print/FragmentPaginator";
 import { ListPaginator } from "@ext/markdown/elements/list/print/ListPaginator";
 import { NotePaginator } from "@ext/markdown/elements/note/print/NotePaginator";
-import { SnippetPaginator } from "@ext/markdown/elements/snippet/print/SnippetPaginator";
 import { RowPaginator } from "@ext/markdown/elements/table/print/RowPaginator";
 import { TablePaginator } from "@ext/markdown/elements/table/print/TablePaginator";
 import { TabsPaginator } from "@ext/markdown/elements/tabs/print/TabsPaginator";
@@ -98,8 +99,8 @@ describe("Paginator System", () => {
 			table.appendChild(thead);
 			tableWrapper.appendChild(table);
 
-			const paginator = new TablePaginator(tableWrapper, {} as any);
-			const repeatableThead = paginator["getRepeatableThead"]();
+			const paginator = new TablePaginator(tableWrapper, {} as any) as any;
+			const repeatableThead = paginator.getRepeatableThead();
 
 			expect(repeatableThead).not.toBeNull();
 			expect(repeatableThead?.tagName).toBe("THEAD");
@@ -122,9 +123,9 @@ describe("Paginator System", () => {
 
 			mockNodeDimensions.get.mockReturnValue({ height: 20, marginTop: 0, marginBottom: 0, paddingH: 0 });
 
-			const paginator = new TablePaginator(tableWrapper, {} as any);
+			const paginator = new TablePaginator(tableWrapper, {} as any) as any;
 			Paginator.paginationInfo.nodeDimension = mockNodeDimensions;
-			const repeatableThead = paginator["getRepeatableThead"]();
+			const repeatableThead = paginator.getRepeatableThead();
 
 			expect(repeatableThead).not.toBeNull();
 			expect(repeatableThead?.dataset._synthesized).toBe("from-first-row");
@@ -145,8 +146,8 @@ describe("Paginator System", () => {
 
 			mockNodeDimensions.get.mockReturnValue({ height: 20, marginTop: 0, marginBottom: 0, paddingH: 0 });
 
-			const paginator = new TablePaginator(tableWrapper, {} as any);
-			const repeatableThead = paginator["getRepeatableThead"]();
+			const paginator = new TablePaginator(tableWrapper, {} as any) as any;
+			const repeatableThead = paginator.getRepeatableThead();
 
 			expect(repeatableThead).not.toBeNull();
 			expect(repeatableThead?.dataset._synthesized).toBe("1");
@@ -159,8 +160,8 @@ describe("Paginator System", () => {
 			table.setAttribute("data-header", "column");
 			tableWrapper.appendChild(table);
 
-			const paginator = new TablePaginator(tableWrapper, {} as any);
-			const repeatableThead = paginator["getRepeatableThead"]();
+			const paginator = new TablePaginator(tableWrapper, {} as any) as any;
+			const repeatableThead = paginator.getRepeatableThead();
 
 			expect(repeatableThead).toBeNull();
 		});
@@ -183,15 +184,15 @@ describe("Paginator System", () => {
 
 			table.appendChild(tbody);
 
-			const paginator = new TablePaginator(table, mockPaginator);
+			const paginator = new TablePaginator(table, mockPaginator) as any;
 
 			const mockThead = document.createElement("thead");
 			const theadRow = document.createElement("tr");
 			mockThead.appendChild(theadRow);
 			mockThead.dataset._synthesized = "from-first-row";
-			paginator["repeatThead"] = mockThead;
+			paginator.repeatThead = mockThead;
 
-			const bodyRows = paginator["collectBodyRows"]();
+			const bodyRows = paginator.collectBodyRows();
 
 			expect(bodyRows).toHaveLength(1);
 			expect(bodyRows[0]).toBe(dataRow);
@@ -214,10 +215,10 @@ describe("Paginator System", () => {
 			table.appendChild(thead);
 			tableWrapper.appendChild(table);
 
-			const paginator = new TablePaginator(tableWrapper, {} as any);
-			paginator["repeatThead"] = thead;
+			const paginator = new TablePaginator(tableWrapper, {} as any) as any;
+			paginator.repeatThead = thead;
 
-			const { table: clonedTable, tbody } = paginator["cloneTableShell"]();
+			const { table: clonedTable, tbody } = paginator.cloneTableShell();
 
 			expect(clonedTable.tagName).toBe("TABLE");
 			expect(clonedTable.querySelector("colgroup")).not.toBeNull();
@@ -262,17 +263,17 @@ describe("Paginator System", () => {
 				createPage: jest.fn(() => document.createElement("div")),
 			};
 
-			const paginator = new RowPaginator(row, mockParentPaginator as any);
-			paginator["_rows"] = [row];
-			paginator["_rowIndex"] = 0;
-			paginator["_cellIndex"] = 0;
-			paginator["currentContainer"] = cell;
-			paginator["_currentTr"] = row;
+			const paginator = new RowPaginator(row, mockParentPaginator as any) as any;
+			paginator._rows = [row];
+			paginator._rowIndex = 0;
+			paginator._cellIndex = 0;
+			paginator.currentContainer = cell;
+			paginator._currentTr = row;
 
 			const newContainer = paginator.createPage();
 
 			expect(mockParentPaginator.createPage).toHaveBeenCalled();
-			expect(paginator["_rows"]).toHaveLength(2);
+			expect(paginator._rows).toHaveLength(2);
 			expect(newContainer).not.toBeNull();
 		});
 
@@ -288,7 +289,7 @@ describe("Paginator System", () => {
 			mockNodeDimensions.get.mockReturnValue({ height: 20, marginTop: 0, marginBottom: 0, paddingH: 10 });
 
 			const paginator = new RowPaginator(row, mockParentPaginator as any);
-			paginator["currentContainer"] = cell;
+			paginator.currentContainer = cell;
 
 			const usableHeight = paginator.getUsableHeight();
 
@@ -323,10 +324,10 @@ describe("Paginator System", () => {
 					currentContainer: {},
 				};
 
-				const paginator = new ListPaginator(ol, mockParentPaginator as any);
-				paginator["_currentStartNumber"] = 3;
-				paginator["_listContainer"] = document.createElement("ol");
-				paginator["currentContainer"] = document.createElement("li");
+				const paginator = new ListPaginator(ol, mockParentPaginator as any) as any;
+				paginator._currentStartNumber = 3;
+				paginator._listContainer = document.createElement("ol");
+				paginator.currentContainer = document.createElement("li");
 
 				paginator.createPage();
 
@@ -345,11 +346,11 @@ describe("Paginator System", () => {
 					currentContainer: {},
 				};
 
-				const paginator = new ListPaginator(ol, mockParentPaginator as any);
-				paginator["_currentStartNumber"] = 3;
-				paginator["_listContainer"] = document.createElement("ol");
-				paginator["currentContainer"] = document.createElement("li");
-				paginator["currentContainer"].appendChild(document.createElement("div"));
+				const paginator = new ListPaginator(ol, mockParentPaginator as any) as any;
+				paginator._currentStartNumber = 3;
+				paginator._listContainer = document.createElement("ol");
+				paginator.currentContainer = document.createElement("li");
+				paginator.currentContainer.appendChild(document.createElement("div"));
 
 				paginator.createPage();
 
@@ -372,38 +373,38 @@ describe("Paginator System", () => {
 			taskItem.appendChild(content);
 			ul.appendChild(taskItem);
 
-			const paginator = new ListPaginator(ul, {} as any);
+			const paginator = new ListPaginator(ul, {} as any) as any;
 
-			const container = paginator["getContainer"](taskItem);
+			const container = paginator.getContainer(taskItem);
 
 			expect(container).toBe(content);
-			expect(paginator["taskItemTemplate"]).not.toBeNull();
+			expect(paginator.taskItemTemplate).not.toBeNull();
 		});
 	});
 
-	describe("SnippetPaginator", () => {
-		it("should clone snippet element and paginate its content", async () => {
-			const snippet = document.createElement("div");
-			snippet.classList.add("snippet");
+	describe("FragmentPaginator", () => {
+		it("should clone fragment element and paginate its content", async () => {
+			const fragment = document.createElement("div");
+			fragment.classList.add("fragment");
 
-			const snippetPaginator = new SnippetPaginator(snippet, mockPaginator);
+			const fragmentPaginator = new FragmentPaginator(fragment, mockPaginator);
 
-			await snippetPaginator.paginateNode();
+			await fragmentPaginator.paginateNode();
 
 			expect(mockPaginator.currentContainer.children).toHaveLength(1);
-			expect(mockPaginator.currentContainer.children[0].classList.contains("snippet")).toBe(true);
+			expect(mockPaginator.currentContainer.children[0].classList.contains("fragment")).toBe(true);
 		});
 
 		it("should create new page container when content overflows", () => {
-			const snippet = document.createElement("div");
+			const fragment = document.createElement("div");
 
 			const mockParentPaginator = {
 				createPage: jest.fn(() => document.createElement("div")),
 				currentContainer: document.createElement("div"),
 			};
 
-			const paginator = new SnippetPaginator(snippet, mockParentPaginator as any);
-			paginator["currentContainer"] = snippet.cloneNode(true) as HTMLDivElement;
+			const paginator = new FragmentPaginator(fragment, mockParentPaginator as any);
+			paginator.currentContainer = fragment.cloneNode(true) as HTMLDivElement;
 
 			const newContainer = paginator.createPage();
 
@@ -455,7 +456,7 @@ describe("Paginator System", () => {
 			};
 
 			const paginator = new NotePaginator(note, mockParentPaginator as any);
-			paginator["currentContainer"] = content.cloneNode(true) as HTMLDivElement;
+			paginator.currentContainer = content.cloneNode(true) as HTMLDivElement;
 
 			const newContainer = paginator.createPage();
 
@@ -497,12 +498,12 @@ describe("Paginator System", () => {
 				currentContainer: document.createElement("div"),
 			};
 
-			const paginator = new TabsPaginator(tabs, mockParentPaginator as any);
-			paginator["currentContainer"] = document.createElement("div");
-			paginator["_tabsWrapper"] = document.createElement("div");
-			paginator["_tabsContainer"] = document.createElement("div");
-			paginator["_currentTabContainer"] = document.createElement("div");
-			paginator["addTabDimension"] = jest.fn();
+			const paginator = new TabsPaginator(tabs, mockParentPaginator as any) as any;
+			paginator.currentContainer = document.createElement("div");
+			paginator._tabsWrapper = document.createElement("div");
+			paginator._tabsContainer = document.createElement("div");
+			paginator._currentTabContainer = document.createElement("div");
+			paginator.addTabDimension = jest.fn();
 
 			const newContainer = paginator.createPage();
 
@@ -523,8 +524,8 @@ describe("Paginator System", () => {
 				}
 			})(node, parent);
 
-			expect(paginator["node"]).toBe(node);
-			expect(paginator["parentPaginator"]).toBe(parent);
+			expect((paginator as any).node).toBe(node);
+			expect(paginator.parentPaginator).toBe(parent);
 		});
 
 		it("should handle element fitting logic", () => {

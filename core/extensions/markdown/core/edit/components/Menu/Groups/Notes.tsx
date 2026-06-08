@@ -1,73 +1,54 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
-import useMediaQuery from "@core-ui/hooks/useMediaQuery";
+import { getEditorStore } from "@core-ui/stores/EditorStore";
 import { cn } from "@core-ui/utils/cn";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import NoteMenuButton from "@ext/markdown/elements/note/edit/components/NoteMenuButton";
-import { NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import { NoteType, noteIcons } from "@ext/markdown/elements/note/render/component/Note";
 import type { Editor } from "@tiptap/core";
-import { DropdownMenu, DropdownMenuLabel, DropdownMenuTrigger, useHoverDropdown } from "@ui-kit/Dropdown";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuLabel, DropdownMenuTrigger } from "@ui-kit/Dropdown";
 import { ComponentVariantProvider } from "@ui-kit/Providers";
-import { ToolbarDropdownMenuContent, ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { ToolbarIcon, ToolbarToggleButton, ToolbarTriggerChevron } from "@ui-kit/Toolbar";
 import { useCallback } from "react";
 
-const StyledToolbarIcon = styled(ToolbarIcon)`
-	transform: scale(1, -1);
-`;
-
 const NotesMenuGroup = ({ editor }: { editor?: Editor }) => {
-	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 	const note = ButtonStateService.useCurrentAction({ action: "note" });
-	const { isOpen, setIsOpen, handleMouseEnter, handleMouseLeave } = useHoverDropdown();
+	const lastUsedNoteType: Exclude<NoteType, "hotfixes"> =
+		editor?.getAttributes("note")?.type || getEditorStore().lastUsedNoteType || NoteType.info;
 
-	const onMouseLeave = useCallback(() => {
-		handleMouseLeave();
-		if (!isMobile) editor.commands.focus(undefined, { scrollIntoView: false });
-	}, [editor, handleMouseLeave, isMobile]);
-
-	const disabled = note.disabled;
-
-	const onOpenChange = useCallback(
-		(open: boolean) => {
-			if (!isMobile) return;
-			setIsOpen(open);
+	const onCloseAutoFocus = useCallback(
+		(event: Event) => {
+			event.preventDefault();
+			editor?.commands.focus();
 		},
-		[isMobile],
+		[editor],
 	);
 
-	const onInteractOutside = useCallback(() => {
-		if (isMobile) return;
-		setIsOpen(false);
-	}, [isMobile]);
-
 	return (
-		<ComponentVariantProvider variant="inverse">
-			<div
-				className={cn(disabled && "pointer-events-none")}
-				onMouseEnter={handleMouseEnter}
-				onMouseLeave={onMouseLeave}
-				tabIndex={-1}
+		<>
+			<ToolbarToggleButton
+				active={note.isActive}
+				data-testid="tb-note"
+				disabled={note.disabled}
+				onClick={() => editor?.chain().focus().toggleNote(lastUsedNoteType).run()}
+				tooltipText={t(`${lastUsedNoteType}-text`)}
 			>
-				<DropdownMenu modal={false} onOpenChange={onOpenChange} open={isOpen}>
+				<ToolbarIcon
+					className={cn(lastUsedNoteType === NoteType.quote && "transform scale(1, -1)")}
+					data-type={NoteType.quote}
+					icon={noteIcons[lastUsedNoteType] as IconCode}
+				/>
+			</ToolbarToggleButton>
+			<ComponentVariantProvider variant="inverse">
+				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<ToolbarToggleButton
-							active={note.isActive}
-							data-open={isOpen ? "open" : "closed"}
-							data-testid="tb-note"
-							disabled={disabled}
-							onClick={() => !isMobile && editor.chain().focus().toggleNote(NoteType.info).run()}
-						>
-							<StyledToolbarIcon icon="sticky-note" />
-						</ToolbarToggleButton>
+						<ToolbarTriggerChevron data-testid="tb-notes" disabled={note.disabled} sub />
 					</DropdownMenuTrigger>
-					<ToolbarDropdownMenuContent
-						align="start"
-						alignOffset={!isMobile ? -19 : -5}
-						className={cn(!isMobile && "px-3 py-3 pb-2")}
-						contentClassName="lg:shadow-hard-base"
-						onInteractOutside={onInteractOutside}
+					<DropdownMenuContent
+						className="lg:shadow-hard-base"
+						onCloseAutoFocus={onCloseAutoFocus}
 						side="top"
+						sideOffset={8}
 					>
 						<DropdownMenuLabel className="font-normal text-inverse-muted">
 							{t("editor.notes")}
@@ -78,10 +59,10 @@ const NotesMenuGroup = ({ editor }: { editor?: Editor }) => {
 						<NoteMenuButton editor={editor} noteType={NoteType.lab} />
 						<NoteMenuButton editor={editor} noteType={NoteType.note} />
 						<NoteMenuButton editor={editor} noteType={NoteType.danger} />
-					</ToolbarDropdownMenuContent>
+					</DropdownMenuContent>
 				</DropdownMenu>
-			</div>
-		</ComponentVariantProvider>
+			</ComponentVariantProvider>
+		</>
 	);
 };
 

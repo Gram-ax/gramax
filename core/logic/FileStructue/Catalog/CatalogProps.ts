@@ -1,3 +1,4 @@
+import type { CatalogView } from "@ext/catalog/views/models/CatalogViews";
 import type { RefInfo } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { FSLocalizationProps } from "@ext/localization/core/events/FSLocalizationEvents";
 import type { Syntax } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/model/Syntax";
@@ -25,7 +26,7 @@ export type CatalogProps = FSLocalizationProps & {
 	isCloning?: boolean;
 	cloneCancelDisabled?: boolean;
 	redirectOnClone?: string;
-	resolvedFilterPropertyValue?: PropertyID;
+	resolvedView?: CatalogView;
 	resolvedVersions?: RefInfo[];
 	resolvedVersion?: RefInfo;
 	optionalCategoryIndex?: boolean;
@@ -44,4 +45,5 @@ export const ExcludedProps: (keyof CatalogProps)[] = [
 	"isCloning",
 	"cloneCancelDisabled",
 	"redirectOnClone",
+	"resolvedView",
 ];

@@ -1,6 +1,7 @@
-pub mod commands;
+pub mod backend;
 pub mod error;
 
+pub mod commands;
 pub mod compress;
 
 use std::fs::Metadata;
@@ -32,7 +33,44 @@ pub struct DirStat {
 	pub stat: FileInfo,
 }
 
+unsafe impl Send for FileInfo {}
+
+unsafe impl Send for DirStat {}
+
 impl FileInfo {
+	pub fn is_dir(&self) -> bool {
+		self.file_kind == "dir"
+	}
+
+	pub fn is_file(&self) -> bool {
+		self.file_kind == "file"
+	}
+
+	pub fn is_symlink(&self) -> bool {
+		self.file_kind == "symbolic"
+	}
+
+	pub fn size(&self) -> u64 {
+		self.size
+	}
+
+	pub fn modified_ms(&self) -> u128 {
+		self.modified
+	}
+
+	pub fn created_ms(&self) -> u128 {
+		self.created
+	}
+
+	pub fn new_raw(file_kind: String, size: u64, created: u128, modified: u128) -> Self {
+		Self {
+			file_kind,
+			size,
+			created,
+			modified,
+		}
+	}
+
 	pub fn new(meta: Metadata) -> Result<Self> {
 		let kind = if meta.is_file() {
 			"file"

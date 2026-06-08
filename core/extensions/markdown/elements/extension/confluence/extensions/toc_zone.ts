@@ -1,9 +1,9 @@
 import type NodeConverter from "@ext/confluence/core/cloud/model/NodeConverter";
 
-const toc_zone: NodeConverter = (toc_zoneNode) => {
+const toc_zone: NodeConverter = (tocZoneNode) => {
 	return {
 		type: "paragraph",
-		content: toc_zoneNode.content,
+		content: tocZoneNode.content,
 	};
 };
 

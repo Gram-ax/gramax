@@ -1,6 +1,5 @@
 import useCheck from "@core-ui/hooks/useCheck";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
 import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
 import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
 import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
@@ -19,7 +18,6 @@ import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { Description } from "@ui-kit/Description";
 import { Field } from "@ui-kit/Field";
-import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
 import { Switch } from "@ui-kit/Switch";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -41,7 +39,6 @@ const GuestsComponent = () => {
 	const [localSettings, setLocalSettings] = useState<GuestsSettings>(guestsSettings || defaultSettings);
 	const [localOtpEnabled, setLocalOtpEnabled] = useState(otpEnabled);
 	const [isSaving, setIsSaving] = useState(false);
-	const { isScrolled } = useScrollShadow();
 	const [rowSelection, setRowSelection] = useState({});
 	const isEqual = useCheck(guestsSettings, localSettings) && otpEnabled === localOtpEnabled;
 	const [saveError, setSaveError] = useState<string | null>(null);
@@ -183,13 +180,11 @@ const GuestsComponent = () => {
 							<LoadingButtonTemplate text={`${t("save2")}...`} />
 						) : (
 							<Button disabled={isEqual || isSaving} onClick={handleSave}>
-								<Icon icon="save" />
 								{t("save")}
 							</Button>
 						)}
 					</>
 				}
-				isScrolled={isScrolled}
 				title={
 					<>
 						{getAdminPageTitle(Page.GUESTS)} <Spinner show={isRefreshing("guests")} size="small" />
@@ -198,7 +193,7 @@ const GuestsComponent = () => {
 			/>
 			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
-			<div className="px-6 space-y-6">
+			<div className="space-y-6">
 				<div>
 					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.guests.general-settings")}</h2>
 					<Field

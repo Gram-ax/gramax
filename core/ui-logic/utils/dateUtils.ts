@@ -1,8 +1,62 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
 import LanguageService from "@core-ui/ContextServices/Language";
+import type { DateRange } from "react-day-picker";
 
 export type DateType = string | number | Date;
 
+export enum DatePreset {
+	Today = "today",
+	Week = "7-days",
+	Month = "30-days",
+	AllTime = "all-time",
+}
+
 export default abstract class DateUtils {
+	static getDatePresets() {
+		return Object.values(DatePreset);
+	}
+
+	static getDatePresetRange(preset: DatePreset) {
+		const now = new Date();
+		now.setHours(0, 0, 0, 0);
+		if (preset === DatePreset.Today) {
+			const to = new Date(now);
+			to.setHours(23, 59, 59, 999);
+			return { from: now, to };
+		}
+		if (preset === DatePreset.Week) {
+			const from = new Date(now);
+			from.setDate(from.getDate() - 6);
+			const to = new Date(now);
+			to.setHours(23, 59, 59, 999);
+			return { from, to };
+		}
+		if (preset === DatePreset.Month) {
+			const from = new Date(now);
+			from.setDate(from.getDate() - 29);
+			const to = new Date(now);
+			to.setHours(23, 59, 59, 999);
+			return { from, to };
+		}
+		return { from: null, to: null };
+	}
+
+	static detectPreset(range: DateRange) {
+		if (!range?.from && !range?.to) return DatePreset.AllTime;
+		if (!range?.from || !range?.to) return;
+		const from = new Date(range.from);
+		const to = new Date(range.to);
+		from.setHours(0, 0, 0, 0);
+		to.setHours(0, 0, 0, 0);
+		const now = new Date();
+		now.setHours(0, 0, 0, 0);
+		const diffDays = Math.round((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+		const toIsToday = to.getTime() === now.getTime();
+		if (toIsToday && from.getTime() === now.getTime()) return DatePreset.Today;
+		if (toIsToday && diffDays === 6) return DatePreset.Week;
+		if (toIsToday && diffDays === 29) return DatePreset.Month;
+	}
+
 	static getDateViewModel(date: DateType): string {
 		const lang = LanguageService.currentUi();
 		const dateObj = !(date instanceof Date) ? new Date(date) : date;

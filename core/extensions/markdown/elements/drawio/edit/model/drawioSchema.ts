@@ -8,6 +8,7 @@ const drawioSchema = {
 		title: { default: null },
 		width: { default: null },
 		height: { default: null },
+		scale: { default: null },
 	},
 };
 

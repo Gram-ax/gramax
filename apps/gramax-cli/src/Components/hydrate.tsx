@@ -7,7 +7,8 @@ import { parserQuery } from "@core/Api/Query";
 import Path from "@core/FileProvider/Path/Path";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import CustomArticlePresenter from "@core/SitePresenter/CustomArticlePresenter";
-import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import getPageTitle from "@core-ui/getPageTitle";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import MarkdownParser from "@ext/markdown/core/Parser/Parser";
@@ -22,7 +23,9 @@ import useLocation from "../../../browser/src/logic/Api/useLocation";
 import { type ExtendedWindow, InitialDataKeys } from "../../src/logic/initialDataUtils/types";
 import type { InitialData } from "../logic/ArticleTypes";
 import { getCatalogNameFromInitialData } from "../logic/initialDataUtils/getCatalogName";
-
+// biome-ignore lint/style/noRestrictedImports: CSS-only import for theme variables
+import "ics-ui-kit/theme.css";
+import "../../../../core/ui-kit/index.css";
 import "../../../../core/styles/main.css";
 import "../../../../core/styles/chain-icon.css";
 
@@ -78,7 +81,7 @@ const getData = async (route: string, query: Query) => {
 		language,
 		query,
 	});
-	return commands.page.getPageData.do({ ctx, path: route });
+	return commands.page.getPageData.do({ ctx, path: route, options: { mode: "read" } });
 };
 
 const removeBasePath = (path: string) => {

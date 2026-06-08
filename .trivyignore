@@ -5,6 +5,16 @@ CVE-2025-6547 # pbkdf2: pbkdf2 silently returns static keys
 CVE-2024-24790 # golang: net/netip: Unexpected behavior from Is methods for IPv4-mapped IPv6 addresses
 CVE-2025-68121 # crypto/tls: Unexpected session resumption in crypto/tls
 
-CVE-2025-15467 # openssl: OpenSSL: Remote code execution or Denial of Service via oversized Initialization
 
 CVE-2025-14087 # glib: GLib: Buffer underflow in GVariant parser leads to heap corruption
+
+
+# openssl
+CVE-2025-15467
+CVE-2026-31789
+CVE-2026-28387
+CVE-2026-28388
+CVE-2026-28389
+CVE-2026-28390
+CVE-2026-31790
+CVE-2026-2673

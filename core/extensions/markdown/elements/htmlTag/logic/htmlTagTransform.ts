@@ -1,6 +1,7 @@
+import type { PreTransformerFunc } from "@ext/markdown/core/Parser/Transformer/preTransformTokens";
 import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
 
-const htmlTagTransform = (tokens: Token[]) => {
+const htmlTagTransform: PreTransformerFunc = ({ tokens }) => {
 	const result = [];
 
 	for (let i = 0; i < tokens.length; i++) {
@@ -37,7 +38,7 @@ const htmlTagTransform = (tokens: Token[]) => {
 					flushChunkAsParagraph(true);
 					result.push(child);
 
-					if (child.children && child.children.length) {
+					if (child.children?.length) {
 						result.push({
 							...token,
 							type: "inline",
@@ -48,12 +49,12 @@ const htmlTagTransform = (tokens: Token[]) => {
 				} else if (tagType === "blockWithInlineHtmlTag") {
 					flushChunkAsParagraph(!deps);
 
-					if (child.type == "tag_open") deps++;
-					if (child.type == "tag_close") deps--;
+					if (child.type === "tag_open") deps++;
+					if (child.type === "tag_close") deps--;
 
 					result.push(child);
 
-					if (child.children && child.children.length) {
+					if (child.children?.length) {
 						result.push({
 							...token,
 							type: "inline",

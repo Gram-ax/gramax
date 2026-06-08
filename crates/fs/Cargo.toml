@@ -8,11 +8,15 @@ authors = { workspace = true }
 name = "gramaxfs"
 crate-type = ["staticlib", "rlib"]
 
+[features]
+default = []
+
 [dependencies]
 copy_dir = "0.1.3"
 thiserror = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
+gramax-git = { path = "../git" }
 
 zune-image = { version = "0.5.0", default-features = false, features = [
   "png",

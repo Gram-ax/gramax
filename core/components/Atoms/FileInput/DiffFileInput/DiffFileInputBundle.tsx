@@ -1,12 +1,11 @@
 import type DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInputProps";
+import getMonacoWorker from "@components/Atoms/FileInput/getMonacoWorker";
 import { DiffEditor, loader } from "@monaco-editor/react";
 import * as monaco from "monaco-editor";
 import "monaco-editor/esm/vs/basic-languages/markdown/markdown";
 
 self.MonacoEnvironment = {
-	getWorker() {
-		return null;
-	},
+	getWorker: getMonacoWorker,
 };
 
 loader.config({ monaco });

@@ -2,20 +2,17 @@ import { useBaseLucideIconList } from "@components/Atoms/Icon/lucideIconList";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
 import { useLazySearchList } from "@core-ui/hooks/useLazySearchList";
-import useMediaQuery from "@core-ui/hooks/useMediaQuery";
-import { cn } from "@core-ui/utils/cn";
-import { cssMedia } from "@core-ui/utils/cssUtils";
 import t from "@ext/localization/locale/translate";
 import type { IconEditorProps } from "@ext/markdown/elements/icon/edit/model/types";
 import CustomIcon from "@ext/markdown/elements/icon/render/components/Icon";
 import type { Editor } from "@tiptap/core";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@ui-kit/Command";
-import { DropdownMenuSub, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
+import { DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "@ui-kit/Dropdown";
 import { Icon } from "@ui-kit/Icon";
 import { Loader } from "@ui-kit/Loader";
 import { LoadMoreTrigger } from "@ui-kit/LoadMoreTrigger";
-import { ToolbarDropdownMenuSubContent } from "@ui-kit/Toolbar";
-import { memo, useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 
 interface IconMenuButtonProps {
 	editor: Editor;
@@ -30,12 +27,10 @@ type IconOption = {
 
 const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 	const [customIconsList, setCustomIconsList] = useState<IconEditorProps[]>([]);
-	const [listHeight, setListHeight] = useState<string | null>(null);
 	const listRef = useRef<HTMLDivElement>(null);
 
 	const { disabled } = ButtonStateService.useCurrentAction({ action: "icon" });
 	const lucideIconList = useBaseLucideIconList();
-	const isMobile = useMediaQuery(cssMedia.JSnarrow);
 
 	const { call: getIcons, status } = useApi<IconEditorProps[], IconEditorProps[]>({
 		url: (api) => api.getCustomIconsList(),
@@ -89,10 +84,9 @@ const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 	const onOpenChange = useCallback(
 		(open: boolean) => {
 			handleOpenChange(open);
-			if (!open) setListHeight(null);
 			if (open && status !== RequestStatus.Loading) getIcons();
 		},
-		[getIcons, status, editor, handleOpenChange],
+		[getIcons, status, handleOpenChange],
 	);
 
 	const customList = useMemo(() => {
@@ -103,13 +97,6 @@ const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 		return visibleOptions.filter((option) => option.type === "lucide");
 	}, [visibleOptions]);
 
-	useLayoutEffect(() => {
-		if (status === RequestStatus.Ready && listRef.current) {
-			const height = listRef.current.offsetHeight;
-			setListHeight(`${height}px`);
-		}
-	}, [status]);
-
 	return (
 		<DropdownMenuSub onOpenChange={onOpenChange}>
 			<DropdownMenuSubTrigger disabled={disabled}>
@@ -118,19 +105,7 @@ const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 					{t("icon")}
 				</div>
 			</DropdownMenuSubTrigger>
-			<ToolbarDropdownMenuSubContent
-				alignOffset={!isMobile ? -18 : 0}
-				className={cn(!isMobile && "px-3 py-3 pl-2")}
-				contentClassName="p-0 lg:shadow-hard-base"
-				ref={listRef}
-				sideOffset={!isMobile ? 2 : 6}
-				style={{
-					maxWidth: "calc(min(11rem, var(--radix-dropdown-menu-content-available-width, 100%)))",
-					height: listHeight,
-					maxHeight: listHeight,
-					overflowY: "auto",
-				}}
-			>
+			<DropdownMenuSubContent className="shadow-hard-base max-w-56" ref={listRef} sideOffset={8}>
 				<Command shouldFilter={false}>
 					<CommandInput onValueChange={handleSearchChange} placeholder={t("icon-cone")} />
 					<CommandList>
@@ -142,7 +117,7 @@ const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 										<CommandItem key={icon.value} onSelect={() => insertCustomIcon(icon.value)}>
 											<div className="flex flex-row items-center gap-2 overflow-hidden">
 												<CustomIcon code={icon.value} svg={icon.svg} />
-												<div className="truncate whitespace-nowrap">{icon.label}</div>
+												<TextOverflowTooltip>{icon.label}</TextOverflowTooltip>
 											</div>
 										</CommandItem>
 									))
@@ -162,7 +137,7 @@ const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 									<CommandItem key={icon.value} onSelect={() => insertLucideIcon(icon.value)}>
 										<div className="flex flex-row items-center gap-2 overflow-hidden">
 											<Icon icon={icon.value} />
-											<span className="truncate whitespace-nowrap">{icon.label}</span>
+											<TextOverflowTooltip>{icon.label}</TextOverflowTooltip>
 										</div>
 									</CommandItem>
 								))}
@@ -171,7 +146,7 @@ const IconMenuButton = ({ editor }: IconMenuButtonProps) => {
 						<LoadMoreTrigger hasMore={hasMoreItems} onLoad={handleLoadMore} />
 					</CommandList>
 				</Command>
-			</ToolbarDropdownMenuSubContent>
+			</DropdownMenuSubContent>
 		</DropdownMenuSub>
 	);
 };

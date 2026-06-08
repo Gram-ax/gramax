@@ -1,14 +1,15 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { TriggerAddButtonTemplate } from "@ext/enterprise/components/admin/settings/components/TriggerAddButtonTemplate";
 import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
-import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
 import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import { getCoreRowModel, getFilteredRowModel, useReactTable, useTableSelection } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
-import { TriggerAddButtonTemplate } from "../../components/TriggerAddButtonTemplate";
 import { resourcesTableColumns } from "../config/ResourcesTableConfig";
 import type { ResourceItem, ResourcesSettings } from "../types/ResourcesComponent";
 
@@ -17,17 +18,20 @@ interface ResourcesTableProps {
 	disabled: boolean;
 	onRowClick: (repoId: string | null) => void;
 	onDeleteSelected: (selectedIds: string[]) => Promise<void>;
-	onAdd: () => void;
+	addButton: {
+		visible: boolean;
+		onClick: () => void;
+	};
 }
 
-export function ResourcesTable({ items, disabled, onRowClick, onDeleteSelected, onAdd }: ResourcesTableProps) {
+export function ResourcesTable({ items, disabled, onRowClick, onDeleteSelected, addButton }: ResourcesTableProps) {
 	const { settings } = useSettings();
 
 	const [rowSelection, setRowSelection] = useState({});
 	const [loading, setLoading] = useState(false);
 
 	const selectedWorkspaceRepos = useMemo(() => {
-		return settings?.workspace?.source.repos ?? [];
+		return settings?.workspace?.git.source.repos ?? [];
 	}, [settings]);
 
 	const tableData = useMemo(
@@ -62,7 +66,7 @@ export function ResourcesTable({ items, disabled, onRowClick, onDeleteSelected, 
 		await onDeleteSelected(idsToDelete);
 		setLoading(false);
 		setRowSelection({});
-	}, [onDeleteSelected]);
+	}, [onDeleteSelected, getSelectedItems]);
 
 	const handleFilterChange = useCallback(
 		(value: string | null) => {
@@ -73,9 +77,17 @@ export function ResourcesTable({ items, disabled, onRowClick, onDeleteSelected, 
 
 	return (
 		<div>
-			<TableInfoBlock description={tableData.length} title={getAdminPageTitle(Page.RESOURCES)} />
+			<StickyHeader
+				title={
+					<>
+						{getAdminPageTitle(Page.RESOURCES)}
+						<span className="text-2xl font-normal">{tableData.length}</span>
+					</>
+				}
+			/>
 
 			<TableToolbar
+				className="pt-0"
 				input={
 					<TableToolbarTextInput
 						onChange={handleFilterChange}
@@ -90,7 +102,9 @@ export function ResourcesTable({ items, disabled, onRowClick, onDeleteSelected, 
 					onConfirm={handleDeleteSelected}
 					selectedCount={selectedCount}
 				/>
-				<TriggerAddButtonTemplate disabled={disabled} key="add-repo" onClick={onAdd} />
+				{addButton.visible && (
+					<TriggerAddButtonTemplate disabled={disabled} key="add-repo" onClick={addButton.onClick} />
+				)}
 			</TableToolbar>
 
 			<TableComponent<ResourceItem>

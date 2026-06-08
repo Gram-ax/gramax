@@ -37,7 +37,6 @@ export function UnifiedMetricsTable<TRow, TSortBy extends string = string, TCurs
 		hasMore: initialData?.hasMore ?? true,
 		loading: false,
 	}));
-
 	const cursorRef = useRef<TCursor | null>(initialData?.cursor ?? null);
 
 	const dataLoaderRef = useRef(dataLoader);

@@ -1,4 +1,3 @@
-import type EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 // import type EnterpriseUser from "@ext/enterprise/EnterpriseUser";
 import type ApiRequest from "../../../logic/Api/ApiRequest";
 import type ApiResponse from "../../../logic/Api/ApiResponse";
@@ -11,8 +10,6 @@ type Query = {
 
 export default abstract class AuthManager {
 	protected readonly _COOKIE_USER = "user";
-
-	constructor(protected _em: EnterpriseManager) {}
 
 	abstract getUser(cookie: Cookie, query: Query, headers?: ApiRequest["headers"]): Promise<User>;
 	abstract assert(
@@ -28,9 +25,5 @@ export default abstract class AuthManager {
 
 	setUser(cookie: Cookie, user: User, expires?: number): void {
 		cookie.set(this._COOKIE_USER, JSON.stringify(user.toJSON()), expires);
-	}
-
-	isEnterprise(): boolean {
-		return !!this._em.getConfig().gesUrl;
 	}
 }

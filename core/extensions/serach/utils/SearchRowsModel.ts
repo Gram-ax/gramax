@@ -62,12 +62,19 @@ export interface SearchItemFileBlockRow extends SearchItemBlockRowBase {
 
 export type SearchItemBlockRow = SearchItemHeaderBlockRow | SearchItemFileBlockRow;
 
+export interface SearchItemDiagramRow extends SearchItemRowBase {
+	type: "diagram";
+	diagramType: string;
+	title: SearchResultMarkItem[];
+	children: SearchItemRow[];
+}
+
 export interface SearchItemLinkRow extends SearchItemRowBase {
 	type: "link";
 	marks: SearchResultMarkItem[];
 }
 
-export type SearchItemRow = SearchItemLinkRow | SearchItemBlockRow;
+export type SearchItemRow = SearchItemLinkRow | SearchItemBlockRow | SearchItemDiagramRow;
 
 type BlockItemBase = Omit<SearchResultBlockItem, "type" | "embeddedLinkTitle" | "items">;
 
@@ -83,10 +90,10 @@ export interface FileBlockItem extends BlockItemBase {
 export type BlockItem = HeaderBlockItem | FileBlockItem;
 
 export class SearchItemRowIdGenerator {
-	private id = 0;
+	private _id = 0;
 
 	generateId(): SearchItemRowId {
-		return (this.id++).toString();
+		return (this._id++).toString();
 	}
 }
 
@@ -251,6 +258,37 @@ function getSearchRows(
 					breadcrumbs,
 					children: handleItemsRecursively(curRawItem.items, overrideFragmentInfoForChildren),
 					openSideEffect,
+				});
+			} else if (item.type === "diagram") {
+				const firstChildFragmentInfo =
+					item.items.length > 0 && item.items[0].type === "paragraph"
+						? articleFragmentCounter.initFragmentInfo(item.items[0].searchText)
+						: item.title.length > 0
+							? articleFragmentCounter.initFragmentInfo(item.title.map((x) => x.text).join(""))
+							: undefined;
+				const fragmentInfo = overrideFragmentInfo ?? firstChildFragmentInfo;
+				const children = handleItemsRecursively(item.items, fragmentInfo);
+				const href = createLinkRefUrl(baseUrl, fragmentInfo);
+				const id = idGenerator.generateId();
+				const openSideEffect: LinkOpenSideEffectOptions = {
+					params: {
+						pathname: baseUrl,
+						fragmentInfo,
+					},
+				};
+
+				if (!overrideFragmentInfo) {
+					rowIdLinkMap.set(id, { url: href, openSideEffect });
+				}
+
+				res.push({
+					type: "diagram",
+					id: idGenerator.generateId(),
+					url: href,
+					diagramType: item.diagramType,
+					title: item.title,
+					children,
+					openSideEffect: children.length > 0 ? children[0].openSideEffect : openSideEffect,
 				});
 			}
 		});

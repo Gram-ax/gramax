@@ -24,6 +24,7 @@ export interface SearchArgs {
 	articlesLanguage?: ArticleLanguage;
 	signal?: AbortSignal;
 	articleRefPaths?: Set<string>;
+	catalogNames?: Set<string>;
 }
 
 export type SearcherProgressGenerator = AsyncGenerator<ProgressItem, void, void>;
@@ -51,7 +52,7 @@ export interface SearchArticleResult {
 		url: string;
 	};
 	url: string;
-	breadcrumbs: { title: string; url: string }[];
+	breadcrumbs: { title: SearchResultMarkItem[]; url: string }[];
 	properties: PropertyValue[];
 	title: SearchResultMarkItem[];
 	items: SearchResultItem[];
@@ -64,12 +65,19 @@ export interface SearchCatalogResult {
 	title: SearchResultMarkItem[];
 }
 
-export type SearchResultItem = SearchResultBlockItem | SearchResultParagraphItem;
+export type SearchResultItem = SearchResultBlockItem | SearchResultDiagramItem | SearchResultParagraphItem;
 
 export interface SearchResultBlockItem {
 	type: "block";
 	title: SearchResultMarkItem[];
 	embeddedLinkTitle?: SearchResultMarkItem[];
+	items: SearchResultItem[];
+}
+
+export interface SearchResultDiagramItem {
+	type: "diagram";
+	diagramType: string;
+	title: SearchResultMarkItem[];
 	items: SearchResultItem[];
 }
 

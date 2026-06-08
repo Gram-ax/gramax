@@ -1,37 +1,26 @@
-// In tauri we replace fs-extra with TauriFs(tauri/vite.config.ts); in wasm with wasmfs
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import { EventEmitter } from "@core/Event/EventEmitter";
-import type * as DFPIntermediateCommands from "@core/FileProvider/DiskFileProvider/DFPIntermediateCommands";
+import { moveToTrash, RustFs } from "@core/FileProvider/DiskFileProvider/DFPIntermediateCommands";
 import type CompressOptions from "@core/FileProvider/model/CompressOptions";
 import type FileInfo from "@core/FileProvider/model/FileInfo";
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type { FileProviderEvents } from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
-import { trace } from "@ext/loggers/opentelemetry";
+import { trace, traced } from "@ext/loggers/opentelemetry";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
-import type Watcher from "@ext/Watchers/model/Watcher";
 import assert from "assert";
-import * as fs from "fs-extra";
 
 const isDesktop = getExecutingEnvironment() === "tauri";
-
-export type DiskFileProviderOptions = {
-	watcher?: Watcher;
-};
 
 export default class DiskFileProvider implements FileProvider {
 	protected static _events: EventEmitter<FileProviderEvents> = new EventEmitter();
 	protected _rootPath: Path;
 	protected _mountPath: Path;
-	private _watcher: Watcher;
 
-	constructor(rootPath: Path | string, options: DiskFileProviderOptions = {}) {
+	constructor(rootPath: Path | string) {
 		if (typeof rootPath === "string") this._rootPath = new Path(rootPath);
 		else this._rootPath = rootPath;
-
-		this._watcher = options.watcher;
-		this._watcher?.init(this);
 	}
 
 	static get events(): EventEmitter<FileProviderEvents> {
@@ -63,29 +52,14 @@ export default class DiskFileProvider implements FileProvider {
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {
-		// In nodejs, custom fs implementation is not used; This if is essentially an optimization of command call count
-		if (getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri") {
-			const stats = await (fs as unknown as typeof DFPIntermediateCommands).readDirStats(this.toAbsolute(path));
+		try {
+			const stats = await this._backend().readDirStats(this._rel(path));
 			return stats.map((stat) =>
 				Object.assign(stat, {
 					type: stat.isFile() ? "file" : "dir",
 					path: path.join(new Path(stat.name)),
 				} as FileInfo),
 			);
-		}
-
-		try {
-			const files = await fs.readdir(this.toAbsolute(path));
-			return (
-				await Promise.all(
-					files.map(async (name): Promise<FileInfo> => {
-						const itemPath = path.join(new Path(name));
-						try {
-							return await this.getStat(itemPath, true);
-						} catch {}
-					}),
-				)
-			).filter((u) => u);
 		} catch {
 			return [];
 		}
@@ -93,17 +67,17 @@ export default class DiskFileProvider implements FileProvider {
 
 	async isFolder(path: Path): Promise<boolean> {
 		if (!(await this.exists(path))) return false;
-		return await fs.lstat(this.toAbsolute(path)).then((stat) => {
-			return stat.isDirectory();
-		});
+		const stat = await this._backend().lstat(this._rel(path));
+		return stat.isDirectory();
 	}
 
 	exists(uri: Path) {
-		return fs.exists(this.toAbsolute(uri));
+		return this._backend().exists(this._rel(uri));
 	}
 
+	@trace()
 	async getStat(path: Path, lstat = false): Promise<FileInfo> {
-		const stats = lstat ? await fs.lstat(this.toAbsolute(path)) : await fs.stat(this.toAbsolute(path));
+		const stats = await this._backend().stat(this._rel(path), !lstat);
 		if (!stats) return null;
 		return Object.assign(stats, {
 			type: stats.isFile() ? "file" : "dir",
@@ -116,8 +90,7 @@ export default class DiskFileProvider implements FileProvider {
 	async delete(path: Path, preferTrash?: boolean) {
 		if (preferTrash && isDesktop) {
 			try {
-				// biome-ignore lint/suspicious/noExplicitAny: idc
-				return await (fs as any).moveToTrash(this.toAbsolute(path));
+				return await moveToTrash(this.toAbsolute(path));
 			} catch {}
 		}
 
@@ -126,23 +99,26 @@ export default class DiskFileProvider implements FileProvider {
 		await DiskFileProvider.events.emit("delete", { path });
 	}
 
-	@trace()
 	async write(path: Path, data: string | Buffer, compress?: CompressOptions) {
-		this._watcher?.stop();
-		try {
-			const absolutePath = this.toAbsolute(path);
-			if (!(await this.exists(path.parentDirectoryPath))) {
-				await fs.mkdir(this.toAbsolute(path.parentDirectoryPath), { recursive: true });
-			}
-			await (fs as unknown as typeof DFPIntermediateCommands).writeFile(absolutePath, data, compress);
-			await DiskFileProvider.events.emit("write", { path, data });
-		} finally {
-			this._watcher?.start();
-		}
+		await traced(
+			"DiskFileProvider.write",
+			{ args: [path, typeof data === "string" ? data : "<Buffer>", compress] },
+			async () => {
+				if (!(await this.exists(path.parentDirectoryPath))) {
+					await this._backend().makeDir(this._rel(path.parentDirectoryPath), true);
+				}
+				await this._backend().writeFile(this._rel(path), data, compress);
+				await DiskFileProvider.events.emit("write", { path, data });
+			},
+		);
 	}
 
 	async move(from: Path, to: Path, outside?: DiskFileProvider) {
-		await fs.move(this.toAbsolute(from), outside ? outside.toAbsolute(to) : this.toAbsolute(to));
+		if (outside) {
+			await RustFs.disk("").mv(this.toAbsolute(from), outside.toAbsolute(to));
+		} else {
+			await this._backend().mv(this._rel(from), this._rel(to));
+		}
 		await DiskFileProvider.events.emit("move", { from, to });
 	}
 
@@ -152,64 +128,52 @@ export default class DiskFileProvider implements FileProvider {
 		await DiskFileProvider.events.emit("copy", { from, to });
 	}
 
-	async mkdir(path: Path, mode?: number) {
-		this._watcher?.stop();
-		try {
-			const absolutPath = this.toAbsolute(path);
-			if (!(await this.exists(path))) await fs.mkdir(absolutPath, { recursive: true, mode });
-		} finally {
-			this._watcher?.start();
-		}
+	async mkdir(path: Path, _mode?: number) {
+		if (!(await this.exists(path))) await this._backend().makeDir(this._rel(path), true);
 	}
 
 	async read(path: Path): Promise<string> {
-		return (await fs.readFile(this.toAbsolute(path))).toString();
+		return (await this._backend().readFile(this._rel(path))).toString();
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
 		try {
-			return await fs.readFile(this.toAbsolute(path));
-		} catch (e) {
-			if (e.name === "ENOENT" || e.code === "ENOENT") return;
+			return await this._backend().readFile(this._rel(path));
+		} catch (e: unknown) {
+			const err = e as { name?: string; code?: string };
+			if (
+				err?.name === "ENOENT" ||
+				err?.code === "ENOENT" ||
+				err?.name === "NotFound" ||
+				err?.code === "NotFound"
+			)
+				return;
 			throw e;
 		}
 	}
 
 	async readdir(path: Path): Promise<string[]> {
-		return fs.readdir(this.toAbsolute(path));
+		return this._backend().readDir(this._rel(path));
 	}
 
 	async readlink(path: Path): Promise<string> {
-		return fs.readlink(this.toAbsolute(path));
+		return this._backend().readLink(this._rel(path));
 	}
 
-	async symlink(target: Path, path: Path): Promise<void> {
-		await fs.symlink(this.toAbsolute(target), this.toAbsolute(path));
+	async hardlink(target: Path, path: Path): Promise<void> {
+		await this._backend().makeSymlink(this._rel(target), this._rel(path));
 	}
 
-	async deleteEmptyFolders(folderPath: Path) {
-		const items = await this.getItems(folderPath);
-		await Promise.all(
-			items.map(async (item) => {
-				if (item.isDirectory()) {
-					if (await this._isEmptyFolder(item.path)) await this.delete(item.path);
-					else await this.deleteEmptyFolders(item.path);
-				}
-			}),
-		);
+	@trace()
+	async deleteEmptyDirs(folderPath: Path) {
+		await this._backend().deleteEmptyDirs(this._rel(folderPath));
 	}
 
-	watch(callback: (changeItems: ItemRefStatus[]) => void) {
-		this._watcher?.watch(callback);
-	}
+	watch(_: (changeItems: ItemRefStatus[]) => void) {}
 
-	stopWatch() {
-		this._watcher?.stop();
-	}
+	stopWatch() {}
 
-	startWatch() {
-		this._watcher?.start();
-	}
+	startWatch() {}
 
 	async createRootPathIfNeed() {
 		if (await this.exists(Path.empty)) return;
@@ -220,9 +184,16 @@ export default class DiskFileProvider implements FileProvider {
 		try {
 			await this.readdir(Path.empty);
 			return true;
-		} catch (e) {
-			if (e.name === "ENOENT" || e.code === "ENOENT") return false;
-			throw new Error(`Root path ${this._rootPath.value} not exist`, e);
+		} catch (e: unknown) {
+			const err = e as { name?: string; code?: string };
+			if (
+				err?.name === "ENOENT" ||
+				err?.code === "ENOENT" ||
+				err?.name === "NotFound" ||
+				err?.code === "NotFound"
+			)
+				return false;
+			throw new Error(`Root path ${this._rootPath.value} not exist`, { cause: e });
 		}
 	}
 
@@ -230,9 +201,6 @@ export default class DiskFileProvider implements FileProvider {
 		let targetPath = path;
 		assert(this._mountPath || this._rootPath, "Mount path or root path are not set");
 
-		// If the root path is not empty and mount path is specified, we need to remove first component of path
-		// This is needed in cases when we using a virtual path, like 'catalog:tag'
-		// If we don't remove first component, we will get '/mnt/dir/catalog:tag/catalog/...'
 		if (this._mountPath && this._rootPath.value !== Path.empty.value) {
 			const index = path.value.indexOf("/");
 			targetPath = index > 0 ? new Path(path.value.slice(index + 1)) : Path.empty;
@@ -246,48 +214,37 @@ export default class DiskFileProvider implements FileProvider {
 		return this._rootPath ? this._rootPath.join(targetPath).value : targetPath.value;
 	}
 
+	private _backend(): RustFs {
+		return RustFs.disk(this.toAbsolute(Path.empty));
+	}
+
+	private _rel(path: Path): string {
+		if (this._mountPath && this._rootPath.value !== Path.empty.value) {
+			const index = path.value.indexOf("/");
+			return index > 0 ? path.value.slice(index + 1) : "";
+		}
+		const v = path.value;
+		if (this._rootPath.value === Path.empty.value) return v;
+		return v.startsWith("/") ? v.slice(1) : v;
+	}
+
 	private async _deleteFile(path: Path) {
 		if (!(await this.exists(path))) return;
-		this._watcher?.stop();
-		try {
-			await fs.unlink(this.toAbsolute(path));
-		} finally {
-			this._watcher?.start();
-		}
+		await this._backend().rmfile(this._rel(path));
 	}
 
 	private async _deleteFolder(uri: Path) {
-		const path = this.toAbsolute(uri);
-		if (!(await fs.exists(path))) return;
-		this._watcher?.stop();
-		try {
-			await fs.rm(path, { recursive: true, force: true });
-		} finally {
-			this._watcher?.start();
-		}
+		if (!(await this.exists(uri))) return;
+		await this._backend().removeDir(this._rel(uri), true);
 	}
 
 	private async _copyFolder(oldPath: Path, newPath: Path) {
-		this._watcher?.stop();
-		try {
-			await fs.copy(this.toAbsolute(oldPath), this.toAbsolute(newPath));
-		} finally {
-			this._watcher?.start();
-		}
+		await this._backend().copy(this._rel(oldPath), this._rel(newPath));
 	}
 
 	private async _copyFile(oldFilePath: Path, newFilePath: Path) {
-		this._watcher?.stop();
-		try {
-			const content = await this.readAsBinary(oldFilePath);
-			if (!(await this.exists(oldFilePath))) return;
-			await this.write(newFilePath, content);
-		} finally {
-			this._watcher?.start();
-		}
-	}
-
-	private async _isEmptyFolder(path: Path) {
-		if (await this.exists(path)) return (await this.readdir(path)).length === 0;
+		const content = await this.readAsBinary(oldFilePath);
+		if (!(await this.exists(oldFilePath))) return;
+		await this.write(newFilePath, content);
 	}
 }

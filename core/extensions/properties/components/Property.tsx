@@ -1,9 +1,9 @@
-import Icon from "@components/Atoms/Icon";
-import Tooltip from "@components/Atoms/Tooltip";
+import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
 import getDisplayValue from "@ext/properties/logic/getDisplayValue";
 import type { PropertyTypes } from "@ext/properties/models";
-import { IconButton } from "@ui-kit/Button";
+import { Tag } from "@ui-kit/Tag";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import type { CSSProperties } from "react";
 
 interface PropertyProps {
@@ -14,54 +14,82 @@ interface PropertyProps {
 	icon?: string;
 	style?: CSSProperties;
 	shouldShowValue?: boolean | ((value: string[] | string) => boolean);
+	size?: "sm" | "md" | "lg";
 	onClear?: () => void;
+	displayName?: boolean;
 	className?: string;
 }
 
-const Property = ({ type, name, value, className, style, icon, shouldShowValue = true, onClear }: PropertyProps) => {
+const Property = (props: PropertyProps) => {
+	const {
+		type,
+		name,
+		value,
+		className,
+		style,
+		icon,
+		shouldShowValue = true,
+		onClear,
+		size = "sm",
+		displayName,
+	} = props;
+
+	const displayValue = displayName ? `${name}: ${getDisplayValue(type, value)}` : getDisplayValue(type, value);
+	const tag = (
+		<div className="block min-w-0 max-w-full">
+			<Tag
+				buttonClassName="min-w-0 max-w-full w-full justify-start overflow-hidden"
+				className={cn(className, "transition-all min-w-0 max-w-full w-full")}
+				data-testid="property-tag"
+				onClose={onClear}
+				size={size}
+				startIcon={icon}
+				style={style}
+				type="button"
+			>
+				<span className="min-w-0 flex-1 truncate text-left">{shouldShowValue ? displayValue : name}</span>
+			</Tag>
+		</div>
+	);
+
+	if (displayName) return tag;
+
 	return (
-		<Tooltip content={name}>
-			<div className={className} data-qa="qa-property" style={style}>
-				{icon && <Icon className="prop-icon" code={icon} />}
-				{shouldShowValue ? getDisplayValue(type, value) : name}
-				{onClear ? (
-					<IconButton className="prop-x-mark" icon="x" onClick={() => onClear()} size="xs" variant="text" />
-				) : null}
-			</div>
+		<Tooltip>
+			<TooltipTrigger asChild>{tag}</TooltipTrigger>
+			<TooltipContent>{name}</TooltipContent>
 		</Tooltip>
 	);
 };
 
 export default styled(Property)`
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	border-radius: 9999px;
-	user-select: none;
-	cursor: pointer;
-	font-size: 1em;
-	line-height: normal;
-	padding: 0.4em 0.65em;
-	white-space: nowrap;
-	border: ${(p) =>
-		p.value
-			? `1px solid var(--color-property-border-${p.propertyStyle})`
-			: "1px solid var(--color-property-bg-border)"};
-	background: ${(p) => (!p.propertyStyle ? "var(--color-code-bg)" : `var(--color-property-bg-${p.propertyStyle})`)};
-	color: ${(p) => p.propertyStyle && `var(--color-property-text-${p.propertyStyle})`};
+	button {
+		border: ${(p) =>
+			p.propertyStyle
+				? `1px solid var(--color-property-border-${p.propertyStyle})`
+				: "1px solid var(--color-property-bg-border)"};
+		background-color: ${(p) => (p.propertyStyle ? `var(--color-property-bg-${p.propertyStyle})` : `var(--color-property-bg-border)`)};
+		color: ${(p) => p.propertyStyle && `var(--color-property-text-${p.propertyStyle})`};
+	}
 
-	:hover {
+	${(p) =>
+		p.onClear &&
+		`
+		> button:first-of-type {
+			border-right-width: 0px;
+		}
+
+		> button:last-of-type {
+			border-left-width: 0px;
+		}
+	`}
+
+	> div:first-of-type {
+		border-color: ${(p) => (p.propertyStyle ? `var(--color-property-border-${p.propertyStyle})` : "var(--color-property-bg-border)")};
+	}
+
+	button:hover {
 		filter: brightness(var(--filter-property));
-	}
-
-	.prop-icon {
-		display: flex;
-		font-size: 1.2em;
-		margin-right: 0.25em;
-	}
-
-	.prop-x-mark {
-		padding: 0;
-		height: auto;
+		background-color: ${(p) => (!p.propertyStyle ? "var(--color-code-bg)" : `var(--color-property-bg-${p.propertyStyle})`)};
 	}
 `;

@@ -24,6 +24,7 @@ interface MetricsTableProps {
 	sortBy: SortByColumn;
 	sortOrder: SortOrder;
 	onSortChange: (sortBy: SortByColumn, sortOrder: SortOrder) => void;
+	catalogFilter?: string[];
 }
 
 const MetricsTable = ({
@@ -33,6 +34,7 @@ const MetricsTable = ({
 	sortBy,
 	sortOrder,
 	onSortChange,
+	catalogFilter,
 }: MetricsTableProps) => {
 	const { settings } = useSettings();
 	const metricsSettings = settings?.metrics;
@@ -135,6 +137,7 @@ const MetricsTable = ({
 			if (newSelectedIds.size === 0) {
 				onFilteredChartDataChange(null);
 			} else {
+				// biome-ignore lint/nursery/noFloatingPromises: TODO: fix
 				loadFilteredChartData(Array.from(newSelectedIds)).then((data) => {
 					onFilteredChartDataChange(data);
 				});
@@ -142,6 +145,7 @@ const MetricsTable = ({
 		}
 	}, [getSelectedItems, selectedArticleIds, loadFilteredChartData, onFilteredChartDataChange]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: fixed function
 	const loadOptions = useCallback(async (): Promise<RequestData<MetricsTableRow>> => {
 		const response = await getMetricsTableData(cursorRef.current ?? undefined, sortBy, sortOrder);
 		if (!response) {
@@ -159,21 +163,19 @@ const MetricsTable = ({
 			has_more: response.hasMore,
 			next_cursor: response.nextCursor ? { id: String(response.nextCursor), created_at: "" } : null,
 		};
-	}, [getMetricsTableData, sortBy, sortOrder]);
+	}, [sortBy, sortOrder]);
 
 	return (
-		<div className="flex flex-col h-full">
-			<LazyInfinityTable<MetricsTableRow>
-				columns={columns}
-				deps={[sortBy, sortOrder]}
-				hasMore={hasMore}
-				loadOptions={loadOptions}
-				responsive={false}
-				selectedRowIds={Array.from(selectedArticleIds)}
-				setData={deferredSetAllRows}
-				table={table}
-			/>
-		</div>
+		<LazyInfinityTable<MetricsTableRow>
+			columns={columns}
+			deps={[sortBy, sortOrder, catalogFilter?.join(",") ?? ""]}
+			hasMore={hasMore}
+			loadOptions={loadOptions}
+			responsive={false}
+			selectedRowIds={Array.from(selectedArticleIds)}
+			setData={deferredSetAllRows}
+			table={table}
+		/>
 	);
 };
 

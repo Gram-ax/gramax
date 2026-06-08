@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import resolveModule from "@app/resolveModule/frontend";
 import buildCqlQuery from "@ext/confluence/core/api/buildCqlQuery";
 import type ConfluenceAPI from "@ext/confluence/core/api/model/ConfluenceAPI";
@@ -13,6 +14,11 @@ import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData"
 
 export default class ConfluenceServerAPI implements ConfluenceAPI {
 	constructor(protected _data: ConfluenceServerSourceData) {}
+
+	async healthcheck(): Promise<boolean> {
+		const res = await this.getUser();
+		return !!res;
+	}
 
 	async getPageData(title: string): Promise<{ id: string; link: string }> {
 		const res = await this._api(`/rest/api/content?title=${title}`);
@@ -131,7 +137,7 @@ export default class ConfluenceServerAPI implements ConfluenceAPI {
 	async downloadAttachment(downloadLink: string): Promise<Blob> {
 		const res = await this._api(downloadLink);
 		if (res.body instanceof Uint8Array) {
-			return new Blob([res.body], { type: "application/octet-stream" });
+			return new Blob([res.body as unknown as ArrayBuffer], { type: "application/octet-stream" });
 		}
 		throw new Error(`${t("confluence.error.http-2")} ${res.status}`);
 	}

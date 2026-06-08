@@ -82,7 +82,11 @@ const CloneFields = (props: CloneFieldsProps) => {
 				const { option, type } = data;
 
 				if (type === "trigger") {
-					return <TextOverflowTooltip data-qa="qa-clickable self-center">{option.label}</TextOverflowTooltip>;
+					return (
+						<TextOverflowTooltip className="self-center" data-qa="qa-clickable">
+							{option.label}
+						</TextOverflowTooltip>
+					);
 				}
 
 				return (

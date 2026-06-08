@@ -1,3 +1,4 @@
+import type { OpenApiNavigation } from "@ext/markdown/elements/openApi/edit/logic/buildNavigationFromSpec";
 import type { JSONContent } from "@tiptap/core";
 import type { Node } from "prosemirror-model";
 import type { RenderableTreeNode } from "../../../markdown/core/render/logic/Markdoc";
@@ -14,6 +15,7 @@ export interface LevelTocItem {
 	title: string;
 	level: number;
 	items: TocItem[];
+	isOpenApi?: boolean;
 }
 
 export const collapseTocItems = (tocItems: TocItem[]) => {
@@ -33,6 +35,12 @@ const getTocItems = (tocItems: LevelTocItem[]): TocItem[] => {
 	const stack: LevelTocItem[] = [];
 	const result: LevelTocItem[] = [];
 	for (const item of tocItems) {
+		if (item.isOpenApi) {
+			const stackItem = stack.length ? stack[stack.length - 1].items : result;
+			stackItem.push(item);
+			continue;
+		}
+
 		const newItem = {
 			level: item.level,
 			title: item.title,
@@ -59,6 +67,26 @@ const recursiveGetText = (tag: RenderableTreeNode | JSONContent): string[] => {
 	return [""];
 };
 
+const getOpenaApiItems = (navigation: OpenApiNavigation[]) => {
+	const items: LevelTocItem[] = [];
+	navigation.forEach((tag) => {
+		const childItems = tag.child.map((item) => ({
+			url: `#${item.id}`,
+			title: item.title,
+			items: [],
+		}));
+
+		items.push({
+			level: 0,
+			url: `#${tag.id}`,
+			title: tag.title,
+			items: childItems,
+			isOpenApi: true,
+		});
+	});
+	return items;
+};
+
 export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[] | JSONContent[]): LevelTocItem[] => {
 	const items: LevelTocItem[] = [];
 
@@ -68,17 +96,18 @@ export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[] | JS
 		const name = "name" in tag ? tag.name : tag.type;
 		const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 
-		if (name === "Heading" && (attrs?.level == 4 || attrs?.level == 3 || attrs?.level == 2)) {
+		if (name === "Heading" && (attrs?.level === 4 || attrs?.level === 3 || attrs?.level === 2)) {
 			const text = recursiveGetText(tag).join("");
-			const textId = getChildTextId(text);
 
 			items.push({
 				level: +attrs.level,
-				url: "#" + (attrs.id ?? textId),
+				url: `#${attrs.id?.length ? attrs.id : getChildTextId(text)}`,
 				title: attrs.title ?? text,
 				items: [],
 			});
 		}
+
+		if (name === "OpenApi" && attrs.navigation) items.push(...getOpenaApiItems(attrs.navigation));
 
 		const children = "children" in tag ? tag.children : tag.content;
 		if (children) children.forEach((child) => recursiveTraversal(child));
@@ -90,14 +119,17 @@ export const getLevelTocItemsByRenderableTree = (tags: RenderableTreeNode[] | JS
 	return items;
 };
 
-export const getLevelTocItemsByJSONContent = (node: Node): LevelTocItem[] => {
+export const getLevelTocItemsByJSONContent = (
+	node: Node,
+	openApiTocItems: Record<string, OpenApiNavigation[]>,
+): LevelTocItem[] => {
 	const items: LevelTocItem[] = [];
 
 	const pushItem = (n: Node) => {
-		if (n?.attrs?.level == 4 || n?.attrs?.level == 3 || n?.attrs?.level == 2) {
+		if (n?.attrs?.level === 4 || n?.attrs?.level === 3 || n?.attrs?.level === 2) {
 			items.push({
 				level: +n.attrs.level,
-				url: "#" + (n.attrs.id ?? getChildTextId(n.textContent)),
+				url: `#${n.attrs.id ?? getChildTextId(n.textContent)}`,
 				title: n.textContent,
 				items: [],
 			});
@@ -105,10 +137,13 @@ export const getLevelTocItemsByJSONContent = (node: Node): LevelTocItem[] => {
 	};
 
 	const recursivePushItem = (n: Node) => {
-		if (n?.type?.name == "comment" && n?.firstChild?.type?.name == "heading") recursivePushItem(n.firstChild);
-		if (n?.type?.name == "heading") pushItem(n);
-		if (n?.type?.name == "snippet" && n.attrs.content)
-			items.push(...getLevelTocItemsByRenderableTree(n.attrs.content));
+		const name = n?.type?.name;
+		if (name === "comment" && n?.firstChild?.type?.name === "heading") recursivePushItem(n.firstChild);
+		if (name === "heading") pushItem(n);
+		if (name === "fragment" && n.attrs.content) items.push(...getLevelTocItemsByRenderableTree(n.attrs.content));
+
+		if (name === "openapi" && openApiTocItems[n.attrs.src])
+			items.push(...getOpenaApiItems(openApiTocItems[n.attrs.src]));
 
 		n?.content?.forEach((n) => {
 			recursivePushItem(n);

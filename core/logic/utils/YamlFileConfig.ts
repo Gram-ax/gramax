@@ -19,6 +19,7 @@ export default class YamlFileConfig<C extends object> {
 		const self = new YamlFileConfig<C>(fp, path);
 
 		self._config = defaultConfig;
+
 		if (await fp.exists(path)) {
 			const rawYaml = await fp.read(path);
 			self._config = mergeObjects<C>(self._config, yaml.load(rawYaml) as C);

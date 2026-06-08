@@ -1,30 +1,25 @@
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
+import type { NodeSpec } from "@tiptap/pm/model";
 
-const table = {
+const table: NodeSpec = {
 	group: `${ElementGroups.block} ${ElementGroups.listItemContent}`,
 	content: "tableRow+",
 	attrs: {
 		header: { default: TableHeaderTypes.ROW },
+		sortingOrder: { default: null },
 	},
 };
 
-const col = {
-	attrs: {
-		width: { default: null },
-	},
-};
-
-const colgroup = {
-	content: "col+",
-};
-
-const tableRow = {
+const tableRow: NodeSpec = {
 	group: "block",
 	content: "tableCell*",
+	attrs: {
+		initialOrder: { default: null },
+	},
 };
 
-const tableCell = {
+const tableCell: NodeSpec = {
 	group: "block",
 	content: "block+",
 	attrs: {
@@ -33,7 +28,9 @@ const tableCell = {
 		rowspan: { default: 1 },
 		colwidth: { default: null },
 		align: { default: null },
+		filter: { default: null },
+		sort: { default: null },
 	},
 };
 
-export { table, tableRow, tableCell, colgroup, col };
+export { table, tableCell, tableRow };

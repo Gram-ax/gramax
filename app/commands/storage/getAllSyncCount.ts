@@ -1,6 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
 import { LibGit2Error } from "@ext/git/core/GitCommands/errors/LibGit2Error";
@@ -26,7 +25,7 @@ const getAllSyncCount: Command<{ ctx: Context; shouldFetch?: boolean; resetSyncC
 
 		kind: ResponseKind.json,
 
-		middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
+		middlewares: [new SilentMiddleware(), new AuthorizeMiddleware()],
 
 		async do({ ctx, shouldFetch, resetSyncCount }) {
 			const { rp, wm } = this._app;

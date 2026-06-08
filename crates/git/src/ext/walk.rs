@@ -1,9 +1,9 @@
 use std::cell::RefCell;
+use std::collections::HashSet;
 use std::fmt::Debug;
 use std::fmt::Display;
 
 use git2::*;
-use indexmap::IndexSet;
 use itertools::Itertools;
 
 use crate::creds::Creds;
@@ -56,6 +56,7 @@ pub struct WalkOptions<'a> {
 	pub on_walk: &'a mut dyn FnMut(Oid) -> Result<()>,
 	pub should_skip_object: &'a mut dyn FnMut(Oid) -> bool,
 	pub on_bad_object: &'a mut dyn FnMut(BadObject),
+	pub skip_revwalk: bool,
 }
 
 impl<'a> WalkOptions<'a> {
@@ -127,13 +128,17 @@ impl<C: Creds> Walk for Repo<'_, C> {
 				seq: vec![],
 			},
 		)?;
-		self.visit_objects_revwalk(
-			&mut opts,
-			&mut WalkContext {
-				stage: WalkStage::Revwalk,
-				seq: vec![],
-			},
-		)?;
+
+		if !opts.skip_revwalk {
+			self.visit_objects_revwalk(
+				&mut opts,
+				&mut WalkContext {
+					stage: WalkStage::Revwalk,
+					seq: vec![],
+				},
+			)?;
+		}
+
 		self.visit_objects_index(
 			&mut opts,
 			&mut WalkContext {
@@ -145,9 +150,10 @@ impl<C: Creds> Walk for Repo<'_, C> {
 		Ok(())
 	}
 
+	#[tracing::instrument(target = TAG, skip_all, ret)]
 	fn healthcheck(&self) -> Result<Vec<BadObject>> {
 		let bad_objects = RefCell::new(Vec::new());
-		let visited_objects = RefCell::new(IndexSet::new());
+		let visited_objects = RefCell::new(HashSet::new());
 
 		if !self.0.is_bare() {
 			for submodule in self.0.submodules()? {
@@ -191,6 +197,7 @@ impl<C: Creds> Walk for Repo<'_, C> {
 
         bad_objects.borrow_mut().push(o)
       },
+      skip_revwalk: false,
     })?;
 
 		Ok(bad_objects.into_inner())
@@ -265,7 +272,6 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	#[tracing::instrument(skip_all, err)]
 	fn visit_objects_tree(&self, tree: Tree<'_>, opts: &mut WalkOptions, ctx: &mut WalkContext) -> Result<()> {
 		let id = tree.id();
 
@@ -297,7 +303,6 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	#[tracing::instrument(skip_all, err)]
 	fn visit_objects_refs(&self, opts: &mut WalkOptions, ctx: &mut WalkContext) -> Result<()> {
 		let refs = self.0.references()?;
 
@@ -332,7 +337,6 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	#[tracing::instrument(skip_all, fields(oid = %oid, out_to_see = %out_to_see.len()), err)]
 	fn visit_object_by_oid(
 		&self,
 		oid: Oid,
@@ -438,7 +442,7 @@ impl<C: Creds> Repo<'_, C> {
 		Ok(())
 	}
 
-	#[tracing::instrument(skip_all, err)]
+	#[tracing::instrument(target = TAG, skip_all, err)]
 	fn visit_objects_index(&self, opts: &mut WalkOptions, ctx: &mut WalkContext) -> Result<()> {
 		let index = self.0.index()?;
 		let mut oids = vec![];

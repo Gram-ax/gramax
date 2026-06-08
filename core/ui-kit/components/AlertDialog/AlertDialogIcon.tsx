@@ -1,4 +1,4 @@
-import LucideIcon from "@components/Atoms/Icon/LucideIcon";
+import LucideIcon, { type IconCode } from "@components/Atoms/Icon/LucideIcon";
 import { AlertDialogIcon as UiKitAlertDialogIcon } from "ics-ui-kit/components/alert-dialog";
 import type { FC } from "react";
 import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
@@ -6,7 +6,7 @@ import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric"
 type UiKitAlertDialogIconProps = ExtractComponentGeneric<typeof UiKitAlertDialogIcon>;
 
 interface AlertDialogIconProps extends Omit<UiKitAlertDialogIconProps, "icon"> {
-	icon?: string;
+	icon?: IconCode;
 }
 
 export const AlertDialogIcon: FC<AlertDialogIconProps> = (props) => {

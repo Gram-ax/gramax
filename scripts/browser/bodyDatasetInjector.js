@@ -6,3 +6,4 @@ if (!["dark", "light"].includes(theme)) {
 	theme = device_theme;
 }
 document.body.dataset.theme = theme;
+document.documentElement.className = theme;

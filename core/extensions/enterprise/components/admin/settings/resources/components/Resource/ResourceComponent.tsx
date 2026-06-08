@@ -167,7 +167,9 @@ export default function ResourceComponent({
 										control={({ field }) => (
 											<div className="flex items-center gap-2">
 												<AsyncSearchSelect
-													emptyText={t("enterprise.admin.resources.main-branch-not-found")}
+													emptyText={t(
+														"enterprise.admin.resources.protected-branch-not-found",
+													)}
 													key={resourceSettings?.mainBranch}
 													loadOptions={loadBranchOptions}
 													onChange={(option: SearchSelectOption | null) => {
@@ -179,10 +181,10 @@ export default function ResourceComponent({
 														});
 													}}
 													placeholder={t(
-														"enterprise.admin.resources.select-main-branch-placeholder",
+														"enterprise.admin.resources.select-protected-branch-placeholder",
 													)}
 													searchPlaceholder={t(
-														"enterprise.admin.resources.search-main-branch-placeholder",
+														"enterprise.admin.resources.search-protected-branch-placeholder",
 													)}
 													value={field.value || undefined}
 												/>
@@ -201,10 +203,10 @@ export default function ResourceComponent({
 												/>
 											</div>
 										)}
-										description={t("enterprise.admin.resources.main-branch-description")}
+										description={t("enterprise.admin.resources.protected-branch-description")}
 										layout="vertical"
 										name="mainBranch"
-										title={t("enterprise.admin.resources.main-branch")}
+										title={t("enterprise.admin.resources.protected-branch")}
 									/>
 								</div>
 							</div>

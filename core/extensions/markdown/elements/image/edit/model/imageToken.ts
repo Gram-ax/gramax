@@ -1,4 +1,10 @@
-import { INBOX_DIRECTORY, PROMPT_DIRECTORY, SNIPPETS_DIRECTORY, TEMPLATES_DIRECTORY } from "@app/config/const";
+import {
+	FRAGMENTS_DIRECTORY,
+	INBOX_DIRECTORY,
+	PROMPT_DIRECTORY,
+	SNIPPETS_DIRECTORY,
+	TEMPLATES_DIRECTORY,
+} from "@app/config/const";
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
@@ -10,10 +16,11 @@ import { parse } from "@ext/markdown/elements/image/render/logic/imageTransforme
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
 import { replacePathIfNeeded } from "../../../../../../../apps/gramax-cli/src/logic/NavigationUtils";
 
-const dirs = [SNIPPETS_DIRECTORY, TEMPLATES_DIRECTORY, PROMPT_DIRECTORY, INBOX_DIRECTORY] as const;
+const dirs = [FRAGMENTS_DIRECTORY, SNIPPETS_DIRECTORY, TEMPLATES_DIRECTORY, PROMPT_DIRECTORY, INBOX_DIRECTORY] as const;
 
 const providerMapping: Record<(typeof dirs)[number], ArticleProviderType> = {
-	[SNIPPETS_DIRECTORY]: "snippet",
+	[FRAGMENTS_DIRECTORY]: "fragment",
+	[SNIPPETS_DIRECTORY]: "fragment",
 	[TEMPLATES_DIRECTORY]: "template",
 	[PROMPT_DIRECTORY]: "prompt",
 	[INBOX_DIRECTORY]: "inbox",

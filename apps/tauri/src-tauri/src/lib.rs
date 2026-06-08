@@ -114,8 +114,7 @@ impl<R: Runtime> AppBuilder for Builder<R> {
 	#[allow(clippy::let_and_return)]
 	fn attach_plugins(self) -> Self {
 		let app = self
-			.plugin(plugin_gramax_fs::init())
-			.plugin(plugin_gramax_git::init())
+			.plugin(plugin_gramax_core::init())
 			.plugin(tauri_plugin_dialog::init())
 			.plugin(tauri_plugin_deep_link::init());
 
@@ -124,7 +123,6 @@ impl<R: Runtime> AppBuilder for Builder<R> {
 
 		#[cfg(desktop)]
 		let app = app
-			.plugin(plugin_gramax_fs::init())
 			.plugin(tauri_plugin_shell::init())
 			.plugin(tauri_plugin_updater::Builder::new().build());
 

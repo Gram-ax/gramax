@@ -130,14 +130,14 @@ class EnterpriseApi {
 	}
 
 	async logout(token: string) {
+		const url = `${this._gesUrl}/enterprise/sso/logout`;
+
+		let res: Response;
 		try {
-			const res = await fetch(`${this._gesUrl}/enterprise/sso/logout`, {
+			res = await fetch(url, {
 				headers: { Authorization: `Bearer ${token}` },
 				credentials: "include",
 			});
-			if (!res.ok) {
-				throw new Error(`Failed to log out: server responded with status ${res.status} (${res.statusText})`);
-			}
 		} catch {
 			throw new DefaultError(
 				t("enterprise.logout.error-message"),
@@ -147,6 +147,21 @@ class EnterpriseApi {
 				t("enterprise.logout.error"),
 			);
 		}
+
+		if (res.ok) return;
+
+		if (res.status === 404 || res.status >= 500) {
+			console.warn(`Enterprise logout fallback for ${url}: ${res.status} ${res.statusText}`);
+			return;
+		}
+
+		throw new DefaultError(
+			t("enterprise.logout.error-message"),
+			null,
+			{ showCause: false },
+			false,
+			t("enterprise.logout.error"),
+		);
 	}
 
 	async checkStyleGuide(paragraphs: CheckChunk[]): Promise<CheckSuggestion[] | ResponseError> {
@@ -198,7 +213,7 @@ class EnterpriseApi {
 	async getToken(oneTimeCode: string) {
 		if (!this._gesUrl || !oneTimeCode) return;
 
-		const res = await fetch(`${this._gesUrl}/sso/token`, {
+		const res = await fetch(`${this._gesUrl}/enterprise/sso/token`, {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",

@@ -11,9 +11,13 @@ import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import { createPrivateParserContext } from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
-import CommentsCountCache from "@ext/markdown/elements/comment/edit/logic/CommentsCountCache";
-import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
+import CommentsCountCache from "@ext/markdown/elements/comment/edit/logic/caches/CommentsCountCache";
+import { CommentsSearchCache } from "@ext/markdown/elements/comment/edit/logic/caches/CommentsSearchCache";
+import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/stores/CommentsStore";
 import linkCreator from "@ext/markdown/elements/link/render/logic/linkCreator";
+import { resolveCommentDOMSelector } from "@ext/review/logic/utils/resolveCommentDOMSelector";
+import type { ReviewListItem } from "@ext/review/models/ReviewList";
+import type { ReviewSearchParams } from "@ext/review/models/ReviewSearchParams";
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { JSONContent } from "@tiptap/core";
 import assert from "assert";
@@ -28,13 +32,25 @@ class CommentProvider {
 	private _assignedComments: Map<string, Set<string>> = new Map();
 	private _comments: Map<string, CommentData> = new Map();
 	private _commentCountCache: CommentsCountCache;
+	private _commentSearchCache: CommentsSearchCache;
 
 	constructor(
 		private _fp: FileProvider,
 		fs: FileStructure,
 		private _catalog: Catalog,
+		private _useCache: boolean,
 	) {
-		this._commentCountCache = new CommentsCountCache(_fp, fs, _catalog, this);
+		this._commentCountCache = this._useCache ? new CommentsCountCache(_fp, fs, _catalog, this) : null;
+		this._commentSearchCache = this._useCache ? new CommentsSearchCache(_fp, fs, _catalog, this) : null;
+
+		let checkoutToken = null;
+		let syncToken = null;
+		_catalog.events.on("repository-set", ({ catalog }) => {
+			if (checkoutToken) catalog.repo.events.off(checkoutToken);
+			if (syncToken) catalog.repo.events.off(syncToken);
+			checkoutToken = catalog.repo.events.on("checkout", () => this._onCheckout());
+			syncToken = catalog.repo.events.on("sync", () => this._onCheckout());
+		});
 	}
 
 	getNewCommentId(): string {
@@ -84,7 +100,8 @@ class CommentProvider {
 		this._comments.set(articlePathString, allComments);
 
 		const newContent = await this._write(articlePath, allStringifiedComments);
-		await this._commentCountCache.updateArticle(articlePath, allComments, newContent);
+		await this._commentCountCache?.updateArticle(articlePath, allComments, newContent);
+		await this._commentSearchCache?.updateArticle(articlePath, allStringifiedComments, newContent);
 	}
 
 	async copyComment(
@@ -148,7 +165,8 @@ class CommentProvider {
 		let newContent: string;
 		if (Object.keys(allComments).length) newContent = await this._write(articlePath, allStringifiedComments);
 		else await this._delete(articlePath);
-		await this._commentCountCache.updateArticle(articlePath, allComments, newContent);
+		await this._commentCountCache?.updateArticle(articlePath, allComments, newContent);
+		await this._commentSearchCache?.updateArticle(articlePath, allStringifiedComments, newContent);
 	}
 
 	async parseCatalogComments(
@@ -193,22 +211,142 @@ class CommentProvider {
 		await countCommentsInTree(editTree);
 	}
 
+	async searchComments(
+		params: ReviewSearchParams,
+		parser: MarkdownParser,
+		parserContextFactory: ParserContextFactory,
+		ctx: Context,
+	): Promise<ReviewListItem[]> {
+		const byAuthors = await this.getCommentsByAuthors(parser, parserContextFactory, ctx);
+		const contextualCatalog = this._catalog.ctx(ctx);
+		const result: ReviewListItem[] = [];
+
+		const { searchQuery, pathname, filters } = params;
+		const queryLower = searchQuery?.toLowerCase();
+		const { authors, afterDate, beforeDate } = filters ?? {};
+
+		const afterMs = afterDate ? new Date(afterDate).getTime() : null;
+		const beforeMs = beforeDate ? new Date(beforeDate).getTime() : null;
+
+		const searchCache = await this._commentSearchCache.getSearchCache();
+
+		const pathnameToIds: Record<string, string[]> = {};
+		for (const [mail, authorData] of Object.entries(byAuthors)) {
+			if (authors?.length && !authors.includes(mail)) continue;
+			for (const [p, articleComments] of Object.entries(authorData.pathnames)) {
+				if (pathname && p !== pathname) continue;
+				if (!pathnameToIds[p]) pathnameToIds[p] = [];
+				for (const id of articleComments) {
+					if (!pathnameToIds[p].includes(id)) pathnameToIds[p].push(id);
+				}
+			}
+		}
+
+		const articles = contextualCatalog.getContentItems();
+		const articleByPathname = new Map<string, Article>();
+		const articleLogicPathByPathname = new Map<string, string>();
+		await Promise.all(
+			articles.map(async (article) => {
+				const p = await contextualCatalog.getPathname(article);
+				articleByPathname.set(p, article);
+				articleLogicPathByPathname.set(p, article.ref.path.value);
+			}),
+		);
+
+		for (const [p, ids] of Object.entries(pathnameToIds)) {
+			const article = articleByPathname.get(p);
+			if (!article) continue;
+
+			const logicPath = articleLogicPathByPathname.get(p);
+			const articleSearchCache = searchCache?.get(logicPath);
+
+			let filteredIds: string[];
+			let cachedRead: Record<string, CommentBlock<string>> = null;
+
+			if (queryLower) {
+				if (articleSearchCache) {
+					filteredIds = ids.filter((id) => {
+						const cached = articleSearchCache.comments.get(id);
+
+						if (!cached) return false;
+						if (cached.content.toLowerCase().includes(queryLower)) return true;
+
+						return cached.answers.some((a) => a.content.toLowerCase().includes(queryLower));
+					});
+				} else {
+					cachedRead = await this._read(article.ref.path);
+					filteredIds = ids.filter((id) => {
+						const block = cachedRead[id];
+						if (!block?.comment) return false;
+
+						const content = typeof block.comment.content === "string" ? block.comment.content : "";
+						if (content.toLowerCase().includes(queryLower)) return true;
+
+						return (block.answers ?? []).some((a) => {
+							const ac = typeof a.content === "string" ? a.content : "";
+							return ac.toLowerCase().includes(queryLower);
+						});
+					});
+				}
+			} else {
+				filteredIds = ids;
+			}
+
+			if (!filteredIds.length) continue;
+
+			const stringifiedComments = cachedRead ?? (await this._read(article.ref.path));
+			const parserContext = await parserContextFactory.fromArticle(
+				article,
+				contextualCatalog,
+				convertContentToUiLanguage(ctx.contentLanguage || contextualCatalog.props.language),
+			);
+
+			for (const id of filteredIds) {
+				const raw = stringifiedComments[id];
+				if (!raw?.comment) continue;
+
+				if (afterMs || beforeMs) {
+					const dateMs = new Date(raw.comment.dateTime).getTime();
+					if (afterMs && dateMs < afterMs) continue;
+					if (beforeMs && dateMs > beforeMs) continue;
+				}
+
+				const parsed = parserContext ? await this._parse(raw, parserContext) : undefined;
+
+				result.push({
+					type: "comments",
+					id,
+					date: raw.comment.dateTime,
+					author: { email: raw.comment.user?.mail ?? "", name: raw.comment.user?.name ?? "" },
+					pathname: p,
+					selector: resolveCommentDOMSelector(id),
+					commentBlock: parsed,
+				});
+			}
+		}
+
+		return result;
+	}
+
 	async getCommentsByAuthors(parser: MarkdownParser, parserContextFactory: ParserContextFactory, ctx: Context) {
 		const contextualCatalog = this._catalog.ctx(ctx);
 		const result: AuthoredCommentsByAuthor = {};
-		const currentCommentCache = await this._commentCountCache.getCommentsCache();
+		const currentCommentCache = await this._commentCountCache?.getCommentsCache();
 		const articles = contextualCatalog.getContentItems();
 		const newCommentCache: Record<string, Map<string, string>> = {};
+		const newSearchCache: Record<string, Map<string, string>> = {};
 		let needSaveCache = false;
 
 		const pushComment = (pathname: string, logicPath: string) => {
 			newCommentCache[logicPath] = new Map();
+			newSearchCache[logicPath] = new Map();
 
 			const pushArticleComment: PushArticleCommentFn = (mail, id) => {
 				if (!result[mail]) result[mail] = { total: 0, pathnames: {} };
 				if (!result[mail].pathnames[pathname]) result[mail].pathnames[pathname] = [];
 				if (result[mail].pathnames[pathname].every((commentId) => commentId !== id)) {
 					newCommentCache[logicPath].set(id, mail);
+					newSearchCache[logicPath].set(id, mail);
 					result[mail].total++;
 					result[mail].pathnames[pathname].push(id);
 				}
@@ -249,7 +387,10 @@ class CommentProvider {
 			});
 		}
 
-		if (needSaveCache) await this._commentCountCache.updateCatalog(newCommentCache);
+		if (needSaveCache) {
+			await this._commentCountCache?.updateCatalog(newCommentCache);
+			await this._commentSearchCache?.updateCatalogFromFiles(newSearchCache, this._read.bind(this));
+		}
 
 		return result;
 	}
@@ -276,9 +417,13 @@ class CommentProvider {
 
 	private async _stringify(commentBlock: CommentBlock, context: ParserContext): Promise<CommentBlock<string>> {
 		if (!Array.isArray(commentBlock.answers)) commentBlock.answers = [];
+
+		const answers = await Promise.all(
+			commentBlock.answers.map(async (a) => await this._stringifyComment(a, context)),
+		);
 		return {
 			comment: await this._stringifyComment(commentBlock.comment, context),
-			answers: await Promise.all(commentBlock.answers.map(async (a) => await this._stringifyComment(a, context))),
+			...(answers.length > 0 ? { answers } : {}),
 		};
 	}
 
@@ -387,6 +532,11 @@ class CommentProvider {
 				}))),
 			],
 		};
+	}
+
+	private _onCheckout() {
+		this._comments.clear();
+		this._assignedComments.clear();
 	}
 }
 

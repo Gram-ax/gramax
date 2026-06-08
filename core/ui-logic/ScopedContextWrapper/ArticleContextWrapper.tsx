@@ -1,7 +1,7 @@
 import ApiUrlCreator from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import useGetArticleContextData from "@core-ui/ScopedContextWrapper/useGetArticleContextData";
+import { ArticlePropsStoreProvider } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import {
 	CatalogStoreProvider,
 	useCatalogPropsStore,
@@ -32,11 +32,11 @@ const ArticleContextWrapper = (props: ArticleContextWrapperProps) => {
 
 	return (
 		<ApiUrlCreator.Provider value={apiUrlCreator}>
-			<ArticlePropsService.Provider value={articleProps}>
+			<ArticlePropsStoreProvider data={articleProps}>
 				<CatalogStoreProvider data={catalogProps}>
 					<ResourceService.Provider>{children}</ResourceService.Provider>
 				</CatalogStoreProvider>
-			</ArticlePropsService.Provider>
+			</ArticlePropsStoreProvider>
 		</ApiUrlCreator.Provider>
 	);
 };

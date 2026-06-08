@@ -7,6 +7,7 @@ import { getMarkdocFormatter } from "../Formatter/Formatters/getMarkdocFormatter
 import type NodeTransformerFunc from "./NodeTransformerFunc";
 import { getSchema } from "./schema";
 
+// biome-ignore lint/suspicious/noExplicitAny: token type is not yet defined
 type Token = any;
 
 export class Transformer {
@@ -18,13 +19,14 @@ export class Transformer {
 	) {}
 
 	async transformMdComponents(
-		node: JSONContent,
+		inputNode: JSONContent,
 		renderer: (
 			content: string,
 			context?: PrivateParserContext,
 			parserOptions?: ParserOptions,
 		) => Promise<RenderableTreeNodes>,
 	): Promise<JSONContent> {
+		let node = inputNode;
 		if (node?.content)
 			node.content = await Promise.all(
 				node.content.map(async (n) => await this.transformMdComponents(n, renderer)),
@@ -44,7 +46,7 @@ export class Transformer {
 				};
 			}
 		}
-		if (node.type == "blockMd") {
+		if (node.type === "blockMd") {
 			node.attrs.tag = await renderer(node.attrs.text, this._context, { isOneElement: true, isBlock: true });
 		}
 
@@ -64,8 +66,8 @@ export class Transformer {
 				newContent.push(
 					await this.transformTree(
 						value,
-						i == 0 ? null : node.content[i - 1],
-						i == node.content.length - 1 ? null : node.content[i + 1],
+						i === 0 ? null : node.content[i - 1],
+						i === node.content.length - 1 ? null : node.content[i + 1],
 						count + i + 1,
 					),
 				);
@@ -75,14 +77,14 @@ export class Transformer {
 
 		for (const nodeTransformerFunc of this._nodeTransformerFuncs) {
 			const res = await nodeTransformerFunc(node, previousNode, nextNode, this._context, count);
-			if (res && res.isSet) return res.value;
+			if (res?.isSet) return res.value;
 		}
 
 		return node;
 	}
 
-	transformToken(tokens: Token[]): Token[] {
-		if (tokens.length === 0) {
+	transformToken(inputTokens: Token[]): Token[] {
+		if (inputTokens.length === 0) {
 			return [
 				{ type: "paragraph_open", tag: "p" },
 				{ type: "paragraph_close", tag: "p" },
@@ -95,8 +97,10 @@ export class Transformer {
 		this._tokenTransformerFuncs.unshift(this._variableTokenTransformer);
 		this._tokenTransformerFuncs.unshift(this._annotationTokenTransformer);
 
-		tokens = this._filterTokens(
-			tokens.map((t, idx) => this._transformToken(tokens, idx, t, idx == 0 ? null : tokens[idx - 1])),
+		let tokens = this._filterTokens(
+			inputTokens.map((t, idx) =>
+				this._transformToken(inputTokens, idx, t, idx === 0 ? null : inputTokens[idx - 1]),
+			),
 		);
 
 		this._tokenTransformerFuncs = duplicate;
@@ -104,7 +108,7 @@ export class Transformer {
 		this._tokenTransformerFuncs.push(this._inlineTokenTransformer);
 
 		tokens = this._filterTokens(
-			tokens.map((t, idx) => this._transformToken(tokens, idx, t, idx == 0 ? null : tokens[idx - 1])),
+			tokens.map((t, idx) => this._transformToken(tokens, idx, t, idx === 0 ? null : tokens[idx - 1])),
 		);
 
 		return tokens;
@@ -123,14 +127,16 @@ export class Transformer {
 			if (!parent || parent.type !== "inline") return transformer.getInlineMdTokens(`{${token.info}}`);
 			if (!parent.attrs) parent.attrs = {};
 			if (token.meta?.attributes)
-				token.meta?.attributes.forEach(({ name, value }) => (parent.attrs[name] = value));
+				token.meta?.attributes.forEach(({ name, value }) => {
+					parent.attrs[name] = value;
+				});
 			parent.attrs.info = token.info;
 			return null;
 		}
 	};
 
 	private _openCloseTokenTransformer: TokenTransformerFunc = ({ token, previous }) => {
-		if (token && token?.type?.includes("_close") && previous?.type?.includes("_open")) {
+		if (token?.type?.includes("_close") && previous?.type?.includes("_open")) {
 			const tokenTypeName = token.type.match(/(.*?)_close/)?.[1];
 			if (
 				tokenTypeName &&
@@ -144,7 +150,7 @@ export class Transformer {
 	};
 
 	private _inlineTokenTransformer: TokenTransformerFunc = ({ token, transformer, previous }) => {
-		if (token && token.type == "inline" && token.attrs) {
+		if (token && token.type === "inline" && token.attrs) {
 			if (previous.type !== "heading_open") {
 				token.children.push(transformer.getInlineMdTokens(`{${token.attrs.info}}`));
 			} else {
@@ -154,13 +160,22 @@ export class Transformer {
 		}
 	};
 
+	private static _tagAliases: Record<string, string> = {
+		"snippet-link": "fragment-link",
+		snippet: "fragment",
+	};
+
 	private _tagTokenTransformer: TokenTransformerFunc = ({ token, transformer, parent }) => {
 		if (token.type === "tag" || token.type === "tag_open" || token.type === "tag_close") {
-			const attrs = {};
-			if (token.meta?.attributes) token.meta?.attributes.forEach(({ name, value }) => (attrs[name] = value));
+			const attrs: Record<string, unknown> = {};
+			if (token.meta?.attributes)
+				token.meta?.attributes.forEach(({ name, value }) => {
+					attrs[name] = value;
+				});
+			const tagName = Transformer._tagAliases[token.meta.tag] ?? token.meta.tag;
 			const newNode = {
-				type: token.meta.tag,
-				tag: token.meta.tag,
+				type: tagName,
+				tag: tagName,
 				attrs,
 			};
 
@@ -170,19 +185,19 @@ export class Transformer {
 				const formatter = getMarkdocFormatter(nodeSchema, this._context);
 				const tag = new Tag(newNode.type, newNode.attrs);
 
-				if (token.type === "tag_open" && parent && parent.type == "inline") {
+				if (token.type === "tag_open" && parent && parent.type === "inline") {
 					const content = formatter(tag, "", false, true);
 					return transformer.getInlineMdOpenTokens(content);
 				}
 
-				if (token.type === "tag_close" && parent && parent.type == "inline") {
+				if (token.type === "tag_close" && parent && parent.type === "inline") {
 					const content = formatter(tag, "", true);
 					return transformer.getInlineMdCloseTokens(content);
 				}
 
 				if (
-					nodeSchema.type == SchemaType.block ||
-					(newNode.tag === "formula" && newNode.attrs["content"].includes("$$"))
+					nodeSchema.type === SchemaType.block ||
+					(newNode.tag === "formula" && (newNode.attrs.content as string)?.includes("$$"))
 				) {
 					return { type: "blockMd", attrs: { text: formatter(tag, "") } };
 				}
@@ -191,10 +206,10 @@ export class Transformer {
 				return transformer.getInlineMdTokens(formatter(tag, ""));
 			}
 
-			if (token.type === "tag_open") newNode.type = newNode.type + "_open";
-			if (token.type === "tag_close") newNode.type = newNode.type + "_close";
+			if (token.type === "tag_open") newNode.type = `${newNode.type}_open`;
+			if (token.type === "tag_close") newNode.type = `${newNode.type}_close`;
 
-			if (transformer._schemes[newNode.type]?.type == SchemaType.block) {
+			if (transformer._schemes[newNode.type]?.type === SchemaType.block) {
 				if (parent) return transformer.getBlockMdTokens(newNode);
 			}
 
@@ -205,10 +220,11 @@ export class Transformer {
 	private _transformToken(
 		tokens: Token[],
 		id: number,
-		token: Token,
+		inputToken: Token,
 		previous?: Token,
 		parent?: Token,
 	): Token | Token[] {
+		let token = inputToken;
 		for (const transformFunc of this._tokenTransformerFuncs) {
 			const result = transformFunc({ id, tokens, token, previous, parent, transformer: this });
 			if (result !== undefined) {
@@ -234,7 +250,7 @@ export class Transformer {
 		return token;
 	}
 
-	public getParagraphTokens(content?: string, children?: any[]) {
+	public getParagraphTokens(content?: string, children?: Token[]) {
 		return [
 			{ type: "paragraph_open", tag: "p" },
 			{

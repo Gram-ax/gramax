@@ -1,5 +1,6 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import type Cookie from "../../../../cookie/Cookie";
-import { Encoder } from "../../../../Encoder/Encoder";
+import { Encoder } from "../../../../encoder/Encoder";
 import type WorkspaceManager from "../../../../workspace/WorkspaceManager";
 import { SourceDataProvider } from "./SourceDataProvider";
 
@@ -18,7 +19,7 @@ describe("SourceDataProvider", () => {
 	beforeEach(() => {
 		encoder = new Encoder();
 		encodeTestData = (data: any): string => {
-			return encoder.ecode([JSON.stringify(data)], secret);
+			return encoder.encode([JSON.stringify(data)], secret);
 		};
 
 		workspaceManager = {

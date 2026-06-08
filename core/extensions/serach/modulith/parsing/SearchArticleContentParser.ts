@@ -1,8 +1,8 @@
 import DiagramType from "@core/components/Diagram/DiagramType";
 import Path from "@core/FileProvider/Path/Path";
-import { requestPlantUmlDiagram } from "@ext/markdown/elements/diagrams/diagrams/plantUml/requestPlantUmlDiagram";
 import { extractTextsMermaid } from "@ext/serach/modulith/parsing/extractTextsMermaid";
 import { extractTextsSvg } from "@ext/serach/modulith/parsing/extractTextsSvg";
+import { plantUmlToSvg } from "@ext/serach/modulith/parsing/plantUmlToSvg";
 import SearchArticleContentParserBase from "@ext/serach/modulith/parsing/SearchArticleContentParserBase";
 import type { ArticleItem, ArticleTableRow, ArticleTableRowData } from "@ics/gx-vector-search";
 import type { JSONContent } from "@tiptap/core";
@@ -12,7 +12,7 @@ const REMOTE_VERSION_0_0_7 = new SemVer("0.0.7");
 
 export interface SearchArticleContentParserOptions {
 	items: JSONContent[];
-	getSnippetItems: (id: string) => Promise<JSONContent[] | undefined>;
+	getFragmentItems: (id: string) => Promise<JSONContent[] | undefined>;
 	getPropertyValue: (id: string) => string | undefined;
 	getLinkId: (fileName: Path) => string | undefined;
 	readResource?: (src: string) => Promise<string | undefined>;
@@ -37,7 +37,7 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 			try {
 				await this._parseItem(item);
 			} catch (error) {
-				console.error("Error parsing item: ", error);
+				console.warn(`Error in SearchArticleContentParser._parseItem: ${error.message}`, item);
 			}
 		}
 	}
@@ -52,13 +52,13 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 				item.content?.forEach((x) => {
 					if (x.type === "text" && x.marks?.length > 0) {
 						const filePath = x.marks.find((y) => y.type === "file")?.attrs.resourcePath;
-						if (filePath != undefined) {
+						if (filePath != null) {
 							this._addText(buffer.join(""));
 							buffer.length = 0;
 
 							const fileName = new Path(filePath);
 							const link = this._options.getLinkId(fileName);
-							if (link != undefined) {
+							if (link != null) {
 								this._addItem({
 									type: "embedded-link",
 									title: x.text ?? "",
@@ -98,15 +98,17 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 			case "tab":
 				await this._addTab(item);
 				break;
-			case "snippet":
-				await this._addSnippet(item);
+			case "fragment":
+				await this._addFragment(item);
 				break;
 			case "diagrams": {
 				if (item.attrs?.diagramName === DiagramType.mermaid) {
-					await this._addDiagramTexts(item, (definition) => extractTextsMermaid(definition));
+					await this._addDiagramTexts(item, item.attrs.diagramName, (definition) =>
+						extractTextsMermaid(definition),
+					);
 				}
 				if (item.attrs?.diagramName === DiagramType["plant-uml"]) {
-					await this._addDiagramTexts(item, async (definition) => {
+					await this._addDiagramTexts(item, item.attrs.diagramName, async (definition) => {
 						const svgContent = await plantUmlToSvg(definition, this._options.diagramRendererServerUrl);
 						return extractTextsSvg(svgContent);
 					});
@@ -117,7 +119,7 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 				// Drawio diagrams are not indexed for remote search for now
 				if (this._options.remoteVersion) break;
 
-				await this._addDiagramTexts(item, (definition) => extractTextsSvg(definition));
+				await this._addDiagramTexts(item, "drawio", (definition) => extractTextsSvg(definition));
 				break;
 			}
 			case "horizontal_rule":
@@ -156,10 +158,10 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 		this._exitBlock();
 	}
 
-	private async _addSnippet(snippet: JSONContent): Promise<void> {
-		if (!snippet.attrs?.id) return;
+	private async _addFragment(fragment: JSONContent): Promise<void> {
+		if (!fragment.attrs?.id) return;
 
-		const items = await this._options.getSnippetItems(snippet.attrs.id);
+		const items = await this._options.getFragmentItems(fragment.attrs.id);
 		await this._parseItems(items);
 	}
 
@@ -206,18 +208,23 @@ export default class SearchArticleContentParser extends SearchArticleContentPars
 
 	private async _addDiagramTexts(
 		item: JSONContent,
+		diagramType: string,
 		resolveDisplayTexts: (definition: string) => Promise<string[]>,
 	): Promise<void> {
 		const definition = await resolveDiagramDefinition(item, this._options.readResource);
 		const title = item.attrs?.title != null ? String(item.attrs.title).trim() : "";
 
 		if (!this._options.remoteVersion) {
-			if (title) this._addText(title);
-			if (!definition) return;
-			const displayTexts = await resolveDisplayTexts(definition);
-			for (const text of displayTexts) {
-				this._addText(text);
-			}
+			const displayTexts = definition ? await resolveDisplayTexts(definition) : [];
+			this._addItem({
+				type: "diagram",
+				diagramType,
+				title,
+				items: displayTexts.map((text) => ({
+					type: "text",
+					text,
+				})),
+			});
 			return;
 		}
 
@@ -255,15 +262,4 @@ async function resolveDiagramDefinition(
 
 	const fromFile = await readDiagramFile(src);
 	return (fromFile ?? "").trim();
-}
-
-async function plantUmlToSvg(diagramContent: string, diagramRendererUrl?: string) {
-	if (!diagramRendererUrl) throw new Error("Diagram renderer URL is not set");
-	const diagramResponse = await requestPlantUmlDiagram(diagramContent, diagramRendererUrl);
-	if (diagramResponse.ok) return diagramResponse.text();
-
-	const errorText = await diagramResponse.text().catch(() => "");
-	throw new Error(
-		`Failed to convert PlantUML to SVG. Status: ${diagramResponse.status}.${errorText ? ` Response: ${errorText}` : ""}`,
-	);
 }

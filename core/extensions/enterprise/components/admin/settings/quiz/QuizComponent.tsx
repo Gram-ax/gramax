@@ -1,5 +1,4 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
 import { useHealthCheck } from "@ext/enterprise/components/admin/settings/HealthCheck";
 import { QuizTestsTable } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTestsTable";
 import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
@@ -12,8 +11,9 @@ import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+// biome-ignore lint/style/noRestrictedImports: idc
 import { Loader } from "ics-ui-kit/components/loader";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export interface QuizSettings {
 	enabled: boolean;
@@ -35,11 +35,24 @@ const QuizComponent = () => {
 	const [localSettings, setLocalSettings] = useState<QuizSettings>({ enabled: false });
 	const [isSaving, setIsSaving] = useState(false);
 	const [saveError, setSaveError] = useState<string>(null);
-	const { isScrolled } = useScrollShadow();
 
 	useEffect(() => {
 		setLocalSettings(settings?.quiz || { enabled: false });
 	}, [settings?.quiz]);
+
+	const handleSave = useCallback(
+		async (enabled: boolean) => {
+			setIsSaving(true);
+			try {
+				await updateQuiz({ enabled });
+			} catch (e) {
+				setSaveError(e?.message);
+			} finally {
+				setIsSaving(false);
+			}
+		},
+		[updateQuiz],
+	);
 
 	if (isInitialLoading("quiz")) {
 		return (
@@ -54,20 +67,9 @@ const QuizComponent = () => {
 
 	if (healthCheckLoader) return healthCheckLoader;
 
-	const handleSave = async (enabled: boolean) => {
-		setIsSaving(true);
-		try {
-			await updateQuiz({ enabled });
-		} catch (e) {
-			setSaveError(e?.message);
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
 	return (
 		<>
-			<div className="flex flex-col h-full space-y-6" style={{ height: "inherit" }}>
+			<div className="flex flex-col h-full" style={{ height: "inherit" }}>
 				<StickyHeader
 					actions={
 						<SwitchField
@@ -83,7 +85,6 @@ const QuizComponent = () => {
 							onCheckedChange={handleSave}
 						/>
 					}
-					isScrolled={isScrolled}
 					title={
 						<>
 							{getAdminPageTitle(Page.QUIZ)} <Spinner show={isRefreshing("quiz")} size="small" />
@@ -107,7 +108,7 @@ const QuizComponent = () => {
 				<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
 				{localSettings.enabled && (
-					<div className="flex-1 min-h-0 px-6">
+					<div className="flex-1 min-h-0">
 						<QuizTestsTable isHealthy={isHealthy} />
 					</div>
 				)}

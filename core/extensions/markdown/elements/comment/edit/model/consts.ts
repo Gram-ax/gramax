@@ -5,7 +5,7 @@ export const COMMENT_BLOCK_NODE_TYPES = [
 	"drawio",
 	"video",
 	"openapi",
-	"snippet",
+	"fragment",
 	"html",
 	"view",
 	"mermaid",

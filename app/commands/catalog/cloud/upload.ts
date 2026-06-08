@@ -33,7 +33,7 @@ const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Comma
 			const cloudApi = new VersionedCloudApi(cloudServiceUrl);
 			if (!(await cloudApi.getServerState())) throw new DefaultError(t("cloud.error.failed-to-connect"));
 
-			const htmlTemplate = await cloudApi.getTemplateHtml();
+			const { htmlTemplate, baseUrl } = await cloudApi.getTemplateHtml();
 			const modulithBasePath = new Path(baseCatalogName).join(MODULITH_BASE);
 			const getCache = {
 				fp: () => {
@@ -66,7 +66,7 @@ const uploadStatic: Command<{ ctx: Context; catalogName: string }, void> = Comma
 
 			const getCustomStyleCommand = this._commands.workspace.assets.getCustomStyle;
 			const customStyles = await getCustomStyleCommand.do({ workspacePath: workspace.path() });
-			await staticSiteBuilder.generate(catalog, new Path(), { customStyles });
+			await staticSiteBuilder.generate(catalog, new Path(), { customStyles, baseUrl });
 
 			const buffer = await zipFileProvider.zip.generateAsync({ type: "nodebuffer" });
 

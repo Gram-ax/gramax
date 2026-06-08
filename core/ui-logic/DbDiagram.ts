@@ -1,10 +1,12 @@
+/** biome-ignore-all lint/style/noParameterAssign: it's ok */
+/** biome-ignore-all lint/suspicious/noDoubleEquals: it's ok */
 import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import dagre from "@dynamicImports/dagre";
 import SilentError from "@ext/errorHandlers/silent/SilentError";
 import t from "@ext/localization/locale/translate";
+import type { Field, Link, Table, TableDB } from "@ext/tableDB/table";
 import { getLocalizedString } from "../components/libs/utils";
-import type { Field, Link, Table, TableDB } from "../logic/components/tableDB/table";
 import Path from "../logic/FileProvider/Path/Path";
 import ResourceManager from "../logic/Resource/ResourceManager";
 
@@ -51,21 +53,21 @@ const style = {
 const arc = style.line.radius;
 
 export default class DbDiagram {
-	private tablesSvg: { title: string; fields: string[]; table: Table }[];
-	private linksSvg: { link: string; table1Name: string; table2Name: string }[];
-	private width: number;
-	private height: number;
+	private _tablesSvg: { title: string; fields: string[]; table: Table }[];
+	private _linksSvg: { link: string; table1Name: string; table2Name: string }[];
+	private _width: number;
+	private _height: number;
 	constructor(
 		private _tableManager: TableDB,
 		private _fp: FileProvider,
 	) {
-		this.tablesSvg = [];
-		this.linksSvg = [];
-		this.width = 0;
-		this.height = 0;
+		this._tablesSvg = [];
+		this._linksSvg = [];
+		this._width = 0;
+		this._height = 0;
 	}
 
-	_createArrow(x: number, y: number, leftToRight: boolean): string {
+	private _createArrow(x: number, y: number, leftToRight: boolean): string {
 		x = leftToRight ? x + style.arrow.length : x - style.arrow.length;
 		const dy = Math.tan((style.arrow.angle / 360) * Math.PI) * style.arrow.length;
 		const dx = leftToRight ? -style.arrow.length : style.arrow.length;
@@ -73,11 +75,11 @@ export default class DbDiagram {
 		return `<polyline  class="arrow" fill="${style.arrow.color}" points="${points}"/>`;
 	}
 
-	_createRect(x: number, y: number, width: number, height: number, color: string): string {
+	private _createRect(x: number, y: number, width: number, height: number, color: string): string {
 		return `<rect x="${x}" y="${y}" width="${width}" height="${height}" fill="${color}"/>`;
 	}
 
-	_createText(
+	private _createText(
 		x: number,
 		y: number,
 		text: string,
@@ -96,11 +98,19 @@ export default class DbDiagram {
 		}" y="${
 			y + (isTitle ? style.title.fontSize : style.field.fontSize) - 1
 		}" fill="${color}" text-anchor="${textAnchor}" class="${className}">${
-			notNullable ? text + `<tspan class="notNullable" fill="${style.notNullable.color}">*</tspan>` : text
+			notNullable ? `${text}<tspan class="notNullable" fill="${style.notNullable.color}">*</tspan>` : text
 		}</text>`;
 	}
 
-	_createPath(x1: number, y1: number, x2: number, y2: number, path: number[], x1l: boolean, x2l: boolean): string {
+	private _createPath(
+		x1: number,
+		y1: number,
+		x2: number,
+		y2: number,
+		path: number[],
+		x1l: boolean,
+		x2l: boolean,
+	): string {
 		x2 = x2l ? x2 - style.arrow.length : x2 + style.arrow.length;
 		let x = 0,
 			y = 0;
@@ -298,8 +308,8 @@ export default class DbDiagram {
 		);
 
 		// fields
-		this.width = Math.max(x + width, this.width);
-		this.height = Math.max(y + height * (table.fields.length + 1), this.height);
+		this._width = Math.max(x + width, this._width);
+		this._height = Math.max(y + height * (table.fields.length + 1), this._height);
 		table.fields.forEach((field, idx) => {
 			let fieldSvg = "";
 			fieldSvg += `<g><title>${getLocalizedString(field.description, lang) ?? ""}</title>`;
@@ -339,11 +349,11 @@ export default class DbDiagram {
 			tableSvg.fields.push(fieldSvg);
 		});
 		tableSvg.table.fields = fields;
-		this.tablesSvg.push(tableSvg);
+		this._tablesSvg.push(tableSvg);
 		return refInfo;
 	}
 
-	_haveTag(tableTags: string | string[], tags: string[]): boolean {
+	private _haveTag(tableTags: string | string[], tags: string[]): boolean {
 		if (!tableTags) return false;
 		const tTags = Array.isArray(tableTags) ? tableTags : tableTags.split(",");
 		for (const tableTag of tTags) {
@@ -433,7 +443,7 @@ export default class DbDiagram {
 		await this._addTables(tables, lang);
 	}
 
-	_getTableSizes(table: Table): { width: number; height: number; titleHeight: number; totalHeight: number } {
+	private _getTableSizes(table: Table): { width: number; height: number; titleHeight: number; totalHeight: number } {
 		let maxLength = table.code.length + 5;
 		let maxNameLength = maxLength / 2;
 		let maxTypeLength = maxNameLength;
@@ -451,7 +461,10 @@ export default class DbDiagram {
 		return { width, height, titleHeight, totalHeight };
 	}
 
-	async _addTables(tables: { x: number; y: number; table: Table; links: Link[]; fields: Field[] }[], lang: string) {
+	private async _addTables(
+		tables: { x: number; y: number; table: Table; links: Link[]; fields: Field[] }[],
+		lang: string,
+	) {
 		const tablesSizes = tables.map((t) => {
 			return this._getTableSizes(t.table);
 		});
@@ -543,7 +556,7 @@ export default class DbDiagram {
 							x1l = false;
 						}
 					}
-					this.linksSvg.push({
+					this._linksSvg.push({
 						link: this._createPath(x1, ref.y, x2, refTableInfo.pkY, pathNum, x1l, x2l),
 						table1Name: info.name,
 						table2Name: ref.refTable,
@@ -555,7 +568,7 @@ export default class DbDiagram {
 
 	draw(): string {
 		const svg = `
-<svg viewBox="0 0 ${this.width + 100} ${this.height + 100}" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="0 0 ${this._width + 100} ${this._height + 100}" fill="none" xmlns="http://www.w3.org/2000/svg">
 	<defs>
 		<style>
 			.title { font: bold ${style.title.fontSize}px ${style.title.fontFamily} }
@@ -566,19 +579,19 @@ export default class DbDiagram {
 			.line { stroke: #000000; }
 		</style>
 	</defs>
-	${this.linksSvg.map((l) => l.link).join() + this.tablesSvg.map((table) => table.title + table.fields.join()).join()}
+	${this._linksSvg.map((l) => l.link).join() + this._tablesSvg.map((table) => table.title + table.fields.join()).join()}
 </svg>`;
 		return svg;
 	}
 
 	getSvg() {
 		return `
-		<svg viewBox="0 0 ${this.width + 100} ${this.height + 100}" fill="none" xmlns="http://www.w3.org/2000/svg">
-			${this.linksSvg.map((l) => l.link).join() + this.tablesSvg.map((table) => table.title + table.fields.join()).join()}
+		<svg viewBox="0 0 ${this._width + 100} ${this._height + 100}" fill="none" xmlns="http://www.w3.org/2000/svg">
+			${this._linksSvg.map((l) => l.link).join() + this._tablesSvg.map((table) => table.title + table.fields.join()).join()}
 		</svg>`;
 	}
 
 	getData() {
-		return { tables: this.tablesSvg, links: this.linksSvg, width: this.width, height: this.height };
+		return { tables: this._tablesSvg, links: this._linksSvg, width: this._width, height: this._height };
 	}
 }

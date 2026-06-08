@@ -1,7 +1,7 @@
 import { KeyPhraseArticleSearcher } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
 import { ProgressManager } from "@ext/serach/modulith/ProgressManager";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import { Lock, MultiLock } from "@ics/modulith-utils";
+import { Lock, MultiLock } from "@ics/article-search-utils";
 
 export class WorkspaceState {
 	private readonly _indexingLock = new Lock();
@@ -11,8 +11,14 @@ export class WorkspaceState {
 	private readonly _resourceIndexingProgressManager = new ProgressManager();
 	private readonly _indexedCatalogs = new Set<string>();
 	private readonly _keyPhraseSearcher = new KeyPhraseArticleSearcher();
+	private readonly _resourceSearchEnabled: boolean;
 
-	constructor(private readonly _path: WorkspacePath) {}
+	constructor(
+		private readonly _path: WorkspacePath,
+		resourceSearchEnabled: boolean,
+	) {
+		this._resourceSearchEnabled = resourceSearchEnabled;
+	}
 
 	get path(): WorkspacePath {
 		return this._path;
@@ -32,6 +38,10 @@ export class WorkspaceState {
 
 	get resourceParsingLock(): MultiLock {
 		return this._resourceParsingLock;
+	}
+
+	get resourceSearchEnabled(): boolean {
+		return this._resourceSearchEnabled;
 	}
 
 	lockIndexing(): Promise<() => void> {

@@ -5,13 +5,15 @@ import type { GroupsSettings } from "@ext/enterprise/components/admin/settings/g
 import type { GuestsSettings } from "@ext/enterprise/components/admin/settings/guests/types/GuestsComponent";
 import type { MailSettings } from "@ext/enterprise/components/admin/settings/MailComponent";
 import type { AnonymousFilter } from "@ext/enterprise/components/admin/settings/metrics/filters";
-import type { ArticleRatingRow } from "@ext/enterprise/components/admin/settings/metrics/search/ratings/ArticleRatingsTableConfig";
-import type { SearchMetricsTableRow } from "@ext/enterprise/components/admin/settings/metrics/search/table/SearchMetricsTableConfig";
+import type { ArticleRatingsResponse } from "@ext/enterprise/components/admin/settings/metrics/search/ratings/ArticleRatingsTableConfig";
+import type { SearchTableDataResponse } from "@ext/enterprise/components/admin/settings/metrics/search/table/SearchMetricsTableConfig";
 import type {
 	ChartDataPoint,
+	MetricsCatalogsResponse,
 	MetricsConfigSettings,
+	MetricsUsersResponse,
 	SearchChartDataPoint,
-	SearchQueryDetailRow,
+	SearchQueryDetailsResponse,
 	TableDataResponse,
 } from "@ext/enterprise/components/admin/settings/metrics/types";
 import type { QuizTableFilters } from "@ext/enterprise/components/admin/settings/quiz/components/QuizTableControls";
@@ -72,14 +74,14 @@ class EnterpriseService {
 		return this._url;
 	}
 
-	private clearUserCookie(): void {
+	private _clearUserCookie(): void {
 		document.cookie = "userInfo=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 		document.cookie = "user=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
 	}
 
-	private checkUnauthorized(response: Response): void {
+	private _checkUnauthorized(response: Response): void {
 		if (response.status === 401 || response.status === 403) {
-			this.clearUserCookie();
+			this._clearUserCookie();
 		}
 	}
 
@@ -88,7 +90,7 @@ class EnterpriseService {
 			headers: { Authorization: `Bearer ${token}` },
 			credentials: "include",
 		});
-		this.checkUnauthorized(res);
+		this._checkUnauthorized(res);
 		return res.status !== 401 && res.status !== 403;
 	}
 
@@ -101,7 +103,7 @@ class EnterpriseService {
 			throw new Error(`Не удалось завершить сессию. Статус: ${res.status}`);
 		}
 
-		this.clearUserCookie();
+		this._clearUserCookie();
 	}
 
 	async checkDataProviderHealth(): Promise<boolean> {
@@ -142,7 +144,7 @@ class EnterpriseService {
 				}),
 			});
 
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			return res.ok;
 		} catch (error) {
 			span()?.addEvent("error", { error: String(error) });
@@ -171,7 +173,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) return null;
 
 			return (await res.json()) as NotificationHistoryResponse;
@@ -195,7 +197,7 @@ class EnterpriseService {
 
 			const res = await fetch(url, { headers, credentials: "include" });
 
-			await this.checkUnauthorized(res);
+			await this._checkUnauthorized(res);
 
 			if (res.status === 304) {
 				return { data: null, etag: etag ?? null, notModified: true };
@@ -279,7 +281,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 
-			await this.checkUnauthorized(res);
+			await this._checkUnauthorized(res);
 
 			if (!res.ok) {
 				span()?.addEvent("error", { error: `Failed to get resource config: ${res.status}` });
@@ -372,6 +374,7 @@ class EnterpriseService {
 		articleIds?: number[],
 		userEmails?: string[],
 		anonymousFilter?: AnonymousFilter,
+		catalogFilter?: string[],
 	): Promise<ChartDataPoint[] | null> {
 		if (!this._url) return null;
 		try {
@@ -388,6 +391,9 @@ class EnterpriseService {
 			if (anonymousFilter) {
 				params.append("anonymousFilter", anonymousFilter);
 			}
+			if (catalogFilter && catalogFilter.length > 0) {
+				params.append("catalogFilter", catalogFilter.join(","));
+			}
 			const url = `${this._url}/enterprise/modules/metrics/getChartData?${params.toString()}`;
 			const response = await fetch(url, {
 				method: "GET",
@@ -397,7 +403,7 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			await this.checkUnauthorized(response);
+			await this._checkUnauthorized(response);
 			if (!response.ok) return null;
 			return await response.json();
 		} catch (error) {
@@ -413,11 +419,8 @@ class EnterpriseService {
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
-	): Promise<{
-		data: SearchMetricsTableRow[];
-		hasMore: boolean;
-		nextCursor: string | null;
-	} | null> {
+		catalogFilter?: string[],
+	): Promise<SearchTableDataResponse | null> {
 		if (!this._url) return null;
 		try {
 			const params = new URLSearchParams({
@@ -427,6 +430,7 @@ class EnterpriseService {
 				...(sortBy && { sortBy }),
 				...(sortOrder && { sortOrder }),
 				limit: limit?.toString(),
+				...(catalogFilter?.length && { catalogFilter: catalogFilter.join(",") }),
 			});
 			const url = `${this._url}/enterprise/modules/metrics/getSearchTableData?${params.toString()}`;
 			const response = await fetch(url, {
@@ -437,7 +441,7 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			await this.checkUnauthorized(response);
+			await this._checkUnauthorized(response);
 			if (!response.ok) return null;
 			return await response.json();
 		} catch (error) {
@@ -454,11 +458,7 @@ class EnterpriseService {
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
-	): Promise<{
-		data: SearchQueryDetailRow[];
-		nextCursor: number | null;
-		hasMore: boolean;
-	} | null> {
+	): Promise<SearchQueryDetailsResponse | null> {
 		if (!this._url) return null;
 		try {
 			const params = new URLSearchParams({
@@ -479,7 +479,7 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			await this.checkUnauthorized(response);
+			await this._checkUnauthorized(response);
 			if (!response.ok) return null;
 			return await response.json();
 		} catch (error) {
@@ -496,11 +496,8 @@ class EnterpriseService {
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
-	): Promise<{
-		data: ArticleRatingRow[];
-		hasMore: boolean;
-		nextCursor: string | null;
-	} | null> {
+		catalogFilter?: string[],
+	): Promise<ArticleRatingsResponse | null> {
 		if (!this._url) return null;
 		try {
 			const params = new URLSearchParams({
@@ -511,6 +508,7 @@ class EnterpriseService {
 			if (sortBy) params.append("sortBy", sortBy);
 			if (sortOrder) params.append("sortOrder", sortOrder);
 			if (limit) params.append("limit", limit.toString());
+			if (catalogFilter?.length) params.append("catalogFilter", catalogFilter.join(","));
 
 			const url = `${this._url}/enterprise/modules/metrics/getArticleRatings?${params.toString()}`;
 			const response = await fetch(url, {
@@ -521,7 +519,7 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			await this.checkUnauthorized(response);
+			await this._checkUnauthorized(response);
 			if (!response.ok) return null;
 			return await response.json();
 		} catch (error) {
@@ -534,6 +532,7 @@ class EnterpriseService {
 		token: string,
 		startDate: string,
 		endDate: string,
+		catalogFilter?: string[],
 	): Promise<SearchChartDataPoint[] | null> {
 		if (!this._url) return null;
 		try {
@@ -541,6 +540,7 @@ class EnterpriseService {
 				startDate,
 				endDate,
 			});
+			if (catalogFilter?.length) params.append("catalogFilter", catalogFilter.join(","));
 			const url = `${this._url}/enterprise/modules/metrics/getSearchChartData?${params.toString()}`;
 			const response = await fetch(url, {
 				method: "GET",
@@ -550,7 +550,7 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			await this.checkUnauthorized(response);
+			await this._checkUnauthorized(response);
 			if (!response.ok) return null;
 			return await response.json();
 		} catch (error) {
@@ -569,6 +569,7 @@ class EnterpriseService {
 		sortOrder?: string,
 		userEmails?: string[],
 		anonymousFilter?: AnonymousFilter,
+		catalogFilter?: string[],
 	): Promise<TableDataResponse | null> {
 		if (!this._url) return null;
 		try {
@@ -586,6 +587,9 @@ class EnterpriseService {
 			if (anonymousFilter) {
 				params.set("anonymousFilter", anonymousFilter);
 			}
+			if (catalogFilter && catalogFilter.length > 0) {
+				params.set("catalogFilter", catalogFilter.join(","));
+			}
 
 			const url = `${this._url}/enterprise/modules/metrics/getTableData?${params}`;
 			const response = await fetch(url, {
@@ -596,7 +600,7 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			await this.checkUnauthorized(response);
+			await this._checkUnauthorized(response);
 			if (!response.ok) return null;
 			return await response.json();
 		} catch (error) {
@@ -610,11 +614,7 @@ class EnterpriseService {
 		search?: string,
 		limit?: number,
 		cursor?: number,
-	): Promise<{
-		users: string[];
-		hasMore: boolean;
-		nextCursor: number | null;
-	} | null> {
+	): Promise<MetricsUsersResponse | null> {
 		if (!this._url) return null;
 		try {
 			const params = new URLSearchParams();
@@ -630,7 +630,69 @@ class EnterpriseService {
 				},
 				credentials: "include",
 			});
-			await this.checkUnauthorized(response);
+			await this._checkUnauthorized(response);
+			if (!response.ok) return null;
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+
+	async getMetricsCatalogs(
+		token: string,
+		search?: string,
+		limit?: number,
+		cursor?: number,
+	): Promise<MetricsCatalogsResponse | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams();
+			if (search) params.append("search", search);
+			if (limit !== undefined) params.append("limit", limit.toString());
+			if (cursor !== undefined) params.append("cursor", cursor.toString());
+			const url = `${this._url}/enterprise/modules/metrics/getMetricsCatalogs?${params.toString()}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			await this._checkUnauthorized(response);
+			if (!response.ok) return null;
+			const data = await response.json();
+			return data;
+		} catch (error) {
+			console.error(error);
+			return null;
+		}
+	}
+
+	async getSearchMetricsCatalogs(
+		token: string,
+		search?: string,
+		limit?: number,
+		cursor?: number,
+	): Promise<MetricsCatalogsResponse | null> {
+		if (!this._url) return null;
+		try {
+			const params = new URLSearchParams();
+			if (search) params.append("search", search);
+			if (limit !== undefined) params.append("limit", limit.toString());
+			if (cursor !== undefined) params.append("cursor", cursor.toString());
+			const url = `${this._url}/enterprise/modules/metrics/getSearchMetricsCatalogs?${params.toString()}`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					Authorization: `Bearer ${token}`,
+					"Content-Type": "application/json",
+				},
+				credentials: "include",
+			});
+			await this._checkUnauthorized(response);
 			if (!response.ok) return null;
 			const data = await response.json();
 			return data;
@@ -653,7 +715,7 @@ class EnterpriseService {
 				credentials: "include",
 			});
 
-			await this.checkUnauthorized(res);
+			await this._checkUnauthorized(res);
 
 			if (!res.ok) {
 				return null;
@@ -680,7 +742,7 @@ class EnterpriseService {
 				},
 			);
 
-			await this.checkUnauthorized(res);
+			await this._checkUnauthorized(res);
 
 			return res.ok ? await res.json() : [];
 		} catch (error) {
@@ -703,7 +765,7 @@ class EnterpriseService {
 				body: JSON.stringify(workspace),
 				credentials: "include",
 			});
-			await this.checkUnauthorized(res);
+			await this._checkUnauthorized(res);
 
 			if (!res.ok) throw new Error(`${t("enterprise.admin.workspace.errors.update")} ${res.status}`);
 			return true;
@@ -726,7 +788,7 @@ class EnterpriseService {
 				body: JSON.stringify(group),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.add")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -748,7 +810,7 @@ class EnterpriseService {
 				body: JSON.stringify({ groupIds }),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.delete")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -770,7 +832,7 @@ class EnterpriseService {
 				body: JSON.stringify({ groupId, newName }),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.groups.errors.rename")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -792,7 +854,7 @@ class EnterpriseService {
 				body: JSON.stringify(editors),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.editors.errors.update")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -814,7 +876,7 @@ class EnterpriseService {
 				body: JSON.stringify(resource),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.resources.errors.add")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -836,7 +898,7 @@ class EnterpriseService {
 				body: JSON.stringify({ resourceIds }),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.mail.errors.update")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -858,7 +920,7 @@ class EnterpriseService {
 				body: JSON.stringify(mail),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.mail.errors.update")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -880,7 +942,7 @@ class EnterpriseService {
 				body: JSON.stringify(guests),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.guests.errors.update")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -902,7 +964,7 @@ class EnterpriseService {
 				body: JSON.stringify(styleGuide),
 				credentials: "include",
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.styleGuide.errors.update")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -957,7 +1019,7 @@ class EnterpriseService {
 				body: JSON.stringify(quiz),
 				credentials: "include",
 			});
-			await this.checkUnauthorized(res);
+			await this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`${t("enterprise.admin.quiz.errors.save-data")} ${res.status}`);
 			return true;
 		} catch (error) {
@@ -979,7 +1041,7 @@ class EnterpriseService {
 				body: JSON.stringify(metrics),
 				credentials: "include",
 			});
-			await this.checkUnauthorized(res);
+			await this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`Failed to save metrics config. Status: ${res.status}`);
 			return true;
 		} catch (error) {
@@ -1001,7 +1063,7 @@ class EnterpriseService {
 				headers,
 				body: JSON.stringify(plugins),
 			});
-			this.checkUnauthorized(res);
+			this._checkUnauthorized(res);
 			if (!res.ok) throw new Error(`Failed to save plugins. Status: ${res.status}`);
 			return true;
 		} catch (error) {

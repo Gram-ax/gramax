@@ -3,7 +3,7 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 const useDesktopEnterpriseSession = () => {
 	const pageDataContext = PageDataContextService.value;
 	const currentWorkspacePath = pageDataContext.workspace.current;
-	const activeGesUrl = pageDataContext.conf.enterprise.gesUrl;
+	const activeGesUrl = pageDataContext.conf.activeGesUrl;
 	const workspaceConfig = pageDataContext.workspace.workspaces.find(
 		(workspace) => workspace.path === currentWorkspacePath,
 	);

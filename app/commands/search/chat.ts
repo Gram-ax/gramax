@@ -9,18 +9,21 @@ import { type ArticleLanguage, isArticleLanguage } from "@ext/serach/modulith/Se
 import type { PropertyFilter } from "@ext/serach/Searcher";
 import { makeCitationPlaceholder, type SearchChatStreamItemText } from "@ext/serach/types";
 import { getCatalogPropertyFilter } from "@ext/serach/utils/getCatalogPropertyFilter";
-import { getRestrictedLogicPaths } from "@ext/serach/utils/getRestrictedLogicPaths";
+import { getDescendantAccessibleArticleIds } from "@ext/serach/utils/getDescendantArticleIds";
+import { getRestrictedArticleIds } from "@ext/serach/utils/getRestrictedArticleIds";
 import { Command } from "../../types/Command";
 
 const chat: Command<
 	{
 		ctx: Context;
 		query: string;
-		signal: AbortSignal;
+		signal?: AbortSignal;
 		catalogName?: string;
 		articlesLanguage?: ArticleLanguage;
 		responseLanguage?: ContentLanguage;
+		articleRefFilter?: string;
 		currentArticle: Path;
+		catalogNames?: string[];
 	},
 	{ mime: string; iterator: AsyncGenerator<string, void, void> }
 > = Command.create({
@@ -28,34 +31,65 @@ const chat: Command<
 
 	kind: ResponseKind.stream,
 
-	async do({ ctx, query, catalogName, articlesLanguage, responseLanguage, signal, currentArticle }) {
+	async do({
+		ctx,
+		query,
+		catalogName,
+		articlesLanguage,
+		responseLanguage,
+		signal,
+		currentArticle,
+		articleRefFilter,
+		catalogNames: initialCatalogNames,
+	}) {
 		const wm = this._app.wm.current();
 
 		let propertyFilter: PropertyFilter | undefined;
-		let catalogNames: string[] = [];
+		let restrictedRefPaths: string[] | undefined;
+		let articleRefPaths: string[] | undefined;
+		let catalogNames: string[] | undefined;
 		if (catalogName) {
 			const catalog = await wm.getContextlessCatalog(catalogName);
-			if (catalog && SecurityRules.canReadCatalog(ctx.user, catalog.perms, catalog.name)) {
-				catalogNames = [BaseCatalog.parseName(catalogName).name];
+			const catalogAccessible = catalog && SecurityRules.canReadCatalog(ctx.user, catalog.perms, catalog.name);
+
+			if (catalogAccessible) {
+				propertyFilter = getCatalogPropertyFilter(catalog);
+				if (articleRefFilter) {
+					// If articleRefFilter is provided, then we filter only this article and its descendant articles
+					articleRefPaths = await getDescendantAccessibleArticleIds(ctx, catalog, articleRefFilter);
+				} else {
+					restrictedRefPaths = await getRestrictedArticleIds(
+						wm,
+						[BaseCatalog.parseName(catalogName).name],
+						ctx,
+					);
+					catalogNames = [catalogName];
+				}
+			} else {
+				// Catalog is not accessible
+				//   empty catalogNames will not match anything
+				//   ChatBot will respond something like "Unable to find info about ..."
+				catalogNames = [];
 			}
-
-			propertyFilter = getCatalogPropertyFilter(catalog);
 		} else {
-			const catalogs = wm.getAllCatalogs();
-			catalogNames = getAccessibleCatalogs(ctx.user, catalogs.values()).map((x) => x.name);
+			const allCatalogEntries = wm.getAllCatalogs();
+			const catalogEntries = initialCatalogNames
+				? initialCatalogNames.map((name) => allCatalogEntries.get(name))
+				: allCatalogEntries.values();
+			catalogNames = getAccessibleCatalogs(ctx.user, catalogEntries).map((x) => x.name);
+			restrictedRefPaths = await getRestrictedArticleIds(wm, catalogNames, ctx);
 		}
-
-		const restrictedLogicPaths = await getRestrictedLogicPaths(wm, catalogNames, ctx);
 
 		const generator = await this._app.searcherManager.getChatBotSearcher().search({
 			query,
 			catalogNames,
 			articlesLanguage,
 			responseLanguage,
-			restrictedLogicPaths,
+			restrictedRefPaths,
+			articleRefPaths,
 			propertyFilter,
 			stream: true,
-			signal: signal,
+			signal,
 		});
 
 		const generateNDJsonStream = async function* (): AsyncGenerator<string, void, void> {
@@ -94,7 +128,7 @@ const chat: Command<
 		};
 	},
 
-	params(ctx, q, _, signal) {
+	params(ctx, q, body, signal) {
 		return {
 			ctx,
 			signal,
@@ -102,7 +136,9 @@ const chat: Command<
 			catalogName: q.catalogName,
 			articlesLanguage: isArticleLanguage(q.articlesLanguage) ? q.articlesLanguage : undefined,
 			responseLanguage: q.responseLanguage ? ContentLanguage[q.responseLanguage] : undefined,
+			articleRefFilter: q.articleRefFilter,
 			currentArticle: new Path(q.currentArticle),
+			catalogNames: body?.catalogNames,
 		};
 	},
 });

@@ -1,7 +1,9 @@
+import type { Router } from "@core/Api/Router";
+import { useRouter } from "@core/Api/useRouter";
 import Path from "@core/FileProvider/Path/Path";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useWatch from "@core-ui/hooks/useWatch";
-import { css } from "@emotion/react";
 import getSideBarData from "@ext/git/actions/Publish/logic/getSideBarData";
 import getSideBarElementByModelIdx, {
 	type SideBarElementData,
@@ -9,49 +11,36 @@ import getSideBarElementByModelIdx, {
 import { useResourceView } from "@ext/git/actions/Publish/logic/useResourceView";
 import type SideBarData from "@ext/git/actions/Publish/model/SideBarData";
 import type SideBarResourceData from "@ext/git/actions/Publish/model/SideBarResourceData";
+import { useDiffViewMode } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
+import getScopeFromString from "@ext/git/core/Diff/logic/utils/getScopeFromString";
+import getScopeString from "@ext/git/core/Diff/logic/utils/getScopeString";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type { DiffFlattenTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
-import ArticleDiffViewWrapper from "@ext/markdown/elements/diff/components/ArticleDiffViewWrapper";
-import { useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
 import { useCallback, useRef } from "react";
 
-const diffStyles = css`
-	.width-wrapper {
-		width: auto !important;
-		margin-left: 0 !important;
+interface SetArticleDiffViewProps {
+	diff: DiffFlattenTreeAnyItem;
+	useDefaultStyles: boolean;
+	router: Router;
+	scope?: TreeReadScope;
+	deleteScope?: TreeReadScope;
+}
 
-		> .scrollableContent {
-			overflow-x: auto;
-			overflow-y: hidden;
-			position: relative;
-			margin-left: 0 !important;
-		}
-	}
+interface SetArticleViewProps extends SetArticleDiffViewProps {
+	data: SideBarElementData;
+}
 
-	.article-default-content {
-		max-width: calc(var(--article-max-width) * 2);
-	}
-
-	.main-article {
-		max-width: var(--article-max-width);
-	}
-
-	.article-page-wrapper {
-		justify-content: center;
-	}
-`.styles;
-
-const getUniqueKey = (path: string, scope: TreeReadScope, deleteScope: TreeReadScope) => {
-	return `${path}${scope ? `-${JSON.stringify(scope)}` : ""}${deleteScope ? `-${JSON.stringify(deleteScope)}` : ""}`;
+const parsePathnameScope = (pathname: string): { cleanPath: string; scopeFromPathname: TreeReadScope | null } => {
+	if (!pathname?.includes(":")) return { cleanPath: pathname, scopeFromPathname: null };
+	const pathnameData = RouterPathProvider.parsePath(pathname);
+	if (!pathnameData.catalogName?.includes(":")) return { cleanPath: pathname, scopeFromPathname: null };
+	const [catalogBase, scopeStr] = pathnameData.catalogName.split(":");
+	const cleanPath = RouterPathProvider.getPathname({ ...pathnameData, catalogName: catalogBase }).value;
+	return { cleanPath, scopeFromPathname: getScopeFromString(scopeStr) };
 };
 
-const setArticleView = (
-	data: SideBarElementData,
-	useDefaultStyles: boolean,
-	isReadOnly: boolean,
-	scope?: TreeReadScope,
-	deleteScope?: TreeReadScope,
-) => {
+const setArticleView = (props: SetArticleViewProps) => {
+	const { data, router, scope, deleteScope, useDefaultStyles } = props;
 	if (data.sideBarDataElement?.isResource) {
 		const sideBarResourceData = data.sideBarDataElement as SideBarResourceData;
 		const parentPath = sideBarResourceData.parentPath;
@@ -59,7 +48,6 @@ const setArticleView = (
 		const relativeTo = new Path(parentPath.path);
 		const oldRelativeTo = parentPath.oldPath ? new Path(parentPath.oldPath) : undefined;
 
-		// biome-ignore lint/correctness/useHookAtTopLevel: expected
 		const resourceView = useResourceView({
 			parentPath,
 			id: data.relativeIdx ?? data.idx,
@@ -76,38 +64,39 @@ const setArticleView = (
 		ArticleViewService.setView(() => resourceView, false);
 	} else {
 		const sideBarData = data.sideBarDataElement as SideBarData;
-		const path = sideBarData.data.filePath.path;
-		const uniqueKey = getUniqueKey(path, scope, deleteScope);
-		const ArticleDiffView = () => (
-			<ArticleDiffViewWrapper
-				isReadOnly={isReadOnly}
-				key={uniqueKey}
-				oldScope={deleteScope}
-				scope={scope}
-				sideBarData={sideBarData}
-			/>
-		);
-		ArticleViewService.setView(ArticleDiffView, useDefaultStyles, diffStyles);
+		const { cleanPath, scopeFromPathname } = parsePathnameScope(sideBarData.pathname);
+		const effectiveDeleteScope = scope ? deleteScope : (scopeFromPathname ?? deleteScope);
+
+		ArticleViewService.useArticleDefaultStyles = useDefaultStyles;
+		ArticleViewService.setDefaultView();
+
+		router.setPreventNextPushRefresh(false);
+		router.pushPath(cleanPath, {
+			mode: "diff",
+			scope: getScopeString(scope),
+			oldScope: getScopeString(effectiveDeleteScope),
+		});
 	}
 };
 
-interface SetArticleDiffViewProps {
-	diff: DiffFlattenTreeAnyItem;
-	useDefaultStyles: boolean;
-	isReadOnly: boolean;
-	scope?: TreeReadScope;
-	deleteScope?: TreeReadScope;
-}
-
-const SetArticleDiffView = ({ diff, useDefaultStyles, scope, deleteScope, isReadOnly }: SetArticleDiffViewProps) => {
+const SetArticleDiffView = (props: SetArticleDiffViewProps) => {
+	const { diff, router, scope, deleteScope, useDefaultStyles } = props;
 	const sideBarData = getSideBarData(diff ? [diff] : [], true, diff.type === "resource");
-	setArticleView(getSideBarElementByModelIdx(0, sideBarData), useDefaultStyles, isReadOnly, scope, deleteScope);
+	setArticleView({
+		data: getSideBarElementByModelIdx(0, sideBarData),
+		router,
+		useDefaultStyles: useDefaultStyles,
+		diff,
+		scope,
+		deleteScope,
+	});
 };
 
-const useSetArticleDiffView = (isReadOnly: boolean, scope?: TreeReadScope, deleteScope?: TreeReadScope) => {
+const useSetArticleDiffView = (scope?: TreeReadScope, deleteScope?: TreeReadScope) => {
 	const diffViewMode = useDiffViewMode();
 	const isWysiwyg = diffViewMode === "wysiwyg-single" || diffViewMode === "wysiwyg-double";
 	const useDefaultStylesRef = useRef(isWysiwyg);
+	const router = useRouter();
 
 	useWatch(() => {
 		useDefaultStylesRef.current = isWysiwyg;
@@ -118,10 +107,10 @@ const useSetArticleDiffView = (isReadOnly: boolean, scope?: TreeReadScope, delet
 		(diff: DiffFlattenTreeAnyItem) => {
 			return SetArticleDiffView({
 				diff,
-				useDefaultStyles: useDefaultStylesRef.current,
-				isReadOnly,
 				scope,
 				deleteScope,
+				router,
+				useDefaultStyles: useDefaultStylesRef.current,
 			});
 		},
 		[scope, deleteScope],

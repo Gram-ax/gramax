@@ -2,6 +2,7 @@ import { TextSize } from "@components/Atoms/Button/Button";
 import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/NavigationTabsService";
 import { LeftNavigationTab } from "@components/Layouts/StatusBar/Extensions/ArticleStatusBar/ArticleStatusBar";
 import ButtonLink from "@components/Molecules/ButtonLink";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
@@ -15,12 +16,11 @@ import FavoriteArticlesTab from "@ext/article/Favorite/components/FavoriteArticl
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import InboxTab from "@ext/inbox/components/InboxTab";
-import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
-import SnippetsTab from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetsTab";
+import FragmentService from "@ext/markdown/elements/fragment/edit/components/Tab/FragmentService";
+import FragmentsTab from "@ext/markdown/elements/fragment/edit/components/Tab/FragmentsTab";
 import TemplateTab from "@ext/templates/components/Tab/TemplateTab";
 import TemplateService from "@ext/templates/components/TemplateService";
 import { useEffect } from "react";
-import type { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
 import TopBarContent from "../../../ArticlePage/Bars/TopBarContent";
 import BarLayout from "../../BarLayout";
 
@@ -49,7 +49,7 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 
 			if (caller === OnBranchUpdateCaller.Init || caller === OnBranchUpdateCaller.CheckoutToNewCreatedBranch)
 				return;
-			[SnippetService, TemplateService].forEach((context) => context.closeItem());
+			[FragmentService, TemplateService].forEach((context) => context.closeItem());
 		};
 
 		BranchUpdaterService.addListener(onBranchChange);
@@ -83,7 +83,7 @@ const LeftNavigationTop = ({ data, className }: { data: ArticlePageData; classNa
 				<>
 					<InboxTab show={topTab === LeftNavigationTab.Inbox} />
 					<TemplateTab show={topTab === LeftNavigationTab.Template} />
-					<SnippetsTab show={topTab === LeftNavigationTab.Snippets} />
+					<FragmentsTab show={topTab === LeftNavigationTab.Fragments} />
 					<PromptTab show={topTab === LeftNavigationTab.Prompt} />
 				</>
 			)}

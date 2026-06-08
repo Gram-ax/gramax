@@ -15,8 +15,9 @@ editorTest.describe("Ordered List", () => {
 		await editor.assertMarkdown("1. text");
 	});
 
-	editorTest("create via toolbar", async ({ editor }) => {
-		await editor.clickToolbar("ordered-list");
+	editorTest("create via toolbar", async ({ editor, sharedPage }) => {
+		await editor.clickToolbar("lists");
+		await sharedPage.getByRole("menuitem", { name: "Numbered" }).click();
 		await editor.type("text");
 		await editor.assertMarkdown("1. text");
 	});
@@ -73,7 +74,7 @@ editorTest.describe("Ordered List", () => {
 		`);
 	});
 
-	editorTest("split ordered list via toolbar", async ({ editor }) => {
+	editorTest("split ordered list via toolbar", async ({ editor, sharedPage }) => {
 		await editor.setMarkdown(md`
 			1. text
 
@@ -81,7 +82,8 @@ editorTest.describe("Ordered List", () => {
 
 			   1. text
 		`);
-		await editor.clickToolbar("ordered-list");
+		await editor.clickToolbar("lists");
+		await sharedPage.getByRole("menuitem", { name: "Numbered" }).click();
 		await editor.assertMarkdown(md`
 			1. text
 

@@ -1,19 +1,12 @@
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import styled from "@emotion/styled";
 import VersionControlCommentCountSrc from "@ext/markdown/elements/comment/edit/components/CommentCount";
-import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
+import { useGetTotalCommentsByPathname } from "@ext/markdown/elements/comment/edit/logic/stores/CommentsStore";
 import type { ItemLink } from "../../../../../navigation/NavigationLinks";
 
-const VersionControlCommentCount = styled(VersionControlCommentCountSrc)`
-	margin: 0 var(--distance-i-span);
-`;
-
-const CommentCountNavExtension = ({ item }: { item: ItemLink }) => {
+export const CommentCountNavExtension = ({ item }: { item: ItemLink }) => {
 	const { isNext, isStatic, isStaticCli } = usePlatform();
 	if (isNext || isStatic || isStaticCli) return null;
 
 	const total = useGetTotalCommentsByPathname(item.pathname);
-	return <VersionControlCommentCount count={total} />;
+	return <VersionControlCommentCountSrc className="ml-[var(--distance-i-span)]" count={total} />;
 };
-
-export default CommentCountNavExtension;

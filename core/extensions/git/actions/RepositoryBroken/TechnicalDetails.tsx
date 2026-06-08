@@ -52,7 +52,7 @@ export const TechnicalDetails = ({ children, error, ...props }: TechnicalDetails
 					<DialogDescription />
 				</DialogHeader>
 				<DialogBody className="text-primary-fg" style={{ padding: "0 0 1rem 0" }}>
-					<CodeBlock value={error?.message || "no message"} />
+					<CodeBlock>{error?.message || "no message"}</CodeBlock>
 				</DialogBody>
 				<DialogFooter className="flex justify-end">
 					<DialogClose asChild>

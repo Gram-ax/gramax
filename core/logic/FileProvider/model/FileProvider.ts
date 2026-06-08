@@ -11,7 +11,7 @@ export type FileProviderEvents = Event<"delete", { path: Path }> &
 
 export default interface FileProvider extends ReadOnlyFileProvider {
 	delete: (path: Path, preferTrash?: boolean) => Promise<void>;
-	deleteEmptyFolders: (path: Path) => Promise<void>;
+	deleteEmptyDirs: (path: Path) => Promise<void>;
 	write: (path: Path, data: string | Buffer, compress?: CompressOptions) => Promise<void>;
 	move: (from: Path, to: Path) => Promise<void>;
 	copy: (from: Path, to: Path) => Promise<void>;

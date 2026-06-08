@@ -1,124 +1,85 @@
-use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 
+use gramaxgit::commands::TreeReadScope;
+use serde::Deserialize;
+
+use crate::backend::DiskFs;
+use crate::backend::Fs;
+use crate::backend::GitFs;
 use crate::compress::CompressOptions;
 use crate::error::Result;
 use crate::DirStat;
 use crate::FileInfo;
 
-pub fn read_dir<P: AsRef<Path>>(path: P) -> Result<Vec<String>> {
-	fs::read_dir(path)?
-		.map(|entry| Ok(entry?.file_name().to_string_lossy().into_owned()))
-		.collect()
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase", tag = "kind")]
+pub enum FsScope {
+	Disk { root: PathBuf },
+	Git { repo: PathBuf, scope: TreeReadScope },
 }
 
-pub fn read_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>> {
-	Ok(fs::read(path)?)
-}
-
-#[instrument(skip(content))]
-pub fn write_file<P: AsRef<Path> + std::fmt::Debug, C: AsRef<[u8]>>(path: P, content: C, compress: Option<CompressOptions>) -> Result<()> {
-	if let Some(compress) = compress {
-		Ok(crate::compress::write_compressed(path, content, compress)?)
-	} else {
-		Ok(fs::write(path, content.as_ref())?)
-	}
-}
-
-pub fn read_link<P: AsRef<Path>>(path: P) -> Result<PathBuf> {
-	Ok(fs::read_link(path)?)
-}
-
-#[instrument]
-pub fn make_dir<P: AsRef<Path> + std::fmt::Debug>(path: P, recursive: bool) -> Result<()> {
-	let res = match recursive {
-		true => fs::create_dir_all(path),
-		false => fs::create_dir(path),
-	};
-
-	Ok(res?)
-}
-
-#[instrument]
-pub fn remove_dir<P: AsRef<Path> + std::fmt::Debug>(path: P, recursive: bool) -> Result<()> {
-	let res = match recursive {
-		true => fs::remove_dir_all(path),
-		false => fs::remove_dir(path),
-	};
-
-	Ok(res?)
-}
-
-pub fn make_symlink<P: AsRef<Path>>(from: P, to: P) -> Result<()> {
-	Ok(fs::hard_link(from, to)?)
-}
-
-pub fn getstat<P: AsRef<Path>>(path: P, follow_link: bool) -> Result<FileInfo> {
-	let meta = fs::metadata(&path)?;
-	if meta.is_symlink() && follow_link {
-		return getstat(read_link(path)?, follow_link);
-	}
-
-	FileInfo::new(meta)
-}
-
-pub fn read_dir_stats<P: AsRef<Path>>(path: P) -> Result<Vec<DirStat>> {
-	let mut res = Vec::new();
-	for entry in fs::read_dir(path)? {
-		let entry = entry?;
-		let stat = getstat(entry.path(), false)?;
-		res.push(DirStat {
-			name: entry.file_name().to_string_lossy().into_owned(),
-			stat,
-		});
-	}
-
-	Ok(res)
-}
-
-#[instrument]
-pub fn rmfile<P: AsRef<Path> + std::fmt::Debug>(path: P) -> Result<()> {
-	Ok(fs::remove_file(path)?)
-}
-
-pub fn exists<P: AsRef<Path>>(path: P) -> Result<bool> {
-	Ok(path.as_ref().exists())
-}
-
-#[instrument]
-pub fn copy<P: AsRef<Path> + std::fmt::Debug>(from: P, to: P) -> Result<()> {
-	if fs::metadata(&from)?.is_dir() {
-		return Ok(copy_dir::copy_dir(from, to)?.into_iter().next().map(Err).unwrap_or(Ok(()))?);
-	}
-
-	fs::copy(from, to)?;
-	Ok(())
-}
-
-#[instrument]
-pub fn mv<P: AsRef<Path> + std::fmt::Debug>(from: P, to: P) -> Result<()> {
-	if let Some(parent) = to.as_ref().parent() {
-		if !parent.exists() {
-			fs::create_dir_all(parent)?;
+impl FsScope {
+	pub fn open(self) -> Box<dyn Fs> {
+		match self {
+			FsScope::Disk { root } => Box::new(DiskFs::new(root)),
+			FsScope::Git { repo, scope } => Box::new(GitFs::new(repo, scope)),
 		}
 	}
+}
 
-	let Err(err) = fs::rename(&from, &to) else { return Ok(()) };
+pub fn exists(fs: FsScope, path: &Path) -> Result<bool> {
+	fs.open().exists(path)
+}
 
-	// Resource is Busy (os error 10) or os error 29
-	if let Some(10 | 29) = err.raw_os_error() {
-		warn!(target: "gramax-fs::mv", "seems resource {} is busy; copying instead of renaming", &from.as_ref().display());
+pub fn stat(scope: FsScope, path: &Path, follow_link: bool) -> Result<FileInfo> {
+	scope.open().stat(path, follow_link)
+}
 
-		copy(&from, &to)?;
-		if fs::metadata(&from)?.is_dir() {
-			fs::remove_dir_all(&from)?;
-		} else {
-			fs::remove_file(&from)?;
-		}
+pub fn read(fs: FsScope, path: &Path) -> Result<Vec<u8>> {
+	fs.open().read(path)
+}
 
-		return Ok(());
-	}
+pub fn read_dir_names(fs: FsScope, path: &Path) -> Result<Vec<String>> {
+	fs.open().read_dir_names(path)
+}
 
-	Err(err.into())
+pub fn read_dir_stats(fs: FsScope, path: &Path) -> Result<Vec<DirStat>> {
+	fs.open().read_dir_stats(path)
+}
+
+pub fn read_link(fs: FsScope, path: &Path) -> Result<PathBuf> {
+	fs.open().read_link(path)
+}
+
+pub fn write(fs: FsScope, path: &Path, data: &[u8], compress: Option<CompressOptions>) -> Result<()> {
+	fs.open().write(path, data, compress)
+}
+
+pub fn mv(fs: FsScope, from: &Path, to: &Path) -> Result<()> {
+	fs.open().mv(from, to)
+}
+
+pub fn copy(fs: FsScope, from: &Path, to: &Path) -> Result<()> {
+	fs.open().copy(from, to)
+}
+
+pub fn make_dir(fs: FsScope, path: &Path, recursive: bool) -> Result<()> {
+	fs.open().make_dir(path, recursive)
+}
+
+pub fn remove_dir(fs: FsScope, path: &Path, recursive: bool) -> Result<()> {
+	fs.open().remove_dir(path, recursive)
+}
+
+pub fn rmfile(fs: FsScope, path: &Path) -> Result<()> {
+	fs.open().rmfile(path)
+}
+
+pub fn hardlink(fs: FsScope, from: &Path, to: &Path) -> Result<()> {
+	fs.open().hardlink(from, to)
+}
+
+pub fn delete_empty_dirs(fs: FsScope, path: &Path) -> Result<()> {
+	fs.open().delete_empty_dirs(path)
 }

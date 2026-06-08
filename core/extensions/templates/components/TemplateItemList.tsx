@@ -71,17 +71,14 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 			ModalToOpenService.resetValue();
 			await refreshPage();
 		},
-		[itemRefPath, apiUrlCreator, getItemProps],
+		[itemRefPath, apiUrlCreator, getItemProps, setModalLoader],
 	);
 
 	const onSelectHandler = useCallback(
 		async (item: ProviderItemProps) => {
-			setModalLoader();
-
 			const content = await getArticleContent();
 			const isHasContent = content?.length > 0;
 
-			ModalToOpenService.resetValue();
 			if (isHasContent) {
 				ModalToOpenService.setValue<TemplateContentWarningProps>(ModalToOpen.TemplateContentWarning, {
 					initialIsOpen: true,
@@ -94,10 +91,10 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 					},
 				});
 			} else {
-				setAsTemplate(item);
+				await setAsTemplate(item);
 			}
 		},
-		[getArticleContent],
+		[getArticleContent, setAsTemplate],
 	);
 
 	const items = isApiRequest
@@ -126,7 +123,7 @@ const TemplateItemList = ({ itemRefPath }: { itemRefPath: string }) => {
 
 	const onNewTemplate = useCallback(async () => {
 		NavigationTabsService.setTop(LeftNavigationTab.Template);
-		const newTemplate = await TemplateService.addNewSnippet(apiUrlCreator);
+		const newTemplate = await TemplateService.addNewTemplate(apiUrlCreator);
 		TemplateService.openItem(newTemplate);
 	}, [apiUrlCreator]);
 

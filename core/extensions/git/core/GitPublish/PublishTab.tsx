@@ -1,13 +1,16 @@
+/** biome-ignore-all lint/style/noRestrictedImports: it's ok */
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
+import { useRouter } from "@core/Api/useRouter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
-import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
+import { RequestStatus, useApi } from "@core-ui/hooks/useApi";
 import { useScrollPositionStore } from "@core-ui/stores/ScrollPositionStore";
 import styled from "@emotion/styled";
 import CommitMsg from "@ext/git/actions/Publish/components/CommitMsg";
 import type { DiffFlattenTreeAnyItem } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { PublishChanges } from "@ext/git/core/GitPublish/PublishChanges";
+import { PublishHealthcheckCode, type PublishHealthcheckResult } from "@ext/git/core/GitPublish/PublishHealthcheck";
 import { useDiscard } from "@ext/git/core/GitPublish/useDiscard";
 import usePublish from "@ext/git/core/GitPublish/usePublish";
 import usePublishDiffEntries from "@ext/git/core/GitPublish/usePublishDiffEntries";
@@ -15,7 +18,7 @@ import usePublishSelection from "@ext/git/core/GitPublish/usePublishSelectedFile
 import t from "@ext/localization/locale/translate";
 import { Loader } from "@ui-kit/Loader";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import DiffExtendedModeToggle from "../GitMergeRequest/components/Changes/DiffExtendedModeToggle";
+import DiffExtendedModeToggle from "../Diff/components/Changes/DiffExtendedModeToggle";
 
 export type PublishTabProps = {
 	show: boolean;
@@ -35,7 +38,18 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
 	const hasBeenOpened = useRef(false);
 	const hasDiscarded = useRef(false);
+
 	const apiUrlCreator = ApiUrlCreatorService.value;
+	const router = useRouter();
+
+	const {
+		call: checkPublishHealth,
+		data: publishHealth,
+		status: publishHealthStatus,
+		reset: resetPublishHealth,
+	} = useApi<PublishHealthcheckResult>({
+		url: (api) => api.getStoragePublishHealthcheckUrl(),
+	});
 
 	const { diffTree, overview, isEntriesLoading, isEntriesReady } = usePublishDiffEntries({
 		autoUpdate: show,
@@ -47,23 +61,23 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 
 	const clearAllPositions = useScrollPositionStore((s) => s.clearAll);
 
-	const restoreRightSidebar = useRestoreRightSidebar();
-
 	const restoreView = useCallback(() => {
 		ArticleViewService.setDefaultView();
-		restoreRightSidebar();
-	}, [restoreRightSidebar]);
+	}, []);
 
-	const close = useCallback(async () => {
-		setShow(false);
-		const isDefaultView = ArticleViewService.isDefaultView();
-		restoreView();
-		if (hasDiscarded.current || !isDefaultView) {
-			await ArticleUpdaterService.update(apiUrlCreator);
-			refreshPage();
-		}
-		hasDiscarded.current = false;
-	}, [setShow, restoreView, apiUrlCreator]);
+	const close = useCallback(
+		async (callSetShow = true) => {
+			if (callSetShow) setShow(false);
+			const isDefaultView = ArticleViewService.isDefaultView();
+			restoreView();
+			if (hasDiscarded.current || !isDefaultView) {
+				await ArticleUpdaterService.update(apiUrlCreator);
+				refreshPage();
+			}
+			hasDiscarded.current = false;
+		},
+		[setShow, restoreView, apiUrlCreator],
+	);
 
 	const onPublished = useCallback(() => {
 		resetSelection();
@@ -87,7 +101,8 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 	const open = useCallback(() => {
 		setShow(true);
 		hasBeenOpened.current = true;
-	}, [setShow]);
+		if (router.query.mode !== "diff") router.pushPath(router.path, { mode: "diff", oldScope: "HEAD" });
+	}, [setShow, router]);
 
 	const closeIfDiscardedAll = useCallback(() => {
 		if (diffTree?.data.length === 0 && hasDiscarded.current) void close();
@@ -104,8 +119,14 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (show) open();
-		if (!show && hasBeenOpened.current && !hasDiscarded.current) void close();
+		if (!show && hasBeenOpened.current && !hasDiscarded.current) void close(false);
 	}, [show]);
+
+	useEffect(() => {
+		if (!show) return;
+		resetPublishHealth();
+		void checkPublishHealth();
+	}, [show, checkPublishHealth, resetPublishHealth]);
 
 	const onEntryDiscard = useCallback(
 		async (paths?: string[]) => {
@@ -133,12 +154,18 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 		[isSelected],
 	);
 
-	const canPublish = !isPublishing && !isEntriesLoading && isEntriesReady && selectedFiles.size > 0;
-
+	const healthcheckPending =
+		publishHealthStatus === RequestStatus.Init || publishHealthStatus === RequestStatus.Loading;
+	const healthcheckLoading = publishHealthStatus === RequestStatus.Loading;
+	const isProtectedBranch = !healthcheckPending && publishHealth?.code === PublishHealthcheckCode.ProtectedBranch;
+	const isHasGitConflicts = !healthcheckPending && publishHealth?.code === PublishHealthcheckCode.HasGitConflicts;
+	const selectedFilesReady = selectedFiles.size > 0 && isEntriesReady && !isEntriesLoading;
+	const commitInputDisabled =
+		isProtectedBranch || healthcheckPending || isDiscarding || isPublishing || !isEntriesReady || isHasGitConflicts;
+	const publishButtonDisabled = healthcheckPending || isDiscarding || isPublishing || !selectedFilesReady;
 	const hasChanges = diffTree?.data?.length > 0;
-
 	const isDiffEntriesLoading = !diffTree?.data && isEntriesLoading;
-	const isLoading = !isDiffEntriesLoading && (isDiscarding || isEntriesLoading);
+	const isLoading = !isDiffEntriesLoading && (isDiscarding || isEntriesLoading || healthcheckLoading);
 
 	return (
 		<TabWrapper
@@ -171,12 +198,14 @@ const PublishTab = memo(({ show = false, setShow }: PublishTabProps) => {
 					<CommitMessage
 						commitMessagePlaceholder={placeholder}
 						commitMessageValue={message}
-						disableCommitInput={isPublishing || !isEntriesReady || isDiscarding}
-						disablePublishButton={!canPublish || isDiscarding}
+						disableCommitInput={commitInputDisabled}
+						disablePublishButton={publishButtonDisabled}
 						fileCount={selectedFiles.size}
 						isLoading={isPublishing}
 						onCommitMessageChange={(msg) => setMessage(msg)}
 						onPublishClick={() => void publish()}
+						showCreateBranchButton={isProtectedBranch}
+						showGitConflictsButton={isHasGitConflicts}
 					/>
 				)}
 			</>

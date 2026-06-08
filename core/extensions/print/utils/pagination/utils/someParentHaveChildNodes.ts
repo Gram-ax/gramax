@@ -1,9 +1,9 @@
+import { FragmentPaginator } from "@ext/markdown/elements/fragment/print/FragmentPaginator";
 import { NotePaginator } from "@ext/markdown/elements/note/print/NotePaginator";
-import { SnippetPaginator } from "@ext/markdown/elements/snippet/print/SnippetPaginator";
 import { TabsPaginator } from "@ext/markdown/elements/tabs/print/TabsPaginator";
 import type NodePaginator from "@ext/print/utils/pagination/NodePaginator";
 
-const paginatorsWithoutAutoPageCreation = [SnippetPaginator, NotePaginator, TabsPaginator];
+const paginatorsWithoutAutoPageCreation = [FragmentPaginator, NotePaginator, TabsPaginator];
 
 const someParentHaveChildNodes = (paginator: NodePaginator) => {
 	let parent = paginator.parentPaginator;

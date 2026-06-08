@@ -1,21 +1,23 @@
 import resolveModule from "@app/resolveModule/frontend";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import IsReadOnlyHOC from "@core-ui/HigherOrderComponent/IsReadOnlyHOC";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
 import type { CatalogError, CatalogErrors } from "@ext/healthcheck/logic/Healthcheck";
-import t from "@ext/localization/locale/translate";
+import t, { type TranslationKey } from "@ext/localization/locale/translate";
 import type { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
-import { useEffect, useState } from "react";
+import { Dialog, DialogBody, DialogContent, DialogHeaderTemplate } from "@ui-kit/Dialog";
+import { Loader } from "@ui-kit/Loader";
+import { ShieldCheck } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import GoToArticle from "../../../components/Actions/GoToArticle";
 import Icon from "../../../components/Atoms/Icon";
 import Tooltip from "../../../components/Atoms/Tooltip";
 import Breadcrumb from "../../../components/Breadcrumbs/LinksBreadcrumb";
-import ModalLayout from "../../../components/Layouts/Modal";
 import Code from "../../markdown/elements/code/render/component/Code";
 
 export interface ResourceError {
@@ -37,13 +39,14 @@ const Healthcheck = ({ itemLinks, className, onClose }: HealthcheckProps) => {
 	const [isOpen, setIsOpen] = useState(true);
 	const [data, setData] = useState<CatalogErrors>(null);
 
-	const loadData = async () => {
+	const loadData = useCallback(async () => {
 		const healthcheckUrl = apiUrlCreator.getHealthcheckUrl();
 		const res = await FetchService.fetch<CatalogErrors>(healthcheckUrl);
 		if (!res?.ok) return;
 		setData(await res?.json?.());
-	};
+	}, [apiUrlCreator]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		loadData();
 	}, []);
@@ -54,26 +57,32 @@ const Healthcheck = ({ itemLinks, className, onClose }: HealthcheckProps) => {
 	};
 
 	return (
-		<ModalLayout contentWidth="M" isOpen={isOpen} onClose={() => onOpenChange(false)} setGlobalsStyles={true}>
-			<div className={`${className} modal article  block-elevation-2`} data-qa={`catalog-healthcheck-modal`}>
-				<h2>{t("healthcheck")}</h2>
-				{data ? (
-					Object.values(CatalogErrorGroups).map((errorGroups, key) => {
-						return (
-							<ResourceErrorComponent
-								data={data[errorGroups.type] ?? []}
-								errorGroup={errorGroups}
-								goToArticleOnClick={() => onOpenChange(false)}
-								itemLinks={itemLinks}
-								key={key}
-							/>
-						);
-					})
-				) : (
-					<SpinnerLoader fullScreen />
-				)}
-			</div>
-		</ModalLayout>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			<DialogContent data-qa={`catalog-healthcheck-modal`} size="L">
+				<DialogHeaderTemplate
+					description={t("healthcheck-description")}
+					icon={ShieldCheck}
+					title={t("healthcheck")}
+				/>
+				<DialogBody className={cn(className, "article")}>
+					{data ? (
+						Object.values(CatalogErrorGroups).map((errorGroups) => {
+							return (
+								<ResourceErrorComponent
+									data={data[errorGroups.type] ?? []}
+									errorGroup={errorGroups}
+									goToArticleOnClick={() => onOpenChange(false)}
+									itemLinks={itemLinks}
+									key={errorGroups.type}
+								/>
+							);
+						})
+					) : (
+						<Loader size="3xl" />
+					)}
+				</DialogBody>
+			</DialogContent>
+		</Dialog>
 	);
 };
 
@@ -103,7 +112,7 @@ export const groupResourceErrors = (data: CatalogError[]) => {
 			isText: d.args.isText,
 		};
 		const index = resourceErrors.findIndex((el) => el.logicPath === errorLink.logicPath);
-		if (index == -1) {
+		if (index === -1) {
 			resourceErrors.push(errorLink);
 		} else {
 			resourceErrors[index].values.push(d.args.value);
@@ -121,7 +130,7 @@ const ResourceErrorComponent = ({ errorGroup, data, itemLinks, goToArticleOnClic
 		itemLinks.forEach((link) => {
 			const linkLogicPath = RouterPathProvider.getLogicPath(link.pathname);
 			if (logicPath.includes(linkLogicPath)) {
-				if (logicPath == linkLogicPath) {
+				if (logicPath === linkLogicPath) {
 					articleBreadcrumbDatas[logicPath] = {
 						titles: catLinks.map((l) => l.title),
 						links: catLinks,
@@ -140,20 +149,20 @@ const ResourceErrorComponent = ({ errorGroup, data, itemLinks, goToArticleOnClic
 		<div className="errors">
 			<h3>
 				{getIcons(data.length)}
-				{t(("check-" + errorGroup.type) as any)}
+				{t(`check-${errorGroup.type}` as TranslationKey)}
 			</h3>
 			{resourceErrors.length ? (
 				<table style={{ overflow: "visible" }}>
 					<thead>
 						<tr>
 							<th>{t("article2")}</th>
-							<th className="flex">{t(errorGroup.title as any)}</th>
+							<th className="flex">{t(errorGroup.title as TranslationKey)}</th>
 						</tr>
 					</thead>
 					<tbody>
 						{resourceErrors.map((resourceError, idx) => {
 							return (
-								<tr className="link" key={idx}>
+								<tr className="link" key={`${resourceError.logicPath}-${resourceError.title}-${idx}`}>
 									<td>
 										<div className="article-name">
 											<Breadcrumb readyData={articleBreadcrumbDatas[resourceError.logicPath]} />
@@ -175,6 +184,7 @@ const ResourceErrorComponent = ({ errorGroup, data, itemLinks, goToArticleOnClic
 										<IsReadOnlyHOC>
 											<div>
 												<a
+													// biome-ignore lint/a11y/useValidAnchor: expected
 													onClick={(ev) => {
 														if (isTauri) {
 															ev.preventDefault();
@@ -287,6 +297,10 @@ export default styled(Healthcheck)`
 
 	.errors {
 		width: 100%;
+
+		h2, h3 {
+			margin-top: 0px !important;
+		}
 
 		.values-container {
 			display: flex;

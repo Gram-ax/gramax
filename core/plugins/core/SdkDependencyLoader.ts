@@ -1,16 +1,17 @@
+import { PlatformServiceNew } from "@core-ui/PlatformService";
 import type UiLanguage from "@ext/localization/core/model/Language";
-import { getCurrentLanguage, type TranslationKey } from "@ext/localization/locale/translate";
+import tRaw, { getCurrentLanguage, type TranslationKey } from "@ext/localization/locale/translate";
 import { initializeSdk } from "@plugins/api/sdk";
 import type { SdkDependencies } from "@plugins/api/sdk/core";
 import { type PluginContainer, ServiceKey } from "@plugins/core/PluginContainer";
 
 export class SdkDependencyLoader {
-	private initialized = false;
+	private _initialized = false;
 
 	constructor(private _container: PluginContainer) {}
 
 	async load(): Promise<void> {
-		if (this.initialized) return;
+		if (this._initialized) return;
 
 		const [t, Modal, isPlatform] = await Promise.all([
 			this._loadTranslation(),
@@ -28,11 +29,10 @@ export class SdkDependencyLoader {
 		};
 		initializeSdk(deps);
 
-		this.initialized = true;
+		this._initialized = true;
 	}
 
 	private async _loadTranslation() {
-		const { default: tRaw } = await import("@ext/localization/locale/translate");
 		const locales = this._container.get(ServiceKey.Locales);
 
 		return (key: TranslationKey, forceLanguage?: UiLanguage) => {
@@ -48,7 +48,6 @@ export class SdkDependencyLoader {
 	}
 
 	private async _loadPlatformService() {
-		const { PlatformServiceNew } = await import("@core-ui/PlatformService");
 		return PlatformServiceNew.isPlatform.bind(PlatformServiceNew);
 	}
 }

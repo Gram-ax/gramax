@@ -48,7 +48,7 @@ export class NotificationWebSocketService extends WebSocketClient<WebSocketMessa
 		this._token = token;
 
 		const wsUrl = gesUrl.replace(/^http/, "ws");
-		const url = `${wsUrl}/ws/notifications`;
+		const url = `${wsUrl}/enterprise/ws/notifications`;
 
 		this.connectToUrl(url);
 	}

@@ -1,12 +1,12 @@
 import useCheck from "@core-ui/hooks/useCheck";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
+import { WorkspaceTemplateUploads } from "@ext/enterprise/components/admin/settings/workspace/components/WorkspaceTemplateUploads";
 import { useWorkspaceSections } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSections";
 import { useWorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/hooks/useWorkspaceSettings";
 import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
-import { Icon } from "@ui-kit/Icon";
 import { useEffect, useMemo } from "react";
 import { useTabGuard } from "../../hooks";
 import { FloatingAlert } from "../../ui-kit/FloatingAlert";
@@ -19,35 +19,20 @@ import { getGroupsWithNames } from "./components/access/components/group/utils/g
 import { WorkspaceAccess } from "./components/access/WorkspaceAccess";
 import { WorkspaceRepositories } from "./components/repositories/WorkspaceRepositories";
 import { WorkspaceSections } from "./components/sections/WorkspaceSections";
-import { WorkspaceInfo } from "./components/WorkspaceInfo";
+import { WorkspaceInfoDefault } from "./components/WorkspaceInfo";
 import { WorkspaceStyling } from "./components/WorkspaceStyling";
-import { WorkspaceTemplateUploads } from "./components/WorkspaceTemplateUploads";
 
 const ownerRole: RoleId = "workspaceOwner";
 
-const WorkspaceComponent = () => {
+const useWorkspaceComponentCommon = () => {
 	const { settings, ensureWorkspaceLoaded, getTabError, isInitialLoading, isRefreshing } = useSettings();
 	const workspaceSettings = settings?.workspace;
 
-	const { localSettings, setLocalSettings, isSaving, isScrolled, handleInputChange, handleSave, saveError } =
+	const { localSettings, setLocalSettings, isSaving, handleInputChange, handleSave, saveError } =
 		useWorkspaceSettings();
 
 	const isEqual = useCheck(workspaceSettings, localSettings);
 	const { hasSectionsOrderChanged, setOriginalSectionsOrder } = useWorkspaceSections(localSettings, setLocalSettings);
-
-	const selectGroups = useMemo(() => getGroupsWithNames(settings?.groups), [settings?.groups]);
-	const selectResources = useMemo(
-		() => settings?.resources?.map((resource) => resource.id) ?? [],
-		[settings?.resources],
-	);
-
-	const sectionResources = useMemo(
-		() =>
-			selectResources
-				?.map((resource) => resource.split("/").pop() || "")
-				.filter((id, index, self) => self.indexOf(id) === index) ?? [],
-		[selectResources],
-	);
 
 	useEffect(() => {
 		if (workspaceSettings) {
@@ -55,10 +40,12 @@ const WorkspaceComponent = () => {
 		}
 	}, [workspaceSettings, setOriginalSectionsOrder]);
 
+	const isWorkspaceInitialLoading = isInitialLoading("workspace");
+
 	useTabGuard({
 		page: Page.WORKSPACE,
 		hasChanges: () => {
-			if (isInitialLoading("workspace") || !workspaceSettings) {
+			if (isWorkspaceInitialLoading || !workspaceSettings) {
 				return false;
 			}
 			return !isEqual || hasSectionsOrderChanged();
@@ -72,16 +59,42 @@ const WorkspaceComponent = () => {
 		},
 	});
 
-	const tabError = getTabError("workspace");
+	const isSaveDisabled =
+		!localSettings.name || !localSettings.git.source.url || (isEqual && !hasSectionsOrderChanged());
 
-	if (isInitialLoading("workspace")) {
-		return <TabInitialLoader />;
-	}
+	return {
+		ensureWorkspaceLoaded,
+		isSaving,
+		isWorkspaceInitialLoading,
+		isWorkspaceRefreshing: isRefreshing("workspace"),
+		localSettings,
+		saveError,
+		setLocalSettings,
+		settings,
+		tabError: getTabError("workspace"),
+		handleInputChange,
+		handleSave,
+		isSaveDisabled,
+	};
+};
 
-	if (tabError) {
-		return <TabErrorBlock message={tabError.message} onRetry={() => ensureWorkspaceLoaded(true)} />;
-	}
+interface WorkspaceLayoutProps {
+	children: React.ReactNode;
+	handleSave: () => void;
+	isRefreshingWorkspace: boolean;
+	isSaveDisabled: boolean;
+	isSaving: boolean;
+	saveError: string | null;
+}
 
+const WorkspaceLayout = ({
+	children,
+	handleSave,
+	isRefreshingWorkspace,
+	isSaveDisabled,
+	isSaving,
+	saveError,
+}: WorkspaceLayoutProps) => {
 	return (
 		<>
 			<StickyHeader
@@ -90,55 +103,91 @@ const WorkspaceComponent = () => {
 						{isSaving ? (
 							<LoadingButtonTemplate text={`${t("save2")}...`} />
 						) : (
-							<Button
-								disabled={
-									!localSettings.name ||
-									!localSettings.source.url ||
-									(isEqual && !hasSectionsOrderChanged())
-								}
-								onClick={handleSave}
-							>
-								<Icon icon="save" />
+							<Button disabled={isSaveDisabled} onClick={handleSave}>
 								{t("save")}
 							</Button>
 						)}
 					</>
 				}
-				isScrolled={isScrolled}
 				title={
 					<>
-						{getAdminPageTitle(Page.WORKSPACE)} <Spinner show={isRefreshing("workspace")} size="small" />
+						{getAdminPageTitle(Page.WORKSPACE)} <Spinner show={isRefreshingWorkspace} size="small" />
 					</>
 				}
 			/>
 			<FloatingAlert message={saveError} show={Boolean(saveError)} />
-			<div className="px-6 space-y-6">
-				<WorkspaceInfo localSettings={localSettings} onInputChange={handleInputChange} />
-
-				<WorkspaceAccess
-					groups={selectGroups}
-					localSettings={localSettings}
-					ownerRole={ownerRole}
-					setLocalSettings={setLocalSettings}
-				/>
-
-				<WorkspaceRepositories
-					localSettings={localSettings}
-					selectResources={selectResources ?? []}
-					setLocalSettings={setLocalSettings}
-				/>
-
-				<WorkspaceSections
-					localSettings={localSettings}
-					sectionResources={sectionResources ?? []}
-					setLocalSettings={setLocalSettings}
-				/>
-
-				<WorkspaceStyling localSettings={localSettings} setLocalSettings={setLocalSettings} />
-
-				<WorkspaceTemplateUploads localSettings={localSettings} setLocalSettings={setLocalSettings} />
-			</div>
+			<div className="space-y-6">{children}</div>
 		</>
+	);
+};
+
+const WorkspaceComponent = () => {
+	const {
+		ensureWorkspaceLoaded,
+		handleInputChange,
+		handleSave,
+		isSaving,
+		isWorkspaceInitialLoading,
+		isWorkspaceRefreshing,
+		localSettings,
+		saveError,
+		setLocalSettings,
+		settings,
+		tabError,
+		isSaveDisabled,
+	} = useWorkspaceComponentCommon();
+
+	const selectGroups = useMemo(() => getGroupsWithNames(settings?.groups), [settings?.groups]);
+
+	const selectResources = useMemo(
+		() => settings?.resources?.map((resource) => resource.id) ?? [],
+		[settings?.resources],
+	);
+
+	const sectionResources = useMemo(
+		() =>
+			selectResources
+				?.map((resource) => resource.split("/").pop() || "")
+				.filter((id, index, self) => self.indexOf(id) === index) ?? [],
+		[selectResources],
+	);
+
+	if (isWorkspaceInitialLoading) {
+		return <TabInitialLoader />;
+	}
+
+	if (tabError) {
+		return <TabErrorBlock message={tabError.message} onRetry={() => ensureWorkspaceLoaded(true)} />;
+	}
+
+	return (
+		<WorkspaceLayout
+			handleSave={handleSave}
+			isRefreshingWorkspace={isWorkspaceRefreshing}
+			isSaveDisabled={isSaveDisabled}
+			isSaving={isSaving}
+			saveError={saveError}
+		>
+			<WorkspaceInfoDefault localSettings={localSettings} onInputChange={handleInputChange} />
+			<WorkspaceAccess
+				groups={selectGroups}
+				localSettings={localSettings}
+				ownerRole={ownerRole}
+				setLocalSettings={setLocalSettings}
+			/>
+			<WorkspaceRepositories
+				localSettings={localSettings}
+				selectResources={selectResources ?? []}
+				setLocalSettings={setLocalSettings}
+			/>
+			<WorkspaceSections
+				localSettings={localSettings}
+				sectionResources={sectionResources ?? []}
+				setLocalSettings={setLocalSettings}
+			/>
+			<WorkspaceStyling localSettings={localSettings} setLocalSettings={setLocalSettings} />
+			<WorkspaceTemplateUploads localSettings={localSettings} setLocalSettings={setLocalSettings} />
+		</WorkspaceLayout>
 	);
 };
 

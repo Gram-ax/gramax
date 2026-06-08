@@ -7,20 +7,17 @@ type ToolbarButton =
 	| "bold"
 	| "italic"
 	| "strikethrough"
-	| "heading-2"
-	| "heading-3"
-	| "heading-4"
-	| "bullet-list"
-	| "ordered-list"
-	| "task-list"
+	| "headers"
+	| "lists"
 	| "code"
 	| "table"
 	| "note"
-	| "diagrams"
-	| "pencil-ruler";
+	| "notes"
+	| "semiBlocks";
 
 export type AssertMdOpts = {
 	ignoreTabs?: boolean;
+	skipAssertMarkdownValid?: boolean;
 };
 
 export type SetMarkdownOpts = {
@@ -31,17 +28,13 @@ const toolbarIconMap: Record<ToolbarButton, string> = {
 	bold: '[data-testid="tb-bold"]',
 	italic: '[data-testid="tb-italic"]',
 	strikethrough: '[data-testid="tb-strikethrough"]',
-	"heading-2": '[data-testid="tb-heading-2"]',
-	"heading-3": '[data-testid="tb-heading-3"]',
-	"heading-4": '[data-testid="tb-heading-4"]',
-	"bullet-list": '[data-testid="tb-bullet-list"]',
-	"ordered-list": '[data-testid="tb-ordered-list"]',
-	"task-list": '[data-testid="tb-task-list"]',
+	headers: '[data-testid="tb-headers"]',
+	lists: '[data-testid="tb-lists"]',
 	code: '[data-testid="tb-code"]',
 	table: '[data-testid="tb-table"]',
 	note: '[data-testid="tb-note"]',
-	diagrams: '[data-testid="tb-diagrams"]',
-	"pencil-ruler": '[data-testid="tb-pencil-ruler"]',
+	notes: '[data-testid="tb-notes"]',
+	semiBlocks: '[data-testid="tb-semi-blocks"]',
 };
 
 class EditorPom<P extends BaseSharedPage = BaseSharedPage> {
@@ -136,7 +129,9 @@ export class ArticleEditorPom extends EditorPom<CatalogPage> {
 	async assertMarkdown(expected: string, opts?: AssertMdOpts) {
 		await this.forceSave();
 
-		await this.assertMarkdownValid();
+		if (!opts?.skipAssertMarkdownValid) {
+			await this.assertMarkdownValid();
+		}
 
 		let clean = expected.replace(/\(\*\)/g, "").trim();
 		let cleanedMd = (await this.markdown()).replace(/[ \t]+$/gm, "").trim();

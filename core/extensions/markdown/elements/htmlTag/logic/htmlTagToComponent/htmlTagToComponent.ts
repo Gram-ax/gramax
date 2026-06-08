@@ -1,4 +1,3 @@
-import { parse } from "@ext/markdown/elements/image/render/logic/imageTransformer";
 import type { JSONContent } from "@tiptap/core";
 
 type HtmlTagToComponentType = (node: JSONContent) => JSONContent;
@@ -26,7 +25,7 @@ const markTransformer =
 	};
 
 const NodeTransformer =
-	(nodeName: string, getAttrs?: (node: JSONContent) => Record<string, any>): HtmlTagToComponentType =>
+	(nodeName: string, getAttrs?: (node: JSONContent) => Record<string, never>): HtmlTagToComponentType =>
 	(node) => {
 		node.type = nodeName;
 		node.attrs = {
@@ -62,17 +61,8 @@ const HtmlTagToComponent = {
 	li: NodeTransformer("listItem"),
 	ul: NodeTransformer("bulletList"),
 	ol: NodeTransformer("orderedList"),
-	blockquote: NodeTransformer("note", () => ({ type: "quote" })),
-	img: NodeTransformer("image", (node) =>
-		parse(
-			node.attrs.attributes.crop ?? "0,0,100,100",
-			node.attrs.attributes.scale ?? null,
-			node.attrs.attributes.objects ?? "[]",
-			node.attrs.attributes.width,
-			node.attrs.attributes.height,
-			node.attrs.attributes.float ?? "center",
-		),
-	),
+	blockquote: NodeTransformer("note", () => ({ type: "quote" as never })),
+	img: NodeTransformer("image"),
 } as const;
 
 export default HtmlTagToComponent;

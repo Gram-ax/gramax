@@ -2,6 +2,7 @@ import { getExecutingEnvironment } from "@app/resolveModule/env";
 import type Context from "@core/Context/Context";
 import type PageDataContext from "@core/Context/PageDataContext";
 import getClientPermissions from "@ext/enterprise/utils/getClientPermissions";
+import { getWorkspaceEnterpriseConfig } from "@ext/enterprise/utils/getWorkspaceEnterpriseConfig";
 import type UserInfo from "@ext/security/logic/User/UserInfo";
 import { getEnabledFeatures } from "@ext/toggleFeatures/features";
 import type Application from "../../types/Application";
@@ -18,6 +19,7 @@ const getPageDataContext: GetPageDataContext = async ({ ctx, app, isArticle, use
 	const conf = app.conf;
 	const workspace = app.wm.maybeCurrent();
 	const workspaceConfig = await workspace?.config();
+	const enterpriseConfig = getWorkspaceEnterpriseConfig(workspaceConfig);
 
 	return {
 		theme: ctx.theme,
@@ -39,7 +41,9 @@ const getPageDataContext: GetPageDataContext = async ({ ctx, app, isArticle, use
 		conf: {
 			isReadOnly,
 			logo: conf.logo,
-			search: conf.search,
+			search: {
+				resourcesEnabled: Boolean(workspaceConfig?.enterprise?.gesUrl),
+			},
 			metrics: conf.metrics,
 			version: conf.version,
 			isRelease: conf.isRelease,
@@ -51,10 +55,12 @@ const getPageDataContext: GetPageDataContext = async ({ ctx, app, isArticle, use
 			authServiceUrl: workspaceConfig?.services?.auth?.url || conf?.services?.auth?.url,
 			cloudServiceUrl: workspaceConfig?.services?.cloud?.url || conf?.services?.cloud?.url,
 			diagramsServiceUrl: workspaceConfig?.services?.diagramRenderer?.url || conf?.services?.diagramRenderer?.url,
-			enterprise: app.em.getConfig(),
+			enterprise: enterpriseConfig,
+			activeGesUrl: app.em.getConfig().gesUrl,
 			ai: {
 				enabled: Boolean(conf.portalAi.enabled || app.adp.getEditorAiData(ctx, workspace?.path() ?? "").apiUrl),
 			},
+			enterpriseCloud: app.enterpriseCloudManager.getConfig(),
 		},
 		permissions: getClientPermissions(ctx.user),
 		features: getExecutingEnvironment() === "next" ? getEnabledFeatures().map((f) => f.name) : null,

@@ -1,10 +1,9 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import type { JSONContent } from "@tiptap/core";
 import assert from "assert";
 import type { ComponentType, ReactNode } from "react";
 import React from "react";
 import type { RenderableTreeNodes, Scalar } from "../logic/Markdoc";
-
-// import ContentEditor from "../Wysiwyg/ContentEditor";
 
 type Component = ComponentType<unknown>;
 
@@ -32,11 +31,16 @@ export default function Renderer(
 		if (typeof node === "string") return node;
 		if (node === null) return null;
 
-		const { name, attributes: { class: className, ...attrs } = {}, children = [] } = getNodeData(node);
+		const isTag = "children" in node;
+		const {
+			name,
+			attributes: { class: className, ...attrs } = {},
+			children = [],
+		} = isTag ? node : getNodeData(node);
 
 		if (className) attrs.className = className;
 
-		let renderAttrs = Object.keys(attrs).length == 0 ? null : deepRender(attrs);
+		let renderAttrs = isTag ? (Object.keys(attrs).length === 0 ? null : deepRender(attrs)) : attrs;
 		if (renderAttrs && isPrint) renderAttrs.isPrint = true;
 		if (isPrint && !renderAttrs) renderAttrs = { isPrint };
 		return React.createElement(tagName(name, components), renderAttrs, ...children.map(render));
@@ -48,11 +52,8 @@ export default function Renderer(
 	return component;
 }
 
-function getNodeData(node: RenderableTreeNodes | JSONContent) {
-	assert(typeof node == "object", "node must be an object and not null");
-
-	const isTag = "children" in node;
-	if (isTag) return node;
+function getNodeData(node: JSONContent) {
+	assert(typeof node === "object", "node must be an object and not null");
 
 	if ("type" in node) {
 		return {

@@ -6,6 +6,7 @@ import Url from "@core-ui/ApiServices/Types/Url";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+// biome-ignore lint/style/noRestrictedImports: old cssinjs
 import styled from "@emotion/styled";
 import { isInDropdown } from "@ui-kit/Dropdown";
 import type { HTMLAttributes } from "react";

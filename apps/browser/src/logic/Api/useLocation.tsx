@@ -1,9 +1,10 @@
-import { useLocation as useWouterLocation } from "wouter";
+import { useSearch, useLocation as useWouterLocation } from "wouter";
 
 const useLocation = (): [string, (to: string, options?: { replace?: boolean }) => void, string] => {
 	if (typeof window === "undefined") return ["", () => {}, ""];
 	const [location, setLocation] = useWouterLocation();
-	return [location, setLocation, typeof window === "undefined" ? "" : window.location.search];
+	const search = useSearch();
+	return [location, setLocation, search];
 };
 
 export default useLocation;

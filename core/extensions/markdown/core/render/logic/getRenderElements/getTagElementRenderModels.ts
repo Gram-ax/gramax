@@ -15,6 +15,8 @@ import { plantUml } from "@ext/markdown/elements/diagrams/diagrams/plantUml/plan
 import { drawio } from "@ext/markdown/elements/drawio/render/model/drawio";
 import { error } from "@ext/markdown/elements/error/error";
 import { formula } from "@ext/markdown/elements/formula/model/formula";
+import { fragment } from "@ext/markdown/elements/fragment/render/model/fragment";
+import { fragmentLink } from "@ext/markdown/elements/fragment-link/render/model/fragmentLink";
 import { highlight } from "@ext/markdown/elements/highlight/render/model/schema";
 import { html } from "@ext/markdown/elements/html/render/models/html";
 import {
@@ -37,7 +39,6 @@ import { note } from "@ext/markdown/elements/note/render/model/note";
 import { OpenApi } from "@ext/markdown/elements/openApi/render/model/OpenApi";
 import { question } from "@ext/markdown/elements/question/render/models/question";
 import { see } from "@ext/markdown/elements/see/model/see";
-import { snippet } from "@ext/markdown/elements/snippet/render/model/snippet";
 import { col, colgroup, table, td, tr } from "@ext/markdown/elements/table/render/model/table";
 import { tabledb } from "@ext/markdown/elements/tabledb/model/tabledb";
 import { tab, tabs } from "@ext/markdown/elements/tabs/render/model/tabs";
@@ -46,6 +47,7 @@ import { unsupported } from "@ext/markdown/elements/unsupported/render/model/uns
 import { video } from "@ext/markdown/elements/video/render/model/video";
 import { view } from "@ext/markdown/elements/view/render/models/view";
 import { when, who } from "@ext/markdown/elements/whowhen/model/whowhen";
+import { propertyTag } from "@ext/properties/models/propertyTag";
 import type PrivateParserContext from "../../../Parser/ParserContext/PrivateParserContext";
 import type { Schema } from "../Markdoc";
 
@@ -60,11 +62,14 @@ function getContextTagElementRenderModels(context: PrivateParserContext): Record
 		openapi: OpenApi(context),
 		mermaid: mermaid(context),
 		include: include(context),
-		snippet: snippet(context),
+		fragment: fragment(context),
+		snippet: fragment(context),
 		formula: formula(context),
 		drawio: drawio(context),
 		term: term(context),
 		icon: icon(context),
+		"fragment-link": fragmentLink(context),
+		"snippet-link": fragmentLink(context),
 	};
 }
 
@@ -112,6 +117,7 @@ export default function getTagElementRenderModels(context?: PrivateParserContext
 		"inline-property": inlineProperty,
 		"block-field": blockField,
 		"block-property": blockProperty,
+		property: propertyTag,
 		...contextElements,
 	};
 }

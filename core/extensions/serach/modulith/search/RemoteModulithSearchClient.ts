@@ -4,32 +4,33 @@ import type { SearchArgs, SearchStreamArgs } from "@ext/serach/ChatBotSearcher";
 import type {
 	SearchArticle,
 	SearchArticleArticleMetadata,
-	SearchArticleFilter,
 	SearchArticleKey,
 	SearchArticleMetadata,
 } from "@ext/serach/modulith/SearchArticle";
 import type { UpdateArgs } from "@ext/serach/modulith/search/ModulithSearchClient";
 import type { PropertyFilter } from "@ext/serach/Searcher";
 import {
-	type ArticleFilter,
+	andFilter,
+	containsFilter,
+	eqFilter,
+	inFilter,
+	isEmptyFilter,
+	notFilter,
+	orFilter,
+	type ProgressCallback,
+} from "@ics/article-search-utils";
+import {
 	type ChatResponse,
 	type ChatStreamResponse,
 	type CheckAuthResponse,
 	type CheckResponse,
-	type EqFilter,
 	type FieldsToDotPaths,
 	type Filter,
-	type LegacyArticleFilter,
 	RagApiClient,
+	type RagTaskId,
+	RagTaskStatusPoller,
+	waitForTaskDone,
 } from "@ics/gx-vector-search";
-import {
-	andFilter,
-	containsFilter,
-	eqFilter,
-	isEmptyFilter,
-	orFilter,
-	type ProgressCallback,
-} from "@ics/modulith-utils";
 import { SemVer } from "semver";
 
 export interface RemoteModulithSearcherOptions {
@@ -39,15 +40,18 @@ export interface RemoteModulithSearcherOptions {
 }
 
 const RAG_PLUGIN_NAME = "@ics/modulith-rag";
-const RAG_PLUGIN_VERSION_0_0_6 = new SemVer("0.0.6");
 const RAG_PLUGIN_VERSION_0_0_8 = new SemVer("0.0.8");
+const RAG_PLUGIN_VERSION_0_0_9 = new SemVer("0.0.9");
 
 const STATUS_POLLING_INTERVAL_MS = 500;
 const STATUS_POLLING_TIMEOUT_MS = 60 * 5 * 1000; // 5 min
 
 export class RemoteModulithSearchClient {
 	private readonly _apiClient: RagApiClient;
+	private _taskStatusPoller: RagTaskStatusPoller | undefined;
 	private _ragVersion: SemVer | null = null;
+
+	private _ragGt008: boolean = false;
 
 	private constructor(options: RemoteModulithSearcherOptions) {
 		this._apiClient = new RagApiClient({
@@ -60,7 +64,7 @@ export class RemoteModulithSearchClient {
 	static async create(options: RemoteModulithSearcherOptions): Promise<RemoteModulithSearchClient> {
 		const client = new RemoteModulithSearchClient(options);
 		const { serverAvailable, authAvailable } = await client._checkConnectionImpl();
-		if (serverAvailable && authAvailable) await client._initRagVersion();
+		if (serverAvailable && authAvailable) await client._init();
 		return client;
 	}
 
@@ -90,11 +94,13 @@ export class RemoteModulithSearchClient {
 			const articlesForRemote = convertArticlesForRemote(articles);
 			const res = await this._apiClient.updateArticles<SearchArticleMetadata, SearchArticleKey | string>(
 				articlesForRemote,
-				this._processFilter(filter),
+				filter,
 			);
 			if (res.done === false) await this._waitUntilDone(res.taskId, progressCallback);
 		} catch (e) {
 			console.error(e);
+		} finally {
+			progressCallback?.(1);
 		}
 	}
 
@@ -107,7 +113,8 @@ export class RemoteModulithSearchClient {
 			catalogNames,
 			articlesLanguage,
 			responseLanguage,
-			restrictedLogicPaths,
+			restrictedRefPaths,
+			articleRefPaths,
 			propertyFilter,
 			signal,
 			stream,
@@ -115,44 +122,20 @@ export class RemoteModulithSearchClient {
 		const filters: Filter<FieldsToDotPaths<SearchArticleMetadata>>[] = [];
 
 		if (catalogNames) {
-			if (catalogNames.length <= 1) {
-				filters.push({
-					op: "eq",
-					key: "catalogId",
-					value: catalogNames[0] ?? null,
-				});
-			} else if (this._ragVersion.compare(RAG_PLUGIN_VERSION_0_0_6) >= 0) {
-				filters.push({
-					op: "in",
-					key: "catalogId",
-					list: catalogNames,
-				});
-			}
+			filters.push(inFilter("catalogId", catalogNames));
 		}
 
-		if (
-			restrictedLogicPaths != null &&
-			restrictedLogicPaths.length > 0 &&
-			this._ragVersion.compare(RAG_PLUGIN_VERSION_0_0_6) >= 0
-		) {
-			filters.push({
-				op: "not",
-				filter: {
-					op: "in",
-					key: "logicPath",
-					list: restrictedLogicPaths,
-				},
-			});
+		if (restrictedRefPaths != null && restrictedRefPaths.length > 0) {
+			filters.push(notFilter(inFilter("refPath", restrictedRefPaths)));
 		}
 
-		if (articlesLanguage)
-			filters.push({
-				op: "eq",
-				key: "lang",
-				value: articlesLanguage,
-			});
+		if (articleRefPaths != null) {
+			filters.push(inFilter("refPath", articleRefPaths));
+		}
 
-		if (propertyFilter && this._ragVersion.compare(RAG_PLUGIN_VERSION_0_0_8) >= 0) {
+		if (articlesLanguage) filters.push(eqFilter("lang", articlesLanguage));
+
+		if (propertyFilter && this._ragGt008) {
 			filters.push(convertPropertyFilter(propertyFilter));
 		}
 
@@ -161,10 +144,7 @@ export class RemoteModulithSearchClient {
 				query,
 				language: responseLanguage,
 				filter: {
-					metadata: {
-						op: "and",
-						filters: filters,
-					},
+					metadata: andFilter(filters),
 				},
 				stream,
 				reqOptions: {
@@ -202,7 +182,11 @@ export class RemoteModulithSearchClient {
 		return { serverAvailable: serverAvailable.ok, authAvailable: authAvailable?.ok ?? false };
 	}
 
-	private async _waitUntilDone(taskId: string, progressCallback?: ProgressCallback) {
+	private async _waitUntilDone(taskId: RagTaskId, progressCallback?: ProgressCallback) {
+		if (this._taskStatusPoller) {
+			return await waitForTaskDone(this._taskStatusPoller, taskId, progressCallback, STATUS_POLLING_TIMEOUT_MS);
+		}
+
 		let done: boolean = false;
 		let lastProgress: number;
 		const startedTime = performance.now();
@@ -222,20 +206,17 @@ export class RemoteModulithSearchClient {
 		}
 	}
 
-	private _processFilter(
-		filter?: SearchArticleFilter,
-	): ArticleFilter<SearchArticleKey> | LegacyArticleFilter<string> {
-		if (this._ragVersion.compare(RAG_PLUGIN_VERSION_0_0_6) >= 0) {
-			return filter;
-		}
-
-		return convertFilterToLegacy(filter);
-	}
-
-	private async _initRagVersion(): Promise<void> {
+	private async _init(): Promise<void> {
 		try {
 			const res = await this._apiClient.plugins();
 			this._ragVersion = new SemVer(res.find((x) => x.name === RAG_PLUGIN_NAME)?.version ?? "0.0.0");
+			this._ragGt008 = this._ragVersion.compare(RAG_PLUGIN_VERSION_0_0_8) >= 0;
+			const ragGt009 = this._ragVersion.compare(RAG_PLUGIN_VERSION_0_0_9) >= 0;
+			if (ragGt009)
+				this._taskStatusPoller = new RagTaskStatusPoller({
+					apiClient: this._apiClient,
+					pollingIntervalMs: STATUS_POLLING_INTERVAL_MS,
+				});
 		} catch (error) {
 			console.error(error);
 			this._ragVersion = new SemVer("0.0.0");
@@ -254,43 +235,6 @@ function convertArticlesForRemote(articles: SearchArticle[]): SearchArticle[] {
 			id: (x.metadata as SearchArticleArticleMetadata).logicPath,
 			children: convertArticlesForRemote(x.children),
 		}));
-}
-
-function convertFilterToLegacy(filter?: SearchArticleFilter): LegacyArticleFilter<string> | undefined {
-	if (!filter?.metadata) {
-		return undefined;
-	}
-
-	const op = filter.metadata.op;
-	switch (op) {
-		case "eq":
-			return {
-				metadata: [
-					{
-						op: "eq",
-						key: filter.metadata.key.join("."),
-						value: filter.metadata.value,
-					},
-				],
-			};
-		case "and":
-			return {
-				metadata: filter.metadata.filters.map<EqFilter<string>>((x) => {
-					if (x.op !== "eq") {
-						// TODO: error "Update AI server"
-						throw new Error(`Unexpected filter operation ${x.op}`);
-					}
-
-					return {
-						op: "eq",
-						key: x.key.join("."),
-						value: x.value,
-					};
-				}),
-			};
-		default:
-			throw new Error(`Unexpected filter operation ${op}`);
-	}
 }
 
 function convertPropertyFilter(propertyFilter: PropertyFilter): Filter<FieldsToDotPaths<SearchArticleMetadata>> {

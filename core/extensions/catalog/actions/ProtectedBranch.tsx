@@ -1,7 +1,6 @@
 import StatusBarElement from "@components/Layouts/StatusBar/StatusBarElement";
-import t from "@ext/localization/locale/translate";
 
-const ProtectedBranch = () => {
+const ProtectedBranch = ({ text }: { text: string }) => {
 	return (
 		<div data-qa="qa-protected-branch">
 			<StatusBarElement
@@ -11,7 +10,7 @@ const ProtectedBranch = () => {
 				iconStyle={{ fontSize: "15px", opacity: 0.5, fill: "white" }}
 				tooltipText={
 					<div style={{ textAlign: "center" }}>
-						<p>{t("git.publish.error.main-branch")}</p>
+						<p>{text}</p>
 					</div>
 				}
 			/>

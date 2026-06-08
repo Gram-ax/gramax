@@ -18,6 +18,7 @@ export const clear = async () => {
 	const fp = app.wm.current().getFileProvider();
 
 	const items = await fp.getItems(Path.empty);
+
 	await Promise.all(items.map((item) => fp.delete(item.path)));
 	await fp.getItems(Path.empty);
 };
@@ -152,5 +153,10 @@ export const setSourceData = async (data: SourceData) => {
 	const ctx = await app.contextFactory.fromBrowser({ language: "ru" });
 	return app.rp.setSourceData(ctx, data);
 };
+
+// biome-ignore lint/style/useConst: reassinged from ArticleEditRenderer
+export let forceSave: () => void = null;
+// biome-ignore lint/style/useConst: reassinged from ArticleEditRenderer
+export let editor = null;
 
 export const compressOptions: CompressOptions = { type: "image", target: "jpeg", quality: 50, effort: 6 };

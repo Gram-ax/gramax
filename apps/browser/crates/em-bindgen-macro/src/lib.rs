@@ -162,8 +162,10 @@ impl ToTokens for BindingFn {
 
 				crate::threading::run(move || {
 					let ptr = send_ptr as *mut u8;
-					let raw_data = Vec::from_raw_parts(ptr, len, len);
-					match serde_json::from_slice::<#args_struct_name>(&raw_data) {
+					let raw_data = std::slice::from_raw_parts(ptr, len);
+					let parsed = serde_json::from_slice::<#args_struct_name>(raw_data);
+					crate::ffi::rfree(ptr.cast(), len);
+					match parsed {
 						Ok(args) => {
 							let #args_struct_name { #(#args,)* span_id, trace_id } = args;
 							let _otel_guard = crate::opentelemetry::setup_remote_context(span_id.as_deref(), trace_id.as_deref());

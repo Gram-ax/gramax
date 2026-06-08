@@ -66,7 +66,7 @@ export default (): UserConfig => ({
 		]),
 		polyfills({
 			protocolImports: true,
-			exclude: ["buffer", "module"],
+			exclude: ["buffer", "module", "fs"],
 		}),
 		isProduction && process.env.BUGSNAG_API_KEY && process.env.BUILD_VERSION && ViteSourceMapUploader(),
 		createHtmlPlugin({
@@ -97,6 +97,7 @@ export default (): UserConfig => ({
 	resolve: {
 		alias: {
 			...dynamicModules(),
+			"@ui-kit/hooks": path.resolve(__dirname, "core/ui-kit/hooks"),
 			"@components": path.resolve(__dirname, "core/components"),
 			"@ui-kit": path.resolve(__dirname, "core/ui-kit/components"),
 			"@core": path.resolve(__dirname, "core/logic"),
@@ -105,7 +106,6 @@ export default (): UserConfig => ({
 			"@dynamicImports": path.resolve(__dirname, "core/dynamicImports"),
 			"@ext": path.resolve(__dirname, "core/extensions"),
 			"@app": path.resolve(__dirname, "app"),
-			"fs-extra": path.resolve(__dirname, "core/logic/FileProvider/DiskFileProvider/DFPIntermediateCommands.ts"),
 		},
 	},
 
@@ -130,6 +130,7 @@ export default (): UserConfig => ({
 		"process.builtIn": getBuiltInVariables(),
 		"process.env.NODE_DEBUG": false,
 		"process.env.VITE_ENVIRONMENT": JSON.stringify(process.env.VITE_ENVIRONMENT),
+		// biome-ignore lint/style/useNamingConvention: ok
 		__BUILD_ID__: BUILD_ID,
 	},
 	publicDir: "./core/public",

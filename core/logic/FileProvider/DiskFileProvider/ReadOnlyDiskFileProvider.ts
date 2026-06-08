@@ -30,11 +30,11 @@ export default class ReadOnlyDiskFileProvider extends DiskFileProvider {
 		this._throw();
 	}
 
-	override async symlink() {
+	override async hardlink() {
 		this._throw();
 	}
 
-	override async deleteEmptyFolders() {
+	override async deleteEmptyDirs() {
 		this._throw();
 	}
 

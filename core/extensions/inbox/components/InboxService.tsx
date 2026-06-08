@@ -17,8 +17,8 @@ export const InboxContext = createContext<InboxContextType>({
 	selectedIds: [],
 });
 
-let _setItems: (items: InboxArticle[]) => void = () => {};
-let _setSelectedIds: (ids: string[]) => void = () => {};
+let SetItems: (items: InboxArticle[]) => void = () => {};
+let SetSelectedIds: (ids: string[]) => void = () => {};
 
 abstract class InboxService {
 	private static _tooltipManager: PopoverManager<InboxArticle> = null;
@@ -29,8 +29,8 @@ abstract class InboxService {
 		const [selectedIds, setSelectedIds] = useState<string[]>([]);
 		const tooltipManager = useRef<PopoverManager<InboxArticle>>(null);
 
-		_setItems = setItems;
-		_setSelectedIds = setSelectedIds;
+		SetItems = setItems;
+		SetSelectedIds = setSelectedIds;
 
 		useEffect(() => {
 			if (typeof document === "undefined") return;
@@ -98,7 +98,7 @@ abstract class InboxService {
 	}
 
 	static setItems(items: InboxArticle[]) {
-		_setItems(items);
+		SetItems(items);
 	}
 
 	static async fetchInbox(mail: string, apiUrlCreator: ApiUrlCreator) {
@@ -112,16 +112,16 @@ abstract class InboxService {
 	}
 
 	static removeAllItems() {
-		_setItems([]);
+		SetItems([]);
 
 		const tooltipManager = this.getTooltipManager();
 		tooltipManager?.destroyAll();
 
-		_setSelectedIds([]);
+		SetSelectedIds([]);
 	}
 
 	static setSelectedIds(ids: string[]) {
-		_setSelectedIds(ids);
+		SetSelectedIds(ids);
 	}
 }
 

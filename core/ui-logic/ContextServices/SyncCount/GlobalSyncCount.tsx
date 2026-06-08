@@ -1,7 +1,7 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: it's ok */
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
-import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
@@ -42,10 +42,9 @@ export default class GlobalSyncCountService {
 	static Provider({ children }: { children: ReactElement }): ReactElement {
 		const apiUrlCreator = ApiUrlCreatorService.value;
 		const pageDataContext = PageDataContextService.value;
-		const isOffline = isOfflineService.value;
 		const sourceDatas = SourceDataService.value;
 
-		const fetchAllowed = !pageDataContext.conf.isReadOnly && !isOffline;
+		const fetchAllowed = !pageDataContext.conf.isReadOnly;
 		const key = `${WorkspaceService.current()?.name}_all`;
 		const hasWorkspace = WorkspaceService.hasActive();
 

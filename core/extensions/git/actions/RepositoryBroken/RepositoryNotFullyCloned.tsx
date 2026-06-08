@@ -10,7 +10,7 @@ import getUrlFromShareData from "@ext/git/core/GitPathnameHandler/clone/logic/ge
 import type GitStorageData from "@ext/git/core/model/GitStorageData";
 import t from "@ext/localization/locale/translate";
 import useStorage from "@ext/storage/logic/utils/useStorage";
-import { AlertConfirm } from "@ui-kit/AlertDialog/AlertConfirm";
+import { AlertConfirm } from "@ui-kit/AlertDialog";
 import { Button } from "@ui-kit/Button";
 import { Dialog, DialogBody, DialogContent, DialogTitle, DialogTrigger } from "@ui-kit/Dialog";
 import { useMemo, useState } from "react";

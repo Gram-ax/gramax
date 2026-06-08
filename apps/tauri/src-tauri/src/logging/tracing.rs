@@ -38,13 +38,15 @@ fn create_log_file(dir: &PathBuf) -> std::io::Result<BufWriter<std::fs::File>> {
 
 	for entry in std::fs::read_dir(dir)? {
 		let entry = entry?;
-		if entry.file_name().to_str().map_or(false, |name| name.ends_with(".json")) {
+		if entry.file_name().to_str().is_some_and(|name| name.ends_with(".json")) {
 			let _ = std::fs::remove_file(entry.path());
 		}
 
-		if entry.file_name().to_str().map_or(false, |name| {
-			name.starts_with("gx-") && name.ends_with(".ndjson") && name != "gx-latest.ndjson"
-		}) {
+		if entry
+			.file_name()
+			.to_str()
+			.is_some_and(|name| name.starts_with("gx-") && name.ends_with(".ndjson") && name != "gx-latest.ndjson")
+		{
 			files.push(entry);
 		}
 	}

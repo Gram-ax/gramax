@@ -22,7 +22,7 @@ const ViewActions = ({ node, updateDisplay, updateAttributes }: ViewActionsProps
 	const getDataFromAttribute = useCallback(
 		(attribute: string, propertyName: string) => {
 			return node.attrs[attribute]?.find(
-				(attr) => (typeof attr === "string" && attr === propertyName) || attr.name === propertyName,
+				(attr) => (typeof attr === "string" && attr === propertyName) || attr.id === propertyName,
 			);
 		},
 		[node.attrs],
@@ -60,11 +60,11 @@ const ViewActions = ({ node, updateDisplay, updateAttributes }: ViewActionsProps
 						return (
 							<Menu
 								data={
-									getDataFromAttribute("orderby", property.name)?.value.filter((v) => v !== "none") ||
+									getDataFromAttribute("orderby", property.id)?.value?.filter((v) => v !== "none") ||
 									property.values
 								}
 								defaultData={property.values}
-								name={property.name}
+								name={property.id}
 								updateData={updateData}
 							/>
 						);

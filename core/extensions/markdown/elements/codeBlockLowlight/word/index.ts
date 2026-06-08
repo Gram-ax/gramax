@@ -2,10 +2,11 @@ import docx from "@dynamicImports/docx";
 import { createBlockChild } from "@ext/wordExport/createBlock";
 import type { AddOptionsWord, WordBlockChild } from "@ext/wordExport/options/WordTypes";
 import { WordBlockType } from "@ext/wordExport/options/wordExportSettings";
+import type { JSONContent } from "@tiptap/core";
 import { highlightCodeToRuns } from "./highlightToRuns";
 
-const fenceWordLayout: WordBlockChild = async ({ tag, addOptions }) => {
-	return getCodeBlock(tag.attributes.value, tag.attributes.language ?? undefined, addOptions);
+const fenceWordLayout: WordBlockChild<JSONContent> = async ({ tag, addOptions }) => {
+	return getCodeBlock(tag.content[0] as never as string, tag.attrs.language ?? undefined, addOptions);
 };
 
 export const getCodeBlock = async (code: string, language: string | undefined, addOptions: AddOptionsWord) => {

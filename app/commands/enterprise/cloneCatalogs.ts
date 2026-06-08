@@ -2,9 +2,8 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
 import type UserSettings from "@ext/enterprise/types/UserSettings";
-import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type GitStorageData from "@ext/git/core/model/GitStorageData";
-import t from "@ext/localization/locale/translate";
+import assert from "assert";
 import { Command } from "../../types/Command";
 
 const cloneCatalogs: Command<{ ctx: Context; userSettings: UserSettings }, void> = Command.create({
@@ -14,13 +13,10 @@ const cloneCatalogs: Command<{ ctx: Context; userSettings: UserSettings }, void>
 
 	async do({ ctx, userSettings }) {
 		const source = userSettings.source;
-		if (!source) throw new DefaultError(t("enterprise.config-error"));
+		assert(source, "Source is required");
+		const repos = userSettings.workspace?.git?.source?.repos ?? [];
 
-		await this._commands.storage.sourceData.setSourceData.do({ ctx, ...source });
-
-		if (!userSettings.workspace.source || !source) return;
-
-		for (const repo of userSettings.workspace.source?.repos ?? []) {
+		for (const repo of repos) {
 			const split = repo.split("/");
 			const name = split.pop();
 			const group = split.join("/");

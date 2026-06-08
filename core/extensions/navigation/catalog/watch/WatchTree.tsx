@@ -138,7 +138,7 @@ const Item = ({
 						style={{ marginRight: "-3px" }}
 						tooltipText={t("article.actions.title")}
 						trigger={
-							<Button className="p-0 h-full" size="xs" variant="text">
+							<Button className="p-0 h-full" data-testid="article-actions" size="xs" variant="text">
 								<Icon code="ellipsis-vertical" />
 							</Button>
 						}

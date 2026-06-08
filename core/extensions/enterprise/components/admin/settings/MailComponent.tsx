@@ -1,6 +1,5 @@
 import useCheck from "@core-ui/hooks/useCheck";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { useScrollShadow } from "@ext/enterprise/components/admin/hooks/useScrollShadow";
 import { useTabGuard } from "@ext/enterprise/components/admin/hooks/useTabGuard";
 import { FloatingAlert } from "@ext/enterprise/components/admin/ui-kit/FloatingAlert";
 import { Spinner } from "@ext/enterprise/components/admin/ui-kit/Spinner";
@@ -12,7 +11,6 @@ import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button, LoadingButtonTemplate } from "@ui-kit/Button";
-import { Icon } from "@ui-kit/Icon";
 import { Input } from "@ui-kit/Input";
 import { useCallback, useEffect, useState } from "react";
 
@@ -41,7 +39,6 @@ const MailComponent = () => {
 	const mailSettings = settings?.mailServer;
 	const [localSettings, setLocalSettings] = useState<MailSettings>(mailSettings || defaultSettings);
 	const [isSaving, setIsSaving] = useState(false);
-	const { isScrolled } = useScrollShadow();
 	const [saveError, setSaveError] = useState<string | null>(null);
 	const isEqual = useCheck(mailSettings, localSettings);
 
@@ -61,7 +58,7 @@ const MailComponent = () => {
 				smtp: { ...prev.smtp },
 			};
 
-			let current: any = newSettings;
+			let current: unknown = newSettings;
 			for (let i = 0; i < keys.length - 1; i++) {
 				current = current[keys[i]];
 			}
@@ -76,7 +73,7 @@ const MailComponent = () => {
 		setIsSaving(true);
 		try {
 			await updateMail(localSettings);
-		} catch (e: any) {
+		} catch (e) {
 			setSaveError(e?.message);
 		} finally {
 			setIsSaving(false);
@@ -124,13 +121,11 @@ const MailComponent = () => {
 							<LoadingButtonTemplate text={`${t("save2")}...`} />
 						) : (
 							<Button disabled={isEqual || isSaving} onClick={handleSave}>
-								<Icon icon="save" />
 								{t("save")}
 							</Button>
 						)}
 					</>
 				}
-				isScrolled={isScrolled}
 				title={
 					<>
 						{getAdminPageTitle(Page.MAIL)} <Spinner show={isRefreshing("mail")} size="small" />
@@ -139,7 +134,7 @@ const MailComponent = () => {
 			/>
 			<FloatingAlert message={saveError} show={Boolean(saveError)} />
 
-			<div className="px-6 space-y-6">
+			<div className="space-y-6">
 				<div>
 					<h2 className="text-xl font-medium mb-4">{t("enterprise.admin.mail.sender-settings")}</h2>
 

@@ -65,10 +65,8 @@ install() {
         else
             echo "Using npm for installation${attempt_msg}"
             if [ "$CI_MODE" = true ]; then
-                npm --prefix "$1" --force ci --cache .npm --prefer-offline --no-audit --verbose && break || {
-                    echo "Failed to install packages in CI mode for $1 using npm"
-                    ((retry_count++))
-                }
+                echo "npm not supported for installing packages in CI mode"
+                exit 1
             else
                 npm --prefix "$1" --force install --cache .npm && break || {
                     echo "Failed to install packages for $1 using npm"
@@ -107,7 +105,7 @@ if $SHOULD_COMPILE_WASM; then
 fi
 
 if $SHOULD_COMPILE_NODE; then
-    npm --prefix apps/next/crates/next-gramax-git run build
+    npm --prefix apps/next/crates/next-gramax-core run build
 fi
 
 if $SHOULD_COMPILE_WARP; then

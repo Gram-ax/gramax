@@ -7,7 +7,7 @@ import { makeSourceApi } from "@ext/git/actions/Source/makeSourceApi";
 import type { CancelToken } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromGitStorageData";
 import { trace } from "@ext/loggers/opentelemetry";
-import type { ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
+import SourceDataCtx, { type ProxiedSourceDataCtx } from "@ext/storage/logic/SourceDataProvider/logic/SourceDataCtx";
 import assert from "assert";
 import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import type Path from "../../../../logic/FileProvider/Path/Path";
@@ -78,45 +78,47 @@ export default class GitStorage implements Storage {
 		repositoryPath,
 		skipLfsPull = false,
 	}: GitCloneData) {
-		fs.fp.stopWatch();
+		const gitRepository = new GitCommands(fs.fp.default(), repositoryPath);
+		const currentUrl = getUrlFromGitStorageData(data);
 		try {
-			const gitRepository = new GitCommands(fs.fp.default(), repositoryPath);
-			const currentUrl = getUrlFromGitStorageData(data);
-			try {
-				await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, cancelToken, {
-					branch,
-					isBare,
-					onProgress,
-					allowNonEmptyDir,
-					skipLfsPull,
-				});
-			} catch (e) {
-				if (((e as GitError).cause as DefaultError)?.props?.errorCode === GitErrorCode.CancelledOperation)
-					throw e;
+			await gitRepository.clone(getHttpsRepositoryUrl(currentUrl), source, cancelToken, {
+				branch,
+				isBare,
+				onProgress,
+				allowNonEmptyDir,
+				skipLfsPull,
+			});
+		} catch (e) {
+			if (((e as GitError).cause as DefaultError)?.props?.errorCode === GitErrorCode.CancelledOperation) throw e;
 
-				await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
-				throw e;
-			}
-		} finally {
-			fs.fp?.startWatch();
+			await (source as ProxiedSourceDataCtx<GitSourceData>).assertValid?.(e);
+			throw e;
 		}
 	}
 
 	@trace()
-	static async init(repositoryPath: Path, fp: FileProvider, data: GitStorageData) {
+	static async init(repositoryPath: Path, fp: FileProvider, data: GitStorageData, authServiceUrl?: string) {
+		const sourceApi = makeSourceApi(data.source, authServiceUrl) as GitSourceApi;
+		assert(sourceApi, "sourceApi is missing");
+
+		await sourceApi.assertStorageExist(data);
+
 		if (
 			data.source.sourceType === SourceType.gitHub ||
 			data.source.sourceType === SourceType.gitVerse ||
 			data.source.sourceType === SourceType.gitea
 		) {
-			const sourceApi = makeSourceApi(data.source) as GitSourceApi;
-			assert(sourceApi, "sourceApi is missing");
-
 			await sourceApi.createRepository(data);
 		}
 
 		const gitRepository = new GitCommands(fp, repositoryPath);
-		await gitRepository.addRemote(data);
+		try {
+			await gitRepository.addRemote(data);
+		} catch (e) {
+			const sourceCtx = SourceDataCtx.init(data.source, authServiceUrl, () => {});
+			await sourceCtx.assertValid(e as Error);
+			throw e;
+		}
 	}
 
 	get events() {
@@ -132,12 +134,12 @@ export default class GitStorage implements Storage {
 	}
 
 	async getName(): Promise<string> {
-		const parsedUrl = await this.getParsedUrl();
+		const parsedUrl = await this._getParsedUrl();
 		return parsedUrl.name;
 	}
 
 	async getGroup() {
-		const parsedUrl = await this.getParsedUrl();
+		const parsedUrl = await this._getParsedUrl();
 		return parsedUrl.group;
 	}
 
@@ -148,15 +150,9 @@ export default class GitStorage implements Storage {
 	}
 
 	async getSourceName() {
-		const parsedUrl = await this.getParsedUrl();
+		const parsedUrl = await this._getParsedUrl();
 		return parsedUrl.domain;
 	}
-
-	private async getParsedUrl() {
-		if (!this._parsedUrl) this._parsedUrl = parseStorageUrl(await this.getUrl());
-		return this._parsedUrl;
-	}
-
 	async getType() {
 		return getPartGitSourceDataByStorageName(await this.getSourceName()).sourceType;
 	}
@@ -215,22 +211,16 @@ export default class GitStorage implements Storage {
 	}
 
 	async pull(source: GitSourceData) {
-		this._fp.stopWatch();
-
-		try {
-			const remoteName = (await this._gitRepository.getCurrentBranch()).getData().remoteName;
-			if (remoteName) {
-				try {
-					await this._gitRepository.pull(source);
-				} catch (e) {
-					await (source as ProxiedSourceDataCtx<GitSourceData>)?.assertValid?.(e);
-					throw e;
-				}
+		const remoteName = (await this._gitRepository.getCurrentBranch()).getData().remoteName;
+		if (remoteName) {
+			try {
+				await this._gitRepository.pull(source);
+			} catch (e) {
+				await (source as ProxiedSourceDataCtx<GitSourceData>)?.assertValid?.(e);
+				throw e;
 			}
-		} finally {
-			await this.update();
-			this._fp?.startWatch();
 		}
+		await this.update();
 	}
 
 	async getFileLink(path: Path, branch?: Branch): Promise<string> {
@@ -275,6 +265,11 @@ export default class GitStorage implements Storage {
 			storageName === (await this.getSourceName()),
 			`storage name mismatch: ${storageName} !== ${await this.getSourceName()}; can't push to this storage`,
 		);
+	}
+
+	private async _getParsedUrl() {
+		if (!this._parsedUrl) this._parsedUrl = parseStorageUrl(await this.getUrl());
+		return this._parsedUrl;
 	}
 
 	private async _initRepositoryUrl() {

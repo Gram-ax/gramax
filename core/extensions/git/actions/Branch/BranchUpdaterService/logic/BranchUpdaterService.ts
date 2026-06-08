@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import type GitBranchData from "@ext/git/core/GitBranch/model/GitBranchData";
 import type ApiUrlCreator from "../../../../../../ui-logic/ApiServices/ApiUrlCreator";
@@ -29,6 +31,10 @@ export default class BranchUpdaterService {
 
 	public static removeOnErrorListener(onError: OnBranchUpdateErrorListener) {
 		this._onErrorListeners.delete(onError);
+	}
+
+	public static reset() {
+		this._branch = null;
 	}
 
 	public static async updateBranch(

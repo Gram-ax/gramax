@@ -34,14 +34,13 @@ _status
 _copy
 _exists
 _make_dir
-_make_symlink
+_hardlink
 _read_dir_stats
 _mv
 _read_dir
 _read_file
 _read_link
 _remove_dir
-_rename
 _getstat
 _rmfile
 _write_file
@@ -70,3 +69,7 @@ _reset_file_lock
 _set_last_http_error
 _get_all_cancel_tokens
 _healthcheck
+_lfs_prune
+_storage_stats
+_delete_empty_dirs
+_scan_workspace

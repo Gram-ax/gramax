@@ -1,6 +1,6 @@
+import path from "node:path";
 import type { BunPlugin } from "bun";
 import fs from "fs";
-import path from "node:path";
 
 export function lucideNoTreeShakePlugin(dirname: string): BunPlugin {
 	return {

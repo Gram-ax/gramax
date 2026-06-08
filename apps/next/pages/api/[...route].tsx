@@ -21,7 +21,9 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 
 	Object.entries(req.query)
 		.filter(([, v]) => !!v)
-		.forEach(([k, v]) => (req.query[k] = typeof v == "string" ? decodeURIComponent(v) : v.map(decodeURIComponent)));
+		.forEach(([k, v]) => {
+			req.query[k] = typeof v === "string" ? decodeURIComponent(v) : v.map(decodeURIComponent);
+		});
 
 	const path = (req.query.route as string[]).join("/");
 
@@ -60,7 +62,7 @@ export default async (req: ApiRequest, res: ApiResponse) => {
 const parseBody = (body: BodyInit) => {
 	if (body === "") return body;
 	if (!body) return;
-	if (typeof body != "string") return body;
+	if (typeof body !== "string") return body;
 	try {
 		return JSON.parse(body);
 	} catch {
@@ -68,18 +70,21 @@ const parseBody = (body: BodyInit) => {
 	}
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: expected
 const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind: ResponseKind, commandResult: any) => {
-	if (kind == ResponseKind.none) return res.end();
+	if (kind === ResponseKind.none) return res.end();
 
-	if (kind == ResponseKind.json) return apiUtils.sendJson(res, commandResult);
+	if (kind === ResponseKind.json) return apiUtils.sendJson(res, commandResult);
 
-	if (kind == ResponseKind.plain) return apiUtils.sendPlainText(res, commandResult);
+	if (kind === ResponseKind.plain) return apiUtils.sendPlainText(res, commandResult);
 
-	if (kind == ResponseKind.blob) {
+	if (kind === ResponseKind.css) return apiUtils.sendCss(res, commandResult);
+
+	if (kind === ResponseKind.blob) {
 		if (!commandResult) return res.end();
 		const { mime, hashItem } = commandResult;
 		if (mime) res.setHeader("Content-Type", mime);
-		if (mime == MimeTypes.xml || mime == MimeTypes.xls || mime == MimeTypes.xlsx)
+		if (mime === MimeTypes.xml || mime === MimeTypes.xls || mime === MimeTypes.xlsx)
 			res.setHeader(
 				"Content-Disposition",
 				`attachment; filename=${encodeURIComponent(req.query?.src as string)}`,
@@ -88,21 +93,25 @@ const respond = async (app: Application, req: ApiRequest, res: ApiResponse, kind
 		return res.end();
 	}
 
-	if (kind == ResponseKind.file) {
+	if (kind === ResponseKind.file) {
 		return res.end(commandResult);
 	}
 
-	if (kind == ResponseKind.redirect) {
+	if (kind === ResponseKind.redirect) {
+		if (typeof commandResult !== "string" || !commandResult) {
+			res.statusCode = 404;
+			return res.end();
+		}
 		res.redirect(commandResult);
 		return res.end();
 	}
 
-	if (kind == ResponseKind.html) {
+	if (kind === ResponseKind.html) {
 		res.setHeader("Content-type", "text/html; charset=utf-8");
 		return res.send(commandResult);
 	}
 
-	if (kind == ResponseKind.stream) {
+	if (kind === ResponseKind.stream) {
 		const { mime, iterator } = commandResult;
 		(res as unknown as NextApiResponse).writeHead(200, {
 			"Content-Type": mime ?? "application/octet-stream",

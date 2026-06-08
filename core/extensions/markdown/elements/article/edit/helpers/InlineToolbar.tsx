@@ -97,7 +97,7 @@ export const InlineToolbar = memo(({ editor, pluginKey, buttons, shouldShow, bou
 				onHide,
 			}}
 		>
-			<div className="lg:shadow-hard-base rounded-lg">
+			<div className="lg:shadow-hard-base rounded-lg sm:[&>div]:rounded-lg">
 				<InlineEditPanel buttons={buttons} closeHandler={closeHandler} editor={editor} {...options} />
 			</div>
 		</CustomBubbleMenu>

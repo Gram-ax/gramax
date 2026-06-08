@@ -1,5 +1,6 @@
-import Tooltip from "@components/Atoms/Tooltip";
+/** biome-ignore-all lint/style/noRestrictedImports: ask @NV */
 import Sidebar from "@components/Layouts/Sidebar";
+import useIsOverflow from "@core-ui/hooks/useIsOverflow";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import type { DateType } from "@core-ui/utils/dateUtils";
 import styled from "@emotion/styled";
@@ -10,7 +11,8 @@ import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequ
 import t from "@ext/localization/locale/translate";
 import InlineUser from "@ext/security/components/User/InlineUser";
 import { isInDropdown } from "@ui-kit/Dropdown";
-import type { MouseEvent } from "react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
+import { type MouseEvent, type RefObject, useRef } from "react";
 
 interface BranchLayoutProps {
 	title: string;
@@ -19,6 +21,7 @@ interface BranchLayoutProps {
 	date: DateType;
 	branchStatus?: BranchStatusEnum;
 	hasMergeRequest?: boolean;
+	titleRef?: RefObject<HTMLSpanElement>;
 }
 
 interface GitDateSideBarProps {
@@ -95,12 +98,12 @@ const TitleWrapper = styled.div`
 `;
 
 export const BranchLayout = (props: BranchLayoutProps) => {
-	const { title, author, authorMail, date, branchStatus, hasMergeRequest } = props;
+	const { title, author, authorMail, date, branchStatus, hasMergeRequest, titleRef } = props;
 
 	return (
 		<TitleWrapper>
 			<div className="branch-name">
-				<span>{title}</span>
+				<span ref={titleRef}>{title}</span>
 				{branchStatus === BranchStatusEnum.Local && <LocalIcon />}
 				{hasMergeRequest && <MergeRequestIcon />}
 			</div>
@@ -128,6 +131,8 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 
 	const hasMergeRequest = !!mergeRequest;
 	const { isNext } = usePlatform();
+	const titleRef = useRef<HTMLSpanElement>(null);
+	const isOverflow = useIsOverflow(titleRef, [title]);
 
 	const onBranchSwitch = (e: MouseEvent<HTMLElement>) => {
 		if (isInDropdown(e)) return;
@@ -135,13 +140,18 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 		switchBranch(title);
 	};
 
+	const tooltipContent = disable ? (
+		<DisableTooltipContent branch={title} />
+	) : isOverflow ? (
+		<span style={{ wordBreak: "break-all" }}>{title}</span>
+	) : (
+		t("switch-branch")
+	);
+
 	return (
-		<Tooltip
-			content={disable ? <DisableTooltipContent branch={title} /> : t("switch-branch")}
-			delay={disable ? undefined : [500, 0]}
-		>
-			<div className={className} data-qa="qa-clickable">
-				<div data-qa="qa-switch-branch" onClick={onBranchSwitch}>
+		<Tooltip delayDuration={disable ? 0 : 500}>
+			<TooltipTrigger asChild>
+				<div className={className} data-qa="qa-clickable" onClick={onBranchSwitch}>
 					<Sidebar
 						disable={disable}
 						rightActions={
@@ -163,11 +173,13 @@ const GitDateSideBar = (props: GitDateSideBarProps) => {
 								date={data?.lastCommitModify}
 								hasMergeRequest={hasMergeRequest}
 								title={title}
+								titleRef={titleRef}
 							/>
 						}
 					/>
 				</div>
-			</div>
+			</TooltipTrigger>
+			<TooltipContent>{tooltipContent}</TooltipContent>
 		</Tooltip>
 	);
 };

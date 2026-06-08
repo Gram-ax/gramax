@@ -6,8 +6,9 @@ import PageContext, { type PageInfo } from "./PageContext";
 export default class ArticlePageContext extends PageContext {
 	private _previousPath: string;
 
-	constructor(page: Page, alias: ReplaceAlias, aliases: Aliases, _info: PageInfo) {
-		super(page, alias, aliases, _info);
+	// biome-ignore lint/complexity/noUselessConstructor: expected
+	constructor(page: Page, alias: ReplaceAlias, aliases: Aliases, Info: PageInfo) {
+		super(page, alias, aliases, Info);
 	}
 
 	async getContent() {
@@ -43,7 +44,7 @@ export default class ArticlePageContext extends PageContext {
 		await this._page.evaluate(
 			async ({ path, content, shouldClear }) => {
 				const app = await window.app;
-				const ctx = await app.contextFactory.fromBrowser({ language: "ru" as any });
+				const ctx = await app.contextFactory.fromBrowser({ language: "ru" });
 				const presenter = app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??
@@ -74,7 +75,7 @@ export default class ArticlePageContext extends PageContext {
 		return await this._page.evaluate(
 			async ({ path }) => {
 				const app = await window.app;
-				const ctx = await app.contextFactory.fromBrowser({ language: "ru" as any });
+				const ctx = await app.contextFactory.fromBrowser({ language: "ru" });
 				const presenter = app.sitePresenterFactory.fromContext(ctx);
 				const data =
 					(await presenter.getArticleByPathOfCatalog(path[0], [])).article ??
@@ -85,14 +86,15 @@ export default class ArticlePageContext extends PageContext {
 		);
 	}
 
-	private _parsePath(path: string): [string[], string[]] {
+	private _parsePath(rawPath: string): [string[], string[]] {
 		// /gitlab.ics-it.ru/dr/test-catalog/master/-
 		///-/-/-/-/test
+		const path = rawPath.split("?")[0];
 		const path1 = path
 			.split("/")
 			.filter((p) => !!p)
 			.filter((_, idx) => ![0, 1, 3, 4].includes(idx))
-			.map((p) => (p == "-" ? "" : p))
+			.map((p) => (p === "-" ? "" : p))
 			.filter((p) => !!p);
 		const path2 = path.split("/").slice(5);
 		return [path1, path2];

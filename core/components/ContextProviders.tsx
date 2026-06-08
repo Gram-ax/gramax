@@ -3,7 +3,6 @@ import NavigationTabsService from "@components/Layouts/LeftNavigationTabs/Naviga
 import type { PageProps } from "@components/Pages/models/Pages";
 import { useRouter } from "@core/Api/useRouter";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
@@ -12,7 +11,6 @@ import type ContextService from "@core-ui/ContextServices/ContextService";
 import GitIndexService from "@core-ui/ContextServices/GitIndexService";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import IsMacService from "@core-ui/ContextServices/IsMac";
-import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import LanguageService from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import pagePropsUpdateService from "@core-ui/ContextServices/PagePropsUpdate";
@@ -31,19 +29,21 @@ import WorkspaceAssetsService from "@core-ui/ContextServices/WorkspaceAssetsServ
 import useOnUpdateFuncs from "@core-ui/hooks/onUpdate/useOnUpdateFuncs";
 import useTauriExternalLinkInterceptor from "@core-ui/hooks/useTauriExternalLinkInterceptor";
 import matomoMetric from "@core-ui/matomoMetric";
+import { ArticlePropsStoreProvider } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import useIsFirstLoad from "@core-ui/useIsFirstLoad";
 import { initRefresh } from "@core-ui/utils/initGlobalFuncs";
 import yandexMetric, { yandexHit as yandexMetricHit } from "@core-ui/yandexMetric";
 import AudioRecorderService from "@ext/ai/components/Audio/AudioRecorderService";
-import PromptService from "@ext/ai/components/Tab/PromptService";
+import PromptServiceProvider from "@ext/ai/components/Tab/PromptService";
 import FavoriteService from "@ext/article/Favorite/components/FavoriteService";
+import { GesCloudOrganizationStoreProvider } from "@ext/enterprise-cloud/ui-logic/stores/GesCloudOrganizationStore/GesCloudOrganizationStore.provider";
 import PublishChangesProvider from "@ext/git/core/GitPublish/PublishChangesProvider";
 import InboxService from "@ext/inbox/components/InboxService";
 import UiLanguage from "@ext/localization/core/model/Language";
-import { CommentsCounterProvider } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
+import { CommentsCounterProvider } from "@ext/markdown/elements/comment/edit/logic/stores/CommentsStore";
+import FragmentService from "@ext/markdown/elements/fragment/edit/components/Tab/FragmentService";
 import { QuestionsProvider } from "@ext/markdown/elements/question/render/logic/QuestionsProvider";
-import SnippetService from "@ext/markdown/elements/snippet/edit/components/Tab/SnippetService";
 import PropertyService from "@ext/properties/components/PropertyService";
 import permissionService from "@ext/security/logic/Permission/components/PermissionService";
 import TemplateService from "@ext/templates/components/TemplateService";
@@ -56,7 +56,6 @@ import ModalToOpenService from "../ui-logic/ContextServices/ModalToOpenService/M
 
 const appServices: ContextService[] = [
 	pagePropsUpdateService,
-	isOfflineService,
 	IsMobileService,
 	permissionService,
 	ApiUrlCreatorService,
@@ -136,14 +135,12 @@ export default function ContextProviders({
 									<NavigationTabInit>
 										<GitIndexService.Provider>
 											<CatalogStoreProvider data={pageProps.data.catalogProps}>
-												<QuestionsProvider
-													path={pageProps.data.articleProps.ref.path}
-													questions={pageProps.data.articleProps.questions}
-												>
-													<ArticleRefService.Provider>
-														<ArticlePropsService.Provider
-															value={pageProps.data.articleProps}
-														>
+												<ArticlePropsStoreProvider data={pageProps.data.articleProps}>
+													<QuestionsProvider
+														path={pageProps.data.articleProps.ref.path}
+														questions={pageProps.data.articleProps.questions}
+													>
+														<ArticleRefService.Provider>
 															<ResourceService.Provider>
 																<CloudStateService.Init
 																	value={{
@@ -153,11 +150,11 @@ export default function ContextProviders({
 																	}}
 																>
 																	<CatalogLogoService.Init>
-																		<PromptService.Provider>
+																		<PromptServiceProvider>
 																			<InboxService.Provider>
 																				<PropertyService.Provider>
 																					<TemplateService.Init>
-																						<SnippetService.Init>
+																						<FragmentService.Init>
 																							<ModalToOpenService.Provider>
 																								<ArticleTooltipService.Provider>
 																									<IsFirstLoadService.Provider
@@ -170,11 +167,7 @@ export default function ContextProviders({
 																									>
 																										<OnUpdateAppFuncs>
 																											<ViewContextProvider>
-																												<CommentsCounterProvider
-																													deps={[
-																														pageProps,
-																													]}
-																												>
+																												<CommentsCounterProvider>
 																													{
 																														children
 																													}
@@ -184,29 +177,33 @@ export default function ContextProviders({
 																									</IsFirstLoadService.Provider>
 																								</ArticleTooltipService.Provider>
 																							</ModalToOpenService.Provider>
-																						</SnippetService.Init>
+																						</FragmentService.Init>
 																					</TemplateService.Init>
 																				</PropertyService.Provider>
 																			</InboxService.Provider>
-																		</PromptService.Provider>
+																		</PromptServiceProvider>
 																	</CatalogLogoService.Init>
 																</CloudStateService.Init>
 															</ResourceService.Provider>
-														</ArticlePropsService.Provider>
-													</ArticleRefService.Provider>
-												</QuestionsProvider>
+														</ArticleRefService.Provider>
+													</QuestionsProvider>
+												</ArticlePropsStoreProvider>
 											</CatalogStoreProvider>
 										</GitIndexService.Provider>
 									</NavigationTabInit>
 								) : (
-									<ModalToOpenService.Provider>
-										<IsFirstLoadService.Provider
-											resetIsFirstLoad={resetIsFirstLoad}
-											value={isFirstLoad}
-										>
-											<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
-										</IsFirstLoadService.Provider>
-									</ModalToOpenService.Provider>
+									<GesCloudOrganizationStoreProvider
+										gesCloudUrl={pageProps.context.conf.enterpriseCloud?.url}
+									>
+										<ModalToOpenService.Provider>
+											<IsFirstLoadService.Provider
+												resetIsFirstLoad={resetIsFirstLoad}
+												value={isFirstLoad}
+											>
+												<OnUpdateAppFuncs>{children}</OnUpdateAppFuncs>
+											</IsFirstLoadService.Provider>
+										</ModalToOpenService.Provider>
+									</GesCloudOrganizationStoreProvider>
 								)}
 							</>
 						</SidebarsIsPinService.Provider>,

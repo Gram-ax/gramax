@@ -41,7 +41,10 @@ impl<C: ActualCreds> Checkout for Repo<'_, C> {
 
 		info!("checking out to {}", branch.get().name().or_utf8_err()?);
 
-		self.0.checkout_tree(tree.as_object(), Some(&mut opts))?;
+		if !self.0.is_bare() {
+			self.0.checkout_tree(tree.as_object(), Some(&mut opts))?;
+		}
+
 		self.0.set_head(branch.get().name().or_utf8_err()?)?;
 
 		Ok(())

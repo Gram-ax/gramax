@@ -1,10 +1,11 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import { SwitchField as UiKitSwitchField } from "ics-ui-kit/components/switch";
 import type { FC } from "react";
 import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric";
 
 type UiKitSwitchFieldProps = ExtractComponentGeneric<typeof UiKitSwitchField>;
 
-interface SwitchFieldProps extends Omit<UiKitSwitchFieldProps, "description"> {
+export interface SwitchFieldProps extends Omit<UiKitSwitchFieldProps, "description"> {
 	label?: JSX.Element;
 	description?: JSX.Element;
 }

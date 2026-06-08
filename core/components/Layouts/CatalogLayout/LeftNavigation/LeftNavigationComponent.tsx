@@ -1,11 +1,11 @@
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import LeftNavViewContentContainer from "@core-ui/ContextServices/views/leftNavView/LeftNavViewContainer";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { getEditorStore } from "@core-ui/stores/EditorStore";
 import stopOpeningPanels from "@core-ui/utils/stopOpeningPanels ";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { ArticlePageData } from "../../../../logic/SitePresenter/SitePresenter";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import LeftNavigationBottom from "./LeftNavigationBottom";
 import LeftNavigationLayout from "./LeftNavigationLayout";
 import LeftNavigationTop from "./LeftNavigationTop";
@@ -28,7 +28,7 @@ const LeftNavigationComponent = ({
 	const isOpen = SidebarsIsOpenService.value.left;
 
 	const transitionEndIsOpen = SidebarsIsOpenService.transitionEndIsLeftOpen;
-	const editor = EditorService?.getEditor();
+	const editor = getEditorStore().editor;
 
 	useEffect(() => {
 		const onSelectionChange = () => stopOpeningPanels(navsSymbol, editor.view);
@@ -42,6 +42,7 @@ const LeftNavigationComponent = ({
 	const isLeftNavHover = useRef(false);
 	const unpinAnimation = useRef(false);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		if (prevIsPin && !isPin) {
 			SidebarsIsOpenService.value = { left: false };
@@ -50,10 +51,18 @@ const LeftNavigationComponent = ({
 		setPrevIsPin(isPin);
 	}, [isPin]);
 
+	const onMouseEnter = useCallback(() => {
+		isLeftNavHover.current = true;
+	}, []);
+
+	const onMouseLeave = useCallback(() => {
+		isLeftNavHover.current = false;
+	}, []);
+
 	return (
 		<div
-			onMouseEnter={() => (isLeftNavHover.current = true)}
-			onMouseLeave={() => (isLeftNavHover.current = false)}
+			onMouseEnter={onMouseEnter}
+			onMouseLeave={onMouseLeave}
 			style={{ width: isPin ? "var(--left-nav-width)" : "fit-content" }}
 		>
 			<LeftNavigationLayout

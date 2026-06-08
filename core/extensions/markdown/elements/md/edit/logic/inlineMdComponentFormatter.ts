@@ -1,6 +1,6 @@
 import type { NodeSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 
-const blocks = ["Db-diagram", "Db-table", "Snippet"];
+const blocks = ["Db-diagram", "Db-table", "Fragment"];
 
 const inlineMdComponentFormatter: NodeSerializerSpec = (state, node) => {
 	const isBlock = blocks.includes(node.attrs.tag?.[0]?.name);

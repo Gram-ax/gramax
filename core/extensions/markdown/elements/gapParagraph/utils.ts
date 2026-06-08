@@ -58,15 +58,15 @@ export function gapParagraph(): Plugin {
 	});
 }
 
-const isValidPos = ($pos: ResolvedPos, force: boolean = false) => {
-	const parent = $pos.parent;
-	const beforeClosed = closedBefore($pos);
-	const afterClosed = closedAfter($pos);
+const isValidPos = (Pos: ResolvedPos, force: boolean = false) => {
+	const parent = Pos.parent;
+	const beforeClosed = closedBefore(Pos);
+	const afterClosed = closedAfter(Pos);
 	if (parent.isTextblock || !beforeClosed || !afterClosed) return false;
 	const override = parent.type.spec.allowGapCursor || !notAllowedGap.includes(parent.type.name);
 	if (override != null) return override;
 	if (force) return true;
-	const deflt = parent.contentMatchAt($pos.index()).defaultType;
+	const deflt = parent.contentMatchAt(Pos.index()).defaultType;
 	return deflt && deflt.isTextblock;
 };
 
@@ -105,14 +105,14 @@ const nativeClick = (view: EditorView, event: MouseEvent) => {
 	const clickPos = view.posAtCoords({ left: event.clientX, top: event.clientY });
 
 	if (!clickPos) return false;
-	const $pos = view.state.doc.resolve(Math.min(clickPos.pos, view.state.doc.nodeSize - 1));
-	const isValid = isValidPos($pos, true);
+	const Pos = view.state.doc.resolve(Math.min(clickPos.pos, view.state.doc.nodeSize - 1));
+	const isValid = isValidPos(Pos, true);
 	const isTop = isCloserToTop(target, event.clientY);
 	if (isTop === null) return false;
 
 	if (!isValid) return false;
 	const newPos = Math.min(
-		isTop ? $pos.pos - 1 : $pos.pos - $pos.parentOffset + $pos.node($pos.depth).content.size,
+		isTop ? Pos.pos - 1 : Pos.pos - Pos.parentOffset + Pos.node(Pos.depth).content.size,
 		view.state.doc.nodeSize - 1,
 	);
 
@@ -121,35 +121,33 @@ const nativeClick = (view: EditorView, event: MouseEvent) => {
 
 const handleClick = (view: EditorView, pos: number, event: MouseEvent) => {
 	if (!view || !view.editable) return false;
-	const $pos = view.state.doc.resolve(pos);
-	const isValid = isValidPos($pos, false);
+	const Pos = view.state.doc.resolve(pos);
+	const isValid = isValidPos(Pos, false);
 	if (!isValid) return false;
 
 	const clickPos = view.posAtCoords({ left: event.clientX, top: event.clientY });
 	if (clickPos && clickPos.inside > -1 && NodeSelection.isSelectable(view.state.doc.nodeAt(clickPos.inside)!))
 		return false;
 
-	const $clickPos = view.state.doc.resolve(clickPos.pos);
+	const ClickPos = view.state.doc.resolve(clickPos.pos);
 	clickPos.pos =
-		$clickPos.node() === view.state.doc && $clickPos.nodeBefore
-			? $clickPos.after($clickPos.depth + 1)
-			: clickPos.pos;
+		ClickPos.node() === view.state.doc && ClickPos.nodeBefore ? ClickPos.after(ClickPos.depth + 1) : clickPos.pos;
 
 	const target = view.nodeDOM(clickPos.pos) as HTMLElement;
 	if (!target || target === view.dom) return false;
 	if (isCloserToCenter(target, event.clientY)) return false;
 
-	createParagraph(view, $pos.pos);
+	createParagraph(view, Pos.pos);
 	event.preventDefault();
 	event.stopPropagation();
 
 	return true;
 };
 
-function closedBefore($pos: ResolvedPos) {
-	for (let d = $pos.depth; d >= 0; d--) {
-		const index = $pos.index(d),
-			parent = $pos.node(d);
+function closedBefore(Pos: ResolvedPos) {
+	for (let d = Pos.depth; d >= 0; d--) {
+		const index = Pos.index(d),
+			parent = Pos.node(d);
 		if (index == 0) {
 			if (parent.type.spec.isolating) return true;
 			continue;
@@ -164,10 +162,10 @@ function closedBefore($pos: ResolvedPos) {
 	return true;
 }
 
-function closedAfter($pos: ResolvedPos) {
-	for (let d = $pos.depth; d >= 0; d--) {
-		const index = $pos.indexAfter(d),
-			parent = $pos.node(d);
+function closedAfter(Pos: ResolvedPos) {
+	for (let d = Pos.depth; d >= 0; d--) {
+		const index = Pos.indexAfter(d),
+			parent = Pos.node(d);
 		if (index == parent.childCount) {
 			if (parent.type.spec.isolating) return true;
 			continue;

@@ -26,11 +26,11 @@ export const handleBackspace = (editor: Editor, name: string, parentListTypes: s
 	if (!isNodeActive(editor.state, name) && hasListBefore(editor.state, name, parentListTypes)) {
 		const { $anchor } = editor.state.selection;
 
-		const $listPos = editor.state.doc.resolve($anchor.before() - 1);
+		const ListPos = editor.state.doc.resolve($anchor.before() - 1);
 
 		const listDescendants: Array<{ node: Node; pos: number }> = [];
 
-		$listPos.node().descendants((node, pos) => {
+		ListPos.node().descendants((node, pos) => {
 			if (node.type.name === name) {
 				listDescendants.push({ node, pos });
 			}
@@ -42,10 +42,10 @@ export const handleBackspace = (editor: Editor, name: string, parentListTypes: s
 			return false;
 		}
 
-		const $lastItemPos = editor.state.doc.resolve($listPos.start() + lastItem.pos + 1);
+		const LastItemPos = editor.state.doc.resolve(ListPos.start() + lastItem.pos + 1);
 		const lastChild = lastItem.node.lastChild;
 		const isBlockWithoutContent = lastChild?.isBlock && !lastChild?.type.spec.content;
-		const insertPos = isBlockWithoutContent ? $lastItemPos.end() - 1 : $lastItemPos.end();
+		const insertPos = isBlockWithoutContent ? LastItemPos.end() - 1 : LastItemPos.end();
 
 		return editor
 			.chain()
@@ -80,8 +80,8 @@ export const handleBackspace = (editor: Editor, name: string, parentListTypes: s
 		return false;
 	}
 
-	const $prev = editor.state.doc.resolve(listItemPos.$pos.pos - 2);
-	const prevNode = $prev.node(listItemPos.depth);
+	const Prev = editor.state.doc.resolve(listItemPos.$pos.pos - 2);
+	const prevNode = Prev.node(listItemPos.depth);
 
 	const previousListItemHasSubList = listItemHasSubList(name, editor.state, prevNode);
 

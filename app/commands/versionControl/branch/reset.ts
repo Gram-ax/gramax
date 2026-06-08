@@ -2,7 +2,6 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
-import haveInternetAccess from "@core/utils/haveInternetAccess";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type ClientGitBranchData from "@ext/git/actions/Branch/model/ClientGitBranchData";
 import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequest";
@@ -28,10 +27,10 @@ const reset: Command<{ ctx: Context; catalogName: string }, ClientGitBranchData[
 		const isBare = catalog.repo.isBare;
 		let hasCheckout = false;
 		if (isBare) {
-			if ((await haveInternetAccess()) && storage && !data.isInvalid) await storage.fetch(data);
+			if (storage && !data.isInvalid) await storage.fetch(data);
 			hasCheckout = (await catalog.repo.checkoutIfCurrentBranchNotExist(data)).hasCheckout;
 		}
-		if ((await haveInternetAccess()) && storage && !data.isInvalid) await storage.fetch(data, isBare);
+		if (storage && !data.isInvalid) await storage.fetch(data, isBare);
 		if (hasCheckout) {
 			throw new DefaultError(t("git.branch.error.not-found-reload"));
 		}

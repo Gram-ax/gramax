@@ -11,6 +11,7 @@ export type PropertyOptions = {
 };
 
 export interface Property {
+	id: PropertyID;
 	name: PropertyID;
 	type: PropertyTypes;
 	style: Style;
@@ -21,7 +22,7 @@ export interface Property {
 }
 
 export interface PropertyValue {
-	name: PropertyID;
+	id: PropertyID;
 	value?: string[];
 }
 
@@ -61,8 +62,6 @@ export const isPropertySuitableForArticle = (type: PropertyTypes) => {
 		type === PropertyTypes.text
 	);
 };
-
-export const ArticlePropertyTypes: Partial<typeof PropertyTypes> = {};
 
 export const isManyProperty: Partial<{ [type in PropertyTypes]: boolean }> = {
 	[PropertyTypes.many]: true,

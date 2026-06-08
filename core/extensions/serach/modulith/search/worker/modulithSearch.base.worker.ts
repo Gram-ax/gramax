@@ -1,11 +1,11 @@
 import { STORAGE_DIR_NAME } from "@app/config/const";
-import type FileProvider from "@core/FileProvider/model/FileProvider";
 import Path from "@core/FileProvider/Path/Path";
+import { span } from "@ext/loggers/opentelemetry";
 import { createSearchService } from "@ext/serach/modulith/createSearchService";
 import type { SearchArticleMetadata } from "@ext/serach/modulith/SearchArticle";
+import { type PendingFsRequest, RpcFileProvider } from "@ext/serach/modulith/search/worker/RpcFileProvider";
+import { RpcFsProvider } from "@ext/serach/modulith/search/worker/RpcFsProvider";
 import type {
-	FsRequestMethod,
-	FsScope,
 	SearchWorkerCommitInMessage,
 	SearchWorkerFsInMessage,
 	SearchWorkerGetArticlePayloadsInMessage,
@@ -16,30 +16,28 @@ import type {
 	SearchWorkerUpdateInMessage,
 } from "@ext/serach/modulith/search/worker/types";
 import { createSimpleError } from "@ext/serach/modulith/utils/SimpleError";
-import type { SearchService } from "@ics/modulith-search-domain/search";
-import type { ProgressCallback } from "@ics/modulith-utils";
-import { PriorityLock } from "@ics/modulith-utils";
+import type { SearchService } from "@ics/article-search/search";
+import type { ProgressCallback } from "@ics/article-search-utils";
+import { PriorityLock } from "@ics/article-search-utils";
 
 const NORMAL_PRIORITY = 0;
 const HIGH_PRIORITY = 1;
-
-type PendingFsRequest = {
-	resolve: (value: unknown) => void;
-	reject: (reason: unknown) => void;
-};
 
 const lock = new PriorityLock();
 let searchService: SearchService | null = null;
 let commit: () => Promise<void> | null = null;
 let tenantId: string | null = null;
 
-let fsReqId = 0;
 const fsPending = new Map<string, PendingFsRequest>();
 
 export async function handleMessage(
 	data: SearchWorkerInMessage,
 	postMessage: (message: SearchWorkerOutMessage) => void,
 ) {
+	if (data == null) {
+		span()?.addEvent("search-worker.nullish-message", { received: String(data) });
+		return;
+	}
 	try {
 		const type = data.type;
 		switch (type) {
@@ -60,157 +58,12 @@ export async function handleMessage(
 		}
 	} catch (e) {
 		const err = e instanceof Error ? e : new Error(String(e));
+		if (!err.message) err.message = `Search worker handler failed (type=${data.type ?? "?"})`;
 		postMessage({
 			type: "error",
 			requestId: data.requestId,
 			error: createSimpleError(err),
 		});
-	}
-}
-
-class RpcFileProvider implements FileProvider {
-	private readonly _root: Path;
-
-	constructor(
-		root: string,
-		private readonly _scope: FsScope,
-		private readonly _postMessage: (message: SearchWorkerOutMessage) => void,
-	) {
-		this._root = new Path(root);
-	}
-
-	get storageId(): string {
-		return this._throwNotImplemented("storageId");
-	}
-
-	get rootPath(): Path {
-		return this._throwNotImplemented("rootPath");
-	}
-
-	get isReadOnly(): boolean {
-		return this._throwNotImplemented("isReadOnly");
-	}
-
-	get isFallbackOnRoot(): boolean {
-		return this._throwNotImplemented("isFallbackOnRoot");
-	}
-
-	async isRootPathExists(): Promise<boolean> {
-		return this._callFs("isRootPathExists", { path: "" });
-	}
-
-	exists(path: Path): Promise<boolean> {
-		return this._callFs("exists", { path: this._toFsPath(path) });
-	}
-
-	async read(path: Path): Promise<string> {
-		return this._callFs("read", { path: this._toFsPath(path) });
-	}
-
-	async readAsArrayBuffer(path: Path): Promise<ArrayBuffer> {
-		return this._callFs("readAsArrayBuffer", { path: this._toFsPath(path) });
-	}
-
-	async readdir(path: Path): Promise<string[]> {
-		return this._callFs("readdir", { path: this._toFsPath(path) });
-	}
-
-	async delete(path: Path): Promise<void> {
-		await this._callFs("delete", { path: this._toFsPath(path) });
-	}
-
-	async write(path: Path, data: string | Buffer): Promise<void> {
-		await this._callFs("write", { path: this._toFsPath(path), data });
-	}
-
-	async mkdir(path: Path, mode?: number): Promise<void> {
-		await this._callFs("mkdir", { path: this._toFsPath(path), mode });
-	}
-
-	async createRootPathIfNeed(): Promise<void> {
-		await this._callFs("createRootPathIfNeed", { path: this._root.value });
-	}
-
-	withMountPath(): void {
-		this._throwNotImplemented("withMountPath");
-	}
-
-	async getItems(): Promise<never[]> {
-		this._throwNotImplemented("getItems");
-	}
-
-	getItemRef(): never {
-		this._throwNotImplemented("getItemRef");
-	}
-
-	async getStat(): Promise<never> {
-		this._throwNotImplemented("getStat");
-	}
-
-	async readAsBinary(): Promise<Buffer> {
-		this._throwNotImplemented("readAsBinary");
-	}
-
-	async isFolder(): Promise<boolean> {
-		this._throwNotImplemented("isFolder");
-	}
-
-	async readlink(): Promise<string> {
-		this._throwNotImplemented("readlink");
-	}
-
-	async symlink(): Promise<void> {
-		this._throwNotImplemented("symlink");
-	}
-
-	async deleteEmptyFolders(): Promise<void> {
-		this._throwNotImplemented("deleteEmptyFolders");
-	}
-
-	async move(): Promise<void> {
-		this._throwNotImplemented("move");
-	}
-
-	async copy(): Promise<void> {
-		this._throwNotImplemented("copy");
-	}
-
-	watch(): void {
-		this._throwNotImplemented("watch");
-	}
-
-	startWatch(): void {
-		this._throwNotImplemented("startWatch");
-	}
-
-	stopWatch(): void {
-		this._throwNotImplemented("stopWatch");
-	}
-
-	private async _callFs<T>(method: FsRequestMethod, args: Record<string, unknown>): Promise<T> {
-		const requestId = this._nextRequestId();
-		return new Promise<T>((resolve, reject) => {
-			fsPending.set(requestId, { resolve, reject });
-			this._postMessage({
-				type: "fs",
-				requestId,
-				scope: this._scope,
-				method,
-				args,
-			});
-		});
-	}
-
-	private _nextRequestId(): string {
-		return (++fsReqId).toString();
-	}
-
-	private _toFsPath(path: Path): string {
-		return path.value;
-	}
-
-	private _throwNotImplemented(method: string): never {
-		throw new Error(`${method} is not supported in RpcFileProvider`);
 	}
 }
 
@@ -226,20 +79,22 @@ async function initSearchService(
 	msg: SearchWorkerInitInMessage,
 	postMessage: (message: SearchWorkerOutMessage) => void,
 ): Promise<void> {
-	const cacheFp = new RpcFileProvider(msg.cacheRoot, "cache", postMessage);
-	const articleFp = new RpcFileProvider(msg.articleStorageRoot, "articleStorage", postMessage);
+	const fsRpcState = { fsPending, fsReqId: 0 };
+	const cacheFp = new RpcFileProvider(msg.cacheRoot, "cache", postMessage, fsRpcState);
+	const articleFp = new RpcFileProvider(msg.articleStorageRoot, "articleStorage", postMessage, fsRpcState);
 
-	const serviceAndCommit = await createSearchService({
+	const serviceAndCommit = await createSearchService<RpcFileProvider>({
 		cache: {
 			get: async (key) => {
 				const data = await cacheFp.readAsArrayBuffer(getCachePath(key));
 				return new Uint8Array(data);
 			},
 			set: async (key, data) => {
-				await cacheFp.write(getCachePath(key), Buffer.from(data));
+				await cacheFp.write(getCachePath(key), Buffer.from(data.buffer, data.byteOffset, data.byteLength));
 			},
 		},
 		articleStorageFileProvider: articleFp,
+		fsProviderFactory: (fp) => new RpcFsProvider(fp, new Path()),
 	});
 
 	searchService = serviceAndCommit.searchService;

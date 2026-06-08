@@ -1,13 +1,8 @@
-import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type Path from "@core/FileProvider/Path/Path";
 import ResourceManager from "@core/Resource/ResourceManager";
 
 class LinkResourceManager extends ResourceManager {
 	private _linkResources?: { resource: Path; hash?: string }[] = [];
-
-	constructor(fp: FileProvider, basePath: Path, rootPath?: Path) {
-		super(fp, basePath, rootPath);
-	}
 
 	override set(path: Path, hash?: string) {
 		if (hash) this._setHash(path, hash);

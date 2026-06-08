@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
+
+import { scaleSchemaModifier } from "@ext/article/extensions/scale/logic/scaleSchemaModifier";
 import alertSchema from "@ext/markdown/elements/alert/edit/model/alertSchema";
 import questionAnswerSchema from "@ext/markdown/elements/answer/edit/models/answerSchema";
 import doc from "@ext/markdown/elements/article/edit/doc";
@@ -12,7 +15,7 @@ import comment from "@ext/markdown/elements/comment/edit/model/commentSchema";
 import answer from "@ext/markdown/elements/comment/legacy/answer/edit/answerSchema";
 import comment_old from "@ext/markdown/elements/comment/legacy/comment/commentShema";
 import cut from "@ext/markdown/elements/cut/edit/model/cutSchema";
-import inlineCut_component from "@ext/markdown/elements/cut/edit/model/inlineCutSchema";
+import inlineCutComponent from "@ext/markdown/elements/cut/edit/model/inlineCutSchema";
 import mermaid from "@ext/markdown/elements/diagrams/diagrams/mermaid/mermaidSchema";
 import plantUml from "@ext/markdown/elements/diagrams/diagrams/plantUml/plantUmlSchema";
 import diagramsSchema from "@ext/markdown/elements/diagrams/edit/models/diagramsSchema";
@@ -20,6 +23,8 @@ import drawioSchema from "@ext/markdown/elements/drawio/edit/model/drawioSchema"
 import error from "@ext/markdown/elements/error/editor/model/errorSchema";
 import file from "@ext/markdown/elements/file/edit/model/fileSchema";
 import floatSchemaModifier from "@ext/markdown/elements/float/edit/logic/floatSchemaModifier";
+import fragmentSchema from "@ext/markdown/elements/fragment/edit/model/fragmentSchema";
+import fragmentLinkSchema from "@ext/markdown/elements/fragment-link/edit/model/fragmentLinkSchema";
 import heading from "@ext/markdown/elements/heading/edit/model/headingSchema";
 import highlightSchema from "@ext/markdown/elements/highlight/edit/model/schema";
 import horizontal_rule from "@ext/markdown/elements/hr/edit/model/hrSchema";
@@ -33,12 +38,11 @@ import inlinePropertySchema from "@ext/markdown/elements/inlineProperty/edit/mod
 import link from "@ext/markdown/elements/link/edit/model/linkSchema";
 import * as listSchema from "@ext/markdown/elements/list/edit/models/listSchema";
 import blockMd from "@ext/markdown/elements/md/model/blockMdSchema";
-import inlineMd_component from "@ext/markdown/elements/md/model/inlineMdSchema";
+import inlineMdComponent from "@ext/markdown/elements/md/model/inlineMdSchema";
 import note from "@ext/markdown/elements/note/edit/model/noteSchema";
 import openApiSchema from "@ext/markdown/elements/openApi/edit/models/openApiSchema";
 import paragraphSchema from "@ext/markdown/elements/paragraph/editor/model/paragraphSchema";
 import questionSchema from "@ext/markdown/elements/question/edit/models/questionSchema";
-import snippetSchema from "@ext/markdown/elements/snippet/edit/model/snippetSchema";
 import * as table_simple from "@ext/markdown/elements/table/edit/model/simpleTableSchema";
 import * as table from "@ext/markdown/elements/table/edit/model/tableSchema";
 import tabSchema from "@ext/markdown/elements/tabs/edit/model/tab/tabSchema";
@@ -46,13 +50,20 @@ import tabsSchema from "@ext/markdown/elements/tabs/edit/model/tabs/tabsSchema";
 import unsupported from "@ext/markdown/elements/unsupported/edit/model/unsupportedSchema";
 import videoSchema from "@ext/markdown/elements/video/edit/model/videoSchema";
 import viewSchema from "@ext/markdown/elements/view/edit/models/viewSchema";
+import { propertySchemaModifier } from "@ext/properties/logic/utils/PropertySchemaModifier";
 import suggestion from "@ext/StyleGuide/extension/suggestionSchema";
 import { getPluginSchemas } from "@plugins/store";
 import { Schema, type SchemaSpec } from "prosemirror-model";
 
 type SchemaModifier = (schema: SchemaSpec<any, any>) => void;
 
-const defaultModifiers: SchemaModifier[] = [commentSchemaModifier, floatSchemaModifier];
+const defaultModifiers: SchemaModifier[] = [
+	commentSchemaModifier,
+	floatSchemaModifier,
+	propertySchemaModifier,
+	scaleSchemaModifier,
+];
+
 export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: SchemaModifier[]) => {
 	const allModifiers = [...defaultModifiers, ...(modifiers ?? [])];
 	const pluginSchemas = getPluginSchemas();
@@ -76,7 +87,7 @@ export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: Sc
 			...listSchema,
 
 			openapi: openApiSchema,
-			snippet: snippetSchema,
+			fragment: fragmentSchema,
 			diagrams: diagramsSchema,
 			mermaid,
 			"plant-uml": plantUml,
@@ -130,8 +141,10 @@ export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: Sc
 			...htmlTagsComponents,
 
 			blockMd,
-			inlineMd_component,
-			inlineCut_component,
+			// biome-ignore lint/style/useNamingConvention: node type registry keys
+			inlineMd_component: inlineMdComponent,
+			// biome-ignore lint/style/useNamingConvention: node type registry keys
+			inlineCut_component: inlineCutComponent,
 			...(additionalSchema?.nodes ?? {}),
 			...pluginSchemas.nodes,
 		},
@@ -141,13 +154,14 @@ export const getSchema = (additionalSchema?: Record<string, any>, modifiers?: Sc
 			link,
 			comment,
 			suggestion,
+			"fragment-link": fragmentLinkSchema,
 			s: {},
 			em: {},
 			code: {},
 			strong: {},
 			inlineMd: {},
 			file,
-			inlineCut: { attrs: inlineCut_component.attrs },
+			inlineCut: { attrs: inlineCutComponent.attrs },
 			...pluginSchemas.marks,
 			...(additionalSchema?.marks ?? {}),
 		},

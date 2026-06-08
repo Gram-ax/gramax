@@ -1,57 +1,61 @@
+import { expect } from "@playwright/test";
 import { sleep } from "@utils/utils";
 import { editorTest } from "@web/fixtures/editor.fixture";
 
-editorTest.describe("Snippets (serial)", () => {
+editorTest.describe("Fragments (serial)", () => {
 	editorTest.describe.configure({ mode: "serial" });
 
 	editorTest.beforeEach(async () => {
 		await sleep(1000);
 	});
 
-	editorTest("create & fill snippet", async ({ sharedPage, editor }) => {
-		await editorTest.step("create snippet", async () => {
+	editorTest("create & fill fragment", async ({ sharedPage, editor }) => {
+		await editorTest.step("create fragment", async () => {
 			await sharedPage.getByTestId("catalog-actions").click();
 			await sharedPage.getByRole("menuitem", { name: "Tools" }).hover();
-			await sharedPage.getByRole("menuitem", { name: "Snippets" }).click();
-			await sharedPage.getByRole("button", { name: "New snippet" }).click();
+			await expect(sharedPage.getByRole("menuitem", { name: "Fragments" })).toBeVisible();
+			await sharedPage.getByRole("menuitem", { name: "Fragments" }).click();
+			await sharedPage.getByRole("button", { name: "New fragment" }).click();
 			await sharedPage.getByText("Untitled").first().click();
 		});
 
-		await editorTest.step("fill snippet", async () => {
-			await editor.type("Test Snippet");
+		await editorTest.step("fill fragment", async () => {
+			await editor.type("Test Fragment");
 			await editor.press("Enter");
-			await editor.type("snippet content");
+			await editor.type("fragment content");
 			await editor.press("Enter");
-			await editor.clickToolbar("heading-2");
-			await editor.type("Snippet Heading");
+			await editor.clickToolbar("headers");
+			await sharedPage.getByRole("menuitem", { name: "Heading 2" }).click();
+			await editor.type("Fragment Heading");
 		});
 
 		await editor.forceSave();
 		await sleep(1000);
 	});
 
-	editorTest("insert snippet into article", async ({ editor, sharedPage }) => {
-		await editor.hoverToolbar("pencil-ruler");
-		await sharedPage.getByRole("menuitem", { name: "Snippets" }).hover();
-		await sharedPage.getByRole("option", { name: "Test Snippet" }).click();
-		await editor.assertMarkdownContains(/<snippet id=".+"\/>/);
+	editorTest("insert fragment into article", async ({ editor, sharedPage }) => {
+		await editor.clickToolbar("semiBlocks");
+		await sharedPage.getByRole("menuitem", { name: "Fragments" }).hover();
+		await expect(sharedPage.getByRole("option", { name: "Test Fragment" })).toBeVisible();
+		await sharedPage.getByRole("option", { name: "Test Fragment" }).click();
+		await editor.assertMarkdownContains(/<fragment id=".+"\/>/);
 	});
 
-	editorTest("delete snippet", async ({ sharedPage }) => {
+	editorTest("delete fragment", async ({ sharedPage }) => {
 		await sharedPage.getByTestId("catalog-actions").click();
 		await sharedPage.getByRole("menuitem", { name: "Tools" }).hover();
-		await sharedPage.getByRole("menuitem", { name: "Snippets" }).click();
-		await sharedPage.getByText("Test Snippet").hover();
-		await sharedPage.getByRole("button", { name: "Test Snippet" }).getByRole("button").click();
+		await sharedPage.getByRole("menuitem", { name: "Fragments" }).click();
+		await sharedPage.locator(".item-title", { hasText: "Test Fragment" }).hover();
+		await sharedPage.getByRole("button", { name: "Test Fragment" }).getByRole("button").click();
 		await sharedPage.getByText("Delete").click();
 		await sharedPage.getByRole("button", { name: "Continue" }).click();
 	});
 
-	editorTest("verify snippet deleted", async ({ sharedPage }) => {
+	editorTest("verify fragment deleted", async ({ sharedPage }) => {
 		await sharedPage.reload();
 		await sharedPage.getByTestId("catalog-actions").click();
 		await sharedPage.getByRole("menuitem", { name: "Tools" }).hover();
-		await sharedPage.getByRole("menuitem", { name: "Snippets" }).click();
-		await sharedPage.getByText("No snippets in the current catalog").waitFor();
+		await sharedPage.getByRole("menuitem", { name: "Fragments" }).click();
+		await sharedPage.getByText("No fragments in the current catalog").waitFor();
 	});
 });

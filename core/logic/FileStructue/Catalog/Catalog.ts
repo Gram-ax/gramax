@@ -16,14 +16,15 @@ import itemRefUtils from "@core/utils/itemRefUtils";
 import { uniqueName } from "@core/utils/uniqueName";
 import PromptProvider from "@ext/ai/logic/PromptProvider";
 import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
+import { CatalogViewProvider } from "@ext/catalog/views/logic/CatalogViewProvider";
 import type Repository from "@ext/git/core/Repository/Repository";
 import InboxProvider from "@ext/inbox/logic/InboxProvider";
 import { trace } from "@ext/loggers/opentelemetry";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
 import CommentProvider from "@ext/markdown/elements/comment/edit/logic/CommentProvider";
+import FragmentProvider from "@ext/markdown/elements/fragment/logic/FragmentProvider";
 import IconProvider from "@ext/markdown/elements/icon/logic/IconProvider";
-import SnippetProvider from "@ext/markdown/elements/snippet/logic/SnippetProvider";
 import CatalogLinksProvider from "@ext/properties/logic/CatalogLinksProvider";
 import Permission from "@ext/security/logic/Permission/Permission";
 import TemplateProvider from "@ext/templates/logic/TemplateProvider";
@@ -70,12 +71,13 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 	private _searcher: CatalogItemSearcher;
 	private _customProviders: {
 		iconProvider: IconProvider;
-		snippetProvider: SnippetProvider;
+		fragmentProvider: FragmentProvider;
 		inboxProvider: InboxProvider;
 		templateProvider: TemplateProvider;
 		promptProvider: PromptProvider;
 		linksProvider: CatalogLinksProvider;
 		commentProvider: CommentProvider;
+		viewProvider: CatalogViewProvider;
 	};
 
 	private _parsedOnce = false;
@@ -88,14 +90,17 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		this._perms = new Permission(init.root.props.private);
 		this._searcher = new CatalogItemSearcher(this);
 
+		const useCache = !this._fp.isReadOnly;
+
 		this._customProviders = {
 			iconProvider: new IconProvider(this._fp, this._fs, this),
-			snippetProvider: new SnippetProvider(this._fp, this._fs, this),
+			fragmentProvider: new FragmentProvider(this._fp, this._fs, this),
 			inboxProvider: new InboxProvider(this._fp, this._fs, this),
 			templateProvider: new TemplateProvider(this._fp, this._fs, this),
 			promptProvider: new PromptProvider(this._fp, this._fs, this),
 			linksProvider: new CatalogLinksProvider(this._fs, this),
-			commentProvider: new CommentProvider(this._fp, this._fs, this),
+			commentProvider: new CommentProvider(this._fp, this._fs, this, useCache),
+			viewProvider: new CatalogViewProvider(this._fp, this),
 		};
 	}
 
@@ -105,6 +110,10 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 	get findArticleCacheHit() {
 		return this._searcher.cacheHit;
+	}
+
+	resetSearcherCache() {
+		this._searcher.resetCache();
 	}
 
 	get customProviders() {
@@ -182,10 +191,15 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		});
 		this._unsubscirbeTokens.repo.push(publishToken);
 
-		const mergeToken = this.repo.events.on("merge", async ({ targetBranch, sourceData, beforeMergeCommit }) => {
-			await this._events.emit("merge", { catalog: this, targetBranch, sourceData, beforeMergeCommit });
+		const mergeToken = this.repo.events.on("merge", async (args) => {
+			await this._events.emit("merge", { catalog: this, ...args });
 		});
-		this._unsubscirbeTokens.repo.push(mergeToken);
+
+		const syncToken = this.repo.events.on("sync", async (args) => {
+			await this._events.emit("sync", { catalog: this, ...args });
+		});
+
+		this._unsubscirbeTokens.repo.push(mergeToken, syncToken);
 	}
 
 	getRepositoryRelativePath(ref: Path | ItemRef): Path {
@@ -318,11 +332,8 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		return this;
 	}
 
-	async getTransformedItems<T>(root: Category, transformer: (item: Item) => Promise<T> | T): Promise<T[]> {
-		const transformedItems: T[] = [];
-		for (const item of root.items) transformedItems.push(await transformer(item));
-		const items = transformedItems.filter((l) => l);
-		return items;
+	getCategoryItems(category: Category): Item[] {
+		return category.items;
 	}
 
 	getRootCategory(): Category<P> {
@@ -376,31 +387,58 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		return this._getItems(this._resolveRootCategory(), filters) as Article[];
 	}
 
+	@trace()
 	async moveItem(
 		from: ItemRef,
 		to: ItemRef,
 		makeResourceUpdater: MakeResourceUpdater,
 		innerRefs?: ItemRef[],
 		silent?: boolean,
-	) {
+		collectPaths?: { oldPath: Path; newPath: Path }[],
+	): Promise<Item> {
+		const isRoot = !collectPaths;
+		const collect = collectPaths ?? [];
+
 		const item = this.findItemByItemRef<Article>(from);
 		assert(item, `Item '${from.path.value}' wasn't found in catalog ${this.basePath.value}`);
 
 		if (item.type === ItemType.category)
-			await this._moveCategoryItems(<Category>item, to, makeResourceUpdater, innerRefs);
+			await this._moveCategoryItems(<Category>item, to, makeResourceUpdater, innerRefs, collect);
 
 		const movedItem = await this._moveArticleItem(item, to);
+		if (!silent) await this._replaceItemInTree(item, movedItem);
 
 		const resourceUpdater = makeResourceUpdater(this);
 		await resourceUpdater.update(item, movedItem, innerRefs);
 
-		const parentFrom = from.path.parentDirectoryPath;
-		const dirs = (await this._fp.exists(parentFrom)) ? await this._fp.readdir(parentFrom) : null;
-		if (!dirs?.length) await this._fp.delete(parentFrom, false);
-
 		if (!silent) await this.events.emit("item-moved", { catalog: this, from, to, makeResourceUpdater, innerRefs });
 
-		await resourceUpdater.updateOtherArticles(from.path, to.path, innerRefs);
+		collect.push({ oldPath: from.path, newPath: movedItem.ref.path });
+
+		if (isRoot) {
+			await resourceUpdater.updateOtherArticlesBatch(collect, innerRefs);
+		}
+
+		return movedItem;
+	}
+
+	private async _replaceItemInTree(oldItem: Item, newItem: Item): Promise<void> {
+		const oldParent = oldItem.parent;
+		const newParent = newItem.parent ?? this._rootCategory;
+
+		if (oldParent && newParent) {
+			if (oldParent !== newParent) {
+				const oldIdx = oldParent.items.indexOf(oldItem);
+				if (oldIdx !== -1) oldParent.items.splice(oldIdx, 1);
+				newParent.items.push(newItem);
+				await newParent.sortItems("no-sort");
+			} else if (!oldItem.ref.path.compare(newItem.ref.path)) {
+				const oldIdx = oldParent.items.indexOf(oldItem);
+				if (oldIdx !== -1) oldParent.items.splice(oldIdx, 1);
+			}
+		}
+
+		this._searcher.resetCache([oldItem.ref.path.value, newItem.ref.path.value]);
 	}
 
 	async categoryPathByArticle(article: Article) {
@@ -410,12 +448,14 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		return parentPath.join(new Path(name)).join(new Path(CATEGORY_ROOT_FILENAME));
 	}
 
+	@trace()
 	async createCategoryByArticle(
 		makeResourceUpdater: MakeResourceUpdater,
 		parentArticle: Article,
 		forcePath?: Path,
 	): Promise<Category> {
 		const path = forcePath ?? (await this.categoryPathByArticle(parentArticle));
+		const oldArticlePath = parentArticle.ref.path;
 
 		const index = parentArticle.parent.items.findIndex((i) => i.ref.path.compare(parentArticle.ref.path));
 		await this._deleteItem(parentArticle.ref);
@@ -423,7 +463,8 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 		const category = await this._fs.createCategory(path, parentArticle.parent, parentArticle, this);
 
-		await makeResourceUpdater(this).update(parentArticle, category);
+		const resourceUpdater = makeResourceUpdater(this);
+		await resourceUpdater.update(parentArticle, category);
 		category.events.on("item-changed", this._onItemChanged.bind(this));
 		category.events.on(
 			"item-order-updated",
@@ -432,6 +473,9 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 
 		parentArticle.parent.items.splice(index, 0, category);
 		await this._onItemChanged({ item: category, status: FileStatus.new });
+
+		await resourceUpdater.updateOtherArticlesBatch([{ oldPath: oldArticlePath, newPath: category.ref.path }]);
+
 		return category;
 	}
 
@@ -467,14 +511,18 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		if (item.props.shouldBeCreated) {
 			await this._fp.write(to.path, "");
 		} else {
-			await item.save();
 			await this._fp.move(item.ref.path, to.path);
 		}
 
+		const destDir = to.path.parentDirectoryPath;
+		const parentDir = item.type === ItemType.category ? destDir.parentDirectoryPath : destDir;
+		const destinationParent =
+			this.getCategories().find((c) => c.folderPath.compare(parentDir)) ?? this._rootCategory;
+
 		const movedItem =
 			item.type === ItemType.category
-				? await this._fs.makeCategory(to.path.parentDirectoryPath, this._rootCategory, this, to.path)
-				: await this._fs.createArticle(to.path, this._rootCategory, null, this);
+				? await this._fs.makeCategory(to.path.parentDirectoryPath, destinationParent, this, to.path)
+				: await this._fs.createArticle(to.path, destinationParent, null, this);
 
 		return movedItem;
 	}
@@ -484,6 +532,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 		to: ItemRef,
 		makeResourceUpdater: MakeResourceUpdater,
 		innerRefs: ItemRef[],
+		collect: { oldPath: Path; newPath: Path }[],
 	) {
 		const dst = await this._getCategoryUniqueName(
 			to.path.parentDirectoryPath.name,
@@ -497,7 +546,7 @@ export class Catalog<P extends CatalogProps = CatalogProps>
 				item.ref.path.parentDirectoryPath.subDirectory(i.ref.path),
 			);
 			const childNewItemRef = { path: childNewBasePath, storageId: i.ref.storageId };
-			await this.moveItem(i.ref, childNewItemRef, makeResourceUpdater, innerRefs, true);
+			await this.moveItem(i.ref, childNewItemRef, makeResourceUpdater, innerRefs, true, collect);
 		}
 	}
 

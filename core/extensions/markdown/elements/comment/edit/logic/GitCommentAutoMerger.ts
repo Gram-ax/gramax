@@ -8,7 +8,7 @@ type CommentsFileData = Record<string, CommentBlock<string>>;
 
 export class GitCommentAutoMerger implements GitAutoMergerModel {
 	canProceed(conflict: MergeConflictInfo): boolean {
-		return conflict.ours.endsWith(".comments.yaml") && conflict.theirs.endsWith(".comments.yaml");
+		return Boolean(conflict.ours?.endsWith(".comments.yaml") && conflict.theirs?.endsWith(".comments.yaml"));
 	}
 
 	async proceed(conflictContent: string): Promise<string> {

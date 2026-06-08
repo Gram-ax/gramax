@@ -5,20 +5,22 @@ import type { ChangeEvent as ReactChangeEvent } from "react";
 interface FlagProps {
 	id: string;
 	value: boolean;
-	preSubmit: (name: string, value: any, isDelete?: boolean) => void;
-	onChange: (event: ReactChangeEvent<HTMLInputElement>) => void;
+	preSubmit: (name: string, value: unknown, isDelete?: boolean) => void;
+	onChange?: (event: ReactChangeEvent<HTMLInputElement>) => void;
 }
 
 const Flag = ({ value = false, onChange, preSubmit, id }: FlagProps) => {
 	const valueString = value.toString();
-	const onClick = (value: string) => {
+	const onClick = (clicked: string) => {
+		const isChecked = clicked === "true";
 		const syntheticEvent = {
-			target: { checked: value === "true" },
-			currentTarget: { checked: value === "true" },
+			target: { checked: isChecked },
+			currentTarget: { checked: isChecked },
 		} as ReactChangeEvent<HTMLInputElement>;
 
-		onChange(syntheticEvent);
-		preSubmit(id, undefined, value === "false");
+		onChange?.(syntheticEvent);
+		if (isChecked && value) return;
+		preSubmit(id, undefined, !isChecked);
 	};
 
 	return (

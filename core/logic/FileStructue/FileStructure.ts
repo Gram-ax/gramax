@@ -1,4 +1,14 @@
-import { CATEGORY_ROOT_FILENAME, CATEGORY_ROOT_REGEXP, DOC_ROOT_FILENAME, DOC_ROOT_REGEXP } from "@app/config/const";
+import {
+	CATEGORY_ROOT_FILENAME,
+	CATEGORY_ROOT_FILENAMES,
+	CATEGORY_ROOT_REGEXP,
+	DOC_ROOT_FILENAME,
+	DOC_ROOT_FILENAMES,
+	DOC_ROOT_REGEXP,
+	WORKSPACE_CONFIG_FILENAME,
+} from "@app/config/const";
+import { getExecutingEnvironment } from "@app/resolveModule/env";
+import rustCall from "@app/resolveModule/rustcall";
 import { createEventEmitter, type Event, type EventArgs } from "@core/Event/EventEmitter";
 import type MountFileProvider from "@core/FileProvider/MountFileProvider/MountFileProvider";
 import type FileInfo from "@core/FileProvider/model/FileInfo";
@@ -15,7 +25,8 @@ import type { Item } from "@core/FileStructue/Item/Item";
 import { roundedOrderAfter } from "@core/FileStructue/Item/ItemOrderUtils";
 import type CatalogEditProps from "@ext/catalog/actions/propsEditor/model/CatalogEditProps";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
-import { trace } from "@ext/loggers/opentelemetry";
+import { span, trace } from "@ext/loggers/opentelemetry";
+import { feature } from "@ext/toggleFeatures/features";
 import assert from "assert";
 import matter from "gray-matter";
 import * as yaml from "js-yaml";
@@ -38,7 +49,8 @@ export type FSEvents = Event<
 	Event<"item-serialize", { mutable: { content: string; props: ArticleProps } }> &
 	Event<"before-item-create", { catalog: Catalog; mutableItem: { item: Item } }> &
 	Event<"item-order-updated", EventArgs<CatalogEvents, "item-order-updated">> &
-	Event<"item-props-updated", EventArgs<CatalogEvents, "item-props-updated">>;
+	Event<"item-props-updated", EventArgs<CatalogEvents, "item-props-updated">> &
+	Event<"item-read", { catalog: Catalog; mutable: { content: string; props: ArticleProps } }>;
 
 // biome-ignore lint/suspicious/noExplicitAny: idc
 export type FSProps = { [key: string]: any };
@@ -48,12 +60,22 @@ export type MarkdownProps = {
 	content: string;
 };
 
+export type WorkspaceEntryDto = {
+	relPath: string;
+	name: string;
+	docrootRel: string | null;
+	// biome-ignore lint/suspicious/noExplicitAny: parsed YAML can carry arbitrary template-driven keys
+	catalogProps: CatalogProps & { [key: string]: any };
+};
+
 const functionalFolders = [".git", ".idea", ".vscode", "node_modules", ".DS_Store"];
 export const FS_EXCLUDE_FILENAMES = [
 	...functionalFolders,
 	".snippets", // legacy
 	".icons",
 	".gramax",
+	".claude",
+	".codex",
 ];
 export const FS_EXCLUDE_CATALOG_NAMES = [
 	...functionalFolders,
@@ -68,6 +90,7 @@ export default class FileStructure {
 	constructor(
 		private _fp: MountFileProvider,
 		private _isReadOnly: boolean,
+		private _knownWorkspacePaths: string[] = [],
 	) {}
 
 	static isCatalog(path: Path): boolean {
@@ -97,11 +120,92 @@ export default class FileStructure {
 		return this._events;
 	}
 
-	@trace()
+	@trace({ omitResult: true })
 	async getCatalogEntries(): Promise<CatalogEntry[]> {
-		const dirs = await FileStructure.getCatalogDirs(this._fp);
-		const catalogs = await dirs.mapAsync((dir) => this.getCatalogEntryByPath(dir.path));
+		if (feature("native-fs")) {
+			const native = await this._tryNativeScanWorkspace();
+
+			if (native) {
+				span()?.addEvent("used-method", { method: "native" });
+				return await this._buildEntriesFromNative(native);
+			}
+		}
+
+		span()?.addEvent("used-method", { method: "js" });
+		return await this._getCatalogEntriesJs();
+	}
+
+	/**
+	 * @deprecated Consider using FileStructue._tryNativeScanWorkspace
+	 */
+	@trace({ omitArgs: true, omitResult: true })
+	private async _getCatalogEntriesJs(): Promise<CatalogEntry[]> {
+		const dirs = await FileStructure.getCatalogDirs(this._fp.default());
+		const basePath = this._fp.rootPath;
+
+		const filtered = (
+			await dirs.mapAsync(async (dir) => {
+				const workspaceFilePath = dir.path.join(new Path(WORKSPACE_CONFIG_FILENAME));
+				const hasWorkspaceYaml = await this._fp.exists(workspaceFilePath);
+				const dirAbsPath = basePath.join(new Path(dir.name));
+				const isKnownWorkspace = this._knownWorkspacePaths.some((wp) => new Path(wp).startsWith(dirAbsPath));
+
+				if (hasWorkspaceYaml || isKnownWorkspace) {
+					span()?.addEvent("nested-workspace-skipped", {
+						dir: dir.name,
+						reason: hasWorkspaceYaml ? "workspace.yaml" : "known-workspace-path",
+					});
+					return null;
+				}
+
+				return dir;
+			})
+		).filter(Boolean);
+
+		const catalogs = await filtered.mapAsync((dir) => this.getCatalogEntryByPath(dir.path));
 		return catalogs.filter((c) => c);
+	}
+
+	@trace({ omitArgs: true, omitResult: true })
+	private async _tryNativeScanWorkspace(): Promise<WorkspaceEntryDto[] | null> {
+		const env = getExecutingEnvironment();
+		if (env === "static" || env === "cli") return null;
+
+		const entries = await rustCall<WorkspaceEntryDto[]>("fs.scan_workspace", {
+			scope: { kind: "disk", root: this._fp.default().rootPath.value },
+			path: "",
+			opts: {
+				excludeDirs: FS_EXCLUDE_CATALOG_NAMES,
+				categoryIndexFilename: CATEGORY_ROOT_FILENAMES,
+				docrootFilenames: DOC_ROOT_FILENAMES,
+				workspaceConfigFilename: WORKSPACE_CONFIG_FILENAME,
+				docrootSearchDepth: 5,
+				optionalCategoryIndex: true,
+				maxConcurrency: 1,
+				followSymlinks: false,
+				knownWorkspacePaths: this._knownWorkspacePaths,
+			},
+		});
+
+		return entries;
+	}
+
+	@trace({ omitArgs: true, omitResult: true })
+	private async _buildEntriesFromNative(entries: WorkspaceEntryDto[]): Promise<CatalogEntry[]> {
+		const out = await entries.mapAsync(async (e) => {
+			const dirPath = new Path(e.relPath);
+			const initProps: CatalogProps = {};
+			await this._events.emit("before-catalog-entry-read", { path: dirPath, checkIsExists: true, initProps });
+
+			const docrootPath = dirPath.join(new Path(e.docrootRel ?? DOC_ROOT_FILENAME));
+			const props: CatalogProps = e.docrootRel ? e.catalogProps : this._defaultProps(dirPath);
+			const entry = this._makeCatalogEntry(dirPath, docrootPath, { ...initProps, ...props });
+
+			await this._events.emit("catalog-entry-read", { entry });
+			return entry;
+		});
+
+		return out.filter(Boolean);
 	}
 
 	@trace()
@@ -119,21 +223,23 @@ export default class FileStructure {
 		if (checkIsExists && !(docroot || (await this.fp.exists(path)))) return;
 
 		const props: CatalogProps = docroot ? await this._parseYaml(docroot) : this._defaultProps(path);
-		const name = path.nameWithExtension;
+		const docrootPath = docroot ?? path.join(new Path(DOC_ROOT_FILENAME));
+		const entry = this._makeCatalogEntry(path, docrootPath, { ...initProps, ...props });
 
-		const ref = this._fp.getItemRef(docroot ?? path.join(new Path(DOC_ROOT_FILENAME)));
-		const entry = new CatalogEntry({
-			name,
-			rootCaterogyRef: ref,
-			basePath: path,
-			props: { ...initProps, ...props },
+		await this._events.emit("catalog-entry-read", { entry });
+		return entry;
+	}
+
+	private _makeCatalogEntry(basePath: Path, docrootPath: Path, props: CatalogProps): CatalogEntry {
+		return new CatalogEntry({
+			name: basePath.nameWithExtension,
+			rootCaterogyRef: this._fp.getItemRef(docrootPath),
+			basePath,
+			props,
 			load: (entry) => this._getCatalogByEntry(entry),
 			isReadOnly: this._isReadOnly,
 			fs: this,
 		});
-
-		await this._events.emit("catalog-entry-read", { entry });
-		return entry;
 	}
 
 	@trace()
@@ -166,7 +272,7 @@ export default class FileStructure {
 		const { props, content } = this.parseMarkdown(await this._fp.read(path));
 
 		const stat = await this._fp.getStat(path);
-		const article = this.makeArticleByProps(path, initProps || props, content, parent, stat.mtimeMs, catalog);
+		const article = await this.makeArticleByProps(path, initProps || props, content, parent, stat.mtimeMs, catalog);
 
 		return article;
 	}
@@ -200,23 +306,27 @@ export default class FileStructure {
 		await this._fp.write(path, text);
 	}
 
-	makeArticleByProps(
+	async makeArticleByProps(
 		path: Path,
 		props: ArticleProps,
 		content: string,
 		parent: Category,
 		lastModified: number,
 		catalog?: Catalog,
-	): Article {
+	): Promise<Article> {
 		const articleCodeInCategory = parent.folderPath.subDirectory(path).stripDotsAndExtension;
 		const logicPath = Path.join(parent.logicPath, articleCodeInCategory);
 
-		return this._createArticleByProps(props ?? {}, parent, path, logicPath, content, lastModified, catalog);
+		return await this._createArticleByProps(props ?? {}, parent, path, logicPath, content, lastModified, catalog);
 	}
 
 	async makeCategory(path: Path, parent: Category, catalog: Catalog, indexPath?: Path): Promise<Category> {
 		const parsed = indexPath ? this.parseMarkdown(await this._fp.read(indexPath)) : { props: {}, content: "" };
-		return await this._makeCategoryByProps(parsed.props, path, parsed.content, parent, catalog, indexPath);
+
+		const mutable = { props: parsed.props, content: parsed.content };
+		await this.events.emit("item-read", { catalog, mutable });
+
+		return await this._makeCategoryByProps(mutable.props, path, mutable.content, parent, catalog, indexPath);
 	}
 
 	parseMarkdown(content: string): MarkdownProps {
@@ -256,9 +366,12 @@ export default class FileStructure {
 			rootCaterogyRef: category.ref,
 			basePath: entry.basePath,
 			fs: this,
-			fp: this._fp,
+			fp: this._fp.at(entry.basePath) as FileProvider,
 			isReadOnly: this._isReadOnly,
 		});
+
+		const mutableItem = { item: category };
+		this.events.emitSync("before-item-create", { catalog, mutableItem });
 
 		await this._readCategoryItems(entry.getRootCategoryDirectoryPath(), category, catalog);
 
@@ -390,12 +503,16 @@ export default class FileStructure {
 
 		const logicPath = Path.join(parentCategory.logicPath, articleCodeInCategory);
 		const stat = await this._fp.getStat(path);
+
+		const mutable = { content, props };
+		await this.events.emit("item-read", { catalog, mutable });
+
 		const article = this._createArticleByProps(
-			props,
+			mutable.props,
 			parentCategory,
 			path,
 			logicPath,
-			content,
+			mutable.content,
 			stat.mtimeMs,
 			catalog,
 		);
@@ -403,7 +520,7 @@ export default class FileStructure {
 		return article;
 	}
 
-	private _createArticleByProps(
+	private async _createArticleByProps(
 		props: ArticleProps,
 		parent: Category,
 		path: Path,
@@ -411,17 +528,20 @@ export default class FileStructure {
 		content: string,
 		lastModified?: number,
 		catalog?: Catalog,
-	): Article {
+	): Promise<Article> {
+		const mutable = { content, props };
+		await this.events.emit("item-read", { catalog, mutable });
+
 		const initProps = {
 			ref: this._fp.getItemRef(path),
 			parent,
 			fs: this,
 			lastModified: lastModified || 0,
-			content,
+			content: mutable.content,
 			logicPath,
 		};
 
-		const mutableItem = { item: new Article({ ...initProps, props }) };
+		const mutableItem = { item: new Article({ ...initProps, props: mutable.props }) };
 		this.events.emitSync("before-item-create", { catalog, mutableItem });
 
 		return mutableItem.item;

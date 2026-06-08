@@ -103,9 +103,13 @@
 	background: unset;
 }
 
+.ProseMirror .fragment-link-mark {
+	border-bottom: 1px dotted var(--color-article-text);
+}
+
 .ProseMirror pre > div {
 	padding: 0;
-	font-size: 0.8rem;
+	font-size: 1em;
 	line-height: 20px;
 	color: var(--color-fence-text);
 	white-space: nowrap;
@@ -145,12 +149,6 @@
 .ProseMirror table {
 	margin: 0;
 	border-collapse: collapse;
-}
-.ProseMirror table td,
-.ProseMirror table th {
-	position: relative;
-	box-sizing: border-box;
-	min-width: 1em;
 }
 
 .ProseMirror table td,

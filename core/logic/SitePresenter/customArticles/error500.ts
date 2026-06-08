@@ -1,5 +1,10 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import t from "@ext/localization/locale/translate";
 
-export default (props: { type?: string }) => `${t("article.custom.500.title")}
-${props?.type == "Parse" ? t("article.custom.500.body") : "\n\n"}
+export default (props: { type?: string }) => {
+	const isBrowser = getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri";
+	const bodyKey = isBrowser ? "article.custom.500.body-browser" : "article.custom.500.body";
+	return `${t("article.custom.500.title")}
+${props?.type === "Parse" ? t(bodyKey) : "\n\n"}
 `;
+};

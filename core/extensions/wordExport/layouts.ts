@@ -9,9 +9,10 @@ import { colorWordLayout } from "@ext/markdown/elements/color/word/color";
 import { commentWordLayout } from "@ext/markdown/elements/comment/word/comment";
 import { cutBlockWordLayout } from "@ext/markdown/elements/cut/word/cutBlock";
 import { cutInlineWordLayout } from "@ext/markdown/elements/cut/word/cutInline";
-import { mermaidWordLayout } from "@ext/markdown/elements/diagrams/diagrams/mermaid/word/mermaid";
 import { drawioWordLayout } from "@ext/markdown/elements/drawio/word/drawio";
 import { emWordLayout } from "@ext/markdown/elements/em/word/em";
+import { fragmentWordLayout } from "@ext/markdown/elements/fragment/word/fragment";
+import { fragmentLinkWordLayout } from "@ext/markdown/elements/fragment-link/word/fragmentLink";
 import { headingWordLayout } from "@ext/markdown/elements/heading/word/heading";
 import { highlightWordLayout } from "@ext/markdown/elements/highlight/word/highlight";
 import { hrWordLayout } from "@ext/markdown/elements/hr/word/hr";
@@ -30,7 +31,6 @@ import { taskListWordLayout } from "@ext/markdown/elements/list/word/taskList";
 import { moduleWordLayout } from "@ext/markdown/elements/module/word/module";
 import { noteWordLayout } from "@ext/markdown/elements/note/word/note";
 import { paragraphWordLayout } from "@ext/markdown/elements/paragraph/word/paragraph";
-import { snippetWordLayout } from "@ext/markdown/elements/snippet/word/snippet";
 import { strikeWordLayout } from "@ext/markdown/elements/strikethrough/word/strike";
 import { strongWordLayout } from "@ext/markdown/elements/strong/word/strong";
 import { tableWordLayout } from "@ext/markdown/elements/table/word/table";
@@ -40,7 +40,7 @@ import { termWordLayout } from "@ext/markdown/elements/term/word/term";
 import { viewWordLayout } from "@ext/markdown/elements/view/word/view";
 import { whenWordLayout, whoWordLayout } from "@ext/markdown/elements/whowhen/word/whoWhen";
 import { diagramdbWordLayout } from "../markdown/elements/diagramdb/word/diagramdb";
-import { plantUMLWordLayout } from "../markdown/elements/diagrams/diagrams/plantUml/word/plantUml";
+import { diagramsWordLayout } from "../markdown/elements/diagrams/word/diagrams";
 // import { imagesWordLayout } from "@ext/markdown/elements/imgs/word/imgs";
 // import { seeWordLayout } from "@ext/markdown/elements/see/word/see";
 import { formulaWordBlockLayout, formulaWordInlineLayout } from "../markdown/elements/formula/word/formula";
@@ -72,6 +72,7 @@ export const inlineLayouts = {
 	inlineImage: renderInlineImageWordLayout,
 	comment: commentWordLayout,
 	Formula: formulaWordInlineLayout,
+	"Fragment-link": fragmentLinkWordLayout,
 	//Fn
 };
 
@@ -82,24 +83,23 @@ export const blockLayouts = {
 	taskList: taskListWordLayout,
 	listItem: listItemWordLayout,
 	Heading: headingWordLayout,
-	Table: tableWordLayout,
+	table: tableWordLayout,
 	note: noteWordLayout,
-	Fence: fenceWordLayout,
+	code_block: fenceWordLayout,
 	Cut: cutBlockWordLayout,
 	blockquote: blockquoteWordLayout,
 	Include: includeWordLayout,
-	Drawio: drawioWordLayout,
-	Mermaid: mermaidWordLayout,
+	drawio: drawioWordLayout,
 	hr: hrWordLayout,
 	tabs: tabsWordLayout,
-	snippet: snippetWordLayout,
+	fragment: fragmentWordLayout,
 	Video: videoWordLayout,
 	Image: renderImageWordLayout,
-	"Plant-uml": plantUMLWordLayout,
 	"Db-diagram": diagramdbWordLayout,
 	"Db-table": tabledbWordlayout,
 	"block-property": blockPropertyWordLayout,
-	View: viewWordLayout,
+	diagrams: diagramsWordLayout,
+	view: viewWordLayout,
 	Formula: formulaWordBlockLayout,
 	// "Img-v": imagesWordLayout,
 	// "Img-h": imagesWordLayout,

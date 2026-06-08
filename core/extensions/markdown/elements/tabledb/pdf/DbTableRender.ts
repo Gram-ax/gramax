@@ -1,8 +1,8 @@
 import t from "@ext/localization/locale/translate";
 import { BASE_CONFIG, COLOR_CONFIG, FONT_SIZE_COEFFICIENT, ICON_SIZE } from "@ext/pdfExport/config";
 import { getSvgIconFromString } from "@ext/pdfExport/utils/getIcon";
+import type { Field, Table as TableDB } from "@ext/tableDB/table";
 import type { Content } from "pdfmake/interfaces";
-import type { Field, Table as TableDB } from "../../../../../logic/components/tableDB/table";
 
 export class DbTableRenderer {
 	private readonly _defaultWidths = ["auto", "auto", "auto"];
@@ -48,7 +48,7 @@ export class DbTableRenderer {
 				layout: "noBorders",
 			},
 			{
-				text: this.stripHtmlTags(table?.description?.default),
+				text: this._stripHtmlTags(table?.description?.default),
 				fontSize: BASE_CONFIG.FONT_SIZE * 0.625,
 				margin: [0, BASE_CONFIG.FONT_SIZE, 0, 0],
 			},
@@ -58,10 +58,10 @@ export class DbTableRenderer {
 					body: [this._createFirstRow(), ...(await this._createOtherRows(table))],
 				},
 				layout: {
-					hLineWidth: (rowIndex, _node) =>
-						rowIndex === 0 || (_node.table.body && rowIndex === _node.table.body.length) ? 0 : 0.1,
-					vLineWidth: (colIndex, _node) =>
-						colIndex === 0 || (_node.table.widths && colIndex === _node.table.widths.length) ? 0 : 0.1,
+					hLineWidth: (rowIndex, Node) =>
+						rowIndex === 0 || (Node.table.body && rowIndex === Node.table.body.length) ? 0 : 0.1,
+					vLineWidth: (colIndex, Node) =>
+						colIndex === 0 || (Node.table.widths && colIndex === Node.table.widths.length) ? 0 : 0.1,
 					hLineColor: () => COLOR_CONFIG.table,
 					vLineColor: () => COLOR_CONFIG.table,
 					paddingLeft: () => 8,
@@ -206,7 +206,7 @@ export class DbTableRenderer {
 		const texts = [
 			field.title.default,
 			field.title.default && field.description.default ? "" : null,
-			field.description.default ? this.stripHtmlTags(field.description.default) : null,
+			field.description.default ? this._stripHtmlTags(field.description.default) : null,
 		].filter(Boolean);
 
 		return {
@@ -215,7 +215,7 @@ export class DbTableRenderer {
 		};
 	}
 
-	private stripHtmlTags(html: string): string {
+	private _stripHtmlTags(html: string): string {
 		return html.replace(/<[^>]*>/g, "");
 	}
 }

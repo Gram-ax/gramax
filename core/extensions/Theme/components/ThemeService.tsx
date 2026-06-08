@@ -12,14 +12,15 @@ import {
 import Theme from "../Theme";
 
 const ThemeContext = createContext<Theme>(undefined);
-let _setTheme: Dispatch<SetStateAction<Theme>> = () => {};
+let SetTheme: Dispatch<SetStateAction<Theme>> = () => {};
 
+// biome-ignore lint/complexity/noStaticOnlyClass: expected
 abstract class ThemeService {
 	static defaultTheme = Theme.light;
 
 	static Provider({ children, value }: { children: ReactElement; value?: Theme }): ReactElement {
-		const [theme, setTheme] = useState<Theme>();
-		_setTheme = setTheme;
+		const [theme, setTheme] = useState<Theme>(value);
+		SetTheme = setTheme;
 
 		useLayoutEffect(() => {
 			const theme = ThemeService.getTheme();
@@ -49,7 +50,7 @@ abstract class ThemeService {
 
 	public static changeTheme(theme: Theme) {
 		const verifyTheme = ThemeService.checkTheme(theme);
-		_setTheme(verifyTheme);
+		SetTheme(verifyTheme);
 
 		document.body.dataset.theme = verifyTheme;
 		document.documentElement.className = verifyTheme;

@@ -7,6 +7,11 @@ import Renderer from "../../../core/render/components/Renderer";
 const ScrollableElement = styled.div`
 	overflow-x: auto;
 	overflow-y: hidden;
+
+	.formula-block {
+		overflow-x: unset;
+		overflow-y: unset;
+	}
 `;
 
 const EditBlock = ({ node, selected }: NodeViewProps) => {

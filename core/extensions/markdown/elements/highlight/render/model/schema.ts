@@ -1,3 +1,4 @@
+import { getNewColorFromOld } from "@ext/markdown/elements/highlight/edit/logic/getNewColorFromOld";
 import { type Schema, Tag } from "../../../../core/render/logic/Markdoc";
 
 export const highlight: Schema = {
@@ -7,6 +8,15 @@ export const highlight: Schema = {
 	},
 	selfClosing: false,
 	transform: async (node, config) => {
-		return new Tag("Highlight", node.attributes, await node.transformChildren(config));
+		const { color } = node.attributes;
+
+		return new Tag(
+			"Highlight",
+			{
+				...node.attributes,
+				color: getNewColorFromOld(color) ?? color,
+			},
+			await node.transformChildren(config),
+		);
 	},
 };

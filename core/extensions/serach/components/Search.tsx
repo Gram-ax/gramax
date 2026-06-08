@@ -1,23 +1,24 @@
+/** biome-ignore-all lint/style/noRestrictedImports: it's ok */
 import { TextSize } from "@components/Atoms/Button/Button";
 import Checkbox from "@components/Atoms/Checkbox";
 import Icon from "@components/Atoms/Icon";
 import Input from "@components/Atoms/Input";
 import Anchor, { type AnchorProps } from "@components/controls/Anchor";
-import ModalLayout from "@components/Layouts/Modal";
 import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import type { Section } from "@core/SitePresenter/SitePresenter";
 import generateUniqueID from "@core/utils/generateUniqueID";
 import { type NDJsonReadStream, readNDJson } from "@core/utils/readNDJson";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SearchQueryService from "@core-ui/ContextServices/SearchQuery";
 import { useDebounceValue } from "@core-ui/hooks/useDebounceValue";
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import styled from "@emotion/styled";
@@ -29,27 +30,37 @@ import Renderer from "@ext/markdown/core/render/components/Renderer";
 import type { RenderableTreeNodes } from "@ext/markdown/core/render/logic/Markdoc";
 import type { ItemLink } from "@ext/navigation/NavigationLinks";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { type Property, PropertyTypes } from "@ext/properties/models";
-import { FilteredPropertyBlock } from "@ext/serach/components/FilteredPropertyBlock";
 import { IndexingProgress } from "@ext/serach/components/IndexingProgress";
-import { PropertyFilter as PropertyFilterComponent } from "@ext/serach/components/PropertyFilter";
+import { buildPropertyFilter } from "@ext/serach/components/propertyFilter/buildPropertyFilter";
+import { FilteredPropertyBlock } from "@ext/serach/components/propertyFilter/FilteredPropertyBlock";
+import { PropertyFilter as PropertyFilterComponent } from "@ext/serach/components/propertyFilter/PropertyFilter";
+import { usePropertyFilter } from "@ext/serach/components/propertyFilter/usePropertyFilter";
 import { ResourceFilterDropdown } from "@ext/serach/components/ResourceFilterDropdown";
-import { type ScopeFilter, ScopeFilterDropdown } from "@ext/serach/components/ScopeFilterDropdown";
+import { ScopeFilterDropdown } from "@ext/serach/components/ScopeFilterDropdown";
+import { SearchDialogContent } from "@ext/serach/components/SearchDialogContent";
 import { SearchResults } from "@ext/serach/components/SearchResults";
-import { usePropertyFilter } from "@ext/serach/components/usePropertyFilter";
+import {
+	initialScopeByMode,
+	nextSearchScope,
+	type SearchScope,
+	type SearchScopeMode,
+} from "@ext/serach/components/SearchScope";
 import { chatStream } from "@ext/serach/components/utils/chatStream";
 import { getSearchData } from "@ext/serach/components/utils/getSearchData";
 import type { SearchFragmentInfo } from "@ext/serach/utils/ArticleFragmentCounter/ArticleFragmentCounter";
 import type { FocusItem } from "@ext/serach/utils/FocusItemsCollector";
+import { WorkspaceView } from "@ext/workspace/WorkspaceConfig";
 import { emitPluginEvent } from "@plugins/api/events";
 import { IconButton } from "@ui-kit/Button";
+import { Dialog, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@ui-kit/Dialog";
+import { Divider } from "@ui-kit/Divider";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { type MutableRefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type MutableRefObject, useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
 	highlightFragmentInDocportal,
 	highlightFragmentInEditor,
 } from "../../../components/Article/SearchHandler/ArticleSearchFragmentHander";
-import type { ProgressItem, PropertyFilter } from "../Searcher";
+import type { ProgressItem } from "../Searcher";
 import chatCitations from "../utils/chatCitations/chatCitations";
 import type { RowSearchResult } from "../utils/SearchRowsModel";
 
@@ -59,6 +70,7 @@ const parser = new SimpleMarkdownParser();
 
 export interface SearchProps {
 	isHomePage: boolean;
+	section?: Section;
 	itemLinks?: ItemLink[];
 	className?: string;
 }
@@ -80,19 +92,15 @@ function execLoadData(
 	const controller = new AbortController();
 	abortControllerRef.current?.abort();
 	abortControllerRef.current = controller;
-	loadData(query, controller.signal);
+	void loadData(query, controller.signal);
 	return controller;
 }
 
-const nextScopeFilter: Record<ScopeFilter, ScopeFilter> = {
-	all: "catalog",
-	catalog: "article",
-	article: "all",
-};
-
 const Search = (props: SearchProps) => {
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	const { isHomePage, itemLinks, className } = props;
+	const { isHomePage, itemLinks, className, section } = props;
+	const searchMode: SearchScopeMode =
+		section?.view === WorkspaceView.folder ? "section" : isHomePage ? "homepage" : "catalog";
 	const isMac = IsMacService.value;
 	const {
 		query,
@@ -126,16 +134,17 @@ const Search = (props: SearchProps) => {
 	const responseRef = useRef<HTMLDivElement>(null);
 	const resultsKeyHandlerRef = useRef<((e: React.KeyboardEvent) => boolean) | undefined>(undefined);
 	const abortControllerRef = useRef<AbortController>(new AbortController());
-	const handledOpenRequestVersionRef = useRef<number>(0);
-	const pendingOpenScopeRef = useRef<ScopeFilter | undefined>(undefined);
+	const handledOpenRequestVersionRef = useRef(0);
+	const [requestVersion, bumpRequestVersion] = useReducer((x) => x + 1, 0);
 
-	const [isOpen, setIsOpen] = useState(false);
+	// biome-ignore lint/style/useNamingConvention: idc
+	const [isOpen, _setIsOpen] = useState(false);
 	const [focusItem, setFocusItem] = useState<FocusItem | undefined>(undefined);
 	// biome-ignore lint/style/useNamingConvention: idc
 	const [data, _setData] = useState<SearchComponentData | null>(null);
 	const [chatSearch, setChatSearch] = useState(false);
 	// biome-ignore lint/style/useNamingConvention: idc
-	const [scopeFilter, _setScopeFilter] = useState<ScopeFilter>(isHomePage ? "all" : "catalog");
+	const [searchScope, _setSearchScope] = useState<SearchScope>(initialScopeByMode[searchMode]);
 
 	// Wrap query into an object so debounce triggers even if the value
 	//   changes and then reverts back before the debounce delay
@@ -159,7 +168,8 @@ const Search = (props: SearchProps) => {
 		filterableProperties,
 		shownFilterableProperties,
 		togglePropertyValue,
-		clearFilteredProperty,
+		selectAllPropertyValues,
+		selectEmptyPropertyValue,
 		clearFilteredProperties,
 	} = usePropertyFilter({
 		isReadOnlyPlatform: isReadOnly,
@@ -171,76 +181,34 @@ const Search = (props: SearchProps) => {
 		_setData(v);
 	}, []);
 
-	const setScopeFilter = useCallback(
-		(v: ScopeFilter) => {
-			if (v === scopeFilter) return;
+	const setSearchScope = useCallback(
+		(v: SearchScope) => {
+			if (v === searchScope) return;
 
 			setData(null);
-			_setScopeFilter(v);
+			_setSearchScope(v);
 		},
-		[scopeFilter, setData],
+		[searchScope, setData],
 	);
 
-	const canUsePropertyFilter = scopeFilter !== "all" && !chatSearch;
+	const canUsePropertyFilter = searchMode === "catalog" && searchScope !== "all" && !chatSearch;
 	const hasPropertyFilter = canUsePropertyFilter && filteredProperties.length !== 0;
 	const emptyInput = !query && !hasPropertyFilter;
 	const initiateIndexingOnOpen = isBrowser || isTauri;
 	const articlesLanguage =
-		isCatalogExist && scopeFilter !== "all"
+		isCatalogExist && searchMode === "catalog" && searchScope !== "all"
 			? (currentArticleLanguage ?? catalogDefaultLanguage ?? "none")
 			: undefined;
 
-	const currentPathname = ArticlePropsService.value?.pathname;
-	const currentArticleRefPath = ArticlePropsService.value?.ref.path;
+	const { currentPathname, currentArticleRefPath } = useArticlePropsStore((state) => ({
+		currentPathname: state?.data?.pathname,
+		currentArticleRefPath: state?.data?.ref.path,
+	}));
 	const currentIsCategory =
 		(itemLinks ? getArticleItemLink(itemLinks, currentArticleRefPath) : undefined)?.type === ItemType.category;
 
 	const isResourcesSearchEnabled = PageDataContextService.value?.conf?.search?.resourcesEnabled && !chatSearch;
 
-	const onLinkOpen = useCallback(
-		(articleInfo: { url: string; searchFragmentInfo?: SearchFragmentInfo }) => {
-			if (currentSearchAnalyticsId.current) {
-				emitPluginEvent("search:click", {
-					searchAnalyticsId: currentSearchAnalyticsId.current,
-					articleUrl: articleInfo.url,
-				});
-				currentSearchAnalyticsId.current = null;
-			}
-
-			setIsOpen(false);
-			if (!isHomePage && articleInfo.url === currentPathname && articleInfo.searchFragmentInfo) {
-				if (isBrowser || isTauri)
-					highlightFragmentInEditor(
-						articleInfo.searchFragmentInfo.text,
-						articleInfo.searchFragmentInfo.indexInArticle,
-					);
-				else if (isStatic)
-					highlightFragmentInDocportal(
-						articleInfo.searchFragmentInfo.text,
-						articleInfo.searchFragmentInfo.indexInArticle,
-					);
-			}
-		},
-		[isHomePage, currentPathname, isBrowser, isTauri, isStatic],
-	);
-
-	const ChatLink = useCallback(
-		(props: AnchorProps) => {
-			return <Anchor {...props} onClick={() => onLinkOpen({ url: props.href })} />;
-		},
-		[onLinkOpen],
-	);
-
-	const keydownHandler = (e: KeyboardEvent) => {
-		if (e.code === "Slash" && (e.ctrlKey || e.metaKey)) {
-			setIsOpen((prev) => !prev);
-			return;
-		}
-		if (!isHomePage && e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
-			setScopeFilter(nextScopeFilter[scopeFilter]);
-			return;
-		}
-	};
 	const handleProgressResponse = useCallback(async (stream: NDJsonReadStream, signal: AbortSignal) => {
 		const itemGenerator = readNDJson<ProgressItem>(stream, signal);
 
@@ -261,9 +229,9 @@ const Search = (props: SearchProps) => {
 
 	const updateIndex = useCallback(async () => {
 		await FetchService.fetch<unknown>(
-			apiUrlCreator.getResetSearchDataUrl(scopeFilter !== "all" ? catalogName : undefined),
+			apiUrlCreator.getResetSearchDataUrl(searchScope !== "all" ? catalogName : undefined),
 		);
-	}, [apiUrlCreator, catalogName, scopeFilter]);
+	}, [apiUrlCreator, catalogName, searchScope]);
 
 	const loadIndexProgress = useCallback(
 		async (signal: AbortSignal) => {
@@ -288,20 +256,16 @@ const Search = (props: SearchProps) => {
 		[apiUrlCreator, handleProgressResponse, resourceFilter],
 	);
 
-	const onClose = useCallback(() => {
-		searchSessionId.current = null;
-		currentSearchAnalyticsId.current = null;
-		abortControllerRef.current?.abort();
-		abortControllerRef.current = undefined;
-		setFocusItem(undefined);
-		setIsOpen(false);
-	}, []);
+	useEffect(() => {
+		setData(null);
+		_setSearchScope(initialScopeByMode[searchMode]);
+	}, [searchMode, setData]);
 
 	useEffect(() => {
 		const controller = new AbortController();
 		if (!initiateIndexingOnOpen || !isOpen) return;
-		updateIndex();
-		loadIndexProgress(controller.signal);
+		void updateIndex();
+		void loadIndexProgress(controller.signal);
 
 		return () => {
 			controller.abort();
@@ -311,19 +275,12 @@ const Search = (props: SearchProps) => {
 	useEffect(() => {
 		if (isOpen) {
 			const controller = new AbortController();
-			loadIndexProgress(controller.signal);
+			void loadIndexProgress(controller.signal);
 			return () => {
 				controller.abort();
 			};
 		}
 	}, [isOpen, loadIndexProgress]);
-
-	useEffect(() => {
-		document.addEventListener("keydown", keydownHandler, false);
-		return () => {
-			document.removeEventListener("keydown", keydownHandler, false);
-		};
-	});
 
 	let searchParamsChanged = false;
 	// biome-ignore lint/correctness/useExhaustiveDependencies(searchParamsChanged): always false, never triggers useMemo
@@ -336,7 +293,10 @@ const Search = (props: SearchProps) => {
 			}
 
 			try {
-				const urlCatalogName = scopeFilter !== "all" ? catalogName : undefined;
+				const urlCatalogName = searchScope !== "all" ? catalogName : undefined;
+				const articleRefFilter = searchScope === "article" ? currentArticleRefPath : undefined;
+				const catalogNames =
+					searchScope === "folder" ? section?.catalogLinks.map((link) => link.name) : undefined;
 
 				if (chatSearch) {
 					const responseLanguage = isCatalogExist
@@ -345,7 +305,13 @@ const Search = (props: SearchProps) => {
 
 					let chatResponseBuffer = "";
 					await chatStream({
-						url: apiUrlCreator.getSearchChatUrl(query, urlCatalogName, articlesLanguage, responseLanguage),
+						url: apiUrlCreator.getSearchChatUrl(
+							query,
+							urlCatalogName,
+							articlesLanguage,
+							responseLanguage,
+							articleRefFilter,
+						),
 						query,
 						onData: async (data) => {
 							chatResponseBuffer += data;
@@ -357,20 +323,20 @@ const Search = (props: SearchProps) => {
 								chatData,
 							});
 						},
+						catalogNames,
 						signal,
 					});
 				} else {
-					const propertyFilter = !canUsePropertyFilter
-						? undefined
-						: buildPropertyFilter(filteredProperties, catalogProperties);
+					const propertyFilter = !canUsePropertyFilter ? undefined : buildPropertyFilter(filteredProperties);
 
 					const rows = await getSearchData({
 						url: apiUrlCreator.getSearchDataUrl(query, urlCatalogName, undefined, articlesLanguage),
-						onlyArticles: scopeFilter !== "all",
+						onlyArticles: searchMode === "catalog" && searchScope !== "all",
 						signal,
 						resourceFilter: isResourcesSearchEnabled ? resourceFilter : undefined,
 						propertyFilter,
-						articleRefPath: scopeFilter === "article" ? currentArticleRefPath : undefined,
+						articleRefFilter,
+						catalogNames,
 					});
 
 					if (rows) {
@@ -379,7 +345,13 @@ const Search = (props: SearchProps) => {
 							rows,
 						});
 
-						trackSearchMetric(query, searchSessionId.current, currentSearchAnalyticsId, rows);
+						trackSearchMetric(
+							query,
+							searchSessionId.current,
+							currentSearchAnalyticsId,
+							rows,
+							searchScope === "all" ? undefined : catalogName,
+						);
 					}
 				}
 			} catch (e) {
@@ -397,14 +369,15 @@ const Search = (props: SearchProps) => {
 		catalogDefaultLanguage,
 		catalogName,
 		setData,
-		scopeFilter,
+		searchScope,
 		resourceFilter,
 		chatSearch,
 		filteredProperties,
-		catalogProperties,
 		hasPropertyFilter,
 		isResourcesSearchEnabled,
 		currentArticleRefPath,
+		section,
+		searchMode,
 	]);
 
 	if (searchParamsChanged) {
@@ -414,43 +387,12 @@ const Search = (props: SearchProps) => {
 
 	useEffect(() => {
 		void queryObj;
-		void loadData;
 		abortControllerRef.current?.abort();
 		abortControllerRef.current = undefined;
-	}, [queryObj, loadData]);
-
-	const handleModalOpen = useCallback(() => {
-		const scope = pendingOpenScopeRef.current;
-		pendingOpenScopeRef.current = undefined;
-		const changingScope = Boolean(scope) && !isHomePage;
-
-		// On home page we keep home scope behavior and ignore external scope overrides
-		if (changingScope) {
-			_setScopeFilter(scope as ScopeFilter);
-		}
-
-		const sessionId = generateUniqueID(10);
-		searchSessionId.current = sessionId;
-		setIsOpen(true);
-		if (data == null || changingScope) {
-			execLoadData(setData, abortControllerRef, loadData, query);
-		}
-		if (inputRef.current && query) {
-			inputRef.current.value = query;
-			inputRef.current.select();
-		}
-	}, [data, isHomePage, loadData, query, setData]);
-
-	useEffect(() => {
-		if (!hasOpenRequest) return;
-		if (openRequestVersion === 0 || handledOpenRequestVersionRef.current === openRequestVersion) return;
-		handledOpenRequestVersionRef.current = openRequestVersion;
-		pendingOpenScopeRef.current = requestedScopeFilter;
-		setIsOpen(true);
-		clearOpenRequest();
-	}, [hasOpenRequest, openRequestVersion, requestedScopeFilter, clearOpenRequest]);
+	}, [queryObj]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies(isOpen): idc
+	// biome-ignore lint/correctness/useExhaustiveDependencies(requestVersion): idc
 	useEffect(() => {
 		if (!isOpen) return;
 
@@ -459,29 +401,127 @@ const Search = (props: SearchProps) => {
 		return () => {
 			controller.abort();
 		};
-	}, [debouncedQueryObj, setData, loadData]);
+	}, [debouncedQueryObj, setData, loadData, requestVersion]);
 
-	const onInputKeyDown = (e: React.KeyboardEvent) => {
-		if (e.ctrlKey) return;
+	const onClose = useCallback(() => {
+		searchSessionId.current = null;
+		currentSearchAnalyticsId.current = null;
+		abortControllerRef.current?.abort();
+		abortControllerRef.current = undefined;
+		setFocusItem(undefined);
+	}, []);
 
-		if (resultsKeyHandlerRef.current?.(e)) {
-			e.preventDefault();
+	const onOpen = useCallback(
+		(withData: boolean = true) => {
+			const sessionId = generateUniqueID(10);
+			searchSessionId.current = sessionId;
+			if (data == null && withData) {
+				execLoadData(setData, abortControllerRef, loadData, query);
+			}
+			if (inputRef.current && query) {
+				inputRef.current.value = query;
+				inputRef.current.select();
+			}
+		},
+		[data, setData, loadData, query],
+	);
+
+	const onOpenChange = useCallback<typeof _setIsOpen>(
+		(open) => {
+			_setIsOpen(open);
+			if (!open) onClose();
+			else onOpen();
+		},
+		[onClose, onOpen],
+	);
+
+	useEffect(() => {
+		if (!hasOpenRequest) return;
+		if (openRequestVersion === 0 || handledOpenRequestVersionRef.current === openRequestVersion) return;
+		handledOpenRequestVersionRef.current = openRequestVersion;
+
+		// On home page we keep home scope behavior and ignore external scope overrides
+		const changingScope = Boolean(requestedScopeFilter) && !isHomePage && searchMode === "catalog";
+
+		if (changingScope) {
+			_setSearchScope(requestedScopeFilter);
 		}
-	};
+
+		_setIsOpen(true);
+		onOpen(false);
+		bumpRequestVersion();
+		clearOpenRequest();
+	}, [hasOpenRequest, openRequestVersion, requestedScopeFilter, clearOpenRequest, isHomePage, searchMode, onOpen]);
+
+	useEffect(() => {
+		if (indexProgress !== 1) return;
+		bumpRequestVersion();
+	}, [indexProgress]);
+
+	const onLinkOpen = useCallback(
+		(articleInfo: { url: string; searchFragmentInfo?: SearchFragmentInfo }) => {
+			if (currentSearchAnalyticsId.current) {
+				emitPluginEvent("search:click", {
+					searchAnalyticsId: currentSearchAnalyticsId.current,
+					articleUrl: articleInfo.url,
+				});
+				currentSearchAnalyticsId.current = null;
+			}
+
+			onOpenChange(false);
+			if (!isHomePage && articleInfo.url === currentPathname && articleInfo.searchFragmentInfo) {
+				if (isBrowser || isTauri)
+					void highlightFragmentInEditor(
+						articleInfo.searchFragmentInfo.text,
+						articleInfo.searchFragmentInfo.indexInArticle,
+					);
+				else if (isStatic)
+					highlightFragmentInDocportal(
+						articleInfo.searchFragmentInfo.text,
+						articleInfo.searchFragmentInfo.indexInArticle,
+					);
+			}
+		},
+		[isHomePage, currentPathname, isBrowser, isTauri, isStatic, onOpenChange],
+	);
+
+	const keydownHandler = useCallback(
+		(e: KeyboardEvent) => {
+			if (e.code === "Slash" && (e.ctrlKey || e.metaKey)) {
+				onOpenChange(!isOpen);
+				return;
+			}
+			if (searchMode !== "homepage" && e.code === "Enter" && (e.ctrlKey || e.metaKey)) {
+				setSearchScope(nextSearchScope(searchMode, searchScope));
+				return;
+			}
+		},
+		[onOpenChange, searchMode, searchScope, setSearchScope, isOpen],
+	);
+
+	useEffect(() => {
+		document.addEventListener("keydown", keydownHandler, false);
+		return () => {
+			document.removeEventListener("keydown", keydownHandler, false);
+		};
+	}, [keydownHandler]);
+
+	const ChatLink = useCallback(
+		(props: AnchorProps) => {
+			return <Anchor {...props} onClick={() => onLinkOpen({ url: props.href })} />;
+		},
+		[onLinkOpen],
+	);
 
 	const registerKeyHandler = useCallback((fn: typeof resultsKeyHandlerRef.current) => {
 		resultsKeyHandlerRef.current = fn;
 	}, []);
 
 	return (
-		<ModalLayout
-			contentWidth={"minM"}
-			isOpen={isOpen}
-			onClose={onClose}
-			onOpen={handleModalOpen}
-			trigger={
-				isHomePage ? (
-					<div>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			<DialogTrigger asChild>
+				<div>
+					{isHomePage ? (
 						<Tooltip>
 							<TooltipContent>
 								<p>{t("search.name")}</p>
@@ -496,13 +536,21 @@ const Search = (props: SearchProps) => {
 								/>
 							</TooltipTrigger>
 						</Tooltip>
-					</div>
-				) : (
-					<ButtonLink iconCode="search" textSize={TextSize.L} />
-				)
-			}
-		>
-			<div data-qa={`search-modal`} style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+					) : (
+						<ButtonLink iconCode="search" textSize={TextSize.L} />
+					)}
+				</div>
+			</DialogTrigger>
+			<SearchDialogContent
+				className="translate-y-0 lg:translate-y-0"
+				data-qa={`search-modal`}
+				showCloseButton={false}
+				style={{ display: "flex", flexDirection: "column", top: "10%", height: "auto" }}
+			>
+				<DialogHeader className="hidden">
+					<DialogTitle>{t("search.name")}</DialogTitle>
+					<DialogDescription>{t("search.name")}</DialogDescription>
+				</DialogHeader>
 				<div className={`${className} modal`} ref={blockRef}>
 					<ModalLayoutLight className="layer-two block-elevation-2">
 						<div className="search-form form block-elevation-3">
@@ -519,7 +567,15 @@ const Search = (props: SearchProps) => {
 											setQuery(query);
 											setData(null);
 										}}
-										onKeyDown={onInputKeyDown}
+										onKeyDown={(e) => {
+											// So Ctrl + Enter only changes search scope
+											// Without Enter redirecting to current focused search result in <SearchResults>
+											if (e.ctrlKey) return;
+
+											if (resultsKeyHandlerRef.current?.(e)) {
+												e.preventDefault();
+											}
+										}}
 										placeholder={t("search.placeholder")}
 										ref={inputRef}
 										type="text"
@@ -528,8 +584,9 @@ const Search = (props: SearchProps) => {
 									<div className="search-input-right-side">
 										{canUsePropertyFilter && filterableProperties.array.length > 0 && (
 											<PropertyFilterComponent
-												filteredProperties={filteredProperties}
 												properties={shownFilterableProperties.array}
+												selectAllPropertyValues={selectAllPropertyValues}
+												selectEmptyPropertyValue={selectEmptyPropertyValue}
 												togglePropertyValue={togglePropertyValue}
 											/>
 										)}
@@ -550,14 +607,23 @@ const Search = (props: SearchProps) => {
 									</div>
 								</div>
 							</div>
-							{indexing && <IndexingProgress progress={indexProgress} />}
-							{canUsePropertyFilter && (
-								<FilteredPropertyBlock
-									catalogProperties={catalogProperties}
-									clearFilteredProperty={clearFilteredProperty}
-									properties={filteredProperties}
-									togglePropertyValue={togglePropertyValue}
-								/>
+							{indexing && (
+								<>
+									<Divider />
+									<IndexingProgress progress={indexProgress} />
+								</>
+							)}
+							{canUsePropertyFilter && filteredProperties.length > 0 && (
+								<>
+									<Divider />
+									<div className="search-form-properties-block">
+										<FilteredPropertyBlock
+											properties={filteredProperties}
+											selectEmptyPropertyValue={selectEmptyPropertyValue}
+											togglePropertyValue={togglePropertyValue}
+										/>
+									</div>
+								</>
 							)}
 						</div>
 
@@ -632,7 +698,9 @@ const Search = (props: SearchProps) => {
 													registerKeyHandler={registerKeyHandler}
 													rows={data.rows}
 													setFocusItem={setFocusItem}
-													showCatalogBreadcrumb={scopeFilter === "all"}
+													showCatalogBreadcrumb={
+														searchScope === "all" || searchScope === "folder"
+													}
 												/>
 											)}
 										</div>
@@ -668,11 +736,12 @@ const Search = (props: SearchProps) => {
 									</Checkbox>
 								</div>
 							)}
-							{!isHomePage && (
+							{searchMode !== "homepage" && (
 								<ScopeFilterDropdown
 									isCategory={currentIsCategory}
-									scopeFilter={scopeFilter}
-									setScopeFilter={setScopeFilter}
+									mode={searchMode}
+									scopeFilter={searchScope}
+									setScopeFilter={setSearchScope}
 								/>
 							)}
 							{isResourcesSearchEnabled && (
@@ -719,15 +788,16 @@ const Search = (props: SearchProps) => {
 						</div>
 					</div>
 				</div>
-				<div onClick={onClose} style={{ height: "100%" }}></div>
-			</div>
-		</ModalLayout>
+			</SearchDialogContent>
+		</Dialog>
 	);
 };
 
 export default styled(Search)`
   transition: all 0.3s;
   max-height: 100%;
+  overflow: hidden;
+  overflow-y: auto;
 
   .layer-two {
     overflow: hidden;
@@ -778,10 +848,6 @@ export default styled(Search)`
             text-decoration: none !important;
           }
         }
-      }
-
-      .search-form-divider {
-        border-top: 1px solid var(--color-merge-request-border);
       }
 
       .search-form-indexing-progress {
@@ -919,19 +985,30 @@ export default styled(Search)`
           }
         }
 
-				.hidden-count-info {
-					font-size: 12px;
-					cursor: pointer;
-				}
+        .hidden-count-info {
+          font-size: 12px;
+          cursor: pointer;
+        }
 
         .article-header {
           display: flex;
           align-items: baseline;
           font-size: 12px;
           font-weight: 400;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
 
           .breadcrumbs-separator {
             padding: 0 0.26rem;
+            flex-shrink: 0;
+          }
+
+          > span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
           }
         }
 
@@ -948,30 +1025,36 @@ export default styled(Search)`
           font-size: 0.8em;
         }
 
-        .file-block-title {
+        .results-block-title {
           display: flex;
           align-items: baseline;
           gap: 0.3rem;
+          width: 100%;
 
-          span.gr-file {
+          .results-block-title-icon {
             display: flex;
-            color: var(--color-link);
-
-            &::before {
-              content: var(--content-file-plus);
-              vertical-align: text-bottom;
-              line-height: 1;
-              padding-right: 0.3rem;
-            }
-
-            .gr-file-title {
-              align-self: baseline;
-            }
+            align-self: center;
+            flex-shrink: 0;
           }
 
-          .file-true-name {
+          .results-block-file-icon {
+            content: var(--content-file-plus);
+          }
+
+          .results-block-title-type {
             color: var(--color-primary-general);
           }
+
+          > span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
+          }
+        }
+
+        .results-block-content {
+          padding-left: 1rem;
         }
       }
 
@@ -1074,51 +1157,12 @@ export default styled(Search)`
   }
 `;
 
-function buildPropertyFilter(
-	filteredProperties: Property[],
-	catalogProperties: Map<string, Property>,
-): PropertyFilter | undefined {
-	if (filteredProperties.length === 0) {
-		return undefined;
-	}
-
-	return {
-		op: "and",
-		filters: filteredProperties.map<PropertyFilter>((x) => {
-			const catalogProperty = catalogProperties.get(x.name);
-			if (catalogProperty !== undefined && catalogProperty.type === PropertyTypes.flag) {
-				return {
-					op: "or",
-					// TODO: Hack. Should go away when switch to FilterMenu
-					filters: x.value.map<PropertyFilter>((y) =>
-						y === t("yes")
-							? {
-									op: "eq",
-									key: x.name,
-									value: true,
-								}
-							: {
-									op: "isEmpty",
-									key: x.name,
-								},
-					),
-				};
-			}
-
-			return {
-				op: "contains",
-				key: x.name,
-				list: x.value,
-			};
-		}),
-	};
-}
-
 function trackSearchMetric(
 	query: string,
 	searchSessionId: string,
 	currentSearchAnalyticsId: MutableRefObject<number>,
 	rows: RowSearchResult[],
+	catalogName?: string,
 ) {
 	if (!query || !searchSessionId) return;
 
@@ -1126,6 +1170,7 @@ function trackSearchMetric(
 	emitPluginEvent("search:start", {
 		query,
 		searchSessionId,
+		catalogName,
 		onSuccess: (searchAnalyticsId: number) => {
 			currentSearchAnalyticsId.current = searchAnalyticsId;
 			const results = rows.map((row, index) => ({

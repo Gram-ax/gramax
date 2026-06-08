@@ -3,43 +3,85 @@ import type * as sdk from "@opentelemetry/sdk-trace-base";
 import * as idb from "idb";
 import { otelSpanEncoder, type Span } from "../span";
 
+const DB_NAME = "opentelemetry-logs";
+
 export default class IndexedDbExporter implements sdk.SpanExporter {
+	private _db: idb.IDBPDatabase<Span> | null;
+
 	private constructor(
 		private _storeName: string,
-		private _db: idb.IDBPDatabase<Span>,
-	) {}
+		db: idb.IDBPDatabase<Span>,
+		private _keepMaxSessions: number,
+	) {
+		this._db = db;
+	}
 
 	static async init(keepMaxSessions: number = 15) {
 		const date = new Date();
-		const storeName = this._formatStoreName(date);
+		const storeName = IndexedDbExporter._formatStoreName(date);
+		const version = date.getTime();
 
-		const db = await idb.openDB<Span>("opentelemetry-logs", date.getTime(), {
-			upgrade: (db) => {
-				const store = db.createObjectStore(storeName, { keyPath: "spanId", autoIncrement: false });
+		const exporter = new IndexedDbExporter(storeName, null, keepMaxSessions);
+		exporter._db = await exporter._openWithUpgrade(version);
+		return exporter;
+	}
 
-				if (!store.indexNames.contains("trace-id-idx"))
-					store.createIndex("trace-id-idx", "traceId", { unique: false });
-
-				if (!store.indexNames.contains("span-id-idx"))
-					store.createIndex("span-id-idx", "spanId", { unique: true });
-
-				const stores = Array.from(db.objectStoreNames).map(
-					(s) => [s, IndexedDbExporter._extractDateFromStoreName(s)] as [string, Date],
-				);
-				stores.sort((a, b) => {
-					return a[1].getTime() - b[1].getTime();
-				});
-
-				while (stores.length >= keepMaxSessions) {
-					db.deleteObjectStore(stores.shift()[0]);
-				}
+	private _openWithUpgrade(version: number): Promise<idb.IDBPDatabase<Span>> {
+		return idb.openDB<Span>(DB_NAME, version, {
+			upgrade: (db) => this._applyUpgrade(db),
+			blocking: () => this._onBlocking(),
+			blocked: () => {
+				console.warn("[otel] indexed-db open blocked; awaiting older tabs to close");
 			},
 		});
+	}
 
-		return new this(storeName, db);
+	private _openCurrent(): Promise<idb.IDBPDatabase<Span>> {
+		return idb.openDB<Span>(DB_NAME, undefined, {
+			blocking: () => this._onBlocking(),
+		});
+	}
+
+	private _applyUpgrade(db: idb.IDBPDatabase<Span>) {
+		if (!db.objectStoreNames.contains(this._storeName)) {
+			const store = db.createObjectStore(this._storeName, { keyPath: "spanId", autoIncrement: false });
+			store.createIndex("trace-id-idx", "traceId", { unique: false });
+			store.createIndex("span-id-idx", "spanId", { unique: true });
+		}
+
+		const stores = Array.from(db.objectStoreNames)
+			.map((s) => [s, IndexedDbExporter._extractDateFromStoreName(s)] as [string, Date])
+			.filter(([, d]) => !Number.isNaN(d.getTime()))
+			.sort((a, b) => a[1].getTime() - b[1].getTime());
+
+		while (stores.length >= this._keepMaxSessions) {
+			const entry = stores.shift();
+			if (!entry) break;
+			const [oldest] = entry;
+			if (oldest === this._storeName) continue;
+			db.deleteObjectStore(oldest);
+		}
+	}
+
+	private async _onBlocking() {
+		const oldDb = this._db;
+		this._db = null;
+		oldDb?.close();
+		try {
+			let db = await this._openCurrent();
+			if (!db.objectStoreNames.contains(this._storeName)) {
+				const recoverVersion = db.version + 1;
+				db.close();
+				db = await this._openWithUpgrade(recoverVersion);
+			}
+			this._db = db;
+		} catch (err) {
+			console.warn("indexed-db reopen failed after versionchange", err);
+		}
 	}
 
 	async readFromIdb(amount?: number): Promise<Span[]> {
+		if (!this._db) return [];
 		const tx = this._db.transaction(this._storeName, "readonly");
 		const store = tx.objectStore(this._storeName);
 
@@ -56,6 +98,7 @@ export default class IndexedDbExporter implements sdk.SpanExporter {
 	}
 
 	async exportRaw(spans: Span[]): Promise<void> {
+		if (!this._db) return;
 		const tx = this._db.transaction(this._storeName, "readwrite");
 		const store = tx.objectStore(this._storeName);
 		try {
@@ -68,6 +111,10 @@ export default class IndexedDbExporter implements sdk.SpanExporter {
 	}
 
 	async export(spans: sdk.ReadableSpan[], resultCallback: (result: ExportResult) => void): Promise<void> {
+		if (!this._db) {
+			resultCallback({ code: ExportResultCode.SUCCESS });
+			return;
+		}
 		const tx = this._db.transaction(this._storeName, "readwrite");
 		const store = tx.objectStore(this._storeName);
 
@@ -85,7 +132,8 @@ export default class IndexedDbExporter implements sdk.SpanExporter {
 	}
 
 	shutdown(): Promise<void> {
-		this._db.close();
+		this._db?.close();
+		this._db = null;
 		return Promise.resolve();
 	}
 

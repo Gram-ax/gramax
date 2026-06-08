@@ -5,19 +5,19 @@ import type { Attrs, ResolvedPos } from "@tiptap/pm/model";
 import { Selection, type Transaction } from "@tiptap/pm/state";
 import type { EditorView } from "prosemirror-view";
 
-const createBlockImage = (view: EditorView, $from: ResolvedPos, attributes: Attrs): Transaction => {
+const createBlockImage = (view: EditorView, From: ResolvedPos, attributes: Attrs): Transaction => {
 	const tr = view.state.tr;
 
 	const node = view.state.schema.nodes.image.create(attributes);
 	tr.replaceSelectionWith(node);
-	if ($from.parentOffset === 0 && $from.parent.isTextblock)
-		tr.setSelection(Selection.near(tr.doc.resolve($from.pos - 1)));
-	else tr.setSelection(Selection.near(tr.doc.resolve($from.pos + 1)));
+	if (From.parentOffset === 0 && From.parent.isTextblock)
+		tr.setSelection(Selection.near(tr.doc.resolve(From.pos - 1)));
+	else tr.setSelection(Selection.near(tr.doc.resolve(From.pos + 1)));
 
 	return tr;
 };
 
-const createInlineImage = (view: EditorView, $from: ResolvedPos, attributes: Attrs): Transaction => {
+const createInlineImage = (view: EditorView, From: ResolvedPos, attributes: Attrs): Transaction => {
 	const tr = view.state.tr;
 
 	const node = view.state.schema.nodes.inlineImage.create(attributes);

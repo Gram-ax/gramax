@@ -3,6 +3,7 @@ import type Path from "@core/FileProvider/Path/Path";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
 import type { GitStatus } from "@ext/git/core/GitWatcher/model/GitStatus";
+import GitSourceData from "@ext/git/core/model/GitSourceData.schema";
 import Repository, {
 	type CheckoutOptions,
 	type SyncOptions,
@@ -38,7 +39,7 @@ export default class BareRepository extends Repository {
 		const prevOid = await this.gvc.getCurrentVersion();
 		await this._storage.fetch(opts.data);
 		await this.checkoutIfCurrentBranchNotExist(opts.data);
-		await this._storage.fetch(opts.data, true);
+		await this._storage.fetch(opts.data, true, false);
 		this.gvc.update();
 		const oid = await this.gvc.getCurrentVersion();
 		const isVersionChanged = !prevOid.compare(oid);
@@ -59,7 +60,7 @@ export default class BareRepository extends Repository {
 
 	async checkout(opts: CheckoutOptions): Promise<GitMergeResultContent[]> {
 		const prev = await this.gvc.getCurrentVersion();
-		await this.gvc.setHead(opts.branch.toString());
+		await this.gvc.checkoutToBranch(opts.data as GitSourceData, opts.branch, opts.force);
 		this.gvc.update();
 		const newVersion = await this.gvc.getCurrentVersion();
 		await this._events.emit("checkout", {

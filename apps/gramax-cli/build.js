@@ -3,13 +3,13 @@ import { dirname } from "node:path";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const Dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const dist = path.join(__dirname, "dist");
+const dist = path.join(Dirname, "dist");
 
-fs.copyFile(path.join(__dirname, "Readme.md"), path.join(dist, "Readme.md"));
+fs.copyFile(path.join(Dirname, "Readme.md"), path.join(dist, "Readme.md"));
 
-fs.copyFile(path.join(dirname(dirname(__dirname)), "LICENSE"), path.join(dist, "LICENSE"));
+fs.copyFile(path.join(dirname(dirname(Dirname)), "LICENSE"), path.join(dist, "LICENSE"));
 
 async function generatePackageJson() {
 	const templatePackagePath = path.join(dist, "package.json");

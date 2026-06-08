@@ -7,10 +7,10 @@ import { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { isExternalLink } from "@core-ui/hooks/useExternalLink";
+import { cn } from "@core-ui/utils/cn";
 import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
-import styled from "@emotion/styled";
+import { ArticleComponentResizer } from "@ext/article/Components/ArticleComponentResizer";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
-import ImageResizer from "@ext/markdown/elements/image/edit/components/ImageResizer";
 import { isNonCropped } from "@ext/markdown/elements/image/edit/logic/imageEditorMethods";
 import type { Crop, ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import ImageError from "@ext/markdown/elements/image/render/components/ImageError";
@@ -29,7 +29,6 @@ import {
 	useCallback,
 	useContext,
 	useEffect,
-	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -72,7 +71,10 @@ const ImageR = forwardRef<HTMLImageElement, ImageRProps>((props, ref) => {
 	} = useContext(ImageContext);
 
 	return (
-		<div className="image-container" data-focusable="true">
+		<div
+			className="image-container flex max-w-full relative justify-center rounded-[var(--radius-small)]"
+			data-focusable="true"
+		>
 			<Image
 				alt={alt}
 				id={id}
@@ -112,8 +114,7 @@ interface ImageProps {
 	objects?: ImageObject[];
 	id?: string;
 	style?: CSSProperties;
-	marginBottom?: string;
-	scale?: number;
+	scale?: number | string;
 	className?: string;
 	onError?: ReactEventHandler<HTMLImageElement>;
 	hoverElementRef?: RefObject<HTMLDivElement>;
@@ -168,7 +169,16 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 
 	const [imageSrc, setImageSrc] = useState<string>(isNonCroppedValue ? renderSrc || null : null);
 	const [isLoaded, setIsLoaded] = useState<boolean>(false);
-	const [size, setSize] = useState<{ width: string; height: string }>(null);
+
+	const size = useMemo(() => {
+		const parentWidth = articleRef?.current?.firstElementChild?.firstElementChild?.clientWidth ?? 0;
+		if (!width?.endsWith("px") || !height || !parentWidth) return null;
+		const croppedW = parseFloat(width) * ((crop?.w ?? 100) / 100);
+		const croppedH = parseFloat(height) * ((crop?.h ?? 100) / 100);
+
+		const adjusted = getAdjustedSize(croppedW, croppedH, parentWidth, scale);
+		return { width: `${adjusted.width}px`, height: `${adjusted.height}px` };
+	}, [articleRef, width, height, crop, scale]);
 
 	const isGif = new Path(realSrc).extension === "gif";
 	const { getBuffer } = ResourceService.value;
@@ -204,7 +214,7 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 	);
 
 	const saveResize = useCallback(
-		(scale: number) => {
+		(scale: string) => {
 			updateAttributes?.({ scale });
 		},
 		[updateAttributes],
@@ -254,26 +264,6 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 		shouldSkipLoadResource,
 	);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
-	useLayoutEffect(() => {
-		if (!width?.endsWith("px")) return;
-		if (!mainContainerRef.current && !articleRef?.current) return;
-
-		const parentWidth =
-			mainContainerRef.current?.clientWidth ||
-			articleRef?.current?.firstElementChild?.firstElementChild?.clientWidth;
-
-		if (!parentWidth) return;
-		const newWidth = (parseFloat(width) * (crop?.w || 100)) / 100;
-		const newHeight = (parseFloat(height) * (crop?.h || 100)) / 100;
-		const newSize = getAdjustedSize(newWidth, newHeight, parentWidth, scale);
-
-		setSize({
-			width: `${newSize.width}px`,
-			height: `${newSize.height}px`,
-		});
-	}, [width, height, mainContainerRef.current]);
-
 	if (isGif) {
 		return (
 			<BlockCommentView commentId={commentId}>
@@ -304,18 +294,34 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 				imageContainerRef,
 				mainContainerRef,
 				imgRef,
-				attrs: { id, width: size?.width, height: size?.height, crop, scale, title, alt, objects, src: realSrc },
+				attrs: {
+					id,
+					width: size?.width,
+					height: size?.height,
+					crop,
+					scale,
+					title,
+					alt,
+					objects,
+					src: realSrc,
+				},
 				isLoaded,
 			}}
 		>
 			<div
-				className={className}
+				className={cn("[page-break-inside:avoid] break-inside-avoid select-none box-border", className)}
 				data-component="image"
-				data-float={float ? float : undefined}
-				data-resize-container={float ? float : undefined}
+				data-float={float && !openEditor ? float : undefined}
+				data-resize-container={float && !openEditor ? true : undefined}
+				data-testid="image"
 			>
-				<div className="main-container" ref={mainContainerRef}>
-					<div className="resizer-container">
+				<ArticleComponentResizer
+					disabled={!isLoaded}
+					onChange={saveResize}
+					scale={scale}
+					selected={showResizer}
+				>
+					<div className="flex w-full !mb-[0.5em]" ref={mainContainerRef}>
 						<HoverableActions
 							actionsOptions={IMAGE_ACTIONS_OPTIONS}
 							hoverElementRef={hoverElementRef}
@@ -323,9 +329,10 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 							rightActions={error ? undefined : rightActions}
 							setIsHovered={setIsHovered}
 						>
-							<div ref={imageContainerRef}>
-								<BlockCommentView commentId={commentId}>
+							<div className="w-full [&_img]:select-none [&_img]:w-full" ref={imageContainerRef}>
+								<BlockCommentView className="!rounded-[var(--radius-small)]" commentId={commentId}>
 									<ImageSkeleton
+										className="rounded-[var(--radius-small)]"
 										height={size?.height}
 										isLoaded={!!error || isLoaded}
 										width={size?.width}
@@ -349,62 +356,12 @@ const ImageRenderer = memo((props: ImageProps): ReactElement => {
 								</BlockCommentView>
 							</div>
 						</HoverableActions>
-						{isLoaded && (
-							<ImageResizer
-								containerRef={mainContainerRef}
-								imageRef={imgRef}
-								saveResize={saveResize}
-								scale={scale}
-								selected={showResizer}
-							/>
-						)}
 					</div>
-				</div>
+				</ArticleComponentResizer>
 				{title && !noEm && <em>{title}</em>}
 			</div>
 		</ImageContext.Provider>
 	);
 });
 
-export default styled(ImageRenderer)`
-	page-break-inside: avoid;
-	break-inside: avoid;
-	user-select: none;
-	box-sizing: border-box;
-
-	.main-container {
-		display: flex;
-		width: 100%;
-		margin-bottom: ${({ marginBottom }) => marginBottom || "0.5em"} !important;
-	}
-
-	.resizer-container {
-		display: flex;
-		max-width: 100%;
-		position: relative;
-		justify-content: center;
-		margin: 0 auto;
-	}
-
-	.image-container {
-		display: flex;
-		max-width: 100%;
-		position: relative;
-		justify-content: center;
-	}
-
-	.image-container,
-	.resizer-container,
-	.skeleton {
-		border-radius: var(--radius-small);
-	}
-
-	.block-comment-view {
-		border-radius: var(--radius-small) !important;
-	}
-
-	img {
-		user-select: none;
-		width: 100%;
-	}
-`;
+export default ImageRenderer;

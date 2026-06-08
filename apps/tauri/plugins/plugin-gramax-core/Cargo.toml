@@ -1,0 +1,20 @@
+[package]
+name = "plugin-gramax-core"
+version = { workspace = true }
+authors = { workspace = true }
+edition = { workspace = true }
+links = "plugin-gramax-core"
+
+[dependencies]
+tauri = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+gramax-fs = { path = "../../../../crates/fs" }
+gramax-git = { path = "../../../../crates/git" }
+gramax-core = { path = "../../../../crates/core" }
+tauri-otel-context = { path = "../tauri-otel-context" }
+
+urlencoding = "^2.1"
+
+[build-dependencies]
+tauri-plugin = { workspace = true }

@@ -1,8 +1,8 @@
 import { useAdminNavigation } from "@ext/enterprise/components/admin/contexts/AdminNavigationContext";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
 import { AlertDeleteDialog } from "@ext/enterprise/components/admin/ui-kit/AlertDeleteDialog";
+import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
-import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
 import { Page } from "@ext/enterprise/types/Page";
@@ -105,9 +105,17 @@ export const GroupsTable = ({ onDelete }: GroupsTableProps) => {
 
 	return (
 		<>
-			<TableInfoBlock description={groups.length} title={getAdminPageTitle(Page.USER_GROUPS)} />
+			<StickyHeader
+				title={
+					<>
+						{getAdminPageTitle(Page.USER_GROUPS)}
+						<span className="text-2xl font-normal">{groups.length}</span>
+					</>
+				}
+			/>
 
 			<TableToolbar
+				className="pt-0"
 				input={
 					<TableToolbarTextInput
 						onChange={handleFilterChange}

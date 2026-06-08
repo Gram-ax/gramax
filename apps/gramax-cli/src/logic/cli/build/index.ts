@@ -1,19 +1,19 @@
-import { resolve, join, basename, dirname } from "path";
-import { fileURLToPath } from "url";
-import { loadConfig } from "../utils/config";
-import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
-import { BuildOptions } from "./command";
-import { check } from "../check";
-import Path from "@core/FileProvider/Path/Path";
-import getApp from "@app/node/app";
-import StaticSiteBuilder from "../../StaticSiteBuilder";
-import ChalkLogger from "../../../utils/ChalkLogger";
-import { checkExistsPath, checkIsFile, setRootPath } from "../utils/paths";
-import CliUserError from "../../CliUserError";
-import { copyWordTemplatesInCli, copyPdfTemplatesInCli } from "./copyTemplatesInCli";
-import { setFeatureList } from "@ext/toggleFeatures/features";
-import type { DirectoryInfoBasic } from "../../initialDataUtils/types";
 import { STORAGE_DIR_NAME } from "@app/config/const";
+import getApp from "@app/node/app";
+import DiskFileProvider from "@core/FileProvider/DiskFileProvider/DiskFileProvider";
+import Path from "@core/FileProvider/Path/Path";
+import { setFeatureList } from "@ext/toggleFeatures/features";
+import { basename, dirname, join, resolve } from "path";
+import { fileURLToPath } from "url";
+import ChalkLogger from "../../../utils/ChalkLogger";
+import CliUserError from "../../CliUserError";
+import type { DirectoryInfoBasic } from "../../initialDataUtils/types";
+import StaticSiteBuilder from "../../StaticSiteBuilder";
+import { check } from "../check";
+import { loadConfig } from "../utils/config";
+import { checkExistsPath, checkIsFile, setRootPath } from "../utils/paths";
+import type { BuildOptions } from "./command";
+import { copyPdfTemplatesInCli, copyWordTemplatesInCli } from "./copyTemplatesInCli";
 
 const CONFIG_NAME = "gramax.config.yaml";
 

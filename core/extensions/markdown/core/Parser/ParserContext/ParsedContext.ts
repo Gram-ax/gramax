@@ -4,7 +4,7 @@ import type { Question } from "@ext/markdown/elements/question/types";
 
 export interface ParsedContext {
 	icons: Set<string>;
-	snippet: Set<string>;
+	fragment: Set<string>;
 	questions: Map<string, Question>;
 	getLinkManager(): LinkResourceManager;
 	getResourceManager(): ResourceManager;
@@ -13,7 +13,7 @@ export interface ParsedContext {
 export class ArticleParsedContext implements ParsedContext {
 	constructor(
 		private _icons: Set<string>,
-		private _snippet: Set<string>,
+		private _fragment: Set<string>,
 		private _questions: Map<string, Question>,
 		private _linkManager: LinkResourceManager,
 		private _resourceManager: ResourceManager,
@@ -31,8 +31,8 @@ export class ArticleParsedContext implements ParsedContext {
 		return this._icons;
 	}
 
-	get snippet(): Set<string> {
-		return this._snippet;
+	get fragment(): Set<string> {
+		return this._fragment;
 	}
 
 	get questions(): Map<string, Question> {
@@ -41,11 +41,11 @@ export class ArticleParsedContext implements ParsedContext {
 
 	static create(
 		icons: Set<string>,
-		snippet: Set<string>,
+		fragment: Set<string>,
 		questions: Map<string, Question>,
 		linkManager: LinkResourceManager,
 		resourceManager: ResourceManager,
 	): ParsedContext {
-		return new ArticleParsedContext(icons, snippet, questions, linkManager, resourceManager);
+		return new ArticleParsedContext(icons, fragment, questions, linkManager, resourceManager);
 	}
 }

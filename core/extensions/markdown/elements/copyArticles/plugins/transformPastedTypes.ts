@@ -2,6 +2,7 @@ import headingPasteFormatter from "@ext/markdown/elements/heading/edit/logic/hea
 import { readyToPlace } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { Fragment, type Node, Slice } from "@tiptap/pm/model";
 import type { EditorState } from "@tiptap/pm/state";
+import type { EditorView } from "@tiptap/pm/view";
 
 const mapFragment = (fragment: Fragment, transform: (node: Node) => Node) => {
 	const mapContent = (content: Fragment) => {
@@ -25,7 +26,12 @@ export const transformPastedHTML = (html: string): string => {
 	return html?.replaceAll("[object Object]", "");
 };
 
-export const transformPastedText = (text: string): string => {
+export const transformPastedText = (text: string, _: boolean, view: EditorView): string => {
+	const { $from } = view.state.selection;
+	const parent = $from?.parent;
+
+	if (parent?.type?.spec?.code) return text;
+
 	return text
 		.split("\n")
 		.map((line) => line.trimStart())

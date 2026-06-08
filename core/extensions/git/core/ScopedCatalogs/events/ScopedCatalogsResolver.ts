@@ -22,6 +22,11 @@ export default class ScopedCatalogsResolver implements EventHandlerCollection {
 			if (!refname || !mutableCatalog.catalog) return;
 
 			if (this._shouldSkipProperty(mutableCatalog.catalog, refname)) return;
+			const shouldSkip = mutableCatalog.catalog.props.resolvedVersions?.find(
+				(t) => t.encodedName === refname || t.name === refname,
+			);
+
+			if (shouldSkip) return;
 
 			const gvc = mutableCatalog.catalog?.repo?.gvc;
 			if (!gvc) return;
@@ -41,8 +46,8 @@ export default class ScopedCatalogsResolver implements EventHandlerCollection {
 	}
 
 	private _shouldSkipProperty(catalog: BaseCatalog, refname: string): boolean {
-		const property = catalog.props.properties?.find((p) => p.name === catalog.props.filterProperty);
-
+		const property = catalog.props.properties?.find((p) => (p.id ?? p.name) === catalog.props.filterProperty);
+		if (refname.startsWith("view-")) return true;
 		if (!property) return false;
 
 		if (property.type === PropertyTypes.flag) return refname === "any" || refname === property.name;

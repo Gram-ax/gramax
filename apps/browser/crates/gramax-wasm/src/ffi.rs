@@ -14,10 +14,10 @@ pub unsafe extern "C" fn main() -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn ralloc(len: usize) -> *mut u8 {
-	std::alloc::alloc(Layout::from_size_align_unchecked(len, 4))
+	std::alloc::alloc(Layout::from_size_align_unchecked(len, 1))
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn rfree(ptr: *mut c_void, len: usize) {
-	std::alloc::dealloc(ptr.cast(), Layout::from_size_align_unchecked(len, 4));
+	std::alloc::dealloc(ptr.cast(), Layout::from_size_align_unchecked(len, 1));
 }

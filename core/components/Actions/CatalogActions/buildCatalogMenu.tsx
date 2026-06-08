@@ -4,13 +4,12 @@ import CatalogMoveItem, { CatalogMoveSelectItem } from "@components/Actions/Cata
 import ExportCatalogItem from "@components/Actions/CatalogItems/ExportCatalogItem";
 import ExportMenuItem from "@components/Actions/CatalogItems/ExportMenuItem";
 import FavoriteMenuItem from "@components/Actions/CatalogItems/FavoriteMenuItem";
+import FragmentsItem from "@components/Actions/CatalogItems/FragmentsItem";
 import HealthcheckItem from "@components/Actions/CatalogItems/HealthcheckItem";
 import LfsLazyToggleItem from "@components/Actions/CatalogItems/LfsLazyToggleItem";
 import NotesItem from "@components/Actions/CatalogItems/NotesItem";
 import RepositoryPermissionItem from "@components/Actions/CatalogItems/RepositoryPermissionItem";
 import ShareCatalogItem from "@components/Actions/CatalogItems/ShareCatalogItem";
-import SharedTicketTrigger from "@components/Actions/CatalogItems/SharedTicketTrigger";
-import SnippetsItem from "@components/Actions/CatalogItems/SnippetsItem";
 import TemplateItem from "@components/Actions/CatalogItems/TemplateItem";
 import ViewFavoritesItem from "@components/Actions/CatalogItems/ViewFavoritesItem";
 import Icon from "@components/Atoms/Icon";
@@ -35,7 +34,8 @@ type CoreMenuItemIdNew =
 	| "separator"
 	| "repository-permission"
 	| "favorite-articles"
-	| "lfs-lazy-toggle";
+	| "lfs-lazy-toggle"
+	| "fragments";
 
 export type CoreMenuItemIdApp = CoreMenuItemId | CoreMenuItemIdNew;
 
@@ -56,6 +56,7 @@ export interface MenuItemPropMap {
 	notes: ReactNode;
 	"catalog-tools": ReactNode;
 	snippets: ReactNode;
+	fragments: ReactNode;
 	template: ReactNode;
 	"ai-prompt": ReactNode;
 	healthcheck: ReactNode;
@@ -89,26 +90,7 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 	} = ctx;
 	const platform = PlatformServiceNew;
 
-	const showMainMenu =
-		(!platform.isStatic && !platform.isStaticCli) || !platform.isDocPortal || (canConfigure && !isReadOnly);
-
-	const showAccessMenu =
-		(hasWorkspaceGesUrl && canConfigure && (platform.isBrowser || platform.isDesktop)) ||
-		(canConfigure && platform.isDocPortal);
-
-	const showToolsMenu = !isReadOnly;
-
-	return [
-		{
-			id: "navigation-title",
-			component: () => (
-				<>
-					<DropdownMenuLabel className="text-primary-fg">{t("catalog.actions.title")}</DropdownMenuLabel>
-					<DropdownMenuSeparator />
-				</>
-			),
-			visible: true,
-		},
+	const catalogActionsGroup: MenuItemDescriptorApp[] = [
 		{
 			id: "catalog-settings",
 			component: (children) => <CatalogPropsTrigger>{children}</CatalogPropsTrigger>,
@@ -143,26 +125,17 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 				},
 			],
 		},
-		{
-			id: "separator",
-			component: () => <DropdownMenuSeparator />,
-			visible: showMainMenu,
-		},
-		{
-			id: "share-ticket",
-			component: (children) => <SharedTicketTrigger>{children}</SharedTicketTrigger>,
-			visible: canConfigure && platform.isDocPortal,
-		},
+	];
+
+	const accessGroup: MenuItemDescriptorApp[] = [
 		{
 			id: "repository-permission",
 			component: (children) => <RepositoryPermissionItem>{children}</RepositoryPermissionItem>,
 			visible: hasWorkspaceGesUrl && canConfigure && (platform.isBrowser || platform.isDesktop),
 		},
-		{
-			id: "separator",
-			component: () => <DropdownMenuSeparator />,
-			visible: showAccessMenu && !isReadOnly,
-		},
+	] as const;
+
+	const toolsGroup: MenuItemDescriptorApp[] = [
 		{
 			id: "catalog-tools",
 			visible: !isReadOnly,
@@ -182,8 +155,8 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 			),
 			children: [
 				{
-					id: "snippets",
-					component: (children) => <SnippetsItem>{children}</SnippetsItem>,
+					id: "fragments",
+					component: (children) => <FragmentsItem>{children}</FragmentsItem>,
 					visible: true,
 				},
 				{
@@ -208,11 +181,9 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 			visible: !isReadOnly,
 			component: (children) => <NotesItem>{children}</NotesItem>,
 		},
-		{
-			id: "separator",
-			component: () => <DropdownMenuSeparator />,
-			visible: showToolsMenu,
-		},
+	] as const;
+
+	const exportGroup: MenuItemDescriptorApp[] = [
 		{
 			id: "show-in-explorer",
 			component: () => <ShowInExplorer />,
@@ -256,25 +227,49 @@ export function buildCatalogMenu(ctx: CatalogActionsContextValue): MenuItemDescr
 			),
 			visible: !(isMac && platform.isDesktop) && !!cloudServiceUrl && feature("cloud"),
 		},
-		{
-			id: "separator",
-			component: () => <DropdownMenuSeparator />,
-			visible: !isReadOnly,
-		},
+	];
+
+	const healthcheck: MenuItemDescriptorApp[] = [
 		{
 			id: "healthcheck",
 			visible: !isReadOnly,
 			component: (children) => <HealthcheckItem>{children}</HealthcheckItem>,
 		},
-		{
-			id: "separator",
-			component: () => <DropdownMenuSeparator />,
-			visible: renderDeleteCatalog,
-		},
+	];
+
+	const deleteAction: MenuItemDescriptorApp[] = [
 		{
 			id: "delete-catalog",
 			component: (children) => <DeleteCatalog>{children}</DeleteCatalog>,
 			visible: renderDeleteCatalog,
 		},
+	];
+
+	const createGroupWithSeparator = (items: MenuItemDescriptorApp[]): MenuItemDescriptorApp[] => {
+		return [
+			{
+				id: "separator",
+				component: () => <DropdownMenuSeparator />,
+				visible: items.some((item) => item.visible !== false),
+			},
+			...items,
+		];
+	};
+
+	return [
+		{
+			id: "navigation-title",
+			component: () => (
+				<DropdownMenuLabel className="text-primary-fg">{t("catalog.actions.title")}</DropdownMenuLabel>
+			),
+			visible: true,
+		},
+
+		...createGroupWithSeparator(catalogActionsGroup),
+		...createGroupWithSeparator(accessGroup),
+		...createGroupWithSeparator(toolsGroup),
+		...createGroupWithSeparator(exportGroup),
+		...createGroupWithSeparator(healthcheck),
+		...createGroupWithSeparator(deleteAction),
 	] as const;
 }

@@ -1,5 +1,5 @@
 import BlockActionPanel from "@components/BlockActionPanel";
-import styled from "@emotion/styled";
+import { cn } from "@core-ui/utils/cn";
 import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewContextableWrapper";
 import CodeBlockActions from "@ext/markdown/elements/codeBlockLowlight/edit/component/CodeBlockActions";
 import { checkLanguage, loadLanguage } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/Lowlight";
@@ -10,12 +10,13 @@ import {
 } from "@ext/markdown/elements/codeBlockLowlight/edit/logic/LowlightLangs";
 import StyledCodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/StyledCodeBlock";
 import type { Editor, NodeViewProps } from "@tiptap/core";
+import type { Attrs } from "@tiptap/pm/model";
 import { NodeViewContent } from "@tiptap/react";
 import { useLayoutEffect, useRef, useState } from "react";
 
 export const useLowlightActions = (props: {
 	language?: string;
-	updateAttributes?: (props: any) => void;
+	updateAttributes?: (props: Attrs) => void;
 	editor?: Editor;
 }) => {
 	const { language, updateAttributes, editor } = props;
@@ -30,7 +31,7 @@ export const useLowlightActions = (props: {
 		}
 
 		const res = await loadLanguage(lang);
-		if (res && res.registered(lang)) setIsRegistered(true);
+		if (res?.registered(lang)) setIsRegistered(true);
 		forceUpdate();
 	};
 
@@ -39,6 +40,7 @@ export const useLowlightActions = (props: {
 		editor.view.dispatch(editor.view.state.tr.setMeta("forceUpdate", true));
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useLayoutEffect(() => {
 		const lowerLang = getLowerLangName(language);
 		void internalLogic(lowerLang);
@@ -52,15 +54,6 @@ export const useLowlightActions = (props: {
 
 	return { onChange, isRegistered };
 };
-
-const StyledNodeViewContent = styled(NodeViewContent)`
-	white-space: unset !important;
-
-	> div:first-of-type {
-		overflow: auto;
-		padding: 1.375em 1.625em;
-	}
-`;
 
 const CodeBlockComponent = (props: NodeViewProps) => {
 	const { node, editor, getPos, updateAttributes } = props;
@@ -81,8 +74,15 @@ const CodeBlockComponent = (props: NodeViewProps) => {
 				rightActions={isEditable && <CodeBlockActions node={node} onChange={onChange} />}
 				updateAttributes={updateAttributes}
 			>
-				<StyledCodeBlock>
-					<StyledNodeViewContent />
+				<StyledCodeBlock spellCheck={false}>
+					<NodeViewContent
+						className={cn(
+							"[white-space:unset!important]",
+							"[&>div:first-of-type]:overflow-auto",
+							"[&>div:first-of-type]:px-[1.625em]",
+							"[&>div:first-of-type]:py-[1.375em]",
+						)}
+					/>
 				</StyledCodeBlock>
 			</BlockActionPanel>
 		</NodeViewContextableWrapper>

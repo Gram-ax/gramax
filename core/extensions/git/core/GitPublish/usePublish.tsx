@@ -1,9 +1,8 @@
 import formatComment from "@components/Layouts/StatusBar/Extensions/logic/formatComment";
-import FetchService from "@core-ui/ApiServices/FetchService";
-import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
+import { PublishEmitter } from "@ext/git/actions/Publish/logic/PublishEmitter";
 import type { DiffTree } from "@ext/git/core/GitDiffItemCreator/RevisionDiffPresenter";
 import { useCallback, useMemo, useState } from "react";
 
@@ -33,17 +32,17 @@ const usePublish = ({ diffTree, selectedFiles, onPublished }: UsePublishProps): 
 	const messageFallback = useMemo(() => formatComment(diffTree, selectedFiles), [diffTree, selectedFiles]);
 
 	const publish = useCallback(async () => {
-		const endpoint = apiUrlCreator.getStoragePublishUrl(message?.length > 0 ? message : messageFallback);
+		const commitMessage = message?.length > 0 ? message : messageFallback;
 		const files = Array.from(selectedFiles);
 
 		setIsPublishing(true);
-		const res = await FetchService.fetch(endpoint, JSON.stringify(files), MimeTypes.json);
+		const ok = await PublishEmitter.publish(apiUrlCreator, commitMessage, files);
 		setIsPublishing(false);
 
-		if (res.ok) onPublished?.();
+		if (ok) onPublished?.();
 
 		BranchUpdaterService.updateBranch(apiUrlCreator, OnBranchUpdateCaller.Publish);
-		return res.ok;
+		return ok;
 	}, [apiUrlCreator, message, messageFallback, selectedFiles, onPublished]);
 
 	return {

@@ -39,9 +39,11 @@ export default class NextRouter extends Router {
 		return this;
 	}
 
-	pushPath(path: string) {
+	pushPath(path: string, query?: Query, options?: { replace?: boolean }) {
+		if (query) this._router.query = query;
 		const transformed = this._transform(path);
-		void this._router.push({ pathname: transformed }).catch(null);
+		const navigate = options?.replace ? this._router.replace : this._router.push;
+		void navigate({ pathname: transformed, query }).catch(null);
 		return this;
 	}
 

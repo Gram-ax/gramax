@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import { MAX_INLINE_IMAGE_HEIGHT } from "@ext/markdown/elements/inlineImage/edit/models/node";
 import imageTransform from "./imageTransform";
 
@@ -18,7 +19,7 @@ describe("imageTransform", () => {
 			},
 			{ type: "paragraph_close" },
 		];
-		const result = imageTransform(tokens as any);
+		const result = imageTransform({ tokens } as any);
 		expect(result).toEqual([
 			{ type: "paragraph_open" },
 			{
@@ -53,7 +54,7 @@ describe("imageTransform", () => {
 			},
 			{ type: "paragraph_close" },
 		];
-		const result = imageTransform(tokens as any);
+		const result = imageTransform({ tokens } as any);
 		expect(result).toEqual([
 			{ type: "paragraph_open" },
 			{
@@ -88,7 +89,7 @@ describe("imageTransform", () => {
 			},
 			{ type: "paragraph_close" },
 		];
-		const result = imageTransform(tokens as any);
+		const result = imageTransform({ tokens } as any);
 		expect(result).toEqual([
 			{
 				type: "image",
@@ -120,7 +121,7 @@ describe("imageTransform", () => {
 			},
 			{ type: "paragraph_close" },
 		];
-		const result = imageTransform(tokens as any);
+		const result = imageTransform({ tokens } as any);
 
 		expect(result).toEqual([
 			{
@@ -154,7 +155,7 @@ describe("imageTransform", () => {
 			},
 			{ type: "paragraph_close" },
 		];
-		const result = imageTransform(tokens as any);
+		const result = imageTransform({ tokens } as any);
 
 		expect(result).toEqual([
 			{ type: "paragraph_open" },

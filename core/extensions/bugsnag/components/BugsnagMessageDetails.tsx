@@ -39,7 +39,7 @@ const BugsnagMessageDetails = ({ getDetails }: { getDetails: () => Promise<JSONC
 					<DialogBody>
 						<FormStack>
 							<CodeWrapper>
-								<CodeBlock language="javascript" value={details} />
+								<CodeBlock language="javascript">{details}</CodeBlock>
 							</CodeWrapper>
 						</FormStack>
 					</DialogBody>

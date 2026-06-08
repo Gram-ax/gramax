@@ -11,14 +11,14 @@ export class BunWorkerModulithSearchClient extends WorkerModulithSearchClientBas
 
 	static async create(options: WorkerModulithSearchClientBaseOptions): Promise<BunWorkerModulithSearchClient> {
 		const client = new BunWorkerModulithSearchClient(options);
-		await client.init();
+		await client._init();
 		return client;
 	}
 
-	protected override createWorker(): SearchWorker {
+	protected override _createWorker(): SearchWorker {
 		const workerPath = new URL("./search/modulith/modulithSearch.bun.worker.js", import.meta.url).href;
 		const worker = new Worker(workerPath);
-		worker.onmessage = (event) => this.handleMessage(event.data);
+		worker.onmessage = (event) => this._handleMessage(event.data);
 		return {
 			postMessage: worker.postMessage.bind(worker),
 			terminate: async () => {

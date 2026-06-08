@@ -6,13 +6,11 @@
 				"xml": "```ts\ntext\n```"
 			},
 			"renderTree": {
-				"$$mdtype": "Tag",
-				"attributes": {
-					"language": "ts",
-					"value": "text"
+				"attrs": {
+					"language": "ts"
 				},
-				"name": "Fence",
-				"children": []
+				"content": ["text"],
+				"type": "code_block"
 			},
 			"html": "<pre data-component=\"fence\">text</pre>"
 		}
@@ -63,22 +61,36 @@
 				"xml": "<plant-uml path=\"./plantUmlTest.puml\"/>"
 			},
 			"renderTree": {
-				"$$mdtype": "Tag",
-				"attributes": {
+				"attrs": {
 					"comment": {
 						"id": null
 					},
 					"diagramName": "Plant-uml",
 					"float": null,
 					"height": null,
+					"scale": null,
 					"src": "./plantUmlTest.puml",
 					"title": null,
 					"width": null
 				},
-				"children": [],
-				"name": "Plant-uml"
+				"content": [],
+				"type": "diagrams"
 			},
 			"html": "<plant-uml src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2FplantUmlTest.puml\"></plant-uml>"
+		},
+		{
+			"text": {
+				"xml": "```plant-uml\n@startuml\nBob -> Alice : hello\n@enduml\n```"
+			},
+			"renderTree": {
+				"attrs": {
+					"content": "@startuml\nBob -> Alice : hello\n@enduml",
+					"diagramName": "Plant-uml"
+				},
+				"content": [],
+				"type": "diagrams"
+			},
+			"html": "<plant-uml content=\"@startuml\nBob -> Alice : hello\n@enduml\"></plant-uml>"
 		}
 	],
 	"Cmd": [
@@ -205,12 +217,43 @@
 					"objects": [],
 					"height": null,
 					"width": null,
-					"renderSrc": "/testBasePath/api/article/resource/get?articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&catalogName=MarkdownCatalog&src=.%2Fimage.png"
+					"renderSrc": "/testBasePath/api/article/resource/get?catalogName=MarkdownCatalog&articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&src=.%2Fimage.png"
 				},
 				"children": [],
 				"name": "Image"
 			},
 			"html": "<div><img data-component=\"image\" src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fimage.png\"><em>someTitle</em></div>"
+		},
+		{
+			"text": {
+				"xml": "<img src=\"./image.png\">"
+			},
+			"renderTree": {
+				"$$mdtype": "Tag",
+				"attributes": {},
+				"children": [
+					{
+						"$$mdtype": "Tag",
+						"attributes": {
+							"crop": {
+								"h": 100,
+								"w": 100,
+								"x": 0,
+								"y": 0
+							},
+							"objects": [],
+							"renderSrc": "/testBasePath/api/article/resource/get?catalogName=MarkdownCatalog&articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&src=.%2Fimage.png",
+							"scale": null,
+							"src": "./image.png"
+						},
+						"children": [],
+						"name": "Image"
+					}
+				],
+				"name": "p"
+			},
+			"html": "<p><div><img data-component=\"image\" src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fimage.png\"></div></p>",
+			"resources": ["./image.png"]
 		}
 	],
 	"Video": [
@@ -365,18 +408,18 @@
 				"xml": "<drawio path=\"./drawio.svg\" title=\"someTitle\"/>"
 			},
 			"renderTree": {
-				"$$mdtype": "Tag",
-				"attributes": {
+				"attrs": {
 					"comment": {
 						"id": null
 					},
 					"src": "./drawio.svg",
 					"title": "someTitle",
 					"height": null,
+					"scale": null,
 					"width": null
 				},
-				"children": [],
-				"name": "Drawio"
+				"content": [],
+				"type": "drawio"
 			},
 			"html": "<div><img data-component=\"image\" src=\"requestURL.com/testBasePath/api/catalogs/MarkdownCatalog/articles/category%2FemptyArticle/resources/.%2Fdrawio.svg\"><em>someTitle</em></div>"
 		}
@@ -423,201 +466,216 @@
 			},
 			"renderTree": {
 				"attrs": {
-					"header": "row"
+					"header": "row",
+					"sortingOrder": null
 				},
 				"content": [
 					{
-						"$$mdtype": "Tag",
-						"attributes": {},
-						"children": [
+						"attrs": {
+							"initialOrder": null
+						},
+						"content": [
 							{
-								"$$mdtype": "Tag",
-								"attributes": {},
-								"children": [
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
 									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Столбец 1"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Столбец 2"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Столбец 3"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Столбец 1"],
+										"name": "p"
 									}
 								],
-								"name": "tr"
+								"type": "tableCell"
 							},
 							{
-								"$$mdtype": "Tag",
-								"attributes": {},
-								"children": [
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
 									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 1"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 1"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 1"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Столбец 2"],
+										"name": "p"
 									}
 								],
-								"name": "tr"
+								"type": "tableCell"
 							},
 							{
-								"$$mdtype": "Tag",
-								"attributes": {},
-								"children": [
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
 									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 2"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 2"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 2"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Столбец 3"],
+										"name": "p"
 									}
 								],
-								"name": "tr"
+								"type": "tableCell"
 							}
 						],
-						"name": "tbody"
+						"type": "tableRow"
+					},
+					{
+						"attrs": {
+							"initialOrder": null
+						},
+						"content": [
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 1"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							},
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 1"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							},
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 1"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							}
+						],
+						"type": "tableRow"
+					},
+					{
+						"attrs": {
+							"initialOrder": null
+						},
+						"content": [
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 2"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							},
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 2"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							},
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 2"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							}
+						],
+						"type": "tableRow"
 					}
 				],
-				"type": "Table"
+				"type": "table"
 			},
 			"html": "<table data-component=\"table\"><tbody><tr><td colspan=\"1\" rowspan=\"1\"><p>Столбец 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Столбец 2</p></td><td colspan=\"1\" rowspan=\"1\"><p>Столбец 3</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>Строка 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 1</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>Строка 2</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 2</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 2</p></td></tr></tbody></table>"
 		},
@@ -628,220 +686,231 @@
 			},
 			"renderTree": {
 				"attrs": {
-					"header": "row"
+					"header": "row",
+					"sortingOrder": null
 				},
 				"content": [
 					{
-						"$$mdtype": "Tag",
-						"name": "tbody",
-						"attributes": {},
-						"children": [
+						"attrs": {
+							"initialOrder": null
+						},
+						"content": [
 							{
-								"$$mdtype": "Tag",
-								"attributes": {},
-								"children": [
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 2,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
 									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 2,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Объединённая ячейка по горизонтали"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 1 Ячейка 2"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Объединённая ячейка по горизонтали"],
+										"name": "p"
 									}
 								],
-								"name": "tr"
+								"type": "tableCell"
 							},
 							{
-								"$$mdtype": "Tag",
-								"attributes": {},
-								"children": [
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
 									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 2 Ячейка 1"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 1 Ячейка 2"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							}
+						],
+						"type": "tableRow"
+					},
+					{
+						"attrs": {
+							"initialOrder": null
+						},
+						"content": [
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 2 Ячейка 1"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							},
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 2 Ячейка 2"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
+							},
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 2,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 2 Ячейка 3"],
+										"name": "p"
 									},
 									{
 										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
+											"containTaskList": false,
+											"depth": 0,
+											"tight": false
 										},
 										"content": [
 											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 2 Ячейка 2"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 2
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 2 Ячейка 3"],
-												"name": "p"
-											},
-											{
+												"type": "listItem",
 												"attrs": {
-													"containTaskList": false,
-													"depth": 0,
-													"tight": false
+													"checked": null,
+													"isTaskItem": null
 												},
 												"content": [
 													{
-														"type": "listItem",
-														"attrs": {
-															"checked": null,
-															"isTaskItem": null
-														},
-														"content": [
-															{
-																"$$mdtype": "Tag",
-																"attributes": {},
-																"children": ["Объединённая"],
-																"name": "p"
-															}
-														]
-													},
-													{
-														"type": "listItem",
-														"attrs": {
-															"checked": null,
-															"isTaskItem": null
-														},
-														"content": [
-															{
-																"$$mdtype": "Tag",
-																"attributes": {},
-																"children": ["ячейка"],
-																"name": "p"
-															}
-														]
-													},
-													{
-														"type": "listItem",
-														"attrs": {
-															"checked": null,
-															"isTaskItem": null
-														},
-														"content": [
-															{
-																"$$mdtype": "Tag",
-																"attributes": {},
-																"children": ["по вертикали"],
-																"name": "p"
-															}
-														]
+														"$$mdtype": "Tag",
+														"attributes": {},
+														"children": ["Объединённая"],
+														"name": "p"
 													}
-												],
-												"type": "bulletList"
+												]
+											},
+											{
+												"type": "listItem",
+												"attrs": {
+													"checked": null,
+													"isTaskItem": null
+												},
+												"content": [
+													{
+														"$$mdtype": "Tag",
+														"attributes": {},
+														"children": ["ячейка"],
+														"name": "p"
+													}
+												]
+											},
+											{
+												"type": "listItem",
+												"attrs": {
+													"checked": null,
+													"isTaskItem": null
+												},
+												"content": [
+													{
+														"$$mdtype": "Tag",
+														"attributes": {},
+														"children": ["по вертикали"],
+														"name": "p"
+													}
+												]
 											}
 										],
-										"type": "tableCell"
+										"type": "bulletList"
 									}
 								],
-								"name": "tr"
+								"type": "tableCell"
+							}
+						],
+						"type": "tableRow"
+					},
+					{
+						"attrs": {
+							"initialOrder": null
+						},
+						"content": [
+							{
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
+									{
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 3 Ячейка 1"],
+										"name": "p"
+									}
+								],
+								"type": "tableCell"
 							},
 							{
-								"$$mdtype": "Tag",
-								"attributes": {},
-								"children": [
+								"attrs": {
+									"aggregation": null,
+									"align": null,
+									"colspan": 1,
+									"colwidth": null,
+									"rowspan": 1,
+									"filter": null,
+									"sort": null
+								},
+								"content": [
 									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 3 Ячейка 1"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
-									},
-									{
-										"attrs": {
-											"aggregation": null,
-											"align": null,
-											"colspan": 1,
-											"colwidth": null,
-											"rowspan": 1
-										},
-										"content": [
-											{
-												"$$mdtype": "Tag",
-												"attributes": {},
-												"children": ["Строка 3 Ячейка 2"],
-												"name": "p"
-											}
-										],
-										"type": "tableCell"
+										"$$mdtype": "Tag",
+										"attributes": {},
+										"children": ["Строка 3 Ячейка 2"],
+										"name": "p"
 									}
 								],
-								"name": "tr"
+								"type": "tableCell"
 							}
-						]
+						],
+						"type": "tableRow"
 					}
 				],
-				"type": "Table"
+				"type": "table"
 			},
 			"html": "<table data-component=\"table\"><tbody><tr><td colspan=\"2\" rowspan=\"1\"><p>Объединённая ячейка по горизонтали</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 1 Ячейка 2</p></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>Строка 2 Ячейка 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 2 Ячейка 2</p></td><td colspan=\"1\" rowspan=\"2\"><p>Строка 2 Ячейка 3</p><ul data-component=\"bullet-list\"><li data-component=\"list-item\"><p>Объединённая</p></li><li data-component=\"list-item\"><p>ячейка</p></li><li data-component=\"list-item\"><p>по вертикали</p></li></ul></td></tr><tr><td colspan=\"1\" rowspan=\"1\"><p>Строка 3 Ячейка 1</p></td><td colspan=\"1\" rowspan=\"1\"><p>Строка 3 Ячейка 2</p></td></tr></tbody></table>"
 		}
@@ -978,7 +1047,7 @@
 						"$$mdtype": "Tag",
 						"attributes": {
 							"hash": "",
-							"href": "/testBasePath/api/article/resource/get?articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&catalogName=MarkdownCatalog&src=.%2F1718261246743-2.log",
+							"href": "/testBasePath/api/article/resource/get?catalogName=MarkdownCatalog&articlePath=MarkdownCatalog%2Fcategory%2FemptyArticle.md&src=.%2F1718261246743-2.log",
 							"isFile": true,
 							"resourcePath": "./1718261246743-2.log"
 						},

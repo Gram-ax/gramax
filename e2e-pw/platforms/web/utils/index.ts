@@ -20,48 +20,6 @@ export type FileTree = {
 	[key: string]: FileTree | string | number[];
 };
 
-export const createFileTree = async (page: PlaywrightPage, tree: FileTree, basePath: string = ""): Promise<void> => {
-	await page.evaluate(
-		async ({ tree, basePath }: { tree: FileTree; basePath: string }) => {
-			const intoPath = window.debug.intoPath;
-
-			const { wm } = await window.app!;
-			const fp = wm.current().getFileProvider();
-
-			const processNode = async (node: FileTree | string | number[], currentPath: string) => {
-				if (typeof node === "string") {
-					const path = intoPath(currentPath);
-					const encoder = new TextEncoder();
-					await fp.write(path, encoder.encode(node) as unknown as Buffer);
-					return;
-				}
-
-				if (Array.isArray(node)) {
-					const path = intoPath(currentPath);
-					await fp.write(path, new Uint8Array(node) as unknown as Buffer);
-					return;
-				}
-
-				if (typeof node === "object" && node !== null) {
-					const path = intoPath(currentPath);
-					await fp.mkdir(path).catch(() => {});
-
-					for (const [name, value] of Object.entries(node)) {
-						const nextPath = currentPath ? `${currentPath}/${name}` : name;
-						await processNode(value, nextPath);
-					}
-					return;
-				}
-
-				throw new Error(`Invalid node type at path: ${currentPath}`);
-			};
-
-			await processNode(tree, basePath);
-		},
-		{ tree, basePath },
-	);
-};
-
 export const uploadAndExtractZip = async (page: PlaywrightPage, zip: string): Promise<void> => {
 	const absoluteZipPath = resolve(process.cwd(), "zips", zip);
 	const zipBuffer = await fs.readFile(absoluteZipPath);

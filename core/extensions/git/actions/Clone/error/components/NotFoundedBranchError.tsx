@@ -1,26 +1,24 @@
+import { DialogErrorHeader } from "@ext/errorHandlers/client/components/DialogErrorHeader";
 import t from "@ext/localization/locale/translate";
-import InfoModalForm from "../../../../../errorHandlers/client/components/ErrorForm";
+import { DialogBody, DialogFooterTemplate } from "@ui-kit/Dialog";
 
-const NotFoundedBranchError = ({
-	version,
-	notFoundedBranch,
-	onCancelClick,
-}: {
+interface NotFoundedBranchErrorProps {
 	version?: string;
 	notFoundedBranch: string;
 	onCancelClick: () => void;
-}) => {
+}
+
+const NotFoundedBranchError = ({ notFoundedBranch, onCancelClick }: NotFoundedBranchErrorProps) => {
 	return (
-		<InfoModalForm
-			closeButton={{ text: t("ok") }}
-			onCancelClick={onCancelClick}
-			title={`${t("branch")} ${notFoundedBranch} ${t("not-found2").toLowerCase()}`}
-			version={version}
-		>
-			<div className="article">
-				<span>{t("clone-branch-not-found")}</span>
-			</div>
-		</InfoModalForm>
+		<>
+			<DialogErrorHeader title={`${t("branch")} ${notFoundedBranch} ${t("not-found2").toLowerCase()}`} />
+			<DialogBody>
+				<div className="article">
+					<span>{t("clone-branch-not-found")}</span>
+				</div>
+			</DialogBody>
+			<DialogFooterTemplate primaryButton={t("ok")} primaryButtonProps={{ onClick: onCancelClick }} />
+		</>
 	);
 };
 

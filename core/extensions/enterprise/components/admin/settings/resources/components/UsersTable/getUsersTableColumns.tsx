@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: access to table options meta */
 import { InvalidEmailCell } from "@ext/enterprise/components/admin/settings/components/InvalidEmailCell";
 import { REPOSITORY_USER_ROLES, type RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
 import { TABLE_SELECT_COLUMN_CODE } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
@@ -89,7 +90,7 @@ const getUsersTableColumns = (isExternal: boolean): ColumnDef<UsersTableColumn>[
 				if (isExternal) return <span>-</span>;
 
 				const role = row.getValue<RoleId>("role");
-				if (!role || role !== "reviewer") return <span>-</span>;
+				if (!role || role !== "reviewer") return <span>{t("enterprise.admin.resources.branches.all")}</span>;
 
 				const loadBranchesOptions = (table.options.meta as any)?.loadBranchesOptions;
 				const handleBranchesChange = (options: SearchSelectOption[]) => {

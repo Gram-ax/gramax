@@ -1,4 +1,4 @@
-import { SemaphoreLock } from "@ics/modulith-utils";
+import { SemaphoreLock } from "@ics/article-search-utils";
 
 export interface PoolWorker {
 	terminate(): Promise<void>;

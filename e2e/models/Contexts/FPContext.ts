@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import type FileProvider from "core/logic/FileProvider/model/FileProvider";
 import type { JSHandle } from "playwright";
 
@@ -12,7 +13,7 @@ export class FPContext {
 					return await target.evaluate(async (fp: FileProvider, args: any[]) => {
 						const method = args.pop();
 						return await fp[method].apply(
-							...[fp, args.map((v) => (v.type == "path" ? window.debug.intoPath(v.val) : v))],
+							...[fp, args.map((v) => (v.type === "path" ? window.debug.intoPath(v.val) : v))],
 						);
 					}, args);
 				};

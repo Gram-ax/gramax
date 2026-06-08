@@ -1,5 +1,6 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+.worktrees
 apps/.storage
 .cache
 gramax-wasm.worker.js
@@ -11,6 +12,7 @@ apps-build-artifacts
 app/test/docs/.storage
 tsconfig.tsbuildinfo
 trivy-report.txt
+apps/tauri/src-tauri/icons
 
 apps/next/public
 
@@ -74,3 +76,4 @@ junit*.xml
 
 !apps/browser/crates/gramax-wasm/dist
 apps/next/gramaxVersion.txt
+apps/tauri/src-tauri/icons/icon.png

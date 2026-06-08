@@ -19,7 +19,12 @@ const enterpriseLogin = async (url: string, apiUrlCreator: ApiUrlCreator, router
 	unlisten.once = await once<string>(callbackName, (ev) => {
 		const oneTimeCode = ev.payload?.replace?.("&from=http://localhost:52054", "")?.replace("oneTimeCode=", "");
 		ModalToOpenService.resetValue();
-		void initEnterprise(oneTimeCode, apiUrlCreator, router);
+		if (!oneTimeCode) return;
+		void initEnterprise(
+			router,
+			apiUrlCreator.getAddEnterpriseWorkspaceUrl(oneTimeCode),
+			apiUrlCreator.getCloneEnterpriseCatalogsUrl(),
+		);
 		clearTimeout(timeout);
 	});
 	await httpListenOnce({ url, action: { type: "tryClose" }, callbackName });

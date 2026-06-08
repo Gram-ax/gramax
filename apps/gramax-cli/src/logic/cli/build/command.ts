@@ -1,5 +1,5 @@
 import camelToKebabCase from "@core-ui/camelToKebabCase";
-import { Command, Option } from "commander";
+import { type Command, Option } from "commander";
 import { join } from "path";
 import ChalkLogger from "../../../utils/ChalkLogger";
 

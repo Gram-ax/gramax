@@ -1,8 +1,16 @@
-import Modal from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import t from "@ext/localization/locale/translate";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+} from "@ui-kit/AlertDialog";
 import { useState } from "react";
 
 export interface MergeRequestConfirmProps {
@@ -14,58 +22,62 @@ export interface MergeRequestConfirmProps {
 	onMergeClick?: () => void | Promise<void>;
 }
 
+const getBodyKey = (squash: boolean, deleteAfterMerge: boolean) => {
+	if (squash) {
+		return deleteAfterMerge
+			? "git.merge-requests.confirm.body.squash-delete-branch-comment"
+			: "git.merge-requests.confirm.body.squash-comment";
+	}
+	return deleteAfterMerge
+		? "git.merge-requests.confirm.body.delete-branch-after-merge"
+		: "git.merge-requests.confirm.body.not-delete-branch-after-merge";
+};
+
 const MergeRequestConfirm = (props: MergeRequestConfirmProps) => {
 	const { sourceBranch, targetBranch, deleteAfterMerge, squash, onCancelClick, onMergeClick } = props;
 
-	const [isOpen, setisOpen] = useState(true);
+	const [isOpen, setIsOpen] = useState(true);
 
 	const close = () => {
-		setisOpen(false);
+		setIsOpen(false);
 		ModalToOpenService.resetValue();
 	};
 
-	const currenetOnCancelClick = async () => {
+	const handleCancelClick = async () => {
 		close();
 		await onCancelClick?.();
 	};
 
-	const currentOnMergeClick = async () => {
+	const handleMergeClick = async () => {
 		close();
 		await onMergeClick?.();
 	};
 
+	const bodyHtml = t(getBodyKey(squash, deleteAfterMerge))
+		.replaceAll("{{sourceBranch}}", sourceBranch)
+		.replaceAll("{{targetBranch}}", targetBranch);
+
 	return (
-		<Modal isOpen={isOpen} onClose={close}>
-			<ModalLayoutLight>
-				<InfoModalForm
-					actionButton={{
-						onClick: currentOnMergeClick,
-						text: t("git.merge.merge"),
-					}}
-					icon={{ code: "alert-circle", color: "var(--color-admonition-note-br-h)" }}
-					onCancelClick={currenetOnCancelClick}
-					title={t("git.merge-requests.confirm.title")}
-				>
-					<p className="article">
-						<span
-							dangerouslySetInnerHTML={{
-								__html: t(
-									squash
-										? deleteAfterMerge
-											? "git.merge-requests.confirm.body.squash-delete-branch-comment"
-											: "git.merge-requests.confirm.body.squash-comment"
-										: deleteAfterMerge
-											? "git.merge-requests.confirm.body.delete-branch-after-merge"
-											: "git.merge-requests.confirm.body.not-delete-branch-after-merge",
-								)
-									.replaceAll("{{sourceBranch}}", sourceBranch)
-									.replaceAll("{{targetBranch}}", targetBranch),
-							}}
-						/>
-					</p>
-				</InfoModalForm>
-			</ModalLayoutLight>
-		</Modal>
+		<AlertDialog onOpenChange={setIsOpen} open={isOpen}>
+			<AlertDialogContent status="warning">
+				<AlertDialogHeader>
+					<AlertDialogIcon icon="alert-circle" />
+					<AlertDialogTitle>{t("git.merge-requests.confirm.title")}</AlertDialogTitle>
+					<AlertDialogDescription>
+						{/** biome-ignore lint/style/useNamingConvention: expected */}
+						<span className="article bg-transparent" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel onClick={handleCancelClick} variant="outline">
+						{t("cancel")}
+					</AlertDialogCancel>
+					<AlertDialogAction onClick={handleMergeClick} variant="primary">
+						{t("git.merge.merge")}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 };
 

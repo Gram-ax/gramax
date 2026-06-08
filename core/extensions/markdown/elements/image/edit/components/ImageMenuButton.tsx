@@ -1,4 +1,3 @@
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import InputFile from "@components/Atoms/InputFile";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
@@ -46,12 +45,7 @@ const ImageMenuButton = ({ editor, className, fileName, onSave, onStart }: Image
 
 	if (disabled) {
 		return (
-			<ToolbarDropdownMenuItem
-				active={isActive}
-				dataQa={`qa-edit-menu-image`}
-				disabled={disabled}
-				onSelect={() => ArticleUpdaterService.stopLoadingAfterFocus()}
-			>
+			<ToolbarDropdownMenuItem active={isActive} dataQa={`qa-edit-menu-image`} disabled={disabled}>
 				<div className="flex flex-row items-center gap-2 w-full">
 					<Icon icon="image" />
 					{t("image")}
@@ -69,7 +63,6 @@ const ImageMenuButton = ({ editor, className, fileName, onSave, onStart }: Image
 			onSelect={(e) => {
 				e.preventDefault();
 				onStart?.();
-				ArticleUpdaterService.stopLoadingAfterFocus();
 			}}
 		>
 			<InputFile

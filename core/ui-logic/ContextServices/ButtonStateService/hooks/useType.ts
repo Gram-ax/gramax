@@ -1,11 +1,10 @@
-import useWatch from "@core-ui/hooks/useWatch";
 import type { Editor } from "@tiptap/core";
 import type { Mark } from "@tiptap/pm/model";
 import type { Selection } from "@tiptap/pm/state";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Attrs, Mark as MarkType, NodeType } from "./types";
 
-const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment", "s"];
+const markList: MarkType[] = ["link", "strong", "em", "code", "file", "comment", "s", "highlight", "fragment-link"];
 
 type State = { actions: NodeType[]; marks: MarkType[]; attrs: Attrs; selection: Selection };
 
@@ -123,7 +122,8 @@ const getMarksAction = (editor: Editor) => {
 		};
 
 		if (empty) {
-			const marksAtCursor = state.storedMarks || state.selection.$head.marks();
+			const headMarks = state.selection.$head.marks();
+			const marksAtCursor = headMarks.length > 0 ? headMarks : (state.storedMarks ?? []);
 			addActiveMarks(marksAtCursor);
 		} else {
 			state.doc.nodesBetween(from, to, (node) => addActiveMarks(node.marks));
@@ -148,39 +148,49 @@ const useType = (editor: Editor) => {
 		selection: null,
 	});
 
-	useWatch(() => {
-		const { actions, headingLevel, noteType, diagramName, color } = getNodeNameFromCursor(editor.state);
-		if (headingLevel) mirror.current.attrs.level = headingLevel;
-		if (noteType) mirror.current.attrs.type = noteType;
-		if (diagramName) mirror.current.attrs.diagramName = diagramName;
-		mirror.current.attrs.color = color;
+	useEffect(() => {
+		if (!editor) return;
+		const updateState = ({ editor }: { editor: Editor }) => {
+			const { actions, headingLevel, noteType, diagramName, color } = getNodeNameFromCursor(editor.state);
+			const marks = getMarksAction(editor);
 
-		const marks = getMarksAction(editor);
+			const deepDifference =
+				mirror.current.marks.toString() !== marks.toString() ||
+				mirror.current.attrs?.level !== headingLevel ||
+				mirror.current.attrs.type !== noteType ||
+				mirror.current.attrs.diagramName !== diagramName ||
+				mirror.current.attrs.color !== color;
 
-		const deepDifference =
-			state.marks.toString() !== marks.toString() ||
-			state.attrs?.level !== mirror.current.attrs?.level ||
-			state.attrs.type !== mirror.current.attrs.type ||
-			state.attrs.diagramName !== mirror.current.attrs.diagramName ||
-			state.attrs.color !== mirror.current.attrs.color;
+			mirror.current.attrs.level = headingLevel;
+			mirror.current.attrs.type = noteType;
+			mirror.current.attrs.diagramName = diagramName;
+			mirror.current.attrs.color = color;
 
-		if (actions.toString() !== mirror.current.actions.toString() || deepDifference) {
-			mirror.current.actions = [...actions];
-			mirror.current.marks = [...marks];
+			if (actions.toString() !== mirror.current.actions.toString() || deepDifference) {
+				mirror.current.actions = [...actions];
+				mirror.current.marks = [...marks];
 
-			setState({
-				actions: [...mirror.current.actions],
-				marks: [...mirror.current.marks],
-				attrs: {
-					level: mirror.current.attrs?.level,
-					type: mirror.current.attrs?.type,
-					diagramName: mirror.current.attrs?.diagramName,
-					color: mirror.current.attrs?.color,
-				},
-				selection: editor.state.selection,
-			});
-		}
-	}, [editor.state.selection, editor.commands]);
+				setState({
+					actions: [...mirror.current.actions],
+					marks: [...mirror.current.marks],
+					attrs: {
+						level: mirror.current.attrs?.level,
+						type: mirror.current.attrs?.type,
+						diagramName: mirror.current.attrs?.diagramName,
+						color: mirror.current.attrs?.color,
+					},
+					selection: editor.state.selection,
+				});
+			}
+		};
+
+		editor.on("update", updateState);
+		editor.on("selectionUpdate", updateState);
+		return () => {
+			editor.off("selectionUpdate", updateState);
+			editor.off("update", updateState);
+		};
+	}, [editor]);
 
 	return state;
 };

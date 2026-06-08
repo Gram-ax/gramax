@@ -14,6 +14,15 @@ describe("GitCommentAutoMerger", () => {
 		expect(merger.canProceed(conflict)).toBe(true);
 	});
 
+	test("returns false when one of comment paths is missing", () => {
+		const conflict: MergeConflictInfo = {
+			ours: "path/to/article.comments.yaml",
+			theirs: null,
+		};
+
+		expect(merger.canProceed(conflict)).toBe(false);
+	});
+
 	describe("proceed", () => {
 		test("merges common block by newer dateTime and outputs valid YAML", async () => {
 			const conflictContent = `<<<<<<< Updated upstream

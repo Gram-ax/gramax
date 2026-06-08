@@ -8,6 +8,7 @@ import codeBlockFormatter from "@ext/markdown/elements/codeBlockLowlight/edit/lo
 import inlineCutFormatter from "@ext/markdown/elements/cut/edit/logic/inlineCutFormatter";
 import DiagramsFormatter from "@ext/markdown/elements/diagrams/edit/logic/diagramsFormatter";
 import drawioFormatter from "@ext/markdown/elements/drawio/edit/logic/drawioFormatter";
+import FragmentFormatter from "@ext/markdown/elements/fragment/edit/logic/FragmentFormatter";
 import headingFormatter from "@ext/markdown/elements/heading/edit/logic/headingFormatter";
 import hrFormatter from "@ext/markdown/elements/hr/edit/logic/hrFormatter";
 import htmlNodeFormatter from "@ext/markdown/elements/html/edit/logic/htmlNodeFormatter";
@@ -26,7 +27,6 @@ import inlineMdComponentFormatter from "@ext/markdown/elements/md/edit/logic/inl
 import OpenApiFormatter from "@ext/markdown/elements/openApi/edit/logic/OpenApiFormatter";
 import paragraphFormatter from "@ext/markdown/elements/paragraph/edit/logic/paragraphFormatter";
 import { questionFormatter } from "@ext/markdown/elements/question/edit/logic/questionFormatter";
-import SnippetFormatter from "@ext/markdown/elements/snippet/edit/logic/SnippetFormatter";
 import tableBodyRowSimple from "@ext/markdown/elements/table/edit/logic/formatters/tableBodyRowSimpleFormatter";
 import tableCellSimple from "@ext/markdown/elements/table/edit/logic/formatters/tableCellSimpleFormatter";
 import tableFormatter from "@ext/markdown/elements/table/edit/logic/formatters/tableFormatter";
@@ -50,7 +50,7 @@ const getNodeFormatters = (
 	const formatters = {
 		code_block: codeBlockFormatter,
 		diagrams: DiagramsFormatter(formatter),
-		snippet: SnippetFormatter(formatter),
+		fragment: FragmentFormatter(formatter),
 		openapi: OpenApiFormatter(formatter),
 		icon: IconFormatter(formatter),
 		tabs: TabsFormatter(formatter),
@@ -68,19 +68,26 @@ const getNodeFormatters = (
 		"inline-property": inlinePropertyFormatter(formatter),
 		"block-field": blockFieldFormatter(formatter),
 		"block-property": blockPropertyFormatter(formatter),
+		// biome-ignore lint/style/useNamingConvention: node type registry keys
 		inlineMd_component: inlineMdComponentFormatter,
+		// biome-ignore lint/style/useNamingConvention: node type registry keys
 		blockMd_component: blockMdComponentFormatter,
 		blockMd: blockMdFormatter,
 		video: videoFormatter(formatter),
 		drawio: drawioFormatter(formatter),
+		// biome-ignore lint/style/useNamingConvention: node type registry keys
 		inlineCut_component: inlineCutFormatter(formatter),
 		table: tableFormatter(formatter, context),
 		tableRow: formatter.nodeFormatters.tableRow,
 		tableCell: formatter.nodeFormatters.tableCell,
 		table_simple: tableSimpleFormatter,
+		// biome-ignore lint/style/useNamingConvention: node type registry keys
 		tableCell_simple: tableCellSimple,
+		// biome-ignore lint/style/useNamingConvention: node type registry keys
 		tableHeader_simple: tableCellSimple,
+		// biome-ignore lint/style/useNamingConvention: node type registry keys
 		tableBodyRow_simple: tableBodyRowSimple,
+		// biome-ignore lint/style/useNamingConvention: node type registry keys
 		tableHeaderRow_simple: tableHeaderRowSimple,
 		heading: headingFormatter,
 		horizontal_rule: hrFormatter,

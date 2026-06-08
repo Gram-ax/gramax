@@ -6,6 +6,7 @@ const fileNameUtils = {
 		const normalizedExtension = extension ? extension.toLowerCase() : "";
 		const newExtension = normalizedExtension ? "." + normalizedExtension : "";
 		const normalizedNames = names.map((name) => name.toLowerCase());
+
 		baseFileName = normalizedNames.includes(("./" + baseFileName + newExtension).toLowerCase())
 			? fileNameUtils.removeIndex(baseFileName)
 			: baseFileName;

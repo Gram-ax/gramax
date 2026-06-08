@@ -1,11 +1,19 @@
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import t from "@ext/localization/locale/translate";
-import { useState } from "react";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+} from "@ui-kit/AlertDialog";
+import { useCallback, useEffect, useState } from "react";
 
 const PullHandler = () => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -16,27 +24,43 @@ const PullHandler = () => {
 		ModalToOpenService.resetValue();
 	};
 
-	const onSyncClick = async () => {
-		setIsOpen(false);
-		await SyncService.sync(apiUrlCreator);
+	const onOpenChange = (open: boolean) => {
+		setIsOpen(open);
+		if (!open) ModalToOpenService.resetValue();
 	};
 
+	const onSyncClick = useCallback(async () => {
+		setIsOpen(false);
+		await SyncService.sync(apiUrlCreator);
+	}, [apiUrlCreator]);
+
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			if (!isOpen) return;
+			if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) onSyncClick();
+		};
+		window.addEventListener("keydown", handler);
+		return () => window.removeEventListener("keydown", handler);
+	}, [isOpen, onSyncClick]);
+
 	return (
-		<ModalLayout isOpen={isOpen} onClose={onClose} onCmdEnter={onSyncClick} onOpen={() => setIsOpen(true)}>
-			<ModalLayoutLight>
-				<InfoModalForm
-					actionButton={{
-						text: t("sync"),
-						onClick: onSyncClick,
-					}}
-					isWarning={true}
-					onCancelClick={() => setIsOpen(false)}
-					title={t("sync-catalog")}
-				>
-					<span>{t("sync-catalog-desc")}</span>
-				</InfoModalForm>
-			</ModalLayoutLight>
-		</ModalLayout>
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogIcon icon="alert-circle" />
+					<AlertDialogTitle>{t("sync-catalog")}</AlertDialogTitle>
+					<AlertDialogDescription>{t("sync-catalog-desc")}</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel onClick={onClose} variant="outline">
+						{t("cancel")}
+					</AlertDialogCancel>
+					<AlertDialogAction onClick={onSyncClick} variant="primary">
+						{t("sync")}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 };
 

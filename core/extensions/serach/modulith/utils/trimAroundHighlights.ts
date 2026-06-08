@@ -1,4 +1,4 @@
-import type { SearchResultMarkItem } from "@ics/modulith-search-domain/search";
+import type { SearchResultMarkItem } from "@ics/article-search/search";
 
 type Span = { type: "text" | "highlight"; start: number; end: number; text: string };
 

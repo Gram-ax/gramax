@@ -6,7 +6,9 @@ const SmallFence = (props: { value: string; fixWidth?: boolean; overflow?: Prope
 	const { className, value, overflow } = props;
 	return (
 		<div className={className}>
-			<CodeBlock style={{ overflow }} value={value} withoutHighlight />
+			<CodeBlock style={{ overflow }} withoutHighlight>
+				{value}
+			</CodeBlock>
 		</div>
 	);
 };

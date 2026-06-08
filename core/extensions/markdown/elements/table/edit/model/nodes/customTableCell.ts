@@ -1,6 +1,23 @@
+import CellComponent from "@ext/markdown/elements/table/edit/components/CellComponent";
 import TableCell from "@tiptap/extension-table-cell";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { tableCell } from "../tableSchema";
 
 const CustomTableCell = TableCell.extend({
+	addNodeView() {
+		return ReactNodeViewRenderer(CellComponent, {
+			as: "td",
+			attrs: ({ HTMLAttributes }) => {
+				const attrs = Object.entries(HTMLAttributes).filter(([, value]) => value);
+				const newAttrs = {};
+				attrs.forEach(([name, value]) => {
+					newAttrs[name] = value;
+				});
+				return newAttrs;
+			},
+			stopEvent: () => false,
+		});
+	},
 	parseHTML() {
 		return [
 			{
@@ -14,18 +31,7 @@ const CustomTableCell = TableCell.extend({
 
 	addAttributes() {
 		return {
-			aggregation: {
-				default: null,
-			},
-			align: {
-				default: null,
-			},
-			colspan: {
-				default: 1,
-			},
-			rowspan: {
-				default: 1,
-			},
+			...tableCell.attrs,
 			colwidth: {
 				default: null,
 				parseHTML: (element) => {
@@ -36,8 +42,7 @@ const CustomTableCell = TableCell.extend({
 				},
 				renderHTML: (attributes) => {
 					if (!attributes.colwidth) return {};
-					const total = (attributes.colwidth as number[]).reduce((sum, w) => sum + w, 0);
-					return { colwidth: attributes.colwidth.join(","), style: `--colwidth: ${total}px` };
+					return { colwidth: attributes.colwidth.join(",") };
 				},
 			},
 		};

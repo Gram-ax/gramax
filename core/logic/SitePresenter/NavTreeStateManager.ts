@@ -1,4 +1,6 @@
+import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
+import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import type { CategoryLink, ItemLink } from "@ext/navigation/NavigationLinks";
 import { useCallback, useMemo, useRef } from "react";
 import { create } from "zustand";
@@ -100,6 +102,23 @@ export const syncCatalogState = (catalogName: string, items: ItemLink[]): void =
 export const getOpenPaths = (catalogName: string): string[] | null => {
 	const { catalogs } = useNavTreeStore.getState();
 	return catalogName in catalogs ? catalogs[catalogName] : null;
+};
+
+export const addOpenPath = (catalogName: string, path: string): void => {
+	const openPaths = getOpenPaths(catalogName) ?? [];
+	if (openPaths.includes(path)) return;
+	useNavTreeStore.getState().setCatalog(catalogName, [...openPaths, path]);
+};
+
+export const ensureParentOpen = (path: string): void => {
+	const { catalogName, itemLogicPath } = RouterPathProvider.parsePath(path);
+	if (!catalogName || !itemLogicPath) return;
+
+	const parentDirs = itemLogicPath.slice(1, -1);
+	if (!parentDirs.length) return;
+
+	const parentPath = [catalogName, ...parentDirs, CATEGORY_ROOT_FILENAME].join("/");
+	addOpenPath(catalogName, parentPath);
 };
 
 export const applyNavTreeState = (catalogName: string, items: ItemLink[]): ItemLink[] => {

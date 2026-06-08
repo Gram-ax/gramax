@@ -2,11 +2,13 @@ import { CATEGORY_ROOT_FILENAME } from "@app/config/const";
 import { TextSize } from "@components/Atoms/Button/Button";
 import ButtonLink from "@components/Molecules/ButtonLink";
 import { useRouter } from "@core/Api/useRouter";
+import { ensureParentOpen } from "@core/SitePresenter/NavTreeStateManager";
 import type { ClientItemRef } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { refreshPage } from "@core-ui/utils/initGlobalFuncs";
+// biome-ignore lint/style/noRestrictedImports: it's ok
 import styled from "@emotion/styled";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
@@ -54,6 +56,7 @@ const CreateArticleComponent = (props: CreateArticleProps) => {
 
 			const mutable = { preventGoto: false };
 			const path = await response.text();
+			if (item) ensureParentOpen(path);
 			await NavigationEvents.emit("item-create", { path, mutable });
 			if (mutable.preventGoto) return;
 
@@ -64,7 +67,7 @@ const CreateArticleComponent = (props: CreateArticleProps) => {
 
 	return (
 		<OtherLanguagesPresentWarning action={onClickHandler}>
-			<StyledSpan className={className}>
+			<StyledSpan className={className} data-testid="create-article">
 				<ButtonLink
 					iconCode="plus"
 					iconContent={content}

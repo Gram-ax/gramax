@@ -1,6 +1,7 @@
 import { getFormatterTypeByContext } from "@ext/markdown/core/edit/logic/Formatter/Formatters/typeFormats/getFormatterType";
 import type { MarkSerializerSpec } from "@ext/markdown/core/edit/logic/Prosemirror/to_markdown";
 import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
+import { getNewColorFromOld } from "@ext/markdown/elements/highlight/edit/logic/getNewColorFromOld";
 
 const getHighlightFormatter = (context?: ParserContext): MarkSerializerSpec => {
 	const formatter = getFormatterTypeByContext(context);
@@ -8,7 +9,10 @@ const getHighlightFormatter = (context?: ParserContext): MarkSerializerSpec => {
 		open(_, mark) {
 			const color = mark.attrs.color;
 			if (!color) return "";
-			return formatter.openTag("highlight", mark.attrs);
+			return formatter.openTag("highlight", {
+				...mark.attrs,
+				color: getNewColorFromOld(color),
+			});
 		},
 		close(_, mark) {
 			const color = mark.attrs.color;

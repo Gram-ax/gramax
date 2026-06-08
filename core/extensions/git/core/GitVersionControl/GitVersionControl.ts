@@ -1,6 +1,7 @@
 import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
 import gitMergeConverter from "@ext/git/actions/MergeConflictHandler/logic/GitMergeConverter";
 import type GitMergeResult from "@ext/git/actions/MergeConflictHandler/model/GitMergeResult";
+import type { GitRevisionsFilter } from "@ext/git/actions/Revisions/model/GitRevisionsFilter";
 import BrowserStashCache from "@ext/git/core/BrowserStashCache/BrowserStashCache";
 import type { CommitAuthorInfo, ConfigValue } from "@ext/git/core/GitCommands/LibGit2IntermediateCommands";
 import type {
@@ -11,6 +12,7 @@ import type {
 	MergeOptions,
 	RefInfo,
 	ResetOptions,
+	StorageStats,
 } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type GitStash from "@ext/git/core/model/GitStash";
 import type GitVersionData from "@ext/git/core/model/GitVersionData";
@@ -41,6 +43,7 @@ export default class GitVersionControl {
 	private _events = createEventEmitter<GitVersionControlEvents>();
 	private _relativeToParentPath: Path;
 	private _cachedStatus: { index: GitStatus[]; workdir: GitStatus[] } = { index: null, workdir: null };
+	private _cachedDiff: Map<string, DiffTree2TreeInfo> = new Map();
 
 	constructor(
 		private _path: Path,
@@ -77,8 +80,17 @@ export default class GitVersionControl {
 		return this._cachedStatus[type];
 	}
 
+	getCachedDiff(key: string): DiffTree2TreeInfo {
+		return this._cachedDiff.get(key);
+	}
+
 	resetCachedStatus() {
 		this._cachedStatus = { index: null, workdir: null };
+		this._cachedDiff.clear();
+	}
+
+	setCachedDiff(key: string, value: DiffTree2TreeInfo): void {
+		this._cachedDiff.set(key, value);
 	}
 
 	getPath(): Path {
@@ -232,22 +244,12 @@ export default class GitVersionControl {
 	}
 
 	async checkoutToBranch(data: GitSourceData, branch: GitBranch | string, force?: boolean) {
-		this._fp.stopWatch();
-		try {
-			await this._gitRepository.checkout(data, branch, { force });
-			this.update();
-		} finally {
-			this._fp?.startWatch();
-		}
+		await this._gitRepository.checkout(data, branch, { force });
+		this.update();
 	}
 
 	async mergeBranch(data: GitSourceData, opts: MergeOptions): Promise<GitMergeResult[]> {
-		this._fp.stopWatch();
-		try {
-			return gitMergeConverter(await this._gitRepository.merge(data, opts));
-		} finally {
-			this._fp?.startWatch();
-		}
+		return gitMergeConverter(await this._gitRepository.merge(data, opts));
 	}
 
 	async formatMergeMessage(data: SourceData, opts: MergeMessageFormatOptions): Promise<string> {
@@ -300,8 +302,16 @@ export default class GitVersionControl {
 		return await this._gitRepository.gc(opts);
 	}
 
+	async lfsPrune(): Promise<void> {
+		return await this._gitRepository.lfsPrune();
+	}
+
 	async healthcheck(): Promise<void> {
 		return await this._gitRepository.healthcheck();
+	}
+
+	async storageStats(): Promise<StorageStats> {
+		return await this._gitRepository.storageStats();
 	}
 
 	getCommitAuthors(): Promise<CommitAuthorInfo[]> {
@@ -312,9 +322,14 @@ export default class GitVersionControl {
 		return this._gitRepository.haveConflictsWithBranch(branch, data);
 	}
 
-	async getCommitInfo(oid?: GitVersion, depth = 20): Promise<GitVersionDataSet> {
-		oid = oid ?? (await this.getHeadCommit());
-		const data = await this._gitRepository.getCommitInfo(oid, { depth, simplify: true });
+	async getCommitInfo(oid?: GitVersion, depth = 20, filters?: GitRevisionsFilter): Promise<GitVersionDataSet> {
+		const newOid = oid ?? (await this.getHeadCommit());
+		const data = await this._gitRepository.getCommitInfo(newOid, {
+			depth,
+			simplify: true,
+			filters,
+			includeChangedFiles: true,
+		});
 		let reachedFirstCommit = false;
 		if (data.length < depth) reachedFirstCommit = true;
 		else {
@@ -333,6 +348,7 @@ export default class GitVersionControl {
 					oid: x.oid,
 					summary: x.summary,
 					parents: x.parents,
+					stat: x.stat,
 				}),
 			),
 			reachedFirstCommit,

@@ -10,16 +10,20 @@ declare module "@tiptap/core" {
 	}
 }
 
-interface InlinePropertyOptions {
+export type PropertyScope = "article" | "catalog-view";
+
+export interface InlinePropertyOptions {
 	canChangeProps: boolean;
+	scope: PropertyScope;
 }
 
-const InlineProperty = Node.create<InlinePropertyOptions>({
+const InlineProperty = Node.create<InlinePropertyOptions & { scope: PropertyScope }>({
 	...getExtensionOptions({ schema: inlinePropertySchema, name: "inline-property" }),
 
 	addOptions() {
 		return {
 			canChangeProps: false,
+			scope: "article",
 		};
 	},
 

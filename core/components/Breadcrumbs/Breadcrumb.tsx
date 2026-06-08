@@ -1,17 +1,28 @@
 import styled from "@emotion/styled";
 import type { BaseLink } from "@ext/navigation/NavigationLinks";
-import { Fragment, type ReactElement } from "react";
+import { Fragment, type ReactElement, type ReactNode } from "react";
 import Link from "../Atoms/Link";
 
-interface BreadcrumbProps {
-	content: { text: string; link?: BaseLink; onClick?: (e: React.MouseEvent) => void }[];
+const HIDER_ELEMENT = "...";
+
+export interface BreadcrumbContentItem<TValue = string> {
+	value: TValue;
+	link?: BaseLink;
+	onClick?: (e: React.MouseEvent) => void;
+}
+
+interface BreadcrumbProps<TValue = string> {
+	content: BreadcrumbContentItem<TValue>[];
+	renderItem?: (args: { item: TValue }) => ReactNode;
+	renderHidden?: (args: { items: TValue[]; hiderElement: ReactNode }) => ReactNode;
 	title?: string;
 	middleDots?: boolean;
 	className?: string;
 }
 
-const Breadcrumb = (props: BreadcrumbProps): ReactElement => {
-	const { title, content, middleDots = true, className } = props;
+const Breadcrumb = <TValue,>(props: BreadcrumbProps<TValue>): ReactElement => {
+	const { title, content, renderItem, renderHidden, middleDots = true, className } = props;
+	const hiddenItems = content.length > 2 ? content.slice(1, -1) : [];
 
 	return (
 		<div className={`${className} breadcrumb`}>
@@ -25,7 +36,9 @@ const Breadcrumb = (props: BreadcrumbProps): ReactElement => {
 				const correctLength = content.length > 2;
 				const isNotLast = content.length !== i + 1;
 				const isMiddleDots = middleDots && correctLength ? i !== 0 && isNotLast : false;
-				const text = <span className="text">{c.text}</span>;
+				const text = (
+					<span className="text">{renderItem ? renderItem({ item: c.value }) : String(c.value)}</span>
+				);
 				return (
 					<Fragment key={i!}>
 						{!isMiddleDots && (
@@ -43,7 +56,12 @@ const Breadcrumb = (props: BreadcrumbProps): ReactElement => {
 						{isFirst && correctLength && middleDots && (
 							<>
 								<span className="dots" key={`${i!}dots`}>
-									...
+									{renderHidden
+										? renderHidden({
+												items: hiddenItems.map((x) => x.value),
+												hiderElement: HIDER_ELEMENT,
+											})
+										: HIDER_ELEMENT}
 								</span>
 								<span className="divider" key={`${i!}divider-2`}>
 									{"/"}

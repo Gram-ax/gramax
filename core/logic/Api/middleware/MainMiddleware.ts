@@ -1,4 +1,5 @@
 import getAppVersion from "@core/utils/getAppVersion";
+import { getWorkspaceGesUrl } from "@ext/enterprise/utils/getWorkspaceEnterpriseConfig";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import NetworkApiError from "@ext/errorHandlers/network/NetworkApiError";
 import t from "@ext/localization/locale/translate";
@@ -16,7 +17,8 @@ export class MainMiddleware extends Middleware {
 
 	async Process(req: ApiRequest, res: ApiResponse): Promise<void> {
 		// await applyCors(req, res);
-		const isEnterprise = !!this._app.em.getConfig().gesUrl;
+		const workspaceConfig = await this._app.wm.maybeCurrent()?.config();
+		const isEnterprise = !!getWorkspaceGesUrl(workspaceConfig);
 		const appVersion = getAppVersion(this._app.conf?.version, this._app.conf?.isRelease);
 		res.statusCode = 200;
 		try {

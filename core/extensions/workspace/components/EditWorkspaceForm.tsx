@@ -79,6 +79,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 				.min(2, { message: t("space-name-min-length") })
 				.refine(isPathValid, { message: t("cant-be-same-path") }),
 		),
+		lfs: z.object({ patterns: z.optional(z.array(z.string())) }).optional(),
 		ai: z
 			.object({
 				apiUrl: z.string().optional().or(z.literal("")),
@@ -111,6 +112,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 			const ai = await getAiData();
 			return {
 				...originalProps,
+				lfsPatterns: originalProps.enterprise?.lfs ?? [],
 				ai: {
 					apiUrl: ai?.aiApiUrl,
 					token: ai?.aiToken,
@@ -179,7 +181,6 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									/>
 									<FormField
 										control={({ field }) => {
-											// biome-ignore lint/correctness/useHookAtTopLevel: expected!?
 											const iconFilter = useIconFilter();
 											return (
 												<LazySearchSelect
@@ -188,7 +189,6 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 														form.setValue("icon", `${value}`);
 														field.value = `${value}`;
 													}}
-													// biome-ignore lint/correctness/useHookAtTopLevel: expected!?
 													options={useLucideIconLists().lucideIconListForUikitOptions}
 													placeholder={t("icon")}
 													renderOption={({ option, type }) => (
@@ -242,7 +242,7 @@ const EditWorkspaceForm = (props: WorkspaceSettingsModalProps) => {
 									<Divider />
 									<FormSectionTitle>{t("workspace.set-ai-server")}</FormSectionTitle>{" "}
 									<Description
-										className="font-sans text-sm font-normal tracking-tight text-muted"
+										className="text-sm font-normal tracking-tight text-muted"
 										style={{ marginTop: "0.25rem" }}
 									>
 										{t("workspace.set-ai-server-description")}

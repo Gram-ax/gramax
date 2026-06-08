@@ -77,7 +77,7 @@ const ResourceServiceProvider = ({ children, id, provider }: ResourceServiceProv
 			const fullResourcePath = new Path([path, name]);
 			const url = apiUrlCreator.setArticleResource(fullResourcePath.value, id, provider, force);
 
-			const res = await FetchService.fetch(url, file as unknown as BodyInit, MimeTypes.text);
+			const res = await FetchService.fetch(url, { data: file } as unknown as BodyInit, MimeTypes.text);
 			if (!res.ok) return;
 
 			const json = await res.json();

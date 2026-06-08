@@ -86,6 +86,7 @@ const PluginDetailComponent = () => {
 			primaryButtonProps: {
 				text: t("plugins.delete-modal.confirm"),
 				onClick: () => {
+					// biome-ignore lint/nursery/noFloatingPromises: TODO: fix
 					handleDelete();
 					ModalToOpenService.removeModal(modalId);
 				},
@@ -142,7 +143,6 @@ const PluginDetailComponent = () => {
 						</Button>
 					</ButtonsContainer>
 				}
-				isScrolled={false}
 				title={
 					<>
 						{getAdminPageTitle(Page.PLUGIN_DETAIL)} <Spinner show={isRefreshing("plugins")} size="small" />

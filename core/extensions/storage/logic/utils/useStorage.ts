@@ -10,7 +10,7 @@ const useStorage = (sourceName?: string): SourceData | null => {
 	const catalogSourceName = useCatalogPropsStore((state) => state.data?.sourceName);
 	return useMemo(() => {
 		const source = sourceName || catalogSourceName;
-		if (!source) return null;
+		if (!source || !sourceDatas) return null;
 		return sourceDatas.find((data) => getStorageNameByData(data) === source);
 	}, [sourceDatas, sourceName, catalogSourceName]);
 };

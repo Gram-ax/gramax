@@ -1,4 +1,3 @@
-import setLanguage from "@app/commands/language/set";
 import { topMenuItemClassName } from "@components/HomePage/TopMenu/const";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";

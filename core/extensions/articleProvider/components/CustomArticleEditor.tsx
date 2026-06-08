@@ -1,12 +1,13 @@
+import { setEditorStore } from "@core-ui/stores/EditorStore";
 import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import SmallEditor from "@ext/inbox/components/Editor/SmallEditor";
-import Main, { type ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
+import type { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import getExtensions, { type GetExtensionsPropsOptions } from "@ext/markdown/core/edit/logic/getExtensions";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
-import type { Editor, Extensions, JSONContent } from "@tiptap/core";
+import type { Extensions, JSONContent } from "@tiptap/core";
 import Document from "@tiptap/extension-document";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 interface TemplateEditorProps {
 	title: string;
@@ -39,6 +40,14 @@ const CustomArticleEditor = (props: TemplateEditorProps) => {
 		menuOptions,
 		providerType,
 	} = props;
+
+	useEffect(() => {
+		setEditorStore({ isSmallEditor: true });
+		return () => {
+			setEditorStore({ isSmallEditor: false });
+		};
+	}, []);
+
 	const extensions = useMemo(
 		() => getCustomArticleExtensions(customExtensions, extensionsOptions),
 		[customExtensions, extensionsOptions],
@@ -50,7 +59,9 @@ const CustomArticleEditor = (props: TemplateEditorProps) => {
 			content={content}
 			extensions={extensions}
 			id={id}
-			options={{ menu: (editor: Editor) => <Main editor={editor} includeResources={false} {...menuOptions} /> }}
+			options={{
+				menuProps: { includeResources: false, isSmallEditor: true, ...menuOptions },
+			}}
 			props={{ title, content }}
 			updateCallback={onUpdate}
 		/>

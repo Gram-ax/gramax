@@ -2,7 +2,7 @@ import type PageDataContext from "../../../../../../logic/Context/PageDataContex
 import type ExtensionUpdaterRules from "../ExtensionUpdaterRules";
 
 const getPageDataContextRule = (pageDataContext: PageDataContext): ExtensionUpdaterRules => {
-	const filterNames = ["comment", "selectionMenu", "link", "file", "diff"];
+	const filterNames = ["comment", "selectionMenu", "link", "file", "diff", "fragment-link"];
 
 	return {
 		filter: (extension) => filterNames.includes(extension.name),

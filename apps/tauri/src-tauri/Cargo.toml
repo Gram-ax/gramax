@@ -19,8 +19,7 @@ tauri-plugin-deep-link = { workspace = true }
 tauri-plugin-window-state = { workspace = true }
 tauri-plugin-shell = { workspace = true }
 
-plugin-gramax-fs = { path = "../plugins/plugin-gramax-fs" }
-plugin-gramax-git = { path = "../plugins/plugin-gramax-git" }
+plugin-gramax-core = { path = "../plugins/plugin-gramax-core" }
 tauri-otel-context = { path = "../plugins/tauri-otel-context" }
 bugsnag = { path = "../../../crates/bugsnag" }
 gramax-opentelemetry = { path = "../../../crates/opentelemetry" }

@@ -1,5 +1,5 @@
 export async function mermaidExtractText(definition: string): Promise<string[]> {
-	const mermaidParser = await import("@ics/modulith-mermaid-parse");
+	const mermaidParser = await import("@ics/article-search/mermaid/parse");
 	const parsed = mermaidParser.parse(definition);
 	const result: string[] = [];
 	type SubgraphNode = { label: string; children: SubgraphNode[] };

@@ -4,71 +4,69 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import React, { type CSSProperties, type ReactNode } from "react";
 import Icon from "../../Atoms/Icon";
 
-const StatusBarElement = styled(
-	React.forwardRef(
-		(
-			{
-				onClick,
-				iconCode,
-				iconStyle,
-				iconStrokeWidth,
-				children,
-				tooltipText,
-				iconClassName,
-				disable = false,
-				tooltipArrow = true,
-				showTooltip,
-				className,
-			}: {
-				onClick?: () => void;
-				iconCode?: string;
-				iconStyle?: CSSProperties;
-				iconStrokeWidth?: string;
-				children?: JSX.Element;
-				tooltipText?: ReactNode;
-				disable?: boolean;
-				iconClassName?: string;
-				tooltipArrow?: boolean;
-				showTooltip?: boolean;
-				reverse?: boolean;
-				className?: string;
-				changeBackgroundOnHover?: boolean;
-			},
-			ref: React.LegacyRef<HTMLDivElement>,
-		) => {
-			const statusBarElement = (
-				<div className="status-bar-element" style={disable ? { pointerEvents: "none" } : null}>
-					{iconCode && (
-						<div className={cn("status-bar-icon", iconClassName)}>
-							<Icon code={iconCode} strokeWidth={iconStrokeWidth} style={iconStyle} />
-						</div>
-					)}
-					{children && (
-						<div className="status-bar-text">
-							<div className="content">{children}</div>
-						</div>
-					)}
-				</div>
-			);
-
-			return (
-				<div className={className} onClick={disable ? undefined : onClick} ref={ref}>
-					<div style={{ height: "100%" }}>
-						{tooltipText && (
-							<Tooltip open={showTooltip}>
-								<TooltipTrigger asChild>{statusBarElement}</TooltipTrigger>
-								<TooltipContent side={tooltipArrow ? "bottom" : undefined}>
-									{tooltipText}
-								</TooltipContent>
-							</Tooltip>
-						)}
-						{!tooltipText && statusBarElement}
-					</div>
-				</div>
-			);
+const StatusBarElement = React.forwardRef(
+	(
+		{
+			onClick,
+			iconCode,
+			iconStyle,
+			iconStrokeWidth,
+			children,
+			tooltipText,
+			iconClassName,
+			disable = false,
+			tooltipArrow = true,
+			showTooltip,
+			className,
+		}: {
+			onClick?: () => void;
+			iconCode?: string;
+			iconStyle?: CSSProperties;
+			iconStrokeWidth?: string;
+			children?: JSX.Element;
+			tooltipText?: ReactNode;
+			disable?: boolean;
+			iconClassName?: string;
+			tooltipArrow?: boolean;
+			showTooltip?: boolean;
+			reverse?: boolean;
+			className?: string;
+			changeBackgroundOnHover?: boolean;
 		},
-	),
-)`
+		ref: React.LegacyRef<HTMLDivElement>,
+	) => {
+		const statusBarElement = (
+			<div className="status-bar-element" style={disable && !tooltipText ? { pointerEvents: "none" } : null}>
+				{iconCode && (
+					<div className={cn("status-bar-icon", iconClassName)}>
+						<Icon code={iconCode} strokeWidth={iconStrokeWidth} style={iconStyle} />
+					</div>
+				)}
+				{children && (
+					<div className="status-bar-text">
+						<div className="content">{children}</div>
+					</div>
+				)}
+			</div>
+		);
+
+		return (
+			<div className={className} onClick={disable ? undefined : onClick} ref={ref}>
+				<div style={{ height: "100%" }}>
+					{tooltipText && (
+						<Tooltip open={showTooltip}>
+							<TooltipTrigger asChild>{statusBarElement}</TooltipTrigger>
+							<TooltipContent side={tooltipArrow ? "bottom" : undefined}>{tooltipText}</TooltipContent>
+						</Tooltip>
+					)}
+					{!tooltipText && statusBarElement}
+				</div>
+			</div>
+		);
+	},
+);
+
+export default styled(StatusBarElement)`
 	width: fit-content;
 	height: 100%;
 
@@ -90,7 +88,7 @@ const StatusBarElement = styled(
 		gap: 0.15rem;
 		height: 100%;
 		padding: 0 4px;
-		cursor: pointer;
+		cursor: ${(p) => (p.disable ? "" : "pointer")};
 
 		font-weight: 300;
 		color: white;
@@ -118,5 +116,3 @@ const StatusBarElement = styled(
 		font-size: 11px;
 	}
 `;
-
-export default StatusBarElement;

@@ -50,6 +50,18 @@
 		}
 	},
 	"lsp": {
+		"vtsls": {
+			"settings": {
+				"typescript": {
+					"tsserver": {
+						"maxTsServerMemory": 16384
+					},
+					"preferences": {
+						"importModuleSpecifier": "non-relative"
+					}
+				}
+			}
+		},
 		"yaml-language-server": {
 			"binary": {
 				"path": "~/Source/repos/yaml-language-server/bin/yaml-language-server",
@@ -82,19 +94,16 @@
 						"enable": true
 					}
 				},
-				// "cargo": {
-				// 	"target": "wasm32-unknown-emscripten",
-				// 	"features": [],
-				// 	"extraEnv": {
-				// 		"BUGSNAG_API_KEY": "",
-				// 		"CFLAGS": "-Wno-error=incompatible-pointer-types"
-				// 	}
-				// },
-				// "check": { "targets": "wasm32-unknown-emscripten", "allTargets": true }
-				"check": {
-					"command": "clippy"
-				}
-				// }
+				"cargo": {
+					// "target": "wasm32-unknown-emscripten",
+					"features": [],
+					"extraEnv": {
+						"BUGSNAG_API_KEY": ""
+						// "CFLAGS": "-Wno-error=incompatible-pointer-types"
+					}
+				},
+				// "check": { "targets": "wasm32-unknown-emscripten", "command": "clippy", "allTargets": true }
+				"check": { "command": "clippy" }
 			}
 		}
 	}

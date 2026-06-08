@@ -37,6 +37,13 @@ export type MarkSerializerSpec = {
 	escape?: boolean;
 };
 
+export type GlobalFormatter = (
+	state: MarkdownSerializerState,
+	node: Node | Mark,
+	parent?: Node,
+	index?: number,
+) => void;
+
 /// A specification for serializing a ProseMirror document as
 /// Markdown/CommonMark text.
 export class MarkdownSerializer {
@@ -48,6 +55,9 @@ export class MarkdownSerializer {
 		readonly nodes: { [node: string]: NodeSerializerSpec },
 		/// The mark serializer info.
 		readonly marks: { [mark: string]: MarkSerializerSpec },
+
+		readonly globalFormatters: GlobalFormatter[] = [],
+
 		readonly options: {
 			/// Extra characters can be added for escaping. This is passed
 			/// directly to String.replace(), and the matching characters are
@@ -65,11 +75,12 @@ export class MarkdownSerializer {
 			/// on a node level by specifying a tight attribute on the node.
 			/// Defaults to false.
 			tightLists?: boolean;
+			escapeExtraCharacters?: RegExp;
 		} = {},
 		delim = "",
 	) {
 		Object.assign(this.options, options);
-		const state = new MarkdownSerializerState(this.nodes, this.marks, this.options, delim);
+		const state = new MarkdownSerializerState(this.nodes, this.marks, this.globalFormatters, this.options, delim);
 		await state.renderContent(content);
 		return state.out;
 	}
@@ -94,6 +105,8 @@ export class MarkdownSerializerState {
 		readonly nodes: { [node: string]: NodeSerializerSpec },
 		/// @internal
 		readonly marks: { [mark: string]: MarkSerializerSpec },
+		/// @internal
+		readonly globalFormatters: GlobalFormatter[] = [],
 		/// The options passed to the serializer.
 		readonly options: { tightLists?: boolean; escapeExtraCharacters?: RegExp },
 
@@ -151,6 +164,7 @@ export class MarkdownSerializerState {
 
 	/// Close the block for the given node.
 	closeBlock(node: Node) {
+		this.processGlobalFormatters(node);
 		this.closed = node;
 	}
 
@@ -184,6 +198,13 @@ export class MarkdownSerializerState {
 		for (let i = 0; i < parent.childCount; i++) {
 			const child = parent.child(i);
 			await this.render(child, parent, i);
+		}
+	}
+
+	/// @internal
+	processGlobalFormatters(node: Node | Mark, parent?: Node, index?: number) {
+		for (const formatter of this.globalFormatters) {
+			formatter(this, node, parent, index);
 		}
 	}
 
@@ -375,20 +396,42 @@ export class MarkdownSerializerState {
 	}
 }
 
+const splitTableRow = (line: string) => {
+	const parts = [];
+	let current = "";
+
+	for (let i = line.indexOf("|") + 1; i < line.length - 1; i++) {
+		const char = line[i];
+
+		if (char === "|") {
+			let backslashCount = 0;
+			let j = i - 1;
+
+			while (j >= 0 && line[j] === "\\") {
+				backslashCount++;
+				j--;
+			}
+
+			if (backslashCount % 2 === 0) {
+				parts.push(current.trim());
+				current = "";
+				continue;
+			}
+		}
+		current += char;
+	}
+
+	parts.push(current);
+	return parts;
+};
+
 export const formatTable = (table: string, delim: string) => {
 	const newTable = new MdParser().backParse(table);
 	const lines = newTable.trim().split("\n");
 
-	const headers = lines[0]
-		.split("|")
-		.slice(1, -1)
-		.map((header) => header.trim());
-
+	const headers = splitTableRow(lines[0]);
 	const dataLines = lines.slice(2);
-
-	const data = dataLines.map((line) => {
-		return line.split("|").slice(1, -1);
-	});
+	const data = dataLines.map(splitTableRow);
 
 	const columnWidths = headers.map((header, index) => {
 		return Math.max(1, header.length, ...data.map((row) => row[index]?.length || 0));

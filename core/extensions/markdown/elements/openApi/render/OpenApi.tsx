@@ -5,10 +5,13 @@ import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import { lazy, Suspense, useState } from "react";
+import { type ComponentProps, lazy, Suspense, useState } from "react";
+import type SwaggerUI from "swagger-ui-react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
 
-const LazySwaggerUI = lazy(() => import("./SwaggerUI"));
+const LazySwaggerUI = lazy<typeof SwaggerUI>(() => import("./SwaggerUI"));
+
+export type CreateOnComplete = (src: string) => ComponentProps<typeof SwaggerUI>["onComplete"];
 
 interface OpenApiProps {
 	src?: string;
@@ -16,10 +19,11 @@ interface OpenApiProps {
 	flag?: boolean;
 	commentId?: string;
 	isPrint?: boolean;
+	createOnComplete?: CreateOnComplete;
 }
 
 const OpenApi = (props: OpenApiProps) => {
-	const { src, className, flag = true, commentId, isPrint } = props;
+	const { src, className, flag = true, commentId, isPrint, createOnComplete } = props;
 	const [data, setData] = useState<string>();
 	const [isError, setIsError] = useState(false);
 	const apiUrlCreator = ApiUrlCreatorService.value;
@@ -56,7 +60,12 @@ const OpenApi = (props: OpenApiProps) => {
 						}
 					>
 						<BlockCommentView commentId={commentId}>
-							<LazySwaggerUI defaultModelsExpandDepth={flag ? 1 : -1} key={flag} spec={data} />
+							<LazySwaggerUI
+								defaultModelsExpandDepth={flag ? 1 : -1}
+								key={flag.toString()}
+								onComplete={createOnComplete?.(src)}
+								spec={data}
+							/>
 						</BlockCommentView>
 					</Suspense>
 				</div>

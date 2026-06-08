@@ -141,23 +141,6 @@ export const features = {
 		targets: FeatureTarget.web | FeatureTarget.desktop,
 		default: false,
 	},
-	"filtered-catalog": {
-		title: {
-			ru: "Фильтрация каталога",
-			en: "Filtered Catalog",
-		},
-		desc: {
-			ru: "Создайте разные сборки документации из одного каталога",
-			en: "Create a various docs builds from single catalog",
-		},
-		url: {
-			ru: "https://gram.ax/resources/docs/catalog/filter",
-			en: null, // Waiting for translation
-		},
-		icon: "filter",
-		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.static | FeatureTarget.docportal,
-		default: false,
-	},
 	"compress-images": {
 		title: {
 			ru: "Сжатие изображений",
@@ -177,19 +160,50 @@ export const features = {
 	},
 	"opentelemetry-logs": {
 		title: {
-			ru: "Подробное логгирование",
+			ru: "Подробное логирование",
 			en: "Verbose Logging",
 		},
 		desc: {
 			ru: "Выводится в F12 → Console → Debug",
-			en: "Has a negative impact on performance. Logs are exported to F12 → Console → Debug",
+			en: "Logs are exported to F12 → Console → Debug",
 		},
 		url: {
 			ru: null,
 			en: null, // Waiting for translation
 		},
 		icon: "library-big",
-		targets: FeatureTarget.web | FeatureTarget.desktop | FeatureTarget.docportal,
+		targets: FeatureTarget.all,
+		default: env("BRANCH") === "develop",
+	},
+	"native-fs": {
+		title: {
+			ru: "Rust-based File Structure",
+			en: "Rust-based File Structure",
+		},
+		desc: {
+			ru: "Более быстрая реализация чтения рабочего пространства и каталогов",
+			en: "Workspace & catalog read implementation with higher performance",
+		},
+		icon: "scan-text",
+		targets: FeatureTarget.all,
+		default: env("BRANCH") === "develop",
+	},
+	"agent-chat": {
+		status: "in-dev",
+		title: {
+			ru: "Чат с агентом",
+			en: "Chat with agent",
+		},
+		desc: {
+			ru: "Добавляет панель чата с агентом для ответов на вопросы и помощи с редактированием документации",
+			en: "Adds a chat panel with an agent for answering questions and helping with documentation editing",
+		},
+		url: {
+			ru: null,
+			en: null,
+		},
+		icon: "chat",
+		targets: FeatureTarget.web | FeatureTarget.desktop,
 		default: false,
 	},
 } as const satisfies FeatureList;

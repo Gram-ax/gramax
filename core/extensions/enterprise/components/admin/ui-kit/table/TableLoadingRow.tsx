@@ -9,7 +9,7 @@ interface TableLoadingRowProps<T> {
 export const TableLoadingRow = <T,>({ columns }: TableLoadingRowProps<T>) => {
 	return (
 		<TableRow>
-			<TableCell className="h-full text-center" colSpan={columns.length}>
+			<TableCell className="text-center" colSpan={columns.length}>
 				{t("loading")}
 			</TableCell>
 		</TableRow>

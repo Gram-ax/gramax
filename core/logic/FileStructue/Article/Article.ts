@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/useNamingConvention: expected */
 import type Path from "@core/FileProvider/Path/Path";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type FileStructure from "@core/FileStructue/FileStructure";
@@ -107,18 +108,6 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		await this.updateContent(content, dropParsedContent);
 	}
 
-	async checkLastModified(lastModified: number): Promise<boolean> {
-		const result = this._lastModified < lastModified;
-		if (result) {
-			const newArticle = await this._getUpdateArticleByRead();
-			this._content = newArticle._content;
-			this._props = newArticle._props as P;
-			await this._parsedContent.write(() => null);
-		}
-
-		return result;
-	}
-
 	getFileName(): string {
 		return this._ref.path.name;
 	}
@@ -153,20 +142,19 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 	protected async _save(renamed?: boolean) {
 		delete this._props.shouldBeCreated;
 		delete this._props.welcome;
-		if (this._props.title?.trim()) delete this._props.external;
 		await this.events.emit("item-pre-save", {
 			item: this,
 			mutable: { content: this._content, props: this._props },
 		});
-		if (this._props.title?.toString().trim()) delete this._props.external;
+		if (this._props.title?.toString()?.trim()) delete this._props.external;
 
 		await this._fs.saveArticle(this._ref.path, this._content, this._props);
-		this._lastModified = new Date().getTime();
+		this._lastModified = Date.now();
 		await this.events.emit("item-changed", { item: this, status: renamed ? FileStatus.new : FileStatus.modified });
 	}
 
 	protected override async _updateFilename(fileName: string, resourceUpdater: ResourceUpdater, catalog: Catalog) {
-		if (this.getFileName() == fileName) return;
+		if (this.getFileName() === fileName) return;
 		let path = this._ref.path.getNewName(fileName);
 		if (await this._fs.fp.exists(path)) {
 			const readdir = await this._fs.fp.getItems(this.ref.path.parentDirectoryPath);
@@ -177,8 +165,8 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 			);
 		}
 		await this._fs.moveArticle(this, path);
-		this._lastModified = new Date().getTime();
-		const newArticle = this._getUpdateArticleByProps(path, catalog);
+		this._lastModified = Date.now();
+		const newArticle = await this._getUpdateArticleByProps(path, catalog);
 		this._logicPath = newArticle.logicPath;
 		this._ref = newArticle.ref;
 		this._content = newArticle._content;
@@ -188,12 +176,15 @@ export class Article<P extends ArticleProps = ArticleProps> extends Item<P> {
 		return this;
 	}
 
-	private async _getUpdateArticleByRead() {
-		return await this._fs.createArticle(this._ref.path, this._parent);
-	}
-
-	protected _getUpdateArticleByProps(path: Path, catalog: Catalog) {
-		return this._fs.makeArticleByProps(path, this._props, this._content, this._parent, this._lastModified, catalog);
+	protected async _getUpdateArticleByProps(path: Path, catalog: Catalog) {
+		return await this._fs.makeArticleByProps(
+			path,
+			this._props,
+			this._content,
+			this._parent,
+			this._lastModified,
+			catalog,
+		);
 	}
 }
 

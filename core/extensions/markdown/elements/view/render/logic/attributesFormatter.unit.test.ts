@@ -7,16 +7,26 @@ describe("AttributeFormatter", () => {
 		test("defs", () => {
 			expect(formatter.parse({ defs: "a=1,b,c=3" })).toEqual({
 				defs: [
-					{ name: "a", value: ["1"] },
-					{ name: "b", value: undefined },
-					{ name: "c", value: ["3"] },
+					{ id: "a", value: ["1"] },
+					{ id: "b", value: undefined },
+					{ id: "c", value: ["3"] },
 				],
+			});
+		});
+
+		test("defs with multiple values joined by &", () => {
+			expect(formatter.parse({ defs: "status=active&done" })).toEqual({
+				defs: [{ id: "status", value: ["active", "done"] }],
 			});
 		});
 
 		test("orderby", () => {
 			expect(formatter.parse({ orderby: "a,b,c" })).toEqual({
-				orderby: ["a", "b", "c"],
+				orderby: [
+					{ id: "a", value: undefined },
+					{ id: "b", value: undefined },
+					{ id: "c", value: undefined },
+				],
 			});
 		});
 
@@ -41,35 +51,90 @@ describe("AttributeFormatter", () => {
 					select: "title,content",
 				}),
 			).toEqual({
-				orderby: ["date", "name"],
+				orderby: [
+					{ id: "date", value: undefined },
+					{ id: "name", value: undefined },
+				],
 				groupby: ["category", "author"],
 				defs: [
-					{ name: "status", value: ["active"] },
-					{ name: "priority", value: ["high"] },
-					{ name: "tags", value: undefined },
+					{ id: "status", value: ["active"] },
+					{ id: "priority", value: ["high"] },
+					{ id: "tags", value: undefined },
 				],
 				select: ["title", "content"],
 			});
 		});
+
+		test("ignores unknown attributes", () => {
+			expect(formatter.parse({ unknown: "value", defs: "a=1" })).toEqual({
+				defs: [{ id: "a", value: ["1"] }],
+			});
+		});
+
+		test("skips empty values", () => {
+			expect(formatter.parse({ defs: "" })).toEqual({});
+		});
 	});
 
 	describe("stringify", () => {
-		test("defs", () => {
+		test("defs with id field", () => {
 			expect(
 				formatter.stringify({
 					defs: [
-						{ name: "a", value: ["1"] },
-						{ name: "b", value: undefined },
-						{ name: "c", value: ["3"] },
+						{ id: "a", value: ["1"] },
+						{ id: "b", value: undefined },
+						{ id: "c", value: ["3"] },
 					],
 				}),
 			).toEqual({ defs: "a=1,b,c=3" });
 		});
 
+		test("defs with legacy name field", () => {
+			expect(
+				formatter.stringify({
+					defs: [
+						{ name: "a", value: ["1"] },
+						{ name: "b", value: undefined },
+					],
+				}),
+			).toEqual({ defs: "a=1,b" });
+		});
+
+		test("defs with mixed id and name fields", () => {
+			expect(
+				formatter.stringify({
+					defs: [
+						{ id: "x", value: ["1"] },
+						{ name: "y", value: ["2"] },
+					],
+				}),
+			).toEqual({ defs: "x=1,y=2" });
+		});
+
+		test("id takes precedence over name", () => {
+			expect(
+				formatter.stringify({
+					defs: [{ id: "correct", name: "legacy", value: ["v"] }],
+				}),
+			).toEqual({ defs: "correct=v" });
+		});
+
+		test("defs with multiple values joined by &", () => {
+			expect(
+				formatter.stringify({
+					defs: [{ id: "status", value: ["active", "done"] }],
+				}),
+			).toEqual({ defs: "status=active&done" });
+		});
+
 		test("orderby", () => {
 			expect(
 				formatter.stringify({
-					orderby: ["a", "b", "c"],
+					orderby: [
+						{ id: "a", value: undefined },
+						{ id: "b", value: undefined },
+						{ id: "c", value: undefined },
+					],
 				}),
 			).toEqual({ orderby: "a,b,c" });
 		});
@@ -93,12 +158,15 @@ describe("AttributeFormatter", () => {
 		test("все атрибуты вместе", () => {
 			expect(
 				formatter.stringify({
-					orderby: ["date", "name"],
+					orderby: [
+						{ id: "date", value: undefined },
+						{ id: "name", value: undefined },
+					],
 					groupby: ["category", "author"],
 					defs: [
-						{ name: "status", value: ["active"] },
-						{ name: "priority", value: ["high"] },
-						{ name: "tags", value: undefined },
+						{ id: "status", value: ["active"] },
+						{ id: "priority", value: ["high"] },
+						{ id: "tags", value: undefined },
 					],
 					select: ["title", "content"],
 				}),
@@ -108,6 +176,23 @@ describe("AttributeFormatter", () => {
 				defs: "status=active,priority=high,tags",
 				select: "title,content",
 			});
+		});
+
+		test("orderby with empty values omits trailing equals", () => {
+			expect(
+				formatter.stringify({
+					orderby: [{ id: "status", value: [] }],
+				}),
+			).toEqual({ orderby: "status" });
+		});
+	});
+
+	describe("parse → stringify roundtrip", () => {
+		test("roundtrip preserves data", () => {
+			const input = "status=active&done,priority=high,tags";
+			const parsed = formatter.parse({ defs: input });
+			const stringified = formatter.stringify(parsed);
+			expect(stringified).toEqual({ defs: input });
 		});
 	});
 });

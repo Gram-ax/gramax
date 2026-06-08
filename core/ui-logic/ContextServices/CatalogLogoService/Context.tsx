@@ -1,20 +1,15 @@
 import { useCatalogLogo, useGetCatalogLogoSrc } from "@core-ui/ContextServices/CatalogLogoService/catalogLogoHooks";
 import type ContextService from "@core-ui/ContextServices/ContextService";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import type { UpdateResource } from "@ext/workspace/components/LogoUploader";
 import { createContext, type ReactElement, useCallback, useContext, useState } from "react";
 
 interface CatalogLogoInterface {
 	isLoadingLight: boolean;
 	isLoadingDark: boolean;
 	darkLogo: string;
-	updateLightLogo: UpdateResource;
-	confirmChanges: () => Promise<void>;
-	deleteDarkLogo: () => void;
-	updateDarkLogo: UpdateResource;
 	lightLogo: string;
-	deleteLightLogo: () => void;
 	refreshState: () => Promise<void>;
+	refreshLogo: () => void;
 	logo: string;
 }
 
@@ -25,15 +20,13 @@ class CatalogLogoService implements ContextService {
 		const linkName = useCatalogPropsStore((state) => state.data?.link?.name);
 		const [key, setKey] = useState(0);
 
-		const successCallback = useCallback(() => {
-			setKey((p) => p + 1);
-		}, []);
+		const refreshLogo = useCallback(() => setKey((k) => k + 1), []);
 
-		const { ...data } = useCatalogLogo(linkName, successCallback);
+		const { ...data } = useCatalogLogo(linkName);
 		const { isExist, src } = useGetCatalogLogoSrc(linkName, [key]);
 
 		return (
-			<CatalogLogoContext.Provider value={{ ...data, logo: isExist && src }}>
+			<CatalogLogoContext.Provider value={{ ...data, logo: isExist && src, refreshLogo }}>
 				{children}
 			</CatalogLogoContext.Provider>
 		);

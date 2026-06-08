@@ -1,3 +1,4 @@
+import { getNewColorFromOld } from "@ext/markdown/elements/highlight/edit/logic/getNewColorFromOld";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
 import addShortcuts from "@ext/markdown/elementsUtils/keyboardShortcuts/addShortcuts";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
@@ -39,7 +40,7 @@ export const Highlight = Mark.create({
 			"span",
 			{
 				"data-highlight": color,
-				style: `background-color: var(--color-highlight-${color});border-radius: var(--radius-medium);color: black;padding: 2px 2px;`,
+				style: `background-color: color-mix(in srgb, var(--color-highlight-${getNewColorFromOld(color) ?? color}) 50%, transparent);border-radius: var(--radius-medium);padding: 2px 2px;`,
 			},
 			0,
 		];

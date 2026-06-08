@@ -1,5 +1,5 @@
 import Link from "@components/Atoms/Link";
-import LinksBreadcrumb from "@components/Breadcrumbs/LinksBreadcrumb";
+import LinksBreadcrumb, { type LinksBreadcrumbProps } from "@components/Breadcrumbs/LinksBreadcrumb";
 import { useRouter } from "@core/Api/useRouter";
 import Url from "@core-ui/ApiServices/Types/Url";
 import { css } from "@emotion/react";
@@ -9,6 +9,7 @@ import { CatalogResultItem } from "@ext/serach/components/CatalogResultItem";
 import { getMarkElems, getResultElems } from "@ext/serach/components/searchUtils";
 import { useSearchResults } from "@ext/serach/components/useSearchResults";
 import { type CurrentScrollData, scrollToElement } from "@ext/serach/components/utils/scrollToElement";
+import type { SearchResultMarkItem } from "@ext/serach/Searcher";
 import type { SearchFragmentInfo } from "@ext/serach/utils/ArticleFragmentCounter/ArticleFragmentCounter";
 import type { FocusItem } from "@ext/serach/utils/FocusItemsCollector";
 import type { RowSearchResult } from "@ext/serach/utils/SearchRowsModel";
@@ -200,7 +201,13 @@ export const SearchResults = (props: SearchResultsProps) => {
 							</Link>
 						)}
 
-						{d.type === "article" && d.breadcrumbs && <LinksBreadcrumb readyData={d.breadcrumbs} />}
+						{d.type === "article" && d.breadcrumbs && (
+							<LinksBreadcrumb
+								readyData={d.breadcrumbs}
+								renderHidden={renderHiddenBreadcrumbs}
+								renderTitle={renderBreadcrumbTitle}
+							/>
+						)}
 					</div>
 				</div>
 			</div>
@@ -229,3 +236,17 @@ const breadcrumbCatalogVariant = css`
     font-size: 12px;
   }
 `;
+
+const renderHiddenBreadcrumbs: LinksBreadcrumbProps<SearchResultMarkItem[]>["renderHidden"] = ({
+	items,
+	hiderElement,
+}) => {
+	const hasHighlight = items.some((x) => hasHighlightedMark(x));
+	return hasHighlight ? <strong className="match">{hiderElement}</strong> : hiderElement;
+};
+
+const renderBreadcrumbTitle: LinksBreadcrumbProps<SearchResultMarkItem[]>["renderTitle"] = ({ item }) => {
+	return getMarkElems(item);
+};
+
+const hasHighlightedMark = (marks: SearchResultMarkItem[]) => marks.some((mark) => mark.type === "highlight");

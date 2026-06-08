@@ -1,4 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { type Dispatch, type ReactElement, type SetStateAction, Suspense, useState } from "react";
 import getModalComponentToRender from "./logic/getModalComponentToRender";
@@ -7,11 +8,11 @@ import type ModalToOpen from "./model/ModalsToOpen";
 interface ModalStackEntry {
 	id: string;
 	modalType: ModalToOpen;
-	args: { [name: string]: any };
+	args: { [name: string]: unknown };
 }
 
-let _setModalStack: Dispatch<SetStateAction<ModalStackEntry[]>> = () => {};
-let _idCounter = 0;
+let SetModalStack: Dispatch<SetStateAction<ModalStackEntry[]>> = () => {};
+let IdCounter = 0;
 
 export default abstract class ModalToOpenService {
 	private static _value: ModalToOpen = null;
@@ -24,7 +25,7 @@ export default abstract class ModalToOpenService {
 		);
 
 		if (!isStaticCli) {
-			_setModalStack = setModalStack;
+			SetModalStack = setModalStack;
 		}
 
 		return (
@@ -45,7 +46,7 @@ export default abstract class ModalToOpenService {
 	static resetValue() {
 		this._value = null;
 		this._modalStackRef = [];
-		_setModalStack?.(this._modalStackRef);
+		SetModalStack?.(this._modalStackRef);
 	}
 
 	static setValue<T extends { [name: string]: any }>(value: ModalToOpen, args?: T) {
@@ -53,15 +54,15 @@ export default abstract class ModalToOpenService {
 
 		if (value === null) {
 			this._modalStackRef = [];
-			_setModalStack?.(this._modalStackRef);
+			SetModalStack?.(this._modalStackRef);
 		} else {
 			const entry: ModalStackEntry = {
-				id: `modal-${_idCounter++}`,
+				id: `modal-${IdCounter++}`,
 				modalType: value,
 				args: args || {},
 			};
 			this._modalStackRef = [entry];
-			_setModalStack?.(this._modalStackRef);
+			SetModalStack?.(this._modalStackRef);
 		}
 	}
 
@@ -71,12 +72,12 @@ export default abstract class ModalToOpenService {
 
 	static addModal<T extends { [name: string]: any }>(modalType: ModalToOpen, args?: T): string {
 		const entry: ModalStackEntry = {
-			id: `modal-${_idCounter++}`,
+			id: `modal-${IdCounter++}`,
 			modalType,
 			args: args || {},
 		};
 
-		_setModalStack?.((prev) => {
+		SetModalStack?.((prev) => {
 			const updated = [...prev, entry];
 			this._modalStackRef = updated;
 			return updated;
@@ -85,7 +86,7 @@ export default abstract class ModalToOpenService {
 	}
 
 	static removeModal(id: string) {
-		_setModalStack?.((prev) => {
+		SetModalStack?.((prev) => {
 			const filtered = prev.filter((m) => m.id !== id);
 			this._modalStackRef = filtered;
 			return filtered;
@@ -93,7 +94,7 @@ export default abstract class ModalToOpenService {
 	}
 
 	static updateArgs<T extends { [name: string]: any }>(updater: (prevArgs: T) => T) {
-		_setModalStack?.((prev) => {
+		SetModalStack?.((prev) => {
 			if (prev.length === 0) return prev;
 			const updated = [...prev];
 			const lastIndex = updated.length - 1;

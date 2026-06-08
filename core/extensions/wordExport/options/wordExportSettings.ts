@@ -8,7 +8,7 @@ export const ICON_SIZE = 11;
 export const diagramString = (language: UiLanguage) => t("word.diagram", language);
 export const imageString = (language: UiLanguage) => t("word.picture", language);
 export const tableDbString = (language: UiLanguage) => t("word.tabledb", language);
-export const snippetString = (language: UiLanguage) => t("word.snippet", language);
+export const fragmentString = (language: UiLanguage) => t("word.fragment", language);
 
 export const MAX_WIDTH = 595;
 export const MAX_HEIGHT = 842;
@@ -19,9 +19,9 @@ export const wordFontSizes = {
 	tableDBHeading: { 3: 32 },
 } as const;
 
-let headingStyles: Record<number, any>;
+let headingStyles: Record<number, string>;
 
-export const getHeadingStyles = async (): Promise<Record<number, any>> => {
+export const getHeadingStyles = async (): Promise<Record<number, string>> => {
 	if (!headingStyles) {
 		const { HeadingLevel } = await docx();
 		headingStyles = {
@@ -143,9 +143,9 @@ export const wordBordersColors = {
 	kbd: "f8f8f8",
 } as const;
 
-let wordBordersType: Record<string, any>;
+let wordBordersType: Record<string, unknown>;
 
-export const getWordBordersType = async (): Promise<Record<string, any>> => {
+export const getWordBordersType = async (): Promise<Record<string, unknown>> => {
 	if (!wordBordersType) {
 		const { BorderStyle } = await docx();
 		const wordNoteBorderType = (color: string) => ({

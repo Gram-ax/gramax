@@ -1,16 +1,22 @@
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import TranscribeButton from "@ext/ai/components/Audio/Buttons/TranscribeMenuButton";
+import { useIsRevision } from "@ext/git/actions/Revisions/logic/hooks/useIsRevision";
+import { ToolbarMarkdownModeToggle } from "@ext/git/core/Diff/components/ToolbarMarkdownModeToggle";
+import { ToolbarModesToggle } from "@ext/git/core/Diff/components/ToolbarModesToggle";
+import t from "@ext/localization/locale/translate";
 import AIGroup from "@ext/markdown/core/edit/components/Menu/Groups/AIGroup";
-import PropertyMenuGroup from "@ext/markdown/core/edit/components/Menu/Groups/Property";
-import ToolbarWrapper from "@ext/markdown/core/edit/components/Menu/ToolbarWrapper";
+import { useToolbarMode } from "@ext/markdown/core/edit/logic/Toolbar/useToolbarMode";
 import InlineEditPanel from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
 import type { InlineToolbarOptions } from "@ext/markdown/elements/article/edit/helpers/InlineToolbar";
 import { LinkMenuMobilePopover } from "@ext/markdown/elements/link/edit/components/LinkMenu/LinkMenuMobilePopover";
 import getSelectedText from "@ext/markdown/elementsUtils/getSelectedText";
+import { ToolbarToggleReview } from "@ext/review/components/Toolbar/ToolbarToggleReview";
 import type { Editor } from "@tiptap/core";
 import { Toolbar, ToolbarSeparator } from "@ui-kit/Toolbar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { CellSelection, isInTable } from "prosemirror-tables";
 import { memo, useEffect, useState } from "react";
 import AnyMenuGroup from "../Groups/Any";
@@ -29,36 +35,48 @@ export interface ToolbarMenuProps {
 
 interface MainToolbarMenuProps extends ToolbarMenuProps {
 	editor?: Editor;
+	isDefaultMode?: boolean;
 }
 
 type ToolbarButtonsVariant = "inline" | "main";
 const MainToolbarButtons = (props: MainToolbarMenuProps) => {
-	const { editor, includeResources = true, isTemplate, fileName, isSmallEditor, isGramaxAiEnabled } = props;
+	const { editor, includeResources = true, fileName, isSmallEditor, isGramaxAiEnabled, isDefaultMode } = props;
 
 	return (
-		<Toolbar data-testid="editor-toolbar">
-			<HeadersMenuGroup editor={editor} />
-			<ToolbarSeparator />
-			<TextMenuGroup editor={editor} />
-			{isTemplate && (
+		<Toolbar className="md:rounded-lg" data-qa="qa-edit-menu-button" data-testid="editor-toolbar">
+			<div
+				className={cn(
+					"contents",
+					!isDefaultMode &&
+						"[&>div]:opacity-50 [&>button]:opacity-50 [&>div]:pointer-events-none [&>button]:pointer-events-none",
+				)}
+				data-toolbar-modes="default"
+			>
+				<HeadersMenuGroup editor={editor} />
+				<ToolbarSeparator />
+				<TextMenuGroup editor={editor} />
+				<ListMenuGroup editor={editor} />
+				<ToolbarSeparator />
+				<AnyMenuGroup
+					editor={editor}
+					fileName={fileName}
+					includeResources={includeResources}
+					isSmallEditor={isSmallEditor}
+				/>
+				{isGramaxAiEnabled && (
+					<>
+						<ToolbarSeparator />
+						<TranscribeButton editor={editor} />
+						<AIGroup editor={editor} />
+					</>
+				)}
+			</div>
+			{!isSmallEditor && (
 				<>
 					<ToolbarSeparator />
-					<PropertyMenuGroup editor={editor} />
-				</>
-			)}
-			<ListMenuGroup editor={editor} />
-			<ToolbarSeparator />
-			<AnyMenuGroup
-				editor={editor}
-				fileName={fileName}
-				includeResources={includeResources}
-				isSmallEditor={isSmallEditor}
-			/>
-			<ToolbarSeparator />
-			<TranscribeButton editor={editor} />
-			{isGramaxAiEnabled && (
-				<>
-					<AIGroup editor={editor} />
+					<ToolbarMarkdownModeToggle />
+					<ToolbarToggleReview />
+					<ToolbarModesToggle />
 				</>
 			)}
 		</Toolbar>
@@ -105,7 +123,9 @@ const InlineToolbarButtons = (props: MainToolbarMenuProps) => {
 const ToolbarMenu = (props: MainToolbarMenuProps) => {
 	const { editor, includeResources = true, isGramaxAiEnabled, isTemplate, fileName, isSmallEditor = false } = props;
 	const isMobile = useMediaQuery(cssMedia.JSnarrow);
-
+	const isDefaultMode = useToolbarMode();
+	const isReadOnly = PageDataContext.value.conf.isReadOnly;
+	const isRevision = useIsRevision();
 	const [variant, setVariant] = useState<ToolbarButtonsVariant>("main");
 
 	useEffect(() => {
@@ -125,21 +145,32 @@ const ToolbarMenu = (props: MainToolbarMenuProps) => {
 
 	const Component = variant === "main" ? MainToolbarButtons : InlineToolbarButtons;
 
-	return (
+	const Content = (
 		<>
-			<ToolbarWrapper className={cn("transition-all", !isMobile && "lg:shadow-hard-base rounded-lg")}>
-				<Component
-					editor={editor}
-					fileName={fileName}
-					includeResources={includeResources}
-					isGramaxAiEnabled={isGramaxAiEnabled}
-					isMobile={isMobile}
-					isSmallEditor={isSmallEditor}
-					isTemplate={isTemplate}
-				/>
-			</ToolbarWrapper>
-			{isMobile && <LinkMenuMobilePopover editor={editor} />}
+			<Component
+				editor={editor}
+				fileName={fileName}
+				includeResources={includeResources}
+				isDefaultMode={isDefaultMode}
+				isGramaxAiEnabled={isGramaxAiEnabled}
+				isMobile={isMobile}
+				isSmallEditor={isSmallEditor}
+				isTemplate={isTemplate}
+			/>
+			{isMobile && editor && <LinkMenuMobilePopover editor={editor} />}
 		</>
 	);
+
+	if (isReadOnly && isRevision)
+		return (
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<div className="[&>div]:pointer-events-none">{Content}</div>
+				</TooltipTrigger>
+				<TooltipContent>{t("editor.at-revision")}</TooltipContent>
+			</Tooltip>
+		);
+
+	return Content;
 };
 export default memo(ToolbarMenu);

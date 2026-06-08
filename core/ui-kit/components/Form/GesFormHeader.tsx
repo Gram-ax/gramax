@@ -1,16 +1,17 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import LucideIcon from "@components/Atoms/Icon/LucideIcon";
 import styled from "@emotion/styled";
-import { FormHeaderBase, FormTitle } from "@ui-kit/Form";
+import { FormDescription, FormHeaderBase, FormTitle } from "@ui-kit/Form";
 
 export interface GesFormHeaderProps {
 	icon: any;
 	title: string;
+	description?: string;
 	className?: string;
 	iconProps?: any;
 }
 
-const GesFormHeader = ({ icon, title, className, iconProps }: GesFormHeaderProps) => {
+const GesFormHeader = ({ icon, title, description, className, iconProps }: GesFormHeaderProps) => {
 	const CustomerIcon = LucideIcon(icon);
 
 	return (
@@ -18,6 +19,7 @@ const GesFormHeader = ({ icon, title, className, iconProps }: GesFormHeaderProps
 			<div className={"position-container"}>
 				<CustomerIcon {...iconProps} />
 				<FormTitle>{title}</FormTitle>
+				{description && <FormDescription>{description}</FormDescription>}
 			</div>
 		</FormHeaderBase>
 	);
@@ -29,7 +31,7 @@ export default styled(GesFormHeader)`
 
 	.position-container {
 		align-items: center;
-		padding-top: 1.5rem;
+		text-align: center;
 		gap: 1rem;
 		flex-direction: column;
 		justify-content: center;
@@ -37,7 +39,6 @@ export default styled(GesFormHeader)`
 	}
 
 	.position-container h2 {
-		text-align: center;
 		letter-spacing: 0;
 		line-height: 28px;
 		font-size: 20px;

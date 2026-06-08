@@ -7,7 +7,7 @@ import {
 } from "@ext/notion/model/NotionTypes";
 import { type Property, PropertyTypes, type PropertyValue } from "@ext/properties/models";
 
-export type CustomProperty = { id: string[]; originalName: string; parentTitle: string } & Property;
+export type CustomProperty = { propertyId: string[]; originalName: string; parentTitle: string } & Property;
 
 export class NotionPropertyManager {
 	private readonly _unsupportedTypes = [NotionTypes.Files, NotionTypes.Title];
@@ -111,7 +111,7 @@ export class NotionPropertyManager {
 			if (!property) continue;
 
 			const customProperty: CustomProperty = {
-				id: [value.id],
+				propertyId: [value.id],
 				originalName: key,
 				parentTitle: articleTitle,
 				...property,
@@ -128,7 +128,7 @@ export class NotionPropertyManager {
 			});
 
 			if (exactMatch) {
-				exactMatch.id.push(...customProperty.id);
+				exactMatch.propertyId.push(...customProperty.propertyId);
 				continue;
 			}
 
@@ -152,6 +152,7 @@ export class NotionPropertyManager {
 
 	private _createProperty(name: string, type: PropertyTypes): Property {
 		return {
+			id: name,
 			name,
 			type,
 			style: this._getRandomStyle(),
@@ -179,6 +180,7 @@ export class NotionPropertyManager {
 		});
 
 		return {
+			id: name,
 			name,
 			type,
 			style: this._getRandomStyle(),
@@ -201,10 +203,10 @@ export class NotionPropertyManager {
 
 				const property = handler(value, catalogProperty);
 				if (!property) return;
-				return { name: catalogProperty.name, value: property.value } as PropertyValue;
+				return { id: catalogProperty.id, value: property.value } as PropertyValue;
 			})
 			.filter((propertyValue): propertyValue is PropertyValue => propertyValue !== undefined)
-			.sort((a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" }));
+			.sort((a, b) => a.id.localeCompare(b.id, "en", { sensitivity: "base" }));
 	}
 
 	private _findCatalogProperty = (id: string) =>
@@ -216,11 +218,11 @@ export class NotionPropertyManager {
 		if (value.type === NotionTypes.Status) {
 			const matchedValue = catalogProperty.values?.find((val) => val.includes(pageValue));
 			if (matchedValue) {
-				return { name: catalogProperty.name, value: matchedValue };
+				return { id: catalogProperty.id, value: matchedValue };
 			}
 		}
 
-		return { name: catalogProperty.name, value: pageValue };
+		return { id: catalogProperty.id, value: pageValue };
 	}
 
 	private _processManyProperty(value: NotionProperty, catalogProperty: Property) {
@@ -228,7 +230,7 @@ export class NotionPropertyManager {
 		if (!pageValues?.length) return;
 
 		pageValues.forEach((val) => this._ensureValueInCatalog(val, catalogProperty));
-		return { name: catalogProperty.name, value: pageValues };
+		return { id: catalogProperty.id, value: pageValues };
 	}
 
 	private _processDateProperty(value: NotionProperty, catalogProperty: Property) {
@@ -241,19 +243,19 @@ export class NotionPropertyManager {
 		}
 
 		const dateValue = [dateString.split("T")[0]];
-		return { name: catalogProperty.name, value: dateValue };
+		return { id: catalogProperty.id, value: dateValue };
 	}
 
 	private _processNumericProperty(value: NotionProperty, catalogProperty: Property) {
 		const numericValue = value[value.type];
 		if (numericValue == null) return;
 
-		return { name: catalogProperty.name, value: [numericValue] };
+		return { id: catalogProperty.id, value: [numericValue] };
 	}
 
 	private _processFlagProperty(value: NotionProperty, catalogProperty: Property) {
 		if (value[value.type]) {
-			return { name: catalogProperty.name };
+			return { id: catalogProperty.id };
 		}
 	}
 
@@ -268,11 +270,11 @@ export class NotionPropertyManager {
 			case NotionTypes.Rollup: {
 				const rollupData = value[value.type];
 				if (rollupData.type === "array") {
-					const values = rollupData[rollupData.type].map((item: any) =>
+					const values = rollupData[rollupData.type].map((item) =>
 						this._propertyTypeHandlers[catalogProperty.type]?.(item, catalogProperty),
 					);
 					textValue = values
-						.map((val: any) => val?.value?.[0])
+						.map((val) => val?.value?.[0])
 						.filter((v) => v !== undefined)
 						.join(", ");
 				} else if (rollupData) {
@@ -295,9 +297,9 @@ export class NotionPropertyManager {
 				textValue = value[value.type]?.name || value[value.type]?.[0]?.plain_text || value[value.type];
 		}
 
-		if (!(textValue && textValue.length)) return undefined;
+		if (!textValue?.length) return undefined;
 
-		return { name: catalogProperty.name, value: [textValue] };
+		return { id: catalogProperty.id, value: [textValue] };
 	}
 
 	private _ensureValueInCatalog(value: string, catalogProperty: Property): void {

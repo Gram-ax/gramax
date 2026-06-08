@@ -1,6 +1,6 @@
 import { ContentLanguage } from "@ext/localization/core/model/Language";
-import type { Article, ArticleFilter } from "@ics/modulith-search-domain/article";
-import type { FieldsToArrayPaths } from "@ics/modulith-utils";
+import type { Article, ArticleFilter } from "@ics/article-search/article";
+import type { FieldsToArrayPaths } from "@ics/article-search-utils";
 
 export type ArticleLanguage = ContentLanguage | "none";
 

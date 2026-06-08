@@ -2,7 +2,6 @@ export {
 	AlertDialog,
 	AlertDialogAction,
 	AlertDialogCancel,
-	AlertDialogContent,
 	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
@@ -11,4 +10,6 @@ export {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "ics-ui-kit/components/alert-dialog";
+export { AlertDialogContent } from "./AlertDialogContent";
 export { AlertDialogIcon } from "./AlertDialogIcon";
+export { AlertConfirm } from "./templates/AlertConfirm";

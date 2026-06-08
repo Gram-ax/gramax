@@ -2,6 +2,8 @@ import RightNavigation from "@components/Layouts/CatalogLayout/RightNavigation/R
 import RightNavigationLayout from "@components/Layouts/CatalogLayout/RightNavigation/RightNavigationLayout";
 import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsOpenContext";
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
+import useMediaQuery from "@core-ui/hooks/useMediaQuery";
+import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useEffect, useRef } from "react";
 
 interface RightNavigationComponentProps {
@@ -13,6 +15,7 @@ const RightNavigationComponent = (props: RightNavigationComponentProps) => {
 
 	const prevIsSidebarRightPin = useRef<boolean>(null);
 	const { right: isSidebarRightPin } = SidebarsIsPinService.value;
+	const isNarrowLayout = useMediaQuery(cssMedia.JSmedium);
 
 	const isRightNavHover = useRef(false);
 
@@ -41,8 +44,8 @@ const RightNavigationComponent = (props: RightNavigationComponentProps) => {
 	return (
 		<RightNavigationLayout
 			onPointerLeave={onRightNavMouseLeaveHandler}
-			onPointerUp={onRightNavMouseEnterHandler}
-			onTouchEnd={onRightNavMouseEnterHandler}
+			onPointerUp={isNarrowLayout ? undefined : onRightNavMouseEnterHandler}
+			onTouchEnd={isNarrowLayout ? undefined : onRightNavMouseEnterHandler}
 			rightNavigationContent={<RightNavigation />}
 		/>
 	);

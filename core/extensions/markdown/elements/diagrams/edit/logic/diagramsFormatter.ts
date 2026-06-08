@@ -7,6 +7,7 @@ const DiagramsFormatter =
 		if (node.attrs.src) {
 			const hasSize = node.attrs.width && node.attrs.height;
 			const hasFloat = node.attrs.float;
+			const hasScale = node.attrs.scale;
 			state.write(
 				formatter.openTag(
 					node.attrs.diagramName.toLowerCase(),
@@ -14,7 +15,8 @@ const DiagramsFormatter =
 						path: node.attrs.src,
 						title: node.attrs.title,
 						...(hasSize ? { width: node.attrs.width, height: node.attrs.height } : {}),
-						...(hasFloat ? { float: node.attrs.float } : {}),
+						...(hasFloat || hasScale ? { float: node.attrs.float ?? "" } : {}),
+						...(hasScale ? { scale: node.attrs.scale } : {}),
 					},
 					true,
 				),
@@ -22,7 +24,7 @@ const DiagramsFormatter =
 			state.closeBlock(node);
 		} else {
 			state.write(
-				"```" + node.attrs.diagramName.toLowerCase() + (node.attrs.title ? `:${node.attrs.title}` : ``) + "\n",
+				`\`\`\`${node.attrs.diagramName.toLowerCase()}${node.attrs.title ? `:${node.attrs.title}` : ``}\n`,
 			);
 			state.text(node.attrs.content, false);
 			state.ensureNewLine();

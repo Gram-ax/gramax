@@ -1,5 +1,6 @@
 import { getResultByActionData } from "@core-ui/ContextServices/ButtonStateService/hooks/useCurrentAction";
 import { getNodeNameFromCursor } from "@core-ui/ContextServices/ButtonStateService/hooks/useType";
+import listItemToHeading from "@ext/markdown/elements/heading/edit/logic/listItemToHeading";
 import getChildTextId from "@ext/markdown/elements/heading/logic/getChildTextId";
 import { stopExecution } from "@ext/markdown/elementsUtils/cursorFunctions";
 import { callOrReturn, InputRule, mergeAttributes, Node } from "@tiptap/core";
@@ -61,17 +62,22 @@ const Heading = Node.create<HeadingOptions>({
 		return {
 			setHeading:
 				(attributes) =>
-				({ commands }) => {
+				({ commands, editor }) => {
 					if (!this.options.levels.includes(attributes.level)) {
 						return false;
 					}
+
+					if (listItemToHeading(editor, attributes.level)) return true;
 
 					return commands.setNode(this.name, attributes);
 				},
 			toggleHeading:
 				(attributes) =>
-				({ commands, state }) => {
+				({ commands, state, editor }) => {
 					if (!this.options.levels.includes(attributes.level)) return false;
+
+					if (listItemToHeading(editor, attributes.level)) return true;
+
 					if (stopExecution(state, this.name)) return false;
 
 					return commands.toggleNode(this.name, "paragraph", attributes);
@@ -94,7 +100,11 @@ const Heading = Node.create<HeadingOptions>({
 				return new InputRule({
 					find: new RegExp(`^(#{1,${level}})\\s$`),
 					handler: ({ state, range, match }) => {
-						const $start = state.doc.resolve(range.from);
+						const Start = state.doc.resolve(range.from);
+
+						const isInsideListItem = Start.depth >= 2 && Start.node(2).type.name === "listItem";
+						if (isInsideListItem) return null;
+
 						const { actions, headingLevel } = getNodeNameFromCursor(state);
 
 						const { disabled } = getResultByActionData({
@@ -109,7 +119,7 @@ const Heading = Node.create<HeadingOptions>({
 
 						const attributes = callOrReturn({ level }, undefined, match) || {};
 
-						if (!$start.node(-1).canReplaceWith($start.index(-1), $start.indexAfter(-1), this.type)) {
+						if (!Start.node(-1).canReplaceWith(Start.index(-1), Start.indexAfter(-1), this.type)) {
 							return null;
 						}
 

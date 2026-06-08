@@ -1,15 +1,24 @@
 import useUrlObjectImage from "../../../apps/browser/src/hooks/useUrlObjectImage";
-import BrowserFetchService from "../../../apps/browser/src/logic/Api/BrowserFetchService";
+import getBrowserFetchService from "../../../apps/browser/src/logic/Api/getBrowserFetchService";
 import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
 import BrowserLink from "../../../apps/gramax-cli/src/Components/Atoms/Link";
 import StaticRouter from "../../../apps/gramax-cli/src/logic/api/StaticRouter";
 import type { DynamicModules } from "..";
 
+const getPathname = () => {
+	const fullPath = window.location.pathname;
+	const basePath = new URL(document.baseURI).pathname;
+
+	const relativePath = fullPath.startsWith(basePath) ? fullPath.slice(basePath.length) : fullPath;
+
+	return relativePath.startsWith("/") ? relativePath : `/${relativePath}`;
+};
+
 export const getStaticModules = (): DynamicModules => {
 	return {
 		Link: BrowserLink,
 		Router: StaticRouter,
-		Fetcher: BrowserFetchService,
+		Fetcher: getBrowserFetchService(getPathname),
 		useImage: useUrlObjectImage,
 		openChildWindow: (params) => window.open(params.url, params.name, params.features),
 		enterpriseLogin: () => Promise.resolve(null),

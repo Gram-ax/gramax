@@ -1,5 +1,5 @@
+import { Encoder } from "@ext/encoder/Encoder";
 import t from "@ext/localization/locale/translate";
-import { Encoder } from "../../../../Encoder/Encoder";
 import type ShareData from "../model/ShareData";
 
 export default class ShareLinkHandler {
@@ -10,7 +10,7 @@ export default class ShareLinkHandler {
 	}
 
 	createShareLinkTicket(data: ShareData): string {
-		return this._encoder.ecode(this._stringifyData(data), this._accessToken, "hex");
+		return this._encoder.encode(this._stringifyData(data), this._accessToken, "hex");
 	}
 
 	getShareLink(ticket: string): ShareData {

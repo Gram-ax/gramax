@@ -3,8 +3,9 @@ import type {
 	ResourceParseWorkerInMessage,
 	ResourceParseWorkerOutMessage,
 } from "@ext/serach/modulith/resourceParse/worker/types";
+import { toWorkerError } from "@ext/serach/modulith/utils/toWorkerError";
 import { type PoolWorker, WorkerPool } from "@ext/serach/modulith/utils/WorkerPool";
-import type { ArticleItem } from "@ics/modulith-search-domain/article";
+import type { ArticleItem } from "@ics/article-search/article";
 import type { Buffer } from "buffer";
 
 const MAX_WORKERS = 3;
@@ -24,7 +25,7 @@ export abstract class WorkerResourceParseClientBase implements ResourceParseClie
 	private _requestSeq = 0;
 	private readonly _pending = new Map<string, PendingRequest>();
 	private readonly _workerPool = new WorkerPool<ResourceParseWorker>(MAX_WORKERS, WORKER_IDLE_TIMEOUT_MS, () =>
-		this.createWorker(),
+		this._createWorker(),
 	);
 
 	async parseResource(
@@ -50,9 +51,9 @@ export abstract class WorkerResourceParseClientBase implements ResourceParseClie
 		await this._workerPool.terminate();
 	}
 
-	protected abstract createWorker(): ResourceParseWorker;
+	protected abstract _createWorker(): ResourceParseWorker;
 
-	protected async handleMessage(data: ResourceParseWorkerOutMessage) {
+	protected async _handleMessage(data: ResourceParseWorkerOutMessage) {
 		const type = data.type;
 		switch (type) {
 			case "progress":
@@ -64,15 +65,32 @@ export abstract class WorkerResourceParseClientBase implements ResourceParseClie
 
 				this._pending.delete(data.requestId);
 				if (type === "result") pending.resolve(data.items);
-				else pending.reject(new Error("Worker request failed", { cause: data.error }));
+				else pending.reject(toWorkerError(data.error));
 				return;
 			}
 			default:
+				if (isPdfJsServiceMessage(data)) {
+					// Ignore pdf.js fake-worker service messages
+					// With PDF.js worker disabled, its internal messages leak into our worker channel
+					break;
+				}
 				console.error(`Unexpected message type: ${type}`, data);
+				break;
 		}
 	}
 
 	private _nextRequestId(): string {
 		return `${++this._requestSeq}`;
 	}
+}
+
+function isPdfJsServiceMessage(data: object): boolean {
+	return (
+		data != null &&
+		"sourceName" in data &&
+		"targetName" in data &&
+		"action" in data &&
+		data.sourceName === "worker" &&
+		data.targetName === "main"
+	);
 }

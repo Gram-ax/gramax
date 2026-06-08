@@ -1,4 +1,5 @@
-import type { ArticlePageData, HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { HomePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 
 const getPageTitle = (isArticle: boolean, data: HomePageData | ArticlePageData): string =>
 	!isArticle

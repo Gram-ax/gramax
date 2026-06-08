@@ -11,16 +11,16 @@ export class WebWorkerModulithSearchClient extends WorkerModulithSearchClientBas
 
 	static async create(options: WorkerModulithSearchClientBaseOptions): Promise<WebWorkerModulithSearchClient> {
 		const client = new WebWorkerModulithSearchClient(options);
-		await client.init();
+		await client._init();
 		return client;
 	}
 
-	protected override createWorker(): SearchWorker {
+	protected override _createWorker(): SearchWorker {
 		const worker = new Worker(new URL("./modulithSearch.web.worker", import.meta.url), {
 			type: "module",
 		});
 
-		worker.addEventListener("message", (event) => this.handleMessage(event.data));
+		worker.addEventListener("message", (event) => this._handleMessage(event.data));
 		return {
 			postMessage: worker.postMessage.bind(worker),
 			terminate: async () => {

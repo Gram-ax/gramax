@@ -5,7 +5,7 @@ import viteEnv from "../config/viteenv";
 
 export type Environment = "next" | "tauri" | "browser" | "test" | "static" | "cli" | "docportal";
 
-let _env: (name: keyof EnvironmentVariable) => string;
+let Env: (name: keyof EnvironmentVariable) => string;
 
 const getEnv = (): string => {
 	let env = global.VITE_ENVIRONMENT || process.env.VITE_ENVIRONMENT;
@@ -18,39 +18,39 @@ const executing = getEnv() as Environment;
 
 const initEnv = () => {
 	if (executing === "browser") {
-		_env = typeof window !== "undefined" ? ((window as any)?.getEnv ?? (() => undefined)) : () => undefined;
+		Env = typeof window !== "undefined" ? ((window as any)?.getEnv ?? (() => undefined)) : () => undefined;
 	}
 
 	if (executing === "tauri") {
-		_env = (name: string) => {
+		Env = (name: string) => {
 			return typeof window !== "undefined" ? window.process?.env?.[name] : undefined;
 		};
 	}
 
 	if (executing === "next") {
-		_env = (name: string) => {
+		Env = (name: string) => {
 			return process.env?.[name];
 		};
 	}
 
 	if (executing === "docportal") {
-		_env = (name: string) => {
+		Env = (name: string) => {
 			return process.env?.[name];
 		};
 	}
 
 	if (executing === "test") {
-		_env = (name: string) => {
+		Env = (name: string) => {
 			return process.env?.[name];
 		};
 	}
 
 	if (executing === "static") {
-		_env = typeof window !== "undefined" ? ((window as any)?.getEnv ?? (() => undefined)) : () => undefined;
+		Env = typeof window !== "undefined" ? ((window as any)?.getEnv ?? (() => undefined)) : () => undefined;
 	}
 
 	if (executing === "cli") {
-		_env = (name: string) => {
+		Env = (name: string) => {
 			return process.env?.[name];
 		};
 	}
@@ -61,12 +61,12 @@ initEnv();
 const builtIn = { ...(process as any).builtIn, ...viteEnv };
 
 export const env = <T extends keyof EnvironmentVariable>(name: T): EnvironmentVariable[T] =>
-	builtIn?.[name] || _env(name) || defaultVariables[name] || "";
+	builtIn?.[name] || Env(name) || defaultVariables[name] || "";
 
 export const getExecutingEnvironment = (): Environment => {
 	return executing === "docportal" ? "next" : executing;
 };
 
 export const isTauriMobile = () => {
-	return executing === "tauri" && !!_env("IS_MOBILE");
+	return executing === "tauri" && !!Env("IS_MOBILE");
 };

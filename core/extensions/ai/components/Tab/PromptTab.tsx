@@ -2,7 +2,7 @@ import TabWrapper from "@components/Layouts/LeftNavigationTabs/TabWrapper";
 import generateUniqueID from "@core/utils/generateUniqueID";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import PromptService from "@ext/ai/components/Tab/PromptService";
+import { promptStore, usePromptStore } from "@ext/ai/components/Tab/PromptStore";
 import ItemList from "@ext/articleProvider/components/ItemList";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import type { ProviderItemProps } from "@ext/articleProvider/models/types";
@@ -20,7 +20,7 @@ const PromptTab = ({ show }: PromptTab) => {
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
 	const [height, setHeight] = useState(0);
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const { selectedIds, items } = PromptService.value;
+	const { selectedIds, items } = usePromptStore((s) => ({ selectedIds: s.selectedIds, items: s.items }), "shallow");
 
 	const addNewNote = useCallback(async () => {
 		const uniqueID = generateUniqueID();
@@ -30,13 +30,13 @@ const PromptTab = ({ show }: PromptTab) => {
 		if (!res.ok) return;
 
 		const newItems = await res.json();
-		PromptService.setItems(newItems);
+		promptStore.getState().setItems(newItems);
 	}, [apiUrlCreator]);
 
 	useEffect(() => {
 		if (!selectedIds.length) return;
 		const branchListener = () => {
-			selectedIds.forEach((id) => PromptService.closeNote(id));
+			selectedIds.forEach((id) => promptStore.getState().closeNote(id));
 		};
 
 		const listener = () => {
@@ -57,22 +57,23 @@ const PromptTab = ({ show }: PromptTab) => {
 		};
 	}, [selectedIds]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional???
 	useEffect(() => {
 		if (!show) return;
 
-		PromptService.fetchList(apiUrlCreator);
+		promptStore.getState().fetchList(apiUrlCreator);
 	}, [show]);
 
 	const onItemClick = useCallback(
 		(id: string, target: HTMLElement) => {
 			if (selectedIds.includes(id)) {
 				const newIds = PopoverUtility.removeSelectedIds(selectedIds, id);
-				PromptService.setSelectedIds(newIds);
-				PromptService.closeNote(id);
+				promptStore.getState().setSelectedIds(newIds);
+				promptStore.getState().closeNote(id);
 				return;
 			}
 
-			const tooltipManager = PromptService.getTooltipManager();
+			const tooltipManager = promptStore.getState().tooltipManager;
 			const unpinnedTooltips = tooltipManager.getUnpinnedTooltips();
 
 			const unpinnedIds = unpinnedTooltips.map((tooltip) => tooltip.item.id);
@@ -82,8 +83,8 @@ const PromptTab = ({ show }: PromptTab) => {
 			);
 
 			unpinnedTooltips.forEach((tooltip) => tooltipManager.removeTooltip(tooltip));
-			PromptService.setSelectedIds(newIds);
-			PromptService.openNote(
+			promptStore.getState().setSelectedIds(newIds);
+			promptStore.getState().openNote(
 				items.find((item) => item.id === id),
 				target,
 			);
@@ -94,11 +95,11 @@ const PromptTab = ({ show }: PromptTab) => {
 	const onDelete = useCallback(
 		(id: string) => {
 			if (selectedIds.includes(id)) {
-				PromptService.closeNote(id);
+				promptStore.getState().closeNote(id);
 			}
 
 			const newItems = Array.from(items.values()).filter((t) => t.id !== id);
-			PromptService.setItems(newItems);
+			promptStore.getState().setItems(newItems);
 		},
 		[selectedIds, items],
 	);
@@ -106,12 +107,12 @@ const PromptTab = ({ show }: PromptTab) => {
 	const onMarkdownChange = useCallback(
 		(id: string) => {
 			if (selectedIds.includes(id)) {
-				const tooltip = PromptService.closeNote(id);
+				const element = promptStore.getState().closeNote(id);
 
 				setTimeout(() => {
-					PromptService.openNote(
+					promptStore.getState().openNote(
 						items.find((item) => item.id === id),
-						tooltip.element,
+						element,
 					);
 				}, 0);
 			}

@@ -7,7 +7,7 @@ import XmlFormatter from "./XmlFormatter";
 
 type NodeFormatterKeys = "note" | "table" | "tableRow" | "tableCell";
 type SupportedElement =
-	| "snippet"
+	| "fragment"
 	| "tabs"
 	| "HTML"
 	| "view"
@@ -21,7 +21,7 @@ type SupportedElement =
 
 export interface FormatterType {
 	nodeFormatters: Record<NodeFormatterKeys, NodeSerializerSpec>;
-	openTag(tagName: string, attributes?: Record<string, any>, selfClosing?: boolean): string;
+	openTag(tagName: string, attributes?: Record<string, unknown>, selfClosing?: boolean): string;
 	closeTag(tagName: string): string;
 	type?: Syntax;
 	supportedElements: SupportedElement[];

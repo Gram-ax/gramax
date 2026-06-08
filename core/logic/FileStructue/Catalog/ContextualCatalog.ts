@@ -17,7 +17,8 @@ import type IPermission from "@ext/security/logic/Permission/IPermission";
 export type ContextualCatalogEvents<P extends CatalogProps = CatalogProps> = Event<
 	"props-resolve",
 	{ mutableProps: { props: P } }
->;
+> &
+	Event<"items-filter", { mutable: { items: Item[] } }>;
 
 export default class ContextualCatalog<P extends CatalogProps = CatalogProps> implements ReadonlyCatalog<P> {
 	private _events = createEventEmitter<ContextualCatalogEvents>();
@@ -94,11 +95,21 @@ export default class ContextualCatalog<P extends CatalogProps = CatalogProps> im
 	}
 
 	getItems(): Item[] {
-		return this.deref.getItems();
+		const mutable = { items: this.deref.getItems() };
+		this._events.emitSync("items-filter", { mutable });
+		return mutable.items;
 	}
 
 	getContentItems(): Article[] {
-		return this.deref.getContentItems();
+		const mutable = { items: this.deref.getContentItems() };
+		this._events.emitSync("items-filter", { mutable });
+		return mutable.items as Article[];
+	}
+
+	getCategoryItems(category: Category): Item[] {
+		const mutable = { items: category.items };
+		this._events.emitSync("items-filter", { mutable });
+		return mutable.items;
 	}
 
 	getCategories(): Category[] {

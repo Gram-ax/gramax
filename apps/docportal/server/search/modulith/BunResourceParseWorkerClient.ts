@@ -12,10 +12,10 @@ export class BunResourceParseWorkerClient extends WorkerResourceParseClientBase 
 		return new BunResourceParseWorkerClient();
 	}
 
-	protected override createWorker(): ResourceParseWorker {
+	protected override _createWorker(): ResourceParseWorker {
 		const workerPath = new URL("./search/modulith/resourceParse.bun.worker.js", import.meta.url).href;
 		const worker = new Worker(workerPath);
-		worker.onmessage = (event) => this.handleMessage(event.data);
+		worker.onmessage = (event) => this._handleMessage(event.data);
 		return {
 			postMessage: worker.postMessage.bind(worker),
 			terminate: async () => {

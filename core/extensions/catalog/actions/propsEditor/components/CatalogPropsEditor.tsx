@@ -1,6 +1,6 @@
 import FormSkeleton from "@components/Atoms/FormSkeleton";
 import validateEncodingSymbolsUrl from "@core/utils/validateEncodingSymbolsUrl";
-import CatalogLogoService from "@core-ui/ContextServices/CatalogLogoService/Context";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import styled from "@emotion/styled";
 import { useCatalogPropsEditorActions } from "@ext/catalog/actions/propsEditor/logic/useCatalogPropsEditorActions";
 import { useOpenExternalGitSourceButton } from "@ext/catalog/actions/propsEditor/logic/useOpenExternalGitSourceButton";
@@ -22,12 +22,12 @@ import {
 	SidebarMenuItem,
 	SidebarProvider,
 } from "@ui-kit/Sidebar";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FORM_STYLES } from "../consts/form";
 import type { CatalogSettingsModalProps, FormData, FormProps } from "../logic/createFormSchema";
 import { createFormSchema } from "../logic/createFormSchema";
-import { SectionComponent, type SettingsTab, SettingsTabs } from "./Sections";
+import { GitSettingsTabs, SectionComponent, type SettingsTab, SettingsTabs } from "./Sections";
 
 const SidebarContainer = styled(SidebarProvider)`
 	--sidebar-width: 12rem !important;
@@ -54,8 +54,14 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 	const { allCatalogNames, getOriginalProps, onSubmit, open, setOpen, isLoading } =
 		useCatalogPropsEditorActions(onClose);
 
+	const sourceName = useCatalogPropsStore((state) => state.data?.sourceName);
+	const hasGitSource = !!sourceName;
+
+	useEffect(() => {
+		if (!hasGitSource && activeTab in GitSettingsTabs) setActiveTab("general");
+	}, [hasGitSource, activeTab]);
+
 	const { gitButtonProps } = useOpenExternalGitSourceButton(useCallback(() => setOpen(false), [setOpen]));
-	const { confirmChanges } = CatalogLogoService.value();
 
 	const formSchema = useMemo(
 		() => createFormSchema({ allCatalogNames, validateEncodingSymbolsUrl }),
@@ -92,10 +98,9 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 					form.formState.defaultValues as Parameters<typeof onSubmit>[1],
 				);
 			})(e);
-			await confirmChanges();
 			onSubmitParent?.(await getOriginalProps());
 		},
-		[startUpdatingProps, form, onSubmit, confirmChanges, onSubmitParent, getOriginalProps],
+		[startUpdatingProps, form, onSubmit, onSubmitParent, getOriginalProps],
 	);
 
 	return (
@@ -135,6 +140,35 @@ const CatalogPropsEditor = (props: CatalogSettingsModalProps) => {
 										</SidebarMenu>
 									</SidebarGroupContent>
 								</SidebarGroup>
+								{hasGitSource && (
+									<SidebarGroup>
+										<SidebarGroupContent>
+											<span
+												className="text-xs font-medium px-2 py-1"
+												style={{ color: "var(--color-text-secondary)" }}
+											>
+												{t("forms.catalog-edit-props.sidebar.git")}
+											</span>
+											<SidebarMenu>
+												{Object.entries(GitSettingsTabs).map(([key, tab]) => (
+													<SidebarMenuItem key={key}>
+														<SidebarMenuButton
+															isActive={activeTab === key}
+															onClick={() => setActiveTab(key as SettingsTab)}
+														>
+															<Icon icon={tab.icon} />
+															<span>
+																{t(
+																	`forms.catalog-edit-props.tabs.${key as SettingsTab}`,
+																)}
+															</span>
+														</SidebarMenuButton>
+													</SidebarMenuItem>
+												))}
+											</SidebarMenu>
+										</SidebarGroupContent>
+									</SidebarGroup>
+								)}
 							</SidebarContent>
 						</Sidebar>
 						<main className="flex flex-1 flex-col overflow-hidden min-h-0">

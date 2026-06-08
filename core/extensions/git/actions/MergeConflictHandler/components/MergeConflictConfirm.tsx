@@ -1,26 +1,34 @@
 import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
-import ModalLayout from "@components/Layouts/Modal";
+import FetchService from "@core-ui/ApiServices/FetchService";
+import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
+import tryOpenMergeResolver from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeResolver";
 import t from "@ext/localization/locale/translate";
-import { type ComponentProps, useEffect, useRef, useState } from "react";
-import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+} from "@ui-kit/AlertDialog";
+import { useEffect, useRef, useState } from "react";
 import ApiUrlCreatorService from "../../../../../ui-logic/ContextServices/ApiUrlCreator";
-import ModalToOpenService from "../../../../../ui-logic/ContextServices/ModalToOpenService/ModalToOpenService";
-import ModalToOpen from "../../../../../ui-logic/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import InfoModalForm from "../../../../errorHandlers/client/components/ErrorForm";
 import BranchUpdaterService from "../../Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import MergeConflictCaller from "../model/MergeConflictCaller";
 import type MergeData from "../model/MergeData";
-import type MergeResolver from "./MergeResolver";
 
-const MergeConflictConfirm = ({
-	mergeData,
-	title,
-	errorText,
-}: {
+export interface MergeConflictConfirmProps {
 	mergeData: MergeData;
 	title?: string;
 	errorText?: string;
-}) => {
+	onResolve?: () => void;
+	onAbort?: () => void;
+}
+
+const MergeConflictConfirm = ({ mergeData, title, errorText, onResolve, onAbort }: MergeConflictConfirmProps) => {
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const caller = mergeData.caller;
 
@@ -39,50 +47,61 @@ const MergeConflictConfirm = ({
 		if (caller === MergeConflictCaller.Sync) return t("git.merge.confirm.sync");
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
-		(async () => {
+		void (async () => {
 			await BranchUpdaterService.updateBranch(apiUrlCreator);
 			window.onbeforeunload = () => true;
 		})();
 	}, []);
 
-	return (
-		<ModalLayout
-			isOpen={isOpen}
-			onClose={async () => {
-				setIsOpen(false);
-				if (!shouldAbort.current) return;
-				ModalToOpenService.setValue(ModalToOpen.Loading);
-				await FetchService.fetch<void>(apiUrlCreator.abortMerge());
-				ModalToOpenService.resetValue();
-				window.onbeforeunload = undefined;
+	const onClose = async () => {
+		setIsOpen(false);
+		if (!shouldAbort.current) {
+			return;
+		}
+		await FetchService.fetch<void>(apiUrlCreator.abortMerge());
+		window.onbeforeunload = undefined;
+		await BranchUpdaterService.updateBranch(apiUrlCreator);
+		await ArticleUpdaterService.update(apiUrlCreator);
+		ModalToOpenService.resetValue();
+		onAbort?.();
+	};
 
-				await BranchUpdaterService.updateBranch(apiUrlCreator);
-				await ArticleUpdaterService.update(apiUrlCreator);
-			}}
-		>
-			<InfoModalForm
-				actionButton={{
-					onClick: () => {
-						ModalToOpenService.setValue<ComponentProps<typeof MergeResolver>>(ModalToOpen.MergeResolver, {
-							mergeData,
-						});
-						shouldAbort.current = false;
-					},
-					text: t("resolve-conflict"),
-				}}
-				icon={{ code: "alert-circle", color: "var(--color-admonition-note-br-h)" }}
-				isWarning
-				onCancelClick={() => {
-					setIsOpen(false);
-				}}
-				title={getTitle()}
-			>
-				<div className="article">
-					<span dangerouslySetInnerHTML={{ __html: getErrorText() }}></span>
-				</div>
-			</InfoModalForm>
-		</ModalLayout>
+	const onOpenChange = (open: boolean) => {
+		setIsOpen(open);
+		if (!open) void onClose();
+	};
+
+	return (
+		<AlertDialog onOpenChange={onOpenChange} open={isOpen}>
+			<AlertDialogContent status="warning">
+				<AlertDialogHeader>
+					<AlertDialogIcon icon="alert-circle" />
+					<AlertDialogTitle>{getTitle()}</AlertDialogTitle>
+					<AlertDialogDescription>
+						{/** biome-ignore lint/style/useNamingConvention: expected */}
+						<span dangerouslySetInnerHTML={{ __html: getErrorText() }} />
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel variant="outline">{t("cancel")}</AlertDialogCancel>
+					<AlertDialogAction
+						onClick={() => {
+							tryOpenMergeResolver({
+								mergeData,
+								onResolve,
+								onAbort,
+							});
+							shouldAbort.current = false;
+						}}
+						variant="primary"
+					>
+						{t("resolve-conflict")}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 };
 

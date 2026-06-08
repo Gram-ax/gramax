@@ -2,6 +2,7 @@ import SidebarsIsOpenService from "@core-ui/ContextServices/Sidebars/SidebarsIsO
 import SidebarsIsPinService from "@core-ui/ContextServices/Sidebars/SidebarsIsPin";
 import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
 import useMediaQuery from "@core-ui/hooks/useMediaQuery";
+import useSidebarSwipe from "@core-ui/hooks/useSidebarSwipe";
 import { cssMedia } from "@core-ui/utils/cssUtils";
 import { useRef } from "react";
 import ArticleLayout from "./ArticleLayout";
@@ -18,6 +19,7 @@ const ArticleComponent = (props: ArticleComponentProps) => {
 	const isSidebarRightOpen = SidebarsIsOpenService.value.right;
 	const useArticleDefaultStyles = ArticleViewService.useArticleDefaultStyles;
 	const additionalStyles = ArticleViewService.additionalStyles;
+	const isNarrowLayout = useMediaQuery(cssMedia.JSmedium);
 
 	const isRightNavHover = useRef(false);
 
@@ -34,16 +36,31 @@ const ArticleComponent = (props: ArticleComponentProps) => {
 		SidebarsIsOpenService.transitionEndIsRightOpen = isRightNavHover.current;
 	};
 
+	const { openSwipeHandlers: rightNavOpenSwipeHandlers, closeSwipeHandlers: rightNavCloseSwipeHandlers } =
+		useSidebarSwipe({
+			enabled: isNarrowLayout && !isSidebarRightPin,
+			isOpen: isSidebarRightOpen,
+			onOpen: () => {
+				SidebarsIsOpenService.value = { right: true };
+			},
+			onClose: () => {
+				SidebarsIsOpenService.value = { right: false };
+			},
+			openDirection: "left",
+		});
+
 	return (
 		<ArticleLayout
 			additionalStyles={additionalStyles}
 			article={article}
 			isRightNavOpen={isSidebarRightOpen}
 			isRightNavPin={isSidebarRightPin}
-			narrowMedia={useMediaQuery(cssMedia.JSmedium)}
+			narrowMedia={isNarrowLayout}
 			onArticleMouseEnter={onArticleMouseEnterHandler}
 			onRightNavTransitionEnd={onRightNavTransitionEndHandler}
 			rightNav={rightNav}
+			rightNavCloseSwipeHandlers={rightNavCloseSwipeHandlers}
+			rightNavOpenSwipeHandlers={rightNavOpenSwipeHandlers}
 			useArticleDefaultStyles={useArticleDefaultStyles}
 		/>
 	);

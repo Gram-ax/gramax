@@ -20,6 +20,7 @@ export type EnvironmentVariable = {
 	AUTO_PULL_TOKEN: string;
 	AUTO_PULL_USERNAME: string;
 	AUTO_PULL_INTERVAL: number;
+	AUTO_PULL_DELAY: number;
 
 	// FileProvider
 	ROOT_PATH: string;
@@ -67,7 +68,7 @@ export type EnvironmentVariable = {
 	GES_REFRESH_INTERVAL: string;
 
 	// Enterprise Cloud
-	GES_IS_CLOUD: Bool;
+	GES_CLOUD_URL: string;
 
 	// SEO
 	DISABLE_SEO: Bool;

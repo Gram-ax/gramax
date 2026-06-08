@@ -1,0 +1,27 @@
+title: Новый каталог
+syntax: XML
+supportedLanguages: []
+properties:
+  - id: t6hgk
+    name: Flag property
+    type: Flag
+    style: purple
+    icon: activity
+  - id: W1cZ2
+    name: Enum
+    type: Enum
+    style: red-green
+    icon: a-arrow-up
+    values:
+      - First
+      - Second
+  - id: iKC8Z
+    name: String
+    type: Text
+    style: green
+    icon: file-text
+  - id: HHkTb
+    name: Text block
+    type: BlockMd
+    style: green
+    icon: accessibility

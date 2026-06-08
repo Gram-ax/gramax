@@ -29,7 +29,7 @@ for arg in "$@"; do
   esac
 done
 
-if [[ "${CI_COMMIT_BRANCH:-}" =~ ^release/([0-9]{4}).([0-9]{1,2})$ ]]; then
+if [[ "${CI_COMMIT_REF_NAME:-}" =~ ^release/([0-9]{4}).([0-9]{1,2})$ ]]; then
   RELEASE_YEAR="${BASH_REMATCH[1]}"
   RELEASE_MONTH="${BASH_REMATCH[2]}"
   LAST_DAY=$(bun -e "console.log(new Date(${RELEASE_YEAR}, ${RELEASE_MONTH}, 0).getDate())")

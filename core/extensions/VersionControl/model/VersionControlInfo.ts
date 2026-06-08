@@ -1,11 +1,12 @@
-import type Path from "@core/FileProvider/Path/Path";
+import type { DiffHunk } from "@ext/VersionControl/DiffHandler/model/DiffHunk";
 
 export interface VersionControlInfo {
 	version: string;
 	author: string;
 	date: string;
-	path: Path;
-	content: string;
-	parentPath?: Path;
-	parentContent?: string;
+	filePath: {
+		path: string;
+		oldPath?: string;
+		diff?: DiffHunk[];
+	};
 }

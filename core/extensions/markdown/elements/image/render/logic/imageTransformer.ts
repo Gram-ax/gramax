@@ -14,16 +14,25 @@ export const parse = (
 	width: number,
 	height: number,
 	float: FloatAlign,
-): { crop: Crop; objects: ImageObject[]; scale?: number; width: number; height: number; float: FloatAlign } => {
+): {
+	crop: Crop;
+	objects: ImageObject[];
+	scale?: number | string;
+	width: number;
+	height: number;
+	float: FloatAlign;
+} => {
 	const scaleIsObjects = isObjects(scale);
 	const newCrop = transfromToCrop(crop);
 	const newObjects = transformToObjects((scaleIsObjects ? scale : objects) ?? "[]");
 	const newFloat = float || "center";
 
+	const parsedScale = !scaleIsObjects && scale !== null ? (scale?.endsWith("px") ? scale : +scale) : null;
+
 	return {
 		crop: newCrop,
 		objects: newObjects,
-		scale: (!scaleIsObjects && scale !== null ? +scale : null) ?? null,
+		scale: parsedScale ?? null,
 		width: width,
 		height: height,
 		float: newFloat,

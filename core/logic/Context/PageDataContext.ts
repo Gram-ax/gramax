@@ -1,4 +1,4 @@
-import type { EnterpriseConfig, MetricsConfig } from "@app/config/AppConfig";
+import type { EnterpriseCloudConfig, EnterpriseConfig, MetricsConfig } from "@app/config/AppConfig";
 import type ShareData from "@ext/catalog/actions/share/model/ShareData";
 import type { features } from "@ext/toggleFeatures/features";
 import type { ClientWorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceConfig";
@@ -36,8 +36,10 @@ interface PageDataContext {
 		isReadOnly: boolean;
 		isProduction: boolean;
 		forceUiLangSync: boolean;
+		enterpriseCloud: EnterpriseCloudConfig;
 		metrics: MetricsConfig;
 		enterprise: EnterpriseConfig;
+		activeGesUrl?: string;
 		logo: {
 			imageUrl: string;
 			linkUrl: string;

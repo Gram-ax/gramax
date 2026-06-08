@@ -24,7 +24,7 @@ const getComment: Command<{ ctx: Context; catalogName: string; articlePath: Path
 			assert(catalog, "Catalog not found");
 
 			const article = catalog.findItemByItemPath<Article>(articlePath);
-			assert(article, "Article not found");
+			assert(article, `Article ${articlePath.value} not found`);
 
 			const context = await parserContextFactory.fromArticle(
 				article,

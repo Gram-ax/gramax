@@ -4,10 +4,10 @@ import edit from "./edit";
 import getUninitializedCatalogList from "./getUninitializedCatalogList";
 import remove from "./remove";
 import setDefaultPath from "./setDefaultPath";
-import _switch from "./switch";
+import Switch from "./switch";
 
 export default {
-	switch: _switch,
+	switch: Switch,
 	create,
 	remove,
 	edit,

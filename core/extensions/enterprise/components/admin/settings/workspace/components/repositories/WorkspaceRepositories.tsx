@@ -1,8 +1,10 @@
+import LfsPatternsEditor from "@core/GitLfs/components/LfsPatternsEditor";
 import { DeleteSelectedButton } from "@ext/enterprise/components/admin/ui-kit/DeleteSelectedButton";
 import { TableComponent } from "@ext/enterprise/components/admin/ui-kit/table/TableComponent";
 import { TableInfoBlock } from "@ext/enterprise/components/admin/ui-kit/table/TableInfoBlock";
 import { TableToolbar } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbar";
 import { TableToolbarTextInput } from "@ext/enterprise/components/admin/ui-kit/table/TableToolbarTextInput";
+import t from "@ext/localization/locale/translate";
 import { getCoreRowModel, getFilteredRowModel, useReactTable } from "@ui-kit/DataTable";
 import { useCallback, useMemo, useState } from "react";
 import type { WorkspaceSettings } from "../../types/WorkspaceComponent";
@@ -24,7 +26,7 @@ export function WorkspaceRepositories({
 	const [rowSelection, setRowSelection] = useState({});
 
 	const tableData = useMemo(
-		() => localSettings.source.repos?.map((repository) => ({ id: repository, repository })) ?? [],
+		() => localSettings.git.source.repos?.map((repository) => ({ id: repository, repository })) ?? [],
 		[localSettings],
 	);
 
@@ -55,9 +57,12 @@ export function WorkspaceRepositories({
 
 		setLocalSettings((prev) => ({
 			...prev,
-			source: {
-				...prev.source,
-				repos: (prev.source.repos ?? []).filter((repo) => !selectedRepositoryIds.includes(repo)),
+			git: {
+				...prev.git,
+				source: {
+					...prev.git.source,
+					repos: (prev.git.source.repos ?? []).filter((repo) => !selectedRepositoryIds.includes(repo)),
+				},
 			},
 		}));
 		setRowSelection({});
@@ -67,18 +72,30 @@ export function WorkspaceRepositories({
 		(repositories: string[]) => {
 			setLocalSettings((prev) => ({
 				...prev,
-				source: {
-					...prev.source,
-					repos: [...(prev.source.repos ?? []), ...repositories],
+				git: {
+					...prev.git,
+					source: {
+						...prev.git.source,
+						repos: [...(prev.git.source.repos ?? []), ...repositories],
+					},
 				},
 			}));
 		},
 		[setLocalSettings],
 	);
 
+	const patterns = localSettings.git?.lfs?.patterns ?? [];
+
+	const handleChange = (values: string[]) => {
+		setLocalSettings((prev) => ({
+			...prev,
+			git: { ...prev.git, lfs: { patterns: values } },
+		}));
+	};
+
 	return (
 		<div className="py-10">
-			<TableInfoBlock description={localSettings.source.repos?.length ?? 0} title="Базовые репозитории" />
+			<TableInfoBlock description={localSettings.git.source.repos?.length ?? 0} title="Базовые репозитории" />
 
 			<div>
 				<TableToolbar
@@ -97,7 +114,7 @@ export function WorkspaceRepositories({
 					/>
 					<RepositoryToolbarAddBtn
 						disable={selectResources.length === 0}
-						existingRepositories={localSettings.source.repos ?? []}
+						existingRepositories={localSettings.git.source.repos ?? []}
 						key="add-repository"
 						onAdd={handleAddRepos}
 						repositories={selectResources}
@@ -105,6 +122,14 @@ export function WorkspaceRepositories({
 				</TableToolbar>
 
 				<TableComponent<Repository> columns={repositoriesTableColumns} table={table} />
+
+				<div className="mt-3">
+					<LfsPatternsEditor
+						description={t("workspace.lfs-section-description")}
+						onChange={handleChange}
+						value={patterns}
+					/>
+				</div>
 			</div>
 		</div>
 	);

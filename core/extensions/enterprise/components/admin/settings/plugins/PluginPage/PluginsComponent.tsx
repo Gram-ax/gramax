@@ -10,12 +10,13 @@ import {
 } from "@ext/enterprise/components/admin/settings/plugins/PluginPage/components";
 import { TabErrorBlock } from "@ext/enterprise/components/admin/ui-kit/TabErrorBlock";
 import { TabInitialLoader } from "@ext/enterprise/components/admin/ui-kit/TabInitialLoader";
-import { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
+import type { PluginsSettings } from "@ext/enterprise/types/PluginsSettings";
 import t from "@ext/localization/locale/translate";
 import { PluginFileParser } from "@plugins/core/PluginFileParser";
 import { pluginValidator } from "@plugins/core/PluginValidator";
 import type { PluginConfig } from "@plugins/types";
 import assert from "assert";
+// biome-ignore lint/style/noRestrictedImports: idc
 import { toast } from "ics-ui-kit/components/toast";
 import type { ComponentProps } from "react";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -170,7 +171,7 @@ const PluginsComponent = () => {
 		}
 	};
 
-	const triggerFileSelect = () => fileInputRef.current?.click();
+	const triggerFileSelect = useCallback(() => fileInputRef.current?.click(), []);
 
 	const tabError = getTabError("plugins");
 
@@ -200,7 +201,7 @@ const PluginsComponent = () => {
 				onDeleteSelected={handleDeleteSelected}
 				selectedCount={selectedCount}
 			/>
-			<div className="px-6">
+			<div>
 				{plugins.length === 0 ? (
 					<PluginsEmptyState onUploadClick={triggerFileSelect} />
 				) : (

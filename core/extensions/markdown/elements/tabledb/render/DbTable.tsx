@@ -1,3 +1,6 @@
+/** biome-ignore-all lint/style/noRestrictedImports: it's ok */
+/** biome-ignore-all lint/style/useNamingConvention: it's ok */
+
 import Icon from "@components/Atoms/Icon";
 import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { getLocalizedString } from "@components/libs/utils";
@@ -5,9 +8,9 @@ import LanguageService from "@core-ui/ContextServices/Language";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
+import type { Table, TableWithRefs } from "@ext/tableDB/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { useState } from "react";
-import Popup from "reactjs-popup";
-import type { Table, TableWithRefs } from "../../../../../logic/components/tableDB/table";
 
 interface TableDBProps {
 	object: Table | TableWithRefs;
@@ -25,23 +28,25 @@ export const TableDB = ({ object, error, className }: TableDBProps) => {
 	const [popup, setPopup] = useState(null);
 
 	const table = (t: string, refTable?: Table) => (
-		<code className={refTable ? "refTable" : ""} onClick={refTable ? () => setPopup(refTable) : null}>
-			<Icon code="table" />
-			<span>{t}</span>
-		</code>
+		<Popover open={!!popup}>
+			<PopoverTrigger asChild>
+				<code className={refTable ? "refTable" : ""} onClick={refTable ? () => setPopup(refTable) : undefined}>
+					<Icon code="table" />
+					<span>{t}</span>
+				</code>
+			</PopoverTrigger>
+			<PopoverContent onInteractOutside={() => setPopup(null)}>
+				<div className={className}>
+					<div className="scroll article">
+						<TableDB object={popup} />
+					</div>
+				</div>
+			</PopoverContent>
+		</Popover>
 	);
 
 	return (
 		<div className={className} contentEditable={false} data-type="dbtable">
-			{popup ? (
-				<Popup defaultOpen lockScroll={false} onClose={() => setPopup(null)}>
-					<div className={className}>
-						<div className="scroll article">
-							<TableDB object={popup} />
-						</div>
-					</div>
-				</Popup>
-			) : null}
 			<h3>
 				{table(object.code)} <span>{getLocalizedString(object.title, lang)}</span>
 			</h3>
@@ -66,9 +71,9 @@ export const TableDB = ({ object, error, className }: TableDBProps) => {
 					</tr>
 				</thead>
 				<tbody>
-					{object.fields.map((field, idx) => {
+					{object.fields.map((field) => {
 						return (
-							<tr key={idx}>
+							<tr key={field.code}>
 								<td>
 									<div className="field-code">
 										<code>

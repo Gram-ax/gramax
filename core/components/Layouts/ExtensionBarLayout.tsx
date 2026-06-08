@@ -1,3 +1,4 @@
+import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
 import BarLayout from "./BarLayout";
 
@@ -6,6 +7,8 @@ const ExtensionBarLayout = styled(
 		leftExtensions,
 		rightExtensions,
 		className,
+		style,
+		dataState,
 		...props
 	}: {
 		leftExtensions?: JSX.Element[];
@@ -15,9 +18,11 @@ const ExtensionBarLayout = styled(
 		padding?: string | { top?: string; right?: string; bottom?: string; left?: string };
 		background?: string;
 		className?: string;
+		style?: React.CSSProperties;
+		dataState?: string;
 	}) => {
 		return (
-			<div className={"status-bar " + className}>
+			<div className={cn("status-bar", className)} data-state={dataState} style={style}>
 				<BarLayout {...props} className="bar-layout">
 					<div className="left-right-elements">
 						<div className="elements left">{leftExtensions}</div>

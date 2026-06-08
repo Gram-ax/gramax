@@ -1,6 +1,5 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import type MarkdownIt from "markdown-it";
-import Ast from "./src/ast/index";
 import type Node from "./src/ast/node";
 import Tag from "./src/ast/tag";
 import functions from "./src/functions/index";
@@ -83,5 +82,5 @@ export function createElement(name: string | { key?: string | number }, attribut
 	return { name, attributes, children };
 }
 
-export { Tag, Node, Tokenizer, renderers };
 export * from "./src/types";
+export { type Node, renderers, Tag, Tokenizer };

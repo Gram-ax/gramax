@@ -2,6 +2,7 @@ import { span } from "@ext/loggers/opentelemetry";
 import { type InvokeArgs, type InvokeOptions, invoke as rawInvoke } from "@tauri-apps/api/core";
 import { once } from "@tauri-apps/api/event";
 import { getAllWebviews } from "@tauri-apps/api/webview";
+import { confirm } from "@tauri-apps/plugin-dialog";
 
 export type HttpListenOnceAction = { type: "redirect"; value: string } | { type: "tryClose" };
 
@@ -101,6 +102,10 @@ const reloadAll = async () => {
 };
 
 export const restartApp = () => invoke<void>("restart_app");
+
+(window.confirm as unknown) = async (message?: string) => {
+	return await confirm(message);
+};
 
 Object.assign(window, {
 	updateCheck,

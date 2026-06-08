@@ -4,7 +4,6 @@ import type { ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog
 import { digitsAfterDot } from "@core/FileStructue/Item/ItemOrderUtils";
 import type Hasher from "@core/Hash/Hasher";
 import type { Hashable } from "@core/Hash/Hasher";
-import type ResourceUpdater from "@core/Resource/ResourceUpdater";
 import createNewFilePathUtils from "@core/utils/createNewFilePathUtils";
 import Path from "../../FileProvider/Path/Path";
 import { Article, type ArticleEvents, type ArticleInitProps, type ArticleProps } from "../Article/Article";
@@ -14,7 +13,8 @@ import { ItemType } from "../Item/ItemType";
 
 export type CategoryEvents = ItemEvents &
 	Event<"before-sort", { category: Category; force: boolean; asc: boolean }> &
-	Event<"sorted", { category: Category; force: boolean; asc: boolean }>;
+	Event<"sorted", { category: Category; force: boolean; asc: boolean }> &
+	Event<"items-filter", { category: Category; mutable: { items: Item[] } }>;
 
 export type CategoryInitProps<P extends CategoryProps = CategoryProps> = ArticleInitProps<P> & {
 	directory: Path;
@@ -41,7 +41,9 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 	}
 
 	get items() {
-		return this._items;
+		const mutable = { items: this._items };
+		this.events.emitSync("items-filter", { category: this, mutable });
+		return mutable.items;
 	}
 
 	get folderPath(): Path {
@@ -61,15 +63,15 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 	async sortItems(mode: "force" | "no-sort" | "auto" = "auto") {
 		const isAsc = this._isAscOrder();
 
-		await this.events.emit("before-sort", { category: this, force: mode == "force", asc: isAsc });
+		await this.events.emit("before-sort", { category: this, force: mode === "force", asc: isAsc });
 
 		this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 
 		if (
 			!this._fs.fp.at(this.ref.path).isReadOnly &&
 			mode !== "no-sort" &&
-			(mode == "force" ||
-				this.items.some((i) => isNaN(i.order) || digitsAfterDot(i.order) > ORDERING_MAX_PRECISION))
+			(mode === "force" ||
+				this.items.some((i) => Number.isNaN(i.order) || digitsAfterDot(i.order) > ORDERING_MAX_PRECISION))
 		) {
 			let order = isAsc ? 1 : this.items.length;
 			for (const item of this.items) {
@@ -81,7 +83,7 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 			this._items.sort((x, y) => ((x.props.order ?? 0) - (y.props.order ?? 0)) * (isAsc ? 1 : -1));
 		}
 
-		await this.events.emit("sorted", { category: this, force: mode == "force", asc: isAsc });
+		await this.events.emit("sorted", { category: this, force: mode === "force", asc: isAsc });
 	}
 
 	getFilteredItems(filters: ItemFilter[], catalog: ReadonlyCatalog): Item[] {
@@ -99,8 +101,8 @@ export class Category<P extends CategoryProps = CategoryProps> extends Article<P
 		return this._ref.path.parentDirectoryPath.nameWithExtension;
 	}
 
-	protected override async _updateFilename(fileName: string, resourceUpdater: ResourceUpdater, catalog?: Catalog) {
-		if (this.getFileName() == fileName) return;
+	protected override async _updateFilename(fileName: string, _, catalog?: Catalog) {
+		if (this.getFileName() === fileName) return;
 		let path = this._ref.path.parentDirectoryPath.parentDirectoryPath.join(new Path(fileName));
 		if (await this._fs.fp.exists(path)) {
 			const parent = this.ref.path.parentDirectoryPath;

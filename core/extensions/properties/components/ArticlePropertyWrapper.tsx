@@ -6,6 +6,8 @@ export const ArticlePropertyWrapper = styled.div`
 	align-items: center;
 	gap: 0.5em;
 	font-size: 0.7em;
+	max-width: 100%;
+	overflow: hidden;
 
 	@media print {
 		display: none;

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
 import docx from "@dynamicImports/docx";
 import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { aggregateTable, setCellAlignment } from "@ext/markdown/elements/table/edit/logic/exportUtils";
@@ -85,6 +86,7 @@ export class WordTableExport {
 			await Promise.all(
 				parentChildren.map(async (child) => {
 					if (!child || typeof child === "string") return;
+
 					return await this._tableConfig[child.type]?.(
 						this._wordSerializerState,
 						child,
@@ -95,10 +97,14 @@ export class WordTableExport {
 		).filter((val) => val);
 	}
 
-	async renderRow(block: Tag | JSONContent, addOptions?: TableAddOptionsWord): Promise<TableRow> {
+	async renderRow(block: Tag | JSONContent, addOptions?: TableAddOptionsWord): Promise<TableRow | undefined> {
 		const { TableRow } = await docx();
+		const children = await this.renderRowContent(block);
+
+		if (!children.length) return;
+
 		return new TableRow({
-			children: await this.renderRowContent(block),
+			children,
 			cantSplit: false,
 			...(addOptions as ITableRowPropertiesOptions),
 		});
@@ -111,7 +117,7 @@ export class WordTableExport {
 				parentChildren.map(async (child) => {
 					if (!child || typeof child === "string") return;
 
-					return await this._tableConfig[child.name]?.(
+					return await this._tableConfig["name" in child ? child.name : child.type]?.(
 						this._wordSerializerState,
 						child,
 						this._createChildExport(),
@@ -124,7 +130,7 @@ export class WordTableExport {
 			.filter((val) => val);
 	}
 
-	async renderTable(state: WordSerializerState, table: Tag | JSONContent, addOptions: AddOptionsWord) {
+	async renderTable(_state: WordSerializerState, table: Tag | JSONContent, addOptions: AddOptionsWord) {
 		const { Table, WidthType } = await docx();
 		const wordBordersType = await getWordBordersType();
 		const parent = JSON.parse(JSON.stringify(table));
@@ -143,7 +149,9 @@ export class WordTableExport {
 		setCellAlignment(rows);
 
 		const t = new Table({
-			rows: (await Promise.all(this._getParentChildrenMap(state, parent))).flat().filter((val) => val),
+			rows: (await this.renderRows(parent, { removeWhiteSpace: true, cantSplit: true }))
+				.flat()
+				.filter((val) => val),
 			margins: wordMarginsType[WordBlockType.table],
 			borders: wordBordersType[WordBlockType.table],
 			columnWidths,
@@ -236,15 +244,6 @@ export class WordTableExport {
 
 	private _createChildExport() {
 		return new WordTableExport(this._wordSerializerState, this._environment);
-	}
-
-	private _getParentChildrenMap(state: WordSerializerState, parent: Tag | JSONContent) {
-		const parentChildren = "children" in parent ? parent.children : parent.content;
-		return parentChildren.map((child) =>
-			child && typeof child !== "string"
-				? tableLayout[child.name]?.(state, child, this._createChildExport(), { removeWhiteSpace: true })
-				: [],
-		);
 	}
 
 	private _requireEnvironment(): TableRenderEnvironment {

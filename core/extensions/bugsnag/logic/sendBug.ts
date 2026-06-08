@@ -10,7 +10,7 @@ const ignoredErrors = [NetworkApiError, DefaultError];
 
 const sendBug = async (error: Error, onError?: OnErrorCallback, silentError = true): Promise<Event> => {
 	const config = getConfig();
-	if (!config.bugsnagApiKey || _isIgnoredError(error)) return;
+	if (!config.bugsnagApiKey || isIgnoredError(error)) return;
 
 	const Bugsnag = (await bugsnag()).default;
 	if (!Bugsnag.isStarted()) return;
@@ -22,7 +22,8 @@ const sendBug = async (error: Error, onError?: OnErrorCallback, silentError = tr
 			error,
 			(event) => {
 				event.addMetadata("logs", { spans });
-				if (error instanceof LibGit2Error) event.groupingHash = error.name;
+				const gitCommand = getGitCommand(error);
+				if (gitCommand) event.groupingHash = gitCommand;
 				onError?.(event, () => {});
 			},
 			(err, ev) => {
@@ -33,8 +34,18 @@ const sendBug = async (error: Error, onError?: OnErrorCallback, silentError = tr
 	);
 };
 
-const _isIgnoredError = (e: Error) => {
+const isIgnoredError = (e: Error) => {
 	return ignoredErrors.some((error) => e instanceof error);
+};
+
+const getGitCommand = (error: Error): string | undefined => {
+	if (error instanceof LibGit2Error) return error.command ?? extractCommandFromName(error.name);
+	if (error.name?.startsWith("git (")) return extractCommandFromName(error.name);
+	return undefined;
+};
+
+const extractCommandFromName = (name: string): string | undefined => {
+	return name.match(/^git \(([^,)]+)/)?.[1];
 };
 
 export default sendBug;

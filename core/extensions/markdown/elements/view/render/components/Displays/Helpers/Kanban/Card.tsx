@@ -3,7 +3,7 @@ import ArticleTooltipService from "@core-ui/ContextServices/ArticleTooltip";
 import CardPreview from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CardPreview";
 import type { ViewRenderData } from "@ext/properties/models";
 import { DragItems } from "@ext/properties/models/kanban";
-import { type CSSProperties, type MouseEvent, useEffect, useMemo, useRef } from "react";
+import { type CSSProperties, type MouseEvent, memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useDrag } from "react-dnd";
 import { getEmptyImage } from "react-dnd-html5-backend";
 
@@ -18,10 +18,11 @@ interface CardProps extends ViewRenderData {
 	columnID: number;
 	cardID: number;
 	disabled?: boolean;
-	updateProperty: (columnID: number, cardID: number, property: string, value: string, isDelete?: boolean) => void;
+	updateProperty: (columnID: number, itemPath: string, property: string, value: string, isDelete?: boolean) => void;
 }
 
-const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, disabled, updateProperty }: CardProps) => {
+const Card = (props: CardProps) => {
+	const { columnID, cardID, itemPath, linkPath, title, otherProps, resourcePath, disabled, updateProperty } = props;
 	const previewImage = useMemo(() => getEmptyImage(), []);
 	const cardRef = useRef<HTMLDivElement>(null);
 	const { setLink, removeLink } = ArticleTooltipService.value;
@@ -35,31 +36,41 @@ const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, dis
 		}),
 	});
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		preview(previewImage, { captureDraggingState: true });
 	}, []);
 
 	const styles = useMemo(() => getStyles(isDragging), [isDragging]);
 
-	const onMouseEnter = (e: MouseEvent) => {
-		const target = e.target as HTMLElement;
-		if (target.closest(".chips")) return removeLink(resourcePath);
-		setLink(cardRef.current as HTMLElement, resourcePath);
-	};
+	const onMouseEnter = useCallback(
+		(e: MouseEvent) => {
+			const target = e.target as HTMLElement;
+			if (target.closest(".chips")) return removeLink(resourcePath);
+			setLink(cardRef.current as HTMLElement, resourcePath);
+		},
+		[removeLink, resourcePath, setLink],
+	);
 
-	const onDoubleClick = (e: MouseEvent) => {
-		const target = e.target as HTMLElement;
-		if (target.closest(".chips")) return;
-		linkPath && router.pushPath(linkPath);
-	};
+	const onDoubleClick = useCallback(
+		(e: MouseEvent) => {
+			const target = e.target as HTMLElement;
+			if (target.closest(".chips")) return;
+			linkPath && router.pushPath(linkPath);
+		},
+		[linkPath, router],
+	);
 
-	const onSubmit = (propertyName: string, value: string, isDelete?: boolean) => {
-		updateProperty(columnID, cardID, propertyName, value, isDelete);
-	};
+	const onSubmit = useCallback(
+		(propertyName: string, value: string, isDelete?: boolean) => {
+			updateProperty(columnID, itemPath, propertyName, value, isDelete);
+		},
+		[columnID, itemPath, updateProperty],
+	);
 
-	const removeLinkHandler = () => {
+	const removeLinkHandler = useCallback(() => {
 		removeLink(resourcePath);
-	};
+	}, [removeLink, resourcePath]);
 
 	return (
 		<CardPreview
@@ -79,4 +90,4 @@ const Card = ({ columnID, cardID, linkPath, title, otherProps, resourcePath, dis
 	);
 };
 
-export default Card;
+export default memo(Card);

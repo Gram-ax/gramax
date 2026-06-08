@@ -6,4 +6,9 @@ export default interface GitVersionData {
 	timestamp: number;
 	summary: string;
 	parents: string[];
+	stat: {
+		added: number;
+		deleted: number;
+		changedFiles?: { path: string; title?: string }[];
+	};
 }

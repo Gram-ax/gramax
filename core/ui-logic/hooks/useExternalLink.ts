@@ -27,4 +27,4 @@ const useExternalLink = (href: string): [boolean, string, (v: string) => void] =
 	return [isExternalLinkState, externalLink, updateLink];
 };
 
-export { useExternalLink, isExternalLink };
+export { isExternalLink, useExternalLink };

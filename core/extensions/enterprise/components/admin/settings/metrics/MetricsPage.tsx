@@ -9,7 +9,7 @@ import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
 import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const MetricsPage = () => {
 	const { settings, updateMetrics, ensureMetricsLoaded, getTabError, isInitialLoading, healthcheckDataProvider } =
@@ -27,14 +27,17 @@ const MetricsPage = () => {
 
 	const tabError = getTabError("metrics");
 
-	const handleToggle = async (enabled: boolean) => {
-		setIsSaving(true);
-		try {
-			await updateMetrics({ enabled });
-		} finally {
-			setIsSaving(false);
-		}
-	};
+	const handleToggle = useCallback(
+		async (enabled: boolean) => {
+			setIsSaving(true);
+			try {
+				await updateMetrics({ enabled });
+			} finally {
+				setIsSaving(false);
+			}
+		},
+		[updateMetrics],
+	);
 
 	if (isInitialLoading("metrics")) {
 		return <TabInitialLoader />;
@@ -44,6 +47,7 @@ const MetricsPage = () => {
 		return <TabErrorBlock message={tabError.message} onRetry={() => ensureMetricsLoaded()} />;
 	}
 	if (healthCheckLoader) return healthCheckLoader;
+
 	return (
 		<div className="flex flex-col h-full" style={{ height: "inherit" }}>
 			<StickyHeader
@@ -80,7 +84,7 @@ const MetricsPage = () => {
 				}
 			/>
 			{!localMetricsEnabled && (
-				<div className="flex items-center justify-center h-full px-6">
+				<div className="flex items-center justify-center h-full">
 					<p className="text-muted">Metrics are disabled. Enable them using the toggle above.</p>
 				</div>
 			)}

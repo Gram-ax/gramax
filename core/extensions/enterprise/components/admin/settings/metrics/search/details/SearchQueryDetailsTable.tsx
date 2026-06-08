@@ -80,7 +80,7 @@ const SearchQueryDetailsTableInner = ({
 			initialData={emptyInitialData}
 			responsive={false}
 			sorting={sorting}
-			title={`${t("metrics.search.query-details-title")} (${selectedQuery})`}
+			title={`${t("metrics.search.query-details-title")} (${selectedQuery ?? 0})`}
 		/>
 	);
 };

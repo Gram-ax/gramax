@@ -8,4 +8,4 @@ generated
 rustc-ice-*
 icons/*
 gen/android/app/src/main/res/mipmap*/ic_launcher*
-!icons/icon.png
+icons

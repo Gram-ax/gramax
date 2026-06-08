@@ -6,7 +6,8 @@ const TabsFormatter =
 	(formatter: FormatterType): NodeSerializerSpec =>
 	async (state, node) => {
 		node.attrs.childAttrs.map((attrs: TabAttrs, idx: number) => {
-			(node.child(idx).attrs as any) = attrs;
+			// biome-ignore lint/suspicious/noExplicitAny: i know it's a hack
+			(node.child(idx).attrs as any) = { ...attrs, property: node.child(idx).attrs.property };
 		});
 		state.write(`${formatter.openTag("tabs")}\n\n`);
 		await state.renderContent(node);

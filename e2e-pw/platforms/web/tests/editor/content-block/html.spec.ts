@@ -3,7 +3,7 @@ import { editorTest } from "@web/fixtures/editor.fixture";
 
 editorTest.describe("HTML", () => {
 	editorTest("create html component", async ({ editor, sharedPage }) => {
-		await editor.hoverToolbar("pencil-ruler");
+		await editor.clickToolbar("semiBlocks");
 		await sharedPage.getByRole("menuitem", { name: "HTML" }).click();
 		await editor.assertMarkdown(md`
 			<html>
@@ -16,7 +16,7 @@ editorTest.describe("HTML", () => {
 
 	editorTest("html in list", async ({ editor, sharedPage }) => {
 		await editor.press("Tab");
-		await editor.hoverToolbar("pencil-ruler");
+		await editor.clickToolbar("semiBlocks");
 		await sharedPage.getByRole("menuitem", { name: "HTML" }).click();
 		await editor.assertMarkdownContains("<html>");
 		await editor.assertMarkdownContains("</html>");

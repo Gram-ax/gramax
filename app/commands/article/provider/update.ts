@@ -4,7 +4,7 @@ import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
-import type ArticleProps from "@core-ui/ContextServices/ArticleProps";
+import type { ArticleProps } from "@core/FileStructue/Article/Article";
 import ArticleProvider, { type ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import type { JSONContent } from "@tiptap/react";
 

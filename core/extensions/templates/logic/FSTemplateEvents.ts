@@ -21,8 +21,6 @@ export default class FSTemplateEvents {
 
 	private _refs = [];
 
-	constructor() {}
-
 	mount(fs: FileStructure): void {
 		this._refs.push(fs.events.on("before-item-create", this._onBeforeItemCreate.bind(this)));
 		this._refs.push(fs.events.on("item-serialize", this._onItemSerialize.bind(this)));
@@ -99,14 +97,9 @@ export default class FSTemplateEvents {
 			const properties = mutable.props.properties || [];
 
 			for (const [bind, formatted] of mapNodes.entries()) {
-				const property = properties.findIndex((p) => p.name === bind);
-
-				property === -1
-					? properties.push({
-							name: bind,
-							value: [formatted],
-						})
-					: (properties[property].value = [formatted]);
+				const existing = properties.find((p) => p.id === bind);
+				if (existing) existing.value = [formatted];
+				else properties.push({ id: bind, value: [formatted] });
 			}
 
 			mutable.props.properties = properties;

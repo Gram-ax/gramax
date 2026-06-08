@@ -9,6 +9,14 @@ catalogTest.use({
 });
 
 catalogTest.describe("Saving Left Nav Tree State (read-only mode)", () => {
+	catalogTest.describe.configure({ mode: "serial" });
+
+	catalogTest.beforeEach(async ({ sharedPage, catalogPage }) => {
+		await sharedPage.evaluate(() => localStorage.removeItem("nav-tree-state"));
+		await sharedPage.reload();
+		await catalogPage.waitForLoad();
+	});
+
 	catalogTest("expanded state persists across page reload", async ({ catalogPage, sharedPage }) => {
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
 		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.locator('[title="Child Category"]') });
@@ -96,11 +104,14 @@ catalogTest.describe("Saving Left Nav Tree State (read-only mode)", () => {
 	});
 
 	catalogTest("state persists when navigating to a different article", async ({ catalogPage, sharedPage }) => {
+		await catalogPage.waitForLoad();
+
 		const leafArticle = sharedPage.getByTitle("Leaf Article");
 		const childCategoryItem = sharedPage.locator("a", { has: sharedPage.locator('[title="Child Category"]') });
 		const childCategoryChevron = childCategoryItem.locator(".angle");
 
 		// Expand child category
+		await expect(childCategoryChevron).toBeVisible();
 		await childCategoryChevron.click();
 		await expect(leafArticle).toBeVisible();
 

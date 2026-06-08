@@ -52,7 +52,7 @@ class StaticContentCopier {
 
 		await this._copyRootDirectoryAndLogos();
 		const zipFilename = await this._createArticlesZip();
-		await this._copySnippets();
+		await this._copyFragments();
 		await this._copyIcons();
 		await this._copyCatalogItemResources(catalogItems);
 
@@ -180,16 +180,16 @@ class StaticContentCopier {
 		return zipFilename;
 	}
 
-	private async _copySnippets() {
-		const snippets = await this._catalog.customProviders.snippetProvider.getItems<Article<ArticleProps>>(true);
-		const sortedSnippets = sortForDeterministicOrder(snippets, (snippet) => snippet.ref.path.value);
+	private async _copyFragments() {
+		const fragments = await this._catalog.customProviders.fragmentProvider.getItems<Article<ArticleProps>>(true);
+		const sortedFragments = sortForDeterministicOrder(fragments, (fragment) => fragment.ref.path.value);
 
-		for (const snippet of sortedSnippets) {
-			const path = snippet.ref.path;
+		for (const fragment of sortedFragments) {
+			const path = fragment.ref.path;
 			const targetPath = new Path(this._catalog.name).join(new Path(path.value.replace(this._folderPath, "")));
 			await this._helpers.copyFileFromWorkspace(path, targetPath);
 
-			await this._copyItemResources(snippet);
+			await this._copyItemResources(fragment);
 		}
 	}
 

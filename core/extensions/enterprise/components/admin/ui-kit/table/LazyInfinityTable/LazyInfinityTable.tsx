@@ -9,7 +9,7 @@ import { TableEmptyRow } from "@ext/enterprise/components/admin/ui-kit/table/Tab
 import { TableLoadingRow } from "@ext/enterprise/components/admin/ui-kit/table/TableLoadingRow";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { flexRender } from "@ui-kit/DataTable";
-import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
+import { LegacyScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@ui-kit/Table";
 import {
 	type DependencyList,
@@ -189,7 +189,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 
 	return (
 		<Div className="relative overflow-hidden flex flex-col max-h-full h-full w-full border rounded-md">
-			<ScrollShadowContainer
+			<LegacyScrollShadowContainer
 				className={cn("flex-1 overflow-y-auto max-h-full")}
 				onScrollCapture={() => fetchMoreOnBottomReached()}
 				ref={scrollContainerRef}
@@ -270,7 +270,7 @@ const LazyInfinityTableComponent = <T,>(props: LazyInfinityTableProps<T>) => {
 						</TableBody>
 					</Table>
 				</Wrapper>
-			</ScrollShadowContainer>
+			</LegacyScrollShadowContainer>
 		</Div>
 	);
 };

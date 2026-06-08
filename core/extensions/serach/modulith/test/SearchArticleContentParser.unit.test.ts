@@ -1,8 +1,10 @@
+import { initBackendModules } from "@app/resolveModule/backend";
 import DiagramType from "@core/components/Diagram/DiagramType";
 import type Path from "@core/FileProvider/Path/Path";
 import * as extractTextsMermaidModule from "@ext/serach/modulith/parsing/extractTextsMermaid";
+import * as plantUmlToSvgModule from "@ext/serach/modulith/parsing/plantUmlToSvg";
 import SearchArticleContentParser from "@ext/serach/modulith/parsing/SearchArticleContentParser";
-import { afterEach, it, jest } from "@jest/globals";
+import { afterEach, beforeAll, describe, expect, it, jest } from "@jest/globals";
 import type { JSONContent } from "@tiptap/core";
 import { SemVer } from "semver";
 import testModel1 from "./testModel1.json";
@@ -12,8 +14,12 @@ import testModel2Expected from "./testModel2Expected.json";
 import testModel3 from "./testModel3.json";
 import testModel3Expected from "./testModel3Expected.json";
 
-const getSnippetItems = (id: string) => {
-	throw new Error(`getSnippetItems attempt, id: ${id}`);
+beforeAll(async () => {
+	await initBackendModules();
+});
+
+const getFragmentItems = (id: string) => {
+	throw new Error(`getFragmentItems attempt, id: ${id}`);
 };
 
 const getPropertyValue = (id: string) => {
@@ -32,7 +38,7 @@ describe("SearchArticleContentParser", () => {
 	it("test testModel1", async () => {
 		const actual = await new SearchArticleContentParser({
 			items: testModel1.content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 		}).parse();
@@ -42,7 +48,7 @@ describe("SearchArticleContentParser", () => {
 	it("test testModel2", async () => {
 		const actual = await new SearchArticleContentParser({
 			items: testModel2.content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 		}).parse();
@@ -52,14 +58,14 @@ describe("SearchArticleContentParser", () => {
 	it("test testModel3", async () => {
 		const actual = await new SearchArticleContentParser({
 			items: testModel3.content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 		}).parse();
 		expect(actual).toEqual(testModel3Expected);
 	});
 
-	it("indexes mermaid display text as separate text items", async () => {
+	it("indexes mermaid as diagram item", async () => {
 		jest.spyOn(extractTextsMermaidModule, "extractTextsMermaid").mockResolvedValue(["Search", "Done"]);
 		const content: JSONContent[] = [
 			{
@@ -73,14 +79,20 @@ describe("SearchArticleContentParser", () => {
 		];
 		const actual = await new SearchArticleContentParser({
 			items: content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 		}).parse();
 		expect(actual).toEqual([
-			{ type: "text", text: "Flow" },
-			{ type: "text", text: "Search" },
-			{ type: "text", text: "Done" },
+			{
+				type: "diagram",
+				diagramType: DiagramType.mermaid,
+				title: "Flow",
+				items: [
+					{ type: "text", text: "Search" },
+					{ type: "text", text: "Done" },
+				],
+			},
 		]);
 	});
 
@@ -101,7 +113,7 @@ describe("SearchArticleContentParser", () => {
 		];
 		const actual = await new SearchArticleContentParser({
 			items: content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 			readResource,
@@ -109,13 +121,19 @@ describe("SearchArticleContentParser", () => {
 		expect(readResource).toHaveBeenCalledWith("./chart.mermaid");
 		expect(loadSpy).toHaveBeenCalledWith('pie title Items\n"A" : 3');
 		expect(actual).toEqual([
-			{ type: "text", text: "Fig" },
-			{ type: "text", text: "Pie" },
-			{ type: "text", text: "A" },
+			{
+				type: "diagram",
+				diagramType: DiagramType.mermaid,
+				title: "Fig",
+				items: [
+					{ type: "text", text: "Pie" },
+					{ type: "text", text: "A" },
+				],
+			},
 		]);
 	});
 
-	it("skips non-mermaid diagrams nodes", async () => {
+	it("skips plant-uml when diagramRendererServerUrl is not set", async () => {
 		const content: JSONContent[] = [
 			{
 				type: "diagrams",
@@ -127,11 +145,45 @@ describe("SearchArticleContentParser", () => {
 		];
 		const actual = await new SearchArticleContentParser({
 			items: content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 		}).parse();
 		expect(actual).toEqual([]);
+	});
+
+	it("indexes plant-uml as diagram item", async () => {
+		const plantUmlToSvgSpy = jest
+			.spyOn(plantUmlToSvgModule, "plantUmlToSvg")
+			.mockResolvedValue("<svg><text>Alice</text><text>Bob</text></svg>");
+		const content: JSONContent[] = [
+			{
+				type: "diagrams",
+				attrs: {
+					diagramName: DiagramType["plant-uml"],
+					content: "@startuml\nAlice -> Bob\n@enduml",
+				},
+			},
+		];
+		const actual = await new SearchArticleContentParser({
+			items: content,
+			getFragmentItems,
+			getPropertyValue,
+			getLinkId,
+			diagramRendererServerUrl: "random-url",
+		}).parse();
+		expect(plantUmlToSvgSpy).toHaveBeenCalledWith("@startuml\nAlice -> Bob\n@enduml", "random-url");
+		expect(actual).toEqual([
+			{
+				type: "diagram",
+				diagramType: DiagramType["plant-uml"],
+				title: "",
+				items: [
+					{ type: "text", text: "Alice" },
+					{ type: "text", text: "Bob" },
+				],
+			},
+		]);
 	});
 
 	it("remoteVersion stores diagram definition and does not extract display texts", async () => {
@@ -150,7 +202,7 @@ describe("SearchArticleContentParser", () => {
 		];
 		const actual = await new SearchArticleContentParser({
 			items: content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 			remoteVersion: new SemVer("0.0.6"),
@@ -193,7 +245,7 @@ describe("SearchArticleContentParser", () => {
 		];
 		const actual = await new SearchArticleContentParser({
 			items: content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 			readResource,
@@ -230,7 +282,7 @@ describe("SearchArticleContentParser", () => {
 		];
 		const actual = await new SearchArticleContentParser({
 			items: content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 			remoteVersion: new SemVer("0.0.7"),
@@ -246,7 +298,7 @@ describe("SearchArticleContentParser", () => {
 
 		const actual2 = await new SearchArticleContentParser({
 			items: content,
-			getSnippetItems,
+			getFragmentItems,
 			getPropertyValue,
 			getLinkId,
 			remoteVersion: new SemVer("0.1.6"),

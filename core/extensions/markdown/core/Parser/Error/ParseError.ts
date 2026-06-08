@@ -1,10 +1,13 @@
+import { getExecutingEnvironment } from "@app/resolveModule/env";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import ErrorType from "@ext/errorHandlers/model/ErrorTypes";
 import t from "@ext/localization/locale/translate";
 
 class ParseError extends DefaultError {
 	constructor(cause: Error) {
-		super(t("article.error.parse"), cause);
+		const isBrowser = getExecutingEnvironment() === "browser" || getExecutingEnvironment() === "tauri";
+		const key = isBrowser ? "article.error.parse.browser" : "article.error.parse.default";
+		super(t(key), cause, isBrowser ? { html: true } : undefined);
 		this.name = "ParseError";
 	}
 

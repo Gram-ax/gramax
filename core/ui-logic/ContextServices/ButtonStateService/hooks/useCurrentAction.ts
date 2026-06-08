@@ -1,3 +1,4 @@
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import OPEN_API_NAME from "@ext/markdown/elements/openApi/name";
 import type { Selection } from "@tiptap/pm/state";
 import { CellSelection } from "prosemirror-tables";
@@ -8,18 +9,19 @@ import type { Attrs, ButtonState, Mark, NodeType, NodeValues } from "./types";
 export const ListGroup = ["orderedList", "bulletList", "taskList"];
 export const BlockPlus = ["table", "cut", "tab", "tabs", "blockquote"];
 
-const BlockOutContent = ["drawio", "diagrams", "note", "image", "video", "code_block", "snippet", OPEN_API_NAME];
+const BlockOutContent = ["drawio", "diagrams", "note", "image", "video", "code_block", "fragment", OPEN_API_NAME];
 export const WrappableBlocks = ["note"];
 
 const disabledMarkRule: Record<Mark, Mark[]> = {
-	code: ["link", "file", "comment"],
-	comment: ["link", "file", "comment", "code"],
-	file: ["link", "file", "comment", "code"],
-	link: ["file", "comment", "code"],
+	code: ["link", "file", "comment", "fragment-link"],
+	comment: ["comment", "code", "fragment-link"],
+	file: ["link", "file", "comment", "code", "fragment-link"],
+	link: ["file", "comment", "code", "fragment-link"],
 	strong: ["code"],
 	em: ["code"],
 	s: [],
 	highlight: ["code"],
+	"fragment-link": ["link", "file", "comment", "code"],
 };
 
 const disableBlockBySelection = {
@@ -43,8 +45,6 @@ function changeResultByAction(activeNode: NodeType, buttonNode: NodeType, result
 		}
 	} else if (BlockPlus.includes(activeNode)) {
 		result.disabled = activeNode === buttonNode || buttonNode === "heading";
-	} else if (ListGroup.includes(activeNode) && buttonNode === "heading") {
-		result.disabled = true;
 	}
 }
 
@@ -124,8 +124,11 @@ export const getResultByActionData = (props: ResultByActionDataProps) => {
 
 const useCurrentAction = (currentNode: NodeValues) => {
 	const { actions, attrs, marks, selection } = useContext(ActionContext);
+	const isReadOnly = PageDataContext.value?.conf?.isReadOnly;
 
-	return getResultByActionData({ actions, attrs, marks, currentNode, selection });
+	const result = getResultByActionData({ actions, attrs, marks, currentNode, selection });
+	if (isReadOnly) result.disabled = true;
+	return result;
 };
 
 export default useCurrentAction;

@@ -34,4 +34,4 @@ export abstract class MenuItem implements MenuItemSDK {
 	}
 }
 
-export type { ModalProps, ModalInstance };
+export type { ModalInstance, ModalProps };

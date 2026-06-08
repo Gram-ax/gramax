@@ -1,6 +1,6 @@
 import ContextProviders from "@components/ContextProviders";
 import type { PageProps } from "@components/Pages/models/Pages";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import getPageTitle from "@core-ui/getPageTitle";
 import ErrorBoundary from "@ext/errorHandlers/client/components/ErrorBoundary";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";

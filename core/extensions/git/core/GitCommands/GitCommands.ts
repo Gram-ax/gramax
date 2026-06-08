@@ -16,11 +16,11 @@ import getUrlFromGitStorageData from "@ext/git/core/GitStorage/utils/getUrlFromG
 import type GitVersionData from "@ext/git/core/model/GitVersionData";
 import t from "@ext/localization/locale/translate";
 import { trace } from "@ext/loggers/opentelemetry";
+import type { VersionControlInfo } from "@ext/VersionControl/model/VersionControlInfo";
 import assert from "assert";
 import type FileProvider from "../../../../logic/FileProvider/model/FileProvider";
 import Path from "../../../../logic/FileProvider/Path/Path";
 import type SourceData from "../../../storage/logic/SourceDataProvider/model/SourceData";
-import type { VersionControlInfo } from "../../../VersionControl/model/VersionControlInfo";
 import type { GitBranch } from "../GitBranch/GitBranch";
 import type { GitStatus } from "../GitWatcher/model/GitStatus";
 import type GitSourceData from "../model/GitSourceData.schema";
@@ -37,10 +37,12 @@ import type {
 	DirStat,
 	FileStat,
 	GcOptions,
+	GetCommitInfoOpts,
 	MergeOptions,
 	RefInfo,
 	RemoteProgress,
 	ResetOptions,
+	StorageStats,
 	TreeReadScope,
 } from "./model/GitCommandsModel";
 
@@ -70,6 +72,10 @@ export class GitCommands {
 
 	get repoPath() {
 		return this._repoPath;
+	}
+
+	get absoluteRepoPath(): Path {
+		return this._fp.rootPath.join(this._repoPath);
 	}
 
 	get events() {
@@ -609,7 +615,7 @@ export class GitCommands {
 	}
 
 	@trace()
-	async getCommitInfo(oid: GitVersion, opts: { depth: number; simplify: boolean }): Promise<GitVersionData[]> {
+	async getCommitInfo(oid: GitVersion, opts: GetCommitInfoOpts): Promise<GitVersionData[]> {
 		try {
 			return await this._impl.getCommitInfo(oid.toString(), opts);
 		} catch (e) {
@@ -678,9 +684,25 @@ export class GitCommands {
 		}
 	}
 
+	async lfsPrune(): Promise<void> {
+		try {
+			return await this._impl.lfsPrune();
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
+	}
+
 	async healthcheck(): Promise<void> {
 		try {
 			return await this._impl.healthcheck();
+		} catch (e) {
+			throw getGitError(e, { repositoryPath: this._repoPath.value });
+		}
+	}
+
+	async storageStats(): Promise<StorageStats> {
+		try {
+			return await this._impl.storageStats();
 		} catch (e) {
 			throw getGitError(e, { repositoryPath: this._repoPath.value });
 		}

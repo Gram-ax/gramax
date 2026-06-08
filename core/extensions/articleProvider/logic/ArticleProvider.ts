@@ -34,8 +34,8 @@ export default class ArticleProvider {
 
 	public static getProvider(catalog: ContextualCatalog, type: ArticleProviderType) {
 		switch (type) {
-			case "snippet":
-				return catalog.customProviders.snippetProvider;
+			case "fragment":
+				return catalog.customProviders.fragmentProvider;
 			case "inbox":
 				return catalog.customProviders.inboxProvider;
 			case "template":
@@ -56,7 +56,7 @@ export default class ArticleProvider {
 		ctx: Context,
 		props: ArticleProps,
 	): Promise<Article<ArticleProps>> {
-		const article = this._createArticle(this._formatPath(id), props, new Date().getTime(), "\n\n");
+		const article = this._createArticle(this._formatPath(id), props, Date.now(), "\n\n");
 		this._setArticle(article);
 
 		await this.updateContent(id, editTree, formatter, parserContextFactory, parser, ctx);
@@ -217,19 +217,14 @@ export default class ArticleProvider {
 	}
 
 	private _formatPath(id: ItemID) {
-		return this._rootPath.join(new Path(id + ".md"));
+		return this._rootPath.join(new Path(`${id}.md`));
 	}
 
 	private _setArticle(article: Article<ArticleProps>) {
 		this._articles.set(article.ref.path.name, article);
 	}
 
-	private _createArticle(
-		path: Path,
-		props: ArticleProps,
-		lastModified: number = new Date().getTime(),
-		content?: string,
-	) {
+	private _createArticle(path: Path, props: ArticleProps, lastModified: number = Date.now(), content?: string) {
 		return new Article({
 			ref: this._fs.fp.getItemRef(path),
 			parent: null,
@@ -241,7 +236,7 @@ export default class ArticleProvider {
 		});
 	}
 
-	protected _createItem<T = any>(item: Article<ArticleProps>): T | Promise<T> {
+	protected _createItem<T>(item: Article<ArticleProps>): T | Promise<T> {
 		return {
 			id: item.ref.path.name,
 			title: item.props.title ?? "",

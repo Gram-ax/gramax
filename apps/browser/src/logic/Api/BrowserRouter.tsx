@@ -41,9 +41,9 @@ export default class BrowserRouter extends Router {
 		return this;
 	}
 
-	pushPath(path: string): this {
+	pushPath(path: string, query?: Query, options?: { replace?: boolean }): this {
 		const transformed = this._transform(path);
-		this._setPath(transformed);
+		this._setPath(Url.fromBasePath("", transformed, query).toString(), options);
 		return this;
 	}
 

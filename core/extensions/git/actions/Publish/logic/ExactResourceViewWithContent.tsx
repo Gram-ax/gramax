@@ -1,11 +1,9 @@
 import Divider from "@components/Atoms/Divider";
 import DiffFileInput from "@components/Atoms/FileInput/DiffFileInput/DiffFileInput";
+import FileInput from "@components/Atoms/FileInput/FileInput";
 import Path from "@core/FileProvider/Path/Path";
 import getStringByteSize from "@core/utils/getStringByteSize";
 import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
-import ArticleViewService from "@core-ui/ContextServices/views/articleView/ArticleViewService";
-import useRestoreRightSidebar from "@core-ui/hooks/diff/useRestoreRightSidebar";
-import useSetupRightNavCloseHandler from "@core-ui/hooks/diff/useSetupRightNavCloseHandler";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import ArticleContextWrapper from "@core-ui/ScopedContextWrapper/ArticleContextWrapper";
 import CatalogContextWrapper from "@core-ui/ScopedContextWrapper/CatalogContextWrapper";
@@ -15,14 +13,11 @@ import styled from "@emotion/styled";
 import { OpenUnknownFile } from "@ext/git/actions/Publish/components/OpenUnknownFile";
 import { useResourceViewResolver } from "@ext/git/actions/Publish/logic/useResourceViewResolver";
 import { DOCUMENT_SIZE_LIMIT_BYTES } from "@ext/git/actions/Publish/model/consts";
+import { useDiffViewMode } from "@ext/git/core/Diff/components/store/DiffViewModeStore";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import t from "@ext/localization/locale/translate";
-import RenderDiffBottomBarInBody from "@ext/markdown/elements/diff/components/RenderDiffBottomBarInBody";
-import { updateDiffViewMode, useDiffViewMode } from "@ext/markdown/elements/diff/components/store/DiffViewModeStore";
-import NavigationEvents from "@ext/navigation/NavigationEvents";
 import type { DiffFilePaths } from "@ext/VersionControl/model/Diff";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
-import { useEffect, useLayoutEffect, useState } from "react";
 
 export type ResourceType = "image" | "diagram" | "text" | "unknown";
 
@@ -42,6 +37,7 @@ interface ResourceDiffViewProps {
 	newContent: string;
 	oldContent: string;
 	filePath: DiffFilePaths;
+	status: FileStatus;
 	isTextTooLarge?: boolean;
 }
 
@@ -162,6 +158,7 @@ const ExactResourceViewWithContent = (props: UseResourceArticleViewType) => {
 			key={filePath.path}
 			newContent={newContent}
 			oldContent={oldContent}
+			status={status}
 			type={type}
 		>
 			{element && (
@@ -256,41 +253,10 @@ const DiffMessage = ({ children, resourcePath }: { children: JSX.Element; resour
 };
 
 const ResourceDiffView = (props: ResourceDiffViewProps) => {
-	const { children, type, newContent, oldContent, filePath, isTextTooLarge } = props;
-	const diffViewService = useDiffViewMode();
-	const [diffView, setDiffView] = useState(diffViewService);
-	const hasContent = !!oldContent || !!newContent;
+	const { children, type, newContent, oldContent, filePath, status, isTextTooLarge } = props;
+	const diffView = useDiffViewMode();
 
 	const isWysiwyg = diffView === "wysiwyg-single" || diffView === "wysiwyg-double";
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
-	useLayoutEffect(() => {
-		if (type === "text" && isWysiwyg) setDiffView("single-panel");
-		if (type === "image" && !hasContent) setDiffView("wysiwyg-single");
-	}, []);
-
-	const setupRightNavCloseHandler = useSetupRightNavCloseHandler();
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
-	useEffect(() => {
-		setupRightNavCloseHandler();
-	}, []);
-
-	const restoreRightSidebar = useRestoreRightSidebar();
-
-	useEffect(() => {
-		const listener = () => {
-			restoreRightSidebar();
-			ArticleViewService.setDefaultView();
-			refreshPage();
-		};
-
-		const token = NavigationEvents.on("item-click", listener);
-
-		return () => {
-			NavigationEvents.off(token);
-		};
-	}, [restoreRightSidebar]);
 
 	const resourceView = () => {
 		if (isTextTooLarge)
@@ -298,6 +264,22 @@ const ResourceDiffView = (props: ResourceDiffViewProps) => {
 		if (type === "unknown")
 			return <DiffMessage resourcePath={filePath?.path}>{t("diff.unknown-extension")}</DiffMessage>;
 		if (isWysiwyg) return children;
+		if (status === FileStatus.delete || status === FileStatus.new)
+			return (
+				<FileInput
+					height="100vh"
+					onMount={(editor) => {
+						// https://github.com/microsoft/monaco-editor/issues/4448
+						editor.updateOptions({ glyphMargin: false });
+					}}
+					options={{
+						readOnly: true,
+						glyphMargin: false,
+					}}
+					style={{ padding: "0" }}
+					value={oldContent}
+				/>
+			);
 		return (
 			<DiffFileInput
 				containerStyles={{ padding: "0" }}
@@ -318,24 +300,7 @@ const ResourceDiffView = (props: ResourceDiffViewProps) => {
 		);
 	};
 
-	return (
-		<>
-			{resourceView()}
-			<RenderDiffBottomBarInBody
-				diffViewMode={diffView}
-				filePath={filePath}
-				hasWysiwyg={type !== "text" && type !== "unknown"}
-				newRevision={null}
-				oldRevision={null}
-				onDiffViewPick={(mode) => {
-					setDiffView(mode);
-					updateDiffViewMode(mode);
-				}}
-				showDiffViewChanger={hasContent && !isTextTooLarge && type !== "unknown"}
-				title={null}
-			/>
-		</>
-	);
+	return resourceView();
 };
 
 export default ExactResourceViewWithContent;

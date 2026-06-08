@@ -19,11 +19,11 @@ export default class ServerAuthManager extends AuthManager {
 	protected _usersEnterprisePermissionInfo: Record<string, EnterpriseInfo> = {};
 
 	constructor(
-		em: EnterpriseManager,
+		private _em: EnterpriseManager,
 		private _ap: AuthProvider,
 		private _ticketManager: TicketManager,
 	) {
-		super(em);
+		super();
 	}
 
 	async login(req: ApiRequest, res: ApiResponse) {

@@ -7,12 +7,13 @@ import type { WordBlockChild } from "@ext/wordExport/options/WordTypes";
 
 export const viewWordLayout: WordBlockChild = async ({ tag, wordRenderContext }) => {
 	const item = wordRenderContext.parserContext.getArticle();
+	const attrs = "attributes" in tag ? tag.attributes : tag.attrs;
 
-	const defs = tag.attributes.defs || [];
-	const orderby = tag.attributes.orderby || [];
-	const groupby = tag.attributes.groupby || [];
-	const select = tag.attributes.select || [];
-	const display = tag.attributes.display === Display.Kanban ? Display.List : tag.attributes.display;
+	const defs = attrs.defs || [];
+	const orderby = attrs.orderby || [];
+	const groupby = attrs.groupby || [];
+	const select = attrs.select || [];
+	const display = attrs.display === Display.Kanban ? Display.List : attrs.display;
 
 	const catalogItems = wordRenderContext.catalog.deref.getItems(wordRenderContext.itemsFilter) as Article[];
 

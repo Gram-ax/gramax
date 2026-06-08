@@ -7,6 +7,8 @@ import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
 import EnterpriseApi from "@ext/enterprise/EnterpriseApi";
 import { getEnterpriseSourceData } from "@ext/enterprise/utils/getEnterpriseSourceData";
+import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
+import NullRepository from "@ext/git/core/Repository/NullRepository";
 import { getArticleId, getTestId } from "@ext/quiz/logic/getIds";
 import { getQuizResult } from "@ext/quiz/logic/getQuizResult";
 import type { StoredQuizResult } from "@ext/quiz/models/types";
@@ -25,7 +27,7 @@ const getTestResult: Command<{ ctx: Context; catalogName: string; articlePath: P
 			const workspace = wm.current();
 			const config = await workspace.config();
 
-			if (!config.enterprise?.gesUrl && !config.gesUrl) return null;
+			if (!config.enterprise?.gesUrl) return null;
 			if (!config.enterprise?.modules?.quiz) return null;
 
 			const catalog = await workspace.getCatalog(catalogName, ctx);
@@ -34,8 +36,9 @@ const getTestResult: Command<{ ctx: Context; catalogName: string; articlePath: P
 			const article = catalog.findItemByItemPath<Article>(articlePath);
 			if (!article) return null;
 
+			if (catalog.repo instanceof NullRepository || catalog.repo instanceof BrokenRepository) return null;
 			const gvc = catalog.repo.gvc;
-			if (!gvc) return null;
+			if (gvc) return null;
 
 			const gesUrl = config.enterprise?.gesUrl;
 			const sourceDatas = this._app.rp.getSourceDatas(ctx, workspace.path());

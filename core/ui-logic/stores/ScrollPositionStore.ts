@@ -6,14 +6,17 @@ interface ScrollPositionMap {
 
 interface ScrollPositionStore {
 	positions: ScrollPositionMap;
+	isProgrammaticScroll: boolean;
 	setPosition: (articlePath: string, position: number) => void;
 	getPosition: (articlePath: string) => number | undefined;
 	clearPosition: (articlePath: string) => void;
 	clearAll: () => void;
+	setProgrammaticScroll: (value: boolean) => void;
 }
 
 export const useScrollPositionStore = create<ScrollPositionStore>((set, get) => ({
 	positions: {},
+	isProgrammaticScroll: false,
 
 	setPosition: (articlePath: string, position: number) => {
 		set((state) => ({
@@ -34,5 +37,9 @@ export const useScrollPositionStore = create<ScrollPositionStore>((set, get) => 
 
 	clearAll: () => {
 		set({ positions: {} });
+	},
+
+	setProgrammaticScroll: (value: boolean) => {
+		set({ isProgrammaticScroll: value });
 	},
 }));

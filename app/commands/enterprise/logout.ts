@@ -25,7 +25,7 @@ const logout: Command<{ ctx: Context; id: WorkspacePath }, void> = Command.creat
 		const sourceDatas = this._app.rp.getSourceDatas(ctx, id);
 		const enterpriseSource = getEnterpriseSourceData(sourceDatas, gesUrl);
 
-		if (enterpriseSource) await new EnterpriseApi(gesUrl).logout(enterpriseSource.token);
+		await new EnterpriseApi(gesUrl).logout(enterpriseSource.token);
 
 		const isTauri = getExecutingEnvironment() === "tauri";
 		await this._commands.storage.removeSourceData.do({

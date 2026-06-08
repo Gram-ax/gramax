@@ -7,6 +7,7 @@ import type ResourceManager from "@core/Resource/ResourceManager";
 import { resolveLanguage } from "@ext/localization/core/model/Language";
 import type MarkdownParser from "@ext/markdown/core/Parser/Parser";
 import type ParserContextFactory from "@ext/markdown/core/Parser/ParserContext/ParserContextFactory";
+import type { PropertyValue } from "@ext/properties/models";
 import { getArticleId, getResourceArticleId } from "@ext/serach/modulith/parsing/getArticleId";
 import SearchArticleContentParser from "@ext/serach/modulith/parsing/SearchArticleContentParser";
 import {
@@ -20,10 +21,9 @@ import type {
 } from "@ext/serach/modulith/SearchArticle";
 import type { FoundArticle } from "@ext/serach/modulith/search/ModulithSearchClient";
 import { getLang } from "@ext/serach/modulith/utils/getLang";
-import { getValidCatalogItems } from "@ext/serach/modulith/utils/getValidCatalogItems";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
-import type { Article as ModulithArticle } from "@ics/modulith-search-domain/article";
-import { AggregateProgress, type MultiLock, type ProgressCallback } from "@ics/modulith-utils";
+import type { Article as ModulithArticle } from "@ics/article-search/article";
+import { AggregateProgress, type MultiLock, type ProgressCallback } from "@ics/article-search-utils";
 import type { SemVer } from "semver";
 
 export type ResourcesInfo = {
@@ -49,6 +49,8 @@ export class SearchArticleParser {
 	async getSearchArticles(
 		wsPath: WorkspacePath,
 		catalog: ReadonlyCatalog,
+		articles: Article[],
+		withResources: boolean,
 		withRemote?: boolean,
 		progressCallback?: ProgressCallback,
 	): Promise<{
@@ -56,7 +58,6 @@ export class SearchArticleParser {
 		resourcesInfo: ResourcesInfo[];
 		remoteSearchArticles?: SearchArticle[];
 	}> {
-		const articles = getValidCatalogItems(catalog);
 		const searchArticlesByPath: Map<string, SearchArticle> = new Map();
 		const remoteSearchArticlesByPath: Map<string, SearchArticle> | undefined = new Map();
 		const resourcesInfo: ResourcesInfo[] = [];
@@ -73,6 +74,7 @@ export class SearchArticleParser {
 				wsPath,
 				catalog,
 				article,
+				withResources && this._options.resourceParseClient != null,
 				withRemote,
 				aggProgress.getProgressCallback(i),
 			);
@@ -192,6 +194,7 @@ export class SearchArticleParser {
 		wsPath: WorkspacePath,
 		catalog: ReadonlyCatalog,
 		article: Article,
+		withResources: boolean,
 		withRemote?: boolean,
 		progressCallback?: ProgressCallback,
 	): Promise<{
@@ -209,6 +212,7 @@ export class SearchArticleParser {
 			title,
 			parsedContent,
 			catalog,
+			withResources,
 			false,
 			progressCallback,
 		);
@@ -219,7 +223,18 @@ export class SearchArticleParser {
 		//   so user can search by diagram display text
 		const remoteSearchArticle =
 			withRemote === true
-				? (await this._parseItem(wsPath, article, title, parsedContent, catalog, true, undefined)).searchArticle
+				? (
+						await this._parseItem(
+							wsPath,
+							article,
+							title,
+							parsedContent,
+							catalog,
+							withResources,
+							true,
+							undefined,
+						)
+					).searchArticle
 				: undefined;
 
 		return { searchArticle, remoteSearchArticle, parsedContent, resources };
@@ -231,24 +246,25 @@ export class SearchArticleParser {
 		title: string,
 		parsedContent: Content | undefined,
 		catalog: ReadonlyCatalog,
+		withResources: boolean,
 		forRemote?: boolean,
 		progressCallback?: ProgressCallback,
 	): Promise<{ searchArticle: ModulithArticle<SearchArticleArticleMetadata>; resources: Path[] }> {
 		const resources: Path[] = [];
 
-		const getSnippetItems = async (id: string) => {
-			const snippetContent = catalog.customProviders.snippetProvider.getArticle(id)?.parsedContent;
-			if (!snippetContent) return undefined;
-			return (await snippetContent.read())?.editTree?.content ?? undefined;
+		const getFragmentItems = async (id: string) => {
+			const fragmentContent = catalog.customProviders.fragmentProvider.getArticle(id)?.parsedContent;
+			if (!fragmentContent) return undefined;
+			return (await fragmentContent.read())?.editTree?.content ?? undefined;
 		};
 
 		const getPropertyValue = (id: string) => {
-			const prop = article.props?.properties?.find((x) => x.name === id);
+			const prop = article.props?.properties?.find((x) => x.id === id);
 			return prop?.value?.join(", ");
 		};
 
 		const getLinkId = (fileName: Path) => {
-			if (!isResourceParseFormat(fileName.extension) || !this._options.resourceParseClient) {
+			if (!isResourceParseFormat(fileName.extension) || !withResources) {
 				return undefined;
 			}
 
@@ -275,7 +291,7 @@ export class SearchArticleParser {
 			items: parsedContent
 				? await new SearchArticleContentParser({
 						items: parsedContent.editTree.content,
-						getSnippetItems,
+						getFragmentItems,
 						getPropertyValue,
 						getLinkId,
 						readResource,
@@ -290,9 +306,7 @@ export class SearchArticleParser {
 				logicPath: article.logicPath,
 				wsPath,
 				lang: getLang(article.logicPath, catalog.props.language),
-				properties: article.props.properties
-					? Object.fromEntries(article.props.properties.map((x) => [x.name, x.value ?? true]))
-					: {},
+				properties: convertProperties(article.props.properties),
 			},
 		};
 
@@ -317,3 +331,12 @@ export class SearchArticleParser {
 		}
 	}
 }
+
+const convertProperties = (properties: PropertyValue[] | undefined) => {
+	if (!properties) return {};
+	return Object.fromEntries(properties.map((x) => [x.id, isEmptyArray(x.value) ? true : (x.value ?? true)]));
+};
+
+const isEmptyArray = (value: unknown) => {
+	return Array.isArray(value) && value.length === 0;
+};

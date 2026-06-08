@@ -10,6 +10,7 @@ import { ScrollShadowContainer } from "@ui-kit/ScrollShadowContainer";
 import { useCallback, useContext, useEffect, useRef } from "react";
 
 interface CommentProps {
+	commentId: string;
 	data: CommentBlock;
 	user: CommentUser;
 	onClose: () => void;
@@ -20,7 +21,16 @@ interface CommentProps {
 }
 
 export const Comment = (props: CommentProps) => {
-	const { data, user, onClose, onDelete, onCreate, onAddAnswer, onDeleteAnswer: onDeleteAnswerProp } = props;
+	const {
+		commentId,
+		data,
+		user,
+		onClose,
+		onDelete,
+		onCreate,
+		onAddAnswer,
+		onDeleteAnswer: onDeleteAnswerProp,
+	} = props;
 	const dataRef = useRef<CommentBlock>(data);
 	const scrollShadowContainerRef = useRef<HTMLDivElement>(null);
 	const isNewComment = !data?.comment;
@@ -122,7 +132,7 @@ export const Comment = (props: CommentProps) => {
 
 	return (
 		<CommentContent ref={containerRef}>
-			<CommentHeader onClose={onClose} onResolve={onDelete} renderDeleteIcon={isEditable} />
+			<CommentHeader commentId={commentId} onClose={onClose} onResolve={onDelete} renderDeleteIcon={isEditable} />
 			<ScrollShadowContainer className="scroll-area" ref={scrollShadowContainerRef}>
 				<div className="px-1 py-1">
 					{data.comment && (

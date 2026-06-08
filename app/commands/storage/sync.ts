@@ -1,5 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
-import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
+import { NetworkConnectMiddleware } from "@core/Api/middleware/NetworkConnectMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import type { Article } from "@core/FileStructue/Article/Article";
@@ -17,7 +17,7 @@ const sync: Command<{ ctx: Context; catalogName: string; articlePath: Path }, Cl
 
 	kind: ResponseKind.json,
 
-	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
+	middlewares: [new NetworkConnectMiddleware(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
 
 	async do({ ctx, catalogName, articlePath }) {
 		const { wm, rp, logger, sitePresenterFactory } = this._app;

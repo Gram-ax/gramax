@@ -1,6 +1,7 @@
 import Caption from "@components/Atoms/Caption";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import type { ImageObject } from "@ext/markdown/elements/image/edit/model/imageEditorTypes";
 import {
 	type ComponentProps,
@@ -28,6 +29,7 @@ interface ImageProps extends DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElemen
 const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageElement>) => {
 	const { id, src, alt, title, className, realSrc, objects, modalStyle, modalTitle, modalEdit, onLoad, onError } =
 		props;
+	const { id: resourceId, provider: resourceProvider } = ResourceService.value;
 
 	const onClick = useCallback(() => {
 		ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
@@ -35,6 +37,8 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 			src: src,
 			title: modalTitle,
 			downloadSrc: realSrc,
+			resourceId,
+			resourceProvider,
 			openedElement: ref,
 			objects: objects ?? [],
 			modalEdit: modalEdit,
@@ -43,7 +47,7 @@ const Image = forwardRef((props: ImageProps, ref?: MutableRefObject<HTMLImageEle
 				ModalToOpenService.resetValue();
 			},
 		});
-	}, [src, modalTitle, realSrc, objects, modalEdit, modalStyle]);
+	}, [src, modalTitle, realSrc, resourceId, resourceProvider, ref, objects, modalEdit, modalStyle]);
 
 	const { onDoubleClick } = useDoubleTap({
 		onDoubleTap: onClick,

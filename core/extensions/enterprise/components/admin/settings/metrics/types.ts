@@ -77,3 +77,15 @@ export interface TableDataResponse {
 	hasMore: boolean;
 	nextCursor: number | null;
 }
+
+export interface MetricsUsersResponse {
+	users: string[];
+	hasMore: boolean;
+	nextCursor: number | null;
+}
+
+export interface MetricsCatalogsResponse {
+	catalogs: string[];
+	hasMore: boolean;
+	nextCursor: number | null;
+}

@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/useNamingConvention: it`s tests file */
+/** biome-ignore-all lint/suspicious/noExplicitAny: it`s tests file */
 import type { WordSerializerState } from "@ext/wordExport/WordExportState";
 import { WordTableExport } from "./WordTableExport";
 
@@ -106,36 +108,30 @@ const createTableTag = () =>
 	({
 		name: "table",
 		attributes: {},
-		children: [
+		content: [
 			{
-				name: "tbody",
+				name: "tableRow",
 				attributes: {},
-				children: [
+				content: [
 					{
-						name: "tr",
-						attributes: {},
-						children: [
+						type: "tableCell",
+						attrs: { colwidth: [400] },
+						content: [
 							{
-								type: "tableCell",
-								attrs: { colwidth: [400] },
-								content: [
-									{
-										name: "Image",
-										attributes: {},
-										children: [],
-									},
-								],
+								name: "Image",
+								attributes: {},
+								children: [],
 							},
+						],
+					},
+					{
+						type: "tableCell",
+						attrs: { colwidth: [400] },
+						content: [
 							{
-								type: "tableCell",
-								attrs: { colwidth: [400] },
-								content: [
-									{
-										name: "p",
-										attributes: {},
-										children: ["content"],
-									},
-								],
+								name: "p",
+								attributes: {},
+								children: ["content"],
 							},
 						],
 					},

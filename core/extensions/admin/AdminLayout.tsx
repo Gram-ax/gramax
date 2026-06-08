@@ -23,7 +23,10 @@ const AdminLoginLayout = () => {
 	const isLogged = PageDataContextService.value.isLogged;
 	const gesUrl = PageDataContextService.value.conf.enterprise.gesUrl;
 	const router = useRouter();
-	const redirectCallback = useCallback(() => router.pushPath("/"), [router]);
+	const redirectCallback = useCallback(async () => {
+		await router.pushPath("/");
+		location.reload();
+	}, [router]);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -31,12 +34,12 @@ const AdminLoginLayout = () => {
 	});
 
 	useEffect(() => {
-		if (isLogged || gesUrl) redirectCallback();
+		if (isLogged || gesUrl) void redirectCallback();
 	}, []);
 
 	const onSubmit = useCallback(
 		(e: FormEvent<HTMLFormElement>) => {
-			form.handleSubmit(async (data) => {
+			void form.handleSubmit(async (data) => {
 				const res = await FetchService.fetch(
 					apiUrlCreator.getAuthUrl(router, isLogged),
 					JSON.stringify(data),
@@ -45,7 +48,7 @@ const AdminLoginLayout = () => {
 					false,
 				);
 
-				if (res.ok) redirectCallback();
+				if (res.ok) void redirectCallback();
 				else {
 					form.setError("password", {
 						message: t("forms.admin-login-props.validationErrors.wrongLoginOrPassword"),
@@ -65,7 +68,7 @@ const AdminLoginLayout = () => {
 					<form className="contents ui-kit" onSubmit={onSubmit}>
 						<div className="form-layout" data-testid="modal">
 							<h2>
-								<FormHeaderBase className="font-sans text-xl font-medium tracking-tight text-primary-fg">
+								<FormHeaderBase className="text-xl font-medium tracking-tight text-primary-fg">
 									{t("forms.admin-login-props.name")}
 								</FormHeaderBase>
 							</h2>

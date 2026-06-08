@@ -25,6 +25,7 @@ export class ModulithSearcher implements Searcher {
 		propertyFilter,
 		resourceFilter,
 		articlesLanguage,
+		catalogNames,
 	}: SearchArgs): Promise<SearchResult[]> {
 		return (
 			await this._searchImpl({
@@ -32,6 +33,7 @@ export class ModulithSearcher implements Searcher {
 					{
 						query,
 						articleRefPaths,
+						catalogNames,
 						propertyFilter,
 						resourceFilter,
 						articlesLanguage,

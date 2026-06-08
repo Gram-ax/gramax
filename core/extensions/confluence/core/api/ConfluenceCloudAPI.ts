@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
@@ -16,6 +17,11 @@ export default class ConfluenceCloudAPI implements ConfluenceAPI {
 		protected _data: ConfluenceCloudSourceData,
 		private _authServiceUrl?: string,
 	) {}
+
+	async healthcheck(): Promise<boolean> {
+		const res = await this.getUser();
+		return !!res;
+	}
 
 	async getInstanceData(): Promise<ConfluenceInstance> {
 		const res = await this._api("oauth/token/accessible-resources");
@@ -146,7 +152,7 @@ export default class ConfluenceCloudAPI implements ConfluenceAPI {
 	async isCredentialsValid() {
 		try {
 			const res = await this._api(`oauth/token/accessible-resources`);
-			if (res.status == 401 || res.status == 403) return false;
+			if (res.status === 401 || res.status === 403) return false;
 		} catch {
 			/* empty */
 		}
@@ -220,7 +226,7 @@ export default class ConfluenceCloudAPI implements ConfluenceAPI {
 			headers: { ...(init?.headers ?? {}), Authorization: `Bearer ${this._data.token}` },
 		});
 		if (!res.ok) {
-			if (res.status == 401) return { status: 401 } as any;
+			if (res.status === 401) return { status: 401 } as any;
 			console.error(`Failed to fetch: ${res.status} ${res.statusText}`);
 			return { ok: false } as any;
 		}

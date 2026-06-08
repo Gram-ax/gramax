@@ -7,6 +7,7 @@ export const GRAMAX_DIRECTORY = ".gramax" as const;
 export const INBOX_DIRECTORY = "inbox" as const;
 export const PROMPT_DIRECTORY = "prompt" as const;
 export const TEMPLATES_DIRECTORY = "templates" as const;
+export const FRAGMENTS_DIRECTORY = "fragments" as const;
 export const SNIPPETS_DIRECTORY = "snippets" as const;
 
 export const OPEN_MERGE_REQUEST_FILE = "open.yaml" as const;
@@ -15,11 +16,22 @@ export const OPEN_MERGE_REQUEST_PATH = MERGE_REQUEST_DIRECTORY_PATH.join(new Pat
 export const ARCHIVE_MERGE_REQUEST_PATH = MERGE_REQUEST_DIRECTORY_PATH.join(new Path("archive"));
 
 export const DOC_ROOT_FILENAME = ".doc-root.yaml";
+export const DOC_ROOT_FILENAMES = [
+	".doc-root.yaml",
+	".docroot.yaml",
+	".doc-root.yml",
+	".docroot.yml",
+	"doc-root.yaml",
+	"docroot.yaml",
+	"doc-root.yml",
+	"docroot.yml",
+] as const;
 export const DOC_ROOT_REGEXP = /.(doc-)?root.ya?ml/;
 
 export const NEW_CATALOG_NAME = "new-catalog";
 
 export const CATEGORY_ROOT_FILENAME = "_index.md";
+export const CATEGORY_ROOT_FILENAMES = ["_index.md"] as const;
 export const CATEGORY_ROOT_REGEXP = /(_index_\w\w\.md$|_index\.md$)/;
 
 export const NEW_ARTICLE_FILENAME = "new-article";

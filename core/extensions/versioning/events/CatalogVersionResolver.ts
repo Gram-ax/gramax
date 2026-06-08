@@ -18,7 +18,7 @@ export default class CatalogVersionResolver implements EventHandlerCollection {
 	) {}
 
 	mount(): void {
-		if (getExecutingEnvironment() !== "next") return; // todo: add support in editor
+		if (!["next", "tauri", "browser"].includes(getExecutingEnvironment())) return;
 
 		this._workspace.events.on("on-catalog-resolve", async ({ mutableCatalog, metadata }) => {
 			const refname = metadata;
@@ -28,7 +28,7 @@ export default class CatalogVersionResolver implements EventHandlerCollection {
 
 			const gvc = mutableCatalog.catalog?.repo?.gvc;
 			if (!gvc) return;
-			if (!mutableCatalog.catalog.props.resolvedVersions?.find((t) => t.encodedName == refname)) return;
+			if (!mutableCatalog.catalog.props.resolvedVersions?.find((t) => t.encodedName === refname)) return;
 
 			const versions = this._catalogs.get(mutableCatalog.catalog);
 			if (versions) {
@@ -43,12 +43,12 @@ export default class CatalogVersionResolver implements EventHandlerCollection {
 
 			if (!mutableEntry.entry) {
 				const split = name?.split("/");
-				if (split?.length == 2) mutableEntry.entry = await this._workspace.getContextlessCatalog(split[0]);
+				if (split?.length === 2) mutableEntry.entry = await this._workspace.getContextlessCatalog(split[0]);
 			}
 
 			const gvc = mutableEntry.entry?.repo?.gvc;
 			if (!gvc) return;
-			if (!mutableEntry.entry.props.resolvedVersions?.find((t) => t.encodedName == refname)) return;
+			if (!mutableEntry.entry.props.resolvedVersions?.find((t) => t.encodedName === refname)) return;
 
 			// Catalog versions are only loaded if the catalog itself is loaded.
 			// As long as Catalog.load() returns this and the reference will be the same, this will work

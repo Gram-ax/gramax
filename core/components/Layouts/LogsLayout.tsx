@@ -1,3 +1,4 @@
+import { cn } from "@core-ui/utils/cn";
 import styled from "@emotion/styled";
 import type { CSSProperties } from "react";
 
@@ -16,9 +17,9 @@ const LogsLayout = styled(
 		className?: string;
 	}) => {
 		return show ? (
-			<div className={"logs-layout " + className} style={style}>
+			<div className={cn("logs-layout", className)} style={style}>
 				{title ? (
-					<div className="logs-title article">
+					<div className="logs-title article bg-transparent">
 						<h2>{title}</h2>
 					</div>
 				) : null}

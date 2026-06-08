@@ -11,4 +11,4 @@ const HTMLOrderedList = (props: { children?: React.ReactNode }) => (
 	<ol data-component="ordered-list">{props.children}</ol>
 );
 
-export { HTMLLi, HTMLListItem, HTMLTaskItem, HTMLBulletList, HTMLTaskList, HTMLOrderedList };
+export { HTMLBulletList, HTMLLi, HTMLListItem, HTMLOrderedList, HTMLTaskItem, HTMLTaskList };

@@ -1,6 +1,6 @@
-import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
+import type { PreTransformerFunc } from "@ext/markdown/core/Parser/Transformer/preTransformTokens";
 
-const htmlTransform = (tokens: Token[]) => {
+const htmlTransform: PreTransformerFunc = ({ tokens }) => {
 	let idx = 0;
 	while (idx < tokens.length) {
 		const token = tokens[idx];
@@ -17,6 +17,7 @@ const htmlTransform = (tokens: Token[]) => {
 				nextID++;
 			}
 
+			// biome-ignore lint/suspicious/noExplicitAny: expected
 			(tokens as any).splice(idx, nextID - idx + 1, {
 				type: "tag",
 				tag: "",

@@ -14,7 +14,7 @@ export default class HashResourceManager extends HashItem {
 	}
 
 	public getKey(): string {
-		return `${this._resourceManager.basePath.value}@${this._path.value}`;
+		return `${this._resourceManager?.basePath?.value ?? ""}@${this._path?.value ?? ""}`;
 	}
 
 	public async getContent(): Promise<string> {

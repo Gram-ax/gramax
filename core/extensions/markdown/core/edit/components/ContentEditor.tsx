@@ -4,8 +4,15 @@ import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/Butt
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import useWatch from "@core-ui/hooks/useWatch";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import {
+	type BaseEditorContext,
+	bindEditor,
+	type EditorContext as EditorContextType,
+	type EditorPasteHandler,
+	setEditorStore,
+} from "@core-ui/stores/EditorStore";
+import { updateEditorExtensions } from "@ext/git/core/Diff/components/store/EditorExtensionsStore";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
-import Toolbar from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
 import { useShouldShowInlineToolbar } from "@ext/markdown/core/edit/logic/hooks/useShouldShowInlineToolbar";
 import ElementGroups from "@ext/markdown/core/element/ElementGroups";
@@ -16,14 +23,8 @@ import useCommentCallbacks from "@ext/markdown/elements/comment/edit/logic/hooks
 import Comment from "@ext/markdown/elements/comment/edit/model/comment";
 import Controllers from "@ext/markdown/elements/controllers/controllers";
 import CopyArticles from "@ext/markdown/elements/copyArticles/copyArticles";
-import { updateEditorExtensions } from "@ext/markdown/elements/diff/components/store/EditorExtensionsStore";
 import { InlineLinkMenu } from "@ext/markdown/elements/link/edit/components/LinkMenu/InlineLinkMenu";
 import Placeholder from "@ext/markdown/elements/placeholder/placeholder";
-import EditorService, {
-	type BaseEditorContext,
-	type EditorContext as EditorContextType,
-	type EditorPasteHandler,
-} from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import { useIsStorageConnected } from "@ext/storage/logic/utils/useStorage";
 import Document from "@tiptap/extension-document";
 import { EditorContent, EditorContext, type Extensions, type JSONContent, useEditor } from "@tiptap/react";
@@ -38,8 +39,6 @@ import {
 	useUpdateContextInExtensions,
 } from "../../../elementsUtils/editExtensionUpdator/ExtensionContextUpdater";
 import { useGetEditorProps } from "../logic/useGetEditorProps";
-import Menu from "./Menu/Menu";
-
 export const ContentEditorId = "ContentEditorId";
 
 interface ContentEditorProps {
@@ -58,14 +57,16 @@ const ContentEditor = (props: ContentEditorProps) => {
 	const catalogProps = useCatalogPropsStore((state) => state.data);
 	const resourceService = ResourceService.value;
 	const pageDataContext = PageDataContextService.value;
-	const isGramaxAiEnabled = pageDataContext.conf.ai.enabled;
 	const isStorageConnected = useIsStorageConnected();
 
 	const catalogPropsRef = useRef(catalogProps);
 
 	const { onDeleteNodes, onDeleteMarks, onAddMarks } = useContentEditorHooks();
-	const { onMarkAdded: onMarkAddedComment, onMarkDeleted: onMarkDeletedComment } =
-		useCommentCallbacks(articlePropsRef);
+	const {
+		onMarkAdded: onMarkAddedComment,
+		onMarkDeleted: onMarkDeletedComment,
+		onCommentSaved,
+	} = useCommentCallbacks(articlePropsRef);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const ext = useMemo(
@@ -125,6 +126,8 @@ const ContentEditor = (props: ContentEditorProps) => {
 		{
 			content: JSON.parse(content) as JSONContent,
 			extensions: extensionsList,
+			enableContentCheck: true,
+			onContentError: (props) => console.error(props.error),
 			injectCSS: false,
 			editorProps: {
 				...editorProps,
@@ -142,7 +145,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 				onUpdate({ editor, apiUrlCreator: apiUrlCreatorRef.current, articleProps: articlePropsRef.current }),
 			editable: true,
 		},
-		[content],
+		[content, extensions],
 	);
 
 	useWatch(() => {
@@ -165,7 +168,8 @@ const ContentEditor = (props: ContentEditorProps) => {
 		if (!editor) return;
 		if (editor && !editor.state.doc.textContent) editor.commands.focus();
 		if (editor) {
-			EditorService.bindEditor(editor);
+			bindEditor(editor);
+			setEditorStore({ isSmallEditor: false });
 			if (typeof window !== "undefined" && window.debug) window.debug.editor = editor;
 			editor.on("create", () => highlightFragmentInEditorByUrl());
 		}
@@ -182,14 +186,7 @@ const ContentEditor = (props: ContentEditorProps) => {
 	return (
 		<EditorContext.Provider value={{ editor }}>
 			<ButtonStateService.Provider editor={editor}>
-				<Menu editor={editor} id={ContentEditorId}>
-					<Toolbar
-						editor={editor}
-						fileName={articlePropsRef.current?.fileName}
-						isGramaxAiEnabled={isGramaxAiEnabled}
-					/>
-				</Menu>
-				<CommentEditorProvider editor={editor}>
+				<CommentEditorProvider editor={editor} onCommentSaved={onCommentSaved}>
 					<div>
 						<InlineLinkMenu editor={editor} />
 						<InlineToolbar editor={editor} shouldShow={shouldShow} />

@@ -92,7 +92,7 @@ const Item = ({ values, onClick, renderer, trigger, selected, value, name, mode,
 						<DropdownMenuCheckboxItem checked={!value?.includes("none")} onSelect={onEmptyClick}>
 							{t("properties.empty")}
 						</DropdownMenuCheckboxItem>
-						{buttons}
+						<PropertiesScrollContainer>{buttons}</PropertiesScrollContainer>
 						<PropertyButtons
 							name={name}
 							onChange={onClick}

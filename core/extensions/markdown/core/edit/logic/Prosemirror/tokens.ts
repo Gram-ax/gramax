@@ -5,6 +5,8 @@ import blockPropertyToken from "@ext/markdown/elements/blockProperty/edit/models
 import fenceToken from "@ext/markdown/elements/codeBlockLowlight/edit/logic/token";
 import codeBlockToken from "@ext/markdown/elements/codeBlockLowlight/edit/model/token";
 import colorToken from "@ext/markdown/elements/color/edit/model/colorToken";
+import fragmentToken from "@ext/markdown/elements/fragment/edit/model/fragmentToken";
+import fragmentLinkToken from "@ext/markdown/elements/fragment-link/edit/model/fragmentLinkToken";
 import headingToken from "@ext/markdown/elements/heading/edit/model/headingToken";
 import highlightToken from "@ext/markdown/elements/highlight/edit/model/token";
 import htmlToken from "@ext/markdown/elements/html/edit/models/htmlToken";
@@ -18,7 +20,6 @@ import { taskList } from "@ext/markdown/elements/list/edit/models/taskList/model
 import noteToken from "@ext/markdown/elements/note/edit/model/noteToken";
 import openApiToken from "@ext/markdown/elements/openApi/edit/models/openApiToken";
 import { questionToken } from "@ext/markdown/elements/question/edit/models/questionToken";
-import snippetToken from "@ext/markdown/elements/snippet/edit/model/snippetToken";
 import tableTokens from "@ext/markdown/elements/table/edit/model/tableTokens";
 import tabToken from "@ext/markdown/elements/tabs/edit/model/tab/tabToken";
 import tabsToken from "@ext/markdown/elements/tabs/edit/model/tabs/tabsToken";
@@ -38,15 +39,17 @@ import type PrivateParserContext from "../../../Parser/ParserContext/PrivatePars
 import type { ParseSpec } from "./from_markdown";
 import tokensModifier from "./tokensModifier";
 
-function listIsTight(tokens, i) {
-	while (++i < tokens.length) if (tokens[i].type != "list_item_open") return tokens[i].hidden;
+function listIsTight(tokens, startIndex) {
+	let i = startIndex;
+	while (++i < tokens.length) if (tokens[i].type !== "list_item_open") return tokens[i].hidden;
 	return false;
 }
 
 const getTokensByContext = (context?: PrivateParserContext): { [name: string]: ParseSpec } => {
 	return {
 		comment: commentToken(context),
-		snippet: snippetToken(context),
+		fragment: fragmentToken(context),
+		snippet: fragmentToken(context),
 		icon: iconToken(context),
 	};
 };
@@ -86,7 +89,7 @@ export const getTokens = (context?: PrivateParserContext): { [name: string]: Par
 				return { ...tok.attrs, isInline: false };
 			},
 		},
-		...htmlTagTokens,
+		...htmlTagTokens(context),
 		blockMd: { node: "blockMd", getAttrs: (tok) => tok.attrs },
 		...tableTokens,
 		blockquote: { block: "blockquote" },
@@ -118,6 +121,8 @@ export const getTokens = (context?: PrivateParserContext): { [name: string]: Par
 		},
 
 		color: colorToken,
+		"fragment-link": fragmentLinkToken,
+		"snippet-link": fragmentLinkToken,
 		strong: { mark: "strong" },
 		code_inline: { mark: "code", noCloseToken: true },
 

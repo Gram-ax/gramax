@@ -1,5 +1,5 @@
 import resolveModule from "@app/resolveModule/frontend";
-import { createEventEmitter, type Event } from "@core/Event/EventEmitter";
+import { createEventEmitter, type Event, type EventArgs } from "@core/Event/EventEmitter";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import type FetchResponse from "@core-ui/ApiServices/Types/FetchResponse";
 import Method from "@core-ui/ApiServices/Types/Method";
@@ -312,9 +312,10 @@ export const useApi = <T, O = T>({ url: rawUrl, opts, parse, ...props }: UseApiP
 		setStatus(RequestStatus.Init);
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: should be called only once
 	useEffect(() => {
 		if (props.auto) void call();
-	}, [call, props.auto]);
+	}, []);
 
 	return {
 		data,
@@ -341,4 +342,8 @@ export const useApiEvent = <E extends keyof UseApiEvents, C extends UseApiEvents
 		const token = events.on(event, callback);
 		return () => events.off(token);
 	}, [event, callback]);
+};
+
+export const emitApiEvent = <E extends keyof UseApiEvents, A extends EventArgs<UseApiEvents, E>>(event: E, args: A) => {
+	events.emit(event, args);
 };

@@ -1,11 +1,14 @@
+/** biome-ignore-all lint/a11y/useValidAnchor: it's ok */
+/** biome-ignore-all lint/style/noRestrictedImports: it's ok */
+/** biome-ignore-all lint/style/useNamingConvention: it's ok */
 import Method from "@core-ui/ApiServices/Types/Method";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import styled from "@emotion/styled";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
+import type { Table } from "@ext/tableDB/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@ui-kit/Popover";
 import { useEffect, useState } from "react";
-import Popup from "reactjs-popup";
-import type { Table } from "../../../../../logic/components/tableDB/table";
 import FetchService from "../../../../../ui-logic/ApiServices/FetchService";
 import TableDB from "../../tabledb/render/DbTable";
 
@@ -42,8 +45,9 @@ const DbDiagram = styled(
 			else setError(await res.json());
 		};
 
+		// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 		useEffect(() => {
-			load(src, tags, primary);
+			void load(src, tags, primary);
 		}, [src, tags, primary]);
 
 		if (error || (data && !data?.tables)) return <DiagramError diagramName="Db-Diagram" error={error ?? data} />;
@@ -53,15 +57,6 @@ const DbDiagram = styled(
 		) : (
 			<div className={className} contentEditable={false} data-type="dbdiagram">
 				<div className="svg">
-					{popup ? (
-						<Popup defaultOpen lockScroll={false} onClose={() => setPopup(null)}>
-							<div className={className}>
-								<div className="scroll article">
-									<TableDB className="" object={popup} />
-								</div>
-							</div>
-						</Popup>
-					) : null}
 					<svg
 						className={hover ? "highlight" : ""}
 						fill="none"
@@ -72,7 +67,7 @@ const DbDiagram = styled(
 							let highlight = false;
 							if (hover)
 								for (const h of hover) {
-									if (h.idx == idx) {
+									if (h.idx === idx) {
 										highlight = true;
 										break;
 									}
@@ -81,7 +76,7 @@ const DbDiagram = styled(
 								<a
 									className={highlight ? "highlight" : ""}
 									dangerouslySetInnerHTML={{ __html: l.link }}
-									key={idx}
+									key={l.link}
 									onBlur={() => {
 										setFocus(false);
 										setHover(null);
@@ -101,11 +96,11 @@ const DbDiagram = styled(
 								/>
 							);
 						})}
-						{data.tables?.map((table, idx) => {
+						{data.tables?.map((table) => {
 							let highlight = false;
 							if (hover)
 								for (const h of hover) {
-									if (h.table1Name == table.table.code || h.table2Name == table.table.code) {
+									if (h.table1Name === table.table.code || h.table2Name === table.table.code) {
 										highlight = true;
 										break;
 									}
@@ -113,7 +108,7 @@ const DbDiagram = styled(
 							return (
 								<a
 									className={highlight ? "highlight" : ""}
-									key={idx}
+									key={table.table.code}
 									onBlur={() => {
 										setFocus(false);
 										setHover(null);
@@ -131,8 +126,8 @@ const DbDiagram = styled(
 												})
 												.filter(
 													(l) =>
-														l.table1Name == table.table.code ||
-														l.table2Name == table.table.code,
+														l.table1Name === table.table.code ||
+														l.table2Name === table.table.code,
 												),
 										);
 									}}
@@ -152,20 +147,31 @@ const DbDiagram = styled(
 													})
 													.filter(
 														(l) =>
-															l.table1Name == table.table.code ||
-															l.table2Name == table.table.code,
+															l.table1Name === table.table.code ||
+															l.table2Name === table.table.code,
 													),
 											);
 									}}
 									tabIndex={0}
 								>
-									<g
-										className="titleBlock"
-										dangerouslySetInnerHTML={{ __html: table.title }}
-										onClick={() => setPopup(table.table)}
-									/>
-									{table.fields?.map((field, idx) => (
-										<g dangerouslySetInnerHTML={{ __html: field }} key={idx} />
+									<Popover open={!!popup}>
+										<PopoverTrigger asChild>
+											<g
+												className="titleBlock"
+												dangerouslySetInnerHTML={{ __html: table.title }}
+												onClick={() => setPopup(table.table)}
+											/>
+										</PopoverTrigger>
+										<PopoverContent onInteractOutside={() => setPopup(null)}>
+											<div className={className}>
+												<div className="scroll article">
+													<TableDB className="" object={popup} />
+												</div>
+											</div>
+										</PopoverContent>
+									</Popover>
+									{table.fields?.map((field) => (
+										<g dangerouslySetInnerHTML={{ __html: field }} key={field} />
 									))}
 								</a>
 							);

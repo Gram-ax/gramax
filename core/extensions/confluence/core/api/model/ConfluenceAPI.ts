@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import type { Space, UserLink } from "@ext/confluence/core/api/model/ConfluenceAPITypes";
 import type ConfluenceStorageData from "@ext/confluence/core/model/ConfluenceStorageData";

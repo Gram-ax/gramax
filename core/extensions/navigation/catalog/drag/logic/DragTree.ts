@@ -6,6 +6,7 @@ import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import { ItemType } from "@core/FileStructue/Item/ItemType";
 import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
+import { span, trace, traced } from "@ext/loggers/opentelemetry";
 import type { NodeModel } from "@minoru/react-dnd-treeview";
 import type { Catalog } from "../../../../../logic/FileStructue/Catalog/Catalog";
 import itemRefUtils from "../../../../../logic/utils/itemRefUtils";
@@ -19,6 +20,7 @@ class DragTree {
 		private _makeResourceUpdater: MakeResourceUpdater,
 	) {}
 
+	@trace({ omitArgs: true })
 	public async findOrderingAncestors(newNav: NodeModel<ItemLink>[], draggedItemPath: string, catalog: Catalog) {
 		let newCategoryPath: Path;
 		const items = [DragTreeTransformer.getRootItem(), ...newNav];
@@ -68,6 +70,7 @@ class DragTree {
 		return path;
 	}
 
+	@trace({ omitArgs: true })
 	public async drag(
 		oldLevNav: NodeModel<ItemLink>[],
 		newLevNav: NodeModel<ItemLink>[],
@@ -79,32 +82,52 @@ class DragTree {
 		const currentItem = oldLevNav.find((a) => a.data.isCurrentLink);
 		const logicPath = currentItem && RouterPathProvider.getLogicPath(currentItem.data.pathname);
 		const rootItem = DragTreeTransformer.getRootItem();
-		const movements = getMovements<ItemLink>([rootItem, ...oldLevNav], [rootItem, ...newLevNav]);
-		if (!movements.length) return "";
+
 		await parseAllItems(catalog);
+
+		const movements = traced("getMovements", {}, () => {
+			return getMovements<ItemLink>([rootItem, ...oldLevNav], [rootItem, ...newLevNav]);
+		});
+		if (!movements.length) return "";
 		const innerRefs = movements.map((movement) => itemRefUtils.parseRef(movement.moveItem.data.ref));
 		let draggedItemRef: { oldLogicPath: string; newItemRef: ItemRef };
-		for (const movement of movements) {
-			const { moveItem, newList, oldList } = movement;
-			const newParentItem = newList[newList.length - 2];
-			const oldParentItem = oldList[oldList.length - 2];
-			if (oldParentItem.id == newParentItem.id) continue;
 
-			const moveItemRef = this._getItemRef(moveItem, catalog);
-			const item = catalog.findItemByItemRef(moveItemRef);
+		catalog.repo?.pauseGitStaging();
 
-			const newParentItemRef = this._getItemRef(newParentItem, catalog);
-			const newBrowsersRef = catalog.findCategoryByItemRef(newParentItemRef)?.items?.map((i) => i.ref) ?? [];
-			const newItemRef = itemRefUtils.move(newParentItemRef, moveItemRef, item.type, newBrowsersRef);
-			if (currentItem && `${logicPath}/`.startsWith(`${item.logicPath}/`))
-				draggedItemRef = { oldLogicPath: item.logicPath, newItemRef };
+		try {
+			for (const movement of movements) {
+				const { moveItem, newList, oldList } = movement;
+				const newParentItem = newList[newList.length - 2];
+				const oldParentItem = oldList[oldList.length - 2];
+				if (oldParentItem.id === newParentItem.id) continue;
 
-			await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, innerRefs);
+				const moveItemRef = this._getItemRef(moveItem, catalog);
+				const item = catalog.findItemByItemRef(moveItemRef);
+
+				const newParentItemRef = this._getItemRef(newParentItem, catalog);
+				const newBrowsersRef = catalog.findCategoryByItemRef(newParentItemRef)?.items?.map((i) => i.ref) ?? [];
+				const newItemRef = itemRefUtils.move(newParentItemRef, moveItemRef, item.type, newBrowsersRef);
+
+				if (currentItem && `${logicPath}/`.startsWith(`${item.logicPath}/`))
+					draggedItemRef = { oldLogicPath: item.logicPath, newItemRef };
+
+				span()?.addEvent("move", {
+					currentItemNotNull: !!currentItem,
+					itemLogicPath: `${logicPath}/`.startsWith(`${item.logicPath}/`),
+					draggedItemRefOld: draggedItemRef?.oldLogicPath,
+					draggedItemRefNew: draggedItemRef?.newItemRef.path.value,
+				});
+
+				await catalog.moveItem(moveItemRef, newItemRef, this._makeResourceUpdater, innerRefs);
+			}
+
+			await this._fp.deleteEmptyDirs(catalog.getRootCategoryDirectoryPath());
+
+			if (parentArticle)
+				await catalog.createCategoryByArticle(this._makeResourceUpdater, parentArticle, newCategoryPath);
+		} finally {
+			await catalog.repo?.resumeGitStaging();
 		}
-		await this._fp.deleteEmptyFolders(catalog.getRootCategoryRef().path.parentDirectoryPath);
-		if (parentArticle)
-			await catalog.createCategoryByArticle(this._makeResourceUpdater, parentArticle, newCategoryPath);
-		await catalog.update();
 
 		if (draggedItemRef)
 			return logicPath.replace(

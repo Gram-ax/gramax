@@ -1,5 +1,5 @@
-import { getRoleName, RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
-import { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
+import { getRoleName, type RoleId } from "@ext/enterprise/components/admin/settings/components/roles/Access";
+import type { WorkspaceSettings } from "@ext/enterprise/components/admin/settings/workspace/types/WorkspaceComponent";
 import type { Group } from "./components/group/types/GroupTypes";
 import { WorkspaceAccessGroup } from "./components/group/WorkspaceAccessGroup";
 import { WorkspaceAccessUser } from "./components/users/WorkspaceAccessUser";

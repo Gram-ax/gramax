@@ -1,4 +1,5 @@
 import Icon from "@components/Atoms/Icon";
+// biome-ignore lint/style/noRestrictedImports: wait ui-kit alert component
 import styled from "@emotion/styled";
 import { type ReactNode, useEffect, useRef } from "react";
 
@@ -41,23 +42,23 @@ const Alert = styled((props: AlertProps) => {
 	&.alert-warning {
 		border-radius: var(--radius-large);
 		border: 0.063em solid;
-		border-color: var(--color-alert-warning-border);
-		background: var(--color-admonition-note-bg);
+		border-color: hsl(var(--status-warning));
+		background: hsl(var(--status-warning-bg));
 	}
 
 	&.alert-warning .admonition-heading * {
-		color: var(--color-admonition-note-br-h);
+		color: hsl(var(--status-warning));
 	}
 
 	&.alert-error {
 		border-radius: var(--radius-large);
 		border: 0.063em solid;
-		border-color: var(--color-alert-error-border);
-		background: var(--color-admonition-danger-bg);
+		border-color: hsl(var(--status-error));
+		background: hsl(var(--status-error-bg));
 	}
 
 	&.alert-error .admonition-heading * {
-		color: var(--color-admonition-danger-br-h);
+		color: hsl(var(--status-error));
 	}
 
 	&.admonition-column .admonition-content {

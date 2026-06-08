@@ -10,7 +10,7 @@ export default class ConsoleLogger extends BaseLogger implements Logger {
 		if (this._checkWarningLogLevel()) console.warn(message);
 	}
 
-	logError(e: Error) {
+	logError(e: Error | string) {
 		if (this._checkErrorLogLevel()) console.error(e);
 	}
 

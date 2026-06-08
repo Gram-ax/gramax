@@ -4,6 +4,8 @@ import { NodeViewContextableWrapper } from "@ext/markdown/core/element/NodeViewC
 import ColGroup from "@ext/markdown/elements/table/edit/components/Helpers/ColGroup";
 import TableHelper from "@ext/markdown/elements/table/edit/components/Helpers/TableHelper";
 import { useAggregation } from "@ext/markdown/elements/table/edit/logic/aggregation";
+import useFilterAndSort from "@ext/markdown/elements/table/edit/logic/sortAndFilter/useFilterAndSort";
+import { updateTableProps } from "@ext/markdown/elements/table/edit/logic/tablePropsStore";
 import TableWrapper from "@ext/markdown/elements/table/render/components/TableWrapper";
 import { type NodeViewProps, useReactNodeView } from "@tiptap/react";
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -20,33 +22,39 @@ const TableComponent = (props: NodeViewProps) => {
 
 	useLayoutEffect(() => {
 		tableRef.current = hoverElementRef.current?.querySelector(".tableComponent");
-	}, [hoverElementRef.current]);
+	}, []);
 
 	const pos = getPos();
-	const $parentPos = useMemo(() => {
-		const $pos = editor.state.doc.resolve(pos);
-		return $pos.depth > 0 ? $pos.start($pos.depth) : null;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
+	const ParentPos = useMemo(() => {
+		const Pos = editor.state.doc.resolve(pos);
+		return Pos.depth > 0 ? Pos.start(Pos.depth) : null;
 	}, [pos]);
-	const parentDom = $parentPos ? editor.view.domAtPos($parentPos) : null;
+	const parentDom = ParentPos ? editor.view.domAtPos(ParentPos) : null;
 
 	useWatch(() => {
 		if (parentDom?.node && parentDom.node.nodeType !== parentDom.node.TEXT_NODE) {
 			return setParentElement(parentDom?.node as HTMLElement);
 		}
-
 		setParentElement(null);
 	}, [parentDom?.node]);
 
 	useAggregation(tableRef, [node.content, node.attrs?.header]);
 
+	const filterAndSortProps = useFilterAndSort(node, editor, pos);
+	updateTableProps(pos, filterAndSortProps);
+
+	const { active, tableData, sorted } = filterAndSortProps;
+
 	const table = (
-		<TableWrapper>
+		<TableWrapper activeFilter={active.filter} tableData={tableData}>
 			<table
 				className="tableComponent"
 				data-header={node.attrs.header}
 				data-qa={"table"}
 				data-testid={"table"}
 				ref={nodeViewContentRef}
+				{...(filterAndSortProps.sorted ? { "data-sorted": "" } : {})}
 			>
 				<ColGroup content={node.firstChild} parentElement={parentElement} />
 			</table>
@@ -68,9 +76,10 @@ const TableComponent = (props: NodeViewProps) => {
 			<TableHelper
 				disabledWrapper={isDisabledWrapper}
 				editor={editor}
-				getPos={getPos}
 				hoverElementRef={hoverElementRef}
 				node={node}
+				pos={pos}
+				sorted={sorted}
 				tableRef={tableRef}
 			>
 				{table}

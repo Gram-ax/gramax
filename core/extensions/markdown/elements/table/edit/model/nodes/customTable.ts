@@ -1,9 +1,15 @@
 import TableComponent from "@ext/markdown/elements/table/edit/components/TableComponent";
+import {
+	updateSortingOrderOnAddCol,
+	updateSortingOrderOnDeleteCol,
+} from "@ext/markdown/elements/table/edit/logic/sortAndFilter/updateSortingOrder";
 import aggregationPlugin from "@ext/markdown/elements/table/edit/model/aggregationPlugin/plugin";
 import { columnResizing } from "@ext/markdown/elements/table/edit/model/columnResizing/columnResizing";
 import decorationPlugin from "@ext/markdown/elements/table/edit/model/decorationPlugin/plugin";
 import getExtensionOptions from "@ext/markdown/logic/getExtensionOptions";
 import Table from "@tiptap/extension-table";
+import type { Attrs } from "@tiptap/pm/model";
+import type { Plugin } from "@tiptap/pm/state";
 import { ReplaceAroundStep, ReplaceStep } from "@tiptap/pm/transform";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { deleteColumn, deleteRow, isInTable, selectedRect, TableView } from "prosemirror-tables";
@@ -26,8 +32,18 @@ const CustomTable = Table.extend({
 			...this.parent(),
 			deleteColumn:
 				() =>
-				({ state, dispatch, chain }) => {
-					return deleteColumn(state, dispatch) || chain().deleteTable().run();
+				({ state, dispatch, chain, tr }) => {
+					if (!isInTable(state)) return false;
+
+					const rect = selectedRect(state);
+					const colsToRemove = [];
+
+					for (let i = rect.right - 1; i >= rect.left; i--) colsToRemove.push(i);
+
+					const result = deleteColumn(state, dispatch) || chain().deleteTable().run();
+					if (result) updateSortingOrderOnDeleteCol(tr, colsToRemove);
+
+					return result;
 				},
 			deleteRow:
 				() =>
@@ -55,7 +71,7 @@ const CustomTable = Table.extend({
 							if (!oldCell) return;
 							tr.setNodeMarkup(newCellPos, null, {
 								...newCell.attrs,
-								align: oldCell.attrs["align"] || "",
+								align: oldCell.attrs.align || "",
 							});
 							newCellPos += cell.nodeSize;
 						});
@@ -67,6 +83,7 @@ const CustomTable = Table.extend({
 				if (!isInTable(props.state)) return;
 				const { tr, state } = props;
 				const rect = selectedRect(state);
+				const isFirstRow = rect.top === 0;
 
 				const result = this.parent().addRowBefore()(props);
 				tr.steps.forEach((step) => {
@@ -84,15 +101,53 @@ const CustomTable = Table.extend({
 							const oldCell = tr.doc.nodeAt(oldCellPos);
 							const newCell = tr.doc.nodeAt(newCellPos);
 							if (!oldCell) return;
-							tr.setNodeMarkup(newCellPos, null, {
+
+							const newAttrs: { -readonly [P in keyof Attrs]: Attrs[P] } = {
 								...newCell.attrs,
-								align: oldCell.attrs["align"] || "",
-							});
+								align: oldCell.attrs.align || "",
+							};
+
+							if (isFirstRow) {
+								newAttrs.filter = oldCell.attrs.filter;
+								newAttrs.sort = oldCell.attrs.sort;
+
+								tr.setNodeMarkup(oldCellPos, null, {
+									...oldCell.attrs,
+									filter: null,
+									sort: null,
+								});
+							}
+
+							tr.setNodeMarkup(newCellPos, null, newAttrs);
 							newCellPos += cell.nodeSize;
 						});
 					}
 				});
 				return result;
+			},
+			addColumnBefore: () => (props) => {
+				const result = this.parent().addColumnBefore()(props);
+				updateSortingOrderOnAddCol(props.tr);
+				return result;
+			},
+			addColumnAfter: () => (props) => {
+				const result = this.parent().addColumnAfter()(props);
+				updateSortingOrderOnAddCol(props.tr);
+				return result;
+			},
+		};
+	},
+
+	addKeyboardShortcuts() {
+		return {
+			...this.parent(),
+			Tab: () => {
+				if (this.editor.isActive("listItem")) return false;
+				return this.parent().Tab.call(this);
+			},
+			"Shift-Tab": () => {
+				if (this.editor.isActive("listItem")) return false;
+				return this.parent()["Shift-Tab"].call(this);
 			},
 		};
 	},
@@ -112,7 +167,7 @@ const CustomTable = Table.extend({
 				: []),
 			decorationPlugin,
 			aggregationPlugin,
-			...this.parent().filter((plagin: any) => plagin.key !== "tableColumnResizing$"),
+			...this.parent().filter((plagin) => (plagin as Plugin & { key: string }).key !== "tableColumnResizing$"),
 		];
 	},
 }).configure({

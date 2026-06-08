@@ -1,14 +1,16 @@
+import type { ArticleComponentProps } from "@components/Article/Article";
 import { ArticleParent } from "@components/Article/ArticleRenderer";
-import { highlightFragmentInDocportalByUrl } from "@components/Article/SearchHandler/ArticleSearchFragmentHander";
-import type { ReadonlyArticlePageData } from "@core/SitePresenter/SitePresenter";
+import { highlightAllFragmentsInDocportalByUrl } from "@components/Article/SearchHandler/ArticleSearchFragmentHander";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
 import getComponents from "@ext/markdown/core/render/components/getComponents/getComponents";
 import Renderer from "@ext/markdown/core/render/components/Renderer";
 import Header from "@ext/markdown/elements/heading/render/components/Header";
 import { memo, useMemo } from "react";
 
-export const ArticleReadRenderer = memo(({ data }: { data: ReadonlyArticlePageData }) => {
-	const { articleProps } = data;
+export const ArticleReadRenderer = memo(({ data: { content } }: ArticleComponentProps<"read">) => {
+	const articleProps = useArticlePropsStore((state) => state.data);
+
 	return (
 		<ArticleParent>
 			<>
@@ -20,8 +22,11 @@ export const ArticleReadRenderer = memo(({ data }: { data: ReadonlyArticlePageDa
 						{articleProps.description}
 					</Header>
 				)}
-				{Renderer(data.content, { components: useMemo(getComponents, []) }, false, () =>
-					highlightFragmentInDocportalByUrl(),
+				{Renderer(
+					content,
+					{ components: useMemo(getComponents, []) },
+					false,
+					highlightAllFragmentsInDocportalByUrl,
 				)}
 				<ArticleMat />
 			</>

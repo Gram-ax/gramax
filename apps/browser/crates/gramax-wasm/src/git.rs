@@ -284,6 +284,16 @@ pub fn gc(repo_path: String, opts: GcOptions) -> Result<()> {
 }
 
 #[em_bindgen(json)]
+pub fn storage_stats(repo_path: String) -> Result<StorageStats> {
+	git::storage_stats(Path::new(&repo_path))
+}
+
+#[em_bindgen(json)]
+pub fn lfs_prune(repo_path: String) -> Result<usize> {
+	git::lfs_prune(Path::new(&repo_path))
+}
+
+#[em_bindgen(json)]
 pub fn get_config_val(repo_path: String, name: String) -> Result<Option<String>> {
 	git::get_config_val(Path::new(&repo_path), &name)
 }

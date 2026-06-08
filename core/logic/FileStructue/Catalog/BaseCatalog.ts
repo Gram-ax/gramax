@@ -97,7 +97,7 @@ export default abstract class BaseCatalog<P extends CatalogProps = CatalogProps,
 
 	getRelativeRootCategoryPath(): Path {
 		const root = this._rootCategoryRef.path.parentDirectoryPath;
-		return root.subDirectory(this._rootCategoryRef.path).parentDirectoryPath;
+		return this.basePath.subDirectory(root) ?? Path.empty;
 	}
 
 	async getPathname(item?: Item<I>): Promise<string> {

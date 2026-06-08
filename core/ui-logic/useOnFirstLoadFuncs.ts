@@ -1,9 +1,10 @@
 import { getExecutingEnvironment } from "@app/resolveModule/env";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import useRemoveQueryT from "@core-ui/useRemoveQueryT";
-import useShareHandler from "@ext/catalog/actions/share/logic/useShareHandler";
+import { useSyncViewQueryParam } from "@ext/catalog/views/logic/hooks/useSyncViewQueryParam";
 import useEnterpriseTokenHandler from "@ext/enterprise/utils/useEnterpriseTokenHandler";
 import useSwitchToEnterpriseWorkspace from "@ext/enterprise/utils/useSwitchToEnterpriseWorkspace";
+import useInviteMismatchHandler from "@ext/enterprise-cloud/utils/useInviteMismatchHandler";
 import { saveTempTokenIfPresent } from "@ext/git/actions/Source/tempToken";
 import usePathnameCloneHandler from "@ext/git/core/GitPathnameHandler/clone/logic/usePathnameCloneHandler";
 import usePathnameHandler from "@ext/git/core/GitPathnameHandler/usePathnameHandler";
@@ -27,9 +28,10 @@ const closeIfChild = () => {
 const useOnFirstLoadFuncs = () => {
 	const isFirstLoad = IsFirstLoadService.value;
 
+	useSyncViewQueryParam();
 	closeIfChild();
 	useRemoveQueryT(isFirstLoad);
-	useShareHandler(isFirstLoad);
+	useInviteMismatchHandler(isFirstLoad);
 	useEnterpriseTokenHandler(isFirstLoad);
 	usePathnameCloneHandler();
 	usePathnameHandler(isFirstLoad);

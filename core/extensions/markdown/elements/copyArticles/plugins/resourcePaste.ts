@@ -21,12 +21,12 @@ const processNode = (childNode: Node, resourceService: ResourceServiceType, notD
 
 export const resourcePaste = (transactions: Transaction[], resourceService: ResourceServiceType) => {
 	transactions.forEach((tr: Transaction) => {
-		const $history = tr.getMeta("history$");
-		if (!tr.docChanged || !$history) return;
+		const History = tr.getMeta("history$");
+		if (!tr.docChanged || !History) return;
 
 		const notDeletedSrc = new Set<string>();
-		const historyState = $history.historyState;
-		const items = $history.redo ? historyState.done.items : historyState.undone.items;
+		const historyState = History.historyState;
+		const items = History.redo ? historyState.done.items : historyState.undone.items;
 		const values = items?.values || [];
 
 		values.forEach((item) => {

@@ -71,15 +71,15 @@ impl<C: ActualCreds> Recover for Repo<'_, C> {
 				self.0.set_head(default_branch.get().name().or_utf8_err()?)?;
 			} else {
 				let tree = self.0.treebuilder(None)?.write()?;
+				self.0.set_head("refs/heads/master")?;
 				self.0.commit(
-					Some("refs/heads/master"),
+					Some("HEAD"),
 					&self.1.signature()?,
 					&self.1.signature()?,
 					"recovery fix: no default branch",
 					&self.0.find_tree(tree)?,
 					&[],
 				)?;
-				self.0.set_head("refs/heads/master")?;
 			}
 		}
 

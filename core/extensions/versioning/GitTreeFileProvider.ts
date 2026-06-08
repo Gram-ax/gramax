@@ -1,3 +1,4 @@
+import { RustFs } from "@core/FileProvider/DiskFileProvider/DFPIntermediateCommands";
 import type FileInfo from "@core/FileProvider/model/FileInfo";
 import type ReadOnlyFileProvider from "@core/FileProvider/model/ReadOnlyFileProvider";
 import Path from "@core/FileProvider/Path/Path";
@@ -7,8 +8,6 @@ import GitErrorCode from "@ext/git/core/GitCommands/errors/model/GitErrorCode";
 import type GitCommands from "@ext/git/core/GitCommands/GitCommands";
 import type { TreeReadScope } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import { addScopeToPath } from "@ext/versioning/addScopeToPath";
-
-const decoder = new TextDecoder();
 
 export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	constructor(
@@ -32,17 +31,21 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		return true;
 	}
 
-	withMountPath() {}
+	private _mountPath?: Path;
+
+	withMountPath(path: Path) {
+		this._mountPath = path;
+	}
 
 	async read(path: Path): Promise<string> {
-		const content = await this._git.readFile(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
-		return decoder.decode(content);
+		const [unscoped, fs] = this._fs(path);
+		return (await fs.readFile(unscoped.value)).toString();
 	}
 
 	async readAsBinary(path: Path): Promise<Buffer> {
+		const [unscoped, fs] = this._fs(path);
 		try {
-			const content = await this._git.readFile(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
-			return Buffer.from(content);
+			return await fs.readFile(unscoped.value);
 		} catch (e) {
 			if (e instanceof LibGit2Error && e.code === GitErrorCode.FileNotFoundError) return;
 			throw e;
@@ -50,14 +53,14 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async readdir(path: Path): Promise<string[]> {
-		return (await this._git.readDir(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead))).map(
-			(e) => e.name,
-		);
+		const [unscoped, fs] = this._fs(path);
+		return fs.readDir(unscoped.value);
 	}
 
 	async isFolder(path: Path): Promise<boolean> {
-		const stat = await this._git.fileStat(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
-		return stat.isDir;
+		const [unscoped, fs] = this._fs(path);
+		const stat = await fs.stat(unscoped.value);
+		return stat.isDirectory();
 	}
 
 	readlink(): Promise<string> {
@@ -65,13 +68,14 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	async getStat(path: Path): Promise<FileInfo> {
-		const stat = await this._git.fileStat(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
+		const [unscoped, fs] = this._fs(path);
+		const stat = await fs.stat(unscoped.value);
 		return {
 			name: path.nameWithExtension,
 			path,
 			size: stat.size,
-			isDirectory: () => stat.isDir,
-			isFile: () => !stat.isDir,
+			isDirectory: () => stat.isDirectory(),
+			isFile: () => stat.isFile(),
 			isSymbolicLink: () => false,
 			ino: 0,
 			mode: 0,
@@ -79,26 +83,28 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 			ctimeMs: 0,
 			uid: 0,
 			gid: 0,
-			type: stat.isDir ? "dir" : "file",
+			type: stat.isDirectory() ? "dir" : "file",
 		};
 	}
 
 	async exists(path: Path): Promise<boolean> {
-		return this._git.fileExists(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
+		const [unscoped, fs] = this._fs(path);
+		return fs.exists(unscoped.value);
 	}
 
-	symlink(): Promise<void> {
+	hardlink(): Promise<void> {
 		throw new Error("Not implemented");
 	}
 
 	async getItems(path: Path): Promise<FileInfo[]> {
-		const items = await this._git.readDirStats(...GitTreeFileProvider._resolveScope(path, this._onlyReadHead));
+		const [unscoped, fs] = this._fs(path);
+		const items = await fs.readDirStats(unscoped.value);
 		return items.map((stat) => ({
 			name: stat.name,
 			path: path.join(new Path(stat.name)),
 			size: stat.size,
-			isDirectory: () => stat.isDir,
-			isFile: () => !stat.isDir,
+			isDirectory: () => stat.isDirectory(),
+			isFile: () => stat.isFile(),
 			isSymbolicLink: () => false,
 			ino: 0,
 			mode: 0,
@@ -106,7 +112,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 			ctimeMs: 0,
 			uid: 0,
 			gid: 0,
-			type: stat.isDir ? "dir" : "file",
+			type: stat.isDirectory() ? "dir" : "file",
 		}));
 	}
 
@@ -116,6 +122,18 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 
 	isRootPathExists(): Promise<boolean> {
 		return Promise.resolve(true);
+	}
+
+	private _fs(path: Path): [Path, RustFs] {
+		const root = path.rootDirectory;
+		const name = root?.nameWithExtension ?? "";
+		const repoName = this._git.repoPath.nameWithExtension;
+		const scope = this._onlyReadHead ? "HEAD" : GitTreeFileProvider._parseScope(name);
+		const matchesRepo = name.startsWith(repoName) && (!name[repoName.length] || name[repoName.length] === ":");
+		const matchesMount = this._mountPath && name === this._mountPath.nameWithExtension;
+		const shouldStripRoot = name.includes(":") || matchesRepo || matchesMount;
+		const stripped = shouldStripRoot ? (root.subDirectory(path) ?? Path.empty) : path;
+		return [stripped, RustFs.git(this._git.absoluteRepoPath.value, scope ?? "HEAD")];
 	}
 
 	static scoped(path: Path, scope: TreeReadScope, omitHead = false, encode = false): Path {
@@ -129,7 +147,7 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 	}
 
 	static unscope(scopedPath: Path): { unscoped: Path; scope: TreeReadScope } {
-		const [, scope] = this._resolveScope(scopedPath);
+		const scope = this._parseScope(scopedPath.rootDirectory?.nameWithExtension ?? "") ?? "HEAD";
 		const idx = scopedPath.value.indexOf(":");
 		if (idx === -1) return { unscoped: null, scope: null };
 
@@ -161,17 +179,11 @@ export default class GitTreeFileProvider implements ReadOnlyFileProvider {
 		}
 	}
 
-	private static _resolveScope(path: Path, onlyReadHead = false): [Path, TreeReadScope] {
-		const root = path.rootDirectory;
-		const name = root?.nameWithExtension;
-		const data = name?.split(":")?.at(-1);
-		let scope: TreeReadScope = null;
-		if (name?.includes(":") && data && data !== "HEAD") scope = { reference: decodeURIComponent(data) };
-		if (data?.startsWith("commit-")) scope = { commit: decodeURIComponent(data.slice("commit-".length)) };
-
-		return [
-			scope && data && (!root.compare(path) || path.value.startsWith(":")) ? root.subDirectory(path) : path,
-			onlyReadHead ? "HEAD" : scope,
-		];
+	private static _parseScope(rootName: string): TreeReadScope {
+		if (!rootName.includes(":")) return null;
+		const data = rootName.split(":").at(-1);
+		if (!data || data === "HEAD") return null;
+		if (data.startsWith("commit-")) return { commit: decodeURIComponent(data.slice("commit-".length)) };
+		return { reference: decodeURIComponent(data) };
 	}
 }

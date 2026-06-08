@@ -1,4 +1,3 @@
-import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import { Icon } from "@ui-kit/Icon";
 import { Loader } from "@ui-kit/Loader";
@@ -9,16 +8,9 @@ import { updateCheck } from "../window/commands";
 import { ErrorIcon } from "./UpdateIcons";
 import useUpdateChecker, { UpdateAcceptance, type UpdaterErrorCode, UpdateStatus } from "./useUpdateChecker";
 
-const Wrapper = styled.div`
-	position: absolute;
-	bottom: 2rem;
-	right: 2rem;
-	z-index: var(--z-index-overlay);
-
-	@media print {
-		display: none;
-	}
-`;
+const Wrapper = ({ children }: { children: React.ReactNode }): JSX.Element => {
+	return <div className="z-[var(--z-index-overlay)] right-8 bottom-8 absolute print:hidden">{children}</div>;
+};
 
 const translated = (code: UpdaterErrorCode): string | null => {
 	switch (code) {
@@ -42,7 +34,8 @@ const translated = (code: UpdaterErrorCode): string | null => {
 };
 
 const UpdateChecker = () => {
-	const { state, resetUpdate, acceptance, install, accept, decline } = useUpdateChecker();
+	const { state, resetUpdate, acceptance, install, accept, decline, installed, dismissInstalled } =
+		useUpdateChecker();
 
 	const retry = useCallback(async () => {
 		resetUpdate();
@@ -61,6 +54,21 @@ const UpdateChecker = () => {
 		[decline],
 	);
 
+	if (installed)
+		return (
+			<Wrapper>
+				<Toast
+					closeAction
+					focus="low"
+					icon={<Icon icon="check-circle" size="sm" />}
+					onClose={dismissInstalled}
+					size="sm"
+					status="success"
+					title={t("app.update.installed")}
+				/>
+			</Wrapper>
+		);
+
 	if (state.state === UpdateStatus.None || acceptance === UpdateAcceptance.Declined) return null;
 
 	const isAccepted = acceptance === UpdateAcceptance.Accepted;
@@ -71,7 +79,7 @@ const UpdateChecker = () => {
 			<Wrapper>
 				<Toast
 					{...commonToastProps}
-					primaryAction={<Loader size="md" />}
+					primaryAction={<Loader size="sm" />}
 					title={<span className="text-muted">{t("app.update.updating")}</span>}
 				/>
 			</Wrapper>
@@ -93,7 +101,7 @@ const UpdateChecker = () => {
 								{name}{" "}
 								<Tooltip>
 									<TooltipTrigger>
-										<Icon icon="info" />
+										<Icon icon="info" size="sm" />
 									</TooltipTrigger>
 									<TooltipContent>
 										<div style={{ whiteSpace: "pre-line" }}>
@@ -109,10 +117,10 @@ const UpdateChecker = () => {
 						onClose={resetUpdate}
 						primaryAction={
 							<ToastAction onClick={retry}>
-								<span>{t("app.update.retry")}</span>
+								<Icon icon="refresh-ccw" size="sm" />
 							</ToastAction>
 						}
-						size="lg"
+						size="sm"
 						status="error"
 						title={t("app.update.error")}
 					/>

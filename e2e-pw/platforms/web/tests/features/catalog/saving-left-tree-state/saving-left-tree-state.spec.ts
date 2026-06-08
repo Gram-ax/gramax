@@ -8,6 +8,14 @@ catalogTest.use({
 });
 
 catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
+	catalogTest.describe.configure({ mode: "serial" });
+
+	catalogTest.beforeEach(async ({ sharedPage, catalogPage }) => {
+		await sharedPage.evaluate(() => localStorage.removeItem("nav-tree-state"));
+		await sharedPage.reload();
+		await catalogPage.waitForLoad();
+	});
+
 	catalogTest("expanded state persists across page reload", async ({ catalogPage, sharedPage }) => {
 		await catalogPage.waitForLoad();
 
@@ -74,9 +82,11 @@ catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
 		const siblingCategoryChevron = siblingCategoryItem.locator(".angle");
 
 		// Expand both categories
+		await expect(childCategoryChevron).toBeVisible();
 		await childCategoryChevron.click();
 		await expect(leafArticle).toBeVisible();
 
+		await expect(siblingCategoryChevron).toBeVisible();
 		await siblingCategoryChevron.click();
 		await expect(siblingLeaf).toBeVisible();
 
@@ -115,6 +125,7 @@ catalogTest.describe("Saving Left Nav Tree State (edit mode)", () => {
 		const siblingCategoryChevron = siblingCategoryItem.locator(".angle");
 
 		// Expand both
+		await expect(childCategoryChevron).toBeVisible();
 		await childCategoryChevron.click();
 		await expect(leafArticle).toBeVisible();
 

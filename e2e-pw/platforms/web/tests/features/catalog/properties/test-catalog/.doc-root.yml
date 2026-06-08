@@ -1,0 +1,12 @@
+title: Test Catalog
+syntax: MarkdownIt
+supportedLanguages: []
+properties:
+  - name: Important
+    type: Flag
+    style: red
+  - name: Assignee
+    type: Enum
+    style: blue
+    values:
+      - SY

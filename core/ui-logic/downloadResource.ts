@@ -1,3 +1,4 @@
+import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
 import t from "@ext/localization/locale/translate";
 import { toast } from "@ui-kit/Toast";
 import type Path from "../logic/FileProvider/Path/Path";
@@ -14,7 +15,12 @@ const sendError = () => {
 	});
 };
 
-const downloadResource = async (apiUrlCreator: ApiUrlCreator, path: Path) => {
+const downloadResource = async (
+	apiUrlCreator: ApiUrlCreator,
+	path: Path,
+	itemId?: string,
+	providerType?: ArticleProviderType,
+) => {
 	const localizedErrorMessage = JSON.stringify({
 		title: t("file-download-error-title"),
 		message: t("file-download-error-message"),
@@ -22,7 +28,7 @@ const downloadResource = async (apiUrlCreator: ApiUrlCreator, path: Path) => {
 
 	try {
 		const res = await FetchService.fetch(
-			apiUrlCreator.getArticleResource(path.value, null),
+			apiUrlCreator.getArticleResource(path.value, null, undefined, itemId, providerType),
 			localizedErrorMessage,
 			undefined,
 			undefined,
@@ -31,12 +37,12 @@ const downloadResource = async (apiUrlCreator: ApiUrlCreator, path: Path) => {
 		if (!res.ok) return sendError();
 		const extension = path.extension;
 		downloadFile(await res.blob(), MimeTypes[extension] ?? extension, decodeURIComponent(path.nameWithExtension));
-	} catch (error) {
+	} catch (_) {
 		sendError();
 	}
 };
 
-export const downloadFile = (fileData: any, mimeType: MimeTypes, fileName: string) => {
+export const downloadFile = (fileData, mimeType: MimeTypes, fileName: string) => {
 	const blob = new Blob([fileData], { type: mimeType });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");

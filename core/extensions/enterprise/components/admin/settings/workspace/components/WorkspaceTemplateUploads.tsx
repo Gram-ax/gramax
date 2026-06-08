@@ -5,11 +5,12 @@ import { type Dispatch, type SetStateAction, useCallback, useMemo } from "react"
 import type { ExportTemplate, WorkspaceSettings } from "../types/WorkspaceComponent";
 import {
 	createFileData,
+	downloadTemplate,
+	findTemplate,
 	PDF_ACCEPT,
 	PDF_MIME,
-	readPdfTemplate,
+	readTemplate,
 	readTemplateFile,
-	readWordTemplate,
 	removeTemplate,
 	upsertTemplates,
 	WORD_ACCEPT,
@@ -55,7 +56,7 @@ function WordTemplateUpload(props: WorkspaceTemplateUploadsProps) {
 			description={t("enterprise.admin.workspace.templates.word.description")}
 			getTemplates={(settings) => settings.wordTemplates ?? []}
 			mimeType={WORD_MIME}
-			readFile={readWordTemplate}
+			readFile={readTemplate}
 			setTemplates={(settings, templates) => ({ ...settings, wordTemplates: templates })}
 			title={t("enterprise.admin.workspace.templates.word.title")}
 		/>
@@ -70,7 +71,7 @@ function PdfTemplateUpload(props: WorkspaceTemplateUploadsProps) {
 			description={t("enterprise.admin.workspace.templates.pdf.description")}
 			getTemplates={(settings) => settings.pdfTemplates ?? []}
 			mimeType={PDF_MIME}
-			readFile={readPdfTemplate}
+			readFile={readTemplate}
 			setTemplates={(settings, templates) => ({ ...settings, pdfTemplates: templates })}
 			title={t("enterprise.admin.workspace.templates.pdf.title")}
 		/>
@@ -115,6 +116,19 @@ function TemplateUpload({
 		[getTemplates, setLocalSettings, setTemplates],
 	);
 
+	const handleDownload = useCallback(
+		(file: { name: string }) => {
+			const template = findTemplate(getTemplates(localSettings), file.name);
+
+			if (!template) {
+				return;
+			}
+
+			downloadTemplate(template, mimeType);
+		},
+		[getTemplates, localSettings, mimeType],
+	);
+
 	return (
 		<FileUploadCompact
 			accept={accept}
@@ -122,6 +136,7 @@ function TemplateUpload({
 			files={files}
 			multiple
 			onAdd={handleAdd}
+			onDownload={handleDownload}
 			onRemove={handleRemove}
 			title={title}
 		/>

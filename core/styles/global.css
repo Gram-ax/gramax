@@ -157,6 +157,7 @@ img {
 }
 
 .error {
+	/* biome-ignore lint/complexity/noImportantStyles: needs? */
 	color: var(--color-danger) !important;
 }
 
@@ -230,6 +231,7 @@ span.pk .far {
 }
 
 .modal .small-code .prism-code {
+	/* biome-ignore lint/complexity/noImportantStyles: needs? */
 	padding: 6px 12px !important;
 	margin: 0;
 }
@@ -248,6 +250,14 @@ span.pk .far {
 
 .is-found-article-element {
 	animation: BLINK_ANIMATION 1.5s forwards linear;
+}
+
+::target-text {
+	background-color: transparent;
+}
+
+::highlight(gramax-text-fragment) {
+	background-color: #e9d2fd;
 }
 
 @keyframes BLINK_ANIMATION {

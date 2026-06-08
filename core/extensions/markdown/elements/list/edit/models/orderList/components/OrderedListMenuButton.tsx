@@ -1,21 +1,33 @@
-import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { setEditorStore } from "@core-ui/stores/EditorStore";
 import t from "@ext/localization/locale/translate";
 import type { Editor } from "@tiptap/core";
-import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { DropdownMenuShortcut } from "@ui-kit/Dropdown";
+import { ToolbarDropdownMenuItem, ToolbarIcon } from "@ui-kit/Toolbar";
+import { useCallback } from "react";
 
-const OrderedListMenuButton = ({ editor }: { editor: Editor }) => {
-	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "orderedList" });
+interface OrderedListMenuButtonProps {
+	editor: Editor;
+	active: boolean;
+	disabled: boolean;
+}
+
+const OrderedListMenuButton = ({ editor, active, disabled }: OrderedListMenuButtonProps) => {
+	const onSelectOrderedList = useCallback(() => {
+		editor.chain().focus().toggleOrderedList().run();
+		setEditorStore({ lastUsedListType: "ordered" });
+	}, [editor]);
+
 	return (
-		<ToolbarToggleButton
-			active={isActive}
+		<ToolbarDropdownMenuItem
+			active={active}
 			data-testid="tb-ordered-list"
 			disabled={disabled}
-			hotKey={"Mod-Shift-7"}
-			onClick={() => editor.chain().focus().toggleOrderedList().run()}
-			tooltipText={t("editor.ordered-list")}
+			onClick={onSelectOrderedList}
 		>
 			<ToolbarIcon icon={"list-ordered"} />
-		</ToolbarToggleButton>
+			{t("editor.ordered-list")}
+			<DropdownMenuShortcut value="Mod-Shift-7" />
+		</ToolbarDropdownMenuItem>
 	);
 };
 

@@ -13,4 +13,4 @@ interface CommentOptions {
 	onMarkAdded?: (id: string, positions: Range[]) => void;
 }
 
-export type { CommentStorage, CommentOptions };
+export type { CommentOptions, CommentStorage };

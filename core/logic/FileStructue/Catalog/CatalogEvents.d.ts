@@ -1,13 +1,12 @@
-import type { Event } from "@core/Event/EventEmitter";
+import type { Event, EventArgs } from "@core/Event/EventEmitter";
 import type ArticleParser from "@core/FileStructue/Article/ArticleParser";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import type { Item, UpdateItemProps } from "@core/FileStructue/Item/Item";
 import type { ItemRef } from "@core/FileStructue/Item/ItemRef";
 import type { MakeResourceUpdater } from "@core/Resource/ResourceUpdaterFactory";
-import type { GitVersion } from "@ext/git/core/model/GitVersion";
+import type { RepositoryEvents } from "@ext/git/core/Repository/Repository";
 import type RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
 import type { ItemRefStatus, ItemStatus } from "@ext/Watchers/model/ItemStatus";
 
 export type CatalogItemsUpdated = {
@@ -50,6 +49,7 @@ type CatalogEvents = Event<"update", { catalog: Catalog }> &
 		}
 	> &
 	Event<"repository-set", { catalog: Catalog }> &
-	Event<"merge", { catalog: Catalog; targetBranch: string; sourceData: SourceData; beforeMergeCommit: GitVersion }>;
+	Event<"merge", { catalog: Catalog } & EventArgs<RepositoryEvents, "merge">> &
+	Event<"sync", { catalog: Catalog } & EventArgs<RepositoryEvents, "sync">>;
 
 export default CatalogEvents;

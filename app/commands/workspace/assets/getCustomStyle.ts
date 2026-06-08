@@ -4,7 +4,7 @@ import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 
 const getCustomStyle: Command<{ workspacePath?: WorkspacePath }, string> = Command.create({
 	path: "workspace/assets/getCustomStyle",
-	kind: ResponseKind.plain,
+	kind: ResponseKind.css,
 
 	flags: ["otel-omit-result"],
 
@@ -16,7 +16,7 @@ const getCustomStyle: Command<{ workspacePath?: WorkspacePath }, string> = Comma
 		return content ?? "";
 	},
 
-	params(ctx, q) {
+	params(_, q) {
 		return { workspacePath: q.path };
 	},
 });

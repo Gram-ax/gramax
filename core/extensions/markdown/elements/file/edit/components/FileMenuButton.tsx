@@ -1,4 +1,3 @@
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import InputFile from "@components/Atoms/InputFile";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
@@ -59,7 +58,6 @@ export const FileMenuButton = ({ editor, onStart, onSave }: FileMenuButtonProps)
 			onSelect={(e) => {
 				e.preventDefault();
 				onStart?.();
-				ArticleUpdaterService.stopLoadingAfterFocus();
 			}}
 			tooltipText={t("file")}
 		>
@@ -78,12 +76,7 @@ export const FileMenuButtonDropdown = ({ editor, onStart, onSave }: FileMenuButt
 
 	if (disabled) {
 		return (
-			<ToolbarDropdownMenuItem
-				active={isActive}
-				dataQa={`qa-edit-menu-file`}
-				disabled={disabled}
-				onSelect={() => ArticleUpdaterService.stopLoadingAfterFocus()}
-			>
+			<ToolbarDropdownMenuItem active={isActive} dataQa={`qa-edit-menu-file`} disabled={disabled}>
 				<div className="flex flex-row items-center gap-2 w-full">
 					<Icon icon="file" />
 					{t("file")}
@@ -100,7 +93,6 @@ export const FileMenuButtonDropdown = ({ editor, onStart, onSave }: FileMenuButt
 			onSelect={(e) => {
 				e.preventDefault();
 				onStart?.();
-				ArticleUpdaterService.stopLoadingAfterFocus();
 			}}
 		>
 			<FileInput apiUrlCreator={apiUrlCreator} editor={editor} onSave={onSave} resourceService={rs}>

@@ -1,18 +1,18 @@
 [workspace]
 resolver = "2"
-default-members = ["crates/git", "crates/fs", "crates/test-utils"]
+default-members = ["crates/git", "crates/fs", "crates/core", "crates/test-utils"]
 members = [
-  "apps/tauri/plugins/plugin-gramax-fs",
-  "apps/tauri/plugins/plugin-gramax-git",
+  "apps/tauri/plugins/plugin-gramax-core",
   "apps/tauri/plugins/tauri-otel-context",
   "apps/tauri/src-tauri",
   "crates/bugsnag",
+  "crates/core",
   "crates/opentelemetry",
 
   "apps/browser/crates/em-bindgen-macro",
   "apps/browser/crates/gramax-wasm",
 
-  "apps/next/crates/next-gramax-git",
+  "apps/next/crates/next-gramax-core",
   "apps/next/crates/napi-async-macro",
 
   "crates/spa",
@@ -64,6 +64,7 @@ tracing-opentelemetry = "0.32.1"
 colored = "^3.0.0"
 sysinfo = "^0.37"
 humansize = "2.1.3"
+rayon = "^1.8"
 
 rstest = "^0.23"
 tempfile = "3"

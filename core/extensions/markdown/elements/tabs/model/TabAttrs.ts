@@ -1,6 +1,8 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
+
 interface TabAttrs {
 	name?: string;
-	icon?: string;
+	icon?: IconCode;
 	tag?: string;
 	idx?: number;
 }

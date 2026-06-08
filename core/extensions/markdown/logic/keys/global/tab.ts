@@ -5,7 +5,7 @@ import type KeyboardShortcut from "@ext/markdown/elementsUtils/keyboardShortcuts
 const blockToListItem: KeyboardRule = ({ editor, node, parentNode, nodePosition }) => {
 	if (!parentNode || parentNode.type.name === "listItem") return false;
 	if (node.isTextblock || !node.isBlock || node.type.name === "code_block") return false;
-	const $pos = editor.state.doc.resolve(nodePosition);
+	const Pos = editor.state.doc.resolve(nodePosition);
 
 	const listItem = editor.schema.nodes.listItem.create(null, node);
 
@@ -46,7 +46,7 @@ const blockToListItem: KeyboardRule = ({ editor, node, parentNode, nodePosition 
 		parent = listItem;
 	}
 
-	const clampPos = Math.max(Math.min($pos.pos, editor.state.doc.content.size - 1), 0);
+	const clampPos = Math.max(Math.min(Pos.pos, editor.state.doc.content.size - 1), 0);
 	return editor.chain().deleteSelection().insertContentAt(clampPos, parent).setMeta("ignoreDeleteNode", true).run();
 };
 

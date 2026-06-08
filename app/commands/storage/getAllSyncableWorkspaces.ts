@@ -1,6 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
 import BrokenRepository from "@ext/git/core/Repository/BrokenRepository";
@@ -15,7 +14,7 @@ const getAllSyncableWorkspaces: Command<
 
 	kind: ResponseKind.json,
 
-	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new SilentMiddleware()],
+	middlewares: [new AuthorizeMiddleware(), new SilentMiddleware()],
 
 	async do({ ctx, shouldFetch }) {
 		const { wm } = this._app;

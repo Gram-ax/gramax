@@ -1,3 +1,4 @@
+import assert from "assert";
 import { $ } from "bun";
 import fs from "fs/promises";
 import { join } from "path";
@@ -57,14 +58,14 @@ export const project = (() => {
 })();
 
 const parseReleaseBranch = () => {
-	const branch = process.env.CI_COMMIT_BRANCH || "";
+	const branch = process.env.CI_COMMIT_REF_NAME || "";
 	const match = branch.match(/^release\/(\d{4}).(\d{1,2})$/);
 	if (!match) return null;
 	const [, year, month] = match;
 	const numYear = Number(year);
 	const numMonth = Number(month);
 	const lastDay = new Date(numYear, numMonth, 0).getDate();
-	return { year: numYear, month: numMonth,  lastDay };
+	return { year: numYear, month: numMonth, lastDay };
 };
 
 const getToday = () => {
@@ -74,17 +75,41 @@ const getToday = () => {
 		month: date.getMonth() + 1,
 		day: date.getDate(),
 	};
-}
+};
+
+const parseProdVersion = () => {
+	const v = env("PROD_VERSION");
+	if (!v) return null;
+	const match = v.match(/^(\d{4})\.(\d{1,2})/);
+	if (!match) return null;
+	return { year: Number(match[1]), month: Number(match[2]) };
+};
+
+export const releaseOffset = () => {
+	const release = parseReleaseBranch();
+	if (!release) return null;
+	const prod = parseProdVersion();
+	assert(prod, "PROD_VERSION is not set or invalid");
+	if (release.year === prod.year && release.month === prod.month) return null;
+	if (release.year > prod.year || (release.year === prod.year && release.month > prod.month)) return "ahead";
+	return "behind";
+};
 
 export const buildDate = await (async () => {
 	const release = parseReleaseBranch();
-	if(!release) return await $`date "+%Y.%-m.%-d"`.quiet().text().then((text) => text.trim());
-	
+	if (!release)
+		return await $`date "+%Y.%-m.%-d"`
+			.quiet()
+			.text()
+			.then((text) => text.trim());
+
 	const today = getToday();
-	if(today.year === release.year && today.month === release.month) return `${today.year}.${today.month}.${today.day}`;
+	if (today.year === release.year && today.month === release.month)
+		return `${today.year}.${today.month}.${today.day}`;
+	if (today.year < release.year || (today.year === release.year && today.month < release.month))
+		return `${release.year}.${release.month}.1`;
 
 	return `${release.year}.${release.month}.${release.lastDay}`;
-	
 })();
 
 export const buildDateShort = await (async () => {
@@ -125,8 +150,8 @@ export const channel = () => {
 	const force = env.optional("FORCE_CHANNEL");
 	if (force) return force;
 
-	const branch = env.optional("BRANCH")
-	if (env.optional("CI_COMMIT_BRANCH")?.match(/^release\//)) return "prod";
+	const branch = env.optional("BRANCH");
+	if (env.optional("CI_COMMIT_REF_NAME")?.match(/^release\//)) return "prod";
 	if (branch === "develop") return "dev";
 	return "test";
 };

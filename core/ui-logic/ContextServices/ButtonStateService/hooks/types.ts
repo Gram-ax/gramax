@@ -28,7 +28,7 @@ export type NodeType =
 	| "cut"
 	| "note"
 	| "tabs"
-	| "snippet"
+	| "fragment"
 	| "diagramsMenuGroup"
 	| "drawio"
 	| "diagrams"
@@ -42,7 +42,7 @@ export type NodeType =
 	| typeof blockPropertyEditName
 	| typeof questionEditName;
 
-export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment" | "s" | "highlight";
+export type Mark = "link" | "strong" | "em" | "code" | "file" | "comment" | "s" | "highlight" | "fragment-link";
 
 export interface NodeValues {
 	action?: NodeType;

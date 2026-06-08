@@ -1,4 +1,5 @@
 import type { OpenGraphData } from "@core/SitePresenter/SitePresenter";
+import ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import fs from "fs";
 import Document, { type DocumentContext, type DocumentInitialProps, Head, Html, Main, NextScript } from "next/document";
@@ -54,9 +55,11 @@ class MyDocument extends Document<MyDocumentProps> {
 	render() {
 		const { openGraphData, domain, basePath, pageUrl } = this.props;
 		const currentUrl = domain && pageUrl ? domain + pageUrl : "";
+		const apiUrlCreator = new ApiUrlCreator(basePath);
+		const customStyleAssetLink = apiUrlCreator.getCustomStyleAsset().toString();
 
 		return (
-			<Html>
+			<Html className={this.props.theme}>
 				<Head>
 					{openGraphData && (
 						<>
@@ -73,9 +76,12 @@ class MyDocument extends Document<MyDocumentProps> {
 							)}
 						</>
 					)}
+					{/** biome-ignore lint/style/useNamingConvention: expected */}
 					<style dangerouslySetInnerHTML={{ __html: this.props.cssContent }} />
 				</Head>
 				<body data-theme={this.props.theme} id="custom-style">
+					<link href={customStyleAssetLink} id="custom-style-link" precedence="high" rel="stylesheet" />
+
 					<Main />
 					<NextScript />
 				</body>

@@ -9,7 +9,7 @@ interface TableEmptyRowProps<T> {
 export const TableEmptyRow = <T,>({ columns }: TableEmptyRowProps<T>) => {
 	return (
 		<TableRow>
-			<TableCell className="h-full text-center" colSpan={columns.length}>
+			<TableCell className="text-center" colSpan={columns.length}>
 				{t("empty")}
 			</TableCell>
 		</TableRow>

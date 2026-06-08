@@ -1,7 +1,7 @@
 import HomePage from "@components/HomePage/HomePage";
 import CatalogComponent from "@components/Layouts/CatalogLayout/CatalogComponent";
 import type { PageProps } from "@components/Pages/models/Pages";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import ArticleViewContainer from "@core-ui/ContextServices/views/articleView/ArticleViewContainer";
 import { memo } from "react";
 

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import useWatch from "@core-ui/hooks/useWatch";
@@ -8,7 +9,7 @@ import { useCallback, useState } from "react";
 
 interface ViewProps {
 	defs: PropertyValue[];
-	orderby: string[];
+	orderby: PropertyValue[];
 	groupby: string[];
 	select: string[];
 	display: Display;
@@ -27,7 +28,7 @@ const View = (props: ViewProps) => {
 	const getRenderData = useCallback(
 		async (
 			defs: PropertyValue[],
-			orderby: string[] = [],
+			orderby: PropertyValue[] = [],
 			groupby: string[] = [],
 			select: string[] = [],
 			display: Display,
@@ -45,7 +46,7 @@ const View = (props: ViewProps) => {
 			if (!res.ok) return;
 			setContent(await res.json());
 		},
-		[apiUrlCreator],
+		[],
 	);
 
 	useWatch(() => {

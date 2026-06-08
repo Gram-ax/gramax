@@ -18,6 +18,7 @@ import {
 	SystemProperties,
 	type ViewRenderGroup,
 } from "@ext/properties/models";
+import { normalizeCatalogProperties } from "@ext/serach/components/utils/normalizeProperties";
 import { Display } from "../models/display";
 
 export interface ProcessedArticle {
@@ -29,7 +30,7 @@ export interface ProcessedArticle {
 	groupValues: (string | string[])[];
 }
 
-export type OrderValue = { name: string; value: string[] };
+export type OrderValue = { id: string; value: string[] };
 type ArticleFilterOptions = {
 	ignoreProps?: string[];
 };
@@ -60,7 +61,10 @@ class ViewFilter extends ViewSorter {
 	}
 
 	private async _filter(): Promise<ProcessedArticle[]> {
-		this._catalogPropMap = new Map(getAllCatalogProperties(this._catalog).map((prop) => [prop.name, prop]));
+		this._catalogPropMap = new Map(
+			normalizeCatalogProperties(getAllCatalogProperties(this._catalog)).map((prop) => [prop.id, prop]),
+		);
+		this._orderby = this._normalizeOrderby(this._orderby);
 
 		const processedArticles = [];
 		const uniqueArticles = new Set<string>();
@@ -79,17 +83,22 @@ class ViewFilter extends ViewSorter {
 		return processedArticles;
 	}
 
+	private _normalizePropertyId(prop: PropertyValue): string {
+		return prop.id ?? (prop as unknown as { name: string }).name;
+	}
+
 	private _filterArticle(uniqueArticles: Set<string>, article: Item, options?: ArticleFilterOptions) {
+		if (uniqueArticles.has(article?.ref?.path?.value)) return false;
+
 		return this._defs.every((defProp) => {
-			const articleProp = article.props?.properties?.find((p) => p.name === defProp.name);
+			const articleProp = article.props?.properties?.find((p) => this._normalizePropertyId(p) === defProp.id);
 			if (articleProp && defProp?.value?.some((val) => articleProp.value?.includes(val))) return false;
 
 			const ignoreProps = options?.ignoreProps || [];
-			const isIgnoreProp = ignoreProps.includes(defProp.name);
+			const isIgnoreProp = ignoreProps.includes(defProp.id);
 
 			if (defProp?.value?.includes("yes") && !isIgnoreProp) return !articleProp;
 			if (defProp?.value?.includes("none") && !isIgnoreProp) return !!articleProp;
-			if (uniqueArticles.has(article?.ref?.path?.value)) return false;
 
 			return true;
 		});
@@ -97,10 +106,10 @@ class ViewFilter extends ViewSorter {
 
 	private _filterProps(props: Property[]): Property[] {
 		return props
-			.filter((prop) => this._catalogPropMap.has(prop.name) && this._select.includes(prop.name))
+			.filter((prop) => this._catalogPropMap.has(prop.id) && this._select.includes(prop.id))
 			.map((prop) => {
 				if (!prop.value) return prop;
-				return { ...prop, value: Array.isArray(prop.value) ? [...prop.value] : prop.value };
+				return { ...prop, value: Array.isArray(prop.value) ? [...prop.value] : [prop.value] };
 			});
 	}
 
@@ -108,8 +117,9 @@ class ViewFilter extends ViewSorter {
 		const resourcePath = this._curArticle.ref.path.getRelativePath(article.ref.path).value;
 		const extendedProperties =
 			(article.props?.properties?.map((prop) => {
-				const catalogProp = this._catalogPropMap.get(prop.name);
-				return catalogProp ? { ...catalogProp, ...prop } : prop;
+				const id = this._normalizePropertyId(prop);
+				const catalogProp = this._catalogPropMap.get(id);
+				return catalogProp ? { ...catalogProp, ...prop, id } : { ...prop, id };
 			}) as Property[]) ?? [];
 
 		callback(article.ref.path.value);
@@ -120,8 +130,8 @@ class ViewFilter extends ViewSorter {
 			itemPath: article.ref.path.value,
 			linkPath: await this._catalog.getPathname(article),
 			groupValues: this._groupby.map((groupProp) => {
-				const prop = extendedProperties.find((p) => p.name === groupProp);
-				return prop?.value ?? prop?.name ?? null;
+				const prop = extendedProperties.find((p) => p.id === groupProp);
+				return prop?.value ?? prop?.id ?? null;
 			}),
 			otherProps: sortMapByName(
 				Array.from(this._catalogPropMap.keys()),
@@ -143,6 +153,7 @@ class ViewFilter extends ViewSorter {
 
 				const content = await this._parser.parse(prop.value?.[0], context);
 				newProps.push({ ...prop, value: [content.renderTree] });
+				continue;
 			}
 
 			newProps.push(prop);
@@ -152,29 +163,33 @@ class ViewFilter extends ViewSorter {
 	}
 
 	private _group(articles: ProcessedArticle[], groupIndex: number = 0): ViewRenderGroup[] {
+		const sortedArticles = this._sortArticle(articles, this._orderby);
+
 		if (groupIndex >= this._groupby.length) {
 			return [
 				{
 					group: null,
-					articles: this._sortArticle(articles, this._orderby).map(
-						({ title, resourcePath, linkPath, itemPath, otherProps }) => ({
-							title,
-							resourcePath,
-							itemPath,
-							linkPath,
-							otherProps,
-						}),
-					),
+					articles: sortedArticles.map(({ title, resourcePath, linkPath, itemPath, otherProps }) => ({
+						title,
+						resourcePath,
+						itemPath,
+						linkPath,
+						otherProps,
+					})),
 				},
 			];
 		}
 
-		let groupedArticles = articles.reduce(
+		let groupedArticles = sortedArticles.reduce(
 			(acc, article) => {
 				const groupValue = article.groupValues[groupIndex];
 				const groupValueType = this._catalogPropMap.get(this._groupby[groupIndex])?.type;
 				const key = this._createKey(groupValue, groupValueType);
-				(acc[key] ??= []).push(article);
+				if (acc[key]) {
+					acc[key].push(article);
+				} else {
+					acc[key] = [article];
+				}
 				return acc;
 			},
 			{} as Record<string, ProcessedArticle[]>,
@@ -183,7 +198,7 @@ class ViewFilter extends ViewSorter {
 		if (this._display === Display.Kanban) {
 			const groupProp = this._groupby?.[0];
 			const values = this._catalogPropMap.get(groupProp)?.values || [];
-			const filterProp = this._defs.find((prop) => prop.name === groupProp);
+			const filterProp = this._defs.find((prop) => prop.id === groupProp);
 
 			values
 				.filter((value) => !filterProp?.value?.includes(value))
@@ -204,7 +219,7 @@ class ViewFilter extends ViewSorter {
 		const groups = Object.entries(groupedArticles).map(([groupKey, groupArticles]) => ({
 			group: groupKey === "ungrouped" ? [null] : [groupKey],
 			articles: [],
-			subgroups: this._group(this._sortArticle(groupArticles, this._orderby), groupIndex + 1),
+			subgroups: this._group(groupArticles, groupIndex + 1),
 		}));
 
 		return this._sortGroup(groups, this._orderby, this._groupby[groupIndex]);
@@ -238,26 +253,35 @@ class ViewFilter extends ViewSorter {
 
 	private async _handleSystemProperty(uniqueArticles: Set<string>): Promise<ProcessedArticle[]> {
 		const defs = this._defs || [];
-		const hierarchyDef = defs.find((property) => SystemProperties[property.name]);
+		const hierarchyDef = defs.find((property) => SystemProperties[property.id]);
 		if (!hierarchyDef) return [];
 
-		if (!hierarchyDef.value.includes("child-to-current"))
-			return await Promise.all(
-				((this._curArticle as Category)?.getFilteredItems?.(this._itemFilters, this._catalog) || [])
-					?.filter((article) =>
-						this._filterArticle(uniqueArticles, article, { ignoreProps: [SystemProperties.hierarchy] }),
-					)
-					?.map(async (article) => {
-						return await this._proccessArticle(article as Article, (refPath) =>
-							uniqueArticles.add(refPath),
-						);
-					}),
-			);
+		if (!hierarchyDef.value.includes("child-to-current")) {
+			const result: ProcessedArticle[] = [];
+			for (const article of (this._curArticle as Category)?.getFilteredItems?.(
+				this._itemFilters,
+				this._catalog,
+			) || []) {
+				if (!this._filterArticle(uniqueArticles, article, { ignoreProps: [SystemProperties.hierarchy] }))
+					continue;
+				result.push(await this._proccessArticle(article as Article, (refPath) => uniqueArticles.add(refPath)));
+			}
+			return result;
+		}
 		(this._curArticle as Category)?.items?.map((article) => {
 			uniqueArticles.add(article.ref.path.value);
 		});
 
 		return [];
+	}
+
+	private _normalizeOrderby(orderby: OrderValue[]): OrderValue[] {
+		return (orderby || []).map((order) => {
+			if (order?.value?.length) return order;
+
+			const values = this._catalogPropMap.get(order.id)?.values;
+			return values?.length ? { ...order, value: values } : order;
+		});
 	}
 }
 

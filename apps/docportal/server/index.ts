@@ -2,6 +2,7 @@ import getApp from "@app/node/app";
 import getCommands from "@app/node/commands";
 import isProduction from "scripts/isProduction.mjs";
 import api from "./handlers/api";
+import auth from "./handlers/auth";
 import clientAssets from "./handlers/clientAssets";
 import page from "./handlers/page";
 import publicApi from "./handlers/publicApi";
@@ -9,6 +10,7 @@ import seo from "./handlers/seo";
 import DocportalApiRequest from "./logic/DocportalApiRequest";
 import DocportalApiResponse from "./logic/DocportalApiResponse";
 import type ServerContext from "./types/ServerContext";
+import parseRequestBody from "./utils/parseRequestBody";
 
 const gzip = async (req: Request, res: Response): Promise<Response> => {
 	if (!req.headers.get("Accept-Encoding")?.includes("gzip")) return res;
@@ -29,11 +31,11 @@ const server = Bun.serve({
 			app,
 			path: new URL(req.url),
 			commands: getCommands(app),
-			req: new DocportalApiRequest(req),
 			res: new DocportalApiResponse(new Response()),
+			req: new DocportalApiRequest(req, await parseRequestBody(req)),
 		};
 
-		for (const handler of [seo, publicApi, clientAssets, api, page]) {
+		for (const handler of [seo, publicApi, auth, clientAssets, api, page]) {
 			const response = await handler(ctx);
 			if (response) return gzip(req, response);
 		}

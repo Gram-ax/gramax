@@ -1,36 +1,51 @@
 import type MediaPreview from "@components/Atoms/Image/modalImage/MediaPreview";
-import { classNames } from "@components/libs/classNames";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
-import styled from "@emotion/styled";
+import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import { cn } from "@core-ui/utils/cn";
+import { ArticleComponentResizer } from "@ext/article/Components/ArticleComponentResizer";
 import DiagramError from "@ext/markdown/elements/diagrams/component/DiagramError";
-import { type ComponentProps, forwardRef, type MutableRefObject } from "react";
+import { type ComponentProps, forwardRef, type MutableRefObject, useCallback } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 
 interface DiagramProps {
 	data?: string;
 	error?: Error;
 	diagramName: DiagramType;
-	openEditor?: () => void;
 	className?: string;
 	isFull?: boolean;
 	background?: boolean;
 	title?: string;
 	downloadSrc?: string;
 	isFrozen?: boolean;
+	scale?: number;
+	openEditor?: () => void;
 }
 
 const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HTMLDivElement>) => {
-	const { data, error, diagramName, className, isFrozen, background = true, title, downloadSrc, openEditor } = props;
+	const {
+		data,
+		error,
+		diagramName,
+		className,
+		isFull,
+		isFrozen,
+		background = true,
+		title,
+		downloadSrc,
+		openEditor,
+		scale,
+	} = props;
+	const { id: resourceId, provider: resourceProvider } = ResourceService.value;
 
-	if (error) return <DiagramError diagramName={diagramName} error={error} />;
-
-	const onDoubleClick = () => {
+	const onDoubleClick = useCallback(() => {
 		ModalToOpenService.setValue<ComponentProps<typeof MediaPreview>>(ModalToOpen.MediaPreview, {
 			id: diagramName,
 			svg: data,
 			title: title,
 			downloadSrc: downloadSrc,
+			resourceId,
+			resourceProvider,
 			openedElement: ref,
 			modalEdit: openEditor,
 			modalStyle: {
@@ -43,42 +58,42 @@ const DiagramRender = forwardRef((props: DiagramProps, ref?: MutableRefObject<HT
 				ModalToOpenService.resetValue();
 			},
 		});
-	};
+	}, [diagramName, data, title, downloadSrc, resourceId, resourceProvider, openEditor, ref]);
 
-	return (
+	if (error) return <DiagramError diagramName={diagramName} error={error} />;
+
+	const diagram = (
 		<div
-			className={classNames(`${className} diagram-image`, { "diagram-background": background })}
+			className={cn(
+				className,
+				"diagram-image flex w-full items-center justify-center",
+				background && "diagram-background",
+			)}
 			data-focusable="true"
 		>
 			<div
-				className={classNames(className, { isFrozen }, [`${diagramName}-diagram`])}
+				className={cn(
+					className,
+					isFrozen && "opacity-40",
+					`${diagramName}-diagram`,
+					"[&>svg]:select-none [&>svg]:!bg-transparent [&>svg]:!max-w-full [&>svg]:!max-h-full [&>svg]:!w-full",
+					isFull ? "[&>svg]:!h-full" : "[&>svg]:!h-auto",
+				)}
+				// biome-ignore lint/style/useNamingConvention: expected
 				dangerouslySetInnerHTML={{ __html: data }}
 				onDoubleClick={onDoubleClick}
 				ref={ref}
 			/>
 		</div>
 	);
+
+	if (openEditor) return diagram;
+
+	return (
+		<ArticleComponentResizer disabled={!openEditor} scale={scale}>
+			{diagram}
+		</ArticleComponentResizer>
+	);
 });
 
-export default styled(DiagramRender)`
-	display: flex;
-	width: 100%;
-	align-items: center;
-	justify-content: center;
-
-	p {
-		line-height: 1.5em;
-	}
-
-	.isFrozen {
-		opacity: 0.4;
-	}
-
-	svg {
-		user-select: none;
-		background: none !important;
-		height: ${(p) => (p.isFull ? "100%" : "auto")} !important;
-		max-width: 100%;
-		max-height: 100% !important;
-	}
-`;
+export default DiagramRender;

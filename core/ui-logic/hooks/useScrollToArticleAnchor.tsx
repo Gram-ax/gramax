@@ -1,22 +1,23 @@
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import safeDecode from "@core/utils/safeDecode";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { useEffect, useRef } from "react";
 
 const useScrollToArticleAnchor = (data: ArticlePageData) => {
-	const _data = useRef<ArticlePageData>();
+	const Data = useRef<ArticlePageData>();
 	const articleRef = ArticleRefService.value;
 	const timeout = useRef(null);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		(() => {
-			if (data === _data.current) return;
+			if (data === Data.current) return;
 			if (!articleRef.current) return;
 
 			const anchorId = window.location.hash.substring(1);
 			if (!anchorId) return;
 
-			_data.current = data;
+			Data.current = data;
 
 			const getElemAndScroll = () => {
 				const anchorId = window.location.hash.substring(1);
@@ -34,7 +35,7 @@ const useScrollToArticleAnchor = (data: ArticlePageData) => {
 		})();
 
 		return () => {
-			_data.current = null;
+			Data.current = null;
 			if (timeout.current) clearTimeout(timeout.current);
 		};
 	}, [data]);

@@ -1,13 +1,12 @@
+/** biome-ignore-all lint/style/useNamingConvention: expected */
 import type { OrderValue, ProcessedArticle } from "@ext/properties/logic/ViewFilter";
 import { type Property, PropertyTypes, type ViewRenderGroup } from "@ext/properties/models";
 
 class ViewSorter {
-	constructor() {}
-
 	protected _sortGroup(groups: ViewRenderGroup[], orderby: OrderValue[], groupName: string): ViewRenderGroup[] {
 		return groups.sort((a, b) => {
-			const prop = orderby.find((order) => order.name === groupName);
-			if (!prop) return 0;
+			const prop = orderby.find((order) => order.id === groupName);
+			if (!prop?.value?.length) return 0;
 
 			const aName = a.group?.[0];
 			const bName = b.group?.[0];
@@ -32,14 +31,14 @@ class ViewSorter {
 	protected _sortArticle(articles: ProcessedArticle[], orderby: OrderValue[]): ProcessedArticle[] {
 		let sortedArticles = articles;
 		for (const orderProp of orderby) {
-			const { name, value: orderValues } = orderProp;
+			const { id, value: orderValues } = orderProp;
 			sortedArticles = sortedArticles.sort((a, b) => {
-				const aProp = a.otherProps.find((prop) => prop.name === name);
-				const bProp = b.otherProps.find((prop) => prop.name === name);
+				const aProp = a.otherProps.find((prop) => prop.id === id);
+				const bProp = b.otherProps.find((prop) => prop.id === id);
 
-				if (aProp?.name !== name && bProp?.name !== name) return 0;
-				if (aProp?.name !== name) return 1;
-				if (bProp?.name !== name) return -1;
+				if (aProp?.id !== id && bProp?.id !== id) return 0;
+				if (aProp?.id !== id) return 1;
+				if (bProp?.id !== id) return -1;
 
 				if (!aProp && !bProp) return 0;
 				if (!aProp) return 1;
@@ -66,15 +65,18 @@ class ViewSorter {
 
 	// For properties with initial values, we sort by the order of the values
 	private _sortByValues(aProp: Property, bProp: Property, orderValues: string[]): number {
-		const aValue = Array.isArray(aProp.value) ? aProp.value.find((v) => orderValues.includes(v)) : aProp.value;
-		const bValue = Array.isArray(bProp.value) ? bProp.value.find((v) => orderValues.includes(v)) : bProp.value;
+		const valuesOrder = orderValues?.length ? orderValues : (aProp.values ?? bProp.values);
+		if (!valuesOrder?.length) return this._sortOtherProps(aProp, bProp);
+
+		const aValue = Array.isArray(aProp.value) ? aProp.value.find((v) => valuesOrder.includes(v)) : aProp.value;
+		const bValue = Array.isArray(bProp.value) ? bProp.value.find((v) => valuesOrder.includes(v)) : bProp.value;
 
 		if (!aValue && !bValue) return 0;
 		if (!aValue) return 1;
 		if (!bValue) return -1;
 
-		const aIndex = orderValues.indexOf(aValue);
-		const bIndex = orderValues.indexOf(bValue);
+		const aIndex = valuesOrder.indexOf(aValue);
+		const bIndex = valuesOrder.indexOf(bValue);
 
 		if (aIndex !== bIndex) {
 			const comparison = aIndex - bIndex;

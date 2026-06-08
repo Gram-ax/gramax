@@ -1,6 +1,8 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import useLucideIconLists from "@components/Atoms/Icon/lucideIconList";
 import Style from "@components/HomePage/Cards/model/Style";
 import UnsavedChangesModal from "@components/UnsavedChangesModal";
+import generateUniqueID from "@core/utils/generateUniqueID";
 import multiLayoutSearcher from "@core-ui/languageConverter/multiLayoutSearcher";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
@@ -10,6 +12,7 @@ import PropertyService from "@ext/properties/components/PropertyService";
 import { isPropertySuitableForArticle, type Property, PropertyTypes, type PropertyValue } from "@ext/properties/models";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, IconButton } from "@ui-kit/Button";
+import { CheckboxField } from "@ui-kit/Checkbox";
 import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
 import { ErrorState } from "@ui-kit/ErrorState";
 import { Form, FormField, FormFieldSet, FormFooter, FormHeader, FormStack } from "@ui-kit/Form";
@@ -19,7 +22,6 @@ import { FieldLabel } from "@ui-kit/Label";
 import { LazySearchSelect } from "@ui-kit/LazySearchSelect";
 import { Loader } from "@ui-kit/Loader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ui-kit/Select";
-import { SwitchField } from "@ui-kit/Switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
 import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -79,7 +81,7 @@ const FormFieldValues = ({ values = [], onChange, error }: FormFieldValuesProps)
 					<span>{t("forms.catalog-create-props.props.values.name")}</span>
 					<IconButton
 						className="rounded-full"
-						data-qa="qa-add-value"
+						data-testid="add-value"
 						icon="plus"
 						onClick={addValue}
 						size="xs"
@@ -109,15 +111,17 @@ const PropertyEditor = ({
 	const [isDeleteLoading, setIsDeleteLoading] = useState(false);
 	const [isSubmitLoading, setIsSubmitLoading] = useState(false);
 
-	const isNew = !data?.name;
+	const isNew = !data?.id;
 	const lucideIconListForUikitOptions = useLucideIconLists().lucideIconListForUikitOptions;
 	const { properties } = PropertyService.value;
 
+	console.log(onlyArticleProperties);
 	const propertyTypes = onlyArticleProperties
 		? Object.values(PropertyTypes).filter(isPropertySuitableForArticle)
 		: Object.values(PropertyTypes);
 
 	const schema = z.object({
+		id: z.string().optional(),
 		name: z
 			.string({ message: t("must-be-not-empty") })
 			.refine(
@@ -145,6 +149,7 @@ const PropertyEditor = ({
 	const form = useForm<z.infer<typeof schema>>({
 		resolver: zodResolver(schema),
 		defaultValues: {
+			id: data?.id,
 			name: data?.name,
 			type: data?.type,
 			options: data?.options,
@@ -168,11 +173,13 @@ const PropertyEditor = ({
 
 				const newData = {
 					...data,
+					id: data.id || generateUniqueID(5),
 					options: Object.keys(newValues).length > 0 ? newValues : undefined,
 				};
 
 				await onSubmit(newData as unknown as Property);
 				setIsSubmitLoading(false);
+				setOpen(false);
 			})(e);
 		},
 		[form, onSubmit],
@@ -240,7 +247,7 @@ const PropertyEditor = ({
 											<Input
 												{...field}
 												placeholder={t("forms.catalog-create-props.props.name.placeholder")}
-												readOnly={!!data?.name}
+												readOnly={!!data?.id}
 											/>
 										)}
 										name="name"
@@ -252,7 +259,7 @@ const PropertyEditor = ({
 										control={({ field }) => (
 											<Select
 												defaultValue={field.value || undefined}
-												disabled={!!data?.name}
+												disabled={!!data?.id}
 												onValueChange={field.onChange}
 											>
 												<SelectTrigger
@@ -300,7 +307,7 @@ const PropertyEditor = ({
 												placeholder={t("forms.catalog-create-props.props.icon.placeholder")}
 												renderOption={({ option }) => (
 													<div className="flex items-center gap-2">
-														<Icon icon={option.value as string} />
+														<Icon icon={option.value as IconCode} />
 														{option.value}
 													</div>
 												)}
@@ -353,11 +360,10 @@ const PropertyEditor = ({
 							<FormFooter
 								leftContent={
 									<div className="flex items-center gap-2">
-										<SwitchField
+										<CheckboxField
 											checked={form.watch("options.docportalVisible")}
 											label={t("properties.options.docportalVisible.name")}
 											onCheckedChange={toggleDocportalVisible}
-											size="sm"
 										/>
 										<Tooltip>
 											<TooltipTrigger>
@@ -383,7 +389,7 @@ const PropertyEditor = ({
 									</Button>
 								}
 								secondaryButton={
-									data?.name && (
+									data?.id && (
 										<ActionWarning
 											action={onDeleteClick}
 											data={data}

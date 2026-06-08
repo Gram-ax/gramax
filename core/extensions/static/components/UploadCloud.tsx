@@ -35,10 +35,11 @@ const UploadCloud = ({ onUpload }: UploadCloudComponentProps) => {
 			<CloudModalBody>
 				<p
 					dangerouslySetInnerHTML={{
+						// biome-ignore lint/style/useNamingConvention: expected
 						__html: catalogVersion ? t("cloud.upload-modal.published.info") : t("cloud.upload-modal.info"),
 					}}
 				/>
-				<CodeBlock value={url} />
+				<CodeBlock>{url}</CodeBlock>
 				<Description>{t("cloud.upload-modal.revoke")}</Description>
 			</CloudModalBody>
 			<FormFooter

@@ -1,6 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
 import { span } from "@ext/loggers/opentelemetry";
@@ -11,7 +10,7 @@ const haveToPull: Command<{ ctx: Context; shouldFetch: boolean; catalogName: str
 
 	kind: ResponseKind.json,
 
-	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
+	middlewares: [new SilentMiddleware(), new AuthorizeMiddleware()],
 
 	async do({ ctx, shouldFetch, catalogName }) {
 		const { wm, rp } = this._app;

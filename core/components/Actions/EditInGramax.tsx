@@ -3,7 +3,6 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
-import useIsEnterpriseWorkspace from "@ext/enterprise/utils/useIsEnterpriseWorkspace";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
@@ -114,7 +113,7 @@ const EditInGramax = ({ pathname, articlePath }: { pathname: string; articlePath
 	const { environment } = usePlatform();
 	const workspacePath = Workspace.current().path;
 	const { isNext, isStatic, isStaticCli } = usePlatform();
-	const isEnterprise = useIsEnterpriseWorkspace();
+	const isEnterprise = PageDataContextService.value.conf.enterprise.gesUrl;
 
 	const { sourceName, catalogName } = useCatalogPropsStore((state) => ({
 		sourceName: state.data?.sourceName,

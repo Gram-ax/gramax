@@ -28,7 +28,7 @@ const remove: Command<
 	params(ctx, q) {
 		const catalogName = q.catalogName;
 		const propertyName = q.propertyName;
-		const value = q.value && q.value.split(",");
+		const value = q.value?.split(",");
 		const articlePath = new Path(q.articlePath);
 		return { ctx, catalogName, propertyName, value, articlePath };
 	},

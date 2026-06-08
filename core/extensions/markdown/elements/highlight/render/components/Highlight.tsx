@@ -1,3 +1,4 @@
+import { getNewColorFromOld } from "@ext/markdown/elements/highlight/edit/logic/getNewColorFromOld";
 import type { ReactElement, ReactNode } from "react";
 
 interface HighlightProps {
@@ -6,11 +7,12 @@ interface HighlightProps {
 }
 
 const Highlight = ({ color, children }: HighlightProps): ReactElement => {
+	const newColor = getNewColorFromOld(color);
 	return (
 		<span
-			data-highlight={color}
+			data-highlight={newColor}
 			style={{
-				backgroundColor: `var(--color-highlight-${color})`,
+				backgroundColor: `color-mix(in srgb, var(--color-highlight-${newColor}) 50%, transparent)`,
 				borderRadius: "var(--radius-medium)",
 				color: "black",
 				padding: "2px 2px",

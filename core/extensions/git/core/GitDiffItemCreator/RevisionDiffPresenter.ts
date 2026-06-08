@@ -66,6 +66,7 @@ export type DiffFlattenTreeAnyItem = DiffFlattenTreeNode | DiffFlattenTreeItem;
 
 type DiffTreeItemBase = DiffTreeItemName & {
 	icon?: string;
+	pathname: string;
 	filepath: {
 		new: string;
 		old: string;
@@ -82,13 +83,15 @@ type DiffTreeItemBase = DiffTreeItemName & {
 
 type DiffTreeItemType = DiffTreeItemBase &
 	HasChilds & {
+		pathname: string;
 		type: "item";
 		logicpath: string;
 		resources: DiffResource[];
 	};
 
-type DiffTreeResourceType = DiffTreeItemBase &
+type DiffTreeResourceType = Omit<DiffTreeItemBase, "pathname"> &
 	HasChilds & {
+		pathname?: undefined;
 		type: "resource";
 		parentPath?: DiffResource["parentPath"];
 	};
@@ -332,6 +335,7 @@ export default class RevisionDiffPresenter {
 
 		return {
 			name,
+			pathname: item.pathname,
 			filepath: {
 				new: diffItem.filePath.path,
 				old: diffItem.filePath.oldPath || diffItem.filePath.path,

@@ -1,4 +1,6 @@
-import PromptService from "@ext/ai/components/Tab/PromptService";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
+import { CatalogStoreProvider } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
+import { promptStore, usePromptStore } from "@ext/ai/components/Tab/PromptStore";
 import TooltipArticleView, { type TooltipEditorProps } from "@ext/articleProvider/components/TooltipArticleView";
 import PopoverUtility from "@ext/articleProvider/logic/PopoverUtility";
 import type { ProviderItemProps } from "@ext/articleProvider/models/types";
@@ -13,16 +15,16 @@ interface PromptNoteTooltipEditorProps extends TooltipEditorProps {
 }
 
 const Tooltip = ({ item, ...rest }: PromptNoteTooltipEditorProps) => {
-	const { selectedIds, items } = PromptService.value;
+	const { selectedIds, items } = usePromptStore((s) => ({ selectedIds: s.selectedIds, items: s.items }), "shallow");
 
 	const onOutsideClick = useCallback(() => {
 		const newPaths = PopoverUtility.removeSelectedIds(selectedIds, item.id);
-		PromptService.setSelectedIds(newPaths);
-		PromptService.closeNote(item.id);
+		promptStore.getState().setSelectedIds(newPaths);
+		promptStore.getState().closeNote(item.id);
 	}, [selectedIds, item]);
 
 	const onUpdate = useCallback(
-		(id: string, content: JSONContent, title: string) => {
+		(id: string, _content: JSONContent, title: string) => {
 			if (!selectedIds.includes(id)) return;
 			const selectedIndex = items.findIndex((note) => note.id === id);
 			const selectedNote = items[selectedIndex];
@@ -33,16 +35,16 @@ const Tooltip = ({ item, ...rest }: PromptNoteTooltipEditorProps) => {
 			}
 
 			const newItems = [...items.slice(0, selectedIndex), selectedNote, ...items.slice(selectedIndex + 1)];
-			PromptService.setItems(newItems);
+			promptStore.getState().setItems(newItems);
 		},
 		[items, selectedIds],
 	);
 
 	const onClose = useCallback(() => {
-		PromptService.closeNote(item.id);
+		promptStore.getState().closeNote(item.id);
 
 		const newSelectedIds = PopoverUtility.removeSelectedIds(selectedIds, item.id);
-		PromptService.setSelectedIds(newSelectedIds);
+		promptStore.getState().setSelectedIds(newSelectedIds);
 	}, [item, selectedIds]);
 
 	return (
@@ -76,11 +78,16 @@ const Tooltip = ({ item, ...rest }: PromptNoteTooltipEditorProps) => {
 	);
 };
 
-const PromptNoteTooltipEditor = ({ selectedIds, items, item, ...rest }: PromptNoteTooltipEditorProps) => {
+const PromptNoteTooltipEditor = ({ item, ...rest }: PromptNoteTooltipEditorProps) => {
+	const pageDataContext = usePromptStore((s) => s.pageDataContext);
+	const catalogProps = usePromptStore((s) => s.catalogProps);
+
 	return (
-		<PromptService.Context value={{ selectedIds, items }}>
-			<Tooltip item={item} items={items} selectedIds={selectedIds} {...rest} />
-		</PromptService.Context>
+		<PageDataContextService.Provider value={pageDataContext}>
+			<CatalogStoreProvider data={catalogProps}>
+				<Tooltip item={item} {...rest} />
+			</CatalogStoreProvider>
+		</PageDataContextService.Provider>
 	);
 };
 

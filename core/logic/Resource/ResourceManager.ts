@@ -24,6 +24,7 @@ class ResourceManager implements Hashable {
 		private _fp: FileProvider,
 		private _basePath: Path,
 		private _rootPath?: Path,
+		private _fallbackAbsolutePathResolver?: (path: Path) => Path,
 	) {
 		this._resources = [];
 	}
@@ -110,8 +111,9 @@ class ResourceManager implements Hashable {
 
 	async getContent(path: Path, ctx?: Context, silent?: boolean): Promise<Buffer> {
 		let content = null;
+		const absolutePath = await this._getReadableAbsolutePath(path);
 		try {
-			content = await this._fp.readAsBinary(this.getAbsolutePath(path));
+			content = await this._fp.readAsBinary(absolutePath);
 		} catch {}
 
 		const out = { out: null };
@@ -129,8 +131,9 @@ class ResourceManager implements Hashable {
 	}
 
 	async delete(path: Path) {
-		if (!(await this._fp.exists(this.getAbsolutePath(path)))) return;
-		return await this._fp.delete(this.getAbsolutePath(path), true);
+		const absolutePath = await this._getReadableAbsolutePath(path);
+		if (!(await this._fp.exists(absolutePath))) return;
+		return await this._fp.delete(absolutePath, true);
 	}
 
 	async deleteAll() {
@@ -144,7 +147,7 @@ class ResourceManager implements Hashable {
 	}
 
 	async exists(path: Path) {
-		return await this._fp.exists(this.getAbsolutePath(path));
+		return await this._fp.exists(await this._getReadableAbsolutePath(path));
 	}
 
 	getAbsolutePath(path: Path): Path {
@@ -159,6 +162,16 @@ class ResourceManager implements Hashable {
 
 	private _assertMaxFileSize(data: string | Buffer) {
 		assertMaxFileSize(data.length ?? (data as unknown as ArrayBuffer).byteLength);
+	}
+
+	private async _getReadableAbsolutePath(path: Path): Promise<Path> {
+		const absolutePath = this.getAbsolutePath(path);
+		if (await this._fp.exists(absolutePath)) return absolutePath;
+
+		const fallbackAbsolutePath = this._fallbackAbsolutePathResolver?.(path);
+		if (fallbackAbsolutePath && (await this._fp.exists(fallbackAbsolutePath))) return fallbackAbsolutePath;
+
+		return absolutePath;
 	}
 
 	private _getJoinRootPath(basePath?: Path): Path {

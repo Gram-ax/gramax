@@ -13,9 +13,9 @@ export class NodeWorkerResourceParseClient extends WorkerResourceParseClientBase
 		return new NodeWorkerResourceParseClient();
 	}
 
-	protected override createWorker(): ResourceParseWorker {
+	protected override _createWorker(): ResourceParseWorker {
 		const worker = new NodeWorker(new URL("./resourceParse.node.worker", import.meta.url));
-		worker.on("message", (data) => this.handleMessage(data));
+		worker.on("message", (data) => this._handleMessage(data));
 		return {
 			postMessage: worker.postMessage.bind(worker),
 			terminate: async () => {

@@ -1,5 +1,5 @@
 import Link from "@components/Atoms/Link";
-import Url from "@core-ui/ApiServices/Types/Url";
+import LanguageService from "@core-ui/ContextServices/Language";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import { TruncatedText } from "@ext/enterprise/components/admin/settings/metrics/view/table/TableHelpers";
@@ -22,6 +22,7 @@ import { Icon } from "@ui-kit/Icon";
 import { Indicator } from "@ui-kit/Indicator";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import "dayjs/locale/ru";
 
 // biome-ignore lint/style/noRestrictedImports: dont have inport from @ui-kit
 import { Container } from "ics-ui-kit/components/container";
@@ -32,7 +33,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 dayjs.extend(relativeTime);
 
 function formatRelativeTime(isoTimestamp: string): string {
-	return dayjs(isoTimestamp).fromNow();
+	return dayjs(isoTimestamp).locale(LanguageService.currentUi()).fromNow();
 }
 
 const NewsFeed = () => {
@@ -139,7 +140,7 @@ const NewsFeed = () => {
 				{allNotifications.map((notification) => (
 					<Link
 						className="block"
-						href={Url.from({ pathname: notification.article_url })}
+						href={{ pathname: notification.article_url }}
 						key={notification.id}
 						onClick={() => !notification.is_read && handleMarkAsRead(notification.id)}
 					>
@@ -214,7 +215,7 @@ const NewsFeed = () => {
 					<span className="font-semibold text-primary-fg">{t("notifications.title")}</span>
 					{unreadCount > 0 && (
 						<Button
-							className="h-[22px] px-0 pb-0.5 pt-1 text-xs text-muted font-normal"
+							className="px-0 py-1 text-xs text-muted font-normal"
 							onClick={() => handleMarkAsRead()}
 							size="xs"
 							variant="text"

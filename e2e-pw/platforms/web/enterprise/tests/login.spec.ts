@@ -38,7 +38,7 @@ enterpriseTest.describe("SSO", () => {
 			await page.getByTestId("top-menu").getByRole("button", { name: "W" }).click();
 			await page.getByRole("menuitem", { name: "Sign out" }).click();
 
-			await expect(page.getByRole("heading", { name: "Sign out of workspace «test»?" })).toBeVisible();
+			await expect(page.getByRole("heading", { name: "Sign out of space «test»?" })).toBeVisible();
 
 			await page.getByRole("button", { name: "Exit" }).click();
 			await page.getByRole("button", { name: "Sign in with SSO" }).click({ timeout: 30_000 });

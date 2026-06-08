@@ -56,12 +56,12 @@ impl<R: Runtime> UpdateCache<R> {
 		Self { app }
 	}
 
-	pub async fn prepare_to_install(&self, update: &inner::Update) -> inner::Result<Vec<u8>> {
+	pub async fn prepare_to_install(&self, update: &inner::Update, silent: bool) -> inner::Result<Vec<u8>> {
 		if let Some(bytes) = self.lookup(&update.remote_release)? {
 			return Ok(bytes);
 		}
 
-		let downloader = UpdateDownload::new(self.app.clone(), update);
+		let downloader = UpdateDownload::new(self.app.clone(), update, silent);
 		let bytes = downloader.download().await?;
 
 		self.save(&bytes, &update.remote_release)?;
@@ -160,6 +160,7 @@ impl<R: Runtime> UpdateCache<R> {
 pub struct UpdateDownload<'a, R: Runtime> {
 	app: AppHandle<R>,
 	update: &'a inner::Update,
+	silent: bool,
 
 	last_emit_timestamp: AtomicU64,
 	last_bytes: AtomicUsize,
@@ -167,10 +168,11 @@ pub struct UpdateDownload<'a, R: Runtime> {
 }
 
 impl<'a, R: Runtime> UpdateDownload<'a, R> {
-	pub fn new(app: AppHandle<R>, update: &'a inner::Update) -> Self {
+	pub fn new(app: AppHandle<R>, update: &'a inner::Update, silent: bool) -> Self {
 		Self {
 			app,
 			update,
+			silent,
 			last_emit_timestamp: AtomicU64::default(),
 			last_bytes: AtomicUsize::default(),
 			accumulated_bytes: AtomicUsize::default(),
@@ -178,12 +180,13 @@ impl<'a, R: Runtime> UpdateDownload<'a, R> {
 	}
 
 	pub async fn download(&self) -> inner::Result<Vec<u8>> {
-		let ev = UpdateIncoming {
-			version: self.update.version.clone(),
-			pub_date: self.update.date.map(|d| d.to_string()),
-		};
-
-		self.app.emit("update:incoming", ev)?;
+		if !self.silent {
+			let ev = UpdateIncoming {
+				version: self.update.version.clone(),
+				pub_date: self.update.date.map(|d| d.to_string()),
+			};
+			self.app.emit("update:incoming", ev)?;
+		}
 
 		let bytes = self
 			.update
@@ -222,6 +225,10 @@ impl<'a, R: Runtime> UpdateDownload<'a, R> {
 		};
 
 		info!(target: TAG, "downloading update: {progress}");
+
+		if self.silent {
+			return;
+		}
 
 		if let Err(e) = self.app.emit("update:downloading", progress) {
 			error!(target: TAG, "failed to emit `update:downloading`: {e}");

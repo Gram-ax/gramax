@@ -10,9 +10,9 @@ import getPathByCatalogPath from "@app/commands/article/resource/getPathByCatalo
 import create from "./create";
 import app from "./editOn/app";
 import source from "./editOn/source";
-import checkLastModified from "./features/checkLastModified";
 import createLinkFromHref from "./features/createLinkFromHref";
 import getArticleHeadersByRelativePath from "./features/getArticleHeadersByRelativePath";
+import getArticlePageData from "./features/getArticlePageData";
 import getBrotherFileNames from "./features/getBrotherFileNames";
 import getBrotherNames from "./features/getBrotherNames";
 import getContent from "./features/getContent";
@@ -69,7 +69,7 @@ const article = {
 	create,
 	getProps,
 	updateContent,
-	checkLastModified,
+	getArticlePageData,
 };
 
 export default article;

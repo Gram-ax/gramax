@@ -124,7 +124,7 @@ impl<R: Runtime> WatchedProcesses<R> {
 		let mut sample = WatchSample::new();
 
 		for pid in self.pids.iter() {
-			let Some(process) = self.system.process(pid.clone()) else {
+			let Some(process) = self.system.process(*pid) else {
 				continue;
 			};
 
@@ -142,8 +142,8 @@ impl<R: Runtime> WatchedProcesses<R> {
 			.system
 			.refresh_processes_specifics(sysinfo::ProcessesToUpdate::All, true, ProcessRefreshKind::nothing());
 
-		pids.insert(Pid::from_u32(std::process::id() as u32));
-		self.update_child_processes(Pid::from_u32(std::process::id() as u32), &mut pids);
+		pids.insert(Pid::from_u32(std::process::id()));
+		self.update_child_processes(Pid::from_u32(std::process::id()), &mut pids);
 
 		for (_, wv) in self.app.webview_windows() {
 			let Some(pid) = get_webview_pid(&wv)? else {
@@ -152,7 +152,7 @@ impl<R: Runtime> WatchedProcesses<R> {
 
 			let pid = Pid::from_u32(pid as u32);
 			pids.insert(pid);
-			self.update_child_processes(pid.clone(), &mut pids);
+			self.update_child_processes(pid, &mut pids);
 		}
 
 		self.pids = pids.into_iter().collect();
@@ -167,7 +167,7 @@ impl<R: Runtime> WatchedProcesses<R> {
 			.iter()
 			.filter(|(_, p)| p.parent().is_some_and(|p| p == parent_pid))
 		{
-			out.insert(pid.clone());
+			out.insert(*pid);
 		}
 	}
 }

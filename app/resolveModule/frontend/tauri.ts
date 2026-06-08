@@ -2,8 +2,8 @@ import LazyDiffFileInputTauri from "@components/Atoms/FileInput/DiffFileInput/La
 import LazyFileInputTauri from "@components/Atoms/FileInput/LazyFileInput";
 import TauriLink from "../../../apps/browser/src/components/Atoms/Link";
 import useUrlObjectImage2 from "../../../apps/browser/src/hooks/useUrlObjectImage";
-import TauriFetcher from "../../../apps/browser/src/logic/Api/BrowserFetchService";
 import TauriRouter from "../../../apps/browser/src/logic/Api/BrowserRouter";
+import getBrowserFetchService from "../../../apps/browser/src/logic/Api/getBrowserFetchService";
 import { getPdfjs } from "../../../apps/browser/src/pdfjs/getPdfjs";
 import * as tauriCommands from "../../../apps/tauri/src/window/commands";
 import enterpriseLogin from "../../../apps/tauri/src/window/enterpriseLogin";
@@ -14,7 +14,7 @@ export const getTauriModules = (): DynamicModules => {
 		Link: TauriLink,
 		Router: TauriRouter,
 		useImage: useUrlObjectImage2,
-		Fetcher: TauriFetcher,
+		Fetcher: getBrowserFetchService(),
 		openChildWindow: tauriCommands.openChildWindow,
 		enterpriseLogin,
 		FileInput: LazyFileInputTauri,

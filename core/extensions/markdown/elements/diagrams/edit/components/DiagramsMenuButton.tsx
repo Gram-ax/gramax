@@ -3,12 +3,12 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
+import { setEditorStore } from "@core-ui/stores/EditorStore";
 import t from "@ext/localization/locale/translate";
 import type { Editor } from "@tiptap/core";
+import { Icon } from "@ui-kit/Icon";
 import { ToolbarDropdownMenuItem } from "@ui-kit/Toolbar";
-import { useMemo } from "react";
-import { mermaidIcon } from "../../diagrams/mermaid/mermaidData";
-import { plantUmlIcon } from "../../diagrams/plantUml/plantUmlData";
+import { useCallback } from "react";
 import createDiagrams from "../../logic/createDiagrams";
 
 interface DiagramsMenuButtonProps {
@@ -23,41 +23,16 @@ const DiagramsMenuButton = ({ editor, diagramName, fileName }: DiagramsMenuButto
 	const articleProps = ArticlePropsService.value;
 	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "diagrams", attrs: { diagramName } });
 
-	const { text, diagramIcon } = useMemo(() => {
-		let text: string;
-		let diagramIcon: JSX.Element;
-
-		switch (diagramName) {
-			case DiagramType.mermaid:
-				diagramIcon = mermaidIcon;
-				text = t("diagram.names.mermaid");
-				break;
-			case DiagramType["plant-uml"]:
-				diagramIcon = plantUmlIcon;
-				text = t("diagram.names.puml");
-				break;
-		}
-
-		return { text, diagramIcon };
-	}, [diagramName]);
+	const onSelect = useCallback(() => {
+		setEditorStore({ lastUsedDiagramType: diagramName === DiagramType.mermaid ? "mermaid" : "plant-uml" });
+		void createDiagrams(editor, fileName || articleProps?.fileName, resourceService, diagramName, pageDataContext);
+	}, [editor, fileName, articleProps, resourceService, diagramName, pageDataContext]);
 
 	return (
-		<ToolbarDropdownMenuItem
-			active={isActive}
-			disabled={disabled}
-			onSelect={() =>
-				void createDiagrams(
-					editor,
-					fileName || articleProps?.fileName,
-					resourceService,
-					diagramName,
-					pageDataContext,
-				)
-			}
-		>
+		<ToolbarDropdownMenuItem active={isActive} disabled={disabled} onSelect={onSelect}>
 			<div className="flex flex-row items-center gap-2" data-qa={`qa-edit-menu-${diagramName}`}>
-				{diagramIcon}
-				{text}
+				<Icon icon={diagramName === DiagramType.mermaid ? "mermaid" : "plant-uml"} />
+				{diagramName === DiagramType.mermaid ? t("diagram.names.mermaid") : t("diagram.names.puml")}
 			</div>
 		</ToolbarDropdownMenuItem>
 	);

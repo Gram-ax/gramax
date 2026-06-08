@@ -1,6 +1,7 @@
 import Tooltip from "@components/Atoms/Tooltip";
 import type { CommentBlock } from "@core-ui/CommentBlock";
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
+import { useModalBlocker } from "@core-ui/stores/ModalBlockerStore";
 import { Comment } from "@ext/markdown/elements/comment/edit/components/Popover/Comment";
 import { confirmCommentClose } from "@ext/markdown/elements/comment/edit/logic/confirmCommentClose";
 import GlobalEditorIsEditable from "@ext/markdown/elements/comment/edit/logic/GlobalIsEditable";
@@ -10,8 +11,8 @@ import { type CSSProperties, memo, useCallback, useEffect, useMemo, useRef, useS
 import type { Instance, Props } from "tippy.js";
 import { isCommentBlockDirty } from "../../logic/isCommentBlockDirty";
 import "tippy.js/animations/shift-away.css";
-import ArticleUpdaterService from "@components/Article/ArticleUpdater/ArticleUpdaterService";
 import t from "@ext/localization/locale/translate";
+import { markItemAsRead } from "@ext/review/logic/store/ReviewNotificationsStore";
 
 export type CommentViewProps = {
 	commentId: string;
@@ -39,6 +40,7 @@ const CommentView = memo((props: CommentViewProps) => {
 		async (commentId: string) => {
 			const comment = (await loadComment(commentId)) || {};
 			setData(comment);
+			markItemAsRead(commentId);
 		},
 		[loadComment],
 	);
@@ -91,6 +93,8 @@ const CommentView = memo((props: CommentViewProps) => {
 			editor.off("selectionUpdate", onSelectionUpdate);
 		};
 	}, [editor, isReadOnly]);
+
+	useModalBlocker("comment-popover", !!data);
 
 	const onHide = useCallback(() => {
 		if (!data?.comment && !flagNoDeleteRef.current) editor.commands.unsetCurrentComment();
@@ -146,7 +150,6 @@ const CommentView = memo((props: CommentViewProps) => {
 	);
 
 	const onDelete = useCallback(async () => {
-		ArticleUpdaterService.stopLoadingAfterFocus();
 		if (!(await confirm(t("confirm-comment-delete")))) return;
 		const positions = editor.storage.comment.positions;
 		const commentId = openedCommentIdRef.current;
@@ -220,6 +223,7 @@ const CommentView = memo((props: CommentViewProps) => {
 					<GlobalEditorIsEditable.Provider value={editor?.isEditable}>
 						{data && (
 							<Comment
+								commentId={commentId}
 								data={data}
 								onAddAnswer={onAddAnswer}
 								onClose={onClose}

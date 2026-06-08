@@ -18,7 +18,7 @@ export const combineCustomProperties = (
 ): Map<string, Property> => {
 	const resultMap = new Map(catalogProperties);
 	customProperties.forEach((prop) => {
-		resultMap.set(prop.name, prop);
+		resultMap.set(prop.id, prop);
 	});
 	return resultMap;
 };
@@ -42,20 +42,20 @@ export const fillMarkdownTemplate = (fields: TemplateField[], properties: Proper
 
 	if (properties) {
 		updatedContent = properties.reduce((acc, propValue) => {
-			if (!propValue.value || !propValue.value.length || !propValue.value[0].length) return acc;
+			if (!propValue?.id || !propValue?.value?.length || !propValue?.value?.[0]?.length) return acc;
 
 			const blockRegex = new RegExp(
-				`(^\\s*)\\[block-property:${propValue.name}\\]([\\s\\S]*?)\\[\\/block-property\\]`,
+				`(^\\s*)\\[block-property:${propValue.id}\\]([\\s\\S]*?)\\[\\/block-property\\]`,
 				"gm",
 			);
 
 			return acc.replace(blockRegex, (_, openingIndent) => {
-				const contentWithIndent = propValue.value[0]
+				const contentWithIndent = propValue?.value?.[0]
 					.split("\n")
 					.map((line) => (line.trim() ? `${openingIndent}${line}` : line))
 					.join("\n");
 
-				return `${openingIndent}[block-property:${propValue.name}]\n${contentWithIndent}\n${openingIndent}[/block-property]`;
+				return `${openingIndent}[block-property:${propValue.id}]\n${contentWithIndent}\n${openingIndent}[/block-property]`;
 			});
 		}, updatedContent);
 	}

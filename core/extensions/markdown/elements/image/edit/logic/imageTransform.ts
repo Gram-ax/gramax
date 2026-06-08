@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
+import type { PreTransformerFunc } from "@ext/markdown/core/Parser/Transformer/preTransformTokens";
 import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
 import { MAX_INLINE_IMAGE_HEIGHT } from "@ext/markdown/elements/inlineImage/edit/models/node";
 
@@ -42,7 +44,7 @@ const processImage = (parent: Token, tokens: Token[], idx: number, hasText: bool
 	}
 };
 
-const imageTransform = (tokens: Token[]) => {
+const imageTransform: PreTransformerFunc = ({ tokens }) => {
 	for (let idx = 0; idx < tokens.length; idx++) {
 		const token = tokens[idx];
 		if (token.type === "inline" && token?.tag === "" && token?.children?.length > 0) {

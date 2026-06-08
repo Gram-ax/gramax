@@ -132,7 +132,7 @@ impl FileLock {
 impl Drop for FileLock {
 	fn drop(&mut self) {
 		if let FileLock::Lock { ref path } = self {
-			if let Err(err) = std::fs::remove_file(&path) {
+			if let Err(err) = std::fs::remove_file(path) {
 				error!("failed to remove lock file: {}", err);
 			} else {
 				debug!("lock file removed: {}", path.display());

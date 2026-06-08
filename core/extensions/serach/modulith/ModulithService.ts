@@ -8,6 +8,10 @@ import type { Item } from "@core/FileStructue/Item/Item";
 import debounceFunction from "@core-ui/debounceFunction";
 import { resolveRootCategory } from "@ext/localization/core/catalogExt";
 import type { PropertyValue } from "@ext/properties/models";
+import {
+	normalizeArticleProperties,
+	normalizeCatalogProperties,
+} from "@ext/serach/components/utils/normalizeProperties";
 import type { KeyPhraseArticleSearcherItem } from "@ext/serach/modulith/keyPhrase/KeyPhraseArticleSearcher";
 import { CombinedProgressManager, type ProgressManager } from "@ext/serach/modulith/ProgressManager";
 import { getArticleId, getCatalogId } from "@ext/serach/modulith/parsing/getArticleId";
@@ -21,6 +25,7 @@ import type {
 	SearchArticleKey,
 } from "@ext/serach/modulith/SearchArticle";
 import type {
+	SearchResult as ClientSearchResult,
 	SearchResultItem as ClientSearchResultItem,
 	ModulithSearchClient,
 } from "@ext/serach/modulith/search/ModulithSearchClient";
@@ -44,7 +49,7 @@ import type {
 import type { Workspace } from "@ext/workspace/Workspace";
 import type { WorkspacePath } from "@ext/workspace/WorkspaceConfig";
 import type WorkspaceManager from "@ext/workspace/WorkspaceManager";
-import type { Article as ModulithArticle } from "@ics/modulith-search-domain/article";
+import type { Article as ModulithArticle } from "@ics/article-search/article";
 import {
 	AggregateProgress,
 	andFilter,
@@ -56,7 +61,7 @@ import {
 	notFilter,
 	orFilter,
 	type ProgressCallback,
-} from "@ics/modulith-utils";
+} from "@ics/article-search-utils";
 
 export interface ModulithServiceOptions {
 	localClient: ModulithSearchClient;
@@ -107,7 +112,7 @@ export class ModulithService {
 
 	async updateIndex({ force, catalogName }: UpdateIndexArgs): Promise<void> {
 		const curWs = this._options.wm.current();
-		const state = this._getOrCreateState(curWs.path());
+		const state = await this._getOrCreateState(curWs);
 		const release = await state.lockIndexing();
 
 		try {
@@ -122,7 +127,7 @@ export class ModulithService {
 
 	async updateCatalog(catalogName: string, overridePath?: string) {
 		const ws = this._options.wm.current();
-		const state = this._getOrCreateState(ws.path());
+		const state = await this._getOrCreateState(ws);
 		const catalog = await ws.getContextlessCatalog(BaseCatalog.parseName(catalogName).name);
 		await this._actualizeCatalog(state, overridePath ?? state.path, catalog);
 	}
@@ -133,7 +138,7 @@ export class ModulithService {
 		}
 
 		const curWs = this._options.wm.current();
-		const state = this._getOrCreateState(curWs.path());
+		const state = await this._getOrCreateState(curWs);
 		let pms: ProgressManager[] = [];
 		switch (resourceFilter) {
 			case "without": {
@@ -199,10 +204,11 @@ export class ModulithService {
 	async searchBatch({ items, signal }: SearchBatchArgs): Promise<SearchResult[][]> {
 		const curWs = this._options.wm.current();
 		const wsPath = curWs.path();
-		const state = this._getOrCreateState(wsPath);
+		const state = await this._getOrCreateState(curWs);
 
 		const catalogs = new Map<string, ReadonlyCatalog>();
 		const pathnamesByLogicPath = new Map<string, string>();
+		const articlesByLogicPath = new Map<string, Article>();
 
 		const getPathname = async (catalog: ReadonlyCatalog, item: Item) => {
 			let pathname = pathnamesByLogicPath.get(item.logicPath);
@@ -226,29 +232,65 @@ export class ModulithService {
 			return catalog;
 		};
 
-		const getArticleOtherFields = async (
+		const getArticle = async (catalog: ReadonlyCatalog, logicPath: string): Promise<Article> => {
+			let article = articlesByLogicPath.get(logicPath);
+			if (article === undefined) {
+				article = catalog.findArticle(logicPath, []);
+				articlesByLogicPath.set(logicPath, article);
+			}
+
+			return article;
+		};
+
+		const getBreadcrumbsFromClientResult = async (
+			catalog: ReadonlyCatalog,
+			breadcrumbs: ClientSearchResult["breadcrumbs"],
+		): Promise<SearchArticleResult["breadcrumbs"]> => {
+			const resBreadcrumbs: SearchArticleResult["breadcrumbs"] = [];
+			for (const x of breadcrumbs) {
+				if (x.article.metadata.type !== "article") continue;
+
+				const article = await getArticle(catalog, x.article.metadata.logicPath);
+				resBreadcrumbs.push({
+					url: await getPathname(catalog, article),
+					title: x.title,
+				});
+			}
+
+			return resBreadcrumbs;
+		};
+
+		const getBreadcrumbs = async (
 			catalog: ReadonlyCatalog,
 			article: Article,
 			lang: ArticleLanguage,
-		): Promise<Pick<SearchArticleResult, "breadcrumbs" | "url" | "properties">> => {
+		): Promise<SearchArticleResult["breadcrumbs"]> => {
 			const rootCategory = resolveRootCategory(catalog, catalog.props, lang === "none" ? undefined : lang);
-
 			const breadcrumbs: SearchArticleResult["breadcrumbs"] = [];
 
 			let parent = article.parent;
 			while (parent && parent !== rootCategory) {
 				breadcrumbs.unshift({
 					url: await getPathname(catalog, parent),
-					title: parent.getTitle(),
+					title: [{ type: "text", text: parent.getTitle() }],
 				});
 
 				parent = parent.parent;
 			}
 
+			return breadcrumbs;
+		};
+
+		const getArticleOtherFields = async (
+			catalog: ReadonlyCatalog,
+			article: Article,
+		): Promise<Pick<SearchArticleResult, "url" | "properties">> => {
 			return {
 				url: await getPathname(catalog, article),
-				breadcrumbs,
-				properties: article.props.properties ?? [],
+				properties: normalizeArticleProperties(
+					article.props.properties ?? [],
+					normalizeCatalogProperties(catalog.props.properties ?? []),
+				),
 			};
 		};
 
@@ -257,8 +299,17 @@ export class ModulithService {
 			items: items.map((x) => {
 				const metadataFilters: Filter<SearchArticleKey>[] = [eqFilter(["wsPath"], wsPath)];
 
-				if (x.articleRefPaths) {
-					metadataFilters.push(inFilter(["refPath"], x.articleRefPaths));
+				if (x.articleRefPaths || x.catalogNames) {
+					const filters: Filter<SearchArticleKey>[] = [];
+					if (x.catalogNames)
+						filters.push(
+							andFilter<SearchArticleKey>([
+								eqFilter(["type"], "catalog"),
+								inFilter(["catalogId"], x.catalogNames),
+							]),
+						);
+					if (x.articleRefPaths) filters.push(inFilter(["refPath"], x.articleRefPaths));
+					metadataFilters.push(orFilter(filters));
 				}
 
 				if (x.articlesLanguage) {
@@ -341,7 +392,7 @@ export class ModulithService {
 						continue;
 					}
 
-					const article = catalog.findArticle(item.article.metadata.logicPath, []);
+					const article = await getArticle(catalog, item.article.metadata.logicPath);
 					if (article == null) continue;
 
 					const isRecommended = recsByLogicPath.delete(item.article.metadata.logicPath);
@@ -355,7 +406,8 @@ export class ModulithService {
 							title: catalogTitle,
 							url: catalogPathname,
 						},
-						...(await getArticleOtherFields(catalog, article, item.article.metadata.lang)),
+						...(await getArticleOtherFields(catalog, article)),
+						breadcrumbs: await getBreadcrumbsFromClientResult(catalog, item.breadcrumbs),
 						title: item.title,
 						items: processArticleItems(item.items),
 					};
@@ -387,11 +439,12 @@ export class ModulithService {
 							text: x.article.getTitle(),
 						},
 					],
-					...(await getArticleOtherFields(
+					...(await getArticleOtherFields(x.catalog, x.article)),
+					breadcrumbs: await getBreadcrumbs(
 						x.catalog,
 						x.article,
 						getLang(x.article.logicPath, x.catalog.props.language),
-					)),
+					),
 				};
 			});
 
@@ -409,7 +462,7 @@ export class ModulithService {
 
 	private async _onCatalogChange(catalog: ReadonlyCatalog): Promise<void> {
 		const ws = this._options.wm.current();
-		const state = this._getOrCreateState(ws.path());
+		const state = await this._getOrCreateState(ws);
 		if (this._options.immediateIndexing) {
 			const pm = state.indexingProgressManager;
 			const rpm = state.resourceIndexingProgressManager;
@@ -430,7 +483,7 @@ export class ModulithService {
 
 	private async _onCatalogRemove(catalogName: string): Promise<void> {
 		const ws = this._options.wm.current();
-		const state = this._getOrCreateState(ws.path());
+		const state = await this._getOrCreateState(ws);
 		await this._removeCatalogFromIndex(state, catalogName);
 		state.keyPhraseSearcher.removeCatalog(catalogName);
 		state.resetIndexedCatalog(catalogName);
@@ -537,6 +590,8 @@ export class ModulithService {
 			return;
 		}
 
+		const catalogArticles = getValidCatalogItems(catalog);
+
 		const aggProgress = new AggregateProgress({
 			progress: {
 				weights: [5, 95],
@@ -551,17 +606,17 @@ export class ModulithService {
 			state,
 			catalog,
 			wsPath,
+			catalogArticles,
 			aggProgress.getProgressCallback(1),
 			resourceProgressCallback,
 		);
 		aggProgress.setProgress(1, 1);
 
-		const catalogArticles = getValidCatalogItems(catalog);
-		const currentArticleIds = new Set(catalogArticles.map((x) => `${wsPath}#${x.logicPath}`));
+		const currentArticleIds = new Set(catalogArticles.map((x) => getArticleId(wsPath, x.logicPath)));
 		state.keyPhraseSearcher.removeArticlesNotIn(catalog.name, currentArticleIds);
 		catalogArticles.forEach((x) =>
 			state.keyPhraseSearcher.updateArticle({
-				id: `${wsPath}#${x.logicPath}`,
+				id: getArticleId(wsPath, x.logicPath),
 				wsPath,
 				article: x,
 				catalog,
@@ -640,6 +695,7 @@ export class ModulithService {
 		state: WorkspaceState,
 		catalog: ReadonlyCatalog,
 		wsPath: WorkspacePath,
+		catalogArticles: Article[],
 		progressCallback?: ProgressCallback,
 		resourceProgressCallback?: ProgressCallback,
 	) {
@@ -653,6 +709,8 @@ export class ModulithService {
 		const { searchArticles, resourcesInfo, remoteSearchArticles } = await this._options.sap.getSearchArticles(
 			wsPath,
 			catalog,
+			catalogArticles,
+			state.resourceSearchEnabled,
 			Boolean(this._options.remoteClient),
 			aggProgress.getProgressCallback(0),
 		);
@@ -680,7 +738,7 @@ export class ModulithService {
 
 		// Remove files from index whose articles are not in catalog
 		const currentArticleIds = new Set<string>();
-		getValidCatalogItems(catalog).forEach((a) => currentArticleIds.add(getArticleId(wsPath, a.logicPath)));
+		catalogArticles.forEach((a) => currentArticleIds.add(getArticleId(wsPath, a.logicPath)));
 		await this._options.localClient.update({
 			articles: [],
 			filter: {
@@ -882,10 +940,12 @@ export class ModulithService {
 		await this._options.localClient.commit();
 	}
 
-	private _getOrCreateState(wsPath: WorkspacePath): WorkspaceState {
+	private async _getOrCreateState(ws: Workspace): Promise<WorkspaceState> {
+		const wsPath = ws.path();
 		let ex = this._stateByWorkspace.get(wsPath);
 		if (ex === undefined) {
-			ex = new WorkspaceState(wsPath);
+			const wsConf = await ws.config();
+			ex = new WorkspaceState(wsPath, Boolean(wsConf?.enterprise?.gesUrl));
 			this._stateByWorkspace.set(wsPath, ex);
 		}
 
@@ -902,6 +962,7 @@ export interface SearchBatchArgs {
 	items: {
 		query?: string;
 		articleRefPaths?: Set<string>;
+		catalogNames?: Set<string>;
 		propertyFilter?: PropertyFilter;
 		resourceFilter?: ResourceFilter;
 		articlesLanguage?: ArticleLanguage;
@@ -921,7 +982,7 @@ export interface SearchArticleResult {
 		url: string;
 	};
 	url: string;
-	breadcrumbs: { title: string; url: string }[];
+	breadcrumbs: { title: SearchResultMarkItem[]; url: string }[];
 	properties: PropertyValue[];
 	title: SearchResultMarkItem[];
 	items: SearchResultItem[];
@@ -976,6 +1037,10 @@ function processArticleItems(items: ClientSearchResultItem[]): SearchResultItem[
 				break;
 			}
 			case "block": {
+				processArticleItems(x.items);
+				break;
+			}
+			case "diagram": {
 				processArticleItems(x.items);
 				break;
 			}

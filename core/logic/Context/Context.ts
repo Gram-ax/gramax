@@ -1,3 +1,4 @@
+import type { AppliedCatalogsView } from "@ext/catalog/views/models/CatalogViews";
 import type { ToSpan } from "@ext/loggers/opentelemetry";
 import type Cookie from "../../extensions/cookie/Cookie";
 import type UiLanguage from "../../extensions/localization/core/model/Language";
@@ -9,6 +10,7 @@ interface Context extends ToSpan {
 	get cookie(): Cookie;
 	get user(): User;
 	get contentLanguage(): ContentLanguage;
+	get viewId(): AppliedCatalogsView;
 	get ui(): UiLanguage;
 	get theme(): Theme;
 	get domain(): string;

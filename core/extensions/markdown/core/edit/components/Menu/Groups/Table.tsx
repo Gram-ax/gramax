@@ -1,4 +1,5 @@
 import t from "@ext/localization/locale/translate";
+import { hasActiveSort } from "@ext/markdown/elements/table/edit/logic/sortAndFilter/hasActiveSort";
 import type { Editor } from "@tiptap/core";
 import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
 import { useCallback } from "react";
@@ -22,6 +23,7 @@ const TableMenuGroup = ({ editor, onClick, buttons }: TableMenuGroupProps) => {
 	const canSplitCells = editor && splitCells && editor.can().splitCell();
 	const canDeleteRow = editor && deleteRow && editor.can().deleteRow();
 	const canDeleteColumn = editor && deleteColumn && editor.can().deleteColumn();
+	const isSorted = hasActiveSort(editor.state.selection);
 
 	const onMergeCells = useCallback(() => {
 		editor.chain().focus().mergeCells().run();
@@ -48,8 +50,9 @@ const TableMenuGroup = ({ editor, onClick, buttons }: TableMenuGroupProps) => {
 			{canMergeCells && (
 				<ToolbarToggleButton
 					className="text-inverse-primary-fg"
+					disabled={isSorted}
 					onClick={onMergeCells}
-					tooltipText={t("editor.table.join-cells")}
+					tooltipText={t(`editor.table.join-cells.${isSorted ? "sorted" : "action"}`)}
 				>
 					<ToolbarIcon icon="merge-cells" />
 				</ToolbarToggleButton>

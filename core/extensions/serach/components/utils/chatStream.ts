@@ -8,11 +8,20 @@ interface ChatStreamArgs {
 	query: string;
 	signal: AbortSignal;
 	onData: (data: string) => Promise<void>;
+	catalogNames?: string[];
 }
 
-export const chatStream = async ({ url, query, signal, onData }: ChatStreamArgs) => {
+export const chatStream = async ({ url, query, signal, onData, catalogNames }: ChatStreamArgs) => {
 	if (!query) return;
-	const res = await FetchService.fetch<unknown>(url, undefined, undefined, undefined, undefined, undefined, signal);
+	const res = await FetchService.fetch<unknown>(
+		url,
+		JSON.stringify({ catalogNames }),
+		undefined,
+		undefined,
+		undefined,
+		undefined,
+		signal,
+	);
 	if (!res.ok || signal.aborted) return;
 
 	const itemGenerator = readNDJson<ResponseStreamItem>(res.body.getReader(), signal);

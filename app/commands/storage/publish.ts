@@ -1,11 +1,13 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
+import { NetworkConnectMiddleware } from "@core/Api/middleware/NetworkConnectMiddleware";
 import ReloadConfirmMiddleware from "@core/Api/middleware/ReloadConfirmMiddleware";
 import type Context from "@core/Context/Context";
 import Path from "@core/FileProvider/Path/Path";
+import { getWorkspaceGesUrl } from "@ext/enterprise/utils/getWorkspaceEnterpriseConfig";
 import initReviewers from "@ext/enterprise/utils/initReviewers";
 import { span } from "@ext/loggers/opentelemetry";
+import PublishHealthcheckMiddleware from "../../../core/extensions/enterprise/middleware/PublishHealthcheckMiddleware";
 import { Command } from "../../types/Command";
 
 const publish: Command<
@@ -16,16 +18,25 @@ const publish: Command<
 
 	kind: ResponseKind.none,
 
-	middlewares: [new NetworkConnectMiddleWare(), new AuthorizeMiddleware(), new ReloadConfirmMiddleware()],
+	middlewares: [
+		new NetworkConnectMiddleware(),
+		new AuthorizeMiddleware(),
+		new ReloadConfirmMiddleware(),
+		new PublishHealthcheckMiddleware(),
+	],
 
 	async do({ ctx, catalogName, message, filePaths }) {
-		const { rp, wm, em } = this._app;
+		const { rp, wm } = this._app;
 		const workspace = wm.current();
+		const workspaceConfig = await workspace.config();
+		const gesUrl = getWorkspaceGesUrl(workspaceConfig);
 
 		const catalog = await workspace.getContextlessCatalog(catalogName);
 		if (!catalog) return;
+
 		const storage = catalog.repo.storage;
 		if (!storage) return;
+
 		const data = rp.getSourceData(ctx, await storage.getSourceName());
 		const isCreated = await catalog.repo.mergeRequests.isCreated();
 		await catalog.repo.publish({
@@ -46,7 +57,7 @@ const publish: Command<
 				const mr = await catalog.repo.mergeRequests.findBySource(branch, false);
 				if (!mr) return;
 				span()?.addEvent("initReviewers", { approvers: JSON.stringify(mr.approvers), branch });
-				await initReviewers(em?.getConfig()?.gesUrl, data, storage, mr.approvers, branch);
+				await initReviewers(gesUrl, data, storage, mr.approvers, branch);
 			},
 		});
 	},

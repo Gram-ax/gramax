@@ -1,6 +1,5 @@
 import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
-import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import { SilentMiddleware } from "@core/Api/middleware/SilentMiddleware";
 import type Context from "@core/Context/Context";
 import { Command } from "../../types/Command";
@@ -10,7 +9,7 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 
 	kind: ResponseKind.none,
 
-	middlewares: [new SilentMiddleware(), new NetworkConnectMiddleWare(), new AuthorizeMiddleware()],
+	middlewares: [new SilentMiddleware(), new AuthorizeMiddleware()],
 
 	async do({ ctx, catalogName }) {
 		const { rp, wm } = this._app;
@@ -20,9 +19,15 @@ const fetchCmd: Command<{ ctx: Context; catalogName: string }, void> = Command.c
 
 		const storage = catalog?.repo.storage;
 		if (!storage) return;
+
 		const data = rp.getSourceData(ctx, await storage.getSourceName());
 		if (!data) return;
-		await storage.fetch(data, catalog.repo.isBare);
+
+		await storage.fetch(data, catalog.repo.isBare, false);
+
+		if (catalog.repo.isBare) {
+			catalog.repo.gvc.update();
+		}
 	},
 
 	params(ctx, q) {

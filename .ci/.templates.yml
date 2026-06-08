@@ -2,9 +2,9 @@
   if-ci-changed:
     - if: '$CI_COMMIT_BRANCH =~ /^(develop|release\/.*)$/'
       changes:
-        - ".ci/**/*"
-        - ".gitlab-ci.yml"
-        - "vite.config.ts"
+        - '.ci/**/*'
+        - '.gitlab-ci.yml'
+        - 'vite.config.ts'
 
   never-if-skip-tests:
     - if: $CI_COMMIT_TITLE =~ /(!?\[?(no|skip).?tests?\]?)/
@@ -19,13 +19,15 @@
       - if: $CI_COMMIT_TITLE =~ /!?\[?all.?tests?\]?/
       - if: '$CI_COMMIT_BRANCH =~ /^(develop|release\/.*)$/ || $CI_PIPELINE_SOURCE == "merge_request_event"'
         changes:
-          - "**/*.rs"
-          - "**/Cargo.toml"
-          - "**/Cargo.lock"
-          - ".cargo/**/*"
-          - "crates/**/*"
+          - '**/*.rs'
+          - '**/Cargo.toml'
+          - '**/Cargo.lock'
+          - '.cargo/**/*'
+          - 'crates/**/*'
 
   core:
+    - if: $CI_COMMIT_TAG
+      when: never
     - if: $CI_COMMIT_TITLE =~ /!?\[?all.?tests?\]?/
     - !reference [.rules, if-ci-changed]
     - if: '$CI_COMMIT_BRANCH =~ /^(develop|release\/.*)$/'
@@ -39,8 +41,10 @@
       - if: '$CI_COMMIT_BRANCH == $PROD_BRANCH'
     if-release:
       - if: '$CI_COMMIT_BRANCH =~ /^(release\/.*)$/'
+    if-develop:
+      - if: '$CI_COMMIT_BRANCH == develop'
     merge_request:
-      - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^(develop)$/'
+      - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
     base:
       - if: '$CI_COMMIT_BRANCH =~ /^(develop|release\/.*)$/'
     service:
@@ -85,7 +89,7 @@
 .template.docker.kubernetes:
   extends: .template.docker.base
   variables:
-    BUILDX_DRIVER: "--driver=kubernetes --driver-opt=namespace=${KUBERNETES_NAMESPACE},replicas=1,rootless=true,requests.cpu=1,requests.memory=2Gi,limits.cpu=4,limits.memory=8Gi"
+    BUILDX_DRIVER: '--driver=kubernetes --driver-opt=namespace=${KUBERNETES_NAMESPACE},replicas=1,rootless=true,requests.cpu=1,requests.memory=2Gi,limits.cpu=4,limits.memory=8Gi'
 
 .template.docker.base:
   image: gitlab.ics-it.ru:4567/ics/doc-reader/dind-bun:$USE_IMAGE_TAG
@@ -94,15 +98,16 @@
     GIT_DEPTH: 600
   tags:
     - kubernetes01-gramax
-  # artifacts:
-  #   when: always
-  #   expire_in: "7 days"
-  #   paths:
-  #     - trivy-report.txt
-  # cache:
-  #   - key: trivy
-  #     paths:
-  #       - .cache/trivy
+  artifacts:
+    when: always
+    expire_in: '7 days'
+    paths:
+      - trivy-report.txt
+  cache:
+    - key: trivy
+      paths:
+        - .cache/trivy
+
   before_script:
     - !reference [.template.github-ssh-key, before_script]
     - !reference [.template.docker, before_script]

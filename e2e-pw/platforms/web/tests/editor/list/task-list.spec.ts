@@ -19,8 +19,9 @@ editorTest.describe("Task List", () => {
 		`);
 	});
 
-	editorTest("create via toolbar", async ({ editor }) => {
-		await editor.clickToolbar("task-list");
+	editorTest("create via toolbar", async ({ editor, sharedPage }) => {
+		await editor.clickToolbar("lists");
+		await sharedPage.getByRole("menuitem", { name: "Task" }).click();
 		await editor.type("checkbox");
 		await editor.assertMarkdown("* [ ] checkbox");
 	});
@@ -81,13 +82,14 @@ editorTest.describe("Task List", () => {
 		`);
 	});
 
-	editorTest("convert bullet list to task list via toolbar", async ({ editor }) => {
+	editorTest("convert bullet list to task list via toolbar", async ({ editor, sharedPage }) => {
 		await editor.setMarkdown(md`
 			-  parsley
 
 			-  (*)
 		`);
-		await editor.clickToolbar("task-list");
+		await editor.clickToolbar("lists");
+		await sharedPage.getByRole("menuitem", { name: "Task" }).click();
 		await editor.assertMarkdown(md`
 			* [ ] parsley
 

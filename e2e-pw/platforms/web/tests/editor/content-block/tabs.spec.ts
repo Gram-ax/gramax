@@ -4,7 +4,7 @@ import { editorTest } from "@web/fixtures/editor.fixture";
 editorTest.describe("Tabs", () => {
 	editorTest("create tabs", async ({ editor, sharedPage }) => {
 		await editorTest.step("create first tab", async () => {
-			await editor.hoverToolbar("pencil-ruler");
+			await editor.clickToolbar("semiBlocks");
 			await sharedPage.getByRole("menuitem", { name: "Tab" }).click();
 			await editor.type("first");
 			await editor.assertMarkdown(
@@ -71,7 +71,7 @@ editorTest.describe("Tabs", () => {
 	});
 
 	editorTest("delete tabs", async ({ editor, sharedPage }) => {
-		await editor.hoverToolbar("pencil-ruler");
+		await editor.clickToolbar("semiBlocks");
 		await sharedPage.getByRole("menuitem", { name: "Tab" }).click();
 		await sharedPage.locator('[data-qa="qa-delete-tabs"]').click();
 		await editor.assertMarkdown("");

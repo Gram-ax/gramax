@@ -10,7 +10,7 @@ export function checkLanguage(languageName: string): boolean {
 	return loadedLanguages.has(languageName);
 }
 
-export async function loadLanguage(languageName: string): Promise<typeof lowlight | void> {
+export async function loadLanguage(languageName: string): Promise<typeof lowlight> {
 	if (loadedLanguages.has(languageName)) return lowlight;
 
 	const importFn = await getLangImportFuncByName(languageName);

@@ -1,4 +1,5 @@
 import { isDeepestArticle } from "@ext/article/actions/CreateArticle";
+import { trace } from "@ext/loggers/opentelemetry";
 import type { NodeModel } from "@minoru/react-dnd-treeview";
 import hash from "object-hash";
 import type { CategoryLink, ItemLink } from "../../../NavigationLinks";
@@ -8,6 +9,7 @@ abstract class DragTreeTransformer {
 		return 0;
 	}
 
+	@trace()
 	static getRenderDragNav(items: ItemLink[]): NodeModel<ItemLink>[] {
 		const dragNavItems: NodeModel<ItemLink>[] = [];
 

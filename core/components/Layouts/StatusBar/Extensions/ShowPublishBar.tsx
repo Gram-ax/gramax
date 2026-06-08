@@ -25,13 +25,14 @@ interface ShowPublishBarProps {
 	onClick: () => void;
 	isShow: boolean;
 	mergeRequestStatus: MergeRequestStatus;
+	disable?: boolean;
 }
 
 const TOOLTIP_DELAY = 5000;
 const TOOLTIP_WITH_CLOSE_ANIMATION_DELAY = TOOLTIP_DELAY + 1000;
 
 const ShowPublishBar = (props: ShowPublishBarProps) => {
-	const { isShow, mergeRequestStatus, onClick } = props;
+	const { isShow, mergeRequestStatus, onClick, disable } = props;
 
 	const leftNavIsOpen = SidebarsIsOpenService.value.left;
 	const isMergeRequestTabOpened = NavigationTabsService.value.bottomTab === LeftNavigationTab.MergeRequest;
@@ -83,6 +84,7 @@ const ShowPublishBar = (props: ShowPublishBarProps) => {
 	return (
 		<StatusBarWrapper
 			dataQa="qa-publish-trigger"
+			disable={disable}
 			iconCode="custom-cloud-up"
 			iconStyle={{ fill: isShow ? "var(--color-primary)" : "white" }}
 			isShow={isShow}

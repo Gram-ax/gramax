@@ -20,7 +20,7 @@ const emptyResult = (href: string): LinkResult => ({
 
 class LinkCreator {
 	isExternalLink(href: string): boolean {
-		return !!(href?.match(/^#/) || href?.match(/^\w+:/) || href?.slice(1, 4) === "api");
+		return !!(href?.match(/^[#?]/) || href?.match(/^\w+:/) || href?.slice(1, 4) === "api");
 	}
 
 	async getLink(href: string, context: ParserContext): Promise<LinkResult> {

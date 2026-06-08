@@ -1,3 +1,4 @@
+import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import { isActive } from "@core-ui/hooks/useAudioRecorder";
 import { MicrophonePermission } from "@core-ui/hooks/useMicrophone";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
@@ -9,6 +10,7 @@ import { useCallback, useMemo } from "react";
 
 const TranscribeButton = ({ editor }: { editor?: Editor }) => {
 	const { micState, micActions, recorderState, recorderActions } = AudioRecorderService.value;
+	const isReadOnly = PageDataContext.value.conf.isReadOnly;
 	const { isTauri } = usePlatform();
 
 	const startRecording = useCallback(async () => {
@@ -34,7 +36,7 @@ const TranscribeButton = ({ editor }: { editor?: Editor }) => {
 		}
 
 		if (micState.permission === MicrophonePermission.granted) await startRecording();
-	}, [micState, micActions, recorderActions, startRecording]);
+	}, [micState, micActions, recorderActions, startRecording, recorderState]);
 
 	const isDisabled = useMemo(() => {
 		return (
@@ -66,7 +68,7 @@ const TranscribeButton = ({ editor }: { editor?: Editor }) => {
 	return (
 		<ToolbarToggleButton
 			active={isActive(recorderState)}
-			disabled={isDisabled}
+			disabled={isDisabled || isReadOnly}
 			onClick={handleClick}
 			tooltipText={tooltipText}
 		>

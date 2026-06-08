@@ -14,6 +14,7 @@ import ArticleViewService from "@core-ui/ContextServices/views/articleView/Artic
 import useWatch from "@core-ui/hooks/useWatch";
 import tryOpenMergeConflict from "@ext/git/actions/MergeConflictHandler/logic/tryOpenMergeConflict";
 import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeData";
+import { useIsRevision } from "@ext/git/actions/Revisions/logic/hooks/useIsRevision";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
 import type CheckoutHandler from "@ext/git/core/GitPathnameHandler/checkout/components/CheckoutHandler";
 import getPathnameCheckoutData from "@ext/git/core/GitPathnameHandler/checkout/logic/getPathnameCheckoutData";
@@ -29,6 +30,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 	const router = useRouter();
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const isRepoOk = useIsRepoOk();
+	const isRevision = useIsRevision();
 	const isSourceValid = useIsSourceDataValid();
 	const pageDataContext = PageDataContextService.value;
 	const { isArticle } = pageDataContext;
@@ -58,6 +60,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 				ArticleViewService.setDefaultView();
 			};
 
+			if (isRevision) return exit();
 			const res = await FetchService.fetch<MergeData>(apiUrlCreator.getMergeData());
 			if (!res.ok) return exit();
 			const mergeData = await res.json();
@@ -124,7 +127,7 @@ const usePathnameHandler = (isFirstLoad: boolean) => {
 			ModalToOpenService.setValue<ComponentProps<typeof PullHandler>>(ModalToOpen.PullHandler);
 		};
 		void handler();
-	}, [router.path, router.hash, isFirstLoad, isArticle, isRepoOk, isSourceValid, apiUrlCreator]);
+	}, [router.path, router.hash, isFirstLoad, isArticle, isRepoOk, isSourceValid, apiUrlCreator, isRevision]);
 };
 
 export default usePathnameHandler;

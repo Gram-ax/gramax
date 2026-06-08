@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { DraggableTableRow } from "./DraggableTableRow";
 import { TableBodyComponent } from "./TableBodyComponent";
 import { TableCellComponent } from "./TableCellComponent";
+import { TABLE_DRAGGABLE_COLUMN_CODE, TABLE_EDIT_COLUMN_CODE, TABLE_SELECT_COLUMN_CODE } from "./TableComponent";
 import { TableHeaderComponent } from "./TableHeaderComponent";
 
 interface DraggableTableComponentProps<T> {
@@ -16,10 +17,16 @@ interface DraggableTableComponentProps<T> {
 	rowKey: keyof T;
 }
 
+const draggableColumnWidthPx = {
+	[TABLE_SELECT_COLUMN_CODE]: 32,
+	[TABLE_EDIT_COLUMN_CODE]: 32,
+	[TABLE_DRAGGABLE_COLUMN_CODE]: 36,
+} as const;
+
 export function DraggableTableComponent<T>({ table, columns, onDragChange, rowKey }: DraggableTableComponentProps<T>) {
 	const dataIds = useMemo(
 		() => table.getRowModel().rows?.map(({ original }) => original[rowKey] as string) || [],
-		[table.getRowModel().rows],
+		[rowKey, table.getRowModel],
 	);
 
 	const { sensors, handleDragEnd } = useSortableCatalogs(() => dataIds, onDragChange);
@@ -33,6 +40,13 @@ export function DraggableTableComponent<T>({ table, columns, onDragChange, rowKe
 		>
 			<div className="overflow-hidden rounded-md border">
 				<Table>
+					<colgroup>
+						{columns.map((column) => {
+							const width =
+								column.size ?? draggableColumnWidthPx[column.id as keyof typeof draggableColumnWidthPx];
+							return <col key={column.id} style={width ? { width: `${width}px` } : undefined} />;
+						})}
+					</colgroup>
 					<TableHeaderComponent table={table} />
 					<SortableContext items={dataIds} strategy={verticalListSortingStrategy}>
 						<TableBodyComponent
@@ -40,7 +54,7 @@ export function DraggableTableComponent<T>({ table, columns, onDragChange, rowKe
 							renderRow={(row) => (
 								<DraggableTableRow<T>
 									key={row.id}
-									row={row as Row<any>}
+									row={row as Row<T>}
 									rowKey={rowKey}
 									state={row.getIsSelected() && "selected"}
 								>

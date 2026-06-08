@@ -6,6 +6,7 @@ const arg = process.argv[2]; // unit, int, fileName or undefined
 const FIXTURES_PATH = path.join(process.cwd(), "core/extensions/git/test/fixtures");
 process.env.ROOT_PATH = path.join(process.cwd(), "app/test/docs");
 process.env.PRODUCTION = "false";
+process.env.VITE_ENVIRONMENT = "test";
 
 const useServer = !(process.argv.includes("--no-server") || process.argv.includes("-n"));
 if (!useServer) process.argv = process.argv.filter((argv) => argv !== "--no-server" && argv !== "-n");

@@ -1,14 +1,15 @@
 import Skeleton from "@components/Atoms/ImageSkeleton";
+import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import type { ResourceError } from "@core-ui/ContextServices/ResourceService/errors";
 import { useGetResource } from "@core-ui/ContextServices/ResourceService/hooks/useGetResource";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
-import getAdjustedSize from "@core-ui/utils/getAdjustedSize";
+import { useAdjustedElementSize } from "@core-ui/hooks/useAdjustedElementSize";
 import ErrorConfirmService from "@ext/errorHandlers/client/ErrorConfirmService";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import getMermaidDiagram from "@ext/markdown/elements/diagrams/diagrams/mermaid/getMermaidDiagram";
 import getPlantUmlDiagram from "@ext/markdown/elements/diagrams/diagrams/plantUml/getPlantUmlDiagram";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import DiagramType from "../../../../../logic/components/Diagram/DiagramType";
 import DiagramRender from "./DiagramRender";
 
@@ -19,7 +20,6 @@ const DIAGRAM_FUNCTIONS = {
 
 interface DiagramDataProps {
 	diagramName: DiagramType;
-	openEditor?: () => void;
 	src?: string;
 	title?: string;
 	content?: string;
@@ -29,19 +29,28 @@ interface DiagramDataProps {
 	height?: string;
 	float?: string;
 	isPrint?: boolean;
+	scale?: number;
+	openEditor?: () => void;
 }
 
 const DiagramData = (props: DiagramDataProps) => {
-	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId, float, isPrint } = props;
+	const { src, title, content, diagramName, openEditor, width, height, noEm, commentId, float, isPrint, scale } =
+		props;
 	const diagramsServiceUrl = PageDataContextService.value.conf.diagramsServiceUrl;
 	const { getBuffer } = ResourceService.value;
 
+	const articleRef = ArticleRefService.value;
 	const ref = useRef<HTMLDivElement | HTMLImageElement>(null);
-	const parentRef = useRef<HTMLDivElement>(null);
 	const [data, setData] = useState(null);
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [error, setError] = useState<ResourceError>(null);
-	const [size, setSize] = useState<{ width: string; height: string }>(null);
+
+	const getParentWidth = useCallback(
+		() => articleRef?.current?.firstElementChild?.firstElementChild?.clientWidth ?? 0,
+		[articleRef],
+	);
+
+	const size = useAdjustedElementSize({ width, height, scale, getParentWidth });
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
@@ -50,19 +59,6 @@ const DiagramData = (props: DiagramDataProps) => {
 		setIsLoaded(true);
 		setData(buffer);
 	}, []);
-
-	useLayoutEffect(() => {
-		if (!width?.endsWith("px")) return;
-		const parentWidth = parentRef.current?.clientWidth;
-		const container = ref.current;
-
-		if (!parentWidth || !container) return;
-		const newSize = getAdjustedSize(parseFloat(width), parseFloat(height), parentWidth);
-		const computedStyleOne = window.getComputedStyle(container.parentElement);
-		const computedStyleTwo = window.getComputedStyle(container);
-		const offset = parseFloat(computedStyleTwo.marginTop) * 2 + parseFloat(computedStyleOne.paddingTop) * 2;
-		setSize({ width: `${parentWidth}px`, height: `${newSize.height + offset}px` });
-	}, [width, height]);
 
 	useGetResource(
 		async (buffer, resourceError) => {
@@ -90,7 +86,13 @@ const DiagramData = (props: DiagramDataProps) => {
 	);
 
 	return (
-		<div data-component="diagram" data-float={float} data-qa="qa-diagram-data" ref={parentRef}>
+		<div
+			data-component="diagram"
+			data-float={float && !openEditor ? float : undefined}
+			data-qa="qa-diagram-data"
+			data-resize-container={float && !openEditor ? true : undefined}
+			data-testid={diagramName}
+		>
 			<BlockCommentView commentId={commentId} style={{ borderRadius: "var(--radius-large)" }}>
 				<Skeleton height={size?.height} isLoaded={isLoaded} width={size?.width}>
 					<DiagramRender
@@ -100,6 +102,7 @@ const DiagramData = (props: DiagramDataProps) => {
 						error={error}
 						openEditor={openEditor}
 						ref={ref}
+						scale={scale}
 						title={title}
 					/>
 				</Skeleton>

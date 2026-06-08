@@ -1,5 +1,6 @@
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
+import { Counter } from "@ui-kit/Counter";
 import { Icon } from "@ui-kit/Icon";
 
 interface DeleteSelectedButtonProps {
@@ -14,7 +15,7 @@ export const DeleteSelectedButton = ({ onClick, selectedCount, hidden }: DeleteS
 	return (
 		<Button onClick={onClick} type="button" variant="outline">
 			<Icon icon="trash" />
-			{t("delete")} ({selectedCount})
+			{t("delete")} <Counter variant="text">{selectedCount}</Counter>
 		</Button>
 	);
 };

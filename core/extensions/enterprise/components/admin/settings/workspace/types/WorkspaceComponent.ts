@@ -46,13 +46,16 @@ export type WorkspaceSection = {
 
 export type WorkspaceSettings = {
 	name: string;
-	source: {
+	sections: Record<string, WorkspaceSection>;
+	access?: Access;
+	/**
+	 * @deprecated Consider using `git.source` field. To be removed after jul-2026
+	 */
+	source?: {
 		url: string;
 		type: "GitLab";
 		repos: string[] | null;
 	};
-	sections: Record<string, WorkspaceSection>;
-	access?: Access;
 	style?: {
 		logo?: SVG;
 		logoDark?: SVG;
@@ -64,6 +67,14 @@ export type WorkspaceSettings = {
 		quiz?: boolean;
 		guests?: boolean;
 		metrics?: boolean;
+	};
+	git: {
+		source: {
+			url: string;
+			type: "GitLab";
+			repos: string[] | null;
+		};
+		lfs?: { patterns: string[] };
 	};
 };
 

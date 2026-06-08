@@ -15,8 +15,9 @@ editorTest.describe("Bullet List", () => {
 		await editor.assertMarkdown("-  text");
 	});
 
-	editorTest("create via toolbar", async ({ editor }) => {
-		await editor.clickToolbar("bullet-list");
+	editorTest("create via toolbar", async ({ editor, sharedPage }) => {
+		await editor.clickToolbar("lists");
+		await sharedPage.getByRole("menuitem", { name: "Bullet" }).click();
 		await editor.type("text");
 		await editor.assertMarkdown("-  text");
 	});
@@ -73,7 +74,7 @@ editorTest.describe("Bullet List", () => {
 		`);
 	});
 
-	editorTest("split bullet list via toolbar", async ({ editor }) => {
+	editorTest("split bullet list via toolbar", async ({ editor, sharedPage }) => {
 		await editor.setMarkdown(md`
 			-  text
 
@@ -81,7 +82,8 @@ editorTest.describe("Bullet List", () => {
 
 			   -  text
 		`);
-		await editor.clickToolbar("bullet-list");
+		await editor.clickToolbar("lists");
+		await sharedPage.getByRole("menuitem", { name: "Bullet" }).click();
 		await editor.assertMarkdown(md`
 			-  text
 

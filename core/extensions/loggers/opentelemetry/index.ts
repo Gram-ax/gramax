@@ -32,6 +32,7 @@ const buildAttributes = (options?: TraceOptions) => {
 };
 
 interface TraceOptions {
+	name?: string;
 	args?: unknown[];
 	links?: api.Link[];
 	omitArgs?: boolean;
@@ -104,10 +105,10 @@ export const trace = (options?: TraceOptions) => {
 	return (target: unknown, name: string, descriptor: PropertyDescriptor) => {
 		const originalMethod = descriptor.value;
 
+		const traceName = options?.name || `${target.constructor.name}.${name}`;
+
 		descriptor.value = function (...args: unknown[]) {
-			return traced(`${target.constructor.name}.${name}`, { ...options, args }, () =>
-				originalMethod.apply(this, args),
-			);
+			return traced(traceName, { ...options, args }, () => originalMethod.apply(this, args));
 		};
 	};
 };

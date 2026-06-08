@@ -8,10 +8,10 @@ class ReactRenderer {
 	protected _parentElement: HTMLElement;
 	private readonly _ignoreShouldRender;
 
-	protected constructor(Component: FC, props = {}, _parentElement: HTMLElement, ignoreShouldRender = false) {
+	protected constructor(Component: FC, props = {}, ParentElement: HTMLElement, ignoreShouldRender = false) {
 		this.Component = Component;
 		this.props = props;
-		this._parentElement = _parentElement;
+		this._parentElement = ParentElement;
 		this._ignoreShouldRender = ignoreShouldRender;
 	}
 

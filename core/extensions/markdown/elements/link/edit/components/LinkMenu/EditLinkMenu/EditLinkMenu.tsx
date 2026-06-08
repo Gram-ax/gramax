@@ -45,6 +45,7 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 	const [value, setValue] = useState(defaultValue);
 	const [isExternalLink, externalLink, updateLink] = useExternalLink(value);
 	const isCurrentCatalog = selectedCatalogName === catalogName;
+	const [selectedCommand, setSelectedCommand] = useState("");
 
 	useEffect(() => {
 		setValue(defaultValue);
@@ -59,6 +60,10 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 		[updateLink],
 	);
 
+	const handleConfirm = useCallback(() => {
+		if (isExternalLink) onUpdate(externalLink, externalLink);
+	}, [isExternalLink, externalLink, onUpdate]);
+
 	const changeMode = useCallback(
 		(mode: LinkMenuMode) => {
 			setMode(mode);
@@ -70,18 +75,20 @@ export const EditLinkMenu = memo((props: EditLinkMenuProps) => {
 	return (
 		<StyledCommand
 			className={cn("rounded-lg lg:shadow-hard-base", isMobile && "mobile")}
+			onValueChange={setSelectedCommand}
 			role="toolbar"
 			shouldFilter={false}
+			value={selectedCommand}
 		>
 			<LinkMenuInput
 				isSearchCatalogs={!isCurrentCatalog}
+				onConfirm={handleConfirm}
 				onValueChange={onValueChange}
 				setMode={changeMode}
 				value={value}
 			/>
 			<CommandList>
 				<CommandEmpty>{t("list.no-results-found")}</CommandEmpty>
-				<CommandItem className="hidden" value="-" />
 				{!isExternalLink && selectedCatalogName && (
 					<LinkMenuArticleChooser
 						catalogName={selectedCatalogName}

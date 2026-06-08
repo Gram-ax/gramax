@@ -1,17 +1,18 @@
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import type CatalogPropsEditor from "@ext/catalog/actions/propsEditor/components/CatalogPropsEditor";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
-import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
+import { DialogErrorHeader } from "@ext/errorHandlers/client/components/DialogErrorHeader";
 import t from "@ext/localization/locale/translate";
+import { DialogBody, DialogFooterTemplate } from "@ui-kit/Dialog";
 import type { ComponentProps } from "react";
+import type { GetErrorComponentProps } from "../../errorHandlers/logic/GetErrorComponent";
 
-const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetErrorComponent>) => {
+const CatalogExistsError = ({ error, onCancelClick }: GetErrorComponentProps) => {
 	const formatError = () => {
 		if (!error.props?.storage) return error.message;
 		const parts = t("catalog.error.already-exist-2").split("%");
 		return (
-			<div className="article">
+			<div className="article bg-transparent">
 				{parts[0]}
 				<code>{error.props.storage}</code>
 				{parts[1]}
@@ -21,28 +22,30 @@ const CatalogExistsError = ({ error, onCancelClick }: ComponentProps<typeof GetE
 		);
 	};
 
+	const onConfigure = () => {
+		ModalToOpenService.setValue<ComponentProps<typeof CatalogPropsEditor>>(ModalToOpen.CatalogPropsEditor, {
+			onClose: () => ModalToOpenService.resetValue(),
+			onSubmit: onCancelClick,
+			modalContentProps: { "data-upper-error": true },
+		});
+	};
+
 	return (
-		<InfoModalForm
-			actionButton={{
-				text: t("catalog.configure"),
-				onClick: () => {
-					ModalToOpenService.setValue<ComponentProps<typeof CatalogPropsEditor>>(
-						ModalToOpen.CatalogPropsEditor,
-						{
-							onClose: () => ModalToOpenService.resetValue(),
-							onSubmit: onCancelClick,
-							modalContentProps: { "data-upper-error": true },
-						},
-					);
-				},
-			}}
-			closeButton={{ text: t("close") }}
-			icon={{ code: "alert-circle", color: "var(--color-danger)" }}
-			onCancelClick={onCancelClick}
-			title={t("catalog.error.already-exist")}
-		>
-			{formatError()}
-		</InfoModalForm>
+		<>
+			<DialogErrorHeader
+				color="var(--color-danger)"
+				error={error}
+				icon="alert-circle"
+				title={t("catalog.error.already-exist")}
+			/>
+			<DialogBody>{formatError()}</DialogBody>
+			<DialogFooterTemplate
+				primaryButton={t("catalog.configure")}
+				primaryButtonProps={{ onClick: onConfigure }}
+				secondaryButton={t("close")}
+				secondaryButtonProps={{ onClick: onCancelClick, variant: "outline" }}
+			/>
+		</>
 	);
 };
 

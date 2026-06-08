@@ -1,5 +1,5 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+	"$schema": "https://biomejs.dev/schemas/2.4.12/schema.json",
 	"files": {
 		"includes": [
 			"**/*.ts",
@@ -19,12 +19,14 @@
 			"!apps/next/crates/**/*",
 			"!core/styles/article.css", // it breaks :c
 			"!core/styles/swagger-ui-theme.css",
+			"!core/ui-kit/index.css",
 			"!.cargo/**/*",
 			"!.npm/**/*",
 			"!target/**/*",
 			"!**/dist/**/*",
 			"!**/out/**/*",
-			"!**/build/**/*",
+			"!apps/build/**/*",
+			"!services/build/**/*",
 			"!**/gen/**/*"
 		]
 	},
@@ -95,7 +97,16 @@
 					"level": "warn",
 					"options": {
 						"strictCase": false,
+						"requireAscii": false,
 						"conventions": [
+							{
+								"selector": {
+									"kind": "classProperty",
+									"modifiers": ["private"]
+								},
+								"match": "_(.+)",
+								"formats": ["CONSTANT_CASE", "camelCase"]
+							},
 							{
 								"selector": {
 									"kind": "classProperty",
@@ -118,7 +129,7 @@
 									"modifiers": ["protected"]
 								},
 								"match": "_(.+)",
-								"formats": ["camelCase"]
+								"formats": ["CONSTANT_CASE", "camelCase"]
 							},
 							{
 								"selector": {
@@ -142,6 +153,10 @@
 							{
 								"group": ["ics-ui-kit", "ics-ui-kit/*", "ics-ui-kit/**"],
 								"message": "Do not import directly from ics-ui-kit. Use reexports from @ui-kit."
+							},
+							{
+								"group": ["@emotion/styled", "@emotion/styled/*"],
+								"message": "Do not use @emotion/styled. Use Tailwind instead."
 							}
 						]
 					}
@@ -163,6 +178,9 @@
 				// not sure?
 				"useKeyWithClickEvents": "off",
 				"useKeyWithMouseEvents": "warn"
+			},
+			"nursery": {
+				"noFloatingPromises": "warn"
 			}
 		}
 	},

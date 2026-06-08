@@ -14,6 +14,10 @@ const locale = {
 				icons: "Icons",
 				extended: "Extended",
 				lfs: "Git LFS",
+				storageUsage: "Storage Usage",
+			},
+			sidebar: {
+				git: "Git",
 			},
 			props: {
 				title: {
@@ -41,7 +45,7 @@ const locale = {
 					patterns: {
 						name: "Tracked LFS files",
 						placeholder: "Enter path patterns",
-						description: "Path patterns for git lfs to track (e.g., *.jpg, *.png, *.zip)",
+						description: "Path patterns for Git LFS to track (e.g., *.jpg, *.png, *.zip)",
 
 						"default-tooltip": "Set commonly used file path patterns",
 					},
@@ -357,12 +361,12 @@ const locale = {
 				wrongLoginOrPassword: "Wrong login or password",
 			},
 		},
-		"snippet-editor": {
-			name: "Snippet editor",
+		"fragment-editor": {
+			name: "Fragment editor",
 			props: {
 				title: {
 					name: "Title",
-					placeholder: "My snippet",
+					placeholder: "My fragment",
 				},
 				id: {
 					name: "Id",
@@ -373,12 +377,12 @@ const locale = {
 				},
 			},
 		},
-		"snippet-add": {
-			name: "Create snippet",
+		"fragment-add": {
+			name: "Create fragment",
 			props: {
 				title: {
 					name: "Title",
-					placeholder: "My snippet",
+					placeholder: "My fragment",
 				},
 				id: {
 					name: "Id",
@@ -417,7 +421,7 @@ const locale = {
 			props: {
 				email: {
 					name: "Sign in to your Gramax Enterprise Server account",
-					description: "Use your work email to connect to your organization's workspace.",
+					description: "Use your work email to connect to your organization's space.",
 					placeholder: "Enter your email",
 				},
 			},
@@ -484,6 +488,10 @@ const locale = {
 				enterpriseServerIsNotAvailable: "Enterprise server is not available at this URL",
 			},
 		},
+		"enterprise-cloud-publish-new-catalog": {
+			name: "Publish new catalog",
+			description: "Specify the repository name",
+		},
 	},
 	app: {
 		update: {
@@ -523,9 +531,9 @@ const locale = {
 				"Missing <a href='https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated'>cross-origin isolation</a> or HTTPS connection which is required to run application",
 			"command-failed": {
 				title: "Something went wrong",
-				body: `<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — <a href="https://t.me/gramax_assist_bot" target='${
+				body: `<p>Reload the page and try again.</p><p>We will receive a problem report and try to fix it quickly. If the error blocks your work — create an issue in <a style="color: hsl(201 96% 32%)" href="https://github.com/Gram-ax/gramax/issues" target='${
 					getExecutingEnvironment() === "tauri" ? "" : "target='_blank'"
-				}'>contact support</a>.</p>`,
+				}'>GitHub</a>.</p>`,
 			},
 			"something-went-wrong": "Something went wrong",
 		},
@@ -556,6 +564,9 @@ const locale = {
 		sv: "Svenska",
 		cs: "Čeština",
 		ky: "Кыргызча",
+		uz: "Узбекча",
+		kk: "Қазақша",
+		fa: "فارسی",
 	},
 	"style-guide": {
 		"check-with-style-guide": "Check with style guide",
@@ -622,17 +633,17 @@ const locale = {
 </p>`,
 	},
 	workspace: {
-		name: "Workspace",
+		name: "Space",
 		"configure-your-workspace": "Configure your space settings",
-		"default-name": "Default Workspace",
+		"default-name": "Default Space",
 		"enter-name": "Enter a name",
 		"path-desc": "Directory on the local disk where working catalogs are located",
 		selected: "Working directory: ",
-		add: "Add workspace",
-		edit: "Workspace settings",
+		add: "Add space",
+		edit: "Space settings",
 		delete: {
-			desktop: "Delete workspace? Working directory will remain on your computer",
-			web: "Delete workspace? All catalogs in it will also be deleted",
+			desktop: "Delete space? Working directory will remain on your computer",
+			web: "Delete space? All catalogs in it will also be deleted",
 		},
 		"edit-style": "Edit style",
 		"editing-css": "Editing CSS-styles",
@@ -644,7 +655,7 @@ const locale = {
 		logo: "Logo",
 		appearance: "Appearance",
 		"set-ai-server": "AI server",
-		"set-ai-server-description": "Fill to enable AI functions in the workspace.",
+		"set-ai-server-description": "Fill to enable AI functions in the space.",
 		"ai-server-url": "AI server URL",
 		"ai-server-url-description": "Enter the URL of your AI server",
 		"ai-server-token": "AI server token",
@@ -653,6 +664,8 @@ const locale = {
 		"ai-token-set-error": "Token is not set. To connect, you need to set the token",
 		"ai-token-error": "Token is invalid. Check it in the server settings",
 		"delete-ai-server": "Delete AI server?",
+		"lfs-section-title": "LFS",
+		"lfs-section-description": "File patterns tracked by Git LFS. Applied to all catalogs in this workspace",
 		"upload-error-title": "Upload Error",
 		"invalid-logo-format-body": "Unsupported file format. Please upload a logo in SVG or PNG format only",
 		"icon-invalid-files-body":
@@ -661,31 +674,31 @@ const locale = {
 		"icons-uploaded": "Icons uploaded",
 		"logo-upload-failed": "Failed to upload the logo",
 		"logo-size-exceeded": "The logo size must not exceed 500KB",
-		"css-styles-description": "Advanced styles settings for your workspace",
+		"css-styles-description": "Advanced styles settings for your space",
 		"dark-logo-description": "Logo for dark theme. Used only in dark theme",
 		"for-dark-theme": "For the dark theme",
 		"default-logo-description":
 			"Default logo. Used in the light theme and also in the dark theme if there is no separate dark theme logo",
 		tooltip: {
 			"only-current": {
-				one: "catalog is available for sync in the current workspace",
-				few: "catalogs are available for sync in the current workspace",
-				many: "catalogs are available for sync in the current workspace",
+				one: "catalog is available for sync in the current space",
+				few: "catalogs are available for sync in the current space",
+				many: "catalogs are available for sync in the current space",
 			},
 			"including-current": {
 				one: "catalog is available for sync ({{current-count}} in current)",
-				few: "catalogs are available for sync in {{workspace-count}} workspaces ({{current-count}} in current)",
-				many: "catalogs are available for sync in {{workspace-count}} workspaces ({{current-count}} in current)",
+				few: "catalogs are available for sync in {{workspace-count}} spaces ({{current-count}} in current)",
+				many: "catalogs are available for sync in {{workspace-count}} spaces ({{current-count}} in current)",
 			},
 			"excluding-current": {
 				one: "catalog is available for sync",
-				few: "catalogs are available for sync in {{workspace-count}} workspaces",
-				many: "catalogs are available for sync in {{workspace-count}} workspaces",
+				few: "catalogs are available for sync in {{workspace-count}} spaces",
+				many: "catalogs are available for sync in {{workspace-count}} spaces",
 			},
 			"only-one-excluding-current": {
-				one: "catalog is available for sync in one of workspaces",
-				few: "catalogs are available for sync in one of workspaces",
-				many: "catalogs are available for sync in one of workspaces",
+				one: "catalog is available for sync in one of the spaces",
+				few: "catalogs are available for sync in one of the spaces",
+				many: "catalogs are available for sync in one of the spaces",
 			},
 			"has-changes": {
 				one: "{{count}} catalog is available for sync",
@@ -716,6 +729,7 @@ const locale = {
 	},
 	multilang: {
 		switch: "Switch language",
+		"preview-article": "Preview article",
 		warning: {
 			action: {
 				title: "Changes will apply to all languages",
@@ -741,7 +755,7 @@ const locale = {
 		move: {
 			"to-workspace": "Move",
 			"create-new-catalog": "Create new catalog",
-			"no-workspaces": "No other workspaces",
+			"no-workspaces": "No other spaces",
 			"no-catalogs": "No other catalogs",
 			"cannot-move-language": "You can not move article out of catalog with multiple languages",
 			progress: "Moving article",
@@ -782,7 +796,12 @@ const locale = {
 			description: "Edit or define the article styling using Markdown",
 		},
 		error: {
-			parse: "Gramax couldn’t read the Markdown structure in the article file.\nClick Edit Markdown, then fix the error or remove the structure.",
+			parse: {
+				default:
+					"Gramax couldn’t read the Markdown structure in the article file.\nFix the error or remove the structure.",
+				browser:
+					"Gramax couldn’t read the Markdown structure in the article file.\nClick <a href=’?mode=markdown’>Edit Markdown</a>, then fix the error or remove the structure.",
+			},
 			"resource-too-large": {
 				title: "Unable to add file",
 				desc: "File size exceeds {{maxSizeMb}} MB. Compress it, select a smaller file, or use the desktop version.",
@@ -814,7 +833,8 @@ title: 403
 title: Unable to display the article
 ---
 `,
-				body: `[alert:error:Gramax couldn’t read the Markdown structure in the article file].\n\nFix the error or remove the structure by «Edit Markdown».\n\n[/alert]`,
+				body: `[alert:error:Gramax couldn’t read the Markdown structure in the article file]\n\nFix the error or remove the structure.\n\n[/alert]`,
+				"body-browser": `[alert:error:Gramax couldn’t read the Markdown structure in the article file]\n\nFix the error or remove the structure in [Edit Markdown](?mode=markdown).\n\n[/alert]`,
 			},
 		},
 		searchPhrases: {
@@ -846,6 +866,39 @@ title: Unable to display the article
 		"import-2": "Import from another system",
 		"import-3": "From Confluence or Notion",
 		add: "Add catalog",
+		views: {
+			trigger: "Catalog view",
+			editing: "Editing",
+			"name-required": "Name is required",
+			sections: {
+				saved: "Saved",
+				filters: "Filters",
+				properties: "Variables",
+			},
+			"temp-view": "Temporary view",
+			edit: {
+				title: {
+					new: "New view",
+					edit: "Edit view",
+				},
+				description: {
+					new: "Create a new view for your catalog",
+					edit: "Edit the parameters of your view",
+				},
+				deleteDescription: "Are you sure you want to delete this view? This action cannot be undone.",
+				form: {
+					name: "Name",
+					filter: "Filter",
+					property: "Variables",
+					options: {
+						docportalVisible: {
+							name: "Visible in docportal",
+							description: "View will be visible and available for use on a documentation portal",
+						},
+					},
+				},
+			},
+		},
 		delete: {
 			name: "Delete catalog",
 			local: "This catalog is stored only in the app. You will not be able to restore it",
@@ -853,14 +906,14 @@ title: Unable to display the article
 			progress: "Removing catalog",
 		},
 		move: {
-			"unavailable-in-ges": "Cannot move catalog out of Enterprise workspace",
+			"unavailable-in-ges": "Cannot move catalog out of Enterprise space",
 			"to-workspace": "Move",
-			"no-workspaces": "No other workspaces available",
+			"no-workspaces": "No other spaces available",
 		},
 		duplicate: {
 			title: "This catalog already exists",
 			description:
-				"Catalog <code>{{catalogName}}</code> already exists in the workspace <code>{{targetWorkspaceName}}</code>. You can either keep both or replace the existing catalog",
+				"Catalog <code>{{catalogName}}</code> already exists in the space <code>{{targetWorkspaceName}}</code>. You can either keep both or replace the existing catalog",
 			"keep-both": "Keep Both",
 			replace: "Replace",
 			cancel: "Cancel",
@@ -915,6 +968,10 @@ title: Unable to display the article
 		name: {
 			catalog: "Share catalog",
 			article: "Share article",
+		},
+		description: {
+			catalog: "Share a link to the catalog with other users",
+			article: "Share a link to the article with other users",
 		},
 		"new-file-disable": "You can share only after the article is published",
 		copy: "Link to access the article and catalog on the branch ",
@@ -978,6 +1035,8 @@ title: Unable to display the article
 	},
 	"enterprise-guest": {
 		welcomeTitle: "Welcome to Gramax!",
+		privateTitle: "Sign in to continue",
+		privateDescription: "This article is only available to authorized users",
 		descriptions: {
 			emailFieldDescription: "Enter your email to receive a one-time code",
 			otpFieldDescription: "Enter the code sent to your email",
@@ -1099,6 +1158,7 @@ title: Unable to display the article
 			catalog: "In this catalog",
 			article: "In this article",
 			category: "In this section",
+			folder: "In this folder",
 			tooltip: "Search scope",
 		},
 	},
@@ -1206,6 +1266,8 @@ title: Unable to display the article
 			error: {
 				"local-changes-present": "Your local changes prevent synchronization",
 				"no-permission": "You don't have permission to synchronize with this catalog",
+				"at-revision":
+					"Synchronization in history of changes is not available — return to the current version.",
 			},
 		},
 		checkout: {
@@ -1295,6 +1357,10 @@ title: Unable to display the article
 				"added-by-us": "You added or renamed a file that was not in the incoming change.",
 				"deleted-by-them": "You modified a file that was deleted or renamed in the incoming change.",
 				"deleted-by-us": "You deleted or renamed a file that was changed in the incoming change.",
+				resolver: {
+					title: "Resolve conflict",
+					description: "Select files and resolve merge conflicts",
+				},
 			},
 			confirm: {
 				sync: "You have unpublished changes that conflict with changes in the live branch. Resolve the conflict before syncing.",
@@ -1330,29 +1396,78 @@ title: Unable to display the article
 				},
 				unknown: "Unknown error when publishing. Error message -",
 				protected: "Branch protected from publishing",
+				"protected-branch": "Protected branch",
+				"protected-branch-description":
+					"Publishing directly to a protected branch is not allowed. To make changes, create a new branch and merge it, or create a merge request.",
+				"direct-publish-forbidden": "Direct publishing is prohibited.",
+				"create-branch-and-merge": "Create a new branch and merge it",
+				"resolve-conflicts": "Resolve conflicts",
+				"has-conflicts-description":
+					"You can't publish right now. There are conflicts that need to be resolved first.",
 				"no-permission": "You do not have permission to publish in this catalog",
+				"permissions-unavailable": "Unable to verify access permissions. Please try again.",
 				"main-branch": "Publishing in this branch is prohibited",
+				"at-revision": "Publishing in history of changes is not available — return to the current version.",
 			},
 		},
 		history: {
+			name: "History",
+			modal: {
+				title: "Article history",
+				description: "View the history of changes to the article",
+			},
+			filters: {
+				title: "Filters",
+				reset: "Reset",
+				cancel: "Cancel",
+				apply: "Apply",
+				"all-authors": "All authors",
+				date: {
+					title: "Date range",
+					placeholder: "dd.mm.yy",
+					today: "Today",
+					"7-days": "7 days",
+					"30-days": "30 days",
+					"all-time": "All time",
+				},
+				authors: { title: "Author", placeholder: "Search author..." },
+				articles: { title: "Articles" },
+			},
+			revisions: {
+				title: "Compare revisions",
+				reset: "Reset",
+				"pick-a-commit": "Pick a commit",
+				combined: "Combined",
+				hint1: "Select two commits from the list",
+				hint2: "to see changes between them",
+			},
 			button: "Show history",
-			name: "Change History",
 			error: {
+				empty: "No changes found",
 				"not-found": "Could not find file history",
 				"need-to-publish": "Change history will be available after the article is published",
 			},
 		},
 		revisions: {
-			"compare-title": "Change review",
+			"go-to-revision": "Go to revision",
+			"compare-title-catalog": "Change review",
+			"compare-title-article": "Article history",
 			"compare-button": "Change review",
 			"choose-placeholder": "Select revision...",
+			"n-more": ", {count} more",
 		},
 		discard: {
-			"seletected-confirm":
-				"Discard selected changes? The articles will revert to their previous state, and the added media files will be deleted.",
 			"select-all-arrow-tooltip": "Discard selected changes",
 			"selected-file-arrow-tooltip": "Discard changes",
 			"paragraph-tooltip": "Discard changes",
+			alert: {
+				title: "Discard selected changes{count}?",
+				body: "Articles will revert to their previous version, and the new media files will be deleted.",
+				buttons: {
+					primary: "Discard {count}",
+					secondary: "Cancel",
+				},
+			},
 		},
 		warning: {
 			"no-changes": {
@@ -1549,6 +1664,7 @@ title: Unable to display the article
 		"log-in": "Log in to Yandex.Disk",
 	},
 	diff: {
+		modes: "Display modes",
 		"source-text": "Source text",
 		"double-panel": "Double panel",
 		"file-too-large-for-preview": "File exceeds 1 MB and cannot be displayed",
@@ -1557,6 +1673,7 @@ title: Unable to display the article
 			added: "Added",
 			modified: "Modified",
 			deleted: "Deleted",
+			breadcrumb: "Article moved",
 		},
 		"previous-version": "Previous version",
 		discard: "Discard",
@@ -1602,6 +1719,7 @@ title: Unable to display the article
 		},
 	},
 	editor: {
+		"at-revision": "Editing in history of changes is not available — return to the current version.",
 		ai: {
 			improve: "Improve writing",
 			generate: "Generate",
@@ -1610,6 +1728,7 @@ title: Unable to display the article
 		italic: "Italic",
 		bold: "Bold",
 		stroke: "Strikethrough",
+		property: "Variable",
 		code: "Code line",
 		question: {
 			name: "Question block",
@@ -1629,14 +1748,62 @@ title: Unable to display the article
 			},
 		},
 		"code-block": "Code block",
-		"bullet-list": "Bullet list",
-		"ordered-list": "Numbered list",
-		"task-list": "Task list",
+		lists: "Lists",
+		"bullet-list": "Bullet",
+		"ordered-list": "Numbered",
+		"task-list": "Tasks",
 		note: "Note",
 		notes: "Notes",
 		heading: "Heading",
 		attachments: "Attachments",
 		tools: "Tools",
+		modes: {
+			tabs: {
+				article: "This article",
+				catalog: "All catalog",
+			},
+			"mark-as-read": "Mark all as read",
+			comments: "Comments review",
+			counter: {
+				unread: "Unread",
+				total: "Total",
+			},
+			"search-placeholder": "Search comments...",
+			"source-text": "Source text",
+			"type-filter": {
+				all: "All",
+				comments: "Comments",
+				changes: "Changes",
+				unread: "Unread",
+			},
+			sorting: {
+				title: "Sorting",
+				none: "No sorting",
+				newest: "Newest first",
+				oldest: "Oldest first",
+			},
+			grouping: {
+				title: "Grouping",
+				none: "No grouping",
+				article: "By article",
+				date: "By date",
+			},
+			filters: {
+				title: "Filters",
+				"all-authors": "all authors",
+				date: {
+					title: "Date range",
+					placeholder: "dd.mm.yy",
+					presets: {
+						today: "Today",
+						"7-days": "7 days",
+						"30-days": "30 days",
+						"all-time": "All time",
+					},
+				},
+				authors: { title: "Author", placeholder: "Search author..." },
+			},
+		},
 		float: {
 			name: "Align",
 			left: "Align to left",
@@ -1646,14 +1813,12 @@ title: Unable to display the article
 		highlight: {
 			name: "Highlight background",
 			colors: {
-				default: "No highlight",
-				"lemon-yellow": "Lemon yellow",
-				"mint-green": "Mint green",
-				lavender: "Lavender",
-				"ice-blue": "Ice blue",
-				peach: "Peach",
-				"light-pink": "Light pink",
-				"grayish-blue": "Grayish blue",
+				yellow: "Yellow",
+				green: "Green",
+				purple: "Purple",
+				blue: "Blue",
+				orange: "Orange",
+				red: "Red",
 			},
 		},
 		templates: {
@@ -1687,7 +1852,10 @@ title: Unable to display the article
 				center: "Align to center",
 				right: "Align to right",
 			},
-			"join-cells": "Join cells",
+			"join-cells": {
+				action: "Join cells",
+				sorted: "Merging cells is not available while sorting",
+			},
 			"split-cells": "Split cells",
 			aggregation: {
 				name: "Aggregation",
@@ -1703,12 +1871,19 @@ title: Unable to display the article
 					},
 				},
 			},
+			sort: {
+				asc: "Ascending",
+				desc: "Descending",
+				"not-available": "Sorting is not available when merged cells are present",
+			},
+			save: "Save selected filters and sorting",
 		},
 
 		tabs: {
 			name: "Tab",
 			add: "Add new tab",
 			delete: "Delete tab",
+			"empty-placeholder": "Tab content",
 			"delete-last": "You are deleting the last tab. Delete the entire element?",
 		},
 
@@ -1757,7 +1932,7 @@ title: Unable to display the article
 		diagram: "diagram",
 		picture: "picture",
 		tabledb: "database table",
-		snippet: "snippet",
+		fragment: "fragment",
 		video: "video",
 		error: {
 			"export-type-error": "Error, no such export type: ",
@@ -1785,14 +1960,13 @@ title: Unable to display the article
 	enterprise: {
 		"user-not-found":
 			"This email isn't set up for Gramax Enterprise Server. You can continue using the full features of the free version or contact your admin for further assistance.",
-		"workspace-exit-warning":
-			"Workspace will be closed for the current session.<br>Catalogs will be saved and will be available again after login",
-		"workspace-exit": "Sign out of workspace",
+		"workspace-exit-warning-1": "Space will be closed for the current session.",
+		"workspace-exit-warning-2": "Catalogs will be saved and will be available again after login.",
+		"workspace-exit": "Sign out of space",
 		"check-if-user-editor-warning": "Make sure you have been issued an editor license.",
 		"access-restricted": "Access restricted",
 		"config-error": "Configuration issues. Contact your administrator.",
-		"workspace-exists":
-			"Workspace with this name already exists. You can go to this workspace or set a different name",
+		"workspace-exists": "Space with this name already exists. You can go to this space or set a different name",
 		"workspace-exists-title": "Already exists",
 		"check-article": "Checking article",
 		"ges-settings": "GES login settings",
@@ -1809,8 +1983,8 @@ title: Unable to display the article
 			"failed-to-add-message": "Contact your administrator to add reviewers manually.",
 		},
 		"edit-workspace": {
-			"cant-edit": "Only the owner of the enterprise workspace can edit it",
-			"error-get-edit-info": "Failed to get information about the enterprise workspace",
+			"cant-edit": "Only the owner of the enterprise space can edit it",
+			"error-get-edit-info": "Failed to get information about the enterprise space",
 		},
 		logout: {
 			error: "Could not logout",
@@ -1829,7 +2003,7 @@ title: Unable to display the article
 				plugins: "Modules",
 				pluginDetail: "Module Details",
 				check: "Style guide",
-				workspace: "Workspace",
+				workspace: "Space",
 				groups: "User groups",
 				editors: "Editors",
 				resources: "Repositories",
@@ -1847,11 +2021,12 @@ title: Unable to display the article
 				users: "Users",
 				"add-select": "Select users to add",
 				add: "Enter the user's email address",
+				"add-title": "Add user",
 			},
 			roles: {
 				role: "Role",
 				select: "Select role",
-				workspaceOwner: "Workspace owner",
+				workspaceOwner: "Space owner",
 				catalogOwner: "Catalog owner",
 				editor: "Editor",
 				reviewer: "Reviewer",
@@ -1949,12 +2124,12 @@ title: Unable to display the article
 				"select-repository-placeholder": "Select repository",
 				"search-repository-placeholder": "Search repository...",
 				"repository-not-found": "Repository not found",
-				"main-branch": "Main branch",
-				"main-branch-description":
-					"Publication in the main branch in the Gramax interface is prohibited. Changes can only be made through merging or a merge request.",
-				"select-main-branch-placeholder": "Select main branch",
-				"search-main-branch-placeholder": "Search branch...",
-				"main-branch-not-found": "Branches not found",
+				"protected-branch": "Protected branch",
+				"protected-branch-description":
+					"Publication in the protected branch in the Gramax interface is prohibited. Changes can only be made through merging or a merge request.",
+				"select-protected-branch-placeholder": "Select protected branch",
+				"search-protected-branch-placeholder": "Search branch...",
+				"protected-branch-not-found": "Branches not found",
 				"add-branches": "Add branches",
 				"user-branches-description": "User {user} - repository {repository}",
 				access: "Access",
@@ -1973,6 +2148,7 @@ title: Unable to display the article
 				},
 				branches: {
 					branches: "Branches",
+					all: "All",
 					select: "Select branches",
 					placeholder: "Search branches",
 					searchPlaceholder: "Enter branch name",
@@ -2046,8 +2222,9 @@ title: Unable to display the article
 				},
 			},
 			workspace: {
-				"workspace-name": "Workspace name",
-				"workspace-code": "Workspace code",
+				"workspace-name": "Space name",
+				"workspace-code": "Space code",
+				"main-info": "Main information",
 				"source-url": "Source URL (GitLab)",
 				"source-type": "Source type",
 				templates: {
@@ -2056,7 +2233,7 @@ title: Unable to display the article
 						"Upload templates in supported formats here. When exporting an article from Gramax, you can choose one of them to automatically format the document in your corporate style.",
 					word: {
 						title: "Word templates",
-						description: "Supported formats: .doc, .docx, .docm, .dot, .dotx, .dotm.",
+						description: "Supported formats: .docx, .docm, .dotx, .dotm.",
 					},
 					pdf: {
 						title: "PDF templates",
@@ -2064,22 +2241,124 @@ title: Unable to display the article
 					},
 				},
 				errors: {
-					update: "Failed to update workspace data",
+					update: "Failed to update space data",
 				},
 			},
 			check: {
 				switch: {
-					on: "The check module is enabled",
-					off: "The check module is disabled",
+					on: "Enabled",
+					off: "Disabled",
 				},
 				"service-unavailable": "The style guide service is unavailable",
 				rule: "Rule",
 				"import-rules": "Import rules",
+				"export-rules": "Export rules",
+				"system-prompt": "System prompt",
+				"system-prompt-close": "Close",
 				"no-rules": "No rules",
 				"rule-types-description": "Text types to which the rule applies:",
 				"no-rules-description":
 					"You have no rules configured yet. Import a rules file or create them manually to start working with spell and grammar checking.",
+				"run-all-tests": "Run all tests",
+				"stop-all-tests": "Stop tests",
+				"rules-correct": "Rules tested",
+				"rules-llm-title": "LLM-rules",
+				"rules-lgt-title": "LanguageTool-rules",
+				"rules-title-badge": "Rules tested",
+				"rules-search-placeholder": "Search rules by name",
+				"rule-switch": {
+					on: "Enabled",
+					off: "Disabled",
+				},
+				"rules-types": {
+					plainText: "Only for a plain text",
+					heading: "Only for headings",
+				},
+				"rule-add": "Add rule",
+				"rule-delete": "Delete rule",
+				"rule-delete-confirm": "Are you sure, that you want to delete this rule?",
+				"rule-title": "Rule setttings",
+				"rule-name-placeholder": "Rule name",
+				"rule-new-name": "New rule",
+				"rule-prompt": "Rule prompts",
+				"rule-types": "Rule types",
+				"rule-llm-prompt-placeholder": "LLM prompt description...",
+				"rule-types-placeholder": "Chose types for a rule...",
+				"tests-correct": "Tests passed",
+				"tests-title": "Test Section",
+				"tests-correct-section-title": "Examples with mistakes",
+				"tests-incorrect-section-title": "Examples without mistakes",
+				"test-add": "Add test",
+				"test-delete": "Delete test",
+				"test-delete-confirm": "Are you sure, that you want to delete this test?",
+				"test-run": "Run test",
+				"test-placeholder": "Example's text...",
+				"test-popup-title": "Last test",
+				"test-popup-done": "Done",
+				"test-popup-response": "Model response",
+				"test-rerun": "Run again",
+				"tests-column-title": "Tests",
+				"service-connection-error":
+					"There was a problem connecting to the service, please contact technical support",
+				retry: "Try again",
+				"save-error": "Error saving settings",
+				"rule-name-duplicate": "A rule with this name already exists",
+				"rule-name-label": "Name",
+				"rule-name-xml-hint": 'Can only be edited in the "Description" field in the "name" attribute',
+				"rule-description-label": "Description",
+				"rule-type-label": "Type",
 			},
+		},
+	},
+	"enterprise-cloud": {
+		buttons: {
+			publish: "Publish",
+		},
+		"org-settings": {
+			title: "Organization settings",
+			description: "Set the organization parameters",
+			"cant-edit": "Only the organization owner can edit the organization settings",
+			users: {
+				email: "Email",
+				placeholder: "Find users",
+				invite: "Invite",
+				"email-placeholder": "john.doe@gmail.com",
+				"invite-title": "Invite user",
+				"status-header": "Status",
+				status: {
+					user: "Active",
+					invite: "Invited",
+				},
+				"invite-form": {
+					title: "Invite user",
+					description: "Enter the email of the user you want to invite",
+				},
+			},
+			pages: {
+				organization: "Organization",
+				resources: "Resources",
+				users: "Users",
+			},
+			organization: {
+				save: "Save",
+				name: {
+					label: "Organization name",
+					placeholder: "Enter organization name",
+				},
+			},
+		},
+		organization: {
+			loading: "Loading organizations...",
+			"error-loading": "Failed to load organizations",
+		},
+		"invite-mismatch": {
+			title: "Email Address Mismatch",
+			message:
+				"The organization invitation was sent to a different email address. Please make sure you're using the correct account.",
+		},
+		"sign-out": {
+			title: "Sign out",
+			description: "Are you sure you want to sign out?",
 		},
 	},
 	network: {
@@ -2110,7 +2389,7 @@ title: Unable to display the article
 		"mailing-list-users": "Users",
 		"mailing-list-select-groups": "Select groups...",
 		"mailing-list-search-users": "Search users...",
-		settings: "Notification settings",
+		settings: "Edit notifications",
 		"settings-description": "Select when you want to receive notifications for this article.",
 		"on-create": "Notify on creation",
 		"on-change": "Notify on change",
@@ -2224,6 +2503,7 @@ title: Unable to display the article
 	group2: "groups",
 	group: "Group",
 	healthcheck: "Error check",
+	"healthcheck-description": "Check for errors in the catalog",
 	"check-errors": "Check for errors",
 	hide: "Hide",
 	icon: "Icon",
@@ -2263,7 +2543,8 @@ title: Unable to display the article
 	select: "Select",
 	send: "Send",
 	signature: "Caption",
-	snippet: "Snippet",
+	fragment: "Fragment",
+	"fragment-link": "Fragment link",
 	source2: "Source",
 	source: "Source",
 	space: "Section",
@@ -2290,7 +2571,7 @@ title: Unable to display the article
 	"add-account": "Add account",
 	"add-annotation": "Add annotation",
 	"add-new-branch": "Add new branch",
-	"add-new-snippet": "Add new snippet",
+	"add-new-fragment": "Add new fragment",
 	"add-new-source": "Add new source",
 	"add-new-storage": "Add new storage",
 	"add-square": "Add square",
@@ -2328,7 +2609,7 @@ title: Unable to display the article
 	"cant-be-same-name": "The name must be unique",
 	"cant-be-same-path": "The path must be unique",
 	"cant-edit-this-line": "Cannot edit this line",
-	"cant-get-snippet-data": "Check if the path is correct and if the snippet file is in the repository",
+	"cant-get-fragment-data": "Check if the path is correct and if the fragment file is in the repository",
 	"catalog-icons-title": "Catalog icons",
 	"change-and-sync": "Change and synchronize",
 	"check-diagrams": "Diagrams",
@@ -2377,19 +2658,19 @@ title: Unable to display the article
 	"delete-as-resolved": "Delete as resolved",
 	"delete-branch": "Delete branch",
 	"delete-file": "Delete file",
-	"delete-snippet-confirm": "Are you sure you want to delete the snippet?",
-	"delete-snippet-confirm-not-use": "This snippet is not used in any articles",
-	"delete-snippet-desc": "You are about to delete a snippet that is currently used in the following articles:",
-	"delete-snippet-warn":
-		"After deleting the snippet, articles where it was used will display errors instead of the removed snippet",
-	"deleting-snippet-in-use": "Deleting snippet in use",
+	"delete-fragment-confirm": "Are you sure you want to delete the fragment?",
+	"delete-fragment-confirm-not-use": "This fragment is not used in any articles",
+	"delete-fragment-desc": "You are about to delete a fragment that is currently used in the following articles:",
+	"delete-fragment-warn":
+		"After deleting the fragment, articles where it was used will display errors instead of the removed fragment",
+	"deleting-fragment-in-use": "Deleting fragment in use",
 	"desktop-settings.target-directory-description": "Folder on the local disk where catalogs for editing are located",
 	"display-on-homepage": "Display on homepage",
 	"dont-save": "Don't save",
 	"edit-on": "Edit in",
 	"empty-field": "Empty field",
 	"enter-branch-name": "Enter branch name",
-	"enter-snippet-text": "Enter snippet text",
+	"enter-fragment-text": "Enter fragment text",
 	"error-expand": "Show details",
 	"error-mail": "The email provided is incorrect.",
 	"error-sing-in": "Sign in error",
@@ -2450,9 +2731,10 @@ title: Unable to display the article
 	"Img-h": "Horizontal group of images",
 	Formula: "Formula",
 	Icon: "Icon",
-	Snippet: "Snippet",
+	Fragment: "Fragment",
 	View: "View",
 	"other-version": "Other version",
+	"publish-catalog": "Publish catalog",
 	"publish-changes": "Publish changes",
 	"quote-text": "Quote",
 	"remove-link": "Remove link",
@@ -2473,10 +2755,13 @@ title: Unable to display the article
 	"show-diffs": "Changes",
 	"sing-in": "Sign in",
 	"sing-out": "Sign out",
-	"snippet-already-exists": "A snippet with this id already exists",
-	"snippet-render-error": "Failed to render snippet",
+	"fragment-already-exists": "A fragment with this id already exists",
+	"fragment-render-error": "Failed to render fragment",
 	"so-far-its-empty": "It's empty so far",
 	"storage-not-connected": "Storage not connected",
+	"sync-offline": "Offline. Click to reconnect.",
+	"sync-offline-toast-title": "No access to the server",
+	"sync-offline-toast-desc": "Switching to offline mode.",
 	"submit-login-link": "Send login link",
 	"switch-branch": "Switch branch",
 	"sync-catalog": "Synchronize changes?",
@@ -2514,6 +2799,7 @@ title: Unable to display the article
 	"yesterday-at": "Yesterday at ",
 	"your-branch": "Your branch",
 	"edit-html": "Edit HTML",
+	"edit-html-description": "Edit the HTML content",
 	"do-not-show-again": "Do not show again",
 	properties: {
 		name: "Properties",
@@ -2582,8 +2868,7 @@ title: Unable to display the article
 				description: "Property will be visible and searchable on a documentation portal",
 			},
 		},
-		selected: "Selected",
-		"not-selected": "Not selected",
+		selected: "(selected)",
 		article: "Article",
 		archive: "Archive",
 		"update-affected-articles": "articles will be affected",
@@ -2602,12 +2887,12 @@ title: Unable to display the article
 	"no-date": "No date",
 	inbox: {
 		placeholders: {
-			title: "Note title",
-			content: "Note content",
+			title: "Item title",
+			content: "Item content",
 		},
-		notes: "Notes",
-		"new-note": "New note",
-		"no-catalog-notes": "No notes in the current catalog",
+		name: "Inbox",
+		"new-note": "New item",
+		"no-catalog-notes": "No items in the current catalog",
 		"search-placeholder": "Search author...",
 		"no-user-with-this-name": "Author not found",
 	},
@@ -2637,10 +2922,10 @@ title: Unable to display the article
 	yes: "Yes",
 	no: "No",
 	placeholder: "Placeholder",
-	snippets: "Snippets",
-	"new-snippet": "New snippet",
-	"no-snippets": "No snippets in the current catalog",
-	"snippet-no-usages": "Snippet is not used in any articles",
+	fragments: "Fragments",
+	"new-fragment": "New fragment",
+	"no-fragments": "No fragments in the current catalog",
+	"fragment-no-usages": "Fragment is not used in any articles",
 	ai: {
 		"search-prompts": "Search prompts",
 		"no-prompts": "No prompts found",
@@ -2671,7 +2956,7 @@ title: Unable to display the article
 		},
 		responseError: {
 			title: "AI server response error",
-			body: `<p>Try again later or contact your administrator.<br/>If the error blocks work — write to us in <a href="https://t.me/gramax_assist_bot">Telegram</a></p>`,
+			body: `<p>Try again later or contact your administrator.<br/>If the error blocks work — create an issue in <a href="https://github.com/Gram-ax/gramax/issues">GitHub</a>.</p>`,
 		},
 		transcribtion: "Transcribtion...",
 		placeholder: {
@@ -2702,7 +2987,7 @@ title: Unable to display the article
 	"inline-to-block-image": "Inline to block image",
 	"block-to-inline-image": "Block to inline image",
 	"save-file": "Save file",
-	"confirm-inbox-note-delete": "Are you sure you want to delete this note?",
+	"confirm-inbox-note-delete": "Are you sure you want to delete this item?",
 	"confirm-prompts-delete": "Are you sure you want to delete this prompt?",
 	"confirm-templates-delete": "Are you sure you want to delete this template?",
 	download: "Download",
@@ -2778,8 +3063,12 @@ title: Unable to display the article
 			body: "You have unsaved changes. Please select an action:",
 		},
 		"unsaved-comment": {
-			title: "Unsaved comment",
-			body: "Are you sure you want to close the comment window? Unsaved changes will be lost.",
+			title: "Close without saving?",
+			body: "You have made changes, but you have not published them. If you close the window, the changes will be lost.",
+			buttons: {
+				primary: "Continue editing",
+				secondary: "Do not save",
+			},
 		},
 	},
 	"save-and-close": "Save and close",
@@ -2788,6 +3077,15 @@ title: Unable to display the article
 	"already-added": "Already added",
 	"available-changes-sync": "Available changes for synchronization",
 	comments: {
+		answers: {
+			one: "answer",
+			few: "answers",
+			many: "answers",
+		},
+		move: {
+			up: "Previous comment",
+			down: "Next comment",
+		},
 		diff: {
 			single: {
 				added: "Added comment",
@@ -2841,7 +3139,7 @@ title: Unable to display the article
 	},
 	or: "or",
 	errors: {
-		"workspace-path-not-found": "Workspace with path {{path}} not found",
+		"workspace-path-not-found": "Space with path {{path}} not found",
 	},
 	diagrams: "Diagrams",
 	plugins: {
@@ -2917,7 +3215,7 @@ title: Unable to display the article
 				apply: "Apply",
 			},
 			users: {
-				"users-filter": "Users filter",
+				"users-filter": "Users",
 				"all-users": "All Users",
 				"users-selected": "users selected",
 				"search-users": "Search users...",
@@ -2928,9 +3226,17 @@ title: Unable to display the article
 				loading: "Loading...",
 			},
 			anonymous: {
+				label: "User type",
 				all: "All users",
 				registered: "Registered only",
 				anonymous: "Anonymous only",
+			},
+			catalog: {
+				placeholder: "Catalogs",
+				all: "All catalogs",
+				search: "Search catalogs...",
+				"clear-selection": "Clear selection",
+				"no-results": "No catalogs found",
 			},
 		},
 		chart: {
@@ -2987,10 +3293,95 @@ title: Unable to display the article
 				"no-click-rate": "The percentage of searches where users did not click on any search result",
 			},
 		},
+		"no-data": "No data available",
 		search: {
 			"statistics-title": "Search Queries Statistics",
 			"query-details-title": "Query Details",
 			"article-ratings-title": "Article Ratings by Search",
+		},
+	},
+	"form-errors": {
+		minLength: "Minimum length {min} characters",
+		maxLength: "Maximum length {max} characters",
+		required: "Required field",
+		pattern: "Invalid format",
+		validate: "Invalid value",
+	},
+	rename: "Rename",
+	"storage-stats": {
+		git: "Git",
+		lfs: "LFS",
+		"pack-files": "Pack Files",
+		"loose-objects": "Loose Git Objects",
+		"lfs-objects": "Used LFS Objects",
+		unreachable: "Unreachable Git Objects",
+		prunable: "Prunable LFS Objects",
+		cleanup: "Cleanup",
+		error: "Failed to load storage stats",
+		retry: "Retry",
+		confirm: {
+			title: "Confirm cleanup",
+			git: "This will remove unreachable Git objects from the repository. This action cannot be undone",
+			lfs: "This will delete LFS files that are no longer referenced. This action cannot be undone",
+		},
+		tooltips: {
+			lfs: "Git LFS binary files used by the repository",
+			"pack-files": "Compressed Git objects combined into pack files. Required for Git and can not be removed",
+			"loose-objects": "Reachable Git objects not yet packed",
+			unreachable: "Loose objects that are no longer referenced by any branch, tag or commit. Safe to remove",
+			prunable: "LFS files that are no longer referenced. Safe to prune to free up disk space",
+		},
+	},
+	files: {
+		one: "file",
+		few: "files",
+		many: "files",
+	},
+	agent: {
+		"message-too-long": "Message is too long",
+		thinking: "Thinking...",
+		input: {
+			placeholder: "Enter a question or command...",
+		},
+		history: {
+			empty: "No chat history",
+			"new-chat": "New chat",
+		},
+		settings: {
+			title: "Agent settings",
+			"key-label": "Key",
+			"key-placeholder": "Enter key",
+			"key-required": "Key is required",
+			save: "Save",
+		},
+		"chat-error": {
+			"session-not-found": "Chat session has been refreshed. Please try sending your message again.",
+			"session-cancelled": "Session was cancelled. Creating a new one…",
+			"empty-message": "Please enter a message.",
+			"agent-failed": "Failed to get assistant response. Please try again.",
+			"load-history-error": "Failed to load chat history.",
+			"no-active-session": "No active chat session.",
+			"send-message-error": "Failed to send message. Please try again.",
+			"get-response-error": "Failed to get response. Please try again.",
+			"chat-connection-failed": "Failed to connect to chat. Please check your connection and try again.",
+			"delete-session-error": "Failed to delete session. Please try again.",
+		},
+		"panel-name": "AI-assistant",
+		tools: {
+			tools: "Tools",
+			parameters: "Parameters",
+			result: "Result",
+			list_catalogs: "Retrieving catalog list",
+			get_navigation: "Retrieving catalog navigation tree",
+			search_catalogs: "Searching articles",
+			read_catalog_item: "Reading article",
+			get_catalog_item_headings: "Retrieving article headings",
+			create_catalog_item: "Creating article",
+			update_catalog_item: "Updating article",
+			delete_catalog_item: "Deleting article",
+			move_catalog_item: "Moving article",
+			git_inspect: "Reading git changes",
+			git_discard: "Discarding git changes",
 		},
 	},
 };

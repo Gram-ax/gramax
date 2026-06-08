@@ -1,6 +1,7 @@
 import PageDataContext from "@core-ui/ContextServices/PageDataContext";
 import Workspace from "@core-ui/ContextServices/Workspace";
 import { useApi } from "@core-ui/hooks/useApi";
+import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
 import type { AnswerType, AnswerValueType, TypedAnswer } from "@ext/markdown/elements/answer/types";
 import {
 	type QuestionStorage,
@@ -51,7 +52,7 @@ export interface QuestionsStore {
 export const createQuestionsStore = (questions: Record<string, StoredQuestion>, storage: QuestionStorage) => {
 	return create<QuestionsStore>((set, get) => ({
 		questions: Object.fromEntries(
-			Object.entries(questions).map(([questionId, question]) => [
+			Object.entries(questions ?? {}).map(([questionId, question]) => [
 				questionId,
 				{
 					...question,
@@ -208,6 +209,7 @@ export const useCheckAnswers = () => {
 export const useIsAnsweredToTest = (deps: DependencyList) => {
 	const workspace = Workspace.current();
 	const user = PageDataContext.value?.userInfo;
+	const catalogExist = useCatalogPropsStore((state) => !!state.data?.name);
 
 	const { setState, restoreStoredAnswers } = useQuestionsStore(
 		(store) => ({
@@ -235,9 +237,9 @@ export const useIsAnsweredToTest = (deps: DependencyList) => {
 	});
 
 	useLayoutEffect(() => {
-		if (!workspace?.enterprise?.modules?.quiz || !user?.mail) return;
+		if (!workspace?.enterprise?.modules?.quiz || !user?.mail || !catalogExist) return;
 		void isAnswered();
-	}, [workspace?.enterprise?.modules?.quiz, isAnswered, user, ...deps]);
+	}, [workspace?.enterprise?.modules?.quiz, isAnswered, user, catalogExist, ...deps]);
 
 	return isAnswered;
 };

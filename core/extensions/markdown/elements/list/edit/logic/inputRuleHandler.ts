@@ -4,10 +4,10 @@ const inputRuleHandler = (inputRule: InputRule) => {
 	return new InputRule({
 		find: inputRule.find,
 		handler: (props) => {
-			const $from = props.state.selection.$from;
+			const From = props.state.selection.$from;
 			if (
-				$from.node(1)?.type.name === "heading" ||
-				($from.node(-1)?.type.name === "listItem" && $from.index(-1) === 0)
+				From.node(1)?.type.name === "heading" ||
+				(From.node(-1)?.type.name === "listItem" && From.index(-1) === 0)
 			)
 				return null;
 

@@ -111,8 +111,8 @@ const set: Command<
 		return { path: outputPath.value };
 	},
 
-	params(ctx, q, body: Buffer) {
-		const data = body;
+	params(ctx, q, body: { data: Buffer }) {
+		const data = body.data;
 		const src = new Path(q.src);
 		const catalogName = q.catalogName;
 		const articlePath = new Path(q.articlePath);

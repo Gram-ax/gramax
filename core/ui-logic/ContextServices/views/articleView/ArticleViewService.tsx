@@ -1,5 +1,6 @@
+/** biome-ignore-all lint/complexity/noStaticOnlyClass: expected */
 import ArticlePage from "@components/ArticlePage/ArticlePage";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import IsFirstLoadService from "@core-ui/ContextServices/IsFirstLoadService";
 import ArticleLoadingView from "@core-ui/ContextServices/views/articleView/ArticleLoadingView";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
@@ -13,10 +14,10 @@ const ArticleViewBottomContext = createContext<ArticleViewComponent>(undefined);
 const UseArticleDefaultStylesContext = createContext<boolean>(undefined);
 const AdditionalStylesContext = createContext<string>(undefined);
 
-let _setArticleViewComponent: React.Dispatch<React.SetStateAction<ArticleViewComponent>>;
-let _setArticleViewBottomComponent: React.Dispatch<React.SetStateAction<ArticleViewComponent>>;
-let _setUseArticleDefaultStyles: React.Dispatch<React.SetStateAction<boolean>>;
-let _setAdditionalStyles: React.Dispatch<React.SetStateAction<string>>;
+let SetArticleViewComponent: React.Dispatch<React.SetStateAction<ArticleViewComponent>>;
+let SetArticleViewBottomComponent: React.Dispatch<React.SetStateAction<ArticleViewComponent>>;
+let SetUseArticleDefaultStyles: React.Dispatch<React.SetStateAction<boolean>>;
+let SetAdditionalStyles: React.Dispatch<React.SetStateAction<string>>;
 
 abstract class ArticleViewService {
 	private static _isDefaultView: boolean = false;
@@ -40,10 +41,10 @@ abstract class ArticleViewService {
 		const [useArticleDefaultStyles, setUseArticleDefaultStyles] = useState(true);
 		const [additionalStyles, setAdditionalStyles] = useState<string>("");
 
-		_setArticleViewComponent = setArticleViewComponent;
-		_setArticleViewBottomComponent = setArticleViewBottomComponent;
-		_setUseArticleDefaultStyles = setUseArticleDefaultStyles;
-		_setAdditionalStyles = setAdditionalStyles;
+		SetArticleViewComponent = setArticleViewComponent;
+		SetArticleViewBottomComponent = setArticleViewBottomComponent;
+		SetUseArticleDefaultStyles = setUseArticleDefaultStyles;
+		SetAdditionalStyles = setAdditionalStyles;
 
 		const restoreStateOnReopenCatalog = () => {
 			if (!ArticleViewService._hasInit) {
@@ -89,7 +90,7 @@ abstract class ArticleViewService {
 	}
 
 	static set useArticleDefaultStyles(value: boolean) {
-		_setUseArticleDefaultStyles(value);
+		SetUseArticleDefaultStyles(value);
 	}
 
 	static get additionalStyles(): string {
@@ -99,17 +100,17 @@ abstract class ArticleViewService {
 	static setView(component: ArticleViewComponent, useArticleDefaultStyles = true, additionalStyles = "") {
 		ArticleViewService._isDefaultView = false;
 		ArticleViewService._currentComponent = component;
-		_setUseArticleDefaultStyles(useArticleDefaultStyles);
-		_setAdditionalStyles(additionalStyles);
-		_setArticleViewComponent(() => component);
+		SetUseArticleDefaultStyles(useArticleDefaultStyles);
+		SetAdditionalStyles(additionalStyles);
+		SetArticleViewComponent(() => component);
 	}
 
 	static setBottomView(component: ArticleViewComponent) {
-		_setArticleViewBottomComponent(() => component);
+		SetArticleViewBottomComponent(() => component);
 	}
 
 	static setDefaultBottomView() {
-		_setArticleViewBottomComponent(null);
+		SetArticleViewBottomComponent(null);
 	}
 
 	static setDefaultView() {

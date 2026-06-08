@@ -1,8 +1,12 @@
+import { createEventEmitter } from "@core/Event/EventEmitter";
 import type { Content } from "@core/FileStructue/Article/Article";
+import type NodeTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/NodeTransformerFunc";
+import type TokenTransformerFunc from "@ext/markdown/core/edit/logic/Prosemirror/TokenTransformerFunc";
 import editTreeToRenderTree from "@ext/markdown/core/Parser/EditTreeToRenderTree";
 import ParseError from "@ext/markdown/core/Parser/Error/ParseError";
 import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import { createPrivateParserContext } from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
+import type ParserEvents from "@ext/markdown/core/Parser/ParserEvents";
 import quizTokensTransformer from "@ext/markdown/elements/answer/edit/logic/quizTokensTransformer";
 import inlineNodeTransformers from "@ext/markdown/elements/comment/edit/logic/inlineNodeTransformers";
 import commentTokenTransformer from "@ext/markdown/elements/comment/logic/commentTokenTransformer";
@@ -21,8 +25,8 @@ import taskListNodeTransformer from "@ext/markdown/elements/list/edit/models/tas
 import blockMdNodeTransformer from "@ext/markdown/elements/md/logic/blockMdNodeTransformer";
 import noteNodeTransformer from "@ext/markdown/elements/note/logic/noteNodeTransformer";
 import paragraphNodeTransformer from "@ext/markdown/elements/paragraph/logic/paragraphNodeTransformer";
+import tableNodeTransform from "@ext/markdown/elements/table/logic/tableNodeTransform";
 import tableTokenTransformer from "@ext/markdown/elements/table/logic/tableTokenTransformer";
-import getTabsNodeTransformer from "@ext/markdown/elements/tabs/edit/logic/getTabsNodeTransformer";
 import unsupportedNodeTransformer from "@ext/markdown/elements/unsupported/logic/unsupportedNodeTransformer";
 import getTocItems, { getLevelTocItemsByRenderableTree } from "@ext/navigation/article/logic/createTocItems";
 import type { JSONContent } from "@tiptap/core";
@@ -69,22 +73,39 @@ class GetHtmlValue {
 export type EditRenderableTreeNode = RenderableTreeNode | Node;
 
 export default class MarkdownParser {
+	private _events = createEventEmitter<ParserEvents>();
+
+	get events() {
+		return this._events;
+	}
+
 	public async parse(content: string, context?: ParserContext, requestUrl?: string): Promise<Content> {
 		try {
 			const privateContext: PrivateParserContext = context ? createPrivateParserContext(context) : undefined;
 
+			await this._events.emit("before-parse", { mutable: { content }, context: privateContext, requestUrl });
+
 			const schemes = this._getSchemes(privateContext);
-			const tokens = this._getTokens(content, schemes);
+			const tokens = await this._getTokens(content, schemes, privateContext);
 			const editTree = await this._editParser(tokens, schemes, privateContext);
 			const renderTree = editTreeToRenderTree(editTree, getSchema());
 			const tocItems = getTocItems(getLevelTocItemsByRenderableTree((renderTree as Tag)?.children ?? []));
-			return {
+
+			const newContent = {
 				editTree,
 				renderTree,
 				getHtmlValue: new GetHtmlValue(async () => await this.parseToHtml(content, privateContext, requestUrl)),
 				tocItems,
 				parsedContext: privateContext,
 			};
+
+			await this._events.emit("after-parse", {
+				mutable: { content: newContent },
+				context: privateContext,
+				requestUrl,
+			});
+
+			return newContent;
 		} catch (e) {
 			throw new ParseError(e);
 		}
@@ -92,7 +113,7 @@ export default class MarkdownParser {
 
 	public async editParse(content: string, context?: PrivateParserContext): Promise<JSONContent> {
 		const schemes = this._getSchemes(context);
-		const tokens = this._getTokens(content, schemes);
+		const tokens = await this._getTokens(content, schemes, context);
 		return this._editParser(tokens, schemes, context);
 	}
 
@@ -113,18 +134,9 @@ export default class MarkdownParser {
 		parserOptions?: ParserOptions,
 	): Promise<RenderableTreeNodes> {
 		const schemes = this._getSchemes(context);
-		const tokens = this._getTokens(content, schemes);
+		const tokens = await this._getTokens(content, schemes, context);
 		const renderTreeNode = await this._getRenderableTreeNode(tokens, schemes, context);
 		return parserOptions ? this._oneElementTransformer(renderTreeNode, parserOptions) : renderTreeNode;
-	}
-
-	public renderMarkdownIt(content: string) {
-		return this.getRenderMarkdownIt(content);
-	}
-
-	public getTokens(content: string, context: PrivateParserContext): Token[] {
-		const schemes = this._getSchemes(context);
-		return this._getTokens(content, schemes);
 	}
 
 	public async getRenderMarkdownIt(content: string): Promise<string> {
@@ -157,11 +169,11 @@ export default class MarkdownParser {
 		return { tags, nodes };
 	}
 
-	private _getTokens(content: string, schemes?: Schemes) {
+	private async _getTokens(content: string, schemes?: Schemes, context?: PrivateParserContext): Promise<Token[]> {
 		const mdParser = new MdParser({ tags: schemes.tags });
 		const parseDoc = mdParser.preParse(content);
 		const tokens = this._getTokenizer(schemes.tags).tokenize(parseDoc);
-		return preTransformTokens(tokens);
+		return await preTransformTokens({ tokens, context, parser: this });
 	}
 
 	private _getTokenizer(tags?: Schemes["tags"]) {
@@ -182,33 +194,42 @@ export default class MarkdownParser {
 	private async _editParser(tokens: Token[], schemes: Schemes, context?: PrivateParserContext): Promise<JSONContent> {
 		const prosemirrorParser = new ProsemirrorMarkdownParser(getSchema(), this._getTokenizer(), getTokens(context));
 
+		const nodeTransformers: NodeTransformerFunc[] = [
+			fileMarkTransformer,
+			htmlTagNodeTransformer,
+			paragraphNodeTransformer,
+			blockMdNodeTransformer,
+			taskListNodeTransformer,
+			inlineCutNodeTransformer,
+			diagramsNodeTransformer,
+			noteNodeTransformer,
+			unsupportedNodeTransformer,
+			inlineNodeTransformers,
+			tableNodeTransform,
+		];
+
+		const tokenTransformers: TokenTransformerFunc[] = [
+			inlineImageTokenTransformer,
+			inlinePropertyTokenTransformer,
+			htmlTokenTransformer,
+			tableTokenTransformer,
+			cutTokenTransformer,
+			imageTokenTransformer,
+			commentTokenTransformer,
+			iconTokenTransformer,
+			htmlTagTokenTransformer,
+			quizTokensTransformer,
+		];
+
+		await this._events.emit("get-edit-transformers", {
+			mutable: { nodeTransformers, tokenTransformers },
+			context,
+		});
+
 		const transformer = new ProsemirrorTransformer(
 			{ ...schemes.tags, ...schemes.nodes },
-			[
-				fileMarkTransformer,
-				htmlTagNodeTransformer,
-				paragraphNodeTransformer,
-				blockMdNodeTransformer,
-				taskListNodeTransformer,
-				inlineCutNodeTransformer,
-				diagramsNodeTransformer,
-				noteNodeTransformer,
-				unsupportedNodeTransformer,
-				getTabsNodeTransformer(context),
-				inlineNodeTransformers,
-			],
-			[
-				inlineImageTokenTransformer,
-				inlinePropertyTokenTransformer,
-				htmlTokenTransformer,
-				tableTokenTransformer,
-				cutTokenTransformer,
-				imageTokenTransformer,
-				commentTokenTransformer,
-				iconTokenTransformer,
-				htmlTagTokenTransformer,
-				quizTokensTransformer,
-			],
+			nodeTransformers,
+			tokenTransformers,
 			context,
 		);
 

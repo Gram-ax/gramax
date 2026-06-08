@@ -28,13 +28,13 @@ const matomoMetric = ({
 	}
 
 	//@ts-expect-error paq now will be in window
-	const _paq: any[] = (window._paq = window._paq || []);
+	const Paq: any[] = (window._paq = window._paq || []);
 
-	_paq.push(["trackPageView"]);
-	_paq.push(["enableLinkTracking"]);
+	Paq.push(["trackPageView"]);
+	Paq.push(["enableLinkTracking"]);
 
-	_paq.push(["setTrackerUrl", matomoUrlWithSlash + "matomo.php"]);
-	_paq.push(["setSiteId", matomoSiteId]);
+	Paq.push(["setTrackerUrl", matomoUrlWithSlash + "matomo.php"]);
+	Paq.push(["setSiteId", matomoSiteId]);
 
 	const script = document.createElement("script");
 

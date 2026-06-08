@@ -109,10 +109,10 @@ const processGroupForTable = (
 };
 
 const TABLE_LAYOUT = {
-	hLineWidth: (rowIndex, _node) =>
-		rowIndex === 0 || (_node.table.body && rowIndex === _node.table.body.length) ? 0 : 0.1,
-	vLineWidth: (colIndex, _node) =>
-		colIndex === 0 || (_node.table.widths && colIndex === _node.table.widths.length) ? 0 : 0.1,
+	hLineWidth: (rowIndex, Node) =>
+		rowIndex === 0 || (Node.table.body && rowIndex === Node.table.body.length) ? 0 : 0.1,
+	vLineWidth: (colIndex, Node) =>
+		colIndex === 0 || (Node.table.widths && colIndex === Node.table.widths.length) ? 0 : 0.1,
 	hLineColor: () => COLOR_CONFIG.table,
 	vLineColor: () => COLOR_CONFIG.table,
 	paddingLeft: () => 8,

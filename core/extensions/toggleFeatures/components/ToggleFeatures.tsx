@@ -1,7 +1,9 @@
 import IsMacService from "@core-ui/ContextServices/IsMac";
 import isMobileService from "@core-ui/ContextServices/isMobileService";
 import LanguageService from "@core-ui/ContextServices/Language";
+import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
+// biome-ignore lint/style/noRestrictedImports: it's ok
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import PermissionService from "@ext/security/logic/Permission/components/PermissionService";
@@ -122,18 +124,22 @@ const FeatureItem = ({ feature, disabled }: { feature: Feature; disabled: boolea
 
 const ToggleFeatures = () => {
 	const isMobile = isMobileService.value;
+	const isRelease = PageDataContextService.value.conf.isRelease;
 	const initial = useRef<Record<string, boolean>>();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: it's ok
 	const onOpenChange = useCallback(
 		(open: boolean) => {
 			if (open) {
 				initial.current = {};
-				getFeatureList().forEach((feature) => (initial.current[feature.name] = feature.isEnabled));
+				getFeatureList().forEach((feature) => {
+					initial.current[feature.name] = feature.isEnabled;
+				});
 				return;
 			}
 
 			const hasChanges = getFeatureList().some((feature) => initial.current[feature.name] !== feature.isEnabled);
-			if (hasChanges) window.location.reload();
+			if (hasChanges) location.reload();
 		},
 		[initial],
 	);
@@ -160,9 +166,10 @@ const ToggleFeatures = () => {
 					<h4 className="font-medium leading-none">{t("experimental-features.label")}</h4>
 				</div>
 				<Divider />
-				{features.map((feature) => (
-					<FeatureItem disabled={isNext || isStatic} feature={feature} key={feature.name} />
-				))}
+				{features.map((feature) => {
+					if (feature.status === "in-dev" && isRelease) return null;
+					return <FeatureItem disabled={isNext || isStatic} feature={feature} key={feature.name} />;
+				})}
 			</StyledPopoverContent>
 		</Popover>
 	);

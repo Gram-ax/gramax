@@ -15,7 +15,7 @@ import type GetErrorComponent from "@ext/errorHandlers/logic/GetErrorComponent";
 import useRemoteProgress from "@ext/git/actions/Clone/logic/useRemoteProgress";
 import { ErrorMessage, TechnicalDetails } from "@ext/git/actions/RepositoryBroken/TechnicalDetails";
 import t from "@ext/localization/locale/translate";
-import { AlertConfirm } from "@ui-kit/AlertDialog/AlertConfirm";
+import { AlertConfirm } from "@ui-kit/AlertDialog";
 import { Button } from "@ui-kit/Button";
 import { Dialog, DialogBody, DialogContent, DialogTitle, DialogTrigger } from "@ui-kit/Dialog";
 import { type ComponentProps, useCallback, useState } from "react";

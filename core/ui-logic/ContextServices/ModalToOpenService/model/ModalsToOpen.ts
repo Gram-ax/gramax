@@ -4,8 +4,6 @@ enum ModalToOpen {
 	MergeConfirm = "MergeConfirm",
 	MergeResolver = "MergeResolver",
 
-	ShareTicketHandler = "ShareTicketHandler",
-
 	CheckoutHandler = "CheckoutHander",
 	CloneHandler = "CloneHandler",
 	Clone = "Clone",
@@ -13,7 +11,7 @@ enum ModalToOpen {
 
 	ImportModal = "ImportModal",
 
-	SnippetAlreadyUseWarn = "SnippetAlreadyUseWarn",
+	FragmentAlreadyUseWarn = "FragmentAlreadyUseWarn",
 
 	Loading = "Loading",
 
@@ -47,14 +45,12 @@ enum ModalToOpen {
 	ItemPropsEditor = "ItemPropsEditor",
 	MarkdownEditor = "MarkdownEditor",
 	BugsnagModal = "BugsnagModal",
-	History = "History",
 	UnsupportedElements = "UnsupportedElements",
 	Share = "Share",
 	NotificationSettings = "NotificationSettings",
 
 	// Catalog dropdown modals
 	CatalogPropsEditor = "CatalogPropsEditor",
-	GetSharedTicket = "GetSharedTicket",
 	Healthcheck = "Healthcheck",
 
 	ActionConfirm = "ActionConfirm",
@@ -65,9 +61,17 @@ enum ModalToOpen {
 
 	DefaultModal = "DefaultModal",
 	UnsavedChangesModal = "UnsavedChangesModal",
-	UnsavedCommentModal = "UnsavedCommentModal",
 
 	TauriGesSignIn = "TauriGesSignIn",
+
+	GesCloudInitCatalog = "GesCloudInitCatalog",
+	GesCloudSignIn = "GesCloudSignIn",
+	GesCloudInviteUser = "GesCloudInviteUser",
+	GesCloudInviteMismatch = "GesCloudInviteMismatch",
+	GesCloudOrganizationSettings = "GesCloudOrganizationSettings",
+	GesCloudSignOut = "GesCloudSignOut",
+
+	AlertConfirm = "AlertConfirm",
 }
 
 export default ModalToOpen;

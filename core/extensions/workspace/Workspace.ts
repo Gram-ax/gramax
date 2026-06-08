@@ -12,11 +12,9 @@ import type ContextualCatalog from "@core/FileStructue/Catalog/ContextualCatalog
 import FileStructure from "@core/FileStructue/FileStructure";
 import ItemExtensions from "@core/FileStructue/Item/ItemExtensions";
 import type YamlFileConfig from "@core/utils/YamlFileConfig";
-import type { GitVersion } from "@ext/git/core/model/GitVersion";
 import type Repository from "@ext/git/core/Repository/Repository";
 import RepositoryProvider from "@ext/git/core/Repository/RepositoryProvider";
-import { trace } from "@ext/loggers/opentelemetry";
-import type SourceData from "@ext/storage/logic/SourceDataProvider/model/SourceData";
+import { span, trace, traced } from "@ext/loggers/opentelemetry";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type { ItemRefStatus } from "@ext/Watchers/model/ItemStatus";
 import WorkspaceEventHandlers from "@ext/workspace/events/WorkspaceEventHandlers";
@@ -25,7 +23,9 @@ import type { WorkspaceConfig, WorkspacePath } from "@ext/workspace/WorkspaceCon
 
 export type WorkspaceEvents = Event<"add-catalog", { catalog: Catalog }> &
 	Event<"remove-catalog", { name: string }> &
-	Event<"merge", { catalog: Catalog; targetBranch: string; sourceData: SourceData; beforeMergeCommit: GitVersion }> &
+	Event<"merge", EventArgs<CatalogEvents, "merge">> &
+	Event<"sync", EventArgs<CatalogEvents, "sync">> &
+	Event<"repository-set", EventArgs<CatalogEvents, "repository-set">> &
 	Event<"resolve-category", EventArgs<CatalogEvents, "resolve-category">> &
 	Event<"catalog-changed", CatalogFilesUpdated> &
 	Event<"on-catalog-resolve", { mutableCatalog: { catalog: Catalog }; metadata: string }> &
@@ -57,18 +57,22 @@ export class Workspace {
 	) {}
 
 	static async init({ fs, rp, path, config, assets, onInit }: WorkspaceInitProps) {
-		const entries = await fs.getCatalogEntries();
-		const workspace = new this(path, config, fs, rp, assets);
-		const events = onInit?.(workspace);
-		new WorkspaceEventHandlers(workspace, rp, events).mount();
+		return await traced("Workspace.init", { args: [path], omitResult: true }, async () => {
+			const entries = await fs.getCatalogEntries();
+			const workspace = new this(path, config, fs, rp, assets);
+			const events = onInit?.(workspace);
+			new WorkspaceEventHandlers(workspace, rp, events).mount();
 
-		const mutableEntries = { entries };
-		await workspace._events.emit("on-entries-read", { mutableEntries });
+			const mutableEntries = { entries };
+			await workspace._events.emit("on-entries-read", { mutableEntries });
 
-		fs.fp.watch(workspace._onItemChanged.bind(Workspace));
-		await workspace._initRepositories(mutableEntries.entries, fs.fp);
+			fs.fp.watch(workspace._onItemChanged.bind(Workspace));
+			await workspace._initRepositories(mutableEntries.entries, fs.fp);
 
-		return workspace;
+			span()?.addEvent("read-workspaces", { count: mutableEntries.entries.length });
+
+			return workspace;
+		});
 	}
 
 	get events() {
@@ -165,7 +169,6 @@ export class Workspace {
 		this._entries.set(catalog.name, catalog);
 		const basePath = catalog.basePath;
 		const fp = this.getFileProvider();
-		catalog.setRepository(existingRepo?.gvc ? existingRepo : await this._rp.getRepositoryByPath(basePath, fp));
 
 		catalog.events.on("files-changed", (update) => this.events.emit("catalog-changed", update));
 
@@ -180,14 +183,15 @@ export class Workspace {
 			await this.addCatalog(entry, catalog.repo);
 			arg.catalog = entry;
 		});
-		catalog.events.on("merge", ({ catalog: cat, targetBranch, sourceData, beforeMergeCommit }) => {
-			this._events.emit("merge", { catalog: cat, targetBranch, sourceData, beforeMergeCommit });
-		});
+		catalog.events.on("merge", (args) => this._events.emit("merge", args));
+		catalog.events.on("sync", (args) => this._events.emit("sync", args));
+
+		catalog.setRepository(existingRepo?.gvc ? existingRepo : await this._rp.getRepositoryByPath(basePath, fp));
 
 		await this._events.emit("add-catalog", { catalog });
 	}
 
-	@trace()
+	@trace({ omitArgs: true, omitResult: true })
 	private async _initRepositories(entries: BaseCatalog[], fp: FileProvider): Promise<void> {
 		await Promise.all(
 			entries.map(async (entry) => {

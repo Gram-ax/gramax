@@ -1,3 +1,4 @@
+import type { WorkspaceConfig } from "@ext/workspace/WorkspaceConfig";
 import { expect, type Locator, type Page } from "@playwright/test";
 import { catalogTest } from "@web/fixtures/catalog.fixture";
 
@@ -30,6 +31,25 @@ export interface EnterpriseFixture {
 
 export const notificationsTest = catalogTest.extend<EnterpriseFixture>({
 	enterprisePage: async ({ sharedPage }, use) => {
+		const previousEnterpriseConfig = await sharedPage.evaluate(async () => {
+			const app = await window.app!;
+			const workspace = app.wm.current();
+			const workspaceConfig = app.wm.getWorkspaceConfig(workspace.path())?.config;
+			if (!workspaceConfig) throw new Error("Workspace config is not available");
+			const currentConfig = workspaceConfig.inner();
+
+			workspaceConfig.update({
+				...currentConfig,
+				enterprise: {
+					...(currentConfig.enterprise ?? {}),
+					gesUrl: "http://mock-ges.local",
+				},
+			});
+			await workspaceConfig.save();
+
+			return currentConfig.enterprise ?? null;
+		});
+
 		await sharedPage.evaluate(async () => {
 			const app = await window.app!;
 			await app.em.setGesUrl("http://mock-ges.local");
@@ -62,16 +82,30 @@ export const notificationsTest = catalogTest.extend<EnterpriseFixture>({
 		});
 
 		await sharedPage.reload({ waitUntil: "domcontentloaded" });
-		await sharedPage.waitForTimeout(1000);
+		await sharedPage.locator('[data-qa="catalog-navigation-article-link-level-0"]').first().waitFor();
 
 		await use(sharedPage);
 
 		await sharedPage.unroute("**/enterprise/config/groups/get**");
 		await sharedPage.unroute("**/sso/connectors/getUsers**");
-		await sharedPage.evaluate(async () => {
-			const app = await window.app!;
-			await app.em.clearGesUrl();
-		});
+		await sharedPage.evaluate(
+			async (previousEnterpriseConfig) => {
+				const app = await window.app!;
+				const workspace = app.wm.current();
+				const workspaceConfig = app.wm.getWorkspaceConfig(workspace.path())?.config;
+				if (!workspaceConfig) throw new Error("Workspace config is not available");
+				const currentConfig = workspaceConfig.inner();
+
+				workspaceConfig.update({
+					...currentConfig,
+					enterprise: previousEnterpriseConfig ?? {},
+				});
+				await workspaceConfig.save();
+
+				await app.em.clearGesUrl();
+			},
+			previousEnterpriseConfig satisfies WorkspaceConfig["enterprise"] | null,
+		);
 	},
 
 	editMenu: async ({ enterprisePage }, use) => {
@@ -85,7 +119,7 @@ export const notificationsTest = catalogTest.extend<EnterpriseFixture>({
 	},
 
 	notificationDialog: async ({ editMenu, enterprisePage }, use) => {
-		await editMenu.getByRole("menuitem", { name: "Notification settings" }).click();
+		await editMenu.getByRole("menuitem", { name: "Edit notifications" }).click();
 		const dialog = enterprisePage.getByRole("dialog");
 		await expect(dialog).toBeVisible();
 
@@ -99,7 +133,7 @@ export const notificationsTest = catalogTest.extend<EnterpriseFixture>({
 			await articleItem.locator(".right-extensions button").first().click();
 			const dropdownContent = enterprisePage.getByTestId("dropdown-content");
 			await expect(dropdownContent).toBeVisible();
-			await dropdownContent.getByRole("menuitem", { name: "Notification settings" }).click();
+			await dropdownContent.getByRole("menuitem", { name: "Edit notifications" }).click();
 			const dialog = enterprisePage.getByRole("dialog");
 			await expect(dialog).toBeVisible();
 			return dialog;

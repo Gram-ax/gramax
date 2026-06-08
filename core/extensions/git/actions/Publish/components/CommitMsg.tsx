@@ -1,27 +1,13 @@
-import Button, { TextSize } from "@components/Atoms/Button/Button";
 import type { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import Input from "@components/Atoms/Input";
-import Notification from "@components/Atoms/Notification";
-import SpinnerLoader from "@components/Atoms/SpinnerLoader";
 import { classNames } from "@components/libs/classNames";
+// biome-ignore lint/style/noRestrictedImports: will be deleted with new sidebar UI
 import styled from "@emotion/styled";
+import PublishActionButton from "@ext/git/actions/Publish/components/PublishActionButton";
 import t from "@ext/localization/locale/translate";
 import useIsSourceDataValid from "@ext/storage/components/useIsSourceDataValid";
 import InvalidSourceWarning from "@ext/storage/logic/SourceDataProvider/components/InvalidSourceWarning";
 import { forwardRef, type MutableRefObject } from "react";
-
-const NotificationWrapper = styled.div`
-	position: relative;
-	margin-left: 0.5em;
-
-	> div {
-		position: static !important;
-		font-size: 10px !important;
-		> div {
-			padding: 1px;
-		}
-	}
-`;
 
 interface PublishActionProps {
 	commitMessageValue: string;
@@ -34,18 +20,10 @@ interface PublishActionProps {
 	onCommitMessageChange: (commitMessage: string) => void;
 	className?: string;
 	buttonStyle?: ButtonStyle;
+	publishButtonTooltip?: string;
+	showCreateBranchButton?: boolean;
+	showGitConflictsButton?: boolean;
 }
-
-const ButtonContentWrapper = styled.div`
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-`;
-
-const Spinner = styled(SpinnerLoader)`
-	margin-right: 0.5em;
-`;
 
 const ButtonWrapper = styled.div`
 	display: flex;
@@ -78,6 +56,9 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 		buttonStyle,
 		className,
 		isLoading,
+		publishButtonTooltip,
+		showCreateBranchButton,
+		showGitConflictsButton,
 	} = props;
 
 	const canPush = useIsSourceDataValid();
@@ -100,25 +81,18 @@ const CommitMsgUnstyled = (props: PublishActionProps, ref: MutableRefObject<HTML
 				value={typeof commitMessageValue === "string" ? commitMessageValue : commitMessagePlaceholder}
 			/>
 			<ButtonWrapper>
-				<Button
+				<PublishActionButton
 					buttonStyle={buttonStyle}
-					disabled={disablePublishButton || !canPush}
-					fullWidth
-					isEmUnits
-					onClick={onPublishClick}
-					textSize={TextSize.M}
-				>
-					<ButtonContentWrapper>
-						{isLoading && <Spinner height={12} width={12} />}
-						{t("git.publish.to-publish")}
-						{fileCount > 0 && (
-							<NotificationWrapper className="file-count-notification">
-								<Notification>{fileCount}</Notification>
-							</NotificationWrapper>
-						)}
-					</ButtonContentWrapper>
-				</Button>
-				{!canPush && <InvalidSourceWarning />}
+					canPush={canPush}
+					disablePublishButton={disablePublishButton}
+					fileCount={fileCount}
+					isLoading={isLoading}
+					onPublishClick={onPublishClick}
+					publishButtonTooltip={publishButtonTooltip}
+					showCreateBranchButton={showCreateBranchButton}
+					showGitConflictsButton={showGitConflictsButton}
+				/>
+				{!showCreateBranchButton && !canPush && <InvalidSourceWarning />}
 			</ButtonWrapper>
 		</div>
 	);

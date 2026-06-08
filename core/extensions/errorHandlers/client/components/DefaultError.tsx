@@ -1,10 +1,11 @@
+import { DialogErrorHeader } from "@ext/errorHandlers/client/components/DialogErrorHeader";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import CodeBlock from "@ext/markdown/elements/codeBlockLowlight/render/component/CodeBlock";
 import Note, { NoteType } from "@ext/markdown/elements/note/render/component/Note";
+import { DialogBody, DialogFooterTemplate } from "@ui-kit/Dialog";
 import type { ComponentProps } from "react";
 import type GetErrorComponent from "../../logic/GetErrorComponent";
-import InfoModalForm from "./ErrorForm";
 
 export const getIcon = (error: DefaultError) => {
 	return error.isWarning
@@ -14,15 +15,16 @@ export const getIcon = (error: DefaultError) => {
 
 export const ErrorBody = ({ error }: { error: DefaultError }) => {
 	return (
-		<div className={"article"}>
+		<div className={"article"} style={{ background: "transparent" }}>
 			{error.props?.html ? (
+				// biome-ignore lint/style/useNamingConvention: it's a html message
 				<span dangerouslySetInnerHTML={{ __html: error.message }} />
 			) : (
 				<span>{error.message}</span>
 			)}
-			{error.props?.showCause && error?.cause && (
+			{error.props?.showCause && error?.cause?.stack && error?.cause?.stack !== "null" && (
 				<Note collapsed={true} title={t("technical-details")} type={NoteType.hotfixes}>
-					<CodeBlock value={error.cause.stack} />
+					<CodeBlock>{error.cause.stack}</CodeBlock>
 				</Note>
 			)}
 		</div>
@@ -37,17 +39,28 @@ const DefaultErrorComponent = ({ appVersionLabel, error, onCancelClick }: Compon
 	};
 
 	return (
-		<InfoModalForm
-			actionButton={isCommandError ? { text: t("refresh"), onClick: onActionClick } : undefined}
-			closeButton={error.title || error.isWarning ? { text: t("ok") } : null}
-			icon={getIcon(error)}
-			isWarning={error.isWarning}
-			onCancelClick={onCancelClick}
-			title={error.title ?? (error.isWarning ? t("warning") : t("error"))}
-			version={appVersionLabel}
-		>
-			<ErrorBody error={error} />
-		</InfoModalForm>
+		<>
+			<DialogErrorHeader error={error} />
+			<DialogBody>
+				<ErrorBody error={error} />
+				{appVersionLabel && <span className="text-muted mr-auto mt-2 block text-xs">{appVersionLabel}</span>}
+			</DialogBody>
+			<DialogFooterTemplate
+				primaryButton={isCommandError ? t("refresh") : t("ok")}
+				primaryButtonProps={{
+					onClick: isCommandError ? onActionClick : onCancelClick,
+				}}
+				secondaryButton={isCommandError ? t("cancel") : undefined}
+				secondaryButtonProps={
+					isCommandError
+						? {
+								onClick: onCancelClick,
+								variant: "outline" as const,
+							}
+						: undefined
+				}
+			/>
+		</>
 	);
 };
 

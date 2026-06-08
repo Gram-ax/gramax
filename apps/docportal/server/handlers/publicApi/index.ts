@@ -4,7 +4,8 @@ import articleHtml from "./articleHtml";
 import articleResource from "./articleResource";
 import catalogNavigation from "./catalogNavigation";
 import catalogs from "./catalogs";
-import { ARTICLE_HTML, ARTICLE_RESOURCE, CATALOG_NAVIGATION, CATALOGS, USER_TOKEN } from "./routes";
+import homeLogo from "./homeLogo";
+import { ARTICLE_HTML, ARTICLE_RESOURCE, CATALOG_NAVIGATION, CATALOGS, HOME_LOGO, USER_TOKEN } from "./routes";
 import userToken from "./userToken";
 
 const publicApi = async (serverContext: ServerContext) => {
@@ -16,6 +17,9 @@ const publicApi = async (serverContext: ServerContext) => {
 	const sitePresenter = sitePresenterFactory.fromContext(ctx);
 	const exceptionsResponse = new ExceptionsResponse(res, ctx);
 
+	if (HOME_LOGO.test(path.pathname)) {
+		return homeLogo(req, commands);
+	}
 	if (USER_TOKEN.test(path.pathname)) {
 		return userToken(ctx, req, ticketManager);
 	}

@@ -60,7 +60,7 @@ abstract class WordExport {
 			}
 		};
 
-		if (this._exportType == ExportType.withTableOfContents)
+		if (this._exportType === ExportType.withTableOfContents)
 			pushChildren((await this._createTableOfContents(rootNode)) as Paragraph[]);
 
 		const processNode = async (currentNode: DocumentTree, content = [], skipFirstNode = false) => {

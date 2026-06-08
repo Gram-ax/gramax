@@ -1,22 +1,27 @@
-import ButtonStateService from "@core-ui/ContextServices/ButtonStateService/ButtonStateService";
+import { setEditorStore } from "@core-ui/stores/EditorStore";
 import t from "@ext/localization/locale/translate";
 import type { Editor } from "@tiptap/core";
-import { ToolbarIcon, ToolbarToggleButton } from "@ui-kit/Toolbar";
+import { DropdownMenuShortcut } from "@ui-kit/Dropdown";
+import { ToolbarDropdownMenuItem, ToolbarIcon } from "@ui-kit/Toolbar";
+import { useCallback } from "react";
 
-const BulletListMenuButton = ({ editor }: { editor: Editor }) => {
-	const { disabled, isActive } = ButtonStateService.useCurrentAction({ action: "bulletList" });
+const BulletListMenuButton = ({ editor, active, disabled }: { editor: Editor; active: boolean; disabled: boolean }) => {
+	const onSelectBulletList = useCallback(() => {
+		editor.chain().focus().toggleBulletList().run();
+		setEditorStore({ lastUsedListType: "bullet" });
+	}, [editor]);
 
 	return (
-		<ToolbarToggleButton
-			active={isActive}
+		<ToolbarDropdownMenuItem
+			active={active}
 			data-testid="tb-bullet-list"
 			disabled={disabled}
-			hotKey={"Mod-Shift-8"}
-			onClick={() => editor.chain().focus().toggleBulletList().run()}
-			tooltipText={t("editor.bullet-list")}
+			onClick={onSelectBulletList}
 		>
 			<ToolbarIcon icon={"list"} />
-		</ToolbarToggleButton>
+			{t("editor.bullet-list")}
+			<DropdownMenuShortcut value="Mod-Shift-8" />
+		</ToolbarDropdownMenuItem>
 	);
 };
 

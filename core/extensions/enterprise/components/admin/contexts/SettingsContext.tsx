@@ -7,6 +7,8 @@ import type { ArticleRatingsResponse } from "@ext/enterprise/components/admin/se
 import type { SearchTableDataResponse } from "@ext/enterprise/components/admin/settings/metrics/search/table/SearchMetricsTableConfig";
 import type {
 	ChartDataPoint,
+	MetricsCatalogsResponse,
+	MetricsUsersResponse,
 	SearchChartDataPoint,
 	SearchQueryDetailsResponse,
 	TableDataResponse,
@@ -132,6 +134,7 @@ type SettingsContextType = {
 		sortOrder?: string,
 		userEmails?: string[],
 		anonymousFilter?: AnonymousFilter,
+		catalogFilter?: string[],
 	) => Promise<TableDataResponse | null>;
 	loadFilteredChartData: (
 		startDate: string,
@@ -139,16 +142,15 @@ type SettingsContextType = {
 		articleIds?: number[],
 		userEmails?: string[],
 		anonymousFilter?: AnonymousFilter,
+		catalogFilter?: string[],
 	) => Promise<ChartDataPoint[] | null>;
-	getMetricsUsers: (
+	getMetricsUsers: (search?: string, limit?: number, cursor?: number) => Promise<MetricsUsersResponse | null>;
+	getMetricsCatalogs: (search?: string, limit?: number, cursor?: number) => Promise<MetricsCatalogsResponse | null>;
+	getSearchMetricsCatalogs: (
 		search?: string,
 		limit?: number,
 		cursor?: number,
-	) => Promise<{
-		users: string[];
-		hasMore: boolean;
-		nextCursor: number | null;
-	} | null>;
+	) => Promise<MetricsCatalogsResponse | null>;
 	// Per-tab loaders (ленивые)
 	ensureWorkspaceLoaded: (force?: boolean) => Promise<void>;
 	ensureMailLoaded: (force?: boolean) => Promise<void>;
@@ -161,7 +163,11 @@ type SettingsContextType = {
 	ensurePluginsLoaded: (force?: boolean) => Promise<void>;
 	ensureMetricsLoaded: () => Promise<void>;
 	ensureSearchMetricsLoaded: () => Promise<void>;
-	loadFilteredSearchChartData: (startDate: string, endDate: string) => Promise<SearchChartDataPoint[] | null>;
+	loadFilteredSearchChartData: (
+		startDate: string,
+		endDate: string,
+		catalogFilter?: string[],
+	) => Promise<SearchChartDataPoint[] | null>;
 	getSearchTableData: (
 		cursor?: string,
 		sortBy?: string,
@@ -184,6 +190,7 @@ type SettingsContextType = {
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
+		catalogFilter?: string[],
 	) => Promise<ArticleRatingsResponse | null>;
 	// Tab-scoped loading/error selectors & utils
 	isInitialLoading: (tab: TabKey) => boolean;
@@ -259,24 +266,27 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 	);
 	const clearTabError = useCallback((tab: TabKey) => setTabError(tab, null), [setTabError]);
 	const isInitialLoading = (tab: TabKey) => initialLoading[tab];
-	const isRefreshing = (tab: TabKey) => refreshing[tab];
+	const isRefreshing = useCallback((tab: TabKey) => refreshing[tab], [refreshing]);
 	const getTabError = (tab: TabKey) => tabErrors[tab];
 
-	async function withLoad<T>(tab: TabKey, hasData: boolean, fetcher: () => Promise<T>): Promise<T | undefined> {
-		if (!hasData) setFlag(setInitialLoading, tab, true);
-		else setFlag(setRefreshing, tab, true);
-		try {
-			clearTabError(tab);
-			const res = await fetcher();
-			return res;
-		} catch (e) {
-			setTabError(tab, (e as Error) ?? new Error("Unknown error"));
-			return undefined;
-		} finally {
-			if (!hasData) setFlag(setInitialLoading, tab, false);
-			else setFlag(setRefreshing, tab, false);
-		}
-	}
+	const withLoad = useCallback(
+		async <T,>(tab: TabKey, hasData: boolean, fetcher: () => Promise<T>) => {
+			if (!hasData) setFlag(setInitialLoading, tab, true);
+			else setFlag(setRefreshing, tab, true);
+			try {
+				clearTabError(tab);
+				const res = await fetcher();
+				return res;
+			} catch (e) {
+				setTabError(tab, (e as Error) ?? new Error("Unknown error"));
+				return undefined;
+			} finally {
+				if (!hasData) setFlag(setInitialLoading, tab, false);
+				else setFlag(setRefreshing, tab, false);
+			}
+		},
+		[clearTabError, setFlag, setTabError],
+	);
 
 	const patch = useCallback(<K extends keyof Settings>(key: K, value: Settings[K]) => {
 		setSettings((prev) => ({ ...prev, [key]: value }));
@@ -301,12 +311,12 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 	}, [enterpriseService]);
 
 	useEffect(() => {
-		checkHasUsers();
-		checkHasGroups();
+		void checkHasUsers();
+		void checkHasGroups();
 	}, [checkHasGroups, checkHasUsers]);
 
 	useEffect(() => {
-		(async () => {
+		void (async () => {
 			let pageNum = 1;
 			const pageSize = 100;
 			let acc: string[] = [];
@@ -338,17 +348,20 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		});
 	};
 
-	const ensureMailLoaded = async (force = false) => {
-		await withLoad("mail", Boolean(settings?.mailServer), async () => {
-			const { data, etag, notModified } = await enterpriseService.getMailConfig(
-				token,
-				force ? undefined : (mailEtag ?? undefined),
-			);
-			if (!notModified && data) patch("mailServer", data);
-			if (etag) setMailEtag(etag);
-			return true as const;
-		});
-	};
+	const ensureMailLoaded = useCallback(
+		async (force = false) => {
+			await withLoad("mail", Boolean(settings?.mailServer), async () => {
+				const { data, etag, notModified } = await enterpriseService.getMailConfig(
+					token,
+					force ? undefined : (mailEtag ?? undefined),
+				);
+				if (!notModified && data) patch("mailServer", data);
+				if (etag) setMailEtag(etag);
+				return true as const;
+			});
+		},
+		[enterpriseService, mailEtag, patch, settings, token, withLoad],
+	);
 
 	const ensureGuestsLoaded = async (force = false) => {
 		await withLoad("guests", Boolean(settings?.guests), async () => {
@@ -434,9 +447,18 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		});
 	};
 
-	const ensureMetricsLoaded = async () => {
+	const ensureMetricsLoaded = useCallback(async () => {
 		const filters = loadMetricsFilters();
-		const { interval, startDate, endDate, selectedUserEmails, sortBy, sortOrder, anonymousFilter } = filters.view;
+		const {
+			interval,
+			startDate,
+			endDate,
+			selectedUserEmails,
+			sortBy,
+			sortOrder,
+			anonymousFilter,
+			selectedCatalogs,
+		} = filters.view;
 		await withLoad("metrics", Boolean(settings?.metrics), async () => {
 			const [chartData, tableData, metricsConfigResult] = await Promise.all([
 				enterpriseService.getMetricsChartData(
@@ -446,6 +468,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 					undefined,
 					selectedUserEmails,
 					anonymousFilter,
+					selectedCatalogs,
 				),
 				enterpriseService.getMetricsTableData(
 					token,
@@ -457,6 +480,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 					sortOrder,
 					selectedUserEmails,
 					anonymousFilter,
+					selectedCatalogs,
 				),
 				enterpriseService.getMetricsConfig(token, metricsConfigEtag ?? undefined),
 			]);
@@ -481,15 +505,24 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			}
 			return true as const;
 		});
-	};
+	}, [enterpriseService, metricsConfigEtag, patch, settings, token, withLoad]);
 
-	const ensureSearchMetricsLoaded = async () => {
+	const ensureSearchMetricsLoaded = useCallback(async () => {
 		const filters = loadMetricsFilters();
-		const { interval, startDate, endDate, queriesTable, queriesDetailsTable, articleRatingTable } = filters.search;
+		const {
+			interval,
+			startDate,
+			endDate,
+			queriesTable,
+			queriesDetailsTable,
+			articleRatingTable,
+			selectedCatalogs,
+		} = filters.search;
 		const { sortBy, sortOrder } = queriesTable;
+		const catalogFilter = selectedCatalogs?.length ? selectedCatalogs : undefined;
 		await withLoad("metrics", Boolean(settings?.searchMetrics), async () => {
 			const [chartData, tableData, articleRatingsData] = await Promise.all([
-				enterpriseService.getSearchMetricsChartData(token, startDate, endDate),
+				enterpriseService.getSearchMetricsChartData(token, startDate, endDate, catalogFilter),
 				enterpriseService.getSearchMetricsTableData(
 					token,
 					startDate,
@@ -498,6 +531,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 					sortBy,
 					sortOrder,
 					25,
+					catalogFilter,
 				),
 				enterpriseService.getArticleRatings(
 					token,
@@ -506,6 +540,8 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 					undefined,
 					articleRatingTable.sortBy,
 					articleRatingTable.sortOrder,
+					undefined,
+					catalogFilter,
 				),
 			]);
 
@@ -541,15 +577,21 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			}
 			return true as const;
 		});
-	};
+	}, [enterpriseService, patch, settings, token, withLoad]);
 
 	const loadFilteredSearchChartData = async (
 		startDate: string,
 		endDate: string,
+		catalogFilter?: string[],
 	): Promise<SearchChartDataPoint[] | null> => {
 		setFlag(setRefreshing, "metrics", true);
 		try {
-			const chartData = await enterpriseService.getSearchMetricsChartData(token, startDate, endDate);
+			const chartData = await enterpriseService.getSearchMetricsChartData(
+				token,
+				startDate,
+				endDate,
+				catalogFilter,
+			);
 			if (chartData && settings?.searchMetrics) {
 				setSettings({
 					...settings,
@@ -574,6 +616,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		articleIds?: number[],
 		userEmails?: string[],
 		anonymousFilter?: AnonymousFilter,
+		catalogFilter?: string[],
 	): Promise<ChartDataPoint[] | null> => {
 		setFlag(setRefreshing, "metrics", true);
 		try {
@@ -584,6 +627,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				articleIds,
 				userEmails,
 				anonymousFilter,
+				catalogFilter,
 			);
 			return chartData;
 		} catch (e) {
@@ -594,13 +638,13 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		}
 	};
 
-	const healthcheckStyleGuide = async () => {
+	const healthcheckStyleGuide = useCallback(async () => {
 		return await enterpriseService.checkStyleGuideHealth();
-	};
+	}, [enterpriseService]);
 
-	const healthcheckDataProvider = async () => {
+	const healthcheckDataProvider = useCallback(async () => {
 		return await enterpriseService.checkDataProviderHealth();
-	};
+	}, [enterpriseService]);
 
 	const updateEditors = async (editors: Settings["editors"]) => {
 		try {
@@ -656,19 +700,22 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		}
 	};
 
-	const updateWorkspace = async (workspace: Settings["workspace"]) => {
-		try {
-			await enterpriseService.setWorkspace(token, workspace);
+	const updateWorkspace = useCallback(
+		async (workspace: Settings["workspace"]) => {
+			try {
+				await enterpriseService.setWorkspace(token, workspace);
+				patch("workspace", workspace);
+				await refreshWorkspace?.();
+				refreshStyle?.();
+				await refreshHomeLogo?.();
+			} catch (e) {
+				setTabError("workspace", (e as Error) ?? new Error(t("enterprise.admin.workspace.errors.update")));
+				throw e;
+			}
 			patch("workspace", workspace);
-			await refreshWorkspace?.();
-			refreshStyle?.();
-			await refreshHomeLogo?.();
-		} catch (e) {
-			setTabError("workspace", (e as Error) ?? new Error(t("enterprise.admin.workspace.errors.update")));
-			throw e;
-		}
-		patch("workspace", workspace);
-	};
+		},
+		[enterpriseService, patch, refreshHomeLogo, refreshStyle, refreshWorkspace, setTabError, token],
+	);
 
 	const addResource = async (resource: ResourcesSettings) => {
 		try {
@@ -690,25 +737,31 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		}
 	};
 
-	const updateMail = async (mail: Settings["mailServer"]) => {
-		try {
-			await enterpriseService.setMail(token, mail);
-			await ensureMailLoaded(true);
-		} catch (e) {
-			setTabError("mail", (e as Error) ?? new Error(t("enterprise.admin.mail.errors.update")));
-			throw e;
-		}
-	};
+	const updateMail = useCallback(
+		async (mail: Settings["mailServer"]) => {
+			try {
+				await enterpriseService.setMail(token, mail);
+				await ensureMailLoaded(true);
+			} catch (e) {
+				setTabError("mail", (e as Error) ?? new Error(t("enterprise.admin.mail.errors.update")));
+				throw e;
+			}
+		},
+		[enterpriseService, ensureMailLoaded, setTabError, token],
+	);
 
-	const updateGuests = async (guests: Settings["guests"]) => {
-		try {
-			await enterpriseService.setGuests(token, guests);
-			patch("guests", guests);
-		} catch (e) {
-			setTabError("guests", (e as Error) ?? new Error(t("enterprise.admin.guests.errors.update")));
-			throw e;
-		}
-	};
+	const updateGuests = useCallback(
+		async (guests: Settings["guests"]) => {
+			try {
+				await enterpriseService.setGuests(token, guests);
+				patch("guests", guests);
+			} catch (e) {
+				setTabError("guests", (e as Error) ?? new Error(t("enterprise.admin.guests.errors.update")));
+				throw e;
+			}
+		},
+		[enterpriseService, patch, setTabError, token],
+	);
 
 	const updateStyleGuide = useCallback(
 		async (styleGuide: Settings["styleGuide"]) => {
@@ -748,15 +801,18 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		[enterpriseService],
 	);
 
-	const updatePlugins = async (plugins: Settings["plugins"]) => {
-		try {
-			await enterpriseService.setPlugins(token, plugins);
-			patch("plugins", plugins);
-		} catch (e) {
-			setTabError("plugins", (e as Error) ?? new Error("Failed to update plugins"));
-			throw e;
-		}
-	};
+	const updatePlugins = useCallback(
+		async (plugins: Settings["plugins"]) => {
+			try {
+				await enterpriseService.setPlugins(token, plugins);
+				patch("plugins", plugins);
+			} catch (e) {
+				setTabError("plugins", (e as Error) ?? new Error("Failed to update plugins"));
+				throw e;
+			}
+		},
+		[enterpriseService, patch, setTabError, token],
+	);
 
 	const updateQuiz = useCallback(
 		async (quiz: Settings["quiz"]) => {
@@ -785,7 +841,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				throw e;
 			}
 		},
-		[enterpriseService, token, patch, setTabError, settings?.metrics],
+		[enterpriseService, token, patch, setTabError, settings],
 	);
 
 	const getQuizUsersAnswers = async (
@@ -804,6 +860,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		sortOrder?: string,
 		userEmails?: string[],
 		anonymousFilter?: AnonymousFilter,
+		catalogFilter?: string[],
 	): Promise<TableDataResponse | null> => {
 		const effectiveInterval = settings?.metrics?.interval || "month";
 		const dates =
@@ -820,20 +877,30 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			sortOrder,
 			userEmails,
 			anonymousFilter,
+			catalogFilter,
 		);
 	};
 
-	const getMetricsUsers = async (
-		search?: string,
-		limit?: number,
-		cursor?: number,
-	): Promise<{
-		users: string[];
-		hasMore: boolean;
-		nextCursor: number | null;
-	} | null> => {
-		return await enterpriseService.getMetricsUsers(token, search, limit, cursor);
-	};
+	const getMetricsUsers = useCallback(
+		async (search?: string, limit?: number, cursor?: number): Promise<MetricsUsersResponse | null> => {
+			return await enterpriseService.getMetricsUsers(token, search, limit, cursor);
+		},
+		[enterpriseService, token],
+	);
+
+	const getMetricsCatalogs = useCallback(
+		async (search?: string, limit?: number, cursor?: number): Promise<MetricsCatalogsResponse | null> => {
+			return await enterpriseService.getMetricsCatalogs(token, search, limit, cursor);
+		},
+		[enterpriseService, token],
+	);
+
+	const getSearchMetricsCatalogs = useCallback(
+		async (search?: string, limit?: number, cursor?: number): Promise<MetricsCatalogsResponse | null> => {
+			return await enterpriseService.getSearchMetricsCatalogs(token, search, limit, cursor);
+		},
+		[enterpriseService, token],
+	);
 
 	const searchQuizTests = async (query: string): Promise<SearchedQuizTest[]> => {
 		return await enterpriseService.searchQuizTest(token, query);
@@ -847,6 +914,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		return await enterpriseService.getQuizDetailedUserAnswers(token, testId);
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: enterpriseService is a stable singleton, and sourceDatas is a stable reference to a reactive store, so this won't cause stale data issues
 	const searchUsers = useCallback(
 		async (query: string): Promise<searchUserInfo[]> => {
 			const enterpriseSource = getEnterpriseSourceData(sourceDatas, enterpriseService.getGesUrl());
@@ -855,6 +923,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		[enterpriseService],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: enterpriseService is a stable singleton, and sourceDatas is a stable reference to a reactive store, so this won't cause stale data issues
 	const searchGroups = useCallback(
 		async (query: string): Promise<searchGroupInfo[]> => {
 			const enterpriseSource = getEnterpriseSourceData(sourceDatas, enterpriseService.getGesUrl());
@@ -882,6 +951,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 			searchFilters.interval === "custom"
 				? { startDate: searchFilters.startDate, endDate: searchFilters.endDate }
 				: getDateRangeForInterval(searchFilters.interval);
+		const catalogFilter = searchFilters.selectedCatalogs?.length ? searchFilters.selectedCatalogs : undefined;
 
 		setFlag(setRefreshing, "metrics", true);
 		try {
@@ -893,6 +963,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				sortBy,
 				sortOrder,
 				limit ?? 25,
+				catalogFilter,
 			);
 
 			if (!response) {
@@ -947,6 +1018,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 		sortBy?: string,
 		sortOrder?: string,
 		limit?: number,
+		catalogFilter?: string[],
 	): Promise<ArticleRatingsResponse | null> => {
 		try {
 			const response = await enterpriseService.getArticleRatings(
@@ -957,6 +1029,7 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				sortBy,
 				sortOrder,
 				limit,
+				catalogFilter,
 			);
 
 			if (!response) {
@@ -1059,6 +1132,8 @@ export function SettingsProvider({ children, enterpriseService, token }: Setting
 				getSearchQueryDetails,
 				getArticleRatings,
 				getMetricsUsers,
+				getMetricsCatalogs,
+				getSearchMetricsCatalogs,
 				searchQuizTests,
 				isInitialLoading,
 				isRefreshing,

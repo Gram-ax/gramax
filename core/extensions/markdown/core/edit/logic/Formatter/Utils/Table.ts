@@ -11,11 +11,11 @@ const TableUtils = {
 		table.type = "table_simple";
 		for (let rowIdx = 0; rowIdx < table.content.length; rowIdx++) {
 			const row = table.content[rowIdx];
-			if (rowIdx == 0) row.type = "tableHeaderRow_simple";
+			if (rowIdx === 0) row.type = "tableHeaderRow_simple";
 			else row.type = "tableBodyRow_simple";
 			for (let cellIdx = 0; cellIdx < row.content.length; cellIdx++) {
 				const cell = row.content[cellIdx];
-				if (rowIdx == 0) cell.type = "tableHeader_simple";
+				if (rowIdx === 0) cell.type = "tableHeader_simple";
 				else cell.type = "tableCell_simple";
 				cell.content = cell.content[0].content;
 			}
@@ -23,7 +23,7 @@ const TableUtils = {
 		return TableUtils.prettifySimpleTable(
 			await new ProsemirrorMarkdownSerializer(getNodeFormatters(context), getMarkFormatters(context)).serialize(
 				Node.fromJSON(getSchema(), { type: "doc", content: [table] }),
-				{},
+				{ escapeExtraCharacters: /\|/g },
 				delim,
 			),
 		);
@@ -61,7 +61,10 @@ const TableUtils = {
 		if (node.childCount > 1) return false;
 		if (node.firstChild.type.name !== "paragraph") return false;
 		if (this.cellIncludeLineBreaks(node.content.firstChild)) return false;
-		if (JSON.stringify(node.attrs) !== `{"aggregation":null,"colspan":1,"rowspan":1,"colwidth":null,"align":null}`)
+		if (
+			JSON.stringify(node.attrs) !==
+			`{"aggregation":null,"colspan":1,"rowspan":1,"colwidth":null,"align":null,"filter":null,"sort":null}`
+		)
 			return false;
 		let cellIsSimple = true;
 		node.firstChild.forEach((n) => {
@@ -70,8 +73,8 @@ const TableUtils = {
 		return cellIsSimple;
 	},
 	getOldCellAttributes(attrs: { [name: string]: boolean | string | number }): string {
-		if (attrs.colspan == 1) attrs.colspan = null;
-		if (attrs.rowspan == 1) attrs.rowspan = null;
+		if (attrs.colspan === 1) attrs.colspan = null;
+		if (attrs.rowspan === 1) attrs.rowspan = null;
 		const attributes = Object.keys(attrs)
 			.map((key) => {
 				if (!attrs[key]) return null;
@@ -81,7 +84,7 @@ const TableUtils = {
 				return `${key}=${attrs[key]}`;
 			})
 			.filter((a) => a);
-		if (attributes.length == 0) return "";
+		if (attributes.length === 0) return "";
 		return `{% ${attributes.join(" ")} %}\n\n`;
 	},
 };

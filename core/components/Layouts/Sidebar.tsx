@@ -1,5 +1,6 @@
 import { classNames } from "@components/libs/classNames";
 import styled from "@emotion/styled";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
 import type { ReactNode } from "react";
 
 interface SidebarProps {
@@ -20,7 +21,7 @@ const Sidebar = (props: SidebarProps) => {
 				{leftActions?.length > 0 && <div className="sidebar-left-actions actions">{leftActions}</div>}
 				{title && (
 					<div className="title" title={title}>
-						{title}
+						<TextOverflowTooltip className="inline-flex">{title}</TextOverflowTooltip>
 					</div>
 				)}
 				{titleComponent && <span className="title-component">{titleComponent}</span>}

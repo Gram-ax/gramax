@@ -6,7 +6,7 @@ export type CatalogPropsStore = {
 	update: (patch: Partial<ClientCatalogProps>) => void;
 };
 
-export const defaultInitState = {
+const defaultInitState = {
 	data: {} as ClientCatalogProps,
 };
 

@@ -5,11 +5,12 @@ import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import ResourceService from "@core-ui/ContextServices/ResourceService/ResourceService";
 import { useDebounce } from "@core-ui/hooks/useDebounce";
+// biome-ignore lint/style/noRestrictedImports: refactor in future releases
 import styled from "@emotion/styled";
 import type { ArticleProviderType } from "@ext/articleProvider/logic/ArticleProvider";
-import Menu from "@ext/inbox/components/Editor/Menu";
+import SmallEditorToolbar from "@ext/inbox/components/Editor/SmallEditorToolbar";
 import ArticleMat from "@ext/markdown/core/edit/components/ArticleMat";
-import { ContentEditorId } from "@ext/markdown/core/edit/components/ContentEditor";
+import type { ToolbarMenuProps } from "@ext/markdown/core/edit/components/Menu/Menus/Toolbar";
 import useContentEditorHooks from "@ext/markdown/core/edit/components/UseContentEditorHooks";
 import { useShouldShowInlineToolbar } from "@ext/markdown/core/edit/logic/hooks/useShouldShowInlineToolbar";
 import type { InlineToolbarButtons } from "@ext/markdown/elements/article/edit/helpers/InlineEditPanel";
@@ -28,7 +29,7 @@ import { memo, useCallback, useEffect, useMemo } from "react";
 type MiniProps<T> = T extends { title: string; content: JSONContent } ? T : { title: string; content: JSONContent };
 
 interface SmallEditorOptions {
-	menu?: (editor: Editor) => JSX.Element;
+	menuProps?: ToolbarMenuProps;
 }
 
 const SmallEditorWrapper = styled.div`
@@ -160,7 +161,7 @@ const SmallEditor = <T extends MiniProps<unknown>>(proprs: SmallEditorProps<T>) 
 	const onDeleteMarks = useCallback(
 		(marks: Mark[]): void => {
 			if (!resourceService?.id) return;
-			deleteFiles(marks, resourceService);
+			void deleteFiles(marks, resourceService);
 		},
 		[resourceService],
 	);
@@ -220,7 +221,7 @@ const SmallEditor = <T extends MiniProps<unknown>>(proprs: SmallEditorProps<T>) 
 						<ArticleMat editor={editor} />
 					</div>
 				</div>
-				<Menu editor={editor} id={ContentEditorId} menu={options?.menu} />
+				{editor && <SmallEditorToolbar editor={editor} {...options?.menuProps} />}
 			</SmallEditorWrapper>
 		</ApiUrlCreatorService.Provider>
 	);

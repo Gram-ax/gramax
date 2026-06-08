@@ -1,8 +1,8 @@
 import docx from "@dynamicImports/docx";
+import type { Field, Table as TableDB } from "@ext/tableDB/table";
 import { createParagraph } from "@ext/wordExport/createParagraph";
 import { createContent } from "@ext/wordExport/TextWordGenerator";
 import type { IRunOptions } from "docx";
-import type { Field, Table as TableDB } from "../../../../../logic/components/tableDB/table";
 import type { AddOptionsWord } from "../../../../wordExport/options/WordTypes";
 import {
 	getHeadingStyles,
@@ -76,14 +76,14 @@ export class DbTableRenderer {
 			...(field.nullable
 				? []
 				: [
-						await createContent(NON_BREAKING_SPACE + "*" + NON_BREAKING_SPACE, {
+						await createContent(`${NON_BREAKING_SPACE}*${NON_BREAKING_SPACE}`, {
 							...addOptions,
 							color: WordFontColors.dontNullableTypeTableDB,
 						} as AddOptionsWord),
 					]),
 			await createContent(NON_BREAKING_SPACE),
 			field.primary
-				? await createContent(NON_BREAKING_SPACE + "PK" + NON_BREAKING_SPACE, addOptions as AddOptionsWord)
+				? await createContent(`${NON_BREAKING_SPACE}PK${NON_BREAKING_SPACE}`, addOptions as AddOptionsWord)
 				: undefined,
 		].filter((val) => val);
 
@@ -94,7 +94,7 @@ export class DbTableRenderer {
 					? [
 							await createParagraph(
 								[
-									await createContent("→" + NON_BREAKING_SPACE),
+									await createContent(`→${NON_BREAKING_SPACE}`),
 									await createContent(
 										NON_BREAKING_SPACE + (field.refObject || "") + NON_BREAKING_SPACE,
 										addOptions as AddOptionsWord,

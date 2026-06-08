@@ -104,7 +104,7 @@ const GroupsComponent = () => {
 		setIsSaving(true);
 		try {
 			await addGroup({ groupId: groupName, groupValue, groupName });
-		} catch (e: any) {
+		} catch (e) {
 			setSaveError(e?.message);
 		} finally {
 			setIsSaving(false);
@@ -115,7 +115,7 @@ const GroupsComponent = () => {
 		setIsSaving(true);
 		try {
 			await renameGroup(groupId, newName);
-		} catch (e: any) {
+		} catch (e) {
 			setSaveError(e?.message);
 		} finally {
 			setIsSaving(false);
@@ -126,7 +126,7 @@ const GroupsComponent = () => {
 		setIsSaving(true);
 		try {
 			await updateGroup(groupId, groupValue, groupName);
-		} catch (e: any) {
+		} catch (e) {
 			setSaveError(e?.message);
 		} finally {
 			setIsSaving(false);
@@ -137,7 +137,7 @@ const GroupsComponent = () => {
 		setIsSaving(true);
 		try {
 			await deleteGroups(groupIds);
-		} catch (e: any) {
+		} catch (e) {
 			setSaveError(e?.message);
 		} finally {
 			setIsSaving(false);
@@ -206,7 +206,7 @@ const GroupsComponent = () => {
 	if (!groupSettings) return null;
 
 	return (
-		<div className="p-6">
+		<div>
 			<div>
 				<GroupsTable onDelete={proceedDelete} />
 			</div>

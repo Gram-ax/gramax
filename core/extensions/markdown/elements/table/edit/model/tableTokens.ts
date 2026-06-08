@@ -1,20 +1,32 @@
 import type { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
 
-const table = { block: "table", getAttrs: (tok) => tok.attrs };
+const safeJsonParse = (jsonString: string) => {
+	try {
+		return JSON.parse(jsonString);
+	} catch {
+		return;
+	}
+};
 
-const tableRow = { block: "tableRow", getAttrs: (tok) => tok.attrs };
-
-const col = { node: "col", getAttrs: (tok) => tok.attrs };
-
-const colgroup = { block: "colgroup", getAttrs: (tok) => tok.attrs };
-
-const tableCell: ParseSpec = {
-	block: "tableCell",
-	getAttrs: (tok) => {
-		tok.attrs && !tok.attrs.colspan && delete tok.attrs.colspan;
-		tok.attrs && !tok.attrs?.rowspan && delete tok.attrs.rowspan;
-		return tok.attrs;
+const table: ParseSpec = {
+	block: "table",
+	getAttrs: ({ attrs }) => {
+		if (attrs?.sortingOrder) attrs.sortingOrder = (attrs.sortingOrder as string).split(",");
+		return attrs;
 	},
 };
 
-export default { table, tableRow, tableCell, col, colgroup };
+const tableRow: ParseSpec = { block: "tableRow", getAttrs: (tok) => tok.attrs };
+
+const tableCell: ParseSpec = {
+	block: "tableCell",
+	getAttrs: ({ attrs }) => {
+		attrs && !attrs.colspan && delete attrs.colspan;
+		attrs && !attrs.rowspan && delete attrs.rowspan;
+
+		if (attrs?.filter) attrs.filter = safeJsonParse(attrs.filter as string);
+		return attrs;
+	},
+};
+
+export default { table, tableRow, tableCell };

@@ -5,10 +5,12 @@ export const JSErrorClass = 100;
 export class LibGit2Error extends Error {
 	code?: GitErrorCode;
 	data?: { [key: string]: string };
+	command?: string;
 
 	constructor(name: string, message: string, subset: number, klass: number, code: number, command?: string) {
 		super(message);
 		this.name = name;
+		this.command = command;
 		this.code = fromRaw(subset, klass, code, message, command);
 		this.data = makeData(this.code, code);
 	}

@@ -1,5 +1,5 @@
-export { LoadingButtonTemplate } from "ics-ui-kit/components/button";
+export { LoadingButtonTemplate, TriggerButton, type TriggerButtonProps } from "ics-ui-kit/components/button";
 export { Button, type ButtonProps } from "./Button";
-export { IconButton } from "./IconButton";
+export { IconButton, type IconButtonProps } from "./IconButton";
 export { ProgressIconButton } from "./ProgressIconButton";
 export { RichButton, type RichButtonProps } from "./RichButton";

@@ -46,6 +46,7 @@ export const migrateOldStructure = (parsed: Record<string, unknown>): MetricsFil
 		sortBy: (parsed.sortBy as SortByColumn | undefined) ?? defaults.view.sortBy,
 		sortOrder: (parsed.sortOrder as SortOrder | undefined) ?? defaults.view.sortOrder,
 		selectedUserEmails: (parsed.selectedUserEmails as string[] | undefined) ?? defaults.view.selectedUserEmails,
+		selectedCatalogs: (parsed.selectedCatalogs as string[] | undefined) ?? defaults.view.selectedCatalogs,
 		anonymousFilter: (parsed.anonymousFilter as AnonymousFilter | undefined) ?? defaults.view.anonymousFilter,
 		axisLabelFormat: (parsed.axisLabelFormat as AxisLabelFormat | undefined) ?? defaults.view.axisLabelFormat,
 	};
@@ -85,6 +86,7 @@ export const migrateOldStructure = (parsed: Record<string, unknown>): MetricsFil
 			},
 			queriesDetailsTable: defaults.search.queriesDetailsTable,
 			articleRatingTable: defaults.search.articleRatingTable,
+			selectedCatalogs: (searchData.selectedCatalogs as string[] | undefined) ?? defaults.search.selectedCatalogs,
 		};
 	} else {
 		// Migrating from very old flat structure (no search section at all)
@@ -103,6 +105,7 @@ export const migrateOldStructure = (parsed: Record<string, unknown>): MetricsFil
 			queriesTable: defaults.search.queriesTable,
 			queriesDetailsTable: defaults.search.queriesDetailsTable,
 			articleRatingTable: defaults.search.articleRatingTable,
+			selectedCatalogs: defaults.search.selectedCatalogs,
 		};
 	}
 

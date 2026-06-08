@@ -43,6 +43,7 @@ export const getDefaultViewFilters = (): ViewMetricsFilters => {
 		sortBy: DEFAULT_SORT_BY,
 		sortOrder: DEFAULT_SORT_ORDER,
 		selectedUserEmails: [],
+		selectedCatalogs: [],
 		anonymousFilter: "all",
 		axisLabelFormat: "daily",
 	};
@@ -80,6 +81,7 @@ export const getDefaultSearchFilters = (): SearchMetricsFilters => {
 		queriesTable: getDefaultQueriesTableSettings(),
 		queriesDetailsTable: getDefaultQueriesDetailsTableSettings(),
 		articleRatingTable: getDefaultArticleRatingTableSettings(),
+		selectedCatalogs: [],
 	};
 };
 

@@ -4,14 +4,15 @@ import Item from "@ext/markdown/elements/view/edit/components/Helpers/Item";
 import PropertiesScrollContainer from "@ext/properties/components/Helpers/PropertiesScrollContainer";
 import { enumTypes, isHasValue, type Property } from "@ext/properties/models";
 import { DropdownMenuRadioGroup } from "@ui-kit/Dropdown";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
 import { memo, type ReactNode, useCallback } from "react";
 
 interface FilterMenuProps {
 	noAssignedProperties: PropertyFilter[];
-	updateFilter: (name: string, value: string | string[]) => void;
+	updateFilter: (propertyId: string, value: string | string[]) => void;
 	customPropertyMenu?: (
 		property: Property,
-		updateFilter: (name: string, value: string | string[]) => void,
+		updateFilter: (propertyId: string, value: string | string[]) => void,
 	) => ReactNode;
 	closeOnSelection: boolean;
 	ignoreEmpty?: boolean;
@@ -23,7 +24,7 @@ const FilterMenu = memo((props: FilterMenuProps) => {
 	const { noAssignedProperties, updateFilter, customPropertyMenu, mode, availableValues, ignoreEmpty } = props;
 
 	const updateData = useCallback(
-		(name: string, value?: string | string[]) => updateFilter(name, value),
+		(propertyId: string, value?: string | string[]) => updateFilter(propertyId, value),
 		[updateFilter],
 	);
 
@@ -36,7 +37,7 @@ const FilterMenu = memo((props: FilterMenuProps) => {
 		const isNotEnum = !enumTypes.includes(property.type);
 		const values = availableValues && isHasValue[property.type] ? property.values : undefined;
 		const showChildren = (isNotEnum && availableValues && mode === "multiple") || customPropertyMenu;
-		const translationKey: TranslationKey = `properties.system.${property.name}.name`;
+		const translationKey: TranslationKey = `properties.system.${property.id}.name`;
 
 		return (
 			<Item
@@ -47,22 +48,26 @@ const FilterMenu = memo((props: FilterMenuProps) => {
 							<Item
 								mode="multiple"
 								name={t("properties.selected")}
-								onClick={() => updateData(property.name, "yes")}
+								onClick={() => updateData(property.id, "yes")}
 								selected={!property?.value?.includes("yes")}
-								trigger={t("properties.selected")}
+								trigger={<TextOverflowTooltip>{t("properties.selected")}</TextOverflowTooltip>}
 								value={!property?.value?.includes("yes") ? ["yes"] : undefined}
 							/>
 						</>
 					)
 				}
 				ignoreEmpty={ignoreEmpty}
-				key={property.name}
+				key={property.id}
 				mode={mode}
 				name={property.name}
-				onClick={(value) => updateData(property.name, value)}
+				onClick={(value) => updateData(property.id, value)}
 				renderer={customPropertyMenu && showChildren ? () => renderer(property) : undefined}
 				selected={property.selected}
-				trigger={<div>{hasTranslation(translationKey) ? t(translationKey) : property.name}</div>}
+				trigger={
+					<TextOverflowTooltip>
+						{hasTranslation(translationKey) ? t(translationKey) : property.name}
+					</TextOverflowTooltip>
+				}
 				value={property.value}
 				values={showChildren ? undefined : values}
 			/>
@@ -74,16 +79,16 @@ const FilterMenu = memo((props: FilterMenuProps) => {
 			<DropdownMenuRadioGroup
 				indicatorIconPosition="end"
 				onValueChange={(value) => updateData(value, value)}
-				value={noAssignedProperties.find((property) => property.selected)?.name}
+				value={noAssignedProperties.find((property) => property.selected)?.id}
 			>
 				<PropertiesScrollContainer>
 					{noAssignedProperties.map((property) => (
 						<Item
-							key={property.name}
+							key={property.id}
 							mode="single"
 							name={property.name}
-							onClick={(value) => updateData(property.name, value)}
-							trigger={<div>{property.name}</div>}
+							onClick={(value) => updateData(property.id, value)}
+							trigger={<TextOverflowTooltip>{property.name}</TextOverflowTooltip>}
 						/>
 					))}
 				</PropertiesScrollContainer>

@@ -256,6 +256,7 @@ article a:has(> span.external-link-wrapper) {
 }
 
 .article .article-body {
+	height: 100%;
 	flex: 1;
 	display: flex;
 	position: relative;
@@ -517,6 +518,7 @@ article a:has(> span.external-link-wrapper) {
 .article .img-v + p > em:first-of-type,
 .article .img-h + p > em:first-of-type,
 .article .main-container + em,
+.article .video-component+em,
 .article .node-image em {
 	display: block;
 	font-size: 0.875em;
@@ -588,6 +590,7 @@ article a:has(> span.external-link-wrapper) {
 
 .article .article-body a,
 .article .article-body button.link {
+	text-wrap: wrap;
 	color: var(--color-link);
 	font-weight: inherit;
 	cursor: pointer;
@@ -601,6 +604,12 @@ article a:has(> span.external-link-wrapper) {
 	padding: 0;
 	text-align: left;
 	margin: 0;
+}
+
+@-moz-document url-prefix() {
+	.article .article-body button.link {
+		display: contents;
+	}
 }
 
 .article .article-body button.link:focus {
@@ -740,6 +749,8 @@ article a:has(> span.external-link-wrapper) {
 .article table > thead > tr > th {
 	border: 1px solid var(--color-table-border);
 	border-collapse: collapse;
+	position: relative;
+	box-sizing: border-box;
 }
 
 .article table > thead > tr > th,

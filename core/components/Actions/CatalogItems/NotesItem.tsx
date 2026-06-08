@@ -19,7 +19,7 @@ const NotesItem = ({ children }: NotesItemProps) => {
 				renderLabel={(Item) => (
 					<Item onSelect={() => onToggleTab(LeftNavigationTab.Inbox)}>
 						<Icon code="inbox" />
-						{t("inbox.notes")}
+						{t("inbox.name")}
 					</Item>
 				)}
 			>

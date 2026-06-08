@@ -94,6 +94,13 @@ class Path implements ToSpan {
 		return new Path(this._path.match(/^(\.?\/)?(.*)/)?.[2] ?? null);
 	}
 
+	isParentOf(path: Path) {
+		if(!path) return false;
+		if (this.removeExtraSymbols.value === path.removeExtraSymbols.value) return false;
+		if (this.removeExtraSymbols.value.split("/").length === path.removeExtraSymbols.value.split("/").length) return false;
+		return this.removeExtraSymbols.value.startsWith(path.removeExtraSymbols.value);
+	}
+
 	toString() {
 		return this._path;
 	}

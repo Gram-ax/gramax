@@ -6,7 +6,7 @@ import type {
 	ResourceParseWorkerInMessage,
 	ResourceParseWorkerOutMessage,
 } from "@ext/serach/modulith/resourceParse/worker/types";
-// @ics/modulith-pdf-parse uses legacy build for compatibility with Node.js
+// @ics/article-search-pdf-parse uses legacy build for compatibility with Node.js
 import { GlobalWorkerOptions } from "pdfjs-dist/legacy/build/pdf.mjs";
 
 // In Node.js pdfjs-dist uses relative ./pdf.worker.mjs

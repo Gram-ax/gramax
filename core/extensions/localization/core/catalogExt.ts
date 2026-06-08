@@ -35,6 +35,10 @@ export const isLanguageCategory = (catalog: ReadonlyCatalog, item: Item) =>
 	item.type === ItemType.category &&
 	catalog.props.supportedLanguages.includes(ContentLanguage[item.getFileName()]);
 
+export const isRootLanguageCategory = (catalog: ReadonlyCatalog, item: Item) => {
+	return isLanguageCategory(catalog, item) && item.parent === catalog.getRootCategory();
+};
+
 export const isExactLanguageMatch = (item: Item, currentLanguage: ContentLanguage) =>
 	currentLanguage === ContentLanguage[item.logicPath.split("/")[1]];
 

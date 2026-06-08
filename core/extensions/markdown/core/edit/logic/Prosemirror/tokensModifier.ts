@@ -1,7 +1,11 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: expected */
+
+import { SCALABLE_NODES } from "@ext/article/extensions/scale/models/Scale";
 import type { ParseSpec } from "@ext/markdown/core/edit/logic/Prosemirror/from_markdown";
 import type PrivateParserContext from "@ext/markdown/core/Parser/ParserContext/PrivateParserContext";
 import { COMMENT_NODE_TYPES } from "@ext/markdown/elements/comment/edit/model/consts";
 import { FLOAT_NODES } from "@ext/markdown/elements/float/edit/model/consts";
+import { PROPERTY_NODES } from "@ext/properties/models/consts";
 
 const tokensModifier = (
 	tokens: Record<string, ParseSpec>,
@@ -12,8 +16,10 @@ const tokensModifier = (
 	for (const [key, tk] of Object.entries(tokens)) {
 		const needsComment = COMMENT_NODE_TYPES.includes(key);
 		const needsFloat = FLOAT_NODES.includes(key);
+		const needsProperty = PROPERTY_NODES.includes(key);
+		const needsScale = SCALABLE_NODES.includes(key);
 
-		if (!needsComment && !needsFloat) continue;
+		if (!needsComment && !needsFloat && !needsProperty && !needsScale) continue;
 		const token = tk instanceof Function ? tk(context) : tk;
 
 		if (token.getAttrs) {
@@ -25,12 +31,27 @@ const tokensModifier = (
 
 					if (needsComment) {
 						const comment = tok?.attrs?.comment ?? null;
-						if (comment) newAttrs.comment = comment;
+						if (comment) {
+							newAttrs.comment = comment;
+							const commentProvider = context.getCatalog().customProviders.commentProvider;
+							const articlePath = context.getArticle().ref.path;
+							commentProvider.assignComment(comment.id, articlePath);
+						}
 					}
 
 					if (needsFloat) {
 						const float = tok?.attrs?.float ?? null;
 						if (float) newAttrs.float = float;
+					}
+
+					if (needsProperty) {
+						const property = tok?.attrs?.property ?? null;
+						if (property) newAttrs.property = property;
+					}
+
+					if (needsScale) {
+						const scale = tok?.attrs?.scale ?? null;
+						if (scale) newAttrs.scale = scale;
 					}
 
 					return newAttrs;
@@ -54,6 +75,16 @@ const tokensModifier = (
 						if (float) attrs.float = float;
 					}
 
+					if (needsProperty) {
+						const property = tok?.attrs?.property ?? null;
+						if (property) attrs.property = property;
+					}
+
+					if (needsScale) {
+						const scale = tok?.attrs?.scale ?? null;
+						if (scale) attrs.scale = scale;
+					}
+
 					return attrs;
 				},
 			};
@@ -71,6 +102,16 @@ const tokensModifier = (
 					if (needsFloat) {
 						const float = tok?.attrs?.float ?? null;
 						if (float) result.float = float;
+					}
+
+					if (needsProperty) {
+						const property = tok?.attrs?.property ?? null;
+						if (property) result.property = property;
+					}
+
+					if (needsScale) {
+						const scale = tok?.attrs?.scale ?? null;
+						if (scale) result.scale = scale;
 					}
 
 					return result;

@@ -4,7 +4,7 @@ import type Context from "@core/Context/Context";
 import type { Article } from "@core/FileStructue/Article/Article";
 import parseContent from "@core/FileStructue/Article/parseContent";
 import type { Catalog } from "@core/FileStructue/Catalog/Catalog";
-import type { ReadonlyBaseCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
+import type { ReadonlyBaseCatalog, ReadonlyCatalog } from "@core/FileStructue/Catalog/ReadonlyCatalog";
 import type { Category } from "@core/FileStructue/Category/Category";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
 import type SitePresenter from "@core/SitePresenter/SitePresenter";
@@ -68,7 +68,7 @@ export class ArticleDataService {
 
 		const nav = await sitePresenter.getCatalogNav(catalog, "");
 
-		if (!catalog.props.resolvedFilterPropertyValue) await getArticle404InitialData();
+		if (!catalog.props.resolvedView) await getArticle404InitialData();
 
 		const defaultArticlePageData = await this._createArticlePageData(
 			defaultArticle,
@@ -103,8 +103,11 @@ export class ArticleDataService {
 				const root = resolveRootCategory(catalog, catalog.props, ctx.contentLanguage);
 				articleLogicPath = root.logicPath;
 				const splittedPath = articleLogicPath.split("/").filter((x) => x);
+
 				article = (await sp.getArticleByPathOfCatalog(splittedPath)).article;
+				if (!article) article = this._app.customArticlePresenter.getArticle("welcome");
 			}
+
 			return await this.getArticlesPageData(ctx, catalog.deref, article, articleLogicPath);
 		});
 	}
@@ -148,7 +151,7 @@ export class ArticleDataService {
 		sitePresenter: SitePresenter,
 		catalog: ReadonlyBaseCatalog,
 	): Promise<ClientCatalogProps> {
-		const props = await sitePresenter.serializeCatalogProps(catalog);
+		const props = await sitePresenter.serializeCatalogProps(catalog as ReadonlyCatalog);
 		props.repositoryName = null;
 		props.sourceName = null;
 		props.userInfo = null;

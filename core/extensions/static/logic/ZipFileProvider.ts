@@ -19,7 +19,8 @@ class ZipFileProvider extends DiskFileProvider {
 	}
 
 	async copy(from: Path, to: Path): Promise<void> {
-		this.currentFolder.file(to.value, (await super.readAsBinary(from)) as any as ArrayBuffer);
+		const bin = await super.readAsBinary(from);
+		this.currentFolder.file(to.value, bin);
 	}
 
 	async mkdir() {}
@@ -49,7 +50,7 @@ class ZipFileProvider extends DiskFileProvider {
 		const otherZip = other.zip;
 		const basePath = targetPath ? targetPath.value : "";
 
-		const files: Array<{ path: string; file: any }> = [];
+		const files: Array<{ path: string; file: JSZipType.JSZipObject }> = [];
 		otherZip.forEach((relativePath, file) => {
 			files.push({ path: relativePath, file });
 		});
@@ -66,11 +67,11 @@ class ZipFileProvider extends DiskFileProvider {
 	}
 
 	/* eslint-disable @typescript-eslint/require-await, @typescript-eslint/no-unused-vars*/
-	async getItems(path: Path): Promise<FileInfo[]> {
+	async getItems(_path: Path): Promise<FileInfo[]> {
 		throw new Error(this._getMsgNotImplemented("getItems"));
 	}
 
-	async isFolder(path: Path): Promise<boolean> {
+	async isFolder(_path: Path): Promise<boolean> {
 		throw new Error(this._getMsgNotImplemented("isFolder"));
 	}
 
@@ -78,16 +79,16 @@ class ZipFileProvider extends DiskFileProvider {
 		return !!this._zip.file(path.value);
 	}
 
-	async getStat(path: Path, lstat = false): Promise<FileInfo> {
+	async getStat(_path: Path, _lstat = false): Promise<FileInfo> {
 		throw new Error(this._getMsgNotImplemented("getStat"));
 	}
 
-	async delete(path: Path, preferTrash?: boolean): Promise<void> {
+	async delete(path: Path, _preferTrash?: boolean): Promise<void> {
 		const pathname = path.value;
 		this.currentFolder.remove(pathname === "." || pathname === "/" ? "" : pathname);
 	}
 
-	async move(from: Path, to: Path): Promise<void> {
+	async move(_from: Path, _to: Path): Promise<void> {
 		throw new Error(this._getMsgNotImplemented("move"));
 	}
 
@@ -95,23 +96,23 @@ class ZipFileProvider extends DiskFileProvider {
 		return this._zip.file(path.value).async("nodebuffer");
 	}
 
-	async readdir(path: Path): Promise<string[]> {
+	async readdir(_path: Path): Promise<string[]> {
 		throw new Error(this._getMsgNotImplemented("readdir"));
 	}
 
-	async readlink(path: Path): Promise<string> {
+	async readlink(_path: Path): Promise<string> {
 		throw new Error(this._getMsgNotImplemented("readlink"));
 	}
 
-	async symlink(target: Path, path: Path): Promise<void> {
+	async hardlink(_target: Path, _path: Path): Promise<void> {
 		throw new Error(this._getMsgNotImplemented("symlink"));
 	}
 
-	async deleteEmptyFolders(folderPath: Path): Promise<void> {
+	async deleteEmptyDirs(_folderPath: Path): Promise<void> {
 		throw new Error(this._getMsgNotImplemented("deleteEmptyFolders"));
 	}
 
-	watch(callback: (changeItems: ItemRefStatus[]) => void): void {
+	watch(_callback: (changeItems: ItemRefStatus[]) => void): void {
 		throw new Error(this._getMsgNotImplemented("watch"));
 	}
 

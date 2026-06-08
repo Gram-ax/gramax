@@ -4,15 +4,16 @@ import type Query from "@core/Api/Query";
 import { parserQuery } from "@core/Api/Query";
 import { Router as BaseRouter } from "@core/Api/Router";
 import RouterPathProvider from "@core/RouterPath/RouterPathProvider";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import LanguageService from "@core-ui/ContextServices/Language";
 import getPageTitle from "@core-ui/getPageTitle";
+import { emitApiEvent } from "@core-ui/hooks/useApi";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import ThemeService from "@ext/Theme/components/ThemeService";
 import { usePluginEvent } from "@plugins/api/events";
 import { usePluginLoader } from "@plugins/hooks/usePluginLoader";
 import { Toaster } from "@ui-kit/Toast";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Router } from "wouter";
 import AppError from "./components/Atoms/AppError";
 import AppLoader from "./components/Atoms/AppLoader";
@@ -27,7 +28,19 @@ const getData = async (route: string, query: Query) => {
 		language,
 		query,
 	});
-	return commands.page.getPageData.do({ ctx, path: route });
+
+	const mode = query.mode as ArticlePageData["mode"];
+
+	const data = await commands.page.getPageData.do({
+		ctx,
+		path: route,
+		options: {
+			mode,
+			...(mode === "diff" ? { scope: query.scope, oldScope: query.oldScope } : {}),
+		},
+	});
+	emitApiEvent("on-did-command", { command: commands.page.getPageData.path, args: { path: route }, result: null });
+	return data;
 };
 
 // used for handling opening urls of cloning catalogs; we don't want to open them yet
@@ -52,11 +65,15 @@ const AppContext = () => {
 	const [path, setLocation, query] = useLocation();
 	const [data, setData] = useState<GramaxData>();
 	const [error, setError] = useState<DefaultError>();
+	const refreshCounterRef = useRef(0);
 
 	const refresh = useCallback(async () => {
+		const requestId = ++refreshCounterRef.current;
 		window.onNavigate?.(path);
 		try {
 			const data = await getData(path, parserQuery(query));
+
+			if (requestId !== refreshCounterRef.current) return;
 
 			if (getIsPreventNextPushRefresh() || filterOutPageData(data?.data as ArticlePageData, setLocation)) return;
 
@@ -64,6 +81,7 @@ const AppContext = () => {
 
 			if (data) document.title = getPageTitle(data.context.isArticle, data.data as ArticlePageData);
 		} catch (err) {
+			if (requestId !== refreshCounterRef.current) return;
 			console.error("failed to get page data", err);
 			setError(err);
 		}
@@ -74,7 +92,7 @@ const AppContext = () => {
 			(url: string) => {
 				window.resetIsFirstLoad();
 				if (url === path) {
-					refresh();
+					void refresh();
 				} else {
 					setData(undefined);
 					window.resetIsFirstLoad();

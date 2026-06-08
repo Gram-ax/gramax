@@ -20,6 +20,11 @@ export default class GitVerseSourceAPI extends GitSourceApi {
 		super(data, _onError);
 	}
 
+	async healthcheck(): Promise<boolean> {
+		const res = await this.getUser();
+		return !!res;
+	}
+
 	async refreshAccessToken(): Promise<GitSourceData> {
 		assert(this._authServiceUrl, "authServiceUrl is required");
 
@@ -64,20 +69,16 @@ export default class GitVerseSourceAPI extends GitSourceApi {
 	}
 
 	// make everything in one page, because GitVerse API don't have info about total pages
-	async getPageProjects(
-		fromPage: number,
-		toPage: number,
-		perPage = this._defaultPerPage,
-	): Promise<GitRepsPageData[]> {
+	async getPageProjects(_: number, __: number, ___ = this._defaultPerPage): Promise<GitRepsPageData[]> {
 		const repDatas = await this.getAllProjects();
 		return [{ repDatas, page: 1, totalPages: 1, totalPathsCount: repDatas.length }];
 	}
 
-	getBranchWithFile(filename: string, data: StorageData): Promise<string> {
+	getBranchWithFile(_: string, __: StorageData): Promise<string> {
 		throw new Error("Method not implemented in GitVerse.");
 	}
 
-	isBranchContainsFile(filename: string, data: GitStorageData, branch: string): Promise<boolean> {
+	isBranchContainsFile(_: string, __: GitStorageData, ___: string): Promise<boolean> {
 		throw new Error("Method not implemented in GitVerse.");
 	}
 
@@ -100,11 +101,7 @@ export default class GitVerseSourceAPI extends GitSourceApi {
 	}
 
 	// sync implementation, because GitVerse don't implement total pages.
-	protected async _paginationApi(
-		url: string,
-		init?: RequestInit,
-		perPage = this._defaultPerPage,
-	): Promise<Response[]> {
+	protected async _paginationApi(url: string, _?: RequestInit, perPage = this._defaultPerPage): Promise<Response[]> {
 		const result: Response[] = [];
 
 		let isEmpty = false;
@@ -141,7 +138,6 @@ export default class GitVerseSourceAPI extends GitSourceApi {
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
-		await this._assertHasInternetAccess();
 		try {
 			const res = await fetch(`https://api.gitverse.ru/${url}`, {
 				...init,

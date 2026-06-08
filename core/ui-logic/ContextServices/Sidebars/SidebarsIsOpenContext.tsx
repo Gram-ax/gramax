@@ -19,11 +19,11 @@ const SidebarsIsOpenContext = createContext<{ left: boolean; right: boolean }>(u
 const LeftNavigationTransitionEndLeftContext = createContext<boolean>(undefined);
 const LeftNavigationTransitionEndRightContext = createContext<boolean>(undefined);
 
-let _setIsLeftOpen: Dispatch<SetStateAction<boolean>>;
-let _setIsRightOpen: Dispatch<SetStateAction<boolean>>;
+let SetIsLeftOpen: Dispatch<SetStateAction<boolean>>;
+let SetIsRightOpen: Dispatch<SetStateAction<boolean>>;
 
-let _setTransitionEndIsLeftOpen: Dispatch<SetStateAction<boolean>>;
-let _setTransitionEndIsRightOpen: Dispatch<SetStateAction<boolean>>;
+let SetTransitionEndIsLeftOpen: Dispatch<SetStateAction<boolean>>;
+let SetTransitionEndIsRightOpen: Dispatch<SetStateAction<boolean>>;
 
 abstract class SidebarsIsOpenService {
 	private static _isMobile = false;
@@ -60,11 +60,11 @@ abstract class SidebarsIsOpenService {
 			if (SidebarsIsPinService.localStorageLeftValue) resetToValue(!isMediumOrMobile);
 		}, [isMediumOrMobile]);
 
-		_setIsLeftOpen = setIsLeftOpen;
-		_setIsRightOpen = setIsRightOpen;
+		SetIsLeftOpen = setIsLeftOpen;
+		SetIsRightOpen = setIsRightOpen;
 
-		_setTransitionEndIsLeftOpen = setTransitionEndIsLeftOpen;
-		_setTransitionEndIsRightOpen = setTransitionEndIsRightOpen;
+		SetTransitionEndIsLeftOpen = setTransitionEndIsLeftOpen;
+		SetTransitionEndIsRightOpen = setTransitionEndIsRightOpen;
 
 		return (
 			<SidebarsIsOpenContext.Provider value={sideBarsIsOpen}>
@@ -82,23 +82,23 @@ abstract class SidebarsIsOpenService {
 	}
 
 	static set value(props: { left: boolean; right?: boolean } | { left?: boolean; right: boolean }) {
-		if (!_setIsLeftOpen || !_setIsRightOpen) return;
+		if (!SetIsLeftOpen || !SetIsRightOpen) return;
 		const isSetLeft = typeof props?.left === "boolean";
 		const isSetRight = typeof props?.right === "boolean";
 
 		if (SidebarsIsOpenService._isMobile) {
 			if (isSetLeft && props.left) {
-				_setIsLeftOpen(true);
-				_setIsRightOpen(false);
-			} else if (isSetLeft && !props.left) _setIsLeftOpen(false);
+				SetIsLeftOpen(true);
+				SetIsRightOpen(false);
+			} else if (isSetLeft && !props.left) SetIsLeftOpen(false);
 
 			if (isSetRight && props.right) {
-				_setIsRightOpen(true);
-				_setIsLeftOpen(false);
-			} else if (isSetRight && !props.right) _setIsRightOpen(false);
+				SetIsRightOpen(true);
+				SetIsLeftOpen(false);
+			} else if (isSetRight && !props.right) SetIsRightOpen(false);
 		} else {
-			if (isSetLeft) _setIsLeftOpen(props.left);
-			if (isSetRight) _setIsRightOpen(props.right);
+			if (isSetLeft) SetIsLeftOpen(props.left);
+			if (isSetRight) SetIsRightOpen(props.right);
 		}
 	}
 
@@ -107,7 +107,7 @@ abstract class SidebarsIsOpenService {
 	}
 
 	static set transitionEndIsLeftOpen(isOpen: boolean) {
-		if (_setTransitionEndIsLeftOpen) _setTransitionEndIsLeftOpen(isOpen);
+		if (SetTransitionEndIsLeftOpen) SetTransitionEndIsLeftOpen(isOpen);
 	}
 
 	static get transitionEndIsRightOpen(): boolean {
@@ -115,7 +115,7 @@ abstract class SidebarsIsOpenService {
 	}
 
 	static set transitionEndIsRightOpen(isOpen: boolean) {
-		if (_setTransitionEndIsRightOpen) _setTransitionEndIsRightOpen(isOpen);
+		if (SetTransitionEndIsRightOpen) SetTransitionEndIsRightOpen(isOpen);
 	}
 }
 

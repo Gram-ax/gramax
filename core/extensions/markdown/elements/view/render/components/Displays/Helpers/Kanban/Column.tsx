@@ -8,7 +8,7 @@ interface ColumnProps extends ColumnType {
 	disabled?: boolean;
 	className?: string;
 	onCardDrop: (columnID: number, cardID: number, newColumnID: number) => void;
-	updateProperty: (columnID: number, cardID: number, property: string, value: string, isDelete?: boolean) => void;
+	updateProperty: (columnID: number, itemPath: string, property: string, value: string, isDelete?: boolean) => void;
 }
 
 const Column = ({ id, name, cards, className, onCardDrop, disabled, updateProperty }: ColumnProps) => {

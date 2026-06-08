@@ -1,6 +1,5 @@
 import { Command } from "@app/types/Command";
 import { ResponseKind } from "@app/types/ResponseKind";
-import { NetworkConnectMiddleWare } from "@core/Api/middleware/NetworkConntectMiddleware";
 import Path from "@core/FileProvider/Path/Path";
 import ConfluenceStorage from "@ext/confluence/core/logic/ConfluenceStorage";
 import getConfluenceUnsupportedElements from "@ext/confluence/core/logic/getConfluenceUnsupportedElements";
@@ -19,8 +18,6 @@ const getUnsupportedElements: Command<
 > = Command.create({
 	path: "storage/import/getUnsupportedElements",
 	kind: ResponseKind.json,
-
-	middlewares: [new NetworkConnectMiddleWare()],
 
 	async do({ storageDataName, sourceType, data }) {
 		const workspace = this._app.wm.current();

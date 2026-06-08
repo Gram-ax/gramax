@@ -1,4 +1,3 @@
-import haveInternetAccess from "@core/utils/haveInternetAccess";
 import type ApiUrlCreator from "@core-ui/ApiServices/ApiUrlCreator";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
@@ -65,6 +64,7 @@ abstract class GitSourceApi implements SourceAPI {
 	}
 
 	abstract refreshAccessToken(): Promise<GitSourceData>;
+	abstract healthcheck(): Promise<boolean>;
 	abstract getUser(): Promise<SourceUser>;
 	abstract isRepositoryExists(data: StorageData): Promise<boolean>;
 	abstract getAllProjects(): Promise<GitRepData[]>;
@@ -132,16 +132,6 @@ abstract class GitSourceApi implements SourceAPI {
 		);
 		this._onError?.(error);
 		throw error;
-	}
-
-	protected async _assertHasInternetAccess() {
-		if (!(await haveInternetAccess())) {
-			throw new NetworkApiError(
-				t("app.error.offline.no-internet"),
-				{ url: null, errorJson: null, status: -1 },
-				t("app.error.offline.mode"),
-			);
-		}
 	}
 }
 

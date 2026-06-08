@@ -19,6 +19,7 @@ const EditMarkdown = ({ trigger, loadContent, saveContent, onClose }: FileEditor
 	const isLoadingRef = useRef(false);
 	const [key, emit] = useTrigger();
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const loadArticleContent = useCallback(async () => {
 		if (isLoadingRef.current) return;
 
@@ -32,6 +33,7 @@ const EditMarkdown = ({ trigger, loadContent, saveContent, onClose }: FileEditor
 		}
 	}, [loadContent]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const onOpenChange = useCallback(
 		(value) => {
 			setIsOpen(value);
@@ -46,6 +48,7 @@ const EditMarkdown = ({ trigger, loadContent, saveContent, onClose }: FileEditor
 		onOpenChange(false);
 	}, [value, saveContent, onOpenChange]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (trigger) return;
 		void loadArticleContent();
@@ -71,11 +74,11 @@ const EditMarkdown = ({ trigger, loadContent, saveContent, onClose }: FileEditor
 						language={"markdown"}
 						onChange={setValue}
 						style={{ padding: undefined }}
-						uiKitTheme
+						theme={{ dark: "new-vs-dark", light: "light" }}
 						value={value}
 					/>
 				</DialogBody>
-				<FormFooter primaryButton={<Button children={t("save")} onClick={save} variant="primary" />} />
+				<FormFooter primaryButton={<Button onClick={save}>{t("save")}</Button>} />
 			</DialogContent>
 		</Dialog>
 	);

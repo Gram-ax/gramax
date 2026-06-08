@@ -20,11 +20,11 @@ export const prettify =
 		const ai = new TiptapGramaxAi(apiUrlCreator, editor.schema);
 
 		const { selection } = editor.state;
-		const $from = selection.$from;
-		const $to = selection.$to;
+		const From = selection.$from;
+		const To = selection.$to;
 
-		const from = $from.start();
-		const to = $to.pos;
+		const from = From.start();
+		const to = To.pos;
 
 		const decorations = createLoadingDecoration(from, to);
 
@@ -63,9 +63,8 @@ export const generate =
 		const { selection } = editor.state;
 		const from = selection.from;
 		const to = selection.to;
-		const $from = selection.$from;
-		const hasContent =
-			($from.node().type.name !== "text" ? $from.node().textContent : $from.node().text).length > 0;
+		const From = selection.$from;
+		const hasContent = (From.node().type.name !== "text" ? From.node().textContent : From.node().text).length > 0;
 
 		const isBlock = from === to && !hasContent;
 		const decorations = createLoadingDecoration(from, to, isBlock, t("ai.generating"));

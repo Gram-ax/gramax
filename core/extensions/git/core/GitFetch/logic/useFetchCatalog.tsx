@@ -1,7 +1,7 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import CatalogFetchTimersService from "@core-ui/ContextServices/CatalogFetchTimers";
-import isOfflineService from "@core-ui/ContextServices/IsOfflineService";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import SyncIconService from "@core-ui/ContextServices/SyncIconService";
 import { useCatalogPropsStore } from "@core-ui/stores/CatalogPropsStore/CatalogPropsStore.provider";
@@ -11,7 +11,6 @@ import { useEffect, useRef } from "react";
 const useFetchCatalog = () => {
 	const catalogProps = useCatalogPropsStore((state) => state.data, "shallow");
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const isOffline = isOfflineService.value;
 	const isRepoOk = useIsRepoOk(catalogProps) && !!catalogProps?.name;
 	const isRepoOkRef = useRef<boolean>(isRepoOk);
 	const readOnly = PageDataContextService.value.conf.isReadOnly;
@@ -19,7 +18,6 @@ const useFetchCatalog = () => {
 	const fetchCatalog = async () => {
 		if (
 			!catalogProps?.name ||
-			isOffline ||
 			!isRepoOkRef.current ||
 			readOnly ||
 			!CatalogFetchTimersService.canFetch(catalogProps.name)

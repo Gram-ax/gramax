@@ -1,3 +1,4 @@
+// biome-ignore-all lint/suspicious/noExplicitAny: accessing private method in tests
 import type ParserContext from "@ext/markdown/core/Parser/ParserContext/ParserContext";
 import Path from "../../../../../../logic/FileProvider/Path/Path";
 import linkCreater from "./linkCreator";
@@ -107,7 +108,7 @@ describe("linkCreator", () => {
 
 			test("catalog name when articlePath is in .gramax directory", () => {
 				const docsPath = new Path("root-catalog/docs");
-				const articlePath = new Path("root-catalog/.gramax/snippets/article.md");
+				const articlePath = new Path("root-catalog/.gramax/fragments/article.md");
 				const href = "./../../../other-catalog/some-file";
 
 				const result = linkCreater.getCatalogNameFromPath(href, articlePath, docsPath);
@@ -119,7 +120,7 @@ describe("linkCreator", () => {
 		describe("with .gramax directory context", () => {
 			test("different catalog from .gramax context", () => {
 				const docsPath = new Path("catalog/docs");
-				const articlePath = new Path("catalog/.gramax/snippets/article.md");
+				const articlePath = new Path("catalog/.gramax/fragments/article.md");
 				const href = "./../../../other-catalog/docs/file";
 
 				const result = linkCreater.getCatalogNameFromPath(href, articlePath, docsPath);
@@ -129,7 +130,7 @@ describe("linkCreator", () => {
 
 			test("same catalog from .gramax context via relative path", () => {
 				const docsPath = new Path("catalog/docs");
-				const articlePath = new Path("catalog/.gramax/snippets/article.md");
+				const articlePath = new Path("catalog/.gramax/fragments/article.md");
 				const href = "./../folder2/file";
 
 				const result = linkCreater.getCatalogNameFromPath(href, articlePath, docsPath);
@@ -277,7 +278,7 @@ describe("linkCreator", () => {
 
 		test("returns rootDirectory when articlePath is within .gramax directory", () => {
 			const docsPath = new Path("catalog/docs");
-			const articlePath = new Path("catalog/.gramax/snippets/article.md");
+			const articlePath = new Path("catalog/.gramax/fragments/article.md");
 
 			const result = (linkCreater as any)._getArticleProviderRootPath(articlePath, docsPath);
 

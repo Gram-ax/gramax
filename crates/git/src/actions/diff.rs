@@ -47,6 +47,8 @@ pub struct DiffConfig {
 	#[serde(default = "default_use_merge_base")]
 	pub use_merge_base: bool,
 	pub renames: bool,
+	#[serde(default)]
+	pub pathspecs: Option<Vec<String>>,
 }
 
 fn default_use_merge_base() -> bool {
@@ -138,6 +140,12 @@ impl<C: Creds> Repo<'_, C> {
 		let mut diff_opts = git2::DiffOptions::new();
 		diff_opts.context_lines(0).ignore_submodules(true);
 
+		if let Some(paths) = &opts.pathspecs {
+			for path in paths {
+				diff_opts.pathspec(path);
+			}
+		}
+
 		let diff = match &opts.compare {
 			DiffCompareOptions::Tree2Tree { new, old } => {
 				let old_oid = old.parse::<Oid>()?;
@@ -183,6 +191,12 @@ impl<C: Creds> Repo<'_, C> {
 	fn diff_using_merge_base(&self, merge_base: Oid, opts: &DiffConfig) -> Result<git2::Diff<'_>> {
 		let mut diff_opts = git2::DiffOptions::new();
 		diff_opts.context_lines(0).ignore_submodules(true);
+
+		if let Some(pathspecs) = &opts.pathspecs {
+			for path in pathspecs {
+				diff_opts.pathspec(path);
+			}
+		}
 
 		let diff = match &opts.compare {
 			DiffCompareOptions::Tree2Tree { new, old } => {
@@ -288,9 +302,7 @@ pub struct DiffFile {
 	commit_oid: String,
 	date: i64,
 	path: PathBuf,
-	content: Option<String>,
 	parent_path: Option<PathBuf>,
-	parent_content: Option<String>,
 	pub has_changes: bool,
 }
 
@@ -321,17 +333,13 @@ impl DiffFile {
 			None,
 		)?;
 
-		let rhs = rhs.map(|blob| String::from_utf8_lossy(blob.content()).to_string());
-		let lhs = lhs.map(|blob| String::from_utf8_lossy(blob.content()).to_string());
 		let diff = DiffFile {
 			author_name: signature.name().or_utf8_err()?.into(),
 			author_email: signature.email().or_utf8_err()?.into(),
 			commit_oid: commit.id().to_string(),
 			date: commit.time().seconds() * 1000,
 			path: rhs_path,
-			content: rhs,
 			parent_path: lhs.as_ref().map(|_| lhs_path),
-			parent_content: lhs,
 			has_changes,
 		};
 
@@ -347,15 +355,7 @@ impl DiffFile {
 			commit_oid: commit.id().to_string(),
 			date: commit.time().seconds() * 1000,
 			path: delta.new_file().path().or_utf8_err()?.to_path_buf(),
-			content: repo
-				.find_blob(delta.new_file().id())
-				.ok()
-				.and_then(|b| String::from_utf8(b.content().to_vec()).ok()),
 			parent_path: delta.old_file().path().map(|p| p.to_path_buf()),
-			parent_content: repo
-				.find_blob(delta.old_file().id())
-				.ok()
-				.and_then(|b| String::from_utf8(b.content().to_vec()).ok()),
 			has_changes: true,
 		})
 	}

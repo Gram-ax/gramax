@@ -14,6 +14,13 @@ declare module "*.png" {
 	export default content;
 }
 
+declare module "*?worker" {
+	const workerConstructor: {
+		new (): Worker;
+	};
+	export default workerConstructor;
+}
+
 declare function confirm(message?: string): Promise<boolean>;
 declare function refreshPage(): Promise<void>;
 declare function clearData(): void;

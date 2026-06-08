@@ -87,7 +87,11 @@ export default class WorkspaceManager {
 	async getUnintializedWorkspace(path: WorkspacePath) {
 		return await UnintializedWorkspace.init({
 			path,
-			fs: new FileStructure(this._makeFileProvider(path), this._config.isReadOnly),
+			fs: new FileStructure(
+				this._makeFileProvider(path),
+				this._config.isReadOnly,
+				Array.from(this._workspaces.keys()),
+			),
 			rp: this._rp,
 		});
 	}
@@ -99,18 +103,29 @@ export default class WorkspaceManager {
 		if (!init) throw new Error(`There is no workspace with id '${path}'`);
 		const fp = this._makeFileProvider(path);
 		await fp.createRootPathIfNeed();
-		const fs = new FileStructure(fp, this._config.isReadOnly);
+		const fs = new FileStructure(fp, this._config.isReadOnly, Array.from(this._workspaces.keys()));
 		this._callback(fs);
 
-		const WorkspaceClass = init.get("enterprise")?.gesUrl || init.get("gesUrl") ? EnterpriseWorkspace : Workspace;
-		this._current = await WorkspaceClass.init({
+		const workspaceConfig = {
 			fs,
 			rp: this._rp,
 			path,
 			config: init,
 			assets: this.getWorkspaceAssets(path),
 			onInit: (workspace) => this._onInit?.(workspace),
-		});
+		};
+
+		const workspaceClass = await this._getWorkspaceClass(init.inner());
+		switch (workspaceClass) {
+			case "enterprise":
+				this._current = await EnterpriseWorkspace.init(workspaceConfig);
+				break;
+			case "enterpriseCloud":
+				this._current = await Workspace.init(workspaceConfig);
+				break;
+			default:
+				this._current = await Workspace.init(workspaceConfig);
+		}
 
 		this._current.events.on("catalog-changed", (catalog) => {
 			this._rules?.forEach((fn) => fn(catalog));
@@ -152,7 +167,7 @@ export default class WorkspaceManager {
 		)
 			await this._importWorkspaceFromRootPath();
 
-		this.removeInvalidWorkspaces();
+		this._removeInvalidWorkspaces();
 
 		if (!this._workspacesConfig.get("workspaces") || this._workspacesConfig.get("workspaces").length === 0) {
 			if (getExecutingEnvironment() === "tauri") return;
@@ -181,7 +196,7 @@ export default class WorkspaceManager {
 
 		if (skipIfNoDirs && (await fp.readdir(Path.empty)).length === 0) return;
 
-		const yaml = await this.readWorkspace(fp, config);
+		const yaml = await this._readWorkspace(fp, config);
 
 		this._workspaces.set(path, yaml);
 
@@ -294,7 +309,13 @@ export default class WorkspaceManager {
 		this._removingRules.push(callback);
 	}
 
-	private async readWorkspace(fp: FileProvider, config?: WorkspaceConfig): Promise<WorkspaceConfigWithCatalogs> {
+	private async _getWorkspaceClass(config: WorkspaceConfig) {
+		if (config.enterprise?.gesUrl) return "enterprise";
+		if (config.enterpriseCloud?.url) return "enterpriseCloud";
+		return "workspace";
+	}
+
+	private async _readWorkspace(fp: FileProvider, config?: WorkspaceConfig): Promise<WorkspaceConfigWithCatalogs> {
 		const yaml = await YamlFileConfig.readFromFile(fp, workspaceConfigFilename, {
 			name: config?.name || t(DEFAULT_WORKSPACE_NAME),
 			icon: config?.icon || DEFAULT_WORKSPACE_ICON,
@@ -305,6 +326,9 @@ export default class WorkspaceManager {
 				gesUrl: config?.enterprise?.gesUrl ?? null,
 				lastUpdateDate: config?.enterprise?.lastUpdateDate ?? null,
 				refreshInterval: config?.enterprise?.refreshInterval ?? null,
+			},
+			enterpriseCloud: {
+				url: config?.enterpriseCloud?.url ?? null,
 			},
 			services: mergeObjects<ServicesConfig>(this._config.services, config?.services ?? {}),
 		});
@@ -320,14 +344,15 @@ export default class WorkspaceManager {
 			),
 		);
 
-		if (!yaml.get("enterprise")?.gesUrl) yaml.set("services", this._config.services);
+		if (!yaml.get("enterprise")?.gesUrl && !yaml.get("enterpriseCloud")?.url)
+			yaml.set("services", this._config.services);
 		if (yaml.get("name") !== name) await yaml.save();
 
 		const catalogNames = await FileStructure.getCatalogDirs(fp);
 		return { catalogNames: catalogNames.map((i) => i.name), config: yaml };
 	}
 
-	private removeInvalidWorkspaces() {
+	private _removeInvalidWorkspaces() {
 		for (const path of this._workspacesConfig.get("workspaces") ?? []) {
 			if (!this._workspaces.get(path))
 				this._workspacesConfig.set(

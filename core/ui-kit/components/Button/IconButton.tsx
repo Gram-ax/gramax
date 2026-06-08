@@ -5,7 +5,7 @@ import type { ExtractComponentGeneric } from "../../lib/extractComponentGeneric"
 
 type UiKitIconButtonProps = ExtractComponentGeneric<typeof UiKitIconButton>;
 
-interface IconButtonProps extends Omit<UiKitIconButtonProps, "icon"> {
+export interface IconButtonProps extends Omit<UiKitIconButtonProps, "icon"> {
 	icon: string;
 }
 
@@ -13,5 +13,6 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>((props,
 	const { icon, ...otherProps } = props;
 	const lucideIcon = LucideIcon(icon);
 	if (!lucideIcon) return null;
+	// biome-ignore lint/suspicious/noExplicitAny: expected
 	return <UiKitIconButton icon={lucideIcon as any} ref={ref} {...otherProps} />;
 });

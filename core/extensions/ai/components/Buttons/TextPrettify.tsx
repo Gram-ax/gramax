@@ -42,7 +42,7 @@ const TextPrettify = ({ editor }: { editor: Editor }) => {
 			isOpen={isOpen}
 			onSubmit={onSubmit}
 			setIsOpen={setIsOpen}
-			toolbarSelector="[role='article-inline-toolbar'], [role='bottom-toolbar']"
+			toolbarSelector="[role='article-inline-toolbar'], [data-toolbar='bottom']"
 			triggerIcon="wand-sparkles"
 			triggerTooltipText={t("editor.ai.improve")}
 		/>

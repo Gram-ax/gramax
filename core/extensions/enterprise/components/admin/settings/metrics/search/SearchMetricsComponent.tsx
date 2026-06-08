@@ -1,5 +1,5 @@
+import { cn } from "@core-ui/utils/cn";
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { useScrollShadow } from "@ext/enterprise/components/admin/hooks";
 import { useHealthCheck } from "@ext/enterprise/components/admin/settings/HealthCheck";
 import SearchQueryDetailsTable from "@ext/enterprise/components/admin/settings/metrics/search/details/SearchQueryDetailsTable";
 import ArticleRatingsTable from "@ext/enterprise/components/admin/settings/metrics/search/ratings/ArticleRatingsTable";
@@ -9,14 +9,15 @@ import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
+import { Loader } from "@ui-kit/Loader";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Loader } from "ics-ui-kit/components/loader";
 import { useCallback, useMemo, useRef, useState } from "react";
 import MetricsChart from "../components/chart/MetricsChart";
 import MetricsDateFilter from "../components/filters/MetricsDateFilter";
 import type { SortOrder } from "../filters";
 import useMetricsFilters from "../filters";
 import { searchChartConfig } from "./chart/searchMetricsConfig";
+import SearchMetricsFilterDropdown from "./filters/SearchMetricsFilterDropdown";
 import SearchCards from "./SearchCards";
 import SearchMetricsTable from "./table/SearchMetricsTable";
 import type { SearchMetricsTableRow } from "./table/SearchMetricsTableConfig";
@@ -32,6 +33,7 @@ const SearchMetricsComponent = () => {
 		isInitialLoading,
 		healthcheckDataProvider,
 		isRefreshing,
+		getSearchMetricsCatalogs,
 	} = useSettings();
 	const { filters, setFilters } = useMetricsFilters("search");
 	const { isHealthy, healthCheckLoader } = useHealthCheck({
@@ -43,7 +45,6 @@ const SearchMetricsComponent = () => {
 	const selectedQuery = userSelectedQuery ?? searchMetricsSettings?.tableData?.[0]?.normalizedQuery ?? null;
 
 	const queryDetailsRef = useRef<HTMLDivElement>(null);
-	const { isScrolled } = useScrollShadow();
 	const getSearchTableDataRef = useRef(getSearchTableData);
 	getSearchTableDataRef.current = getSearchTableData;
 
@@ -109,7 +110,13 @@ const SearchMetricsComponent = () => {
 		<div>
 			<StickyHeader
 				actions={
-					<div className={`${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}>
+					<div className={cn("flex items-center gap-2", !isHealthy && "opacity-50 pointer-events-none")}>
+						<SearchMetricsFilterDropdown
+							disabled={isRefreshing("metrics")}
+							getMetricsCatalogs={getSearchMetricsCatalogs}
+							onCatalogChange={(catalogs) => handleFilterChange({ selectedCatalogs: catalogs })}
+							selectedCatalogs={filters.selectedCatalogs ?? []}
+						/>
 						<MetricsDateFilter
 							dateRange={{
 								startDate: filters.startDate,
@@ -123,7 +130,6 @@ const SearchMetricsComponent = () => {
 						/>
 					</div>
 				}
-				isScrolled={isScrolled}
 				title={
 					<div>
 						<div className="flex gap-2">
@@ -147,7 +153,7 @@ const SearchMetricsComponent = () => {
 				}
 			/>
 			<div
-				className={`flex flex-col flex-1 min-h-0 px-6 pb-6 gap-8 overflow-auto ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}
+				className={`flex flex-col flex-1 min-h-0 gap-8 overflow-auto ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}
 			>
 				<div className="flex gap-8" style={{ minHeight: 440 }}>
 					<div className="flex-1 min-w-0">
@@ -176,6 +182,7 @@ const SearchMetricsComponent = () => {
 							initialData={initialData}
 							onRowClick={handleTableRowClick}
 							onSortChange={createTableSortHandler}
+							selectedCatalogs={filters.selectedCatalogs}
 							selectedQuery={selectedQuery}
 							sortBy={filters.queriesTable.sortBy}
 							sortOrder={filters.queriesTable.sortOrder}
@@ -200,6 +207,7 @@ const SearchMetricsComponent = () => {
 						<ArticleRatingsTable
 							endDate={filters.endDate}
 							onSortChange={createTableSortHandler}
+							selectedCatalogs={filters.selectedCatalogs}
 							sortBy={filters.articleRatingTable.sortBy}
 							sortOrder={filters.articleRatingTable.sortOrder}
 							startDate={filters.startDate}

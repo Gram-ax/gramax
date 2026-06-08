@@ -1,11 +1,16 @@
 import { RIGHT_NAV_CLASS } from "@app/config/const";
+import { ARTICLE_CONTENT_WRAPPER_WIDTH_ATTRIBUTE } from "@components/Layouts/CatalogLayout/ArticleLayout/consts";
 import { classNames } from "@components/libs/classNames";
 import ArticleRefService from "@core-ui/ContextServices/ArticleRef";
 import { useBreakpoint } from "@core-ui/hooks/useBreakpoint";
+import type { SwipeHandlers } from "@core-ui/hooks/useSidebarSwipe";
 import { cn } from "@core-ui/utils/cn";
 import { cssMedia } from "@core-ui/utils/cssUtils";
+// biome-ignore lint/style/noRestrictedImports: needs
 import styled from "@emotion/styled";
+import { ArticleBreadcrumbDiffLine } from "@ext/git/core/Diff/components/ArticleBreadcrumbDiffLine";
 import { PAGE_WIDTH_PDF } from "@ext/print/const";
+import { useEffect } from "react";
 
 export interface ArticleLayoutProps {
 	article: JSX.Element;
@@ -18,6 +23,8 @@ export interface ArticleLayoutProps {
 	onArticleMouseEnter?: () => void;
 	onArticleMouseLeave?: () => void;
 	onRightNavTransitionEnd?: () => void;
+	rightNavOpenSwipeHandlers?: SwipeHandlers;
+	rightNavCloseSwipeHandlers?: SwipeHandlers;
 	className?: string;
 }
 
@@ -30,18 +37,37 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 		onArticleMouseEnter,
 		onArticleMouseLeave,
 		onRightNavTransitionEnd,
+		rightNavOpenSwipeHandlers,
+		rightNavCloseSwipeHandlers,
 		useArticleDefaultStyles,
 		className,
 	} = props;
 	const breakpoint = useBreakpoint();
 
 	const isMobile = breakpoint === "sm";
+
+	useEffect(() => {
+		const articleContentWrapper = articleRef.current?.firstElementChild as HTMLDivElement;
+		if (!articleContentWrapper) return;
+
+		const observer = new ResizeObserver(([entry]) => {
+			articleContentWrapper.style.setProperty(
+				ARTICLE_CONTENT_WRAPPER_WIDTH_ATTRIBUTE,
+				`${entry.contentRect.width}px`,
+			);
+		});
+
+		observer.observe(articleContentWrapper);
+		return () => observer.disconnect();
+	}, [articleRef.current?.firstElementChild]);
+
 	return (
 		<div
 			className={classNames(className, { article: useArticleDefaultStyles })}
 			data-testid="article-scroll-container"
 			onTransitionEnd={onRightNavTransitionEnd}
 			ref={articleRef}
+			tabIndex={-1}
 		>
 			<div
 				className={cn("article-content-wrapper", isMobile && "article-mobile")}
@@ -53,18 +79,31 @@ const ArticleLayout = (props: ArticleLayoutProps) => {
 				<div className={classNames("article-content", { "article-default-content": useArticleDefaultStyles })}>
 					{article}
 				</div>
+				<ArticleBreadcrumbDiffLine />
 			</div>
-			<div className={classNames("article", {}, [RIGHT_NAV_CLASS])}>
+			<div className={classNames("article", {}, [RIGHT_NAV_CLASS])} {...rightNavCloseSwipeHandlers}>
 				<div style={{ height: "inherit" }}>{rightNav}</div>
 			</div>
+			{props.narrowMedia && !props.isRightNavPin && !props.isRightNavOpen && (
+				<div aria-hidden className="right-nav-swipe-zone" {...rightNavOpenSwipeHandlers} />
+			)}
 		</div>
 	);
 };
 
 export default styled(ArticleLayout)`
+	&:focus {
+		outline: none;
+	}
+
 	.right-nav-layout {
 		${(p) => !p.isRightNavPin && `z-index: var(--z-index-nav-layout);`}
 		height: 100%;
+		touch-action: pan-y;
+	}
+
+	.right-nav-swipe-zone {
+		display: none;
 	}
 
 	${(p) =>
@@ -75,6 +114,7 @@ export default styled(ArticleLayout)`
 	position: relative;
 	flex-direction: row;
 	overflow: hidden auto;
+	overflow-anchor: none;
 	background: var(--color-article-bg);
 
 	.article-content-wrapper {
@@ -105,15 +145,26 @@ export default styled(ArticleLayout)`
 		${
 			p.isRightNavPin
 				? `z-index: var(--z-index-popover); transform: translateX(0px);`
-				: `transform: translateX(calc(var(--narrow-nav-width) - 20px));`
+				: `transform: translateX(var(--narrow-nav-width));`
 		}
 
 		${!p.isRightNavPin && p.isRightNavOpen ? `transform: translateX(0); box-shadow: var(--shadows-deeplight);` : ``}
 	}
 
+	.right-nav-swipe-zone {
+		display: block;
+		position: fixed;
+		top: 0;
+		right: 0;
+		width: 1.5rem;
+		height: 100dvh;
+		z-index: var(--z-index-nav-layout);
+		touch-action: pan-y;
+	}
+
 	${cssMedia.narrow} {
 		.article-content-wrapper {
-			padding: 3.5rem 2.125rem 0 1.25rem;
+			padding: 3.5rem 1.25rem 0;
 		}
 
 		.article-content-wrapper {
@@ -132,6 +183,7 @@ export default styled(ArticleLayout)`
 	display: flex;
 	overflow-y: auto;
 	overflow-x: hidden;
+	overflow-anchor: none;
 	justify-content: center;
 	background: var(--color-article-bg);
 	${p.isRightNavPin ? "" : "margin-right: 20px;"}
@@ -145,7 +197,7 @@ export default styled(ArticleLayout)`
 		justify-content: center;
 		width: ${p.isRightNavPin ? "calc(100% - var(--narrow-nav-width))" : "100%"};
 		color: var(--color-article-text);
-		${!p.useArticleDefaultStyles ? "" : p.isRightNavPin ? "" : `padding-left: var(--article-wrapper-padding-left);`}
+		${!p.useArticleDefaultStyles ? "" : p.isRightNavPin ? "" : `padding-left: calc(var(--left-navigation-content-padding-right) + 30px);`}
 	}
 
 	.article-content{
@@ -196,7 +248,7 @@ export default styled(ArticleLayout)`
 		background: #fff;
 
 		.article-content-wrapper {
-			height: auto; 
+			height: auto;
 			padding-top: 0;
 			padding-left: 30px;
 			width: 100% !important;

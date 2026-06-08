@@ -11,7 +11,7 @@ export const transformNodeToModel = async (node: any, context: ParserContext): P
 			newNode.content.map(async (c, idx) => {
 				if (c.type === "answer") {
 					newNode.content[idx] = null;
-					return await _getCommentFromNode(c, context);
+					return await GetCommentFromNode(c, context);
 				}
 			}),
 		)
@@ -19,7 +19,7 @@ export const transformNodeToModel = async (node: any, context: ParserContext): P
 
 	newNode.content = newNode.content.filter((x: any) => x);
 
-	const comment = await _getCommentFromNode(
+	const comment = await GetCommentFromNode(
 		{
 			type: "comment_old",
 			attrs: { ...newNode.attrs },
@@ -38,13 +38,13 @@ export const transformModelToNode = (model: CommentBlock): JSONContent => {
 	if (!model?.comment) return null;
 	if (!Array.isArray(model.answers)) model.answers = [];
 
-	const node = _getNodeFromComment(model.comment, true);
-	const answerNodes = model.answers.map((answer: Comment) => _getNodeFromComment(answer, false));
+	const node = GetNodeFromComment(model.comment, true);
+	const answerNodes = model.answers.map((answer: Comment) => GetNodeFromComment(answer, false));
 	node.content.push(...answerNodes);
 	return node;
 };
 
-const _getCommentFromNode = async (node: any, context: ParserContext): Promise<Comment> => {
+const GetCommentFromNode = async (node: any, context: ParserContext): Promise<Comment> => {
 	return {
 		user: {
 			mail: node.attrs?.mail,
@@ -55,7 +55,7 @@ const _getCommentFromNode = async (node: any, context: ParserContext): Promise<C
 	};
 };
 
-const _getNodeFromComment = (comment: Comment, isComment: boolean) => {
+const GetNodeFromComment = (comment: Comment, isComment: boolean) => {
 	const node = {
 		type: isComment ? "comment_old" : "answer",
 		attrs: {

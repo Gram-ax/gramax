@@ -6,13 +6,14 @@ interface ImageSkeletonProps {
 	height: string;
 	isLoaded: boolean;
 	children: ReactNode;
+	className?: string;
 }
 
 export const ImageSkeleton = (props: ImageSkeletonProps) => {
-	const { width, height, children, isLoaded } = props;
+	const { width, height, children, isLoaded, className } = props;
 
 	return (
-		<Skeleton height={height} isLoaded={isLoaded} width={width}>
+		<Skeleton className={className} height={height} isLoaded={isLoaded} width={width}>
 			{children}
 		</Skeleton>
 	);

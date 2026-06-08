@@ -10,9 +10,9 @@ import styled from "@emotion/styled";
 import BranchUpdaterService from "@ext/git/actions/Branch/BranchUpdaterService/logic/BranchUpdaterService";
 import OnBranchUpdateCaller from "@ext/git/actions/Branch/BranchUpdaterService/model/OnBranchUpdateCaller";
 import SyncService from "@ext/git/actions/Sync/logic/SyncService";
+import { Changes } from "@ext/git/core/Diff/components/Changes/Changes";
+import { DiffEntriesLoadStage } from "@ext/git/core/Diff/components/Changes/DiffEntries";
 import Approvers from "@ext/git/core/GitMergeRequest/components/Approval/Approvers";
-import { Changes } from "@ext/git/core/GitMergeRequest/components/Changes/Changes";
-import { DiffEntriesLoadStage } from "@ext/git/core/GitMergeRequest/components/Changes/DiffEntries";
 import useOpenDeleteMergeRequestModal from "@ext/git/core/GitMergeRequest/components/DeleteMergeRequestModal";
 import { Creator, Description, MergeRequestFromWhere, Status } from "@ext/git/core/GitMergeRequest/components/Elements";
 import MergeButton from "@ext/git/core/GitMergeRequest/components/MergeButton";
@@ -21,7 +21,7 @@ import type { MergeRequest } from "@ext/git/core/GitMergeRequest/model/MergeRequ
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuItem, DropdownMenuSeparator } from "@ui-kit/Dropdown";
 import { useEffect, useMemo, useRef, useState } from "react";
-import DiffExtendedModeToggle from "./Changes/DiffExtendedModeToggle";
+import DiffExtendedModeToggle from "../../Diff/components/Changes/DiffExtendedModeToggle";
 
 export type MergeRequestProps = {
 	className?: string;
@@ -58,6 +58,7 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 
 	const [contentHeight, setContentHeight] = useState<number>(null);
 	const [stage, setStage] = useState(DiffEntriesLoadStage.NotLoaded);
+	const [diffPathnames, setDiffPathnames] = useState<string[]>([]);
 	const tabWrapperRef = useRef<HTMLDivElement>(null);
 	const [isDeleteMergeRequestModalOpen, setIsDeleteMergeRequestModalOpen] = useState(false);
 
@@ -75,12 +76,12 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 
 	useWatch(() => {
 		if (show) hasBeenOpened.current = true;
-		if (!show && hasBeenOpened.current) restoreView();
+		if (!show && hasBeenOpened.current) void restoreView();
 	}, [show]);
 
 	const close = () => {
 		setShow(false);
-		restoreView();
+		void restoreView();
 	};
 
 	const { call: callDeleteMr } = useApi({
@@ -132,6 +133,7 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 				<Description content={mergeRequest.description} />
 			</TopWrapper>
 			<Changes
+				onPathnamesChange={setDiffPathnames}
 				setContentHeight={setContentHeight}
 				setStage={setStage}
 				show={show}
@@ -140,7 +142,7 @@ const MergeRequestTab = ({ mergeRequest, isDraft, show, setShow }: MergeRequestP
 				targetRef={mergeRequest.targetBranchRef}
 			/>
 			<BottomWrapper>
-				<Approvers approvers={mergeRequest.approvers} />
+				<Approvers approvers={mergeRequest.approvers} pathnames={diffPathnames} />
 				<ButtonArea>
 					<MergeButton hasConflicts={false} mergeRequest={mergeRequest} status={status} />
 				</ButtonArea>

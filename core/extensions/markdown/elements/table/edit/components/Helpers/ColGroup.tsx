@@ -88,7 +88,7 @@ const ColGroup = ({ content, parentElement, tableRef, init }: ColGroupProps) => 
 		return cells.map((cell) => {
 			const colwidth = cell.getAttribute("colwidth") || cell.getAttribute("data-colwidth");
 			const colwidths = colwidth?.split(",").map((w) => normalizeWidth(w.trim()));
-			const colspan = parseInt(cell.getAttribute("colspan") || "1");
+			const colspan = parseInt(cell.getAttribute("colspan") || "1", 10);
 			return { colspan, colwidth: colwidths };
 		});
 	};
@@ -159,7 +159,7 @@ const ColGroup = ({ content, parentElement, tableRef, init }: ColGroupProps) => 
 	return (
 		<>
 			<colgroup>{generatedCols}</colgroup>
-			<thead contentEditable="false" style={{ userSelect: "none" }}>
+			<thead contentEditable="false" style={{ userSelect: "none" }} suppressContentEditableWarning>
 				<tr style={{ visibility: "hidden" }}>
 					{generatedCols.map((_, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey:  just need a row with cells in order to know the column width in safari

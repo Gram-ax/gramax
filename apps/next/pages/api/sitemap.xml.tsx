@@ -1,8 +1,8 @@
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import type Query from "@core/Api/Query";
 import HiddenRules from "@core/FileStructue/Rules/HiddenRules/HiddenRule";
-import SEOGenerator from "@core/Sitemap/SEOGenerator";
 import SecurityRules from "@ext/security/logic/SecurityRules";
+import SEOGenerator from "@ext/seoGenerator/SEOGenerator";
 import { ApplyApiMiddleware } from "apps/next/logic/Api/ApplyMiddleware";
 
 export default ApplyApiMiddleware(

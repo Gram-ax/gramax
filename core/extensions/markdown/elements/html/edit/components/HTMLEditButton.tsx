@@ -1,76 +1,73 @@
-import ButtonAtom from "@components/Atoms/Button/Button";
-import { ButtonStyle } from "@components/Atoms/Button/ButtonStyle";
 import FileInput from "@components/Atoms/FileInput/FileInput";
-import ActionButton from "@components/controls/HoverController/ActionButton";
-import FormStyle from "@components/Form/FormStyle";
-import ModalLayout from "@components/Layouts/Modal";
-import ModalLayoutLight from "@components/Layouts/ModalLayoutLight";
 import t from "@ext/localization/locale/translate";
 import type { Editor } from "@tiptap/core";
-import { useEffect, useState } from "react";
+import { Button } from "@ui-kit/Button";
+import { Dialog, DialogBody, DialogContent } from "@ui-kit/Dialog";
+import { FormFooter, FormHeader } from "@ui-kit/Form";
+import { useCallback, useEffect, useState } from "react";
 
 const HTMLEditor = ({ content, editor, onClose }: { content?: string; editor: Editor; onClose: () => void }) => {
 	const [isOpen, setIsOpen] = useState(true);
 	const [startContent, setStartContent] = useState(content ?? "");
-	const [contentState, setContentState] = useState(content ?? "");
-	const [contentEditState, setContentEditState] = useState(content ?? "");
-
-	const saveContent = (newContent: string) => {
-		editor.commands.updateAttributes("html", { content: newContent });
-	};
+	const [value, setValue] = useState(content ?? "");
 
 	useEffect(() => {
-		setStartContent(content);
-		setContentEditState(content);
-		setContentState(content);
+		setStartContent(content ?? "");
+		setValue(content ?? "");
 	}, [content]);
 
-	const save = () => {
-		const newContent = contentEditState.length === 0 ? "<p>HTML</p>" : contentEditState;
-		saveContent(newContent);
-		setContentState(newContent);
-		setStartContent(newContent);
-		setContentEditState(newContent !== contentEditState ? newContent : contentEditState);
-		setIsOpen(false);
-		onClose();
-	};
+	const onOpenChange = useCallback(
+		(open: boolean) => {
+			setIsOpen(open);
+			if (!open) onClose();
+		},
+		[onClose],
+	);
 
-	const cancel = () => {
-		setContentEditState(startContent);
-		setContentState(startContent);
-		setIsOpen(false);
-		onClose();
-	};
+	const save = useCallback(() => {
+		const newContent = value.length === 0 ? "<p>HTML</p>" : value;
+		editor.commands.updateAttributes("html", { content: newContent });
+		onOpenChange(false);
+	}, [value, editor, onOpenChange]);
+
+	const cancel = useCallback(() => {
+		setValue(startContent);
+		onOpenChange(false);
+	}, [startContent, onOpenChange]);
+
+	useEffect(() => {
+		const handler = (e: KeyboardEvent) => {
+			if (!isOpen) return;
+			if (e.code === "Enter" && (e.ctrlKey || e.metaKey)) save();
+		};
+		window.addEventListener("keydown", handler);
+		return () => window.removeEventListener("keydown", handler);
+	}, [isOpen, save]);
 
 	return (
-		<ModalLayout
-			contentWidth="L"
-			isOpen={isOpen}
-			onClose={cancel}
-			onCmdEnter={save}
-			trigger={<ActionButton icon={"pencil"} tooltipText={t("edit2")} />}
-		>
-			<ModalLayoutLight>
-				<FormStyle>
-					<>
-						<legend>{t("edit-html")}</legend>
-						<FileInput
-							language={"html"}
-							onChange={setContentEditState}
-							value={contentState?.toString() ?? ""}
-						/>
-						<div className="buttons">
-							<ButtonAtom buttonStyle={ButtonStyle.underline} onClick={cancel}>
-								<span>{t("cancel")}</span>
-							</ButtonAtom>
-							<ButtonAtom buttonStyle={ButtonStyle.default} onClick={save}>
-								<span>{t("save")}</span>
-							</ButtonAtom>
-						</div>
-					</>
-				</FormStyle>
-			</ModalLayoutLight>
-		</ModalLayout>
+		<Dialog onOpenChange={onOpenChange} open={isOpen}>
+			<DialogContent data-modal-root size="L">
+				<FormHeader description={t("edit-html-description")} icon="code" title={t("edit-html")} />
+				<DialogBody className="space-y-4">
+					<FileInput
+						height={"100%"}
+						language={"html"}
+						onChange={setValue}
+						style={{ padding: undefined }}
+						theme={{ dark: "new-vs-dark", light: "light" }}
+						value={value}
+					/>
+				</DialogBody>
+				<FormFooter
+					primaryButton={<Button onClick={save}>{t("save")}</Button>}
+					secondaryButton={
+						<Button onClick={cancel} variant="outline">
+							{t("cancel")}
+						</Button>
+					}
+				/>
+			</DialogContent>
+		</Dialog>
 	);
 };
 

@@ -73,7 +73,7 @@ const EditStyles = ({ children, customCss, setCustomCss, revertCustomCss }: Edit
 							language={"css"}
 							onChange={setCustomCss}
 							style={{ padding: undefined }}
-							uiKitTheme
+							theme={{ dark: "new-vs-dark", light: "light" }}
 							value={customCss}
 						/>
 					</FormStack>

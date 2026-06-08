@@ -48,24 +48,23 @@ export const createFormSchema = ({ allCatalogNames, validateEncodingSymbolsUrl }
 		docroot: z.optional(z.string().nullable()),
 		language: z.optional(z.string().nullable()),
 		versions: z.optional(z.array(z.string()).nullable()),
-		filterProperty: z.optional(z.string().nullable()),
 		description: z.optional(
 			z
 				.string()
-				.max(50, { message: t("max-length") + "50" })
+				.max(50, { message: `${t("max-length")}50` })
 				.nullable(),
 		),
 		style: z.optional(z.string().nullable()),
 		code: z.optional(
 			z
 				.string()
-				.max(4, { message: t("max-length") + "4" })
+				.max(4, { message: `${t("max-length")}4` })
 				.nullable(),
 		),
 		logo: z
 			.object({
-				light: z.null().optional(),
-				dark: z.null().optional(),
+				light: z.object({ content: z.string(), fileName: z.string(), type: z.string() }).nullable().optional(),
+				dark: z.object({ content: z.string(), fileName: z.string(), type: z.string() }).nullable().optional(),
 			})
 			.optional(),
 		syntax: z.optional(z.string().nullable()),

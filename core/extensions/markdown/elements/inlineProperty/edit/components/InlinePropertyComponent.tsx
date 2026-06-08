@@ -17,10 +17,14 @@ const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, se
 	const articleProps = ArticlePropsService.value;
 	const apiUrlCreator = ApiUrlCreatorService.value;
 
-	const onUpdate = (newBind: string) => {
-		updateAttributes({ bind: newBind });
-	};
+	const onUpdate = useCallback(
+		(newBind: string) => {
+			updateAttributes({ bind: newBind });
+		},
+		[updateAttributes],
+	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const deleteHandler = useCallback(
 		(id: string) => {
 			setArticleProperties((prevProps: Property[]) => {
@@ -38,6 +42,7 @@ const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, se
 		[articleProps, properties],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const updateHandler = useCallback(
 		(id: string, value?: string) => {
 			setArticleProperties((prevProps: Property[]) => {
@@ -67,10 +72,11 @@ const InlinePropertyComponent = ({ node, updateAttributes, extension, editor, se
 		<NodeViewWrapper as="span" data-drag-handle draggable={true}>
 			<InlineProperty
 				bind={bind}
-				isEditable={extension.options.canChangeProps}
+				canChangeProps={extension.options.canChangeProps}
 				onChangeProperty={onSubmit}
 				onUpdate={onUpdate}
 				props={properties}
+				scope={extension.options.scope}
 				selected={isSelected}
 			/>
 		</NodeViewWrapper>

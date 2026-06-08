@@ -2,7 +2,7 @@ import { ResponseKind } from "@app/types/ResponseKind";
 import { AuthorizeMiddleware } from "@core/Api/middleware/AuthorizeMiddleware";
 import { DesktopModeMiddleware } from "@core/Api/middleware/DesktopModeMiddleware";
 import type Context from "@core/Context/Context";
-import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/CommentsCounterStore";
+import type { AuthoredCommentsByAuthor } from "@ext/markdown/elements/comment/edit/logic/stores/CommentsStore";
 import assert from "assert";
 import { Command } from "../../../types/Command";
 

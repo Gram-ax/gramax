@@ -16,6 +16,7 @@ interface ArticleRatingsTableProps {
 	sortOrder: SortOrder;
 	onSortChange: (tableKey: string) => (sortBy: string, sortOrder: SortOrder) => void;
 	tableKey: string;
+	selectedCatalogs?: string[];
 }
 
 const getRowId = (row: ArticleRatingRow, index: number) => `${row.catalogName}-${row.articleTitle}-${index}`;
@@ -33,11 +34,13 @@ const ArticleRatingsTableInner = ({
 	sortOrder,
 	onSortChange,
 	tableKey,
+	selectedCatalogs,
 }: ArticleRatingsTableProps) => {
 	const { getArticleRatings } = useSettings();
 
 	const dataLoader = useCallback(
 		async (cursor?: string, sortByParam?: string, sortOrderParam?: string, limit?: number) => {
+			const catalogFilter = selectedCatalogs?.length ? selectedCatalogs : undefined;
 			return getArticleRatings(
 				startDate,
 				endDate,
@@ -45,14 +48,15 @@ const ArticleRatingsTableInner = ({
 				sortByParam ?? sortBy,
 				sortOrderParam ?? sortOrder,
 				limit,
+				catalogFilter,
 			);
 		},
-		[getArticleRatings, startDate, endDate, sortBy, sortOrder],
+		[getArticleRatings, startDate, endDate, sortBy, sortOrder, selectedCatalogs],
 	);
 
 	const dependencies = useMemo(
-		() => [startDate, endDate, sortBy, sortOrder],
-		[startDate, endDate, sortBy, sortOrder],
+		() => [startDate, endDate, sortBy, sortOrder, (selectedCatalogs ?? []).join(",")],
+		[startDate, endDate, sortBy, sortOrder, selectedCatalogs],
 	);
 
 	const actualSortHandler = useMemo(() => onSortChange(tableKey), [onSortChange, tableKey]);

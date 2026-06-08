@@ -19,5 +19,5 @@ export default interface ReadOnlyFileProvider {
 	isFolder: (path: Path) => Promise<boolean>;
 	readlink: (path: Path) => Promise<string>;
 	readdir: (path: Path) => Promise<string[]>;
-	symlink: (target: Path, path: Path) => Promise<void>;
+	hardlink: (target: Path, path: Path) => Promise<void>;
 }

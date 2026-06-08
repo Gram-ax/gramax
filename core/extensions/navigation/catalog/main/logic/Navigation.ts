@@ -99,7 +99,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 
 		const metadata: NavTreeMetadata = {};
 
-		const items = await catalog.deref.getTransformedItems<ItemLink>(mutableRoot.root, (i: Item) =>
+		const items = await this._transformCatalogItemsToLinks(catalog, mutableRoot.root, (i: Item) =>
 			this._convertToItemLink(catalog, i, currentPaths || [], metadata),
 		);
 
@@ -117,6 +117,20 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 		const mutableRef = { ref: null };
 		await this.events.emit("resolve-root-category", { catalog, mutableRef });
 		return mutableRef.ref;
+	}
+
+	private async _transformCatalogItemsToLinks(
+		catalog: ReadonlyCatalog,
+		root: Category,
+		transformer: (item: Item) => Promise<ItemLink> | ItemLink,
+	): Promise<ItemLink[]> {
+		const items = catalog.getCategoryItems(root);
+		const result: ItemLink[] = [];
+		for (const item of items) {
+			const transformed = await transformer(item);
+			if (transformed) result.push(transformed);
+		}
+		return result;
 	}
 
 	private async _convertToItemLink(
@@ -145,7 +159,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 				currentItemPaths.some((part) => part === new Path(categoryLink.ref.path).parentDirectoryPath.value) ||
 				catalog.getRootCategoryPath().compare(item.parent.folderPath);
 
-			for (const i of (<Category>item).items) {
+			for (const i of catalog.getCategoryItems(<Category>item)) {
 				const link = await this._convertToItemLink(catalog, i, currentItemPaths, metadata);
 				if (link) categoryLink.items.push(link);
 			}
@@ -153,7 +167,7 @@ export default class Navigation implements HasEvents<NavigationEvents> {
 			categoryLink.filter = item.props["filter"] ?? null;
 		}
 
-		if (item.type == ItemType.article) {
+		if (item.type === ItemType.article) {
 			link.type = ItemType.article;
 			(<ArticleLink>link).alwaysShow = item.props["alwaysShow"] ?? null;
 		}

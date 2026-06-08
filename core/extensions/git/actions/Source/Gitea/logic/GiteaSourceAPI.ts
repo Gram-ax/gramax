@@ -19,6 +19,11 @@ export default class GiteaSourceAPI extends GitSourceApi {
 		super(data, _onError, defaultPerPage);
 	}
 
+	async healthcheck(): Promise<boolean> {
+		const res = await this.getUser();
+		return !!res;
+	}
+
 	async refreshAccessToken(): Promise<GitSourceData> {
 		assert(this._authServiceUrl, "authServiceUrl is required");
 
@@ -105,7 +110,6 @@ export default class GiteaSourceAPI extends GitSourceApi {
 	}
 
 	protected async _api(url: string, init?: RequestInit): Promise<Response> {
-		await this._assertHasInternetAccess();
 		const sourceUrl = `${this._data.protocol ?? "https"}://${this._data.domain}`;
 		try {
 			const res = await fetch(`${sourceUrl}/api/v1/${url}`, {

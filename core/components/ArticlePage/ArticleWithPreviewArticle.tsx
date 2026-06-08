@@ -11,7 +11,7 @@ interface ArticlePreviewProps extends React.HTMLAttributes<HTMLDivElement> {
 const ArticleWithPreviewArticle = ({ mainArticle, previewArticle, className, ...props }: ArticlePreviewProps) => {
 	return (
 		<div
-			className={classNames("article-page-wrapper", { ["preview-style"]: !!previewArticle }, [className])}
+			className={classNames("article-page-wrapper", { "preview-style": !!previewArticle }, [className])}
 			{...props}
 		>
 			<div className="main-article">{mainArticle}</div>
@@ -29,6 +29,7 @@ export default styled(ArticleWithPreviewArticle)`
 
 	div.main-article {
 		width: 100%;
+		height: 100%;
 	}
 
 	&.preview-style > div.main-article {

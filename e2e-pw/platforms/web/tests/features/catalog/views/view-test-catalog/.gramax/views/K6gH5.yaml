@@ -1,0 +1,13 @@
+id: K6gH5
+name: Filter by Richard Roe
+filters:
+  - id: tSUSa
+    value:
+      - John Smith
+      - Elizabeth Swann
+      - John Doe
+properties:
+  - id: y36Vp
+    value:
+      - Government Tax System
+options: {}

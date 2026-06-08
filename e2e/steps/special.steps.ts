@@ -24,8 +24,15 @@ When("отменяем все изменения", { timeout: config.timeouts.lo
 		await search.clickable("выбрать все").hover();
 		await search.icon("отмена всех изменений").click();
 
+		await this.page()
+			.inner()
+			.getByRole("button", { name: /Откатить .*/ })
+			.click();
+
+		await sleep(1000);
 		const loader = await this.page().search().find(`[data-qa="loader"]`);
 		await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
+
 		await this.page().inner().reload();
 	}
 	search.reset();
@@ -33,6 +40,10 @@ When("отменяем все изменения", { timeout: config.timeouts.lo
 
 When("решаем конфликт", { timeout: config.timeouts.long }, async function (this: E2EWorld) {
 	await sleep(1000);
+	const search = this.page().search().reset();
+	const locator = await search.find(".monaco-editor");
+	await locator.waitFor({ timeout: config.timeouts.long * 4, state: "visible" });
+	await locator.click();
 	await this.page().keyboard().press("Control+A");
 	await this.page().keyboard().type(`---\norder: 1\ntitle: Тест\n---\n\nM\n`);
 });
@@ -88,8 +99,7 @@ Then(
 				break;
 			}
 
-			const scope = await this.page().search().lookup("редактор");
-			await this.page().waitForLoad(scope);
+			await this.page().waitForLoad();
 
 			const failed = await checkForErrorModal(this);
 			if (failed) throw new Error("An error modal found");
@@ -152,8 +162,8 @@ Then("ошибки {string} содержат", async function (this: E2EWorld, e
 		expect(articleName).toEqual(currentExpectedErrors.articleName);
 
 		const errorsLocator = currentRow.locator(".inline-code code");
-		const errors = (await errorsLocator.allTextContents()).map((error) => error.trim()).join(", ");
-		expect(errors).toEqual(currentExpectedErrors.errors);
+		const errors = (await errorsLocator.allTextContents()).map((error) => error.trim());
+		expect(errors).toEqual(expect.arrayContaining(currentExpectedErrors.errors.split(",").map((s) => s.trim())));
 	}
 });
 

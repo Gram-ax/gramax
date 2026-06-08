@@ -1,3 +1,4 @@
+/** @deprecated use resolveTabHeight from @core/extensions/git/core/Diff/logic/utils/resolveTabHeight */
 const calculateTabWrapperHeight = (wrapperElement: HTMLDivElement) => {
 	const computedStyle = getComputedStyle(wrapperElement);
 	const paddingTop = parseFloat(computedStyle.paddingTop);

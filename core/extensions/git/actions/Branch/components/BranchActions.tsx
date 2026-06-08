@@ -7,7 +7,6 @@ import { classNames } from "@components/libs/classNames";
 import { useRouter } from "@core/Api/useRouter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import styled from "@emotion/styled";
 import BranchItem from "@ext/git/actions/Branch/components/BranchItem";
 import { BranchStatusEnum } from "@ext/git/actions/Branch/components/BranchStatus";
 import getNewBranchNameErrorLocalization from "@ext/git/actions/Branch/components/logic/getNewBranchNameErrorLocalization";
@@ -19,33 +18,6 @@ import type MergeData from "@ext/git/actions/MergeConflictHandler/model/MergeDat
 import t from "@ext/localization/locale/translate";
 import { Loader } from "@ui-kit/Loader";
 import { type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
-
-const BranchActionsWrapper = styled.div`
-	padding-top: 0.52em;
-	> div {
-		font-size: 12px !important;
-	}
-`;
-
-const NewBranchInputWrapper = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: end;
-	height: 0;
-	overflow: hidden;
-	padding-left: 1rem;
-	padding-right: 1rem;
-
-	> div:first-of-type {
-		margin-top: 0.5em;
-		margin-bottom: 0.5em;
-		font-size: 0.9em;
-	}
-
-	&.active {
-		height: auto;
-	}
-`;
 
 interface BranchActionsProps {
 	show: boolean;
@@ -180,6 +152,9 @@ const BranchActions = (props: BranchActionsProps) => {
 			setIsInitNewBranch(false);
 			await getNewBranches();
 			setApiProcess(false);
+
+			const mergeDataRes = await FetchService.fetch<MergeData>(apiUrlCreator.getMergeData());
+			if (mergeDataRes.ok) tryOpenMergeConflict({ mergeData: await mergeDataRes.json() });
 		},
 		[onSwitchBranch, apiUrlCreator, getNewBranches, router, setIsInitNewBranch],
 	);
@@ -306,7 +281,7 @@ const BranchActions = (props: BranchActionsProps) => {
 	if (apiProcess || isLoadingData) return <Loader className="py-6" ref={containerRef} size="3xl" />;
 
 	return (
-		<BranchActionsWrapper ref={containerRef}>
+		<div className="pt-2 text-xs" ref={containerRef}>
 			<Search
 				dataQa="qa-branch-search"
 				isLoading={isLoadingSearch}
@@ -322,13 +297,19 @@ const BranchActions = (props: BranchActionsProps) => {
 					bottom: "0px -6px 5px 0px var(--color-diff-entries-shadow) inset",
 				}}
 				dragScrolling={false}
-				style={{ maxHeight: "45vh" }}
+				style={{ maxHeight: "45vh", paddingBottom: "0.25rem" }}
 			>
 				{items}
 			</ScrollableElement>
 			{allowAddNewBranch && (
-				<NewBranchInputWrapper className={classNames("init-new-branch-input", { active: isInitNewBranch })}>
+				<div
+					className={classNames("init-new-branch-input flex flex-col items-end overflow-hidden px-4", {
+						"h-0": !isInitNewBranch,
+						"h-auto": isInitNewBranch,
+					})}
+				>
 					<Input
+						className="mt-2 mb-2 text-sm"
 						dataQa="input-new-branch"
 						errorText={newBranchValidationError}
 						isCode
@@ -351,9 +332,9 @@ const BranchActions = (props: BranchActionsProps) => {
 						<Icon code="plus" />
 						<span>{t("add-new-branch")}</span>
 					</Button>
-				</NewBranchInputWrapper>
+				</div>
 			)}
-		</BranchActionsWrapper>
+		</div>
 	);
 };
 

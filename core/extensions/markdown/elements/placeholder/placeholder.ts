@@ -17,8 +17,8 @@ export interface PlaceholderOptions {
 }
 
 const getParentNode = (editor: Editor, pos: number) => {
-	const $pos = editor.state.doc.resolve(pos);
-	const parent = $pos.parent;
+	const Pos = editor.state.doc.resolve(pos);
+	const parent = Pos.parent;
 
 	return parent;
 };
@@ -105,6 +105,10 @@ export default Placeholder.configure({
 
 		if (parent.type.name === "question" && parent.firstChild === node && isParagraph) {
 			return t("editor.question.placeholder");
+		}
+
+		if (parent.type.name === "tab" && isParagraph && parent.firstChild === node && parent.childCount === 1) {
+			return t("editor.tabs.empty-placeholder");
 		}
 
 		if (

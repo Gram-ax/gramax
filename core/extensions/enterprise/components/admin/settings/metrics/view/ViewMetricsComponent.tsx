@@ -1,5 +1,4 @@
 import { useSettings } from "@ext/enterprise/components/admin/contexts/SettingsContext";
-import { useScrollShadow } from "@ext/enterprise/components/admin/hooks";
 import { useHealthCheck } from "@ext/enterprise/components/admin/settings/HealthCheck";
 import useMetricsFilters from "@ext/enterprise/components/admin/settings/metrics/filters";
 import { StickyHeader } from "@ext/enterprise/components/admin/ui-kit/StickyHeader";
@@ -8,15 +7,14 @@ import { Page } from "@ext/enterprise/types/Page";
 import { getAdminPageTitle } from "@ext/enterprise/utils/getAdminPageTitle";
 import t from "@ext/localization/locale/translate";
 import { Button } from "@ui-kit/Button";
+import { Loader } from "@ui-kit/Loader";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@ui-kit/Tooltip";
-import { Loader } from "ics-ui-kit/components/loader";
 import { useCallback, useState } from "react";
 import MetricsChart from "../components/chart/MetricsChart";
-import MetricsAnonymousSelect from "../components/filters/MetricsAnonymousSelect";
 import MetricsDateFilter from "../components/filters/MetricsDateFilter";
-import MetricsUserFilter from "../components/filters/MetricsUserFilter";
 import type { ChartDataPoint } from "../types";
 import { viewMetricsChartConfig } from "./chart/viewMetricsConfig";
+import ViewMetricsFilterDropdown from "./filters/ViewMetricsFilterDropdown";
 import MetricsTable from "./table/MetricsTable";
 
 const ViewMetricsComponent = () => {
@@ -29,6 +27,7 @@ const ViewMetricsComponent = () => {
 		getMetricsTableData,
 		loadFilteredChartData,
 		getMetricsUsers,
+		getMetricsCatalogs,
 		healthcheckDataProvider,
 	} = useSettings();
 	const metricsSettings = settings?.metrics;
@@ -36,7 +35,6 @@ const ViewMetricsComponent = () => {
 	const { isHealthy, healthCheckLoader } = useHealthCheck({
 		healthcheckDataProvider,
 	});
-	const { isScrolled } = useScrollShadow();
 	const [chartData, setChartData] = useState<ChartDataPoint[] | null>(metricsSettings?.chartData);
 
 	const tabError = getTabError("metrics");
@@ -65,26 +63,21 @@ const ViewMetricsComponent = () => {
 	if (healthCheckLoader) return healthCheckLoader;
 
 	return (
-		<div className="flex flex-col h-full" style={{ height: "inherit" }}>
+		<>
 			<StickyHeader
 				actions={
 					<div className={`flex justify-between gap-2 ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}>
-						{filters.anonymousFilter !== "anonymous" && (
-							<MetricsUserFilter
-								disabled={isRefreshing("metrics")}
-								onSearchUsers={getMetricsUsers}
-								onSelectionChange={(selectedEmails) =>
-									handleFilterChange({ selectedUserEmails: selectedEmails })
-								}
-								selectedUserEmails={filters.selectedUserEmails}
-							/>
-						)}
-						<MetricsAnonymousSelect
+						<ViewMetricsFilterDropdown
+							anonymousFilter={filters.anonymousFilter}
 							disabled={isRefreshing("metrics")}
-							onChange={(anonymousFilter) => handleFilterChange({ anonymousFilter })}
-							value={filters.anonymousFilter}
+							getMetricsCatalogs={getMetricsCatalogs}
+							getMetricsUsers={getMetricsUsers}
+							onAnonymousChange={(anonymousFilter) => handleFilterChange({ anonymousFilter })}
+							onCatalogChange={(catalogs) => handleFilterChange({ selectedCatalogs: catalogs })}
+							onUserChange={(emails) => handleFilterChange({ selectedUserEmails: emails })}
+							selectedCatalogs={filters.selectedCatalogs ?? []}
+							selectedUserEmails={filters.selectedUserEmails}
 						/>
-
 						<MetricsDateFilter
 							dateRange={{
 								startDate: filters.startDate,
@@ -102,7 +95,6 @@ const ViewMetricsComponent = () => {
 						/>
 					</div>
 				}
-				isScrolled={isScrolled}
 				title={
 					<div>
 						<div className="flex gap-2">
@@ -125,9 +117,7 @@ const ViewMetricsComponent = () => {
 					</div>
 				}
 			/>
-			<div
-				className={`flex flex-col flex-1 min-h-0 px-6 pb-6 gap-6 overflow-auto ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}
-			>
+			<div className={`flex flex-col min-h-0 h-full gap-6 ${!isHealthy ? "opacity-50 pointer-events-none" : ""}`}>
 				<MetricsChart
 					axisLabelFormat={filters.axisLabelFormat}
 					config={viewMetricsChartConfig}
@@ -141,8 +131,9 @@ const ViewMetricsComponent = () => {
 					title={t("metrics.viewChart.title")}
 					visibleFields={filters.visibleMetrics}
 				/>
-				<div className="flex-1" style={{ minHeight: 400 }}>
+				<div className="max-h-[400px] min-h-[400px]">
 					<MetricsTable
+						catalogFilter={filters.selectedCatalogs}
 						getMetricsTableData={(cursor, sortByParam, sortOrderParam) =>
 							getMetricsTableData(
 								cursor,
@@ -152,6 +143,7 @@ const ViewMetricsComponent = () => {
 								sortOrderParam,
 								filters.selectedUserEmails,
 								filters.anonymousFilter,
+								filters.selectedCatalogs,
 							)
 						}
 						loadFilteredChartData={(articleIds) =>
@@ -161,6 +153,7 @@ const ViewMetricsComponent = () => {
 								articleIds,
 								filters.selectedUserEmails,
 								filters.anonymousFilter,
+								filters.selectedCatalogs,
 							)
 						}
 						onFilteredChartDataChange={setChartData}
@@ -170,7 +163,7 @@ const ViewMetricsComponent = () => {
 					/>
 				</div>
 			</div>
-		</div>
+		</>
 	);
 };
 

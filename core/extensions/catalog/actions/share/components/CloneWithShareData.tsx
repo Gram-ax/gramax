@@ -4,7 +4,6 @@ import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/Modal
 import SourceDataService from "@core-ui/ContextServices/SourceDataService";
 import convertShareLinkDataToStorageData from "@ext/catalog/actions/share/logic/convertShareLinkDataToStorageData";
 import type ShareData from "@ext/catalog/actions/share/model/ShareData";
-import InfoModalForm from "@ext/errorHandlers/client/components/ErrorForm";
 import { useCloneRepo } from "@ext/git/actions/Clone/logic/useCloneRepo";
 import type GitShareData from "@ext/git/core/model/GitShareData";
 import t from "@ext/localization/locale/translate";
@@ -15,6 +14,17 @@ import SourceType from "@ext/storage/logic/SourceDataProvider/model/SourceType";
 import getPartGitSourceDataByStorageName from "@ext/storage/logic/utils/getPartSourceDataByStorageName";
 import getSourceDataByStorageName from "@ext/storage/logic/utils/getSourceDataByStorageName";
 import getStorageNameByData from "@ext/storage/logic/utils/getStorageNameByData";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogIcon,
+	AlertDialogTitle,
+} from "@ui-kit/AlertDialog";
 import { type ComponentProps, useEffect, useState } from "react";
 
 interface CloneWithShareDataProps {
@@ -47,6 +57,7 @@ const CloneWithShareData = (props: CloneWithShareDataProps) => {
 		return {};
 	};
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		if (!shareData) return;
 		const shareLinkStorageName = getStorageNameByData(shareData);
@@ -84,21 +95,33 @@ const CloneWithShareData = (props: CloneWithShareDataProps) => {
 	};
 
 	const createSourceDataWarning = (
-		<InfoModalForm
-			actionButton={{
-				onClick: () => openCreateStorageModal(),
-				text: t("add-storage"),
+		<AlertDialog
+			onOpenChange={(open) => {
+				if (!open) onCreateSourceDataClose?.(false);
 			}}
-			isWarning={true}
-			onCancelClick={() => onCreateSourceDataClose?.(false)}
-			title={t("clone-fail")}
+			open={true}
 		>
-			<div>
-				{t("no-access-to-storage")} {domain}. {t("add-to-continue-downloading")}
-			</div>
-		</InfoModalForm>
+			<AlertDialogContent status="warning">
+				<AlertDialogHeader>
+					<AlertDialogIcon icon="alert-circle" />
+					<AlertDialogTitle>{t("clone-fail")}</AlertDialogTitle>
+					<AlertDialogDescription>
+						<div>
+							{t("no-access-to-storage")} {domain}. {t("add-to-continue-downloading")}
+						</div>
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel onClick={() => onCreateSourceDataClose?.(false)}>
+						{t("cancel")}
+					</AlertDialogCancel>
+					<AlertDialogAction onClick={openCreateStorageModal}>{t("add-storage")}</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	useEffect(() => {
 		const keydownHandler = (e: KeyboardEvent) => {
 			if (!(e.code === "Enter" && (e.ctrlKey || e.metaKey))) return;

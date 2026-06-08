@@ -5,10 +5,11 @@ import type { PropertyFilter } from "@ext/serach/Searcher";
 
 export interface SearchArgsBase {
 	query: string;
-	catalogNames: string[];
+	catalogNames?: string[];
 	articlesLanguage: ArticleLanguage;
 	responseLanguage: ContentLanguage;
-	restrictedLogicPaths?: string[];
+	restrictedRefPaths?: string[];
+	articleRefPaths?: string[];
 	propertyFilter?: PropertyFilter;
 	signal?: AbortSignal;
 }

@@ -6,9 +6,9 @@ import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
 import BugsnagTrigger from "@ext/bugsnag/components/BugsnagTrigger";
 import { NotificationSettingsButton } from "@ext/enterprise/components/NotificationSettingsButton";
+import { ArticleRevisionTrigger } from "@ext/git/actions/Revisions/components/ArticleRevisionTrigger";
 import { DeleteItemTrigger } from "@ext/item/actions/DeleteArticleTrigger";
 import { SearchInScopeTrigger } from "@ext/item/actions/SearchInScopeTrigger";
-import { ArticleEditMarkdownTrigger } from "@ext/item/actions/ToolsArticleActions";
 import t from "@ext/localization/locale/translate";
 import { DropdownMenuLabel, DropdownMenuSeparator } from "@ui-kit/Dropdown";
 import React, { type Dispatch, type SetStateAction, useCallback, useState } from "react";
@@ -20,7 +20,6 @@ import ArticleMoveAction from "../article/actions/move/ArticleMoveAction";
 import ShareAction from "../catalog/actions/share/components/ShareAction";
 import { ArticleFavoriteSettingsButton } from "../enterprise/components/ArticleFavoriteSettingsButton";
 import EnterpriseCheckStyleGuide from "../enterprise/components/EnterpriseCheckStyleGuide";
-import HistoryTrigger from "../git/actions/History/component/HistoryTrigger";
 import type { CategoryLink, ItemLink } from "../navigation/NavigationLinks";
 import ArticleLinks from "../properties/components/Helpers/ArticleLinks";
 import TemplateItemList from "../templates/components/TemplateItemList";
@@ -64,7 +63,7 @@ function useEditMenuItemProps(itemLink: ItemLink | CategoryLink) {
 		if (!response.ok) return;
 		const data = (await response.json()) as ClientArticleProps;
 		setItemProps(data);
-	}, [apiUrlCreator, itemLink.ref.path]);
+	}, [apiUrlCreator, itemLink?.ref?.path]);
 
 	useWatch(() => {
 		setItemPropsData();
@@ -147,13 +146,8 @@ const EditorEditMenu = ({ itemLink, setItemLink }: EditMenuProps) => {
 					<DropdownMenuSeparator />
 				</>
 			)}
-			<HistoryTrigger item={itemProps} />
-			<ArticleEditMarkdownTrigger
-				isCurrentItem={isCurrentItem}
-				isTemplate={itemProps?.template?.length > 0}
-				item={itemProps}
-			/>
 			{isLinkToValidArticle && isCurrentItem && <EnterpriseCheckStyleGuide />}
+			{isLinkToValidArticle && <ArticleRevisionTrigger itemLink={itemLink} />}
 			<DropdownMenuSeparator />
 			{isLinkToValidArticle && (
 				<ExportToDocxOrPdf

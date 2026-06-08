@@ -27,7 +27,7 @@ export class TestWorkerResourceParseClient extends WorkerResourceParseClientBase
 		return await super.parseResource(format, data, progressCallback);
 	}
 
-	protected override createWorker(): ResourceParseWorker {
+	protected override _createWorker(): ResourceParseWorker {
 		return {
 			postMessage: (msg) => {
 				void this._handleInMessage(msg);
@@ -46,7 +46,7 @@ export class TestWorkerResourceParseClient extends WorkerResourceParseClientBase
 		const ctx: HandlerContext = {
 			isNode: true,
 			postMessage: (msg) => {
-				void this.handleMessage(msg);
+				void this._handleMessage(msg);
 			},
 		};
 

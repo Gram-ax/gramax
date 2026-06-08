@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Page, test } from "@playwright/test";
 import { catalogTest } from "@web/fixtures/catalog.fixture";
 import { notificationsTest } from "@web/tests/features/notifications/notifications.fixture";
 
@@ -14,6 +14,45 @@ catalogTest.use({
 	},
 });
 
+const setEnterpriseState = async (
+	sharedPage: Page,
+	{ emGesUrl, workspaceGesUrl }: { emGesUrl?: string; workspaceGesUrl?: string },
+) => {
+	await sharedPage.evaluate(
+		async ({ emGesUrl, workspaceGesUrl }: { emGesUrl?: string; workspaceGesUrl?: string }) => {
+			const app = await window.app!;
+			const workspace = app.wm.current();
+			const savedWorkspaceConfig = app.wm.getWorkspaceConfig(workspace.path())?.config;
+			if (!savedWorkspaceConfig) throw new Error("Workspace config is not available");
+
+			const currentWorkspaceConfig = savedWorkspaceConfig.inner();
+			savedWorkspaceConfig.update({
+				...currentWorkspaceConfig,
+				enterprise: {
+					...(currentWorkspaceConfig.enterprise ?? {}),
+					gesUrl: workspaceGesUrl,
+				},
+			});
+			await savedWorkspaceConfig.save();
+
+			if (emGesUrl) await app.em.setGesUrl(emGesUrl);
+			else await app.em.clearGesUrl();
+		},
+		{ emGesUrl, workspaceGesUrl },
+	);
+
+	await sharedPage.reload({ waitUntil: "domcontentloaded" });
+};
+
+const openEditMenu = async (sharedPage: Page) => {
+	const articleItem = sharedPage.locator('[data-qa="catalog-navigation-article-link-level-0"]').first();
+	await articleItem.hover();
+	await articleItem.locator(".right-extensions button").first().click();
+	const dropdownContent = sharedPage.getByTestId("dropdown-content");
+	await expect(dropdownContent).toBeVisible();
+	return dropdownContent;
+};
+
 test.describe("Notification Settings", () => {
 	catalogTest("button is hidden without enterprise", async ({ sharedPage }) => {
 		const articleItem = sharedPage.locator('[data-qa="catalog-navigation-article-link-level-0"]').first();
@@ -21,11 +60,11 @@ test.describe("Notification Settings", () => {
 		await articleItem.locator(".right-extensions button").first().click();
 		const dropdownContent = sharedPage.getByTestId("dropdown-content");
 		await expect(dropdownContent).toBeVisible();
-		await expect(dropdownContent.getByRole("menuitem", { name: "Notification settings" })).toBeHidden();
+		await expect(dropdownContent.getByRole("menuitem", { name: "Edit notifications" })).toBeHidden();
 	});
 
 	notificationsTest("button appears when enterprise is configured", async ({ editMenu }) => {
-		await expect(editMenu.getByRole("menuitem", { name: "Notification settings" })).toBeVisible();
+		await expect(editMenu.getByRole("menuitem", { name: "Edit notifications" })).toBeVisible();
 	});
 
 	notificationsTest("modal has correct default state", async ({ notificationDialog }) => {

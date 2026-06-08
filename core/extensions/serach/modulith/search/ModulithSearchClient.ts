@@ -1,10 +1,11 @@
 import type { SearchArticle, SearchArticleFilter, SearchArticleMetadata } from "@ext/serach/modulith/SearchArticle";
 import type {
 	SearchResultBlockItem as SearcherSearchResultBlockItem,
+	SearchResultDiagramItem as SearcherSearchResultDiagramItem,
 	SearchResultParagraphItem as SearcherSearchResultParagraphItem,
 	SearchResultMarkItem,
 } from "@ext/serach/Searcher";
-import type { ProgressCallback } from "@ics/modulith-utils";
+import type { ProgressCallback } from "@ics/article-search-utils";
 
 export interface ModulithSearchClient {
 	update(args: UpdateArgs): Promise<void>;
@@ -32,13 +33,23 @@ export interface SearchBatchArgs {
 
 export interface SearchResult {
 	article: FoundArticle<SearchArticleMetadata>;
+	breadcrumbs: SearchResultBreadcrumb[];
 	title: SearchResultMarkItem[];
 	items: SearchResultItem[];
 }
 
-export type SearchResultItem = SearchResultBlockItem | SearchResultParagraphItem;
+export interface SearchResultBreadcrumb {
+	article: FoundArticle<SearchArticleMetadata>;
+	title: SearchResultMarkItem[];
+}
+
+export type SearchResultItem = SearchResultBlockItem | SearchResultDiagramItem | SearchResultParagraphItem;
 
 export interface SearchResultBlockItem extends Omit<SearcherSearchResultBlockItem, "items"> {
+	items: SearchResultItem[];
+}
+
+export interface SearchResultDiagramItem extends Omit<SearcherSearchResultDiagramItem, "items"> {
 	items: SearchResultItem[];
 }
 

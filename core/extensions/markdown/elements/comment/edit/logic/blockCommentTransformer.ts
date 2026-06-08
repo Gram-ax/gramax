@@ -1,7 +1,8 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: it's ok */
-import type { Token } from "@ext/markdown/core/render/logic/Markdoc";
 
-const blockCommentTransformer = (tokens: Token[]) => {
+import type { PreTransformerFunc } from "@ext/markdown/core/Parser/Transformer/preTransformTokens";
+
+const blockCommentTransformer: PreTransformerFunc = ({ tokens }) => {
 	for (let i = 0; i < tokens.length; i++) {
 		const token = tokens[i];
 		if (token.type === "tag_open" && token.meta.tag === "comment") {

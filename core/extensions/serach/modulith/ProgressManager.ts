@@ -1,4 +1,4 @@
-import { AggregateProgress, DynamicAggregateProgress, type ProgressCallback } from "@ics/modulith-utils";
+import { AggregateProgress, DynamicAggregateProgress, type ProgressCallback } from "@ics/article-search-utils";
 
 export class ProgressManager {
 	private readonly _subscribers = new Set<ProgressCallback>();

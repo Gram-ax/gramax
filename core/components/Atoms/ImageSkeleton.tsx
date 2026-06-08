@@ -39,12 +39,6 @@ export default styled(ImageSkeleton)`
 			outline: none !important;
 			outline-offset: unset;
 		}
-
-		:has(> .diagram-background),
-		:has(> .drawio) {
-			width: 100%;
-			margin: 0.5em 0;
-		}
 	}
 
 	@keyframes SkeletonPulse {

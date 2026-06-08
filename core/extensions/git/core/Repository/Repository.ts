@@ -4,7 +4,7 @@ import type FileProvider from "@core/FileProvider/model/FileProvider";
 import type Path from "@core/FileProvider/Path/Path";
 import DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import type { GitMergeResultContent } from "@ext/git/actions/MergeConflictHandler/model/GitMergeResultContent";
-import type { GcOptions } from "@ext/git/core/GitCommands/model/GitCommandsModel";
+import type { GcOptions, StorageStats } from "@ext/git/core/GitCommands/model/GitCommandsModel";
 import type DiffItemContent from "@ext/git/core/GitDiffItemCreator/DiffItemContent/DiffItemContent";
 import MergeRequestCommands from "@ext/git/core/GitMergeRequest/logic/MergeRequestCommands";
 import type GitVersionControl from "@ext/git/core/GitVersionControl/GitVersionControl";
@@ -133,6 +133,10 @@ export default abstract class Repository implements ToSpan {
 
 	unsubscribeEvents() {}
 
+	pauseGitStaging() {}
+
+	async resumeGitStaging() {}
+
 	update(repoPath: Path, gvc: GitVersionControl, storage: Storage, fp: FileProvider) {
 		this._repoPath = repoPath;
 		this._gvc = gvc;
@@ -153,6 +157,14 @@ export default abstract class Repository implements ToSpan {
 
 	async gc(opts: GcOptions) {
 		return this._gvc.gc(opts);
+	}
+
+	async lfsPrune() {
+		return this._gvc.lfsPrune();
+	}
+
+	async storageStats(): Promise<StorageStats> {
+		return this._gvc.storageStats();
 	}
 
 	async stash(data: SourceData, doAddBeforeStash = true): Promise<GitStash> {

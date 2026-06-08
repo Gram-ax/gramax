@@ -1,3 +1,4 @@
+import type { IconCode } from "@components/Atoms/Icon/LucideIcon";
 import t from "@ext/localization/locale/translate";
 import type { Level } from "@ext/markdown/elements/heading/edit/model/heading";
 import type { Editor } from "@tiptap/core";
@@ -5,20 +6,20 @@ import { ToolbarIcon, ToolbarToggleItem } from "@ui-kit/Toolbar";
 
 interface HeadingMenuButtonProps {
 	level: Level;
-	editor: Editor;
+	editor?: Editor;
 }
 
 const HeadingMenuButton = ({ level, editor }: HeadingMenuButtonProps) => {
 	return (
 		<ToolbarToggleItem
-			active={editor.isActive("heading", { level })}
+			active={editor?.isActive("heading", { level })}
 			data-testid={`tb-heading-${level}`}
 			hotKey={`Mod-Alt-${level}`}
-			onClick={() => editor.chain().focus().toggleHeading({ level }).run()}
+			onClick={() => editor?.chain().focus().toggleHeading({ level }).run()}
 			tooltipText={`${t("editor.heading")} ${level}`}
 			value={level.toString()}
 		>
-			<ToolbarIcon icon={`heading-${level}-custom`} />
+			<ToolbarIcon icon={`heading-${level}-custom` as IconCode} />
 		</ToolbarToggleItem>
 	);
 };

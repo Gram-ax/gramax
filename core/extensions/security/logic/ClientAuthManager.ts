@@ -1,3 +1,4 @@
+import type EnterpriseManager from "@ext/enterprise/EnterpriseManager";
 import EnterpriseUser, { type EnterpriseInfo } from "@ext/enterprise/EnterpriseUser";
 import type EnterpriseUserJSONData from "@ext/enterprise/types/EnterpriseUserJSONData";
 import AuthManager from "@ext/security/logic/AuthManager";
@@ -20,6 +21,10 @@ interface EnterpriseInfoData {
 export default class ClientAuthManager extends AuthManager {
 	private readonly _PERMISSION_COOKIE_NAME = "user_permissions";
 	private _isStartedUpdatePermissions: boolean;
+
+	constructor(private _em: EnterpriseManager) {
+		super();
+	}
 
 	async login() {}
 	async assert() {}

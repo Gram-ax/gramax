@@ -1,6 +1,10 @@
 import { md } from "@utils/utils";
 import { editorTest } from "@web/fixtures/editor.fixture";
 
+editorTest.use({
+	experimentalFeatures: ["opentelemetry-logs"],
+});
+
 editorTest.describe("List Tab", () => {
 	editorTest("nest list item one level deeper", async ({ editor }) => {
 		await editorTest.step("ordered list", async () => {

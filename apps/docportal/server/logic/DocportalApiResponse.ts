@@ -3,16 +3,20 @@ import type ApiResponse from "@core/Api/ApiResponse";
 export default class DocportalApiResponse implements ApiResponse {
 	statusCode: number;
 	headers: { [key: string]: string };
-	ok: boolean;
+	get ok() {
+		return this.statusCode >= 200 && this.statusCode < 300;
+	}
 	body: BodyInit;
 
 	constructor(readonly res: Response) {
 		this.statusCode = res.status;
 		this.headers = Object.fromEntries(res.headers);
-		this.ok = res.ok;
 	}
 
-	redirect = () => {};
+	redirect = (href: string) => {
+		this.statusCode = 307;
+		this.setHeader("Location", href);
+	};
 
 	arrayBuffer = () => Promise.resolve(new Uint8Array());
 

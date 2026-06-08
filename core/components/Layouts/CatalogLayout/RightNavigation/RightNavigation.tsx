@@ -6,59 +6,67 @@ import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import { getCatalogLinks, useGetArticleLinks } from "@core-ui/getRigthSidebarLinks";
 import { usePlatform } from "@core-ui/hooks/usePlatform";
-import { cssMedia } from "@core-ui/utils/cssUtils";
-import styled from "@emotion/styled";
-import SwitchFilteredCatalog from "@ext/CatalogPropertyFilter/SwitchFilteredCatalog";
+import { cn } from "@core-ui/utils/cn";
+import { CatalogView } from "@ext/catalog/views/components/CatalogView";
 import SwitchContentLanguage from "@ext/localization/actions/SwitchContentLanguage";
 import t from "@ext/localization/locale/translate";
 import TableOfContents from "@ext/navigation/article/render/TableOfContents";
 import { QuizNavigationInfo } from "@ext/quiz/components/QuizNavigationInfo";
+import { ReviewList } from "@ext/review/components/ReviewList";
+import { useReviewListControl } from "@ext/review/logic/hooks/useReviewListControl";
 import PublishStatusPanel from "@ext/static/components/PublishStatusPanel";
 import SwitchVersion from "@ext/versioning/components/SwitchVersion";
 import { useRef } from "react";
+import { tv } from "tailwind-variants";
 import Links from "../../layoutComponents";
 
-const RightNavigation = ({ className }: { className?: string }): JSX.Element => {
+const asideStyles = tv({
+	base: "w-full text-[var(--color-primary-general)] bg-[var(--color-right-nav-bg)]",
+});
+
+const gramaxLinkStyles = tv({
+	base: "w-full flex justify-end items-end flex-1 mt-[2em]",
+});
+
+const gramaxLinkTextStyles = tv({
+	base: "opacity-60 hover:opacity-100",
+});
+
+const RightNavigation = (): JSX.Element => {
 	const ref = useRef<HTMLDivElement>(null);
 	const articleProps = ArticlePropsService.value;
 	const showArticleActions = !(articleProps?.errorCode && articleProps.errorCode !== 500);
 	const articleLinks = useGetArticleLinks();
 	const { isNext } = usePlatform();
 	const cloudServiceUrl = PageDataContextService.value.conf.cloudServiceUrl;
+	const showReview = useReviewListControl();
 
 	return (
 		<div
-			className={"article-right-sidebar"}
+			className="article-right-sidebar"
 			ref={ref}
-			style={{ display: "flex", flexDirection: "column", flexGrow: "1" }}
+			style={{ display: "flex", flexDirection: "column", flexGrow: "1", maxHeight: "100%" }}
 		>
-			<aside className={className}>
-				<ArticlePageActions />
-				<Links
-					catalogChildren={
-						<>
-							<li style={{ listStyleType: "none", width: "fit-content" }}>
-								<SwitchFilteredCatalog />
-							</li>
-							<li style={{ listStyleType: "none", width: "fit-content" }}>
-								<SwitchVersion />
-							</li>
-							<li style={{ listStyleType: "none", width: "fit-content" }}>
-								<SwitchContentLanguage />
-							</li>
-						</>
-					}
-				/>
-				{showArticleActions && <TableOfContents />}
+			<aside className={asideStyles()}>
+				<div className="space-y-4">
+					<ArticlePageActions />
+					<SwitchVersion />
+					<SwitchContentLanguage />
+					<CatalogView />
+				</div>
+				{showArticleActions && (
+					<TableOfContents className={cn(showReview ? "max-h-[20dvh] overflow-y-auto" : "")} />
+				)}
 				<Links articleLinks={articleLinks} catalogLinks={getCatalogLinks()} />
 				{cloudServiceUrl && <PublishStatusPanel />}
 				<QuizNavigationInfo />
 			</aside>
+			{showReview && <ReviewList />}
 			{isNext && (
-				<div className={"gramax-link"}>
+				<div className={gramaxLinkStyles()}>
 					<Button buttonStyle={ButtonStyle.transparent} textSize={TextSize.XS}>
 						<IconLink
-							className={"gramax-link-text"}
+							className={gramaxLinkTextStyles()}
 							href={"https://gram.ax/"}
 							isExternal
 							text={t("created-in-gramax")}
@@ -70,53 +78,4 @@ const RightNavigation = ({ className }: { className?: string }): JSX.Element => 
 	);
 };
 
-export default styled(RightNavigation)`
-	width: 100%;
-	color: var(--color-primary-general);
-	background-color: var(--color-right-nav-bg);
-
-	i {
-		font-size: 13px;
-		margin-left: -1px;
-	}
-
-	ul {
-		list-style-type: none;
-		margin-left: 0;
-	}
-
-	ul li {
-		font-size: 12px;
-	}
-
-	+ .gramax-link {
-		width: 100%;
-		display: flex;
-		justify-content: end;
-		align-items: end;
-
-		flex: 1 1 auto;
-		margin-top: 2em;
-
-		.gramax-link-text {
-			opacity: 0.6;
-			:hover {
-				opacity: 1;
-			}
-		}
-	}
-
-	a {
-		font-weight: 300;
-		color: var(--color-primary-general);
-		text-decoration: none;
-
-		&:hover {
-			color: var(--color-primary);
-		}
-	}
-
-	${cssMedia.medium} {
-		opacity: 0.8;
-	}
-`;
+export default RightNavigation;

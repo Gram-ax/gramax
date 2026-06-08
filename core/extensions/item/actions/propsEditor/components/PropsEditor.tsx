@@ -7,7 +7,6 @@ import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
 import WorkspaceService from "@core-ui/ContextServices/Workspace";
 import useWatch from "@core-ui/hooks/useWatch";
 import { transliterate } from "@core-ui/languageConverter/transliterate";
-import styled from "@emotion/styled";
 import type { UsePropsEditorActionsParams } from "@ext/item/actions/propsEditor/logic/usePropsEditorAcitions";
 import OtherLanguagesPresentWarning from "@ext/localization/actions/OtherLanguagesPresentWarning";
 import t from "@ext/localization/locale/translate";
@@ -19,7 +18,6 @@ import { Dialog, DialogBody, DialogContent, DialogHeader, DialogTitle } from "@u
 import { Form, FormField, FormFooter, FormStack } from "@ui-kit/Form";
 import { Input, InputGroup, InputGroupInput, InputGroupText } from "@ui-kit/Input";
 import { TagInput } from "@ui-kit/TagInput";
-import { Tooltip, TooltipArrow, TooltipContent, TooltipTrigger, useOverflowTooltip } from "@ui-kit/Tooltip";
 import { type FC, type RefObject, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { type SubmitHandler, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -29,13 +27,6 @@ interface PropsEditorProps extends Omit<UsePropsEditorActionsParams, "onExternal
 	onClose?: () => void;
 	isCurrentItem: boolean;
 }
-
-const OverflowContainer = styled.div`
-	overflow: hidden;
-	max-width: 100%;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-`;
 
 const getSchema = (brotherFileNames: RefObject<string[]>) => {
 	return z.object({
@@ -80,7 +71,6 @@ export type PropsEditorFormValues = z.infer<ReturnType<typeof getSchema>>;
 
 const PropsEditor: FC<PropsEditorProps> = (props) => {
 	const [open, setOpen] = useState(true);
-	const { ref, open: openOverflow, onOpenChange: onOpenChangeOverflow } = useOverflowTooltip<HTMLDivElement>();
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
 	const webEditorUrl = WorkspaceService.current()?.webEditorUrl;
@@ -176,18 +166,11 @@ const PropsEditor: FC<PropsEditorProps> = (props) => {
 								<FormField
 									control={({ field, fieldState }) => (
 										<InputGroup>
-											<Tooltip onOpenChange={onOpenChangeOverflow} open={openOverflow}>
-												<TooltipTrigger asChild>
-													<InputGroupText style={{ maxWidth: "65%" }}>
-														<OverflowContainer ref={ref}>{url}</OverflowContainer>
-													</InputGroupText>
-												</TooltipTrigger>
-												<TooltipContent align="start">
-													<TooltipArrow />
-													{url}
-												</TooltipContent>
-											</Tooltip>
+											<InputGroupText className="max-w-[65%] overflow-x-auto whitespace-nowrap [mask-image:linear-gradient(to_left,rgba(255,255,255,0),#fff_15%)]">
+												{url}
+											</InputGroupText>
 											<InputGroupInput
+												className="border-l rounded-l-none border-l-secondary-border"
 												data-qa="URL"
 												error={fieldState?.error?.message}
 												placeholder={t("enter-value")}

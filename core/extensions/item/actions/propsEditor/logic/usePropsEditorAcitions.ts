@@ -1,15 +1,17 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: it's ok */
 import { useRouter } from "@core/Api/useRouter";
+import Path from "@core/FileProvider/Path/Path";
 import type { ClientArticleProps } from "@core/SitePresenter/SitePresenter";
 import FetchService from "@core-ui/ApiServices/FetchService";
 import MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
 import ApiUrlCreatorService from "@core-ui/ContextServices/ApiUrlCreator";
-import ArticlePropsService from "@core-ui/ContextServices/ArticleProps";
 import ModalToOpenService from "@core-ui/ContextServices/ModalToOpenService/ModalToOpenService";
 import ModalToOpen from "@core-ui/ContextServices/ModalToOpenService/model/ModalsToOpen";
 import PageDataContextService from "@core-ui/ContextServices/PageDataContext";
 import useWatch from "@core-ui/hooks/useWatch";
+import { useArticlePropsStore } from "@core-ui/stores/ArticlePropsStore/ArticlePropsStore.provider";
+import { getEditorStore } from "@core-ui/stores/EditorStore";
 import type PropsEditor from "@ext/item/actions/propsEditor/components/PropsEditor";
-import EditorService from "@ext/markdown/elementsUtils/ContextServices/EditorService";
 import type { ItemLink } from "@ext/navigation/NavigationLinks";
 import type { QuizSettings } from "@ext/quiz/models/types";
 import { type ComponentProps, type Dispatch, type SetStateAction, useCallback, useState } from "react";
@@ -34,7 +36,7 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 	const { item, itemLink, setItemLink, onExternalClose, isCategory, onUpdate } = params;
 
 	const apiUrlCreator = ApiUrlCreatorService.value;
-	const articleProps = ArticlePropsService.value;
+	const articleProps = useArticlePropsStore((state) => state.data);
 	const isCurrentItem = item.ref.path === articleProps.ref.path;
 	const router = useRouter();
 
@@ -42,7 +44,7 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 	const [parentCategoryLink, setParentCategoryLink] = useState<string>(domain);
 
 	useWatch(() => {
-		setParentCategoryLink(domain + "/" + item?.logicPath.replace(/[^/]*$/, ""));
+		setParentCategoryLink(`${domain}/${item?.logicPath.replace(/[^/]*$/, "")}`);
 	}, [item]);
 
 	const updateNavigation = useCallback(
@@ -51,7 +53,7 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 				return router.pushPath(updatedPathname);
 			}
 
-			if (!isCurrentItem && articleProps.logicPath.startsWith(item?.logicPath)) {
+			if (!isCurrentItem && new Path(articleProps.logicPath).isParentOf(new Path(item?.logicPath))) {
 				return router.pushPath(articleProps.logicPath.replace(item?.logicPath, updatedPathname));
 			}
 
@@ -89,7 +91,7 @@ export const usePropsEditorActions = (params: UsePropsEditorActionsParams) => {
 			itemLink.title = data.title;
 			setItemLink({ ...itemLink });
 
-			const editor = EditorService.getEditor();
+			const editor = getEditorStore().editor;
 			if (editor && isCurrentItem) {
 				const header = editor.view.dom.firstChild as HTMLParagraphElement;
 				if (header) header.innerText = data.title;

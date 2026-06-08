@@ -23,7 +23,7 @@ export function link(context?: PrivateParserContext): Schema {
 			}
 			return new Tag(
 				"Link",
-				{ href: href + (hash ?? ""), isFile, resourcePath: resourcePath?.value ?? "", hash },
+				{ href, isFile, resourcePath: resourcePath?.value ?? "", hash },
 				await node.transformChildren(config),
 			);
 		},

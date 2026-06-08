@@ -1,11 +1,9 @@
 import { classNames } from "@components/libs/classNames";
 import { TableHeaderTypes } from "@ext/markdown/elements/table/edit/model/tableTypes";
-import { Children, cloneElement } from "react";
+import { Children, cloneElement, type ReactElement } from "react";
 
-const modifyChildren = (children: any, header = TableHeaderTypes.NONE): any => {
-	if (!children || header === TableHeaderTypes.NONE) return children;
-
-	const rows = children?.props?.children;
+const modifyChildren = (rows: ReactElement, header = TableHeaderTypes.NONE) => {
+	if (!rows || header === TableHeaderTypes.NONE) return rows;
 
 	const newRows = Children.map(rows, (row, rowIndex) => {
 		if (!row || typeof row !== "object" || !row.props) return row;
@@ -32,8 +30,8 @@ const modifyChildren = (children: any, header = TableHeaderTypes.NONE): any => {
 				const newClassName = classNames(
 					"cell-header",
 					{
-						["cell-header-row"]: rowHeader,
-						["cell-header-col"]: colHeader,
+						"cell-header-row": rowHeader,
+						"cell-header-col": colHeader,
 					},
 					[existingClassName],
 				);
@@ -43,7 +41,7 @@ const modifyChildren = (children: any, header = TableHeaderTypes.NONE): any => {
 		});
 		return cloneElement(row, {}, modifiedCells);
 	});
-	return cloneElement(children, {}, newRows);
+	return newRows;
 };
 
 export default modifyChildren;

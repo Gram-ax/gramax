@@ -1,5 +1,4 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: fix */
-
+/** biome-ignore-all lint/suspicious/noExplicitAny lint/style/useNamingConvention: it's ok */
 import { MainMiddleware } from "@core/Api/middleware/MainMiddleware";
 import type Middleware from "@core/Api/middleware/Middleware";
 import type Query from "@core/Api/Query";

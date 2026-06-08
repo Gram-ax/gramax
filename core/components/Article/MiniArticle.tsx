@@ -46,14 +46,10 @@ export const MinimizedArticleStyled = styled(MinimizedArticle)`
 		margin: 0.575em 0 !important;
 	}
 
-	table {
-		padding: 0.5rem 0 !important;
+	.width-wrapper-container > .width-wrapper {
+		width: 100% !important;
 	}
 
-	div:has(> .scrollableContent) {
-		width: unset !important;
-		margin-left: unset !important;
-	}
 
 	div:has(> .scrollableContent) > .scrollableContent {
 		margin-left: unset !important;
@@ -79,6 +75,10 @@ export const MinimizedArticleStyled = styled(MinimizedArticle)`
 	code,
 	.diagram-background {
 		margin: 1em 0 !important;
+	}
+
+	pre {
+		font-size: 1em;
 	}
 
 	ol,

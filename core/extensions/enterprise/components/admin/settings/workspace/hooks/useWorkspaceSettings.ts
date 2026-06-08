@@ -5,10 +5,13 @@ import { useCallback, useEffect, useState } from "react";
 
 const defaultSettings: WorkspaceSettings = {
 	name: "",
-	source: {
-		url: "",
-		type: "GitLab",
-		repos: null,
+	git: {
+		source: {
+			url: "",
+			type: "GitLab",
+			repos: null,
+		},
+		lfs: { patterns: [] },
 	},
 	sections: {},
 	wordTemplates: [],
@@ -37,6 +40,10 @@ export function useWorkspaceSettings() {
 				...workspaceSettings,
 				wordTemplates: workspaceSettings.wordTemplates ?? [],
 				pdfTemplates: workspaceSettings.pdfTemplates ?? [],
+				git: {
+					lfs: workspaceSettings.git?.lfs ?? { patterns: [] },
+					source: workspaceSettings.git?.source || workspaceSettings.source,
+				},
 			};
 			setLocalSettings(newSettings);
 		}
@@ -60,7 +67,7 @@ export function useWorkspaceSettings() {
 		if (name === "source.url") {
 			setLocalSettings((prev) => ({
 				...prev,
-				source: { ...prev.source, url: value },
+				git: { ...prev.git, source: { ...prev.git.source, url: value } },
 			}));
 		} else {
 			setLocalSettings((prev) => ({ ...prev, [name]: value }));

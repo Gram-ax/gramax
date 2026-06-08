@@ -1,5 +1,5 @@
 import type PageDataContext from "@core/Context/PageDataContext";
-import type { ArticlePageData } from "@core/SitePresenter/SitePresenter";
+import type { ArticlePageData } from "@core/SitePresenter/types/ArticlePage";
 import createEmotionCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import ReactDOMServer from "react-dom/server";

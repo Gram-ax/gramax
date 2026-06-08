@@ -1,4 +1,3 @@
-import type { createFormSchema } from "@ext/catalog/actions/propsEditor/logic/createFormSchema";
 import type DefaultError from "@ext/errorHandlers/logic/DefaultError";
 import t from "@ext/localization/locale/translate";
 import EditStyles from "@ext/workspace/components/EditStyles";
@@ -6,8 +5,7 @@ import LogoUploader, { type UpdateResource } from "@ext/workspace/components/Log
 import { Button } from "@ui-kit/Button";
 import { FormField } from "@ui-kit/Form";
 import { memo, useCallback, useMemo } from "react";
-import type { UseFormReturn } from "react-hook-form";
-import type { z } from "zod";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
 
 interface EditWorkspaceAssetsProps {
 	lightLogo?: string;
@@ -22,7 +20,7 @@ interface EditWorkspaceAssetsProps {
 	isLoadingDark?: boolean;
 	isLoadingLight?: boolean;
 	formProps: Record<string, string>;
-	form: UseFormReturn<z.infer<ReturnType<typeof createFormSchema>>>;
+	form: UseFormReturn<FieldValues>;
 }
 
 const EditWorkspaceAssets = memo((props: EditWorkspaceAssetsProps) => {

@@ -9,6 +9,7 @@ import type { Hashable } from "@core/Hash/Hasher";
 import type ResourceUpdater from "@core/Resource/ResourceUpdater";
 import type { InboxProps } from "@ext/inbox/models/types";
 import t from "@ext/localization/locale/translate";
+import type { ToSpan } from "@ext/loggers/opentelemetry";
 import { FileStatus } from "@ext/Watchers/model/FileStatus";
 import type IPermission from "../../../extensions/security/logic/Permission/IPermission";
 import Permission from "../../../extensions/security/logic/Permission/Permission";
@@ -45,7 +46,7 @@ export type UpdateItemProps = (ItemProps & { fileName?: never; logicPath: string
 
 export const ORDERING_MAX_PRECISION = 6;
 
-export abstract class Item<P extends ItemProps = ItemProps> implements Hashable {
+export abstract class Item<P extends ItemProps = ItemProps> implements Hashable, ToSpan {
 	protected _events = createEventEmitter<ItemEvents>();
 	private _neededPermission: IPermission = null;
 
@@ -65,12 +66,15 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 	get logicPath(): string {
 		return this._logicPath;
 	}
+
 	set logicPath(value: string) {
 		this._logicPath = value;
 	}
+
 	get ref(): ItemRef {
 		return this._ref;
 	}
+
 	get parent(): Category {
 		return this._parent;
 	}
@@ -102,7 +106,7 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 	}
 
 	async setOrder(order: number, silent = false) {
-		if (this._props.order == order) return;
+		if (this._props.order === order) return;
 		this._props.order = order;
 		if (!silent) await this.events.emit("item-order-updated", { item: this });
 		await this._save();
@@ -110,7 +114,7 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 
 	async setOrderAfter(parent: Category, item?: Item) {
 		const orders = parent.items.map((i) => i.order);
-		const hasInvalidOrders = orders.some(isNaN);
+		const hasInvalidOrders = orders.some(Number.isNaN);
 		const hasDuplicates = new Set(orders).size !== orders.length;
 
 		if (hasInvalidOrders || hasDuplicates) await parent.sortItems("force");
@@ -165,7 +169,7 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 		!fileNameOnly && this._updateProps(props);
 
 		const previousFilename = this.getFileName();
-		const shouldUpdateFilename = props.fileName && previousFilename != props.fileName;
+		const shouldUpdateFilename = props.fileName && previousFilename !== props.fileName;
 		if (props.fileName) await this._updateFilename(props.fileName, resourceUpdater, catalog);
 		if (shouldUpdateFilename) await this.events.emit("item-changed", { item: this, status: FileStatus.delete });
 		await this._save(shouldUpdateFilename);
@@ -178,4 +182,13 @@ export abstract class Item<P extends ItemProps = ItemProps> implements Hashable 
 	abstract getFileName(): string;
 
 	protected abstract _save(renamed?: boolean): Promise<void>;
+
+	toSpan() {
+		return {
+			type: this.type,
+			name: this.getTitle(),
+			path: this.ref.path.value,
+			props: this.props,
+		};
+	}
 }

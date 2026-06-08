@@ -1,7 +1,7 @@
 import type { Aliases } from "e2e/steps/utils/aliases";
 import type { Locator, Page } from "playwright";
 import config from "../../setup/config";
-import { replaceMultiple } from "../../steps/utils/utils";
+import { replaceMultiple, sleep } from "../../steps/utils/utils";
 import { KeyboardContext } from "../Contexts/KeyboardContext";
 import SearcherContext from "../Contexts/SearcherContext";
 import type { ReplaceAlias } from "../World";
@@ -36,11 +36,16 @@ export default class PageContext {
 		return this._page.url().replace(/^https?:\/\/[a-z0-9:.-]+/, "");
 	}
 
-	async waitForLoad(scope?: Locator) {
+	async waitForLoad() {
 		try {
-			const loaders = await this.search().find(`[data-qa="loader"], [role="progressbar"]`, scope);
-			for (const loader of await loaders.all())
-				await loader.waitFor({ timeout: config.timeouts.long * 4, state: "detached" });
+			await sleep(300);
+			const loaders = this._page.locator(`[data-qa="loader"], [aria-label='app-loader'], [role="progressbar"]`);
+
+			while ((await loaders.count()) > 0) {
+				const all = await loaders.all();
+				await Promise.all(all.map((l) => l.waitFor({ timeout: 60_000, state: "detached" })));
+				await sleep(500);
+			}
 		} catch (e) {
 			console.error("wait for load: ", e);
 		}

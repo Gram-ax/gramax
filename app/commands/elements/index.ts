@@ -1,19 +1,15 @@
 import answers from "./answers";
 import comments from "./comments";
 import diagram from "./diagram";
+import fragment from "./fragment";
 import icon from "./icon";
-import snippet from "./snippet";
-import getUrl from "./video/getUrl";
 
 const elements = {
 	answers,
 	icon,
-	snippet,
+	fragment,
 	diagram,
 	comments,
-	video: {
-		getUrl,
-	},
 };
 
 export default elements;

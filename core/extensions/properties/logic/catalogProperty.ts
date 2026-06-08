@@ -14,15 +14,16 @@ class CatalogProperty {
 	) {
 		this._catalogMap = new Map(
 			this._catalog.props.properties
-				.filter((prop) => !SystemProperties[prop.name])
-				.map((prop) => [prop.name, prop]),
+				.map((prop) => ({ ...prop, id: prop.id ?? prop.name }))
+				.filter((prop) => !SystemProperties[prop.id])
+				.map((prop) => [prop.id, prop]),
 		);
 	}
 
 	public async getUsages(articlePath: Path, propertyName: string, values: string[]): Promise<PropertyUsage[]> {
 		const articles = this._catalog.getItems().filter((article: Article) => {
 			if (!article.props?.properties) return false;
-			const index = article.props?.properties.findIndex((property) => property.name === propertyName);
+			const index = article.props?.properties.findIndex((property) => this._propId(property) === propertyName);
 
 			if (index === -1) return false;
 			const newProps = { ...article.props, logicPath: article.logicPath };
@@ -61,12 +62,14 @@ class CatalogProperty {
 		await Promise.all(
 			this._catalog.getItems().map(async (article: Article) => {
 				if (!article.props?.properties) return;
-				const index = article.props?.properties.findIndex((property) => property.name === propertyName);
+				const index = article.props?.properties.findIndex(
+					(property) => this._propId(property) === propertyName,
+				);
 
 				if (index === -1) return;
 				const newProps = { ...article.props, logicPath: article.logicPath };
 
-				if ((value && value.some((val) => newProps.properties[index].value.includes(val))) || !value)
+				if (value?.some((val) => newProps.properties[index].value.includes(val)) || !value)
 					newProps.properties.splice(index, 1);
 
 				await this._catalog.updateItemProps(newProps, this._resourceUpdaterFactory);
@@ -74,6 +77,10 @@ class CatalogProperty {
 		);
 
 		return this._catalog.findItemByItemPath(articlePath)?.props.properties ?? [];
+	}
+
+	private _propId(prop: PropertyValue): string {
+		return prop.id ?? (prop as unknown as { name: string }).name;
 	}
 }
 

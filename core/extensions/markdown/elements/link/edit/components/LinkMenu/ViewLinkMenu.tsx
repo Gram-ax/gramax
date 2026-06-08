@@ -72,9 +72,9 @@ const ButtonView = ({ href, icon, itemName, isExternalLink }: ButtonViewProps) =
 	const target = isTauri ? desktopBehavior : browserBehavior;
 
 	const hashHatch = getLinkToHeading(href);
-	const isCurrentLink = typeof window !== "undefined" ? window.location.pathname === hashHatch?.[1] : false;
+	const isCurrentLink = typeof window !== "undefined" ? window.location.pathname === hashHatch?.path : false;
 	const hrefStartByHash = href.startsWith("#");
-	const isHashLink = hashHatch?.[2] && (isCurrentLink || hrefStartByHash);
+	const isHashLink = hashHatch?.hash && (isCurrentLink || hrefStartByHash);
 
 	const toolbarButton = (
 		<Container>
@@ -88,7 +88,7 @@ const ButtonView = ({ href, icon, itemName, isExternalLink }: ButtonViewProps) =
 	return target === "_blank" || isHashLink ? (
 		<a
 			className="flex flex-1 min-w-0 overflow-hidden"
-			href={isHashLink ? hashHatch?.[2] : href}
+			href={isHashLink ? hashHatch?.hash : href}
 			rel="noopener noreferrer"
 			target={target}
 		>

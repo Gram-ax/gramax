@@ -15,12 +15,21 @@ import Theme from "../../../extensions/Theme/Theme";
 
 const DEFAULT_LANGAUGE = getFileInputDefaultLanguage();
 
-const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?: boolean }) => {
+type DarkTheme = "new-vs-dark" | "vs-dark" | "article-dark";
+
+type LightTheme = "light";
+
+type FileInputTheme = {
+	dark: DarkTheme;
+	light: LightTheme;
+};
+
+const FileInput = (props: Omit<FileInputProps, "theme"> & { style?: CSSProperties; theme?: FileInputTheme }) => {
 	const {
 		value,
 		style,
 		className,
-		uiKitTheme,
+		theme: fileInputTheme,
 		language,
 		onChange,
 		onMount,
@@ -41,7 +50,8 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 		};
 	}, []);
 
-	const monacoDarkTheme = uiKitTheme ? "new-vs-dark" : "vs-dark";
+	const monacoDarkTheme = fileInputTheme?.dark ?? "vs-dark";
+	const monacoLightTheme = fileInputTheme?.light ?? "light";
 
 	return (
 		<div className={className} style={{ padding: "1rem 0", height, ...style }}>
@@ -80,7 +90,7 @@ const FileInput = (props: FileInputProps & { style?: CSSProperties; uiKitTheme?:
 							wordWrap: "on",
 							...options,
 						}}
-						theme={theme === Theme.dark ? monacoDarkTheme : "light"}
+						theme={theme === Theme.dark ? monacoDarkTheme : monacoLightTheme}
 						{...otherProps}
 					/>
 				</MergeConflictStyles>

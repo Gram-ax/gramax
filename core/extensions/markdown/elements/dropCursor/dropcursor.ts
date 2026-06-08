@@ -58,16 +58,16 @@ export class DropCursorView {
 	}
 
 	updateOverlay() {
-		const $pos = this.editorView.state.doc.resolve(this.cursorPos!);
-		let isBlock = !$pos.parent.inlineContent,
+		const Pos = this.editorView.state.doc.resolve(this.cursorPos!);
+		let isBlock = !Pos.parent.inlineContent,
 			rect;
 		const editorDOM = this.editorView.dom,
 			editorRect = editorDOM.getBoundingClientRect();
 		const scaleX = editorRect.width / editorDOM.offsetWidth,
 			scaleY = editorRect.height / editorDOM.offsetHeight;
 		if (isBlock) {
-			const before = $pos.nodeBefore,
-				after = $pos.nodeAfter;
+			const before = Pos.nodeBefore,
+				after = Pos.nodeAfter;
 			if (before || after) {
 				const node = this.editorView.nodeDOM(this.cursorPos! - (before ? before.nodeSize : 0));
 				if (node) {

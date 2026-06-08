@@ -3,13 +3,14 @@ import { forwardRef } from "react";
 
 interface PlayButtonProps {
 	className?: string;
+	iconClassName?: string;
 	onClick?: () => void;
 }
 
-const PlayButton = forwardRef<HTMLElement, PlayButtonProps>(({ className, onClick }, ref) => {
+const PlayButton = forwardRef<HTMLElement, PlayButtonProps>(({ className, iconClassName, onClick }, ref) => {
 	return (
 		<div className={className} onClick={onClick}>
-			<Icon code="play-button" ref={ref} />
+			<Icon className={iconClassName} code="play-button" ref={ref} />
 		</div>
 	);
 });

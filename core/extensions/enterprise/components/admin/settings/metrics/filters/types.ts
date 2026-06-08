@@ -57,6 +57,7 @@ export interface ViewMetricsFilters {
 	sortBy: SortByColumn;
 	sortOrder: SortOrder;
 	selectedUserEmails: string[];
+	selectedCatalogs: string[];
 	anonymousFilter: AnonymousFilter;
 	axisLabelFormat: AxisLabelFormat;
 }
@@ -89,6 +90,7 @@ export interface SearchMetricsFilters {
 	queriesTable: SearchTableSortSettings;
 	queriesDetailsTable: SearchQueryDetailsTableSortSettings;
 	articleRatingTable: ArticleRatingTableSortSettings;
+	selectedCatalogs: string[];
 }
 
 export interface MetricsFiltersStorage {

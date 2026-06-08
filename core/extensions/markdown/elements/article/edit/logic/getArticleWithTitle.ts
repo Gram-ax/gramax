@@ -1,6 +1,6 @@
 import type { JSONContent } from "@tiptap/core";
 
-const getArticleWithTitle = (title: string, editTree: JSONContent) => {
+const getArticleWithTitle = (title: string, editTree: JSONContent): JSONContent => {
 	return {
 		type: "doc",
 		content: [

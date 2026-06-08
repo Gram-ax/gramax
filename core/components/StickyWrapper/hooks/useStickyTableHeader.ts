@@ -24,12 +24,14 @@ type useStickyTableHeaderType = (
 	tableRef: React.RefObject<HTMLTableElement>,
 	stickyTableWrapperRef: React.MutableRefObject<HTMLDivElement>,
 	topShadowContainerRef: React.MutableRefObject<HTMLDivElement>,
+	headerRowRef: React.MutableRefObject<HTMLTableRowElement>,
 ) => StickyTableHeaderState;
 
 export const useStickyTableHeader: useStickyTableHeaderType = (
 	tableRef,
 	stickyTableWrapperRef,
 	topShadowContainerRef,
+	headerRowRef,
 ) => {
 	const [tableStyles, setTableStyles] = useState<TableStyles>({});
 	const [headerRowStyles, setHeaderRowStyles] = useState<HeaderRowStyles>({});
@@ -51,8 +53,9 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 		[stickyTableWrapperRef.current],
 	);
 	const headerRow = useMemo(
-		() => tableRef?.current?.querySelector<HTMLTableRowElement>(headerRowSelector) ?? null,
-		[tableRef?.current],
+		() =>
+			(headerRowRef?.current || tableRef?.current?.querySelector<HTMLTableRowElement>(headerRowSelector)) ?? null,
+		[tableRef?.current, headerRowRef?.current],
 	);
 
 	const findScrollableParents = useCallback(() => {
@@ -83,6 +86,7 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 		horizontalRef.current = horizontal;
 	}, [tableRef?.current]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const setScrollLeft = useCallback(
 		(scrollLeft: number) => {
 			if (horizontalRef.current) horizontalRef.current.scrollLeft = scrollLeft;
@@ -93,6 +97,7 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 		[horizontalRef.current, headerRow, controlsContainerHorizontal, topShadowContainerRef?.current],
 	);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: expected
 	const horizontalRowScroll = useCallback(() => {
 		if (!horizontalRef.current) return;
 		setScrollLeft(horizontalRef.current.scrollLeft);
@@ -174,7 +179,7 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 			prevTableStylesRef.current = nextTableStyles;
 			setTableStyles(nextTableStyles);
 		}
-	}, [tableRef, headerHeightRef, headerRow]);
+	}, [tableRef, headerRow]);
 
 	const scheduleUpdate = useCallback(() => {
 		if (rafIdRef.current != null) return;
@@ -264,7 +269,16 @@ export const useStickyTableHeader: useStickyTableHeaderType = (
 				rafIdRef.current = null;
 			}
 		};
-	}, [computeStyles, findScrollableParents, headerRowSelector, scheduleUpdate, tableRef, headerRow]);
+	}, [
+		computeStyles,
+		findScrollableParents,
+		scheduleUpdate,
+		tableRef,
+		headerRow,
+		computeBorderHeight,
+		headerRowScroll,
+		horizontalRowScroll,
+	]);
 
 	return { tableStyles, headerRowStyles };
 };

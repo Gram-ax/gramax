@@ -1,18 +1,17 @@
 import WidthWrapper from "@components/WidthWrapper/WidthWrapper";
-import useWatch from "@core-ui/hooks/useWatch";
 import styled from "@emotion/styled";
 import t from "@ext/localization/locale/translate";
 import BlockCommentView from "@ext/markdown/elements/comment/edit/components/View/BlockCommentView";
 import Column from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/Column";
 import { CustomDragLayer } from "@ext/markdown/elements/view/render/components/Displays/Helpers/Kanban/CustomDragLayer";
+import { useViewKanbanBoard } from "@ext/markdown/elements/view/render/logic/hooks/useViewKanbanBoard";
 import { useDragDrop } from "@ext/navigation/catalog/drag/logic/ModifiedBackend";
 import PropertyServiceProvider from "@ext/properties/components/PropertyService";
-import { deleteProperty, updateProperty } from "@ext/properties/logic/changeProperty";
-import type { Property, ViewRenderGroup } from "@ext/properties/models";
-import { useCallback, useState } from "react";
+import type { PropertyValue, ViewRenderGroup } from "@ext/properties/models";
 import { DndProvider } from "react-dnd";
 
 interface KanbanProps {
+	defs: PropertyValue[];
 	groupby: string[];
 	content: ViewRenderGroup[];
 	disabled: boolean;
@@ -22,69 +21,21 @@ interface KanbanProps {
 }
 
 const Kanban = (props: KanbanProps) => {
-	const { disabled, content, groupby, className, updateArticle, commentId } = props;
+	const { disabled, content, groupby, className, updateArticle, commentId, defs } = props;
 	const catalogProperties = PropertyServiceProvider.value?.properties;
 
 	const noGroup = t("properties.validation-errors.no-groupby");
 
-	const [data, setData] = useState<ViewRenderGroup[]>(content);
-
 	const { backend, options } = useDragDrop();
 
-	useWatch(() => {
-		setData(content);
-	}, [content]);
-
-	const onCardDrop = useCallback(
-		(columnID: number, cardID: number, newColumnID: number, isDelete?: boolean) => {
-			if (disabled) return;
-			const group = data[columnID].subgroups[0];
-			const article = { ...group.articles[cardID] };
-			const indexProperty = article.otherProps.findIndex((prop) => prop.name === groupby[0]);
-			if (indexProperty !== -1 && article.otherProps?.length)
-				article.otherProps[indexProperty].value = [data[newColumnID].group[0]];
-
-			const newData = data.map((group, index) => {
-				if (index === columnID) {
-					const updatedSubgroups = [...group.subgroups];
-					delete updatedSubgroups[0].articles[cardID];
-					return { ...group, subgroups: updatedSubgroups };
-				}
-				if (!isDelete && index === newColumnID) {
-					const updatedSubgroups = [...group.subgroups];
-					updatedSubgroups[0].articles.push(article);
-					return { ...group, subgroups: updatedSubgroups };
-				}
-				return group;
-			});
-
-			setData(newData);
-			updateArticle?.(article.itemPath, groupby[0], newData[newColumnID].group[0]);
-		},
-		[disabled, data, updateArticle, groupby],
-	);
-
-	const updateHandler = useCallback(
-		(columnID: number, cardID: number, property: string, value: string, isDelete?: boolean) => {
-			if (groupby.includes(property)) {
-				const newColumnID = data.findIndex((group) => group.group?.[0] === value);
-				return onCardDrop(columnID, cardID, newColumnID, isDelete || newColumnID === columnID);
-			}
-
-			const newData = data.slice();
-			const article = newData[columnID].subgroups[0].articles[cardID];
-			const newProps = isDelete
-				? deleteProperty(property, article.otherProps, true)
-				: updateProperty(property, value, catalogProperties, article.otherProps, true);
-
-			article.otherProps = newProps as Property[];
-			newData[columnID].subgroups[0].articles[cardID] = article;
-
-			setData(newData);
-			updateArticle?.(article.itemPath, property, value, isDelete);
-		},
-		[catalogProperties, updateArticle, data],
-	);
+	const { data, onCardDrop, updateHandler } = useViewKanbanBoard({
+		content,
+		disabled,
+		groupby,
+		defs,
+		catalogProperties,
+		updateArticle,
+	});
 
 	if (!content?.[0]?.subgroups)
 		return (

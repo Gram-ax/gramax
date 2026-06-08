@@ -16,15 +16,18 @@ export interface ViewButtonProps {
 	tooltipText: string;
 	disabled?: boolean;
 	empty?: boolean;
+	trigger?: JSX.Element;
 }
 
-const ViewButton = ({ icon, disabled = false, children, tooltipText, empty = false }: ViewButtonProps) => {
+const ViewButton = ({ icon, disabled = false, children, tooltipText, empty = false, trigger }: ViewButtonProps) => {
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild disabled={disabled}>
-				<div>
-					<ActionButton disabled={disabled} icon={icon} tooltipText={tooltipText} />
-				</div>
+				{trigger || (
+					<div>
+						<ActionButton disabled={disabled} icon={icon} tooltipText={tooltipText} />
+					</div>
+				)}
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="start">
 				<DropdownMenuLabel>{tooltipText}</DropdownMenuLabel>

@@ -91,7 +91,7 @@ impl std::fmt::Display for StderrFmt<'_> {
 
 		let attrs: Vec<_> = span.attributes.iter().filter(|a| a.key.as_str() != "target").collect();
 		if !attrs.is_empty() {
-			write!(f, "\n")?;
+			writeln!(f)?;
 			for attr in &attrs {
 				write!(f, "{}: {} ", attr.key.as_str().bold(), attr.value)?;
 			}

@@ -40,7 +40,7 @@ interface Props<T extends AnswerType = AnswerType> extends BaseComponentProps<T>
 const baseClassName =
 	"relative answer p-0.5 pl-2 pr-2 rounded-lg border border-secondary-border bg-secondary-bg hover:bg-secondary-bg-hover transition-all text-primary-fg hover:border-primary-border shadow-soft-sm";
 const correctClassName =
-	"border-status-success-border bg-status-success-bg hover:bg-status-success-bg-hover hover:border-status-success-border";
+	"border-status-success-secondary-border bg-status-success-bg hover:bg-status-success-bg-hover hover:border-status-success-secondary-border";
 const incorrectClassName =
 	"border-status-error-border bg-status-error-bg hover:bg-status-error-bg-hover hover:border-status-error-border";
 const selectedClassName = "hover:bg-secondary-bg-hover bg-primary-bg hover:border-primary-border";

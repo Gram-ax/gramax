@@ -60,7 +60,6 @@ interface UserToolbarAddBtnProps {
 	loadBranchesOptions: () => Promise<{ options: SearchSelectOption[] }>;
 	existingUsers?: string[];
 	isExternal?: boolean;
-	limit?: number;
 }
 
 export const UserAndRoleToolbarAddBtn = ({
@@ -69,7 +68,6 @@ export const UserAndRoleToolbarAddBtn = ({
 	loadBranchesOptions,
 	existingUsers = [],
 	isExternal,
-	limit,
 }: UserToolbarAddBtnProps) => {
 	const { hasUsers, searchUsers, settings } = useSettings();
 	const [isModalOpen, setIsModalOpen] = useState(false);
@@ -80,9 +78,6 @@ export const UserAndRoleToolbarAddBtn = ({
 		resolver: zodResolver(formSchema),
 		defaultValues: { users: [], role: "reader" },
 	});
-
-	const currentCount = existingUsers.length;
-	const availableSlots = limit && currentCount ? limit - currentCount : undefined;
 
 	const loadOptions = useCallback(
 		async ({ searchQuery }: { searchQuery: string }) => {
@@ -101,8 +96,7 @@ export const UserAndRoleToolbarAddBtn = ({
 	);
 
 	const handleUsersChange = (options: SearchSelectOption[]) => {
-		const limitedOptions = availableSlots ? options.slice(0, availableSlots) : options;
-		const userValues = limitedOptions.map((option) => String(option.value));
+		const userValues = options.map((option) => String(option.value));
 		form.setValue("users", userValues);
 	};
 
@@ -147,9 +141,9 @@ export const UserAndRoleToolbarAddBtn = ({
 			({
 				type: "submit",
 				onClick: handleAddSelectedUsers,
-				disabled: !form.watch("users").length || disable,
+				disabled: disable,
 			}) as ButtonProps,
-		[form, disable, handleAddSelectedUsers],
+		[disable, handleAddSelectedUsers],
 	);
 
 	return (
@@ -158,11 +152,6 @@ export const UserAndRoleToolbarAddBtn = ({
 			cancelButtonText={t("cancel")}
 			confirmButtonProps={confirmButtonProps}
 			confirmButtonText={t("add")}
-			description={
-				availableSlots
-					? t("enterprise.admin.search.users.description").replace("{count}", availableSlots.toString())
-					: ""
-			}
 			isOpen={isModalOpen}
 			modalContent={
 				<Form asChild {...form}>
@@ -201,21 +190,19 @@ export const UserAndRoleToolbarAddBtn = ({
 												!settings.guests.domains.includes(value);
 												field.onChange(value ? [value] : []);
 											}}
-											placeholder={"example@google.com"}
+											placeholder={t("enterprise.admin.users.add")}
 											{...field}
 										/>
 									)
 								}
-								description={
-									inSelectInput
-										? t("enterprise.admin.users.add-select")
-										: t("enterprise.admin.users.add")
-								}
+								description={inSelectInput ? t("enterprise.admin.users.add-select") : ""}
 								layout="vertical"
 								name="users"
-								title={t("enterprise.admin.users.users")}
+								title={t(
+									inSelectInput ? "enterprise.admin.users.users" : "enterprise.admin.users.user",
+								)}
 							/>
-							{inSelectInput && (
+							{!isExternal && (
 								<FormField
 									control={({ field }) => (
 										<Select {...field} onValueChange={field.onChange}>
@@ -269,7 +256,7 @@ export const UserAndRoleToolbarAddBtn = ({
 				</Form>
 			}
 			onOpenChange={setIsModalOpen}
-			title={t("enterprise.admin.search.users.title")}
+			title={t(inSelectInput ? "enterprise.admin.search.users.title" : "enterprise.admin.users.add-title")}
 			trigger={<TriggerAddButtonTemplate disabled={disable} />}
 		/>
 	);

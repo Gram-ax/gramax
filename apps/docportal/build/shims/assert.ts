@@ -3,7 +3,12 @@ class AssertionError extends Error {
 	expected: unknown;
 	operator: string;
 
-	constructor({ message, actual, expected, operator }: { message?: string; actual?: unknown; expected?: unknown; operator?: string }) {
+	constructor({
+		message,
+		actual,
+		expected,
+		operator,
+	}: { message?: string; actual?: unknown; expected?: unknown; operator?: string }) {
 		super(message ?? `${String(actual)} ${operator} ${String(expected)}`);
 		this.name = "AssertionError";
 		this.actual = actual;
@@ -29,27 +34,47 @@ assert.fail = function fail(message?: string | Error): never {
 
 assert.equal = function equal(actual: unknown, expected: unknown, message?: string | Error): void {
 	// eslint-disable-next-line eqeqeq
-	if (actual != expected) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message, actual, expected, operator: "==" });
+	if (actual !== expected) {
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : message,
+			actual,
+			expected,
+			operator: "==",
+		});
 	}
 };
 
 assert.notEqual = function notEqual(actual: unknown, expected: unknown, message?: string | Error): void {
 	// eslint-disable-next-line eqeqeq
-	if (actual == expected) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message, actual, expected, operator: "!=" });
+	if (actual === expected) {
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : message,
+			actual,
+			expected,
+			operator: "!=",
+		});
 	}
 };
 
 assert.strictEqual = function strictEqual(actual: unknown, expected: unknown, message?: string | Error): void {
 	if (!Object.is(actual, expected)) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message, actual, expected, operator: "===" });
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : message,
+			actual,
+			expected,
+			operator: "===",
+		});
 	}
 };
 
 assert.notStrictEqual = function notStrictEqual(actual: unknown, expected: unknown, message?: string | Error): void {
 	if (Object.is(actual, expected)) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message, actual, expected, operator: "!==" });
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : message,
+			actual,
+			expected,
+			operator: "!==",
+		});
 	}
 };
 
@@ -65,13 +90,23 @@ function isDeepEqual(a: unknown, b: unknown): boolean {
 
 assert.deepEqual = function deepEqualFn(actual: unknown, expected: unknown, message?: string | Error): void {
 	if (!isDeepEqual(actual, expected)) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message, actual, expected, operator: "deepEqual" });
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : message,
+			actual,
+			expected,
+			operator: "deepEqual",
+		});
 	}
 };
 
 assert.notDeepEqual = function notDeepEqualFn(actual: unknown, expected: unknown, message?: string | Error): void {
 	if (isDeepEqual(actual, expected)) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message, actual, expected, operator: "notDeepEqual" });
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : message,
+			actual,
+			expected,
+			operator: "notDeepEqual",
+		});
 	}
 };
 
@@ -80,13 +115,23 @@ assert.notDeepStrictEqual = assert.notDeepEqual;
 
 assert.match = function match(value: string, regexp: RegExp, message?: string | Error): void {
 	if (!regexp.test(value)) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message, actual: value, expected: regexp, operator: "match" });
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : message,
+			actual: value,
+			expected: regexp,
+			operator: "match",
+		});
 	}
 };
 
 assert.doesNotMatch = function doesNotMatch(value: string, regexp: RegExp, message?: string | Error): void {
 	if (regexp.test(value)) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message, actual: value, expected: regexp, operator: "doesNotMatch" });
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : message,
+			actual: value,
+			expected: regexp,
+			operator: "doesNotMatch",
+		});
 	}
 };
 
@@ -96,12 +141,21 @@ assert.ifError = function ifError(value: unknown): void {
 	}
 };
 
-assert.throws = function throws(fn: () => unknown, expected?: RegExp | (new (...args: unknown[]) => unknown) | Error | string, message?: string): void {
+assert.throws = function throws(
+	fn: () => unknown,
+	expected?: RegExp | (new (...args: unknown[]) => unknown) | Error | string,
+	message?: string,
+): void {
 	try {
 		fn();
 	} catch (err) {
 		if (!expected) return;
-		if (typeof expected === "string") { message = expected; expected = undefined; }
+		if (typeof expected === "string") {
+			// biome-ignore lint/style/noParameterAssign: it's ok
+			message = expected;
+			// biome-ignore lint/style/noParameterAssign: it's ok
+			expected = undefined;
+		}
 		if (expected instanceof RegExp && !(expected as RegExp).test(String(err))) {
 			throw new AssertionError({ message, actual: err, expected, operator: "throws" });
 		}
@@ -117,7 +171,11 @@ assert.doesNotThrow = function doesNotThrow(fn: () => unknown, message?: string 
 	try {
 		fn();
 	} catch (err) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message ?? "Got unwanted exception", actual: err, operator: "doesNotThrow" });
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : (message ?? "Got unwanted exception"),
+			actual: err,
+			operator: "doesNotThrow",
+		});
 	}
 };
 
@@ -127,14 +185,24 @@ assert.rejects = async function rejects(fn: () => Promise<unknown>, message?: st
 	} catch {
 		return;
 	}
-	throw new AssertionError({ message: message instanceof Error ? message.message : message ?? "Missing expected rejection", operator: "rejects" });
+	throw new AssertionError({
+		message: message instanceof Error ? message.message : (message ?? "Missing expected rejection"),
+		operator: "rejects",
+	});
 };
 
-assert.doesNotReject = async function doesNotReject(fn: () => Promise<unknown>, message?: string | Error): Promise<void> {
+assert.doesNotReject = async function doesNotReject(
+	fn: () => Promise<unknown>,
+	message?: string | Error,
+): Promise<void> {
 	try {
 		await fn();
 	} catch (err) {
-		throw new AssertionError({ message: message instanceof Error ? message.message : message ?? "Got unwanted rejection", actual: err, operator: "doesNotReject" });
+		throw new AssertionError({
+			message: message instanceof Error ? message.message : (message ?? "Got unwanted rejection"),
+			actual: err,
+			operator: "doesNotReject",
+		});
 	}
 };
 
@@ -150,7 +218,6 @@ export const strictEqual = assert.strictEqual;
 export const notStrictEqual = assert.notStrictEqual;
 export const deepEqual = assert.deepEqual;
 export const notDeepEqual = assert.notDeepEqual;
-// biome-ignore lint: re-export aliases
 export const deepStrictEqual = assert.deepStrictEqual;
 export const notDeepStrictEqual = assert.notDeepStrictEqual;
 export const match = assert.match;

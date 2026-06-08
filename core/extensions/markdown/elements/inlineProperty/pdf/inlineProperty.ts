@@ -1,5 +1,6 @@
 import { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import getTextByProperty from "@ext/markdown/elements/inlineProperty/edit/logic/getTextByProperty";
+import { resolveExportScopeProperty } from "@ext/markdown/elements/inlineProperty/edit/logic/resolveExportProperty";
 import { paragraphCase } from "@ext/markdown/elements/paragraph/pdf/paragraph";
 import type { pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
 import type { JSONContent } from "@tiptap/core";
@@ -14,16 +15,13 @@ export const inlinePropertyHandler = async (tag: Tag | JSONContent, context: pdf
 	const template = catalog.customProviders.templateProvider.getArticle(article.props.template);
 	if (!template) return [];
 
-	const properties = article.props?.properties;
-
 	const catalogProperties =
 		template.props?.customProperties?.length > 0 ? template.props.customProperties : catalog.props.properties;
-	const catalogProperty = catalogProperties.find((p) => p.name === attrs.bind);
 
-	if (!catalogProperty) return [];
+	const resolved = resolveExportScopeProperty(catalog, catalogProperties, article.props?.properties, attrs.bind);
+	if (!resolved) return [];
 
-	const articleProperty = properties?.find((p) => p.name === attrs.bind);
-	const displayValue = getTextByProperty({ ...catalogProperty, value: articleProperty?.value }, !!articleProperty);
+	const displayValue = getTextByProperty(resolved.property, !!resolved.property.value);
 
 	const content = await paragraphCase(new Tag("p", {}, [displayValue]), context);
 	return content;

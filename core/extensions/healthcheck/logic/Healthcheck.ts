@@ -1,5 +1,5 @@
 import { CATEGORY_ROOT_FILENAME, GRAMAX_EDITOR_URL } from "@app/config/const";
-import { LucideIcon } from "@components/Atoms/Icon/LucideIcon";
+import { type IconCode, LucideIcon } from "@components/Atoms/Icon/LucideIcon";
 import type Context from "@core/Context/Context";
 import type { Article } from "@core/FileStructue/Article/Article";
 import type { CatalogErrorGroups } from "@core/FileStructue/Catalog/CatalogErrorGroups";
@@ -33,7 +33,7 @@ export interface CatalogErrorArgs {
 }
 
 class Healthcheck {
-	private _catalogContentItems: Article[];
+	private _catalogContentItems: Article[] = [];
 	constructor(
 		private _fp: FileProvider,
 		private _catalog: ContextualCatalog,
@@ -76,15 +76,10 @@ class Healthcheck {
 				}
 
 				for (const resource of resources) {
-					if (linkResources.length === 0) {
-						await this._checkResourceLink(item, resource);
-						continue;
-					}
-
-					const linkedResource = linkResources.find((lr) => lr.resource.value === resource.value);
-
-					if (!linkedResource) await this._checkResourceLink(item, resource);
-					else await this._checkResourceLink(item, linkedResource.resource, linkedResource.hash);
+					const linksToCheck = this._getLinksToCheck(resource, linkResources);
+					await linksToCheck.forEachAsync(async ({ resource, hash }) =>
+						this._checkResourceLink(item, resource, hash),
+					);
 				}
 
 				for (const iconCode of p.parsedContext.icons) {
@@ -95,7 +90,7 @@ class Healthcheck {
 			});
 		}
 
-		this._errors.unsupported = this.groupAndRename(this._errors.unsupported);
+		this._errors.unsupported = this._groupAndRename(this._errors.unsupported);
 
 		const categories = this._catalog.getCategories();
 		for (const category of categories) {
@@ -122,7 +117,7 @@ class Healthcheck {
 				}
 			}
 		}
-		this._catalogContentItems = undefined;
+		this._catalogContentItems = [];
 		return this._errors;
 	}
 
@@ -132,29 +127,28 @@ class Healthcheck {
 		args,
 	});
 
+	private _getLinksToCheck(
+		resource: Path,
+		linkResources: { resource: Path; hash?: string }[],
+	): { resource: Path; hash?: string }[] {
+		if (!linkResources.length) return [{ resource }];
+
+		const linkedResources = linkResources.filter((lr) => lr.resource.value === resource.value);
+		return linkedResources.length ? linkedResources : [{ resource }];
+	}
+
 	private _pathExists = async (item: Article, resource: Path) => {
 		const path = !resource.extension ? resource.join(new Path(CATEGORY_ROOT_FILENAME)) : resource;
 		return await item.parsedContent.read((p) => p.parsedContext.getResourceManager().exists(path));
 	};
 
-	private _getArticleByResourcePath = async (item: Article, resource: Path) => {
+	private _getArticleByResourcePath = async (item: Article, resource: Path): Promise<Article | undefined> => {
 		const path = !resource.extension ? resource.join(new Path(CATEGORY_ROOT_FILENAME)) : resource;
 		const absolutePath = await item.parsedContent.read((p) =>
 			p.parsedContext.getResourceManager().getAbsolutePath(path),
 		);
 
-		let index = 0;
-		let article: Article;
-		while (index < this._catalogContentItems.length - 1) {
-			const item = this._catalogContentItems[index];
-			if (item?.ref?.path?.value === absolutePath.value) {
-				article = item;
-				break;
-			}
-			index++;
-		}
-
-		return article;
+		return this._catalogContentItems.find((catalogItem) => catalogItem.ref.path.value === absolutePath.value);
 	};
 
 	private async _checkResourceLink(item: Article, resource: Path, hash?: string) {
@@ -204,7 +198,11 @@ class Healthcheck {
 	};
 
 	private async _checkIcons(item: Article, code: string) {
-		if ((await this._catalog.customProviders.iconProvider.getIconByCode(code)) || (await LucideIcon(code))) return;
+		if (
+			(await this._catalog.customProviders.iconProvider.getIconByCode(code)) ||
+			(await LucideIcon(code as IconCode))
+		)
+			return;
 		this._errors.icons.push(
 			this._getRefCatalogError({
 				value: code,
@@ -263,7 +261,7 @@ class Healthcheck {
 		}
 	};
 
-	private groupAndRename(arr: CatalogError[]): CatalogError[] {
+	private _groupAndRename(arr: CatalogError[]): CatalogError[] {
 		const grouped: { [key: string]: CatalogError & { count: number } } = {};
 
 		arr.forEach((item) => {

@@ -1,3 +1,5 @@
+import type MimeTypes from "@core-ui/ApiServices/Types/MimeTypes";
+import { downloadFile } from "@core-ui/downloadResource";
 import type { FileValue } from "@ui-kit/FileUpload";
 import type { ExportTemplate } from "../types/WorkspaceComponent";
 
@@ -32,6 +34,9 @@ export const upsertTemplates = (currentTemplates: ExportTemplate[], uploadedTemp
 export const removeTemplate = (templates: ExportTemplate[], title: string) =>
 	templates.filter((template) => template.title !== title);
 
+export const findTemplate = (templates: ExportTemplate[], title: string) =>
+	templates.find((template) => template.title === title);
+
 export const readTemplateFile = async (file: FileValue, readFile: (file: File) => Promise<ExportTemplate>) => {
 	if (!(file instanceof File)) {
 		return null;
@@ -40,17 +45,17 @@ export const readTemplateFile = async (file: FileValue, readFile: (file: File) =
 	return readFile(file);
 };
 
-export const readWordTemplate = async (file: File) =>
+export const readTemplate = async (file: File) =>
 	({
 		title: file.name,
 		bufferBase64: arrayBufferToBase64(await file.arrayBuffer()),
 	}) satisfies ExportTemplate;
 
-export const readPdfTemplate = async (file: File) =>
-	({
-		title: file.name,
-		bufferBase64: await file.text(),
-	}) satisfies ExportTemplate;
+export const downloadTemplate = (template: ExportTemplate, mimeType: string) => {
+	const fileData = base64ToUint8Array(template.bufferBase64);
+
+	downloadFile(fileData, mimeType as MimeTypes, template.title);
+};
 
 const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
 	const bytes = new Uint8Array(buffer);
@@ -80,4 +85,16 @@ const getBase64ByteLength = (base64: string) => {
 	const padding = normalizedBase64.endsWith("==") ? 2 : normalizedBase64.endsWith("=") ? 1 : 0;
 
 	return Math.max(0, Math.floor((normalizedBase64.length * 3) / 4 - padding));
+};
+
+const base64ToUint8Array = (base64: string) => {
+	const normalizedBase64 = base64.replace(/\s/g, "");
+	const binary = atob(normalizedBase64);
+	const bytes = new Uint8Array(binary.length);
+
+	for (let i = 0; i < binary.length; i++) {
+		bytes[i] = binary.charCodeAt(i);
+	}
+
+	return bytes;
 };

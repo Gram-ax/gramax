@@ -1,6 +1,7 @@
+/** biome-ignore-all lint/suspicious/noConfusingVoidType: idc */
 import type { FilterNever } from "@core-ui/utils/utilTypes";
 
-type EventFnRet = Promise<void | boolean> | boolean | void;
+type EventFnRet = Promise<void | undefined | boolean> | boolean | void;
 
 type EventUnknownFn = (args: unknown) => EventFnRet;
 
@@ -36,10 +37,10 @@ export class EventEmitter<Events extends EventPlaceholder> {
 		return unsubsribeToken;
 	}
 
-	off(unsubsribeToken: UnsubscribeToken): void {
+	off(unsubsribeToken: UnsubscribeToken) {
 		for (const events of this._listeners.values()) {
-			const idx = events.findIndex((listener) => listener[0]?.deref() == unsubsribeToken);
-			if (idx == -1) continue;
+			const idx = events.findIndex((listener) => listener[0]?.deref() === unsubsribeToken);
+			if (idx === -1) continue;
 			events.splice(idx, 1);
 			return;
 		}
@@ -48,13 +49,16 @@ export class EventEmitter<Events extends EventPlaceholder> {
 	async emit<Key extends keyof Events, Fn extends Events[Key]>(
 		event: Key,
 		args: Parameters<Fn>[0],
-	): Promise<void | boolean> {
+	): Promise<void | undefined | boolean> {
 		this._ensureEventExist(event);
 		const res = await Promise.all(this._listeners.get(event).map((v) => v[1](args)));
 		return !res.includes(false);
 	}
 
-	emitSync<Key extends keyof Events, Fn extends Events[Key]>(event: Key, args: Parameters<Fn>[0]): void | boolean {
+	emitSync<Key extends keyof Events, Fn extends Events[Key]>(
+		event: Key,
+		args: Parameters<Fn>[0],
+	): void | undefined | boolean {
 		this._ensureEventExist(event);
 
 		const res = this._listeners.get(event).map((v) => {

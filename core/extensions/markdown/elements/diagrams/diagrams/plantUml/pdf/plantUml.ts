@@ -1,16 +1,16 @@
 import DiagramType from "@core/components/Diagram/DiagramType";
-import type { Tag } from "@ext/markdown/core/render/logic/Markdoc";
 import { pdfDiagramRenderer } from "@ext/markdown/elements/diagrams/pdf/pdfDiagramRenderer";
 import { BASE_CONFIG, FONT_SIZE_COEFFICIENT, IMAGE_SCALE_FACTOR, MAX_WIDTH } from "@ext/pdfExport/config";
 import type { NodeOptions, pdfRenderContext } from "@ext/pdfExport/parseNodesPDF";
+import type { JSONContent } from "@tiptap/core";
 import type { ContentStack } from "pdfmake/interfaces";
 
 export async function plantUmlHandler(
-	node: Tag,
+	node: JSONContent,
 	context: pdfRenderContext,
 	options?: NodeOptions,
 ): Promise<ContentStack> {
-	let originalWidth = parseInt(node.attributes.width) || MAX_WIDTH;
+	let originalWidth = parseInt(node.attrs.width) || MAX_WIDTH;
 
 	if (options?.colWidth) {
 		originalWidth = Math.min(originalWidth, options.colWidth);
@@ -31,7 +31,7 @@ export async function plantUmlHandler(
 				margin: [0, 0, 0, BASE_CONFIG.FONT_SIZE * 0.5],
 			},
 			{
-				text: node.attributes.title || "",
+				text: node.attrs.title || "",
 				margin: [0, -BASE_CONFIG.FONT_SIZE * 0.25, 0, BASE_CONFIG.FONT_SIZE * 0.5],
 				fontSize: BASE_CONFIG.FONT_SIZE * FONT_SIZE_COEFFICIENT,
 				italics: true,

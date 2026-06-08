@@ -1,8 +1,15 @@
 import type ContextService from "@core-ui/ContextServices/ContextService";
+import type { CatalogSearchScope } from "@ext/serach/components/SearchScope";
 import type { ResourceFilter } from "@ext/serach/Searcher";
-import { createContext, type Dispatch, type ReactElement, type SetStateAction, useContext, useState } from "react";
-
-export type SearchScopeFilter = "all" | "catalog" | "article";
+import {
+	createContext,
+	type Dispatch,
+	type ReactElement,
+	type SetStateAction,
+	useCallback,
+	useContext,
+	useState,
+} from "react";
 
 export interface SearchQueryServiceValue {
 	query: string;
@@ -11,8 +18,8 @@ export interface SearchQueryServiceValue {
 	setResourceFilter: Dispatch<SetStateAction<ResourceFilter>>;
 	hasOpenRequest: boolean;
 	openRequestVersion: number;
-	requestedScopeFilter?: SearchScopeFilter;
-	requestOpen: (scopeFilter?: SearchScopeFilter) => void;
+	requestedScopeFilter?: CatalogSearchScope;
+	requestOpen: (scopeFilter?: CatalogSearchScope) => void;
 	clearOpenRequest: () => void;
 }
 
@@ -23,17 +30,18 @@ class SearchQueryService implements ContextService {
 		const [resourceFilter, setResourceFilter] = useState<ResourceFilter>("with");
 		const [hasOpenRequest, setHasOpenRequest] = useState<boolean>(false);
 		const [openRequestVersion, setOpenRequestVersion] = useState<number>(0);
-		const [requestedScopeFilter, setRequestedScopeFilter] = useState<SearchScopeFilter | undefined>(undefined);
+		const [requestedScopeFilter, setRequestedScopeFilter] = useState<CatalogSearchScope | undefined>(undefined);
 
-		const requestOpen = (scopeFilter?: SearchScopeFilter) => {
+		const requestOpen = useCallback((scopeFilter?: CatalogSearchScope) => {
 			setRequestedScopeFilter(scopeFilter);
 			setHasOpenRequest(true);
 			setOpenRequestVersion((v) => v + 1);
-		};
-		const clearOpenRequest = () => {
+		}, []);
+
+		const clearOpenRequest = useCallback(() => {
 			setHasOpenRequest(false);
 			setRequestedScopeFilter(undefined);
-		};
+		}, []);
 
 		return (
 			<SearchQueryContext.Provider

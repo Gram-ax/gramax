@@ -31,7 +31,7 @@ export const apiUtils = {
 		if (!req.headers.referer) {
 			return {
 				protocol: req.headers["x-forwarded-proto"] ?? "http",
-				host: req.headers["x-forwarded-host"] ?? req.headers["host"],
+				host: req.headers["x-forwarded-host"] ?? req.headers.host,
 			};
 		}
 		const [, protocol = "http", host] = /^(?:(https?):\/\/)?([^/]+)/.exec(req.headers.referer);
@@ -72,6 +72,12 @@ export const apiUtils = {
 	sendPlainText(res: ApiResponse, text: string) {
 		res.statusCode = 200;
 		res.setHeader("Content-type", "text/plain");
+		res.send(text);
+	},
+
+	sendCss(res: ApiResponse, text: string) {
+		res.statusCode = 200;
+		res.setHeader("Content-type", "text/css");
 		res.send(text);
 	},
 

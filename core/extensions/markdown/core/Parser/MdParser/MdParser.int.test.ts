@@ -915,4 +915,16 @@ describe("MdParser корректно парсит", () => {
 
 		expect(testParseStr).toEqual(str);
 	});
+
+	test("строка с большим количеством отступов не вызывает зависания", async () => {
+		const mdParser = await getMdParser();
+		const str = `${" ".repeat(10000)}\n${" ".repeat(10000)}`;
+
+		const start = Date.now();
+		const result = mdParser.preParse(str);
+		const elapsed = Date.now() - start;
+
+		expect(result).toEqual(str);
+		expect(elapsed).toBeLessThan(1000);
+	});
 });

@@ -1,9 +1,9 @@
 import type { EditorState } from "@tiptap/pm/state";
 
 const getNearestNodeWithSameCommentId = (state: EditorState, position: number, commentId: string) => {
-	const $pos = state.doc.resolve(position);
-	const parentNode = $pos.node();
-	const parentNodeStartPos = $pos.start();
+	const Pos = state.doc.resolve(position);
+	const parentNode = Pos.node();
+	const parentNodeStartPos = Pos.start();
 
 	let range = null;
 	parentNode.forEach((node, offset) => {

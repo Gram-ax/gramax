@@ -20,6 +20,7 @@ const getMarkdocModel =
 				width: { type: String },
 				height: { type: String },
 				float: { type: String },
+				scale: { type: String },
 			},
 			type: SchemaType.block,
 			transform: (node: Node): RenderableTreeNodes => {

@@ -1,5 +1,6 @@
 import t, { hasTranslation, type TranslationKey } from "@ext/localization/locale/translate";
 import { DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem } from "@ui-kit/Dropdown";
+import { TextOverflowTooltip } from "@ui-kit/Tooltip";
 
 type InputType = "radio" | "checkbox";
 
@@ -27,7 +28,9 @@ const getInput = (type: InputType, checked: boolean, props: PropertyButtonProps)
 		case "radio":
 			return (
 				<DropdownMenuRadioItem key={props.value} value={props.value}>
-					{hasTranslation(translationKey) ? t(translationKey) : props.value}
+					<TextOverflowTooltip>
+						{hasTranslation(translationKey) ? t(translationKey) : props.value}
+					</TextOverflowTooltip>
 				</DropdownMenuRadioItem>
 			);
 		case "checkbox":
@@ -40,7 +43,9 @@ const getInput = (type: InputType, checked: boolean, props: PropertyButtonProps)
 						if (props.options?.closeOnSelect) event.preventDefault();
 					}}
 				>
-					{hasTranslation(translationKey) ? t(translationKey) : props.value}
+					<TextOverflowTooltip>
+						{hasTranslation(translationKey) ? t(translationKey) : props.value}
+					</TextOverflowTooltip>
 				</DropdownMenuCheckboxItem>
 			);
 		default:

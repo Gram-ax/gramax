@@ -1,7 +1,7 @@
 import { DbTableRenderer } from "@ext/markdown/elements/tabledb/word/DbTableRenderer";
+import type { TableWithRefs } from "@ext/tableDB/table";
 import { errorWordLayout } from "@ext/wordExport/error";
 import { tableDbString } from "@ext/wordExport/options/wordExportSettings";
-import type { TableWithRefs } from "../../../../../logic/components/tableDB/table";
 import type { WordBlockChild } from "../../../../wordExport/options/WordTypes";
 
 export const tabledbWordlayout: WordBlockChild = async ({ tag, wordRenderContext }) => {
@@ -10,7 +10,7 @@ export const tabledbWordlayout: WordBlockChild = async ({ tag, wordRenderContext
 	try {
 		const table: TableWithRefs = tag.attributes.object;
 		return await Promise.resolve(dbTableRenderer.renderDbTable(table));
-	} catch (error) {
+	} catch {
 		return errorWordLayout(
 			tableDbString(wordRenderContext.parserContext.getLanguage()),
 			wordRenderContext.parserContext.getLanguage(),

@@ -1,6 +1,6 @@
 (function () {
 	var id = "custom-style-link";
-	var styleId = "custom-style-inline";
+	var styleId = "dynamic-styles";
 
 	function loadAndMoveStyles() {
 		var link = document.getElementById(id);

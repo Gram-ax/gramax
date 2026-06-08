@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/complexity/noImportantStyles: idc */
 ol[data-sonner-toaster] {
 	list-style: none !important;
 }
@@ -37,13 +38,14 @@ ol[data-sonner-toaster] {
 	text-underline-offset: 24%;
 }
 
-[data-sign-in-enteprise-form] {
+[data-sign-in-enterprise-form] {
 	max-width: min(420px, calc(100vw - 32px));
 }
 
 @media (min-width: 1024px) {
-	[data-sign-in-enteprise-form] {
-		max-width: min(432px, calc(100vw - 32px));
+	[data-sign-in-enterprise-form] {
+		/* 443px for InputOTP to be aligned with Email input */
+		max-width: 443px;
 	}
 }
 

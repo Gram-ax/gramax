@@ -16,7 +16,11 @@ const Folder = ({ section, sectionKey }: { section: Section; sectionKey: string 
 
 					{section.icon && (
 						<CardFeature>
-							<FeatureIcon icon={section.icon} size="lg" type="primary" />
+							<FeatureIcon
+								className="border-primary-border bg-secondary-bg-hover"
+								icon={section.icon}
+								size="lg"
+							/>
 						</CardFeature>
 					)}
 				</ActionCard>

@@ -17,7 +17,8 @@ ${userHtml}
     { type: "embed:height", h: document.scrollingElement.scrollHeight, iframeId: "${iframeId}" },
     "*"
   )};
-  new ResizeObserver(post).observe(document.body);
+  const target = document.body ?? document.documentElement;
+  new ResizeObserver(post).observe(target);
   addEventListener("load", post);
 </script>`;
 }
@@ -31,7 +32,7 @@ const Html = ({ content, className }: HtmlProps): ReactElement => {
 	useEffect(() => {
 		const onMessage = (e: MessageEvent) => {
 			if (e.data?.type === "embed:height" && e.data?.iframeId === iframeId) {
-				iframeRef.current.style.height = e.data.h + "px";
+				iframeRef.current.style.height = `${e.data.h}px`;
 			}
 		};
 

@@ -1,9 +1,11 @@
+import { cn } from "@core-ui/utils/cn";
+// biome-ignore lint/style/noRestrictedImports: tailwind migration is out of scope
 import styled from "@emotion/styled";
 
 const CatalogLayout = styled(
 	({ catalogNav, article, className }: { catalogNav: JSX.Element; article: JSX.Element; className?: string }) => {
 		return (
-			<div className={"catalog-layout " + className}>
+			<div className={cn("catalog-layout", className)}>
 				{catalogNav}
 				{article}
 			</div>

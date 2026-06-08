@@ -34,8 +34,8 @@ const SignInEnterpriseModal = ({ authUrl }: { authUrl: string }) => {
 					variant="ghost"
 				/>
 			</DialogTrigger>
-			<DialogContent data-modal-root data-sign-in-enteprise-form>
-				<DialogBody>
+			<DialogContent data-modal-root data-sign-in-enterprise-form>
+				<DialogBody className="overflow-hidden">
 					<SignInEnterpriseForm
 						authUrl={authUrl}
 						onlySSO={onlySSO}
